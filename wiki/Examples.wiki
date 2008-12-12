@@ -1,0 +1,30 @@
+#summary Some simple usage examples
+
+{{{
+from bitstring import *
+}}}
+===Creating bitstrings===
+{{{
+# From hexadecimal string, the leading '0x' is optional
+h = bitstring(hex='0x000001b3')
+
+# From a binary string.
+b = bitstring(bin='0010011')
+
+# With integers the length of the bitstring in bits needs to be supplied.
+# It must be long enough to contain the integer.
+ui = bitstring(uint=15, length=6)
+
+# From an integer represented as a signed exponential goulomb code
+e = bitstring(se=-10)
+
+}}}
+===Interpreting bitstrings===
+{{{
+print(h.hex)   # 0x000001b3
+print(h.bin)   # 00000000000000000000000110110011
+print(ui.uint) # 15
+print(ui.bin)  # 001111 (note the leading zeros because we gave it a length of 6)
+print(e.se)    # -10
+print(e.bin)   # 000010101
+}}}
