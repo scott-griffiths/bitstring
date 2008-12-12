@@ -6,17 +6,17 @@ from bitstring import *
 ===Creating bitstrings===
 {{{
 # From hexadecimal string, the leading '0x' is optional
-h = bitstring(hex='0x000001b3')
+h = BitString(hex='0x000001b3')
 
 # From a binary string.
-b = bitstring(bin='0010011')
+b = BitString(bin='0010011')
 
 # With integers the length of the bitstring in bits needs to be supplied.
 # It must be long enough to contain the integer.
-ui = bitstring(uint=15, length=6)
+ui = BitString(uint=15, length=6)
 
 # From an integer represented as a signed exponential goulomb code
-e = bitstring(se=-10)
+e = BitString(se=-10)
 
 }}}
 ===Interpreting bitstrings===
