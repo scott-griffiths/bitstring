@@ -4,7 +4,7 @@
 {{{
 from bitstring import *
 }}}
-===Creating BitStrings===
+===Creating !BitStrings===
 {{{
 # From hexadecimal string, the leading '0x' is optional
 h = BitString(hex='0x000001b3')
@@ -20,7 +20,7 @@ ui = BitString(uint=15, length=6)
 e = BitString(se=-10)
 
 }}}
-===Interpreting BitStrings===
+===Interpreting !BitStrings===
 {{{
 print(h.hex)   # 0x000001b3
 print(h.bin)   # 00000000000000000000000110110011
@@ -30,7 +30,7 @@ print(e.se)    # -10
 print(e.bin)   # 000010101
 }}}
 
-===Manipulating BitStrings===
+===Manipulating !BitStrings===
 {{{
 # Slicing
 print(h[24:32].hex) # 0xb3
