@@ -1,10 +1,5 @@
 #summary Help on module bitstring:
 {{{
-NAME
-    bitstring
-
-FILE
-    /Users/scott/Documents/python/BitString/bitstring.pyc
 
 CLASSES
     __builtin__.object
