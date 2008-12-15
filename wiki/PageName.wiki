@@ -11,8 +11,6 @@ CLASSES
         BitString
         FileArray
         MemArray
-    exceptions.Exception(exceptions.BaseException)
-        Error
     
     class BitString(__builtin__.object)
      |  A class for general bit-wise manipulations and interpretations.
