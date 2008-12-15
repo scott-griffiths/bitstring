@@ -2,10 +2,6 @@
 {{{
 
 CLASSES
-    __builtin__.object
-        BitString
-        FileArray
-        MemArray
     
     class BitString(__builtin__.object)
      |  A class for general bit-wise manipulations and interpretations.
@@ -130,47 +126,7 @@ CLASSES
      |  
      |  uint
      |      the BitString as an unsigned int
-    
-    
-    class FileArray(__builtin__.object)
-     |  A class that mimics the array.array type but gets data from a file object.
-     |  
-     |  Methods defined here:
-     |  
-     |  __copy__(self)
-     |  
-     |  __getitem__(self, key)
-     |  
-     |  __init__(self, filename, lengthinbits)
-     |  
-     |  __len__(self)
-     |  
-     |  length(self)
-     |  
-     |  tostring(self)
-    
-    class MemArray(__builtin__.object)
-     |  A class that wraps the array.array functionality.
-     |  
-     |  Methods defined here:
-     |  
-     |  __copy__(self)
-     |  
-     |  __getitem__(self, key)
-     |  
-     |  __init__(self, data)
-     |  
-     |  __len__(self)
-     |  
-     |  __setitem__(self, key, item)
-     |  
-     |  append(self, data)
-     |  
-     |  extend(self, data)
-     |  
-     |  length(self)
-     |  
-     |  tostring(self)
+  
 
 FUNCTIONS
     hex_string_from_single_byte(b)
