@@ -4,7 +4,7 @@
 {{{
 from bitstring import *
 }}}
-===Creating bitstrings===
+===Creating BitStrings===
 {{{
 # From hexadecimal string, the leading '0x' is optional
 h = BitString(hex='0x000001b3')
@@ -20,7 +20,7 @@ ui = BitString(uint=15, length=6)
 e = BitString(se=-10)
 
 }}}
-===Interpreting bitstrings===
+===Interpreting BitStrings===
 {{{
 print(h.hex)   # 0x000001b3
 print(h.bin)   # 00000000000000000000000110110011
@@ -28,4 +28,22 @@ print(ui.uint) # 15
 print(ui.bin)  # 001111 (note the leading zeros because we gave it a length of 6)
 print(e.se)    # -10
 print(e.bin)   # 000010101
+}}}
+
+===Manipulating BitStrings===
+{{{
+# Slicing
+print(h[24:32].hex) # 0xb3
+print(h[-4:].bin)   # 0011 (the final four bits)
+
+# Joining lists
+bsl = [BitString(bin=b) for b in ['0', '1', '000', '111']]
+print(join(bsl).bin)  # 01000111
+
+# Using a bitstring as a source for other bitstrings
+s = BitString(hex='0x00112233445566778899aabbccddeeff')
+print(s.readbit().bin) # 0
+s.advancebits(7)       # Move on 7 bits to byte align.
+print(s.readbytes(3).hex) # 0x112233
+
 }}}
