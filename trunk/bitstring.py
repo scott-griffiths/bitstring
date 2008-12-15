@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# bitstring class for bit-wise data manipulation.
+# BitString class for bit-wise data manipulation.
 
 license = """
 The MIT License
@@ -29,8 +29,6 @@ import array
 import copy
 import string
 import os
-import logging as log
-
 
 
 # Using a lookup string is a horrible way of converting from an integer to
@@ -83,9 +81,11 @@ def removewhitespace(s):
     """Return string with all whitespace removed."""
     return string.join(s.split(), '')
 
-    
+
 class Error(Exception):
+    """A general purpose exception class for all BitString specific exceptions."""
     pass
+
 
 class FileArray(object):
     """A class that mimics the array.array type but gets data from a file object."""
@@ -181,10 +181,17 @@ class BitString(object):
     """A class for general bit-wise manipulations and interpretations.
     
        length : length of the string in bits
-       data : raw data as a string (not in general printable!)
+       offset : bit offset to the data (0 - 7). The first offset bits are ignored.
+       
+       Initialise the BitString with one (and only one) of:
+       data : raw data as a string, for example read from binary file
        bin : binary string representation, e.g. '00101110'
        hex : hexadecimal string representation, e.g. '0x2e'
-       offset : bit offset to the data (0 - 7). The first offset bits are ignored.
+       uint : unsigned integer
+       int : signed integer
+       se : signed Exponential-Golomb
+       ue : unsigned Exponential-Golomb
+       filename : Note this option is experimental and only partially supported
        
        e.g.
        a = BitString(hex='0x123456', offset=4, length=8)
@@ -196,14 +203,14 @@ class BitString(object):
                  bin = None, uint = None, int = None,  ue = None, se = None):
         """Contains a numerical string with length in bits with an offset bit count."""
         if not 0 <= offset < 8:
-            raise Error("offset must be between 0 and 7")
+            raise Error("Offset must be between 0 and 7")
         
         self._offset = offset
         self._pos = 0
         self._length = 0
         self._file = None
         if length is not None and length < 0:
-            raise Error("length cannot be negative")
+            raise Error("Length cannot be negative")
         
         initialisers = [data, filename, hex, bin, int, uint, ue, se]
         if initialisers.count(None) < len(initialisers) - 1:
@@ -221,11 +228,11 @@ class BitString(object):
             self._setint(int, length)
         elif ue is not None:
             if length is not None:
-                raise Error("A length cannot be specified for a ue initialiser")
+                raise Error("A length cannot be specified for an unsigned Exponential-Golomb initialiser")
             self._setue(ue)
         elif se is not None:
             if length is not None:
-                raise Error("A length cannot be specified for a se initialiser")
+                raise Error("A length cannot be specified for a signed Exponential-Golomb initialiser")
             self._setse(se)
         elif filename is not None:
             self._setfile(filename, length)
@@ -237,17 +244,13 @@ class BitString(object):
             assert(length is None and initialisers.count(None) == len(initialisers))
             self._setdata('', length)
         self._assertSanity()
-
-    def _fillBuffer(self):
-        """Fill up the byte buffer from the file source."""
         
     def _setfile(self, filename, lengthinbits):
+        "Use file as source of bits. Experimental code, not fully working yet."
         assert(not lengthinbits or lengthinbits%8 == 0) # TODO raise exception
         self._data = FileArray(filename, lengthinbits)
         # Note that len(self._data) will raise OverflowError if > 4GB. Python bug?
         self._length = self._data.length()*8
-            
-        
 
     def _assertSanity(self):
         """Check internal self consistency as a debugging aid."""
@@ -278,7 +281,7 @@ class BitString(object):
             self._data[-1] &= 255 ^ (255 >> bits_used_in_final_byte)        
         
     def _setdata(self, data, length = None):
-        """Set the data."""
+        """Set the data from a string."""
         self._data = MemArray(data)
         if length is None:
             # Use to the end of the data
@@ -299,14 +302,14 @@ class BitString(object):
         return self._data.tostring()
 
     def _getbytepos(self):
-        """Return the position in the stream as a byte offset."""
+        """Return the current position in the stream in bytes. Must be byte aligned."""
         p = self._getbitpos()
         if p%8 != 0:
             raise Error("Not byte aligned in _getbytepos()")
         return p/8
 
     def _getbitpos(self):
-        """Return position in stream as a bit position."""
+        """Return the current position in the stream in bits."""
         assert(0 <= self._pos <= self._length)
         return self._pos
     
@@ -316,7 +319,7 @@ class BitString(object):
         return self._length
     
     def empty(self):
-        """Return True if the BitString has no data."""
+        """Return True only if the BitString is empty."""
         return self._length == 0
 
     def readbits(self, bits):
@@ -345,7 +348,6 @@ class BitString(object):
         """Return BitString of length 8 bits and advances position. Does not byte align."""
         return self.readbits(8)
 
-    # TODO: Is the needed now? can't we just do bitPos += bits
     def advancebits(self, bits):
         """Advance position by bits."""
         if bits < 0:
@@ -393,12 +395,12 @@ class BitString(object):
         try:
             p = self._data.tostring().find(d, self._pos/8)
         except NotImplementedError:
-            pass # TODO!
+            pass # TODO! This will fail if BitString is initialise with a filename
         if p == -1:
             self._pos = oldpos
             return False
         self.bytepos = p
-        #self._assertSanity()
+        self._assertSanity()
         return True
     
     def find(self, s):
@@ -412,13 +414,13 @@ class BitString(object):
         """Align to next byte and return number of skipped bits."""
         skipped = (8 - (self._pos%8))%8
         self.bitpos = self._pos + skipped
-        #self._assertSanity()
+        self._assertSanity()
         return skipped
 
     def _getuint(self):
         """Return data as an unsigned int."""
         if self._data.length() == 0:
-            raise Error("Empty BitString cannot be interpreted as a uint")
+            raise Error("An empty BitString cannot be interpreted as an unsigned integer")
         if self._data.length() == 1:
             mask = ((1<<self._length)-1)<<(8-self._length-self._offset)
             val = self._data[0] & mask
@@ -485,8 +487,8 @@ class BitString(object):
         self._setuint(int, length)
     
     def _getue(self):
-        """Return interpretation of next bits in stream as an unsigned Exponential Goulomb of the type used in H.264.
-           Advances position to after read code."""
+        """Return interpretation of next bits in stream as an unsigned Exponential-Golomb of the type used in H.264.
+           Advances position to after the read code."""
         leadingzerobits = -1
         b = 0
         while b == 0:
@@ -498,8 +500,9 @@ class BitString(object):
         return codenum
 
     def _setue(self, i):
+        """Initialise BitString with unsigned Exponential-Golomb code for i."""
         if i < 0:
-            raise Error("Cannot use negative initialiser for unsigned Exponential Goulomb.")
+            raise Error("Cannot use negative initialiser for unsigned Exponential-Golomb.")
         if i == 0:
             self._setbin('1')
             return
@@ -514,7 +517,8 @@ class BitString(object):
                 
     
     def _getse(self):
-        """Return interpretation as a signed Exponential Goulomb of the type used in H.264."""
+        """Return interpretation as a signed Exponential-Golomb of the type used in H.264.
+           Advances position to after the read code."""
         codenum = self.ue
         m = (codenum + 1)/2
         if codenum % 2 == 0:
@@ -523,6 +527,7 @@ class BitString(object):
             return m
     
     def _setse(self, i):
+        """Initialise BitString with signed Exponential-Golomb code for i."""
         if i > 0:
             u = (i*2)-1
         else:
@@ -546,9 +551,8 @@ class BitString(object):
     
     def _sethexsafe(self, hexstring, length=None):
         """Reset the BitString to have the value given in hexstring."""
-        # remove whitespace
         hexstring = removewhitespace(hexstring)
-            # remove leading 0x if present
+        # remove leading 0x if present
         if len(hexstring) > 2 and hexstring[0:2] in ['0x','0X']:
             hexstring = hexstring[2:]
         if length is None:
@@ -638,7 +642,7 @@ class BitString(object):
         self._assertSanity()
 
     def truncateend(self, bits):
-        """Truncate bits from the end of the BitString."""
+        """Truncate bits from the end of the BitString. Return new BitString."""
         if bits < 0 or bits > self._length:
             raise Error("Truncation length of %d bits not possible. Length = %d"%(bits,self._length))
         s = BitString()
@@ -657,7 +661,7 @@ class BitString(object):
         return s    
     
     def truncatestart(self, bits):
-        """Truncate bits from the start of the BitString."""
+        """Truncate bits from the start of the BitString. Return new BitString."""
         if bits < 0 or bits > self._length:
             raise Error("Truncation length of %d not possible. Length = %d" % (bits, self._length))
         s = BitString()
@@ -749,7 +753,7 @@ class BitString(object):
             s1._data.append(s2._data[0])
         s1._data.extend(s2._data[1:s2._data.length()])
         s1._length += s2._length
-        #s1._assertSanity()
+        s1._assertSanity()
         return s1
     
     def _setoffset(self, offset):
@@ -783,14 +787,14 @@ class BitString(object):
                 self._data[x] = ((self._data[x-1] << (8 - shiftright))&255) + (self._data[x] >> shiftright)
             self._data[0] = self._data[0] >> shiftright
         self._offset = offset
-        #self._assertSanity()
+        self._assertSanity()
 
     def _getoffset(self):
         """Return current offset."""
         return self._offset
     
     def __add__(self, s):
-        """Concatenate BitStrings."""
+        """Concatenate BitStrings and return new BitString."""
         return self.append(s)
     
     def __iadd__(self, s):
@@ -799,7 +803,7 @@ class BitString(object):
         return self
     
     def __getitem__(self, key):
-        """Return a slice of the BitString. Stepping is not supported."""
+        """Return a slice of the BitString. Indices are in bits and stepping is not supported."""
         try:
             key.start
         except AttributeError:
@@ -834,7 +838,7 @@ class BitString(object):
             return BitString()
         
     def split(self, delimiter):
-        """Return a generator of BitStrings by splittling into substring starting with a byte aligned delimiter.
+        """Return a generator of BitStrings by splittling into substrings starting with a byte aligned delimiter.
         The first item returned is the initial bytes before the delimiter, which may be empty."""
         if len(delimiter) == 0:
             raise Error("split delimiter cannot be null.")
@@ -872,8 +876,8 @@ class BitString(object):
     data   = property(_getdata, _setdata, doc="the BitString as a ordinary string")
     int    = property(_getint, _setint, doc="the BitString as a two's complement signed int")
     uint   = property(_getuint, _setuint, doc="the BitString as an unsigned int")
-    ue     = property(_getue, _setue, doc="the BitString as an unsigned Exponential Goulomb")
-    se     = property(_getse, _setse, doc="the BitString as a signed Exponential Goulomb")
+    ue     = property(_getue, _setue, doc="the BitString as an unsigned Exponential-Golomb")
+    se     = property(_getse, _setse, doc="the BitString as a signed Exponential-Golomb")
     bitpos = property(_getbitpos, _setbitpos, doc="the position in the BitString in bits")
     bytepos= property(_getbytepos, _setbytepos, doc="the position in the BitString in bytes")
 
