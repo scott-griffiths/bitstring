@@ -4,7 +4,7 @@
 license = """
 The MIT License
 
-Copyright (c) 2006-2008 Scott Griffiths
+Copyright (c) 2006-2008 Scott Griffiths (scott@griffiths.name)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,41 +33,41 @@ import os
 
 # Using a lookup string is a horrible way of converting from an integer to
 # a single byte, but if you can think of a better way...
-byte_lookup = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'\
-              '\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f'\
-              '\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a\x2b\x2c\x2d\x2e\x2f'\
-              '\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3a\x3b\x3c\x3d\x3e\x3f'\
-              '\x40\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4a\x4b\x4c\x4d\x4e\x4f'\
-              '\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5a\x5b\x5c\x5d\x5e\x5f'\
-              '\x60\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6a\x6b\x6c\x6d\x6e\x6f'\
-              '\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f'\
-              '\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f'\
-              '\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f'\
-              '\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf'\
-              '\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf'\
-              '\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf'\
-              '\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf'\
-              '\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef'\
-              '\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff'
+_byte_lookup = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'\
+               '\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f'\
+               '\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a\x2b\x2c\x2d\x2e\x2f'\
+               '\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3a\x3b\x3c\x3d\x3e\x3f'\
+               '\x40\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4a\x4b\x4c\x4d\x4e\x4f'\
+               '\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5a\x5b\x5c\x5d\x5e\x5f'\
+               '\x60\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6a\x6b\x6c\x6d\x6e\x6f'\
+               '\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f'\
+               '\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f'\
+               '\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f'\
+               '\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf'\
+               '\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf'\
+               '\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf'\
+               '\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf'\
+               '\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef'\
+               '\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff'
 
-def single_byte_from_hex_string(h):
+def _single_byte_from_hex_string(h):
     """Return a byte equal to the input hex string."""
     try:
         int(h, 16)
     except ValueError:
-        raise Error("Can't convert hex string to a single byte")
+        raise BitStringError("Can't convert hex string to a single byte")
     if len(h) > 2:
-        raise Error("Hex string can't be more than one byte in size")
+        raise BitStringError("Hex string can't be more than one byte in size")
     if len(h) == 2:
-        return byte_lookup[int(h, 16)]    
+        return _byte_lookup[int(h, 16)]    
     elif len(h) == 1:
-        return byte_lookup[int(h, 16)<<4]
+        return _byte_lookup[int(h, 16)<<4]
 
-def single_byte_from_hex_string_unsafe(h):
+def _single_byte_from_hex_string_unsafe(h):
     """Return a byte equal to the input 2 character hex string. No parameter checking done."""
-    return byte_lookup[int(h, 16)]
+    return _byte_lookup[int(h, 16)]
 
-def hex_string_from_single_byte(b):
+def _hex_string_from_single_byte(b):
     """Return a two character hex string from a single byte value."""
     v = ord(b)
     if v > 15:
@@ -77,17 +77,16 @@ def hex_string_from_single_byte(b):
     else:
         return '00'
 
-def removewhitespace(s):
+def _removewhitespace(s):
     """Return string with all whitespace removed."""
     return string.join(s.split(), '')
 
 
-class Error(Exception):
-    """A general purpose exception class for all BitString specific exceptions."""
-    pass
+class BitStringError(Exception):
+    """Base class for errors in the bitstring module."""
 
 
-class FileArray(object):
+class _FileArray(object):
     """A class that mimics the array.array type but gets data from a file object."""
     
     def __init__(self, filename, lengthinbits):
@@ -107,7 +106,7 @@ class FileArray(object):
         return self._length
     
     def __copy__(self):
-        raise Error("FileArray.copy() not allowed")
+        raise BitStringError("_FileArray.copy() not allowed")
     
     def __getitem__(self, key):
         try:
@@ -119,10 +118,10 @@ class FileArray(object):
             if key < 0:
                 key = self._length + key
             self.source.seek(key, os.SEEK_SET)
-            return MemArray(self.source.read(1))
+            return _MemArray(self.source.read(1))
         # A slice
         if key.step is not None:
-            raise Error("step not supported for slicing BitStrings")
+            raise BitStringError("step not supported for slicing BitStrings")
         if key.start is None:
             start = 0
         elif key.start < 0:
@@ -137,15 +136,15 @@ class FileArray(object):
             stop = key.stop
         if start < stop:
             self.source.seek(start, os.SEEK_SET)
-            return MemArray(self.source.read(stop-start))
+            return _MemArray(self.source.read(stop-start))
         else:
-            return MemArray('')
+            return _MemArray('')
     
     def tostring(self):
         raise NotImplementedError
     
 
-class MemArray(object):
+class _MemArray(object):
     """A class that wraps the array.array functionality."""
     
     def __init__(self, data):
@@ -159,7 +158,7 @@ class MemArray(object):
         return len(self._data)
     
     def __copy__(self):
-        return MemArray(self._data)
+        return _MemArray(self._data)
         #return copy.copy(self.data)
     
     def __getitem__(self, key):
@@ -203,18 +202,18 @@ class BitString(object):
                  bin = None, uint = None, int = None,  ue = None, se = None):
         """Contains a numerical string with length in bits with an offset bit count."""
         if not 0 <= offset < 8:
-            raise Error("Offset must be between 0 and 7")
+            raise BitStringError("Offset must be between 0 and 7")
         
         self._offset = offset
         self._pos = 0
         self._length = 0
         self._file = None
         if length is not None and length < 0:
-            raise Error("Length cannot be negative")
+            raise BitStringError("Length cannot be negative")
         
         initialisers = [data, filename, hex, bin, int, uint, ue, se]
         if initialisers.count(None) < len(initialisers) - 1:
-            raise Error("You must only specify one initialiser when initialising the BitString")
+            raise BitStringError("You must only specify one initialiser when initialising the BitString")
         
         if hex is not None:
             self._sethexsafe(hex, length)
@@ -228,11 +227,11 @@ class BitString(object):
             self._setint(int, length)
         elif ue is not None:
             if length is not None:
-                raise Error("A length cannot be specified for an unsigned Exponential-Golomb initialiser")
+                raise BitStringError("A length cannot be specified for an unsigned Exponential-Golomb initialiser")
             self._setue(ue)
         elif se is not None:
             if length is not None:
-                raise Error("A length cannot be specified for a signed Exponential-Golomb initialiser")
+                raise BitStringError("A length cannot be specified for a signed Exponential-Golomb initialiser")
             self._setse(se)
         elif filename is not None:
             self._setfile(filename, length)
@@ -243,16 +242,16 @@ class BitString(object):
         else:
             assert(length is None and initialisers.count(None) == len(initialisers))
             self._setdata('', length)
-        self._assertSanity()
+        self._assertsanity()
         
     def _setfile(self, filename, lengthinbits):
         "Use file as source of bits. Experimental code, not fully working yet."
         assert(not lengthinbits or lengthinbits%8 == 0) # TODO raise exception
-        self._data = FileArray(filename, lengthinbits)
+        self._data = _FileArray(filename, lengthinbits)
         # Note that len(self._data) will raise OverflowError if > 4GB. Python bug?
         self._length = self._data.length()*8
 
-    def _assertSanity(self):
+    def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
         assert(self._length >= 0)
         assert(0 <= self._offset < 8)
@@ -282,7 +281,7 @@ class BitString(object):
         
     def _setdata(self, data, length = None):
         """Set the data from a string."""
-        self._data = MemArray(data)
+        self._data = _MemArray(data)
         if length is None:
             # Use to the end of the data
             self._length = self._data.length()*8 - self._offset
@@ -290,12 +289,12 @@ class BitString(object):
             self._length = length
             if self._length+self._offset < self._data.length()*8:
                 # strip unused bytes from the end
-                self._data = MemArray(self._data[:(self._length+self._offset+7)/8])
+                self._data = _MemArray(self._data[:(self._length+self._offset+7)/8])
             if self._length+self._offset > self._data.length()*8:
-                raise Error("Not enough data present. Need %d bits, have %d." % \
+                raise BitStringError("Not enough data present. Need %d bits, have %d." % \
                                      (self._length+self._offset, self._data.length()*8))
         self._setunusedbitstozero()
-        self._assertSanity()
+        self._assertsanity()
             
     def _getdata(self):
         """Return the data as an ordinary string."""
@@ -305,7 +304,7 @@ class BitString(object):
         """Return the current position in the stream in bytes. Must be byte aligned."""
         p = self._getbitpos()
         if p%8 != 0:
-            raise Error("Not byte aligned in _getbytepos()")
+            raise BitStringError("Not byte aligned in _getbytepos()")
         return p/8
 
     def _getbitpos(self):
@@ -325,14 +324,14 @@ class BitString(object):
     def readbits(self, bits):
         """Return new BitString of length bits and advance position."""
         if bits < 0:
-            raise Error("Cannot read negative amount")
+            raise BitStringError("Cannot read negative amount")
         if self._pos+bits > self._length:
-            raise Error("Reading off the end of the stream")
+            raise BitStringError("Reading off the end of the stream")
         newoffset = (self._pos+self._offset)%8
         startbyte = (self._pos+self._offset)/8
         endbyte = (self._pos+self._offset+bits-1)/8
         self._pos += bits
-        self._assertSanity()
+        self._assertsanity()
         return BitString(data = self._data[startbyte:endbyte+1], length = bits,
                          offset = newoffset) 
 
@@ -351,26 +350,26 @@ class BitString(object):
     def advancebits(self, bits):
         """Advance position by bits."""
         if bits < 0:
-            raise Error("Cannot advance by a negative amount")
+            raise BitStringError("Cannot advance by a negative amount")
         self.bitpos = self._pos + bits
 
     def retreatbits(self, bits):
         """Retreat position by bits."""
         if bits < 0:
-            raise Error("Cannot retreat by a negative amount")
-        self.bitpos = self._pos - bits
+            raise BitStringError("Cannot retreat by a negative amount")
+        self._setbitpos(self._pos - bits)
 
     def advancebytes(self, bytes):
         """Advance position by bytes. Does not byte align."""
         if bytes < 0:
-            raise Error("Cannot advance by a negative amount")
-        self.bitpos = self._pos + bytes*8
+            raise BitStringError("Cannot advance by a negative amount")
+        self._setbitpos(self._pos + bytes*8)
 
     def retreatbytes(self, bytes):
         """Retreat position by bytes."""
         if bytes < 0:
-            raise Error("Cannot retreat by a negative amount")
-        self.bitpos = self._pos - bytes*8
+            raise BitStringError("Cannot retreat by a negative amount")
+        self._setbitpos(self._pos - bytes*8)
 
     def _setbytepos(self, bytepos):
         """Move to absolute byte-aligned position in stream."""
@@ -379,17 +378,23 @@ class BitString(object):
     def _setbitpos(self, bitpos):
         """Move to absolute postion bit in bitstream."""
         if bitpos < 0:
-            raise Error("Bit position cannot be negative")
+            raise BitStringError("Bit position cannot be negative")
         if bitpos >= self._length:
-            raise Error("Cannot seek past the end of the data")
+            raise BitStringError("Cannot seek past the end of the data")
         self._pos = bitpos
 
-    def findbytes(self, d):
+    def findbytealigned(self, d):
         """Seek to start of next occurence of byte-aligned string. Return True if string is found."""
+        # If we are passed in a BitString then convert it to raw data.
+        if isinstance(d, BitString):
+            if d._length % 8 != 0:
+                raise BitStringError("Can only use find for whole-byte BitStrings.")
+            d._setoffset(0)
+            d = d.data
         oldpos = self._pos
         try:
             self.bytealign()
-        except Error:
+        except BitStringError:
             self._pos = oldpos
             return False
         try:
@@ -399,28 +404,21 @@ class BitString(object):
         if p == -1:
             self._pos = oldpos
             return False
-        self.bytepos = p
-        self._assertSanity()
+        self._setbytepos(p)
+        self._assertsanity()
         return True
-    
-    def find(self, s):
-        """Seek to start of next occurence of byte-aligned BitString. Return True is string is found."""
-        if s._length % 8 != 0:
-            raise Error("Can only use find for whole-byte BitStrings.")
-        s.offset = 0
-        return self.findbytes(s.data)
 
     def bytealign(self):
         """Align to next byte and return number of skipped bits."""
-        skipped = (8 - (self._pos%8))%8
-        self.bitpos = self._pos + skipped
-        self._assertSanity()
+        skipped = (8 - ((self._pos)%8))%8
+        self._setbitpos(self._pos + self._offset + skipped)
+        self._assertsanity()
         return skipped
 
     def _getuint(self):
         """Return data as an unsigned int."""
         if self._data.length() == 0:
-            raise Error("An empty BitString cannot be interpreted as an unsigned integer")
+            raise BitStringError("An empty BitString cannot be interpreted as an unsigned integer")
         if self._data.length() == 1:
             mask = ((1<<self._length)-1)<<(8-self._length-self._offset)
             val = self._data[0] & mask
@@ -446,11 +444,11 @@ class BitString(object):
         if length is None:
             length = self._length
         if length is None:
-            raise Error("A length must be specified with a uint initialiser")
+            raise BitStringError("A length must be specified with a uint initialiser")
         if uint >= (1 << length) or length == 0:
-            raise Error("uint cannot be contained using BitString of that length")
+            raise BitStringError("uint cannot be contained using BitString of that length")
         if uint < 0:
-            raise Error("uint cannot be initialsed to a negative number")     
+            raise BitStringError("uint cannot be initialsed to a negative number")     
         
         hexstring = hex(uint)[2:]
         if hexstring[-1] == 'L':
@@ -478,9 +476,9 @@ class BitString(object):
         if length is None:
             length = self._length
         if length is None:
-            raise Error("A length must be specified with an int initialiser")
+            raise BitStringError("A length must be specified with an int initialiser")
         if length == 0 or int >=  (1 << (length - 1)) or int < -(1 << (length - 1)):
-            raise Error("int cannot be contained using BitString of that length")   
+            raise BitStringError("int cannot be contained using BitString of that length")   
         if int < 0:
             # the twos complement thing to get the equivalent +ive number
             int = (-int-1)^((1 << length) - 1)
@@ -502,7 +500,7 @@ class BitString(object):
     def _setue(self, i):
         """Initialise BitString with unsigned Exponential-Golomb code for i."""
         if i < 0:
-            raise Error("Cannot use negative initialiser for unsigned Exponential-Golomb.")
+            raise BitStringError("Cannot use negative initialiser for unsigned Exponential-Golomb.")
         if i == 0:
             self._setbin('1')
             return
@@ -537,12 +535,12 @@ class BitString(object):
     def _gethex(self):
         """Return interpretation as a hexidecimal string."""
         if self._length%4 != 0:
-            raise Error("Cannot convert to hex unambiguously - not multiple of 4 bits")
+            raise BitStringError("Cannot convert to hex unambiguously - not multiple of 4 bits")
         if self._length == 0:
             return ''
         self._setoffset(0)
         s = self._data.tostring()
-        hexstrings = [hex_string_from_single_byte(i) for i in s]
+        hexstrings = [_hex_string_from_single_byte(i) for i in s]
         if (self._length/4)%2 == 1:
             # only a nibble left at the end
             hexstrings[-1] = hexstrings[-1][0]
@@ -551,18 +549,18 @@ class BitString(object):
     
     def _sethexsafe(self, hexstring, length=None):
         """Reset the BitString to have the value given in hexstring."""
-        hexstring = removewhitespace(hexstring)
+        hexstring = _removewhitespace(hexstring)
         # remove leading 0x if present
         if len(hexstring) > 2 and hexstring[0:2] in ['0x','0X']:
             hexstring = hexstring[2:]
         if length is None:
             length = len(hexstring)*4 - self._offset
         if length < 0 or length + self._offset > len(hexstring)*4:
-            raise Error("Invalid length %d, offset %d for hexstring %s" % (length, self._offset, hexstring))    
+            raise BitStringError("Invalid length %d, offset %d for hexstring %s" % (length, self._offset, hexstring))    
         hexstring = hexstring[0:(length + self._offset + 3)/4]
         self._length = length
         if self._length == 0:
-            self._data = MemArray('')
+            self._data = _MemArray('')
             return
         datastring = ""
         # First do the whole bytes
@@ -570,18 +568,18 @@ class BitString(object):
             try:
                 int(hexstring[i*2:i*2+2], 16)
             except ValueError:
-                raise Error("Cannot convert to hexadecimal")
-            datastring += single_byte_from_hex_string(hexstring[i*2:i*2+2])
+                raise BitStringError("Cannot convert to hexadecimal")
+            datastring += _single_byte_from_hex_string(hexstring[i*2:i*2+2])
         # then any remaining nibble
         if len(hexstring)%2 == 1:
             try:
                 int(hexstring[-1],16)
             except ValueError:
-                raise Error("Cannot convert last digit to hexadecimal")
-            datastring += single_byte_from_hex_string(hexstring[-1])
-        self._data = MemArray(datastring)
+                raise BitStringError("Cannot convert last digit to hexadecimal")
+            datastring += _single_byte_from_hex_string(hexstring[-1])
+        self._data = _MemArray(datastring)
         self._setunusedbitstozero()
-        self._assertSanity()
+        self._assertsanity()
         
     def _sethexunsafe(self, hexstring, length=None):
         """Reset the BitString to have the value given in hexstring.
@@ -590,18 +588,18 @@ class BitString(object):
             length = len(hexstring)*4 - self._offset   
         self._length = length
         if self._length == 0:
-            self._data = MemArray('')
+            self._data = _MemArray('')
             return
         datastring = ""
         # First do the whole bytes
         for i in xrange(len(hexstring)/2):
-            datastring += single_byte_from_hex_string_unsafe(hexstring[i*2:i*2+2])
+            datastring += _single_byte_from_hex_string_unsafe(hexstring[i*2:i*2+2])
         # then any remaining nibble
         if len(hexstring)%2 == 1:
-            datastring += single_byte_from_hex_string(hexstring[-1])
-        self._data = MemArray(datastring)
+            datastring += _single_byte_from_hex_string(hexstring[-1])
+        self._data = _MemArray(datastring)
         self._setunusedbitstozero()
-        self._assertSanity()
+        self._assertsanity()
         
     def _getbin(self):
         """Return interpretation as a binary string."""
@@ -617,17 +615,17 @@ class BitString(object):
     
     def _setbin(self, binstring, length=None):
         """Reset the BitString to the value given in binstring."""
-        binstring = removewhitespace(binstring)
+        binstring = _removewhitespace(binstring)
         if length is None:
             length = len(binstring)
         if length < 0 or length > len(binstring):
-            raise Error("Invalid length of binary string")
+            raise BitStringError("Invalid length of binary string")
         # Truncate the bin_string if needed
         binstring = binstring[0:length]
         self._length = length
         self._offset = 0
         if self._length == 0:
-            self._data = MemArray('')
+            self._data = _MemArray('')
             return
         # pad with zeros up to byte boundary if needed
         boundary = ((self._length + 7)/8)*8
@@ -636,15 +634,15 @@ class BitString(object):
         try:
             bytes = [int(binstring[x:x+8], 2) for x in range(0, len(binstring), 8)]
         except ValueError:
-            raise Error("Invalid character in binstring")
-        self._data = MemArray(bytes)
+            raise BitStringError("Invalid character in binstring")
+        self._data = _MemArray(bytes)
         self._setunusedbitstozero()
-        self._assertSanity()
+        self._assertsanity()
 
     def truncateend(self, bits):
         """Truncate bits from the end of the BitString. Return new BitString."""
         if bits < 0 or bits > self._length:
-            raise Error("Truncation length of %d bits not possible. Length = %d"%(bits,self._length))
+            raise BitStringError("Truncation length of %d bits not possible. Length = %d"%(bits,self._length))
         s = BitString()
         if bits == 0:
             return BitString(data=self._data, offset=self._offset, length=self._length)
@@ -657,13 +655,13 @@ class BitString(object):
         s._setunusedbitstozero()
         # Ensure that the position is still valid
         s._pos = min(self._pos, s._length-1)
-        s._assertSanity()
+        s._assertsanity()
         return s    
     
     def truncatestart(self, bits):
         """Truncate bits from the start of the BitString. Return new BitString."""
         if bits < 0 or bits > self._length:
-            raise Error("Truncation length of %d not possible. Length = %d" % (bits, self._length))
+            raise BitStringError("Truncation length of %d not possible. Length = %d" % (bits, self._length))
         s = BitString()
         if bits == 0:
             return BitString(data=self._data, offset=self._offset, length=self._length)
@@ -680,7 +678,7 @@ class BitString(object):
         if s._pos < 0:
             s._pos = 0
         s._setunusedbitstozero()
-        s._assertSanity()
+        s._assertsanity()
         return s
     
     def slice(self, startbit, endbit):
@@ -689,7 +687,7 @@ class BitString(object):
             raise bs.BitStreamError("Slice: endbit must not be less than startbit")
         s = self.truncateend(self._length - endbit).truncatestart(startbit)
         assert(s.length == endbit - startbit)
-        s._assertSanity()
+        s._assertsanity()
         return s
     
     def insert(self, bs, insertpos = None):
@@ -699,11 +697,11 @@ class BitString(object):
         if insertpos is None:
             insertpos = self._pos
         if insertpos < 0 or insertpos > self._length:
-            raise Error("Invalid insertpos")
+            raise BitStringError("Invalid insertpos")
         end = self.truncatestart(insertpos)
         start = self.truncateend(self._length - insertpos)
         s = start.append(bs).append(end)
-        s._assertSanity()
+        s._assertsanity()
         return s
 
     def overwrite(self, bs, pos = None):
@@ -713,7 +711,7 @@ class BitString(object):
         if pos is None:
             pos = self._pos
         if pos < 0 or pos + bs._length > self._length:
-            raise Error("Overwrite exceeds boundary of BitString")
+            raise BitStringError("Overwrite exceeds boundary of BitString")
         # This is of course horribly inefficient...
         s = self.truncateend(self._length - pos) + bs
         s += self.truncatestart(pos + bs._length)
@@ -723,9 +721,9 @@ class BitString(object):
     def deletebits(self, bitstodelete):
         """Delete bits from the current position and return new BitString."""
         if bitstodelete < 0:
-            raise Error("Can't delete a negative number of bits")
+            raise BitStringError("Can't delete a negative number of bits")
         if bitstodelete + self._pos > self.length:
-            raise Error("Can't delete past the end of the BitString")
+            raise BitStringError("Can't delete past the end of the BitString")
         return self[0:self._pos]+self[self._pos+bitstodelete:]
 
     def __copy__(self):
@@ -735,7 +733,7 @@ class BitString(object):
         s_copy._pos = self._pos
         s_copy._length = self._length
         if self._file is not None:
-            raise Error("Cannot copy file based BitStrings.")
+            raise BitStringError("Cannot copy file based BitStrings.")
         s_copy._data = copy.copy(self._data)
         return s_copy
 
@@ -753,7 +751,7 @@ class BitString(object):
             s1._data.append(s2._data[0])
         s1._data.extend(s2._data[1:s2._data.length()])
         s1._length += s2._length
-        s1._assertSanity()
+        s1._assertsanity()
         return s1
     
     def _setoffset(self, offset):
@@ -761,7 +759,7 @@ class BitString(object):
         if offset == self._offset:
             return
         if not 0 <= offset < 8:
-            raise Error("Can only align to an offset from 0 to 7")
+            raise BitStringError("Can only align to an offset from 0 to 7")
         assert(0 <= self._offset < 8)
         if offset < self._offset:
             # We need to shift everything left
@@ -774,7 +772,7 @@ class BitString(object):
             if bits_in_last_byte == 0:
                 bits_in_last_byte = 8
             if bits_in_last_byte <= shiftleft:
-                self._data = MemArray(self._data[:-1])
+                self._data = _MemArray(self._data[:-1])
             # otherwise just shift the last byte
             else:
                 self._data[-1] = (self._data[-1]<<shiftleft)&255
@@ -787,7 +785,7 @@ class BitString(object):
                 self._data[x] = ((self._data[x-1] << (8 - shiftright))&255) + (self._data[x] >> shiftright)
             self._data[0] = self._data[0] >> shiftright
         self._offset = offset
-        self._assertSanity()
+        self._assertsanity()
 
     def _getoffset(self):
         """Return current offset."""
@@ -819,7 +817,7 @@ class BitString(object):
             return s
         # A slice
         if key.step is not None:
-            raise Error("step not supported for slicing BitStrings")
+            raise BitStringError("step not supported for slicing BitStrings")
         if key.start is None:
             start = 0
         elif key.start < 0:
@@ -841,12 +839,12 @@ class BitString(object):
         """Return a generator of BitStrings by splittling into substrings starting with a byte aligned delimiter.
         The first item returned is the initial bytes before the delimiter, which may be empty."""
         if len(delimiter) == 0:
-            raise Error("split delimiter cannot be null.")
+            raise BitStringError("split delimiter cannot be null.")
         if len(delimiter)%8 != 0:
-            raise Error("split delimiter must be whole number of bytes.")
+            raise BitStringError("split delimiter must be whole number of bytes.")
         oldpos = self._pos
         self._pos = 0
-        found = self.find(delimiter)
+        found = self.findbytealigned(delimiter)
         if not found:
             # Initial bits are the whole BitString
             self._pos = oldpos
@@ -857,7 +855,7 @@ class BitString(object):
         startpos = self._pos
         while found:
             self._pos += len(delimiter)
-            found = self.find(delimiter)
+            found = self.findbytealigned(delimiter)
             if not found:
                 self._pos = oldpos
                 yield self[startpos:]

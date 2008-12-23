@@ -65,3 +65,8 @@ s = BitString(hex='0x00112233445566778899aabbccddeeff')
 print(s.readbit().bin) # 0
 s.advancebits(7)       # Move on 7 bits to byte align.
 print(s.readbytes(3).hex) # 0x112233
+
+
+s = BitString(hex='0x112233', offset = 4)
+t = BitString(hex='0x23')
+s.findbytealigned(t)
