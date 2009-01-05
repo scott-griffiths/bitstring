@@ -1,149 +1,146 @@
 #summary Help on module bitstring:
 {{{
+class BitString(__builtin__.object)
+ |  A class for general bit-wise manipulations and interpretations.
+ |  
+ |  length : length of the string in bits
+ |  offset : bit offset to the data (0 - 7). The first offset bits are ignored.
+ |  
+ |  Initialise the BitString with one (and only one) of:
+ |  data : raw data as a string, for example read from binary file
+ |  bin : binary string representation, e.g. '00101110'
+ |  hex : hexadecimal string representation, e.g. '0x2e'
+ |  uint : unsigned integer
+ |  int : signed integer
+ |  se : signed Exponential-Golomb
+ |  ue : unsigned Exponential-Golomb
+ |  filename : Note this option is experimental and only partially supported
+ |  
+ |  e.g.
+ |  a = BitString(hex='0x123456', offset=4, length=8)
+ |  a.hex # equal to '0x23'
+ |  
+ |  Methods defined here:
+ |  
+ |  __add__(self, s)
+ |      Concatenate BitStrings and return new BitString.
+ |  
+ |  __copy__(self)
+ |      Return a new copy of the BitString.
+ |  
+ |  __getitem__(self, key)
+ |      Return a slice of the BitString. Indices are in bits and stepping is not supported.
+ |  
+ |  __iadd__(self, s)
+ |      Do the += thing.
+ |  
+ |  __init__(self, data=None, length=None, offset=0, filename=None, hex=None, bin=None, uint=None, int=None, ue=None, se=None)
+ |      Contains a numerical string with length in bits with an offset bit count.
+ |  
+ |  __len__(self)
+ |  
+ |  advancebits(self, bits)
+ |      Advance position by bits.
+ |  
+ |  advancebytes(self, bytes)
+ |      Advance position by bytes. Does not byte align.
+ |  
+ |  append(self, s2)
+ |      Return a BitString with the new BitString appended.
+ |  
+ |  bytealign(self)
+ |      Align to next byte and return number of skipped bits.
+ |  
+ |  deletebits(self, bits, deletepos=None)
+ |      Delete number of bits from the BitString at deletpos and return new BitString.
+ |  
+ |  empty(self)
+ |      Return True only if the BitString is empty.
+ |  
+ |  findbytealigned(self, d)
+ |      Seek to start of next occurence of byte-aligned string. Return True if string is found.
+ |  
+ |  insert(self, bs, insertpos=None)
+ |      Insert a BitString into the current BitString at insertpos and return new BitString.
+ |  
+ |  overwrite(self, bs, pos=None)
+ |      Overwrite the section of the current BitString at pos with new data and return new BitString.
+ |  
+ |  readbit(self)
+ |      Return BitString of length 1 and advances position.
+ |  
+ |  readbits(self, bits)
+ |      Return new BitString of length bits and advance position.
+ |  
+ |  readbyte(self)
+ |      Return BitString of length 8 bits and advances position. Does not byte align.
+ |  
+ |  readbytes(self, bytes)
+ |      Return new BitString of length bytes and advances position. Does not byte align.
+ |  
+ |  retreatbits(self, bits)
+ |      Retreat position by bits.
+ |  
+ |  retreatbytes(self, bytes)
+ |      Retreat position by bytes.
+ |  
+ |  slice(self, startbit, endbit)
+ |      Return a slice of the BitString: [startbit, endbit).
+ |  
+ |  split(self, delimiter)
+ |      Return a generator of BitStrings by splittling into substrings starting with a byte aligned delimiter.
+ |      The first item returned is the initial bytes before the delimiter, which may be empty.
+ |  
+ |  truncateend(self, bits)
+ |      Truncate bits from the end of the BitString. Return new BitString.
+ |  
+ |  truncatestart(self, bits)
+ |      Truncate bits from the start of the BitString. Return new BitString.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Data descriptors defined here:
+ |  
+ |  __dict__
+ |      dictionary for instance variables (if defined)
+ |  
+ |  __weakref__
+ |      list of weak references to the object (if defined)
+ |  
+ |  bin
+ |      the BitString as a binary string (including leading zeros)
+ |  
+ |  bitpos
+ |      the position in the BitString in bits
+ |  
+ |  bytepos
+ |      the position in the BitString in bytes
+ |  
+ |  data
+ |      the BitString as a ordinary string
+ |  
+ |  hex
+ |      the BitString as a hexidecimal string (including leading zeros)
+ |  
+ |  int
+ |      the BitString as a twos complement signed int
+ |  
+ |  length
+ |      the length of the BitString in bits
+ |  
+ |  offset
+ |      the offset of the BitString relative to being byte aligned
+ |  
+ |  se
+ |      the BitString as a signed Exponential-Golomb
+ |  
+ |  ue
+ |      the BitString as an unsigned Exponential-Golomb
+ |  
+ |  uint
+ |      the BitString as an unsigned int
 
-CLASSES
-    
-    class BitString(__builtin__.object)
-     |  A class for general bit-wise manipulations and interpretations.
-     |  
-     |  length : length of the string in bits
-     |  data : raw data as a string (not in general printable!)
-     |  offset : bit offset to the data (0 - 7). The first offset bits are ignored.
-     |  
-     |  
-     |  Methods defined here:
-     |  
-     |  __add__(self, s)
-     |      Concatenate BitStrings.
-     |  
-     |  __copy__(self)
-     |      Return a new copy of the BitString.
-     |  
-     |  __getitem__(self, key)
-     |      Return a slice of the BitString. Stepping is not supported.
-     |  
-     |  __iadd__(self, s)
-     |      Do the += thing.
-     |  
-     |  __init__(self, data=None, length=None, offset=0, filename=None, hex=None, bin=None, uint=None, int=None, ue=None, se=None)
-     |      Contains a numerical string with length in bits with an offset bit count.
-     |  
-     |  __len__(self)
-     |  
-     |  advancebits(self, bits)
-     |      Advance position by bits.
-     |  
-     |  advancebytes(self, bytes)
-     |      Advance position by bytes. Does not byte align.
-     |  
-     |  append(self, s2)
-     |      Return a BitString with the new BitString appended.
-     |  
-     |  bytealign(self)
-     |      Align to next byte and return number of skipped bits.
-     |  
-     |  deletebits(self, bitstodelete)
-     |      Delete bits from the current position and return new BitString.
-     |  
-     |  empty(self)
-     |      Return True if the BitString has no data.
-     |  
-     |  find(self, s)
-     |      Seek to start of next occurence of byte-aligned BitString. Return True is string is found.
-     |  
-     |  findbytes(self, d)
-     |      Seek to start of next occurence of byte-aligned string. Return True if string is found.
-     |  
-     |  insert(self, bs, insertpos=None)
-     |      Insert a BitString into the current BitString at insertPos and return new BitString.
-     |  
-     |  overwrite(self, bs, pos=None)
-     |      Overwrite the section of the current BitString at pos with new data and return new BitString.
-     |  
-     |  readbit(self)
-     |      Return BitString of length 1 and advances position.
-     |  
-     |  readbits(self, bits)
-     |      Return new BitString of length bits and advance position.
-     |  
-     |  readbyte(self)
-     |      Return BitString of length 8 bits and advances position. Does not byte align.
-     |  
-     |  readbytes(self, bytes)
-     |      Return new BitString of length bytes and advances position. Does not byte align.
-     |  
-     |  retreatbits(self, bits)
-     |      Retreat position by bits.
-     |  
-     |  retreatbytes(self, bytes)
-     |      Retreat position by bytes.
-     |  
-     |  slice(self, startbit, endbit)
-     |      Return a slice of the BitString: [startbit, endbit).
-     |  
-     |  split(self, delimiter)
-     |      Return a generator of BitStrings by splittling into substring starting with a byte aligned delimiter.
-     |      The first item returned is the initial bytes before the delimiter, which may be empty.
-     |  
-     |  truncateend(self, bits)
-     |      Truncate bits from the end of the BitString.
-     |  
-     |  truncatestart(self, bits)
-     |      Truncate bits from the start of the BitString.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  bin
-     |      the BitString as a binary string (including leading zeros)
-     |  
-     |  bitpos
-     |      the position in the BitString in bits
-     |  
-     |  bytepos
-     |      the position in the BitString in bytes
-     |  
-     |  data
-     |      the BitString as a ordinary string
-     |  
-     |  hex
-     |      the BitString as a hexidecimal string (including leading zeros)
-     |  
-     |  int
-     |      the BitString as a twos complement signed int
-     |  
-     |  length
-     |      the length of the BitString in bits
-     |  
-     |  offset
-     |      the offset of the BitString relative to being byte aligned
-     |  
-     |  se
-     |      the BitString as a signed Exponential Goulomb
-     |  
-     |  ue
-     |      the BitString as an unsigned Exponential Goulomb
-     |  
-     |  uint
-     |      the BitString as an unsigned int
-  
 
 FUNCTIONS
-    hex_string_from_single_byte(b)
-        Return a two character hex string from a single byte value.
-    
     join(bitstrings)
         Return the concatenation of the BitStrings in a list
-    
-    removewhitespace(s)
-        Return string with all whitespace removed.
-    
-    single_byte_from_hex_string(h)
-        Return a byte equal to the input hex string.
-    
-    single_byte_from_hex_string_unsafe(h)
-        Return a byte equal to the input 2 character hex string. No parameter checking done.
-
-DATA
-    byte_lookup = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\...
 }}}
