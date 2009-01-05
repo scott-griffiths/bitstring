@@ -1,4 +1,5 @@
 #summary Help on module bitstring:
+#labels Featured
 {{{
 class BitString(__builtin__.object)
  |  A class for general bit-wise manipulations and interpretations.
