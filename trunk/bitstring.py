@@ -441,7 +441,7 @@ class BitString(object):
     
     def _setuint(self, uint, length=None):
         """Reset the BitString to have given unsigned int interpretation."""
-        if length is None:
+        if length is None and self._length != 0:
             length = self._length
         if length is None:
             raise BitStringError("A length must be specified with a uint initialiser")
@@ -691,7 +691,7 @@ class BitString(object):
         return s
     
     def insert(self, bs, insertpos = None):
-        """Insert a BitString into the current BitString at insertPos and return new BitString."""
+        """Insert a BitString into the current BitString at insertpos and return new BitString."""
         if bs.empty():
             return copy.copy(self)
         if insertpos is None:
@@ -718,13 +718,15 @@ class BitString(object):
         s._pos = self._pos + bs._length
         return s
     
-    def deletebits(self, bitstodelete):
-        """Delete bits from the current position and return new BitString."""
-        if bitstodelete < 0:
+    def deletebits(self, bits, deletepos = None):
+        """Delete number of bits from the BitString at deletpos and return new BitString."""
+        if deletepos is None:
+            deletepos = self._pos
+        if bits < 0:
             raise BitStringError("Can't delete a negative number of bits")
-        if bitstodelete + self._pos > self.length:
+        if bits + deletepos > self.length:
             raise BitStringError("Can't delete past the end of the BitString")
-        return self[0:self._pos]+self[self._pos+bitstodelete:]
+        return self[0:deletepos]+self[deletepos+bits:]
 
     def __copy__(self):
         """Return a new copy of the BitString."""
