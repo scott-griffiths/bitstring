@@ -1,6 +1,8 @@
 #summary Brief tutorial on the use of the BitString module
+= Contents =
+<wiki:toc max_depth="3" />
 
-== Getting Started ==
+= Getting Started =
 
 First download the latest release (see the Downloads tab) and extract the contents of the zip. You will find:
 
@@ -19,17 +21,17 @@ and optionally to avoid some repetitive typing
 from bitstring import BitString
 }}}
 
-== Fundamentals ==
+= Fundamentals =
 
 A !BitString object consists of some binary data and a length in bits. It also has the concept of a bit position, which is the place 
 
-== Creating !BitStrings ==
+= Creating !BitStrings =
 
 You can create !BitString objects from ordinary Python strings, hexadecimal strings or integers. Also many !BitString functions will return another !BitString.
 
 When initialising a !BitString you need to specify one or none of `data, hex, bin, int, uint, se, ue`. If you don't specify any of them then an empty !BitString will be created. For some of the initialiser you may need to also specify the `length` - I'll go into more detail below.
 
-=== From a string or file ===
+== From a string or file ==
 {{{
 a = BitString(data='\x00\x01\x02\xff')
 b = BitString(data=open("somefile", 'rb').read())
@@ -38,20 +40,20 @@ Here the `length` parameter is optional; it defaults to the length of the data i
 
 A future planned enhancement is to allow a `filename` initialiser that will allow a file to be analysed without the need to read it all into memory. The functionality is partially present at the moment but its use is not yet recommended.
 
-=== From hexidecimal ===
+== From a hexidecimal string ==
 {{{
 c = BitString(hex='0x000001b3')
 }}}
 The initial '`0x`' or '`0X`' is optional, as once again is a `length` parameter. Whitespace is also allowed and will be ignored. Note that the leading zeros are significant, so the length of `c` will be 32.
 
-=== From binary ===
+== From a binary string ==
 {{{
 d = BitString(bin='0011 000')
 }}}
 Once again a `length` can optionally be supplied to truncate the !BitString and whitespace
 will be ignored.
 
-=== From an integer ===
+== From an integer ==
 {{{
 e = BitString(uint=45, length=12)
 f = BitString(int=-1, length=7)
@@ -63,7 +65,7 @@ h = BitString(se=-4)
 }}}
 Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the !BitString is fixed by the value it is initialised with, so the `length` parameter must not be supplied. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend).
 
-== (Re)interpreting !BitStrings ==
+= (Re)interpreting !BitStrings =
 
 !BitString objects don't know or care how they were created, they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
 
