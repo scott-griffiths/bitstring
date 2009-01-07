@@ -1,0 +1,33 @@
+#summary Brief tutorial on the use of the BitString module
+
+== Getting Started ==
+
+First download the latest release (see the Downloads tab) and extract the contents of the zip. You will find:
+
+  * `bitstring.py` : The bitstring module itself.
+  * `test-bitstring.py` : Unit tests for the module.
+  * `examples.py` : Some example code.
+
+No installation is needed, you just need to make sure that your Python program can see `bitstring.py`, for example by putting in the same directory as the program that will use it.
+
+In your program you now need to add
+{{{
+import bitstring
+}}}
+and optionally to avoid some repetitive typing
+{{{
+from bitstring import BitString
+}}}
+
+== Fundamentals ==
+
+A !BitString object consists of some binary data and a length in bits.
+
+== Creating !BitStrings ==
+
+You can create !BitString objects from ordinary Python strings, hexadecimal strings or integers. Also many !BitString functions will return another !BitString.
+
+When initialising a !BitString you need to specify one or none of `data, hex, bin, int, uint, se, ue`. If you don't specify any of them then an empty !BitString will be created. For some of the initialiser you may need to also specify the `length` - I'll go into more detail below.
+
+=== From a string ===
+
