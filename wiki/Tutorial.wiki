@@ -1,4 +1,5 @@
 #summary Brief tutorial on the use of the BitString module
+#labels Featured
 = Contents =
 <wiki:toc max_depth="3" />
 
