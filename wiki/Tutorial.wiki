@@ -23,20 +23,20 @@ from bitstring import BitString
 
 = Fundamentals =
 
-A !BitString object consists of some binary data and a length in bits. It also has the concept of a bit position, which is the place 
+A `BitString` object consists of some binary data and a length in bits. It also has the concept of a bit position, which is the place 
 
-= Creating !BitStrings =
+= Creating `BitString`s =
 
-You can create !BitString objects from ordinary Python strings, hexadecimal strings or integers. Also many !BitString functions will return another !BitString.
+You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString`s will return another `BitString`.
 
-When initialising a !BitString you need to specify one or none of `data, hex, bin, int, uint, se, ue`. If you don't specify any of them then an empty !BitString will be created. For some of the initialiser you may need to also specify the `length` - I'll go into more detail below.
+When initialising a `BitString` you need to specify one or none of `data, hex, bin, int, uint, se, ue`. If you don't specify any of them then an empty `BitString` will be created. For some of the initialiser you may need to also specify the `length` - I'll go into more detail below.
 
 == From a string or file ==
 {{{
 a = BitString(data='\x00\x01\x02\xff')
 b = BitString(data=open("somefile", 'rb').read())
 }}}
-Here the `length` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the !BitString.
+Here the `length` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the `BitString`.
 
 A future planned enhancement is to allow a `filename` initialiser that will allow a file to be analysed without the need to read it all into memory. The functionality is partially present at the moment but its use is not yet recommended.
 
@@ -44,32 +44,31 @@ A future planned enhancement is to allow a `filename` initialiser that will allo
 {{{
 c = BitString(hex='0x000001b3')
 }}}
-The initial '`0x`' or '`0X`' is optional, as once again is a `length` parameter. Whitespace is also allowed and will be ignored. Note that the leading zeros are significant, so the length of `c` will be 32.
+The initial '`0x`' or '`0X`' is optional, as once again is a `length` parameter. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of `c` will be 32.
 
 == From a binary string ==
 {{{
 d = BitString(bin='0011 000')
 }}}
-Once again a `length` can optionally be supplied to truncate the !BitString and whitespace
-will be ignored.
+Once again a `length` can optionally be supplied to truncate the `BitString` and whitespace will be ignored.
 
 == From an integer ==
 {{{
 e = BitString(uint=45, length=12)
 f = BitString(int=-1, length=7)
 }}}
-For signed and unsigned integers (`int` and `uint` repectively) the `length` parameter is mandatory, and must be large enough to contain the integer. So for example if `length` is 8 then `uint` can be in the range 0 to 255, while `int` can be from -128 to 127. Two's complement is used to represent negative numbers.
+For signed and unsigned integers (`int` and `uint` repectively) the `length` parameter is mandatory, and must be large enough to contain the integer. So for example if `length` is 8 then `uint` can be in the range 0 to 255, while `int` can range from -128 to 127. Two's complement is used to represent negative numbers.
 {{{
 g = BitString(ue=12)
 h = BitString(se=-4)
 }}}
-Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the !BitString is fixed by the value it is initialised with, so the `length` parameter must not be supplied. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend).
+Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the `BitString` is fixed by the value it is initialised with, so the `length` parameter must not be supplied and it is an error to do so. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend). The `se` and `ue` notation comes from the H.264 video standard, which provides the ultimate definition.
 
-= (Re)interpreting !BitStrings =
+= (Re)interpreting `BitString`s =
 
-!BitString objects don't know or care how they were created, they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
+`BitString` objects don't know or care how they were created, they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
 
-Python properties are used for this, and can also be used to reset the !BitString.
+Python properties are used for this, and can also be used to reset the `BitString`.
 {{{
 print(a.hex)    # '0x000102ff'
 print(a.bin)    # '0000000000000001001011111111'
@@ -77,3 +76,30 @@ a.hex = '0xff'
 print(a.bin)    # '11111111'
 print(a.int)    # -1 
 }}}
+
+= Joining and Splitting `BitString`s =
+
+To join together a couple of `BitStrings` use the `+` or `+=` operators.
+{{{
+a = BitString(bin='0000')+BitString(hex='f')
+a += BitString(uint=0, length=8)
+}}}
+
+If you want to join a large number of `BitStrings` then this can very quickly get very inefficient (just as it does with ordinary Python strings). This is because a brand-new object is being created with each addition. The function `join` can be used if many `BitString`s need to be connected.
+
+{{{
+# Don't do it this way!
+s = BitString()
+for i in range(1000):
+    s += BitString(uint=i, length=16)
+
+# This is much more efficient:
+bsl = []
+for i in range(1000):
+    bsl.append(BitString(uint=i, length=16))
+s = bitstring.join(bsl)
+
+# or, more concisely just:
+s = bitstring.join([BitString(uint=i, length=16) for i in range(1000)])
+}}}
+ 
