@@ -61,7 +61,7 @@ For signed and unsigned integers (`int` and `uint` repectively) the `length` par
 g = BitString(ue=12)
 h = BitString(se=-4)
 }}}
-Here we initialise again with integers, but this time the binary representation will be Exponential-Goulomb codes (`ue` is unsigned, `se` is signed). For these initialiser the length of the !BitString is fixed by the value it is initialised with, so the `length` parameter must not be supplied. If you don't know what Exponential-Goulomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend).
+Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the !BitString is fixed by the value it is initialised with, so the `length` parameter must not be supplied. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend).
 
 == (Re)interpreting !BitStrings ==
 
