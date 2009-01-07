@@ -23,9 +23,9 @@ from bitstring import BitString
 
 = Fundamentals =
 
-A `BitString` object consists of some binary data and a length in bits. It also has the concept of a bit position, which is the place 
+A `BitString` object consists of some binary data and a length in bits. It also has the concept of a bit position, which is the current place from which to read substrings. 
 
-= Creating `BitString`s =
+= Creating `BitString` objects =
 
 You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString`s will return another `BitString`.
 
@@ -64,7 +64,7 @@ h = BitString(se=-4)
 }}}
 Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the `BitString` is fixed by the value it is initialised with, so the `length` parameter must not be supplied and it is an error to do so. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend). The `se` and `ue` notation comes from the H.264 video standard, which provides the ultimate definition.
 
-= (Re)interpreting `BitString`s =
+= (Re)interpreting `BitString` objects =
 
 `BitString` objects don't know or care how they were created, they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
 
@@ -77,9 +77,13 @@ print(a.bin)    # '11111111'
 print(a.int)    # -1 
 }}}
 
-= Joining and Splitting `BitString`s =
+= Combining and decomposing `BitString` objects =
 
-To join together a couple of `BitStrings` use the `+` or `+=` operators.
+For the purposes of combining and splitting it's best to consider `BitString` objects as being invariant, like ordinary strings. This means that new `BitString` objects will be created rather than current ones being modified. Some examples should clarify this.
+
+== Joining ==
+
+To join together a couple of `BitString` objects use the `+` or `+=` operators.
 {{{
 a = BitString(bin='0000')+BitString(hex='f')
 a += BitString(uint=0, length=8)
@@ -102,4 +106,31 @@ s = bitstring.join(bsl)
 # or, more concisely just:
 s = bitstring.join([BitString(uint=i, length=16) for i in range(1000)])
 }}}
- 
+
+== Truncating and slicing ==
+
+The truncate functions return new objects, rather than modifying the one that they operate on.
+{{{
+a = BitString(hex='0x001122')
+b = a.truncateend(8)
+c = b.truncatestart(8)
+print(a.hex, b.hex, c.hex)  # ('0x001122', '0x0011', '0x11')
+}}}
+
+The same effect can be obtained using slicing. Note that as always the unit is bits, rather than bytes.
+{{{
+a = BitString(bin='00011110')
+b = a[3:7]
+print(b.bin) # '1111'
+}}}
+
+== Spliting ==
+
+Sometimes it can be very useful to use a delimiter to split a `BitString` into sections. The `split()` function returns a generator for the sections.
+{{{
+a = BitString(hex='0x4700004711472222')
+delimiter = BitString(hex='0x47')
+for s in a.split(delimiter)):
+    print("Empty" if s.empty() else s.hex) # 'Empty', '0x470000', '0x4711', '0x472222'
+}}}
+Note that the first item returned is always the `BitString` before the first occurence of the delimiter, even if it is empty. 
