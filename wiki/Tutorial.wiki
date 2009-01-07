@@ -27,9 +27,9 @@ A `BitString` object consists of some binary data and a length in bits. It also 
 
 = Creating `BitString` objects =
 
-You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString`s will return another `BitString`.
+You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString` objects will return another `BitString`.
 
-When initialising a `BitString` you need to specify one or none of `data, hex, bin, int, uint, se, ue`. If you don't specify any of them then an empty `BitString` will be created. For some of the initialiser you may need to also specify the `length` - I'll go into more detail below.
+When initialising a `BitString` you need to specify one or none of `data, hex, bin, int, uint, se, ue`. If you don't specify any of them an empty `BitString` will be created. For some of the initialisers you may need to also specify the `length` in bits.
 
 == From a string or file ==
 {{{
@@ -38,7 +38,7 @@ b = BitString(data=open("somefile", 'rb').read())
 }}}
 Here the `length` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the `BitString`.
 
-A future planned enhancement is to allow a `filename` initialiser that will allow a file to be analysed without the need to read it all into memory. The functionality is partially present at the moment but its use is not yet recommended.
+A future planned enhancement is to allow a `filename` initialiser that will allow a file to be analysed without the need to read it all into memory. The functionality is partially present at the moment but its use is not yet recommended as there are a number of unresolved issues.
 
 == From a hexidecimal string ==
 {{{
@@ -89,7 +89,7 @@ a = BitString(bin='0000')+BitString(hex='f')
 a += BitString(uint=0, length=8)
 }}}
 
-If you want to join a large number of `BitStrings` then this can very quickly get very inefficient (just as it does with ordinary Python strings). This is because a brand-new object is being created with each addition. The function `join` can be used if many `BitString`s need to be connected.
+If you want to join a large number of `BitStrings` then this can very quickly get very inefficient (just as it does with ordinary Python strings). This is because a brand-new object is being created with each addition. The function `join` can be used if many `BitString` objects need to be connected.
 
 {{{
 # Don't do it this way!
@@ -103,7 +103,7 @@ for i in range(1000):
     bsl.append(BitString(uint=i, length=16))
 s = bitstring.join(bsl)
 
-# or, more concisely just:
+# or, more concisely just use:
 s = bitstring.join([BitString(uint=i, length=16) for i in range(1000)])
 }}}
 
