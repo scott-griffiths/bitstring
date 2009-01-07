@@ -241,7 +241,7 @@ class BitString(object):
             self._setdata(data, length)
         else:
             assert(length is None and initialisers.count(None) == len(initialisers))
-            self._setdata('', length)
+            self._setdata('')
         self._assertsanity()
         
     def _setfile(self, filename, lengthinbits):
@@ -461,7 +461,6 @@ class BitString(object):
         self._offset = (4*hexlengthneeded) - length
         self._length = length
         
-
     def _getint(self):
         """Return data as a two's complement signed int."""
         ui = self.uint
@@ -473,7 +472,7 @@ class BitString(object):
     
     def _setint(self, int, length=None):
         """Reset the BitString to have given signed int interpretation."""
-        if length is None:
+        if length is None and self._length != 0:
             length = self._length
         if length is None:
             raise BitStringError("A length must be specified with an int initialiser")
@@ -512,7 +511,6 @@ class BitString(object):
         remainingpart = i + 1 - (1 << leadingzeros)
         binstring = '0'*leadingzeros + '1' + BitString(uint = remainingpart, length = leadingzeros).bin
         self._setbin(binstring)
-                
     
     def _getse(self):
         """Return interpretation as a signed Exponential-Golomb of the type used in H.264.
@@ -690,43 +688,43 @@ class BitString(object):
         s._assertsanity()
         return s
     
-    def insert(self, bs, insertpos = None):
+    def insert(self, bs, bitpos=None):
         """Insert a BitString into the current BitString at insertpos and return new BitString."""
         if bs.empty():
             return copy.copy(self)
-        if insertpos is None:
-            insertpos = self._pos
-        if insertpos < 0 or insertpos > self._length:
+        if bitpos is None:
+            bitpos = self._pos
+        if bitpos < 0 or bitpos > self._length:
             raise BitStringError("Invalid insertpos")
-        end = self.truncatestart(insertpos)
-        start = self.truncateend(self._length - insertpos)
+        end = self.truncatestart(bitpos)
+        start = self.truncateend(self._length - bitpos)
         s = start.append(bs).append(end)
         s._assertsanity()
         return s
 
-    def overwrite(self, bs, pos = None):
+    def overwrite(self, bs, bitpos=None):
         """Overwrite the section of the current BitString at pos with new data and return new BitString."""
         if bs.empty():
             return copy.copy(self)
-        if pos is None:
-            pos = self._pos
-        if pos < 0 or pos + bs._length > self._length:
+        if bitpos is None:
+            bitpos = self._pos
+        if bitpos < 0 or bitpos + bs._length > self._length:
             raise BitStringError("Overwrite exceeds boundary of BitString")
         # This is of course horribly inefficient...
-        s = self.truncateend(self._length - pos) + bs
-        s += self.truncatestart(pos + bs._length)
+        s = self.truncateend(self._length - bitpos) + bs
+        s += self.truncatestart(bitpos + bs._length)
         s._pos = self._pos + bs._length
         return s
     
-    def deletebits(self, bits, deletepos = None):
+    def deletebits(self, bits, bitpos=None):
         """Delete number of bits from the BitString at deletpos and return new BitString."""
-        if deletepos is None:
-            deletepos = self._pos
+        if bitpos is None:
+            bitpos = self._pos
         if bits < 0:
             raise BitStringError("Can't delete a negative number of bits")
-        if bits + deletepos > self.length:
+        if bits + bitpos > self.length:
             raise BitStringError("Can't delete past the end of the BitString")
-        return self[0:deletepos]+self[deletepos+bits:]
+        return self[0:bitpos]+self[bitpos+bits:]
 
     def __copy__(self):
         """Return a new copy of the BitString."""
@@ -739,20 +737,20 @@ class BitString(object):
         s_copy._data = copy.copy(self._data)
         return s_copy
 
-    def append(self, s2):
+    def append(self, bs):
         """Return a BitString with the new BitString appended."""
         s1 = copy.copy(self)
-        if s2.empty():
+        if bs.empty():
             return s1      
         bits_in_final_byte = (s1._offset + s1._length)%8
-        s2.offset = bits_in_final_byte
+        bs._setoffset(bits_in_final_byte)
         if bits_in_final_byte != 0:
             # first do the byte with the join
-            s1._data[-1] = (s1._data[-1] | s2._data[0])
+            s1._data[-1] = (s1._data[-1] | bs._data[0])
         else:
-            s1._data.append(s2._data[0])
-        s1._data.extend(s2._data[1:s2._data.length()])
-        s1._length += s2._length
+            s1._data.append(bs._data[0])
+        s1._data.extend(bs._data[1:bs._data.length()])
+        s1._length += bs._length
         s1._assertsanity()
         return s1
     
@@ -852,8 +850,8 @@ class BitString(object):
             self._pos = oldpos
             yield copy.copy(self)
             return
-        if self._pos != 0:
-            yield self[0:self._pos]
+        # yield the bytes before the first occurence of the delimiter, even if empty
+        yield self[0:self._pos]
         startpos = self._pos
         while found:
             self._pos += len(delimiter)
@@ -870,7 +868,7 @@ class BitString(object):
         return self._length
 
     length = property(_getlength, doc="the length of the BitString in bits")
-    offset = property(_getoffset, _setoffset, doc="the offset of the BitString relative to being byte aligned")
+    offset = property(_getoffset, doc="the offset of the BitString relative to being byte aligned")
     hex    = property(_gethex, _sethexsafe, doc="the BitString as a hexidecimal string (including leading zeros)")
     bin    = property(_getbin, _setbin, doc="the BitString as a binary string (including leading zeros)")
     data   = property(_getdata, _setdata, doc="the BitString as a ordinary string")
@@ -887,7 +885,7 @@ def join(bitstrings):
     s = BitString(length = sum([s.length for s in bitstrings]))
     bits, offset, pos = 0, 0, 0
     for bs in bitstrings:
-        bs.offset = offset
+        bs._setoffset(offset)
         for i in xrange(bs._data.length()):
             s._data[pos] |= bs._data[i]
             pos += 1
