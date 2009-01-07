@@ -21,7 +21,7 @@ from bitstring import BitString
 
 == Fundamentals ==
 
-A !BitString object consists of some binary data and a length in bits.
+A !BitString object consists of some binary data and a length in bits. It also has the concept of a bit position, which is the place 
 
 == Creating !BitStrings ==
 
@@ -34,7 +34,7 @@ When initialising a !BitString you need to specify one or none of `data, hex, bi
 a = BitString(data='\x00\x01\x02\xff')
 b = BitString(data=open("somefile", 'rb').read())
 }}}
-Here the `length` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the BitString.
+Here the `length` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the !BitString.
 
 A future planned enhancement is to allow a `filename` initialiser that will allow a file to be analysed without the need to read it all into memory. The functionality is partially present at the moment but its use is not yet recommended.
 
@@ -51,12 +51,27 @@ d = BitString(bin='0011 000')
 Once again a `length` can optionally be supplied to truncate the !BitString and whitespace
 will be ignored.
 
-== From an integer ===
+=== From an integer ===
 {{{
 e = BitString(uint=45, length=12)
 f = BitString(int=-1, length=7)
 }}}
+For signed and unsigned integers (`int` and `uint` repectively) the `length` parameter is mandatory, and must be large enough to contain the integer. So for example if `length` is 8 then `uint` can be in the range 0 to 255, while `int` can be from -128 to 127. Two's complement is used to represent negative numbers.
+{{{
+g = BitString(ue=12)
+h = BitString(se=-4)
+}}}
+Here we initialise again with integers, but this time the binary representation will be Exponential-Goulomb codes (`ue` is unsigned, `se` is signed). For these initialiser the length of the !BitString is fixed by the value it is initialised with, so the `length` parameter must not be supplied. If you don't know what Exponential-Goulomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend).
 
+== (Re)interpreting !BitStrings ==
 
+!BitString objects don't know or care how they were created, they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
 
-
+Python properties are used for this, and can also be used to reset the !BitString.
+{{{
+print(a.hex)    # '0x000102ff'
+print(a.bin)    # '0000000000000001001011111111'
+a.hex = '0xff'
+print(a.bin)    # '11111111'
+print(a.int)    # -1 
+}}}
