@@ -96,7 +96,7 @@ If you want to join a large number of `BitStrings` then this can very quickly ge
 # Don't do it this way!
 s = BitString()
 for i in range(1000):
-    s += BitString(uint=i, length=16)
+    s = s + BitString(uint=i, length=16)
 
 # This is much more efficient:
 bsl = []
@@ -125,7 +125,7 @@ b = a[3:7]
 print(b.bin) # '1111'
 }}}
 
-== Spliting ==
+== Splitting ==
 
 Sometimes it can be very useful to use a delimiter to split a `BitString` into sections. The `split()` function returns a generator for the sections.
 {{{
