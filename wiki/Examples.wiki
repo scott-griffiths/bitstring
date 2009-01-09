@@ -16,7 +16,7 @@ b = BitString(bin='0010011')
 # It must be long enough to contain the integer.
 ui = BitString(uint=15, length=6)
 
-# From an integer represented as a signed exponential goulomb code
+# From an integer represented as a signed exponential Golomb code
 e = BitString(se=-10)
 
 }}}
