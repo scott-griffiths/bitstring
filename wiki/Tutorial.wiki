@@ -32,14 +32,24 @@ You can create `BitString` objects from ordinary Python strings, hexadecimal str
 
 When initialising a `BitString` you need to specify one or none of `data, hex, bin, int, uint, se, ue`. If you don't specify any of them an empty `BitString` will be created. For some of the initialisers you may need to also specify the `length` in bits.
 
-== From a string or file ==
+== From a binary string ==
 {{{
 a = BitString(data='\x00\x01\x02\xff')
 b = BitString(data=open("somefile", 'rb').read())
 }}}
 Here the `length` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the `BitString`.
 
-A future planned enhancement is to allow a `filename` initialiser that will allow a file to be analysed without the need to read it all into memory. The functionality is partially present at the moment but its use is not yet recommended as there are a number of unresolved issues.
+== From a file ==
+A future planned enhancement is a `filename` initialiser that will allow a file to be analysed without the need to read it all into memory. The functionality is partially present at the moment but its use is not yet recommended as there are a number of unresolved issues. That said, the interface is:
+{{{
+p = BitString(filename="my2GBfile")
+}}}
+which will open the file in binary read-only mode. The contents of the file will not be changed by any operations. Something to watch out for are operations that will create very large objects in memory, for example
+{{{
+p2 = p[8:]
+p += BitString(data='\x00')
+}}}
+will create two new memory based `BitString` objects with about the same size as the whole of the file's data. This is probably not what is wanted as the reason for using the `filename` initialiser is likely to be because you don't want the whole file in memory.
 
 == From a hexidecimal string ==
 {{{
