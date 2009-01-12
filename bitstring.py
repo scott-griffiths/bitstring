@@ -4,7 +4,7 @@
 license = """
 The MIT License
 
-Copyright (c) 2006-2008 Scott Griffiths (scott@griffiths.name)
+Copyright (c) 2006-2009 Scott Griffiths (scott@griffiths.name)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -123,7 +123,8 @@ class _FileArray(object):
             return _MemArray('')
     
     def tostring(self):
-        raise NotImplementedError
+        self.source.seek(0, os.SEEK_SET)
+        return self.source.read()
     
 
 class _MemArray(object):
@@ -365,25 +366,44 @@ class BitString(object):
             raise BitStringError("Cannot seek past the end of the data")
         self._pos = bitpos
 
+    def find(self, s):
+        """Seek to start of next occurence of BitString. Return True if BitString is found."""
+        oldpos = self._pos
+        targetbin = s.bin
+        found = False
+        for p in xrange(oldpos, self._length - s._length):
+            if self[p:p+s._length].bin == targetbin:
+                found = True
+                break
+        if not found:
+            self._pos = oldpos
+            return False
+        self._pos = p
+        return True
+
     def findbytealigned(self, d):
-        """Seek to start of next occurence of byte-aligned string. Return True if string is found."""
+        """Seek to start of next occurence of byte-aligned string or BitString. Return True if string is found."""
         # If we are passed in a BitString then convert it to raw data.
         if isinstance(d, BitString):
             if d._length % 8 != 0:
                 raise BitStringError("Can only use find for whole-byte BitStrings.")
             d._setoffset(0)
             d = d.data
+        if len(d) == 0:
+            raise BitStringError("Can't find empty string.")
         oldpos = self._pos
         try:
             self.bytealign()
         except BitStringError:
             self._pos = oldpos
             return False
-        try:
-            p = self._data.tostring().find(d, self._pos/8)
-        except NotImplementedError:
-            pass # TODO! This will fail if BitString is initialise with a filename
-        if p == -1:
+        bytepos = self._pos/8
+        found = False
+        for p in xrange(bytepos, self._length/8 - len(d)):
+            if self[p*8:(p+len(d))*8].data == d:
+                found = True
+                break            
+        if not found:
             self._pos = oldpos
             return False
         self._setbytepos(p)
@@ -847,7 +867,7 @@ class BitString(object):
             
     
     def __len__(self):
-        return self._length
+        return self._getlength()
 
     length = property(_getlength, doc="the length of the BitString in bits")
     offset = property(_getoffset, doc="the offset of the BitString relative to being byte aligned")
