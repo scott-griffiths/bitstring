@@ -31,7 +31,7 @@ A `BitString` object consists of some binary data and a length in bits. It also 
 
 You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString` objects will return another `BitString`.
 
-When initialising a `BitString` you need to specify one or none of `data, hex, bin, int, uint, se, ue`. If you don't specify any of them an empty `BitString` will be created. For some of the initialisers you may need to also specify the `length` in bits.
+When initialising a `BitString` you need to specify one or none of `data, hex, bin, int, uint, se, ue` or `filename`. If you don't specify any of them an empty `BitString` will be created. For some of the initialisers you may need to also specify the `length` in bits.
 
 == From a binary string ==
 {{{
