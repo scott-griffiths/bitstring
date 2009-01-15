@@ -90,6 +90,15 @@ print(a.bin)    # '11111111'
 print(a.int)    # -1 
 }}}
 
+Some points to note:
+  * `hex` can only be used if the `BitString` object's length is a multiple of 4, otherwise a `BitStringError` is raised.
+  * If `data` is used the `BitString` will be padded with zeros up to the next byte boundary, if necessary.
+  * To write to a file, open a file in binary write mode and write the `BitString` object's `data` property.
+  * You can use the `int` and `uint` properties to change the contents of the `BitString`, but the length cannot be changed after creation so a `BitStringError` will be raised if the new value doesn't fit.
+  * For `data`, `hex`, `bin`, `se` and `ue` properties the length of the `BitString` will change appropriately when the value is changed.
+  * The only initialiser that isn't also a property is `filename`. To change the referenced file initialise a new `BitString` with the new file name.
+
+
 = Combining and decomposing `BitString` objects =
 
 For the purposes of combining and splitting it's best to consider `BitString` objects as being invariant, like ordinary strings. This means that new `BitString` objects will be created rather than current ones being modified. Some examples should clarify this.
