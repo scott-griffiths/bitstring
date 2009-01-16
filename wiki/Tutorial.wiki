@@ -91,11 +91,11 @@ print(a.int)    # -1
 }}}
 
 Some points to note:
-  * `hex` can only be used if the `BitString` object's length is a multiple of 4, otherwise a `BitStringError` is raised.
-  * If `data` is used the `BitString` will be padded with zeros up to the next byte boundary, if necessary.
+  * The `hex` property can only be used if the `BitString` object's length is a multiple of 4, otherwise a `BitStringError` is raised. 
+  * If `data` is used as a 'getter' the `BitString` will be padded with zero bits up to the next byte boundary, if necessary.
   * To write to a file, open a file in binary write mode and write the `BitString` object's `data` property.
   * You can use the `int` and `uint` properties to change the contents of the `BitString`, but the length cannot be changed after creation so a `BitStringError` will be raised if the new value doesn't fit.
-  * For `data`, `hex`, `bin`, `se` and `ue` properties the length of the `BitString` will change appropriately when the value is changed.
+  * For the `data`, `hex`, `bin`, `se` and `ue` properties the length of the `BitString` will change to accommodate the new value.
   * The only initialiser that isn't also a property is `filename`. To change the referenced file initialise a new `BitString` with the new file name.
 
 
@@ -159,13 +159,17 @@ Note that the first item returned is always the `BitString` before the first occ
 
 == Reading ==
 
-A common use is to parse a large `BitString` into smaller syntax elements. Functions for reading and navigating are provided.
+Another common use is to parse a large `BitString` into smaller syntax elements. Functions for reading in bytes and bits are provided and will return new `BitString` objects. These new objects are top-level `BitString` objects and can be interpreted using properties as in the next example or could be read from to form a hierarchy of reads.
 {{{
 s = BitString(filename='test.m1v')
 start_code = s.readbytes(4).hex
 width = s.readbits(12).uint
 height = s.readbits(12).uint
-s.advancebits(4)
+s.advancebits(37)
+
+flags = s.readbits(2)
+constrained_parameters_flag = flags.readbits(1).uint
+load_intra_quantiser_matrix = flags.readbits(1).uint
 }}}
 
 = Navigating =
@@ -184,7 +188,7 @@ print(s.read(4).bin) # '0110' (the final nibble '0x6')
 
 == Finding ==
 
-To search for a sub-string use the 'find' and 'findbytealigned' functions. These will set the position to the start of the next occurrence of the searched for string and return `True`, or . As its name implies, `findbytealigned` looks for only byte aligned occurrences of a whole-byte `BitString`.
+To search for a sub-string use the 'find' and 'findbytealigned' functions. These will set the position to the start of the next occurrence of the searched for string and return `True`, or just return `False` if the string isn't present. As its name implies, `findbytealigned` looks for only byte aligned occurrences of a whole-byte `BitString`.
 
 {{{
 s = BitString(hex='0x00123400001234')
