@@ -12,7 +12,7 @@ First download the latest release (see the Downloads tab) and extract the conten
   * `examples.py` : Some example code.
   * `test.m1v` : An example (MPEG-1 video) file for testing purposes.
 
-No installation is needed, you just need to make sure that your Python program can see `bitstring.py`, for example by putting in the same directory as the program that will use it.
+No installation is needed, you just need to make sure that your Python program can see `bitstring.py`, for example by putting in the same directory as the program that will use it, or by moving it to your Python installation's `site-packages` directory.
 
 In your program you now need to add
 {{{
