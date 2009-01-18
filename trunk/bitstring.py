@@ -197,7 +197,9 @@ class BitString(object):
         initialisers = [data, filename, hex, bin, int, uint, ue, se]
         if initialisers.count(None) < len(initialisers) - 1:
             raise BitStringError("You must only specify one initialiser when initialising the BitString")
-        
+        if (se is not None or ue is not None) and length is not None:
+            raise BitStringError("A length cannot be specified for an Exponential-Golomb initialiser")
+            
         if hex is not None:
             self._sethexsafe(hex, length)
         elif bin is not None:
@@ -209,12 +211,8 @@ class BitString(object):
         elif int is not None:
             self._setint(int, length)
         elif ue is not None:
-            if length is not None:
-                raise BitStringError("A length cannot be specified for an unsigned Exponential-Golomb initialiser")
             self._setue(ue)
         elif se is not None:
-            if length is not None:
-                raise BitStringError("A length cannot be specified for a signed Exponential-Golomb initialiser")
             self._setse(se)
         elif filename is not None:
             self._setfile(filename, length)
@@ -368,10 +366,12 @@ class BitString(object):
 
     def find(self, s):
         """Seek to start of next occurence of BitString. Return True if BitString is found."""
+        if s._length == 0:
+            raise BitStringError("Can't find empty string.")
         oldpos = self._pos
         targetbin = s.bin
         found = False
-        for p in xrange(oldpos, self._length - s._length):
+        for p in xrange(oldpos, self._length - s._length + 1):
             if self[p:p+s._length].bin == targetbin:
                 found = True
                 break
@@ -391,6 +391,7 @@ class BitString(object):
             d = d.data
         if len(d) == 0:
             raise BitStringError("Can't find empty string.")
+        self._setoffset(0)
         oldpos = self._pos
         try:
             self.bytealign()
@@ -399,10 +400,13 @@ class BitString(object):
             return False
         bytepos = self._pos/8
         found = False
-        for p in xrange(bytepos, self._length/8 - len(d)):
+        p = bytepos
+        finalpos = self._length/8 - len(d) + 1
+        while p < finalpos:
             if self[p*8:(p+len(d))*8].data == d:
                 found = True
-                break            
+                break
+            p += 1
         if not found:
             self._pos = oldpos
             return False
@@ -450,7 +454,7 @@ class BitString(object):
         if uint >= (1 << length) or length == 0:
             raise BitStringError("uint cannot be contained using BitString of that length")
         if uint < 0:
-            raise BitStringError("uint cannot be initialsed to a negative number")     
+            raise BitStringError("uint cannot be initialsed by a negative number")     
         
         hexstring = hex(uint)[2:]
         if hexstring[-1] == 'L':
@@ -667,7 +671,7 @@ class BitString(object):
             return BitString(data=self._data, offset=self._offset, length=self._length)
         if bits == self._length:
             return BitString() # empty as everything's been truncated
-        s._offset = self._offset + bits
+        s._offset += bits
         truncatedbytes = s._offset/8
         s._offset %= 8
         # strip whole bytes from the start
@@ -685,8 +689,18 @@ class BitString(object):
         """Return a slice of the BitString: [startbit, endbit)."""
         if endbit < startbit:
             raise bs.BitStreamError("Slice: endbit must not be less than startbit")
-        s = self.truncateend(self._length - endbit).truncatestart(startbit)
-        assert(s.length == endbit - startbit)
+        if startbit < 0 or endbit > self._length:
+            raise BitStringError("slice not in range")
+        s = BitString()
+        s._offset = (self._offset + startbit)%8
+        startbyte = startbit/8
+        new_length_in_bytes = (endbit - startbit + s._offset + 7)/8
+        s._setdata(self._data[startbyte:startbyte+new_length_in_bytes])
+        s._length = endbit - startbit
+        s._pos = self._pos - startbit
+        s._pos = max(s._pos, 0)
+        s._pos = min(s._pos, s._length-1)
+        s._setunusedbitstozero()
         s._assertsanity()
         return s
     
