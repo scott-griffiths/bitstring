@@ -10,7 +10,7 @@ First download the latest release (see the Downloads tab) and extract the conten
   * `bitstring.py` : The bitstring module itself.
   * `test-bitstring.py` : Unit tests for the module.
   * `examples.py` : Some example code.
-  * `test.m1v` : An example (MPEG-1 video) file for testing purposes.
+  * `test.m1v` : An example file (MPEG-1 video) for testing purposes.
 
 No installation is needed, you just need to make sure that your Python program can see `bitstring.py`, for example by putting in the same directory as the program that will use it, or by moving it to your Python installation's `site-packages` directory.
 
@@ -23,9 +23,13 @@ and optionally, to avoid some repetitive typing
 from bitstring import BitString
 }}}
 
-= Fundamentals =
+= Introduction =
 
-A `BitString` object consists of some binary data and a length in bits. It also has the concept of a bit position, which is the current place from which to read substrings.
+A `BitString` object consists of some binary data and a length in bits. It also has the concept of a bit position, which is the current place from which to read substrings, and an offset, which allows a number of bits at the start of the data to be ignored.
+
+It doesn't carry with it any preferred interpretation of its bits, instead it offers a number of properties such as 'hex', 'bin' and 'int' which may be used to get an interpretation, or to set the `BitString` from an interpretation.
+
+Many useful methods for creating, combining, splitting, reading from and finding in `BitString` objects are provided, with the aim of allowing straightforward code to be written that can manipulate binary data without the low-level and difficult to maintain code that might otherwise be needed.
 
 = Creating `BitString` objects =
 
