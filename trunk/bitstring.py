@@ -31,6 +31,7 @@ import string
 import os
 import struct
 
+os.SEEK_SET = 0 # For backward compatibility with Python 2.4
 
 def _single_byte_from_hex_string(h):
     """Return a byte equal to the input hex string."""
@@ -66,7 +67,6 @@ def _removewhitespace(s):
 
 class BitStringError(Exception):
     """Base class for errors in the bitstring module."""
-
 
 class _FileArray(object):
     """A class that mimics the array.array type but gets data from a file object."""
@@ -622,7 +622,8 @@ class BitString(object):
             # Horribly inefficient!
             i = self.uint
             for x in xrange(self._length):
-                c.append('1' if i%2 == 1 else '0')
+                if i%2 == 1: c.append('1')
+                else: c.append('0')
                 i /= 2
         c.reverse()
         return ''.join(c)
