@@ -35,7 +35,7 @@ Many useful methods for creating, combining, splitting, reading from and finding
 
 You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString` objects will return another `BitString`.
 
-When initialising a `BitString` you need to specify one or none of `data, hex, bin, int, uint, se, ue` or `filename`. If no initialiser is given a `BitString` of 'length' zeros will be created, which will be an empty `BitString` if `length` is zero or not present. 
+When initialising a `BitString` you need to specify at most one of `data, hex, bin, int, uint, se, ue` or `filename`. If no initialiser is given a `BitString` of `length` zeros will be created, which will be an empty `BitString` if `length` is zero or not present. 
 
 For some of the initialisers you need to also specify the `length` in bits, for some it is optional and for others it is an error and this will be detailed below.
 
@@ -103,6 +103,7 @@ Some points to note:
   * You can use the `int` and `uint` properties to change the contents of the `BitString`, but the length cannot be changed after creation so a `BitStringError` will be raised if the new value doesn't fit.
   * For the `data`, `hex`, `bin`, `se` and `ue` properties the length of the `BitString` will change to accommodate the new value.
   * The only initialiser that isn't also a property is `filename`. To change the referenced file initialise a new `BitString` with the new file name.
+  * The `se` and `ue` properties read from the current position in the `BitString` and will read enough bits to decode one Exponential Golomb code. It is therefore quite possible to use repeated calls to these properties to decode multiple codes.
 
 
 = Combining and decomposing `BitString` objects =
