@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-# BitString class for bit-wise data manipulation.
+# BitString module for bit-wise data manipulation.
+#
+# see http://python-bitstring.googlecode.com
 
 license = """
 The MIT License
@@ -144,7 +146,6 @@ class _MemArray(object):
     
     def __copy__(self):
         return _MemArray(self._data)
-        #return copy.copy(self.data)
     
     def __getitem__(self, key):
         return self._data.__getitem__(key)
@@ -198,98 +199,93 @@ class BitString(object):
             raise BitStringError("Length cannot be negative")
         
         initialisers = [data, filename, hex, bin, int, uint, ue, se]
+        initfuncs = [self._setdata, self._setfile, self._sethexsafe,
+                     self._setbin, self._setint, self._setuint, self._setue, self._setse]
+        assert len(initialisers) == len(initfuncs)
         if initialisers.count(None) < len(initialisers) - 1:
             raise BitStringError("You must only specify one initialiser when initialising the BitString")
         if (se is not None or ue is not None) and length is not None:
             raise BitStringError("A length cannot be specified for an Exponential-Golomb initialiser")
-            
-        if hex is not None:
-            self._sethexsafe(hex, length)
-        elif bin is not None:
-            self._setbin(bin, length)
-        elif data is not None:
-            self._setdata(data, length)
-        elif uint is not None:
-            self._setuint(uint, length)
-        elif int is not None:
-            self._setint(int, length)
-        elif ue is not None:
-            self._setue(ue)
-        elif se is not None:
-            self._setse(se)
-        elif filename is not None:
-            self._setfile(filename, length)
-        elif length is not None:
-            # initialise to zeros
-            data = '\x00'*((length+7)/8)
-            self._setdata(data, length)
+        
+        if initialisers.count(None) == len(initialisers):
+            # No initialisers, so initialise with nothing or zero bits
+            if length is not None:
+                data = '\x00'*((length+7)/8)
+                self._setdata(data, length)
+            else:
+                self._setdata('')
         else:
-            assert length is None and initialisers.count(None) == len(initialisers)
-            self._setdata('')
+            init = [(d, func) for (d, func) in zip(initialisers, initfuncs) if d is not None]
+            assert len(init) == 1
+            (d, func) = init[0]
+            if length is not None:
+                func(d, length)
+            else:
+                func(d)
         assert self._assertsanity()
         
-    def _setfile(self, filename, lengthinbits):
+    def _setfile(self, filename, lengthinbits=None):
         "Use file as source of bits."
         # We disallow offsets as we would have to ensure that the initial and
         # final unused bits in the BitString are zeroed (which I haven't yet
         # worked out the best way of implementing)
         if self._offset > 0:
             raise BitStringError("offset cannot be used for file-based BitStrings")
-        self._data = _FileArray(filename, lengthinbits, self._offset)
+        self._datastore = _FileArray(filename, lengthinbits, self._offset)
         if lengthinbits:
             self._length = lengthinbits
         else:
-            self._length = self._data.length()*8 - self._offset
+            self._length = self._datastore.length()*8 - self._offset
 
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
         assert self._length >= 0
         assert 0 <= self._offset < 8
         if self._length == 0:
-            assert self._data.length() == 0
+            assert self._datastore.length() == 0
             assert self._pos == 0
         else:
             assert self._pos <= self._length
-        assert (self._length + self._offset +7)/8 == self._data.length()
+        assert (self._length + self._offset +7)/8 == self._datastore.length()
         if self._offset > 0:
             # initial unused bits should always be set to zero
-            assert (self._data[0] >> (8-self._offset)) == 0
+            assert (self._datastore[0] >> (8-self._offset)) == 0
         bitsinfinalbyte = (self._offset + self._length)%8
         if bitsinfinalbyte > 0:
             # final unused bits should always be set to zero
-            assert self._data[-1] & ((1 << (8-bitsinfinalbyte)) - 1) == 0
+            assert self._datastore[-1] & ((1 << (8-bitsinfinalbyte)) - 1) == 0
         return True
             
     def _setunusedbitstozero(self):
         """Set non data bits in first and last byte to zero."""
         # set unused bits in first byte to zero
         if self._offset > 0:
-            self._data[0] &= (255 >> self._offset)
+            self._datastore[0] &= (255 >> self._offset)
         # set unused bits at the end of the last byte to zero
         bits_used_in_final_byte = (self._offset + self._length)%8
         if bits_used_in_final_byte > 0:
-            self._data[-1] &= 255 ^ (255 >> bits_used_in_final_byte)        
+            self._datastore[-1] &= 255 ^ (255 >> bits_used_in_final_byte)        
         
     def _setdata(self, data, length = None):
         """Set the data from a string."""
-        self._data = _MemArray(data)
+        self._datastore = _MemArray(data)
         if length is None:
             # Use to the end of the data
-            self._length = self._data.length()*8 - self._offset
+            self._length = self._datastore.length()*8 - self._offset
         else:
             self._length = length
-            if self._length+self._offset < self._data.length()*8:
+            if self._length+self._offset < self._datastore.length()*8:
                 # strip unused bytes from the end
-                self._data = _MemArray(self._data[:(self._length+self._offset+7)/8])
-            if self._length+self._offset > self._data.length()*8:
+                self._datastore = _MemArray(self._datastore[:(self._length+self._offset+7)/8])
+            if self._length+self._offset > self._datastore.length()*8:
                 raise BitStringError("Not enough data present. Need %d bits, have %d." % \
-                                     (self._length+self._offset, self._data.length()*8))
+                                     (self._length+self._offset, self._datastore.length()*8))
         self._setunusedbitstozero()
         assert self._assertsanity()
             
     def _getdata(self):
         """Return the data as an ordinary string."""
-        return self._data.tostring()
+        return self._datastore.tostring()
 
     def _getbytepos(self):
         """Return the current position in the stream in bytes. Must be byte aligned."""
@@ -323,7 +319,7 @@ class BitString(object):
         endbyte = (self._pos+self._offset+bits-1)/8
         self._pos += bits
         assert self._assertsanity()
-        return BitString(data = self._data[startbyte:endbyte+1], length = bits,
+        return BitString(data = self._datastore[startbyte:endbyte+1], length = bits,
                          offset = newoffset) 
 
     def readbytes(self, bytes):
@@ -433,20 +429,20 @@ class BitString(object):
 
     def _getuint(self):
         """Return data as an unsigned int."""
-        if self._data.length() == 0:
+        if self._datastore.length() == 0:
             raise BitStringError("An empty BitString cannot be interpreted as an unsigned integer")
-        if self._data.length() == 1:
+        if self._datastore.length() == 1:
             mask = ((1<<self._length)-1)<<(8-self._length-self._offset)
-            val = self._data[0] & mask
+            val = self._datastore[0] & mask
             val >>= 8 - self._offset - self._length
             return val
         firstbits = 8 - self._offset
         mask = (1<<firstbits) - 1
-        val = self._data[0] & mask
-        for j in xrange(1, self._data.length()-1):
+        val = self._datastore[0] & mask
+        for j in xrange(1, self._datastore.length()-1):
             val <<= 8
-            val += self._data[j]
-        lastbyte = self._data[-1]
+            val += self._datastore[j]
+        lastbyte = self._datastore[-1]
         bitsleft = (self._offset + self._length)%8
         if bitsleft == 0:
             bitsleft = 8
@@ -553,7 +549,7 @@ class BitString(object):
         if self._length == 0:
             return ''
         self._setoffset(0)
-        s = self._data.tostring()
+        s = self._datastore.tostring()
         hexstrings = [_hex_string_from_single_byte(i) for i in s]
         if (self._length/4)%2 == 1:
             # only a nibble left at the end
@@ -574,7 +570,7 @@ class BitString(object):
         hexstring = hexstring[0:(length + self._offset + 3)/4]
         self._length = length
         if self._length == 0:
-            self._data = _MemArray('')
+            self._datastore = _MemArray('')
             return
         datastring = ""
         # First do the whole bytes
@@ -591,7 +587,7 @@ class BitString(object):
             except ValueError:
                 raise BitStringError("Cannot convert last digit to hexadecimal")
             datastring += _single_byte_from_hex_string(hexstring[-1])
-        self._data = _MemArray(datastring)
+        self._datastore = _MemArray(datastring)
         self._setunusedbitstozero()
         assert self._assertsanity()
         
@@ -602,7 +598,7 @@ class BitString(object):
             length = len(hexstring)*4 - self._offset   
         self._length = length
         if self._length == 0:
-            self._data = _MemArray('')
+            self._datastore = _MemArray('')
             return
         datastring = ""
         # First do the whole bytes
@@ -611,7 +607,7 @@ class BitString(object):
         # then any remaining nibble
         if len(hexstring)%2 == 1:
             datastring += _single_byte_from_hex_string(hexstring[-1])
-        self._data = _MemArray(datastring)
+        self._datastore = _MemArray(datastring)
         self._setunusedbitstozero()
         assert self._assertsanity()
         
@@ -640,7 +636,7 @@ class BitString(object):
         self._length = length
         self._offset = 0
         if self._length == 0:
-            self._data = _MemArray('')
+            self._datastore = _MemArray('')
             return
         # pad with zeros up to byte boundary if needed
         boundary = ((self._length + 7)/8)*8
@@ -650,7 +646,7 @@ class BitString(object):
             bytes = [int(binstring[x:x+8], 2) for x in range(0, len(binstring), 8)]
         except ValueError:
             raise BitStringError("Invalid character in binstring")
-        self._data = _MemArray(bytes)
+        self._datastore = _MemArray(bytes)
         self._setunusedbitstozero()
         assert self._assertsanity()
 
@@ -660,17 +656,17 @@ class BitString(object):
             raise BitStringError("Truncation length of %d bits not possible. Length = %d"%(bits,self._length))
         s = BitString()
         if bits == 0:
-            return BitString(data=self._data, offset=self._offset, length=self._length)
+            return BitString(data=self._datastore, offset=self._offset, length=self._length)
         if bits == self._length:
             return BitString() # empty as everything's been truncated
         new_length_in_bytes = (self._offset + self._length - bits + 7)/8
-        s._setdata(self._data[:new_length_in_bytes])
+        s._setdata(self._datastore[:new_length_in_bytes])
         s._length = self._length - bits
         s._offset = self._offset
         s._setunusedbitstozero()
         # Ensure that the position is still valid
         s._pos = min(self._pos, s._length-1)
-        s._assertsanity()
+        assert s._assertsanity()
         return s    
     
     def truncatestart(self, bits):
@@ -679,21 +675,21 @@ class BitString(object):
             raise BitStringError("Truncation length of %d not possible. Length = %d" % (bits, self._length))
         s = BitString()
         if bits == 0:
-            return BitString(data=self._data, offset=self._offset, length=self._length)
+            return BitString(data=self._datastore, offset=self._offset, length=self._length)
         if bits == self._length:
             return BitString() # empty as everything's been truncated
         s._offset += bits
         truncatedbytes = s._offset/8
         s._offset %= 8
         # strip whole bytes from the start
-        s._setdata(self._data[truncatedbytes:])
+        s._setdata(self._datastore[truncatedbytes:])
         # Adjust the position and length, and clip to start if needed
         s._length = self._length - bits
         s._pos = self._pos - bits
         if s._pos < 0:
             s._pos = 0
         s._setunusedbitstozero()
-        s._assertsanity()
+        assert s._assertsanity()
         return s
     
     def slice(self, startbit, endbit):
@@ -706,13 +702,13 @@ class BitString(object):
         s._offset = (self._offset + startbit)%8
         startbyte = startbit/8
         new_length_in_bytes = (endbit - startbit + s._offset + 7)/8
-        s._setdata(self._data[startbyte:startbyte+new_length_in_bytes])
+        s._setdata(self._datastore[startbyte:startbyte+new_length_in_bytes])
         s._length = endbit - startbit
         s._pos = self._pos - startbit
         s._pos = max(s._pos, 0)
         s._pos = min(s._pos, s._length-1)
         s._setunusedbitstozero()
-        s._assertsanity()
+        assert s._assertsanity()
         return s
     
     def insert(self, bs, bitpos=None):
@@ -726,7 +722,7 @@ class BitString(object):
         end = self.truncatestart(bitpos)
         start = self.truncateend(self._length - bitpos)
         s = start.append(bs).append(end)
-        s._assertsanity()
+        assert s._assertsanity()
         return s
 
     def overwrite(self, bs, bitpos=None):
@@ -741,6 +737,7 @@ class BitString(object):
         s = self.truncateend(self._length - bitpos) + bs
         s += self.truncatestart(bitpos + bs._length)
         s._pos = self._pos + bs._length
+        assert s._assertsanity()
         return s
     
     def deletebits(self, bits, bitpos=None):
@@ -761,7 +758,7 @@ class BitString(object):
         s_copy._length = self._length
         if self._file is not None:
             raise BitStringError("Cannot copy file based BitStrings.")
-        s_copy._data = copy.copy(self._data)
+        s_copy._datastore = copy.copy(self._datastore)
         return s_copy
 
     def append(self, bs):
@@ -773,12 +770,12 @@ class BitString(object):
         bs._setoffset(bits_in_final_byte)
         if bits_in_final_byte != 0:
             # first do the byte with the join
-            s1._data[-1] = (s1._data[-1] | bs._data[0])
+            s1._datastore[-1] = (s1._datastore[-1] | bs._datastore[0])
         else:
-            s1._data.append(bs._data[0])
-        s1._data.extend(bs._data[1:bs._data.length()])
+            s1._datastore.append(bs._datastore[0])
+        s1._datastore.extend(bs._datastore[1:bs._datastore.length()])
         s1._length += bs._length
-        s1._assertsanity()
+        assert s1._assertsanity()
         return s1
     
     def _setoffset(self, offset):
@@ -792,25 +789,25 @@ class BitString(object):
             # We need to shift everything left
             shiftleft = self._offset - offset
             # First deal with everything except for the final byte
-            for x in range(self._data.length() - 1):
-                self._data[x] = ((self._data[x] << shiftleft)&255) + (self._data[x+1] >> (8 - shiftleft))
+            for x in range(self._datastore.length() - 1):
+                self._datastore[x] = ((self._datastore[x] << shiftleft)&255) + (self._datastore[x+1] >> (8 - shiftleft))
             # if we've shifted all of the data in the last byte then we need to truncate by 1
             bits_in_last_byte = (self._offset + self._length)%8
             if bits_in_last_byte == 0:
                 bits_in_last_byte = 8
             if bits_in_last_byte <= shiftleft:
-                self._data = _MemArray(self._data[:-1])
+                self._datastore = _MemArray(self._datastore[:-1])
             # otherwise just shift the last byte
             else:
-                self._data[-1] = (self._data[-1]<<shiftleft)&255
+                self._datastore[-1] = (self._datastore[-1]<<shiftleft)&255
         else: # offset > self._offset
             shiftright = offset - self._offset
             # Give some overflow room for the last byte
             if (self._offset + self._length + shiftright + 7)/8 > (self._offset + self._length + 7)/8:
-                self._data.append(0)
-            for x in range(self._data.length()-1, 0, -1):
-                self._data[x] = ((self._data[x-1] << (8 - shiftright))&255) + (self._data[x] >> shiftright)
-            self._data[0] = self._data[0] >> shiftright
+                self._datastore.append(0)
+            for x in range(self._datastore.length()-1, 0, -1):
+                self._datastore[x] = ((self._datastore[x-1] << (8 - shiftright))&255) + (self._datastore[x] >> shiftright)
+            self._datastore[0] = self._datastore[0] >> shiftright
         self._offset = offset
         assert self._assertsanity()
 
@@ -913,11 +910,17 @@ def join(bitstringlist):
     bits, offset, pos = 0, 0, 0
     for bs in bitstringlist:
         bs._setoffset(offset)
-        for i in xrange(bs._data.length()):
-            s._data[pos] |= bs._data[i]
+        for i in xrange(bs._datastore.length()):
+            s._datastore[pos] |= bs._datastore[i]
             pos += 1
         offset = (offset + bs.length)%8
         bits += bs.length
-        pos = bits / 8        
+        pos = bits / 8
+    assert s._assertsanity()
     return s
+
+
+if __name__=='__main__':
+    import test_bitstring
+    test_bitstring.unittest.main(test_bitstring)
     
