@@ -103,7 +103,7 @@ Some points to note:
   * You can use the `int` and `uint` properties to change the contents of the `BitString`, but the length cannot be changed after creation so a `BitStringError` will be raised if the new value doesn't fit.
   * For the `data`, `hex`, `bin`, `se` and `ue` properties the length of the `BitString` will change to accommodate the new value.
   * The only initialiser that isn't also a property is `filename`. To change the referenced file initialise a new `BitString` with the new file name.
-  * The `se` and `ue` properties read from the current position in the `BitString` and will read enough bits to decode one Exponential Golomb code. It is therefore quite possible to use repeated calls to these properties to decode multiple codes.
+  * The `se` and `ue` properties are only valid if the `BitString` decodes to exactly one Exponential Golomb code, otherwise a `BitStringError` is raised. The `readse()` and `readue()` functions can be used to interpret the bits following the current position as Exponential Golomb codes.
 
 
 = Combining and decomposing `BitString` objects =
