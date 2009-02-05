@@ -333,6 +333,35 @@ class BitString(object):
     def readbyte(self):
         """Return BitString of length 8 bits and advances position. Does not byte align."""
         return self.readbits(8)
+        
+    def _getue(self):
+        """Return data as unsigned Exponential Golomb code."""
+        oldpos = self._pos
+        self._pos = 0
+        try:
+            value = self.readue()
+            if self._pos != self._length:
+                raise BitStringError
+        except BitStringError:
+            self._pos = oldpos
+            raise BitStringError("BitString is not a single Exponential Golomb code.")
+        self._pos = oldpos
+        return value
+    
+    def _getse(self):
+        """Read enough bits from current position to decode one Exponential Golomb code.
+           Return the signed decoded value."""
+        oldpos= self._pos
+        self._pos = 0
+        try:
+            value = self.readse()
+            if self._pos != self._length:
+                raise BitStringError
+        except BitStringError:
+            self._pos = oldpos
+            raise BitStringError("BitString is not a single Exponential Golomb code.")
+        self._pos = oldpos
+        return value
 
     def advancebits(self, bits):
         """Advance position by bits."""
@@ -495,7 +524,7 @@ class BitString(object):
             int = (-int-1)^((1 << length) - 1)
         self._setuint(int, length)
     
-    def _getue(self):
+    def readue(self):
         """Return interpretation of next bits in stream as an unsigned Exponential-Golomb of the type used in H.264.
            Advances position to after the read code."""
         leadingzerobits = -1
@@ -524,10 +553,10 @@ class BitString(object):
         binstring = '0'*leadingzeros + '1' + BitString(uint = remainingpart, length = leadingzeros).bin
         self._setbin(binstring)
     
-    def _getse(self):
+    def readse(self):
         """Return interpretation of next bits in stream as a signed Exponential-Golomb of the type used in H.264.
            Advances position to after the read code."""
-        codenum = self.ue
+        codenum = self.readue()
         m = (codenum + 1)/2
         if codenum % 2 == 0:
             return -m
