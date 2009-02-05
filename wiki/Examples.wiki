@@ -59,13 +59,13 @@ def seq_parameter_set_data(s):
   constraint_set3_flag = s.readbit().uint
   reserved_zero_4bits = s.readbits(4).uint
   level_idc = s.readbyte().uint
-  seq_parameter_set_id = s.ue
+  seq_parameter_set_id = s.readue()
   if profile_idc in [100, 110, 122, 244, 44, 83, 86]:
-    chroma_format_idc = s.ue
+    chroma_format_idc = s.readue()
     if chroma_format_idc == 3:
       separate_colour_plane_flag == s.readbit().uint
-    bit_depth_luma_minus8 = s.ue
-    bit_depth_chroma_minus8 = s.ue
+    bit_depth_luma_minus8 = s.readue()
+    bit_depth_chroma_minus8 = s.readue()
     # etc.
 
 }}}
