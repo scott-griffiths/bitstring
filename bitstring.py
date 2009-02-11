@@ -334,6 +334,25 @@ class BitString(object):
         """Return BitString of length 8 bits and advances position. Does not byte align."""
         return self.readbits(8)
         
+    def peekbit(self):
+        """Return next bit in BitString as a new BitString without advancing position."""
+        return self.peekbits(1)
+        
+    def peekbits(self, bits):
+        """Return next bits in BitString as a new BitString without advancing position."""
+        bitpos = self._pos
+        s = self.readbits(bits)
+        self._pos = bitpos
+        return s
+    
+    def peekbyte(self):
+        """Return next byte in BitString as a new BitString without advancing position."""
+        return self.peekbits(8)
+        
+    def peekbytes(self, bytes):
+        """Return next bytes in BitString as a new BitString without advancing position."""
+        return self.peekbits(bytes*8)
+        
     def _getue(self):
         """Return data as unsigned Exponential Golomb code."""
         oldpos = self._pos
@@ -363,17 +382,19 @@ class BitString(object):
         self._pos = oldpos
         return value
 
+    def advancebit(self):
+        """Advance position by one bit."""
+        self._setbitpos(self._pos + 1)
+
+    def advancebyte(self):
+        """Advance position by one byte."""
+        self._setbitpos(self._pos + 8)
+
     def advancebits(self, bits):
         """Advance position by bits."""
         if bits < 0:
             raise BitStringError("Cannot advance by a negative amount")
-        self.bitpos = self._pos + bits
-
-    def retreatbits(self, bits):
-        """Retreat position by bits."""
-        if bits < 0:
-            raise BitStringError("Cannot retreat by a negative amount")
-        self._setbitpos(self._pos - bits)
+        self._setbitpos(self._pos + bits)
 
     def advancebytes(self, bytes):
         """Advance position by bytes. Does not byte align."""
@@ -381,6 +402,20 @@ class BitString(object):
             raise BitStringError("Cannot advance by a negative amount")
         self._setbitpos(self._pos + bytes*8)
 
+    def retreatbit(self):
+        """Retreat position by one bit."""
+        self._setbitpos(self._pos - 1)
+    
+    def retreatbyte(self):
+        """Retreat position by one byte. Does not byte align."""
+        self._setbitpos(self._pos - 8)
+
+    def retreatbits(self, bits):
+        """Retreat position by bits."""
+        if bits < 0:
+            raise BitStringError("Cannot retreat by a negative amount")
+        self._setbitpos(self._pos - bits)
+        
     def retreatbytes(self, bytes):
         """Retreat position by bytes."""
         if bytes < 0:
@@ -395,7 +430,7 @@ class BitString(object):
         """Move to absolute postion bit in bitstream."""
         if bitpos < 0:
             raise BitStringError("Bit position cannot be negative")
-        if bitpos >= self._length:
+        if bitpos > self._length:
             raise BitStringError("Cannot seek past the end of the data")
         self._pos = bitpos
 
