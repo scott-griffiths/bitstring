@@ -39,6 +39,8 @@ When initialising a `BitString` you need to specify at most one of `data, hex, b
 
 For some of the initialisers you need to also specify the `length` in bits, for some it is optional and for others it is an error and this will be detailed below.
 
+There is also an optional `offset` parameter which allows up to seven bits at the start of a `BitString` initialised by `data`, `hex` or `int` to be ignored. This can be useful when byte-aligned data is being used to initialise, but you need to cut off some bits at the start.
+
 == From a binary string ==
 {{{
 a = BitString(data='\x00\x01\x02\xff')
