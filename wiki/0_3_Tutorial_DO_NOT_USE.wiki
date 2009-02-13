@@ -21,12 +21,12 @@ b.deletebits(10, 10)
 
 == Changes to printing ==
 
-The binary interpretation of a `BitString` is now prepended with '`0b`'. This is in keeping with Python 2.6 (and 3.0) `bin` function. The prefix is optional when initialising using '`bin=`'.
+The binary interpretation of a `BitString` is now prepended with '`0b`'. This is in keeping with the Python 2.6 (and 3.0) `bin` function. The prefix is optional when initialising using '`bin=`'.
 
 Also, if you just print a `BitString` with no interpretation it will pick something appropriate - hex if it is an integer number of bytes, otherwise binary. If the `BitString` representation is very long it will be truncated by `'...'`
 
 {{{
-a = BitString(bin='0b0011111')
+a = BitString(bin='0011111')
 print a                      # '0b0011111'
 a += BitString(bin='0')
 print a                      # '0x3e'
