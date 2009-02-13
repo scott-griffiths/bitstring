@@ -3,6 +3,56 @@
 
 <wiki:toc max_depth="3" />
 
+= Changes in version 0.3 =
+== `BitString` made more mutable ==
+The functions `append`, `deletebits`, `insert`, `overwrite`, `truncatestart` and `truncateend` now modify the `BitString` that they act upon. This allows for cleaner and more efficient code, but you may need to rewrite slightly if you depended upon the old behaviour:
+{{{
+a = BitString(hex='0xffff')
+a = a.append(BitString(hex='0x00'))
+b = a.deletebits(10, 10)
+}}}
+becomes:
+{{{
+a = BitString(hex='0xffff')
+a.append(BitString(hex='0x00'))
+b = copy.copy(a)
+a.deletebits(10, 10)
+}}}
+
+== Changes to printing ==
+
+The binary interpretation of a `BitString` is now prepended with '`0b`'. This is in keeping with Python 2.6 (and 3.0) `bin` function. The prefix is optional when initialising using '`bin=`'.
+
+Also, if you just print a `BitString` with no interpretation it will pick something appropriate - hex if it is an integer number of bytes, otherwise binary. If the `BitString` representation is very long it will be truncated by `'...'`
+
+{{{
+a = BitString(bin='0b0011111')
+print a                      # '0b0011111'
+a += BitString(bin='0')
+print a                      # '0x3e'
+}}}
+
+== Simpler initialisation from binary and hexadecimal ==
+
+The first argument in the `BitString` constructor is now called `auto` and will attempt to interpret the type of a string. Prefix binary numbers with '`0b`' and hexadecimals with '`0x`'.
+{{{
+a = BitString('0b0')         # single zero bit
+b = BitString('0xffff')      # two bytes
+}}}
+
+Previously the first argument was `data`, so if you relied on this then you will need to recode:
+{{{
+a = BitString('\x00\x00\x01\xb3')   # Don't do this any more!
+}}}
+becomes
+{{{
+a = BitString(data='\x00\x00\x01\xb3')
+}}}
+or just
+{{{
+a = BitString('0x000001b3')
+}}}
+
 = Getting Started =
 
 First download the latest release (see the Downloads tab) and extract the contents of the zip. You will find:
