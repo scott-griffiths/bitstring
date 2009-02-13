@@ -53,6 +53,13 @@ or just
 a = BitString('0x000001b3')
 }}}
 
+This new notation can also be used in functions that take a `BitString` as an argument. For example:
+{{{
+a = BitString('0x0011').append('0xff')
+a.insert('0b001', 6)
+a.find('0b1111')
+}}}
+
 = Getting Started =
 
 First download the latest release (see the Downloads tab) and extract the contents of the zip. You will find:
