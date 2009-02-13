@@ -1,4 +1,4 @@
-#summary Brief tutorial on the use of the BitString module
+#summary Brief tutorial on the use of the bitstring module
 #labels Deprecated
 
 <wiki:toc max_depth="3" />
@@ -10,7 +10,8 @@ First download the latest release (see the Downloads tab) and extract the conten
   * `bitstring.py` : The bitstring module itself.
   * `test-bitstring.py` : Unit tests for the module.
   * `examples.py` : Some example code.
-  * `test.m1v` : An example file (MPEG-1 video) for testing purposes.
+  * `test/` : Directory for test files
+    * `test.m1v` : An example file (MPEG-1 video) for testing purposes.
 
 No installation is needed, you just need to make sure that your Python program can see `bitstring.py`, for example by putting in the same directory as the program that will use it, or by moving it to your Python installation's `site-packages` directory.
 
@@ -65,13 +66,14 @@ will create two new memory-based `BitString` objects with about the same size as
 {{{
 c = BitString(hex='0x000001b3')
 }}}
-The initial '`0x`' or '`0X`' is optional, as once again is a `length` parameter. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of `c` will be 32.
+The initial '`0x`' or '`0X`' is optional, as once again is a `length` parameter, which can be used to truncate the end. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of `c` will be 32.
 
 == From a binary string ==
 {{{
-d = BitString(bin='0011 000')
+d = BitString(bin='0011 000', length=6)
+print d.bin     # 0b001100
 }}}
-Once again a `length` can optionally be supplied to truncate the `BitString` and whitespace will be ignored.
+An initial '`0b`' or '`0B`' is optional. Once again a `length` can optionally be supplied to truncate the `BitString` and whitespace will be ignored.
 
 == From an integer ==
 {{{
@@ -91,11 +93,11 @@ Here we initialise again with integers, but this time the binary representation 
 
 Python properties are used for this, and can also be used to reset the `BitString`.
 {{{
-print(a.hex)    # '0x000102ff'
-print(a.bin)    # '0000000000000001001011111111'
-a.hex = '0xff'
-print(a.bin)    # '11111111'
-print(a.int)    # -1 
+print a.hex    # '0x000102ff'
+print a.bin    # '0b0000000000000001001011111111'
+a.hex = 'ff'
+print a.bin    # '0b11111111'
+print a.int    # -1 
 }}}
 
 Some points to note:
@@ -105,12 +107,10 @@ Some points to note:
   * You can use the `int` and `uint` properties to change the contents of the `BitString`, but the length cannot be changed after creation so a `BitStringError` will be raised if the new value doesn't fit.
   * For the `data`, `hex`, `bin`, `se` and `ue` properties the length of the `BitString` will change to accommodate the new value.
   * The only initialiser that isn't also a property is `filename`. To change the referenced file initialise a new `BitString` with the new file name.
-  * The `se` and `ue` properties are only valid if the `BitString` decodes to exactly one Exponential Golomb code, otherwise a `BitStringError` is raised. The `readse()` and `readue()` functions can be used to interpret the bits following the current position as Exponential Golomb codes.
+  * The `se` and `ue` properties used as getters are only valid if the `BitString` decodes to exactly one Exponential Golomb code, otherwise a `BitStringError` is raised. The `readse()` and `readue()` functions can be used to interpret the bits following the current position as Exponential Golomb codes.
 
 
 = Combining and decomposing `BitString` objects =
-
-For the purposes of combining and splitting it's best to consider `BitString` objects as being invariant, like ordinary strings. This means that new `BitString` objects will be created rather than current ones being modified. Some examples should clarify this.
 
 == Joining ==
 
@@ -140,12 +140,17 @@ s = bitstring.join([BitString(uint=i, length=16) for i in range(1000)])
 
 == Truncating and slicing ==
 
-The truncate functions return new objects, rather than modifying the one that they operate on.
+The truncate functions modify the `BitString` that they operate on, but also return themselves. Note this is a change in functionality in version 0.3 - previously these functions did not change the object they operated on.
 {{{
 a = BitString(hex='0x001122')
-b = a.truncateend(8)
-c = b.truncatestart(8)
-print(a.hex, b.hex, c.hex)  # ('0x001122', '0x0011', '0x11')
+a.truncateend(8)              # a.hex == '0x0011'
+b = a.truncatestart(8)        # a.hex == b.hex == '0x11'
+}}}
+If you want to keep an unaltered version then create a copy first.
+{{{
+a = BitString(bin='00001111')
+b = copy.copy(a)
+b.truncatestart(1)            # a is unchanged
 }}}
 
 The same effect can be obtained using slicing. Note that as always the unit is bits, rather than bytes.
