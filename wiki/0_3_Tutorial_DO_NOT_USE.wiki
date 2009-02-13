@@ -1,0 +1,208 @@
+#summary Brief tutorial on the use of the BitString module
+#labels Deprecated
+
+<wiki:toc max_depth="3" />
+
+= Getting Started =
+
+First download the latest release (see the Downloads tab) and extract the contents of the zip. You will find:
+
+  * `bitstring.py` : The bitstring module itself.
+  * `test-bitstring.py` : Unit tests for the module.
+  * `examples.py` : Some example code.
+  * `test.m1v` : An example file (MPEG-1 video) for testing purposes.
+
+No installation is needed, you just need to make sure that your Python program can see `bitstring.py`, for example by putting in the same directory as the program that will use it, or by moving it to your Python installation's `site-packages` directory.
+
+In your program you now need to add
+{{{
+import bitstring
+}}}
+and optionally, to avoid some repetitive typing
+{{{
+from bitstring import BitString
+}}}
+
+= Introduction =
+
+A `BitString` object consists of some binary data and a length in bits. It also has the concept of a bit position, which is the current place from which to read substrings, and an offset, which allows a number of bits at the start of the data to be ignored.
+
+It doesn't carry with it any preferred interpretation of its bits, instead it offers a number of properties such as 'hex', 'bin' and 'int' which may be used to get an interpretation, or to set the `BitString` from an interpretation.
+
+Many useful methods for creating, combining, splitting, reading from and finding in `BitString` objects are provided, with the aim of allowing straightforward code to be written that can manipulate binary data without the low-level and difficult to maintain code that might otherwise be needed.
+
+= Creating `BitString` objects =
+
+You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString` objects will return another `BitString`.
+
+When initialising a `BitString` you need to specify at most one of `data, hex, bin, int, uint, se, ue` or `filename`. If no initialiser is given a `BitString` of `length` zeros will be created, which will be an empty `BitString` if `length` is zero or not present. 
+
+For some of the initialisers you need to also specify the `length` in bits, for some it is optional and for others it is an error and this will be detailed below.
+
+There is also an optional `offset` parameter which allows up to seven bits at the start of a `BitString` initialised by `data`, `hex` or `int` to be ignored. This can be useful when byte-aligned data is being used to initialise, but you need to cut off some bits at the start.
+
+== From a binary string ==
+{{{
+a = BitString(data='\x00\x01\x02\xff')
+b = BitString(data=open("somefile", 'rb').read())
+}}}
+Here the `length` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the `BitString`.
+
+== From a file ==
+
+Using a `filename` initialiser allows a file to be analysed without the need to read it all into memory. The way to create a file-based `BitString` is:
+{{{
+p = BitString(filename="my2GBfile")
+}}}
+which will open the file in binary read-only mode. The file will only be read as and when other operations require it, and the contents of the file will not be changed by any operations. Something to watch out for are operations that could cause a copy of large parts of the object to be made in memory, for example
+{{{
+p2 = p[8:]
+p += BitString(data='\x00')
+}}}
+will create two new memory-based `BitString` objects with about the same size as the whole of the file's data. This is probably not what is wanted as the reason for using the `filename` initialiser is likely to be because you don't want the whole file in memory.
+
+== From a hexidecimal string ==
+{{{
+c = BitString(hex='0x000001b3')
+}}}
+The initial '`0x`' or '`0X`' is optional, as once again is a `length` parameter. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of `c` will be 32.
+
+== From a binary string ==
+{{{
+d = BitString(bin='0011 000')
+}}}
+Once again a `length` can optionally be supplied to truncate the `BitString` and whitespace will be ignored.
+
+== From an integer ==
+{{{
+e = BitString(uint=45, length=12)
+f = BitString(int=-1, length=7)
+}}}
+For signed and unsigned integers (`int` and `uint` repectively) the `length` parameter is mandatory, and must be large enough to contain the integer. So for example if `length` is 8 then `uint` can be in the range 0 to 255, while `int` can range from -128 to 127. Two's complement is used to represent negative numbers.
+{{{
+g = BitString(ue=12)
+h = BitString(se=-4)
+}}}
+Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the `BitString` is fixed by the value it is initialised with, so the `length` parameter must not be supplied and it is an error to do so. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend). The `se` and `ue` notation comes from the H.264 video standard, which provides the ultimate definition.
+
+= (Re)interpreting `BitString` objects =
+
+`BitString` objects don't know or care how they were created, they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
+
+Python properties are used for this, and can also be used to reset the `BitString`.
+{{{
+print(a.hex)    # '0x000102ff'
+print(a.bin)    # '0000000000000001001011111111'
+a.hex = '0xff'
+print(a.bin)    # '11111111'
+print(a.int)    # -1 
+}}}
+
+Some points to note:
+  * The `hex` property can only be used if the `BitString` object's length is a multiple of 4, otherwise a `BitStringError` is raised. 
+  * If `data` is used as a 'getter' the `BitString` will be padded with zero bits up to the next byte boundary, if necessary.
+  * To write to a file, open a file in binary write mode and write the `BitString` object's `data` property.
+  * You can use the `int` and `uint` properties to change the contents of the `BitString`, but the length cannot be changed after creation so a `BitStringError` will be raised if the new value doesn't fit.
+  * For the `data`, `hex`, `bin`, `se` and `ue` properties the length of the `BitString` will change to accommodate the new value.
+  * The only initialiser that isn't also a property is `filename`. To change the referenced file initialise a new `BitString` with the new file name.
+  * The `se` and `ue` properties are only valid if the `BitString` decodes to exactly one Exponential Golomb code, otherwise a `BitStringError` is raised. The `readse()` and `readue()` functions can be used to interpret the bits following the current position as Exponential Golomb codes.
+
+
+= Combining and decomposing `BitString` objects =
+
+For the purposes of combining and splitting it's best to consider `BitString` objects as being invariant, like ordinary strings. This means that new `BitString` objects will be created rather than current ones being modified. Some examples should clarify this.
+
+== Joining ==
+
+To join together a couple of `BitString` objects use the `+` or `+=` operators.
+{{{
+a = BitString(bin='0000')+BitString(hex='f')
+a += BitString(uint=0, length=8)
+}}}
+
+If you want to join a large number of `BitStrings` then this can very quickly get very inefficient (just as it does with ordinary Python strings). This is because a brand-new object is being created with each addition. The function `join` can be used if many `BitString` objects need to be connected.
+
+{{{
+# Don't do it this way!
+s = BitString()
+for i in range(1000):
+    s = s + BitString(uint=i, length=16)
+
+# This is much more efficient:
+bsl = []
+for i in range(1000):
+    bsl.append(BitString(uint=i, length=16))
+s = bitstring.join(bsl)
+
+# or, more concisely just use:
+s = bitstring.join([BitString(uint=i, length=16) for i in range(1000)])
+}}}
+
+== Truncating and slicing ==
+
+The truncate functions return new objects, rather than modifying the one that they operate on.
+{{{
+a = BitString(hex='0x001122')
+b = a.truncateend(8)
+c = b.truncatestart(8)
+print(a.hex, b.hex, c.hex)  # ('0x001122', '0x0011', '0x11')
+}}}
+
+The same effect can be obtained using slicing. Note that as always the unit is bits, rather than bytes.
+{{{
+a = BitString(bin='00011110')
+b = a[3:7]
+print(b.bin) # '1111'
+}}}
+
+== Splitting ==
+
+Sometimes it can be very useful to use a delimiter to split a `BitString` into sections. The `split()` function returns a generator for the sections.
+{{{
+a = BitString(hex='0x4700004711472222')
+delimiter = BitString(hex='0x47')
+for s in a.split(delimiter)):
+    print("Empty" if s.empty() else s.hex) # 'Empty', '0x470000', '0x4711', '0x472222'
+}}}
+Note that the first item returned is always the `BitString` before the first occurence of the delimiter, even if it is empty. 
+
+== Reading ==
+
+Another common use is to parse a large `BitString` into smaller syntax elements. Functions for reading in bytes and bits are provided and will return new `BitString` objects. These new objects are top-level `BitString` objects and can be interpreted using properties as in the next example or could be read from to form a hierarchy of reads.
+{{{
+s = BitString(filename='test.m1v')
+start_code = s.readbytes(4).hex
+width = s.readbits(12).uint
+height = s.readbits(12).uint
+s.advancebits(37)
+
+flags = s.readbits(2)
+constrained_parameters_flag = flags.readbits(1).uint
+load_intra_quantiser_matrix = flags.readbits(1).uint
+}}}
+
+= Navigating =
+
+== Seeking ==
+The properties `bitpos` and `bytepos` are available for getting and setting the position, which is zero on creation of the `BitString`. For relative movement either use the `+=` and `-=` operators or the advance and retreat functions.
+
+{{{
+s = BitString(hex='0x123456')
+print(s.bitpos)      # 0
+s.bytepos += 2
+print(s.bitpos)      # 16 (note bitpos verses bytepos)
+s.advancebits(4)
+print(s.read(4).bin) # '0110' (the final nibble '0x6')
+}}}
+
+== Finding ==
+
+To search for a sub-string use the 'find' and 'findbytealigned' functions. These will set the position to the start of the next occurrence of the searched for string and return `True`, or just return `False` if the string isn't present. As its name implies, `findbytealigned` looks for only byte aligned occurrences of a whole-byte `BitString`.
+
+{{{
+s = BitString(hex='0x00123400001234')
+found = s.findbytealigned(BitString(hex='0x1234'))
+print(found, s.bytepos)    # True, 1
+found = s.findbytealigned(BitString(hex='0xff'))
+print(found, s.bytepos)    # False, 1
+}}}
