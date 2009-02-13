@@ -147,7 +147,7 @@ a = BitString(hex='0x001122')
 a.truncateend(8)              # a.hex == '0x0011'
 b = a.truncatestart(8)        # a.hex == b.hex == '0x11'
 }}}
-If you want to keep an unaltered version then create a copy first.
+If you want to keep an unaltered version then create a copy first or use a slice
 {{{
 a = BitString(bin='00001111')
 b = copy.copy(a)
@@ -159,7 +159,7 @@ A similar effect can be obtained using slicing - the major difference being that
 a = BitString(bin='00011110')
 b = a[3:7]
 c = a.slice(3, 7)             # s.slice(x, y) is equivalent to s[x:y]
-print a.bin, b.bin, c.bin     # '00011110', '1111', '1111'
+print a.bin, b.bin, c.bin     # '0b00011110', '0b1111', '0b1111'
 }}}
 
 == Inserting, deleting and overwriting ==
@@ -169,9 +169,29 @@ print a.bin, b.bin, c.bin     # '00011110', '1111', '1111'
 a = BitString(hex='0x00112233')
 b = BitString(hex='0xffff')
 a.insert(b, 16)
-print a.hex                      # '0x0011ffff2233'
+print a.hex                   # '0x0011ffff2233'
 }}}
 
+`overwrite` does much the same as `insert`, but as you might expect the `BitString` object's data is overwritten by the new data.
+{{{
+a = BitString(hex='0x00112233')
+b = BitString(bin='1111')
+a.bitpos = 4
+a.overwrite(b)                # Uses current bitpos as default
+print a.hex                   # '0x0f112233'
+}}}
+
+'deletebits' and 'deletebytes' remove sections of the `BitString`. By default they remove at the current `bitpos` - this must be at a byte boundary if using `deletebytes`:
+{{{
+a = BitString(bin='00011000')
+a.deletebits(2, 3)            # remove 2 bits at bitpos 3
+print a.bin                   # '0b000000'
+
+b = BitString(hex='0x112233445566')
+b.bytepos = 3
+b.deletebytes(2)
+print b.hex                   # '0x11223366'
+}}}
 
 == Splitting ==
 
@@ -214,11 +234,11 @@ The properties `bitpos` and `bytepos` are available for getting and setting the 
 
 {{{
 s = BitString(hex='0x123456')
-print s.bitpos       # 0
+print s.bitpos                 # 0
 s.bytepos += 2
-print s.bitpos       # 16 (note bitpos verses bytepos)
+print s.bitpos                 # 16 (note bitpos verses bytepos)
 s.advancebits(4)
-print s.read(4).bin  # '0110' (the final nibble '0x6')
+print s.read(4).bin            # '0b0110' (the final nibble '0x6')
 }}}
 
 == Finding ==
@@ -228,7 +248,7 @@ To search for a sub-string use the 'find' and 'findbytealigned' functions. These
 {{{
 s = BitString(hex='0x00123400001234')
 found = s.findbytealigned(BitString(hex='0x1234'))
-print(found, s.bytepos)    # True, 1
+print(found, s.bytepos)                             # True, 1
 found = s.findbytealigned(BitString(hex='0xff'))
-print(found, s.bytepos)    # False, 1
+print(found, s.bytepos)                             # False, 1
 }}}
