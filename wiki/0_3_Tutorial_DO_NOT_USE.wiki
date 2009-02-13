@@ -110,14 +110,15 @@ Some points to note:
   * The `se` and `ue` properties used as getters are only valid if the `BitString` decodes to exactly one Exponential Golomb code, otherwise a `BitStringError` is raised. The `readse()` and `readue()` functions can be used to interpret the bits following the current position as Exponential Golomb codes.
 
 
-= Combining and decomposing `BitString` objects =
+= Combining modifying and decomposing `BitString` objects =
 
 == Joining ==
 
-To join together a couple of `BitString` objects use the `+` or `+=` operators.
+To join together a couple of `BitString` objects use the `+` or `+=` operators, or the `append` function.
 {{{
 a = BitString(bin='0000')+BitString(hex='f')
-a += BitString(uint=0, length=8)
+b = BitString(uint=0, length=8)
+a += b  # equivalent to a.append(b)
 }}}
 
 If you want to join a large number of `BitStrings` then this can very quickly get very inefficient (just as it does with ordinary Python strings). This is because a brand-new object is being created with each addition. The function `join` can be used if many `BitString` objects need to be connected.
@@ -161,6 +162,17 @@ c = a.slice(3, 7)             # s.slice(x, y) is equivalent to s[x:y]
 print a.bin, b.bin, c.bin     # '00011110', '1111', '1111'
 }}}
 
+== Inserting, deleting and overwriting ==
+
+`insert` takes one `BitString` and inserts it into another. A bit position can be specified, but if not present then the current `bitpos` is used.
+{{{
+a = BitString(hex='0x00112233')
+b = BitString(hex='0xffff')
+a.insert(b, 16)
+print a.hex                      # '0x0011ffff2233'
+}}}
+
+
 == Splitting ==
 
 Sometimes it can be very useful to use a delimiter to split a `BitString` into sections. The `split()` function returns a generator for the sections.
@@ -176,7 +188,7 @@ Note that the first item returned is always the `BitString` before the first occ
 
 Another common use is to parse a large `BitString` into smaller syntax elements. Functions for reading in bytes and bits are provided and will return new `BitString` objects. These new objects are top-level `BitString` objects and can be interpreted using properties as in the next example or could be read from to form a hierarchy of reads.
 {{{
-s = BitString(filename='test.m1v')
+s = BitString(filename='test/test.m1v')
 start_code = s.readbytes(4).hex
 width = s.readbits(12).uint
 height = s.readbits(12).uint
