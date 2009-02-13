@@ -153,11 +153,12 @@ b = copy.copy(a)
 b.truncatestart(1)            # a is unchanged
 }}}
 
-The same effect can be obtained using slicing. Note that as always the unit is bits, rather than bytes.
+A similar effect can be obtained using slicing - the major difference being that a new `BitString` is returned and the `BitString` being operated on remains unchanged. Note that as always the unit is bits, rather than bytes.
 {{{
 a = BitString(bin='00011110')
 b = a[3:7]
-print(b.bin) # '1111'
+c = a.slice(3, 7)             # s.slice(x, y) is equivalent to s[x:y]
+print a.bin, b.bin, c.bin     # '00011110', '1111', '1111'
 }}}
 
 == Splitting ==
@@ -167,9 +168,9 @@ Sometimes it can be very useful to use a delimiter to split a `BitString` into s
 a = BitString(hex='0x4700004711472222')
 delimiter = BitString(hex='0x47')
 for s in a.split(delimiter)):
-    print("Empty" if s.empty() else s.hex) # 'Empty', '0x470000', '0x4711', '0x472222'
+    print "Empty" if s.empty() else s.hex  # 'Empty', '0x470000', '0x4711', '0x472222'
 }}}
-Note that the first item returned is always the `BitString` before the first occurence of the delimiter, even if it is empty. 
+Note that the first item returned is always the `BitString` before the first occurrence of the delimiter, even if it is empty. 
 
 == Reading ==
 
@@ -185,6 +186,14 @@ flags = s.readbits(2)
 constrained_parameters_flag = flags.readbits(1).uint
 load_intra_quantiser_matrix = flags.readbits(1).uint
 }}}
+In addition to the `read` functions there are matching `peek` functions. These are identical to the `read` except that they do not advance the position in the `BitString`.
+{{{
+s = BitString(hex='4732aa34')
+if s.peekbyte().hex == '0x47':
+    t = s.readbytes(2)          # t.hex == '0x4732'
+else:
+    s.findbytealigned(BitString(hex='0x47')
+}}}
 
 = Navigating =
 
@@ -193,11 +202,11 @@ The properties `bitpos` and `bytepos` are available for getting and setting the 
 
 {{{
 s = BitString(hex='0x123456')
-print(s.bitpos)      # 0
+print s.bitpos       # 0
 s.bytepos += 2
-print(s.bitpos)      # 16 (note bitpos verses bytepos)
+print s.bitpos       # 16 (note bitpos verses bytepos)
 s.advancebits(4)
-print(s.read(4).bin) # '0110' (the final nibble '0x6')
+print s.read(4).bin  # '0110' (the final nibble '0x6')
 }}}
 
 == Finding ==
