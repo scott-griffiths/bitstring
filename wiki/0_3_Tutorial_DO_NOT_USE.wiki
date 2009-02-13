@@ -60,6 +60,10 @@ a.insert('0b001', 6)
 a.find('0b1111')
 }}}
 
+== More convenience functions ==
+
+Some missing functions such as `advancebit` and `deletebytes` have been added. Also a number of `peek` functions make an appearance. See the Tutorial for more details.
+
 = Getting Started =
 
 First download the latest release (see the Downloads tab) and extract the contents of the zip. You will find:
