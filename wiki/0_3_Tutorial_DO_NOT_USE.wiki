@@ -16,7 +16,7 @@ becomes:
 a = BitString(hex='0xffff')
 a.append(BitString(hex='0x00'))
 b = copy.copy(a)
-a.deletebits(10, 10)
+b.deletebits(10, 10)
 }}}
 
 == Changes to printing ==
