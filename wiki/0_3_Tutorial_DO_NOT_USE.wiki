@@ -250,8 +250,8 @@ a.insert('0xffff', 16)
 
 `overwrite` does much the same as `insert`, but as you might expect the `BitString` object's data is overwritten by the new data.
 {{{
-a = BitString(hex='0x00112233')
-b = BitString(bin='1111')
+a = BitString('0x00112233')
+b = BitString('0b1111')
 a.bitpos = 4
 a.overwrite(b)                # Uses current bitpos as default
 print a.hex                   # '0x0f112233'
@@ -263,7 +263,7 @@ a = BitString(bin='00011000')
 a.deletebits(2, 3)            # remove 2 bits at bitpos 3
 print a.bin                   # '0b000000'
 
-b = BitString(hex='0x112233445566')
+b = BitString('0x112233445566')
 b.bytepos = 3
 b.deletebytes(2)
 print b.hex                   # '0x11223366'
@@ -273,9 +273,8 @@ print b.hex                   # '0x11223366'
 
 Sometimes it can be very useful to use a delimiter to split a `BitString` into sections. The `split()` function returns a generator for the sections.
 {{{
-a = BitString(hex='0x4700004711472222')
-delimiter = BitString(hex='0x47')
-for s in a.split(delimiter)):
+a = BitString('0x4700004711472222')
+for s in a.split('0x47)):
     print "Empty" if s.empty() else s.hex  # 'Empty', '0x470000', '0x4711', '0x472222'
 }}}
 Note that the first item returned is always the `BitString` before the first occurrence of the delimiter, even if it is empty. 
@@ -309,7 +308,7 @@ else:
 The properties `bitpos` and `bytepos` are available for getting and setting the position, which is zero on creation of the `BitString`. For relative movement either use the `+=` and `-=` operators or the advance and retreat functions.
 
 {{{
-s = BitString(hex='0x123456')
+s = BitString('0x123456')
 print s.bitpos                 # 0
 s.bytepos += 2
 print s.bitpos                 # 16 (note bitpos verses bytepos)
@@ -322,9 +321,9 @@ print s.read(4).bin            # '0b0110' (the final nibble '0x6')
 To search for a sub-string use the 'find' and 'findbytealigned' functions. These will set the position to the start of the next occurrence of the searched for string and return `True`, or just return `False` if the string isn't present. As its name implies, `findbytealigned` looks for only byte aligned occurrences of a whole-byte `BitString`.
 
 {{{
-s = BitString(hex='0x00123400001234')
-found = s.findbytealigned(BitString(hex='0x1234'))
+s = BitString('0x00123400001234')
+found = s.findbytealigned('0x1234')
 print(found, s.bytepos)                             # True, 1
-found = s.findbytealigned(BitString(hex='0xff'))
+found = s.findbytealigned('0xff')
 print(found, s.bytepos)                             # False, 1
 }}}
