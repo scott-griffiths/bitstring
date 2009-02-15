@@ -1,5 +1,4 @@
 #summary Some simple usage examples
-#labels Featured
 
 {{{
 from bitstring import *
