@@ -1,4 +1,4 @@
-#summary Brief tutorial on the use of the BitString module
+#summary Brief tutorial on the use of the bitstring module
 #labels Featured
 
 <wiki:toc max_depth="3" />
