@@ -993,6 +993,11 @@ class BitString(object):
         assert self._assertsanity()
         return self
     
+    def reversebits(self):
+        """Reverse all bits in-place. Return self."""
+        self._setbin(self._getbin()[:1:-1])
+        return self
+    
     def split(self, delimiter):
         """Return a generator of BitStrings by splittling into substrings starting with a byte aligned delimiter.
         The first item returned is the initial bytes before the delimiter, which may be empty."""
