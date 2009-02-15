@@ -939,8 +939,18 @@ class BitString(object):
             raise BitStringError("Can't delete a negative number of bits")
         if bits + bitpos > self.length:
             raise BitStringError("Can't delete past the end of the BitString")
-        self = self[0:bitpos]+self[bitpos+bits:]
+        end = self.slice(bitpos+bits, self._length)
+        self.truncateend(self._length - bitpos)
+        self.append(end)
         return self
+    
+    def deletebytes(self, bytes, bytepos=None):
+        """Delete number of bytes at current position (must be byte-aligned), or bytepos if supplied. Return self."""
+        if bytepos is None and self._pos % 8 != 0:
+            raise BitStringError("Must be byte-aligned for deletebytes()")
+        if bytepos is None:
+            bytepos = self._pos/8
+        return self.deletebits(bytes*8, bytepos*8)
 
     def append(self, bs):
         """Append a BitString. Return self."""
