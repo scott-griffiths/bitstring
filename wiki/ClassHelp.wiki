@@ -36,40 +36,68 @@
      |  __iadd__(self, s)
      |      Do the += thing.
      |  
-     |  __init__(self, data=None, length=None, offset=0, filename=None, hex=None, bin=None, uint=None, int=None, ue=None, se=None)
+     |  __init__(self, auto=None, length=None, offset=0, data=None, filename=None, hex=None, bin=None, uint=None, int=None, ue=None, se=None)
      |      Contains a numerical string with length in bits with an offset bit count.
      |  
      |  __len__(self)
+     |      Return the length of the BitString in bits.
+     |  
+     |  __str__(self)
+     |      Return view of BitString for printing.
+     |  
+     |  advancebit(self)
+     |      Advance position by one bit.
      |  
      |  advancebits(self, bits)
      |      Advance position by bits.
+     |  
+     |  advancebyte(self)
+     |      Advance position by one byte.
      |  
      |  advancebytes(self, bytes)
      |      Advance position by bytes. Does not byte align.
      |  
      |  append(self, bs)
-     |      Return a BitString with the new BitString appended.
+     |      Append a BitString. Return self.
      |  
      |  bytealign(self)
      |      Align to next byte and return number of skipped bits.
      |  
      |  deletebits(self, bits, bitpos=None)
-     |      Delete number of bits from the BitString at bitpos and return new BitString.
+     |      Delete number of bits at current position, or bitpos if supplied. Return self.
+     |  
+     |  deletebytes(self, bytes, bytepos=None)
+     |      Delete number of bytes at current position (must be byte-aligned), or bytepos if supplied. Return self.
      |  
      |  empty(self)
      |      Return True only if the BitString is empty.
      |  
-     |  find(self, s)
+     |  find(self, bs)
      |      Seek to start of next occurence of BitString. Return True if BitString is found.
      |  
-     |  findbytealigned(self, d)
-     |      Seek to start of next occurence of byte-aligned string or BitString. Return True if string is found.
+     |  findbytealigned(self, bs)
+     |      Seek to start of next occurence of byte-aligned BitString. Return True if string is found.
      |  
      |  insert(self, bs, bitpos=None)
-     |      Insert a BitString into the current BitString at bitpos and return new BitString.
+     |      Insert a BitString at current position, or bitpos if supplied. Return self.
      |  
      |  overwrite(self, bs, bitpos=None)
-     |      Overwrite the section of the current BitString at bitpos with new data and return new BitString.
+     |      Overwrite with new BitString at the current position, or bitpos if supplied. Return self.
+     |  
+     |  peekbit(self)
+     |      Return next bit in BitString as a new BitString without advancing position.
+     |  
+     |  peekbits(self, bits)
+     |      Return next bits in BitString as a new BitString without advancing position.
+     |  
+     |  peekbyte(self)
+     |      Return next byte in BitString as a new BitString without advancing position.
+     |  
+     |  peekbytes(self, bytes)
+     |      Return next bytes in BitString as a new BitString without advancing position.
+     |  
+     |  prepend(self, bs)
+     |      Prepend a BitString. Return self.
      |  
      |  readbit(self)
      |      Return BitString of length 1 and advances position.
@@ -91,24 +119,33 @@
      |      Return interpretation of next bits in stream as an unsigned Exponential-Golomb of the type used in H.264.
      |      Advances position to after the read code.
      |  
+     |  retreatbit(self)
+     |      Retreat position by one bit.
+     |  
      |  retreatbits(self, bits)
      |      Retreat position by bits.
+     |  
+     |  retreatbyte(self)
+     |      Retreat position by one byte. Does not byte align.
      |  
      |  retreatbytes(self, bytes)
      |      Retreat position by bytes.
      |  
+     |  reversebits(self)
+     |      Reverse all bits in-place. Return self.
+     |  
      |  slice(self, startbit, endbit)
-     |      Return a slice of the BitString: [startbit, endbit).
+     |      Return a new BitString which is the slice [startbit, endbit).
      |  
      |  split(self, delimiter)
      |      Return a generator of BitStrings by splittling into substrings starting with a byte aligned delimiter.
      |      The first item returned is the initial bytes before the delimiter, which may be empty.
      |  
      |  truncateend(self, bits)
-     |      Truncate bits from the end of the BitString. Return new BitString.
+     |      Truncate a number of bits from the end of the BitString. Return new BitString.
      |  
      |  truncatestart(self, bits)
-     |      Truncate bits from the start of the BitString. Return new BitString.
+     |      Truncate a number of bits from the start of the BitString. Return new BitString.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors defined here:
@@ -148,10 +185,10 @@
     
     class BitStringError(exceptions.Exception)
      |  Base class for errors in the bitstring module.
-     |  
 
 
 FUNCTIONS
     join(bitstringlist)
         Return the concatenation of the BitStrings in a list
+
 }}}
