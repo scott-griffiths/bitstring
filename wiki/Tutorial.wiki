@@ -232,7 +232,7 @@ print b.hex                   # '0x11223366'
 Sometimes it can be very useful to use a delimiter to split a `BitString` into sections. The `split()` function returns a generator for the sections.
 {{{
 a = BitString('0x4700004711472222')
-for s in a.split('0x47)):
+for s in a.split('0x47')):
     print "Empty" if s.empty() else s.hex  # 'Empty', '0x470000', '0x4711', '0x472222'
 }}}
 Note that the first item returned is always the `BitString` before the first occurrence of the delimiter, even if it is empty. 
@@ -253,11 +253,11 @@ load_intra_quantiser_matrix = flags.readbit().uint
 }}}
 In addition to the `read` functions there are matching `peek` functions. These are identical to the `read` except that they do not advance the position in the `BitString`.
 {{{
-s = BitString(hex='4732aa34')
+s = BitString('0x4732aa34')
 if s.peekbyte().hex == '0x47':
     t = s.readbytes(2)          # t.hex == '0x4732'
 else:
-    s.findbytealigned(BitString(hex='0x47')
+    s.findbytealigned('0x47')
 }}}
 
 = Navigating =
