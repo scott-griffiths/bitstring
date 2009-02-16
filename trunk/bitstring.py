@@ -326,10 +326,14 @@ class BitString(object):
             self._setdata('')
             return
         if s[0:2] in ['0x', '0X']:
-            self._sethexsafe(s[2:], length)
+            s = s.replace('0x', '')
+            s = s.replace('0X', '')
+            self._sethexsafe(s, length)
             return
         if s[0:2] in ['0b', '0B']:
-            self._setbin(s[2:], length)
+            s = s.replace('0b', '')
+            s = s.replace('0B', '')
+            self._setbin(s, length)
             return
         raise BitStringError("String '%s' cannot be interpreted as hexadecimal or binary. "
                              "It needs to start with '0x' or '0b'." % s)
@@ -492,9 +496,9 @@ class BitString(object):
     def _setbin(self, binstring, length=None):
         """Reset the BitString to the value given in binstring."""
         binstring = _removewhitespace(binstring)
-        # remove leading 0b if present
-        if len(binstring) > 2 and binstring[0:2] in ['0b','0B']:
-            binstring = binstring[2:]
+        # remove any 0b if present
+        binstring = binstring.replace('0b', '')
+        binstring = binstring.replace('0B', '')
         if length is None:
             length = len(binstring) - self._offset
         if length < 0 or length > (len(binstring) - self._offset):
@@ -536,9 +540,9 @@ class BitString(object):
     def _sethexsafe(self, hexstring, length=None):
         """Reset the BitString to have the value given in hexstring."""
         hexstring = _removewhitespace(hexstring)
-        # remove leading 0x if present
-        if len(hexstring) > 2 and hexstring[0:2] in ['0x','0X']:
-            hexstring = hexstring[2:]
+        # remove any 0x if present
+        hexstring = hexstring.replace('0x', '')
+        hexstring = hexstring.replace('0X', '')
         if length is None:
             length = len(hexstring)*4 - self._offset
         if length < 0 or length + self._offset > len(hexstring)*4:
@@ -785,7 +789,7 @@ class BitString(object):
         self._setbitpos(self._pos - 8)
 
     def retreatbytes(self, bytes):
-        """Retreat position by bytes."""
+        """Retreat position by bytes. Does not byte align."""
         if bytes < 0:
             raise BitStringError("Cannot retreat by a negative amount")
         self._setbitpos(self._pos - bytes*8)
@@ -813,9 +817,9 @@ class BitString(object):
         """Seek to start of next occurence of byte-aligned BitString. Return True if string is found."""
         if isinstance(bs, str):
             bs = BitString(bs)
-        # If we are passed in a BitString then convert it to raw data.
         if bs._length % 8 != 0:
             raise BitStringError("Can only use find for whole-byte BitStrings.")
+        # Extract data bytes from BitString to be found.
         bs._setoffset(0)
         d = bs.data
         if len(d) == 0:
@@ -825,6 +829,7 @@ class BitString(object):
         try:
             self.bytealign()
         except BitStringError:
+            # Not even enough bits left to byte-align.
             self._pos = oldpos
             return False
         bytepos = self._pos/8
