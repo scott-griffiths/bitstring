@@ -10,8 +10,11 @@ First download the latest release (see the Downloads tab) and extract the conten
   * `bitstring.py` : The bitstring module itself.
   * `test-bitstring.py` : Unit tests for the module.
   * `examples.py` : Some example code.
+  * `licence.txt` : The module's licence
+  * `readme.html` : Short readme to provide link back to this site.
   * `test/` : Directory for test files
     * `test.m1v` : An example file (MPEG-1 video) for testing purposes.
+    * `smalltestfile` : Another small file for testing.
 
 No installation is needed, you just need to make sure that your Python program can see `bitstring.py`, for example by putting in the same directory as the program that will use it, or by moving it to your Python installation's `site-packages` directory.
 
@@ -36,12 +39,24 @@ Many useful methods for creating, combining, splitting, reading from and finding
 
 You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString` objects will return another `BitString`.
 
-When initialising a `BitString` you need to specify at most one of `data, hex, bin, int, uint, se, ue` or `filename`. If no initialiser is given a `BitString` of `length` zeros will be created, which will be an empty `BitString` if `length` is zero or not present. 
+When initialising a `BitString` you need to specify at most one of `auto, data, hex, bin, int, uint, se, ue` or `filename`. If no initialiser is given a `BitString` of `length` zeros will be created, which will be an empty `BitString` if `length` is zero or not present. 
 
 For some of the initialisers you need to also specify the `length` in bits, for some it is optional and for others it is an error and this will be detailed below.
 
-There is also an optional `offset` parameter which allows up to seven bits at the start of a `BitString` initialised by `data`, `hex` or `int` to be ignored. This can be useful when byte-aligned data is being used to initialise, but you need to cut off some bits at the start.
+There is also an optional `offset` parameter which allows up to seven bits at the start of a `BitString` initialised by `auto`, `data`, `hex` or `int` to be ignored. This can be useful when byte-aligned data is being used to initialise, but you need to cut off some bits at the start.
 
+== Using auto ==
+{{{
+fromhex = BitString('0x01ffc9')
+frombin = BitString('0b01')
+}}}
+The simplest way to create a `BitString` is often to use the `auto` parameter, which is the first parameter in the `__init__` function and so the `auto=` can be omitted. It accepts a string that starts with '0x', '0X', '0b' or '0B'. Strings that start with '0x' or '0X' are interpreted as hexadecimal, while strings starting with '0b' or '0B' are interpreted as binary.
+
+You can also use the `length` and `offset` parameters to specify the length in bits and up to seven bits at the start to be ignored.
+{{{
+z = BitString('0b00011110000000', offset=3, length=4)
+print z        # '0b1111'
+}}}
 == From a binary string ==
 {{{
 a = BitString(data='\x00\x01\x02\xff', length=28)
@@ -124,15 +139,20 @@ Some points to note:
 
 == Joining ==
 
-To join together a couple of `BitString` objects use the `+` or `+=` operators, or the `append` function.
+To join together a couple of `BitString` objects use the `+` or `+=` operators, or the `append` and `prepend` functions.
 {{{
-a = BitString('0b000')+BitString('0xf')   # a.bin == 0001111
-b = BitString(uint=0, length=8)           # b.bin == 00000000
-a += b                                    # equivalent to a.append(b)
+# Seven ways of creating the same BitString:
+a1 = BitString(bin='000') + BitString(hex='f')
+a2 = BitString('0b000') + BitString('0xf')
+a3 = BitString('0b000') + '0xf'
+a4 = BitString() + '0b000' + '0xf'
+a5 = BitString('0b000').append('0xf')
+a6 = BitString('0xf').prepend('0b000')
+a7 = BitString('0b000')
+a7 += '0xf'
 }}}
 
-If you want to join a large number of `BitStrings` then this can very quickly get very inefficient (just as it does with ordinary Python strings). This is because a brand-new object is being created with each addition. The function `join` can be used if many `BitString` objects need to be connected.
-
+If you want to join a large number of `BitString` objects then the function `join` can be used to improve efficiency and readability.
 {{{
 # Don't do it this way!
 s = BitString()
