@@ -189,7 +189,7 @@ A similar effect can be obtained using slicing - the major difference being that
 a = BitString('0b00011110')
 b = a[3:7]
 c = a.slice(3, 7)             # s.slice(x, y) is equivalent to s[x:y]
-print a.bin, b.bin, c.bin     # '0b00011110', '0b1111', '0b1111'
+print a, b, c                 # '0x1e 0b1111 0b1111'
 }}}
 
 == Inserting, deleting and overwriting ==
@@ -210,15 +210,14 @@ a.insert('0xffff', 16)
 `overwrite` does much the same as `insert`, but as you might expect the `BitString` object's data is overwritten by the new data.
 {{{
 a = BitString('0x00112233')
-b = BitString('0b1111')
 a.bitpos = 4
-a.overwrite(b)                # Uses current bitpos as default
+a.overwrite('0b1111')         # Uses current bitpos as default
 print a.hex                   # '0x0f112233'
 }}}
 
 'deletebits' and 'deletebytes' remove sections of the `BitString`. By default they remove at the current `bitpos` - this must be at a byte boundary if using `deletebytes`:
 {{{
-a = BitString(bin='00011000')
+a = BitString('0b00011000')
 a.deletebits(2, 3)            # remove 2 bits at bitpos 3
 print a.bin                   # '0b000000'
 
@@ -249,8 +248,8 @@ height = s.readbits(12).uint
 s.advancebits(37)
 
 flags = s.readbits(2)
-constrained_parameters_flag = flags.readbits(1).uint
-load_intra_quantiser_matrix = flags.readbits(1).uint
+constrained_parameters_flag = flags.readbit().uint
+load_intra_quantiser_matrix = flags.readbit().uint
 }}}
 In addition to the `read` functions there are matching `peek` functions. These are identical to the `read` except that they do not advance the position in the `BitString`.
 {{{
