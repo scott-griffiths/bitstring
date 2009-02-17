@@ -141,15 +141,14 @@ Some points to note:
 
 To join together a couple of `BitString` objects use the `+` or `+=` operators, or the `append` and `prepend` functions.
 {{{
-# Seven ways of creating the same BitString:
+# Six ways of creating the same BitString:
 a1 = BitString(bin='000') + BitString(hex='f')
 a2 = BitString('0b000') + BitString('0xf')
 a3 = BitString('0b000') + '0xf'
-a4 = BitString() + '0b000' + '0xf'
-a5 = BitString('0b000').append('0xf')
-a6 = BitString('0xf').prepend('0b000')
-a7 = BitString('0b000')
-a7 += '0xf'
+a4 = BitString('0b000').append('0xf')
+a5 = BitString('0xf').prepend('0b000')
+a6 = BitString('0b000')
+a6 += '0xf'
 }}}
 
 If you want to join a large number of `BitString` objects then the function `join` can be used to improve efficiency and readability.
