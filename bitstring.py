@@ -170,9 +170,12 @@ class BitString(object):
        offset : bit offset to the data (0 -> 7). The first offset bits are ignored.
        
        Initialise the BitString with one (and only one) of:
+       auto : string starting with '0x', 0o' or '0b' to be interpreted
+              as hexadecimal, octal or binary
        data : raw data as a string, for example read from binary file
-       bin : binary string representation, e.g. '00101110'
+       bin : binary string representation, e.g. '0b001010'
        hex : hexadecimal string representation, e.g. '0x2e'
+       oct : octal string representation, e.g. '0o777'
        uint : unsigned integer (length must be supplied)
        int : signed integer (length must be supplied)
        se : signed Exponential-Golomb (length must not be supplied)
@@ -187,7 +190,7 @@ class BitString(object):
     """
     
     def __init__(self, auto = None, length = None, offset = 0, data = None, filename = None, hex = None,
-                 bin = None, uint = None, int = None,  ue = None, se = None):
+                 bin = None, oct = None, uint = None, int = None,  ue = None, se = None):
         """Contains a numerical string with length in bits with an offset bit count."""  
         self._offset = offset
         self._pos = 0
@@ -196,9 +199,9 @@ class BitString(object):
         if length is not None and length < 0:
             raise BitStringError("Length cannot be negative")
         
-        initialisers = [auto, data, filename, hex, bin, int, uint, ue, se]
+        initialisers = [auto, data, filename, hex, bin, oct, int, uint, ue, se]
         initfuncs = [self._setauto, self._setdata, self._setfile, self._sethexsafe,
-                     self._setbin, self._setint, self._setuint, self._setue, self._setse]
+                     self._setbin, self._setoct, self._setint, self._setuint, self._setue, self._setse]
         assert len(initialisers) == len(initfuncs)
         if initialisers.count(None) < len(initialisers) - 1:
             raise BitStringError("You must only specify one initialiser when initialising the BitString")
@@ -335,8 +338,13 @@ class BitString(object):
             s = s.replace('0B', '')
             self._setbin(s, length)
             return
-        raise BitStringError("String '%s' cannot be interpreted as hexadecimal or binary. "
-                             "It needs to start with '0x' or '0b'." % s)
+        if s[0:2] in ['0o', '0O']:
+            s = s.replace('0o', '')
+            s = s.replace('0O', '')
+            self._setoct(s, length)
+            return
+        raise BitStringError("String '%s' cannot be interpreted as hexadecimal, binary or octal. "
+                             "It needs to start with '0x', '0b' or '0o'." % s)
 
     def _setfile(self, filename, lengthinbits=None):
         "Use file as source of bits."
@@ -536,6 +544,46 @@ class BitString(object):
                 i /= 2
         c.reverse()
         return '0b' + ''.join(c)
+        
+    def _setoct(self, octstring, length=None):
+        """Reset the BitString to have the value given in octstring."""
+        octstring = _removewhitespace(octstring)
+        # remove any 0o if present
+        octstring = octstring.replace('0o', '')
+        octstring = octstring.replace('0O', '')
+        if length is None:
+            length = len(octstring)*3 - self._offset
+        if length < 0 or length + self._offset > len(octstring)*3:
+            raise BitStringError("Invalid length %s, offset %d for oct initialiser %s" % (length, self._offset, octstring))
+        octstring = octstring[0:(length + self._offset + 2)/3]
+        self._length = length
+        if self._length == 0:
+            self._datastore = _MemArray('')
+            return
+        binlookup = ['000', '001', '010', '011', '100', '101', '110', '111']
+        binlist = []
+        for i in octstring:
+            try:
+                if not 0 <= int(i) < 8:
+                    raise ValueError
+                binlist.append(binlookup[int(i)])
+            except ValueError:
+                raise BitStringError("Invalid symbol '%s' in oct initialiser" % i)
+        self._setbin(''.join(binlist))
+        
+    def _getoct(self):
+        """Return interpretation as an octal string."""
+        if self._length%3 != 0:
+            raise BitStringError("Cannot convert to octal unambiguously - not multiple of 3 bits")
+        if self._length == 0:
+            return ''
+        oldbitpos = self._pos
+        self._setbitpos(0)
+        octlist = ['0o']
+        for i in range(self._length/3):
+            octlist.append(str(self.readbits(3).uint))
+        self._pos = oldbitpos
+        return ''.join(octlist)
     
     def _sethexsafe(self, hexstring, length=None):
         """Reset the BitString to have the value given in hexstring."""
@@ -1037,6 +1085,7 @@ class BitString(object):
     offset = property(_getoffset, doc="the offset of the BitString relative to being byte aligned")
     hex    = property(_gethex, _sethexsafe, doc="the BitString as a hexidecimal string (including leading zeros)")
     bin    = property(_getbin, _setbin, doc="the BitString as a binary string (including leading zeros)")
+    oct    = property(_getoct, _setoct, doc="the BitString as an octal string (including leading zeros)")
     data   = property(_getdata, _setdata, doc="the BitString as a ordinary string")
     int    = property(_getint, _setint, doc="the BitString as a two's complement signed int")
     uint   = property(_getuint, _setuint, doc="the BitString as an unsigned int")
