@@ -245,16 +245,21 @@ class BitString(object):
         s_copy._datastore = copy.copy(self._datastore)
         return s_copy
 
-    def __add__(self, s):
+    def __add__(self, bs):
         """Concatenate BitStrings and return new BitString."""
-        return copy.copy(self).append(s)
+        return copy.copy(self).append(bs)
         
-    def __iadd__(self, s):
-        """Do the += thing."""
-        return self.append(s)
+    def __iadd__(self, bs):
+        """Append BitString to current BitString. Return self."""
+        return self.append(bs)
     
     def __getitem__(self, key):
-        """Return a slice of the BitString. Indices are in bits and stepping is not supported."""
+        """Return a new BitString representing a slice of the current BitString.
+        
+        Indices are in bits.
+        Stepping is not supported and use will raise a BitStringError.
+        
+        """
         try:
             key.start
         except AttributeError:
@@ -1075,6 +1080,9 @@ class BitString(object):
             bs = BitString(bs)
         if bs.empty():
             return self
+        # Can't modify file, so need to read it into memory.
+        if isinstance(self._datastore, _FileArray):
+            self._datastore = _MemArray(self._datastore[:])
         if bs is self:
             bs = copy.copy(self)
         bits_in_final_byte = (self._offset + self._length)%8
@@ -1095,6 +1103,9 @@ class BitString(object):
             bs = BitString(bs)
         if bs.empty():
             return self
+        # Can't modify file, so need to read it into memory.
+        if isinstance(self._datastore, _FileArray):
+            self._datastore = _MemArray(self._datastore[:])
         if bs is self:
             bs = copy.copy(self)
         bits_in_final_byte = (bs._offset + bs._length)%8
