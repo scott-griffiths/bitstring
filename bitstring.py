@@ -123,6 +123,12 @@ class _FileArray(object):
         else:
             return ''
     
+    def extend(self, data):
+        raise NotImplementedError
+    
+    def append(self, data):
+        raise NotImplementedError
+    
     def length(self):
         return self._length
     
@@ -165,27 +171,27 @@ class _MemArray(object):
 
 class BitString(object):
     """A class for general bit-wise manipulations and interpretations.
-    
-       length : length of the string in bits, if needed
-       offset : bit offset to the data (0 -> 7). The first offset bits are ignored.
-       
-       Initialise the BitString with one (and only one) of:
-       auto : string starting with '0x', 0o' or '0b' to be interpreted
-              as hexadecimal, octal or binary
-       data : raw data as a string, for example read from binary file
-       bin : binary string representation, e.g. '0b001010'
-       hex : hexadecimal string representation, e.g. '0x2e'
-       oct : octal string representation, e.g. '0o777'
-       uint : unsigned integer (length must be supplied)
-       int : signed integer (length must be supplied)
-       se : signed Exponential-Golomb (length must not be supplied)
-       ue : unsigned Exponential-Golomb (length must not be supplied)
-       filename : a file which will be opened in binary read-only mode
-       
-       e.g.
-       a = BitString(hex='0x123ab560')
-       b = BitString(filename="movie.ts")
-       c = BitString(int=10, length=6)
+
+    Initialise the BitString with one (and only one) of:
+    auto -- string starting with '0x', 0o' or '0b' to be interpreted
+            as hexadecimal, octal or binary
+    data -- raw data as a string, for example read from binary file
+    bin -- binary string representation, e.g. '0b001010'
+    hex -- hexadecimal string representation, e.g. '0x2e'
+    oct -- octal string representation, e.g. '0o777'
+    uint -- unsigned integer (length must be supplied)
+    int -- signed integer (length must be supplied)
+    se -- signed Exponential-Golomb (length must not be supplied)
+    ue -- unsigned Exponential-Golomb (length must not be supplied)
+    filename -- a file which will be opened in binary read-only mode
+
+    length -- length of the string in bits, if needed
+    offset -- bit offset to the data (0 -> 7). These offset bits are ignored.
+   
+    e.g.
+    a = BitString('0x123ab560')
+    b = BitString(filename="movie.ts")
+    c = BitString(int=10, length=6)
         
     """
     
@@ -241,13 +247,11 @@ class BitString(object):
 
     def __add__(self, s):
         """Concatenate BitStrings and return new BitString."""
-        c = copy.copy(self)
-        return c.append(s)
-    
+        return copy.copy(self).append(s)
+        
     def __iadd__(self, s):
         """Do the += thing."""
-        self = self + s
-        return self
+        return self.append(s)
     
     def __getitem__(self, key):
         """Return a slice of the BitString. Indices are in bits and stepping is not supported."""
@@ -302,6 +306,62 @@ class BitString(object):
                 return self._getbin()
             else:
                 return self.slice(0, 256*8)._getbin() + '...'
+    
+    def __eq__(self, bs):
+        """Return True if the two BitStrings have the same binary representation."""
+        if self._length != bs._length:
+            return False
+        if self._getbin() != bs._getbin():
+            return False
+        else:
+            return True
+    
+    def __ne__(self, bs):
+        """Return True if the two BitStrings do not have the same binary representation."""
+        return not self.__eq__(bs)
+    
+    def __hex__(self):
+        """Return the hexadecimal representation."""
+        return self._gethex()
+    
+    def __oct__(self):
+        """Return the octal representation."""
+        return self._getoct()
+        
+    def __invert__(self):
+        """Return BitString with every bit inverted."""
+        if self.empty():
+            raise BitStringError("Cannot invert empty BitString.")
+        s = BitString(int=~(self._getint()), length=self.length)
+        return s
+
+    def __lshift__(self, n):
+        """Return BitString with bits shifted by n to the left."""
+        if n < 0:
+            raise BitStringError("Cannot shift by a negative amount.")
+        if self.empty():
+            raise BitStringError("Cannot shift an empty BitString.")
+        s = self[n:].append(BitString(length = min(n, self._length)))
+        return s
+    
+    def __ilshift__(self, n):
+        """Shift bits by n to the left in place."""
+        self._setbin(self.__lshift__(n)._getbin())
+        return self
+
+    def __rshift__(self, n):
+        """Return BitString with bits shifted by n to the right."""
+        if n < 0:
+            raise BitStringError("Cannot shift by a negative amount.")
+        if self.empty():
+            raise BitStringError("Cannot shift an empty BitString.")
+        s = BitString(length = min(n, self._length)).append(self[:-n])
+        return s
+    
+    def __irshift__(self, n):
+        """Shift bits by n to the right in place."""
+        self._setbin(self.__rshift__(n)._getbin())
+        return self
 
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
@@ -323,7 +383,7 @@ class BitString(object):
         return True
     
     def _setauto(self, s, length = None):
-        """Set BitString from binary or hexadecimal string."""
+        """Set BitString from another BitString, or a binary, octal or hexadecimal string."""
         s = _removewhitespace(s)
         if not s:
             self._setdata('')
@@ -600,22 +660,26 @@ class BitString(object):
         if self._length == 0:
             self._datastore = _MemArray('')
             return
-        datastring = ""
+        hexlist = []
         # First do the whole bytes
         for i in range(len(hexstring)/2):
             try:
-                int(hexstring[i*2:i*2+2], 16)
+                j = int(hexstring[i*2:i*2+2], 16) 
+                if not 0 <= j < 256:
+                    raise ValueError
+                hexlist.append(_single_byte_from_hex_string(hexstring[i*2:i*2+2]))
             except ValueError:
                 raise BitStringError("Cannot convert to hexadecimal")
-            datastring += _single_byte_from_hex_string(hexstring[i*2:i*2+2])
         # then any remaining nibble
         if len(hexstring)%2 == 1:
             try:
-                int(hexstring[-1],16)
+                j = int(hexstring[-1],16)
+                if not 0 <= j < 16:
+                    raise ValueError
+                hexlist.append(_single_byte_from_hex_string(hexstring[-1]))
             except ValueError:
                 raise BitStringError("Cannot convert last digit to hexadecimal")
-            datastring += _single_byte_from_hex_string(hexstring[-1])
-        self._datastore = _MemArray(datastring)
+        self._datastore = _MemArray(''.join(hexlist))
         self._setunusedbitstozero()
         assert self._assertsanity()
         
