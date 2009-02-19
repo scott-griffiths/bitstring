@@ -44,8 +44,17 @@ print h[24:32].hex  # 0xb3
 print h[-4:].bin    # 0b0011 (the final four bits)
 
 # Joining lists
-bsl = ['0b0', '0b1', BitString(bin='000'), BitString(hex='f')]]
-print bitstring.join(bsl).bin)  # 0b010001111
+bsl = ['0b0', '0b1', BitString(bin='000'), BitString(hex='f')]
+print bitstring.join(bsl).bin   # 0b010001111
+
+# Appending, prepending, truncating and deleting
+s = BitString('0x00')
+s.prepend('0xaa').append('0xbb')
+print s             # 0xaa00bb
+s.truncatestart(4).truncateend(4)
+print s             # 0xa00b
+s.deletebits(8, 4)  # delete 8 bits at bit position 4
+print s             # 0xab
 
 # Using a bitstring as a source for other bitstrings
 s = BitString('0x00112233445566778899aabbccddeeff')
@@ -59,20 +68,27 @@ print s.readbytes(3)      # 0x112233
 {{{
 # A simple example from the H.264 video standard
 def seq_parameter_set_data(s):
-  profile_idc = s.readbyte().uint
-  constraint_set0_flag = s.readbit().uint
-  constraint_set1_flag = s.readbit().uint
-  constraint_set2_flag = s.readbit().uint
-  constraint_set3_flag = s.readbit().uint
-  reserved_zero_4bits = s.readbits(4).uint
-  level_idc = s.readbyte().uint
-  seq_parameter_set_id = s.readue()
-  if profile_idc in [100, 110, 122, 244, 44, 83, 86]:
-    chroma_format_idc = s.readue()
-    if chroma_format_idc == 3:
-      separate_colour_plane_flag == s.readbit().uint
-    bit_depth_luma_minus8 = s.readue()
-    bit_depth_chroma_minus8 = s.readue()
-    # etc.
+    e = {}
+    e['profile_idc'] = s.readbyte().uint
+    e['constraint_set0_flag'] = s.readbit().uint
+    e['constraint_set1_flag'] = s.readbit().uint
+    e['constraint_set2_flag'] = s.readbit().uint
+    e['constraint_set3_flag'] = s.readbit().uint
+    e['reserved_zero_4bits'] = s.readbits(4).bin
+    e['level_idc'] = s.readbyte().uint
+    e['seq_parameter_set_id'] = s.readue()
+    if e['profile_idc'] in [100, 110, 122, 244, 44, 83, 86]:
+        e['chroma_format_idc'] = s.readue()
+        if e['chroma_format_idc'] == 3:
+            e['separate_colour_plane_flag'] == s.readbit().uint
+        e['bit_depth_luma_minus8'] = s.readue()
+        e['bit_depth_chroma_minus8'] = s.readue()
+        # etc.
+    return e
 
+s = BitString('0x6410281bc0')
+e = seq_parameter_set_data(s)
+print e['profile_idc']         # 100
+print e['level_idc']           # 40
+print e['reserved_zero_4bits'] # 0b0000
 }}}
