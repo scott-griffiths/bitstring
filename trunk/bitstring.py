@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-# bitstring module for bit-wise data manipulation.
-#
-# see http://python-bitstring.googlecode.com
+"""
+Module for bit-wise data manipulation.
+http://python-bitstring.googlecode.com
+"""
 
 license = """
 The MIT License
@@ -68,7 +69,7 @@ def _removewhitespace(s):
 
 
 class BitStringError(Exception):
-    """Base class for errors in the bitstring module."""
+    """For errors in the bitstring module."""
 
 class _FileArray(object):
     """A class that mimics the array.array type but gets data from a file object."""
@@ -170,34 +171,34 @@ class _MemArray(object):
 
 
 class BitString(object):
-    """A class for general bit-wise manipulations and interpretations.
-
-    Initialise the BitString with one (and only one) of:
-    auto -- string starting with '0x', 0o' or '0b' to be interpreted
-            as hexadecimal, octal or binary
-    data -- raw data as a string, for example read from binary file
-    bin -- binary string representation, e.g. '0b001010'
-    hex -- hexadecimal string representation, e.g. '0x2e'
-    oct -- octal string representation, e.g. '0o777'
-    uint -- unsigned integer (length must be supplied)
-    int -- signed integer (length must be supplied)
-    se -- signed Exponential-Golomb (length must not be supplied)
-    ue -- unsigned Exponential-Golomb (length must not be supplied)
-    filename -- a file which will be opened in binary read-only mode
-
-    length -- length of the string in bits, if needed
-    offset -- bit offset to the data (0 -> 7). These offset bits are ignored.
-   
-    e.g.
-    a = BitString('0x123ab560')
-    b = BitString(filename="movie.ts")
-    c = BitString(int=10, length=6)
-        
-    """
+    """A class for general bit-wise manipulations and interpretations."""
     
     def __init__(self, auto = None, length = None, offset = 0, data = None, filename = None, hex = None,
                  bin = None, oct = None, uint = None, int = None,  ue = None, se = None):
-        """Contains a numerical string with length in bits with an offset bit count."""  
+        """
+        Initialise the BitString with one (and only one) of:
+        auto -- string starting with '0x', 0o' or '0b' to be interpreted
+                as hexadecimal, octal or binary respectively.
+        data -- raw data as a string, for example read from binary file.
+        bin -- binary string representation, e.g. '0b001010'.
+        hex -- hexadecimal string representation, e.g. '0x2ef'
+        oct -- octal string representation, e.g. '0o777'.
+        uint -- an unsigned integer (length must be supplied).
+        int -- a signed integer (length must be supplied).
+        se -- a signed Exponential-Golomb code.
+        ue -- an unsigned Exponential-Golomb code.
+        filename -- a file which will be opened in binary read-only mode.
+    
+        length -- length of the BitString in bits, if needed and appropriate.
+        offset -- bit offset to the data (0 -> 7). These offset bits are ignored and
+                  this is mainly intended for use when initialising using 'data'.
+       
+        e.g.
+        a = BitString('0x123ab560')
+        b = BitString(filename="movie.ts")
+        c = BitString(int=10, length=6)
+            
+        """
         self._offset = offset
         self._pos = 0
         self._length = 0
@@ -1172,17 +1173,9 @@ class BitString(object):
 
 def join(bitstringlist):
     """Return the concatenation of the BitStrings in a list"""
-    s = BitString(length = sum([s.length for s in bitstringlist]))
-    bits, offset, pos = 0, 0, 0
+    s = BitString()
     for bs in bitstringlist:
-        bs._setoffset(offset)
-        for i in xrange(bs._datastore.length()):
-            s._datastore[pos] |= bs._datastore[i]
-            pos += 1
-        offset = (offset + bs.length)%8
-        bits += bs.length
-        pos = bits / 8
-    assert s._assertsanity()
+        s.append(bs)
     return s
 
 
