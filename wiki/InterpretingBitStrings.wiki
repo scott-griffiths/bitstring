@@ -1,5 +1,8 @@
-#summary The multitude of ways to interpret those bits
 #labels Deprecated
+----
+*Next:* [ModifyingBitStrings Modifying BitStrings]
+----
+#summary The multitude of ways to interpret those bits
 
 = (Re)interpreting `BitString` objects =
 
@@ -23,3 +26,6 @@ Some points to note:
   * For the `data`, `hex`, `oct`, `bin`, `se` and `ue` properties the length of the `BitString` will change to accommodate the new value.
   * The only initialiser that isn't also a property is `filename`. To change the referenced file initialise a new `BitString` with the new file name.
   * The `se` and `ue` properties used as getters are only valid if the `BitString` decodes to exactly one Exponential Golomb code, otherwise a `BitStringError` is raised. The `readse()` and `readue()` functions can be used to interpret the bits following the current position as Exponential Golomb codes.
+----
+*Next:* [ModifyingBitStrings Modifying BitStrings]
+----
