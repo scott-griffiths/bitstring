@@ -1,14 +1,25 @@
 #summary The multitude of ways to interpret those bits
 #labels Deprecated
 
-= Introduction =
+= (Re)interpreting `BitString` objects =
 
-Add your content here.
+`BitString` objects don't know or care how they were created, they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
 
+Python properties are used for this, and can also be used to reset the `BitString`.
+{{{
+print a.hex    # '0x000102ff'
+print a.bin    # '0b0000000000000001001011111111'
+a.hex = 'ff'
+print a.bin    # '0b11111111'
+print a.int    # -1 
+}}}
 
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+Some points to note:
+  * The `hex` property can only be used if the `BitString` object's length is a multiple of 4, otherwise a `BitStringError` is raised.
+  * The `oct` property can only be used if the `BitString` object's length is a multiple of 3, otherwise a `BitStringError` is raised.
+  * If `data` is used as a 'getter' the `BitString` will be padded with zero bits up to the next byte boundary, if necessary.
+  * To write to a file, open a file in binary write mode and write the `BitString` object's `data` property.
+  * You can use the `int` and `uint` properties to change the contents of the `BitString`, but the length cannot be changed after creation so a `BitStringError` will be raised if the new value doesn't fit.
+  * For the `data`, `hex`, `oct`, `bin`, `se` and `ue` properties the length of the `BitString` will change to accommodate the new value.
+  * The only initialiser that isn't also a property is `filename`. To change the referenced file initialise a new `BitString` with the new file name.
+  * The `se` and `ue` properties used as getters are only valid if the `BitString` decodes to exactly one Exponential Golomb code, otherwise a `BitStringError` is raised. The `readse()` and `readue()` functions can be used to interpret the bits following the current position as Exponential Golomb codes.
