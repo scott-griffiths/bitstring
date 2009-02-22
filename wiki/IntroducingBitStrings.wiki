@@ -1,6 +1,8 @@
 #summary What they are, and why you might need them
 #labels Deprecated
-
+----
+*Next:* [CreatingBitStrings Creating BitStrings]
+----
 = Introduction =
 
 Add your content here.
@@ -15,3 +17,4 @@ Add your content here.  Format your content with:
 
 ----
 *Next:* [CreatingBitStrings Creating BitStrings]
+----
