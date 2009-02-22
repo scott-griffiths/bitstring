@@ -56,7 +56,7 @@ fromhex = BitString('0x01ffc9')
 frombin = BitString('0b01')
 fromoct = BitString('0o7550')
 }}}
-The simplest way to create a `BitString` is often to use the `auto` parameter, which is the first parameter in the `__init__` function and so the `auto=` can be omitted. It accepts a string that starts with '`0x`', '`0X`', '`0b`', '`0B`', '`0o`' or '`0O`'. Strings that start with '`0x`' or '`0X`' are interpreted as hexadecimal, '`0o`' and '`0O`' implies octal, and strings starting with '0b' or '0B' are interpreted as binary.
+The simplest way to create a `BitString` is often to use the `auto` parameter, which is the first parameter in the `__init__` function and so the `auto=` can be omitted. It accepts a string that starts with '`0x`', '`0b`' or '`0o`'. Strings that start with '`0x`' are interpreted as hexadecimal, '`0o`' implies octal, and strings starting with '0b' are interpreted as binary.
 
 You can also use the `length` and `offset` parameters to specify the length in bits and an offset of up to seven bits at the start to be ignored.
 {{{
@@ -209,7 +209,7 @@ b = a.truncatestart(8)        # a.hex == b.hex == '0x11'
 If you want to keep an unaltered version then create a copy first or use a slice
 {{{
 a = BitString('0b00001111')
-b = copy.copy(a)
+b = BitString(a)              # equivalent to b = copy.copy(a)
 b.truncatestart(1)            # a is unchanged
 }}}
 
