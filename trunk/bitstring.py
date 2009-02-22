@@ -317,6 +317,8 @@ class BitString(object):
     
     def __eq__(self, bs):
         """Return True if the two BitStrings have the same binary representation."""
+        if not isinstance(bs, BitString):
+            return False
         if self._length != bs._length:
             return False
         # Yes, I know how inefficient this could be in the worst case...
@@ -397,6 +399,9 @@ class BitString(object):
     
     def _setauto(self, s, length = None):
         """Set BitString from another BitString, or a binary, octal or hexadecimal string."""
+        if isinstance(s, BitString):
+            self.__init__(data=s._getdata(), length=s._length, offset=s._offset)
+            return
         s = _tidyupinputstring(s)
         if not s:
             self._setdata('')
@@ -591,7 +596,7 @@ class BitString(object):
         if len(binstring) < boundary:
             binstring += '0'*(boundary - self._length)
         try:
-            bytes = [int(binstring[x:x+8], 2) for x in range(0, len(binstring), 8)]
+            bytes = [int(binstring[x:x+8], 2) for x in xrange(0, len(binstring), 8)]
         except ValueError:
             raise ValueError("Invalid character in binstring")
         self._datastore = _MemArray(bytes)
@@ -668,7 +673,7 @@ class BitString(object):
             return
         hexlist = []
         # First do the whole bytes
-        for i in range(len(hexstring)/2):
+        for i in xrange(len(hexstring)/2):
             try:
                 j = int(hexstring[i*2:i*2+2], 16) 
                 if not 0 <= j < 256:
@@ -679,7 +684,7 @@ class BitString(object):
         # then any remaining nibble
         if len(hexstring)%2 == 1:
             try:
-                j = int(hexstring[-1],16)
+                j = int(hexstring[-1], 16)
                 if not 0 <= j < 16:
                     raise ValueError
                 hexlist.append(_single_byte_from_hex_string(hexstring[-1]))
@@ -759,7 +764,7 @@ class BitString(object):
             # We need to shift everything left
             shiftleft = self._offset - offset
             # First deal with everything except for the final byte
-            for x in range(self._datastore.length() - 1):
+            for x in xrange(self._datastore.length() - 1):
                 self._datastore[x] = ((self._datastore[x] << shiftleft)&255) + (self._datastore[x+1] >> (8 - shiftleft))
             # if we've shifted all of the data in the last byte then we need to truncate by 1
             bits_in_last_byte = (self._offset + self._length)%8
@@ -775,7 +780,7 @@ class BitString(object):
             # Give some overflow room for the last byte
             if (self._offset + self._length + shiftright + 7)/8 > (self._offset + self._length + 7)/8:
                 self._datastore.append(0)
-            for x in range(self._datastore.length()-1, 0, -1):
+            for x in xrange(self._datastore.length()-1, 0, -1):
                 self._datastore[x] = ((self._datastore[x-1] << (8 - shiftright))&255) + (self._datastore[x] >> shiftright)
             self._datastore[0] = self._datastore[0] >> shiftright
         self._offset = offset
@@ -990,7 +995,7 @@ class BitString(object):
     def truncateend(self, bits):
         """Truncate a number of bits from the end of the BitString. Return new BitString."""
         if bits < 0 or bits > self._length:
-            raise ValueError("Truncation length of %d bits not possible. Length = %d"%(bits,self._length))
+            raise ValueError("Truncation length of %d bits not possible. Length = %d" % (bits, self._length))
         new_length_in_bytes = (self._offset + self._length - bits + 7)/8
         # Ensure that the position is still valid
         self._pos = max(0, min(self._pos, self._length - bits))
