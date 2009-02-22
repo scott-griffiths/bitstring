@@ -1,14 +1,125 @@
 #summary Slice them, dice them
 #labels Deprecated
 
-= Introduction =
+= Combining modifying and decomposing `BitString` objects =
 
-Add your content here.
+== Joining ==
 
+To join together a couple of `BitString` objects use the `+` or `+=` operators, or the `append` and `prepend` functions.
+{{{
+# Six ways of creating the same BitString:
+a1 = BitString(bin='000') + BitString(hex='f')
+a2 = BitString('0b000') + BitString('0xf')
+a3 = BitString('0b000') + '0xf'
+a4 = BitString('0b000').append('0xf')
+a5 = BitString('0xf').prepend('0b000')
+a6 = BitString('0b000')
+a6 += '0xf'
+}}}
 
-= Details =
+If you want to join a large number of `BitString` objects then the function `join` can be used to improve efficiency and readability.
+{{{
+# Don't do it this way!
+s = BitString()
+for i in range(1000):
+    s = s + BitString(uint=i, length=16)
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+# This is much more efficient:
+bsl = []
+for i in range(1000):
+    bsl.append(BitString(uint=i, length=16))
+s = bitstring.join(bsl)
+
+# or, more concisely just use:
+s = bitstring.join([BitString(uint=i, length=16) for i in range(1000)])
+}}}
+
+== Truncating and slicing ==
+
+The truncate functions modify the `BitString` that they operate on, but also return themselves. Note this is a change in functionality in version 0.3 - previously these functions did not change the object they operated on.
+{{{
+a = BitString('0x001122')
+a.truncateend(8)              # a.hex == '0x0011'
+b = a.truncatestart(8)        # a.hex == b.hex == '0x11'
+}}}
+If you want to keep an unaltered version then create a copy first or use a slice
+{{{
+a = BitString('0b00001111')
+b = BitString(a)              # equivalent to b = copy.copy(a)
+b.truncatestart(1)            # a is unchanged
+}}}
+
+A similar effect can be obtained using slicing - the major difference being that a new `BitString` is returned and the `BitString` being operated on remains unchanged. Note that as always the unit is bits, rather than bytes.
+{{{
+a = BitString('0b00011110')
+b = a[3:7]
+c = a.slice(3, 7)             # s.slice(x, y) is equivalent to s[x:y]
+print a, b, c                 # 0x1e 0b1111 0b1111
+}}}
+
+== Inserting, deleting and overwriting ==
+
+`insert` takes one `BitString` and inserts it into another. A bit position can be specified, but if not present then the current `bitpos` is used.
+{{{
+a = BitString('0x00112233')
+b = BitString('0xffff')
+a.insert(b, 16)
+print a.hex                   # 0x0011ffff2233
+}}}
+You can also use a string with `insert`, which will be interpreted as a binary or hexadecimal string. So the previous example could be written without using `b` as:
+{{{
+a.insert('0xffff', 16)
+}}}
+
+`overwrite` does much the same as `insert`, but as you might expect the `BitString` object's data is overwritten by the new data.
+{{{
+a = BitString('0x00112233')
+a.bitpos = 4
+a.overwrite('0b1111')         # Uses current bitpos as default
+print a.hex                   # 0x0f112233
+}}}
+
+'deletebits' and 'deletebytes' remove sections of the `BitString`. By default they remove at the current `bitpos` - this must be at a byte boundary if using `deletebytes`:
+{{{
+a = BitString('0b00011000')
+a.deletebits(2, 3)            # remove 2 bits at bitpos 3
+print a.bin                   # 0b000000
+
+b = BitString('0x112233445566')
+b.bytepos = 3
+b.deletebytes(2)
+print b.hex                   # 0x11223366
+}}}
+
+== Splitting ==
+
+Sometimes it can be very useful to use a delimiter to split a `BitString` into sections. The `split()` function returns a generator for the sections.
+{{{
+a = BitString('0x4700004711472222')
+for s in a.split('0x47')):
+    print "Empty" if s.empty() else s.hex  # Empty, 0x470000, 0x4711, 0x472222
+}}}
+Note that the first item returned is always the `BitString` before the first occurrence of the delimiter, even if it is empty. 
+
+== Reading ==
+
+Another common use is to parse a large `BitString` into smaller syntax elements. Functions for reading in bytes and bits are provided and will return new `BitString` objects. These new objects are top-level `BitString` objects and can be interpreted using properties as in the next example or could be read from to form a hierarchy of reads.
+{{{
+s = BitString(filename='test/test.m1v')
+start_code = s.readbytes(4).hex
+width = s.readbits(12).uint
+height = s.readbits(12).uint
+s.advancebits(37)
+
+flags = s.readbits(2)
+constrained_parameters_flag = flags.readbit().uint
+load_intra_quantiser_matrix = flags.readbit().uint
+}}}
+In addition to the `read` functions there are matching `peek` functions. These are identical to the `read` except that they do not advance the position in the `BitString`.
+{{{
+s = BitString('0x4732aa34')
+if s.peekbyte().hex == '0x47':
+    t = s.readbytes(2)          # t.hex == '0x4732'
+else:
+    s.findbytealigned('0x47')
+}}}
