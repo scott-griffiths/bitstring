@@ -1,6 +1,8 @@
 #summary Slice them, dice them
 #labels Deprecated
-
+----
+*Next:* [DeconstructingBitStrings Deconstructing BitStrings]
+----
 = Combining modifying and decomposing `BitString` objects =
 
 == Joining ==
@@ -123,3 +125,6 @@ if s.peekbyte().hex == '0x47':
 else:
     s.findbytealigned('0x47')
 }}}
+----
+*Next:* [DeconstructingBitStrings Deconstructing BitStrings]
+----
