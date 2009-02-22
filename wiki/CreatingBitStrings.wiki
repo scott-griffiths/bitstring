@@ -1,8 +1,7 @@
 #summary The numerous ways of creating BitStrings
 #labels Deprecated
-
+----
 *Next:* [InterpretingBitStrings Interpreting BitStrings]
-
 ----
 
 = Creating `BitString` objects =
@@ -112,3 +111,4 @@ h = BitString(se=-4)
 Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the `BitString` is fixed by the value it is initialised with, so the `length` parameter must not be supplied and it is an error to do so. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend). The `se` and `ue` notation comes from the H.264 video standard, which provides the ultimate definition.
 ----
 *Next:* [InterpretingBitStrings Interpreting BitStrings]
+----
