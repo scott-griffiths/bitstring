@@ -1,14 +1,27 @@
 #summary Reading, finding, navigating
 #labels Deprecated
+= Navigating =
 
-= Introduction =
+== Seeking ==
+The properties `bitpos` and `bytepos` are available for getting and setting the position, which is zero on creation of the `BitString`. For relative movement either use the `+=` and `-=` operators or the advance and retreat functions.
 
-Add your content here.
+{{{
+s = BitString('0x123456')
+print s.bitpos                 # 0
+s.bytepos += 2
+print s.bitpos                 # 16 (note bitpos verses bytepos)
+s.advancebits(4)
+print s.read(4).bin            # 0b0110 (the final nibble '0x6')
+}}}
 
+== Finding ==
 
-= Details =
+To search for a sub-string use the 'find' and 'findbytealigned' functions. These will set the position to the start of the next occurrence of the searched for string and return `True`, or just return `False` if the string isn't present. As its name implies, `findbytealigned` looks for only byte aligned occurrences of a whole-byte `BitString`.
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+{{{
+s = BitString('0x00123400001234')
+found = s.findbytealigned('0x1234')
+print(found, s.bytepos)               # True, 1
+found = s.findbytealigned('0xff')
+print(found, s.bytepos)               # False, 1
+}}}
