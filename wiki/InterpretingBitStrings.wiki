@@ -4,18 +4,15 @@
 *Next:* [ModifyingBitStrings Modifying BitStrings]
 ----
 
-= (Re)interpreting `BitString` objects =
+= Interpreting !BitStrings =
 
-`BitString` objects don't know or care how they were created, they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
+`BitString` objects don't know or care how they were created; they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
 
-Python properties are used for this, and can also be used to reset the `BitString`.
-{{{
-print a.hex    # '0x000102ff'
-print a.bin    # '0b0000000000000001001011111111'
-a.hex = 'ff'
-print a.bin    # '0b11111111'
-print a.int    # -1 
-}}}
+Several Python properties are used to create interpretations for the `BitString`. These properties call functions such as `_gethex()` and `_getuint()` which will calculate and return the appropriate interpretation. This doesn't change the `BitString` in any way and it remains just a collection of bits. If you use the property again then the calculation will be repeated.
+
+== bin ==
+
+The most fundamental interpretation is perhaps as a binary number. The `bin` property returns a string of the binary representation of the `BitString` prefixed with `0b`. All `BitString` objects can use this property and it is used to test equality between `BitString` objects.
 
 Some points to note:
   * The `hex` property can only be used if the `BitString` object's length is a multiple of 4, otherwise a `BitStringError` is raised.
