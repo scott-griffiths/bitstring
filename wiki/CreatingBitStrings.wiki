@@ -1,14 +1,108 @@
 #summary The numerous ways of creating BitStrings
 #labels Deprecated
 
-= Introduction =
+= Creating `BitString` objects =
 
-Add your content here.
+You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString` objects will return another `BitString`.
 
+When initialising a `BitString` you need to specify at most one of `auto, data, hex, oct, bin, int, uint, se, ue` or `filename`. If no initialiser is given a `BitString` of `length` zeros will be created, which will be an empty `BitString` if `length` is zero or not present. 
 
-= Details =
+For some of the initialisers you need to also specify the `length` in bits, for some it is optional and for others it is an error and this will be detailed below.
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+There is also an optional `offset` parameter which allows up to seven bits at the start of a `BitString` initialised by `auto`, `data`, `hex`, `oct`, `bin` or `int` to be ignored. This is mostly useful when byte-aligned data is being used to initialise, but you need to cut off some bits at the start. For example
+{{{
+rawdata = '\xf0\x12\x34'
+s = BitString(data=rawdata, offset=4, length=16)
+print s          # 0x0123
+}}}
+
+== Using auto ==
+{{{
+fromhex = BitString('0x01ffc9')
+frombin = BitString('0b01')
+fromoct = BitString('0o7550')
+}}}
+The simplest way to create a `BitString` is often to use the `auto` parameter, which is the first parameter in the `__init__` function and so the `auto=` can be omitted. It accepts a string that starts with '`0x`', '`0b`' or '`0o`'. Strings that start with '`0x`' are interpreted as hexadecimal, '`0o`' implies octal, and strings starting with '0b' are interpreted as binary.
+
+You can also use the `length` and `offset` parameters to specify the length in bits and an offset of up to seven bits at the start to be ignored.
+{{{
+z = BitString('0b00011110000000', offset=3, length=4)
+print z         # 0b1111
+}}}
+
+Note that as always the `BitString` doesn't know how it was created. Initialising with octal or hex might be more convenient or natural for a particular example but it is exactly equivalent to initialising with the corresponding binary string.
+{{{
+print fromoct.oct     # 0o7550
+print fromoct.hex     # 0xf68
+print fromoct.bin     # 0b111101101000
+print fromoct.uint    # 3994
+print fromoct.int     # -152
+}}}
+
+== From a binary string ==
+{{{
+a = BitString(data='\x00\x01\x02\xff', length=28, offset=1)
+b = BitString(data=open("somefile", 'rb').read())
+}}}
+Here the `length` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the `BitString`. The `offset` parameter is used to ignore up to seven bits at the start of the data.
+
+== From a file ==
+
+Using a `filename` initialiser allows a file to be analysed without the need to read it all into memory. The way to create a file-based `BitString` is:
+{{{
+p = BitString(filename="my2GBfile")
+}}}
+which will open the file in binary read-only mode. The file will only be read as and when other operations require it, and the contents of the file will not be changed by any operations. Something to watch out for are operations that could cause a copy of large parts of the object to be made in memory, for example
+{{{
+p2 = p[8:]
+p += '0x00'
+}}}
+will create two new memory-based `BitString` objects with about the same size as the whole of the file's data. This is probably not what is wanted as the reason for using the `filename` initialiser is likely to be because you don't want the whole file in memory.
+
+== From a hexidecimal string ==
+{{{
+c = BitString(hex='0x000001b3')
+}}}
+The initial '`0x`' or '`0X`' is optional, as once again is a `length` parameter, which can be used to truncate the end. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of `c` will be 32.
+
+If you include the initial '`0x`' then you can use the `auto` initialiser, which just happens to be the first parameter in `__init__`, so this will work equally well:
+{{{
+c = BitString('0x000001b3')
+}}}
+
+== From a binary string ==
+{{{
+d = BitString(bin='0011 000', length=6)
+print d.bin     # 0b001100
+}}}
+An initial '`0b`' or '`0B`' is optional. Once again a `length` can optionally be supplied to truncate the `BitString` and whitespace will be ignored.
+
+As with hex, the `auto` initialiser will work for binary strings prefixed by '`0b`':
+{{{
+d = BitString('0b001100')
+}}}
+
+== From an octal string ==
+{{{
+o = BitString(oct='34100')
+print o.oct     # 0o34100
+}}}
+An initial '`0o`' or '`0O`' is optional, but '`0o`' is preferred as it is slightly more readable. Once again a `length` can optionally be supplied to truncate the `BitString` and whitespace will be ignored.
+
+As with hex and bin, the `auto` initialiser will work for octal strings prefixed by '`0o`':
+{{{
+o = BitString('0o34100')
+}}}
+
+== From an integer ==
+{{{
+e = BitString(uint=45, length=12)
+f = BitString(int=-1, length=7)
+}}}
+For initialisation with signed and unsigned integers (`int` and `uint` repectively) the `length` parameter is mandatory, and must be large enough to contain the integer. So for example if `length` is 8 then `uint` can be in the range 0 to 255, while `int` can range from -128 to 127. Two's complement is used to represent negative numbers.
+
+{{{
+g = BitString(ue=12)
+h = BitString(se=-4)
+}}}
+Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the `BitString` is fixed by the value it is initialised with, so the `length` parameter must not be supplied and it is an error to do so. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend). The `se` and `ue` notation comes from the H.264 video standard, which provides the ultimate definition.
