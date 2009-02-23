@@ -13,6 +13,33 @@ Several Python properties are used to create interpretations for the `BitString`
 == bin ==
 
 The most fundamental interpretation is perhaps as a binary number. The `bin` property returns a string of the binary representation of the `BitString` prefixed with `0b`. All `BitString` objects can use this property and it is used to test equality between `BitString` objects.
+{{{
+a = BitString('0xff')
+print a.bin             # 0b11111111
+}}}
+
+== hex ==
+
+For whole-byte `BitString` objects the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits. Hex values are prefixed with '0x'.
+
+If the `BitString` does not have a length that is a multiple of four then a `ValueError` will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code.
+{{{
+a = BitString('0xabcedf')
+print a.hex              # 0xabcdef
+print a[0:5].hex         # raises ValueError
+}}}
+
+== oct ==
+
+== uint ==
+
+== int ==
+
+== data ==
+
+== ue ==
+
+== se ==
 
 Some points to note:
   * The `hex` property can only be used if the `BitString` object's length is a multiple of 4, otherwise a `BitStringError` is raised.
