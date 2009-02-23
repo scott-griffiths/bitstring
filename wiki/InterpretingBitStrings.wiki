@@ -44,7 +44,7 @@ For an octal interpretation use the 'oct' property or the 'oct' built-in functio
 If the `BitString` does not have a length that is a multiple of three then a `ValueError` exception will be raised.
 {{{
 print a.oct              # 0o0443
-print oct(a)             # 0o0433
+print oct(a)             # 0o0443
 print b.oct              # 0o7
 print (b + '0b0').oct    # raises ValueError
 }}}
