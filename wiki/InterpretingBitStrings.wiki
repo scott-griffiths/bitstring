@@ -10,26 +10,44 @@
 
 Several Python properties are used to create interpretations for the `BitString`. These properties call functions such as `_gethex()` and `_getuint()` which will calculate and return the appropriate interpretation. This doesn't change the `BitString` in any way and it remains just a collection of bits. If you use the property again then the calculation will be repeated.
 
+For the properties described below we will use these:
+{{{
+a = BitString(hex='0x123')
+b = BitString(bin='0b111')
+}}}
+
 == bin ==
 
 The most fundamental interpretation is perhaps as a binary number. The `bin` property returns a string of the binary representation of the `BitString` prefixed with `0b`. All `BitString` objects can use this property and it is used to test equality between `BitString` objects.
 {{{
-a = BitString('0xff')
-print a.bin             # 0b11111111
+print a.bin              # 0b000100100011
+print b.bin              # 0b111
 }}}
 
 == hex ==
 
 For whole-byte `BitString` objects the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits. Hex values are prefixed with '0x'.
 
-If the `BitString` does not have a length that is a multiple of four then a `ValueError` will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code.
+If the `BitString` does not have a length that is a multiple of four then a `ValueError` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code.
+
+The 'hex' built-in function can also be used, with exactly the same effect.
 {{{
-a = BitString('0xabcedf')
-print a.hex              # 0xabcdef
-print a[0:5].hex         # raises ValueError
+print a.hex              # 0x123
+print hex(a)             # 0x123
+print b.hex              # raises ValueError
 }}}
 
 == oct ==
+
+For an octal interpretation use the 'oct' property or the 'oct' built-in function. Octal values are prefixed with '0o', which is the Python 2.6/3.0 way of doing things (rather than just starting with '0').
+
+If the `BitString` does not have a length that is a multiple of three then a `ValueError` exception will be raised.
+{{{
+print a.oct              # 0o0443
+print oct(a)             # 0o0433
+print b.oct              # 0o7
+print (b + '0b0').oct    # raises ValueError
+}}}
 
 == uint ==
 
