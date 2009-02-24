@@ -42,7 +42,7 @@ print fromoct.uint    # 3994
 print fromoct.int     # -152
 }}}
 
-== From a binary string ==
+== From a string ==
 {{{
 a = BitString(data='\x00\x01\x02\xff', length=28, offset=1)
 b = BitString(data=open("somefile", 'rb').read())
