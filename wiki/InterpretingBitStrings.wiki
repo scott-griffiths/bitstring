@@ -26,7 +26,7 @@ print b.bin              # 0b111
 
 == hex ==
 
-For whole-byte `BitString` objects the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits. Hex values are prefixed with '0x'.
+For whole-byte `BitString` objects the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits. Hex values are prefixed with `0x`.
 
 If the `BitString` does not have a length that is a multiple of four then a `ValueError` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code.
 
@@ -39,7 +39,7 @@ print b.hex              # raises ValueError
 
 == oct ==
 
-For an octal interpretation use the 'oct' property or the 'oct' built-in function. Octal values are prefixed with '0o', which is the Python 2.6/3.0 way of doing things (rather than just starting with '0').
+For an octal interpretation use the 'oct' property or the 'oct' built-in function. Octal values are prefixed with `0o`, which is the Python 2.6/3.0 way of doing things (rather than just starting with `0`).
 
 If the `BitString` does not have a length that is a multiple of three then a `ValueError` exception will be raised.
 {{{
@@ -67,6 +67,14 @@ print b.int              # -1
 
 == data ==
 
+A common need is to retrieve the raw bytes from a `BitString` for further processing or for writing to a file. For this use the `data` interpretation, which returns an ordinary Python string.
+
+If the length of the `BitString` isn't a multiple of eight then it will be padded with between one and seven zero bits up to a byte boundary.
+{{{
+open('somefile', 'wb').write(a.data)
+a2 = BitString(filename='somefile')
+print a2.hex             # 0x1230 (Note the extra four bits needed to byte align)
+}}}
 == ue ==
 
 == se ==
