@@ -8,6 +8,7 @@
 
 You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString` objects will return another `BitString`.
 
+== Using the constructor ==
 When initialising a `BitString` you need to specify at most one of `auto, data, hex, oct, bin, int, uint, se, ue` or `filename`. If no initialiser is given a `BitString` of `length` zeros will be created, which will be an empty `BitString` if `length` is zero or not present. 
 
 For some of the initialisers you need to also specify the `length` in bits, for some it is optional and for others it is an error and this will be detailed below.
@@ -19,7 +20,7 @@ s = BitString(data=rawdata, offset=4, length=16)
 print s          # 0x0123
 }}}
 
-== Using auto ==
+=== The auto initialiser ===
 {{{
 fromhex = BitString('0x01ffc9')
 frombin = BitString('0b01')
@@ -42,14 +43,14 @@ print fromoct.uint    # 3994
 print fromoct.int     # -152
 }}}
 
-== From a string ==
+=== From raw data ===
 {{{
 a = BitString(data='\x00\x01\x02\xff', length=28, offset=1)
 b = BitString(data=open("somefile", 'rb').read())
 }}}
 Here the `length` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the `BitString`. The `offset` parameter is used to ignore up to seven bits at the start of the data.
 
-== From a file ==
+=== From a file ===
 
 Using a `filename` initialiser allows a file to be analysed without the need to read it all into memory. The way to create a file-based `BitString` is:
 {{{
@@ -62,7 +63,7 @@ p += '0x00'
 }}}
 will create two new memory-based `BitString` objects with about the same size as the whole of the file's data. This is probably not what is wanted as the reason for using the `filename` initialiser is likely to be because you don't want the whole file in memory.
 
-== From a hexidecimal string ==
+=== From a hexidecimal string ===
 {{{
 c = BitString(hex='0x000001b3')
 }}}
@@ -73,7 +74,7 @@ If you include the initial '`0x`' then you can use the `auto` initialiser, which
 c = BitString('0x000001b3')
 }}}
 
-== From a binary string ==
+=== From a binary string ===
 {{{
 d = BitString(bin='0011 000', length=6)
 print d.bin     # 0b001100
@@ -85,7 +86,7 @@ As with hex, the `auto` initialiser will work for binary strings prefixed by '`0
 d = BitString('0b001100')
 }}}
 
-== From an octal string ==
+=== From an octal string ===
 {{{
 o = BitString(oct='34100')
 print o.oct     # 0o34100
@@ -97,7 +98,7 @@ As with hex and bin, the `auto` initialiser will work for octal strings prefixed
 o = BitString('0o34100')
 }}}
 
-== From an integer ==
+=== From an integer ===
 {{{
 e = BitString(uint=45, length=12)
 f = BitString(int=-1, length=7)
@@ -109,6 +110,10 @@ g = BitString(ue=12)
 h = BitString(se=-4)
 }}}
 Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the `BitString` is fixed by the value it is initialised with, so the `length` parameter must not be supplied and it is an error to do so. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend). The `se` and `ue` notation comes from the H.264 video standard, which provides the ultimate definition.
+
+== Using properties ==
+
+
 ----
 *Next:* [InterpretingBitStrings Interpreting BitStrings]
 ----
