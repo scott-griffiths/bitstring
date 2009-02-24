@@ -125,8 +125,8 @@ class BitStringTest(unittest.TestCase):
 
     def testHexFromFile(self):
         s = BitString(filename='test/test.m1v')
-        self.assertEqual(s.hex[0:10], '0x000001b3')
-        self.assertEqual(s.hex[-8:], '000001b7')
+        self.assertEqual(s[0:32].hex, '0x000001b3')
+        self.assertEqual(s[-32:].hex, '0x000001b7')
         s.hex = '0x11'
         self.assertEqual(s.hex, '0x11')
 
@@ -192,8 +192,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual((s.length, s.offset, s.hex), (16, 0, '0xa0ff'))
 
     def testCreationFromDataWithOffset(self):
-        s = BitString(data='\xa0\xb1\xC2', offset=4)
-        self.assertEqual((s.length, s.offset, s.hex), (20, 4, '0x0b1c2'))
+        s1 = BitString(data='\x0b\x1c\x2f', offset=0, length=20)
+        s2 = BitString(data='\xa0\xb1\xC2', offset=4)
+        self.assertEqual((s2.length, s2.offset, s2.hex), (20, 4, '0x0b1c2'))
+        self.assertEqual((s1.length, s1.offset, s1.hex), (20, 0, '0x0b1c2'))
+        self.assertTrue(s1 == s2)
 
     def testCreationFromHex(self):
         s = BitString(hex='0xA0ff')
@@ -791,9 +794,9 @@ class BitStringTest(unittest.TestCase):
         s = bitstring.join(bsl)
         self.assertEqual(s.hex, '0x00112233010c30c3')
                 
-        bsl = [BitString(uint=j, length=12) for j in range(100) for i in range(100)]
+        bsl = [BitString(uint=j, length=12) for j in range(10) for i in range(10)]
         s = bitstring.join(bsl)
-        self.assertEqual(s.length, 120000)
+        self.assertEqual(s.length, 1200)
 
     def testSplitCornerCases(self):
         s = BitString()
@@ -842,6 +845,15 @@ class BitStringTest(unittest.TestCase):
         s2.append(BitString(bin='1'))
         s3 = BitString(data = s2.data)
         self.assertEqual(s3.bin, '0b00010011010010010010101110000000')
+    
+    def testWritingDataWithOffsets(self):
+        s1 = BitString(data='\x10')
+        s2 = BitString(data='\x08\x00', length=8, offset=1)
+        s3 = BitString(data='\x04\x00', length=8, offset=2)
+        self.assertTrue(s1 == s2)
+        self.assertTrue(s2 == s3)
+        self.assertTrue(s1.data == s2.data)
+        self.assertTrue(s2.data == s3.data)
 
     def testVariousThings1(self):
         hexes = ['0x12345678', '0x87654321', '0xffffffffff', '0xed', '0x12ec']
@@ -1180,8 +1192,47 @@ class BitStringTest(unittest.TestCase):
         t = BitString(s)
         self.assertEqual(hex(t), '0xabcdef')
         s.truncateend(8)
-        self.assertEqual(hex(t), '0xabcdef')    
+        self.assertEqual(hex(t), '0xabcdef')
+        
+    def testSliceAssignmentSingleBit(self):
+        a = BitString('0b000')
+        a[2] = '0b1'
+        self.assertEqual(a.bin, '0b001')
+        a[0] = BitString(bin='1')
+        self.assertEqual(a.bin, '0b101')
+        a[-1] = '0b0'
+        self.assertEqual(a.bin, '0b100')
+        a[-3] = '0b0'
+        self.assertEqual(a.bin, '0b000')
     
+    def testSliceAssignmentSingleBitErrors(self):
+        a = BitString('0b000')
+        self.assertRaises(IndexError, a.__setitem__, -4, '0b1')
+        self.assertRaises(IndexError, a.__setitem__, 3, '0b1')
+        self.assertRaises(TypeError, a.__setitem__, 1, 1)
+        #self.assertRaises(IndexError, a.__setitem__, 2, '0b0')
+    
+    def testSliceAssignmentMulipleBits(self):
+        a = BitString('0b0')
+        a[0] = '0b110'
+        self.assertEqual(a.bin, '0b110')
+        a[0] = '0b000'
+        self.assertEqual(a.bin, '0b00010')
+        a[0:3] = '0b111'
+        self.assertEqual(a.bin, '0b11110')
+        a[-2:] = '0b011'
+        self.assertEqual(a.bin, '0b111011')
+        a[:] = '0x12345'
+        self.assertEqual(a.hex, '0x12345')
+        a[:] = ''
+        self.assertTrue(a.empty())
+    
+    def testSliceAssignmentMultipleBitsErrors(self):
+        a = BitString()
+        self.assertRaises(IndexError, a.__setitem__, 0, '0b00')
+        a += '0b1'
+        self.assertRaises(IndexError, a.__setitem__, (0,2), '0b11')
+        
     #def testDoingSomethingTimeConsuming(self):
     #    s = BitString()
     #    for i in range(10000):
