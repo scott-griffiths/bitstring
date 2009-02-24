@@ -254,6 +254,60 @@ class BitString(object):
     def __iadd__(self, bs):
         """Append BitString to current BitString. Return self."""
         return self.append(bs)
+
+    def __setitem__(self, key, value):
+        """Set item or range to new value.
+        
+        Indices are in bits.
+        Stepping is not supported and use will raise a BitStringError.
+        
+        """
+        if isinstance(value, str):
+            value = BitString(value)
+        if not isinstance(value, BitString):
+            raise TypeError("BitString or string expected. Got %s" % type(value))
+        try:
+            key.start
+        except AttributeError:
+            # single element
+            if key >= self._length or key < -self._length:
+                raise IndexError
+            oldpos = self._pos
+            if key < 0:
+                key = self._length + key
+            self._pos = key
+            if value._length == 1:
+                self.overwrite(value)
+            else:
+                self.deletebits(1)
+                self.insert(value)
+            self._pos = oldpos
+            return
+        # A slice
+        if key.step is not None:
+            raise BitStringError("step not supported for slicing BitStrings")
+        if key.start is None:
+            start = 0
+        elif key.start < 0:
+            start = self._length + key.start
+        else:
+            start = key.start
+        if key.stop is None:
+            stop = self._length
+        elif key.stop < 0:
+            stop = self._length + key.stop
+        else:
+            stop = key.stop
+        oldpos = self._pos
+        self._pos = start
+        if start >= stop:
+            raise IndexError
+        if (stop - start) == value._length:
+            self.overwrite(value)
+        else:
+            self.deletebits(stop - start)
+            self.insert(value)
+        return
     
     def __getitem__(self, key):
         """Return a new BitString representing a slice of the current BitString.
@@ -453,6 +507,7 @@ class BitString(object):
 
     def _getdata(self):
         """Return the data as an ordinary string."""
+        self._setoffset(0)
         return self._datastore.tostring()
 
     def _setuint(self, uint, length=None):
