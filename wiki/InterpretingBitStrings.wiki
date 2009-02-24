@@ -51,7 +51,19 @@ print (b + '0b0').oct    # raises ValueError
 
 == uint ==
 
+To interpret the `BitString` as an unsigned integer (i.e. a non-negative integer) use the `uint` property.
+{{{
+print a.uint             # 283
+print b.uint             # 7
+}}}
+
 == int ==
+
+For a two's complement interpretation as a signed integer use the `int` property. If the first bit of the `BitString` is zero then the `int` and `uint` interpretations will be equal, otherwise the `int` will represent a negative number.
+{{{
+print a.int              # 283
+print b.int              # -1
+}}}
 
 == data ==
 
@@ -60,8 +72,6 @@ print (b + '0b0').oct    # raises ValueError
 == se ==
 
 Some points to note:
-  * The `hex` property can only be used if the `BitString` object's length is a multiple of 4, otherwise a `BitStringError` is raised.
-  * The `oct` property can only be used if the `BitString` object's length is a multiple of 3, otherwise a `BitStringError` is raised.
   * If `data` is used as a 'getter' the `BitString` will be padded with zero bits up to the next byte boundary, if necessary.
   * To write to a file, open a file in binary write mode and write the `BitString` object's `data` property.
   * You can use the `int` and `uint` properties to change the contents of the `BitString`, but the length cannot be changed after creation so a `BitStringError` will be raised if the new value doesn't fit.
