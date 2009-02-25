@@ -1232,6 +1232,37 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(IndexError, a.__setitem__, 0, '0b00')
         a += '0b1'
         self.assertRaises(IndexError, a.__setitem__, (0,2), '0b11')
+    
+    def testMultiplication(self):
+        a = BitString('0xff')
+        b = a*8
+        self.assertEqual(b.hex, '0xffffffffffffffff')
+        b = 4*a
+        self.assertEqual(b.hex, '0xffffffff')
+        self.assertTrue(1*a == a*1 == a)
+        c = a*0
+        self.assertTrue(c.empty())
+        a *= 3
+        self.assertEqual(a.hex, '0xffffff')
+        a *= 0
+        self.assertTrue(a.empty())
+        one = BitString('0b1')
+        zero = BitString('0b0')
+        mix = one*2 + 3*zero + 2*one*2
+        self.assertEqual(mix.bin, '0b110001111')
+        q = BitString()
+        q *= 143
+        self.assertTrue(q.empty())
+
+    def testMultiplicationErrors(self):
+        a = BitString('0b1')
+        b = BitString('0b0')
+        self.assertRaises(ValueError, a.__mul__, -1)
+        self.assertRaises(ValueError, a.__imul__, -1)
+        self.assertRaises(ValueError, a.__rmul__, -1)
+        self.assertRaises(TypeError, a.__mul__, 1.2)
+        self.assertRaises(TypeError, a.__rmul__, b)
+        self.assertRaises(TypeError, a.__imul__, b)
         
     #def testDoingSomethingTimeConsuming(self):
     #    s = BitString()
