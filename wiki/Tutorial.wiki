@@ -93,7 +93,7 @@ p += '0x00'
 }}}
 will create two new memory-based `BitString` objects with about the same size as the whole of the file's data. This is probably not what is wanted as the reason for using the `filename` initialiser is likely to be because you don't want the whole file in memory.
 
-== From a hexidecimal string ==
+== From a hexadecimal string ==
 {{{
 c = BitString(hex='0x000001b3')
 }}}
