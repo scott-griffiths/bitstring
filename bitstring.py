@@ -431,6 +431,37 @@ class BitString(object):
         """Shift bits by n to the right in place."""
         self._setbin(self.__rshift__(n)._getbin())
         return self
+    
+    def __mul__(self, n):
+        """Return BitString consisting of n concatenations of self."""
+        if not isinstance(n, int):
+            raise TypeError("Can only multiply a BitString by an int, but %s was provided." % type(n))
+        if n < 0:
+            raise ValueError("Cannot multiply by a negative integer.")
+        if n == 0:
+            return BitString()
+        s = BitString(self)
+        for i in xrange(n-1):
+            s.append(self)
+        return s
+
+    def __rmul__(self, n):
+        """Return BitString consisting of n concatenations of self."""
+        return self.__mul__(n)
+    
+    def __imul__(self, n):
+        """Concatenate n copies of self in place."""
+        if not isinstance(n, int):
+            raise TypeError("Can only multiply a BitString by an int, but %s was provided." % type(n))
+        if n < 0:
+            raise ValueError("Cannot multiply by a negative integer.")
+        if n == 0:
+            self._setdata('')
+            return self
+        s = BitString(self)
+        for i in xrange(n-1):
+            self.append(s)
+        return self
 
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
