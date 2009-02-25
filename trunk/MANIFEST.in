@@ -1,0 +1,3 @@
+include test_bitstring.py
+include test/test.m1v
+include test/smalltestfile
