@@ -1,0 +1,21 @@
+#summary Plus a few other things...
+
+= Special Methods =
+
+A few of the special methods have already been covered, for example `__add__` and `__iadd__` (the `+` and `+=` operators) and `__getitem__` and `__setitem__` (reading and setting slices via `[]`). Here are the rest:
+
+== `__len__` ==
+
+== `__str__` ==
+
+== `__eq__` , `__ne__` ==
+
+== `__hex__` , `__oct__` ==
+
+== `__invert__` ==
+
+== `__lshift__` , `__rshift__` , `__ilshift__` , `__irshift__` ==
+
+== `__mul__` , `__imul__` , `__rmul__` ==
+
+== `__copy__` ==
