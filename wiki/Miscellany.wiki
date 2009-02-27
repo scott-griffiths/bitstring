@@ -1,4 +1,5 @@
 #summary Plus a few other things...
+#labels Deprecated
 
 = Special Methods =
 
@@ -53,6 +54,7 @@ print ~~a == a                # True
 }}}
 
 == `__lshift__` , `__rshift__` , `__ilshift__` , `__irshift__` ==
+Bitwise shifts can be achieved using `<<`, `>>`, `<<=` and `>>=`. 
 
 == `__mul__` , `__imul__` , `__rmul__` ==
 
