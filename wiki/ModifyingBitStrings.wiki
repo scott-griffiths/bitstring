@@ -1,4 +1,4 @@
-#summary Slice them, dice them
+#summary Slice them, dice them, cut 'em up and splice them.
 #labels Deprecated
 ----
 *Next:* [DeconstructingBitStrings Deconstructing BitStrings]
