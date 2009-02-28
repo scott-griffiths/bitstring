@@ -4,16 +4,24 @@
 *Next:* [CreatingBitStrings Creating BitStrings]
 ----
 = Introduction =
+The bitstring module is a pure Python module designed to allow binary data to be read, interpreted, created and modified with as much ease as possible.
 
-Add your content here.
+A single class, `BitString`, is provided that stores the binary data and offers a rich variety of methods for all your binary needs.
 
+{{{
+from bitstring import BitString
 
-= Details =
+# Lots of ways of creating BitStrings
+a = BitString('0b001')                     # from a binary string
+b = BitString('0xff470001')                # from a hexadecimal string
+c = BitString(filename='somefile.ext')     # straight from a file
+d = BitString(int=540, length=11)          # from an integer
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+# Easily construct new BitStrings
+e = 5*a + '0xcdcd'                         # 5 copies of a followed by two new bytes
+e.prepend('0b1')                           # put a single bit on the front
+f = e[7:]                                  # cut the first 7 bits off
+}}}
 
 ----
 *Next:* [CreatingBitStrings Creating BitStrings]
