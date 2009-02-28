@@ -7,7 +7,7 @@
   * [CreatingBitStrings Creating BitStrings]
   * [InterpretingBitStrings Interpreting BitStrings]
   * [ModifyingBitStrings Modifying BitStrings]
-  * [DeconstrunctingBitStrings Deconstructing BitStrings]
+  * [DeconstructingBitStrings Deconstructing BitStrings]
   * [Miscellany]
 
 = Introduction =
