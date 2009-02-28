@@ -1,5 +1,30 @@
 #summary Plus a few other things...
 #labels Deprecated
+= Other Functions =
+== empty ==
+Returns `True` if the `BitString` contains no data (i.e. has zero length). Otherwise returns `False`.
+{{{
+a = BitString()
+print a.empty()               # True
+}}}
+
+== bytealign == 
+This function advances between zero and seven bits to make the `bitpos` a multiple of eight. It returns the number of bits advanced.
+{{{
+a = BitString('0x11223344')
+a.bitpos = 1
+skipped = a.bytealign()
+print skipped, a.bitpos       # 7, 8
+skipped = a.bytealign()
+print skipped, a.bitpos       # 0, 8
+}}}
+== reversebits ==
+This simply reverses all of the bits of the `BitString` in place.
+{{{
+a = BitString('0b000001101')
+a.reversebits()
+print a.bin                   # 0b101100000
+}}}
 
 = Special Methods =
 
