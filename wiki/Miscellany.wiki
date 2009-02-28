@@ -54,8 +54,28 @@ print ~~a == a                # True
 }}}
 
 == `__lshift__` , `__rshift__` , `__ilshift__` , `__irshift__` ==
-Bitwise shifts can be achieved using `<<`, `>>`, `<<=` and `>>=`. 
-
+Bitwise shifts can be achieved using `<<`, `>>`, `<<=` and `>>=`. Bits shifted off the left or right are replaced with zero bits. If you need special behaviour, such as keeping the sign of two's complement integers then do the shift on the property instead.
+{{{
+a = BitString('0b10011001')
+b = a << 2
+print b                       # 0b01100100
+a >>= 2
+print a                       # 0b00100110
+}}}
 == `__mul__` , `__imul__` , `__rmul__` ==
-
+Multiplication of a `BitString` by an integer means the same as it does for ordinary strings: concatenation of multiple copies of the `BitString`.
+{{{
+a = BitString('0b10')
+b = a*10
+print b                       # 0b10101010101010101010
+a *= 2
+print a                       # 0b1010
+}}}
 == `__copy__` ==
+This allows the `BitString` to be copied via the `copy` module.
+{{{
+import copy
+a = BitString('0x4223fbddec2231')
+b = copy.copy(a)
+}}}
+It's not terribly exciting, and isn't even the preferred method of making a copy. Using `b = BitString(a)` is my favourite, but `b = a[:]` may be more familiar to some.
