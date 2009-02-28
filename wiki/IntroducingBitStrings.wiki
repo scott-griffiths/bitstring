@@ -5,9 +5,9 @@
 ----
 = Contents =
   * [CreatingBitStrings Creating BitStrings]
-  * [InterpretingBitString Interpreting BitStrings]
+  * [InterpretingBitStrings Interpreting BitStrings]
   * [ModifyingBitStrings Modifying BitStrings]
-  * [DeconstrunctingBitString Deconstructing BitStrings]
+  * [DeconstrunctingBitStrings Deconstructing BitStrings]
   * [Miscellany]
 
 = Introduction =
