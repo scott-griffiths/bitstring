@@ -1,5 +1,8 @@
 #summary Reading, finding, navigating
 #labels Deprecated
+----
+*Next:* [Miscellany]
+----
 = Navigating =
 
 == Seeking ==
@@ -25,3 +28,6 @@ print(found, s.bytepos)               # True, 1
 found = s.findbytealigned('0xff')
 print(found, s.bytepos)               # False, 1
 }}}
+----
+*Next:* [Miscellany]
+----
