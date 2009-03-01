@@ -481,7 +481,7 @@ class BitStringTest(unittest.TestCase):
         s = BitString(hex='0xffff')
         self.assertRaises(ValueError, s.findbytealigned, '')
         self.assertRaises(ValueError, s.findbytealigned, BitString())
-        self.assertRaises(BitStringError, s.findbytealigned, BitString(bin='00'))
+        self.assertRaises(ValueError, s.findbytealigned, BitString(bin='00'))
 
     def testOffset1(self):
         s = BitString(data='\x00\x1b\x3f', offset=4)
@@ -1105,16 +1105,12 @@ class BitStringTest(unittest.TestCase):
         s = BitString('0o77551')
         self.assertEqual(oct(s), s.oct)
     
-    def testBinSpecialMethod(self):
-        s = BitString('0b001')
-        # This could be done as bin(s) in Python 2.6.
-        self.assertEqual(s.__bin__(), s.bin)
-    
     def testInvertSpecialMethod(self):
         s = BitString('0b00011001')
         self.assertEqual((~s).bin, '0b11100110')
         self.assertEqual((~BitString('0b0')).bin, '0b1')
         self.assertEqual((~BitString('0b1')).bin, '0b0')
+        self.assertTrue(~~s == s)
 
     def testInvertSpecialMethodErrors(self):
         s = BitString()
