@@ -1,194 +1,388 @@
 #summary Help on module bitstring:
 #labels Featured
 {{{
+  DESCRIPTION
+    Module for bit-wise data manipulation.
+    http://python-bitstring.googlecode.com
+
+CLASSES
+
     class BitString(__builtin__.object)
      |  A class for general bit-wise manipulations and interpretations.
      |  
-     |  length : length of the string in bits, if needed
-     |  offset : bit offset to the data (0 -> 7). The first offset bits are ignored.
-     |  
-     |  Initialise the BitString with one (and only one) of:
-     |  data : raw data as a string, for example read from binary file
-     |  bin : binary string representation, e.g. '00101110'
-     |  hex : hexadecimal string representation, e.g. '0x2e'
-     |  uint : unsigned integer (length must be supplied)
-     |  int : signed integer (length must be supplied)
-     |  se : signed Exponential-Golomb (length must not be supplied)
-     |  ue : unsigned Exponential-Golomb (length must not be supplied)
-     |  filename : a file which will be opened in binary read-only mode
-     |  
-     |  e.g.
-     |  a = BitString(hex='0x123ab560')
-     |  b = BitString(filename="movie.ts")
-     |  c = BitString(int=10, length=6)
-     |  
      |  Methods defined here:
      |  
-     |  __add__(self, s)
+     |  __add__(self, bs)
      |      Concatenate BitStrings and return new BitString.
+     |      
+     |      Keyword arguments:
+     |      bs -- the BitString (or string for 'auto' initialiser) to append.
      |  
      |  __copy__(self)
      |      Return a new copy of the BitString.
      |  
+     |  __eq__(self, bs)
+     |      Return True if and only if the two BitStrings have the same binary representation.
+     |  
      |  __getitem__(self, key)
-     |      Return a slice of the BitString. Indices are in bits and stepping is not supported.
+     |      Return a new BitString representing a slice of the current BitString.
+     |      
+     |      Indices are in bits.
+     |      Stepping is not supported and use will raise a BitStringError.
      |  
-     |  __iadd__(self, s)
-     |      Do the += thing.
+     |  __hex__(self)
+     |      Return the hexadecimal representation as a string prefixed with '0x'.
+     |      
+     |      Raises a ValueError if the BitString's length is not a multiple of 4.
      |  
-     |  __init__(self, auto=None, length=None, offset=0, data=None, filename=None, hex=None, bin=None, uint=None, int=None, ue=None, se=None)
-     |      Contains a numerical string with length in bits with an offset bit count.
+     |  __iadd__(self, bs)
+     |      Append BitString to current BitString. Return self.
+     |      
+     |      Keyword arguments:
+     |      bs -- the BitString (or string for 'auto' initialiser) to append.
+     |  
+     |  __ilshift__(self, n)
+     |      Shift bits by n to the left in place. Return self.
+     |      
+     |      n -- the number of bits to shift. Must be >= 0.
+     |  
+     |  __imul__(self, n)
+     |      Concatenate n copies of self in place. Return self.
+     |      
+     |      Called for expressions of the form 'a *= 3'.
+     |      n -- The number of concatenations. Must be >= 0.
+     |  
+     |  __init__(self, auto=None, length=None, offset=0, data=None, filename=None, hex=None, bin=None, oct=None, uint=None, int=None, ue=None, se=None)
+     |      Initialise the BitString with one (and only one) of:
+     |      auto -- string starting with '0x', 0o' or '0b' to be interpreted
+     |              as hexadecimal, octal or binary respectively, or another BitString.
+     |      data -- raw data as a string, for example read from binary file.
+     |      bin -- binary string representation, e.g. '0b001010'.
+     |      hex -- hexadecimal string representation, e.g. '0x2ef'
+     |      oct -- octal string representation, e.g. '0o777'.
+     |      uint -- an unsigned integer (length must be supplied).
+     |      int -- a signed integer (length must be supplied).
+     |      se -- a signed Exponential-Golomb code.
+     |      ue -- an unsigned Exponential-Golomb code.
+     |      filename -- a file which will be opened in binary read-only mode.
+     |      
+     |      Other keyword arguments:
+     |      length -- length of the BitString in bits, if needed and appropriate.
+     |      offset -- bit offset to the data (0 -> 7). These offset bits are ignored and
+     |                this is mainly intended for use when initialising using 'data'.
+     |      
+     |      e.g.
+     |      a = BitString('0x123ab560')
+     |      b = BitString(filename="movie.ts")
+     |      c = BitString(int=10, length=6)
+     |  
+     |  __invert__(self)
+     |      Return BitString with every bit inverted.
+     |      
+     |      Raises BitStringError if the BitString is empty.
+     |  
+     |  __irshift__(self, n)
+     |      Shift bits by n to the right in place. Return self.
+     |      
+     |      n -- the number of bits to shift. Must be >= 0.
      |  
      |  __len__(self)
      |      Return the length of the BitString in bits.
      |  
+     |  __lshift__(self, n)
+     |      Return BitString with bits shifted by n to the left.
+     |      
+     |      n -- the number of bits to shift. Must be >= 0.
+     |  
+     |  __mul__(self, n)
+     |      Return BitString consisting of n concatenations of self.
+     |      
+     |      Called for expression of the form 'a = b*3'.
+     |      n -- The number of concatenations. Must be >= 0.
+     |  
+     |  __ne__(self, bs)
+     |      Return True if the two BitStrings do not have the same binary representation.
+     |  
+     |  __oct__(self)
+     |      Return the octal representation as a string prefixed with '0o'.
+     |      
+     |      Raises a ValueError if the BitString's length is not a multiple of 3.
+     |  
+     |  __rmul__(self, n)
+     |      Return BitString consisting of n concatenations of self.
+     |      
+     |      Called for expressions of the form 'a = 3*b'.
+     |      n -- The number of concatenations. Must be >= 0.
+     |  
+     |  __rshift__(self, n)
+     |      Return BitString with bits shifted by n to the right.
+     |      
+     |      n -- the number of bits to shift. Must be >= 0.
+     |  
+     |  __setitem__(self, key, value)
+     |      Set item or range to new value.
+     |      
+     |      Indices are in bits.
+     |      Stepping is not supported and use will raise a BitStringError.
+     |  
      |  __str__(self)
-     |      Return view of BitString for printing.
+     |      Return approximate string representation of BitString for printing.
+     |      
+     |      If the BitString is an integer number of bytes then hexadecimal is used,
+     |      otherwise binary is used. Long strings will be truncated with '...'.
      |  
      |  advancebit(self)
      |      Advance position by one bit.
+     |      
+     |      Raises ValueError if bitpos is already past the last bit in the BitString.
      |  
      |  advancebits(self, bits)
      |      Advance position by bits.
+     |      
+     |      bits -- Number of bits to increment bitpos by. Must be >= 0.
+     |      
+     |      Raises ValueError if bits negative or if bitpos goes past the end of the BitString.
      |  
      |  advancebyte(self)
-     |      Advance position by one byte.
+     |      Advance position by one byte. Does not byte align.
+     |      
+     |      Raises ValueError if there is less than one byte from bitpos to the end of the BitString.
      |  
      |  advancebytes(self, bytes)
      |      Advance position by bytes. Does not byte align.
+     |      
+     |      bytes -- Number of bytes to increment bitpos by. Must be >= 0.
+     |      
+     |      Raises ValueError if there are not enough bytes from bitpos to the end of the BitString.
      |  
      |  append(self, bs)
-     |      Append a BitString. Return self.
+     |      Append a BitString to the current BitString. Return self.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to append.
      |  
      |  bytealign(self)
      |      Align to next byte and return number of skipped bits.
+     |      
+     |      Raises ValueError if end of BitString reached before aligning to next byte.
      |  
      |  deletebits(self, bits, bitpos=None)
      |      Delete number of bits at current position, or bitpos if supplied. Return self.
+     |      
+     |      bits -- Number of bits to delete.
+     |      bitpos -- Bit position to delete from (default is self.bitpos)
+     |      
+     |      Raises ValueError if bits < 0 or if you try to delete past the end of the BitString.
      |  
      |  deletebytes(self, bytes, bytepos=None)
      |      Delete number of bytes at current position (must be byte-aligned), or bytepos if supplied. Return self.
+     |      
+     |      bytes -- Number of bytes to delete.
+     |      bytepos -- Byte position to delete from (default is self.bytepos)
+     |      
+     |      Raises BitStringError if bytepos not specified and current position is not byte aligned.
+     |      Raises ValueError if bytes < 0 or if you try to delete past the end of the BitString.
      |  
      |  empty(self)
-     |      Return True only if the BitString is empty.
+     |      Return True if the BitString is empty (has zero length). Otherwise return False.
      |  
      |  find(self, bs)
      |      Seek to start of next occurence of BitString. Return True if BitString is found.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to find.
      |  
      |  findbytealigned(self, bs)
      |      Seek to start of next occurence of byte-aligned BitString. Return True if string is found.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to find.
+     |      
+     |      Raises ValueError if len(bs) is not a multiple of 8.
      |  
      |  insert(self, bs, bitpos=None)
      |      Insert a BitString at current position, or bitpos if supplied. Return self.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to insert.
+     |      bitpos -- The bit position to insert the BitString.
+     |      
+     |      Raises ValueError if bitpos < 0 or bitpos > self.length.
      |  
      |  overwrite(self, bs, bitpos=None)
      |      Overwrite with new BitString at the current position, or bitpos if supplied. Return self.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to overwrite with.
+     |      bitpos -- The bit position to begin overwriting from.
+     |      
+     |      Raises ValueError if bitpos < 0 or bitpos + len(bs) > self.length
      |  
      |  peekbit(self)
      |      Return next bit in BitString as a new BitString without advancing position.
+     |      
+     |      Raises ValueError if bitpos is at the end of the BitString.
      |  
      |  peekbits(self, bits)
      |      Return next bits in BitString as a new BitString without advancing position.
+     |      
+     |      bits -- The number of bits to read. Must be >= 0.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
      |  
      |  peekbyte(self)
      |      Return next byte in BitString as a new BitString without advancing position.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
      |  
      |  peekbytes(self, bytes)
      |      Return next bytes in BitString as a new BitString without advancing position.
+     |      
+     |      bytes -- The number of bytes to read. Must be >= 0.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
      |  
      |  prepend(self, bs)
-     |      Prepend a BitString. Return self.
+     |      Prepend a BitString to the current BitString. Return self.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to prepend.
      |  
      |  readbit(self)
-     |      Return BitString of length 1 and advances position.
+     |      Return next bit in BitString as new BitString and advance position.
+     |      
+     |      Raises ValueError if bitpos is at the end of the BitString.
      |  
      |  readbits(self, bits)
-     |      Return new BitString of length bits and advance position.
+     |      Return next bits in BitString as a new BitString and advance position.
+     |      
+     |      bits -- The number of bits to read.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
      |  
      |  readbyte(self)
-     |      Return BitString of length 8 bits and advances position. Does not byte align.
+     |      Return next 8 bits in BitString as a new BitString and advance position. Does not byte align.
+     |      
+     |      Raises ValueError if there are less than 8 bits from bitpos to the end of the BitString.
      |  
      |  readbytes(self, bytes)
-     |      Return new BitString of length bytes and advances position. Does not byte align.
+     |      Return next bytes in BitString as a new BitString and advance position. Does not byte align.
+     |      
+     |      bytes -- The number of bytes to read.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
      |  
      |  readse(self)
-     |      Return interpretation of next bits in stream as a signed Exponential-Golomb of the type used in H.264.
+     |      Return interpretation of next bits in stream as a signed Exponential Golomb code.
+     |      
      |      Advances position to after the read code.
+     |      Raises BitStringError if the end of the BitString is encountered while reading the code.
      |  
      |  readue(self)
-     |      Return interpretation of next bits in stream as an unsigned Exponential-Golomb of the type used in H.264.
+     |      Return interpretation of next bits in stream as an unsigned Exponential Golomb code.
+     |         
      |      Advances position to after the read code.
+     |      Raises BitStringError if the end of the BitString is encountered while reading the code.
      |  
      |  retreatbit(self)
      |      Retreat position by one bit.
+     |      
+     |      Raises ValueError if bitpos is already at the start of the BitString.
      |  
      |  retreatbits(self, bits)
      |      Retreat position by bits.
+     |      
+     |      bits -- Number of bits to decrement bitpos by. Must be >= 0.
+     |      
+     |      Raises ValueError if bits negative or if bitpos goes past the start of the BitString.
      |  
      |  retreatbyte(self)
      |      Retreat position by one byte. Does not byte align.
+     |      
+     |      Raises ValueError if bitpos is less than 8.
      |  
      |  retreatbytes(self, bytes)
-     |      Retreat position by bytes.
+     |      Retreat position by bytes. Does not byte align.
+     |      
+     |      bytes -- Number of bytes to decrement bitpos by. Must be >= 0.
+     |      
+     |      Raises ValueError if bytes negative or if bitpos goes past the start of the BitString.
      |  
      |  reversebits(self)
      |      Reverse all bits in-place. Return self.
+     |      
+     |      Using on an empty BitString will have no effect.
      |  
      |  slice(self, startbit, endbit)
      |      Return a new BitString which is the slice [startbit, endbit).
+     |      
+     |      startbit -- Position of first bit in the new BitString.
+     |      endbit -- One past the position of the last bit in the new BitString.
+     |      
+     |      Raises ValueError if endbit < startbit, if startbit < 0 or endbit > self.length.
      |  
      |  split(self, delimiter)
      |      Return a generator of BitStrings by splittling into substrings starting with a byte aligned delimiter.
-     |      The first item returned is the initial bytes before the delimiter, which may be empty.
+     |      
+     |      The first item returned is the initial bytes before the delimiter, which may be an empty BitString.
+     |      
+     |      delimiter -- The BitString (or string for 'auto' initialiser) used as the divider.
+     |      
+     |      Raises ValueError if the delimiter is not a whole number of bytes.
      |  
      |  truncateend(self, bits)
      |      Truncate a number of bits from the end of the BitString. Return new BitString.
+     |      
+     |      bits -- Number of bits to remove from end of returned BitString.
+     |      
+     |      Raises ValueError if bits < 0 or bits > self.length.
      |  
      |  truncatestart(self, bits)
      |      Truncate a number of bits from the start of the BitString. Return new BitString.
+     |      
+     |      bits -- Number of bits to remove from start of returned BitString.
+     |      
+     |      Raises ValueError if bits < 0 or bits > self.length.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors defined here:
      |  
      |  bin
-     |      the BitString as a binary string (including leading zeros)
+     |      The BitString as a binary string, prefixed with '0b' and including any leading zeros.
      |  
      |  bitpos
-     |      the position in the BitString in bits
+     |      The position in the BitString in bits.
      |  
      |  bytepos
-     |      the position in the BitString in bytes
+     |      The position in the BitString in bytes.
      |  
      |  data
-     |      the BitString as a ordinary string
+     |      The BitString as a ordinary string.
      |  
      |  hex
-     |      the BitString as a hexidecimal string (including leading zeros)
+     |      The BitString as a hexidecimal string, prefixed with '0x' and including any leading zeros.
      |  
      |  int
-     |      the BitString as a twos complement signed int
+     |      The BitString as a two's complement signed int.
      |  
      |  length
-     |      the length of the BitString in bits
+     |      The length of the BitString in bits.
+     |  
+     |  oct
+     |      The BitString as an octal string, prefixed with '0o' and including any leading zeros.
      |  
      |  offset
-     |      the offset of the BitString relative to being byte aligned
+     |      The offset of the BitString relative to the byte aligned underlying storage.
      |  
      |  se
-     |      the BitString as a signed Exponential-Golomb
+     |      The BitString as a signed Exponential-Golomb code.
      |  
      |  ue
-     |      the BitString as an unsigned Exponential-Golomb
+     |      The BitString as an unsigned Exponential-Golomb code.
      |  
      |  uint
-     |      the BitString as an unsigned int
+     |      The BitString as an unsigned int.
     
     class BitStringError(exceptions.Exception)
-     |  Base class for errors in the bitstring module.
-
+     |  For errors in the bitstring module.
+ 
 
 FUNCTIONS
     join(bitstringlist)
-        Return the concatenation of the BitStrings in a list
+        Return the concatenation of the BitStrings in a list.
 
 }}}
