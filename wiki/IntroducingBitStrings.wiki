@@ -37,9 +37,32 @@ f = e[7:]                                  # cut the first 7 bits off
 print e.hex                                # 0x9249cdcd
 print e.int                                # -1840656947
 print e.uint                               # 2454310349
-
-
 }}}
+
+= Getting Started =
+First download the latest release (see the Downloads tab) and extract the contents of the zip. You will find:
+
+  * `bitstring.py` : The bitstring module itself.
+  * `test_bitstring.py` : Unit tests for the module.
+  * `setup.py` : The setup script.
+  * `readme.txt` : Short readme to provide link back to this site.
+  * `test/` : Directory for test files
+    * `test.m1v` : An example file (MPEG-1 video) for testing purposes.
+    * `smalltestfile` : Another small file for testing.
+
+To install run
+{{{
+python setup.py install
+}}}
+This will copy `bitstring.py` to your Python installation's `site-packages` directory.
+If you prefer you can do this by hand, or just make sure that your Python program can see `bitstring.py`, for example by putting in the same directory as the program that will use it.
+
+The module comes with comprehensive unit tests. To run them yourself type
+{{{
+python test_bitstring.py
+}}}
+which should run all the tests and say OK. If tests fail then either your version of Python isn't supported (it's only been tested on 2.4, 2.5 and 2.6) or something unexpected has happened...
+
 
 ----
 *Next:* [CreatingBitStrings Creating BitStrings]
