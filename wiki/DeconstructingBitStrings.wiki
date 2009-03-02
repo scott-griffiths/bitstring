@@ -1,5 +1,4 @@
 #summary Reading, finding, navigating
-#labels Deprecated
 ----
 *Next:* [Miscellany]
 ----
