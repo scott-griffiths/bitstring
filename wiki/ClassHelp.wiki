@@ -1,9 +1,6 @@
 #summary Help on module bitstring:
 #labels Featured
 {{{
-  DESCRIPTION
-    Module for bit-wise data manipulation.
-    http://python-bitstring.googlecode.com
 
 CLASSES
 
@@ -33,7 +30,7 @@ CLASSES
      |  __hex__(self)
      |      Return the hexadecimal representation as a string prefixed with '0x'.
      |      
-     |      Raises a ValueError if the BitString's length is not a multiple of 4.
+     |      Raises a ValueError if the BitStrings length is not a multiple of 4.
      |  
      |  __iadd__(self, bs)
      |      Append BitString to current BitString. Return self.
@@ -54,7 +51,7 @@ CLASSES
      |  
      |  __init__(self, auto=None, length=None, offset=0, data=None, filename=None, hex=None, bin=None, oct=None, uint=None, int=None, ue=None, se=None)
      |      Initialise the BitString with one (and only one) of:
-     |      auto -- string starting with '0x', 0o' or '0b' to be interpreted
+     |      auto -- string starting with '0x', '0o' or '0b' to be interpreted
      |              as hexadecimal, octal or binary respectively, or another BitString.
      |      data -- raw data as a string, for example read from binary file.
      |      bin -- binary string representation, e.g. '0b001010'.
@@ -106,7 +103,7 @@ CLASSES
      |  __oct__(self)
      |      Return the octal representation as a string prefixed with '0o'.
      |      
-     |      Raises a ValueError if the BitString's length is not a multiple of 3.
+     |      Raises a ValueError if the BitStrings length is not a multiple of 3.
      |  
      |  __rmul__(self, n)
      |      Return BitString consisting of n concatenations of self.
@@ -354,10 +351,10 @@ CLASSES
      |      The BitString as a ordinary string.
      |  
      |  hex
-     |      The BitString as a hexidecimal string, prefixed with '0x' and including any leading zeros.
+     |      The BitString as a hexadecimal string, prefixed with '0x' and including any leading zeros.
      |  
      |  int
-     |      The BitString as a two's complement signed int.
+     |      The BitString as a twos complement signed int.
      |  
      |  length
      |      The length of the BitString in bits.
