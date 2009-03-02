@@ -4,6 +4,10 @@
 *Next:* [CreatingBitStrings Creating BitStrings]
 ----
 = Contents =
+
+This tutorial is divided into a number of pages for ease of use. You can either use the links at the top and bottom of each page for navigation or jump straight to the page you want from the list below.
+
+  * [IntroducingBitStrings Introduction] (this page)
   * [CreatingBitStrings Creating BitStrings]
   * [InterpretingBitStrings Interpreting BitStrings]
   * [ModifyingBitStrings Modifying BitStrings]
