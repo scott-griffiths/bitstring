@@ -1,5 +1,4 @@
 #summary Plus a few other things...
-#labels Deprecated
 = Other Functions =
 == empty ==
 Returns `True` if the `BitString` contains no data (i.e. has zero length). Otherwise returns `False`.
