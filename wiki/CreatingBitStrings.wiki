@@ -1,5 +1,4 @@
 #summary The numerous ways of creating BitStrings
-#labels Deprecated
 ----
 *Next:* [InterpretingBitStrings Interpreting BitStrings]
 ----
