@@ -1,5 +1,5 @@
 #summary Brief tutorial on the use of the bitstring module
-#labels Featured
+#labels Deprecated
 
 <wiki:toc max_depth="3" />
 
