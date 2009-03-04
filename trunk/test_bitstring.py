@@ -1259,7 +1259,24 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(TypeError, a.__mul__, 1.2)
         self.assertRaises(TypeError, a.__rmul__, b)
         self.assertRaises(TypeError, a.__imul__, b)
-        
+    
+    def testEqualityWithAutoInitialised(self):
+        a = BitString('0b00110111')
+        self.assertTrue(a == '0b00110111')
+        self.assertTrue(a == '0x37')
+        self.assertTrue('0b0011 0111' == a)
+        self.assertTrue('0x3 0x7' == a)
+        self.assertFalse(a == '0b11001000')
+        self.assertFalse('0x3737' == a)
+    
+    def testFileAndMemEquivalence(self):
+        a = BitString(filename='test/smalltestfile')
+        b = BitString(a)
+        self.assertTrue(isinstance(a._datastore, bitstring._FileArray))
+        self.assertTrue(isinstance(b._datastore, bitstring._MemArray))
+        self.assertEqual(a._datastore[0], b._datastore[0])
+        self.assertEqual(a._datastore[1:5], b._datastore[1:5])
+    
     #def testDoingSomethingTimeConsuming(self):
     #    s = BitString()
     #    for i in range(10000):
