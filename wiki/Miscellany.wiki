@@ -1,13 +1,13 @@
 #summary Plus a few other things...
 = Other Functions =
-== empty ==
+== empty() ==
 Returns `True` if the `BitString` contains no data (i.e. has zero length). Otherwise returns `False`.
 {{{
 a = BitString()
 print a.empty()               # True
 }}}
 
-== bytealign == 
+== bytealign() == 
 This function advances between zero and seven bits to make the `bitpos` a multiple of eight. It returns the number of bits advanced.
 {{{
 a = BitString('0x11223344')
@@ -17,7 +17,7 @@ print skipped, a.bitpos       # 7, 8
 skipped = a.bytealign()
 print skipped, a.bitpos       # 0, 8
 }}}
-== reversebits ==
+== reversebits() ==
 This simply reverses all of the bits of the `BitString` in place.
 {{{
 a = BitString('0b000001101')
@@ -57,6 +57,13 @@ b = BitString('0x2')
 print a == b                  # True
 print a != b                  # False
 }}}
+
+You can also compare with a string that will be used to create a `BitString` using its `auto` initialiser (i.e. a string starting with '`0b`', '`0x`' or '`0o`').
+{{{
+a = BitString('0b00011111')
+print a == '0x1f'             # True
+print a[0:6] == '0o01'        # True
+}}}            
 
 == `__hex__` , `__oct__` ==
 You can if you wish use the built-in functions `hex()` and `oct()` instead of the `hex` and `oct` properties, although for consistency it is probably better to stick to using the properties. Note that octals are always prefixed by '`0o`' rather than just '`0`'. Note also that although a `bin()` built-in function was introduced in Python 2.6 there doesn't seem to be a corresponding `__bin__` special function, for reasons that escape me, so you can't use `bin()` on a `BitString`.
