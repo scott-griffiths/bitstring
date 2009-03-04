@@ -120,10 +120,10 @@ class _FileArray(object):
             stop = key.stop
         if start < stop:
             self.source.seek(start, os.SEEK_SET)
-            return self.source.read(stop-start)
+            return array.array('B', self.source.read(stop-start))
         else:
             return ''
-    
+
     def extend(self, data):
         raise NotImplementedError
     
@@ -384,17 +384,26 @@ class BitString(object):
                 return self.slice(0, 256*8)._getbin() + '...'
     
     def __eq__(self, bs):
-        """Return True if and only if the two BitStrings have the same binary representation."""
+        """Return True if and only if the two BitStrings have the same binary representation.
+        
+        Can also be used with a string for the 'auto' initialiser.
+        e.g.
+            a = BitString('0b11110000')
+            assert a == '0xf0'
+        
+        """
+        if isinstance(bs, str):
+            bs = BitString(bs)
         if not isinstance(bs, BitString):
             return False
         if self._length != bs._length:
             return False
-        # Yes, I know how inefficient this could be in the worst case...
-        if self._getbin() != bs._getbin():
+        bs._setoffset(self._offset)
+        if self._getdata() != bs._getdata():
             return False
         else:
             return True
-    
+        
     def __ne__(self, bs):
         """Return True if the two BitStrings do not have the same binary representation."""
         return not self.__eq__(bs)
@@ -749,7 +758,7 @@ class BitString(object):
         c = []
         if self._length != 0:
             # Horribly inefficient!
-            i = self.uint
+            i = self._getuint()
             for x in xrange(self._length):
                 if i%2 == 1: c.append('1')
                 else: c.append('0')
@@ -902,7 +911,6 @@ class BitString(object):
             return
         if not 0 <= offset < 8:
             raise ValueError("Can only align to an offset from 0 to 7.")
-        assert 0 <= self._offset < 8
         if offset < self._offset:
             # We need to shift everything left
             shiftleft = self._offset - offset
@@ -1188,7 +1196,7 @@ class BitString(object):
             raise ValueError("Can only use find for whole-byte BitStrings.")
         # Extract data bytes from BitString to be found.
         bs._setoffset(0)
-        d = bs.data
+        d = bs._getdata()
         if len(d) == 0:
             raise ValueError("Can't find empty BitString.")
         self._setoffset(0)
@@ -1203,11 +1211,18 @@ class BitString(object):
         found = False
         p = bytepos
         finalpos = self._length/8 - len(d) + 1
+        d_length = len(d)
+        increment = max(1024, d_length*10)
+        buffersize = increment + d_length
         while p < finalpos:
-            if self[p*8:(p+len(d))*8].data == d:
+            # Read in file or from memory in overlapping chunks and search the chunks.
+            buffer = self._datastore[p:p + buffersize].tostring()
+            pos = buffer.find(d)
+            if pos != -1:
                 found = True
+                p += pos
                 break
-            p += 1
+            p += increment
         if not found:
             self._pos = oldpos
             return False
