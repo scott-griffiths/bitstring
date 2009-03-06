@@ -1,5 +1,4 @@
 #summary What they are, and why you might need them
-#labels Featured
 ----
 *Next:* [CreatingBitStrings Creating BitStrings]
 ----
