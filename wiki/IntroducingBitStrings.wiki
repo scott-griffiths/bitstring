@@ -3,16 +3,6 @@
 ----
 *Next:* [CreatingBitStrings Creating BitStrings]
 ----
-= Contents =
-
-This tutorial is divided into a number of pages for ease of use. You can either use the links at the top and bottom of each page for navigation or jump straight to the page you want from the list below.
-
-  * [IntroducingBitStrings Introduction] (this page)
-  * [CreatingBitStrings Creating BitStrings]
-  * [InterpretingBitStrings Interpreting BitStrings]
-  * [ModifyingBitStrings Modifying BitStrings]
-  * [DeconstructingBitStrings Deconstructing BitStrings]
-  * [Miscellany]
 
 = Introduction =
 The bitstring module is a pure Python module designed to allow binary data to be read, interpreted, created and modified with as much ease as possible.
