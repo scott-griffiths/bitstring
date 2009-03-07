@@ -31,9 +31,9 @@ e = BitString(se=-10)
 }}}
 ===Interpreting `BitString` objects===
 {{{
-# hex will raise a BitStringError if the length isn't a multiple of 4
+# hex will raise a ValueError if the length isn't a multiple of 4
 print h.hex    # 0x000001b3
-# oct will raise a BitStringError if the length isn't a multiple of 3
+# oct will raise a ValueError if the length isn't a multiple of 3
 print b.oct    # 0o117
 # bin can be used on all BitStrings
 print h.bin    # 0b00000000000000000000000110110011
@@ -48,12 +48,12 @@ print e.bin    # 0b000010101
 ===Manipulating `BitString` objects===
 {{{
 # Slicing
-print h[24:32].hex  # 0xb3
-print h[-4:].bin    # 0b0011 (the final four bits)
+print h[24:32]      # 0xb3
+print h[-4:]        # 0b0011 (the final four bits)
 
 # Joining lists
-bsl = ['0b0', '0b1', BitString(bin='000'), BitString(hex='f')]
-print bitstring.join(bsl).bin   # 0b010001111
+bsl = ['0b0', '0b1', BitString(uint=5, length=3), BitString(hex='f')]
+print bitstring.join(bsl)     # 0b011011111
 
 # Appending, prepending, truncating and deleting
 s = BitString('0x00')
