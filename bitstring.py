@@ -467,7 +467,7 @@ class BitString(object):
         """
         if self.empty():
             raise BitStringError("Cannot invert empty BitString.")
-        s = BitString(int=~(self._getint()), length=self.length)
+        s = BitString(int=~(self._getint()), length=self._length)
         return s
 
     def __lshift__(self, n):
@@ -559,6 +559,48 @@ class BitString(object):
         for i in xrange(n-1):
             self.append(s)
         return self
+
+    def __and__(self, bs):
+        """Bit-wise 'and' between two BitStrings. Returns new BitString.
+        
+        bs -- The BitString (or string for 'auto' initialiser) to & with.
+        
+        Raises ValueError if the two BitStrings have differing lengths.
+        
+        """
+        if isinstance(bs, str):
+            bs = BitString(bs)
+        if self._length != bs._length:
+            raise ValueError('BitStrings must have the same length for & operator.')
+        return BitString(uint=self._getuint()&bs._getuint(), length=self._length)
+    
+    def __or__(self, bs):
+        """Bit-wise 'or' between two BitStrings. Returns new BitString.
+        
+        bs -- The BitString (or string for 'auto' initialiser) to | with.
+        
+        Raises ValueError if the two BitStrings have differing lengths.
+        
+        """
+        if isinstance(bs, str):
+            bs = BitString(bs)
+        if self._length != bs._length:
+            raise ValueError('BitStrings must have the same length for | operator.')
+        return BitString(uint=self._getuint()|bs._getuint(), length=self._length)
+
+    def __xor__(self, bs):
+        """Bit-wise 'xor' between two BitStrings. Returns new BitString.
+        
+        bs -- The BitString (or string for 'auto' initialiser) to ^ with.
+        
+        Raises ValueError if the two BitStrings have differing lengths.
+        
+        """
+        if isinstance(bs, str):
+            bs = BitString(bs)
+        if self._length != bs._length:
+            raise ValueError('BitStrings must have the same length for ^ operator.')
+        return BitString(uint=self._getuint()^bs._getuint(), length=self._length)
 
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
