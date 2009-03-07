@@ -1,6 +1,6 @@
 #summary What they are, and why you might need them
 ----
-*Previous:* [IntroducingBitStrings Introduction]
+*Previous:* [Tutorial Contents]
 
 *Next:* [CreatingBitStrings Creating BitStrings]
 ----
