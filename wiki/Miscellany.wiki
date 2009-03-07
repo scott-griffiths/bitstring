@@ -1,4 +1,7 @@
 #summary Plus a few other things...
+----
+*Previous:* [DeconstructingBitStrings Deconstructing BitStrings]
+----
 = Other Functions =
 == empty() ==
 Returns `True` if the `BitString` contains no data (i.e. has zero length). Otherwise returns `False`.
