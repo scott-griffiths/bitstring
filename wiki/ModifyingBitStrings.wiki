@@ -1,8 +1,10 @@
 #summary Slice them, dice them, cut 'em up and splice them.
 ----
+*Previous:* [InterpretingBitStrings Interpreting BitStrings]
+
 *Next:* [DeconstructingBitStrings Deconstructing BitStrings]
 ----
-= Combining modifying and decomposing `BitString` objects =
+= Combining, modifying and decomposing `BitString` objects =
 
 == Joining ==
 
