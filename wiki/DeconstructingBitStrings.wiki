@@ -6,7 +6,7 @@
 
 == Reading ==
 
-Another common use is to parse a large `BitString` into smaller syntax elements. Functions for reading in bytes and bits are provided and will return new `BitString` objects. These new objects are top-level `BitString` objects and can be interpreted using properties as in the next example or could be read from to form a hierarchy of reads.
+A common need is to parse a large `BitString` into smaller syntax elements. Functions for reading in bytes and bits are provided and will return new `BitString` objects. These new objects are top-level `BitString` objects and can be interpreted using properties as in the next example or could be read from to form a hierarchy of reads.
 {{{
 s = BitString(filename='test/test.m1v')
 start_code = s.readbytes(4).hex
@@ -27,6 +27,8 @@ else:
     s.findbytealigned('0x47')
 }}}
 
+The full list of functions is `readbit()`, `readbits(n)`, `readbyte()`, `readbytes(n)`, `peekbit()`, `peekbits(n)`, `peekbyte()` and `peekbytes(n)`.
+
 == Seeking ==
 The properties `bitpos` and `bytepos` are available for getting and setting the position, which is zero on creation of the `BitString`. For relative movement either use the `+=` and `-=` operators or the advance and retreat functions.
 
@@ -38,6 +40,8 @@ print s.bitpos                 # 16 (note bitpos verses bytepos)
 s.advancebits(4)
 print s.read(4).bin            # 0b0110 (the final nibble '0x6')
 }}}
+
+The full list of functions is `advancebit()`, `advancebits(n)`, `advancebyte()`, `advancebytes(n)`, `retreatbit()`, `retreatbits(n)`, `retreatbyte()` and `retreatbytes(n)`.
 
 == Finding ==
 
