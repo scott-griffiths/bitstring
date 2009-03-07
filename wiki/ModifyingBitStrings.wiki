@@ -82,7 +82,7 @@ a.overwrite('0b1111')         # Uses current bitpos as default
 print a.hex                   # 0x0f112233
 }}}
 
-'deletebits' and 'deletebytes' remove sections of the `BitString`. By default they remove at the current `bitpos` - this must be at a byte boundary if using `deletebytes`:
+`deletebits` and `deletebytes` remove sections of the `BitString`. By default they remove at the current `bitpos` - this must be at a byte boundary if using `deletebytes`:
 {{{
 a = BitString('0b00011000')
 a.deletebits(2, 3)            # remove 2 bits at bitpos 3
