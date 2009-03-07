@@ -50,6 +50,10 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.hex, '0x0123456789abcdefff')
         
         s = BitString(filename='test/smalltestfile')
+        t = BitString('0xff').append(s)
+        self.assertEqual(t.hex, '0xff0123456789abcdef')
+        
+        s = BitString(filename='test/smalltestfile')
         s.deletebits(1, 0)
         self.assertEqual((BitString('0b0') + s).hex, '0x0123456789abcdef')
         
@@ -148,8 +152,7 @@ class BitStringTest(unittest.TestCase):
         #self.assertEqual(s.length, 11743020505*8)
         #self.assertEqual(s[1000000000:1000000100].hex, '0xbdef7335d4545f680d669ce24')
         #self.assertEqual(s[-32:].hex, '0xbbebf7a1') # TODO: I haven't confirmed this is correct!
-        #ff = BitString(hex='0xff')
-        #s.findbytealigned(ff)
+        #s.findbytealigned('0xff')
         pass
 
     def testFind1(self):
@@ -1277,15 +1280,34 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a._datastore[0], b._datastore[0])
         self.assertEqual(a._datastore[1:5], b._datastore[1:5])
     
-    #def testDoingSomethingTimeConsuming(self):
-    #    s = BitString()
-    #    for i in range(10000):
-    #        s = BitString(uint = 1000*i, length=200).bin
+    def testByte2Bits(self):
+        for i in xrange(256):
+            self.assertEqual(i, BitString(bin=bitstring._byte2bits[i]).uint)
     
-    #def testUsingLotsOfMemory(self):
-    #    s=BitString(data=open("test/test.m1v", 'rb').read())
-    #    for i in range(12):
-    #        s = s+s
+    def testBitwiseAnd(self):
+        a = BitString('0b01101')
+        b = BitString('0b00110')
+        self.assertEqual((a&b).bin, '0b00100')
+        self.assertEqual((a&'0b11111'), a)
+        self.assertRaises(ValueError, a.__and__, '0b1')
+        self.assertRaises(ValueError, b.__and__, '0b110111111')
+    
+    def testBitwiseOr(self):
+        a = BitString('0b111001001')
+        b = BitString('0b011100011')
+        self.assertEqual((a | b).bin, '0b111101011')
+        self.assertEqual((a | '0b000000000'), a)
+        self.assertRaises(ValueError, a.__or__, '0b0000')
+        self.assertRaises(ValueError, b.__or__, a + '0b1')
+
+    def testBitwiseXor(self):
+        a = BitString('0b111001001')
+        b = BitString('0b011100011')
+        self.assertEqual((a ^ b).bin, '0b100101010')
+        self.assertEqual((a ^ '0b111100000').bin, '0b000101001')
+        self.assertRaises(ValueError, a.__xor__, '0b0000')
+        self.assertRaises(ValueError, b.__xor__, a + '0b1')
+
 
 
 def main():
