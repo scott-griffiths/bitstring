@@ -1,5 +1,7 @@
 #summary What they are, and why you might need them
 ----
+*Previous:* [IntroducingBitStrings Introduction]
+
 *Next:* [CreatingBitStrings Creating BitStrings]
 ----
 
