@@ -1,5 +1,7 @@
 #summary Reading, finding, navigating
 ----
+*Previous:* [ModifyingBitStrings Modifying BitStrings]
+
 *Next:* [Miscellany]
 ----
 = Navigating =
