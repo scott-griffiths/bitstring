@@ -102,28 +102,7 @@ for s in a.split('0x47')):
 }}}
 Note that the first item returned is always the `BitString` before the first occurrence of the delimiter, even if it is empty. 
 
-== Reading ==
 
-Another common use is to parse a large `BitString` into smaller syntax elements. Functions for reading in bytes and bits are provided and will return new `BitString` objects. These new objects are top-level `BitString` objects and can be interpreted using properties as in the next example or could be read from to form a hierarchy of reads.
-{{{
-s = BitString(filename='test/test.m1v')
-start_code = s.readbytes(4).hex
-width = s.readbits(12).uint
-height = s.readbits(12).uint
-s.advancebits(37)
-
-flags = s.readbits(2)
-constrained_parameters_flag = flags.readbit().uint
-load_intra_quantiser_matrix = flags.readbit().uint
-}}}
-In addition to the `read` functions there are matching `peek` functions. These are identical to the `read` except that they do not advance the position in the `BitString`.
-{{{
-s = BitString('0x4732aa34')
-if s.peekbyte().hex == '0x47':
-    t = s.readbytes(2)          # t.hex == '0x4732'
-else:
-    s.findbytealigned('0x47')
-}}}
 ----
 *Next:* [DeconstructingBitStrings Deconstructing BitStrings]
 ----
