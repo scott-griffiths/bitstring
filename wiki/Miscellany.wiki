@@ -93,6 +93,7 @@ print b                       # 0b01100100
 a >>= 2
 print a                       # 0b00100110
 }}}
+
 == `__mul__` , `__imul__` , `__rmul__` ==
 Multiplication of a `BitString` by an integer means the same as it does for ordinary strings: concatenation of multiple copies of the `BitString`.
 {{{
@@ -102,6 +103,7 @@ print b                       # 0b10101010101010101010
 a *= 2
 print a                       # 0b1010
 }}}
+
 == `__copy__` ==
 This allows the `BitString` to be copied via the `copy` module.
 {{{
@@ -110,3 +112,15 @@ a = BitString('0x4223fbddec2231')
 b = copy.copy(a)
 }}}
 It's not terribly exciting, and isn't even the preferred method of making a copy. Using `b = BitString(a)` is my favourite, but `b = a[:]` may be more familiar to some.
+
+== `__and__` , `__or__` , `__xor__` ==
+Bit-wise AND, OR and XOR are provided for `BitString` objects of equal length only (otherwise a `ValueError` is raised). The right-hand-side of expression can be a string to use in the `auto` initialiser.
+{{{
+a = BitString('0b00001111')
+b = BitString('0b01010101')
+print (a&b).bin               # 0b00000101
+print (a|b).bin               # 0b01011111
+print (a^b).bin               # 0b01010000
+b &= '0x1f'
+print b.bin                   # 0b00010101
+}}}
