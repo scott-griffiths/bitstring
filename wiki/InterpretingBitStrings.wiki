@@ -1,5 +1,7 @@
 #summary The multitude of ways to interpret those bits
 ----
+*Previous:* [CreatingBitStrings Creating BitStrings]
+
 *Next:* [ModifyingBitStrings Modifying BitStrings]
 ----
 
