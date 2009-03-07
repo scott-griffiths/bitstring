@@ -1,5 +1,7 @@
 #summary The numerous ways of creating BitStrings
 ----
+*Previous:* [IntroducingBitStrings Introduction]
+
 *Next:* [InterpretingBitStrings Interpreting BitStrings]
 ----
 
