@@ -212,8 +212,8 @@ class BitString(object):
                  uint = None, int = None,  ue = None, se = None):
         """
         Initialise the BitString with one (and only one) of:
-        auto -- string starting with '0x', '0o' or '0b' to be interpreted
-                as hexadecimal, octal or binary respectively, or another BitString.
+        auto -- string starting with '0x', '0o' or '0b' to be interpreted as
+                hexadecimal, octal or binary respectively, or another BitString.
         data -- raw data as a string, for example read from binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
@@ -226,8 +226,9 @@ class BitString(object):
     
         Other keyword arguments:
         length -- length of the BitString in bits, if needed and appropriate.
-        offset -- bit offset to the data (0 -> 7). These offset bits are ignored and
-                  this is mainly intended for use when initialising using 'data'.
+        offset -- bit offset to the data (0 -> 7). These offset bits are
+                  ignored and this is mainly intended for use when
+                  initialising using 'data'.
        
         e.g.
         a = BitString('0x123ab560')
@@ -667,17 +668,34 @@ class BitString(object):
             val = self._datastore[0] & mask
             val >>= 8 - self._offset - self._length
             return val
+        # Take the bits in the first byte and shift them to their final position
         firstbits = 8 - self._offset
         mask = (1<<firstbits) - 1
-        val = self._datastore[0] & mask
-        for j in xrange(1, self._datastore.length()-1):
-            val <<= 8
-            val += self._datastore[j]
-        lastbyte = self._datastore[-1]
+        shift = self._length - firstbits
+        val = (self._datastore[0] & mask) << shift
+        # For the middle of the data we use struct.unpack to do the conversion
+        # as it's more efficient. This loop only gets invoked if the BitString's
+        # data is more than 10 bytes
+        j = 1
+        structsize = struct.calcsize('Q')
+        end = self._datastore.length() - 1
+        while j + structsize < end:
+            shift -= 8*structsize
+            # Convert next 8 bytes to an int, then shift it to proper place
+            # and add it
+            val += (struct.unpack('>Q', self._datastore[j:j+structsize])[0] << shift)
+            j += structsize
+        # Do the remaining bytes, except for the final one
+        while j < end:
+            shift -= 8
+            val += (self._datastore[j] << shift)
+            j += 1
+        # And the very final byte
+        assert shift <= 8
         bitsleft = (self._offset + self._length)%8
         if bitsleft == 0:
             bitsleft = 8
-        val <<= bitsleft
+        lastbyte = self._datastore[-1]
         mask = 255 - ((1<<(8-bitsleft))-1)
         val += (lastbyte&mask)>>(8-bitsleft)
         return val
@@ -1200,7 +1218,9 @@ class BitString(object):
         found = False
         p = bitpos
         finalpos = self._length - bs._length + 1
-        increment = max(1024, bs._length*10)
+        # We grab overlapping chunks of the binary representation and
+        # do an ordinary string search within that.
+        increment = max(16384, bs._length*10)
         buffersize = increment + bs._length
         while p < finalpos:
             buffer = self[p:min(p+buffersize, self._length)]._getbin()[2:]
