@@ -1042,6 +1042,8 @@ class BitString(object):
     
     def _setunusedbitstozero(self):
         """Set non data bits in first and last byte to zero."""
+        if self._length == 0:
+            return
         # set unused bits in first byte to zero
         if self._offset > 0:
             self._datastore[0] &= (255 >> self._offset)
@@ -1253,6 +1255,22 @@ class BitString(object):
             raise ValueError("Cannot retreat by a negative amount.")
         self._setbitpos(self._pos - bytes*8)
 
+    def seekbit(self, bitpos):
+        """Seek to absolute bit position bitpos.
+        
+        Raises ValueError if bitpos < 0 or bitpos > self.length.
+        
+        """
+        self._setbitpos(bitpos)
+    
+    def seekbyte(self, bytepos):
+        """Seek to absolute byte position bytepos.
+        
+        Raises ValueError if bytepos < 0 or bytepos*8 > self.length.
+        
+        """
+        self._setbytepos(bytepos)
+
     def find(self, bs):
         """Seek to start of next occurence of BitString. Return True if BitString is found.
         
@@ -1355,7 +1373,10 @@ class BitString(object):
         if bits < 0 or bits > self._length:
             raise ValueError("Truncation length of %d not possible. Length = %d." % (bits, self._length))
         self._length -= bits
-        self._offset = (self._offset + bits)%8
+        if self._length == 0:
+            self._offset = 0
+        else:
+            self._offset = (self._offset + bits)%8
         self._setdata(self._datastore[bits/8:], length=self._length)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
