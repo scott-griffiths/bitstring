@@ -12,19 +12,23 @@ This tutorial is divided into a number of pages for ease of use. You can either 
   _What they are, and why you might need them._
 
   Downloading / installing / running the unit test suite / some examples
+
   * *[CreatingBitStrings Creating BitStrings]*
   _The numerous ways of creating !BitStrings._
 
   Binary / hexadecimal / octal / integers / plain data / a file
+
   * *[InterpretingBitStrings Interpreting BitStrings]*
   _The multitude of ways to interpret those bits._
-  
+ 
+  * *[DeconstructingBitStrings Deconstructing BitStrings]*
+  _Reading, finding, navigating._
+
   * *[ModifyingBitStrings Modifying BitStrings]*
   _Slice them, dice them, cut 'em up and splice them._
 
   Truncating / slicing / appending / prepending / inserting / deleting
-  * *[DeconstructingBitStrings Deconstructing BitStrings]*
-  _Reading, finding, navigating._
+
   * *[Miscellany]*
   _Plus a few other things..._
 
