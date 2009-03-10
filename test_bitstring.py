@@ -555,6 +555,9 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.empty(), True)
 
     def testTruncateEnd(self):
+        s = BitString('0b1')
+        s.truncateend(1)
+        self.assertTrue(s.empty())
         s = BitString(data='\x12\x34')
         self.assertEqual(s.truncateend(0).hex, '0x1234')
         self.assertEqual(s.truncateend(4).hex, '0x123')
@@ -1311,7 +1314,23 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, a.__xor__, '0b0000')
         self.assertRaises(ValueError, b.__xor__, a + '0b1')
 
-
+    def testSeekBit(self):
+        a = BitString('0b11111')
+        a.seekbit(5)
+        self.assertEqual(a.bitpos, 5)
+        a.seekbit(0)
+        self.assertEqual(a.bitpos, 0)
+        self.assertRaises(ValueError, a.seekbit, -1)
+        self.assertRaises(ValueError, a.seekbit, 6)
+    
+    def testSeekByte(self):
+        a = BitString('0x1122334455')
+        a.seekbyte(5)
+        self.assertEqual(a.bytepos, 5)
+        a.seekbyte(0)
+        self.assertEqual(a.bytepos, 0)
+        self.assertRaises(ValueError, a.seekbyte, -1)
+        self.assertRaises(ValueError, a.seekbyte, 6)
 
 def main():
     unittest.main()
