@@ -56,8 +56,6 @@ s.advancebits(4)
 print s.read(4).bin            # 0b0110 (the final nibble '0x6')
 }}}
 
-The full list of functions is `advancebit()`, `advancebits(n)`, `advancebyte()`, `advancebytes(n)`, `retreatbit()`, `retreatbits(n)`, `retreatbyte()` and `retreatbytes(n)`.
-
 == Finding ==
 
 To search for a sub-string use the 'find' and 'findbytealigned' functions. These will set the position to the start of the next occurrence of the searched for string and return `True`, or just return `False` if the string isn't present. As its name implies, `findbytealigned` looks for only byte aligned occurrences of a whole-byte `BitString`.
