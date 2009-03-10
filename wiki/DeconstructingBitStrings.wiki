@@ -1,8 +1,8 @@
 #summary Reading, finding, navigating
 ----
-*Previous:* [ModifyingBitStrings Modifying BitStrings]
+*Previous:* [InterpretingBitStrings Interpreting BitStrings]
 
-*Next:* [Miscellany]
+*Next:* [ModifyingBitStrings Modifying BitStrings]
 ----
 = Navigating =
 
@@ -57,5 +57,5 @@ found = s.findbytealigned('0xff')
 print(found, s.bytepos)               # False, 1
 }}}
 ----
-*Next:* [Miscellany]
+*Next:* [ModifyingBitStrings Modifying BitStrings]
 ----
