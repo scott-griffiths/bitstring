@@ -220,8 +220,8 @@ class BitString(object):
         oct -- octal string representation, e.g. '0o777'.
         uint -- an unsigned integer (length must be supplied).
         int -- a signed integer (length must be supplied).
-        se -- a signed Exponential-Golomb code.
-        ue -- an unsigned Exponential-Golomb code.
+        se -- a signed exponential-Golomb code.
+        ue -- an unsigned exponential-Golomb code.
         filename -- a file which will be opened in binary read-only mode.
     
         Other keyword arguments:
@@ -440,7 +440,14 @@ class BitString(object):
             return True
         
     def __ne__(self, bs):
-        """Return True if the two BitStrings do not have the same binary representation."""
+        """Return True if the two BitStrings do not have the same binary representation.
+        
+        Can also be used with a string for the 'auto' initialiser.
+        e.g.
+            a = BitString('0b111')
+            assert a != '0b1111'
+        
+        """
         return not self.__eq__(bs)
     
     def __hex__(self):
@@ -607,7 +614,7 @@ class BitString(object):
         assert self._length >= 0
         assert 0 <= self._offset < 8
         if self._length == 0:
-            assert self._datastore.length() <= 1
+            assert self._datastore.length() == 0
             assert self._pos == 0
         else:
             assert self._pos <= self._length
@@ -660,18 +667,19 @@ class BitString(object):
 
     def _setdata(self, data, length = None):
         """Set the data from a string."""
-        self._datastore = _MemArray(data)
         if length is None:
             # Use to the end of the data
+            self._datastore = _MemArray(data)
             self._length = self._datastore.length()*8 - self._offset
         else:
             self._length = length
-            if self._length+self._offset < self._datastore.length()*8:
-                # strip unused bytes from the end
-                self._datastore = _MemArray(self._datastore[:(self._length+self._offset+7)/8])
-            if self._length+self._offset > self._datastore.length()*8:
+            if self._length+self._offset > len(data)*8:
                 raise ValueError("Not enough data present. Need %d bits, have %d." % \
-                                     (self._length+self._offset, self._datastore.length()*8))
+                                     (self._length+self._offset, len(data)*8))
+            if self._length == 0:
+                self._datastore = _MemArray('')
+            else:
+                self._datastore = _MemArray(data[:(self._length + self._offset + 7)/8])
         self._setunusedbitstozero()
         assert self._assertsanity()
 
@@ -1345,10 +1353,10 @@ class BitString(object):
         
         """
         if bits < 0 or bits > self._length:
-            raise ValueError("Truncation length of %d not possible. Length = %d" % (bits, self._length))
-        truncatedbytes = (bits+self._offset)/8
+            raise ValueError("Truncation length of %d not possible. Length = %d." % (bits, self._length))
+        self._length -= bits
         self._offset = (self._offset + bits)%8
-        self._setdata(self._datastore[bits/8:], length=self._length - bits)
+        self._setdata(self._datastore[bits/8:], length=self._length)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
         return self
