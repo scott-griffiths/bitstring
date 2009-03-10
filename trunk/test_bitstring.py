@@ -537,6 +537,9 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.bin, '0b101')        
 
     def testTruncateStart(self):
+        s = BitString('0b1')
+        s.truncatestart(1)
+        self.assertTrue(s.empty())
         s = BitString(hex='1234')
         self.assertEqual(s.truncatestart(0).hex, '0x1234')
         self.assertEqual(s.truncatestart(4).hex, '0x234')
