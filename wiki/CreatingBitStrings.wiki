@@ -110,7 +110,7 @@ For initialisation with signed and unsigned integers (`int` and `uint` repective
 g = BitString(ue=12)
 h = BitString(se=-4)
 }}}
-Here we initialise again with integers, but this time the binary representation will be Exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the `BitString` is fixed by the value it is initialised with, so the `length` parameter must not be supplied and it is an error to do so. If you don't know what Exponential-Golomb codes are then you probably don't need to know, but they are quite interesting (Wikipedia is your friend). The `se` and `ue` notation comes from the H.264 video standard, which provides the ultimate definition.
+Here we initialise again with integers, but this time the binary representation will be exponential-Golomb codes (`ue` is unsigned, `se` is signed). For these initialisers the length of the `BitString` is fixed by the value it is initialised with, so the `length` parameter must not be supplied and it is an error to do so. If you don't know what exponential-Golomb codes are then you probably don't need to know, but they are quite interesting, so I'll quickly cover them here...
 
 === Exponential-Golomb codes ===
 As this type of representation of integers isn't as well known as the standard binary representation I thought that a small detour to explain them might be welcome. This section can be safely skipped if you're not interested.
@@ -148,7 +148,7 @@ while a.bitpos != a.length:
     print a.readue()
 }}}
 
-The notation `ue` and `se` for the Exponential Golomb code properties comes from the H.264 video standard, which uses these types of code a lot. The particular way that the signed integers are represented might be peculiar to this standard as I haven't seen it elsewhere, but the unsigned mapping seems to be universal.
+The notation `ue` and `se` for the exponential-Golomb code properties comes from the H.264 video standard, which uses these types of code a lot. The particular way that the signed integers are represented might be peculiar to this standard as I haven't seen it elsewhere (and an obvious alternative is minus the one given here), but the unsigned mapping seems to be universal.
 ----
 *Next:* [InterpretingBitStrings Interpreting BitStrings]
 ----
