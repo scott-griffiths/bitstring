@@ -77,10 +77,10 @@ a2 = BitString(filename='somefile')
 print a2.hex             # 0x1230 (Note the extra four bits needed to byte align)
 }}}
 == ue ==
-The `ue` property interprets the `BitString` as a single unsigned Exponential Golomb code and returns an integer. If the `BitString` is not exactly one code then a `BitStringError` is raised instead. If you wish to read the next bits in the stream and interpret them as a code the use the `readue` function.
+The `ue` property interprets the `BitString` as a single unsigned exponential-Golomb code and returns an integer. If the `BitString` is not exactly one code then a `BitStringError` is raised instead. If you wish to read the next bits in the stream and interpret them as a code the use the `readue()` function. See the previous page in this tutorial for a short explanation of this type of integer representation.
 
 == se ==
-The `se` property does much the same as `ue` and the provisos there all apply. The obvious difference is that it a signed quantity rather than unsigned.
+The `se` property does much the same as `ue` and the provisos there all apply. The obvious difference is that it interprets the `BitString` as a signed exponential-Golomb rather than unsigned - see the previous page in this tutorial for more information.
 
 ----
 *Next:* [ModifyingBitStrings Modifying BitStrings]
