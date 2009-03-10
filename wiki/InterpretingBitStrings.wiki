@@ -2,7 +2,7 @@
 ----
 *Previous:* [CreatingBitStrings Creating BitStrings]
 
-*Next:* [ModifyingBitStrings Modifying BitStrings]
+*Next:* [DeconstructingBitStrings Deconstructing BitStrings]
 ----
 
 = Interpreting !BitStrings =
@@ -83,5 +83,5 @@ The `ue` property interprets the `BitString` as a single unsigned exponential-Go
 The `se` property does much the same as `ue` and the provisos there all apply. The obvious difference is that it interprets the `BitString` as a signed exponential-Golomb rather than unsigned - see the previous page in this tutorial for more information.
 
 ----
-*Next:* [ModifyingBitStrings Modifying BitStrings]
+*Next:* [DeconstructingBitStrings Deconstructing BitStrings]
 ----
