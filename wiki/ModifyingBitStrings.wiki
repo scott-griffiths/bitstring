@@ -1,8 +1,8 @@
 #summary Slice them, dice them, cut 'em up and splice them.
 ----
-*Previous:* [InterpretingBitStrings Interpreting BitStrings]
+*Previous:* [DeconstructingBitStrings Deconstructing BitStrings]
 
-*Next:* [DeconstructingBitStrings Deconstructing BitStrings]
+*Next:* [Miscellany]
 ----
 = Combining, modifying and decomposing `BitString` objects =
 
@@ -106,5 +106,5 @@ Note that the first item returned is always the `BitString` before the first occ
 
 
 ----
-*Next:* [DeconstructingBitStrings Deconstructing BitStrings]
+*Next:* [Miscellany]
 ----
