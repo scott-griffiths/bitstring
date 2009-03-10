@@ -32,8 +32,21 @@ else:
 The full list of functions is `readbit()`, `readbits(n)`, `readbyte()`, `readbytes(n)`, `peekbit()`, `peekbits(n)`, `peekbyte()` and `peekbytes(n)`.
 
 == Seeking ==
-The properties `bitpos` and `bytepos` are available for getting and setting the position, which is zero on creation of the `BitString`. For relative movement either use the `+=` and `-=` operators or the advance and retreat functions.
+The properties `bitpos` and `bytepos` are available for getting and setting the position, which is zero on creation of the `BitString`. There are also advance, retreat and seek functions that perform equivalent actions:
 
+|| *Using functions* ||     || *Using properties* ||
+|| `advancebit()`    || <=> || `bitpos += 1`  ||
+|| `advancebits(n)`  || <=> || `bitpos += n`  ||
+|| `advancebyte()`   || <=> || `bytepos += 1` ||
+|| `advancebytes(n)` || <=> || `bytepos += n` ||
+|| `retreatbit()`    || <=> || `bitpos -= 1`  ||
+|| `retreatbits(n)`  || <=> || `bitpos -= n`  ||
+|| `retreatbyte()`   || <=> || `bytepos -= 1` ||
+|| `retreatbytes(n)` || <=> || `bytepos -= n` ||
+|| `seekbit(p)`      || <=> || `bitpos = p`   ||
+|| `seekbyte(p)`     || <=> || `bytepos = p`  ||
+
+For example:
 {{{
 s = BitString('0x123456')
 print s.bitpos                 # 0
