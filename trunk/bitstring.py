@@ -251,7 +251,7 @@ class BitString(object):
         if initialisers.count(None) < len(initialisers) - 1:
             raise BitStringError("You must only specify one initialiser when initialising the BitString.")
         if (se is not None or ue is not None) and length is not None:
-            raise BitStringError("A length cannot be specified for an Exponential-Golomb initialiser.")
+            raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
         if (int or uint or ue or se) and offset != 0:
             raise BitStringError("offset cannot be specified when initialising from an integer.")
         if not 0 <= offset < 8:
@@ -725,7 +725,7 @@ class BitString(object):
         val = (self._datastore[0] & mask) << shift
         # For the middle of the data we use struct.unpack to do the conversion
         # as it's more efficient. This loop only gets invoked if the BitString's
-        # data is more than 10 bytes
+        # data is more than 10 bytes.
         j = 1
         structsize = struct.calcsize('Q')
         end = self._datastore.length() - 1
@@ -773,9 +773,13 @@ class BitString(object):
         return -tmp
 
     def _setue(self, i):
-        """Initialise BitString with unsigned Exponential-Golomb code for i."""
+        """Initialise BitString with unsigned exponential-Golomb code for integer i.
+        
+        Raises ValueError if i < 0.
+        
+        """
         if i < 0:
-            raise BitStringError("Cannot use negative initialiser for unsigned Exponential-Golomb.")
+            raise ValueError("Cannot use negative initialiser for unsigned exponential-Golomb.")
         if i == 0:
             self._setbin('1')
             return
@@ -789,7 +793,11 @@ class BitString(object):
         self._setbin(binstring)
 
     def _getue(self):
-        """Return data as unsigned Exponential Golomb code."""
+        """Return data as unsigned exponential-Golomb code.
+        
+        Raises BitStringError if BitString is not a single exponential-Golomb code.
+        
+        """
         oldpos = self._pos
         self._pos = 0
         try:
@@ -798,12 +806,12 @@ class BitString(object):
                 raise BitStringError
         except (BitStringError, ValueError):
             self._pos = oldpos
-            raise BitStringError("BitString is not a single Exponential Golomb code.")
+            raise BitStringError("BitString is not a single exponential-Golomb code.")
         self._pos = oldpos
         return value
     
     def _setse(self, i):
-        """Initialise BitString with signed Exponential-Golomb code for i."""
+        """Initialise BitString with signed exponential-Golomb code for integer i."""
         if i > 0:
             u = (i*2)-1
         else:
@@ -811,8 +819,11 @@ class BitString(object):
         self._setue(u)
 
     def _getse(self):
-        """Read enough bits from current position to decode one Exponential Golomb code.
-           Return the signed decoded value."""
+        """Return data as signed exponential-Golomb code.
+        
+        Raises BitStringError if BitString is not a single exponential-Golomb code.
+                
+        """
         oldpos= self._pos
         self._pos = 0
         try:
@@ -821,7 +832,7 @@ class BitString(object):
                 raise BitStringError
         except (BitStringError, ValueError):
             self._pos = oldpos
-            raise BitStringError("BitString is not a single Exponential Golomb code.")
+            raise BitStringError("BitString is not a single exponential-Golomb code.")
         self._pos = oldpos
         return value
     
@@ -1103,7 +1114,7 @@ class BitString(object):
         return self.readbits(bytes*8)
 
     def readue(self):
-        """Return interpretation of next bits in stream as an unsigned Exponential Golomb code.
+        """Return interpretation of next bits in stream as an unsigned exponential-Golomb code.
            
         Advances position to after the read code.
         Raises BitStringError if the end of the BitString is encountered while reading the code.
@@ -1123,7 +1134,7 @@ class BitString(object):
         return codenum
 
     def readse(self):
-        """Return interpretation of next bits in stream as a signed Exponential Golomb code.
+        """Return interpretation of next bits in stream as a signed exponential-Golomb code.
         
         Advances position to after the read code.
         Raises BitStringError if the end of the BitString is encountered while reading the code.
@@ -1635,9 +1646,9 @@ class BitString(object):
     uint   = property(_getuint, _setuint,
                       doc="The BitString as an unsigned int.")
     ue     = property(_getue, _setue,
-                      doc="The BitString as an unsigned Exponential-Golomb code.")
+                      doc="The BitString as an unsigned exponential-Golomb code.")
     se     = property(_getse, _setse,
-                      doc="The BitString as a signed Exponential-Golomb code.")
+                      doc="The BitString as a signed exponential-Golomb code.")
     bitpos = property(_getbitpos, _setbitpos,
                       doc="The position in the BitString in bits.")
     bytepos= property(_getbytepos, _setbytepos,
@@ -1645,7 +1656,15 @@ class BitString(object):
 
 
 def join(bitstringlist):
-    """Return the concatenation of the BitStrings in a list."""
+    """Return the concatenation of the BitStrings in a list.
+    
+    bitstringlist - Can contain BitStrings, or strings to be used by the 'auto'
+                    initialiser.
+    
+    e.g.
+        a = join(['0x0001ee', BitString(int=13, length=100), '0b0111')
+    
+    """
     s = BitString()
     for bs in bitstringlist:
         s.append(bs)

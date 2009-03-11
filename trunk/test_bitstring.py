@@ -108,10 +108,6 @@ class BitStringTest(unittest.TestCase):
     
     def testCreationFromFileWithOffset(self):
         self.assertRaises(ValueError, BitString, filename='test/test.m1v', offset=1)
-        #s = BitString(filename='test.m1v', offset=1)
-        #self.assertEqual(s[0:32].bin, '00000000000000000000001101100110')
-        #s = BitString(filename='smalltestfile', offset=4, length=8)
-        #self.assertEqual(s.hex, '0x12')
 
     def testCreataionFromFileErrors(self):
         self.assertRaises(OSError, BitString, filename='Idonotexist')
@@ -309,7 +305,7 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(BitStringError, BitString, ue=104, offset=2)
 
     def testCreationFromUeErrors(self):
-        self.assertRaises(BitStringError, BitString, ue = -1)
+        self.assertRaises(ValueError, BitString, ue = -1)
         self.assertRaises(BitStringError, BitString, ue = 1, length = 12)
         s = BitString(bin='10')
         self.assertRaises(BitStringError, s._getue)
@@ -1288,7 +1284,9 @@ class BitStringTest(unittest.TestCase):
     
     def testByte2Bits(self):
         for i in xrange(256):
-            self.assertEqual(i, BitString(bin=bitstring._byte2bits[i]).uint)
+            s = BitString(bin=bitstring._byte2bits[i])
+            self.assertEqual(i, s.uint)
+            self.assertEqual(s.length, 8)
     
     def testBitwiseAnd(self):
         a = BitString('0b01101')
