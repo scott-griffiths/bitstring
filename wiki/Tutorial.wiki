@@ -22,7 +22,7 @@ This tutorial is divided into a number of pages for ease of use. You can either 
   _The multitude of ways to interpret those bits._
  
   * *[DeconstructingBitStrings Deconstructing BitStrings]*
-  _Reading, finding, navigating._
+  _Reading, finding, navigating, slicing._
 
   * *[ModifyingBitStrings Modifying BitStrings]*
   _Slice them, dice them, cut 'em up and splice them._
