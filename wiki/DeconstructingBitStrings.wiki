@@ -1,4 +1,4 @@
-#summary Reading, finding, navigating
+#summary Reading, finding, navigating, slicing
 ----
 *Previous:* [InterpretingBitStrings Interpreting BitStrings]
 
@@ -71,7 +71,7 @@ found = s.findbytealigned('0xff')
 print(found, s.bytepos)               # False, 1
 }}}
 
-= Slicing =
+== Slicing ==
 
 Slicing can be done in couple of ways. The `slice` function takes two arguments: the first bit position you want and one past the last bit position you want, so for example `a.slice(10,12)` will return a 2-bit `BitString` of the 10th and 11th bits in `a`.
 
