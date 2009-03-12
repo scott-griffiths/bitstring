@@ -9,6 +9,9 @@
 == Reading ==
 
 A common need is to parse a large `BitString` into smaller syntax elements. Functions for reading in bytes and bits are provided and will return new `BitString` objects. These new objects are top-level `BitString` objects and can be interpreted using properties as in the next example or could be read from to form a hierarchy of reads.
+
+Every `BitString` has a property `bitpos` which is the current position from which reads occur. `bitpos` can range from zero (its value on construction) to the length of the `BitString`, a position from which all reads will fail as it is past the last bit.
+
 {{{
 s = BitString(filename='test/test.m1v')
 start_code = s.readbytes(4).hex
@@ -78,6 +81,16 @@ a = BitString('0b00011110')
 b = a[3:7]
 c = a.slice(3, 7)             # s.slice(x, y) is equivalent to s[x:y]
 print a, b, c                 # 0x1e 0b1111 0b1111
+}}}
+
+Indexing also works for missing and negative arguments, just as it does for other containers. Not though that it is not possible to specify a 'step' parameter.
+{{{
+a = BitString('0b00011110')
+b = a[:5]        # 0b00011   (first 5 bits)            
+c = a[3:]        # 0b11110   (everything except first 3 bits)
+d = a[-4:]       # 0b1110    (last 4 bits)
+e = a[:-1]       # 0b0001111 (everything except last 1 bit)
+f = a[-6:-4]     # 0b01      (from 6 from the end to 4 from the end)
 }}}
 
 ----
