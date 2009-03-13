@@ -508,6 +508,11 @@ class BitStringTest(unittest.TestCase):
         s1 = BitString('0xf0', 6)
         s1.append(s1)
         self.assertEqual(s1.bin, '0b111100111100')
+    
+    def testAppendWithOffset(self):
+        s = BitString(data='\x28\x28', offset=1)
+        s.append('0b0')
+        self.assertEqual(s.hex, '0x5050')
 
     def testByteAlign(self):
         s = BitString(hex='0001ff23')
