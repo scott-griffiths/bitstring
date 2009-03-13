@@ -19,9 +19,13 @@ setup(name='bitstring',
       classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'Programming Launguage :: Python :: 2.4'
-        'Programming Launguage :: Python :: 2.5'
-        'Programming Launguage :: Python :: 2.6'
+        'Operating System :: OS Independent',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2.4',
+        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        
       ]
       )
 
