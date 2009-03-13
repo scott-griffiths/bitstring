@@ -808,9 +808,9 @@ class BitStringTest(unittest.TestCase):
         s = bitstring.join(bsl)
         self.assertEqual(s.length, 1200)
 
-    def testSplitCornerCases(self):
+    def testSplitByteAlignedCornerCases(self):
         s = BitString()
-        bsl = s.split(BitString(hex='0xff'))
+        bsl = s.splitbytealigned(BitString(hex='0xff'))
         self.assertEqual(bsl.next().hex, '')
         self.assertRaises(StopIteration, bsl.next)
         s = BitString(hex='aabbcceeddff')
@@ -818,27 +818,27 @@ class BitStringTest(unittest.TestCase):
         # This next assert fails, but seems to be a Python bug?
         # self.assertRaises(BitStringError, s.split, delimiter)
         delimiter = BitString(hex='11')
-        bsl = s.split(delimiter)
+        bsl = s.splitbytealigned(delimiter)
         self.assertEqual(bsl.next().hex, s.hex)
 
-    def testSplit(self):
+    def testSplitByteAligned(self):
         s = BitString(hex='0x1234aa1234bbcc1234ffff')
         delimiter = BitString(hex='1234')
-        bsl = s.split(delimiter)
+        bsl = s.splitbytealigned(delimiter)
         self.assertEqual([b.hex for b in bsl], ['', '0x1234aa', '0x1234bbcc', '0x1234ffff'])
 
-    def testSplitWithIntialBytes(self):
+    def testSplitByteAlignedWithIntialBytes(self):
         s = BitString(hex='aa471234fedc43 47112233 47 4723 472314')
         delimiter = BitString(hex='47')
         s.findbytealigned(delimiter)
         self.assertEqual(s.bytepos, 1)
-        bsl = s.split(delimiter)
+        bsl = s.splitbytealigned(delimiter)
         self.assertEqual([b.hex for b in bsl], ['0xaa', '0x471234fedc43', '0x47112233',
                                                   '0x47', '0x4723', '0x472314'])
 
-    def testSplitWithOverlappingDelimiter(self):
+    def testSplitByteAlignedWithOverlappingDelimiter(self):
         s = BitString(hex='aaffaaffaaffaaffaaff')
-        bsl = s.split(BitString(hex='aaffaa'))
+        bsl = s.splitbytealigned(BitString(hex='aaffaa'))
         self.assertEqual([b.hex for b in bsl], ['', '0xaaffaaff', '0xaaffaaffaaff'])
 
     def testPos(self):
@@ -1010,18 +1010,18 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.bin, '0b0001110')
         self.assertEqual(s2.bin, '0b0001110')
 
-    def testSplitUsingAuto(self):
+    def testSplitByteAlignedUsingAuto(self):
         s = BitString('0x000143563200015533000123')
-        sections = s.split('0x0001')
+        sections = s.splitbytealigned('0x0001')
         self.assertEqual(sections.next().hex, '')
         self.assertEqual(sections.next().hex, '0x0001435632')
         self.assertEqual(sections.next().hex, '0x00015533')
         self.assertEqual(sections.next().hex, '0x000123')
         self.assertRaises(StopIteration, sections.next)
 
-    def testSplitWithSelf(self):
+    def testSplitByteAlignedWithSelf(self):
         s = BitString('0x1234')
-        sections = s.split(s)
+        sections = s.splitbytealigned(s)
         self.assertEqual(sections.next().hex, '')
         self.assertEqual(sections.next().hex, '0x1234')
         self.assertRaises(StopIteration, sections.next)
