@@ -1334,6 +1334,37 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a.bytepos, 0)
         self.assertRaises(ValueError, a.seekbyte, -1)
         self.assertRaises(ValueError, a.seekbyte, 6)
+    
+    def testSplit(self):
+        a = BitString('0b0 010100111 010100 0101 010')
+        subs = [i.bin for i in a.split('0b010')]
+        self.assertEqual(subs, ['0b0', '0b010100111', '0b010100', '0b0101', '0b010'])
+    
+    def testSplitCornerCases(self):
+        a = BitString('0b000000')
+        bsl = a.split('0b1')
+        self.assertEqual(bsl.next(), a)
+        self.assertRaises(StopIteration, bsl.next)
+        b = BitString()
+        bsl = b.split('0b001')
+        self.assertTrue(bsl.next().empty())
+        self.assertRaises(StopIteration, bsl.next)
+        
+    def testSplitErrors(self):
+        a = BitString('0b0')
+        #self.assertRaises(ValueError, a.split, '')
+    
+    def testPositionInSlice(self):
+        a = BitString('0x00ffff00')
+        a.bytepos = 2
+        b = a[8:24]
+        self.assertEqual(b.bytepos, 0)
+    
+    def testSliceWithOffset(self):
+        a = BitString(data='\x00\xff\x00', offset=7)
+        b = a.slice(7, 12)
+        self.assertEqual(b.bin, '0b11000')
+        
 
 def main():
     unittest.main()

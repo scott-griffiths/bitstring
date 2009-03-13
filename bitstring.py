@@ -1080,20 +1080,20 @@ class BitString(object):
         
         bits -- The number of bits to read.
         
-        Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
+        Raises ValueError if there are not enough bits from bitpos to the
+        end of the BitString or if bits < 0.
         
         """
         if bits < 0:
             raise ValueError("Cannot read negative amount.")
         if self._pos+bits > self._length:
             raise ValueError("Reading off the end of the BitString.")
-        newoffset = (self._pos+self._offset)%8
-        startbyte = (self._pos+self._offset)/8
-        endbyte = (self._pos+self._offset+bits-1)/8
+        startbyte, newoffset = divmod(self._pos + self._offset, 8)
+        endbyte = (self._pos + self._offset + bits - 1) / 8
         self._pos += bits
         assert self._assertsanity()
-        return BitString(data = self._datastore[startbyte:endbyte+1], length = bits,
-                         offset = newoffset) 
+        return BitString(data=self._datastore[startbyte:endbyte + 1],
+                         length=bits, offset=newoffset) 
     
     def readbyte(self):
         """Return next 8 bits in BitString as a new BitString and advance position. Does not byte align.
@@ -1427,17 +1427,11 @@ class BitString(object):
             raise ValueError("Cannot slice - startbit is less than zero.")
         if endbit > self._length:
             raise ValueError("Cannot slice - endbit is past the end of the BitString.")
-        s = BitString()
-        s._offset = (self._offset + startbit)%8
-        startbyte = startbit/8
-        new_length_in_bytes = (endbit - startbit + s._offset + 7)/8
-        s._setdata(self._datastore[startbyte:startbyte+new_length_in_bytes])
-        s._length = endbit - startbit
-        s._pos = self._pos - startbit
-        s._pos = max(0, min(s._pos, s._length-1))
-        s._setunusedbitstozero()
-        assert s._assertsanity()
-        return s
+        startbyte, newoffset = divmod(startbit + self._offset, 8)
+        endbyte = (endbit + self._offset - 1) / 8
+        return BitString(data=self._datastore[startbyte:endbyte + 1],
+                         length=endbit - startbit,
+                         offset=newoffset)
     
     def insert(self, bs, bitpos=None):
         """Insert a BitString at current position, or bitpos if supplied. Return self.
@@ -1593,19 +1587,19 @@ class BitString(object):
         return self
     
     def splitbytealigned(self, delimiter):
-        """Return a generator of BitStrings by splittling into substrings starting with a byte aligned delimiter.
+        """Return a generator of BitStrings by splittling into substrings using a byte aligned delimiter.
         
         The first item returned is the initial bytes before the delimiter, which may be an empty BitString.
         
         delimiter -- The BitString (or string for 'auto' initialiser) used as the divider.
         
-        Raises ValueError if the delimiter is not a whole number of bytes.
+        Raises ValueError if the delimiter empty or not a whole number of bytes.
         
         """
         if isinstance(delimiter, str):
             delimiter = BitString(delimiter)
-        if len(delimiter) == 0:
-            raise ValueError("split delimiter cannot be null.")
+        if delimiter.empty():
+            raise ValueError("split delimiter cannot be empty.")
         if len(delimiter)%8 != 0:
             raise ValueError("split delimiter must be whole number of bytes.")
         oldpos = self._pos
@@ -1622,6 +1616,39 @@ class BitString(object):
         while found:
             self._pos += len(delimiter)
             found = self.findbytealigned(delimiter)
+            if not found:
+                self._pos = oldpos
+                yield self[startpos:]
+                return
+            yield self[startpos:self._pos]
+            startpos = self._pos
+    
+    def split(self, delimiter):
+        """Return a generator of BitStrings by splittling into substrings using a delimiter.
+        
+        The first item returned is the initial bytes before the delimiter, which may be an empty BitString.
+        
+        delimiter -- The BitString (or string for 'auto' initialiser) used as the divider.
+        
+        Raises ValueError if the delimiter is empty.
+        
+        """
+        if isinstance(delimiter, str):
+            delimiter = BitString(delimiter)
+        if delimiter.empty():
+            raise ValueError("split delimiter cannot be empty.")
+        oldpos = self._pos
+        self._pos = 0
+        found = self.find(delimiter)
+        if not found:
+            self._pos = oldpos
+            yield self.__copy__()
+            return
+        yield self[0:self._pos]
+        startpos = self._pos
+        while found:
+            self._pos += len(delimiter)
+            found = self.find(delimiter)
             if not found:
                 self._pos = oldpos
                 yield self[startpos:]
