@@ -65,7 +65,7 @@ You can also compare with a string that will be used to create a `BitString` usi
 {{{
 a = BitString('0b00011111')
 print a == '0x1f'             # True
-print a[0:6] == '0o01'        # True
+print a[0:6] == '0o07'        # True
 }}}            
 
 == `__hex__` , `__oct__` ==
