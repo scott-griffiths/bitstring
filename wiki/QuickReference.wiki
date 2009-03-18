@@ -32,8 +32,28 @@ Introductory blurb.
 
 ----
 
+*bin*
+ _bin_
+
+----
+
+*bitpos*
+ _bitpos_
+
+----
+
 *bytealign*
  _bytealign()_
+
+----
+
+*bytepos*
+ _bytepos_
+
+----
+
+*data*
+ _data_
 
 ----
 
@@ -57,8 +77,33 @@ Introductory blurb.
 
 ----
 
+*hex*
+ _hex_
+
+----
+
 *insert*
  _insert(bs, bitpos=None)_
+
+----
+
+*int*
+ _int_
+
+----
+
+*length*
+ _length_
+
+----
+
+*oct*
+ _oct_
+
+----
+
+*offset*
+ _offset_
 
 ----
 
@@ -152,6 +197,11 @@ Introductory blurb.
 
 ----
 
+*se*
+ _se_
+
+----
+
 *seekbit*
  _seekbit(bitpos)_
 
@@ -189,3 +239,13 @@ Introductory blurb.
 
 *truncatestart*
  _truncatestart(bits)_
+
+----
+
+*ue*
+ _ue_
+
+----
+
+*uint*
+ _uint_
