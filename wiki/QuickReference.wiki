@@ -10,16 +10,19 @@ One class is provided, Bitstring, which has the following methods and properties
 *advancebit*
  _advancebit()_
 
+ Advances position by _1_ bit. Equivalent to _bitpos += 1_.
 ----
 
 *advancebits*
  _advancebits(n)_
 
+ Advances position by _n_ bits. Equivalent to _bitpos += n_.
 ----
 
 *advancebyte*
  _advancebyte()_
 
+ Advances position by _8_ bits. Unlike the alternative, _bytepos += 1_, _advancebyte_ will not raise a `BitStringError` if the current position is not byte-aligned.
 ----
 
 *advancebytes*
