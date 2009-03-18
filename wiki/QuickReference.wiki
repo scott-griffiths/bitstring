@@ -1,0 +1,205 @@
+#summary Brief description of the bitstring module
+#labels Deprecated
+
+== The bitstring Module ==
+
+Introductory blurb.
+
+----
+
+*advancebit*
+ _advancebit()_
+
+----
+
+*advancebits*
+ _advancebits(n)_
+
+----
+
+*advancebyte*
+ _advancebyte()_
+
+----
+
+*advancebytes*
+ _advancebytes(n)_
+
+----
+
+*append*
+ _append(bs)_
+
+----
+
+*bytealign*
+ _bytealign()_
+
+----
+
+*deletebits*
+ _deletebits(bits, bitpos=None)_
+
+----
+
+*deletebytes*
+ _deletebytes(bytes, bytepos=None)_
+
+----
+
+     |  
+     |  empty(self)
+     |      Return True if the BitString is empty (has zero length). Otherwise return False.
+     |  
+     |  find(self, bs)
+     |      Seek to start of next occurence of BitString. Return True if BitString is found.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to find.
+     |  
+     |  findbytealigned(self, bs)
+     |      Seek to start of next occurence of byte-aligned BitString. Return True if string is found.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to find.
+     |      
+     |      Raises ValueError if len(bs) is not a multiple of 8.
+     |  
+     |  insert(self, bs, bitpos=None)
+     |      Insert a BitString at current position, or bitpos if supplied. Return self.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to insert.
+     |      bitpos -- The bit position to insert the BitString.
+     |      
+     |      Raises ValueError if bitpos < 0 or bitpos > self.length.
+     |  
+     |  overwrite(self, bs, bitpos=None)
+     |      Overwrite with new BitString at the current position, or bitpos if supplied. Return self.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to overwrite with.
+     |      bitpos -- The bit position to begin overwriting from.
+     |      
+     |      Raises ValueError if bitpos < 0 or bitpos + len(bs) > self.length
+     |  
+     |  peekbit(self)
+     |      Return next bit in BitString as a new BitString without advancing position.
+     |      
+     |      Raises ValueError if bitpos is at the end of the BitString.
+     |  
+     |  peekbits(self, bits)
+     |      Return next bits in BitString as a new BitString without advancing position.
+     |      
+     |      bits -- The number of bits to read. Must be >= 0.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
+     |  
+     |  peekbyte(self)
+     |      Return next byte in BitString as a new BitString without advancing position.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
+     |  
+     |  peekbytes(self, bytes)
+     |      Return next bytes in BitString as a new BitString without advancing position.
+     |      
+     |      bytes -- The number of bytes to read. Must be >= 0.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
+     |  
+     |  prepend(self, bs)
+     |      Prepend a BitString to the current BitString. Return self.
+     |      
+     |      bs -- The BitString (or string for 'auto' initialiser) to prepend.
+     |  
+     |  readbit(self)
+     |      Return next bit in BitString as new BitString and advance position.
+     |      
+     |      Raises ValueError if bitpos is at the end of the BitString.
+     |  
+     |  readbits(self, bits)
+     |      Return next bits in BitString as a new BitString and advance position.
+     |      
+     |      bits -- The number of bits to read.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
+     |  
+     |  readbyte(self)
+     |      Return next 8 bits in BitString as a new BitString and advance position. Does not byte align.
+     |      
+     |      Raises ValueError if there are less than 8 bits from bitpos to the end of the BitString.
+     |  
+     |  readbytes(self, bytes)
+     |      Return next bytes in BitString as a new BitString and advance position. Does not byte align.
+     |      
+     |      bytes -- The number of bytes to read.
+     |      
+     |      Raises ValueError if there are not enough bits from bitpos to the end of the BitString.
+     |  
+     |  readse(self)
+     |      Return interpretation of next bits in stream as a signed Exponential Golomb code.
+     |      
+     |      Advances position to after the read code.
+     |      Raises BitStringError if the end of the BitString is encountered while reading the code.
+     |  
+     |  readue(self)
+     |      Return interpretation of next bits in stream as an unsigned Exponential Golomb code.
+     |         
+     |      Advances position to after the read code.
+     |      Raises BitStringError if the end of the BitString is encountered while reading the code.
+     |  
+     |  retreatbit(self)
+     |      Retreat position by one bit.
+     |      
+     |      Raises ValueError if bitpos is already at the start of the BitString.
+     |  
+     |  retreatbits(self, bits)
+     |      Retreat position by bits.
+     |      
+     |      bits -- Number of bits to decrement bitpos by. Must be >= 0.
+     |      
+     |      Raises ValueError if bits negative or if bitpos goes past the start of the BitString.
+     |  
+     |  retreatbyte(self)
+     |      Retreat position by one byte. Does not byte align.
+     |      
+     |      Raises ValueError if bitpos is less than 8.
+     |  
+     |  retreatbytes(self, bytes)
+     |      Retreat position by bytes. Does not byte align.
+     |      
+     |      bytes -- Number of bytes to decrement bitpos by. Must be >= 0.
+     |      
+     |      Raises ValueError if bytes negative or if bitpos goes past the start of the BitString.
+     |  
+     |  reversebits(self)
+     |      Reverse all bits in-place. Return self.
+     |      
+     |      Using on an empty BitString will have no effect.
+     |  
+     |  slice(self, startbit, endbit)
+     |      Return a new BitString which is the slice [startbit, endbit).
+     |      
+     |      startbit -- Position of first bit in the new BitString.
+     |      endbit -- One past the position of the last bit in the new BitString.
+     |      
+     |      Raises ValueError if endbit < startbit, if startbit < 0 or endbit > self.length.
+     |  
+     |  split(self, delimiter)
+     |      Return a generator of BitStrings by splittling into substrings starting with a byte aligned delimiter.
+     |      
+     |      The first item returned is the initial bytes before the delimiter, which may be an empty BitString.
+     |      
+     |      delimiter -- The BitString (or string for 'auto' initialiser) used as the divider.
+     |      
+     |      Raises ValueError if the delimiter is not a whole number of bytes.
+     |  
+     |  truncateend(self, bits)
+     |      Truncate a number of bits from the end of the BitString. Return new BitString.
+     |      
+     |      bits -- Number of bits to remove from end of returned BitString.
+     |      
+     |      Raises ValueError if bits < 0 or bits > self.length.
+     |  
+     |  truncatestart(self, bits)
+     |      Truncate a number of bits from the start of the BitString. Return new BitString.
+     |      
+     |      bits -- Number of bits to remove from start of returned BitString.
+     |      
+     |      Raises ValueError if bits < 0 or bits > self.length.
