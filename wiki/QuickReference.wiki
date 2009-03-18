@@ -3,7 +3,7 @@
 
 == The bitstring Module ==
 
-Introductory blurb.
+One class is provided, Bitstring, which has the following methods and properties.
 
 ----
 
