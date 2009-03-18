@@ -117,6 +117,11 @@ Introductory blurb.
 
 ----
 
+*replace*
+ _replace(old, new, bytealigned=True, startbit=None, endbit=None, count=None)_
+
+----
+
 *retreatbit*
  _retreatbit()_
 
@@ -142,13 +147,38 @@ Introductory blurb.
 
 ----
 
+*rfind*
+ _rfind(bs, bytealigned=True, startbit=None, endbit=None)_
+
+----
+
+*seekbit*
+ _seekbit(bitpos)_
+
+----
+
+*seekbyte*
+ _seekbyte(bytepos)_
+
+----
+
 *slice*
  _slice(startbit, endbit)_
 
 ----
 
 *split*
- _split(delimiter)_
+ _split(delimiter, bytealigned=True, maxsplit=None)_
+
+----
+
+*tellbit*
+ _tellbit()_
+
+----
+
+*tellbyte*
+ _tellbyte()_
 
 ----
 
