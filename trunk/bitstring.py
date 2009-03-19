@@ -116,7 +116,7 @@ class _FileArray(object):
         else:
             length = (lengthinbits + offset + 7)/8
         if length > filelength:
-            raise ValueError("File is not long enough for specified BitString length")
+            raise ValueError("File is not long enough for specified BitString length.")
         self._length = length # length in bytes
     
     def __len__(self):
@@ -124,7 +124,7 @@ class _FileArray(object):
         raise NotImplementedError
 
     def __copy__(self):
-        raise BitStringError("_FileArray.copy() not allowed")
+        raise BitStringError("_FileArray.copy() not allowed.")
     
     def __getitem__(self, key):
         try:
@@ -139,7 +139,7 @@ class _FileArray(object):
             return ord(self.source.read(1))
         # A slice
         if key.step is not None:
-            raise BitStringError("Step not supported for slicing BitStrings")
+            raise BitStringError("Step not supported for slicing BitStrings.")
         if key.start is None:
             start = 0
         elif key.start < 0:
@@ -1281,86 +1281,119 @@ class BitString(object):
         
         """
         self._setbytepos(bytepos)
-
-    def find(self, bs):
-        """Seek to start of next occurence of BitString. Return True if BitString is found.
+    
+    def tellbit(self):
+        """Return current position in the BitString in bits (bitpos)."""
+        return self._getbitpos()
+    
+    def tellbyte(self):
+        """Return current position in the BitString in bytes (bytepos).
         
-        bs -- The BitString (or string for 'auto' initialiser) to find.
+        Raises BitStringError if position is not byte-aligned.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)         
-        if bs.empty():
-            raise ValueError("Can't find empty BitString.")
-        bitpos = self._pos
-        targetbin = bs._getbin()[2:]
-        found = False
-        p = bitpos
-        finalpos = self._length - bs._length + 1
-        # We grab overlapping chunks of the binary representation and
-        # do an ordinary string search within that.
-        increment = max(16384, bs._length*10)
-        buffersize = increment + bs._length
-        while p < finalpos:
-            buffer = self[p:min(p+buffersize, self._length)]._getbin()[2:]
-            pos = buffer.find(targetbin)
-            if pos != -1:
-                found = True
-                p += pos
-                break
-            p += increment
-        if not found:
-            self._pos = bitpos
-            return False
-        self._pos = p
-        return True
+        return self._getbytepos()
 
-    def findbytealigned(self, bs):
-        """Seek to start of next occurence of byte-aligned BitString. Return True if string is found.
+    def find(self, bs, bytealigned=True, startbit=None, endbit=None):
+        """Seek to start of next occurence of a BitString. Return True if string is found.
         
         bs -- The BitString (or string for 'auto' initialiser) to find.
+        bytealigned -- If True (the default) the BitString will only be
+                       found on byte boundaries.
+        startbit -- The bit position to start the search.
+                    Defaults to self.bitpos.
+        endbit -- The bit position one past the last bit to search.
+                  Defaults to len(self).
         
-        Raises ValueError if len(bs) is not a multiple of 8.
+        Raises ValueError if bs is empty, if startbit < 0, if endbit > len(self)
+        or if endbit < startbit.
         
         """
         if isinstance(bs, str):
             bs = BitString(bs)
-        if bs._length % 8 != 0:
-            raise ValueError("Can only use find for whole-byte BitStrings.")
-        # Extract data bytes from BitString to be found.
-        bs._setoffset(0)
-        d = bs._getdata()
-        if len(d) == 0:
+        if bs.empty():
             raise ValueError("Can't find empty BitString.")
-        self._setoffset(0)
-        oldpos = self._pos
-        try:
-            self.bytealign()
-        except BitStringError:
-            # Not even enough bits left to byte-align.
-            self._pos = oldpos
-            return False
-        bytepos = self._pos/8
-        found = False
-        p = bytepos
-        finalpos = self._length/8 - len(d) + 1
-        increment = max(1024, len(d)*10)
-        buffersize = increment + len(d)
-        while p < finalpos:
-            # Read in file or from memory in overlapping chunks and search the chunks.
-            buffer = self._datastore[p:p + buffersize].tostring()
-            pos = buffer.find(d)
-            if pos != -1:
-                found = True
-                p += pos
-                break
-            p += increment
-        if not found:
-            self._pos = oldpos
-            return False
-        self._setbytepos(p)
-        assert self._assertsanity()
-        return True
+        if startbit is None:
+            startbit = self._pos
+        if not endbit:
+            endbit = self._length
+        if startbit < 0:
+            raise ValueError("Cannot find - startbit must be >= 0.")
+        if endbit > self._length:
+            raise ValueError("Cannot find - endbit is past the end of the BitString.")
+        if endbit < startbit:
+            raise ValueError("endbit must not be less than startbit.")
+        if bytealigned and len(bs) % 8 == 0:
+            # Extract data bytes from BitString to be found.
+            bs._setoffset(0)
+            d = bs._getdata()
+            self._setoffset(0)
+            oldpos = self._pos
+            self._pos = startbit
+            try:
+                self.bytealign()
+            except BitStringError:
+                # Not even enough bits left to byte-align.
+                self._pos = oldpos
+                return False
+            bytepos = self._pos/8
+            found = False
+            p = bytepos
+            finalpos = endbit/8
+            increment = max(1024, len(d)*10)
+            buffersize = increment + len(d)
+            while p < finalpos:
+                # Read in file or from memory in overlapping chunks and search the chunks.
+                buffer = self._datastore[p:min(p + buffersize, finalpos)].tostring()
+                pos = buffer.find(d)
+                if pos != -1:
+                    found = True
+                    p += pos
+                    break
+                p += increment
+            if not found:
+                self._pos = oldpos
+                return False
+            self._setbytepos(p)
+            assert self._assertsanity()
+            return True
+        else:
+            oldpos = self._pos
+            targetbin = bs._getbin()[2:]
+            found = False
+            p = startbit
+            # We grab overlapping chunks of the binary representation and
+            # do an ordinary string search within that.
+            increment = max(16384, bs._length*10)
+            buffersize = increment + bs._length
+            while p < endbit:
+                buffer = self[p:min(p+buffersize, endbit)]._getbin()[2:]
+                pos = buffer.find(targetbin)
+                if pos != -1:
+                    # if bytealigned then we only accept byte aligned positions.
+                    if not bytealigned or (p + pos) % 8 == 0:
+                        found = True
+                        p += pos
+                        break
+                    if bytealigned:
+                        # Advance to just beyond the non-byte-aligned match and try again...
+                        p += pos + 1
+                        continue
+                p += increment
+            if not found:
+                self._pos = oldpos
+                return False
+            self._pos = p
+            return True
+    
+    def rfind(self, bs, bytealigned=True, startbit=None, endbit=None):
+        pass
+    
+    def replace(self, old, new, bytealigned=True, startbit=None, endbit=None, count=None):
+        pass
+    
+    def tofile(self, filename):
+        pass
 
     def bytealign(self):
         """Align to next byte and return number of skipped bits.
@@ -1586,26 +1619,33 @@ class BitString(object):
         self._setbin(self._getbin()[:1:-1])
         return self
     
-    def splitbytealigned(self, delimiter):
-        """Return a generator of BitStrings by splittling into substrings using a byte aligned delimiter.
+    def split(self, delimiter, bytealigned=True, maxsplit=None):
+        """Return a generator of BitStrings by splittling into substrings using a delimiter.
         
-        The first item returned is the initial bytes before the delimiter, which may be an empty BitString.
+        The first item returned is the initial BitString before the delimiter,
+        which may be an empty BitString.
         
         delimiter -- The BitString (or string for 'auto' initialiser) used as the divider.
+        bytealigned -- If True (the default) the delimiter must be a whole number of
+                       bytes and splits will only occur on byte boundaries.
+        maxsplit -- If specified then at most maxsplit splits are done.
         
-        Raises ValueError if the delimiter empty or not a whole number of bytes.
+        Raises ValueError if the delimiter empty or if bytealigned is True
+        and the delimiter is not a whole number of bytes.
         
         """
         if isinstance(delimiter, str):
             delimiter = BitString(delimiter)
         if delimiter.empty():
             raise ValueError("split delimiter cannot be empty.")
-        if len(delimiter)%8 != 0:
-            raise ValueError("split delimiter must be whole number of bytes.")
+        if bytealigned and len(delimiter)%8 != 0:
+            raise ValueError("split delimiter must be whole number of bytes\
+                             if bytealigned is True.")
+        splits = 0
         oldpos = self._pos
         self._pos = 0
-        found = self.findbytealigned(delimiter)
-        if not found:
+        found = self.find(delimiter, bytealigned=bytealigned)
+        if not found or maxsplit == 0:
             # Initial bits are the whole BitString
             self._pos = oldpos
             yield self.__copy__()
@@ -1615,44 +1655,19 @@ class BitString(object):
         startpos = self._pos
         while found:
             self._pos += len(delimiter)
-            found = self.findbytealigned(delimiter)
+            found = self.find(delimiter, bytealigned=bytealigned)
             if not found:
+                # No more occurences, so return the rest of the BitString
                 self._pos = oldpos
                 yield self[startpos:]
                 return
-            yield self[startpos:self._pos]
-            startpos = self._pos
-    
-    def split(self, delimiter):
-        """Return a generator of BitStrings by splittling into substrings using a delimiter.
-        
-        The first item returned is the initial bytes before the delimiter, which may be an empty BitString.
-        
-        delimiter -- The BitString (or string for 'auto' initialiser) used as the divider.
-        
-        Raises ValueError if the delimiter is empty.
-        
-        """
-        if isinstance(delimiter, str):
-            delimiter = BitString(delimiter)
-        if delimiter.empty():
-            raise ValueError("split delimiter cannot be empty.")
-        oldpos = self._pos
-        self._pos = 0
-        found = self.find(delimiter)
-        if not found:
-            self._pos = oldpos
-            yield self.__copy__()
-            return
-        yield self[0:self._pos]
-        startpos = self._pos
-        while found:
-            self._pos += len(delimiter)
-            found = self.find(delimiter)
-            if not found:
-                self._pos = oldpos
-                yield self[startpos:]
-                return
+            if maxsplit is not None:
+                splits += 1
+                if splits == maxsplit:
+                    # Done all the splits we need to, return the rest of the BitString
+                    self._pos = oldpos
+                    yield self[startpos:]
+                    return
             yield self[startpos:self._pos]
             startpos = self._pos
 
