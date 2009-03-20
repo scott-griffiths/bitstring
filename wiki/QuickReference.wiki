@@ -52,7 +52,7 @@ One class is provided, *!BitString*, which has the following public methods and 
  if s.bin == '0b001':
      s.bin = '0b1111'
 
- s.bin += '0b1'        # Equivalent to s.append('0b1')
+ s.bin += '1'         # Equivalent to s.append('0b1')
 }}}
 ----
 
