@@ -3,7 +3,7 @@
 
 == The bitstring Module ==
 
-One class is provided, Bitstring, which has the following methods and properties.
+One class is provided, *!BitString*, which has the following public methods and properties.
 
 ----
 
@@ -22,16 +22,22 @@ One class is provided, Bitstring, which has the following methods and properties
 *advancebyte*
  _advancebyte()_
 
- Advances position by _8_ bits. Unlike the alternative, _bytepos += 1_, _advancebyte_ will not raise a `BitStringError` if the current position is not byte-aligned.
+ Advances position by _8_ bits. Unlike the alternative, _bytepos += 1_, _advancebyte_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 ----
 
 *advancebytes*
  _advancebytes(n)_
 
+ Advances position by _8*n_ bits. Unlike the alternative, _bytepos += n_, _advancebytes_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
+
 ----
 
 *append*
  _append(bs)_
+
+ Join a _!BitString_ to the end of the current _!BitString_. Returns self.
+
+ _bs_ can be either a _!BitString_ or a string for the _auto_ initialiser.
 
 ----
 
