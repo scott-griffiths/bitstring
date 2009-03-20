@@ -35,15 +35,25 @@ One class is provided, *!BitString*, which has the following public methods and 
 *append*
  _append(bs)_
 
- Join a _!BitString_ to the end of the current _!BitString_. Returns self.
+ Join a _!BitString_ to the end of the current _!BitString_. Returns self. _bs_ can be either a _!BitString_ or a string for the _auto_ initialiser.
 
- _bs_ can be either a _!BitString_ or a string for the _auto_ initialiser.
-
+{{{
+ s.append(BitString(hex='ffab'))
+ s.append('0xffab')
+}}}
 ----
 
 *bin*
  _bin_
 
+ Read and write property for setting and getting the representation of the _!BitString_ as a binary string starting with '_0b_'. When used as a getter, the returned value is always calculated - the value is never cached. When used as a setter the length of the _!BitString_ will be adjusted to fit its new contents.
+
+{{{
+ if s.bin == '0b001':
+     s.bin = '0b1111'
+
+ s.bin += '0b1'        # Equivalent to s.append('0b1')
+}}}
 ----
 
 *bitpos*
