@@ -83,7 +83,7 @@ c = a.slice(3, 7)             # s.slice(x, y) is equivalent to s[x:y]
 print a, b, c                 # 0x1e 0b1111 0b1111
 }}}
 
-Indexing also works for missing and negative arguments, just as it does for other containers. Not though that it is not possible to specify a 'step' parameter.
+Indexing also works for missing and negative arguments, just as it does for other containers. Note though that it is not possible to specify a 'step' parameter.
 {{{
 a = BitString('0b00011110')
 b = a[:5]        # 0b00011   (first 5 bits)            
