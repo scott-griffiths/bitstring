@@ -681,7 +681,6 @@ class BitString(object):
             else:
                 self._datastore = _MemArray(data[:(self._length + self._offset + 7)/8])
         self._setunusedbitstozero()
-        assert self._assertsanity()
 
     def _getdata(self):
         """Return the data as an ordinary string."""
@@ -862,7 +861,6 @@ class BitString(object):
             raise ValueError("Invalid character in binstring")
         self._datastore = _MemArray(bytes)
         self._setunusedbitstozero()
-        assert self._assertsanity()
 
     def _getbin(self):
         """Return interpretation as a binary string."""
@@ -945,7 +943,6 @@ class BitString(object):
                 raise ValueError("Cannot convert last digit to hexadecimal.")
         self._datastore = _MemArray(''.join(hexlist))
         self._setunusedbitstozero()
-        assert self._assertsanity()
 
     def _sethexunsafe(self, hexstring, length=None):
         """Reset the BitString to have the value given in hexstring.
@@ -965,7 +962,6 @@ class BitString(object):
             datastring += _single_byte_from_hex_string(hexstring[-1])
         self._datastore = _MemArray(datastring)
         self._setunusedbitstozero()
-        assert self._assertsanity()
 
     def _gethex(self):
         """Return the hexadecimal representation as a string prefixed with '0x'.
@@ -1040,7 +1036,6 @@ class BitString(object):
                 self._datastore[x] = ((self._datastore[x-1] << (8 - shiftright))&255) + (self._datastore[x] >> shiftright)
             self._datastore[0] = self._datastore[0] >> shiftright
         self._offset = offset
-        assert self._assertsanity()
 
     def _getoffset(self):
         """Return current offset."""
@@ -1600,13 +1595,16 @@ class BitString(object):
         bits_in_final_byte = (bs._offset + bs._length)%8
         end = self.__copy__()
         end._setoffset(bits_in_final_byte)
+        bitpos = self._pos
+        self._pos = 0
         self._setdata(bs._getdata(), length=bs._length)
         if bits_in_final_byte != 0:
             self._datastore[-1] = (self._datastore[-1] | end._datastore[0])
-        else:
+        elif not end.empty():
             self._datastore.append(end._datastore[0])
         self._datastore.extend(end._datastore[1:end._datastore.length()])
         self._length += end._length
+        self._pos = bitpos + bs._length
         assert self._assertsanity()
         return self
     
@@ -1695,7 +1693,7 @@ class BitString(object):
                       doc="The position in the BitString in bits.")
     bytepos= property(_getbytepos, _setbytepos,
                       doc="The position in the BitString in bytes.")
-
+    
 
 def join(bitstringlist):
     """Return the concatenation of the BitStrings in a list.
