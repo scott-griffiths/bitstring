@@ -1459,6 +1459,18 @@ class BitStringTest(unittest.TestCase):
             self.assertEqual(s.tellbyte(), i)
         s.bitpos = 1
         self.assertRaises(BitStringError, s.tellbyte)
+
+    def testPrependAndAppendAgain(self):        
+        c = BitString('0x1122334455667788')
+        c.bitpos = 40
+        c.prepend('0b1')
+        self.assertEqual(c.bitpos, 41)
+        c = BitString()
+        c.prepend('0x1234')
+        self.assertEqual(c.bytepos, 2)
+        c = BitString()
+        c.append('0x1234')
+        self.assertEqual(c.bytepos, 0)
     
 
 def main():
