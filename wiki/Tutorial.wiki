@@ -1,7 +1,7 @@
 #summary Brief tutorial on the use of the bitstring module
 #labels Featured
 
-`0110001001101001` [http://python-bitstring.googlecode.com/svn/wiki/bitstring.png] `1110011001100111`
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring.png]
 
 *python* _pī'thŏn', n._ a large snake that crushes its victims: a dynamic object-oriented programming language.
 
