@@ -6,9 +6,13 @@
 ----
 
 = Introduction =
-The bitstring module is a pure Python module designed to allow binary data to be read, interpreted, created and modified with as much ease as possible.
+The bitstring module is a pure Python module designed to allow binary data to be read, interpreted, created and modified with as much ease as possible. A single class, `BitString`, is provided that stores the binary data and offers a rich variety of methods for all your binary needs.
 
-A single class, `BitString`, is provided that stores the binary data and offers a rich variety of methods for all your binary needs. A flavour is given below, and will be covered in greater detail in the next few pages of this tutorial.
+A `BitString` object is designed to be as lightweight as possible and is best considered as just a sequence of binary digits. Although there are a variety of ways of creating and viewing the binary data, the `BitString` object itself just stores the data and all views are calculated as needed, not stored as part of the object.
+
+The different views or interpretations on the data are accessed through properties such as `hex`, `bin` and `int`. They can also be used to reinitialise an existing `BitString`. 
+
+A flavour is given below, and will be covered in greater detail in the next few pages of this tutorial.
 
 {{{
 from bitstring import BitString
@@ -31,6 +35,7 @@ print e.int                                # -1840656947 (signed 2's complement
 print e.uint                               # 2454310349  (unsigned integer)
 open('somefile.ext', 'rb').write(e.data)   # Output raw byte data to a file
 }}}
+
 
 = Getting Started =
 First download the latest release (see the Downloads tab) and extract the contents of the zip. You should find:
