@@ -59,6 +59,11 @@ One class is provided, *!BitString*, which has the following public methods and 
 *bitpos*
  _bitpos_
 
+ Read and write property for setting and getting the current bit position in the _!BitString_. Can be set to any value from _0_ to _length_.
+{{{
+ if s.bitpos < 100:
+     s.bitpos += 10
+}}}
 ----
 
 *bytealign*
@@ -68,6 +73,8 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *bytepos*
  _bytepos_
+
+ Read and write property for setting and getting the current byte position in the _!BitString_. When used as a getter will raise a _BitStringError_ if the current position in not byte aligned.
 
 ----
 
@@ -88,6 +95,8 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *empty*
  _empty()_
+
+ Returns _True_ if the _!BitString_ is empty, i.e. has _length==0_. Otherwise returns _False_.
 
 ----
   
