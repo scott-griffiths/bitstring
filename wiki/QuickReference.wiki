@@ -81,6 +81,8 @@ One class is provided, *!BitString*, which has the following public methods and 
 *data*
  _data_
 
+ Read and write property for setting and getting the underlying byte data that contains the _!BitString_. Set using an ordinary Python string - the length will be adjusted to contain the data. When used as a getter the _!BitString_ will be padded with between zero and seven '0' bits to make it byte aligned. 
+
 ----
 
 *deletebits*
