@@ -125,15 +125,12 @@ One class is provided, *!BitString*, which has the following public methods and 
 *length*
  _length_
 
+ Read-only property that gives the length of the _!BitString_ in bits.
+
 ----
 
 *oct*
  _oct_
-
-----
-
-*offset*
- _offset_
 
 ----
 
@@ -145,40 +142,63 @@ One class is provided, *!BitString*, which has the following public methods and 
 *peekbit*
  _peekbit()_
 
+ Returns the next bit in the current _!BitString_ as a new _!BitString_ but does not advance the position.
+
 ----
 
 *peekbits*
  _peekbits(bits)_
+
+ Returns the next _bits_ bits of the current _!BitString_ as a new _!BitString_ but does not advance the position.
 
 ----
 
 *peekbyte*
  _peekbyte()_
 
+ Returns the next byte of the current _!BitString_ as a new _!BitString_ but does not advance the position.
+
 ----
 
 *peekbytes*
  _peekbytes(bytes)_
+
+Returns the next _bytes_ bytes of the current _!BitString_ as a new _!BitString_ but does not advance the position.
 
 ----
 
 *prepend*
  _prepend(bs)_
 
+ Inserts _bs_ (which can be either a _!BitString_ or a string for the _auto_ initialiser) at the beginning of the current _!BitString_. Returns self.
+
 ----
 
 *readbit*
  _readbit()_
+
+ Returns the next bit of the current _!BitString_ as a new _!BitString_ and advances the position.
+
+----
+
+*readbits*
+ _readbits()_
+
+ Returns the next _bits_ bits of the current _!BitString_ as a new _!BitString_ and advances the position.
 
 ----
 
 *readbyte*
  _readbyte()_
 
+ Returns the next byte of the current _!BitString_ as a new _!BitString_ and advances the position.
+
 ----
 
 *readbytes*
  _readbytes(bytes)_
+
+ Returns the next _bytes_ bytes of the current _!BitString_ as a new _!BitString_ and advances the position.
 
 ----
 
