@@ -14,21 +14,21 @@ One class is provided, *!BitString*, which has the following public methods and 
 ----
 
 *advancebits*
- _advancebits(n)_
+ _advancebits(bits)_
 
- Advances position by _n_ bits. Equivalent to _bitpos += n_.
+ Advances position by _bits_ bits. Equivalent to _bitpos += bits_.
 ----
 
 *advancebyte*
  _advancebyte()_
 
- Advances position by _8_ bits. Unlike the alternative, _bytepos += 1_, _advancebyte_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
+ Advances position by _8_ bits. Equivalent to _bitpos += 8_. Unlike the alternative, _bytepos += 1_, _advancebyte_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 ----
 
 *advancebytes*
- _advancebytes(n)_
+ _advancebytes(bytes)_
 
- Advances position by _8*n_ bits. Unlike the alternative, _bytepos += n_, _advancebytes_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
+ Advances position by _8*bytes_ bits. Equivalent to _bitpos += 8*bytes_. Unlike the alternative, _bytepos += bytes_, _advancebytes_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 
 ----
 
@@ -163,7 +163,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 *peekbytes*
  _peekbytes(bytes)_
 
-Returns the next _bytes_ bytes of the current _!BitString_ as a new _!BitString_ but does not advance the position.
+ Returns the next _bytes_ bytes of the current _!BitString_ as a new _!BitString_ but does not advance the position.
 
 ----
 
@@ -220,20 +220,27 @@ Returns the next _bytes_ bytes of the current _!BitString_ as a new _!BitString_
 *retreatbit*
  _retreatbit()_
 
+ Retreats position by _1_ bit. Equivalent to _bitpos -= 1_.
 ----
 
 *retreatbits*
  _retreatbits(bits)_
+
+ Retreats position by _bits_ bits. Equivalent to _bitpos -= bits_.
 
 ----
 
 *retreatbyte*
  _retreatbyte()_
 
+ Retreats position by _8_ bits. Equivalent to _bitpos -= 8_. Unlike the alternative, _bytepos -= 1_, _retreatbyte_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
+
 ----
 
 *retreatbytes*
  _retreatbytes(bytes)_
+
+ Retreats position by _bytes*8_ bits. Equivalent to _bitpos -= 8*bytes_. Unlike the alternative, _bytepos -= bytes_, _retreatbytes_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 
 ----
 
