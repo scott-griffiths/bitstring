@@ -282,20 +282,27 @@ One class is provided, *!BitString*, which has the following public methods and 
 *tellbit*
  _tellbit()_
 
+ Returns the current bit position. Equivalent to using the _bitpos_ property.
+
 ----
 
 *tellbyte*
  _tellbyte()_
+
+ Returns the current byte position. Equivalent to using the _bytepos_ property, and will raise a _!BitStringError_ is the _!BitString_ is not byte aligined.
 
 ----
 
 *truncateend*
  _truncateend(bits)_
 
+ Remove the last _bits_ bits from the end of the _!BitString_. Returns _self_.
 ----
 
 *truncatestart*
  _truncatestart(bits)_
+
+ Remove the first _bits_ bits from the start of the _!BitString_. Returns _self_.
 
 ----
 
