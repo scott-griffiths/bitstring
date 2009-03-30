@@ -88,10 +88,14 @@ One class is provided, *!BitString*, which has the following public methods and 
 *deletebits*
  _deletebits(bits, bitpos=None)_
 
+ Removes _bits_ bits from the _!BitString_ at position _bitpos_ and returns _self_. If _bitpos_ is not specified then the current position is used.
+
 ----
 
 *deletebytes*
  _deletebytes(bytes, bytepos=None)_
+
+ Removes _bytes_ bytes from the _!BitString_ at position _bytepos_ and returns _self_. If _bytepos_ is not specified then the current position is used, provided it is byte aligned, otherwise _!BitStringError_ is raised.
 
 ----
 
@@ -104,6 +108,8 @@ One class is provided, *!BitString*, which has the following public methods and 
   
 *find*
  _find(bs, bytealigned=True, startbit=None, endbit=None)_
+
+ Searches for _bs_ (a _!BitString_ or string to initialise via _auto_) in the current _!BitString_ and returns _True_ if found.
 
 ----
 
