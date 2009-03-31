@@ -194,7 +194,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 *bytepos*
  _s.bytepos_
 
- Read and write property for setting and getting the current byte position in the _!BitString_. When used as a getter will raise a _BitStringError_ if the current position in not byte aligned.
+ Read and write property for setting and getting the current byte position in the _!BitString_. When used as a getter will raise a _!BitStringError_ if the current position in not byte aligned.
 
 ----
 
@@ -236,7 +236,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 *hex*
  _s.hex_
 
- Read and write property for setting and getting the hexadecimal representation of the _!BitString_. When used as a getter the value will be preceded by '_0x_', which is optional when setting the value. If the _!BitString_ is not a multiple of four bits long then getting its _hex_ value will raise a _ValueError_.
+ Read and write property for setting and getting the hexadecimal representation of the _!BitString_. When used as a getter the value will be preceded by '_0x_', which is optional when setting the value. If the _!BitString_ is not a multiple of four bits long then getting its _hex_ value will raise a _!ValueError_.
 
 ----
 
@@ -262,7 +262,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 *oct*
  _s.oct_
 
- Read and write property for setting and getting the octal representation of the _!BitString_. When used as a getter the value will be preceded by '_0o_', which is optional when setting the value. If the _!BitString_ is not a multiple of three bits long then getting its _oct_ value will raise a _ValueError_.
+ Read and write property for setting and getting the octal representation of the _!BitString_. When used as a getter the value will be preceded by '_0o_', which is optional when setting the value. If the _!BitString_ is not a multiple of three bits long then getting its _oct_ value will raise a _!ValueError_.
 
 ----
 
@@ -403,7 +403,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 *seekbyte*
  _s.seekbyte(bytepos)_
 
- Moves the current position to _bytepos_. Equivalent to _s.bytepos_ = bytepos_.
+ Moves the current position to _bytepos_. Equivalent to _s.bytepos = bytepos_.
 
 ----
 
