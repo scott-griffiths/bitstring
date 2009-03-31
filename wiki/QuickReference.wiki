@@ -158,7 +158,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *`__`ilshift`__`*
 
- _s << n_
+ _s <<= n_
 
 ----
 
