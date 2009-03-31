@@ -13,120 +13,6 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 ----
 
-*`__`copy`__`*
-
- _s.copy()_
-
-----
-
-*`__`eq`__`*
-
- _s1 == s2_
-
-----
-
-*`__`getitem`__`*
-
- _s`[`a:b`]`_
-
-----
-
-*`__`hex`__`*
-
- _hex(s)_
-
-----
-
-*`__`iadd`__`*
-
- _s1 += s2_
-
-----
-
-*`__`ilshift`__`*
-
- _s << n_
-
-----
-
-*`__`imul`__`*
-
- _s `*`= n_
-
-----
-
-*`__`init`__`*
-
- _s = !BitString(auto=None, length=None, offset=0, data=None, filename=None, hex=None, bin=None, oct=None, uint=None, ue=None, se=None)
-
-----
-
-*`__`invert`__`*
-
- _~s_
-
-----
-
-*`__`irshift`__`*
-
- _s >>= n_
-
-----
-
-*`__`len`__`*
-
- _len(s)_
-
-----
-
-*`__`lshift`__`*
-
- _s << n_ 
-
-----
-
-*`__`mul`__`*
-
- _s `*` n_
-
-----
-
-*`__`ne`__`*
-
- _s1 != s2_
-
-----
-
-*`__`oct`__`*
-
- _oct(s)_
-
-----
-
-*`__`rmul`__`*
-
- _n `*` s_
-
-----
-
-*`__`rshift`__`*
-
- _s >> n_
-
-----
-
-*`__`setitem`__`*
-
- _s1`[`a:b`]` = s2_
-
-----
-
-*`__`str`__`*
-
- _print s_
-
-----
-
 *advancebit*
  _s.advancebit()_
 
@@ -198,6 +84,12 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 ----
 
+*`__`copy`__`*
+
+ _s.copy()_
+
+----
+
 *data*
  _s.data_
 
@@ -225,6 +117,12 @@ One class is provided, *!BitString*, which has the following public methods and 
  Returns _True_ if the _!BitString_ is empty, i.e. has _length==0_. Otherwise returns _False_.
 
 ----
+
+*`__`eq`__`*
+
+ _s1 == s2_
+
+----
   
 *find*
  _s.find(bs, bytealigned=True, startbit=None, endbit=None)_
@@ -233,10 +131,46 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 ----
 
+*`__`getitem`__`*
+
+ _s`[`a:b`]`_
+
+----
+
+*`__`hex`__`*
+
+ _hex(s)_
+
+----
+
 *hex*
  _s.hex_
 
  Read and write property for setting and getting the hexadecimal representation of the _!BitString_. When used as a getter the value will be preceded by '_0x_', which is optional when setting the value. If the _!BitString_ is not a multiple of four bits long then getting its _hex_ value will raise a _!ValueError_.
+
+----
+
+*`__`iadd`__`*
+
+ _s1 += s2_
+
+----
+
+*`__`ilshift`__`*
+
+ _s << n_
+
+----
+
+*`__`imul`__`*
+
+ _s `*`= n_
+
+----
+
+*`__`init`__`*
+
+ _s = !BitString(auto=None, length=None, offset=0, data=None, filename=None, hex=None, bin=None, oct=None, uint=None, ue=None, se=None)
 
 ----
 
@@ -252,10 +186,52 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 ----
 
+*`__`invert`__`*
+
+ _~s_
+
+----
+
+*`__`irshift`__`*
+
+ _s >>= n_
+
+----
+
+*`__`len`__`*
+
+ _len(s)_
+
+----
+
 *length*
  _s.length_
 
  Read-only property that gives the length of the _!BitString_ in bits.
+
+----
+
+*`__`lshift`__`*
+
+ _s << n_ 
+
+----
+
+*`__`mul`__`*
+
+ _s `*` n_
+
+----
+
+*`__`ne`__`*
+
+ _s1 != s2_
+
+----
+
+*`__`oct`__`*
+
+ _oct(s)_
 
 ----
 
@@ -388,6 +364,18 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 ----
 
+*`__`rmul`__`*
+
+ _n `*` s_
+
+----
+
+*`__`rshift`__`*
+
+ _s >> n_
+
+----
+
 *se*
  _s.se_
 
@@ -407,6 +395,12 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 ----
 
+*`__`setitem`__`*
+
+ _s1`[`a:b`]` = s2_
+
+----
+
 *slice*
  _s.slice(startbit, endbit)_
 
@@ -414,6 +408,12 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *split*
  _s.split(delimiter, bytealigned=True, maxsplit=None)_
+
+----
+
+*`__`str`__`*
+
+ _print s_
 
 ----
 
