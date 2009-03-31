@@ -8,32 +8,32 @@ One class is provided, *!BitString*, which has the following public methods and 
 ----
 
 *advancebit*
- _advancebit()_
+ _s.advancebit()_
 
  Advances position by _1_ bit. Equivalent to _s.bitpos += 1_.
 ----
 
 *advancebits*
- _advancebits(bits)_
+ _s.advancebits(bits)_
 
  Advances position by _bits_ bits. Equivalent to _s.bitpos += bits_.
 ----
 
 *advancebyte*
- _advancebyte()_
+ _s.advancebyte()_
 
  Advances position by _8_ bits. Equivalent to _s.bitpos += 8_. Unlike the alternative, _s.bytepos += 1_, _advancebyte_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 ----
 
 *advancebytes*
- _advancebytes(bytes)_
+ _s.advancebytes(bytes)_
 
  Advances position by _8*bytes_ bits. Equivalent to _s.bitpos += 8*bytes_. Unlike the alternative, _s.bytepos += bytes_, _advancebytes_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 
 ----
 
 *append*
- _append(bs)_
+ _s.append(bs)_
 
  Join a _!BitString_ to the end of the current _!BitString_. Returns self. _bs_ can be either a _!BitString_ or a string for the _auto_ initialiser.
 
@@ -44,7 +44,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 ----
 
 *bin*
- _bin_
+ _s.bin_
 
  Read and write property for setting and getting the representation of the _!BitString_ as a binary string starting with '_0b_'. When used as a getter, the returned value is always calculated - the value is never cached. When used as a setter the length of the _!BitString_ will be adjusted to fit its new contents.
 
@@ -57,7 +57,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 ----
 
 *bitpos*
- _bitpos_
+ _s.bitpos_
 
  Read and write property for setting and getting the current bit position in the _!BitString_. Can be set to any value from _0_ to _length_.
 {{{
@@ -67,267 +67,267 @@ One class is provided, *!BitString*, which has the following public methods and 
 ----
 
 *bytealign*
- _bytealign()_
+ _s.bytealign()_
 
 ----
 
 *bytepos*
- _bytepos_
+ _s.bytepos_
 
  Read and write property for setting and getting the current byte position in the _!BitString_. When used as a getter will raise a _BitStringError_ if the current position in not byte aligned.
 
 ----
 
 *data*
- _data_
+ _s.data_
 
  Read and write property for setting and getting the underlying byte data that contains the _!BitString_. Set using an ordinary Python string - the length will be adjusted to contain the data. When used as a getter the _!BitString_ will be padded with between zero and seven '0' bits to make it byte aligned. 
 
 ----
 
 *deletebits*
- _deletebits(bits, bitpos=None)_
+ _s.deletebits(bits, bitpos=None)_
 
  Removes _bits_ bits from the _!BitString_ at position _bitpos_ and returns _self_. If _bitpos_ is not specified then the current position is used.
 
 ----
 
 *deletebytes*
- _deletebytes(bytes, bytepos=None)_
+ _s.deletebytes(bytes, bytepos=None)_
 
  Removes _bytes_ bytes from the _!BitString_ at position _bytepos_ and returns _self_. If _bytepos_ is not specified then the current position is used, provided it is byte aligned, otherwise _!BitStringError_ is raised.
 
 ----
 
 *empty*
- _empty()_
+ _s.empty()_
 
  Returns _True_ if the _!BitString_ is empty, i.e. has _length==0_. Otherwise returns _False_.
 
 ----
   
 *find*
- _find(bs, bytealigned=True, startbit=None, endbit=None)_
+ _s.find(bs, bytealigned=True, startbit=None, endbit=None)_
 
  Searches for _bs_ (a _!BitString_ or string to initialise via _auto_) in the current _!BitString_ and returns _True_ if found. If _bytealigned_ is True then it will look for _bs_ only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). _startbit_ and _endbit_ give the search range and default to _self.bitpos_ and _self.length_ respectively.
 
 ----
 
 *hex*
- _hex_
+ _s.hex_
 
  Read and write property for setting and getting the hexadecimal representation of the _!BitString_. When used as a getter the value will be preceded by '_0x_', which is optional when setting the value. If the _!BitString_ is not a multiple of four bits long then getting its _hex_ value will raise a _ValueError_.
 
 ----
 
 *insert*
- _insert(bs, bitpos=None)_
+ _s.insert(bs, bitpos=None)_
 
  Inserts _bs_ (a _!BitString_ or string to initialise via _auto_) at _bitpos_ and returns _self_. _bitpos_ defaults to the current position.
 
 ----
 
 *int*
- _int_
+ _s.int_
 
 ----
 
 *length*
- _length_
+ _s.length_
 
  Read-only property that gives the length of the _!BitString_ in bits.
 
 ----
 
 *oct*
- _oct_
+ _s.oct_
 
  Read and write property for setting and getting the octal representation of the _!BitString_. When used as a getter the value will be preceded by '_0o_', which is optional when setting the value. If the _!BitString_ is not a multiple of three bits long then getting its _oct_ value will raise a _ValueError_.
 
 ----
 
 *overwrite*
- _overwrite(bs, bitpos=None)_
+ _s.overwrite(bs, bitpos=None)_
 
  Replaces the contents of the current _!BitString_ with _bs_ (a _!BitString_ or string to initialise via _auto_) at _bitpos_ and returns _self_. _bitpos_ defaults to the current position.
 
 ----
 
 *peekbit*
- _peekbit()_
+ _s.peekbit()_
 
  Returns the next bit in the current _!BitString_ as a new _!BitString_ but does not advance the position.
 
 ----
 
 *peekbits*
- _peekbits(bits)_
+ _s.peekbits(bits)_
 
  Returns the next _bits_ bits of the current _!BitString_ as a new _!BitString_ but does not advance the position.
 
 ----
 
 *peekbyte*
- _peekbyte()_
+ _s.peekbyte()_
 
  Returns the next byte of the current _!BitString_ as a new _!BitString_ but does not advance the position.
 
 ----
 
 *peekbytes*
- _peekbytes(bytes)_
+ _s.peekbytes(bytes)_
 
  Returns the next _bytes_ bytes of the current _!BitString_ as a new _!BitString_ but does not advance the position.
 
 ----
 
 *prepend*
- _prepend(bs)_
+ _s.prepend(bs)_
 
  Inserts _bs_ (which can be either a _!BitString_ or a string for the _auto_ initialiser) at the beginning of the current _!BitString_. Returns self.
 
 ----
 
 *readbit*
- _readbit()_
+ _s.readbit()_
 
  Returns the next bit of the current _!BitString_ as a new _!BitString_ and advances the position.
 
 ----
 
 *readbits*
- _readbits()_
+ _s.readbits()_
 
  Returns the next _bits_ bits of the current _!BitString_ as a new _!BitString_ and advances the position.
 
 ----
 
 *readbyte*
- _readbyte()_
+ _s.readbyte()_
 
  Returns the next byte of the current _!BitString_ as a new _!BitString_ and advances the position.
 
 ----
 
 *readbytes*
- _readbytes(bytes)_
+ _s.readbytes(bytes)_
 
  Returns the next _bytes_ bytes of the current _!BitString_ as a new _!BitString_ and advances the position.
 
 ----
 
 *readse*
- _readse()_
+ _s.readse()_
 
 ----
 
 *readue*
- _readue()_
+ _s.readue()_
 
 ----
 
 *replace*
- _replace(old, new, bytealigned=True, startbit=None, endbit=None, count=None)_
+ _s.replace(old, new, bytealigned=True, startbit=None, endbit=None, count=None)_
 
 ----
 
 *retreatbit*
- _retreatbit()_
+ _s.retreatbit()_
 
  Retreats position by _1_ bit. Equivalent to _bitpos -= 1_.
 ----
 
 *retreatbits*
- _retreatbits(bits)_
+ _s.retreatbits(bits)_
 
  Retreats position by _bits_ bits. Equivalent to _bitpos -= bits_.
 
 ----
 
 *retreatbyte*
- _retreatbyte()_
+ _s.retreatbyte()_
 
  Retreats position by _8_ bits. Equivalent to _bitpos -= 8_. Unlike the alternative, _bytepos -= 1_, _retreatbyte_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 
 ----
 
 *retreatbytes*
- _retreatbytes(bytes)_
+ _s.retreatbytes(bytes)_
 
  Retreats position by _bytes*8_ bits. Equivalent to _bitpos -= 8*bytes_. Unlike the alternative, _bytepos -= bytes_, _retreatbytes_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 
 ----
 
 *reversebits*
- _reversebits()_
+ _s.reversebits()_
 
 ----
 
 *rfind*
- _rfind(bs, bytealigned=True, startbit=None, endbit=None)_
+ _s.rfind(bs, bytealigned=True, startbit=None, endbit=None)_
 
 ----
 
 *se*
- _se_
+ _s.se_
 
 ----
 
 *seekbit*
- _seekbit(bitpos)_
+ _s.seekbit(bitpos)_
 
  Moves the current position to _bitpos_. Equivalent to _s.bitpos = bitpos_.
 
 ----
 
 *seekbyte*
- _seekbyte(bytepos)_
+ _s.seekbyte(bytepos)_
 
  Moves the current position to _bytepos_. Equivalent to _s.bytepos_ = bytepos_.
 
 ----
 
 *slice*
- _slice(startbit, endbit)_
+ _s.slice(startbit, endbit)_
 
 ----
 
 *split*
- _split(delimiter, bytealigned=True, maxsplit=None)_
+ _s.split(delimiter, bytealigned=True, maxsplit=None)_
 
 ----
 
 *tellbit*
- _tellbit()_
+ _s.tellbit()_
 
  Returns the current bit position. Equivalent to using the _bitpos_ property as a getter.
 
 ----
 
 *tellbyte*
- _tellbyte()_
+ _s.tellbyte()_
 
  Returns the current byte position. Equivalent to using the _bytepos_ property as a getter, and will raise a _!BitStringError_ is the _!BitString_ is not byte aligined.
 
 ----
 
 *truncateend*
- _truncateend(bits)_
+ _s.truncateend(bits)_
 
  Remove the last _bits_ bits from the end of the _!BitString_. Returns _self_.
 ----
 
 *truncatestart*
- _truncatestart(bits)_
+ _s.truncatestart(bits)_
 
  Remove the first _bits_ bits from the start of the _!BitString_. Returns _self_.
 
 ----
 
 *ue*
- _ue_
+ _s.ue_
 
 ----
 
 *uint*
- _uint_
+ _s.uint_
