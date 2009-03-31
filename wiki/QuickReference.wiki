@@ -15,7 +15,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *`__`copy`__`*
 
- s.copy()
+ _s.copy()_
 
 ----
 
@@ -117,7 +117,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *`__`setitem`__`*
 
- s1`[`a:b`]` = s2
+ _s1`[`a:b`]` = s2_
 
 ----
 
