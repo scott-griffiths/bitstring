@@ -87,7 +87,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *`__`mul`__`*
 
- _s * n_
+ _s `*` n_
 
 ----
 
@@ -105,7 +105,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *`__`rmul`__`*
 
- _n * s_
+ _n `*` s_
 
 ----
 
