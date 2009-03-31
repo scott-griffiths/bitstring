@@ -109,17 +109,21 @@ One class is provided, *!BitString*, which has the following public methods and 
 *find*
  _find(bs, bytealigned=True, startbit=None, endbit=None)_
 
- Searches for _bs_ (a _!BitString_ or string to initialise via _auto_) in the current _!BitString_ and returns _True_ if found.
+ Searches for _bs_ (a _!BitString_ or string to initialise via _auto_) in the current _!BitString_ and returns _True_ if found. If _bytealigned_ is True then it will look for _bs_ only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). _startbit_ and _endbit_ give the search range and default to _self.bitpos_ and _self.length_ respectively.
 
 ----
 
 *hex*
  _hex_
 
+ Read and write property for setting and getting the hexadecimal representation of the _!BitString_. When used as a getter the value will be preceded by '_0x_', which is optional when setting the value. If the _!BitString_ is not a multiple of four bits long then getting its _hex_ value will raise a _ValueError_.
+
 ----
 
 *insert*
  _insert(bs, bitpos=None)_
+
+ Inserts _bs_ (a _!BitString_ or string to initialise via _auto_) at _bitpos_ and returns _self_. _bitpos_ defaults to the current position.
 
 ----
 
@@ -138,10 +142,14 @@ One class is provided, *!BitString*, which has the following public methods and 
 *oct*
  _oct_
 
+ Read and write property for setting and getting the octal representation of the _!BitString_. When used as a getter the value will be preceded by '_0o_', which is optional when setting the value. If the _!BitString_ is not a multiple of three bits long then getting its _oct_ value will raise a _ValueError_.
+
 ----
 
 *overwrite*
  _overwrite(bs, bitpos=None)_
+
+ Replaces the contents of the current _!BitString_ with _bs_ (a _!BitString_ or string to initialise via _auto_) at _bitpos_ and returns _self_. _bitpos_ defaults to the current position.
 
 ----
 
