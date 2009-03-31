@@ -10,25 +10,25 @@ One class is provided, *!BitString*, which has the following public methods and 
 *advancebit*
  _advancebit()_
 
- Advances position by _1_ bit. Equivalent to _bitpos += 1_.
+ Advances position by _1_ bit. Equivalent to _s.bitpos += 1_.
 ----
 
 *advancebits*
  _advancebits(bits)_
 
- Advances position by _bits_ bits. Equivalent to _bitpos += bits_.
+ Advances position by _bits_ bits. Equivalent to _s.bitpos += bits_.
 ----
 
 *advancebyte*
  _advancebyte()_
 
- Advances position by _8_ bits. Equivalent to _bitpos += 8_. Unlike the alternative, _bytepos += 1_, _advancebyte_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
+ Advances position by _8_ bits. Equivalent to _s.bitpos += 8_. Unlike the alternative, _s.bytepos += 1_, _advancebyte_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 ----
 
 *advancebytes*
  _advancebytes(bytes)_
 
- Advances position by _8*bytes_ bits. Equivalent to _bitpos += 8*bytes_. Unlike the alternative, _bytepos += bytes_, _advancebytes_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
+ Advances position by _8*bytes_ bits. Equivalent to _s.bitpos += 8*bytes_. Unlike the alternative, _s.bytepos += bytes_, _advancebytes_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
 
 ----
 
@@ -276,10 +276,14 @@ One class is provided, *!BitString*, which has the following public methods and 
 *seekbit*
  _seekbit(bitpos)_
 
+ Moves the current position to _bitpos_. Equivalent to _s.bitpos = bitpos_.
+
 ----
 
 *seekbyte*
  _seekbyte(bytepos)_
+
+ Moves the current position to _bytepos_. Equivalent to _s.bytepos_ = bytepos_.
 
 ----
 
@@ -296,14 +300,14 @@ One class is provided, *!BitString*, which has the following public methods and 
 *tellbit*
  _tellbit()_
 
- Returns the current bit position. Equivalent to using the _bitpos_ property.
+ Returns the current bit position. Equivalent to using the _bitpos_ property as a getter.
 
 ----
 
 *tellbyte*
  _tellbyte()_
 
- Returns the current byte position. Equivalent to using the _bytepos_ property, and will raise a _!BitStringError_ is the _!BitString_ is not byte aligined.
+ Returns the current byte position. Equivalent to using the _bytepos_ property as a getter, and will raise a _!BitStringError_ is the _!BitString_ is not byte aligined.
 
 ----
 
