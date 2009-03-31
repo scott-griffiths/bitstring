@@ -27,7 +27,7 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *`__`getitem`__`*
 
- _s[a:b]_
+ _s`[`a:b`]`_
 
 ----
 
@@ -51,13 +51,13 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 *`__`imul`__`*
 
- _s *= n_
+ _s `*`= n_
 
 ----
 
 *`__`init`__`*
 
- _s = BitString(auto=None, length=None, offset=0, data=None, filename=None, hex=None, bin=None, oct=None, uint=None, ue=None, se=None)
+ _s = !BitString(auto=None, length=None, offset=0, data=None, filename=None, hex=None, bin=None, oct=None, uint=None, ue=None, se=None)
 
 ----
 
@@ -67,7 +67,63 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 ----
 
+*`__`irshift`__`*
 
+ _s >>= n_
+
+----
+
+*`__`len`__`*
+
+ _len(s)_
+
+----
+
+*`__`lshift`__`*
+
+ _s << n_ 
+
+----
+
+*`__`mul`__`*
+
+ _s * n_
+
+----
+
+*`__`ne`__`*
+
+ _s1 != s2_
+
+----
+
+*`__`oct`__`*
+
+ _oct(s)_
+
+----
+
+*`__`rmul`__`*
+
+ _n * s_
+
+----
+
+*`__`rshift`__`*
+
+ _s >> n_
+
+----
+
+*`__`setitem`__`*
+
+ s1`[`a:b`]` = s2
+
+----
+
+*`__`str`__`*
+
+ _print s_
 
 ----
 
