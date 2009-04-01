@@ -11,6 +11,11 @@ One class is provided, *!BitString*, which has the following public methods and 
 
  _s1 + s2_
 
+ Concatenate two _!BitStrings_ and return the result. _s2_ can either be a _!BitString_ or a string to be used with the _auto_ initialiser.
+
+{{{
+s = BitString(uint=34, length=8) + '0xff' 
+}}}
 ----
 
 *advancebit*
