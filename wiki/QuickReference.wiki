@@ -7,15 +7,17 @@ One class is provided, *!BitString*, which has the following public methods and 
 
 ----
 
-*`__`add`__`*
+*`__`add`__`* / *`__`radd`__`*
 
  _s1 + s2_
 
- Concatenate two _!BitStrings_ and return the result. _s2_ can either be a _!BitString_ or a string to be used with the _auto_ initialiser.
+ Concatenate two _!BitStrings_ and return the result. Either _s1_ or _s2_ can be a string to be used with the _auto_ initialiser.
 
 {{{
-s = BitString(uint=34, length=8) + '0xff' 
+s = BitString(uint=34, length=8) + '0xff'
+s2 = '0b101' + s 
 }}}
+
 ----
 
 *advancebit*
@@ -40,6 +42,12 @@ s = BitString(uint=34, length=8) + '0xff'
  _s.advancebytes(bytes)_
 
  Advances position by _8*bytes_ bits. Equivalent to _s.bitpos += 8*bytes_. Unlike the alternative, _s.bytepos += bytes_, _advancebytes_ will not raise a _!BitStringError_ if the current position is not byte-aligned.
+
+----
+
+*`__`and`__`* / *`__`rand`__`*
+
+ s1 & s2
 
 ----
 
@@ -244,6 +252,12 @@ s = BitString(uint=34, length=8) + '0xff'
  _s.oct_
 
  Read and write property for setting and getting the octal representation of the _!BitString_. When used as a getter the value will be preceded by '_0o_', which is optional when setting the value. If the _!BitString_ is not a multiple of three bits long then getting its _oct_ value will raise a _!ValueError_.
+
+----
+
+*`__`or`__`* / *`__`ror`__`*
+
+ s1 | s2
 
 ----
 
@@ -456,3 +470,9 @@ s = BitString(uint=34, length=8) + '0xff'
 
 *uint*
  _s.uint_
+
+----
+
+*`__`xor`__`* / *`__`rxor`__`*
+
+ s1 ^ s2
