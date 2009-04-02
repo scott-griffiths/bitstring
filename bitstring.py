@@ -59,7 +59,7 @@ def _hex_string_from_single_byte(b):
     if v > 15:
         return hex(v)[2:]
     elif v > 0:
-        return '0'+hex(v)[2:]
+        return '0' + hex(v)[2:]
     else:
         return '00'
 
@@ -207,9 +207,9 @@ class _MemArray(object):
 class BitString(object):
     """A class for general bit-wise manipulations and interpretations."""
     
-    def __init__(self, auto = None, length = None, offset = 0, data = None,
-                 filename = None, hex = None, bin = None, oct = None,
-                 uint = None, int = None,  ue = None, se = None):
+    def __init__(self, auto=None, length=None, offset=0, data=None,
+                 filename=None, hex=None, bin=None, oct=None,
+                 uint=None, int=None, ue=None, se=None):
         """
         Initialise the BitString with one (and only one) of:
         auto -- string starting with '0x', '0o' or '0b' to be interpreted as
@@ -293,12 +293,22 @@ class BitString(object):
         return self.__copy__().append(bs)
 
     def __iadd__(self, bs):
-        """Append BitString to current BitString. Return self.
+        """Append bs to current BitString. Return self.
         
         bs -- the BitString (or string for 'auto' initialiser) to append.
         
         """
         return self.append(bs)
+    
+    def __radd__(self, bs):
+        """Append current BitString to bs and return new BitString.
+        
+        bs -- the string for the 'auto' initialiser that will be appended to.
+        
+        """
+        if isinstance(bs, str):
+            bs = BitString(bs)
+        return bs.__add__(self)
 
     def __setitem__(self, key, value):
         """Set item or range to new value.
@@ -581,6 +591,16 @@ class BitString(object):
             raise ValueError('BitStrings must have the same length for & operator.')
         return BitString(uint=self._getuint()&bs._getuint(), length=self._length)
     
+    def __rand__(self, bs):
+        """Bit-wise 'and' between a string and a BitString. Returns new BitString.
+        
+        bs -- the string for the 'auto' initialiser to use to create a BitString.
+        
+        Raises ValueError if the two BitStrings have differing lengths.
+        
+        """
+        return self.__and__(bs)
+        
     def __or__(self, bs):
         """Bit-wise 'or' between two BitStrings. Returns new BitString.
         
@@ -595,6 +615,16 @@ class BitString(object):
             raise ValueError('BitStrings must have the same length for | operator.')
         return BitString(uint=self._getuint()|bs._getuint(), length=self._length)
 
+    def __ror__(self, bs):
+        """Bit-wise 'or' between a string and a BitString. Returns new BitString.
+        
+        bs -- the string for the 'auto' initialiser to use to create a BitString.
+        
+        Raises ValueError if the two BitStrings have differing lengths.
+        
+        """
+        return self.__or__(bs)
+
     def __xor__(self, bs):
         """Bit-wise 'xor' between two BitStrings. Returns new BitString.
         
@@ -608,6 +638,16 @@ class BitString(object):
         if self._length != bs._length:
             raise ValueError('BitStrings must have the same length for ^ operator.')
         return BitString(uint=self._getuint()^bs._getuint(), length=self._length)
+    
+    def __rxor__(self, bs):
+        """Bit-wise 'xor' between a string and a BitString. Returns new BitString.
+        
+        bs -- the string for the 'auto' initialiser to use to create a BitString.
+        
+        Raises ValueError if the two BitStrings have differing lengths.
+        
+        """
+        return self.__xor__(bs)
 
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
@@ -1037,10 +1077,6 @@ class BitString(object):
             self._datastore[0] = self._datastore[0] >> shiftright
         self._offset = offset
 
-    def _getoffset(self):
-        """Return current offset."""
-        return self._offset
-
     def _getlength(self):
         """Return the length of the BitString in bits."""
         assert self._length == 0 or 0 <= self._pos <= self._length
@@ -1310,7 +1346,7 @@ class BitString(object):
             raise ValueError("Can't find empty BitString.")
         if startbit is None:
             startbit = self._pos
-        if not endbit:
+        if endbit is None:
             endbit = self._length
         if startbit < 0:
             raise ValueError("Cannot find - startbit must be >= 0.")
@@ -1617,7 +1653,8 @@ class BitString(object):
         self._setbin(self._getbin()[:1:-1])
         return self
     
-    def split(self, delimiter, bytealigned=True, maxsplit=None):
+    def split(self, delimiter, bytealigned=True, startbit=None,
+              endbit=None, maxsplit=None):
         """Return a generator of BitStrings by splittling into substrings using a delimiter.
         
         The first item returned is the initial BitString before the delimiter,
@@ -1626,7 +1663,12 @@ class BitString(object):
         delimiter -- The BitString (or string for 'auto' initialiser) used as the divider.
         bytealigned -- If True (the default) the delimiter must be a whole number of
                        bytes and splits will only occur on byte boundaries.
+        startbit -- The bit position to start the split.
+                    Defaults to self.bitpos.
+        endbit -- The bit position one past the last bit to use in the split.
+                  Defaults to len(self).
         maxsplit -- If specified then at most maxsplit splits are done.
+                    Default is to split as many times as possible.
         
         Raises ValueError if the delimiter empty or if bytealigned is True
         and the delimiter is not a whole number of bytes.
@@ -1636,28 +1678,35 @@ class BitString(object):
             delimiter = BitString(delimiter)
         if delimiter.empty():
             raise ValueError("split delimiter cannot be empty.")
-        if bytealigned and len(delimiter)%8 != 0:
-            raise ValueError("split delimiter must be whole number of bytes\
-                             if bytealigned is True.")
+        if startbit is None:
+            startbit = self._pos
+        if endbit is None:
+            endbit = self._length
+        if startbit < 0:
+            raise ValueError("Cannot split - startbit must be >= 0.")
+        if endbit > self._length:
+            raise ValueError("Cannot split - endbit is past the end of the BitString.")
+        if endbit < startbit:
+            raise ValueError("endbit must not be less than startbit.")
         splits = 0
         oldpos = self._pos
-        self._pos = 0
-        found = self.find(delimiter, bytealigned=bytealigned)
+        self._pos = startbit
+        found = self.find(delimiter, bytealigned=bytealigned, endbit=endbit)
         if not found or maxsplit == 0:
-            # Initial bits are the whole BitString
+            # Initial bits are the whole BitString being searched
             self._pos = oldpos
-            yield self.__copy__()
+            yield self.slice(startbit, endbit)
             return
         # yield the bytes before the first occurence of the delimiter, even if empty
-        yield self[0:self._pos]
+        yield self[startbit:self._pos]
         startpos = self._pos
         while found:
-            self._pos += len(delimiter)
-            found = self.find(delimiter, bytealigned=bytealigned)
+            self._pos += delimiter._length
+            found = self.find(delimiter, bytealigned=bytealigned, endbit=endbit)
             if not found:
                 # No more occurences, so return the rest of the BitString
                 self._pos = oldpos
-                yield self[startpos:]
+                yield self[startpos:endbit]
                 return
             if maxsplit is not None:
                 splits += 1
@@ -1671,8 +1720,6 @@ class BitString(object):
 
     length = property(_getlength,
                       doc="The length of the BitString in bits.")
-    offset = property(_getoffset,
-                      doc="The offset of the BitString relative to the byte aligned underlying storage.")
     hex    = property(_gethex, _sethexsafe,
                       doc="The BitString as a hexadecimal string, prefixed with '0x' and including any leading zeros.")
     bin    = property(_getbin, _setbin,
@@ -1698,8 +1745,8 @@ class BitString(object):
 def join(bitstringlist):
     """Return the concatenation of the BitStrings in a list.
     
-    bitstringlist - Can contain BitStrings, or strings to be used by the 'auto'
-                    initialiser.
+    bitstringlist -- Can contain BitStrings, or strings to be used by the 'auto'
+                     initialiser.
     
     e.g.
         a = join(['0x0001ee', BitString(int=13, length=100), '0b0111')
