@@ -1352,8 +1352,10 @@ class BitStringTest(unittest.TestCase):
     
     def testSplit(self):
         a = BitString('0b0 010100111 010100 0101 010')
+        a.bitpos = 20
         subs = [i.bin for i in a.split('0b010', False)]
         self.assertEqual(subs, ['0b0', '0b010100111', '0b010100', '0b0101', '0b010'])
+        self.assertEqual(a.bitpos, 20)
     
     def testSplitCornerCases(self):
         a = BitString('0b000000')
@@ -1509,7 +1511,68 @@ class BitStringTest(unittest.TestCase):
         c = BitString()
         c.append('0x1234')
         self.assertEqual(c.bytepos, 0)
+
+    def testReplace1(self):
+        a = BitString('0b1')
+        n = a.replace('0b1', '0b0')
+        self.assertEqual(a.bin, '0b0')
+        self.assertEqual(n, 1)
+        n = a.replace('0b1', '0b0')
+        self.assertEqual(n, 0)
+
+    def testReplace2(self):
+        a = BitString('0b00001111111')
+        n = a.replace('0b1', '0b0')
+        self.assertEqual(a.bin, '0b00001111011')
+        self.assertEqual(n, 1)
+        n = a.replace('0b1', '0b0', bytealigned=False)
+        self.assertEqual(a.bin, '0b00000000000')
+        self.assertEqual(n, 6)
+
+    def testReplace3(self):
+        a = BitString('0b0')
+        n = a.replace('0b0', '0b110011111')
+        self.assertEqual(n, 1)
+        self.assertEqual(a.bin, '0b110011111')
+        n = a.replace('0b11', '', bytealigned=False)
+        self.assertEqual(n, 3)
+        self.assertEqual(a.bin, '0b001')
     
+    def testReplace4(self):
+        a = BitString('0x00114723ef4732344700')
+        n = a.replace('0x47', '0x00')
+        self.assertEqual(n, 3)
+        self.assertEqual(a.hex, '0x00110023ef0032340000')
+        a.replace('0x00', '')
+        self.assertEqual(a.hex, '0x1123ef3234')
+        a.replace('0x11', '', startbit=1)
+        self.assertEqual(a.hex, '0x1123ef3234')
+        a.replace('0x11', '0xfff', endbit=7)
+        self.assertEqual(a.hex, '0x1123ef3234')
+        a.replace('0x11', '0xfff', endbit=8)
+        self.assertEqual(a.hex, '0xfff23ef3234')
+    
+    def testReplaceCount(self):
+        a = BitString('0x223344223344223344')
+        n = a.replace('0x2', '0x0', count=0)
+        self.assertEqual(n, 0)
+        self.assertEqual(a.hex, '0x223344223344223344')
+        n = a.replace('0x2', '0x0', count=1)
+        self.assertEqual(n, 1)
+        self.assertEqual(a.hex, '0x023344223344223344')
+        n = a.replace('0x33', '', count=2)
+        self.assertEqual(n, 2)
+        self.assertEqual(a.hex, '0x02442244223344')
+        n = a.replace('0x44', '0x4444', count=1435)
+        self.assertEqual(n, 3)
+        self.assertEqual(a.hex, '0x02444422444422334444')
+
+    def testReplaceErrors(self):
+        a = BitString('0o123415')
+        self.assertRaises(ValueError, a.replace, '', '0o7')
+        self.assertRaises(ValueError, a.replace, '0b1', '0b1', startbit=-1)
+        self.assertRaises(ValueError, a.replace, '0b1', '0b1', endbit=19)
+
 
 def main():
     unittest.main()

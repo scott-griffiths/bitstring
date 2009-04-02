@@ -1421,10 +1421,39 @@ class BitString(object):
         pass
     
     def replace(self, old, new, bytealigned=True, startbit=None, endbit=None, count=None):
-        pass
-    
-    def tofile(self, filename):
-        pass
+        """Replace all occurrences of old with new in place. Return number of replacements made.
+        
+        old -- The BitString (or string for 'auto' initialiser) to replace
+        new -- The replacement BitString (or string for 'auto' initialiser).
+        bytealigned -- If True (the default) replacements will only be made on byte boundaries.
+        startbit -- Any occurences that start before starbit will not be replaced.
+        endbit -- Any occurences that finish after endbit will not be replaced.
+        count -- The maximum number of replacements to make.
+        
+        Raises ValueError if old is empty or if startbit or endbit are out of range.
+        
+        """        
+        if isinstance(old, str):
+            old = BitString(old)
+        if isinstance(new, str):
+            new = BitString(new)
+        if old.empty():
+            raise ValueError("Empty BitString cannot be replaced.")
+        oldpos = self._pos
+        sections = self.split(old, bytealigned=bytealigned,
+                              startbit=startbit, endbit=endbit, maxsplit=count)
+        lengths = [s.length for s in sections]
+        if len(lengths) == 1:
+            self._pos = oldpos
+            return 0 # no replacements done
+        positions = [lengths[0]]
+        for l in lengths[1:-1]:
+            positions.append(positions[-1] + l)
+        positions.reverse()
+        for p in positions:
+            self[p:p + old.length] = new
+        self._pos = oldpos
+        return len(lengths) - 1
 
     def bytealign(self):
         """Align to next byte and return number of skipped bits.
@@ -1661,10 +1690,9 @@ class BitString(object):
         which may be an empty BitString.
         
         delimiter -- The BitString (or string for 'auto' initialiser) used as the divider.
-        bytealigned -- If True (the default) the delimiter must be a whole number of
-                       bytes and splits will only occur on byte boundaries.
+        bytealigned -- If True (the default) splits will only occur on byte boundaries.
         startbit -- The bit position to start the split.
-                    Defaults to self.bitpos.
+                    Defaults to 0.
         endbit -- The bit position one past the last bit to use in the split.
                   Defaults to len(self).
         maxsplit -- If specified then at most maxsplit splits are done.
@@ -1679,7 +1707,7 @@ class BitString(object):
         if delimiter.empty():
             raise ValueError("split delimiter cannot be empty.")
         if startbit is None:
-            startbit = self._pos
+            startbit = 0
         if endbit is None:
             endbit = self._length
         if startbit < 0:
