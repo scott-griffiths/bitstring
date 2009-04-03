@@ -28,6 +28,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+__version__ = "0.4.0"
+
 import array
 import copy
 import string
@@ -429,7 +431,7 @@ class BitString(object):
                 return self.slice(0, 256*8)._getbin() + '...'
     
     def __eq__(self, bs):
-        """Return True if and only if the two BitStrings have the same binary representation.
+        """Return True if two BitStrings have the same binary representation.
         
         Can also be used with a string for the 'auto' initialiser.
         e.g.
@@ -450,7 +452,7 @@ class BitString(object):
             return True
         
     def __ne__(self, bs):
-        """Return True if the two BitStrings do not have the same binary representation.
+        """Return False if two BitStrings have the same binary representation.
         
         Can also be used with a string for the 'auto' initialiser.
         e.g.
@@ -594,7 +596,7 @@ class BitString(object):
     def __rand__(self, bs):
         """Bit-wise 'and' between a string and a BitString. Returns new BitString.
         
-        bs -- the string for the 'auto' initialiser to use to create a BitString.
+        bs -- the string for the 'auto' initialiser to use.
         
         Raises ValueError if the two BitStrings have differing lengths.
         
@@ -618,7 +620,7 @@ class BitString(object):
     def __ror__(self, bs):
         """Bit-wise 'or' between a string and a BitString. Returns new BitString.
         
-        bs -- the string for the 'auto' initialiser to use to create a BitString.
+        bs -- the string for the 'auto' initialiser to use.
         
         Raises ValueError if the two BitStrings have differing lengths.
         
@@ -642,7 +644,7 @@ class BitString(object):
     def __rxor__(self, bs):
         """Bit-wise 'xor' between a string and a BitString. Returns new BitString.
         
-        bs -- the string for the 'auto' initialiser to use to create a BitString.
+        bs -- the string for the 'auto' initialiser to use.
         
         Raises ValueError if the two BitStrings have differing lengths.
         
@@ -1220,7 +1222,7 @@ class BitString(object):
     def advancebit(self):
         """Advance position by one bit.
         
-        Raises ValueError if bitpos is already past the last bit in the BitString.
+        Raises ValueError if bitpos is past the last bit in the BitString.
         
         """
         self._setbitpos(self._pos + 1)
@@ -1230,7 +1232,8 @@ class BitString(object):
         
         bits -- Number of bits to increment bitpos by. Must be >= 0.
         
-        Raises ValueError if bits negative or if bitpos goes past the end of the BitString.
+        Raises ValueError if bits is negative or if bitpos goes past the end
+        of the BitString.
         
         """
         if bits < 0:
@@ -1240,7 +1243,8 @@ class BitString(object):
     def advancebyte(self):
         """Advance position by one byte. Does not byte align.
         
-        Raises ValueError if there is less than one byte from bitpos to the end of the BitString.
+        Raises ValueError if there is less than one byte from bitpos to
+        the end of the BitString.
         
         """
         self._setbitpos(self._pos + 8)
@@ -1250,7 +1254,8 @@ class BitString(object):
         
         bytes -- Number of bytes to increment bitpos by. Must be >= 0.
         
-        Raises ValueError if there are not enough bytes from bitpos to the end of the BitString.
+        Raises ValueError if there are not enough bytes from bitpos to
+        the end of the BitString.
         
         """
         if bytes < 0:
@@ -1270,7 +1275,8 @@ class BitString(object):
         
         bits -- Number of bits to decrement bitpos by. Must be >= 0.
         
-        Raises ValueError if bits negative or if bitpos goes past the start of the BitString.
+        Raises ValueError if bits negative or if bitpos goes past the start
+        of the BitString.
         
         """
         if bits < 0:
@@ -1290,7 +1296,8 @@ class BitString(object):
         
         bytes -- Number of bytes to decrement bitpos by. Must be >= 0.
         
-        Raises ValueError if bytes negative or if bitpos goes past the start of the BitString.
+        Raises ValueError if bytes negative or if bitpos goes past the start
+        of the BitString.
         
         """
         if bytes < 0:
@@ -1326,7 +1333,7 @@ class BitString(object):
         return self._getbytepos()
 
     def find(self, bs, bytealigned=True, startbit=None, endbit=None):
-        """Seek to start of next occurence of a BitString. Return True if string is found.
+        """Seek to start of next occurence of bs. Return True if string is found.
         
         bs -- The BitString (or string for 'auto' initialiser) to find.
         bytealigned -- If True (the default) the BitString will only be
@@ -1336,8 +1343,8 @@ class BitString(object):
         endbit -- The bit position one past the last bit to search.
                   Defaults to len(self).
         
-        Raises ValueError if bs is empty, if startbit < 0, if endbit > len(self)
-        or if endbit < startbit.
+        Raises ValueError if bs is empty, if startbit < 0,
+        if endbit > len(self) or if endbit < startbit.
         
         """
         if isinstance(bs, str):
@@ -1421,7 +1428,9 @@ class BitString(object):
         pass
     
     def replace(self, old, new, bytealigned=True, startbit=None, endbit=None, count=None):
-        """Replace all occurrences of old with new in place. Return number of replacements made.
+        """Replace all occurrences of old with new in place.
+        
+        Returns number of replacements made.
         
         old -- The BitString (or string for 'auto' initialiser) to replace
         new -- The replacement BitString (or string for 'auto' initialiser).
@@ -1439,20 +1448,34 @@ class BitString(object):
             new = BitString(new)
         if old.empty():
             raise ValueError("Empty BitString cannot be replaced.")
-        oldpos = self._pos
+        newpos = self._pos
         sections = self.split(old, bytealigned=bytealigned,
                               startbit=startbit, endbit=endbit, maxsplit=count)
         lengths = [s.length for s in sections]
         if len(lengths) == 1:
-            self._pos = oldpos
+            self._pos = newpos
             return 0 # no replacements done
         positions = [lengths[0]]
         for l in lengths[1:-1]:
+            # Next position is the previous one plus the length of the next section.
             positions.append(positions[-1] + l)
+        # We have all the positions that need replacements. We do them
+        # in reverse order so that they won't move around as we replace.
         positions.reverse()
         for p in positions:
             self[p:p + old.length] = new
-        self._pos = oldpos
+        if old.length != new.length:
+            # Need to calculate new bitpos
+            diff = new.length - old.length
+            for p in positions:
+                if p >= newpos:
+                    continue
+                if p + old.length <= newpos:
+                    newpos += diff
+                else:
+                    newpos = p
+        self._pos = newpos
+        assert self._assertsanity()
         return len(lengths) - 1
 
     def bytealign(self):
