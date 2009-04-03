@@ -1567,6 +1567,25 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(n, 3)
         self.assertEqual(a.hex, '0x02444422444422334444')
 
+    def testReplaceBitpos(self):
+        a = BitString('0xff')
+        a.bitpos = 8
+        a.replace('0xff', '')
+        self.assertEqual(a.bitpos, 0)
+        a = BitString('0b0011110001')
+        a.bitpos = 4
+        a.replace('0b1', '0b000', False)
+        self.assertEqual(a.bitpos, 8)
+        a = BitString('0b1')
+        a.bitpos = 1
+        a.replace('0b1', '0b11111')
+        self.assertEqual(a.bitpos, 5)
+        a.replace('0b11', '0b0', False)
+        self.assertEqual(a.bitpos, 3)
+        a.append('0b00')
+        a.replace('0b00', '0xffff', False)
+        self.assertEqual(a.bitpos, 17)
+
     def testReplaceErrors(self):
         a = BitString('0o123415')
         self.assertRaises(ValueError, a.replace, '', '0o7')
