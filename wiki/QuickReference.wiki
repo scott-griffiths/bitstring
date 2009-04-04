@@ -144,6 +144,11 @@ s2 = '0b101' + s
 
 ----
 
+*findall*
+ _s.findall(bs, bytealigend=True, startbit=None, endbit=None)_
+
+----
+
 *`__`getitem`__`*
 
  _s`[`a:b`]`_
