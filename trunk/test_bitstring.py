@@ -179,12 +179,12 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.bitpos, 0)
         self.assertTrue(s.find('0b0111000111', False))
         self.assertEqual(s.bitpos, 2)
-        self.assertTrue(s.find('0b000', False))
+        self.assertTrue(s.find('0b000', False, startbit=2))
         self.assertEqual(s.bitpos, 6)
-        self.assertTrue(s.find('0b111', False))
+        self.assertTrue(s.find('0b111', False, startbit=6))
         self.assertEqual(s.bitpos, 9)
         s.advancebits(2)
-        self.assertTrue(s.find('0b1', False)) 
+        self.assertTrue(s.find('0b1', False, startbit=s.bitpos)) 
 
     def testCreationFromData(self):
         s = BitString(data='\xa0\xff')
@@ -445,9 +445,9 @@ class BitStringTest(unittest.TestCase):
         self.assertFalse(s.find('0x05'))
         self.assertTrue(s.find('0x02'))
         self.assertEqual(s.readbytes(2).hex, '0x0203')
-        self.assertTrue(s.find('0x02'))
+        self.assertTrue(s.find('0x02', startbit=s.bitpos))
         s.readbit()
-        self.assertFalse(s.find('0x02'))
+        self.assertFalse(s.find('0x02', startbit=s.bitpos))
     
     def testFindBytesAlignedCornerCases(self):
         s = BitString('0xff')
@@ -1592,6 +1592,62 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, a.replace, '0b1', '0b1', startbit=-1)
         self.assertRaises(ValueError, a.replace, '0b1', '0b1', endbit=19)
 
+    def testFindAll(self):
+        a = BitString('0b11111')
+        p = a.findall('0b1', False)
+        self.assertEqual(p, [0,1,2,3,4])
+        p = a.findall('0b11', False)
+        self.assertEqual(p, [0,1,2,3])
+        p = a.findall('0b10', False)
+        self.assertEqual(p, [])
+        a = BitString('0x4733eeff66554747335832434547')
+        p = a.findall('0x47')
+        self.assertEqual(p, [0, 6*8, 7*8, 13*8])
+        p = a.findall('0x4733')
+        self.assertEqual(p, [0, 7*8])
+        a = BitString('0b1001001001001001001')
+        p = a.findall('0b1001', False)
+        self.assertEqual(p, [0, 3, 6, 9, 12, 15])
+
+    def testRfind(self):
+        a = BitString('0b001001001')
+        b = a.rfind('0b001', False)
+        self.assertEqual(b, True)
+        self.assertEqual(a.bitpos, 6)
+    
+    def testRfindByteAligned(self):
+        a = BitString('0x8888')
+        b = a.rfind('0b1')
+        self.assertEqual(b, True)
+        self.assertEqual(a.bitpos, 8)
+    
+    def testRfindStartbit(self):
+        a = BitString('0x0000ffffff')
+        b = a.rfind('0x0000', startbit=1)
+        self.assertEqual(b, False)
+        self.assertEqual(a.bitpos, 0)
+        b = a.rfind('0x00', startbit=1)
+        self.assertEqual(b, True)
+        self.assertEqual(a.bitpos, 8)
+    
+    def testRfindEndbit(self):
+        a = BitString('0x000fff')
+        b = a.rfind('0b011', bytealigned=False, startbit=0, endbit=14)
+        self.assertEqual(b, True)
+        b = a.rfind('0b011', False, 0, 13)
+        self.assertEqual(b, False)
+    
+    def testRfindErrors(self):
+        a = BitString('0x43234234')
+        self.assertRaises(ValueError, a.rfind, '')
+        self.assertRaises(ValueError, a.rfind, '0b1', startbit=-1)
+        self.assertRaises(ValueError, a.rfind, '0b1', endbit=33)
+        self.assertRaises(ValueError, a.rfind, '0b1', startbit=10, endbit=9)
+    
+    def testContains(self):
+        a = BitString('0b1') + '0x0001dead0001'
+        self.assertTrue('0xdead' in a)
+        self.assertFalse('0xfeed' in a)
 
 def main():
     unittest.main()

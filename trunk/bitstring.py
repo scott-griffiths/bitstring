@@ -651,6 +651,17 @@ class BitString(object):
         """
         return self.__xor__(bs)
 
+    def __contains__(self, bs):
+        """Return whether bs is contained in the current BitString.
+        
+        bs -- The BitString (or string for 'auto' initialiser) to search for.
+        
+        """
+        oldpos = self._pos
+        found = self.find(bs, bytealigned=False)
+        self._pos = oldpos
+        return found
+
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
         assert self._length >= 0
@@ -1339,7 +1350,7 @@ class BitString(object):
         bytealigned -- If True (the default) the BitString will only be
                        found on byte boundaries.
         startbit -- The bit position to start the search.
-                    Defaults to self.bitpos.
+                    Defaults to 0.
         endbit -- The bit position one past the last bit to search.
                   Defaults to len(self).
         
@@ -1350,9 +1361,9 @@ class BitString(object):
         if isinstance(bs, str):
             bs = BitString(bs)
         if bs.empty():
-            raise ValueError("Can't find empty BitString.")
+            raise ValueError("Cannot find an empty BitString.")
         if startbit is None:
-            startbit = self._pos
+            startbit = 0
         if endbit is None:
             endbit = self._length
         if startbit < 0:
@@ -1423,9 +1434,70 @@ class BitString(object):
                 return False
             self._pos = p
             return True
+
+    def findall(self, bs, bytealigned=True, startbit=None, endbit=None):
+        """Find all occurences of bs. Return list of bit positions.
+        
+        bs -- The BitString (or string for 'auto' initialiser) to find.
+        bytealigned -- If True (the default) the BitString will only be
+                       found on byte boundaries.
+        startbit -- The bit position to start the search.
+                    Defaults to 0.
+        endbit -- The bit position one past the last bit to search.
+                  Defaults to len(self).
+        
+        Raises ValueError if bs is empty, if startbit < 0,
+        if endbit > len(self) or if endbit < startbit.
+        
+        Note that all occurences of bs are found, even if they overlap.
+        """
+        if isinstance(bs, str):
+            bs = BitString(bs)
+        if startbit is None:
+            startbit = 0
+        if endbit is None:
+            endbit = self._length
+        # Can rely on find() for parameter checking
+        foundpositions = []
+        while self.find(bs, bytealigned=bytealigned, startbit=startbit,
+                        endbit=endbit):
+            foundpositions.append(self._pos)
+            if bytealigned:
+                startbit = self._pos + 8
+            else:
+                startbit = self._pos + 1
+            if startbit >= endbit:
+                break
+        return foundpositions
     
     def rfind(self, bs, bytealigned=True, startbit=None, endbit=None):
-        pass
+        """Seek to start of previous occurence of bs.
+        
+        Return True if string is found.
+        
+        bs -- The BitString (or string for 'auto' initialiser) to find.
+        bytealigned -- If True (the default) the BitString will only be
+                       found on byte boundaries.
+        startbit -- The bit position to end the reverse search.
+                    Defaults to 0.
+        endbit -- The bit position one past the first bit to reverse search.
+                  Defaults to len(self).
+        
+        Raises ValueError if bs is empty, if startbit < 0,
+        if endbit > len(self) or if endbit < startbit.
+        
+        """
+        if isinstance(bs, str):
+            bs = BitString(bs)
+        if bs.empty():
+            raise ValueError("Cannot find an empty BitString.")
+        # Obviously finding all isn't very efficient, and this needs to be rewritten.
+        positions = self.findall(bs, bytealigned=bytealigned,
+                                 startbit=startbit, endbit=endbit)
+        if not positions:
+            return False
+        self._pos = positions[-1]
+        return True
     
     def replace(self, old, new, bytealigned=True, startbit=None, endbit=None, count=None):
         """Replace all occurrences of old with new in place.
@@ -1434,9 +1506,12 @@ class BitString(object):
         
         old -- The BitString (or string for 'auto' initialiser) to replace
         new -- The replacement BitString (or string for 'auto' initialiser).
-        bytealigned -- If True (the default) replacements will only be made on byte boundaries.
-        startbit -- Any occurences that start before starbit will not be replaced.
-        endbit -- Any occurences that finish after endbit will not be replaced.
+        bytealigned -- If True (the default) replacements will only be made
+                       on byte boundaries.
+        startbit -- Any occurences that start before starbit will not
+                    be replaced. Defaults to 0.
+        endbit -- Any occurences that finish after endbit will not
+                  be replaced. Defaults to len(self)
         count -- The maximum number of replacements to make.
         
         Raises ValueError if old is empty or if startbit or endbit are out of range.
@@ -1742,7 +1817,8 @@ class BitString(object):
         splits = 0
         oldpos = self._pos
         self._pos = startbit
-        found = self.find(delimiter, bytealigned=bytealigned, endbit=endbit)
+        found = self.find(delimiter, bytealigned=bytealigned,
+                          startbit=startbit, endbit=endbit)
         if not found or maxsplit == 0:
             # Initial bits are the whole BitString being searched
             self._pos = oldpos
@@ -1753,7 +1829,8 @@ class BitString(object):
         startpos = self._pos
         while found:
             self._pos += delimiter._length
-            found = self.find(delimiter, bytealigned=bytealigned, endbit=endbit)
+            found = self.find(delimiter, bytealigned=bytealigned,
+                              startbit=self._pos, endbit=endbit)
             if not found:
                 # No more occurences, so return the rest of the BitString
                 self._pos = oldpos
