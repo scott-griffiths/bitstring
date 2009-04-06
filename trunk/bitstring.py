@@ -1572,7 +1572,7 @@ class BitString(object):
         aligning to the next byte.
         
         """
-        skipped = (8 - ((self._pos)%8))%8
+        skipped = (8 - (self._pos % 8)) % 8
         self._setbitpos(self._pos + self._offset + skipped)
         assert self._assertsanity()
         return skipped
@@ -1587,12 +1587,12 @@ class BitString(object):
         """
         if bits < 0 or bits > self._length:
             raise ValueError("Truncation length of %d not possible. Length = %d." % (bits, self._length))
-        self._length -= bits
-        if self._length == 0:
+        if bits == self._length:
             self._offset = 0
-        else:
-            self._offset = (self._offset + bits)%8
-        self._setdata(self._datastore[bits/8:], length=self._length)
+            self._setdata('')
+            return self
+        self._offset = (self._offset + bits) % 8
+        self._setdata(self._datastore[bits/8:], length=self._length - bits)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
         return self
@@ -1607,7 +1607,11 @@ class BitString(object):
         """
         if bits < 0 or bits > self._length:
             raise ValueError("Truncation length of %d bits not possible. Length = %d." % (bits, self._length))
-        new_length_in_bytes = (self._offset + self._length - bits + 7)/8
+        if bits == self._length:
+            self._offset = 0
+            self._setdata('')
+            return self
+        new_length_in_bytes = (self._offset + self._length - bits + 7) / 8
         # Ensure that the position is still valid
         self._pos = max(0, min(self._pos, self._length - bits))
         self._setdata(self._datastore[:new_length_in_bytes], length=self._length - bits)

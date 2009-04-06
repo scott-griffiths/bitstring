@@ -567,6 +567,10 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.bin, '0b000')
         s.truncateend(3)
         self.assertEqual(s.empty(), True)
+        s = BitString('0b001')
+        s.truncatestart(2)
+        s.truncateend(1)
+        self.assertTrue(s.empty())
     
     def testByteAlignedSlice(self):
         s = BitString(hex='0x123456')
