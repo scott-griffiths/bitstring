@@ -10,24 +10,25 @@
 You can create `BitString` objects from ordinary Python strings, hexadecimal strings or integers. Also many operations on `BitString` objects will return another `BitString`.
 
 == Using the constructor ==
-When initialising a `BitString` you need to specify at most one of `auto, data, hex, oct, bin, int, uint, se, ue` or `filename`. If no initialiser is given a `BitString` of `length` zeros will be created, which will be an empty `BitString` if `length` is zero or not present. 
+When initialising a `BitString` you need to specify at most one initialiser. These will be explained in full below, but briefly they are:
+
+ * `auto` : A string prefixed with '0x', '0o' or '0b' to interpret as hexadecimal, octal or binary.
+ * `data` : A Python string, for example read from a binary file.
+ * `hex`, `oct`, `bin`: Hexadecimal, octal or binary string.
+ * `int`, `uint`: Signed or unsigned binary integers.
+ * `se`, `ue` : Signed or unsigned exponential-Golomb coded integers.
+ * `filename` : Directly from a file.
 
 For some of the initialisers you need to also specify the `length` in bits, for some it is optional and for others it is an error and this will be detailed below.
-
-There is also an optional `offset` parameter which allows up to seven bits at the start of a `BitString` initialised by `auto`, `data`, `hex`, `oct`, `bin` or `int` to be ignored. This is mostly useful when byte-aligned data is being used to initialise, but you need to cut off some bits at the start. For example
-{{{
-rawdata = '\xf0\x12\x34'
-s = BitString(data=rawdata, offset=4, length=16)
-print s          # 0x0123
-}}}
 
 === The auto initialiser ===
 {{{
 fromhex = BitString('0x01ffc9')
 frombin = BitString('0b01')
 fromoct = BitString('0o7550')
+acopy   = BitString(fromoct)
 }}}
-The simplest way to create a `BitString` is often to use the `auto` parameter, which is the first parameter in the `__init__` function and so the `auto=` can be omitted. It accepts a string that starts with '`0x`', '`0b`' or '`0o`'. Strings that start with '`0x`' are interpreted as hexadecimal, '`0o`' implies octal, and strings starting with '0b' are interpreted as binary.
+The simplest way to create a `BitString` is often to use the `auto` parameter, which is the first parameter in the `__init__` function and so the `auto=` can be omitted. It accepts a string that starts with '`0x`', '`0b`' or '`0o`'. Strings that start with '`0x`' are interpreted as hexadecimal, '`0o`' implies octal, and strings starting with '0b' are interpreted as binary. It also accepts another `BitString`, and will create a copy of it. 
 
 You can also use the `length` and `offset` parameters to specify the length in bits and an offset of up to seven bits at the start to be ignored.
 {{{
@@ -42,6 +43,8 @@ print fromoct.hex     # 0xf68
 print fromoct.bin     # 0b111101101000
 print fromoct.uint    # 3994
 print fromoct.int     # -152
+print BitString('0o7777') == '0xfff'   # True
+print BitString('0xf') == '0b1111'     # True
 }}}
 
 === From raw data ===
