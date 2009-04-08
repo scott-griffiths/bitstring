@@ -146,12 +146,14 @@ s2 = '0b101' + s
 *find*
  _s.find(bs, bytealigned=True, startbit=None, endbit=None)_
 
- Searches for _bs_ (a _!BitString_ or string to initialise via _auto_) in the current _!BitString_ and returns _True_ if found. If _bytealigned_ is True then it will look for _bs_ only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). _startbit_ and _endbit_ give the search range and default to _self.bitpos_ and _self.length_ respectively.
+ Searches for _bs_ (a _!BitString_ or string to initialise via _auto_) in the current _!BitString_ and returns _True_ if found. If _bytealigned_ is True then it will look for _bs_ only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). _startbit_ and _endbit_ give the search range and default to _0_ and _self.length_ respectively.
 
 ----
 
 *findall*
- _s.findall(bs, bytealigend=True, startbit=None, endbit=None)_
+ _s.findall(bs, bytealigned=True, startbit=None, endbit=None)_
+
+ Searches for all occurences of _bs_ (even overlapping ones) and returns a list of their bit positions. If _bytealigned_ is _True_ then _bs_ will only be looked for at byte aligned positions. _startbit_ and _endbit_ optionally define a slice and default to _0_ and _self.length_ respectively.
 
 ----
 
@@ -354,6 +356,12 @@ s2 = '0b101' + s
 
 *replace*
  _s.replace(old, new, bytealigned=True, startbit=None, endbit=None, count=None)_
+
+----
+
+*`__`repr`__`*
+
+ _repr(s)_
 
 ----
 
