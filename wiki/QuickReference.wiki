@@ -351,7 +351,7 @@ s2 = '0b101' + s
 
 *readbits*
 
- <font color="purple">_s.readbits()_</font>
+ <font color="purple">_s.readbits(bits)_</font>
 
  Returns the next _bits_ bits of the current _!BitString_ as a new _!BitString_ and advances the position.
 
