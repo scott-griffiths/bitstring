@@ -103,6 +103,8 @@ _byte2bits = ['00000000', '00000001', '00000010', '00000011', '00000100', '00000
               '11110000', '11110001', '11110010', '11110011', '11110100', '11110101', '11110110', '11110111',
               '11111000', '11111001', '11111010', '11111011', '11111100', '11111101', '11111110', '11111111']
 
+# Maximum number of digits to use in __str__ and __repr__.
+_maxchars = 100
 
 class BitStringError(Exception):
     """For errors in the bitstring module."""
@@ -417,19 +419,35 @@ class BitString(object):
         otherwise binary is used. Long strings will be truncated with '...'.
         
         """
-        if self._length == 0:
+        length = self._length
+        if length == 0:
             return ''
-        if self._length%8 == 0:
-            if self._length <= 1024*8:
-                return self._gethex()
-            else:
-                return self.slice(0, 1024*8)._gethex() + '...'
+        if length > _maxchars*4:
+            # Too long! Truncate...
+            return self.slice(0, _maxchars*4)._gethex() + '...'
+        if length % 4 == 0:
+            # Fine to use hex.
+            return self._gethex()
+        if length > _maxchars*3:
+            # Too long for octal
+            return (self + (4 - (length%4))*'0b0')._gethex()
+        if (length > _maxchars and length % 3 != 0):
+            pass
+        if length % 3 == 0:
+            return self._getoct()
+        return self._getbin()
+
+    def __repr__(self):
+        length = self._length
+        if isinstance(self._datastore, _FileArray):
+            return "bitstring.BitString(filename='%s')" % self._datastore.source.name
         else:
-            if self._length <= 256*8:
-                return self._getbin()
-            else:
-                return self.slice(0, 256*8)._getbin() + '...'
-    
+            s = self.__str__()
+            lengthstring = ''
+            if s[-3:] == '...' or length > _maxchars*3 or (length > _maxchars and length % 3 != 0):
+                lengthstring = ", length=%d" % self._length
+            return "bitstring.BitString('%s'%s)" % (s, lengthstring)
+            
     def __eq__(self, bs):
         """Return True if two BitStrings have the same binary representation.
         
@@ -445,6 +463,7 @@ class BitString(object):
             return False
         if self._length != bs._length:
             return False
+        # This could be made faster by exiting with False as early as possible.
         bs._setoffset(self._offset)
         if self._getdata() != bs._getdata():
             return False
@@ -737,6 +756,7 @@ class BitString(object):
 
     def _getdata(self):
         """Return the data as an ordinary string."""
+        self._ensureinmemory()
         self._setoffset(0)
         return self._datastore.tostring()
 
@@ -856,7 +876,7 @@ class BitString(object):
             value = self.readue()
             if self._pos != self._length:
                 raise BitStringError
-        except (BitStringError, ValueError):
+        except BitStringError:
             self._pos = oldpos
             raise BitStringError("BitString is not a single exponential-Golomb code.")
         self._pos = oldpos
@@ -880,9 +900,9 @@ class BitString(object):
         self._pos = 0
         try:
             value = self.readse()
-            if self._pos != self._length:
+            if value is None or self._pos != self._length:
                 raise BitStringError
-        except (BitStringError, ValueError):
+        except BitStringError:
             self._pos = oldpos
             raise BitStringError("BitString is not a single exponential-Golomb code.")
         self._pos = oldpos
@@ -1026,6 +1046,7 @@ class BitString(object):
             raise ValueError("Cannot convert to hex unambiguously - not multiple of 4 bits.")
         if self._length == 0:
             return ''
+        self._ensureinmemory()
         self._setoffset(0)
         s = self._datastore.tostring()
         hexstrings = [_hex_string_from_single_byte(i) for i in s]
@@ -1105,7 +1126,11 @@ class BitString(object):
         # set unused bits at the end of the last byte to zero
         bits_used_in_final_byte = (self._offset + self._length)%8
         if bits_used_in_final_byte > 0:
-            self._datastore[-1] &= 255 ^ (255 >> bits_used_in_final_byte)      
+            self._datastore[-1] &= 255 ^ (255 >> bits_used_in_final_byte)
+    
+    def _ensureinmemory(self):
+        if isinstance(self._datastore, _FileArray):
+            self._datastore = _MemArray(self._datastore[:])
     
     def empty(self):
         """Return True if the BitString is empty (has zero length)."""
@@ -1114,7 +1139,7 @@ class BitString(object):
     def readbit(self):
         """Return next bit in BitString as new BitString and advance position.
         
-        Raises ValueError if bitpos is at the end of the BitString.
+        Returns empty BitString if bitpos is at the end of the BitString.
         
         """
         return self.readbits(1)
@@ -1124,14 +1149,15 @@ class BitString(object):
         
         bits -- The number of bits to read.
         
-        Raises ValueError if there are not enough bits from bitpos to the
-        end of the BitString or if bits < 0.
+        If not enough bits are available then all will be returned.
+        
+        Raises ValueError if bits < 0.
         
         """
         if bits < 0:
             raise ValueError("Cannot read negative amount.")
         if self._pos+bits > self._length:
-            raise ValueError("Reading off the end of the BitString.")
+            bits = self._length - self._pos
         startbyte, newoffset = divmod(self._pos + self._offset, 8)
         endbyte = (self._pos + self._offset + bits - 1) / 8
         self._pos += bits
@@ -1144,8 +1170,7 @@ class BitString(object):
         
         Does not byte align.
         
-        Raises ValueError if there are less than 8 bits from bitpos to the
-        end of the BitString.
+        If not enough bits are available then all will be returned.
         
         """
         return self.readbits(8)
@@ -1157,8 +1182,7 @@ class BitString(object):
         
         bytes -- The number of bytes to read.
         
-        Raises ValueError if there are not enough bits from bitpos to the
-        end of the BitString.
+        If not enough bits are available then all will be returned.
         
         """
         return self.readbits(bytes*8)
@@ -1167,27 +1191,33 @@ class BitString(object):
         """Return interpretation of next bits as unsigned exponential-Golomb code.
            
         Advances position to after the read code.
+        
         Raises BitStringError if the end of the BitString is encountered while
         reading the code.
         
         """
-        leadingzerobits = -1
-        b = 0
-        try:
-            while b == 0:
-                b = self.readbits(1).uint
-                leadingzerobits += 1
-        except ValueError:
+        oldpos = self._pos
+        foundone = self.find('0b1', False, self._pos)
+        if not foundone:
+            self._pos = self._length
             raise BitStringError("Read off end of BitString trying to read code.")
-        codenum = (1 << leadingzerobits) - 1
-        if leadingzerobits > 0:
-            codenum += self.readbits(leadingzerobits).uint
+        leadingzeros = self._pos - oldpos
+        codenum = (1 << leadingzeros) - 1
+        if leadingzeros > 0:
+            restofcode = self.readbits(leadingzeros + 1)
+            if restofcode._length != leadingzeros + 1:
+                raise BitStringError("Read off end of BitString trying to read code.")
+            codenum += restofcode[1:].uint
+        else:
+            assert codenum == 0
+            self._pos += 1
         return codenum
 
     def readse(self):
         """Return interpretation of next bits as a signed exponential-Golomb code.
         
         Advances position to after the read code.
+        
         Raises BitStringError if the end of the BitString is encountered while
         reading the code.
         
@@ -1202,7 +1232,7 @@ class BitString(object):
     def peekbit(self):
         """Return next bit as a new BitString without advancing position.
         
-        Raises ValueError if bitpos is at the end of the BitString.
+        Returns empty BitString if bitpos is at the end of the BitString.
         
         """
         return self.peekbits(1)
@@ -1212,8 +1242,7 @@ class BitString(object):
         
         bits -- The number of bits to read. Must be >= 0.
         
-        Raises ValueError if there are not enough bits from bitpos to the
-        end of the BitString.
+        If not enough bits are available then all will be returned.
         
         """
         bitpos = self._pos
@@ -1224,8 +1253,7 @@ class BitString(object):
     def peekbyte(self):
         """Return next byte as a new BitString without advancing position.
         
-        Raises ValueError if there are not enough bits from bitpos to the
-        end of the BitString.
+        If not enough bits are available then all will be returned.
         
         """
         return self.peekbits(8)
@@ -1235,8 +1263,7 @@ class BitString(object):
         
         bytes -- The number of bytes to read. Must be >= 0.
         
-        Raises ValueError if there are not enough bits from bitpos to the
-        end of the BitString.
+        If not enough bits are available then all will be returned.
         
         """
         return self.peekbits(bytes*8)
@@ -1745,9 +1772,8 @@ class BitString(object):
             bs = BitString(bs)
         if bs.empty():
             return self
-        if isinstance(self._datastore, _FileArray):
-            # Can't modify file, so need to read it into memory.
-            self._datastore = _MemArray(self._datastore[:])
+        # Can't modify file, so ensure it's read into memory
+        self._ensureinmemory()
         if bs is self:
             bs = self.__copy__()
         bits_in_final_byte = (self._offset + self._length)%8
@@ -1772,9 +1798,8 @@ class BitString(object):
             bs = BitString(bs)
         if bs.empty():
             return self
-        if isinstance(self._datastore, _FileArray):
-            # Can't modify file, so need to read it into memory.
-            self._datastore = _MemArray(self._datastore[:])
+        # Can't modify file so ensure it's read into memory
+        self._ensureinmemory()
         if bs is self:
             bs = self.__copy__()
         bits_in_final_byte = (bs._offset + bs._length)%8
