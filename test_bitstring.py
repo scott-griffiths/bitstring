@@ -1247,7 +1247,7 @@ class BitStringTest(unittest.TestCase):
         a = BitString()
         self.assertRaises(IndexError, a.__setitem__, 0, '0b00')
         a += '0b1'
-        self.assertRaises(IndexError, a.__setitem__, (0,2), '0b11')
+        self.assertRaises(IndexError, a.__setitem__, (0, 2), '0b11')
     
     def testMultiplication(self):
         a = BitString('0xff')
@@ -1679,7 +1679,14 @@ class BitStringTest(unittest.TestCase):
         for bit in a:
             b.append(bit)
         self.assertEqual(a, b)
-            
+    
+    def testDelitem(self):
+        a = BitString('0xffee')
+        del a[0:8]
+        self.assertEqual(a.hex, '0xee')
+        del a[0:8]
+        self.assertTrue(a.empty())
+        self.assertRaises(IndexError, a.__delitem__, (10, 12))
 
     #def testCount(self):
     #    a = BitString('')

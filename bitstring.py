@@ -408,6 +408,15 @@ class BitString(object):
         else:
             return BitString()
 
+    def __delitem__(self, key):
+        """Delete item or range.
+        
+        Indices are in bits.
+        Stepping is not supported and use will raise a BitStringError.
+        
+        """
+        self.__setitem__(key, BitString())
+
     def __len__(self):
         """Return the length of the BitString in bits."""
         return self._getlength()
@@ -931,7 +940,7 @@ class BitString(object):
         try:
             bytes = [int(binstring[x:x+8], 2) for x in xrange(0, len(binstring), 8)]
         except ValueError:
-            raise ValueError("Invalid character in binstring")
+            raise ValueError("Invalid character in bin initialiser.")
         self._datastore = _MemArray(bytes)
         self._setunusedbitstozero()
 
@@ -1004,7 +1013,7 @@ class BitString(object):
                     raise ValueError
                 hexlist.append(_single_byte_from_hex_string(hexstring[i*2:i*2+2]))
             except ValueError:
-                raise ValueError("Cannot convert to hexadecimal.")
+                raise ValueError("Invalid symbol in hex initialiser.")
         # then any remaining nibble
         if len(hexstring)%2 == 1:
             try:
@@ -1013,7 +1022,7 @@ class BitString(object):
                     raise ValueError
                 hexlist.append(_single_byte_from_hex_string(hexstring[-1]))
             except ValueError:
-                raise ValueError("Cannot convert last digit to hexadecimal.")
+                raise ValueError("Invalid symbol in hex initialiser.")
         self._datastore = _MemArray(''.join(hexlist))
         self._setunusedbitstozero()
 
@@ -1129,6 +1138,7 @@ class BitString(object):
             self._datastore[-1] &= 255 ^ (255 >> bits_used_in_final_byte)
     
     def _ensureinmemory(self):
+        """Ensure the data is held in memory, not in a file."""
         if isinstance(self._datastore, _FileArray):
             self._datastore = _MemArray(self._datastore[:])
     
@@ -1509,7 +1519,7 @@ class BitString(object):
         return foundpositions
     
     def rfind(self, bs, bytealigned=True, startbit=None, endbit=None):
-        """Seek to start of previous occurence of bs.
+        """Seek backwards to start of previous occurence of bs.
         
         Return True if string is found.
         
