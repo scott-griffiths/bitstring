@@ -139,7 +139,15 @@ s2 = '0b101' + s
 
  Removes _bytes_ bytes from the _!BitString_ at position _bytepos_ and returns _self_. If _bytepos_ is not specified then the current position is used, provided it is byte aligned, otherwise _!BitStringError_ is raised.
 
+
 ----
+
+*`__`delitem`__`*
+
+ <font color="purple">_del s`[`a:b`]`_</font>
+
+----
+
 
 *empty*
 
