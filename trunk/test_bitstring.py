@@ -1645,6 +1645,7 @@ class BitStringTest(unittest.TestCase):
         self.assertFalse('0xfeed' in a)
     
     def testRepr(self):
+        max = bitstring._maxchars
         bls = ['', '0b1', '0o5', '0x43412424f41', '0b00101001010101']
         for bs in bls:
             a = BitString(bs)
@@ -1660,8 +1661,10 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(repr(a), "bitstring.BitString('0o7')")
         a += '0b1'
         self.assertEqual(repr(a), "bitstring.BitString('0xf')")
-        a *= 100
-#        self.assertEqual(repr(a), "bitstring.BitString('0x" + "f"*100 + "')")
+        a *= max
+        self.assertEqual(repr(a), "bitstring.BitString('0x" + "f"*max + "')")
+        a += '0xf'
+        self.assertEqual(repr(a), "bitstring.BitString('0x" + "f"*max + "...', length=%d)" % (max*4 + 4))
 
     def testPrint(self):
         for i in range(-3, 4):
