@@ -1,16 +1,24 @@
--------------
-version 0.4.0
--------------
+--------------------------------
+bitstring module version history
+--------------------------------
+---------------------------------------
+April 11th 2009: version 0.4.0 released
+---------------------------------------
 Changes in version 0.4.0
 
 * New functions
 
-Added rfind(), findall(), replace().
+Added rfind(), findall(), replace(). These do pretty much what you'd expect -
+see the docstrings or the wiki for more information.
 
 * More special functions
 
 Some missing functions were added: __repr__, __contains__, __rand__,
-__ror__, _rxor__.
+__ror__, _rxor__ and __delitem__.
+
+* Miscellany
+
+A couple of small bugs were fixed (see the issue tracker).
 
 ----
 
@@ -114,10 +122,9 @@ Finally got round to writing the distutils script. To install just
 python setup.py install.
 
 ----------------------------------------
-February 15th 2009: version 0.3 released
+February 15th 2009: version 0.3.0 released
 ----------------------------------------
-
-Changes in version 0.3
+Changes in version 0.3.0
 
 * Simpler initialisation from binary and hexadecimal
 

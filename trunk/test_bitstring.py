@@ -4,7 +4,7 @@ Unit tests for the bitstring module.
 http://python-bitstring.googlecode.com
 """
 
-license = """
+__licence__ = """
 The MIT License
 
 Copyright (c) 2006-2009 Scott Griffiths (scott@griffiths.name)
@@ -1690,22 +1690,6 @@ class BitStringTest(unittest.TestCase):
         del a[0:8]
         self.assertTrue(a.empty())
         self.assertRaises(IndexError, a.__delitem__, (10, 12))
-
-    #def testCount(self):
-    #    a = BitString('')
-    #    self.assertEqual(a.count(), 0)
-    #    a += '0b1'
-    #    self.assertEqual(a.count(), 1)
-    #    a.bin = '0b0'
-    #    self.assertEqual(a.count(), 0)
-    #    a.bin = '0b001000010'
-    #    self.assertEqual(a.count(), 2)
-    #    a.hex = '0xffffffff'
-    #    self.assertEqual(a.count(), 32)
-    #    a.bin = '0b001110101011010001010111011101001010101010101010'
-    #    self.assertEqual(a.count(), 25)
-    #    a = BitString('0xff', offset=3)
-    #    self.assertEqual(a.count(), 5)
 
 def main():
     unittest.main()

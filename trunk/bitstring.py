@@ -4,7 +4,7 @@ Module for bit-wise data manipulation.
 http://python-bitstring.googlecode.com
 """
 
-license = """
+__licence__ = """
 The MIT License
 
 Copyright (c) 2006-2009 Scott Griffiths (scott@griffiths.name)
