@@ -61,13 +61,13 @@ print s.read(4).bin            # 0b0110 (the final nibble '0x6')
 
 == Finding ==
 
-To search for a sub-string use the 'find' and 'findbytealigned' functions. These will set the position to the start of the next occurrence of the searched for string and return `True`, or just return `False` if the string isn't present. As its name implies, `findbytealigned` looks for only byte aligned occurrences of a whole-byte `BitString`.
+To search for a sub-string use the 'find' function. If the find succeeds it will set the position to the start of the next occurrence of the searched for string and return `True`, otherwise it will return `False`. By default the sub-string will only be found on byte boundaries; to allow it to be found at any position set `bytealigned=False`.
 
 {{{
 s = BitString('0x00123400001234')
-found = s.findbytealigned('0x1234')
+found = s.find('0x1234')
 print(found, s.bytepos)               # True, 1
-found = s.findbytealigned('0xff')
+found = s.find('0xff')
 print(found, s.bytepos)               # False, 1
 }}}
 
