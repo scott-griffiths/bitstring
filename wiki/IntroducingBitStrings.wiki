@@ -44,6 +44,7 @@ First download the latest release (see the Downloads tab) and extract the conten
   * `test_bitstring.py` : Unit tests for the module.
   * `setup.py` : The setup script.
   * `readme.txt` : Short readme to provide link back to this site.
+  * `release_notes.txt` : History of changes in this and previous versions.
   * `test/` : Directory for test files
     * `test.m1v` : An example file (MPEG-1 video) for testing purposes.
     * `smalltestfile` : Another small file for testing.
