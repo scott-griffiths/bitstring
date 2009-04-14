@@ -29,7 +29,7 @@ s = BitString('0x4732aa34')
 if s.peekbyte().hex == '0x47':
     t = s.readbytes(2)          # t.hex == '0x4732'
 else:
-    s.findbytealigned('0x47')
+    s.find('0x47')
 }}}
 
 The full list of functions is `readbit()`, `readbits(n)`, `readbyte()`, `readbytes(n)`, `peekbit()`, `peekbits(n)`, `peekbyte()` and `peekbytes(n)`.
