@@ -28,6 +28,7 @@ e = 5*a + '0xcdcd'                         # 5 copies of 'a' followed by two new
 e.prepend('0b1')                           # put a single bit on the front
 f = e[7:]                                  # cut the first 7 bits off
 f[1:4] = '0o775'                           # replace 3 bits with 9 bits from octal string
+f.replace('0b01', '0xee34', False)         # find and replace 2 bit string with 16 bit string
 
 # Interpret the BitString however you want
 print e.hex                                # 0x9249cdcd
