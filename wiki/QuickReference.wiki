@@ -568,4 +568,11 @@ s2 = '0b101' + s
 
  <font color="purple">_s1 ^ s2_</font>
 
+ Returns the bit-wise XOR between _s1_ and _s2_, which must have the same length otherwise a _!ValueError_ is raised. Either _s1_ or _s2_ can be a string for the _auto_ initialiser.
+
+{{{
+>>> print BitString('0x33') ^ '0x0f'
+0x3c
+}}}
+
 ----
