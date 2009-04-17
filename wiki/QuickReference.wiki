@@ -102,6 +102,8 @@ s2 = '0b101' + s
 
  <font color="purple">_s.bytealign()_</font>
 
+ Aligns to the start of the next byte (so that _bitpos_ is a multiple of 8) and returns the number of bits skipped. If the current position is already byte aligned then it is unchanged.
+
 ----
 
 *bytepos*
