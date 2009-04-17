@@ -52,12 +52,10 @@ s2 = '0b101' + s
 
  <font color="purple">_s1 & s2_</font>
 
- Returns the bit-wise AND between _s1_ and _s2_, which must have the same length otherwise a _!ValueError_ is raised.
+ Returns the bit-wise AND between _s1_ and _s2_, which must have the same length otherwise a _!ValueError_ is raised. Either _s1_ or _s2_ can be a string for the _auto_ initialiser.
 
 {{{
->>> s1 = BitString('0x33')
->>> s2 = BitString('0xff')
->>> print s1 & s2
+>>> print BitString('0x33') & '0x0f'
 0x03
 }}}
 
@@ -307,6 +305,13 @@ s2 = '0b101' + s
 *`__`or`__`* / *`__`ror`__`*
 
  <font color="purple">_s1 | s2_</font>
+
+ Returns the bit-wise OR between _s1_ and _s2_, which must have the same length otherwise a _!ValueError_ is raised. Either _s1_ or _s2_ can be a string for the _auto_ initialiser.
+
+{{{
+>>> print BitString('0x33') | '0x0f'
+0x3f
+}}}
 
 ----
 
