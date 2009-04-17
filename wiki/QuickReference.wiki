@@ -52,6 +52,15 @@ s2 = '0b101' + s
 
  <font color="purple">_s1 & s2_</font>
 
+ Returns the bit-wise AND between _s1_ and _s2_, which must have the same length otherwise a _!ValueError_ is raised.
+
+{{{
+>>> s1 = BitString('0x33')
+>>> s2 = BitString('0xff')
+>>> print s1 & s2
+0x03
+}}}
+
 ----
 
 *append*
