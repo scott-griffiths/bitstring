@@ -1,5 +1,4 @@
 #summary Brief description of the bitstring module
-#labels Deprecated
 
 == The bitstring Module ==
 
@@ -117,6 +116,15 @@ s2 = '0b101' + s
 *`__`contains`__`*
 
  <font color="purple">_bs in s_</font>
+
+ Returns _True_ if _bs_ can be found in _s_, otherwise returns False. Equivalent to using _find_ with _bytealigned=False_, except that _bitpos_ will not be changed.
+
+{{{
+>>> '0b11' in BitString('0x06')
+True
+>>> '0b111' in BitString('0x06')
+False
+}}}
 
 ----
 
