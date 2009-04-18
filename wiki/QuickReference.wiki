@@ -130,7 +130,19 @@ False
 
 *`__`copy`__`*
 
- <font color="purple">_s.copy()_</font>
+ <font color="purple">_s2 = copy.copy(s1)_</font>
+
+ This allows the _copy_ module to correctly copy _!BitString_ objects. Other equivalent methods are to initialise a new _!BitString_ with the old one or to take a complete slice.
+
+{{{
+>>> import copy
+>>> s = BitString('0o775')
+>>> s_copy1 = copy.copy(s)
+>>> s_copy2 = BitString(s)
+>>> s_copy3 = s[:]
+>>> s == s_copy1 == s_copy2 == s_copy3
+True
+}}}
 
 ----
 
