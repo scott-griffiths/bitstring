@@ -190,6 +190,15 @@ True
 
  <font color="purple">_s1 == s2_</font>
 
+ Compares two _!BitString_ objects for equality, returning _True_ if they have the same binary representation, otherwise returning _False_.
+
+{{{
+>>> BitString('0o7777') == '0xfff'
+True
+>>> BitString(uint=13, length=8) == BitString(uint=13, length=10)
+False
+}}}
+
 ----
   
 *find*
