@@ -227,6 +227,8 @@ False
 
  <font color="purple">_hex(s)_</font>
 
+ Returns the hexadecimal representation of the _!BitString_, i.e. a string starting with '_0x_'. Equivalent to using the _hex_ property, and so will raise a _!ValueError_ if the _!BitString_ is not a multiple of four bits long.
+
 ----
 
 *hex*
@@ -234,12 +236,32 @@ False
  <font color="purple">_s.hex_</font>
 
  Read and write property for setting and getting the hexadecimal representation of the _!BitString_. When used as a getter the value will be preceded by '_0x_', which is optional when setting the value. If the _!BitString_ is not a multiple of four bits long then getting its _hex_ value will raise a _!ValueError_.
+ 
+{{{
+>>> s = BitString(bin='1111 0000 1111')
+>>> s.hex
+'0xf0f'
+>>> s.hex = 'abcdef'
+>>> s.hex
+'0xabcdef'
+}}}
 
 ----
 
 *`__`iadd`__`*
 
  <font color="purple">_s1 += s2_</font>
+
+ Append a _!BitString_ to the current _!BitString_ and return the result. _s2_ can be a string to be used with the _auto_ initialiser.
+
+{{{
+>>> s = BitString(ue=423)
+>>> s += BitString(ue=12)
+>>> s.readue()
+423
+>>> s.readue()
+12
+}}}
 
 ----
 
@@ -291,13 +313,15 @@ False
 
  <font color="purple">_len(s)_</font>
 
+ Returns the length of the _!BitString_ in bits. There appears to be a limitation (or bug) in !CPython which means that this will raise an _!OverflowError_ if the _!BitString_ is very large (probably over 4Gbit), so using the _length_ property instead is recommended.
+
 ----
 
 *length*
 
  <font color="purple">_s.length_</font>
 
- Read-only property that gives the length of the _!BitString_ in bits.
+ Read-only property that gives the length of the _!BitString_ in bits. Should be used in preference to _len(s)_ for large _!BitString_ objects as it doesn't suffer from _!OverflowError_ exceptions.
 
 ----
 
@@ -307,10 +331,10 @@ False
 
 ----
 
-*`__`mul`__`*
+*`__`mul`__`* / *`__`rmul`__`*
 
- <font color="purple">_s `*` n_</font>
-
+ <font color="purple">_s `*` n_</font> / <font color="purple">_n `*` s_</font>
+ 
 ----
 
 *`__`ne`__`*
@@ -486,17 +510,20 @@ False
 
  <font color="purple">_s.reversebits()_</font>
 
+ Reverses all of the bits in the _!BitString_ in-place and returns self.
+
+{{{
+>>> BitString('0b00010111').reversebits().bin
+'0b11101000'
+}}} 
+
 ----
 
 *rfind*
 
  <font color="purple">_s.rfind(bs, bytealigned=True, startbit=None, endbit=None)_</font>
 
-----
-
-*`__`rmul`__`*
-
- <font color="purple">_n `*` s_</font>
+ Searches backwards for _bs_ (a _!BitString_ or string to initialise via _auto_) in the current _!BitString_ and returns _True_ if found. If _bytealigned_ is True then it will look for _bs_ only at byte aligned positions. _startbit_ and _endbit_ give the search range and default to _0_ and _self.length_ respectively. Note that as it's a reverse search it will start at _endbit_ and finish at _startbit_. 
 
 ----
 
