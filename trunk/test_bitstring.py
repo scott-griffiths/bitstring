@@ -107,7 +107,10 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, BitString, filename='test/test.m1v', length=999999999999)
     
     def testCreationFromFileWithOffset(self):
-        self.assertRaises(ValueError, BitString, filename='test/test.m1v', offset=1)
+        a = BitString(filename='test/test.m1v', offset=4)
+        self.assertEqual(a.peekbytes(4).hex, '0x00001b31')
+        b = BitString(filename='test/test.m1v', offset=28)
+        self.assertEqual(b.peekbyte().hex, '0x31')
 
     def testCreataionFromFileErrors(self):
         self.assertRaises(OSError, BitString, filename='Idonotexist')
@@ -316,7 +319,7 @@ class BitStringTest(unittest.TestCase):
 
     def testIncorrectHexAssignment(self):
         s = BitString()
-        self.assertRaises(ValueError, s._sethexsafe, '0xabcdefg')
+        self.assertRaises(ValueError, s._sethex, '0xabcdefg')
 
     def testLengthZero(self):
         self.assertEqual(BitString('').length, 0)
@@ -628,7 +631,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.hex, '0xff')
         s.hex = '0x010203045'
         self.assertEqual(s.hex, '0x010203045')
-        self.assertRaises(ValueError, s._sethexsafe, '0x002g')
+        self.assertRaises(ValueError, s._sethex, '0x002g')
     
     def testSetHexWithLength(self):
         s = BitString(hex='0xffff', length = 9)
@@ -1651,10 +1654,12 @@ class BitStringTest(unittest.TestCase):
             a = BitString(bs)
             b = eval(a.__repr__())
             self.assertTrue(a == b)
-        f = BitString(filename='test/test.m1v')
-        f2 =  eval(f.__repr__())
-        self.assertEqual(f._datastore.source.name, f2._datastore.source.name)
-        self.assertTrue(f2 == f)
+        for f in [BitString(filename='test/test.m1v'),
+                  BitString(filename='test/test.m1v', length=307),
+                  BitString(filename='test/test.m1v', length=23, offset=23102)]:
+            f2 = eval(f.__repr__())
+            self.assertEqual(f._datastore.source.name, f2._datastore.source.name)
+            self.assertTrue(f2 == f)
         a = BitString('0b1')
         self.assertEqual(repr(a), "bitstring.BitString('0b1')")
         a += '0b11'
@@ -1690,6 +1695,38 @@ class BitStringTest(unittest.TestCase):
         del a[0:8]
         self.assertTrue(a.empty())
         self.assertRaises(IndexError, a.__delitem__, (10, 12))
+    
+    def testNonZeroBitsAtStart(self):
+        a = BitString(data='\xff', offset=2)
+        b = BitString('0b00')
+        b += a
+        self.assertTrue(b == '0b0011 1111')
+        self.assertEqual(a._datastore._data.tostring(), '\xff')
+        self.assertEqual(a.data, '\xfc')
+    
+    def testNonZeroBitsAtEnd(self):
+        a = BitString(data='\xff', length=5)
+        self.assertEqual(a._datastore._data.tostring(), '\xff')
+        b = BitString('0b00')
+        a += b
+        self.assertTrue(a == '0b1111100')
+        self.assertEqual(a.data, '\xf8')
+
+    def testLargeOffsets(self):
+        a = BitString('0xffffffff', offset=31)
+        self.assertEquals(a.bin, '0b1')
+        a = BitString('0xffffffff', offset=32)
+        self.assertTrue(a.empty())
+        b = BitString(bin='1111 1111 1111 1111 1111 1111 1111 110', offset=30)
+        self.assertEqual(b, '0b0')
+        o = BitString(oct='123456707', offset=24)
+        self.assertEqual(o, '0o7')
+        d = BitString(data='\x00\x00\x00\x00\x0f', offset=33, length=5)
+        self.assertEqual(d, '0b00011')
+    
+    def testNewOffsetErrors(self):
+        self.assertRaises(ValueError, BitString, hex='ff', offset=-1)
+        self.assertRaises(ValueError, BitString, '0xffffffff', offset=33)    
 
 def main():
     unittest.main()
