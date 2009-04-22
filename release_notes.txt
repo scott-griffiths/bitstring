@@ -1,6 +1,14 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+-----------------------------------------------------
+April 23rd 2009: Python 3 only version 0.4.1 released
+-----------------------------------------------------
+This version is just a port of version 0.4.0 to Python 3. All the unit tests
+pass, but beyond that only limited ad hoc testing has been done and so it
+should be considered an experimental release. That said, the unit test
+coverage is very good - I'm just not sure if anyone even wants a Python 3
+version! 
 ---------------------------------------
 April 11th 2009: version 0.4.0 released
 ---------------------------------------

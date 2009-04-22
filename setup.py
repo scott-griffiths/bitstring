@@ -2,7 +2,7 @@
 from distutils.core import setup
 
 setup(name='bitstring',
-      version='0.4.0',
+      version='0.4.1',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
@@ -21,9 +21,7 @@ setup(name='bitstring',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2.4',
-        'Programming Language :: Python :: 2.5',
-        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 3.0',
         'Topic :: Software Development :: Libraries :: Python Modules',
       ]
       )

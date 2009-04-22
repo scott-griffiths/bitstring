@@ -1,6 +1,11 @@
 bitstring is a pure Python module to aid in the creation, modification and
 analysis of binary data.
 
+***
+This is the Python 3 version. A version for Python 2.4, 2.5 and 2.6 is
+also available.
+***
+
 Installation
 ------------
 To install run the setup.py script with the 'install' argument:
@@ -16,7 +21,7 @@ To run the unit tests:
 
 python test_bitstring.py
 
-The unit tests should all pass for Python 2.4, 2.5 and 2.6.
+The unit tests should all pass.
 
 ---
 
