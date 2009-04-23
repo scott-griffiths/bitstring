@@ -115,7 +115,7 @@ class _FileArray(object):
     
     def __init__(self, filename, lengthinbits, offset, byteoffset):
         filelength = os.path.getsize(filename)
-        self.source = file(filename, 'rb')
+        self.source = open(filename, 'rb')
         if byteoffset is None:
             byteoffset = 0
         if lengthinbits is None:
