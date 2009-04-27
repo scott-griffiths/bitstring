@@ -61,7 +61,7 @@ The module comes with comprehensive unit tests. To run them yourself type
 {{{
 python test_bitstring.py
 }}}
-which should run all the tests (roughly 200) and say OK. If tests fail then either your version of Python isn't supported (it's only been tested on 2.4, 2.5 and 2.6) or something unexpected has happened - in which case please go to the 'Issues' tab and tell me about it.
+which should run all the tests (roughly 200) and say OK. If tests fail then either your version of Python isn't supported (there's one version of bitstring for Python 2.4, 2.5 and 2.6 and a separate version for Python 3.0) or something unexpected has happened - in which case please go to the 'Issues' tab and tell me about it.
 
 
 ----
