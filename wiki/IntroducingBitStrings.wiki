@@ -39,7 +39,7 @@ open('somefile.ext', 'rb').write(e.data)   # Output raw byte data to a file
 
 
 = Getting Started =
-First download the latest release (see the Downloads tab) and extract the contents of the zip. You should find:
+First download the latest release for either Python 2.x or 3.0 (see the Downloads tab) and extract the contents of the zip. You should find:
 
   * `bitstring.py` : The bitstring module itself.
   * `test_bitstring.py` : Unit tests for the module.
