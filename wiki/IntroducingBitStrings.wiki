@@ -63,6 +63,21 @@ python test_bitstring.py
 }}}
 which should run all the tests (roughly 200) and say OK. If tests fail then either your version of Python isn't supported (there's one version of bitstring for Python 2.4, 2.5 and 2.6 and a separate version for Python 3.0) or something unexpected has happened - in which case please go to the 'Issues' tab and tell me about it.
 
+= A `BitString` is a list =
+
+If you treat a `BitString` object as a list whose elements are all either '1' or '0' then you won't go far wrong. Many operations can be performed using standard slice notation, although there are generally named functions to do the same jobs:
+
+|| *Using functions*     ||     || *Using slices* ||
+|| `truncatestart(bits)` || <=> || `del s[:bits]`  ||
+|| `truncateend(bits)`   || <=> || `del s[-bits:]`  ||
+|| `slice(startbit, endbit)` || <=> || `s[startbit:endbit]` ||
+|| `insert(bs, bitpos)` || <=> || `s[bitpos:bitpos] = bs` ||
+|| `overwrite(bs, bitpos)` || <=> || `s[bitpos:bitpos+len(bs)] = bs` ||
+|| `deletebits(bits, bitpos)` || <=> || `del s[bitpos:bitpos+bits]` ||
+|| `deletebytes(bytes, bytepos)` || <=> || `del s[bytepos*8:(bytepos+bytes)*8]` ||
+|| `append(bs)` || <=> || `s[len(s):len(s)] = bs` ||
+|| `prepend(bs)` || <=> || `s[0:0] = bs` ||
+
 
 ----
 *Next:* [CreatingBitStrings Creating BitStrings]
