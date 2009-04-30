@@ -131,6 +131,9 @@ Exponential-Golomb codes represent integers using bit patterns that get longer f
 || 7 || 4  || 0001000 ||
 || 8 || -4 || 0001001 ||
 || 9 || 5  || 0001010 ||
+|| 10 || -5  || 0001011 ||
+|| 11 || 6  || 0001100 ||
+|| ... || ... || ... ||
 
 They consist of a sequence of `n` '0' bits, followed by a '1' bit, followed by `n` more bits. The bits after the first '1' bit count upwards as ordinary binary numbers until they run out of space and an extra '0' bit needs to get included at the start.
 
