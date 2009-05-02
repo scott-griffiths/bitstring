@@ -54,10 +54,6 @@ def _single_byte_from_hex_string(h):
     elif len(h) == 1:
         return struct.pack('B', i<<4)
 
-def _single_byte_from_hex_string_unsafe(h):
-    """Return a byte equal to the input 2 character hex string. No parameter checking done."""
-    return struct.pack('B', int(h, 16))
-
 def _hex_string_from_single_byte(b):
     """Return a two character hex string from a single byte value."""
     v = ord(b)
@@ -136,36 +132,25 @@ class _FileArray(object):
     
     def __getitem__(self, key):
         try:
-            key.start
+            # A slice
+            start = self.byteoffset
+            if key.start is not None:
+                start += key.start
+            stop = self._length + self.byteoffset
+            if key.stop is not None:
+                stop += key.stop - self._length
+            if start < stop:
+                self.source.seek(start, os.SEEK_SET)
+                return array.array('B', self.source.read(stop-start))
+            else:
+                return ''
         except AttributeError:
             # single element
             key += self.byteoffset
-            if key >= self._length or key < -self._length:
+            if key >= self._length:
                 raise IndexError
-            if key < 0:
-                key = self._length + key
             self.source.seek(key, os.SEEK_SET)
             return ord(self.source.read(1))
-        # A slice
-        if key.step is not None:
-            raise BitStringError("Step not supported for slicing BitStrings.")
-        if key.start is None:
-            start = self.byteoffset
-        elif key.start < 0:
-            start = self._length + key.start + self.byteoffset
-        else:
-            start = key.start + self.byteoffset
-        if key.stop is None:
-            stop = self._length + self.byteoffset
-        elif key.stop < 0:
-            stop = self._length + key.stop + self.byteoffset
-        else:
-            stop = key.stop + self.byteoffset
-        if start < stop:
-            self.source.seek(start, os.SEEK_SET)
-            return array.array('B', self.source.read(stop-start))
-        else:
-            return ''
 
     def extend(self, data):
         raise NotImplementedError
@@ -327,8 +312,16 @@ class BitString(object):
     def __setitem__(self, key, value):
         """Set item or range to new value.
         
-        Indices are in bits.
-        Stepping is not supported and use will raise a BitStringError.
+        Indices are in units of the step parameter (default 1 bit).
+        Stepping is used to specify the number of bits in each item.
+        
+        >>> s = BitString('0xff')
+        >>> s[0:1:4] = '0xe'
+        >>> print s
+        '0xef'
+        >>> s[4:4] = '0x00'
+        >>> print s
+        '0xe00f'
         
         """
         if isinstance(value, str):
@@ -336,87 +329,87 @@ class BitString(object):
         if not isinstance(value, BitString):
             raise TypeError("BitString or string expected. Got %s." % type(value))
         try:
-            key.start
+            # A slice
+            start, step = 0, 1
+            if key.step is not None:
+                step = key.step
+            if step != 0:
+                if key.stop is not None:
+                    stop = self._length - (self._length % step)
+                else:
+                    stop = self._length
+            else:
+                stop = 0
+            if key.start is not None:
+                start = key.start * step
+                if key.start < 0:
+                    start += stop
+            if key.stop is not None:
+                stop = key.stop * step
+                if key.stop < 0:
+                    stop += self._length - (self._length % step)
+            if start > stop:
+                raise IndexError("Cannot set slice if start > stop.")
+            if (stop - start) == value._length:
+                self.overwrite(value, start)
+            else:
+                self.deletebits(stop - start, start)
+                self.insert(value, start)
+            return
         except AttributeError:
             # single element
-            if key >= self._length or key < -self._length:
-                raise IndexError
-            oldpos = self._pos
             if key < 0:
-                key = self._length + key
-            self._pos = key
+                key += self._length
+            if not 0 <= key < self._length:
+                raise IndexError("Slice index out of range.")
             if value._length == 1:
-                self.overwrite(value)
+                self.overwrite(value, key)
             else:
-                self.deletebits(1)
-                self.insert(value)
-            self._pos = oldpos
+                self.deletebits(1, key)
+                self.insert(value, key)
             return
-        # A slice
-        if key.step is not None:
-            raise BitStringError("step not supported for slicing BitStrings.")
-        if key.start is None:
-            start = 0
-        elif key.start < 0:
-            start = self._length + key.start
-        else:
-            start = key.start
-        if key.stop is None:
-            stop = self._length
-        elif key.stop < 0:
-            stop = self._length + key.stop
-        else:
-            stop = key.stop
-        oldpos = self._pos
-        self._pos = start
-        if start >= stop:
-            raise IndexError
-        if (stop - start) == value._length:
-            self.overwrite(value)
-        else:
-            self.deletebits(stop - start)
-            self.insert(value)
-        return
     
     def __getitem__(self, key):
         """Return a new BitString representing a slice of the current BitString.
         
-        Indices are in bits.
-        Stepping is not supported and use will raise a BitStringError.
+        Indices are in units of the step parameter (default 1 bit).
+        Stepping is used to specify the number of bits in each item.
+        
+        >>> print BitString('0b00110')[1:4]
+        '0b011'
+        >>> print BitString('0x00112233')[1:3:8]
+        '0x1122'
         
         """
         try:
-            key.start
+            start, step = 0, 1
+            if key.step is not None:
+                step = key.step
+            if step != 0:
+                stop = self._length - (self._length % step)
+            else:
+                stop = 0
+            if key.start is not None:
+                start = key.start * step
+                if key.start < 0:
+                    start += stop
+            if key.stop is not None:
+                stop = key.stop * step
+                if key.stop < 0:
+                    stop += self._length - (self._length % step)
+            if start < stop:
+                if start < 0 or stop > self._length:
+                    raise IndexError("Slice index out of range.")
+                return self.slice(start, stop)
+            else:
+                return BitString()
         except AttributeError:
             # single element
-            if key >= self._length or key < -self._length:
-                raise IndexError
-            oldpos = self._pos
             if key < 0:
-                key = self._length + key
-            self._pos = key
-            s = self.readbit()
-            self._pos = oldpos
-            return s
-        # A slice
-        if key.step is not None:
-            raise BitStringError("step not supported for slicing BitStrings.")
-        if key.start is None:
-            start = 0
-        elif key.start < 0:
-            start = self._length + key.start
-        else:
-            start = key.start
-        if key.stop is None:
-            stop = self._length
-        elif key.stop < 0:
-            stop = self._length + key.stop
-        else:
-            stop = key.stop
-        if start < stop:
-            return self.slice(start, stop)
-        else:
-            return BitString()
+                key += self._length
+            if not 0 <= key < self._length:
+                raise IndexError("Slice index out of range.")
+            return self.slice(key, key + 1)
 
     def __delitem__(self, key):
         """Delete item or range.
@@ -1619,6 +1612,7 @@ class BitString(object):
         if bits == self._length:
             self._offset = 0
             self._setdata('')
+            self._pos = 0
             return self
         self._offset = (self._offset + bits) % 8
         self._setdata(self._datastore[bits/8:], length=self._length - bits)
@@ -1639,6 +1633,7 @@ class BitString(object):
         if bits == self._length:
             self._offset = 0
             self._setdata('')
+            self._pos = 0
             return self
         new_length_in_bytes = (self._offset + self._length - bits + 7) / 8
         # Ensure that the position is still valid
@@ -1675,8 +1670,10 @@ class BitString(object):
         """Insert bs at current position, or bitpos if supplied. Return self.
         
         bs -- The BitString (or string for 'auto' initialiser) to insert.
-        bitpos -- The bit position to insert the BitString.
+        bitpos -- The bit position to insert the BitString, defaults to
+                  self.bitpos.
         
+        After insertion self.bitpos will be immediately after the inserted bits.
         Raises ValueError if bitpos < 0 or bitpos > self.length.
         
         """
@@ -1694,6 +1691,7 @@ class BitString(object):
         self.truncateend(self._length - bitpos)
         self.append(bs)
         self.append(end)
+        self._pos = bitpos + bs._length
         assert self._assertsanity()
         return self
 
@@ -1702,8 +1700,10 @@ class BitString(object):
         
         bs -- The BitString (or string for 'auto' initialiser) to
               overwrite with.
-        bitpos -- The bit position to begin overwriting from.
-        
+        bitpos -- The bit position to begin overwriting from. Defaults to
+                  self.bitpos.
+                  
+        After overwriting self.bitpos will be immediately after the new bits.
         Raises ValueError if bitpos < 0 or bitpos + len(bs) > self.length
         
         """
@@ -1712,16 +1712,18 @@ class BitString(object):
         if bs.empty():
             return self
         if bs is self:
-            bs = self.__copy__()        
+            bs = self.__copy__()
+        bitposafter = self._pos
         if bitpos is None:
             bitpos = self._pos
+            bitposafter = bitpos + bs._length
         if bitpos < 0 or bitpos + bs._length > self._length:
             raise ValueError("Overwrite exceeds boundary of BitString.")
-        end = self.slice(bitpos+bs._length, self._length)
+        end = self.slice(bitpos + bs._length, self._length)
         self.truncateend(self._length - bitpos)
         self.append(bs)
         self.append(end)
-        self._pos = bitpos + bs._length
+        self._pos = bitposafter
         assert self._assertsanity()
         return self
     
