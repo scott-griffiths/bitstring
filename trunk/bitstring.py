@@ -326,8 +326,8 @@ class BitString(object):
         """
         if isinstance(value, str):
             value = BitString(value)
-        if not isinstance(value, BitString):
-            raise TypeError("BitString or string expected. Got %s." % type(value))
+        if not isinstance(value, BitString) and not isinstance(value, int):
+            raise TypeError("BitString, int or string expected. Got %s." % type(value))
         try:
             # A slice
             start, step = 0, 1
@@ -350,6 +350,11 @@ class BitString(object):
                     stop += self._length - (self._length % step)
             if start > stop:
                 raise IndexError("Cannot set slice if start > stop.")
+            if isinstance(value, int):
+                if value >= 0:
+                    value = BitString(uint=value, length=stop - start)
+                else:
+                    value = BitString(int=value, length=stop - start)
             if (stop - start) == value._length:
                 self.overwrite(value, start)
             else:
@@ -358,6 +363,11 @@ class BitString(object):
             return
         except AttributeError:
             # single element
+            if isinstance(value, int):
+                if value >= 0:
+                    value = BitString(uint=value, length=1)
+                else:
+                    value = BitString(int=value, length=1)
             if key < 0:
                 key += self._length
             if not 0 <= key < self._length:

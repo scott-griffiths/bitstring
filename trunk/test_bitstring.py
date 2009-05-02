@@ -1253,7 +1253,7 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0b000')
         self.assertRaises(IndexError, a.__setitem__, -4, '0b1')
         self.assertRaises(IndexError, a.__setitem__, 3, '0b1')
-        self.assertRaises(TypeError, a.__setitem__, 1, 1)
+        self.assertRaises(TypeError, a.__setitem__, 1, 1.3)
         #self.assertRaises(IndexError, a.__setitem__, 2, '0b0')
     
     def testSliceAssignmentMulipleBits(self):
@@ -1865,6 +1865,22 @@ class BitStringTest(unittest.TestCase):
         a.overwrite('0xa', 4)
         self.assertEqual(a, '0xaa')
         self.assertEqual(a.bitpos, 8)
+
+    def testInitSliceWithInt(self):
+        a = BitString(length=8)
+        a[:] = 100
+        self.assertEqual(a.uint, 100)
+        a[0] = 1
+        self.assertEqual(a.bin, '0b11100100')
+        a[-1] = -1
+        self.assertEqual(a.bin, '0b11100101')
+        a[-3:] = -2
+        self.assertEqual(a.bin, '0b11100110')
+    
+    def testInitSliceWithIntErrors(self):
+        a = BitString('0b0000')
+        self.assertRaises(ValueError, a.__setitem__, slice(0, 4), 16)
+        self.assertRaises(ValueError, a.__setitem__, slice(0, 4), -9)
 
 def main():
     unittest.main()
