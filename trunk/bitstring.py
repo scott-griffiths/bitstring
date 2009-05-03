@@ -28,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "0.4.0"
+__version__ = "0.4.2"
 
 import array
 import copy
@@ -112,8 +112,6 @@ class _FileArray(object):
     def __init__(self, filename, lengthinbits, offset, byteoffset):
         filelength = os.path.getsize(filename)
         self.source = open(filename, 'rb')
-        if byteoffset is None:
-            byteoffset = 0
         if lengthinbits is None:
             length = filelength - byteoffset
         else:
@@ -122,13 +120,6 @@ class _FileArray(object):
             raise ValueError("File is not long enough for specified BitString length and offset.")
         self._length = length # length in bytes
         self.byteoffset = byteoffset
-    
-    def __len__(self):
-        # This fails for > 4GB, so better to explictly disallow it!
-        raise NotImplementedError
-
-    def __copy__(self):
-        raise BitStringError("_FileArray.copy() not allowed.")
     
     def __getitem__(self, key):
         try:
@@ -152,18 +143,8 @@ class _FileArray(object):
             self.source.seek(key, os.SEEK_SET)
             return ord(self.source.read(1))
 
-    def extend(self, data):
-        raise NotImplementedError
-    
-    def append(self, data):
-        raise NotImplementedError
-    
     def length(self):
         return self._length
-    
-    def tostring(self):
-        self.source.seek(0, os.SEEK_SET)
-        return self.source.read(self._length)
     
 
 class _MemArray(object):
@@ -171,10 +152,6 @@ class _MemArray(object):
     
     def __init__(self, data):
         self._data = array.array('B', data)
-    
-    def __len__(self):
-        # Doesn't work for > 4GB.
-        raise NotImplementedError
 
     def __copy__(self):
         return _MemArray(self._data)
@@ -458,8 +435,6 @@ class BitString(object):
             return self._getbin()
         # Can't return exact string, so pad and use hex.
         padding = 4 - (length % 4)
-        if padding == 4:
-            padding = 0
         return (self + '0b0'*padding)._gethex()
 
     def __repr__(self):
@@ -1422,12 +1397,7 @@ class BitString(object):
             self._setoffset(0)
             oldpos = self._pos
             self._pos = startbit
-            try:
-                self.bytealign()
-            except BitStringError:
-                # Not even enough bits left to byte-align.
-                self._pos = oldpos
-                return False
+            self.bytealign()
             bytepos = self._pos / 8
             found = False
             p = bytepos
