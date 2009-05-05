@@ -5,6 +5,8 @@
 from bitstring import BitString
 }}}
 ===Creating `BitString` objects===
+
+Internally `BitString` objects are stored as byte arrays. This means that no space is wasted and a `BitString` containing 10MB of binary data will only take up 10MB of memory. When a `BitString` is created all that is stored is the byte array, the length in bits and possibly an offset to the first used bit in the byte array. This means that the actual initialiser used to create the `BitString` isn't stored itself - if you create using a hex string for example then if you ask for the hex interpretation it has to be calculated from the stored byte array.
 {{{
 # From a hexadecimal string
 h = BitString(hex='000001b3')
@@ -21,6 +23,12 @@ h = BitString('0x000001b3')
 o = BitString('0o755')
 b = BitString('0b001001111')
 
+# From an ordinary string
+d = BitString(data='\x03\xff\x23')
+
+# From a file (only read as necessary)
+f = BitString(filename='ABigFile.ext')
+
 # With integers the length of the BitString in bits needs to be supplied.
 # It must be long enough to contain the integer.
 ui = BitString(uint=15, length=6)
@@ -30,6 +38,7 @@ e = BitString(se=-10)
 
 }}}
 ===Interpreting `BitString` objects===
+Python properties are used to give different interpretations of the binary data. 
 {{{
 # hex will raise a ValueError if the length isn't a multiple of 4
 print h.hex    # 0x000001b3
