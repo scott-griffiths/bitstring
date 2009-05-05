@@ -1926,6 +1926,24 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0b0000')
         self.assertRaises(ValueError, a.__setitem__, slice(0, 4), 16)
         self.assertRaises(ValueError, a.__setitem__, slice(0, 4), -9)
+    
+    def testReversebitsWithSlice(self):
+        a = BitString('0x0012ff')
+        a.reversebits()
+        self.assertEqual(a, '0xff4800')
+        a.reversebits(8, 16)
+        self.assertEqual(a, '0xff1200')
+        a[8:16] = a[8:16].reversebits()
+        self.assertEqual(a, '0xff4800')
+        a.reversebits(0, 24)
+        self.assertEqual(a, '0x0012ff')
+    
+    def testReversebitsWithSliceErrors(self):
+        a = BitString('0x123')
+        self.assertRaises(IndexError, a.reversebits, -1, 4)
+        self.assertRaises(IndexError, a.reversebits, 0, 13)
+        self.assertRaises(IndexError, a.reversebits, 10, 9)        
+
 
 def main():
     unittest.main()
