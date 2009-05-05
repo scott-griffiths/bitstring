@@ -1803,13 +1803,26 @@ class BitString(object):
         assert self._assertsanity()
         return self
     
-    def reversebits(self):
-        """Reverse all bits in-place. Return self.
+    def reversebits(self, startbit=None, endbit=None):
+        """Reverse bits in-place. Return self.
+        
+        startbit -- Position of first bit to reverse.
+                    Defaults to 0.
+        endbit -- One past the position of the last bit to reverse.
+                  Defaults to len(self).
+        
+        Raises IndexError if endbit < startbit, if startbit < 0 or
+        endbit > self.length.
         
         Using on an empty BitString will have no effect.
         
         """
-        self._setbin(self._getbin()[:1:-1])
+        if startbit is None:
+            startbit = 0
+        if endbit is None:
+            endbit = self._length
+        self.__setitem__(slice(startbit, endbit),
+                         BitString(bin=self.__getitem__(slice(startbit, endbit))._getbin()[:1:-1]))
         return self
     
     def split(self, delimiter, bytealigned=True, startbit=None,
