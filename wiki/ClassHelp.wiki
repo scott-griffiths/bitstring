@@ -1,5 +1,4 @@
 #summary Help on module bitstring:
-#labels Featured
 {{{
 
 CLASSES
