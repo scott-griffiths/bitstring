@@ -185,7 +185,7 @@ class BitString(object):
         Initialise the BitString with one (and only one) of:
         auto -- string starting with '0x', '0o' or '0b' to be interpreted as
                 hexadecimal, octal or binary respectively, or another BitString.
-        data -- raw data as a string, for example read from binary file.
+        data -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
@@ -321,12 +321,14 @@ class BitString(object):
                 start = key.start * step
                 if key.start < 0:
                     start += stop
+                if start < 0:
+                    start = 0
             if key.stop is not None:
                 stop = key.stop * step
                 if key.stop < 0:
                     stop += self._length - (self._length % step)
             if start > stop:
-                raise IndexError("Cannot set slice if start > stop.")
+                stop = start
             if isinstance(value, int):
                 if value >= 0:
                     value = BitString(uint=value, length=stop - start)
@@ -384,9 +386,9 @@ class BitString(object):
                 stop = key.stop * step
                 if key.stop < 0:
                     stop += self._length - (self._length % step)
+            start = max(start, 0)
+            stop = min(stop, self._length - self._length % step)
             if start < stop:
-                if start < 0 or stop > self._length:
-                    raise IndexError("Slice index out of range.")
                 return self.slice(start, stop)
             else:
                 return BitString()
@@ -1632,14 +1634,14 @@ class BitString(object):
         endbit > self.length.
         
         """
-        if endbit < startbit:
-            raise ValueError("Cannot slice - endbit is less than startbit.")
         if endbit == startbit:
             return BitString()
         if startbit < 0:
             raise ValueError("Cannot slice - startbit is less than zero.")
         if endbit > self._length:
             raise ValueError("Cannot slice - endbit is past the end of the BitString.")
+        if endbit < startbit:
+            raise ValueError("Cannot slice - endbit is less than startbit.")
         startbyte, newoffset = divmod(startbit + self._offset, 8)
         endbyte = (endbit + self._offset - 1) / 8
         return BitString(data=self._datastore[startbyte:endbyte + 1],
@@ -1713,18 +1715,17 @@ class BitString(object):
         bits -- Number of bits to delete.
         bitpos -- Bit position to delete from (default is self.bitpos).
         
-        Raises ValueError if bits < 0 or if you try to delete past the
-        end of the BitString.
+        Raises ValueError if bits < 0.
         
         """
         if bitpos is None:
             bitpos = self._pos
         if bits < 0:
-            raise ValueError("Cannott delete a negative number of bits.")
-        if bits + bitpos > self.length:
-            raise ValueError("Cannot delete past the end of the BitString.")
-        end = self.slice(bitpos+bits, self._length)
-        self.truncateend(self._length - bitpos)
+            raise ValueError("Cannot delete a negative number of bits.")
+        # If too many bits then delete to the end.
+        bits = min(bits, self._length - bitpos)
+        end = self.slice(bitpos + bits, self._length)
+        self.truncateend(max(self._length - bitpos, 0))
         self.append(end)
         return self
     
@@ -1736,8 +1737,7 @@ class BitString(object):
         
         Raises BitStringError if bytepos not specified and current position
         is not byte aligned.
-        Raises ValueError if bytes < 0 or if you try to delete past the
-        end of the BitString.
+        Raises ValueError if bytes < 0.
         
         """
         if bytepos is None and self._pos % 8 != 0:
@@ -1811,16 +1811,22 @@ class BitString(object):
         endbit -- One past the position of the last bit to reverse.
                   Defaults to len(self).
         
-        Raises IndexError if endbit < startbit, if startbit < 0 or
-        endbit > self.length.
-        
         Using on an empty BitString will have no effect.
+        
+        Raises ValueError if startbit < 0, endbit > self.length or
+        endbit < startbit.
         
         """
         if startbit is None:
             startbit = 0
         if endbit is None:
             endbit = self._length
+        if startbit < 0:
+            raise ValueError("startbit must be >= 0 in reversebits().")
+        if endbit > self._length:
+            raise ValueError("endbit must be <= len(self) in reversebits().")
+        if endbit < startbit:
+            raise ValueError("endbit must be >= startbit in reversebits().")
         self.__setitem__(slice(startbit, endbit),
                          BitString(bin=self.__getitem__(slice(startbit, endbit))._getbin()[:1:-1]))
         return self
