@@ -1748,15 +1748,15 @@ class BitStringTest(unittest.TestCase):
             self.assertEqual(f._datastore.source.name, f2._datastore.source.name)
             self.assertTrue(f2 == f)
         a = BitString('0b1')
-        self.assertEqual(repr(a), "bitstring.BitString('0b1')")
+        self.assertEqual(repr(a), "BitString('0b1')")
         a += '0b11'
-        self.assertEqual(repr(a), "bitstring.BitString('0o7')")
+        self.assertEqual(repr(a), "BitString('0o7')")
         a += '0b1'
-        self.assertEqual(repr(a), "bitstring.BitString('0xf')")
+        self.assertEqual(repr(a), "BitString('0xf')")
         a *= max
-        self.assertEqual(repr(a), "bitstring.BitString('0x" + "f"*max + "')")
+        self.assertEqual(repr(a), "BitString('0x" + "f"*max + "')")
         a += '0xf'
-        self.assertEqual(repr(a), "bitstring.BitString('0x" + "f"*max + "...', length=%d)" % (max*4 + 4))
+        self.assertEqual(repr(a), "BitString('0x" + "f"*max + "...', length=%d)" % (max*4 + 4))
 
     def testPrint(self):
         for i in range(-3, 4):
