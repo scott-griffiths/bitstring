@@ -451,7 +451,7 @@ class BitString(object):
             if self._datastore.byteoffset or self._offset:
                 offsetstring = ", offset=%d" % (self._datastore.byteoffset * 8 + self._offset)
             lengthstring = ", length=%d" % length
-            return "bitstring.BitString(filename='%s'%s%s)" % (self._datastore.source.name,
+            return "BitString(filename='%s'%s%s)" % (self._datastore.source.name,
                                                                lengthstring,
                                                                offsetstring)
         else:
@@ -459,7 +459,7 @@ class BitString(object):
             lengthstring = ''
             if s[-3:] == '...' or (s[:2] == '0x' and length % 4 != 0):
                 lengthstring = ", length=%d" % length
-            return "bitstring.BitString('%s'%s)" % (s, lengthstring)
+            return "BitString('%s'%s)" % (s, lengthstring)
             
     def __eq__(self, bs):
         """Return True if two BitStrings have the same binary representation.
