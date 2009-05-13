@@ -1419,7 +1419,6 @@ class BitString(object):
                 self._pos = oldpos
                 return False
             self._setbytepos(p)
-            assert self._assertsanity()
             return True
         else:
             oldpos = self._pos
@@ -1503,15 +1502,25 @@ class BitString(object):
         """
         if isinstance(bs, str):
             bs = BitString(bs)
+        if startbit is None:
+            startbit = 0
+        if endbit is None:
+            endbit = self._length
         if bs.empty():
             raise ValueError("Cannot find an empty BitString.")
-        # Obviously finding all isn't very efficient, and this needs to be rewritten.
-        positions = list(self.findall(bs, bytealigned=bytealigned,
-                                 startbit=startbit, endbit=endbit))
-        if not positions:
-            return False
-        self._pos = positions[-1]
-        return True
+        increment = max(8192, bs.length*80)
+        buffersize = min(increment + bs.length, endbit - startbit)
+        pos = max(startbit, endbit - buffersize)
+        while(True):
+            found = list(self.findall(bs, bytealigned=bytealigned,
+                                 startbit=pos, endbit=pos + buffersize))
+            if not found:
+                if pos == startbit:
+                    return False
+                pos = max(startbit, pos - increment)
+                continue
+            self._pos = found[-1]
+            return True
     
     def replace(self, old, new, bytealigned=True, startbit=None, endbit=None, count=None):
         """Replace all occurrences of old with new in place.
