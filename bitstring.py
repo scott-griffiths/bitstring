@@ -1451,7 +1451,7 @@ class BitString(object):
             return True
 
     def findall(self, bs, bytealigned=True, startbit=None, endbit=None):
-        """Find all occurences of bs. Return list of bit positions.
+        """Find all occurences of bs. Return generator of bit positions.
         
         bs -- The BitString (or string for 'auto' initialiser) to find.
         bytealigned -- If True (the default) the BitString will only be
@@ -1473,17 +1473,16 @@ class BitString(object):
         if endbit is None:
             endbit = self._length
         # Can rely on find() for parameter checking
-        foundpositions = []
         while self.find(bs, bytealigned=bytealigned, startbit=startbit,
                         endbit=endbit):
-            foundpositions.append(self._pos)
+            yield self._pos
             if bytealigned:
                 startbit = self._pos + 8
             else:
                 startbit = self._pos + 1
             if startbit >= endbit:
                 break
-        return foundpositions
+        return
     
     def rfind(self, bs, bytealigned=True, startbit=None, endbit=None):
         """Seek backwards to start of previous occurence of bs.
@@ -1507,8 +1506,8 @@ class BitString(object):
         if bs.empty():
             raise ValueError("Cannot find an empty BitString.")
         # Obviously finding all isn't very efficient, and this needs to be rewritten.
-        positions = self.findall(bs, bytealigned=bytealigned,
-                                 startbit=startbit, endbit=endbit)
+        positions = list(self.findall(bs, bytealigned=bytealigned,
+                                 startbit=startbit, endbit=endbit))
         if not positions:
             return False
         self._pos = positions[-1]
