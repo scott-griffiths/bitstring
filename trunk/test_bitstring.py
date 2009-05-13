@@ -1695,6 +1695,10 @@ class BitStringTest(unittest.TestCase):
         b = a.rfind('0b001', False)
         self.assertEqual(b, True)
         self.assertEqual(a.bitpos, 6)
+        big = BitString(length=10000000) + '0x12' + BitString(length=1000000)
+        found = big.rfind('0x12')
+        self.assertTrue(found)
+        self.assertEqual(big.bitpos, 10000000)
     
     def testRfindByteAligned(self):
         a = BitString('0x8888')
