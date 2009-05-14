@@ -1975,6 +1975,25 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, a.reversebits, -1, 4)
         self.assertRaises(ValueError, a.reversebits, 10, 9)        
         self.assertRaises(ValueError, a.reversebits, 1, 10000)
+    
+    def testInitialiseFromList(self):
+        a = BitString([])
+        self.assertTrue(a.empty())
+        a = BitString([True, False, [], [0], 'hello'])
+        self.assertEqual(a, '0b10011')
+        a += []
+        self.assertEqual(a, '0b10011')
+        a += [True, False, True]
+        self.assertEqual(a, '0b10011101')
+        a.find([12, 23], bytealigned=False)
+        self.assertEqual(a.bitpos, 3)
+        self.assertEqual([1, 0, False, True], BitString('0b1001'))
+    
+    def testInitialiseFromTuple(self):
+        a = BitString(())
+        self.assertTrue(a.empty())
+        a = BitString((0, 1, '0', '1'))
+        self.assertEqual('0b0111', a)
 
 def main():
     unittest.main()
