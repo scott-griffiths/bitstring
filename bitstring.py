@@ -301,10 +301,11 @@ class BitString(object):
         '0xe00f'
         
         """
-        if isinstance(value, str):
-            value = BitString(value)
-        if not isinstance(value, BitString) and not isinstance(value, int):
-            raise TypeError("BitString, int or string expected. Got %s." % type(value))
+        try:
+            value = self._converttobitstring(value)
+        except TypeError:
+            if not isinstance(value, int):
+                raise TypeError("BitString, int or string expected. Got %s." % type(value))
         try:
             # A slice
             start, step = 0, 1
@@ -470,9 +471,9 @@ class BitString(object):
             assert a == '0xf0'
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
-        if not isinstance(bs, BitString):
+        try:
+            bs = self._converttobitstring(bs)
+        except TypeError:
             return False
         if self._length != bs._length:
             return False
@@ -619,8 +620,7 @@ class BitString(object):
         Raises ValueError if the two BitStrings have differing lengths.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if self._length != bs._length:
             raise ValueError('BitStrings must have the same length for & operator.')
         return BitString(uint=self._getuint() & bs._getuint(), length=self._length)
@@ -643,8 +643,7 @@ class BitString(object):
         Raises ValueError if the two BitStrings have differing lengths.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if self._length != bs._length:
             raise ValueError('BitStrings must have the same length for | operator.')
         return BitString(uint=self._getuint() | bs._getuint(), length=self._length)
@@ -667,8 +666,7 @@ class BitString(object):
         Raises ValueError if the two BitStrings have differing lengths.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if self._length != bs._length:
             raise ValueError('BitStrings must have the same length for ^ operator.')
         return BitString(uint=self._getuint() ^ bs._getuint(), length=self._length)
@@ -711,6 +709,11 @@ class BitString(object):
         if isinstance(s, BitString):
             self.__init__(data=s._getdata(), length=s._length, offset=s._offset)
             return
+        if isinstance(s, (list, tuple)):
+            self._setbin(''.join([str(int(bool(x))) for x in s]))
+            return
+        if not isinstance(s, str):
+            raise TypeError("Cannot initialise BitString from %s." % type(s))
         s = _tidyupinputstring(s)
         if not s:
             self._setdata('')
@@ -1114,6 +1117,14 @@ class BitString(object):
         if isinstance(self._datastore, _FileArray):
             self._datastore = _MemArray(self._datastore[:])
     
+    def _converttobitstring(self, bs):
+        """Attemp to convert bs to a BitString and return it."""
+        if isinstance(bs, (str, list, tuple)):
+            bs = BitString(bs)
+        if not isinstance(bs, BitString):
+            raise TypeError("Cannot initialise BitString from %s." % type(bs))
+        return bs
+    
     def empty(self):
         """Return True if the BitString is empty (has zero length)."""
         return self._length == 0
@@ -1378,8 +1389,7 @@ class BitString(object):
         if endbit > len(self) or if endbit < startbit.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if bs.empty():
             raise ValueError("Cannot find an empty BitString.")
         if startbit is None:
@@ -1465,8 +1475,7 @@ class BitString(object):
         
         Note that all occurences of bs are found, even if they overlap.
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if startbit is None:
             startbit = 0
         if endbit is None:
@@ -1500,8 +1509,7 @@ class BitString(object):
         if endbit > len(self) or if endbit < startbit.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if startbit is None:
             startbit = 0
         if endbit is None:
@@ -1541,10 +1549,8 @@ class BitString(object):
         out of range.
         
         """        
-        if isinstance(old, str):
-            old = BitString(old)
-        if isinstance(new, str):
-            new = BitString(new)
+        old = self._converttobitstring(old)
+        new = self._converttobitstring(new)
         if old.empty():
             raise ValueError("Empty BitString cannot be replaced.")
         newpos = self._pos
@@ -1667,8 +1673,7 @@ class BitString(object):
         Raises ValueError if bitpos < 0 or bitpos > self.length.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if bs.empty():
             return self
         if bs is self:
@@ -1697,8 +1702,7 @@ class BitString(object):
         Raises ValueError if bitpos < 0 or bitpos + len(bs) > self.length
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if bs.empty():
             return self
         if bs is self:
@@ -1760,8 +1764,7 @@ class BitString(object):
         bs -- The BitString (or string for 'auto' initialiser) to append.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if bs.empty():
             return self
         # Can't modify file, so ensure it's read into memory
@@ -1787,8 +1790,7 @@ class BitString(object):
         bs -- The BitString (or string for 'auto' initialiser) to prepend.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         if bs.empty():
             return self
         # Can't modify file so ensure it's read into memory
@@ -1861,8 +1863,7 @@ class BitString(object):
         and the delimiter is not a whole number of bytes.
         
         """
-        if isinstance(delimiter, str):
-            delimiter = BitString(delimiter)
+        delimiter = self._converttobitstring(delimiter)
         if delimiter.empty():
             raise ValueError("split delimiter cannot be empty.")
         if startbit is None:
