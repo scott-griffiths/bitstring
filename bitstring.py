@@ -30,6 +30,8 @@ THE SOFTWARE.
 
 __version__ = "0.4.2"
 
+__author__ = "Scott Griffiths"
+
 import array
 import copy
 import string
@@ -189,7 +191,8 @@ class BitString(object):
         """
         Initialise the BitString with one (and only one) of:
         auto -- string starting with '0x', '0o' or '0b' to be interpreted as
-                hexadecimal, octal or binary respectively, or another BitString.
+                hexadecimal, octal or binary respectively, a list or tuple
+                to be interpreted as booleans, or another BitString.
         data -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
@@ -316,23 +319,24 @@ class BitString(object):
             start, step = 0, 1
             if key.step is not None:
                 step = key.step
-            if step != 0:
+            if step == 0:
+                stop = 0
+            else:
+                # default stop needs to be a multiple of step
                 if key.stop is not None:
-                    stop = self._length - (self._length % step)
+                    stop = self._length - (self._length % abs(step))
                 else:
                     stop = self._length
-            else:
-                stop = 0
             if key.start is not None:
-                start = key.start * step
+                start = key.start * abs(step)
                 if key.start < 0:
                     start += stop
                 if start < 0:
                     start = 0
             if key.stop is not None:
-                stop = key.stop * step
+                stop = key.stop * abs(step)
                 if key.stop < 0:
-                    stop += self._length - (self._length % step)
+                    stop += self._length - (self._length % abs(step))
             if start > stop:
                 stop = start
             if isinstance(value, int):
@@ -381,21 +385,28 @@ class BitString(object):
             if key.step is not None:
                 step = key.step
             if step != 0:
-                stop = self._length - (self._length % step)
+                stop = self._length - (self._length % abs(step))
             else:
                 stop = 0
             if key.start is not None:
-                start = key.start * step
+                start = key.start * abs(step)
                 if key.start < 0:
                     start += stop
             if key.stop is not None:
-                stop = key.stop * step
+                stop = key.stop * abs(step)
                 if key.stop < 0:
-                    stop += self._length - (self._length % step)
+                    stop += self._length - (self._length % abs(step))
             start = max(start, 0)
-            stop = min(stop, self._length - self._length % step)
+            stop = min(stop, self._length - self._length % abs(step))
             if start < stop:
-                return self.slice(start, stop)
+                if step >= 0:
+                    return self.slice(start, stop)
+                else:
+                    bsl = []
+                    for i in range((stop - start)/abs(step)):
+                        bsl.append(self.slice(start - i*step, start - (i+1)*step))
+                    bsl.reverse()
+                    return join(bsl)                    
             else:
                 return BitString()
         except AttributeError:
