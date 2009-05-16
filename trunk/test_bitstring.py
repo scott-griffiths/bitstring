@@ -1846,9 +1846,16 @@ class BitStringTest(unittest.TestCase):
         #self.assertRaises(IndexError, a.__getitem__, slice(-5, -2, 4))
     
     def testSliceNegativeStep(self):
-        pass
-        #a = BitString('0o0123456')
-        #self.assertEqual(a[::-3], '0o6543210')
+        a = BitString('0o0123456')
+        self.assertEqual(a[::-3], '0o6543210')
+        self.assertEqual(a[1:3:-6], '0o4523')
+        self.assertEqual(a, a[::-1].reversebits())
+        b = BitString('0x01020408') + '0b11'
+        self.assertEqual(b[::-8], '0x08040201')
+        self.assertEqual(b[::-4], '0x80402010')
+        self.assertEqual(b[::-2], '0b11' + BitString('0x20108040'))
+        self.assertEqual(b[::-34], b)
+        self.assertTrue(b[::-35].empty())
     
     def testSliceNegativeStepErrors(self):
         pass
@@ -1857,9 +1864,6 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0x000ff00')
         del a[3:5:4]
         self.assertEqual(a, '0x00000')
-    
-    def testDelSliceStepErrors(self):
-        pass
     
     def testDelSliceNegativeStep(self):
         pass
@@ -1994,6 +1998,8 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue(a.empty())
         a = BitString((0, 1, '0', '1'))
         self.assertEqual('0b0111', a)
+        a.replace((True, True), [], False)
+        self.assertEqual(a, (False, True))
 
 def main():
     unittest.main()
