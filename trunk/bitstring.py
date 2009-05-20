@@ -337,6 +337,13 @@ class BitString(object):
                 stop = key.stop * abs(step)
                 if key.stop < 0:
                     stop += self._length - (self._length % abs(step))
+            # Adjust start and stop if we're stepping backwards
+            if step < 0:
+                if key.start is None:
+                    start = self.length + step
+                if key.stop is None:
+                    stop = step
+                start, stop = stop - step, start - step
             if start > stop:
                 stop = start
             if isinstance(value, int):
@@ -345,10 +352,16 @@ class BitString(object):
                 else:
                     value = BitString(int=value, length=stop - start)
             if (stop - start) == value._length:
-                self.overwrite(value, start)
+                if step >= 0:
+                    self.overwrite(value, start)
+                else:
+                    self.overwrite(value.__getitem__(slice(None, None, step)), start)
             else:
                 self.deletebits(stop - start, start)
-                self.insert(value, start)
+                if step >= 0:
+                    self.insert(value, start)
+                else:
+                    self.insert(value.__getitem__(slice(None, None, step)), start)
             return
         except AttributeError:
             # single element
@@ -398,13 +411,26 @@ class BitString(object):
                     stop += self._length - (self._length % abs(step))
             start = max(start, 0)
             stop = min(stop, self._length - self._length % abs(step))
+            # Adjust start and stop if we're stepping backwards
+            if step < 0:
+                # This compensates for negative indices being inclusive of the
+                # final index rather than the first.
+                if key.start is not None and key.start < 0:
+                    start += step
+                if key.stop is not None and key.stop < 0:
+                    stop += step
+                
+                if key.start is None:
+                    start = self.length - (self._length % abs(step)) + step
+                if key.stop is None:
+                    stop = step
+                start, stop = stop - step, start - step
             if start < stop:
                 if step >= 0:
                     return self.slice(start, stop)
                 else:
-                    bsl = []
-                    for i in range((stop - start)/abs(step)):
-                        bsl.append(self.slice(start - i*step, start - (i+1)*step))
+                    # Negative step, so reverse the BitString in chunks of step.
+                    bsl = [self.slice(x, x - step) for x in xrange(start, stop, -step)]
                     bsl.reverse()
                     return join(bsl)                    
             else:

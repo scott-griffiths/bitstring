@@ -1839,37 +1839,33 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a[5::8], '0x556677')
         self.assertEqual(a[5:100:8], '0x556677')
     
-    def testSliceStepErrors(self):
-        pass
-        #a = BitString('0xff') + '0b1'
-        #self.assertRaises(IndexError, a.__getitem__, slice(0, 2, 5))
-        #self.assertRaises(IndexError, a.__getitem__, slice(-5, -2, 4))
-    
     def testSliceNegativeStep(self):
-        a = BitString('0o0123456')
+        a = BitString('0o 01 23 45 6')
         self.assertEqual(a[::-3], '0o6543210')
-        self.assertEqual(a[1:3:-6], '0o4523')
+        self.assertTrue(a[1:3:-6].empty())
+        self.assertEqual(a[2:0:-6], '0o4523')
+        self.assertEqual(a[2::-6], '0o452301')
         self.assertEqual(a, a[::-1].reversebits())
         b = BitString('0x01020408') + '0b11'
         self.assertEqual(b[::-8], '0x08040201')
         self.assertEqual(b[::-4], '0x80402010')
         self.assertEqual(b[::-2], '0b11' + BitString('0x20108040'))
+        self.assertEqual(b[::-33], b[:33])
         self.assertEqual(b[::-34], b)
         self.assertTrue(b[::-35].empty())
-    
-    def testSliceNegativeStepErrors(self):
-        pass
+        self.assertEqual(b[-1:-3:-8], '0x0402')
     
     def testDelSliceStep(self):
         a = BitString('0x000ff00')
         del a[3:5:4]
         self.assertEqual(a, '0x00000')
+        del a[10:200:0]
+        self.assertEqual(a, '0x00000')
     
     def testDelSliceNegativeStep(self):
-        pass
-    
-    def testDelSliceNegativeStepErrors(self):
-        pass
+        a = BitString('0x1234567')
+        del a[3:1:-4]
+        self.assertEqual(a, '0x12567')
     
     def testSetSliceStep(self):
         a = BitString()
@@ -1904,7 +1900,13 @@ class BitStringTest(unittest.TestCase):
         pass
     
     def testSetSliceNegativeStep(self):
-        pass
+        a = BitString('0x000000')
+        a[1::-8] = '0x1122'
+        self.assertEqual(a, '0x221100')
+        a[-1:-3:-4] = '0xaeebb'
+        self.assertEqual(a, '0x2211bbeea')
+        a[-1::-8] = '0xffdd'
+        self.assertEqual(a, '0xddff')
     
     def testSetSliceNegativeStepErrors(self):
         pass
