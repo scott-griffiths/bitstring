@@ -62,6 +62,28 @@ See the Wiki for more [Examples].
 ----
 == News ==
 ----
+== May xx 2009: version 0.4.2 for Python 2.x released ==
+This is a minor update.
+== Changes in version 0.4.2 ==
+
+=== Stepping in slices ===
+The use of the step (also known as stride) parameter in slices has been added. Its use is a little non-standard as it effectively gives a multiplicative factor to apply to the start and stop parameters, rather than skipping over bits.
+
+For example this makes it much more convenient if you want to give slices in terms of bytes instead of bits. Instead of writing `s[a*8:b*8]` you can use `s[a:b:8]`.
+
+When using a step the `BitString` is effectively truncated to a multiple of the step, so `s[::8]` is equal to `s` if `s` is an integer number of bytes, otherwise it is truncated by up to 7 bits. So the final seven complete 16-bit words could be written as `s[-7::16]`
+
+Negative slices are also allowed.
+
+
+=== Removed restrictions on `offset` ===
+You can now specify an `offset` of greater than 7 bits when creating a `BitString`, and the use of `offset` is also now permitted when using the `filename` initialiser. This is useful when you want to create a `BitString` from the middle of a file without having to read the file into memory.
+{{{
+f = BitString(filename='reallybigfile, offset=8000000, length=32)
+}}}
+
+
+
 == April 23rd 2009: version 0.4.1 for Python 3 released ==
 This release is simply a port of version 0.4.0 to Python 3.0 and will not work for Python 2.x. All the unit tests pass (of course) but beyond that only limited ad hoc testing has been done. Development is still continuing on the 2.x branch and the Python 3.0 release is a bit of an experiment; both to see what was involved in making the port, and to see if anyone is at all interested in it!
 
