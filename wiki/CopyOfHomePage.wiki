@@ -73,8 +73,7 @@ For example this makes it much more convenient if you want to give slices in ter
 
 When using a step the `BitString` is effectively truncated to a multiple of the step, so `s[::8]` is equal to `s` if `s` is an integer number of bytes, otherwise it is truncated by up to 7 bits. So the final seven complete 16-bit words could be written as `s[-7::16]`
 
-Negative slices are also allowed.
-
+Negative slices are also allowed, and should do what you'd expect. So for example `s[::-1]` returns a bit-reversed copy of `s` (which is similar to `s.reversebit()`, although this function operates on `s` in-place). As another example, to reverse the byte order of a string you could use `s_bytereversed = s[::-8]`.
 
 === Removed restrictions on `offset` ===
 You can now specify an `offset` of greater than 7 bits when creating a `BitString`, and the use of `offset` is also now permitted when using the `filename` initialiser. This is useful when you want to create a `BitString` from the middle of a file without having to read the file into memory.
@@ -82,9 +81,43 @@ You can now specify an `offset` of greater than 7 bits when creating a `BitStrin
 f = BitString(filename='reallybigfile, offset=8000000, length=32)
 }}}
 
+=== Integers can be assigned to slices ===
 
+You can now assign an integer to a slice of a `BitString`. If the integer doesn't fit in the size of slice given then a `ValueError` exception is raised. So this is now allowed and works as expected:
+{{{
+s[8:16] = 100
+}}}
+and is equivalent to
+{{{
+s[8:16] = BitString(uint=100, length=8)
+}}}
+
+=== Less exceptions raised ===
+
+Some changes have been made to slicing so that less exceptions are raised, bringing the interface closer to that for lists. So for example trying to delete past the end of the `BitString` will now just delete to the end, rather than raising a `ValueError`.
+
+=== Initialisation from lists and tuples ===
+
+A new option for the `auto` initialiser is to pass it a list or tuple. The items are evaluated as booleans and the bits in the `BitString` are set to `1` for `True` items and `0` for `False` items. This can be used anywhere the `auto` values can currently be used. For example:
+{{{
+>>> a = BitString([True, 7, False, 0, ()])     # 0b11000
+>>> b = a + ['Yes', '']                        # Adds '0b10'
+>>> (True, True, False) in a
+True
+}}}
+
+=== Miscellany ==
+
+`reversebits()` now has `startbit` and `endbit` parameters.
+
+As an optimisation `findall()` returns a generator, rather than a list. If you still want the whole list then of course you can just call `list()` on the generator.
+
+Improved efficiency of `rfind()`.
+
+Couple of minor bugs fixed. See the issue tracker for details.
 
 == April 23rd 2009: version 0.4.1 for Python 3 released ==
+
 This release is simply a port of version 0.4.0 to Python 3.0 and will not work for Python 2.x. All the unit tests pass (of course) but beyond that only limited ad hoc testing has been done. Development is still continuing on the 2.x branch and the Python 3.0 release is a bit of an experiment; both to see what was involved in making the port, and to see if anyone is at all interested in it!
 
 I am not planning on updating the Python 3.0 version every time I release a new Python 2.x version of bitstring, so the next update will probably have to wait until version 1.0.
