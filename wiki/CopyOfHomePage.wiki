@@ -22,39 +22,40 @@ For the best introduction, see the [Tutorial], which is split up into these page
 
 Different interpretations, slicing and concatenation:
 {{{
->>> a = BitString(uint=5647, length=16)
+>>> a = BitString('0x1af')
 >>> a.hex, a.bin, a.uint
-('0x160f', '0b0001011000001111', 5647)
->>> a[3:9].bin, a[3:9].int
-('0b101100', -20)
->>> (a[0:4] + '0xf').hex
-'0x1f'
+('0x1af', '0b000110101111', 431)
+>>> a[10:3:-1].bin
+'0b1110101'
+>>> 3*a + '0b100'
+BitString('0o0657056705674')
 }}}
 
-Reading data sequentially. Note that the data would more usually come from a `read()` on a binary file.
+Reading data sequentially.
 {{{
->>> b = BitString(data='\x00\x00\x01\xb3\x16\x01\x20\x4f')
->>> b.readbytes(4).hex
-'0x000001b3'
+>>> b = BitString('0x160120f')
 >>> b.readbits(12).uint
 352
 >>> b.readbits(12).uint
 288
 >>> b.readbits(3).bin
 0b010
+>>> b[0:12] = 408
+>>> b.hex
+'0x198120f'
 }}}
 
 Searching, inserting and deleting:
 {{{
->>> c = BitString(bin='00010010010010001111')   # c.hex == '0x1248f'
+>>> c = BitString('0b00010010010010001111')   # c.hex == '0x1248f'
 >>> c.find('0x48')
 True
 >>> c.readbyte().hex
 '0x48'
 >>> c.insert('0b0000')
-bitstring.BitString('0x12480f')
->>> c.deletebits(bits=8, bitpos=4)
-bitstring.BitString('0x180f')
+BitString('0x12480f')
+>>> del c[4:12]
+BitString('0x180f')
 }}}
 
 See the Wiki for more [Examples].
@@ -112,13 +113,15 @@ True
 
 === Miscellany ===
 
-`reversebits()` now has `startbit` and `endbit` parameters.
+`reversebits()` now has optional `startbit` and `endbit` parameters.
 
 As an optimisation `findall()` will return a generator, rather than a list. If you still want the whole list then of course you can just call `list()` on the generator.
 
 Improved efficiency of `rfind()`.
 
-Couple of minor bugs fixed. See the issue tracker for details.
+A couple of minor bugs were fixed. See the issue tracker for details.
+
+----
 
 == April 23rd 2009: version 0.4.1 for Python 3 released ==
 
