@@ -174,7 +174,7 @@ True
 
 *`__`delitem`__`*
 
- <font color="purple">_del s`[`a:b`]`_</font>
+ <font color="purple">_del s`[`a:b:c`]`_</font>
 
 ----
 
@@ -214,13 +214,13 @@ False
 
  <font color="purple">_s.findall(bs, bytealigned=True, startbit=None, endbit=None)_</font>
 
- Searches for all occurences of _bs_ (even overlapping ones) and returns a list of their bit positions. If _bytealigned_ is _True_ then _bs_ will only be looked for at byte aligned positions. _startbit_ and _endbit_ optionally define a slice and default to _0_ and _self.length_ respectively.
+ Searches for all occurences of _bs_ (even overlapping ones) and returns a generator their bit positions. If _bytealigned_ is _True_ then _bs_ will only be looked for at byte aligned positions. _startbit_ and _endbit_ optionally define a slice and default to _0_ and _self.length_ respectively.
 
 ----
 
 *`__`getitem`__`*
 
- <font color="purple">_s`[`a:b`]`_</font>
+ <font color="purple">_s`[`a:b:c`]`_</font>
 
 ----
 
@@ -558,7 +558,7 @@ False
 
 *`__`setitem`__`*
 
- <font color="purple">_s1`[`a:b`]` = s2_</font>
+ <font color="purple">_s1`[`a:b:c`]` = s2_</font>
 
 ----
 
