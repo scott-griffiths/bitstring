@@ -2,10 +2,6 @@
 {{{
 
 CLASSES
-    __builtin__.object
-        BitString
-    exceptions.Exception(exceptions.BaseException)
-        BitStringError
     
     class BitString(__builtin__.object)
      |  A class for general bit-wise manipulations and interpretations.
