@@ -345,7 +345,14 @@ class BitString(object):
                     stop = step
                 start, stop = stop - step, start - step
             if start > stop:
-                stop = start
+                if step == 1:
+                    # The standard behaviour for lists is to just insert at the
+                    # start position if stop < start and step == 1.
+                    stop = start
+                else:
+                    # We have a step which takes us in the wrong direction,
+                    # and will never get from start to stop.
+                    raise ValueError("Attempt to assign to badly defined extended slice.")
             if isinstance(value, int):
                 if value >= 0:
                     value = BitString(uint=value, length=stop - start)

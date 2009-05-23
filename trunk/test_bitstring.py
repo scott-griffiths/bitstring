@@ -162,8 +162,7 @@ class BitStringTest(unittest.TestCase):
             return
         self.assertEqual(s.length, 11743020505*8)
         self.assertEqual(s[1000000000:1000000100].hex, '0xbdef7335d4545f680d669ce24')
-        self.assertEqual(s[-32:].hex, '0xbbebf7a1')
-        s.find('0xff')
+        self.assertEqual(s[-4::8].hex, '0xbbebf7a1')
 
     def testFind1(self):
         s = BitString(bin='0b0000110110000')
@@ -1866,7 +1865,11 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0x1234567')
         del a[3:1:-4]
         self.assertEqual(a, '0x12567')
-    
+        self.assertRaises(ValueError, a.__delitem__, slice(0, 4, -1))
+        self.assertEqual(a, '0x12567')
+        del a[100:80:-1]
+        self.assertEqual(a, '0x12567')
+
     def testSetSliceStep(self):
         a = BitString()
         a[0:0:12] = '0xabcdef'
@@ -1893,11 +1896,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a[-100:-4:4], '0xa')
         a[-100:-4:4] = '0x0'
         self.assertEqual(a, '0x0bcde')
-        a[2:0:4] = '0x33'
-        self.assertEqual(a, '0x0b33cde')
-    
-    def testSetSliceStepErrors(self):
-        pass
+        self.assertRaises(ValueError, a.__setitem__, slice(2, 0, 4), '0x33')
     
     def testSetSliceNegativeStep(self):
         a = BitString('0x000000')
@@ -1907,9 +1906,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, '0x2211bbeea')
         a[-1::-8] = '0xffdd'
         self.assertEqual(a, '0xddff')
-    
-    def testSetSliceNegativeStepErrors(self):
-        pass
+        self.assertRaises(ValueError, a.__setitem__, slice(3, 4, -1), '0x12')
 
     def testInsertingUsingSetItem(self):
         a = BitString()
