@@ -58,6 +58,7 @@ print e.bin    # 0b000010101
 {{{
 # Slicing
 print h[24:32]      # 0xb3
+print h[3:4:8]      # 0xb3   (the third byte)
 print h[-4:]        # 0b0011 (the final four bits)
 
 # Joining lists
