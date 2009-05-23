@@ -1,6 +1,91 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+
+----------------------------------------------------
+May 25th 2009: version 0.4.2 for Python 2.x released
+----------------------------------------------------
+
+This is a minor update, and almost doesn't break compatibility with version
+0.4.0, but with the slight exception of findall() returning a generator,
+detailed below.
+
+Changes in version 0.4.2
+
+* Stepping in slices
+
+The use of the step parameter (also known as the stride) in slices has been
+added. Its use is a little non-standard as it effectively gives a multiplicative
+factor to apply to the start and stop parameters, rather than skipping over
+bits.
+
+For example this makes it much more convenient if you want to give slices in
+terms of bytes instead of bits. Instead of writing s[a*8:b*8] you can use
+s[a:b:8].
+
+When using a step the BitString is effectively truncated to a multiple of the
+step, so s[::8] is equal to s if s is an integer number of bytes, otherwise it
+is truncated by up to 7 bits. So the final seven complete 16-bit words could be
+written as s[-7::16]
+
+Negative slices are also allowed, and should do what you'd expect. So for
+example s[::-1] returns a bit-reversed copy of s (which is similar to
+s.reversebits(), which does the same operation on s in-place). As another
+example, to get the first 10 bytes in reverse byte order you could use
+s_bytereversed = s[0:10:-8].
+
+* Removed restrictions on offset
+
+You can now specify an offset of greater than 7 bits when creating a BitString,
+and the use of offset is also now permitted when using the filename initialiser.
+This is useful when you want to create a BitString from the middle of a file
+without having to read the file into memory.
+
+>>> f = BitString(filename='reallybigfile', offset=8000000, length=32)
+
+* Integers can be assigned to slices
+
+You can now assign an integer to a slice of a BitString. If the integer doesn't
+fit in the size of slice given then a ValueError exception is raised. So this
+is now allowed and works as expected:
+
+>>> s[8:16] = 106
+
+and is equivalent to
+
+>>> s[8:16] = BitString(uint=106, length=8)
+
+* Less exceptions raised
+
+Some changes have been made to slicing so that less exceptions are raised,
+bringing the interface closer to that for lists. So for example trying to delete
+past the end of the BitString will now just delete to the end, rather than
+raising a ValueError.
+
+* Initialisation from lists and tuples
+
+A new option for the auto initialiser is to pass it a list or tuple. The items
+in the list or tuple are evaluated as booleans and the bits in the BitString are
+set to 1 for True items and 0 for False items. This can be used anywhere the
+auto initialiser can currently be used. For example:
+
+>>> a = BitString([True, 7, False, 0, ()])     # 0b11000
+>>> b = a + ['Yes', '']                        # Adds '0b10'
+>>> (True, True, False) in a
+True
+
+* Miscellany
+
+reversebits() now has optional startbit and endbit parameters.
+
+As an optimisation findall() will return a generator, rather than a list. If you
+still want the whole list then of course you can just call list() on the
+generator.
+
+Improved efficiency of rfind().
+
+A couple of minor bugs were fixed. See the issue tracker for details. 
+
 ---------------------------------------
 April 11th 2009: version 0.4.0 released
 ---------------------------------------
@@ -121,9 +206,9 @@ standard index notation.
 Finally got round to writing the distutils script. To install just
 python setup.py install.
 
-----------------------------------------
+------------------------------------------
 February 15th 2009: version 0.3.0 released
-----------------------------------------
+------------------------------------------
 Changes in version 0.3.0
 
 * Simpler initialisation from binary and hexadecimal
@@ -197,4 +282,13 @@ by '...' so it is only an approximate interpretation.
 
 Some missing functions such as advancebit and deletebytes have been added. Also
 a number of peek functions make an appearance as have prepend and reversebits.
-See the Tutorial for more details. 
+See the Tutorial for more details.
+
+-----------------------------------------
+January 13th 2009: version 0.2.0 released
+-----------------------------------------
+Some fairly minor updates, not really deserving of a whole version point update.
+------------------------------------------
+December 29th 2008: version 0.1.0 released
+------------------------------------------
+First release!
