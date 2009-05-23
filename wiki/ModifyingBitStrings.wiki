@@ -39,7 +39,7 @@ s = bitstring.join([BitString(uint=i, length=16) for i in range(1000)])
 
 == Truncating ==
 
-The truncate functions modify the `BitString` that they operate on, but also return themselves. Note this is a change in functionality in version 0.3 - previously these functions did not change the object they operated on.
+The truncate functions modify the `BitString` that they operate on, but also return themselves.
 {{{
 a = BitString('0x001122')
 a.truncateend(8)              # a.hex == '0x0011'
