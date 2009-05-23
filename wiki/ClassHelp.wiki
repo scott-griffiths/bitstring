@@ -2,6 +2,11 @@
 {{{
 
 CLASSES
+    __builtin__.object
+        BitString
+    exceptions.Exception(exceptions.BaseException)
+        BitStringError
+    
     class BitString(__builtin__.object)
      |  A class for general bit-wise manipulations and interpretations.
      |  
@@ -44,8 +49,13 @@ CLASSES
      |  __getitem__(self, key)
      |      Return a new BitString representing a slice of the current BitString.
      |      
-     |      Indices are in bits.
-     |      Stepping is not supported and use will raise a BitStringError.
+     |      Indices are in units of the step parameter (default 1 bit).
+     |      Stepping is used to specify the number of bits in each item.
+     |      
+     |      >>> print BitString('0b00110')[1:4]
+     |      '0b011'
+     |      >>> print BitString('0x00112233')[1:3:8]
+     |      '0x1122'
      |  
      |  __hex__(self)
      |      Return the hexadecimal representation as a string prefixed with '0x'.
@@ -71,8 +81,9 @@ CLASSES
      |  __init__(self, auto=None, length=None, offset=0, data=None, filename=None, hex=None, bin=None, oct=None, uint=None, int=None, ue=None, se=None)
      |      Initialise the BitString with one (and only one) of:
      |      auto -- string starting with '0x', '0o' or '0b' to be interpreted as
-     |              hexadecimal, octal or binary respectively, or another BitString.
-     |      data -- raw data as a string, for example read from binary file.
+     |              hexadecimal, octal or binary respectively, a list or tuple
+     |              to be interpreted as booleans, or another BitString.
+     |      data -- raw data as a string, for example read from a binary file.
      |      bin -- binary string representation, e.g. '0b001010'.
      |      hex -- hexadecimal string representation, e.g. '0x2ef'
      |      oct -- octal string representation, e.g. '0o777'.
@@ -84,7 +95,7 @@ CLASSES
      |      
      |      Other keyword arguments:
      |      length -- length of the BitString in bits, if needed and appropriate.
-     |      offset -- bit offset to the data (0 -> 7). These offset bits are
+     |      offset -- bit offset to the data. These offset bits are
      |                ignored and this is mainly intended for use when
      |                initialising using 'data'.
      |      
@@ -182,8 +193,16 @@ CLASSES
      |  __setitem__(self, key, value)
      |      Set item or range to new value.
      |      
-     |      Indices are in bits.
-     |      Stepping is not supported and use will raise a BitStringError.
+     |      Indices are in units of the step parameter (default 1 bit).
+     |      Stepping is used to specify the number of bits in each item.
+     |      
+     |      >>> s = BitString('0xff')
+     |      >>> s[0:1:4] = '0xe'
+     |      >>> print s
+     |      '0xef'
+     |      >>> s[4:4] = '0x00'
+     |      >>> print s
+     |      '0xe00f'
      |  
      |  __str__(self)
      |      Return approximate string representation of BitString for printing.
@@ -242,8 +261,7 @@ CLASSES
      |      bits -- Number of bits to delete.
      |      bitpos -- Bit position to delete from (default is self.bitpos).
      |      
-     |      Raises ValueError if bits < 0 or if you try to delete past the
-     |      end of the BitString.
+     |      Raises ValueError if bits < 0.
      |  
      |  deletebytes(self, bytes, bytepos=None)
      |      Delete bytes at current position, or bytepos if supplied. Return self.
@@ -253,8 +271,7 @@ CLASSES
      |      
      |      Raises BitStringError if bytepos not specified and current position
      |      is not byte aligned.
-     |      Raises ValueError if bytes < 0 or if you try to delete past the
-     |      end of the BitString.
+     |      Raises ValueError if bytes < 0.
      |  
      |  empty(self)
      |      Return True if the BitString is empty (has zero length).
@@ -274,7 +291,7 @@ CLASSES
      |      if endbit > len(self) or if endbit < startbit.
      |  
      |  findall(self, bs, bytealigned=True, startbit=None, endbit=None)
-     |      Find all occurences of bs. Return list of bit positions.
+     |      Find all occurences of bs. Return generator of bit positions.
      |      
      |      bs -- The BitString (or string for 'auto' initialiser) to find.
      |      bytealigned -- If True (the default) the BitString will only be
@@ -293,8 +310,10 @@ CLASSES
      |      Insert bs at current position, or bitpos if supplied. Return self.
      |      
      |      bs -- The BitString (or string for 'auto' initialiser) to insert.
-     |      bitpos -- The bit position to insert the BitString.
+     |      bitpos -- The bit position to insert the BitString, defaults to
+     |                self.bitpos.
      |      
+     |      After insertion self.bitpos will be immediately after the inserted bits.
      |      Raises ValueError if bitpos < 0 or bitpos > self.length.
      |  
      |  overwrite(self, bs, bitpos=None)
@@ -302,8 +321,10 @@ CLASSES
      |      
      |      bs -- The BitString (or string for 'auto' initialiser) to
      |            overwrite with.
-     |      bitpos -- The bit position to begin overwriting from.
-     |      
+     |      bitpos -- The bit position to begin overwriting from. Defaults to
+     |                self.bitpos.
+     |                
+     |      After overwriting self.bitpos will be immediately after the new bits.
      |      Raises ValueError if bitpos < 0 or bitpos + len(bs) > self.length
      |  
      |  peekbit(self)
@@ -425,10 +446,18 @@ CLASSES
      |      Raises ValueError if bytes negative or if bitpos goes past the start
      |      of the BitString.
      |  
-     |  reversebits(self)
-     |      Reverse all bits in-place. Return self.
+     |  reversebits(self, startbit=None, endbit=None)
+     |      Reverse bits in-place. Return self.
+     |      
+     |      startbit -- Position of first bit to reverse.
+     |                  Defaults to 0.
+     |      endbit -- One past the position of the last bit to reverse.
+     |                Defaults to len(self).
      |      
      |      Using on an empty BitString will have no effect.
+     |      
+     |      Raises ValueError if startbit < 0, endbit > self.length or
+     |      endbit < startbit.
      |  
      |  rfind(self, bs, bytealigned=True, startbit=None, endbit=None)
      |      Seek backwards to start of previous occurence of bs.
