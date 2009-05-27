@@ -1,0 +1,3 @@
+#summary Documentation for the bitstring module
+
+
