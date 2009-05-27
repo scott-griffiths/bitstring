@@ -1,5 +1,4 @@
 #summary Brief description of the bitstring module
-#labels Featured
 
 == The bitstring Module ==
 
