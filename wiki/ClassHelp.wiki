@@ -564,7 +564,7 @@ CLASSES
      |      When read will be prefixed with '0x' and including any leading zeros.
      |  
      |  int
-     |      The BitString as a two's complement signed int. Read and write.
+     |      The BitString as a twos complement signed int. Read and write.
      |  
      |  length
      |      The length of the BitString in bits. Read only.
@@ -581,7 +581,7 @@ CLASSES
      |      The BitString as an unsigned exponential-Golomb code. Read and write.
      |  
      |  uint
-     |      The BitString as a two's complement unsigned int. Read and write.
+     |      The BitString as a twos complement unsigned int. Read and write.
     
 
 FUNCTIONS
