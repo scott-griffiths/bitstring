@@ -1,4 +1,5 @@
 #summary What they are, and why you might need them
+#labels Deprecated
 ----
 *Previous:* [Tutorial Contents]
 
