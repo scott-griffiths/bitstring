@@ -7,35 +7,9 @@
 
 *bitstring* _bit-string, n._ a sequence of binary digits.
 
-= Contents =
+The complete documentation for the bitstring module is now available as a PDF. This contains all the information that was in the Wiki, which is now deprecated. This document isn't included in the 0.4.2 release from the Downloads tab (because I hadn't written it at the time) but will be part of future releases.
 
-This tutorial is divided into a number of pages for ease of use. You can either use the links at the top and bottom of each page for navigation or jump straight to the page you want from the list below.
+_[http://python-bitstring.googlecode.com/svn/wiki/bitstring.pdf Download the bitstring documentation (PDF)]_
 
-  * *[IntroducingBitStrings Introduction]*
-  _What they are, and why you might need them._
 
-  Downloading / installing / running the unit test suite / some examples
-
-  * *[CreatingBitStrings Creating BitStrings]*
-  _The numerous ways of creating !BitStrings._
-
-  Binary / hexadecimal / octal / integers / plain data / a file
-
-  * *[InterpretingBitStrings Interpreting BitStrings]*
-  _The multitude of ways to interpret those bits._
- 
-  * *[DeconstructingBitStrings Deconstructing BitStrings]*
-  _Reading, finding, navigating, slicing._
-
-  * *[ModifyingBitStrings Modifying BitStrings]*
-  _Slice them, dice them, cut 'em up and splice them._
-
-  Truncating / slicing / appending / prepending / inserting / deleting
-
-  * *[Miscellany]*
-  _Plus a few other things..._
-
-  A few more functions plus lots of operators.
-----
-*Next:* [IntroducingBitStrings Introducing BitStrings]
-----
+Also see [Examples] and [ClassHelp].
