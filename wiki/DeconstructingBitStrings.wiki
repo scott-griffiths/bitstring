@@ -1,4 +1,5 @@
 #summary Reading, finding, navigating, slicing
+#labels Deprecated
 ----
 *Previous:* [InterpretingBitStrings Interpreting BitStrings]
 
