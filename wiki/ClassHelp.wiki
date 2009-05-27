@@ -56,7 +56,7 @@ CLASSES
      |  __hex__(self)
      |      Return the hexadecimal representation as a string prefixed with '0x'.
      |      
-     |      Raises a ValueError if the BitString's length is not a multiple of 4.
+     |      Raises a ValueError if the BitStrings length is not a multiple of 4.
      |  
      |  __iadd__(self, bs)
      |      Append bs to current BitString. Return self.
@@ -135,7 +135,7 @@ CLASSES
      |  __oct__(self)
      |      Return the octal representation as a string prefixed with '0o'.
      |      
-     |      Raises a ValueError if the BitString's length is not a multiple of 3.
+     |      Raises a ValueError if the BitStrings length is not a multiple of 3.
      |  
      |  __or__(self, bs)
      |      Bit-wise 'or' between two BitStrings. Returns new BitString.
