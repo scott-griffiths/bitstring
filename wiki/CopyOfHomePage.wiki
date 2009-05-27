@@ -1,6 +1,6 @@
 #labels Deprecated
 *bitstring* is a pure Python module that aids in the construction, analysis and modification of binary data.
-[http://python-bitstring.googlecode.com/svn/wiki/bitstring.pdf]
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring.pdf bitstring documentation (PDF)]
 ==Overview==
 
 The bitstring module provides one feature-rich class, `BitString`, containing binary data which can be interpreted as, or constructed from, hexadecimal, octal or binary strings, signed or unsigned integers, and signed or unsigned exponential-Golomb coded integers. It can also be used as and created from plain Python strings, or initialised from a file.
