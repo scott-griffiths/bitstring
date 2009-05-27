@@ -1,4 +1,5 @@
 #summary The numerous ways of creating BitStrings
+#labels Deprecated
 ----
 *Previous:* [IntroducingBitStrings Introduction]
 
