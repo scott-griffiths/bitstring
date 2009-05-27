@@ -37,7 +37,7 @@ from bitstring import BitString, BitStringError
 class BitStringTest(unittest.TestCase):
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '0.4.2')
+        self.assertEqual(bitstring.__version__, '0.4.3')
     
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')
@@ -1122,7 +1122,7 @@ class BitStringTest(unittest.TestCase):
     def testNullSlice(self):
         s = BitString('0x111')
         t = s.slice(1, 1)
-        self.assertEqual(t._datastore.length(), 0)
+        self.assertEqual(t._datastore.bytelength, 0)
         
     def testMultipleAutos(self):
         s = BitString('0xa').prepend('0xf').append('0xb')

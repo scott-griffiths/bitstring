@@ -28,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 
 __author__ = "Scott Griffiths"
 
@@ -125,7 +125,7 @@ class _FileArray(object):
             length = (lengthinbits + offset + 7)/8
         if length > filelength - byteoffset:
             raise ValueError("File is not long enough for specified BitString length and offset.")
-        self._length = length # length in bytes
+        self.bytelength = length
         self.byteoffset = byteoffset
     
     def __getitem__(self, key):
@@ -134,9 +134,9 @@ class _FileArray(object):
             start = self.byteoffset
             if key.start is not None:
                 start += key.start
-            stop = self._length + self.byteoffset
+            stop = self.bytelength + self.byteoffset
             if key.stop is not None:
-                stop += key.stop - self._length
+                stop += key.stop - self.bytelength
             if start < stop:
                 self.source.seek(start, os.SEEK_SET)
                 return array.array('B', self.source.read(stop-start))
@@ -145,13 +145,10 @@ class _FileArray(object):
         except AttributeError:
             # single element
             key += self.byteoffset
-            if key >= self._length:
+            if key >= self.bytelength:
                 raise IndexError
             self.source.seek(key, os.SEEK_SET)
             return ord(self.source.read(1))
-
-    def length(self):
-        return self._length
     
 
 class _MemArray(object):
@@ -169,22 +166,52 @@ class _MemArray(object):
     def __setitem__(self, key, item):
         self._data.__setitem__(key, item)
     
-    def length(self):
+    def _getbytelength(self):
         return len(self._data)
     
     def append(self, data):
-        self._data.append(data)
+        try:
+            self._data.extend(data)
+        except TypeError:
+            self._data.append(data)
 
-    def extend(self, data):
-        self._data.extend(data)
-
-    def tostring(self):
+    def _getdata(self):
         return self._data.tostring()
+        
+    bytelength = property(_getbytelength)
+    
+    data = property(_getdata)
+
+class _CatArray(object):
+    """A class that represents a composition of BitStrings."""
+    
+    def __init__(self, cat):
+        # cat is list of tuples of BitString id, startbit and length
+        self.cat = cat
+        self.bitlength = sum(kitten[2] for kitten in cat)
+    
+    def __getitem__(self, key):
+        pass
+    
+    def __setitem__(self, key, item):
+        pass
+    
+    def length(self):
+        pass
+    
+    def extend(self, ):
+        BitString._stringtable[self.id]._datastore.extend(data)
+    
+    def append(self, data):
+        BitString._stringtable[self.id]._datastore.append(data)
+    
+    def tostring(self):
+        return BitString._stringtable[self.id]._datastore.tostring()
 
 
 class BitString(object):
     """A class for general bit-wise manipulations and interpretations."""
-    
+
     def __init__(self, auto=None, length=None, offset=0, data=None,
                  filename=None, hex=None, bin=None, oct=None,
                  uint=None, int=None, ue=None, se=None):
@@ -256,7 +283,7 @@ class BitString(object):
                 else:
                     func(d)
         assert self._assertsanity()
-
+        
     def __copy__(self):
         """Return a new copy of the BitString."""
         s_copy = BitString()
@@ -746,11 +773,11 @@ class BitString(object):
         assert self._length >= 0
         assert 0 <= self._offset < 8
         if self._length == 0:
-            assert self._datastore.length() == 0
+            assert self._datastore.bytelength == 0
             assert self._pos == 0
         else:
             assert self._pos <= self._length
-        assert (self._length + self._offset + 7) / 8 == self._datastore.length()
+        assert (self._length + self._offset + 7) / 8 == self._datastore.bytelength
         return True
     
     def _setauto(self, s, length = None):
@@ -790,14 +817,14 @@ class BitString(object):
         if lengthinbits:
             self._length = lengthinbits
         else:
-            self._length = self._datastore.length()*8 - self._offset
+            self._length = self._datastore.bytelength*8 - self._offset
 
     def _setdata(self, data, length = None):
         """Set the data from a string."""
         if length is None:
             # Use to the end of the data
             self._datastore = _MemArray(data[self._offset / 8:])
-            self._length = self._datastore.length()*8 - self._offset
+            self._length = self._datastore.bytelength*8 - self._offset
         else:
             self._length = length
             if self._length + self._offset > len(data)*8:
@@ -813,7 +840,7 @@ class BitString(object):
         """Return the data as an ordinary string."""
         self._ensureinmemory()
         self._setoffset(0)
-        d = self._datastore.tostring()
+        d = self._datastore.data
         # Need to ensure that unused bits at end are set to zero
         unusedbits = 8 - self._length % 8
         if unusedbits != 8:
@@ -847,7 +874,7 @@ class BitString(object):
         if self.empty():
             raise ValueError("An empty BitString cannot be interpreted as an integer.")
         # Special case if the datastore is only one byte long.
-        if self._datastore.length() == 1:
+        if self._datastore.bytelength == 1:
             mask = ((1 << self._length) - 1) << (8 - self._length - self._offset)
             val = self._datastore[0] & mask
             val >>= 8 - self._offset - self._length
@@ -862,7 +889,7 @@ class BitString(object):
         # data is more than 10 bytes.
         j = 1
         structsize = struct.calcsize('Q')
-        end = self._datastore.length() - 1
+        end = self._datastore.bytelength - 1
         while j + structsize < end:
             shift -= 8*structsize
             # Convert next 8 bytes to an int, then shift it to proper place
@@ -1090,7 +1117,7 @@ class BitString(object):
             return ''
         self._ensureinmemory()
         self._setoffset(0)
-        s = self._datastore.tostring()
+        s = self._datastore.data
         hexstrings = [_hex_string_from_single_byte(i) for i in s]
         if (self._length / 4) % 2 == 1:
             # only a nibble left at the end
@@ -1132,7 +1159,7 @@ class BitString(object):
             # We need to shift everything left
             shiftleft = self._offset - offset
             # First deal with everything except for the final byte
-            for x in xrange(self._datastore.length() - 1):
+            for x in xrange(self._datastore.bytelength - 1):
                 self._datastore[x] = ((self._datastore[x] << shiftleft) & 255) + \
                                      (self._datastore[x + 1] >> (8 - shiftleft))
             # if we've shifted all of the data in the last byte then we need to truncate by 1
@@ -1149,7 +1176,7 @@ class BitString(object):
             # Give some overflow room for the last byte
             if (self._offset + self._length + shiftright + 7)/8 > (self._offset + self._length + 7)/8:
                 self._datastore.append(0)
-            for x in xrange(self._datastore.length()-1, 0, -1):
+            for x in xrange(self._datastore.bytelength - 1, 0, -1):
                 self._datastore[x] = ((self._datastore[x-1] << (8 - shiftright)) & 255) + \
                                      (self._datastore[x] >> shiftright)
             self._datastore[0] = self._datastore[0] >> shiftright
@@ -1831,7 +1858,7 @@ class BitString(object):
                                    (bs._datastore[0] & (255 >> bs._offset)))
         else:
             self._datastore.append(bs._datastore[0])
-        self._datastore.extend(bs._datastore[1:bs._datastore.length()])
+        self._datastore.append(bs._datastore[1 : bs._datastore.bytelength])
         self._length += bs._length
         assert self._assertsanity()
         return self
@@ -1859,7 +1886,7 @@ class BitString(object):
             self._datastore[-1] = (self._datastore[-1] | end._datastore[0])
         elif not end.empty():
             self._datastore.append(end._datastore[0])
-        self._datastore.extend(end._datastore[1:end._datastore.length()])
+        self._datastore.append(end._datastore[1 : end._datastore.bytelength])
         self._length += end._length
         self._pos = bitpos + bs._length
         assert self._assertsanity()
