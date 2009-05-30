@@ -13,3 +13,5 @@ _[http://python-bitstring.googlecode.com/svn/wiki/bitstring.pdf Download the bit
 
 
 Also see [Examples] and [ClassHelp].
+
+[http://python-bitstring.googlecode.com/svn/trunk/test.html]
