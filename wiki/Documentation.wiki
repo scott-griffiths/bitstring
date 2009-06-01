@@ -1,7 +1,7 @@
 #summary Documentation for the bitstring module
 #labels Featured
 
-*[http://python-bitstring.googlecode.com/svn/trunk/bitstring.pdf Download the bitstring documentation (PDF)]*
+*[http://python-bitstring.googlecode.com/svn/trunk/docs/bitstring.pdf Download the bitstring documentation (PDF)]*
 
 [http://python-bitstring.googlecode.com/svn/wiki/bitstring.png]
 
@@ -10,4 +10,4 @@ _A Python module to help you manage your bits_
 The complete documentation for the bitstring module is now available as a PDF. This contains all the information that was in the Wiki, which is now deprecated. This document isn't included in the 0.4.2 release from the Downloads tab (because I hadn't written it at the time) but will be part of future releases.
 
 
-*[http://python-bitstring.googlecode.com/svn/trunk/bitstring.pdf Download the bitstring documentation (PDF)]*
+*[http://python-bitstring.googlecode.com/svn/trunk/docs/bitstring.pdf Download the bitstring documentation (PDF)]*
