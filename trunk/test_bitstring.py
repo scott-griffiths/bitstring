@@ -638,12 +638,6 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s2.bin, '0b11111')
         self.assertEqual(s3.bin, '0b00000')
 
-    def testSliceErrors(self):
-        s = BitString(hex = '0x123456')
-        self.assertRaises(ValueError, s.slice, -1, 8)
-        self.assertRaises(ValueError, s.slice, 0, 33)
-        self.assertRaises(ValueError, s.slice, 5, 4)
-
     def testInsert(self):
         s1 = BitString(hex='0x123456')
         s2 = BitString(hex='0xff')
@@ -1999,6 +1993,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual('0b0111', a)
         a.replace((True, True), [], False)
         self.assertEqual(a, (False, True))
+    
+    def testSliceFunctionStep(self):
+        a = BitString('0x012345678')
+        self.assertEqual(a.slice(2, 4, 4), '0x23')
+        self.assertEqual(a.slice(5, 1, -4), '0x5432')
 
 def main():
     unittest.main()

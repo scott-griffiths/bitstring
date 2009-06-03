@@ -182,32 +182,6 @@ class _MemArray(object):
     
     data = property(_getdata)
 
-class _CatArray(object):
-    """A class that represents a composition of BitStrings."""
-    
-    def __init__(self, cat):
-        # cat is list of tuples of BitString id, startbit and length
-        self.cat = cat
-        self.bitlength = sum(kitten[2] for kitten in cat)
-    
-    def __getitem__(self, key):
-        pass
-    
-    def __setitem__(self, key, item):
-        pass
-    
-    def length(self):
-        pass
-    
-    def extend(self, ):
-        BitString._stringtable[self.id]._datastore.extend(data)
-    
-    def append(self, data):
-        BitString._stringtable[self.id]._datastore.append(data)
-    
-    def tostring(self):
-        return BitString._stringtable[self.id]._datastore.tostring()
-
 
 class BitString(object):
     """A class for general bit-wise manipulations and interpretations."""
@@ -461,10 +435,10 @@ class BitString(object):
                 start, stop = stop - step, start - step
             if start < stop:
                 if step >= 0:
-                    return self.slice(start, stop)
+                    return self._slice(start, stop)
                 else:
                     # Negative step, so reverse the BitString in chunks of step.
-                    bsl = [self.slice(x, x - step) for x in xrange(start, stop, -step)]
+                    bsl = [self._slice(x, x - step) for x in xrange(start, stop, -step)]
                     bsl.reverse()
                     return join(bsl)                    
             else:
@@ -475,13 +449,18 @@ class BitString(object):
                 key += self._length
             if not 0 <= key < self._length:
                 raise IndexError("Slice index out of range.")
-            return self.slice(key, key + 1)
+            return self._slice(key, key + 1)
 
     def __delitem__(self, key):
         """Delete item or range.
         
-        Indices are in bits.
-        Stepping is not supported and use will raise a BitStringError.
+        Indices are in units of the step parameter (default 1 bit).
+        Stepping is used to specify the number of bits in each item.
+        
+        >>> a = BitString('0x001122')
+        >>> del a[1:2:8]
+        >>> print a
+        0x0022
         
         """
         self.__setitem__(key, BitString())
@@ -542,9 +521,9 @@ class BitString(object):
         """Return True if two BitStrings have the same binary representation.
         
         Can also be used with a string for the 'auto' initialiser.
-        e.g.
-            a = BitString('0b11110000')
-            assert a == '0xf0'
+
+        >>> BitString('0b1110') == '0xe'
+        True
         
         """
         try:
@@ -564,9 +543,9 @@ class BitString(object):
         """Return False if two BitStrings have the same binary representation.
         
         Can also be used with a string for the 'auto' initialiser.
-        e.g.
-            a = BitString('0b111')
-            assert a != '0b1111'
+        
+        >>> BitString('0b111') == '0x7'
+        False
         
         """
         return not self.__eq__(bs)
@@ -1199,7 +1178,17 @@ class BitString(object):
         if not isinstance(bs, BitString):
             raise TypeError("Cannot initialise BitString from %s." % type(bs))
         return bs
-    
+
+    def _slice(self, startbit, endbit):
+        """Used internally to get a slice, without error checking."""
+        if endbit == startbit:
+            return BitString()
+        startbyte, newoffset = divmod(startbit + self._offset, 8)
+        endbyte = (endbit + self._offset - 1) / 8
+        return BitString(data=self._datastore[startbyte:endbyte + 1],
+                         length=endbit - startbit,
+                         offset=newoffset)
+
     def empty(self):
         """Return True if the BitString is empty (has zero length)."""
         return self._length == 0
@@ -1717,29 +1706,18 @@ class BitString(object):
         assert self._assertsanity()
         return self
     
-    def slice(self, startbit, endbit):
-        """Return a new BitString which is the slice [startbit, endbit).
+    def slice(self, startbit, endbit, step=None):
+        """Return a new BitString which is the slice [startbit:endbit:step].
         
         startbit -- Position of first bit in the new BitString.
         endbit -- One past the position of the last bit in the new BitString.
+        step -- Multiplicative factor for startbit and endbit.
         
-        Raises ValueError if endbit < startbit, if startbit < 0 or
-        endbit > self.length.
+        Has the same semantics as __getitem__.
         
         """
-        if endbit == startbit:
-            return BitString()
-        if startbit < 0:
-            raise ValueError("Cannot slice - startbit is less than zero.")
-        if endbit > self._length:
-            raise ValueError("Cannot slice - endbit is past the end of the BitString.")
-        if endbit < startbit:
-            raise ValueError("Cannot slice - endbit is less than startbit.")
-        startbyte, newoffset = divmod(startbit + self._offset, 8)
-        endbyte = (endbit + self._offset - 1) / 8
-        return BitString(data=self._datastore[startbyte:endbyte + 1],
-                         length=endbit - startbit,
-                         offset=newoffset)
+        return self.__getitem__(slice(startbit, endbit, step))
+
     
     def insert(self, bs, bitpos=None):
         """Insert bs at current position, or bitpos if supplied. Return self.
@@ -1761,7 +1739,7 @@ class BitString(object):
             bitpos = self._pos
         if bitpos < 0 or bitpos > self._length:
             raise ValueError("Invalid insert position.")
-        end = self.slice(bitpos, self._length)
+        end = self._slice(bitpos, self._length)
         self.truncateend(self._length - bitpos)
         self.append(bs)
         self.append(end)
@@ -1792,7 +1770,7 @@ class BitString(object):
             bitposafter = bitpos + bs._length
         if bitpos < 0 or bitpos + bs._length > self._length:
             raise ValueError("Overwrite exceeds boundary of BitString.")
-        end = self.slice(bitpos + bs._length, self._length)
+        end = self._slice(bitpos + bs._length, self._length)
         self.truncateend(self._length - bitpos)
         self.append(bs)
         self.append(end)
@@ -1815,7 +1793,7 @@ class BitString(object):
             raise ValueError("Cannot delete a negative number of bits.")
         # If too many bits then delete to the end.
         bits = min(bits, self._length - bitpos)
-        end = self.slice(bitpos + bits, self._length)
+        end = self._slice(bitpos + bits, self._length)
         self.truncateend(max(self._length - bitpos, 0))
         self.append(end)
         return self
@@ -1963,7 +1941,7 @@ class BitString(object):
         if not found or maxsplit == 0:
             # Initial bits are the whole BitString being searched
             self._pos = oldpos
-            yield self.slice(startbit, endbit)
+            yield self._slice(startbit, endbit)
             return
         # yield the bytes before the first occurence of the delimiter, even if empty
         yield self[startbit:self._pos]
