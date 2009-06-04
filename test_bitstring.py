@@ -330,7 +330,7 @@ class BitStringTest(unittest.TestCase):
 
     def testIncorrectBinAssignment(self):
         s = BitString()
-        self.assertRaises(ValueError, s._setbin, '0010020')
+        self.assertRaises(ValueError, s._setbin, '0010020', 0)
 
     def testIncorrectHexAssignment(self):
         s = BitString()
