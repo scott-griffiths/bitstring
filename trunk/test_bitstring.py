@@ -1052,6 +1052,17 @@ class BitStringTest(unittest.TestCase):
         s = BitString('0b00011')
         self.assertEqual(s.bin, '0b00011')
         self.assertRaises(ValueError, BitString, 'hello')
+        s = BitString([True, False, True], length=1, offset=1)
+        self.assertEqual(s, '0b0')
+        s = BitString('0o5', length=1, offset=1)
+        self.assertEqual(s, '0b0')
+        s = BitString('0x9', length=2, offset=1)
+        self.assertEqual(s, '0b00')
+        s1 = BitString('0b101')
+        s2 = BitString(s1, length=1, offset=1)
+        self.assertEqual(s2, '0b0')
+        s = BitString('0b00100', offset=2, length=1)
+        self.assertEqual(s, '0b1')
 
     def testInsertUsingAuto(self):
         s = BitString('0xff')
