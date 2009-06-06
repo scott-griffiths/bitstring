@@ -253,11 +253,12 @@ class BitString(object):
             if d == filename:
                 byteoffset, offset = divmod(offset, 8)
                 func(d, offset, length, byteoffset)
+            elif d in [se, ue]:
+                func(d)
+            elif d in [int, uint]:
+                func(d, length)
             else:
-                if length is not None:
-                    func(d, offset, length)
-                else:
-                    func(d, offset)
+                func(d, offset, length)
         assert self._assertsanity()
         
     def __copy__(self):
@@ -759,14 +760,16 @@ class BitString(object):
         assert (self.length + self._offset + 7) / 8 == self._datastore.bytelength
         return True
     
-    def _setauto(self, s, offset, length = None):
+    def _setauto(self, s, offset, length):
         """Set BitString from a BitString, list, tuple or string."""
         if isinstance(s, BitString):
-            self.__init__(data=s._getdata(), length=s.length, offset=offset)
+            if length is None:
+                length = s.length
+            self.__init__(data=s._getdata(), length=length, offset=offset)
             return
         if isinstance(s, (list, tuple)):
             # Evaluate each item as True or False and set bits to 1 or 0.
-            self._setbin(''.join([str(int(bool(x))) for x in s]), offset)
+            self._setbin(''.join([str(int(bool(x))) for x in s]), offset, length)
             return
         if not isinstance(s, str):
             raise TypeError("Cannot initialise BitString from %s." % type(s))
@@ -822,7 +825,7 @@ class BitString(object):
             return d[:-1] + chr(ord(d[-1]) & (255 << unusedbits))
         return d
 
-    def _setuint(self, uint, offset=None, length=None):
+    def _setuint(self, uint, length=None):
         """Reset the BitString to have given unsigned int interpretation."""
         if length is None and hasattr(self, "_datastore") and self.length != 0:
             length = self.length
@@ -884,7 +887,7 @@ class BitString(object):
         val += (lastbyte & mask) >> (8 - bitsleft)
         return val
 
-    def _setint(self, int, offset=None, length=None): # TODO: offset not needed here or _setuint
+    def _setint(self, int, length=None):
         """Reset the BitString to have given signed int interpretation."""
         if length is None and hasattr(self, "_datastore") and self.length != 0:
             length = self.length
@@ -895,7 +898,7 @@ class BitString(object):
         if int < 0:
             # the two's complement thing to get the equivalent +ive number
             int = (-int - 1)^((1 << length) - 1)
-        self._setuint(int, offset, length)
+        self._setuint(int, length)
 
     def _getint(self):
         """Return data as a two's complement signed int."""
@@ -906,7 +909,7 @@ class BitString(object):
         tmp = (~(ui - 1)) & ((1 << self.length) - 1)
         return -tmp
 
-    def _setue(self, i, offset=None):
+    def _setue(self, i):
         """Initialise BitString with unsigned exponential-Golomb code for integer i.
         
         Raises ValueError if i < 0.
@@ -915,7 +918,7 @@ class BitString(object):
         if i < 0:
             raise ValueError("Cannot use negative initialiser for unsigned exponential-Golomb.")
         if i == 0:
-            self._setbin('1', 0) # TODO: This is just messy!
+            self._setbin('1')
             return
         tmp = i + 1
         leadingzeros = -1
@@ -925,7 +928,7 @@ class BitString(object):
         remainingpart = i + 1 - (1 << leadingzeros)
         binstring = '0'*leadingzeros + '1' + BitString(uint = remainingpart,
                                                        length = leadingzeros).bin[2:]
-        self._setbin(binstring, 0)
+        self._setbin(binstring)
 
     def _getue(self):
         """Return data as unsigned exponential-Golomb code.
@@ -945,7 +948,7 @@ class BitString(object):
         self._pos = oldpos
         return value
     
-    def _setse(self, i, offset=None):
+    def _setse(self, i):
         """Initialise BitString with signed exponential-Golomb code for integer i."""
         if i > 0:
             u = (i*2) - 1
@@ -1026,7 +1029,7 @@ class BitString(object):
                 binlist.append(binlookup[int(i)])
             except ValueError:
                 raise ValueError("Invalid symbol '%s' in oct initialiser." % i)
-        self._setbin(''.join(binlist), offset)
+        self._setbin(''.join(binlist), offset=offset, length=length)
 
     def _getoct(self):
         """Return interpretation as an octal string."""
@@ -2010,7 +2013,7 @@ def join(bitstringlist):
     bitstringlist -- Can contain BitStrings, or strings to be used by the 'auto'
                      initialiser.
     
-    >>> a = join(['0x0001ee', BitString(int=13, length=100), '0b0111')
+    >>> a = join(['0x0001ee', BitString(int=13, length=100), '0b0111'])
     
     """
     s = BitString()
