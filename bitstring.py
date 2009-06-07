@@ -1698,12 +1698,13 @@ class BitString(object):
         assert self._assertsanity()
         return self
     
-    def slice(self, startbit, endbit, step=None):
+    def slice(self, startbit=None, endbit=None, step=None):
         """Return a new BitString which is the slice [startbit:endbit:step].
         
-        startbit -- Position of first bit in the new BitString.
+        startbit -- Position of first bit in the new BitString. Defaults to 0.
         endbit -- One past the position of the last bit in the new BitString.
-        step -- Multiplicative factor for startbit and endbit.
+                  Defaults to self.length.
+        step -- Multiplicative factor for startbit and endbit. Defaults to 1.
         
         Has the same semantics as __getitem__.
         

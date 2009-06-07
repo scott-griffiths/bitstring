@@ -2005,10 +2005,14 @@ class BitStringTest(unittest.TestCase):
         a.replace((True, True), [], False)
         self.assertEqual(a, (False, True))
     
-    def testSliceFunctionStep(self):
+    def testSliceFunctionEquivalence(self):
         a = BitString('0x012345678')
         self.assertEqual(a.slice(2, 4, 4), '0x23')
         self.assertEqual(a.slice(5, 1, -4), '0x5432')
+        self.assertEqual(a.slice(), a[:])
+        self.assertEqual(a.slice(10), a[10:])
+        self.assertEqual(a.slice(endbit=10), a[:10])
+        self.assertEqual(a.slice(step=21), a[::21])
 
 def main():
     unittest.main()
