@@ -1702,6 +1702,14 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(p.next(), 9*8)
         self.assertEqual(p.next(), 11*8)
         self.assertRaises(StopIteration, p.next)
+    
+    def testFindAllCount(self):
+        s = BitString('0b1')*100
+        for i in [0, 1, 23]:
+            self.assertEqual(len(list(s.findall('0b1', False, count=i))), i)
+        b = s.findall('0b1', count=-1)
+        self.assertRaises(ValueError, b.next)
+        
 
     def testRfind(self):
         a = BitString('0b001001001')
