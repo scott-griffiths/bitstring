@@ -1435,7 +1435,7 @@ class BitString(object):
     def find(self, bs, bytealigned=True, startbit=None, endbit=None):
         """Seek to start of next occurence of bs. Return True if string is found.
         
-        bs -- The BitString (or string for 'auto' initialiser) to find.
+        bs -- The BitString to find.
         bytealigned -- If True (the default) the BitString will only be
                        found on byte boundaries.
         startbit -- The bit position to start the search.
@@ -1520,7 +1520,7 @@ class BitString(object):
     def findall(self, bs, bytealigned=True, startbit=None, endbit=None):
         """Find all occurences of bs. Return generator of bit positions.
         
-        bs -- The BitString (or string for 'auto' initialiser) to find.
+        bs -- The BitString to find.
         bytealigned -- If True (the default) the BitString will only be
                        found on byte boundaries.
         startbit -- The bit position to start the search.
@@ -1555,7 +1555,7 @@ class BitString(object):
         
         Return True if string is found.
         
-        bs -- The BitString (or string for 'auto' initialiser) to find.
+        bs -- The BitString to find.
         bytealigned -- If True (the default) the BitString will only be
                        found on byte boundaries.
         startbit -- The bit position to end the reverse search.
@@ -1614,8 +1614,9 @@ class BitString(object):
         if old.empty():
             raise ValueError("Empty BitString cannot be replaced.")
         newpos = self._pos
-        sections = self.split(old, bytealigned=bytealigned,
-                              startbit=startbit, endbit=endbit, maxsplit=count)
+        if count is not None:
+            count += 1
+        sections = self.split(old, bytealigned, startbit, endbit, count)
         lengths = [s.length for s in sections]
         if len(lengths) == 1:
             self._pos = newpos
@@ -1715,9 +1716,9 @@ class BitString(object):
     def insert(self, bs, bitpos=None):
         """Insert bs at current position, or bitpos if supplied. Return self.
         
-        bs -- The BitString (or string for 'auto' initialiser) to insert.
-        bitpos -- The bit position to insert the BitString, defaults to
-                  self.bitpos.
+        bs -- The BitString to insert.
+        bitpos -- The bit position to insert the BitString
+                  Defaults to self.bitpos.
         
         After insertion self.bitpos will be immediately after the inserted bits.
         Raises ValueError if bitpos < 0 or bitpos > self.length.
@@ -1743,10 +1744,9 @@ class BitString(object):
     def overwrite(self, bs, bitpos=None):
         """Overwrite with bs at current position, or bitpos if given. Return self.
         
-        bs -- The BitString (or string for 'auto' initialiser) to
-              overwrite with.
-        bitpos -- The bit position to begin overwriting from. Defaults to
-                  self.bitpos.
+        bs -- The BitString to overwrite with.
+        bitpos -- The bit position to begin overwriting from.
+                  Defaults to self.bitpos.
                   
         After overwriting self.bitpos will be immediately after the new bits.
         Raises ValueError if bitpos < 0 or bitpos + len(bs) > self.length
@@ -1775,7 +1775,8 @@ class BitString(object):
         """Delete bits at current position, or bitpos if supplied. Return self.
         
         bits -- Number of bits to delete.
-        bitpos -- Bit position to delete from (default is self.bitpos).
+        bitpos -- Bit position to delete from.
+                  Defaults to self.bitpos.
         
         Raises ValueError if bits < 0.
         
@@ -1795,7 +1796,8 @@ class BitString(object):
         """Delete bytes at current position, or bytepos if supplied. Return self.
         
         bytes -- Number of bytes to delete.
-        bytepos -- Byte position to delete from (default is self.bytepos)
+        bytepos -- Byte position to delete from.
+                   Defaults to self.bytepos.
         
         Raises BitStringError if bytepos not specified and current position
         is not byte aligned.
@@ -1811,7 +1813,7 @@ class BitString(object):
     def append(self, bs):
         """Append a BitString to the current BitString. Return self.
         
-        bs -- The BitString (or string for 'auto' initialiser) to append.
+        bs -- The BitString to append.
         
         """
         bs = self._converttobitstring(bs)
@@ -1837,7 +1839,7 @@ class BitString(object):
     def prepend(self, bs):
         """Prepend a BitString to the current BitString. Return self.
         
-        bs -- The BitString (or string for 'auto' initialiser) to prepend.
+        bs -- The BitString to prepend.
         
         """
         bs = self._converttobitstring(bs)
@@ -1892,22 +1894,21 @@ class BitString(object):
         return self
     
     def split(self, delimiter, bytealigned=True, startbit=None,
-              endbit=None, maxsplit=None):
+              endbit=None, count=None):
         """Return BitString generator by splittling using a delimiter.
         
         The first item returned is the initial BitString before the delimiter,
         which may be an empty BitString.
         
-        delimiter -- The BitString (or string for 'auto' initialiser) used as
-                     the divider.
+        delimiter -- The BitString used as the divider.
         bytealigned -- If True (the default) splits will only occur on byte
                        boundaries.
         startbit -- The bit position to start the split.
                     Defaults to 0.
         endbit -- The bit position one past the last bit to use in the split.
                   Defaults to len(self).
-        maxsplit -- If specified then at most maxsplit splits are done.
-                    Default is to split as many times as possible.
+        count -- If specified then at most count items are generated.
+                 Default is to split as many times as possible.
         
         Raises ValueError if the delimiter empty or if bytealigned is True
         and the delimiter is not a whole number of bytes.
@@ -1926,12 +1927,15 @@ class BitString(object):
             raise ValueError("Cannot split - endbit is past the end of the BitString.")
         if endbit < startbit:
             raise ValueError("endbit must not be less than startbit.")
-        splits = 0
+        if count is not None and count < 0:
+            raise ValueError("Cannot split - count must be >= 0.")
         oldpos = self._pos
         self._pos = startbit
+        if count == 0:
+            return
         found = self.find(delimiter, bytealigned=bytealigned,
                           startbit=startbit, endbit=endbit)
-        if not found or maxsplit == 0:
+        if not found:
             # Initial bits are the whole BitString being searched
             self._pos = oldpos
             yield self._slice(startbit, endbit)
@@ -1939,24 +1943,21 @@ class BitString(object):
         # yield the bytes before the first occurence of the delimiter, even if empty
         yield self[startbit:self._pos]
         startpos = self._pos
-        while found:
+        c = 1
+        while count is None or c < count:
             self._pos += delimiter.length
-            found = self.find(delimiter, bytealigned=bytealigned,
-                              startbit=self._pos, endbit=endbit)
+            found = self.find(delimiter, bytealigned, self._pos, endbit)
             if not found:
                 # No more occurences, so return the rest of the BitString
                 self._pos = oldpos
                 yield self[startpos:endbit]
                 return
-            if maxsplit is not None:
-                splits += 1
-                if splits == maxsplit:
-                    # Done all the splits we need to, return the rest of the BitString
-                    self._pos = oldpos
-                    yield self[startpos:]
-                    return
+            c += 1
             yield self[startpos:self._pos]
             startpos = self._pos
+        # Have generated count BitStrings, so time to quit.
+        self._pos = oldpos
+        return
             
     _offset = property(_getoffset)
 

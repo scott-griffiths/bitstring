@@ -1461,13 +1461,22 @@ class BitStringTest(unittest.TestCase):
     def testSplitWithMaxsplit(self):
         a = BitString('0xaabbccbbccddbbccddee')
         self.assertEqual(len(list(a.split('0xbb'))), 4)
-        bsl = list(a.split('0xbb', maxsplit=0))
-        self.assertEqual((len(bsl), bsl[0]), (1, a))
-        bsl = list(a.split('0xbb', maxsplit=1))
+        bsl = list(a.split('0xbb', count=1))
+        self.assertEqual((len(bsl), bsl[0]), (1, '0xaa'))
+        bsl = list(a.split('0xbb', count=2))
         self.assertEqual(len(bsl), 2)
         self.assertEqual(bsl[0], '0xaa')
-        self.assertEqual(bsl[1], '0xbbccbbccddbbccddee')
-        
+        self.assertEqual(bsl[1], '0xbbcc')
+    
+    def testSplitMore(self):
+        s = BitString('0b1100011001110110')
+        for i in range(10):
+            a = list(s.split('0b11', False, count=i))
+            b = list(s.split('0b11', False))[:i]
+            self.assertEqual(a, b)
+        b = s.split('0b11', count=-1)
+        self.assertRaises(ValueError, b.next)
+
     def testFindByteAlignedWithBits(self):
         a = BitString('0x00112233445566778899')
         a.find('0b0001')
@@ -1559,8 +1568,8 @@ class BitStringTest(unittest.TestCase):
     def testSplitMaxSplit(self):
         a = BitString('0b1'*20)
         for i in range(10):
-            bsl = list(a.split('0b1', False, maxsplit=i))
-            self.assertEqual(len(bsl), i+1)
+            bsl = list(a.split('0b1', False, count=i))
+            self.assertEqual(len(bsl), i)
     
     def testTellbit(self):
         s = BitString('0x12312312414')
