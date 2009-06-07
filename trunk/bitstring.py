@@ -1517,7 +1517,8 @@ class BitString(object):
             self._pos = p
             return True
 
-    def findall(self, bs, bytealigned=True, startbit=None, endbit=None):
+    def findall(self, bs, bytealigned=True, startbit=None, endbit=None,
+                count=None):
         """Find all occurences of bs. Return generator of bit positions.
         
         bs -- The BitString to find.
@@ -1527,20 +1528,26 @@ class BitString(object):
                     Defaults to 0.
         endbit -- The bit position one past the last bit to search.
                   Defaults to len(self).
+        count -- The maximum number of occurences to find.
         
         Raises ValueError if bs is empty, if startbit < 0,
         if endbit > len(self) or if endbit < startbit.
         
         Note that all occurences of bs are found, even if they overlap.
         """
+        if count is not None and count < 0:
+            raise ValueError("In findall, count must be >= 0.")
         bs = self._converttobitstring(bs)
         if startbit is None:
             startbit = 0
         if endbit is None:
             endbit = self.length
+        c = 0
         # Can rely on find() for parameter checking
-        while self.find(bs, bytealigned=bytealigned, startbit=startbit,
-                        endbit=endbit):
+        while self.find(bs, bytealigned, startbit, endbit):
+            if count is not None and c >= count:
+                return
+            c += 1
             yield self._pos
             if bytealigned:
                 startbit = self._pos + 8
