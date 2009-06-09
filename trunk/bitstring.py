@@ -1900,6 +1900,43 @@ class BitString(object):
                          BitString(bin=self.__getitem__(slice(startbit, endbit))._getbin()[:1:-1]))
         return self
     
+    def cut(self, bits, startbit=None, endbit=None, count=None):
+        """Return BitString generator by cutting into bits sized chunks.
+        
+        bits -- The size in bits of the BitString chunks to generate.
+        startbit -- The bit position to start the first cut.
+                    Defaults to 0.
+        endbit -- The bit position one past the last bit to use in the cut.
+                  Defaults to len(self).
+        count -- If specified then at most count items are generated.
+                 Default is to cut as many times as possible.
+        
+        """
+        if startbit is None:
+            startbit = 0
+        if endbit is None:
+            endbit = self.length
+        if startbit < 0:
+            raise ValueError("Cannot cut - startbit must be >= 0.")
+        if endbit > self.length:
+            raise ValueError("Cannot cut - endbit is past the end of the BitString.")
+        if endbit < startbit:
+            raise ValueError("endbit must not be less than startbit.")
+        if count is not None and count < 0:
+            raise ValueError("Cannot cut - count must be >= 0.")
+        if bits <= 0:
+            raise ValueError("Cannot cut - bits must be >= 0.")
+        c = 0
+        while count is None or c < count:
+            c += 1
+            nextchunk = self.__getitem__(slice(startbit,
+                                               min(startbit + bits, endbit)))
+            if nextchunk.length != bits:
+                return
+            yield nextchunk
+            startbit += bits
+        return
+ 
     def split(self, delimiter, bytealigned=True, startbit=None,
               endbit=None, count=None):
         """Return BitString generator by splittling using a delimiter.
@@ -1920,7 +1957,7 @@ class BitString(object):
         Raises ValueError if the delimiter empty or if bytealigned is True
         and the delimiter is not a whole number of bytes.
         
-        """
+        """  
         delimiter = self._converttobitstring(delimiter)
         if delimiter.empty():
             raise ValueError("split delimiter cannot be empty.")
@@ -1940,8 +1977,7 @@ class BitString(object):
         self._pos = startbit
         if count == 0:
             return
-        found = self.find(delimiter, bytealigned=bytealigned,
-                          startbit=startbit, endbit=endbit)
+        found = self.find(delimiter, bytealigned, startbit, endbit)
         if not found:
             # Initial bits are the whole BitString being searched
             self._pos = oldpos
