@@ -2030,6 +2030,29 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a.slice(10), a[10:])
         self.assertEqual(a.slice(endbit=10), a[:10])
         self.assertEqual(a.slice(step=21), a[::21])
+    
+    def testCut(self):
+        a = BitString('0x00112233445')
+        b = list(a.cut(8))
+        self.assertEqual(b, ['0x00', '0x11', '0x22', '0x33', '0x44'])
+        b = list(a.cut(4, 8, 16))
+        self.assertEqual(b, ['0x1', '0x1'])
+        b = list(a.cut(4, 0, 44, 4))
+        self.assertEqual(b, ['0x0', '0x0', '0x1', '0x1'])
+        a = BitString()
+        b = list(a.cut(10))
+        self.assertTrue(not b)
+    
+    def testCutErrors(self):
+        a = BitString('0b1')
+        b = a.cut(1, 1, 2)
+        self.assertRaises(ValueError, b.next)
+        b = a.cut(1, -1, 1)
+        self.assertRaises(ValueError, b.next)
+        b = a.cut(0)
+        self.assertRaises(ValueError, b.next)
+        b = a.cut(1, count=-1)
+        self.assertRaises(ValueError, b.next)
 
 def main():
     unittest.main()
