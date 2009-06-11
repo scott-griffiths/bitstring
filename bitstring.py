@@ -1861,9 +1861,10 @@ class BitString(object):
         end._setoffset(bits_in_final_byte)
         bitpos = self._pos
         self._pos = 0
-        self._setdata(bs._getdata(), length=bs.length)
+        self._setdata(bs._datastore._getdata(), bs._offset, bs.length)
         if bits_in_final_byte != 0:
-            self._datastore[-1] = (self._datastore[-1] | end._datastore[0])
+            self._datastore[-1] = (self._datastore[-1] & (255 ^ (255 >> bits_in_final_byte)) | \
+                                   (end._datastore[0] & (255 >> end._offset)))
         elif not end.empty():
             self._datastore.append(end._datastore[0])
         self._datastore.append(end._datastore[1 : end._datastore.bytelength])
@@ -1929,10 +1930,10 @@ class BitString(object):
         c = 0
         while count is None or c < count:
             c += 1
-            nextchunk = self.__getitem__(slice(startbit,
-                                               min(startbit + bits, endbit)))
+            nextchunk = self._slice(startbit, min(startbit + bits, endbit))
             if nextchunk.length != bits:
                 return
+            assert nextchunk._assertsanity()
             yield nextchunk
             startbit += bits
         return
