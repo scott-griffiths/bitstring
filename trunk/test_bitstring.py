@@ -1596,6 +1596,10 @@ class BitStringTest(unittest.TestCase):
         c = BitString()
         c.append('0x1234')
         self.assertEqual(c.bytepos, 0)
+        s = BitString(data='\xff\xff', offset=2)
+        t = BitString(data='\x80', offset=1, length=2)
+        s.prepend(t)
+        self.assertEqual(s, '0x3fff')
 
     def testReplace1(self):
         a = BitString('0b1')
@@ -1716,10 +1720,10 @@ class BitStringTest(unittest.TestCase):
         b = a.rfind('0b001', False)
         self.assertEqual(b, True)
         self.assertEqual(a.bitpos, 6)
-        big = BitString(length=10000000) + '0x12' + BitString(length=1000000)
+        big = BitString(length=100000) + '0x12' + BitString(length=10000)
         found = big.rfind('0x12')
         self.assertTrue(found)
-        self.assertEqual(big.bitpos, 10000000)
+        self.assertEqual(big.bitpos, 100000)
     
     def testRfindByteAligned(self):
         a = BitString('0x8888')
@@ -2053,6 +2057,14 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, b.next)
         b = a.cut(1, count=-1)
         self.assertRaises(ValueError, b.next)
+    
+    def testCutProblem(self):
+        s = BitString('0x1234')
+        for n in list(s.cut(4)):
+            assert n._assertsanity()
+            s.prepend(n)
+            print s.length, s._offset, s._datastore.bytelength
+        self.assertEqual(s, '0x43211234')
 
 def main():
     unittest.main()
