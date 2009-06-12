@@ -36,6 +36,11 @@ from bitstring import BitString, BitStringError
 
 class BitStringTest(unittest.TestCase):
     
+    def testMORE(self):
+        a = BitString(filename='test/smalltestfile', offset=6, length=16)
+        a.prepend(a)
+        self.assertEqual(a, '0b01 0010 0011 0100 01'*2)
+    
     def testVersion(self):
         self.assertEqual(bitstring.__version__, '0.4.3')
     
@@ -223,6 +228,13 @@ class BitStringTest(unittest.TestCase):
     def testCreationFromHexWithWhitespace(self):
         s = BitString(hex='  \n0 X a  4e       \r3  \n')
         self.assertEqual(s.hex, '0xa4e3')
+    
+    def testCreationFromHexWithLength(self):
+        s = BitString(hex='0x12', length=4)
+        self.assertEqual(s, '0x1')
+        s = BitString(hex='0x12', length=0)
+        self.assertTrue(s.empty())
+        self.assertRaises(ValueError, BitString, hex='0x12', length=-1)
         
     def testCreationFromHexErrors(self):
         self.assertRaises(ValueError, BitString, hex='0xx0')
@@ -246,10 +258,41 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue(s.empty())
         s = BitString(bin='00111', offset=2)
         self.assertEqual(s.bin, '0b111')
+
+    def testCreationFromBinWithLength(self):
+        s = BitString(bin='0011100', length=3, offset=2)
+        self.assertEqual(s, '0b111')
+        s = BitString(bin='00100101010', length=0)
+        self.assertTrue(s.empty())
+        self.assertRaises(ValueError, BitString, bin='001', length=-1)
         
     def testCreationFromBinWithWhitespace(self):
         s = BitString(bin='  \r\r\n0   B    00   1 1 \t0 ')
         self.assertEqual(s.bin, '0b00110')
+    
+    def testCreationFromOct(self):
+        s = BitString(oct='7')
+        self.assertEqual(s.oct, '0o7')
+        self.assertEqual(s.bin, '0b111')
+        s.append('0o1')
+        self.assertEqual(s.bin, '0b111001')
+        s.oct = '12345670'
+        self.assertEqual(s.length, 24)
+        self.assertEqual(s.bin, '0b001010011100101110111000')
+        s = BitString('0o123')
+        self.assertEqual(s.oct, '0o123')
+    
+    def testCreationFromOctWithLength(self):
+        s = BitString(oct='123', offset=3, length=3)
+        self.assertEqual(s, '0o2')
+        s = BitString(oct='123', offset=1, length=0)
+        self.assertTrue(s.empty())
+        self.assertRaises(ValueError, BitString, oct='75', length=-1)
+
+    def testCreationFromOctErrors(self):
+        s = BitString('0b00011')
+        self.assertRaises(ValueError, s._getoct)
+        self.assertRaises(ValueError, s._setoct, '8')
 
     def testCreationFromUint(self):
         s = BitString(uint = 15, length = 6)
@@ -1058,7 +1101,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s, '0b0')
         s = BitString('0x9', length=2, offset=1)
         self.assertEqual(s, '0b00')
-        s1 = BitString('0b101')
+        s1 = BitString(data='\xf5', length=3, offset=5)
         s2 = BitString(s1, length=1, offset=1)
         self.assertEqual(s2, '0b0')
         s = BitString('0b00100', offset=2, length=1)
@@ -1158,23 +1201,6 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.oct, '0o12371')
         s += '  0 o 332'
         self.assertEqual(s.oct, '0o12371332')
-    
-    def testInitialisationByOct(self):
-        s = BitString(oct='7')
-        self.assertEqual(s.oct, '0o7')
-        self.assertEqual(s.bin, '0b111')
-        s.append('0o1')
-        self.assertEqual(s.bin, '0b111001')
-        s.oct = '12345670'
-        self.assertEqual(s.length, 24)
-        self.assertEqual(s.bin, '0b001010011100101110111000')
-        s = BitString('0o123')
-        self.assertEqual(s.oct, '0o123')
-
-    def testInitialisationByOctErrors(self):
-        s = BitString('0b00011')
-        self.assertRaises(ValueError, s._getoct)
-        self.assertRaises(ValueError, s._setoct, '8')
 
     def testEquals(self):
         s1 = BitString('0b01010101')
@@ -1817,12 +1843,12 @@ class BitStringTest(unittest.TestCase):
         b = BitString('0b00')
         b += a
         self.assertTrue(b == '0b0011 1111')
-        self.assertEqual(a._datastore._data.tostring(), '\xff')
+        self.assertEqual(a._datastore.rawbytes, '\xff')
         self.assertEqual(a.data, '\xfc')
     
     def testNonZeroBitsAtEnd(self):
         a = BitString(data='\xff', length=5)
-        self.assertEqual(a._datastore._data.tostring(), '\xff')
+        self.assertEqual(a._datastore.rawbytes, '\xff')
         b = BitString('0b00')
         a += b
         self.assertTrue(a == '0b1111100')
