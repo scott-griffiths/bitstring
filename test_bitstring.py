@@ -2061,9 +2061,7 @@ class BitStringTest(unittest.TestCase):
     def testCutProblem(self):
         s = BitString('0x1234')
         for n in list(s.cut(4)):
-            assert n._assertsanity()
             s.prepend(n)
-            print s.length, s._offset, s._datastore.bytelength
         self.assertEqual(s, '0x43211234')
 
 def main():
