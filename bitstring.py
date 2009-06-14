@@ -782,7 +782,7 @@ class BitString(object):
         """Set BitString from a BitString, list, tuple or string."""
         if isinstance(s, BitString):
             if length is None:
-                length = s.length
+                length = s.length - offset
             self._setdata(s._datastore.rawbytes, s._offset + offset, length)
             return
         if isinstance(s, (list, tuple)):
