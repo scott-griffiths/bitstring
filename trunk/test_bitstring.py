@@ -1109,6 +1109,7 @@ class BitStringTest(unittest.TestCase):
         s = BitString(data='\xff', offset=2)
         t = BitString(s, offset=2)
         self.assertEqual(t, '0b1111')
+        self.assertRaises(TypeError, BitString, auto=1.2)
 
     def testInsertUsingAuto(self):
         s = BitString('0xff')

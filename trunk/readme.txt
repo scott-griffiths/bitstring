@@ -1,5 +1,5 @@
-bitstring is a pure Python module to aid in the creation, modification and
-analysis of binary data.
+bitstring is a pure Python module designed to help make the creation and
+analysis of binary data as painless as possible. 
 
 Installation
 ------------

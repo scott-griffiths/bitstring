@@ -1,6 +1,56 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+-----------------------------------------------------
+June 15th 2009: version 0.4.3 for Python 2.x released
+-----------------------------------------------------
+
+This is a minor update. This release is the first to bundle the bitstring
+manual. This is a PDF and you can find it in the docs directory.
+
+Changes in version 0.4.3
+
+* New 'cut' function
+
+This function returns a generator for constant sized chunks of a BitString.
+
+>>> for byte in s.cut(8):
+...     do_something_with(byte)
+
+You can also specify a startbit and endbit, as well as a count, which limits
+the number of items generated:
+
+>>> first100TSPackets = list(s.cut(188*8, count=100))
+
+* 'slice' function now equivalent to __getitem__.
+
+This means that a step can also be given to the slice function so that the
+following are now the same thing, and it's just a personal preference which
+to use:
+
+>>> s1 = s[a:b:c]
+>>> s2 = s.slice(a, b, c)
+
+* findall gets a 'count' parameter.
+
+So now
+
+>>> list(a.findall(s, count=n))
+
+is equivalent to
+
+>>> list(a.findall(s))[:n]
+
+except that it won't need to generate the whole list and so is much more
+efficient.
+
+* Changes to 'split'.
+
+The split function now has a 'count' parameter rather than 'maxsplit'. This
+makes the interface closer to that for cut, replace and findall. The final item
+generated is now no longer the whole of the rest of the BitString.
+
+* A couple of minor bugs were fixed. See the issue tracker for details.
 
 ----------------------------------------------------
 May 25th 2009: version 0.4.2 for Python 2.x released

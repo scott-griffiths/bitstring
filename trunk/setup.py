@@ -10,7 +10,7 @@ setup(name='bitstring',
       download_url='http://python-bitstring.googlecode.com',
       license='The MIT License: http://www.opensource.org/licenses/mit-license.php',
       py_modules=['bitstring'],
-      long_description="""A pure Python module for analysing, constructing and modifying binary data. The underlying binary data can be interpreted as, or constructed from, hexadecimal, octal or binary strings, signed or unsigned integers, and signed or unsigned exponential-Golomb coded integers. It can also be used as and created from plain Python strings.""",
+      long_description="""bitstring is a pure Python module designed to help make the creation and analysis of binary data as painless as possible. BitString objects can be constructed from integers, hexadecimal, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched, and navigated in, similar to a file or stream.""",
       platforms='all',
       classifiers = [
         'Development Status :: 4 - Beta',
