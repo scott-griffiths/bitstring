@@ -7,7 +7,7 @@
 
 _A Python module to help you manage your bits_
 
-The complete documentation for the bitstring module is now available as a PDF. This contains all the information that was in the Wiki, which is now deprecated. This document isn't included in the 0.4.2 release from the Downloads tab (because I hadn't written it at the time) but will be part of future releases.
+The complete documentation for the bitstring module is now available as a PDF. This contains all the information that was in the Wiki, which is now deprecated. This document is included in the 0.4.3 release from the Downloads tab.
 
 
 *[http://python-bitstring.googlecode.com/svn/trunk/docs/bitstring.pdf Download the bitstring documentation (PDF)]*
