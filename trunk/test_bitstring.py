@@ -42,7 +42,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, '0b01 0010 0011 0100 01'*2)
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '0.4.3')
+        self.assertEqual(bitstring.__version__, '0.4.4')
     
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')
@@ -2047,6 +2047,8 @@ class BitStringTest(unittest.TestCase):
         a.find([12, 23], bytealigned=False)
         self.assertEqual(a.bitpos, 3)
         self.assertEqual([1, 0, False, True], BitString('0b1001'))
+        a = [True] + BitString('0b1')
+        self.assertEqual(a, '0b11')
     
     def testInitialiseFromTuple(self):
         a = BitString(())

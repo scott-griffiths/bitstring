@@ -28,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "0.4.3"
+__version__ = "0.4.4"
 
 __author__ = "Scott Griffiths"
 
@@ -311,8 +311,7 @@ class BitString(object):
         bs -- the string for the 'auto' initialiser that will be appended to.
         
         """
-        if isinstance(bs, str):
-            bs = BitString(bs)
+        bs = self._converttobitstring(bs)
         return bs.__add__(self)
 
     def __setitem__(self, key, value):
