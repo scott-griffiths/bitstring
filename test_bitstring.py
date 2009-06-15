@@ -1379,6 +1379,11 @@ class BitStringTest(unittest.TestCase):
         q = BitString()
         q *= 143
         self.assertTrue(q.empty())
+        q += [True, True, False]
+        q.advancebits(2)
+        q *= 0
+        self.assertTrue(q.empty())
+        self.assertEqual(q.bitpos, 0)
 
     def testMultiplicationErrors(self):
         a = BitString('0b1')
