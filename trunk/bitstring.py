@@ -678,8 +678,7 @@ class BitString(object):
         if n < 0:
             raise ValueError("Cannot multiply by a negative integer.")
         if n == 0:
-            self._data = ''
-            # TODO: Should we be worried about _pos?
+            self._clear()
             return self
         s = BitString(self)
         for i in xrange(n - 1):
@@ -777,6 +776,11 @@ class BitString(object):
             assert 0 <= self._pos <= self.length
         assert (self.length + self._offset + 7) / 8 == self._datastore.bytelength
         return True
+    
+    def _clear(self):
+        """Reset the BitString to an empty state."""
+        self.data = ''
+        self._pos = 0
     
     def _setauto(self, s, offset, length):
         """Set BitString from a BitString, list, tuple or string."""
@@ -1683,8 +1687,7 @@ class BitString(object):
             raise ValueError("Truncation length of %d not possible. Length = %d."
                              % (bits, self.length))
         if bits == self.length:
-            self.data = ''
-            self._pos = 0
+            self._clear()
             return self
         offset = (self._offset + bits) % 8
         self._setdata(self._datastore[bits / 8:], offset, length=self.length - bits)
@@ -1704,8 +1707,7 @@ class BitString(object):
             raise ValueError("Truncation length of %d bits not possible. Length = %d."
                              % (bits, self.length))
         if bits == self.length:
-            self.data = ''
-            self._pos = 0
+            self._clear()
             return self
         newlength_in_bytes = (self._offset + self.length - bits + 7) / 8
         # Ensure that the position is still valid
