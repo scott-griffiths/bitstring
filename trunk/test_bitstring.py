@@ -1234,14 +1234,6 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue('0x3 0x7' == a)
         self.assertFalse(a == '0b11001000')
         self.assertFalse('0x3737' == a)
-
-    def testHexSpecialMethod(self):
-        s1 = BitString('0xdeadbeef')
-        self.assertEqual(hex(s1), s1.hex)
-    
-    def testOctSpecialMethod(self):
-        s = BitString('0o77551')
-        self.assertEqual(oct(s), s.oct)
     
     def testInvertSpecialMethod(self):
         s = BitString('0b00011001')
@@ -1315,9 +1307,9 @@ class BitStringTest(unittest.TestCase):
     def testAutoBitStringCopy(self):
         s = BitString('0xabcdef')
         t = BitString(s)
-        self.assertEqual(hex(t), '0xabcdef')
+        self.assertEqual(t.hex, '0xabcdef')
         s.truncateend(8)
-        self.assertEqual(hex(t), '0xabcdef')
+        self.assertEqual(t.hex, '0xabcdef')
         
     def testSliceAssignmentSingleBit(self):
         a = BitString('0b000')
