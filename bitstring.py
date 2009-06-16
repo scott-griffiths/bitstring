@@ -567,22 +567,6 @@ class BitString(object):
         
         """
         return not self.__eq__(bs)
-    
-    def __hex__(self):
-        """Return the hexadecimal representation as a string prefixed with '0x'.
-        
-        Raises a ValueError if the BitString's length is not a multiple of 4.
-        
-        """
-        return self.hex
-    
-    def __oct__(self):
-        """Return the octal representation as a string prefixed with '0o'.
-        
-        Raises a ValueError if the BitString's length is not a multiple of 3.
-        
-        """
-        return self.oct
 
     def __invert__(self):
         """Return BitString with every bit inverted.
