@@ -142,7 +142,7 @@ class _FileArray(_Array):
             self.bytelength = filelength - byteoffset
             bitlength = self.bytelength*8 - offset
         else:
-            self.bytelength = (bitlength + offset + 7)/8
+            self.bytelength = (bitlength + offset + 7)//8
         if self.bytelength > filelength - byteoffset:
             raise ValueError("File is not long enough for specified BitString length and offset.")
         self.byteoffset = byteoffset
@@ -176,10 +176,10 @@ class _MemArray(_Array):
     """A class that wraps the array.array functionality."""
     
     def __init__(self, data, bitlength, offset):
-        self._rawbytes = array.array('B', data[offset / 8: (offset + bitlength + 7)/8])
+        self._rawbytes = array.array('B', data[offset // 8: (offset + bitlength + 7)//8])
         self.offset = offset % 8
         self.bitlength = bitlength
-        assert (self.bitlength + self.offset + 7)/8 == len(self._rawbytes)
+        assert (self.bitlength + self.offset + 7)//8 == len(self._rawbytes)
 
     def __copy__(self):
         return _MemArray(self._rawbytes, self.bitlength, self.offset)
@@ -261,7 +261,7 @@ class BitString(object):
         if initialisers.count(None) == len(initialisers):
             # No initialisers, so initialise with nothing or zero bits
             if length is not None:
-                data = '\x00'*((length + 7)/8)
+                data = '\x00'*((length + 7)//8)
                 self._setdata(data, 0, length)
             else:
                 self._setdata('', 0)
@@ -504,7 +504,7 @@ class BitString(object):
         if length % 4 == 0:
             # Fine to use hex.
             return self.hex
-        if length % 3 == 0 and length / 3 <= _maxchars:
+        if length % 3 == 0 and length // 3 <= _maxchars:
             # Fine to use oct.
             return self.oct
         if length <= _maxchars:
@@ -758,7 +758,7 @@ class BitString(object):
             assert self._pos == 0
         else:
             assert 0 <= self._pos <= self.length
-        assert (self.length + self._offset + 7) / 8 == self._datastore.bytelength
+        assert (self.length + self._offset + 7) // 8 == self._datastore.bytelength
         return True
     
     def _clear(self):
@@ -804,7 +804,7 @@ class BitString(object):
         """Set the data from a string."""
         if length is None:
             # Use to the end of the data
-            length = (len(data) - (offset / 8)) * 8 - offset
+            length = (len(data) - (offset // 8)) * 8 - offset
             self._datastore = _MemArray(data, length, offset)
         else:
             if length + offset > len(data)*8:
@@ -840,7 +840,7 @@ class BitString(object):
         hexstring = hex(uint)[2:]
         if hexstring[-1] == 'L':
             hexstring = hexstring[:-1]
-        hexlengthneeded = (length + 3) / 4
+        hexlengthneeded = (length + 3) // 4
         leadingzeros = hexlengthneeded - len(hexstring)
         if leadingzeros > 0:
             hexstring = '0'*leadingzeros + hexstring
@@ -991,7 +991,7 @@ class BitString(object):
             self._datastore = _MemArray('', 0, 0)
             return
         # pad with zeros up to byte boundary if needed
-        boundary = ((length + 7) / 8) * 8
+        boundary = ((length + 7) // 8) * 8
         if len(binstring) < boundary:
             binstring += '0'*(boundary - length)
         try:
@@ -1017,7 +1017,7 @@ class BitString(object):
             length = len(octstring)*3 - offset
         if length < 0 or length + offset > len(octstring) * 3:
             raise ValueError("Invalid length %s, offset %d for oct initialiser %s" % (length, offset, octstring))
-        octstring = octstring[offset / 3:(length + offset + 2) / 3]
+        octstring = octstring[offset // 3:(length + offset + 2) // 3]
         offset %= 3
         if length == 0:
             self._datastore = _MemArray('', 0, 0)
@@ -1041,7 +1041,7 @@ class BitString(object):
         oldbitpos = self._pos
         self._pos = 0
         octlist = ['0o']
-        for i in xrange(self.length / 3):
+        for i in xrange(self.length // 3):
             octlist.append(str(self.readbits(3).uint))
         self._pos = oldbitpos
         return ''.join(octlist)
@@ -1055,14 +1055,14 @@ class BitString(object):
             length = len(hexstring)*4 - offset
         if length < 0 or length + offset > len(hexstring)*4:
             raise ValueError("Invalid length %d, offset %d for hexstring 0x%s." % (length, offset, hexstring))
-        hexstring = hexstring[offset / 4:(length + offset + 3) / 4]
+        hexstring = hexstring[offset // 4:(length + offset + 3) // 4]
         offset %= 4
         if length == 0:
             self._datastore = _MemArray('', 0, offset)
             return
         hexlist = []
         # First do the whole bytes
-        for i in xrange(len(hexstring) / 2):
+        for i in xrange(len(hexstring) // 2):
             try:
                 j = int(hexstring[i*2:i*2 + 2], 16) 
                 hexlist.append(_single_byte_from_hex_string(hexstring[i*2:i*2 + 2]))
@@ -1089,7 +1089,7 @@ class BitString(object):
             return ''
         self._ensureinmemory()
         hexstrings = [_hex_string_from_single_byte(i) for i in self.data]
-        if (self.length / 4) % 2 == 1:
+        if (self.length // 4) % 2 == 1:
             # only a nibble left at the end
             hexstrings[-1] = hexstrings[-1][0]
         s = '0x'+''.join(hexstrings)
@@ -1103,7 +1103,7 @@ class BitString(object):
         """Return the current position in the stream in bytes. Must be byte aligned."""
         if self._pos % 8 != 0:
             raise BitStringError("Not byte aligned in _getbytepos().")
-        return self._pos / 8
+        return self._pos // 8
 
     def _setbitpos(self, bitpos):
         """Move to absolute postion bit in bitstream."""
@@ -1142,7 +1142,7 @@ class BitString(object):
         else: # offset > self._offset
             shiftright = offset - self._offset
             # Give some overflow room for the last byte
-            if (self._offset + self.length + shiftright + 7)/8 > (self._offset + self.length + 7)/8:
+            if (self._offset + self.length + shiftright + 7)//8 > (self._offset + self.length + 7)//8:
                 self._datastore.append(0)
             for x in xrange(self._datastore.bytelength - 1, 0, -1):
                 self._datastore[x] = ((self._datastore[x-1] << (8 - shiftright)) & 255) + \
@@ -1175,7 +1175,7 @@ class BitString(object):
         if endbit == startbit:
             return BitString()
         startbyte, newoffset = divmod(startbit + self._offset, 8)
-        endbyte = (endbit + self._offset - 1) / 8
+        endbyte = (endbit + self._offset - 1) // 8
         return BitString(data=self._datastore[startbyte:endbyte + 1],
                          length=endbit - startbit,
                          offset=newoffset)
@@ -1207,7 +1207,7 @@ class BitString(object):
         if self._pos + bits > self.length:
             bits = self.length - self._pos
         startbyte, newoffset = divmod(self._pos + self._offset, 8)
-        endbyte = (self._pos + self._offset + bits - 1) / 8
+        endbyte = (self._pos + self._offset + bits - 1) // 8
         self._pos += bits
         assert self._assertsanity()
         return BitString(data=self._datastore[startbyte:endbyte + 1],
@@ -1271,7 +1271,7 @@ class BitString(object):
         
         """
         codenum = self.readue()
-        m = (codenum + 1)/2
+        m = (codenum + 1)//2
         if codenum % 2 == 0:
             return -m
         else:
@@ -1464,10 +1464,10 @@ class BitString(object):
             oldpos = self._pos
             self._pos = startbit
             self.bytealign()
-            bytepos = self._pos / 8
+            bytepos = self._pos // 8
             found = False
             p = bytepos
-            finalpos = endbit / 8
+            finalpos = endbit // 8
             increment = max(1024, len(d)*10)
             buffersize = increment + len(d)
             while p < finalpos:
@@ -1674,7 +1674,7 @@ class BitString(object):
             self._clear()
             return self
         offset = (self._offset + bits) % 8
-        self._setdata(self._datastore[bits / 8:], offset, length=self.length - bits)
+        self._setdata(self._datastore[bits // 8:], offset, length=self.length - bits)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
         return self
@@ -1693,7 +1693,7 @@ class BitString(object):
         if bits == self.length:
             self._clear()
             return self
-        newlength_in_bytes = (self._offset + self.length - bits + 7) / 8
+        newlength_in_bytes = (self._offset + self.length - bits + 7) // 8
         # Ensure that the position is still valid
         self._pos = max(0, min(self._pos, self.length - bits))
         self._setdata(self._datastore[:newlength_in_bytes], length=self.length - bits)
@@ -1808,7 +1808,7 @@ class BitString(object):
         if bytepos is None and self._pos % 8 != 0:
             raise BitStringError("Must be byte-aligned for deletebytes().")
         if bytepos is None:
-            bytepos = self._pos/8
+            bytepos = self._pos//8
         return self.deletebits(bytes*8, bytepos*8)
 
     def append(self, bs):

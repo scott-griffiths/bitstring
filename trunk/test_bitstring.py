@@ -1003,7 +1003,7 @@ class BitStringTest(unittest.TestCase):
             bsl.append(BitString(bin=bin))
         s = bitstring.join(bsl)
         for (hex, bin) in zip(hexes, bins)*5:
-            h = s.readbytes((len(hex)-2)/2)
+            h = s.readbytes((len(hex)-2)//2)
             b = s.readbits(len(bin)-2)
             self.assertEqual(h.hex, hex)
             self.assertEqual(b.bin, bin)
@@ -1819,9 +1819,9 @@ class BitStringTest(unittest.TestCase):
         s = BitString(filename='test/test.m1v')
         self.assertEqual(s[0:bitstring._maxchars*4].hex+'...', s.__str__())
         self.assertEqual(BitString().__str__(), '')
-        toolong = ((bitstring._maxchars+11)/12*12 + 1)
+        toolong = ((bitstring._maxchars+11)//12*12 + 1)
         a = BitString('0b1') * toolong
-        self.assertEqual(a.__str__(), '0x'+'f'*(toolong/4) + '8')
+        self.assertEqual(a.__str__(), '0x'+'f'*(toolong//4) + '8')
     
     def testIter(self):
         a = BitString('0b001010')
