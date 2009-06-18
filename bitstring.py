@@ -459,7 +459,7 @@ class BitString(object):
                     # Negative step, so reverse the BitString in chunks of step.
                     bsl = [self._slice(x, x - step) for x in xrange(start, stop, -step)]
                     bsl.reverse()
-                    return join(bsl)                    
+                    return BitString().join(bsl)                    
             else:
                 return BitString()
         except AttributeError:
@@ -1164,11 +1164,11 @@ class BitString(object):
     
     def _converttobitstring(self, bs):
         """Attemp to convert bs to a BitString and return it."""
+        if isinstance(bs, BitString):
+            return bs
         if isinstance(bs, (str, list, tuple)):
-            bs = BitString(bs)
-        if not isinstance(bs, BitString):
-            raise TypeError("Cannot initialise BitString from %s." % type(bs))
-        return bs
+            return BitString(bs)
+        raise TypeError("Cannot initialise BitString from %s." % type(bs))
 
     def _slice(self, startbit, endbit):
         """Used internally to get a slice, without error checking."""
@@ -1773,7 +1773,7 @@ class BitString(object):
         return self
     
     def deletebits(self, bits, bitpos=None):
-        """Delete bits at current position, or bitpos if supplied. Return self.
+        """Delete bits at current position, or bitpos if given. Return self.
         
         bits -- Number of bits to delete.
         bitpos -- Bit position to delete from.
@@ -1794,7 +1794,7 @@ class BitString(object):
         return self
     
     def deletebytes(self, bytes, bytepos=None):
-        """Delete bytes at current position, or bytepos if supplied. Return self.
+        """Delete bytes at current position, or bytepos if given. Return self.
         
         bytes -- Number of bytes to delete.
         bytepos -- Byte position to delete from.
@@ -1995,7 +1995,21 @@ class BitString(object):
         # Have generated count BitStrings, so time to quit.
         self._pos = oldpos
         return
-            
+
+    def join(self, bitstringlist):
+        """Return the BitStrings in a list joined by self.
+        
+        bitstringlist -- A list of BitStrings.
+        
+        """
+        s = BitString()
+        if bitstringlist:
+            for bs in bitstringlist[:-1]:
+                s.append(bs)
+                s.append(self)
+            s.append(bitstringlist[-1])
+        return s
+ 
     _offset = property(_getoffset)
 
     length = property(_getlength,
@@ -2045,21 +2059,6 @@ class BitString(object):
                       doc="""The position in the BitString in bytes. Read and write.
                       """)
     
-
-def join(bitstringlist):
-    """Return the concatenation of the BitStrings in a list.
-    
-    bitstringlist -- Can contain BitStrings, or strings to be used by the 'auto'
-                     initialiser.
-    
-    >>> a = join(['0x0001ee', BitString(int=13, length=100), '0b0111'])
-    
-    """
-    s = BitString()
-    for bs in bitstringlist:
-        s.append(bs)
-    return s
-
 
 if __name__=='__main__':
     print "Running bitstring module unit tests:"
