@@ -923,18 +923,18 @@ class BitStringTest(unittest.TestCase):
         s3 = BitString(bin='000')
         s4 = BitString(bin='111')
         strings = [s1, s2, s1, s3, s4]
-        s = bitstring.join(strings)
+        s = BitString().join(strings)
         self.assertEqual(s.bin, '0b010000111')
 
     def testJoin2(self):
         s1 = BitString(hex='00112233445566778899aabbccddeeff')
         s2 = BitString(bin='0b000011')
         bsl = [s1[0:32], s1[4:12], s2, s2, s2, s2]
-        s = bitstring.join(bsl)
+        s = BitString().join(bsl)
         self.assertEqual(s.hex, '0x00112233010c30c3')
                 
         bsl = [BitString(uint=j, length=12) for j in range(10) for i in range(10)]
-        s = bitstring.join(bsl)
+        s = BitString().join(bsl)
         self.assertEqual(s.length, 1200)
 
     def testSplitByteAlignedCornerCases(self):
@@ -978,7 +978,7 @@ class BitStringTest(unittest.TestCase):
 
     def testWritingData(self):
         strings = [BitString(bin=x) for x in ['0','001','0011010010','010010','1011']]
-        s = bitstring.join(strings)
+        s = BitString().join(strings)
         s2 = BitString(data = s.data)
         self.assertEqual(s2.bin, '0b000100110100100100101011')
         s2.append(BitString(bin='1'))
@@ -1001,7 +1001,7 @@ class BitStringTest(unittest.TestCase):
         for (hex, bin) in zip(hexes, bins)*5:
             bsl.append(BitString(hex=hex))
             bsl.append(BitString(bin=bin))
-        s = bitstring.join(bsl)
+        s = BitString().join(bsl)
         for (hex, bin) in zip(hexes, bins)*5:
             h = s.readbytes((len(hex)-2)//2)
             b = s.readbits(len(bin)-2)
@@ -1301,7 +1301,7 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, s.__ilshift__, -1)
         
     def testJoinWithAuto(self):
-        s = bitstring.join(['0xf', '0b00', BitString(bin='11')])
+        s = BitString().join(['0xf', '0b00', BitString(bin='11')])
         self.assertEqual(s.bin, '0b11110011')
 
     def testAutoBitStringCopy(self):
@@ -2092,6 +2092,14 @@ class BitStringTest(unittest.TestCase):
         for n in list(s.cut(4)):
             s.prepend(n)
         self.assertEqual(s, '0x43211234')
+    
+    def testJoinFunctions(self):
+        a = BitString().join(['0xa', '0xb', '0b1111'])
+        self.assertEqual(a, '0xabf')
+        a = BitString('0b1').join(['0b0' for i in range(10)])
+        self.assertEqual(a, '0b0101010101010101010')
+        a = BitString('0xff').join([])
+        self.assertTrue(a.empty())
 
 def main():
     unittest.main()
