@@ -571,12 +571,12 @@ class BitStringTest(unittest.TestCase):
         s1 = BitString(data='\xf1\x02\x04')
         s2 = BitString(data='\xf1\x02\x04', length=23)
         for i in [1,2,3,4,5,6,7,6,5,4,3,2,1,0,7,3,5,1,4]:
-            s1._setoffset(i)
+            s1._datastore.setoffset(i)
             self.assertEqual(s1.hex, '0xf10204')
-            s2._setoffset(i)
+            s2._datastore.setoffset(i)
             self.assertEqual(s2.bin, '0b11110001000000100000010')
-        self.assertRaises(ValueError, s1._setoffset, -1)
-        self.assertRaises(ValueError, s1._setoffset, 8)
+        self.assertRaises(ValueError, s1._datastore.setoffset, -1)
+        self.assertRaises(ValueError, s1._datastore.setoffset, 8)
     
     def testAppend(self):
         s1 = BitString('0x00', 5)
@@ -607,7 +607,7 @@ class BitStringTest(unittest.TestCase):
 
     def testByteAlignWithOffset(self):
         s = BitString(hex='0112233')
-        s._setoffset(3)
+        s._datastore.setoffset(3)
         bitstoalign = s.bytealign()
         self.assertEqual(bitstoalign, 0)
         self.assertEqual(s.readbits(5).bin, '0b00001')
@@ -1210,7 +1210,7 @@ class BitStringTest(unittest.TestCase):
         s1 = BitString('0b01010101')
         s2 = BitString('0b01010101')
         self.assertTrue(s1 == s2)
-        s2._setoffset(4)
+        s2._datastore.setoffset(4)
         self.assertTrue(s1 == s2)
         s3 = BitString()
         s4 = BitString()

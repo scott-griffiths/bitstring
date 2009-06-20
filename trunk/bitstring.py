@@ -123,12 +123,19 @@ class _Array(object):
         raise NotImplementedError
     
     def __getitem__(self, key):
+        """Return a slice of the raw bytes."""
         raise NotImplementedError
 
     def __setitem__(self, key, item):
+        """Set a slice of the raw bytes."""
         raise NotImplementedError
     
-    def append(self, data):
+    def appendbytes(self, data):
+        """Append raw byte data."""
+        raise NotImplementedError
+
+    def appendarray(self, array):
+        """Append another array to this one."""
         raise NotImplementedError
 
     
@@ -173,7 +180,7 @@ class _FileArray(_Array):
     
 
 class _MemArray(_Array):
-    """A class that wraps the array.array functionality."""
+    """Stores raw bytes together with a bit offset and length."""
     
     def __init__(self, data, bitlength, offset):
         self._rawbytes = array.array('B', data[offset // 8: (offset + bitlength + 7)//8])
@@ -193,11 +200,60 @@ class _MemArray(_Array):
     def _getbytelength(self):
         return len(self._rawbytes)
     
-    def append(self, data):
+    def appendbytes(self, data):
         try:
             self._rawbytes.extend(data)
         except TypeError:
             self._rawbytes.append(data)
+    
+    def setoffset(self, newoffset):
+        """Realign BitString with new offset to first bit."""
+        if newoffset == self.offset:
+            return
+        if not 0 <= newoffset < 8:
+            raise ValueError("Can only align to an offset from 0 to 7.")
+        if newoffset < self.offset:
+            # We need to shift everything left
+            shiftleft = self.offset - newoffset
+            # First deal with everything except for the final byte
+            for x in xrange(self.bytelength - 1):
+                self[x] = ((self[x] << shiftleft) & 255) + \
+                                     (self[x + 1] >> (8 - shiftleft))
+            # if we've shifted all of the data in the last byte then we need to truncate by 1
+            bits_in_last_byte = (self.offset + self.bitlength) % 8
+            if bits_in_last_byte == 0:
+                bits_in_last_byte = 8
+            if bits_in_last_byte <= shiftleft:
+                # Remove the last byte
+                self._rawbytes.pop()    
+            # otherwise just shift the last byte
+            else:
+                self[-1] = (self[-1] << shiftleft) & 255
+        else: # offset > self._offset
+            shiftright = newoffset - self.offset
+            # Give some overflow room for the last byte
+            if (self.offset + self.bitlength + shiftright + 7)//8 > (self.offset + self.bitlength + 7)//8:
+                self.appendbytes(0)
+            for x in xrange(self.bytelength - 1, 0, -1):
+                self[x] = ((self[x-1] << (8 - shiftright)) & 255) + \
+                                     (self[x] >> shiftright)
+            self[0] = self[0] >> shiftright
+        self.offset = newoffset
+    
+    def appendarray(self, array):
+        """Join another array on to the end of this one."""
+        if array.bitlength == 0:
+            return
+        bits_in_final_byte = (self.offset + self.bitlength) % 8
+        array.setoffset(bits_in_final_byte)
+        if bits_in_final_byte != 0:
+            # first do the byte with the join.
+            self[-1] = (self[-1] & (255 ^ (255 >> bits_in_final_byte)) | \
+                                   (array[0] & (255 >> array.offset)))
+        else:
+            self.appendbytes(array[0])
+        self.appendbytes(array[1 : array.bytelength])
+        self.bitlength += array.bitlength
 
     def _getrawbytes(self):
         return self._rawbytes.tostring()
@@ -818,7 +874,7 @@ class BitString(object):
     def _getdata(self):
         """Return the data as an ordinary string."""
         self._ensureinmemory()
-        self._setoffset(0)
+        self._datastore.setoffset(0)
         d = self._datastore.rawbytes
         # Need to ensure that unused bits at end are set to zero
         unusedbits = 8 - self.length % 8
@@ -1116,40 +1172,6 @@ class BitString(object):
     def _getbitpos(self):
         """Return the current position in the stream in bits."""
         return self._pos
-
-    def _setoffset(self, offset):
-        """Realign BitString with offset to first bit."""
-        if offset == self._offset:
-            return
-        if not 0 <= offset < 8:
-            raise ValueError("Can only align to an offset from 0 to 7.")
-        if offset < self._offset:
-            # We need to shift everything left
-            shiftleft = self._offset - offset
-            # First deal with everything except for the final byte
-            for x in xrange(self._datastore.bytelength - 1):
-                self._datastore[x] = ((self._datastore[x] << shiftleft) & 255) + \
-                                     (self._datastore[x + 1] >> (8 - shiftleft))
-            # if we've shifted all of the data in the last byte then we need to truncate by 1
-            bits_in_last_byte = (self._offset + self.length) % 8
-            if bits_in_last_byte == 0:
-                bits_in_last_byte = 8
-            if bits_in_last_byte <= shiftleft:
-                self._datastore = _MemArray(self._datastore[:-1], self.length, offset)
-            # otherwise just shift the last byte
-            else:
-                self._datastore[-1] = (self._datastore[-1] << shiftleft) & 255
-        else: # offset > self._offset
-            shiftright = offset - self._offset
-            # Give some overflow room for the last byte
-            if (self._offset + self.length + shiftright + 7)//8 > (self._offset + self.length + 7)//8:
-                self._datastore.append(0)
-            for x in xrange(self._datastore.bytelength - 1, 0, -1):
-                self._datastore[x] = ((self._datastore[x-1] << (8 - shiftright)) & 255) + \
-                                     (self._datastore[x] >> shiftright)
-            self._datastore[0] = self._datastore[0] >> shiftright
-        self._datastore.offset = offset
-
     def _getoffset(self):
         return self._datastore.offset
 
@@ -1460,7 +1482,8 @@ class BitString(object):
         if bytealigned and len(bs) % 8 == 0:
             # Extract data bytes from BitString to be found.
             d = bs.data
-            self._setoffset(0)
+            self._ensureinmemory()
+            self._datastore.setoffset(0)
             oldpos = self._pos
             self._pos = startbit
             self.bytealign()
@@ -1822,19 +1845,10 @@ class BitString(object):
             return self
         # Can't modify file, so ensure it's read into memory
         self._ensureinmemory()
+        bs._ensureinmemory()
         if bs is self:
             bs = self.__copy__()
-        bits_in_final_byte = (self._offset + self.length)%8
-        bs._setoffset(bits_in_final_byte)
-        if bits_in_final_byte != 0:
-            # first do the byte with the join.
-            self._datastore[-1] = (self._datastore[-1] & (255 ^ (255 >> bits_in_final_byte)) | \
-                                   (bs._datastore[0] & (255 >> bs._offset)))
-        else:
-            self._datastore.append(bs._datastore[0])
-        self._datastore.append(bs._datastore[1 : bs._datastore.bytelength])
-        self._datastore.bitlength += bs.length
-        assert self._assertsanity()
+        self._datastore.appendarray(bs._datastore)
         return self
     
     def prepend(self, bs):
@@ -1848,23 +1862,13 @@ class BitString(object):
             return self
         # Can't modify file so ensure it's read into memory
         self._ensureinmemory()
+        bs._ensureinmemory()
         if bs is self:
             bs = self.__copy__()
-        bits_in_final_byte = (bs._offset + bs.length)%8
-        end = self.__copy__()
-        end._setoffset(bits_in_final_byte)
-        bitpos = self._pos
-        self._pos = 0
-        self._setdata(bs._datastore.rawbytes, bs._offset, bs.length)
-        if bits_in_final_byte != 0:
-            self._datastore[-1] = (self._datastore[-1] & (255 ^ (255 >> bits_in_final_byte)) | \
-                                   (end._datastore[0] & (255 >> end._offset)))
-        elif not end.empty():
-            self._datastore.append(end._datastore[0])
-        self._datastore.append(end._datastore[1 : end._datastore.bytelength])
-        self._datastore.bitlength += end.length
-        self._pos = bitpos + bs.length
-        assert self._assertsanity()
+        newdatastore = bs._datastore.__copy__()
+        newdatastore.appendarray(self._datastore)
+        self._datastore = newdatastore
+        self.bitpos += bs.length
         return self
     
     def reversebits(self, startbit=None, endbit=None):
