@@ -28,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "0.4.4"
+__version__ = "0.9.0"
 
 __author__ = "Scott Griffiths"
 
@@ -183,28 +183,28 @@ class _MemArray(_Array):
     """Stores raw bytes together with a bit offset and length."""
     
     def __init__(self, data, bitlength, offset):
-        self._rawbytes = array.array('B', data[offset // 8: (offset + bitlength + 7)//8])
+        self._rawarray = array.array('B', data[offset // 8: (offset + bitlength + 7)//8])
         self.offset = offset % 8
         self.bitlength = bitlength
-        assert (self.bitlength + self.offset + 7)//8 == len(self._rawbytes)
+        assert (self.bitlength + self.offset + 7)//8 == len(self._rawarray)
 
     def __copy__(self):
-        return _MemArray(self._rawbytes, self.bitlength, self.offset)
+        return _MemArray(self._rawarray, self.bitlength, self.offset)
     
     def __getitem__(self, key):
-        return self._rawbytes.__getitem__(key)
+        return self._rawarray.__getitem__(key)
 
     def __setitem__(self, key, item):
-        self._rawbytes.__setitem__(key, item)
+        self._rawarray.__setitem__(key, item)
     
     def _getbytelength(self):
-        return len(self._rawbytes)
+        return len(self._rawarray)
     
     def appendbytes(self, data):
         try:
-            self._rawbytes.extend(data)
+            self._rawarray.extend(data)
         except TypeError:
-            self._rawbytes.append(data)
+            self._rawarray.append(data)
     
     def setoffset(self, newoffset):
         """Realign BitString with new offset to first bit."""
@@ -225,7 +225,7 @@ class _MemArray(_Array):
                 bits_in_last_byte = 8
             if bits_in_last_byte <= shiftleft:
                 # Remove the last byte
-                self._rawbytes.pop()    
+                self._rawarray.pop()
             # otherwise just shift the last byte
             else:
                 self[-1] = (self[-1] << shiftleft) & 255
@@ -256,13 +256,50 @@ class _MemArray(_Array):
         self.bitlength += array.bitlength
 
     def _getrawbytes(self):
-        return self._rawbytes.tostring()
+        return self._rawarray.tostring()
         
     bytelength = property(_getbytelength)
     
     rawbytes = property(_getrawbytes)
 
-
+class _CatArray(_Array):
+    
+    def __init__(self, array):
+        self.arraylist = [array]
+        
+    def appendarray(self, array):
+        self.arraylist[0].appendarray(array)
+        
+    def __getitem__(self, key):
+        return self.arraylist[0].__getitem__(key)
+    
+    def _getrawbytes(self):
+        return self.arraylist[0].rawbytes
+    
+    def __copy__(self):
+        return _CatArray(copy.deepcopy(self.arraylist[0]))
+    
+    def __setitem__(self, key, item):
+        self.arraylist[0].__setitem__(key, item)
+    
+    def setoffset(self, newoffset):
+        self.arraylist[0].setoffset(newoffset)
+    
+    def _getoffset(self):
+        return self.arraylist[0].offset
+    
+    def _getbitlength(self):
+        return self.arraylist[0].bitlength
+    
+    def _getbytelength(self):
+        return self.arraylist[0].bytelength
+    
+    rawbytes = property(_getrawbytes)
+    offset = property(_getoffset)
+    bitlength = property(_getbitlength)
+    bytelength = property(_getbytelength)
+    
+        
 class BitString(object):
     """A class for general bit-wise manipulations and interpretations."""
 
@@ -814,7 +851,7 @@ class BitString(object):
             assert self._pos == 0
         else:
             assert 0 <= self._pos <= self.length
-        assert (self.length + self._offset + 7) // 8 == self._datastore.bytelength
+        #assert (self.length + self._offset + 7) // 8 == self._datastore.bytelength
         return True
     
     def _clear(self):
@@ -861,15 +898,15 @@ class BitString(object):
         if length is None:
             # Use to the end of the data
             length = (len(data) - (offset // 8)) * 8 - offset
-            self._datastore = _MemArray(data, length, offset)
+            self._datastore = _CatArray(_MemArray(data, length, offset))
         else:
             if length + offset > len(data)*8:
                 raise ValueError("Not enough data present. Need %d bits, have %d." % \
                                      (length + offset, len(data)*8))
             if length == 0:
-                self._datastore = _MemArray('', 0, 0)
+                self._datastore = _CatArray(_MemArray('', 0, 0))
             else:
-                self._datastore = _MemArray(data, length, offset)
+                self._datastore = _CatArray(_MemArray(data, length, offset))
 
     def _getdata(self):
         """Return the data as an ordinary string."""
@@ -1044,7 +1081,7 @@ class BitString(object):
         # Truncate the bin_string if needed
         binstring = binstring[offset:length + offset]
         if length == 0:
-            self._datastore = _MemArray('', 0, 0)
+            self._datastore = _CatArray(_MemArray('', 0, 0))
             return
         # pad with zeros up to byte boundary if needed
         boundary = ((length + 7) // 8) * 8
@@ -1054,7 +1091,7 @@ class BitString(object):
             bytes = [int(binstring[x:x + 8], 2) for x in xrange(0, len(binstring), 8)]
         except ValueError:
             raise ValueError("Invalid character in bin initialiser.")
-        self._datastore = _MemArray(bytes, length, 0)
+        self._datastore = _CatArray(_MemArray(bytes, length, 0))
 
     def _getbin(self):
         """Return interpretation as a binary string."""
@@ -1076,7 +1113,7 @@ class BitString(object):
         octstring = octstring[offset // 3:(length + offset + 2) // 3]
         offset %= 3
         if length == 0:
-            self._datastore = _MemArray('', 0, 0)
+            self._datastore = _CatArray(_MemArray('', 0, 0))
             return
         binlist = []
         for i in octstring:
@@ -1114,7 +1151,7 @@ class BitString(object):
         hexstring = hexstring[offset // 4:(length + offset + 3) // 4]
         offset %= 4
         if length == 0:
-            self._datastore = _MemArray('', 0, offset)
+            self._datastore = _CatArray(_MemArray('', 0, offset))
             return
         hexlist = []
         # First do the whole bytes
@@ -1131,7 +1168,7 @@ class BitString(object):
                 hexlist.append(_single_byte_from_hex_string(hexstring[-1]))
             except ValueError:
                 raise ValueError("Invalid symbol in hex initialiser.")
-        self._datastore = _MemArray(''.join(hexlist), length, offset)
+        self._datastore = _CatArray(_MemArray(''.join(hexlist), length, offset))
 
     def _gethex(self):
         """Return the hexadecimal representation as a string prefixed with '0x'.
@@ -1182,7 +1219,7 @@ class BitString(object):
     def _ensureinmemory(self):
         """Ensure the data is held in memory, not in a file."""
         if isinstance(self._datastore, _FileArray):
-            self._datastore = _MemArray(self._datastore[:], self.length, self._offset)
+            self._datastore = _CatArray(_MemArray(self._datastore[:], self.length, self._offset))
     
     def _converttobitstring(self, bs):
         """Attemp to convert bs to a BitString and return it."""
