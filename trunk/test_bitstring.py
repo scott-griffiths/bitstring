@@ -101,9 +101,9 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.bin, '0b0000000100100011010001010110011110001001101010111100110111101111')
         self.assertEqual(s[:-1].oct, '0o002215053170465363367')
         s.bitpos = 0
-        self.assertEqual(s.readse(), -72)
+        self.assertEqual(s.read('se'), -72)
         s.bitpos = 0
-        self.assertEqual(s.readue(), 144)
+        self.assertEqual(s.read('ue'), 144)
         self.assertEqual(s.data, '\x01\x23\x45\x67\x89\xab\xcd\xef')
 
     def testCreationFromFileWithLength(self):
@@ -452,17 +452,15 @@ class BitStringTest(unittest.TestCase):
         s = BitString(bin='1 010 011 00100 00101 00110 00111 0001000 0001001')
         self.assertEqual(s.bitpos, 0)
         for i in range(9):
-            self.assertEqual(s.readue(), i)
-        self.assertRaises(BitStringError, s.readue)
+            self.assertEqual(s.read('ue'), i)
+        self.assertRaises(BitStringError, s.read, 'ue')
 
     def testReadSE(self):
         s = BitString(bin='010 00110 0001010 0001000 00111')
-        self.assertEqual(s.readse(), 1)
-        self.assertEqual(s.readse(), 3)
-        self.assertEqual(s.readse(), 5)
-        self.assertEqual(s.readse(), 4)
-        self.assertEqual(s.readse(), -3)
-
+        self.assertEqual(s.read('se'), 1)
+        self.assertEqual(s.read('se'), 3)
+        self.assertEqual(s.read('se, se, se'), [5, 4, -3])
+        
     def testBitPosition(self):
         s = BitString(data='\x00\x00\x00')
         self.assertEqual(s.bitpos, 0)
@@ -2110,8 +2108,79 @@ class BitStringTest(unittest.TestCase):
         c1.appendarray(m2)
         self.assertEqual(c1.bitlength, 9)
         self.assertEqual(c1.offset, 0)
+    
+    def testAddingBitpos(self):
+        a = BitString('0xff')
+        b = BitString('0x00')
+        a.bitpos = b.bitpos = 8
+        c = a + b
+        self.assertEqual(c.bitpos, 0)
 
-
+    def testIntelligentRead1(self):
+        a = BitString(uint=123, length=23)
+        u = a.read('uint23')
+        self.assertEqual(u, 123)
+        self.assertEqual(a.bitpos, a.length)
+        b = BitString(int=-12, length=44)
+        i = b.read('int44')
+        self.assertEqual(i, -12)
+        self.assertEqual(b.bitpos, b.length)
+        u2, i2 = (a+b).read('uint23, int44')
+        self.assertEqual((u2, i2), (123, -12))
+        
+    def testIntelligentRead2(self):
+        a = BitString(ue=822)
+        u = a.read('ue')
+        self.assertEqual(u, 822)
+        self.assertEqual(a.bitpos, a.length)
+        b = BitString(se=-1001)
+        s = b.read('se')
+        self.assertEqual(s, -1001)
+        self.assertEqual(b.bitpos, b.length)
+        s, u1, u2 = (b+2*a).read('se, ue, ue')
+        self.assertEqual((s, u1, u2), (-1001, 822, 822))
+    
+    def testIntelligentRead3(self):
+        a = BitString('0x123') + '0b11101'
+        h = a.read('hex12')
+        self.assertEqual(h, '0x123')
+        b = a.read('bin 5')
+        self.assertEqual(b, '0b11101')
+        c = b + a
+        b, h = c.read('bin5, hex12')
+        self.assertEqual((b, h), ('0b11101', '0x123'))
+    
+    def testIntelligentRead4(self):
+        a = BitString('0o007')
+        o = a.read('oct9')
+        self.assertEqual(o, '0o007')
+        self.assertEqual(a.bitpos, a.length)
+        
+    def testIntelligentRead5(self):
+        a = BitString('0x00112233')
+        c0, c1, c2 = a.read('8, 8, 16')
+        self.assertEqual((c0, c1, c2), (BitString('0x00'), BitString('0x11'), BitString('0x2233')))
+        a.seekbit(0)
+        c = a.read('4*4')
+        self.assertEqual(c, BitString('0x0011'))
+        
+    def testIntelligentRead6(self):
+        a = BitString('0b000111000')
+        b1, b2, b3 = a.read('bin3', 'int3', 'int3')
+        self.assertEqual(b1, '0b000')
+        self.assertEqual(b2, -1)
+        self.assertEqual(b3, 0)
+        
+    def testIntelligentRead7(self):
+        pass
+    def testIntelligentRead8(self):
+        pass
+    def testIntelligentRead9(self):
+        pass
+    
+    def testIntelligentPeek(self):
+        pass
+    
 def main():
     unittest.main()
 
