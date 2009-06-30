@@ -388,7 +388,9 @@ class BitString(object):
         bs -- the BitString (or string for 'auto' initialiser) to append.
         
         """
-        return self.__copy__().append(bs)
+        s = self.__copy__().append(bs)
+        s.bitpos = 0
+        return s
 
     def __iadd__(self, bs):
         """Append bs to current BitString. Return self.
@@ -1034,7 +1036,7 @@ class BitString(object):
         oldpos = self._pos
         self._pos = 0
         try:
-            value = self.readue()
+            value = self._readue()
             if self._pos != self.length:
                 raise BitStringError
         except BitStringError:
@@ -1060,7 +1062,7 @@ class BitString(object):
         oldpos= self._pos
         self._pos = 0
         try:
-            value = self.readse()
+            value = self._readse()
             if value is None or self._pos != self.length:
                 raise BitStringError
         except BitStringError:
@@ -1239,9 +1241,123 @@ class BitString(object):
                          length=endbit - startbit,
                          offset=newoffset)
 
+    def _readue(self):
+        """Return interpretation of next bits as unsigned exponential-Golomb code.
+           
+        Advances position to after the read code.
+        
+        Raises BitStringError if the end of the BitString is encountered while
+        reading the code.
+        
+        """
+        oldpos = self._pos
+        foundone = self.find('0b1', False, self._pos)
+        if not foundone:
+            self._pos = self.length
+            raise BitStringError("Read off end of BitString trying to read code.")
+        leadingzeros = self._pos - oldpos
+        codenum = (1 << leadingzeros) - 1
+        if leadingzeros > 0:
+            restofcode = self.readbits(leadingzeros + 1)
+            if restofcode.length != leadingzeros + 1:
+                raise BitStringError("Read off end of BitString trying to read code.")
+            codenum += restofcode[1:].uint
+        else:
+            assert codenum == 0
+            self._pos += 1
+        return codenum
+
+    def _readse(self):
+        """Return interpretation of next bits as a signed exponential-Golomb code.
+        
+        Advances position to after the read code.
+        
+        Raises BitStringError if the end of the BitString is encountered while
+        reading the code.
+        
+        """
+        codenum = self._readue()
+        m = (codenum + 1)//2
+        if codenum % 2 == 0:
+            return -m
+        else:
+            return m
+
     def empty(self):
         """Return True if the BitString is empty (has zero length)."""
         return self.length == 0
+    
+    def read(self, format):
+        """Interpret next bits according to format string(s) and return result.
+        
+        format is a string with comma separated tokens describing how to
+        interpret the next bits in the BitString. If only one token is present
+        then a single object is returned, otherwise a list is returned.
+        
+        Token examples: 'int12' : 12 bits as a signed integer
+                        'uint8' : 8 bits as an unsigned integer
+                        'hex80' : 80 bits as a hex string
+                        'oct9'  : 9 bits as an octal string
+                        'bin1'  : single bit binary string
+                        'ue'    : next bits as unsigned exp-Golomb code
+                        'se'    : next bits as signed exp-Golomb code
+                        '50'    : 50 bits as a BitString object
+                
+        >>> h, b1, b2 = s.read('hex20, bin5, bin3')
+        
+        """
+        format_list = [f.strip().lower() for f in format.split(',')]
+        return_values = []
+        for token in format_list:
+            if token.startswith('uint'):
+                length = int(token[4:])
+                return_values.append(self.readbits(length).uint)
+                continue
+            if token.startswith('int'):
+                length = int(token[3:])
+                return_values.append(self.readbits(length).int)
+                continue
+            if token == 'ue':
+                return_values.append(self._readue())
+                continue
+            if token == 'se':
+                return_values.append(self._readse())
+                continue                
+            if token.startswith('hex'):
+                length = int(token[3:])
+                return_values.append(self.readbits(length).hex)
+                continue
+            if token.startswith('oct'):
+                length = int(token[3:])
+                return_values.append(self.readbits(length).oct)
+                continue
+            if token.startswith('bin'):
+                length = int(token[3:])
+                return_values.append(self.readbits(length).bin)
+                continue
+            # Finally try as a bitlength without interpretation
+            try:
+                length = int(eval(token))
+                if length < 0:
+                    raise ValueError
+                return_values.append(self.readbits(length))
+                continue
+            except ValueError:
+                pass
+            raise ValueError("Don't understand token '%s' in read()." % token)
+        if len(return_values) == 1:
+            return return_values[0]
+        return return_values
+    
+    def peek(self, format):
+        """Interpret next bits according to format string and return result.
+        
+        
+        """
+        bp = self.bitpos
+        return_values = self.read(format)
+        self.bitpos = bp
+        return return_values
     
     def readbit(self):
         """Return next bit in BitString as new BitString and advance position.
@@ -1293,48 +1409,6 @@ class BitString(object):
         
         """
         return self.readbits(bytes*8)
-
-    def readue(self):
-        """Return interpretation of next bits as unsigned exponential-Golomb code.
-           
-        Advances position to after the read code.
-        
-        Raises BitStringError if the end of the BitString is encountered while
-        reading the code.
-        
-        """
-        oldpos = self._pos
-        foundone = self.find('0b1', False, self._pos)
-        if not foundone:
-            self._pos = self.length
-            raise BitStringError("Read off end of BitString trying to read code.")
-        leadingzeros = self._pos - oldpos
-        codenum = (1 << leadingzeros) - 1
-        if leadingzeros > 0:
-            restofcode = self.readbits(leadingzeros + 1)
-            if restofcode.length != leadingzeros + 1:
-                raise BitStringError("Read off end of BitString trying to read code.")
-            codenum += restofcode[1:].uint
-        else:
-            assert codenum == 0
-            self._pos += 1
-        return codenum
-
-    def readse(self):
-        """Return interpretation of next bits as a signed exponential-Golomb code.
-        
-        Advances position to after the read code.
-        
-        Raises BitStringError if the end of the BitString is encountered while
-        reading the code.
-        
-        """
-        codenum = self.readue()
-        m = (codenum + 1)//2
-        if codenum % 2 == 0:
-            return -m
-        else:
-            return m
 
     def peekbit(self):
         """Return next bit as a new BitString without advancing position.
