@@ -28,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "0.9.0"
+__version__ = "0.5.0"
 
 __author__ = "Scott Griffiths"
 
@@ -47,6 +47,8 @@ def _single_byte_from_hex_string(h):
     """Return a byte equal to the input hex string."""
     try:
         i = int(h, 16)
+        if i < 0:
+            raise ValueError
     except ValueError:
         raise ValueError("Can't convert hex string to a single byte")
     if len(h) > 2:
@@ -66,15 +68,18 @@ def _hex_string_from_single_byte(b):
     else:
         return '00'
 
-def _tidyupinputstring(s):
-    """Return string made lowercase and with all whitespace removed."""
-    s = string.join(s.split(), '').lower()
-    if '-' in s:
-        # We need to be careful not to allow negative quantities that will
-        # be converted to hex etc. by int(v, 16) without complaint.
-        raise ValueError("Invalid character '-' in initialiser.")
-    return s
+def _splitinputstring(s):
+    """Return array of strings for parsing as BitStrings."""
+    # We allow ',' to separate items
+    slist = s.split(',')
+    slist = [s.strip().lower() for s in slist]
+    return slist
 
+def _tidyupinputstring(s):
+    """Return string made lowercase and with all whitespace and '=' removed."""
+    s = string.join(s.split(), '').lower()
+    return s.replace('=', '')
+    
 # Not pretty, but a byte to bitstring lookup really speeds things up.
 _byte2bits = ['00000000', '00000001', '00000010', '00000011', '00000100', '00000101', '00000110', '00000111',
               '00001000', '00001001', '00001010', '00001011', '00001100', '00001101', '00001110', '00001111',
@@ -868,27 +873,78 @@ class BitString(object):
                 length = s.length - offset
             self._setdata(s._datastore.rawbytes, s._offset + offset, length)
             return
+        
+        # TODO: Is this going to be a casualty of the new string stuff?
         if isinstance(s, (list, tuple)):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin(''.join([str(int(bool(x))) for x in s]), offset, length)
             return
+        
         if not isinstance(s, str):
             raise TypeError("Cannot initialise BitString from %s." % type(s))
-        s = _tidyupinputstring(s)
-        if not s:
-            self._setdata('', offset)
+            
+        # We have an ordinary string. First split it into sections:
+        slist = _splitinputstring(s)
+        self._setdata('', 0)
+        if not slist:
             return
-        if s.startswith('0x'):
-            self._sethex(s, offset, length)
-            return
-        if s.startswith('0b'):
-            self._setbin(s, offset, length)
-            return
-        if s.startswith('0o'):
-            self._setoct(s, offset, length)
-            return
-        raise ValueError("String '%s' cannot be interpreted as hexadecimal, binary or octal. "
-                             "It must start with '0x', '0b' or '0o'." % s)
+        for sub in slist:
+            tidy = _tidyupinputstring(sub)
+            if not tidy:
+                continue
+            # Convert string starting with hex, oct, bin to 0x, 0o, 0b.
+            if tidy.startswith('hex'):
+                tidy = '0x' + tidy[3:]
+            if tidy.startswith('oct'):
+                tidy = '0o' + tidy[3:]
+            if tidy.startswith('bin'):
+                tidy = '0b' + tidy[3:]
+            if tidy.startswith('0x'):
+                # Interpret as a hexadecimal string
+                self.append(BitString(hex=tidy))
+                continue
+            if tidy.startswith('0b'):
+                # Interpret as a binary string
+                self.append(BitString(bin=tidy))
+                continue
+            if tidy.startswith('0o'):
+                # Interpret as an octal string
+                self.append(BitString(oct=tidy))
+                continue
+            if tidy.startswith('uint'):
+                # Interpret as an unsigned integer with a bitlength
+                sub = sub.replace('=', ' ')
+                length_value = sub[4:].split()
+                if len(length_value) != 2:
+                    raise ValueError("Can't understand input string %s." % sub)
+                lengthstr, valuestr = length_value
+                self.append(BitString(uint=int(valuestr), length=int(lengthstr)))
+                continue
+            if tidy.startswith('int'):
+                # Interpret as a signed integer with a bitlength
+                sub = sub.replace('=', ' ')
+                length_value = sub[3:].split()
+                if len(length_value) != 2:
+                    raise ValueError("Can't understand input string %s." % sub)
+                lengthstr, valuestr = length_value
+                self.append(BitString(int=int(valuestr), length=int(lengthstr)))
+                continue
+            if tidy.startswith('ue'):
+                # Interpret as an unsigned Exp-Golomb code
+                value = int(sub[2:])
+                self.append(BitString(ue=value))
+                continue
+            if tidy.startswith('se'):
+                # Interpret as a signed Exp-Golomb code
+                value = int(sub[2:])
+                self.append(BitString(se=value))
+                continue
+            raise ValueError("String '%s' cannot be interpreted." % s)
+        # Finally we honour the offset and length
+        self.truncatestart(offset)
+        self._datastore.setoffset(0) # TODO: I shouldn't need to do this! HACK!
+        if length is not None:
+            self.truncateend(self.length - length)
 
     def _setfile(self, filename, offset, lengthinbits=None, byteoffset=None):
         "Use file as source of bits."
@@ -1079,7 +1135,7 @@ class BitString(object):
         if length is None:
             length = len(binstring) - offset
         if length < 0 or length > (len(binstring) - offset):
-            raise ValueError("Invalid length of binary string.")
+            raise ValueError("Invalid length of binary string. String %s, length %d, offset %d." % (binstring, length, offset))
         # Truncate the bin_string if needed
         binstring = binstring[offset:length + offset]
         if length == 0:
