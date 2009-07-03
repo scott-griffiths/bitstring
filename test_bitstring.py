@@ -1800,7 +1800,7 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0b1')
         self.assertEqual(repr(a), "BitString('0b1')")
         a += '0b11'
-        self.assertEqual(repr(a), "BitString('0o7')")
+        self.assertEqual(repr(a), "BitString('0b111')")
         a += '0b1'
         self.assertEqual(repr(a), "BitString('0xf')")
         a *= max
@@ -1809,17 +1809,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(repr(a), "BitString('0x" + "f"*max + "...', length=%d)" % (max*4 + 4))
 
     def testPrint(self):
-        for i in range(-3, 4):
-            s = BitString(int = i, length=10)
-            self.assertEqual(s.bin, s.__str__())
         s = BitString(hex='0x00')
         self.assertEqual(s.hex, s.__str__())
         s = BitString(filename='test/test.m1v')
         self.assertEqual(s[0:bitstring._maxchars*4].hex+'...', s.__str__())
         self.assertEqual(BitString().__str__(), '')
-        toolong = ((bitstring._maxchars+11)//12*12 + 1)
-        a = BitString('0b1') * toolong
-        self.assertEqual(a.__str__(), '0x'+'f'*(toolong//4) + '8')
     
     def testIter(self):
         a = BitString('0b001010')
@@ -2211,6 +2205,33 @@ class BitStringTest(unittest.TestCase):
     def testIntelligentPeek(self):
         pass
     
+    def testReadMultipleBits(self):
+        s = BitString('0x123456789abcdef')
+        a, b = s.readbits(4, 4)
+        self.assertEqual(a, '0x1')
+        self.assertEqual(b, '0x2')
+        c, d, e = s.readbytes(1, 2, 1)
+        self.assertEqual(c, '0x34')
+        self.assertEqual(d, '0x5678')
+        self.assertEqual(e, '0x9a')
+    
+    def testPeekMultipleBits(self):
+        s = BitString('0b1101, 0o721, 0x2234567')
+        a, b, c, d = s.peekbits(2, 1, 1, 9)
+        self.assertEqual(a, '0b11')
+        self.assertEqual(b, '0b0')
+        self.assertEqual(c, '0b1')
+        self.assertEqual(d, '0o721')
+        self.assertEqual(s.bitpos, 0)
+        a, b = s.peekbits(4, 9)
+        self.assertEqual(a, '0b1101')
+        self.assertEqual(b, '0o721')
+        s.seekbit(13)
+        a, b = s.peekbytes(2, 1)
+        self.assertEqual(a, '0x2234')
+        self.assertEqual(b, '0x56')
+        self.assertEqual(s.bitpos, 13)
+        
 
 def main():
     unittest.main()

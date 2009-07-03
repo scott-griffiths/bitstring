@@ -600,19 +600,15 @@ class BitString(object):
             return ''
         if length > _maxchars*4:
             # Too long for hex. Truncate...
-            return self.slice(0, _maxchars*4).hex + '...'
-        if length % 4 == 0:
-            # Fine to use hex.
-            return self.hex
-        if length % 3 == 0 and length // 3 <= _maxchars:
-            # Fine to use oct.
-            return self.oct
-        if length <= _maxchars:
-            # Fine to use bin.
-            return self.bin
-        # Can't return exact string, so pad and use hex.
-        padding = 4 - (length % 4)
-        return (self + '0b0'*padding).hex
+            return self[:_maxchars:4].hex + '...'
+        # First we do as much as we can in hex
+        s = self[::4].hex
+        if self.length % 4 != 0:
+            # Add on 1, 2 or 3 bits at the end
+            if s:
+                s = s + ', '
+            s = s + self[-(self.length % 4):].bin
+        return s
 
     def __repr__(self):
         """Return representation that could be used to recreate the BitString.
@@ -627,12 +623,11 @@ class BitString(object):
                 offsetstring = ", offset=%d" % (self._datastore.byteoffset * 8 + self._offset)
             lengthstring = ", length=%d" % length
             return "BitString(filename='%s'%s%s)" % (self._datastore.source.name,
-                                                               lengthstring,
-                                                               offsetstring)
+                                                     lengthstring, offsetstring)
         else:
             s = self.__str__()
             lengthstring = ''
-            if s[-3:] == '...' or (s[:2] == '0x' and length % 4 != 0):
+            if s[-3:] == '...':
                 lengthstring = ", length=%d" % length
             return "BitString('%s'%s)" % (s, lengthstring)
             
@@ -1267,6 +1262,7 @@ class BitString(object):
     def _getbitpos(self):
         """Return the current position in the stream in bits."""
         return self._pos
+    
     def _getoffset(self):
         return self._datastore.offset
 
@@ -1346,9 +1342,13 @@ class BitString(object):
     def read(self, format):
         """Interpret next bits according to format string(s) and return result.
         
-        format is a string with comma separated tokens describing how to
-        interpret the next bits in the BitString. If only one token is present
-        then a single object is returned, otherwise a list is returned.
+        format -- A string with comma separated tokens describing how to
+                  interpret the next bits in the BitString.
+                
+        If only one token is present then a single object is returned,
+        otherwise a list is returned.
+        
+        The position in the BitString is advanced to after the read items.
         
         Token examples: 'int12' : 12 bits as a signed integer
                         'uint8' : 8 bits as an unsigned integer
@@ -1400,19 +1400,9 @@ class BitString(object):
                 continue
             except ValueError:
                 pass
-            raise ValueError("Don't understand token '%s' in read()." % token)
+            raise ValueError("Don't understand token '%s'." % token)
         if len(return_values) == 1:
             return return_values[0]
-        return return_values
-    
-    def peek(self, format):
-        """Interpret next bits according to format string and return result.
-        
-        
-        """
-        bp = self.bitpos
-        return_values = self.read(format)
-        self.bitpos = bp
         return return_values
     
     def readbit(self):
@@ -1423,26 +1413,34 @@ class BitString(object):
         """
         return self.readbits(1)
 
-    def readbits(self, bits):
+    def readbits(self, bits, *morebits):
         """Return next bits in BitString as a new BitString and advance position.
         
         bits -- The number of bits to read.
+        morebits -- Optionally more bit lengths can be given, in which
+                    case a list of BitStrings will be returned.
         
         If not enough bits are available then all will be returned.
         
         Raises ValueError if bits < 0.
         
         """
-        if bits < 0:
-            raise ValueError("Cannot read negative amount.")
-        if self._pos + bits > self.length:
-            bits = self.length - self._pos
-        startbyte, newoffset = divmod(self._pos + self._offset, 8)
-        endbyte = (self._pos + self._offset + bits - 1) // 8
-        self._pos += bits
-        assert self._assertsanity()
-        return BitString(data=self._datastore[startbyte:endbyte + 1],
-                         length=bits, offset=newoffset) 
+        bits = [bits]
+        bits.extend(morebits)
+        return_values = []
+        for b in bits:
+            if b < 0:
+                raise ValueError("Cannot read negative amount.")
+            b = min(b, self.length - self._pos)
+            startbyte, newoffset = divmod(self._pos + self._offset, 8)
+            endbyte = (self._pos + self._offset + b - 1) // 8
+            self._pos += b
+            bs = BitString(data=self._datastore[startbyte:endbyte + 1],
+                           length=b, offset=newoffset)
+            return_values.append(bs)
+        if len(return_values) == 1:
+            return return_values[0]
+        return return_values
     
     def readbyte(self):
         """Return next byte as a new BitString and advance position.
@@ -1454,17 +1452,36 @@ class BitString(object):
         """
         return self.readbits(8)
 
-    def readbytes(self, bytes):
+    def readbytes(self, bytes, *morebytes):
         """Return next bytes as a new BitString and advance position.
         
         Does not byte align.
         
         bytes -- The number of bytes to read.
-        
+        morebytes -- Optionally more byte lengths can be given, in which
+                     case a list of BitStrings will be returned.
+                     
         If not enough bits are available then all will be returned.
         
         """
-        return self.readbits(bytes*8)
+        return self.readbits(bytes*8, *[b*8 for b in morebytes])
+    
+    def peek(self, format):
+        """Interpret next bits according to format string and return result.
+        
+        format -- A string with comma separated tokens describing how to
+                  interpret the next bits in the BitString.
+                  
+        If only one token is present then a single object is returned,
+        otherwise a list is returned.
+        
+        The position in the BitString is not changed.
+        
+        """
+        bitpos = self._pos
+        return_values = self.read(format)
+        self._pos = bitpos
+        return return_values
 
     def peekbit(self):
         """Return next bit as a new BitString without advancing position.
@@ -1474,16 +1491,20 @@ class BitString(object):
         """
         return self.peekbits(1)
 
-    def peekbits(self, bits):
+    def peekbits(self, bits, *morebits):
         """Return next bits as a new BitString without advancing position.
         
-        bits -- The number of bits to read. Must be >= 0.
+        bits -- The number of bits to read.
+        morebits -- Optionally more bit lengths can be given, in which
+                    case a list of BitStrings will be returned.
         
         If not enough bits are available then all will be returned.
         
+        Raises ValueError if bits < 0.
+        
         """
         bitpos = self._pos
-        s = self.readbits(bits)
+        s = self.readbits(bits, *morebits)
         self._pos = bitpos
         return s
     
@@ -1495,15 +1516,17 @@ class BitString(object):
         """
         return self.peekbits(8)
 
-    def peekbytes(self, bytes):
+    def peekbytes(self, bytes, *morebytes):
         """Return next bytes as a new BitString without advancing position.
         
         bytes -- The number of bytes to read. Must be >= 0.
-        
+        morebytes -- Optionally more byte lengths can be given, in which
+                     case a list of BitStrings will be returned.
+                     
         If not enough bits are available then all will be returned.
         
         """
-        return self.peekbits(bytes*8)
+        return self.peekbits(bytes*8, *[b*8 for b in morebytes])
 
     def advancebit(self):
         """Advance position by one bit.
@@ -1627,10 +1650,10 @@ class BitString(object):
         startbit -- The bit position to start the search.
                     Defaults to 0.
         endbit -- The bit position one past the last bit to search.
-                  Defaults to len(self).
+                  Defaults to self.length.
         
         Raises ValueError if bs is empty, if startbit < 0,
-        if endbit > len(self) or if endbit < startbit.
+        if endbit > self.length or if endbit < startbit.
         
         """
         bs = self._converttobitstring(bs)
@@ -1713,11 +1736,11 @@ class BitString(object):
         startbit -- The bit position to start the search.
                     Defaults to 0.
         endbit -- The bit position one past the last bit to search.
-                  Defaults to len(self).
+                  Defaults to self.length.
         count -- The maximum number of occurences to find.
         
         Raises ValueError if bs is empty, if startbit < 0,
-        if endbit > len(self) or if endbit < startbit.
+        if endbit > self.length or if endbit < startbit.
         
         Note that all occurences of bs are found, even if they overlap.
         """
@@ -1754,10 +1777,10 @@ class BitString(object):
         startbit -- The bit position to end the reverse search.
                     Defaults to 0.
         endbit -- The bit position one past the first bit to reverse search.
-                  Defaults to len(self).
+                  Defaults to self.length.
         
         Raises ValueError if bs is empty, if startbit < 0,
-        if endbit > len(self) or if endbit < startbit.
+        if endbit > self.length or if endbit < startbit.
         
         """
         bs = self._converttobitstring(bs)
@@ -1795,7 +1818,7 @@ class BitString(object):
         startbit -- Any occurences that start before starbit will not
                     be replaced. Defaults to 0.
         endbit -- Any occurences that finish after endbit will not
-                  be replaced. Defaults to len(self)
+                  be replaced. Defaults to self.length
         count -- The maximum number of replacements to make.
         
         Raises ValueError if old is empty or if startbit or endbit are
@@ -2044,7 +2067,7 @@ class BitString(object):
         startbit -- Position of first bit to reverse.
                     Defaults to 0.
         endbit -- One past the position of the last bit to reverse.
-                  Defaults to len(self).
+                  Defaults to self.length.
         
         Using on an empty BitString will have no effect.
         
@@ -2059,7 +2082,7 @@ class BitString(object):
         if startbit < 0:
             raise ValueError("startbit must be >= 0 in reversebits().")
         if endbit > self.length:
-            raise ValueError("endbit must be <= len(self) in reversebits().")
+            raise ValueError("endbit must be <= self.length in reversebits().")
         if endbit < startbit:
             raise ValueError("endbit must be >= startbit in reversebits().")
         self[startbit:endbit] = BitString(bin=self[startbit:endbit].bin[:1:-1])
@@ -2072,7 +2095,7 @@ class BitString(object):
         startbit -- The bit position to start the first cut.
                     Defaults to 0.
         endbit -- The bit position one past the last bit to use in the cut.
-                  Defaults to len(self).
+                  Defaults to self.length.
         count -- If specified then at most count items are generated.
                  Default is to cut as many times as possible.
         
@@ -2115,7 +2138,7 @@ class BitString(object):
         startbit -- The bit position to start the split.
                     Defaults to 0.
         endbit -- The bit position one past the last bit to use in the split.
-                  Defaults to len(self).
+                  Defaults to self.length.
         count -- If specified then at most count items are generated.
                  Default is to split as many times as possible.
         
