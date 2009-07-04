@@ -2190,20 +2190,35 @@ class BitStringTest(unittest.TestCase):
         
     def testIntelligentRead6(self):
         a = BitString('0b000111000')
-        b1, b2, b3 = a.read('bin3, int3, int3')
+        b1, b2, b3 = a.read('bin 3, int 3, int3')
         self.assertEqual(b1, '0b000')
         self.assertEqual(b2, -1)
         self.assertEqual(b3, 0)
         
     def testIntelligentRead7(self):
-        pass
+        a = BitString('0x1234')
+        a1, a2, a3, a4 = a.read('bin0, oct0, hex0, 0')
+        self.assertTrue(a1 == a2 == a3 == '')
+        self.assertTrue(a4.empty())
+        self.assertRaises(ValueError, a.read, 'int0')
+        self.assertRaises(ValueError, a.read, 'uint0')
+        self.assertEqual(a.bitpos, 0)
+        
     def testIntelligentRead8(self):
-        pass
-    def testIntelligentRead9(self):
-        pass
-    
+        a = BitString('0x123456')
+        for t in ['hex1', 'oct1', '-5', 'fred', 'bin-2',
+                  'uinte', 'uint-2', 'intu', 'int-3', 'ses', 'uee']:
+            self.assertRaises(ValueError, a.read, t)
+
     def testIntelligentPeek(self):
-        pass
+        a = BitString('0b01, 0x43, 0o4, uint23 2, se5, ue3')
+        b, c, e = a.peek('bin2, hex8, oct3')
+        self.assertEquals((b, c, e), ('0b01', '0x43', '0o4'))
+        self.assertEqual(a.bitpos, 0)
+        a.bitpos = 13
+        f, g, h = a.peek('uint23, se, ue')
+        self.assertEqual((f, g, h), (2, 5, 3))
+        self.assertEqual(a.bitpos, 13)
     
     def testReadMultipleBits(self):
         s = BitString('0x123456789abcdef')

@@ -601,6 +601,9 @@ class BitString(object):
         if length > _maxchars*4:
             # Too long for hex. Truncate...
             return self[:_maxchars:4].hex + '...'
+        # If it's quite short and we can't do hex then use bin
+        if self.length < 32 and self.length % 4 != 0:
+            return self.bin
         # First we do as much as we can in hex
         s = self[::4].hex
         if self.length % 4 != 0:
@@ -1398,7 +1401,7 @@ class BitString(object):
                     raise ValueError
                 return_values.append(self.readbits(length))
                 continue
-            except ValueError:
+            except (ValueError, NameError):
                 pass
             raise ValueError("Don't understand token '%s'." % token)
         if len(return_values) == 1:
