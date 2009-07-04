@@ -1449,19 +1449,17 @@ class BitString(object):
         """
         return self.readbits(8)
 
-    def readbytes(self, bytes, *morebytes):
+    def readbytes(self, *bytes):
         """Return next bytes as a new BitString and advance position.
         
-        Does not byte align.
+        bytes -- The number of bytes to read. If more than one byte length is
+                 given a list of BitStrings will be returned.
         
-        bytes -- The number of bytes to read.
-        morebytes -- Optionally more byte lengths can be given, in which
-                     case a list of BitStrings will be returned.
-                     
+        Does not byte align.
         If not enough bits are available then all will be returned.
         
         """
-        return self.readbits(bytes*8, *[b*8 for b in morebytes])
+        return self.readbits(*[b*8 for b in bytes])
     
     def peek(self, format):
         """Interpret next bits according to format string and return result.
@@ -1512,17 +1510,16 @@ class BitString(object):
         """
         return self.peekbits(8)
 
-    def peekbytes(self, bytes, *morebytes):
+    def peekbytes(self, *bytes):
         """Return next bytes as a new BitString without advancing position.
         
-        bytes -- The number of bytes to read. Must be >= 0.
-        morebytes -- Optionally more byte lengths can be given, in which
-                     case a list of BitStrings will be returned.
+        bytes -- The number of bytes to read. If more than one byte length is
+                 given a list of BitStrings will be returned.
                      
         If not enough bits are available then all will be returned.
         
         """
-        return self.peekbits(bytes*8, *[b*8 for b in morebytes])
+        return self.peekbits(*[b*8 for b in bytes])
 
     def advancebit(self):
         """Advance position by one bit.
