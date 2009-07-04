@@ -1413,20 +1413,17 @@ class BitString(object):
         """
         return self.readbits(1)
 
-    def readbits(self, bits, *morebits):
+    def readbits(self, *bits):
         """Return next bits in BitString as a new BitString and advance position.
         
-        bits -- The number of bits to read.
-        morebits -- Optionally more bit lengths can be given, in which
-                    case a list of BitStrings will be returned.
+        bits -- The number of bits to read. If more than one bit length is
+                given a list of BitStrings will be returned.
         
         If not enough bits are available then all will be returned.
         
         Raises ValueError if bits < 0.
         
         """
-        bits = [bits]
-        bits.extend(morebits)
         return_values = []
         for b in bits:
             if b < 0:
@@ -1491,12 +1488,11 @@ class BitString(object):
         """
         return self.peekbits(1)
 
-    def peekbits(self, bits, *morebits):
+    def peekbits(self, *bits):
         """Return next bits as a new BitString without advancing position.
         
-        bits -- The number of bits to read.
-        morebits -- Optionally more bit lengths can be given, in which
-                    case a list of BitStrings will be returned.
+        bits -- The number of bits to read. If more than one bit length is
+                given a list of BitStrings will be returned.
         
         If not enough bits are available then all will be returned.
         
@@ -1504,7 +1500,7 @@ class BitString(object):
         
         """
         bitpos = self._pos
-        s = self.readbits(bits, *morebits)
+        s = self.readbits(*bits)
         self._pos = bitpos
         return s
     
