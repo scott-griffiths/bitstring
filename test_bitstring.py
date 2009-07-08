@@ -2126,7 +2126,15 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(h, '0x12')
         self.assertEqual(o, '0o33')
         self.assertEqual(b, '0b10')
-        
+    
+    def testFlexibleInitialisation3(self):
+        for s in ['se-1', 'se=-1', 'se -1', 'se = -1']:
+            a = BitString(s)
+            self.assertEqual(a.se, -1)
+        for s in ['ue23', 'ue=23', 'ue 23', 'ue = 23']:
+            a = BitString(s)
+            self.assertEqual(a.ue, 23)
+            
     def testMultipleStringInitialisation(self):
         a = BitString('0b1 , 0x1')
         self.assertEqual(a, '0b10001')
