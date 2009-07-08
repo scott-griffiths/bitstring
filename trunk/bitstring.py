@@ -2147,8 +2147,7 @@ class BitString(object):
                  Default is to split as many times as possible.
         bytealigned -- If True splits will only occur on byte boundaries.
         
-        Raises ValueError if the delimiter empty or if bytealigned is True
-        and the delimiter is not a whole number of bytes. (TODO: is this still true?)
+        Raises ValueError if the delimiter empty.
         
         """  
         delimiter = self._converttobitstring(delimiter)
