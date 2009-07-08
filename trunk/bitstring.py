@@ -870,8 +870,7 @@ class BitString(object):
                 length = s.length - offset
             self._setdata(s._datastore.rawbytes, s._offset + offset, length)
             return
-        
-        # TODO: Is this going to be a casualty of the new string stuff?
+
         if isinstance(s, (list, tuple)):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin(''.join([str(int(bool(x))) for x in s]), offset, length)
@@ -928,11 +927,13 @@ class BitString(object):
                 continue
             if tidy.startswith('ue'):
                 # Interpret as an unsigned Exp-Golomb code
+                sub = sub.replace('=', ' ')
                 value = int(sub[2:])
                 self.append(BitString(ue=value))
                 continue
             if tidy.startswith('se'):
                 # Interpret as a signed Exp-Golomb code
+                sub = sub.replace('=', ' ')
                 value = int(sub[2:])
                 self.append(BitString(se=value))
                 continue
@@ -942,7 +943,7 @@ class BitString(object):
         self._datastore.setoffset(0) # TODO: I shouldn't need to do this! HACK!
         if length is not None:
             self.truncateend(self.length - length)
-
+        
     def _setfile(self, filename, offset, lengthinbits=None, byteoffset=None):
         "Use file as source of bits."
         self._datastore = _FileArray(filename, lengthinbits,
