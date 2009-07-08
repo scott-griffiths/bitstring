@@ -313,8 +313,7 @@ class BitString(object):
                  uint=None, int=None, ue=None, se=None):
         """
         Initialise the BitString with one (and only one) of:
-        auto -- string starting with '0x', '0o' or '0b' to be interpreted as
-                hexadecimal, octal or binary respectively, a list or tuple
+        auto -- string of comma separated tokens, a list or tuple
                 to be interpreted as booleans, or another BitString.
         data -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
@@ -1306,7 +1305,7 @@ class BitString(object):
         
         """
         oldpos = self._pos
-        foundone = self.find('0b1', False, self._pos)
+        foundone = self.find('0b1', self._pos)
         if not foundone:
             self._pos = self.length
             raise BitStringError("Read off end of BitString trying to read code.")
@@ -1342,11 +1341,12 @@ class BitString(object):
         """Return True if the BitString is empty (has zero length)."""
         return self.length == 0
     
-    def read(self, format):
+    def read(self, *format):
         """Interpret next bits according to format string(s) and return result.
         
-        format -- A string with comma separated tokens describing how to
-                  interpret the next bits in the BitString.
+        format -- One or more strings with comma separated tokens describing
+                  how to interpret the next bits in the BitString, or integers
+                  to specify BitString bit lengths.
                 
         If only one token is present then a single object is returned,
         otherwise a list is returned.
@@ -1363,11 +1363,19 @@ class BitString(object):
                         '50'    : 50 bits as a BitString object
                 
         >>> h, b1, b2 = s.read('hex20, bin5, bin3')
+        >>> i, bs1, bs2 = s.read('uint12', 10, 10)
         
         """
-        format_list = [f.strip().lower() for f in format.split(',')]
+        tokens = []
+        for f_item in format:
+            if isinstance(f_item, str):
+                tokens.extend([f.strip().lower() for f in f_item.split(',')])
+            elif isinstance(f_item, int):
+                tokens.append(str(f_item))
+            else:
+                raise TypeError("Cannot read using object of type %s." % type(f_item))
         return_values = []
-        for token in format_list:
+        for token in tokens:
             if token.startswith('uint'):
                 length = int(token[4:])
                 return_values.append(self.readbits(length).uint)
@@ -1464,11 +1472,12 @@ class BitString(object):
         """
         return self.readbits(*[b*8 for b in bytes])
     
-    def peek(self, format):
-        """Interpret next bits according to format string and return result.
+    def peek(self, *format):
+        """Interpret next bits according to format string(s) and return result.
         
-        format -- A string with comma separated tokens describing how to
-                  interpret the next bits in the BitString.
+        format -- One or more strings with comma separated tokens describing
+                  how to interpret the next bits in the BitString, or integers
+                  to specify BitString bit lengths.
                   
         If only one token is present then a single object is returned,
         otherwise a list is returned.
@@ -1477,7 +1486,7 @@ class BitString(object):
         
         """
         bitpos = self._pos
-        return_values = self.read(format)
+        return_values = self.read(*format)
         self._pos = bitpos
         return return_values
 
@@ -1637,16 +1646,16 @@ class BitString(object):
         """
         return self.bytepos
 
-    def find(self, bs, bytealigned=True, startbit=None, endbit=None):
+    def find(self, bs, startbit=None, endbit=None, bytealigned=False):
         """Seek to start of next occurence of bs. Return True if string is found.
         
         bs -- The BitString to find.
-        bytealigned -- If True (the default) the BitString will only be
-                       found on byte boundaries.
         startbit -- The bit position to start the search.
                     Defaults to 0.
         endbit -- The bit position one past the last bit to search.
                   Defaults to self.length.
+        bytealigned -- If True the BitString will only be
+                       found on byte boundaries.
         
         Raises ValueError if bs is empty, if startbit < 0,
         if endbit > self.length or if endbit < startbit.
@@ -1722,18 +1731,18 @@ class BitString(object):
             self._pos = p
             return True
 
-    def findall(self, bs, bytealigned=True, startbit=None, endbit=None,
-                count=None):
+    def findall(self, bs, startbit=None, endbit=None, count=None,
+                bytealigned=False):
         """Find all occurences of bs. Return generator of bit positions.
         
         bs -- The BitString to find.
-        bytealigned -- If True (the default) the BitString will only be
-                       found on byte boundaries.
         startbit -- The bit position to start the search.
                     Defaults to 0.
         endbit -- The bit position one past the last bit to search.
                   Defaults to self.length.
         count -- The maximum number of occurences to find.
+        bytealigned -- If True the BitString will only be found on
+                       byte boundaries.
         
         Raises ValueError if bs is empty, if startbit < 0,
         if endbit > self.length or if endbit < startbit.
@@ -1749,7 +1758,7 @@ class BitString(object):
             endbit = self.length
         c = 0
         # Can rely on find() for parameter checking
-        while self.find(bs, bytealigned, startbit, endbit):
+        while self.find(bs, startbit, endbit, bytealigned):
             if count is not None and c >= count:
                 return
             c += 1
@@ -1762,18 +1771,18 @@ class BitString(object):
                 break
         return
     
-    def rfind(self, bs, bytealigned=True, startbit=None, endbit=None):
+    def rfind(self, bs, startbit=None, endbit=None, bytealigned=False):
         """Seek backwards to start of previous occurence of bs.
         
         Return True if string is found.
         
         bs -- The BitString to find.
-        bytealigned -- If True (the default) the BitString will only be
-                       found on byte boundaries.
         startbit -- The bit position to end the reverse search.
                     Defaults to 0.
         endbit -- The bit position one past the first bit to reverse search.
                   Defaults to self.length.
+        bytealigned -- If True the BitString will only be found on byte 
+                       boundaries.
         
         Raises ValueError if bs is empty, if startbit < 0,
         if endbit > self.length or if endbit < startbit.
@@ -1792,8 +1801,8 @@ class BitString(object):
         buffersize = min(increment + bs.length, endbit - startbit)
         pos = max(startbit, endbit - buffersize)
         while(True):
-            found = list(self.findall(bs, bytealigned=bytealigned,
-                                 startbit=pos, endbit=pos + buffersize))
+            found = list(self.findall(bs, startbit=pos, endbit=pos + buffersize,
+                                      bytealigned=bytealigned))
             if not found:
                 if pos == startbit:
                     return False
@@ -1802,20 +1811,21 @@ class BitString(object):
             self._pos = found[-1]
             return True
     
-    def replace(self, old, new, bytealigned=True, startbit=None, endbit=None, count=None):
+    def replace(self, old, new, startbit=None, endbit=None, count=None,
+                bytealigned=False):
         """Replace all occurrences of old with new in place.
         
         Returns number of replacements made.
         
         old -- The BitString (or string for 'auto' initialiser) to replace
         new -- The replacement BitString (or string for 'auto' initialiser).
-        bytealigned -- If True (the default) replacements will only be made
-                       on byte boundaries.
         startbit -- Any occurences that start before starbit will not
                     be replaced. Defaults to 0.
         endbit -- Any occurences that finish after endbit will not
                   be replaced. Defaults to self.length
         count -- The maximum number of replacements to make.
+        bytealigned -- If True replacements will only be made on byte
+                       boundaries.
         
         Raises ValueError if old is empty or if startbit or endbit are
         out of range.
@@ -1828,7 +1838,7 @@ class BitString(object):
         newpos = self._pos
         if count is not None:
             count += 1
-        sections = self.split(old, bytealigned, startbit, endbit, count)
+        sections = self.split(old, startbit, endbit, count, bytealigned)
         lengths = [s.length for s in sections]
         if len(lengths) == 1:
             self._pos = newpos
@@ -2121,25 +2131,24 @@ class BitString(object):
             startbit += bits
         return
  
-    def split(self, delimiter, bytealigned=True, startbit=None,
-              endbit=None, count=None):
+    def split(self, delimiter, startbit=None, endbit=None, count=None,
+              bytealigned=False):
         """Return BitString generator by splittling using a delimiter.
         
         The first item returned is the initial BitString before the delimiter,
         which may be an empty BitString.
         
         delimiter -- The BitString used as the divider.
-        bytealigned -- If True (the default) splits will only occur on byte
-                       boundaries.
         startbit -- The bit position to start the split.
                     Defaults to 0.
         endbit -- The bit position one past the last bit to use in the split.
                   Defaults to self.length.
         count -- If specified then at most count items are generated.
                  Default is to split as many times as possible.
+        bytealigned -- If True splits will only occur on byte boundaries.
         
         Raises ValueError if the delimiter empty or if bytealigned is True
-        and the delimiter is not a whole number of bytes.
+        and the delimiter is not a whole number of bytes. (TODO: is this still true?)
         
         """  
         delimiter = self._converttobitstring(delimiter)
@@ -2161,7 +2170,7 @@ class BitString(object):
         self._pos = startbit
         if count == 0:
             return
-        found = self.find(delimiter, bytealigned, startbit, endbit)
+        found = self.find(delimiter, startbit, endbit, bytealigned)
         if not found:
             # Initial bits are the whole BitString being searched
             self._pos = oldpos
@@ -2173,7 +2182,7 @@ class BitString(object):
         c = 1
         while count is None or c < count:
             self._pos += delimiter.length
-            found = self.find(delimiter, bytealigned, self._pos, endbit)
+            found = self.find(delimiter, self._pos, endbit, bytealigned)
             if not found:
                 # No more occurences, so return the rest of the BitString
                 self._pos = oldpos
