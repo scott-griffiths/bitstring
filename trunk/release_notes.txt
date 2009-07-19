@@ -2,6 +2,121 @@
 bitstring module version history
 --------------------------------
 -----------------------------------------------------
+July 19th 2009: version 0.5.0 for Python 2.x released
+-----------------------------------------------------
+
+This update breaks backward compatibility in a couple of areas. The only one
+you probably need to be concerned about is the change to the default for
+bytealigned in find, replace, split, etc.
+
+See the user manual for more details on each of these items.
+
+* Expanded abilities of 'auto' initialiser.
+
+More types can be initialised through the 'auto' initialiser. For example
+instead of
+
+>>> a = BitString(uint=44, length=16)
+
+you can write
+
+>>> a = BitString('uint16=44')
+
+Also, different comma-separated tokens will be joined together, e.g.
+
+>>> b = BitString('0xff') + 'int8=-5'
+
+can be written
+
+>>> b = BitString('0xff, int8=-5')
+
+* New formatted read() and peek() functions.
+
+These takes a format string similar to that used in the auto initialiser.
+If only one token is provided then a single value is returned, otherwise a
+list of values is returned.
+
+>>> start_code, width, height = s.read('hex32, uint12, uint12')
+
+is equivalent to
+
+>>> start_code = s.readbits(32).hex
+>>> width = s.readbits(12).uint
+>>> height = s.readbits(12).uint
+
+The tokens are:
+
+  int n   : n bits as an unsigned integer.
+  uint n  : n bits as a signed integer.
+  hex n   : n bits as a hexadecimal string.
+  oct n   : n bits as an octal string.
+  bin n   : n bits as a binary string.
+  ue      : next bits as an unsigned exp-Golomb.
+  se      : next bits as a signed exp-Golomb.
+  bits n  : n bits as a new BitString.
+  bytes n : n bytes as a new BitString.
+
+See the user manual for more details.
+
+* hex() and oct() functions removed.
+
+The special functions for hex() and oct() have been removed. Please use the
+hex and oct properties instead.
+
+>>> hex(s)
+
+becomes
+ 
+>>> s.hex
+
+* join made a member function.
+
+The join function must now be called on a BitString object, which will be
+used to join the list together. You may need to recode slightly:
+
+>>> s = bitstring.join('0x34', '0b1001', '0b1')
+
+becomes
+
+>>> s = BitString().join('0x34', '0b1001', '0b1')
+
+* More than one value allowed in readbits, readbytes, peekbits and peekbytes
+
+If you specify more than one bit or byte length then a list of BitStrings will
+be returned.
+
+>>> a, b, c = s.readbits(10, 5, 5)
+
+is equivalent to
+
+>>> a = readbits(10)
+>>> b = readbits(5)
+>>> c = readbits(5)
+
+* bytealigned defaults to False, and is at the end of the parameter list
+
+Functions that have a bytealigned paramater have changed so that it now
+defaults to False rather than True. Also its position in the parameter list
+has changed to be at the end. You may need to recode slightly (sorry!)
+
+* readue and readse functions have been removed
+
+Instead you should use the new read function with a 'ue' or 'se' token:
+
+>>> i = s.readue()
+
+becomes
+
+>>> i = s.read('ue')
+
+This is more flexible as you can read multiple items in one go, plus you can
+now also use the peek function with ue and se.
+
+* Minor bugs fixed.
+
+See the issue tracker for more details.
+
+-----------------------------------------------------
 June 15th 2009: version 0.4.3 for Python 2.x released
 -----------------------------------------------------
 

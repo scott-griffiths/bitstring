@@ -10,6 +10,9 @@ python setup.py install
 This should put bitstring.py in your site-packages directory.
 Alternatively just copy the bitstring.py file to where you want it!
 
+If you're using Windows then there is an installer available from the
+downloads tab on the project's homepage.
+
 Unit Tests
 ----------
 To run the unit tests:
@@ -23,5 +26,5 @@ The unit tests should all pass for Python 2.4, 2.5 and 2.6.
 The bitstring module has been released as open source under the MIT License.
 Copyright (c) 2009 Scott Griffiths (scott@griffiths.name)
 
-For documentation, a tutorial and examples, see the project's homepage
-on Google Code: http://python-bitstring.googlecode.com
+For more information see the project's homepage on Google Code:
+http://python-bitstring.googlecode.com
