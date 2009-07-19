@@ -282,7 +282,7 @@ class _CatArray(_Array):
         return self.arraylist[0].rawbytes
     
     def __copy__(self):
-        return _CatArray(copy.deepcopy(self.arraylist[0]))
+        return _CatArray(copy.copy(self.arraylist[0]))
     
     def __setitem__(self, key, item):
         self.arraylist[0].__setitem__(key, item)
@@ -419,6 +419,9 @@ class BitString(object):
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
         
+        If the length of the BitString is changed then bitpos will be moved
+        to after the inserted section, otherwise it will remain unchanged.
+        
         >>> s = BitString('0xff')
         >>> s[0:1:4] = '0xe'
         >>> print s
@@ -478,16 +481,20 @@ class BitString(object):
                 else:
                     value = BitString(int=value, length=stop - start)
             if (stop - start) == value.length:
+                # This is an overwrite, so we retain the bitpos
+                bitposafter = self._pos
                 if step >= 0:
                     self.overwrite(value, start)
                 else:
                     self.overwrite(value.__getitem__(slice(None, None, step)), start)
+                self._pos = bitposafter
             else:
                 self.deletebits(stop - start, start)
                 if step >= 0:
                     self.insert(value, start)
                 else:
                     self.insert(value.__getitem__(slice(None, None, step)), start)
+                # bitpos is now after the inserted piece.
             return
         except AttributeError:
             # single element
@@ -501,7 +508,10 @@ class BitString(object):
             if not 0 <= key < self.length:
                 raise IndexError("Slice index out of range.")
             if value.length == 1:
+                # This is an overwrite, so we retain the bitpos
+                bitposafter = self._pos
                 self.overwrite(value, key)
+                self._pos = bitposafter
             else:
                 self.deletebits(1, key)
                 self.insert(value, key)
@@ -1887,6 +1897,8 @@ class BitString(object):
         Raises ValueError if bits < 0 or bits > self.length.
         
         """
+        if bits == 0:
+            return self
         if bits < 0 or bits > self.length:
             raise ValueError("Truncation length of %d not possible. Length = %d."
                              % (bits, self.length))
@@ -1907,6 +1919,8 @@ class BitString(object):
         Raises ValueError if bits < 0 or bits > self.length.
         
         """
+        if bits == 0:
+            return self
         if bits < 0 or bits > self.length:
             raise ValueError("Truncation length of %d bits not possible. Length = %d."
                              % (bits, self.length))
@@ -1970,7 +1984,7 @@ class BitString(object):
                   Defaults to self.bitpos.
                   
         After overwriting self.bitpos will be immediately after the new bits.
-        Raises ValueError if bitpos < 0 or bitpos + len(bs) > self.length
+        Raises ValueError if bitpos < 0 or bitpos + bs.length > self.length
         
         """
         bs = self._converttobitstring(bs)
@@ -1978,10 +1992,9 @@ class BitString(object):
             return self
         if bs is self:
             bs = self.__copy__()
-        bitposafter = self._pos
         if bitpos is None:
             bitpos = self._pos
-            bitposafter = bitpos + bs.length
+        bitposafter = bitpos + bs.length
         if bitpos < 0 or bitpos + bs.length > self.length:
             raise ValueError("Overwrite exceeds boundary of BitString.")
         end = self._slice(bitpos + bs.length, self.length)

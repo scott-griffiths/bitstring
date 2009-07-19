@@ -822,7 +822,7 @@ class BitStringTest(unittest.TestCase):
         s1.overwrite(s2)
         self.assertEqual((s1.hex, s1.bytepos), ('0x01ff456', 2))
         s1.overwrite('0xff', 0)
-        self.assertEqual((s1.hex, s1.bytepos), ('0xffff456', 2))
+        self.assertEqual((s1.hex, s1.bytepos), ('0xffff456', 1))
     
     def testTruncateAsserts(self):
         s = BitString('0x001122')
@@ -1330,6 +1330,7 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0b0')
         a[0] = '0b110'
         self.assertEqual(a.bin, '0b110')
+        self.assertEqual(a.bitpos, 3)
         a[0] = '0b000'
         self.assertEqual(a.bin, '0b00010')
         a[0:3] = '0b111'
@@ -1341,6 +1342,19 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a.hex, '0x12345')
         a[:] = ''
         self.assertTrue(a.empty())
+    
+    def testSliceAssignmentBitPos(self):
+        a = BitString('int64=-1')
+        a.bitpos = 64
+        a[0:8] = ''
+        self.assertEqual(a.bitpos, 0)
+        a.bitpos = 52
+        a[48:56] = '0x0000'
+        self.assertEqual(a.bitpos, 64)
+        a[10:10] = '0x0'
+        self.assertEqual(a.bitpos, 14)
+        a[56:68] = '0x000'
+        self.assertEqual(a.bitpos, 14)
     
     def testSliceAssignmentMultipleBitsErrors(self):
         a = BitString()
