@@ -2204,10 +2204,10 @@ class BitStringTest(unittest.TestCase):
         
     def testIntelligentRead5(self):
         a = BitString('0x00112233')
-        c0, c1, c2 = a.read('8, 8, 16')
+        c0, c1, c2 = a.read('bits8, bytes1, bits16')
         self.assertEqual((c0, c1, c2), (BitString('0x00'), BitString('0x11'), BitString('0x2233')))
         a.seekbit(0)
-        c = a.read('4*4')
+        c = a.read('BiTs16')
         self.assertEqual(c, BitString('0x0011'))
         
     def testIntelligentRead6(self):
@@ -2219,16 +2219,17 @@ class BitStringTest(unittest.TestCase):
         
     def testIntelligentRead7(self):
         a = BitString('0x1234')
-        a1, a2, a3, a4 = a.read('bin0, oct0, hex0, 0')
+        a1, a2, a3, a4, a5 = a.read('bin0, oct0, hex0, bits0, bytes0')
         self.assertTrue(a1 == a2 == a3 == '')
         self.assertTrue(a4.empty())
+        self.assertTrue(a5.empty())
         self.assertRaises(ValueError, a.read, 'int0')
         self.assertRaises(ValueError, a.read, 'uint0')
         self.assertEqual(a.bitpos, 0)
         
     def testIntelligentRead8(self):
         a = BitString('0x123456')
-        for t in ['hex1', 'oct1', '-5', 'fred', 'bin-2',
+        for t in ['hex1', 'oct1', '-5', '5', 'fred', 'bin-2',
                   'uinte', 'uint-2', 'intu', 'int-3', 'ses', 'uee']:
             self.assertRaises(ValueError, a.read, t)
 

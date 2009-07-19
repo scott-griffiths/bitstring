@@ -585,6 +585,8 @@ class BitString(object):
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
         
+        After deletion bitpos will be moved to the deleted slice's position.
+        
         >>> a = BitString('0x001122')
         >>> del a[1:2:8]
         >>> print a
@@ -1364,17 +1366,18 @@ class BitString(object):
         
         The position in the BitString is advanced to after the read items.
         
-        Token examples: 'int12' : 12 bits as a signed integer
-                        'uint8' : 8 bits as an unsigned integer
-                        'hex80' : 80 bits as a hex string
-                        'oct9'  : 9 bits as an octal string
-                        'bin1'  : single bit binary string
-                        'ue'    : next bits as unsigned exp-Golomb code
-                        'se'    : next bits as signed exp-Golomb code
-                        '50'    : 50 bits as a BitString object
+        Token examples: 'int12'  : 12 bits as a signed integer
+                        'uint8'  : 8 bits as an unsigned integer
+                        'hex80'  : 80 bits as a hex string
+                        'oct9'   : 9 bits as an octal string
+                        'bin1'   : single bit binary string
+                        'ue'     : next bits as unsigned exp-Golomb code
+                        'se'     : next bits as signed exp-Golomb code
+                        'bits5'  : 5 bits as a BitString object
+                        'bytes3' : 3 bytes as a BitString object
                 
         >>> h, b1, b2 = s.read('hex20, bin5, bin3')
-        >>> i, bs1, bs2 = s.read('uint12', 10, 10)
+        >>> i, bs1, bs2 = s.read('uint12', bits10, bits10)
         
         """
         tokens = []
@@ -1387,6 +1390,7 @@ class BitString(object):
                 raise TypeError("Cannot read using object of type %s." % type(f_item))
         return_values = []
         for token in tokens:
+            # TODO: It would be good if you could do hex4*8 etc. Needs an eval?
             if token.startswith('uint'):
                 length = int(token[4:])
                 return_values.append(self.readbits(length).uint)
@@ -1413,15 +1417,23 @@ class BitString(object):
                 length = int(token[3:])
                 return_values.append(self.readbits(length).bin)
                 continue
-            # Finally try as a bitlength without interpretation
-            try:
-                length = int(eval(token))
-                if length < 0:
-                    raise ValueError
+            if token.startswith('bits'):
+                length = int(token[4:])
                 return_values.append(self.readbits(length))
                 continue
-            except (ValueError, NameError):
-                pass
+            if token.startswith('bytes'):
+                length = int(token[5:])
+                return_values.append(self.readbytes(length))
+                continue
+            # Finally try as a bitlength without interpretation
+            #try:
+            #    length = int(eval(token))
+            #    if length < 0:
+            #        raise ValueError
+            #    return_values.append(self.readbits(length))
+            #    continue
+            #except (ValueError, NameError):
+            #    pass
             raise ValueError("Don't understand token '%s'." % token)
         if len(return_values) == 1:
             return return_values[0]
