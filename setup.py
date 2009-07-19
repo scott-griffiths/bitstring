@@ -2,7 +2,7 @@
 from distutils.core import setup
 
 setup(name='bitstring',
-      version='0.4.3',
+      version='0.5.0',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
@@ -10,7 +10,13 @@ setup(name='bitstring',
       download_url='http://python-bitstring.googlecode.com',
       license='The MIT License: http://www.opensource.org/licenses/mit-license.php',
       py_modules=['bitstring'],
-      long_description="""bitstring is a pure Python module designed to help make the creation and analysis of binary data as painless as possible. BitString objects can be constructed from integers, hexadecimal, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched, and navigated in, similar to a file or stream.""",
+      long_description="""bitstring is a pure Python module designed to help make
+the creation and analysis of binary data as painless as possible.
+BitString objects can be constructed from integers, hexadecimal,
+octal, binary, strings or files. They can be sliced, joined,
+reversed, inserted into, overwritten, etc. with simple functions
+or slice notation. They can also be read from, searched, and
+navigated in, similar to a file or stream.""",
       platforms='all',
       classifiers = [
         'Development Status :: 4 - Beta',
