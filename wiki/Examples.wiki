@@ -2,85 +2,108 @@
 #labels Featured
 
 {{{
-from bitstring import BitString
+>>> from bitstring import BitString
 }}}
 ===Creating `BitString` objects===
-
-Internally `BitString` objects are stored as byte arrays. This means that no space is wasted and a `BitString` containing 10MB of binary data will only take up 10MB of memory. When a `BitString` is created all that is stored is the byte array, the length in bits and possibly an offset to the first used bit in the byte array. This means that the actual initialiser used to create the `BitString` isn't stored itself - if you create using a hex string for example then if you ask for the hex interpretation it has to be calculated from the stored byte array.
+From a hexadecimal string
 {{{
-# From a hexadecimal string
-h = BitString(hex='000001b3')
-
-# From an octal string
-o = BitString(oct='755')
-
-# From a binary string
-b = BitString(bin='001001111')
-
-# hex, oct and bin using automatic interpretation
-# Must prefix with '0b', '0o' or '0x'
-h = BitString('0x000001b3')
-o = BitString('0o755')
-b = BitString('0b001001111')
-
-# From an ordinary string
-d = BitString(data='\x03\xff\x23')
-
-# From a file (only read as necessary)
-f = BitString(filename='ABigFile.ext')
-
-# With integers the length of the BitString in bits needs to be supplied.
-# It must be long enough to contain the integer.
-ui = BitString(uint=15, length=6)
-
-# From an integer represented as a signed exponential Golomb code
-e = BitString(se=-10)
-
+>>> h = BitString(hex='000001b3')
+}}}
+From an octal string
+{{{
+>>> o = BitString(oct='755')
+}}}
+From a binary string
+{{{
+>>> b = BitString(bin='001001111')
+}}}
+hex, oct and bin using automatic interpretation
+Must prefix with '0b', '0o' or '0x'
+{{{
+>>> h = BitString('0x000001b3')
+>>> o = BitString('0o755')
+>>> b = BitString('0b001001111')
+}}}
+From an ordinary string
+{{{
+>>> d = BitString(data='\x03\xff\x23')
+}}}
+From a file (only read as necessary)
+{{{
+>>> f = BitString(filename='ABigFile.ext')
+}}}
+With integers the length of the BitString in bits needs to be supplied. It must be long enough to contain the integer.
+{{{
+>>> ui = BitString(uint=15, length=6)
+}}}
+or
+{{{
+>>> ui = BitString('uint6=15')
+}}}
+From an integer represented as a signed exponential Golomb code
+{{{
+>>> e = BitString(se=-10)
 }}}
 ===Interpreting `BitString` objects===
 Python properties are used to give different interpretations of the binary data. 
 {{{
-# hex will raise a ValueError if the length isn't a multiple of 4
-print h.hex    # 0x000001b3
-# oct will raise a ValueError if the length isn't a multiple of 3
-print b.oct    # 0o117
-# bin can be used on all BitStrings
-print h.bin    # 0b00000000000000000000000110110011
-# as can int and uint
-print ui.uint  # 15
-print ui.bin   # 0b001111 (note the leading zeros because we gave it a length of 6)
-# se and ue will raise a BitStringError if the BitString isn't a single code 
-print e.se     # -10
-print e.bin    # 0b000010101
+>>> print h.hex
+0x000001b3
+>>> print b.oct
+0o117
+>>> print h.bin
+0b00000000000000000000000110110011
+>>> print ui.uint
+15
+>>> print ui.bin  # (note the leading zeros because we gave it a length of 6)
+0b001111 
+}}}
+se and ue will raise a BitStringError if the BitString isn't a single code.
+{{{
+>>> print e.se
+-10
+>>> print e.bin
+0b000010101
 }}}
 
 ===Manipulating `BitString` objects===
+Slicing
 {{{
-# Slicing
-print h[24:32]      # 0xb3
-print h[3:4:8]      # 0xb3   (the third byte)
-print h[-4:]        # 0b0011 (the final four bits)
-
-# Joining lists
-bsl = ['0b0', '0b1', BitString(uint=5, length=3), BitString(hex='f')]
-print bitstring.join(bsl)     # 0b011011111
-
-# Appending, prepending, truncating and deleting
-s = BitString('0x00')
-s.prepend('0xaa').append('0xbb')
-print s             # 0xaa00bb
-s.truncatestart(4).truncateend(4)
-print s             # 0xa00b
-s.deletebits(8, 4)  # delete 8 bits at bit position 4
-print s             # 0xab
-
-# Using a bitstring as a source for other bitstrings
-s = BitString('0x00112233445566778899aabbccddeeff')
-print s.readbit()           # 0b0
-s.advancebits(7)            # Move on 7 bits to byte align.
-print s.readbytes(3)        # 0x112233
-s.findbytealigned('0x99aa')
-print s.readbytes(5)        # 0x99aabbccdd
+>>> print h[24:32]      # by default indices are in bits
+0xb3
+>>> print h[3:4:8]      # (the third byte)
+0xb3   
+>>> print h[-4:]        # (the final four bits)
+0b0011 
+}}}
+Joining lists
+{{{
+>>> bsl = ['0b0', '0b1', BitString('uint3=5'), '0xf']
+>>> print BitString().join(bsl)
+0b011011111
+}}}
+Appending, prepending, truncating and deleting
+{{{
+>>> s = BitString('0x00')
+>>> s.prepend('0xaa').append('0xbb')
+BitString('0xaa00bb')
+>>> s.truncatestart(4).truncateend(4)
+BitString('0xa00b')
+>>> s.deletebits(8, 4)  # delete 8 bits at bit position 4
+BitString('0xab')
+}}}
+Using a bitstring as a source for other bitstrings
+{{{
+>>> s = BitString('0x00112233445566778899aabbccddeeff')
+>>> print s.readbit()           
+0b0
+>>> s.advancebits(7)            # Move on 7 bits to byte align.
+>>> print s.readbytes(3)       
+0x112233
+>>> s.findbytealigned('0x99aa')
+True
+>>> print s.readbytes(5)        
+0x99aabbccdd
 }}}
 
 ===Parsing structures===
