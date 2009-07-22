@@ -2230,8 +2230,23 @@ class BitStringTest(unittest.TestCase):
     def testIntelligentRead8(self):
         a = BitString('0x123456')
         for t in ['hex1', 'oct1', '-5', '5', 'fred', 'bin-2',
-                  'uinte', 'uint-2', 'intu', 'int-3', 'ses', 'uee']:
+                  'uintp', 'uint-2', 'intu', 'int-3', 'ses', 'uee']:
             self.assertRaises(ValueError, a.read, t)
+
+    def testIntelligentRead9(self):
+        s = BitString('0x012345')
+        t = s.read('rest')
+        self.assertEqual(s, t)
+        s.bitpos = 0
+        a, b = s.read('hex8, hex')
+        self.assertEqual(a, '0x01')
+        self.assertEqual(b, '0x2345')
+        self.assertTrue(isinstance(b, str))
+        s.seekbyte(0)
+        a, b = s.read('bin, hex20')
+        self.assertEqual(a, '0b0000')
+        self.assertEqual(b, '0x12345')
+        self.assertTrue(isinstance(a, str))
 
     def testIntelligentPeek(self):
         a = BitString('0b01, 0x43, 0o4, uint23 2, se5, ue3')
@@ -2270,6 +2285,38 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(b, '0x56')
         self.assertEqual(s.bitpos, 13)
 
+    def testUnpack1(self):
+        s = BitString('uint13=23, hexe, bin010, int41=-554, 0o44332, se=-12, ue4')
+        s.bitpos = 11
+        a, b, c, d, e, f, g = s.unpack('uint13, hex4, bin3, int41, oct15, se, ue')
+        self.assertEqual(a, 23)
+        self.assertEqual(b, '0xe')
+        self.assertEqual(c, '0b010')
+        self.assertEqual(d, -554)
+        self.assertEqual(e, '0o44332')
+        self.assertEqual(f, -12)
+        self.assertEqual(g, 4)
+        self.assertEqual(s.bitpos, 11)
+
+    def testUnpack2(self):
+        pass
+    def testUnpack3(self):
+        pass
+    def testUnpack4(self):
+        pass
+    def testUnpack5(self):
+        pass
+    def testUnpack6(self):
+        pass
+    def testUnpack7(self):
+        pass
+    def testUnpack8(self):
+        pass
+    def testUnpack9(self):
+        pass
+    def testUnpack10(self):
+        pass
+    
 def main():
     unittest.main()
 

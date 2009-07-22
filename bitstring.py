@@ -389,7 +389,7 @@ class BitString(object):
     def __add__(self, bs):
         """Concatenate BitStrings and return new BitString.
         
-        bs -- the BitString (or string for 'auto' initialiser) to append.
+        bs -- the BitString to append.
         
         """
         s = self.__copy__().append(bs)
@@ -399,7 +399,7 @@ class BitString(object):
     def __iadd__(self, bs):
         """Append bs to current BitString. Return self.
         
-        bs -- the BitString (or string for 'auto' initialiser) to append.
+        bs -- the BitString to append.
         
         """
         return self.append(bs)
@@ -1354,6 +1354,13 @@ class BitString(object):
         """Return True if the BitString is empty (has zero length)."""
         return self.length == 0
     
+    def unpack(self, *format):
+        bitposbefore = self._pos
+        self._pos = 0
+        return_values = self.read(*format)
+        self._pos = bitposbefore
+        return return_values
+    
     def read(self, *format):
         """Interpret next bits according to format string(s) and return result.
         
@@ -1388,53 +1395,63 @@ class BitString(object):
                 tokens.append(str(f_item))
             else:
                 raise TypeError("Cannot read using object of type %s." % type(f_item))
-        return_values = []
+        pairs = []
+        names = ['uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits', 'bytes', 'rest']
+        had_token_without_size = False
         for token in tokens:
-            # TODO: It would be good if you could do hex4*8 etc. Needs an eval?
-            if token.startswith('uint'):
-                length = int(token[4:])
-                return_values.append(self.readbits(length).uint)
-                continue
-            if token.startswith('int'):
-                length = int(token[3:])
-                return_values.append(self.readbits(length).int)
-                continue
-            if token == 'ue':
-                return_values.append(self._readue())
-                continue
-            if token == 'se':
-                return_values.append(self._readse())
-                continue                
-            if token.startswith('hex'):
-                length = int(token[3:])
-                return_values.append(self.readbits(length).hex)
-                continue
-            if token.startswith('oct'):
-                length = int(token[3:])
-                return_values.append(self.readbits(length).oct)
-                continue
-            if token.startswith('bin'):
-                length = int(token[3:])
-                return_values.append(self.readbits(length).bin)
-                continue
-            if token.startswith('bits'):
-                length = int(token[4:])
-                return_values.append(self.readbits(length))
-                continue
-            if token.startswith('bytes'):
-                length = int(token[5:])
-                return_values.append(self.readbytes(length))
-                continue
-            # Finally try as a bitlength without interpretation
-            #try:
-            #    length = int(eval(token))
-            #    if length < 0:
-            #        raise ValueError
-            #    return_values.append(self.readbits(length))
-            #    continue
-            #except (ValueError, NameError):
-            #    pass
-            raise ValueError("Don't understand token '%s'." % token)
+            for name in names:
+                if token.startswith(name):
+                    try:
+                        value = token[len(name):]
+                        if not value:
+                            # Nothing after the name, either it's se, ue or a 'filler'.
+                            value = None
+                            if name not in ['se', 'ue']:
+                                if had_token_without_size:
+                                    raise BitStringError("You can only specify one token without a size.")
+                                had_token_without_size = True
+                            elif had_token_without_size:
+                                # Can't read se or ue if we don't know the start bit
+                                raise BitStringError("You can't use 'se' or 'ue' after a token without a size.")
+                        else:
+                            value = int(value)
+                            if name == 'bytes':
+                                # Make the unit bits like everything else.
+                                value *= 8 
+                    except ValueError:
+                        raise ValueError("Don't understand token '%s'." % token)
+                    pairs.append([name, value])
+                    break
+            else:
+                raise ValueError("Don't understand token '%s'." % token)
+        # We are allowed a maximum of one token without a size
+        if had_token_without_size:
+            total_size = self.length - self.bitpos
+            for name, value in pairs:
+                if value:
+                    total_size -= value
+            for pair in pairs:
+                if pair[1] is None:
+                    pair[1] = max(0, total_size)
+
+        return_values = []
+        for name, value in pairs:
+            if value is not None and value >= 0:
+                if name in ['uint', 'int', 'hex', 'oct', 'bin']:
+                    return_values.append(getattr(self.readbits(value), name))
+                    continue
+                if name in ['bits', 'bytes', 'rest']:
+                    return_values.append(self.readbits(value))
+                    continue
+            elif value is None:
+                if name == 'ue':
+                    return_values.append(self._readue())
+                    continue
+                if name == 'se':
+                    return_values.append(self._readse())
+                    continue
+            raise ValueError("Couldn't parse '%s' token." % name)
+            
         if len(return_values) == 1:
             return return_values[0]
         return return_values
@@ -1958,7 +1975,6 @@ class BitString(object):
         
         """
         return self.__getitem__(slice(startbit, endbit, step))
-
     
     def insert(self, bs, bitpos=None):
         """Insert bs at current position, or bitpos if supplied. Return self.
