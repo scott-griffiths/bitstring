@@ -1,23 +1,13 @@
 #labels Deprecated
 *bitstring* is a pure Python module designed to help make the creation and analysis of binary data as painless as possible.
 
-==Overview==
-
-`BitString` objects can be constructed from integers, hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
-
-Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and (almost) 100% code coverage is given by over 250 unit tests. It is available for Python 2.4, 2.5, and 2.6, with a separate version for Python 3.
-
 ----
 
-The complete documentation for the bitstring module is now available as a PDF. This contains all the information that was in the Wiki, most of which is now deprecated.
+!BitString objects can be constructed from integers, hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
 
-*[http://python-bitstring.googlecode.com/svn/tags/bitstring-0.5.0/bitstring_manual.pdf Download the bitstring documentation (PDF)]*
+Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and excellent code coverage is given by over 250 unit tests. It is available for Python 2.4, 2.5, and 2.6, with a separate version for Python 3.
 
-Also see [ClassHelp] for quick reference.
-
-----
-
-==Example usage==
+==Examples==
 
 Different interpretations, slicing and concatenation:
 {{{
@@ -53,7 +43,15 @@ BitString('0x12480f')
 BitString('0x180f')
 }}}
 
-See the Wiki for more [Examples].
+See the Wiki and the user manual for more [Examples].
+----
+==Documentation==
+
+The complete documentation for the bitstring module is now available as a PDF. This contains all the information that was in the Wiki, most of which is now deprecated.
+
+*[http://python-bitstring.googlecode.com/svn/tags/bitstring-0.5.0/bitstring_manual.pdf Download the bitstring documentation (PDF)]*
+
+Also see [ClassHelp] for quick reference.
 
 ----
 == News ==
