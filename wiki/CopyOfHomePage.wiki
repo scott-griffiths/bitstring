@@ -1,11 +1,11 @@
 #labels Deprecated
 *bitstring* is a pure Python module designed to help make the creation and analysis of binary data as painless as possible.
 
-----
-
-!BitString objects can be constructed from integers, hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
+`BitString` objects can be constructed from integers, hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
 
 Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and excellent code coverage is given by over 250 unit tests. It is available for Python 2.4, 2.5, and 2.6, with a separate version for Python 3.
+
+----
 
 ==Examples==
 
