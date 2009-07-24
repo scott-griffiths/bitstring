@@ -1,20 +1,19 @@
 #labels Deprecated
-*bitstring* is a pure Python module that aids in the construction, analysis and modification of binary data.
-[http://python-bitstring.googlecode.com/svn/wiki/bitstring.pdf bitstring documentation (PDF)]
+*bitstring* is a pure Python module designed to help make the creation and analysis of binary data as painless as possible.
+
 ==Overview==
 
-The bitstring module provides one feature-rich class, `BitString`, containing binary data which can be interpreted as, or constructed from, hexadecimal, octal or binary strings, signed or unsigned integers, and signed or unsigned exponential-Golomb coded integers. It can also be used as and created from plain Python strings, or initialised from a file.
+`BitString` objects can be constructed from integers, hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
 
-The module is provided with a comprehensive set of unit tests and has been tested with Python 2.4, 2.5 and 2.6. There is also a separate version available for Python 3.0.
+Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and (almost) 100% code coverage is given by over 250 unit tests. It is available for Python 2.4, 2.5, and 2.6, with a separate version for Python 3.
 
-For the best introduction, see the [Tutorial], which is split up into these pages:
+----
 
-  * [IntroducingBitStrings Introduction]
-  * [CreatingBitStrings Creating BitStrings]
-  * [InterpretingBitStrings Interpreting BitStrings]
-  * [DeconstructingBitStrings Deconstructing BitStrings]
-  * [ModifyingBitStrings Modifying BitStrings]
-  * [Miscellany Miscellany]
+The complete documentation for the bitstring module is now available as a PDF. This contains all the information that was in the Wiki, most of which is now deprecated.
+
+*[http://python-bitstring.googlecode.com/svn/tags/bitstring-0.5.0/bitstring_manual.pdf Download the bitstring documentation (PDF)]*
+
+Also see [ClassHelp] for quick reference.
 
 ----
 
@@ -34,12 +33,8 @@ BitString('0o0657056705674')
 Reading data sequentially.
 {{{
 >>> b = BitString('0x160120f')
->>> b.readbits(12).uint
-352
->>> b.readbits(12).uint
-288
->>> b.readbits(3).bin
-0b010
+>>> b.read('uint12, uint12, bin3')
+[352, 288, '0b111']
 >>> b[0:12] = 408
 >>> b.hex
 '0x198120f'
@@ -63,149 +58,179 @@ See the Wiki for more [Examples].
 ----
 == News ==
 ----
-== May xx 2009: version 0.4.2 for Python 2.x released ==
 
-This is a minor update, and almost doesn't break compatibility with version 0.4.0, but with the slight exception of `findall()` returning a generator, detailed below.
+==July 19th 2009: version 0.5.0 for Python 2.x released==
 
-== Changes in version 0.4.2 ==
+This update breaks backward compatibility in a couple of areas. The only one
+you probably need to be concerned about is the change to the default for
+bytealigned in find, replace, split, etc.
 
-=== Stepping in slices ===
+See the user manual for more details on each of these items.
 
-The use of the step parameter (also known as the stride) in slices has been added. Its use is a little non-standard as it effectively gives a multiplicative factor to apply to the start and stop parameters, rather than skipping over bits.
+===Expanded abilities of 'auto' initialiser===
 
-For example this makes it much more convenient if you want to give slices in terms of bytes instead of bits. Instead of writing `s[a*8:b*8]` you can use `s[a:b:8]`.
-
-When using a step the `BitString` is effectively truncated to a multiple of the step, so `s[::8]` is equal to `s` if `s` is an integer number of bytes, otherwise it is truncated by up to 7 bits. So the final seven complete 16-bit words could be written as `s[-7::16]`
-
-Negative slices are also allowed, and should do what you'd expect. So for example `s[::-1]` returns a bit-reversed copy of `s` (which is similar to `s.reversebits()`, which does the same operation on `s` in-place). As another example, to get the first 10 bytes in reverse byte order you could use `s_bytereversed = s[0:10:-8]`.
-
-=== Removed restrictions on `offset` ===
-
-You can now specify an `offset` of greater than 7 bits when creating a `BitString`, and the use of `offset` is also now permitted when using the `filename` initialiser. This is useful when you want to create a `BitString` from the middle of a file without having to read the file into memory.
+More types can be initialised through the 'auto' initialiser. For example
+instead of
 {{{
-f = BitString(filename='reallybigfile', offset=8000000, length=32)
+>>> a = BitString(uint=44, length=16)
 }}}
-
-=== Integers can be assigned to slices ===
-
-You can now assign an integer to a slice of a `BitString`. If the integer doesn't fit in the size of slice given then a `ValueError` exception is raised. So this is now allowed and works as expected:
+you can write
 {{{
-s[8:16] = 106
+>>> a = BitString('uint16=44')
 }}}
-and is equivalent to
+Also, different comma-separated tokens will be joined together, e.g.
 {{{
-s[8:16] = BitString(uint=106, length=8)
+>>> b = BitString('0xff') + 'int8=-5'
 }}}
-
-=== Less exceptions raised ===
-
-Some changes have been made to slicing so that less exceptions are raised, bringing the interface closer to that for lists. So for example trying to delete past the end of the `BitString` will now just delete to the end, rather than raising a `ValueError`.
-
-=== Initialisation from lists and tuples ===
-
-A new option for the `auto` initialiser is to pass it a list or tuple. The items in the list or tuple are evaluated as booleans and the bits in the `BitString` are set to `1` for `True` items and `0` for `False` items. This can be used anywhere the `auto` initialiser can currently be used. For example:
+can be written
 {{{
->>> a = BitString([True, 7, False, 0, ()])     # 0b11000
->>> b = a + ['Yes', '']                        # Adds '0b10'
->>> (True, True, False) in a
-True
+>>> b = BitString('0xff, int8=-5')
 }}}
+===New formatted `read()` and `peek()` functions===
 
-=== Miscellany ===
-
-`reversebits()` now has optional `startbit` and `endbit` parameters.
-
-As an optimisation `findall()` will return a generator, rather than a list. If you still want the whole list then of course you can just call `list()` on the generator.
-
-Improved efficiency of `rfind()`.
-
-A couple of minor bugs were fixed. See the issue tracker for details.
-
-----
-
-== April 23rd 2009: version 0.4.1 for Python 3 released ==
-
-This release is simply a port of version 0.4.0 to Python 3.0 and will not work for Python 2.x. All the unit tests pass (of course) but beyond that only limited ad hoc testing has been done. Development is still continuing on the 2.x branch and the Python 3.0 release is a bit of an experiment; both to see what was involved in making the port, and to see if anyone is at all interested in it!
-
-I am not planning on updating the Python 3.0 version every time I release a new Python 2.x version of bitstring, so the next update will probably have to wait until version 1.0.
-
-----
-
-== April 11th 2009: version 0.4.0 released ==
-==Changes in version 0.4.0==
-
-===New functions===
-
-Added `rfind()`, `findall()`, `replace()`. These do pretty much what you'd expect -
-see the docstrings or the wiki for more information.
-
-===More special functions===
-
-Some missing functions were added: `__repr__`, `__contains__`, `__rand__`,
-`__ror__`, `_rxor__` and `__delitem__`.
-
-===Miscellany===
-
-A couple of small bugs were fixed (see the issue tracker).
-
-----
-
-There are some small backward incompatibilities relative to version 0.3.2:
-
-===Combined `find()` and `findbytealigned()`===
-
-`findbytealigned()` has been removed, and becomes part of `find()`. The default
-start position has changed on both `find()` and `split()` to be the start of the
-`BitString`. You may need to recode:
+These takes a format string similar to that used in the auto initialiser.
+If only one token is provided then a single value is returned, otherwise a
+list of values is returned.
 {{{
-s1.find(bs)
-s2.findbytealigned(bs)
-s2.split(bs)
+>>> start_code, width, height = s.read('hex32, uint12, uint12')
+}}}
+is equivalent to
+{{{
+>>> start_code = s.readbits(32).hex
+>>> width = s.readbits(12).uint
+>>> height = s.readbits(12).uint
+}}}
+The tokens are:
+
+  int n   : n bits as an unsigned integer.
+
+  uint n  : n bits as a signed integer.
+
+  hex n   : n bits as a hexadecimal string.
+
+  oct n   : n bits as an octal string.
+
+  bin n   : n bits as a binary string.
+
+  ue      : next bits as an unsigned exp-Golomb.
+
+  se      : next bits as a signed exp-Golomb.
+
+  bits n  : n bits as a new `BitString`.
+
+  bytes n : n bytes as a new `BitString`.
+
+See the user manual for more details.
+
+===`hex()` and `oct()` functions removed===
+
+The special functions for `hex()` and `oct()` have been removed. Please use the
+`hex` and `oct` properties instead.
+{{{
+>>> hex(s)
+}}}
+becomes
+{{{ 
+>>> s.hex
+}}}
+===join made a member function===
+
+The join function must now be called on a `BitString` object, which will be
+used to join the list together. You may need to recode slightly:
+{{{
+>>> s = bitstring.join('0x34', '0b1001', '0b1')
 }}}
 becomes
 {{{
-s1.find(bs, bytealigned=False, startbit=s1.bitpos)
-s2.find(bs, startbit=s1.bitpos)  # bytealigned defaults to True
-s2.split(bs, startbit=s2.bitpos)
+>>> s = BitString().join('0x34', '0b1001', '0b1')
 }}}
 
-===Reading off end of `BitString` no longer raises exception===
+===More than one value allowed in readbits, readbytes, peekbits and peekbytes===
 
-Previously a read or peek function that encountered the end of the `BitString`
-would raise a `ValueError`. It will now instead return the remainder of the
-`BitString`, which could be an empty `BitString`. This is closer to the file
-object interface.
+If you specify more than one bit or byte length then a list of BitStrings will
+be returned.
+{{{
+>>> a, b, c = s.readbits(10, 5, 5)
+}}}
+is equivalent to
+{{{
+>>> a = readbits(10)
+>>> b = readbits(5)
+>>> c = readbits(5)
+}}}
+===`bytealigned` defaults to `False`, and is at the end of the parameter list===
 
-===Removed visibility of `offset`===
+Functions that have a `bytealigned` paramater have changed so that it now
+defaults to `False` rather than `True`. Also its position in the parameter list
+has changed to be at the end. You may need to recode slightly (sorry!)
 
-The `offset` property was previously read-only, and has now been removed from
-public view altogether. As it is used internally for efficiency reasons you
-shouldn't really have needed to use it. If you do then use the `_offset` parameter
-instead (with caution).
+===`readue` and `readse` functions have been removed===
+
+Instead you should use the new `read` function with a `ue` or `se` token:
+{{{
+>>> i = s.readue()
+}}}
+becomes
+{{{
+>>> i = s.read('ue')
+}}}
+This is more flexible as you can read multiple items in one go, plus you can
+now also use the `peek` function with `ue` and `se`.
+
+===Minor bugs fixed===
+
+See the issue tracker for more details.
 
 ----
 
-== March 11th 2009: version 0.3.2 released ==
+==June 15th 2009: version 0.4.3 for Python 2.x released==
 
-== Changes in version 0.3.2 ==
-== Better performance ==
-A number of functions (especially `find()` and `findbytealigned()`) have been sped up considerably. 
+This is a minor update.
 
-== Bit-wise operations ==
-Added support for bit-wise AND (`&`), OR (`|`) and XOR (`^`). For example:
+== Changes in version 0.4.3 ==
+
+=== New `cut` function===
+
+This function returns a generator for constant sized chunks of a `BitString`.
 {{{
-a = BitString('0b00111')
-print a & '0b10101'              # '0b00101'
+>>> for byte in s.cut(8):
+...     do_something_with(byte)
 }}}
-
-== Miscellany ==
-Added `seekbit()` and `seekbyte()` functions. These complement the 'advance' and 'retreat' functions, although you can still just use `bitpos` and `bytepos` properties directly.
+You can also specify a `startbit` and `endbit`, as well as a `count`, which limits
+the number of items generated:
 {{{
-a.seekbit(100)                   # Equivalent to a.bitpos = 100
+>>> first100TSPackets = list(s.cut(188*8, count=100))
 }}}
+=== `slice` function now equivalent to `__getitem__` ===
 
-Allowed comparisons between `BitString` objects and strings. For example this will now work:
+This means that a step can also be given to the slice function so that the
+following are now the same thing, and it's just a personal preference which
+to use:
 {{{
-a = BitString('0b00001111')
-assert a == '0x0f'
+>>> s1 = s[a:b:c]
+>>> s2 = s.slice(a, b, c)
 }}}
+=== `findall` gets a `count` parameter ===
+
+So now
+{{{
+>>> list(a.findall(s, count=n))
+}}}
+is equivalent to
+{{{
+>>> list(a.findall(s))[:n]
+}}}
+except that it won't need to generate the whole list and so is much more
+efficient.
+
+=== Changes to `split` ===
+
+The `split` function now has a `count` parameter rather than `maxsplit`. This
+makes the interface closer to that for `cut`, `replace` and `findall`. The final item
+generated is now no longer the whole of the rest of the `BitString`.
+
+* A couple of minor bugs were fixed. See the issue tracker for details.
+
+----
+
+For earlier changes, see the [http://python-bitstring.googlecode.com/svn/trunk/release_notes.txt release notes].
