@@ -1,0 +1,23 @@
+#summary Answers to some frequently asked questions
+#labels Deprecated
+
+_disclaimer_: None of these questions have really been frequently asked. I'm just making it up. If you have a real question then please ask it; either directly to me (scott@griffiths.name) or in the comment section below.
+
+----
+
+===How do you deal with big-endian / little-endian data?===
+
+Currently (version 0.5.0) all of the interpretations are big-endian, both byte-wise and bit-wise. I am planning to add little-endian integer types for whole-byte !BitStrings (tentatively called `uintle` and `intle`). In the meantime to get a little-endian value, byte reverse the !BitString and use the big-endian interpretation (e.g. `le = s[::-8].int`)
+
+----
+
+===How well optimised is the code? Are you planning to port to C?===
+
+The module is pure Python at the moment, and I've got no plans to move any of it to C. That may change in the future, but certainly won't happen before it comes out of beta.
+
+----
+
+===When is it coming out of beta?===
+
+When it's ready :-). I still find myself wanting to tweak parts of the current interface, as well as having a healthy list of features to add so I'm not rushing to get to version 1.0. If pressed, I'd say it is likely to hit that milestone in late 2009, but 
+
