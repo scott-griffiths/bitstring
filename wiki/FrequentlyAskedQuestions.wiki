@@ -19,7 +19,9 @@ When it's ready :-). I still find myself wanting to tweak parts of the current i
 
 ===What's the deal with Python 3 support?===
 
-I made a port of version 0.4.0 to Python 3 as an experiment, partly to see how much demand there would be. The answer is not a lot - I estimate that there have been twenty Python 2 downloads per Python 3 download. As there's only one of me and my time is precious I haven't ported any later version. I am planning to do so when we get to version 1.0. If you really need a later version for Python 3 then feel free to ask, I could be persuaded.
+I made a port of version 0.4.0 to Python 3 as an experiment, partly to see how much demand there would be. The answer is not a lot - I estimate that there have been twenty Python 2 downloads per Python 3 download. As there's only one of me and my time is precious I haven't ported any later versions, but I am planning to do so when I get to version 1.0.
+
+If you really need a later version for Python 3 then feel free to ask, I could be persuaded.
 
 ----
 
@@ -27,9 +29,17 @@ I made a port of version 0.4.0 to Python 3 as an experiment, partly to see how m
 
 Yes, until at least version 1.0. I am very tempted to drop support for older Python versions after this point because there are lots of simplifications I can make using newer Python 2.6 syntax and features, plus this will ease the transition to Python 3.
 
+----
+
 ===Are you going to introduce feature X?===
 
 That depends. If you have any feature requests then please take a look at the Issues tab, and if it's already there add a comment to say you want it, and if it's not then add a new issue. I am open to suggestions.
+
+----
+
+===Do you have a feature roadmap?===
+
+Not really, but you can get a good idea of the future direction by looking through the open enhancement requests on the Issues tab.
 
 ----
 
