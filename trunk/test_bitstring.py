@@ -42,7 +42,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, '0b01 0010 0011 0100 01'*2)
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '0.5.0')
+        self.assertEqual(bitstring.__version__, '0.5.1')
     
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')
@@ -2112,7 +2112,7 @@ class BitStringTest(unittest.TestCase):
         c1 = bitstring._CatArray(m1)
         self.assertEqual(c1.rawbytes, '\xff')
         m2 = bitstring._MemArray('\xff', 1, 1)
-        c1.appendarray(m2)
+        c1.appendarray(bitstring._CatArray(m2))
         self.assertEqual(c1.bitlength, 9)
         self.assertEqual(c1.offset, 0)
     
@@ -2285,6 +2285,14 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(b, '0x56')
         self.assertEqual(s.bitpos, 13)
 
+    def testDifficultPrepends(self):
+        a = BitString('0b1101011')
+        b = BitString()
+        for i in xrange(10):
+            b.prepend(a)
+        self.assertEqual(b, a*10)
+
+
     def testUnpack1(self):
         s = BitString('uint13=23, hexe, bin010, int41=-554, 0o44332, se=-12, ue4')
         s.bitpos = 11
@@ -2317,6 +2325,7 @@ class BitStringTest(unittest.TestCase):
     def testUnpack10(self):
         pass
     
+
 def main():
     unittest.main()
 
