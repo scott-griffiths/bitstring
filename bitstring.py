@@ -28,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 __author__ = "Scott Griffiths"
 
@@ -142,6 +142,10 @@ class _Array(object):
     def appendarray(self, array):
         """Append another array to this one."""
         raise NotImplementedError
+    
+    def prependarray(self, array):
+        """Prepend another array to this one."""
+        raise NotImplementedError
 
     
 class _FileArray(_Array):
@@ -251,13 +255,34 @@ class _MemArray(_Array):
             return
         bits_in_final_byte = (self.offset + self.bitlength) % 8
         array.setoffset(bits_in_final_byte)
-        if bits_in_final_byte != 0:
+        if array.offset != 0:
             # first do the byte with the join.
-            self[-1] = (self[-1] & (255 ^ (255 >> bits_in_final_byte)) | \
+            self[-1] = (self[-1] & (255 ^ (255 >> array.offset)) | \
                                    (array[0] & (255 >> array.offset)))
-        else:
+        else: # TODO: clean this up
             self.appendbytes(array[0])
         self.appendbytes(array[1 : array.bytelength])
+        self.bitlength += array.bitlength
+
+    def prependarray(self, array):
+        """Join another array on to the start of this one."""
+        if array.bitlength == 0:
+            return
+        # Set the offset of copy of array so that it's final byte
+        # ends in a position that matches the offset of self,
+        # then join self on to the end of it.
+        array = copy.copy(array)
+        array.setoffset((self.offset - array.bitlength) % 8)
+        assert (array.offset + array.bitlength) % 8 == self.offset
+        if self.offset != 0:
+            # first do the byte with the join.
+            array[-1] = (array[-1] & (255 ^ (255 >> self.offset)) | \
+                                   (self._rawarray[0] & (255 >> self.offset)))
+            array.appendbytes(self._rawarray[1 : self.bytelength])
+        else:
+            array.appendbytes(self._rawarray[0 : self.bytelength])
+        self._rawarray = array._rawarray
+        self.offset = array.offset
         self.bitlength += array.bitlength
 
     def _getrawbytes(self):
@@ -273,7 +298,10 @@ class _CatArray(_Array):
         self.arraylist = [array]
         
     def appendarray(self, array):
-        self.arraylist[0].appendarray(array)
+        self.arraylist[0].appendarray(array.arraylist[0])
+    
+    def prependarray(self, array):
+        self.arraylist[0].prependarray(array.arraylist[0])
         
     def __getitem__(self, key):
         return self.arraylist[0].__getitem__(key)
@@ -343,6 +371,14 @@ class BitString(object):
             raise ValueError("length cannot be negative.")
         
         initialisers = [auto, data, filename, hex, bin, oct, int, uint, ue, se]
+        if initialisers.count(None) == len(initialisers):
+            # No initialisers, so initialise with nothing or zero bits
+            if length is not None:
+                data = '\x00' * ((length + 7) // 8)
+                self._setdata(data, 0, length)
+            else:
+                self._setdata('', 0)
+            return
         initfuncs = [self._setauto, self._setdata, self._setfile,
                      self._sethex, self._setbin, self._setoct,
                      self._setint, self._setuint, self._setue, self._setse]
@@ -355,26 +391,18 @@ class BitString(object):
             raise BitStringError("offset cannot be specified when initialising from an integer.")
         if offset < 0:
             raise ValueError("offset must be >= 0.")
-        if initialisers.count(None) == len(initialisers):
-            # No initialisers, so initialise with nothing or zero bits
-            if length is not None:
-                data = '\x00'*((length + 7)//8)
-                self._setdata(data, 0, length)
-            else:
-                self._setdata('', 0)
+        init = [(d, func) for (d, func) in zip(initialisers, initfuncs) if d is not None]
+        assert len(init) == 1
+        (d, func) = init[0]
+        if d == filename:
+            byteoffset, offset = divmod(offset, 8)
+            func(d, offset, length, byteoffset)
+        elif d in [se, ue]:
+            func(d)
+        elif d in [int, uint]:
+            func(d, length)
         else:
-            init = [(d, func) for (d, func) in zip(initialisers, initfuncs) if d is not None]
-            assert len(init) == 1
-            (d, func) = init[0]
-            if d == filename:
-                byteoffset, offset = divmod(offset, 8)
-                func(d, offset, length, byteoffset)
-            elif d in [se, ue]:
-                func(d)
-            elif d in [int, uint]:
-                func(d, length)
-            else:
-                func(d, offset, length)
+            func(d, offset, length)
         assert self._assertsanity()
         
     def __copy__(self):
@@ -1714,11 +1742,10 @@ class BitString(object):
             raise ValueError("Cannot find - endbit is past the end of the BitString.")
         if endbit < startbit:
             raise ValueError("endbit must not be less than startbit.")
-        if bytealigned and len(bs) % 8 == 0:
+        # If everything's byte aligned (and whole-byte) then use the quick algorithm.
+        if bytealigned and len(bs) % 8 == 0 and self._datastore.offset == 0:
             # Extract data bytes from BitString to be found.
             d = bs.data
-            self._ensureinmemory()
-            self._datastore.setoffset(0)
             oldpos = self._pos
             self._pos = startbit
             self.bytealign()
@@ -1857,13 +1884,14 @@ class BitString(object):
         
         Returns number of replacements made.
         
-        old -- The BitString (or string for 'auto' initialiser) to replace
-        new -- The replacement BitString (or string for 'auto' initialiser).
+        old -- The BitString to replace.
+        new -- The replacement BitString.
         startbit -- Any occurences that start before starbit will not
                     be replaced. Defaults to 0.
         endbit -- Any occurences that finish after endbit will not
-                  be replaced. Defaults to self.length
-        count -- The maximum number of replacements to make.
+                  be replaced. Defaults to self.length.
+        count -- The maximum number of replacements to make. Defaults to
+                 replace all occurences.
         bytealigned -- If True replacements will only be made on byte
                        boundaries.
         
@@ -1876,11 +1904,13 @@ class BitString(object):
         if old.empty():
             raise ValueError("Empty BitString cannot be replaced.")
         newpos = self._pos
+        # Adjust count for use in split()
         if count is not None:
             count += 1
         sections = self.split(old, startbit, endbit, count, bytealigned)
         lengths = [s.length for s in sections]
         if len(lengths) == 1:
+            # Didn't find anything to replace.
             self._pos = newpos
             return 0 # no replacements done
         positions = [lengths[0]]
@@ -1959,7 +1989,8 @@ class BitString(object):
         newlength_in_bytes = (self._offset + self.length - bits + 7) // 8
         # Ensure that the position is still valid
         self._pos = max(0, min(self._pos, self.length - bits))
-        self._setdata(self._datastore[:newlength_in_bytes], length=self.length - bits)
+        self._setdata(self._datastore[:newlength_in_bytes], offset=self._offset,
+                      length=self.length - bits)
         assert self._assertsanity()
         return self
     
@@ -2071,7 +2102,7 @@ class BitString(object):
         if bytepos is None:
             bytepos = self._pos//8
         return self.deletebits(bytes*8, bytepos*8)
-
+    
     def append(self, bs):
         """Append a BitString to the current BitString. Return self.
         
@@ -2087,8 +2118,8 @@ class BitString(object):
         if bs is self:
             bs = self.__copy__()
         self._datastore.appendarray(bs._datastore)
-        return self
-    
+        return self       
+        
     def prepend(self, bs):
         """Prepend a BitString to the current BitString. Return self.
         
@@ -2103,12 +2134,10 @@ class BitString(object):
         bs._ensureinmemory()
         if bs is self:
             bs = self.__copy__()
-        newdatastore = bs._datastore.__copy__()
-        newdatastore.appendarray(self._datastore)
-        self._datastore = newdatastore
+        self._datastore.prependarray(bs._datastore)
         self.bitpos += bs.length
         return self
-    
+
     def reversebits(self, startbit=None, endbit=None):
         """Reverse bits in-place. Return self.
         
