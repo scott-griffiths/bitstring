@@ -4,8 +4,8 @@
 {{{
 >>> from bitstring import BitString
 }}}
-===Creating BitStrings===
-There are many ways to create and modify BitStrings, but no matter how they are created they are always internally stored as byte arrays. To create from hexadecimal, octal and binary strings use:
+===Creating !BitStrings===
+There are many ways to create and modify !BitStrings, but no matter how they are created they are always internally stored as byte arrays. To create from hexadecimal, octal and binary strings use:
 {{{
 >>> h = BitString(hex='000001b3')
 >>> o = BitString(oct='755')
