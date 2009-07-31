@@ -4,8 +4,8 @@
 {{{
 >>> from bitstring import BitString
 }}}
-===Creating `BitString` objects===
-From a hexadecimal, octal and binary strings
+===Creating BitStrings===
+There are many ways to create and modify BitStrings, but no matter how they are created they are always internally stored as byte arrays. To create from hexadecimal, octal and binary strings use:
 {{{
 >>> h = BitString(hex='000001b3')
 >>> o = BitString(oct='755')
@@ -36,8 +36,9 @@ or
 
 You can also combine the different methods to join sections together:
 {{{
->>> s = BitString('0xfe, 0b110, uint12=100, 0o7')
+>>> s = BitString('0xfe, 0b110, int12=100, 0o7')
 }}}
+
 ===Interpreting `BitString` objects===
 Python properties are used to give different interpretations of the binary data. These properties are calculated only when you ask for them, they're not stored as part of the object.
 {{{
