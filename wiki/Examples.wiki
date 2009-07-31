@@ -5,30 +5,23 @@
 >>> from bitstring import BitString
 }}}
 ===Creating `BitString` objects===
-From a hexadecimal string
+From a hexadecimal, octal and binary strings
 {{{
 >>> h = BitString(hex='000001b3')
-}}}
-From an octal string
-{{{
 >>> o = BitString(oct='755')
-}}}
-From a binary string
-{{{
 >>> b = BitString(bin='001001111')
 }}}
-hex, oct and bin using automatic interpretation
-Must prefix with '0b', '0o' or '0x'
+Even better, you can use hex, oct and bin with automatic interpretation by prefixing with '0b', '0o' or '0x'
 {{{
 >>> h = BitString('0x000001b3')
 >>> o = BitString('0o755')
 >>> b = BitString('0b001001111')
 }}}
-From an ordinary string
+If you want to initialise from an ordinary Python string (read from a binary file, for example) then use the `data` initialiser.
 {{{
 >>> d = BitString(data='\x03\xff\x23')
 }}}
-From a file (only read as necessary)
+or you can initialise with a filename - the file will only read as necessary:
 {{{
 >>> f = BitString(filename='ABigFile.ext')
 }}}
@@ -40,12 +33,13 @@ or
 {{{
 >>> ui = BitString('uint6=15')
 }}}
-From an integer represented as a signed exponential Golomb code
+
+You can also combine the different methods to join sections together:
 {{{
->>> e = BitString(se=-10)
+>>> s = BitString('0xfe, 0b110, uint12=100, 0o7')
 }}}
 ===Interpreting `BitString` objects===
-Python properties are used to give different interpretations of the binary data. 
+Python properties are used to give different interpretations of the binary data. These properties are calculated only when you ask for them, they're not stored as part of the object.
 {{{
 >>> print h.hex
 0x000001b3
@@ -58,15 +52,10 @@ Python properties are used to give different interpretations of the binary data.
 >>> print ui.bin  # (note the leading zeros because we gave it a length of 6)
 0b001111 
 }}}
-se and ue will raise a BitStringError if the BitString isn't a single code.
-{{{
->>> print e.se
--10
->>> print e.bin
-0b000010101
-}}}
 
 ===Manipulating `BitString` objects===
+You can treat a `BitString` just like a list whose elements are all single bits.
+
 Slicing
 {{{
 >>> print h[24:32]      # by default indices are in bits
@@ -104,33 +93,4 @@ Using a bitstring as a source for other bitstrings
 True
 >>> print s.readbytes(5)        
 0x99aabbccdd
-}}}
-
-===Parsing structures===
-{{{
-# A simple example from the H.264 video standard
-def seq_parameter_set_data(s):
-    e = {}
-    e['profile_idc'] = s.readbyte().uint
-    e['constraint_set0_flag'] = s.readbit().uint
-    e['constraint_set1_flag'] = s.readbit().uint
-    e['constraint_set2_flag'] = s.readbit().uint
-    e['constraint_set3_flag'] = s.readbit().uint
-    e['reserved_zero_4bits'] = s.readbits(4).bin
-    e['level_idc'] = s.readbyte().uint
-    e['seq_parameter_set_id'] = s.readue()
-    if e['profile_idc'] in [100, 110, 122, 244, 44, 83, 86]:
-        e['chroma_format_idc'] = s.readue()
-        if e['chroma_format_idc'] == 3:
-            e['separate_colour_plane_flag'] == s.readbit().uint
-        e['bit_depth_luma_minus8'] = s.readue()
-        e['bit_depth_chroma_minus8'] = s.readue()
-        # etc.
-    return e
-
-s = BitString('0x6410281bc0')
-e = seq_parameter_set_data(s)
-print e['profile_idc']         # 100
-print e['level_idc']           # 40
-print e['reserved_zero_4bits'] # 0b0000
 }}}
