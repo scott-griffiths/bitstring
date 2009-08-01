@@ -482,7 +482,7 @@ class BitString(object):
         self._pos = 0
         self._file = None
         if length is not None and length < 0:
-            raise ValueError("length cannot be negative.")
+            raise ValueError("BitString length cannot be negative.")
         
         initialisers = [auto, data, filename, hex, bin, oct, int, uint, ue, se]
         if initialisers.count(None) == len(initialisers):
@@ -744,8 +744,9 @@ class BitString(object):
     def __str__(self):
         """Return approximate string representation of BitString for printing.
         
-        If exact hex representation is available it will be used, otherwise oct,
-        otherwise bin. Long strings will be truncated with '...'.
+        Short strings will be given wholly in hexadecimal or binary. Longer
+        strings may be part hexadecimal and part binary. Very long strings will
+        be truncated with '...'.
         
         """
         length = self.length
@@ -1009,7 +1010,7 @@ class BitString(object):
             assert self._pos == 0
         else:
             assert 0 <= self._pos <= self.length
-        #assert (self.length + self._offset + 7) // 8 == self._datastore.bytelength
+        assert (self.length + self._offset + 7) // 8 == self._datastore.bytelength
         return True
     
     def _clear(self):
@@ -1227,11 +1228,11 @@ class BitString(object):
             length = len(binstring) - offset
         if length < 0 or length > (len(binstring) - offset):
             raise ValueError("Invalid length of binary string. String %s, length %d, offset %d." % (binstring, length, offset))
+        if length == 0:
+            self._clear()
+            return
         # Truncate the bin_string if needed
         binstring = binstring[offset:length + offset]
-        if length == 0:
-            self._datastore = _CatArray(_MemArray('', 0, 0))
-            return
         # pad with zeros up to byte boundary if needed
         boundary = ((length + 7) // 8) * 8
         if len(binstring) < boundary:
@@ -1259,11 +1260,11 @@ class BitString(object):
             length = len(octstring)*3 - offset
         if length < 0 or length + offset > len(octstring) * 3:
             raise ValueError("Invalid length %s, offset %d for oct initialiser %s" % (length, offset, octstring))
+        if length == 0:
+            self._clear()
+            return
         octstring = octstring[offset // 3:(length + offset + 2) // 3]
         offset %= 3
-        if length == 0:
-            self._datastore = _CatArray(_MemArray('', 0, 0))
-            return
         binlist = []
         for i in octstring:
             try:
@@ -1297,11 +1298,11 @@ class BitString(object):
             length = len(hexstring)*4 - offset
         if length < 0 or length + offset > len(hexstring)*4:
             raise ValueError("Invalid length %d, offset %d for hexstring 0x%s." % (length, offset, hexstring))
+        if length == 0:
+            self._clear()
+            return
         hexstring = hexstring[offset // 4:(length + offset + 3) // 4]
         offset %= 4
-        if length == 0:
-            self._datastore = _CatArray(_MemArray('', 0, offset))
-            return
         hexlist = []
         # First do the whole bytes
         for i in xrange(len(hexstring) // 2):
@@ -1369,7 +1370,8 @@ class BitString(object):
     def _ensureinmemory(self):
         """Ensure the data is held in memory, not in a file."""
         if isinstance(self._datastore, _FileArray):
-            self._datastore = _CatArray(_MemArray(self._datastore[:], self.length, self._offset))
+            self._datastore = _CatArray(_MemArray(self._datastore[:],
+                                                  self.length, self._offset))
     
     def _converttobitstring(self, bs):
         """Attemp to convert bs to a BitString and return it."""
@@ -1425,7 +1427,7 @@ class BitString(object):
         
         """
         codenum = self._readue()
-        m = (codenum + 1)//2
+        m = (codenum + 1) // 2
         if codenum % 2 == 0:
             return -m
         else:
@@ -1523,12 +1525,12 @@ class BitString(object):
         return self.readbits(1)
 
     def readbits(self, *bits):
-        """Return next bits in BitString as a new BitString and advance position.
+        """Return next bits in BitString as new BitString(s) and advance position.
         
         bits -- The number of bits to read. If more than one bit length is
                 given a list of BitStrings will be returned.
         
-        If not enough bits are available then all will be returned.
+        If not enough bits are available then all remaining will be returned.
         
         Raises ValueError if bits < 0.
         
@@ -1559,13 +1561,13 @@ class BitString(object):
         return self.readbits(8)
 
     def readbytes(self, *bytes):
-        """Return next bytes as a new BitString and advance position.
+        """Return next bytes as new BitString(s) and advance position.
         
         bytes -- The number of bytes to read. If more than one byte length is
                  given a list of BitStrings will be returned.
         
         Does not byte align.
-        If not enough bits are available then all will be returned.
+        If not enough bits are available then all remaining will be returned.
         
         """
         return self.readbits(*[b*8 for b in bytes])
@@ -1582,6 +1584,8 @@ class BitString(object):
         
         The position in the BitString is not changed.
         
+        See docstring for read() for token examples.
+        
         """
         bitpos = self._pos
         return_values = self.read(*format)
@@ -1597,12 +1601,12 @@ class BitString(object):
         return self.peekbits(1)
 
     def peekbits(self, *bits):
-        """Return next bits as a new BitString without advancing position.
+        """Return next bits as new BitString(s) without advancing position.
         
         bits -- The number of bits to read. If more than one bit length is
                 given a list of BitStrings will be returned.
         
-        If not enough bits are available then all will be returned.
+        If not enough bits are available then all remaining will be returned.
         
         Raises ValueError if bits < 0.
         
@@ -1621,12 +1625,12 @@ class BitString(object):
         return self.peekbits(8)
 
     def peekbytes(self, *bytes):
-        """Return next bytes as a new BitString without advancing position.
+        """Return next bytes as new BitString(s) without advancing position.
         
         bytes -- The number of bytes to read. If more than one byte length is
                  given a list of BitStrings will be returned.
                      
-        If not enough bits are available then all will be returned.
+        If not enough bits are available then all remaining will be returned.
         
         """
         return self.peekbits(*[b*8 for b in bytes])
@@ -1845,6 +1849,7 @@ class BitString(object):
         if endbit > self.length or if endbit < startbit.
         
         Note that all occurences of bs are found, even if they overlap.
+        
         """
         if count is not None and count < 0:
             raise ValueError("In findall, count must be >= 0.")
@@ -2248,7 +2253,7 @@ class BitString(object):
                  Default is to split as many times as possible.
         bytealigned -- If True splits will only occur on byte boundaries.
         
-        Raises ValueError if the delimiter empty.
+        Raises ValueError if the delimiter is empty.
         
         """  
         delimiter = self._converttobitstring(delimiter)
