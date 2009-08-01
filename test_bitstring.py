@@ -1679,7 +1679,23 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a.hex, '0x1123ef3234')
         a.replace('0x11', '0xfff', endbit=8, bytealigned=True)
         self.assertEqual(a.hex, '0xfff23ef3234')
-    
+
+    def testReplace5(self):
+        a = BitString('0xab')
+        b = BitString('0xcd')
+        c = BitString('0xabef')
+        c.replace(a, b)
+        self.assertEqual(c, '0xcdef')
+        self.assertEqual(a, '0xab')
+        self.assertEqual(b, '0xcd')
+
+    def testReplaceWithSelf(self):
+        a = BitString('0b11')
+        a.replace('0b1', a)
+        self.assertEqual(a, '0xf')
+        a.replace(a, a)
+        self.assertEqual(a, '0xf')
+        
     def testReplaceCount(self):
         a = BitString('0x223344223344223344')
         n = a.replace('0x2', '0x0', count=0, bytealigned=True)
