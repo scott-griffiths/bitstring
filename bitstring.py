@@ -76,9 +76,123 @@ def _splitinputstring(s):
     return slist
 
 def _tidyupinputstring(s):
-    """Return string made lowercase and with all whitespace and '=' removed."""
+    """Return string made lowercase and with all whitespace removed."""
     s = string.join(s.split(), '').lower()
-    return s.replace('=', '')
+    return s
+    
+def _init_with_token(name, value, token_length):
+    if token_length == 0:
+        return BitString()
+    if name in ['0x', 'hex']:
+        return BitString(hex=value, length=token_length)
+    elif name in ['0b', 'bin']:
+        return BitString(bin=value, length=token_length)
+    elif name in ['0o', 'oct']:
+        return BitString(oct=value, length=token_length)
+    elif name == 'se':
+        return BitString(se=value)
+    elif name == 'ue':
+        return BitString(ue=value)
+    elif name == 'uint':
+        return BitString(uint=value, length=token_length)
+    elif name == 'int':
+        return BitString(int=value, length=token_length)
+    else:
+        raise ValueError
+        
+def _tokenparser(*format):
+    """Divide the format string(s) into tokens and parse them.
+    
+    Return list of [initialiser, value, length]
+    initialiser is one of: hex, oct, bin, uint, int, se, ue, 0x, 0o, 0b
+    length is None if not known, as is value.
+    
+    tokens must be of the form: initialiser[length][=value]
+    
+    """
+    tokens = []
+    for f_item in format:
+        if isinstance(f_item, str):
+            tokens.extend([_tidyupinputstring(f) for f in f_item.split(',')])
+        elif isinstance(f_item, int):
+            tokens.append('bits'+str(f_item))
+        else:
+            raise TypeError("Cannot parse token of type %s." % type(f_item))
+    return_values = []
+    names = ['uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits', 'bytes', '0x', '0o', '0b']
+
+    for token in tokens:
+        value = length = None
+        if token == '':
+            return_values.append(['bin', None, 0])
+            continue
+        for name in names:
+            if token.startswith(name):
+                initialiser = name
+                try:
+                    e = token.find('=', len(name))
+                    if e != -1:
+                        pre = token[len(name):e]
+                        post = token[e + 1:]
+                    else:
+                        pre = token[len(name):]
+                        post = None
+                    if not pre:
+                        pre = None
+                    if not post:
+                        post = None
+                        
+                    if name in ['0x', '0o', '0b']:
+                        # Must have a value, must not have a length
+                        if pre and post:
+                            raise ValueError
+                        if pre:
+                            # Of the form '0xff'
+                            value = pre
+                        elif post:
+                            # Of the form '0x=ff'
+                            value = post
+                    elif name in ['hex', 'bin', 'oct']:
+                        # Can have at most one of length or value
+                        if post and pre:
+                            # Of the form hex12=122
+                            raise ValueError
+                        if post:
+                            # Of the form hex=something
+                            value = post
+                        if pre:
+                            # Of the form hex12
+                            length = int(pre)
+                    elif name in ['se', 'ue']:
+                        # Can have a value, must not have a length
+                        if pre:
+                            raise ValueError
+                        if post:
+                            value = int(post)
+                    elif name in ['int', 'uint']:
+                        # Can have a value, must have a length
+                        if pre:
+                            length = int(pre)
+                        if post:
+                            value = int(post)
+                    elif name in ['bits', 'bytes']:
+                        # Can have a length, must not have a value
+                        if post:
+                            raise ValueError
+                        if pre:
+                            length = int(pre)
+                            if name == 'bytes':
+                                # Make the length unit bits, not bytes
+                                length *= 8
+                    else:
+                        assert False
+                except (ValueError, TypeError):
+                    raise ValueError("Don't understand token '%s'." % token)
+                return_values.append([name, value, length])
+                break
+        else:
+            raise ValueError("Don't understand token '%s'." % token)
+    return return_values
     
 # Not pretty, but a byte to bitstring lookup really speeds things up.
 _byte2bits = ['00000000', '00000001', '00000010', '00000011', '00000100', '00000101', '00000110', '00000111',
@@ -910,74 +1024,18 @@ class BitString(object):
                 length = s.length - offset
             self._setdata(s._datastore.rawbytes, s._offset + offset, length)
             return
-
         if isinstance(s, (list, tuple)):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin(''.join([str(int(bool(x))) for x in s]), offset, length)
             return
-        
         if not isinstance(s, str):
             raise TypeError("Cannot initialise BitString from %s." % type(s))
-            
-        # We have an ordinary string. First split it into sections:
-        slist = _splitinputstring(s)
-        self._setdata('', 0)
-        if not slist:
-            return
-        for sub in slist:
-            tidy = _tidyupinputstring(sub)
-            if not tidy:
-                continue
-            # Convert string starting with hex, oct, bin to 0x, 0o, 0b.
-            if tidy.startswith('hex'):
-                tidy = '0x' + tidy[3:]
-            if tidy.startswith('oct'):
-                tidy = '0o' + tidy[3:]
-            if tidy.startswith('bin'):
-                tidy = '0b' + tidy[3:]
-            if tidy.startswith('0x'):
-                # Interpret as a hexadecimal string
-                self.append(BitString(hex=tidy))
-                continue
-            if tidy.startswith('0b'):
-                # Interpret as a binary string
-                self.append(BitString(bin=tidy))
-                continue
-            if tidy.startswith('0o'):
-                # Interpret as an octal string
-                self.append(BitString(oct=tidy))
-                continue
-            if tidy.startswith('uint'):
-                # Interpret as an unsigned integer with a bitlength
-                sub = sub.replace('=', ' ')
-                length_value = sub[4:].split()
-                if len(length_value) != 2:
-                    raise ValueError("Can't understand input string %s." % sub)
-                lengthstr, valuestr = length_value
-                self.append(BitString(uint=int(valuestr), length=int(lengthstr)))
-                continue
-            if tidy.startswith('int'):
-                # Interpret as a signed integer with a bitlength
-                sub = sub.replace('=', ' ')
-                length_value = sub[3:].split()
-                if len(length_value) != 2:
-                    raise ValueError("Can't understand input string %s." % sub)
-                lengthstr, valuestr = length_value
-                self.append(BitString(int=int(valuestr), length=int(lengthstr)))
-                continue
-            if tidy.startswith('ue'):
-                # Interpret as an unsigned Exp-Golomb code
-                sub = sub.replace('=', ' ')
-                value = int(sub[2:])
-                self.append(BitString(ue=value))
-                continue
-            if tidy.startswith('se'):
-                # Interpret as a signed Exp-Golomb code
-                sub = sub.replace('=', ' ')
-                value = int(sub[2:])
-                self.append(BitString(se=value))
-                continue
-            raise ValueError("String '%s' cannot be interpreted." % s)
+        
+        self._setdata('', 0)        
+        tokens = _tokenparser(s)
+        for token in tokens:
+            self.append(_init_with_token(*token))
+
         # Finally we honour the offset and length
         self.truncatestart(offset)
         self._datastore.setoffset(0) # TODO: I shouldn't need to do this! HACK!
@@ -1006,15 +1064,10 @@ class BitString(object):
 
     def _getdata(self):
         """Return the data as an ordinary string."""
-        self._ensureinmemory()
-        self._datastore.setoffset(0)
-        d = self._datastore.rawbytes
-        # Need to ensure that unused bits at end are set to zero
-        unusedbits = 8 - self.length % 8
-        if unusedbits != 8:
-            # This is horrible. Shouldn't have to copy the string here!
-            return d[:-1] + chr(ord(d[-1]) & (255 << unusedbits))
-        return d
+        # This behaviour is going to change (in 0.6.0?). Plan is to raise
+        # a ValueError if length%8 != 0. For now we're just going to
+        # promote the use of tostring().
+        return self.tostring()
 
     def _setuint(self, uint, length=None):
         """Reset the BitString to have given unsigned int interpretation."""
@@ -1383,12 +1436,30 @@ class BitString(object):
         return self.length == 0
     
     def unpack(self, *format):
+        """Interpret the whole BitString using format and return result.
+        
+        format - One or more strings with comma separated tokens describing
+                 how to interpret the bits in the BitString.
+        
+        """
         bitposbefore = self._pos
         self._pos = 0
         return_values = self.read(*format)
         self._pos = bitposbefore
         return return_values
-    
+
+    def _readtoken(self, name, value, token_length):
+        if name in ['uint', 'int', 'hex', 'oct', 'bin']:
+            return getattr(self.readbits(token_length), name)
+        if name in ['bits', 'bytes']:
+            return self.readbits(token_length)
+        if name == 'ue':
+            return self._readue()
+        if name == 'se':
+            return self._readse()
+        else:
+            raise ValueError
+
     def read(self, *format):
         """Interpret next bits according to format string(s) and return result.
         
@@ -1412,74 +1483,33 @@ class BitString(object):
                         'bytes3' : 3 bytes as a BitString object
                 
         >>> h, b1, b2 = s.read('hex20, bin5, bin3')
-        >>> i, bs1, bs2 = s.read('uint12', bits10, bits10)
+        >>> i, bs1, bs2 = s.read('uint12', 'bits10', 'bits10')
         
         """
-        tokens = []
-        for f_item in format:
-            if isinstance(f_item, str):
-                tokens.extend([f.strip().lower() for f in f_item.split(',')])
-            elif isinstance(f_item, int):
-                tokens.append(str(f_item))
-            else:
-                raise TypeError("Cannot read using object of type %s." % type(f_item))
-        pairs = []
-        names = ['uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits', 'bytes', 'rest']
-        had_token_without_size = False
+        tokens = _tokenparser(*format)
+        # Scan tokens to see if one has no length
+        bits_after_stretchy_token = 0
+        stretchy_token = None
         for token in tokens:
-            for name in names:
-                if token.startswith(name):
-                    try:
-                        value = token[len(name):]
-                        if not value:
-                            # Nothing after the name, either it's se, ue or a 'filler'.
-                            value = None
-                            if name not in ['se', 'ue']:
-                                if had_token_without_size:
-                                    raise BitStringError("You can only specify one token without a size.")
-                                had_token_without_size = True
-                            elif had_token_without_size:
-                                # Can't read se or ue if we don't know the start bit
-                                raise BitStringError("You can't use 'se' or 'ue' after a token without a size.")
-                        else:
-                            value = int(value)
-                            if name == 'bytes':
-                                # Make the unit bits like everything else.
-                                value *= 8 
-                    except ValueError:
-                        raise ValueError("Don't understand token '%s'." % token)
-                    pairs.append([name, value])
-                    break
-            else:
-                raise ValueError("Don't understand token '%s'." % token)
-        # We are allowed a maximum of one token without a size
-        if had_token_without_size:
-            total_size = self.length - self.bitpos
-            for name, value in pairs:
-                if value:
-                    total_size -= value
-            for pair in pairs:
-                if pair[1] is None:
-                    pair[1] = max(0, total_size)
-
+            name, value, length = token
+            if stretchy_token:
+                if not length:
+                    raise BitStringError("Can't have variable length things after a stretchy token (TODO)")
+                bits_after_stretchy_token += length
+            if length is None and value is None and name not in ['se', 'ue']:
+                if stretchy_token:
+                    raise BitStringError("Can't have more than one stretchy token (TODO)")
+                stretchy_token = token
+                
+        bits_left = self.length - self.bitpos
         return_values = []
-        for name, value in pairs:
-            if value is not None and value >= 0:
-                if name in ['uint', 'int', 'hex', 'oct', 'bin']:
-                    return_values.append(getattr(self.readbits(value), name))
-                    continue
-                if name in ['bits', 'bytes', 'rest']:
-                    return_values.append(self.readbits(value))
-                    continue
-            elif value is None:
-                if name == 'ue':
-                    return_values.append(self._readue())
-                    continue
-                if name == 'se':
-                    return_values.append(self._readse())
-                    continue
-            raise ValueError("Couldn't parse '%s' token." % name)
-            
+        for token in tokens:
+            if token is stretchy_token:
+                # Set length to the remaining bits
+                token[2] = max(bits_left - bits_after_stretchy_token, 0)
+            if token[2] is not None:
+                bits_left -= token[2]
+            return_values.append(self._readtoken(*token))            
         if len(return_values) == 1:
             return return_values[0]
         return return_values
@@ -2278,7 +2308,23 @@ class BitString(object):
                 s.append(self)
             s.append(bitstringlist[-1])
         return s
- 
+
+    def tostring(self):
+        """Return the BitString as a string, padding with zero bits if needed.
+        
+        Up to seven zero bits will be added at the end to byte align.
+        
+        """
+        self._ensureinmemory()
+        self._datastore.setoffset(0)
+        d = self._datastore.rawbytes
+        # Need to ensure that unused bits at end are set to zero
+        unusedbits = 8 - self.length % 8
+        if unusedbits != 8:
+            # This is horrible. Shouldn't have to copy the string here!
+            return d[:-1] + chr(ord(d[-1]) & (255 << unusedbits))
+        return d
+
     _offset = property(_getoffset)
 
     length = property(_getlength,
@@ -2328,6 +2374,35 @@ class BitString(object):
                       doc="""The position in the BitString in bytes. Read and write.
                       """)
     
+def pack(format, *values):
+    """Pack the values according to the format string and return a BitString.
+    
+    """
+    tokens = _tokenparser(format)
+    value_index = 0
+    s = BitString()
+    for name, value, length in tokens:
+        if name == 'int':
+            if value is not None:
+                b = BitString(int=value, length=length)
+            else:
+                b = BitString(int=values[value_index], length=length)
+                value_index += 1
+        elif name == 'uint':
+            if value is not None:
+                b = BitString(uint=value, length=length)
+            else:
+                b = BitString(uint=values[value_index], length=length)
+                value_index += 1
+        else:
+            if value is not None:
+                b = BitString(auto=name+'='+str(value), length=length)
+            else:
+                b = BitString(auto=name+'='+str(values[value_index]), length=length)
+                value_index += 1
+        s.append(b)
+    return s
+
 
 if __name__=='__main__':
     print "Running bitstring module unit tests:"
