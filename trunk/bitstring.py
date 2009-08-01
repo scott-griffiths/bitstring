@@ -1948,6 +1948,9 @@ class BitString(object):
             # Didn't find anything to replace.
             self._pos = newpos
             return 0 # no replacements done
+        if new is self:
+            # Prevent self assignment woes
+            new = copy.copy(self)
         positions = [lengths[0]]
         for l in lengths[1:-1]:
             # Next position is the previous one plus the length of the next section.
