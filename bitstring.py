@@ -373,9 +373,9 @@ class _MemArray(_Array):
             # first do the byte with the join.
             self[-1] = (self[-1] & (255 ^ (255 >> array.offset)) | \
                                    (array[0] & (255 >> array.offset)))
-        else: # TODO: clean this up
-            self.appendbytes(array[0])
-        self.appendbytes(array[1 : array.bytelength])
+            self.appendbytes(array[1 : array.bytelength])
+        else:
+            self.appendbytes(array[0 : array.bytelength])
         self.bitlength += array.bitlength
 
     def prependarray(self, array):
@@ -1330,13 +1330,11 @@ class BitString(object):
             raise ValueError("Cannot convert to hex unambiguously - not multiple of 4 bits.")
         if self.length == 0:
             return ''
-        self._ensureinmemory()
-        hexstrings = [_hex_string_from_single_byte(i) for i in self.data]
+        s = '0x' + self.data.encode('hex')
         if (self.length // 4) % 2 == 1:
-            # only a nibble left at the end
-            hexstrings[-1] = hexstrings[-1][0]
-        s = '0x'+''.join(hexstrings)
-        return s  
+            return s[:-1]
+        else:
+            return s
 
     def _setbytepos(self, bytepos):
         """Move to absolute byte-aligned position in stream."""
@@ -2323,7 +2321,7 @@ class BitString(object):
         Up to seven zero bits will be added at the end to byte align.
         
         """
-        self._ensureinmemory()
+        self._ensureinmemory() # TODO: Not needed if offset == 0?
         self._datastore.setoffset(0)
         d = self._datastore.rawbytes
         # Need to ensure that unused bits at end are set to zero
