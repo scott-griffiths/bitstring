@@ -2368,6 +2368,39 @@ class BitStringTest(unittest.TestCase):
         s = bitstring.pack('0xf')
         self.assertEqual(s, '0xf')
         self.assertTrue(type(s), BitString)
+        s = bitstring.pack('0b1')
+        self.assertEqual(s, '0b1')
+        s = bitstring.pack('0o7')
+        self.assertEqual(s, '0o7')
+        s = bitstring.pack('int10=-1')
+        self.assertEqual(s, '0b1111111111')
+        s = bitstring.pack('uint10=1')
+        self.assertEqual(s, '0b0000000001')
+        s = bitstring.pack('ue=12')
+        self.assertEqual(s.ue, 12)
+        s = bitstring.pack('se=-12')
+        self.assertEqual(s.se, -12)
+    
+    def testPackWithLengthRestriction(self):
+        s = bitstring.pack('bin3', '0b000')
+        self.assertRaises(ValueError, bitstring.pack, 'bin3', '0b0011')
+        self.assertRaises(ValueError, bitstring.pack, 'bin3', '0b11')
+
+        s = bitstring.pack('hex4', '0xf')
+        self.assertRaises(ValueError, bitstring.pack, 'hex4', '0b111')
+        self.assertRaises(ValueError, bitstring.pack, 'hex4', '0b11111')
+        
+        s = bitstring.pack('oct6', '0o77')
+        self.assertRaises(ValueError, bitstring.pack, 'oct6', '0o1')
+        self.assertRaises(ValueError, bitstring.pack, 'oct6', '0o111')
+        
+        s = bitstring.pack('bits3', BitString('0b111'))
+        self.assertRaises(ValueError, bitstring.pack, 'bits3', BitString('0b11'))
+        self.assertRaises(ValueError, bitstring.pack, 'bits3', BitString('0b1111'))
+
+        s = bitstring.pack('bytes3', BitString('0x112233'))
+        self.assertRaises(ValueError, bitstring.pack, 'bytes3', BitString('0b11'))
+        self.assertRaises(ValueError, bitstring.pack, 'bytes3', BitString('0x11223344'))
     
     def testToString(self):
         a = BitString(data='\xab\x00')
@@ -2378,6 +2411,22 @@ class BitStringTest(unittest.TestCase):
             self.assertEqual(a.tostring(), '\xab\x00')
         a.truncateend(1)
         self.assertEqual(a.tostring(), '\xab')
+
+    def testToFile(self):
+        a = BitString('0x0000ff', length=17)
+        f = open('temp_bitstring_unit_testing_file', 'wb')
+        a.tofile(f)
+        f.close()
+        b = BitString(filename='temp_bitstring_unit_testing_file')
+        self.assertEqual(b, '0x000080')
+        
+        a = BitString('0x911111')
+        a.truncatestart(1)
+        f = open('temp_bitstring_unit_testing_file', 'wb')
+        a.tofile(f)
+        f.close()
+        b = BitString(filename='temp_bitstring_unit_testing_file')
+        self.assertEqual(b, '0x222222')
         
     def testTokenParser(self):
         tp = bitstring._tokenparser
@@ -2385,16 +2434,36 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(tp('hex12'), [['hex', None, 12]])
         self.assertEqual(tp('hex=14'), [['hex', '14', None]])
         self.assertEqual(tp('se'), [['se', None, None]])
-        self.assertEqual(tp('ue=12'), [['ue', 12, None]])
+        self.assertEqual(tp('ue=12'), [['ue', '12', None]])
         self.assertEqual(tp('0xef'), [['0x', 'ef', None]])
         self.assertEqual(tp('uint12'), [['uint', None, 12]])
-        self.assertEqual(tp('int30=-1'), [['int', -1, 30]])
+        self.assertEqual(tp('int30=-1'), [['int', '-1', 30]])
         self.assertEqual(tp('bits10'), [['bits', None, 10]])
         self.assertEqual(tp('bytes2'), [['bytes', None, 16]])
+    
+    def testTokenParserErrors(self):
+        tp = bitstring._tokenparser
+        self.assertRaises(ValueError, tp, 'banana')
+        #self.assertRaises(ValueError, tp, 'hex=g')
+        self.assertRaises(ValueError, tp, 'hexf')
         
     def testInitWithToken(self):
         pass
-
+        
+    def testPackWithDict(self):
+        a = bitstring.pack('uint6=width, se=height', height=100, width=12)
+        w, h = a.unpack('uint6, se')
+        self.assertEqual(w, 12)
+        self.assertEqual(h, 100)
+        d = {}
+        d['w'] = '0xf'
+        d['300'] = 423
+        d['e'] = '0b1101'
+        a = bitstring.pack('int100=300, bin=e, uint12=300', **d)
+        x, y, z = a.unpack('int100, bin, uint12')
+        self.assertEqual(x, 423)
+        self.assertEqual(y, '0b1101')
+        self.assertEqual(z, 423)
 
 def main():
     unittest.main()
