@@ -90,13 +90,13 @@ def _init_with_token(name, value, token_length):
     elif name in ['0o', 'oct']:
         return BitString(oct=value, length=token_length)
     elif name == 'se':
-        return BitString(se=value)
+        return BitString(se=int(value))
     elif name == 'ue':
-        return BitString(ue=value)
+        return BitString(ue=int(value))
     elif name == 'uint':
-        return BitString(uint=value, length=token_length)
+        return BitString(uint=int(value), length=token_length)
     elif name == 'int':
-        return BitString(int=value, length=token_length)
+        return BitString(int=int(value), length=token_length)
     else:
         raise ValueError
         
@@ -141,7 +141,6 @@ def _tokenparser(*format):
                         pre = None
                     if not post:
                         post = None
-                        
                     if name in ['0x', '0o', '0b']:
                         # Must have a value, must not have a length
                         if pre and post:
@@ -168,13 +167,13 @@ def _tokenparser(*format):
                         if pre:
                             raise ValueError
                         if post:
-                            value = int(post)
+                            value = post
                     elif name in ['int', 'uint']:
                         # Can have a value, must have a length
                         if pre:
                             length = int(pre)
                         if post:
-                            value = int(post)
+                            value = post
                     elif name in ['bits', 'bytes']:
                         # Can have a length, must not have a value
                         if post:
@@ -1240,7 +1239,7 @@ class BitString(object):
         try:
             bytes = [int(binstring[x:x + 8], 2) for x in xrange(0, len(binstring), 8)]
         except ValueError:
-            raise ValueError("Invalid character in bin initialiser.")
+            raise ValueError("Invalid character in bin initialiser %s.", binstring)
         self._datastore = _CatArray(_MemArray(bytes, length, 0))
 
     def _getbin(self):
@@ -1431,6 +1430,19 @@ class BitString(object):
         else:
             return m
 
+    def _readtoken(self, name, value, token_length):
+        """Reads a token from the BitString and returns the result."""
+        if name in ['uint', 'int', 'hex', 'oct', 'bin']:
+            return getattr(self.readbits(token_length), name)
+        if name in ['bits', 'bytes']:
+            return self.readbits(token_length)
+        if name == 'ue':
+            return self._readue()
+        if name == 'se':
+            return self._readse()
+        else:
+            raise ValueError
+        
     def empty(self):
         """Return True if the BitString is empty (has zero length)."""
         return self.length == 0
@@ -1447,18 +1459,6 @@ class BitString(object):
         return_values = self.read(*format)
         self._pos = bitposbefore
         return return_values
-
-    def _readtoken(self, name, value, token_length):
-        if name in ['uint', 'int', 'hex', 'oct', 'bin']:
-            return getattr(self.readbits(token_length), name)
-        if name in ['bits', 'bytes']:
-            return self.readbits(token_length)
-        if name == 'ue':
-            return self._readue()
-        if name == 'se':
-            return self._readse()
-        else:
-            raise ValueError
 
     def read(self, *format):
         """Interpret next bits according to format string(s) and return result.
@@ -2321,7 +2321,7 @@ class BitString(object):
         Up to seven zero bits will be added at the end to byte align.
         
         """
-        self._ensureinmemory() # TODO: Not needed if offset == 0?
+        self._ensureinmemory()
         self._datastore.setoffset(0)
         d = self._datastore.rawbytes
         # Need to ensure that unused bits at end are set to zero
@@ -2330,6 +2330,37 @@ class BitString(object):
             # This is horrible. Shouldn't have to copy the string here!
             return d[:-1] + chr(ord(d[-1]) & (255 << unusedbits))
         return d
+
+    def tofile(self, f):
+        """Write the BitString to a file object, padding with zero bits if needed.
+        
+        Up to seven zero bits will be added at the end to byte align.
+        
+        """
+        # If the BitString is file based then we don't want to read it all
+        # in to memory.
+        chunksize = 1024*1024 # 1 MB chunks
+        if self._offset == 0:
+            a = 0
+            bytelen = self._datastore.bytelength
+            p = self._datastore[a:min(a + chunksize, bytelen - 1)]
+            while len(p) == chunksize:
+                f.write(p)
+                a += chunksize
+                p = self._datastore[a:min(a + chunksize, bytelen - 1)]
+            f.write(p)
+            # Now the final byte, ensuring that unused bits at end are set to 0.
+            unusedbits = 8 - self.length % 8
+            f.write(chr(self._datastore[-1] & (255 << unusedbits)))
+        else:
+            # Really quite inefficient...
+            a = 0
+            p = self[a:a + chunksize*8]
+            while p.length == chunksize*8:
+                f.write(p.data)
+                a += chunksize*8
+                p = self[a:a + chunksize*8]
+            f.write(p.tostring())
 
     _offset = property(_getoffset)
 
@@ -2380,7 +2411,7 @@ class BitString(object):
                       doc="""The position in the BitString in bytes. Read and write.
                       """)
     
-def pack(format, *values):
+def pack(format, *values, **kwds):
     """Pack the values according to the format string and return a BitString.
     
     """
@@ -2388,24 +2419,60 @@ def pack(format, *values):
     value_index = 0
     s = BitString()
     for name, value, length in tokens:
+        # If the value is in the kwd dictionary then it takes precedence.
+        if value in kwds:
+            value = str(kwds[value])
+        # Next check for hex, oct or bin literals
+        if name in ['0x', '0b', '0o']:
+            s.append(name + value)
+            continue
         if name == 'int':
             if value is not None:
-                b = BitString(int=value, length=length)
+                b = BitString(int=eval(value), length=length)
             else:
                 b = BitString(int=values[value_index], length=length)
                 value_index += 1
         elif name == 'uint':
             if value is not None:
-                b = BitString(uint=value, length=length)
+                b = BitString(uint=eval(value), length=length)
             else:
                 b = BitString(uint=values[value_index], length=length)
                 value_index += 1
-        else:
+        elif name in ['hex', 'oct', 'bin']:
             if value is not None:
-                b = BitString(auto=name+'='+str(value), length=length)
+                b = BitString(auto=name+'='+str(value))
+                # TODO: Are we sure that length is None in all cases here?
+                assert length is None
             else:
-                b = BitString(auto=name+'='+str(values[value_index]), length=length)
+                b = BitString(auto=name+'='+str(values[value_index]))
+                if length is not None and length != b.length:
+                    raise ValueError("Token with length %d packed with value of length %d. (%s%d=%s)" %
+                                     (length, b.length, name, length, values[value_index]))
                 value_index += 1
+        elif name == 'se':
+            if value is not None:
+                b = BitString(se=eval(value))
+            else:
+                b = BitString(se=values[value_index])
+                value_index += 1
+        elif name == 'ue':
+            if value is not None:
+                b = BitString(ue=eval(value))
+            else:
+                b = BitString(ue=values[value_index])
+                value_index += 1
+        elif name in ['bits', 'bytes']:
+            if value is not None:
+                b = value
+            else:
+                b = values[value_index]
+                if length is not None and length != b.length:
+                    raise ValueError("Token with length %d packed with value of length %d. (%s%d=%s)" %
+                                     (length, b.length, name, length, values[value_index]))
+                value_index += 1
+        else:
+            assert False
+            b = BitString()
         s.append(b)
     return s
 
