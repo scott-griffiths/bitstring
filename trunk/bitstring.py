@@ -37,6 +37,7 @@ import copy
 import string
 import os
 import struct
+import re
 
 # Maximum number of digits to use in __str__ and __repr__.
 _maxchars = 250
@@ -99,7 +100,10 @@ def _init_with_token(name, value, token_length):
         return BitString(int=int(value), length=token_length)
     else:
         raise ValueError
-        
+
+_tokenre = re.compile(r'(?P<name>uint|int|ue|se|hex|oct|bin|bits|bytes)(?::{0,1})(?P<length>[^=]*)(?:=?)(?P<value>.*)')
+_literalre = re.compile(r'(?P<name>0x|0o|0b)(?P<value>.*)')
+
 def _tokenparser(*format):
     """Divide the format string(s) into tokens and parse them.
     
@@ -107,7 +111,7 @@ def _tokenparser(*format):
     initialiser is one of: hex, oct, bin, uint, int, se, ue, 0x, 0o, 0b
     length is None if not known, as is value.
     
-    tokens must be of the form: initialiser[length][=value]
+    tokens must be of the form: initialiser[:][length][=value]
     
     """
     tokens = []
@@ -119,72 +123,32 @@ def _tokenparser(*format):
         else:
             raise TypeError("Cannot parse token of type %s." % type(f_item))
     return_values = []
-    names = ['uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits', 'bytes', '0x', '0o', '0b']
-
     for token in tokens:
         value = length = None
         if token == '':
             return_values.append(['bin', None, 0])
             continue
-        for name in names:
-            if token.startswith(name):
-                initialiser = name
-                try:
-                    e = token.find('=', len(name))
-                    if e != -1:
-                        pre = token[len(name):e]
-                        post = token[e + 1:]
-                    else:
-                        pre = token[len(name):]
-                        post = None
-                    if not pre:
-                        pre = None
-                    if not post:
-                        post = None
-                    if name in ['0x', '0o', '0b']:
-                        # Must have a value, must not have a length
-                        if pre and post:
-                            raise ValueError
-                        if pre:
-                            # Of the form '0xff'
-                            value = pre
-                        elif post:
-                            # Of the form '0x=ff'
-                            value = post
-                    elif name in ['hex', 'bin', 'oct']:
-                        if post:
-                            value = post
-                        if pre:
-                            length = int(pre)
-                    elif name in ['se', 'ue']:
-                        # Can have a value, must not have a length
-                        if pre:
-                            raise ValueError
-                        if post:
-                            value = post
-                    elif name in ['int', 'uint']:
-                        # Can have a value, must have a length
-                        if pre:
-                            length = int(pre)
-                        if post:
-                            value = post
-                    elif name in ['bits', 'bytes']:
-                        # Can have a length, must not have a value
-                        if post:
-                            value = post
-                        if pre:
-                            length = int(pre)
-                            if name == 'bytes':
-                                # Make the length unit bits, not bytes
-                                length *= 8
-                    else:
-                        assert False
-                except (ValueError, TypeError):
-                    raise ValueError("Don't understand token '%s'." % token)
-                return_values.append([name, value, length])
-                break
-        else:
-            raise ValueError("Don't understand token '%s'." % token)
+        # Match literal tokens of the form 0x... 0o... and 0b...
+        m = _literalre.match(token)
+        if m:
+            name = m.group('name')
+            value = m.group('value')
+            return_values.append([name, value, length])
+            continue
+        # Match everything else!
+        m = _tokenre.match(token)
+        if m:
+            name = m.group('name')
+            if m.group('length'):
+                length = int(m.group('length'))
+                if name == 'bytes':
+                    # Make the length unit bits, not bytes
+                    length *= 8
+            if m.group('value'):
+                value = m.group('value')
+            return_values.append([name, value, length])
+            continue
+        raise ValueError("Don't understand token '%s'." % token)
     return return_values
     
 # Not pretty, but a byte to bitstring lookup really speeds things up.
