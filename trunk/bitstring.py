@@ -152,15 +152,9 @@ def _tokenparser(*format):
                             # Of the form '0x=ff'
                             value = post
                     elif name in ['hex', 'bin', 'oct']:
-                        # Can have at most one of length or value
-                        if post and pre:
-                            # Of the form hex12=122
-                            raise ValueError
                         if post:
-                            # Of the form hex=something
                             value = post
                         if pre:
-                            # Of the form hex12
                             length = int(pre)
                     elif name in ['se', 'ue']:
                         # Can have a value, must not have a length
@@ -177,7 +171,7 @@ def _tokenparser(*format):
                     elif name in ['bits', 'bytes']:
                         # Can have a length, must not have a value
                         if post:
-                            raise ValueError
+                            value = post
                         if pre:
                             length = int(pre)
                             if name == 'bytes':
@@ -2416,12 +2410,14 @@ def pack(format, *values, **kwds):
     
     """
     tokens = _tokenparser(format)
-    value_index = 0
+    value_iter = iter(values)
     s = BitString()
     for name, value, length in tokens:
         # If the value is in the kwd dictionary then it takes precedence.
         if value in kwds:
-            value = str(kwds[value])
+            value = kwds[value]
+            if isinstance(value, int):
+                value = str(value) # A bit hacky. TODO.
         # Next check for hex, oct or bin literals
         if name in ['0x', '0b', '0o']:
             s.append(name + value)
@@ -2430,46 +2426,39 @@ def pack(format, *values, **kwds):
             if value is not None:
                 b = BitString(int=eval(value), length=length)
             else:
-                b = BitString(int=values[value_index], length=length)
-                value_index += 1
+                b = BitString(int=value_iter.next(), length=length)
         elif name == 'uint':
             if value is not None:
                 b = BitString(uint=eval(value), length=length)
             else:
-                b = BitString(uint=values[value_index], length=length)
-                value_index += 1
+                b = BitString(uint=value_iter.next(), length=length)
         elif name in ['hex', 'oct', 'bin']:
             if value is not None:
                 b = BitString(auto=name+'='+str(value))
-                # TODO: Are we sure that length is None in all cases here?
-                assert length is None
             else:
-                b = BitString(auto=name+'='+str(values[value_index]))
-                if length is not None and length != b.length:
-                    raise ValueError("Token with length %d packed with value of length %d. (%s%d=%s)" %
-                                     (length, b.length, name, length, values[value_index]))
-                value_index += 1
+                value = value_iter.next()
+                b = BitString(auto=name+'='+str(value))
+            if length is not None and length != b.length:
+                raise ValueError("Token with length %d packed with value of length %d. (%s%d=%s)" %
+                                 (length, b.length, name, length, value))
         elif name == 'se':
             if value is not None:
                 b = BitString(se=eval(value))
             else:
-                b = BitString(se=values[value_index])
-                value_index += 1
+                b = BitString(se=value_iter.next())
         elif name == 'ue':
             if value is not None:
                 b = BitString(ue=eval(value))
             else:
-                b = BitString(ue=values[value_index])
-                value_index += 1
+                b = BitString(ue=value_iter.next())
         elif name in ['bits', 'bytes']:
             if value is not None:
                 b = value
             else:
-                b = values[value_index]
-                if length is not None and length != b.length:
-                    raise ValueError("Token with length %d packed with value of length %d. (%s%d=%s)" %
-                                     (length, b.length, name, length, values[value_index]))
-                value_index += 1
+                b = value_iter.next()
+            if length is not None and length != b.length:
+                raise ValueError("Token with length %d packed with value of length %d. (%s%d=%s)" %
+                                 (length, b.length, name, length, value))
         else:
             assert False
             b = BitString()

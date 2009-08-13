@@ -31,7 +31,7 @@ THE SOFTWARE.
 import unittest
 import bitstring
 import copy
-from bitstring import BitString, BitStringError
+from bitstring import BitString, BitStringError, pack
 
 
 class BitStringTest(unittest.TestCase):
@@ -2312,7 +2312,6 @@ class BitStringTest(unittest.TestCase):
             b.prepend(a)
         self.assertEqual(b, a*10)
 
-
     def testUnpack1(self):
         s = BitString('uint13=23, hex=e, bin=010, int41=-554, 0o44332, se=-12, ue=4')
         s.bitpos = 11
@@ -2337,70 +2336,89 @@ class BitStringTest(unittest.TestCase):
         a, b  = s.unpack('bits11', 'uint')
         self.assertEqual(a, '0xff, 0b000')
         self.assertEqual(b, 100)
-        
-    def testUnpack3(self):
-        pass
-    def testUnpack4(self):
-        pass
-    def testUnpack5(self):
-        pass
-    def testUnpack6(self):
-        pass
-    def testUnpack7(self):
-        pass
-    def testUnpack8(self):
-        pass
-    def testUnpack9(self):
-        pass
-    def testUnpack10(self):
-        pass
 
     def testPack1(self):
         s = bitstring.pack('uint6, bin, hex, int6, se, ue, oct', 10, '0b110', 'ff', -1, -6, 6, '54')
         t = BitString('uint6=10, 0b110, 0xff, int6=-1, se=-6, ue=6, oct=54')
         self.assertEqual(s, t)
-        self.assertRaises(ValueError, bitstring.pack, 'tomato', '0')
-        self.assertRaises(ValueError, bitstring.pack, 'uint', 12)
-        self.assertRaises(ValueError, bitstring.pack, 'hex', 'penguin')
-        self.assertRaises(ValueError, bitstring.pack, 'hex12', '0x12')
+        self.assertRaises(ValueError, pack, 'tomato', '0')
+        self.assertRaises(ValueError, pack, 'uint', 12)
+        self.assertRaises(ValueError, pack, 'hex', 'penguin')
+        self.assertRaises(ValueError, pack, 'hex12', '0x12')
 
     def testPackWithLiterals(self):
         s = bitstring.pack('0xf')
         self.assertEqual(s, '0xf')
         self.assertTrue(type(s), BitString)
-        s = bitstring.pack('0b1')
+        s = pack('0b1')
         self.assertEqual(s, '0b1')
-        s = bitstring.pack('0o7')
+        s = pack('0o7')
         self.assertEqual(s, '0o7')
-        s = bitstring.pack('int10=-1')
+        s = pack('int10=-1')
         self.assertEqual(s, '0b1111111111')
-        s = bitstring.pack('uint10=1')
+        s = pack('uint10=1')
         self.assertEqual(s, '0b0000000001')
-        s = bitstring.pack('ue=12')
+        s = pack('ue=12')
         self.assertEqual(s.ue, 12)
-        s = bitstring.pack('se=-12')
+        s = pack('se=-12')
         self.assertEqual(s.se, -12)
+        s = pack('bin=01')
+        self.assertEqual(s.bin, '0b01')
+        s = pack('hex=01')
+        self.assertEqual(s.hex, '0x01')
+        s = pack('oct=01')
+        self.assertEqual(s.oct, '0o01')
     
+    def testPackWithDict(self):
+        a = pack('uint6=width, se=height', height=100, width=12)
+        w, h = a.unpack('uint6, se')
+        self.assertEqual(w, 12)
+        self.assertEqual(h, 100)
+        d = {}
+        d['w'] = '0xf'
+        d['300'] = 423
+        d['e'] = '0b1101'
+        a = pack('int100=300, bin=e, uint12=300', **d)
+        x, y, z = a.unpack('int100, bin, uint12')
+        self.assertEqual(x, 423)
+        self.assertEqual(y, '0b1101')
+        self.assertEqual(z, 423)
+        
+    def testPackWithDict2(self):
+        a = pack('int5, bin3=b, 0x3, bin=c, se=12', 10, b='0b111', c='0b1')
+        b = BitString('int5=10, 0b111, 0x3, 0b1, se=12')
+        self.assertEqual(a, b)
+        a = pack('bits3=b', b=BitString('0b101'))
+        self.assertEqual(a, '0b101')
+        a = pack('bytes3=b', b=BitString('0x001122'))
+        self.assertEqual(a, '0x001122')
+        
     def testPackWithLengthRestriction(self):
-        s = bitstring.pack('bin3', '0b000')
-        self.assertRaises(ValueError, bitstring.pack, 'bin3', '0b0011')
-        self.assertRaises(ValueError, bitstring.pack, 'bin3', '0b11')
+        s = pack('bin3', '0b000')
+        self.assertRaises(ValueError, pack, 'bin3', '0b0011')
+        self.assertRaises(ValueError, pack, 'bin3', '0b11')
+        self.assertRaises(ValueError, pack, 'bin3=0b0011')
+        self.assertRaises(ValueError, pack, 'bin3=0b11')
 
-        s = bitstring.pack('hex4', '0xf')
-        self.assertRaises(ValueError, bitstring.pack, 'hex4', '0b111')
-        self.assertRaises(ValueError, bitstring.pack, 'hex4', '0b11111')
+        s = pack('hex4', '0xf')
+        self.assertRaises(ValueError, pack, 'hex4', '0b111')
+        self.assertRaises(ValueError, pack, 'hex4', '0b11111')
+        self.assertRaises(ValueError, pack, 'hex8=0xf')
         
-        s = bitstring.pack('oct6', '0o77')
-        self.assertRaises(ValueError, bitstring.pack, 'oct6', '0o1')
-        self.assertRaises(ValueError, bitstring.pack, 'oct6', '0o111')
+        s = pack('oct6', '0o77')
+        self.assertRaises(ValueError, pack, 'oct6', '0o1')
+        self.assertRaises(ValueError, pack, 'oct6', '0o111')
+        self.assertRaises(ValueError, pack, 'oct3', '0b1')
         
-        s = bitstring.pack('bits3', BitString('0b111'))
-        self.assertRaises(ValueError, bitstring.pack, 'bits3', BitString('0b11'))
-        self.assertRaises(ValueError, bitstring.pack, 'bits3', BitString('0b1111'))
+        s = pack('bits3', BitString('0b111'))
+        self.assertRaises(ValueError, pack, 'bits3', BitString('0b11'))
+        self.assertRaises(ValueError, pack, 'bits3', BitString('0b1111'))
+        self.assertRaises(ValueError, pack, 'bits12=b', b=BitString('0b11'))
 
-        s = bitstring.pack('bytes3', BitString('0x112233'))
-        self.assertRaises(ValueError, bitstring.pack, 'bytes3', BitString('0b11'))
-        self.assertRaises(ValueError, bitstring.pack, 'bytes3', BitString('0x11223344'))
+        s = pack('bytes3', BitString('0x112233'))
+        self.assertRaises(ValueError, pack, 'bytes3', BitString('0b11'))
+        self.assertRaises(ValueError, pack, 'bytes3', BitString('0x11223344'))
+        self.assertRaises(ValueError, pack, 'bytes2=b', b=BitString('0x123456'))
     
     def testToString(self):
         a = BitString(data='\xab\x00')
@@ -2444,27 +2462,12 @@ class BitStringTest(unittest.TestCase):
     def testTokenParserErrors(self):
         tp = bitstring._tokenparser
         self.assertRaises(ValueError, tp, 'banana')
-        #self.assertRaises(ValueError, tp, 'hex=g')
         self.assertRaises(ValueError, tp, 'hexf')
         
     def testInitWithToken(self):
         pass
-        
-    def testPackWithDict(self):
-        a = bitstring.pack('uint6=width, se=height', height=100, width=12)
-        w, h = a.unpack('uint6, se')
-        self.assertEqual(w, 12)
-        self.assertEqual(h, 100)
-        d = {}
-        d['w'] = '0xf'
-        d['300'] = 423
-        d['e'] = '0b1101'
-        a = bitstring.pack('int100=300, bin=e, uint12=300', **d)
-        x, y, z = a.unpack('int100, bin, uint12')
-        self.assertEqual(x, 423)
-        self.assertEqual(y, '0b1101')
-        self.assertEqual(z, 423)
 
+        
 def main():
     unittest.main()
 
