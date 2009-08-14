@@ -1,0 +1,7 @@
+#summary Manual page 03
+#labels Deprecated
+<--*[Page02 Previous Page]* / *[Page04 Next Page]*-->
+----
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_03.png]
+----
+<--*[Page02 Previous Page]* / *[Page04 Next Page]*-->
