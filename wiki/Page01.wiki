@@ -1,0 +1,4 @@
+#summary Manual page 1
+#labels Deprecated
+
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_01.png]
