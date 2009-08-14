@@ -1,0 +1,2 @@
+#summary Manual page 2
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_02.png]
