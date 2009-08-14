@@ -1,4 +1,5 @@
 #summary Manual
+#labels Featured
 To download the manual see [Documentation].
 [http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_01.png]
 ----
