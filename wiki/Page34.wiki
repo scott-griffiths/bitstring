@@ -1,0 +1,7 @@
+#summary Manual page 34
+#labels Deprecated
+<--*[Page33 Previous Page]* / ZZ
+----
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_34.png]
+----
+<--*[Page33 Previous Page]* / ZZ
