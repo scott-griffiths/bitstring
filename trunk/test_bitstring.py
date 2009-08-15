@@ -749,12 +749,6 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, bitstring._single_byte_from_hex_string, 'q')
         self.assertRaises(ValueError, bitstring._single_byte_from_hex_string, '1234')
 
-    def testHexStringFromSingleByte(self):
-        self.assertEqual(bitstring._hex_string_from_single_byte('\x00'), '00')
-        self.assertEqual(bitstring._hex_string_from_single_byte('\x01'), '01')
-        self.assertEqual(bitstring._hex_string_from_single_byte('\x4e'), '4e')
-        self.assertEqual(bitstring._hex_string_from_single_byte('\xff'), 'ff')
-
     def testAdding(self):
         s1 = BitString(hex = '0x0102')
         s2 = BitString(hex = '0x0304')
@@ -2338,8 +2332,8 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(b, 100)
 
     def testPack1(self):
-        s = bitstring.pack('uint6, bin, hex, int6, se, ue, oct', 10, '0b110', 'ff', -1, -6, 6, '54')
-        t = BitString('uint6=10, 0b110, 0xff, int6=-1, se=-6, ue=6, oct=54')
+        s = bitstring.pack('uint:6, bin, hex, int6, se, ue, oct', 10, '0b110', 'ff', -1, -6, 6, '54')
+        t = BitString('uint:6=10, 0b110, 0xff, int6=-1, se=-6, ue=6, oct=54')
         self.assertEqual(s, t)
         self.assertRaises(ValueError, pack, 'tomato', '0')
         self.assertRaises(ValueError, pack, 'uint', 12)
@@ -2385,7 +2379,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(z, 423)
         
     def testPackWithDict2(self):
-        a = pack('int5, bin3=b, 0x3, bin=c, se=12', 10, b='0b111', c='0b1')
+        a = pack('int:5, bin:3=b, 0x3, bin=c, se=12', 10, b='0b111', c='0b1')
         b = BitString('int5=10, 0b111, 0x3, 0b1, se=12')
         self.assertEqual(a, b)
         a = pack('bits3=b', b=BitString('0b101'))
@@ -2449,15 +2443,15 @@ class BitStringTest(unittest.TestCase):
     def testTokenParser(self):
         tp = bitstring._tokenparser
         self.assertEqual(tp('hex'), [['hex', None, None]])
-        self.assertEqual(tp('hex12'), [['hex', None, 12]])
-        self.assertEqual(tp('hex=14'), [['hex', '14', None]])
+        self.assertEqual(tp('hex12'), [['hex', 12, None]])
+        self.assertEqual(tp('hex=14'), [['hex', None, '14']])
         self.assertEqual(tp('se'), [['se', None, None]])
-        self.assertEqual(tp('ue=12'), [['ue', '12', None]])
-        self.assertEqual(tp('0xef'), [['0x', 'ef', None]])
-        self.assertEqual(tp('uint12'), [['uint', None, 12]])
-        self.assertEqual(tp('int30=-1'), [['int', '-1', 30]])
-        self.assertEqual(tp('bits10'), [['bits', None, 10]])
-        self.assertEqual(tp('bytes2'), [['bytes', None, 16]])
+        self.assertEqual(tp('ue=12'), [['ue', None, '12']])
+        self.assertEqual(tp('0xef'), [['0x', None, 'ef']])
+        self.assertEqual(tp('uint12'), [['uint', 12, None]])
+        self.assertEqual(tp('int:30=-1'), [['int', 30, '-1']])
+        self.assertEqual(tp('bits10'), [['bits', 10, None]])
+        self.assertEqual(tp('bytes2'), [['bytes', 16, None]])
     
     def testTokenParserErrors(self):
         tp = bitstring._tokenparser

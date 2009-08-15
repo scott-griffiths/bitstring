@@ -59,16 +59,6 @@ def _single_byte_from_hex_string(h):
     elif len(h) == 1:
         return struct.pack('B', i<<4)
 
-def _hex_string_from_single_byte(b):
-    """Return a two character hex string from a single byte value."""
-    v = ord(b)
-    if v > 15:
-        return hex(v)[2:]
-    elif v > 0:
-        return '0' + hex(v)[2:]
-    else:
-        return '00'
-
 def _splitinputstring(s):
     """Return array of strings for parsing as BitStrings."""
     # We allow ',' to separate items
@@ -81,7 +71,7 @@ def _tidyupinputstring(s):
     s = string.join(s.split(), '').lower()
     return s
     
-def _init_with_token(name, value, token_length):
+def _init_with_token(name, token_length, value):
     if token_length == 0:
         return BitString()
     if name in ['0x', 'hex']:
@@ -101,13 +91,13 @@ def _init_with_token(name, value, token_length):
     else:
         raise ValueError
 
-_tokenre = re.compile(r'(?P<name>uint|int|ue|se|hex|oct|bin|bits|bytes)(?::{0,1})(?P<length>[^=]*)(?:=?)(?P<value>.*)')
-_literalre = re.compile(r'(?P<name>0x|0o|0b)(?P<value>.*)')
+_tokenre = re.compile(r'^(?P<name>uint|int|ue|se|hex|oct|bin|bits|bytes)(?::?)(?P<length>[^=]*)(?:=?)(?P<value>.*)')
+_literalre = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)')
 
 def _tokenparser(*format):
     """Divide the format string(s) into tokens and parse them.
     
-    Return list of [initialiser, value, length]
+    Return list of [initialiser, length, value]
     initialiser is one of: hex, oct, bin, uint, int, se, ue, 0x, 0o, 0b
     length is None if not known, as is value.
     
@@ -126,14 +116,14 @@ def _tokenparser(*format):
     for token in tokens:
         value = length = None
         if token == '':
-            return_values.append(['bin', None, 0])
+            return_values.append(['bin', 0, None])
             continue
         # Match literal tokens of the form 0x... 0o... and 0b...
         m = _literalre.match(token)
         if m:
             name = m.group('name')
             value = m.group('value')
-            return_values.append([name, value, length])
+            return_values.append([name, length, value])
             continue
         # Match everything else!
         m = _tokenre.match(token)
@@ -146,7 +136,7 @@ def _tokenparser(*format):
                     length *= 8
             if m.group('value'):
                 value = m.group('value')
-            return_values.append([name, value, length])
+            return_values.append([name, length, value])
             continue
         raise ValueError("Don't understand token '%s'." % token)
     return return_values
@@ -1388,7 +1378,7 @@ class BitString(object):
         else:
             return m
 
-    def _readtoken(self, name, value, token_length):
+    def _readtoken(self, name, token_length, value):
         """Reads a token from the BitString and returns the result."""
         if name in ['uint', 'int', 'hex', 'oct', 'bin']:
             return getattr(self.readbits(token_length), name)
@@ -1399,7 +1389,7 @@ class BitString(object):
         if name == 'se':
             return self._readse()
         else:
-            raise ValueError
+            raise ValueError("Can't parse token %s:%d" % (name, length))
         
     def empty(self):
         """Return True if the BitString is empty (has zero length)."""
@@ -1449,7 +1439,7 @@ class BitString(object):
         bits_after_stretchy_token = 0
         stretchy_token = None
         for token in tokens:
-            name, value, length = token
+            name, length, value = token
             if stretchy_token:
                 if not length:
                     raise BitStringError("Can't have variable length things after a stretchy token (TODO)")
@@ -1464,9 +1454,9 @@ class BitString(object):
         for token in tokens:
             if token is stretchy_token:
                 # Set length to the remaining bits
-                token[2] = max(bits_left - bits_after_stretchy_token, 0)
-            if token[2] is not None:
-                bits_left -= token[2]
+                token[1] = max(bits_left - bits_after_stretchy_token, 0)
+            if token[1] is not None:
+                bits_left -= token[1]
             return_values.append(self._readtoken(*token))            
         if len(return_values) == 1:
             return return_values[0]
@@ -2376,7 +2366,7 @@ def pack(format, *values, **kwds):
     tokens = _tokenparser(format)
     value_iter = iter(values)
     s = BitString()
-    for name, value, length in tokens:
+    for name, length, value in tokens:
         # If the value is in the kwd dictionary then it takes precedence.
         if value in kwds:
             value = kwds[value]
