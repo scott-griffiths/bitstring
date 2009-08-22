@@ -2420,6 +2420,7 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, pack, 'oct:6', '0o1')
         self.assertRaises(ValueError, pack, 'oct:6', '0o111')
         self.assertRaises(ValueError, pack, 'oct:3', '0b1')
+        self.assertRaises(ValueError, pack, 'oct:3=hello', hello='0o12')
         
         s = pack('bits:3', BitString('0b111'))
         self.assertRaises(ValueError, pack, 'bits:3', BitString('0b11'))
@@ -2453,6 +2454,16 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, pack, 'bin:1')
         self.assertRaises(ValueError, pack, '', 100)
 
+    def testPackWithVariousKeys(self):
+        a = pack('uint10', uint10='0b1')
+        self.assertEqual(a, '0b1')
+        b = pack('0b110', **{'0b110' : '0xfff'})
+        self.assertEqual(b, '0xfff')
+
+    def testPackWithVariableLength(self):
+        for i in range(1, 11):
+            a = pack('uint:n', 0, n=i)
+            self.assertEqual(a.bin, '0b'+'0'*i)
     
     def testToString(self):
         a = BitString(data='\xab\x00')
@@ -2483,15 +2494,17 @@ class BitStringTest(unittest.TestCase):
     def testTokenParser(self):
         tp = bitstring._tokenparser
         self.assertEqual(tp('hex'), [['hex', None, None]])
-        self.assertEqual(tp('hex12'), [['hex', 12, None]])
+        self.assertEqual(tp('hex12'), [['hex', '12', None]])
         self.assertEqual(tp('hex=14'), [['hex', None, '14']])
         self.assertEqual(tp('se'), [['se', None, None]])
         self.assertEqual(tp('ue=12'), [['ue', None, '12']])
         self.assertEqual(tp('0xef'), [['0x', None, 'ef']])
-        self.assertEqual(tp('uint12'), [['uint', 12, None]])
-        self.assertEqual(tp('int:30=-1'), [['int', 30, '-1']])
-        self.assertEqual(tp('bits10'), [['bits', 10, None]])
-        self.assertEqual(tp('bytes2'), [['bytes', 16, None]])
+        self.assertEqual(tp('uint12'), [['uint', '12', None]])
+        self.assertEqual(tp('int:30=-1'), [['int', '30', '-1']])
+        self.assertEqual(tp('bits10'), [['bits', '10', None]])
+        self.assertEqual(tp('bytes2'), [['bytes', '16', None]])
+        self.assertEqual(tp('hello_world'), [['hello_world', None, None]])
+        self.assertEqual(tp('send'), [['send', None, None]])
         
     def testInitWithToken(self):
         pass
