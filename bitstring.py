@@ -1072,7 +1072,8 @@ class BitString(object):
             shift -= 8*structsize
             # Convert next 8 bytes to an int, then shift it to proper place
             # and add it
-            val += (struct.unpack('>Q', self._datastore[j:j + structsize])[0] << shift)
+            d = self._datastore[j:j + structsize].tostring()
+            val += (struct.unpack('>Q', d)[0] << shift)
             j += structsize
         # Do the remaining bytes, except for the final one
         while j < end:
