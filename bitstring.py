@@ -77,22 +77,31 @@ def _init_with_token(name, token_length, value):
     if token_length == 0:
         return BitString()
     if name in ['0x', 'hex']:
-        return BitString(hex=value, length=token_length)
+        b = BitString(hex=value)
     elif name in ['0b', 'bin']:
-        return BitString(bin=value, length=token_length)
+        b = BitString(bin=value)
     elif name in ['0o', 'oct']:
-        return BitString(oct=value, length=token_length)
+        b = BitString(oct=value)
     elif name == 'se':
-        return BitString(se=int(value))
+        b = BitString(se=int(value))
     elif name == 'ue':
-        return BitString(ue=int(value))
+        b = BitString(ue=int(value))
     elif name == 'uint':
-        return BitString(uint=int(value), length=token_length)
+        b = BitString(uint=int(value), length=token_length)
     elif name == 'int':
-        return BitString(int=int(value), length=token_length)
+        b = BitString(int=int(value), length=token_length)
+    elif name == 'bits':
+        b = BitString(value)
+    elif name == 'bytes':
+        b = BitString(value)
+        if b.length % 8 != 0:
+            raise ValueError("'bytes' token must be given a whole byte value (bytes=%s)." % value)
     else:
-        # TODO: Error message + are we sure we don't need to do 'bits' and 'bytes' here?
-        raise ValueError
+        raise ValueError("Can't parse token name %s." % name)
+    if token_length is not None and b.length != token_length:
+        raise ValueError("Token with length %d packed with value of length %d (%s:%d=%s)." %
+                         (token_length, b.length, name, token_length, value))
+    return b
 
 _init_names = ['uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits', 'bytes']
 _init_names_ored = '|'.join(_init_names)
@@ -106,6 +115,9 @@ def _tokenparser(format, keys=None):
     Return list of [initialiser, length, value]
     initialiser is one of: hex, oct, bin, uint, int, se, ue, 0x, 0o, 0b
     length is None if not known, as is value.
+    
+    If the token is in the keyword dictionary (keys) then it counts as a
+    special case and isn't messed with.
     
     tokens must be of the form: initialiser[:][length][=value]
     
@@ -222,14 +234,16 @@ class _Array(object):
 class _FileArray(_Array):
     """A class that mimics the array.array type but gets data from a file object."""
     
-    def __init__(self, filename, bitlength, offset, byteoffset):
-        filelength = os.path.getsize(filename)
-        self.source = open(filename, 'rb')
+    def __init__(self, source, bitlength, offset, byteoffset):
+        # byteoffset - bytes to ignore at start of file
+        # bitoffset - bits (0-7) to ignore after the byteoffset
+        filelength = os.path.getsize(source.name)
+        self.source = source
         if bitlength is None:
             self.bytelength = filelength - byteoffset
             bitlength = self.bytelength*8 - offset
         else:
-            self.bytelength = (bitlength + offset + 7)//8
+            self.bytelength = (bitlength + offset + 7) // 8
         if self.bytelength > filelength - byteoffset:
             raise ValueError("File is not long enough for specified BitString length and offset.")
         self.byteoffset = byteoffset
@@ -240,11 +254,13 @@ class _FileArray(_Array):
         try:
             # A slice
             start = self.byteoffset
+            assert start >= 0
             if key.start is not None:
                 start += key.start
             stop = self.bytelength + self.byteoffset
             if key.stop is not None:
                 stop += key.stop - self.bytelength
+            assert stop >= 0
             if start < stop:
                 self.source.seek(start, os.SEEK_SET)
                 return array.array('B', self.source.read(stop-start))
@@ -252,9 +268,11 @@ class _FileArray(_Array):
                 return ''
         except AttributeError:
             # single element
-            key += self.byteoffset
+            if key < 0:
+                key += self.bytelength
             if key >= self.bytelength:
                 raise IndexError
+            key += self.byteoffset
             self.source.seek(key, os.SEEK_SET)
             return ord(self.source.read(1))
     
@@ -363,6 +381,7 @@ class _MemArray(_Array):
     
     rawbytes = property(_getrawbytes)
 
+
 class _CatArray(_Array):
     
     def __init__(self, array):
@@ -412,8 +431,8 @@ class BitString(object):
                  uint=None, int=None, ue=None, se=None):
         """
         Initialise the BitString with one (and only one) of:
-        auto -- string of comma separated tokens, a list or tuple
-                to be interpreted as booleans, or another BitString.
+        auto -- string of comma separated tokens, a list or tuple to be 
+                interpreted as booleans, a file object or another BitString.
         data -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
@@ -480,9 +499,12 @@ class BitString(object):
         """Return a new copy of the BitString."""
         s_copy = BitString()
         s_copy._pos = self._pos
-        if self._file is not None:
-            raise BitStringError("Cannot copy file based BitStrings.")
-        s_copy._datastore = copy.copy(self._datastore)
+        if isinstance(self._datastore, _FileArray):
+            # Let them both point to the same (invariant) file.
+            # If either gets modified then at that point they'll be read into memory.
+            s_copy._datastore = self._datastore
+        else:
+            s_copy._datastore = copy.copy(self._datastore)
         return s_copy
 
     def __add__(self, bs):
@@ -976,15 +998,26 @@ class BitString(object):
         self._pos = 0
     
     def _setauto(self, s, offset, length):
-        """Set BitString from a BitString, list, tuple or string."""
+        """Set BitString from a BitString, file, list, tuple or string."""
         if isinstance(s, BitString):
             if length is None:
                 length = s.length - offset
-            self._setdata(s._datastore.rawbytes, s._offset + offset, length)
+            if isinstance(s._datastore, _FileArray):
+                byteoffset, bitoffset = divmod(s._datastore.offset + \
+                                               s._datastore.byteoffset*8  + \
+                                               offset, 8)
+                self._datastore = _FileArray(s._datastore.source, length, bitoffset,
+                                             byteoffset)
+            else:
+                self._setdata(s._datastore.rawbytes, s._offset + offset, length)
             return
         if isinstance(s, (list, tuple)):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin(''.join([str(int(bool(x))) for x in s]), offset, length)
+            return
+        if isinstance(s, file):
+            byteoffset, bitoffset = divmod(offset, 8)
+            self._datastore = _FileArray(s, length, bitoffset, byteoffset)
             return
         if not isinstance(s, str):
             raise TypeError("Cannot initialise BitString from %s." % type(s))
@@ -1002,7 +1035,8 @@ class BitString(object):
         
     def _setfile(self, filename, offset, lengthinbits=None, byteoffset=None):
         "Use file as source of bits."
-        self._datastore = _FileArray(filename, lengthinbits,
+        source = open(filename, 'rb')
+        self._datastore = _FileArray(source, lengthinbits,
                                      offset, byteoffset)
 
     def _setdata(self, data, offset=0, length=None):
@@ -2416,68 +2450,37 @@ def pack(format, *values, **kwargs):
             new_values.append(str(v))
         else:
             new_values.append(v)
-    values = new_values
-    value_iter = iter(values)
+    value_iter = iter(new_values)
     s = BitString()
     try:
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.
             if value in kwargs:
-                value = kwargs[value]
-                if isinstance(value, int):
-                    value = str(value) # A bit hacky. TODO.
+                value = str(kwargs[value])
             # If the length is in the kwd dictionary then use that too.
             if length in kwargs:
-                length = kwargs[length]
-                if isinstance(length, int):
-                    length = str(length) # TODO.
+                length = str(kwargs[length])
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
-                value = kwargs[name]
-                if isinstance(value, int):
-                    value = str(value) # A bit hacky. TODO.
-                s.append(value)
-                continue
-            # Next check for hex, oct or bin literals
-            if name in ['0x', '0b', '0o']:
-                s.append(name + value)
+                s.append(str(kwargs[name]))
                 continue
             if length is not None:
                 length = int(length)
             if value is None:
+                # Take the next value from the ones provided
                 value = value_iter.next()
-            if name == 'int':
-                b = BitString(int=eval(value), length=length)
-            elif name == 'uint':
-                b = BitString(uint=eval(value), length=length)
-            elif name in ['hex', 'oct', 'bin']:
-                b = BitString(auto=name+'='+str(value))
-                if length is not None and length != b.length:
-                    raise ValueError("Token with length %d packed with value of length %d. (%s:%d=%s)" %
-                                     (length, b.length, name, length, value))
-            elif name == 'se':
-                b = BitString(se=eval(value))
-            elif name == 'ue':
-                b = BitString(ue=eval(value))
-            elif name in ['bits', 'bytes']:
-                b = BitString(value)
-                if length is not None and length != b.length:
-                    raise ValueError("Token with length %d packed with value of length %d. (%s:%d=%s)" %
-                                     (length, b.length, name, length, value))
-            else:
-                raise ValueError("Can't parse token name %s." % name)
-            s.append(b)
+            s.append(_init_with_token(name, length, value))
     except StopIteration:
         raise ValueError("Not enough parameters present to pack according to the format.")
     try:
         value_iter.next()
     except StopIteration:
+        # Good, we've used up all the *values.
         return s
     raise ValueError("Too many parameters present to pack according to the format.")
 
 
 if __name__=='__main__':
-    s = pack('bits:3', '0o7')
     print "Running bitstring module unit tests:"
     try:
         import test_bitstring
