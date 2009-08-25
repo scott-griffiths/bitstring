@@ -2415,7 +2415,7 @@ class BitStringTest(unittest.TestCase):
         t = BitString('0b10, uint:12=100, 0b10, uint:12=100, 0b10')
         self.assertEqual(s, t)
         a = [1,2,3,4,5]
-        s = pack('int:8, div,'*5, *a, div='0b1')
+        s = pack('int:8, div,'*5, *a, **{'div': '0b1'})
         t = BitString('int:8=1, 0b1, int:8=2, 0b1, int:8=3, 0b1, int:8=4, 0b1, int:8=5, 0b1')
         self.assertEqual(s, t)
         
