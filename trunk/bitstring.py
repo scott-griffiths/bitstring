@@ -1029,7 +1029,6 @@ class BitString(object):
 
         # Finally we honour the offset and length
         self.truncatestart(offset)
-        self._datastore.setoffset(0) # TODO: I shouldn't need to do this! HACK!
         if length is not None:
             self.truncateend(self.length - length)
         
@@ -1450,6 +1449,13 @@ class BitString(object):
         format - One or more strings with comma separated tokens describing
                  how to interpret the bits in the BitString.
         
+        If only one token is present then a single object is returned,
+        otherwise a list is returned.
+        
+        Raises ValueError if the format is not understood.
+        
+        See the docstring for 'read' for more information.
+        
         """
         bitposbefore = self._pos
         self._pos = 0
@@ -1461,36 +1467,33 @@ class BitString(object):
         """Interpret next bits according to format string(s) and return result.
         
         format -- One or more strings with comma separated tokens describing
-                  how to interpret the next bits in the BitString, or integers
-                  to specify BitString bit lengths.
+                  how to interpret the next bits in the BitString.
                 
         If only one token is present then a single object is returned,
         otherwise a list is returned.
         
         The position in the BitString is advanced to after the read items.
         
-        Token examples: 'int12'  : 12 bits as a signed integer
-                        'uint8'  : 8 bits as an unsigned integer
-                        'hex80'  : 80 bits as a hex string
-                        'oct9'   : 9 bits as an octal string
-                        'bin1'   : single bit binary string
-                        'ue'     : next bits as unsigned exp-Golomb code
-                        'se'     : next bits as signed exp-Golomb code
-                        'bits5'  : 5 bits as a BitString object
-                        'bytes3' : 3 bytes as a BitString object
+        Raises ValueError if the format is not understood.
+        
+        Token examples: 'int:12'  : 12 bits as a signed integer
+                        'uint:8'  : 8 bits as an unsigned integer
+                        'hex:80'  : 80 bits as a hex string
+                        'oct:9'   : 9 bits as an octal string
+                        'bin:1'   : single bit binary string
+                        'ue'      : next bits as unsigned exp-Golomb code
+                        'se'      : next bits as signed exp-Golomb code
+                        'bits:5'  : 5 bits as a BitString object
+                        'bytes:3' : 3 bytes as a BitString object
                 
-        >>> h, b1, b2 = s.read('hex20, bin5, bin3')
-        >>> i, bs1, bs2 = s.read('uint12', 'bits10', 'bits10')
+        >>> h, b1, b2 = s.read('hex:20, bin:5, bin:3')
+        >>> i, bs1, bs2 = s.read('uint:12', 'bits:10', 'bits:10')
         
         """
         tokens = []
         for f_item in format:
-            if isinstance(f_item, str):
-                tokens.extend(_tokenparser(f_item))
-            elif isinstance(f_item, int):
-                tokens.append('bits'+str(f_item))
-            else:
-                raise TypeError("Cannot parse token of type %s." % type(f_item))
+            tokens.extend(_tokenparser(f_item))
+
         # Scan tokens to see if one has no length
         bits_after_stretchy_token = 0
         stretchy_token = None
@@ -1581,15 +1584,13 @@ class BitString(object):
         """Interpret next bits according to format string(s) and return result.
         
         format -- One or more strings with comma separated tokens describing
-                  how to interpret the next bits in the BitString, or integers
-                  to specify BitString bit lengths.
+                  how to interpret the next bits in the BitString.
                   
         If only one token is present then a single object is returned,
         otherwise a list is returned.
-        
         The position in the BitString is not changed.
         
-        See docstring for read() for token examples.
+        See the docstring for 'read' for more information.
         
         """
         bitpos = self._pos
@@ -2424,23 +2425,23 @@ def pack(format, *values, **kwargs):
     format -- A string with comma separated tokens describing how to create the
               next bits in the BitString.
     values -- Zero or more values to pack according to the format.
-    kwargs -- TODO
+    kwargs -- A dictionary or keyword-value pairs - the keywords used in the
+              format string will be replaced with their given value.
                 
-        If only one token is present then a single object is returned,
-        otherwise a list is returned.
-        
-        The position in the BitString is advanced to after the read items.
-        
-        Token examples: 'int12'  : 12 bits as a signed integer
-                        'uint8'  : 8 bits as an unsigned integer
-                        'hex80'  : 80 bits as a hex string
-                        'oct9'   : 9 bits as an octal string
-                        'bin1'   : single bit binary string
-                        'ue'     : next bits as unsigned exp-Golomb code
-                        'se'     : next bits as signed exp-Golomb code
-                        'bits5'  : 5 bits as a BitString object
-                        'bytes3' : 3 bytes as a BitString object
-                    
+    Token examples: 'int:12'  : 12 bits as a signed integer
+                    'uint:8'  : 8 bits as an unsigned integer
+                    'hex:8'   : 8 bits as a hex string
+                    'oct:9'   : 9 bits as an octal string
+                    'bin:1'   : single bit binary string
+                    'ue'      : next bits as unsigned exp-Golomb code
+                    'se'      : next bits as signed exp-Golomb code
+                    'bits:5'  : 5 bits as a BitString object
+                    'bytes:3' : 3 bytes as a BitString object
+
+    >>> s = pack('uint:12, bits', 100, '0xffe')
+    >>> t = pack('bits, bin:3', s, '111')
+    >>> u = pack('uint:8=a, uint:8=b, uint:55=a', a=6, b=44)
+    
     """
     tokens = _tokenparser(format, kwargs.keys())
     new_values = []
