@@ -2,7 +2,7 @@
 from distutils.core import setup
 
 setup(name='bitstring',
-      version='0.5.0',
+      version='0.5.1',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
