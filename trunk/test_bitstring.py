@@ -126,7 +126,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s[-2::8].hex, '0xcdef')
 
     def testCreataionFromFileErrors(self):
-        self.assertRaises(OSError, BitString, filename='Idonotexist')
+        self.assertRaises(IOError, BitString, filename='Idonotexist')
         self.assertRaises(BitStringError, BitString, filename='test/test.m1v', int=9)
 
     def testFindInFile(self):
@@ -163,7 +163,7 @@ class BitStringTest(unittest.TestCase):
         # and so this test won't work for anyone except me!
         try:
             s = BitString(filename='test/11GB.mkv')
-        except OSError:
+        except IOError:
             return
         self.assertEqual(s.length, 11743020505*8)
         self.assertEqual(s[1000000000:1000000100].hex, '0xbdef7335d4545f680d669ce24')
@@ -1101,6 +1101,21 @@ class BitStringTest(unittest.TestCase):
         t = BitString(s, offset=2)
         self.assertEqual(t, '0b1111')
         self.assertRaises(TypeError, BitString, auto=1.2)
+    
+    def testCreationByAuto2(self):
+        s = BitString('bin=001')
+        self.assertEqual(s.bin, '0b001')
+        s = BitString('oct=0o007')
+        self.assertEqual(s.oct, '0o007')
+        s = BitString('hex=123abc')
+        self.assertEqual(s, '0x123abc')
+        
+        s = BitString('bin:2=01', length=1)
+        self.assertEqual(s, '0b0')
+        for s in ['bin:1=01', 'bits:4=0b1', 'bytes:8=0xff', 'oct:3=000',
+                  'hex:4=0x1234']:
+            self.assertRaises(ValueError, BitString, s)
+        self.assertRaises(ValueError, BitString, 'bytes=0b111')
 
     def testInsertUsingAuto(self):
         s = BitString('0xff')
@@ -2509,6 +2524,22 @@ class BitStringTest(unittest.TestCase):
     def testInitWithToken(self):
         pass
 
+    def testAutoFromFileObject(self):
+        f = open('test/test.m1v', 'rb')
+        s = BitString(f, offset=32, length=12)
+        self.assertEqual(s.uint, 352)
+        f.close()
+    
+    def testFileBasedCopy(self):
+        f = open('test/smalltestfile', 'rb')
+        s = BitString(f)
+        t = BitString(s)
+        s.prepend('0b1')
+        self.assertEqual(s[1:], t)
+        s = BitString(f)
+        t = copy.copy(s)
+        t.append('0b1')
+        self.assertEqual(s, t[:-1])
         
 def main():
     unittest.main()
