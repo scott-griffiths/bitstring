@@ -2540,7 +2540,29 @@ class BitStringTest(unittest.TestCase):
         t = copy.copy(s)
         t.append('0b1')
         self.assertEqual(s, t[:-1])
-        
+
+    def testBigEndianSynonyms(self):
+        s = BitString('0x12318276ef')
+        self.assertEqual(s.int, s.intbe)
+        self.assertEqual(s.uint, s.uintbe)
+        s = BitString(intbe=-100, length=16)
+        self.assertEqual(s, 'int:16=-100')
+        s = BitString(uintbe=13, length=24)
+        self.assertEqual(s, 'int:24=13')
+        s = BitString('uintbe:32=1000')
+        self.assertEqual(s, 'uint:32=1000')
+        s = BitString('intbe:8=-2')
+        self.assertEqual(s, 'int:8=-2')
+
+    def testBigEndianSynonymErrors(self):
+        self.assertRaises(ValueError, BitString, uintbe=100, length=15)
+        self.assertRaises(ValueError, BitString, intbe=100, length=15)
+        self.assertRaises(ValueError, BitString, 'uintbe:17=100')
+        self.assertRaises(ValueError, BitString, 'intbe:7=2')
+        s = BitString('0b1')
+        self.assertRaises(ValueError, s._getintbe)
+        self.assertRaises(ValueError, s._getuintbe)
+
 def main():
     unittest.main()
 

@@ -90,6 +90,10 @@ def _init_with_token(name, token_length, value):
         b = BitString(uint=int(value), length=token_length)
     elif name == 'int':
         b = BitString(int=int(value), length=token_length)
+    elif name == 'uintbe':
+        b = BitString(uintbe=int(value), length=token_length)
+    elif name == 'intbe':
+        b = BitString(intbe=int(value), length=token_length)
     elif name == 'bits':
         b = BitString(value)
     elif name == 'bytes':
@@ -103,7 +107,7 @@ def _init_with_token(name, token_length, value):
                          (token_length, b.length, name, token_length, value))
     return b
 
-_init_names = ['uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits', 'bytes']
+_init_names = ['uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits', 'bytes', 'intbe', 'uintbe']
 _init_names_ored = '|'.join(_init_names)
 _tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len1>[^=]+))|(:?(?P<len2>[\d]+)))?(=(?P<value>.*))?$')
 _keyre = re.compile(r'^(?P<name>[^:=]+)$')
@@ -428,7 +432,7 @@ class BitString(object):
 
     def __init__(self, auto=None, length=None, offset=0, data=None,
                  filename=None, hex=None, bin=None, oct=None,
-                 uint=None, int=None, ue=None, se=None):
+                 uint=None, int=None, ue=None, se=None, intbe=None, uintbe=None):
         """
         Initialise the BitString with one (and only one) of:
         auto -- string of comma separated tokens, a list or tuple to be 
@@ -460,7 +464,8 @@ class BitString(object):
         if length is not None and length < 0:
             raise ValueError("BitString length cannot be negative.")
         
-        initialisers = [auto, data, filename, hex, bin, oct, int, uint, ue, se]
+        initialisers = [auto, data, filename, hex, bin, oct, int, uint, ue, se,
+                        intbe, uintbe]
         if initialisers.count(None) == len(initialisers):
             # No initialisers, so initialise with nothing or zero bits
             if length is not None:
@@ -471,13 +476,14 @@ class BitString(object):
             return
         initfuncs = [self._setauto, self._setdata, self._setfile,
                      self._sethex, self._setbin, self._setoct,
-                     self._setint, self._setuint, self._setue, self._setse]
+                     self._setint, self._setuint, self._setue, self._setse,
+                     self._setintbe, self._setuintbe]
         assert len(initialisers) == len(initfuncs)
         if initialisers.count(None) < len(initialisers) - 1:
             raise BitStringError("You must only specify one initialiser when initialising the BitString.")
         if (se is not None or ue is not None) and length is not None:
             raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
-        if (int or uint or ue or se) and offset != 0:
+        if (int or uint or intbe or uintbe or ue or se) and offset != 0:
             raise BitStringError("offset cannot be specified when initialising from an integer.")
         if offset < 0:
             raise ValueError("offset must be >= 0.")
@@ -489,7 +495,7 @@ class BitString(object):
             func(d, offset, length, byteoffset)
         elif d in [se, ue]:
             func(d)
-        elif d in [int, uint]:
+        elif d in [int, uint, intbe, uintbe]:
             func(d, length)
         else:
             func(d, offset, length)
@@ -1144,6 +1150,26 @@ class BitString(object):
             return ui
         tmp = (~(ui - 1)) & ((1 << self.length) - 1)
         return -tmp
+
+    def _setuintbe(self, uint, length=None):
+        if length is not None and length % 8 != 0:
+            raise ValueError("Big-endian integers must be whole-byte. Length = %d bits." % length)
+        self._setuint(uint, length)
+    
+    def _getuintbe(self):
+        if self.length % 8 != 0:
+            raise ValueError("Big-endian integers must be whole-byte. Length = %d bits." % self.length)
+        return self._getuint()
+    
+    def _setintbe(self, int, length=None):
+        if length is not None and length % 8 != 0:
+            raise ValueError("Big-endian integers must be whole-byte. Length = %d bits." % length)
+        self._setint(int, length)
+    
+    def _getintbe(self):
+        if self.length % 8 != 0:
+            raise ValueError("Big-endian integers must be whole-byte. Length = %d bits." % self.length)
+        return self._getint()
 
     def _setue(self, i):
         """Initialise BitString with unsigned exponential-Golomb code for integer i.
@@ -2405,6 +2431,12 @@ class BitString(object):
                       """)
     uint   = property(_getuint, _setuint,
                       doc="""The BitString as a two's complement unsigned int. Read and write.
+                      """)
+    intbe  = property(_getintbe, _setintbe,
+                      doc="""The BitString as a two's complement big-endian signed int. Read and write.
+                      """)
+    uintbe = property(_getuintbe, _setuintbe,
+                      doc="""The BitString as a two's complement big-endian unsigned int. Read and write.
                       """)
     ue     = property(_getue, _setue,
                       doc="""The BitString as an unsigned exponential-Golomb code. Read and write.
