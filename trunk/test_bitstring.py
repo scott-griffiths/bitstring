@@ -42,7 +42,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, '0b01 0010 0011 0100 01'*2)
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '0.5.1')
+        self.assertEqual(bitstring.__version__, '0.5.2')
     
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')
@@ -2551,8 +2551,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s, 'int:24=13')
         s = BitString('uintbe:32=1000')
         self.assertEqual(s, 'uint:32=1000')
-        s = BitString('intbe:8=-2')
-        self.assertEqual(s, 'int:8=-2')
+        s = BitString('intbe:8=2')
+        self.assertEqual(s, 'int:8=2')
+        self.assertEqual(s.read('intbe'), 2)
+        s.bitpos = 0
+        self.assertEqual(s.read('uintbe'), 2)
 
     def testBigEndianSynonymErrors(self):
         self.assertRaises(ValueError, BitString, uintbe=100, length=15)
@@ -2562,6 +2565,51 @@ class BitStringTest(unittest.TestCase):
         s = BitString('0b1')
         self.assertRaises(ValueError, s._getintbe)
         self.assertRaises(ValueError, s._getuintbe)
+        self.assertRaises(ValueError, s.read, 'uintbe')
+        self.assertRaises(ValueError, s.read, 'intbe')
+    
+    def testLittleEndianUint(self):
+        s = BitString(uint=100, length=16)
+        self.assertEqual(s.uintle, 25600)
+        s = BitString(uintle=100, length=16)
+        self.assertEqual(s.uint, 25600)
+        self.assertEqual(s.uintle, 100)
+        s.uintle += 5
+        self.assertEqual(s.uintle, 105)
+        s = BitString('uintle:32=999')
+        self.assertEqual(s.uintle, 999)
+        self.assertEqual(s[::-8].uint, 999)
+        s = pack('uintle:24', 1001)
+        self.assertEqual(s.uintle, 1001)
+        self.assertEqual(s.length, 24)
+        self.assertEqual(s.read('uintle'), 1001)
+
+    def testLittleEndianInt(self):
+        s = BitString(int=100, length=16)
+        self.assertEqual(s.intle, 25600)
+        s = BitString(intle=100, length=16)
+        self.assertEqual(s.int, 25600)
+        self.assertEqual(s.intle, 100)
+        s.intle += 5
+        self.assertEqual(s.intle, 105)
+        s = BitString('intle:32=999')
+        self.assertEqual(s.intle, 999)
+        self.assertEqual(s[::-8].int, 999)
+        s = pack('intle:24', 1001)
+        self.assertEqual(s.intle, 1001)
+        self.assertEqual(s.length, 24)
+        self.assertEqual(s.read('intle'), 1001)
+
+    def testLittleEndianErrors(self):
+        self.assertRaises(ValueError, BitString, 'uintle:15=10')
+        self.assertRaises(ValueError, BitString, 'intle:31=-999')
+        self.assertRaises(ValueError, BitString, uintle=100, length=15)
+        self.assertRaises(ValueError, BitString, intle=100, length=15)
+        s = BitString('0xfff')
+        self.assertRaises(ValueError, s._getintle)
+        self.assertRaises(ValueError, s._getuintle)
+        self.assertRaises(ValueError, s.read, 'uintle')
+        self.assertRaises(ValueError, s.read, 'intle')
 
 def main():
     unittest.main()
