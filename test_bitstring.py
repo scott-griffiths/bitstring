@@ -31,6 +31,7 @@ THE SOFTWARE.
 import unittest
 import bitstring
 import copy
+import sys
 from bitstring import BitString, BitStringError, pack
 
 
@@ -2611,6 +2612,58 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, s.read, 'uintle')
         self.assertRaises(ValueError, s.read, 'intle')
 
+    def testStructTokens1(self):
+        self.assertEqual(pack('<b', 23), BitString('intle:8=23'))
+        self.assertEqual(pack('<B', 23), BitString('uintle:8=23'))
+        self.assertEqual(pack('<h', 23), BitString('intle:16=23'))
+        self.assertEqual(pack('<H', 23), BitString('uintle:16=23'))
+        self.assertEqual(pack('<l', 23), BitString('intle:32=23'))
+        self.assertEqual(pack('<L', 23), BitString('uintle:32=23'))
+        self.assertEqual(pack('<q', 23), BitString('intle:64=23'))
+        self.assertEqual(pack('<Q', 23), BitString('uintle:64=23'))
+        self.assertEqual(pack('>b', 23), BitString('intbe:8=23'))
+        self.assertEqual(pack('>B', 23), BitString('uintbe:8=23'))
+        self.assertEqual(pack('>h', 23), BitString('intbe:16=23'))
+        self.assertEqual(pack('>H', 23), BitString('uintbe:16=23'))
+        self.assertEqual(pack('>l', 23), BitString('intbe:32=23'))
+        self.assertEqual(pack('>L', 23), BitString('uintbe:32=23'))
+        self.assertEqual(pack('>q', 23), BitString('intbe:64=23'))
+        self.assertEqual(pack('>Q', 23), BitString('uintbe:64=23'))
+        
+        self.assertRaises(ValueError, pack, '<B', -1)
+        self.assertRaises(ValueError, pack, '<H', -1)
+        self.assertRaises(ValueError, pack, '<L', -1)
+        self.assertRaises(ValueError, pack, '<Q', -1)
+    
+    def testNativeEndianness(self):
+        s = pack('@2L', 40, 40)
+        if sys.byteorder == 'little':
+            self.assertEqual(s, pack('<2L', 40, 40))
+        else:
+            self.assertEqual(sys.byteorder, 'big')
+            self.assertEqual(s, pack('>2L', 40, 40))
+
+    def testStructTokens2(self):
+        s = pack('>hhl', 1, 2, 3)
+        a, b, c = s.unpack('>hhl')
+        self.assertEqual((a, b, c), (1, 2, 3))
+        s = pack('<QL, >Q \tL', 1001, 43, 21, 9999)
+        self.assertEqual(s.unpack('<QL, >QL'), [1001, 43, 21, 9999])
+        
+    def testStructTokensMultiplicativeFactors(self):
+        s = pack('<2h', 1, 2)
+        a, b = s.unpack('<2h')
+        self.assertEqual((a, b), (1, 2))
+        s = pack('<100q', *range(100))
+        self.assertEqual(s.length, 100*64)
+        self.assertEqual(s[44:45:64].uintle, 44)
+        s = pack('@L0B2h', 5, 5, 5)
+        self.assertEqual(s.unpack('@Lhh'), [5, 5, 5])
+    
+    def testStructTokensErrors(self):
+        for f in ['>>q', '<>q', 'q>', '2q', 'q', '>-2q', '@a', '>int:8', '>q2']:
+            self.assertRaises(ValueError, pack, f, 100)
+         
 def main():
     unittest.main()
 
