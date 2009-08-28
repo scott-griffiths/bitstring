@@ -38,6 +38,7 @@ import string
 import os
 import struct
 import re
+import sys
 
 # Maximum number of digits to use in __str__ and __repr__.
 _maxchars = 250
@@ -116,7 +117,27 @@ _init_names = ['uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
 _init_names_ored = '|'.join(_init_names)
 _tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len1>[^=]+))|(:?(?P<len2>[\d]+)))?(=(?P<value>.*))?$')
 _keyre = re.compile(r'^(?P<name>[^:=]+)$')
+
+# Hex, oct or binary literals
 _literalre = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)')
+
+# An endianness indicator followed by one or more struct.pack codes
+_structpackre = re.compile(r'^(?P<endian><|>|@)(?P<format>(?:\d*[bBhHlLqQ])+)$')
+
+# A number followed by a single character struct.pack code
+_structsplitre = re.compile(r'\d*[bBhHlLqQ]')
+
+# These replicate the struct.pack codes
+# Big-endian
+_replacements_be = {'b': 'intbe:8',  'B': 'uintbe:8',
+                    'h': 'intbe:16', 'H': 'uintbe:16',
+                    'l': 'intbe:32', 'L': 'uintbe:32',
+                    'q': 'intbe:64', 'Q': 'uintbe:64'}
+# Little-endian
+_replacements_le = {'b': 'intle:8',  'B': 'uintle:8',
+                    'h': 'intle:16', 'H': 'uintle:16',
+                    'l': 'intle:32', 'L': 'uintle:32',
+                    'q': 'intle:64', 'Q': 'uintle:64'}
 
 def _tokenparser(format, keys=None):
     """Divide the format string into tokens and parse them.
@@ -131,9 +152,41 @@ def _tokenparser(format, keys=None):
     tokens must be of the form: initialiser[:][length][=value]
     
     """
-    tokens = [_tidyupinputstring(f) for f in format.split(',')]
+    # Split tokens be ',' and remove whitespace
+    tokens = [string.join(f.split(), '') for f in format.split(',')]
     return_values = []
+    new_tokens = []
     for token in tokens:
+        # See if it's a struct-like format
+        m = _structpackre.match(token)
+        if m:
+            # Split the format string into a list of 'q', '4h' etc.
+            formatlist = re.findall(_structsplitre, m.group('format'))
+            # Now deal with mulitplicative factors, 4h -> hhhh etc.
+            format = []
+            for i, f in enumerate(formatlist):
+                if len(f) != 1:
+                    format.append(f[-1]*int(f[:-1]))
+                else:
+                    format.append(f)
+            format = ''.join(format)
+            endian = m.group('endian')
+            if endian == '@':
+                # Native endianness
+                if sys.byteorder == 'little':
+                    endian = '<'
+                else:
+                    assert sys.byteorder == 'big'
+                    endian = '>'
+            if endian == '<':
+                new_tokens.extend(_replacements_le[c] for c in format)
+            else:
+                assert endian == '>'
+                new_tokens.extend(_replacements_be[c] for c in format)
+        else:
+            new_tokens.append(token.lower())
+
+    for token in new_tokens:
         if keys and token in keys:
             # Don't bother parsing it, it's part of a keyword argument
             return_values.append([token, None, None])
@@ -2550,7 +2603,8 @@ def pack(format, *values, **kwargs):
                 value = value_iter.next()
             s.append(_init_with_token(name, length, value))
     except StopIteration:
-        raise ValueError("Not enough parameters present to pack according to the format.")
+        raise ValueError("Not enough parameters present to pack according to the "
+                         "format. %d values are needed." % len(tokens))
     try:
         value_iter.next()
     except StopIteration:

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 from distutils.core import setup
 
+kwds = {}
+kwds['long_description'] = open('readme.txt').read()
+
 setup(name='bitstring',
       version='0.5.1',
       description='Simple construction, analysis and modification of binary data.',
@@ -10,13 +13,6 @@ setup(name='bitstring',
       download_url='http://python-bitstring.googlecode.com',
       license='The MIT License: http://www.opensource.org/licenses/mit-license.php',
       py_modules=['bitstring'],
-      long_description="""bitstring is a pure Python module designed to help make
-the creation and analysis of binary data as painless as possible.
-BitString objects can be constructed from integers, hexadecimal,
-octal, binary, strings or files. They can be sliced, joined,
-reversed, inserted into, overwritten, etc. with simple functions
-or slice notation. They can also be read from, searched, and
-navigated in, similar to a file or stream.""",
       platforms='all',
       classifiers = [
         'Development Status :: 4 - Beta',
@@ -29,6 +25,7 @@ navigated in, similar to a file or stream.""",
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.0',
         'Topic :: Software Development :: Libraries :: Python Modules',
-      ]
+      ],
+      **kwds
       )
 
