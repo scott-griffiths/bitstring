@@ -39,6 +39,7 @@ import os
 import struct
 import re
 import sys
+import itertools
 
 # Maximum number of digits to use in __str__ and __repr__.
 _maxchars = 250
@@ -60,13 +61,6 @@ def _single_byte_from_hex_string(h):
     elif len(h) == 1:
         return struct.pack('B', i<<4)
 
-def _splitinputstring(s):
-    """Return array of strings for parsing as BitStrings."""
-    # We allow ',' to separate items
-    slist = s.split(',')
-    slist = [s.strip().lower() for s in slist]
-    return slist
-
 def _tidyupinputstring(s):
     """Return string made lowercase and with all whitespace removed."""
     s = string.join(s.split(), '').lower()
@@ -77,11 +71,11 @@ def _init_with_token(name, token_length, value):
         token_length = int(token_length)
     if token_length == 0:
         return BitString()
-    if name in ['0x', 'hex']:
+    if name in ('0x', 'hex'):
         b = BitString(hex=value)
-    elif name in ['0b', 'bin']:
+    elif name in ('0b', 'bin'):
         b = BitString(bin=value)
-    elif name in ['0o', 'oct']:
+    elif name in ('0o', 'oct'):
         b = BitString(oct=value)
     elif name == 'se':
         b = BitString(se=int(value))
@@ -112,8 +106,8 @@ def _init_with_token(name, token_length, value):
                          (token_length, b.length, name, token_length, value))
     return b
 
-_init_names = ['uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
-               'bytes', 'uintbe', 'intbe', 'uintle', 'intle']
+_init_names = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
+               'bytes', 'uintbe', 'intbe', 'uintle', 'intle')
 _init_names_ored = '|'.join(_init_names)
 _tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len1>[^=]+))|(:?(?P<len2>[\d]+)))?(=(?P<value>.*))?$')
 _keyre = re.compile(r'^(?P<name>[^:=]+)$')
@@ -153,7 +147,7 @@ def _tokenparser(format, keys=None):
     
     """
     # Split tokens be ',' and remove whitespace
-    tokens = [string.join(f.split(), '') for f in format.split(',')]
+    tokens = (string.join(f.split(), '') for f in format.split(','))
     return_values = []
     new_tokens = []
     for token in tokens:
@@ -164,7 +158,7 @@ def _tokenparser(format, keys=None):
             formatlist = re.findall(_structsplitre, m.group('format'))
             # Now deal with mulitplicative factors, 4h -> hhhh etc.
             format = []
-            for i, f in enumerate(formatlist):
+            for f in formatlist:
                 if len(f) != 1:
                     format.append(f[-1]*int(f[:-1]))
                 else:
@@ -226,7 +220,7 @@ def _tokenparser(format, keys=None):
     return return_values
     
 # Not pretty, but a byte to bitstring lookup really speeds things up.
-_byte2bits = ['00000000', '00000001', '00000010', '00000011', '00000100', '00000101', '00000110', '00000111',
+_byte2bits = ('00000000', '00000001', '00000010', '00000011', '00000100', '00000101', '00000110', '00000111',
               '00001000', '00001001', '00001010', '00001011', '00001100', '00001101', '00001110', '00001111',
               '00010000', '00010001', '00010010', '00010011', '00010100', '00010101', '00010110', '00010111',
               '00011000', '00011001', '00011010', '00011011', '00011100', '00011101', '00011110', '00011111',
@@ -257,9 +251,9 @@ _byte2bits = ['00000000', '00000001', '00000010', '00000011', '00000100', '00000
               '11100000', '11100001', '11100010', '11100011', '11100100', '11100101', '11100110', '11100111',
               '11101000', '11101001', '11101010', '11101011', '11101100', '11101101', '11101110', '11101111',
               '11110000', '11110001', '11110010', '11110011', '11110100', '11110101', '11110110', '11110111',
-              '11111000', '11111001', '11111010', '11111011', '11111100', '11111101', '11111110', '11111111']
+              '11111000', '11111001', '11111010', '11111011', '11111100', '11111101', '11111110', '11111111')
 
-_oct2bits = ['000', '001', '010', '011', '100', '101', '110', '111']
+_oct2bits = ('000', '001', '010', '011', '100', '101', '110', '111')
 
 class BitStringError(Exception):
     """For errors in the bitstring module."""
@@ -337,7 +331,7 @@ class _FileArray(_Array):
             key += self.byteoffset
             self.source.seek(key, os.SEEK_SET)
             return ord(self.source.read(1))
-    
+
 
 class _MemArray(_Array):
     """Stores raw bytes together with a bit offset and length."""
@@ -392,7 +386,8 @@ class _MemArray(_Array):
         else: # offset > self._offset
             shiftright = newoffset - self.offset
             # Give some overflow room for the last byte
-            if (self.offset + self.bitlength + shiftright + 7)//8 > (self.offset + self.bitlength + 7)//8:
+            b = self.offset + self.bitlength + 7
+            if (b + shiftright) // 8 > b // 8:
                 self.appendbytes(0)
             for x in xrange(self.bytelength - 1, 0, -1):
                 self[x] = ((self[x-1] << (8 - shiftright)) & 255) + \
@@ -450,22 +445,23 @@ class _CatArray(_Array):
         self.arraylist = [array]
         
     def appendarray(self, array):
+        #self.arraylist.append(array)
         self.arraylist[0].appendarray(array.arraylist[0])
     
     def prependarray(self, array):
+        #self.arraylist.insert(0, array)
         self.arraylist[0].prependarray(array.arraylist[0])
         
     def __getitem__(self, key):
+        self.flatten()
         return self.arraylist[0].__getitem__(key)
     
     def _getrawbytes(self):
+        self.flatten()
         return self.arraylist[0].rawbytes
     
     def __copy__(self):
         return _CatArray(copy.copy(self.arraylist[0]))
-    
-    def __setitem__(self, key, item):
-        self.arraylist[0].__setitem__(key, item)
     
     def setoffset(self, newoffset):
         self.arraylist[0].setoffset(newoffset)
@@ -474,10 +470,17 @@ class _CatArray(_Array):
         return self.arraylist[0].offset
     
     def _getbitlength(self):
-        return self.arraylist[0].bitlength
+        return sum(a.bitlength for a in self.arraylist)
     
     def _getbytelength(self):
-        return self.arraylist[0].bytelength
+        return (self.bitlength + self.offset + 7) // 8
+    
+    def flatten(self):
+        """Concatenate the arraylist items down to a single item."""
+        a = self.arraylist[0]
+        for b in self.arraylist[1:]:
+            a.appendarray(b)
+        self.arraylist = [a]
     
     rawbytes = property(_getrawbytes)
     offset = property(_getoffset)
@@ -537,10 +540,10 @@ class BitString(object):
             else:
                 self._setdata('', 0)
             return
-        initfuncs = [self._setauto, self._setdata, self._setfile,
+        initfuncs = (self._setauto, self._setdata, self._setfile,
                      self._sethex, self._setbin, self._setoct,
                      self._setint, self._setuint, self._setue, self._setse,
-                     self._setintbe, self._setuintbe, self._setintle, self._setuintle]
+                     self._setintbe, self._setuintbe, self._setintle, self._setuintle)
         assert len(initialisers) == len(initfuncs)
         if initialisers.count(None) < len(initialisers) - 1:
             raise BitStringError("You must only specify one initialiser when initialising the BitString.")
@@ -556,9 +559,9 @@ class BitString(object):
         if d == filename:
             byteoffset, offset = divmod(offset, 8)
             func(d, offset, length, byteoffset)
-        elif d in [se, ue]:
+        elif d in (se, ue):
             func(d)
-        elif d in [int, uint, intbe, uintbe, intle, uintle]:
+        elif d in (int, uint, intbe, uintbe, intle, uintle):
             func(d, length)
         else:
             func(d, offset, length)
@@ -804,15 +807,15 @@ class BitString(object):
             # Too long for hex. Truncate...
             return self[:_maxchars:4].hex + '...'
         # If it's quite short and we can't do hex then use bin
-        if self.length < 32 and self.length % 4 != 0:
+        if length < 32 and length % 4 != 0:
             return self.bin
         # First we do as much as we can in hex
         s = self[::4].hex
-        if self.length % 4 != 0:
+        if length % 4 != 0:
             # Add on 1, 2 or 3 bits at the end
             if s:
                 s = s + ', '
-            s = s + self[-(self.length % 4):].bin
+            s = s + self[-(length % 4):].bin
         return s
 
     def __repr__(self):
@@ -851,6 +854,12 @@ class BitString(object):
             return False
         if self.length != bs.length:
             return False
+        #if self._offset == bs._offset == 0:
+        #    for a, b in itertools.izip(self._datastore.rawbytes, bs._datastore.rawbytes):
+        #        if a != b:
+        #            return False
+        #    return True
+                
         # This could be made faster by exiting with False as early as possible.
         if self.data != bs.data:
             return False
@@ -1194,6 +1203,7 @@ class BitString(object):
 
     def _setint(self, int, length=None):
         """Reset the BitString to have given signed int interpretation."""
+        # TODO: This next line is pretty hacky. Either rewrite or comment.
         if length is None and hasattr(self, "_datastore") and self.length != 0:
             length = self.length
         if length is None or length == 0:
@@ -1331,7 +1341,7 @@ class BitString(object):
         # remove any 0b if present
         binstring = binstring.replace('0b', '')
         if length is None:
-            length = len(binstring) - offset
+            length = length or len(binstring) - offset
         if length < 0 or length > (len(binstring) - offset):
             raise ValueError("Invalid length of binary string. String %s, length %d, offset %d." % (binstring, length, offset))
         if length == 0:
@@ -1543,9 +1553,9 @@ class BitString(object):
         """Reads a token from the BitString and returns the result."""
         if length is not None:
             length = int(length)
-        if name in ['uint', 'int', 'intbe', 'uintbe', 'intle', 'uintle', 'hex', 'oct', 'bin']:
+        if name in ('uint', 'int', 'intbe', 'uintbe', 'intle', 'uintle', 'hex', 'oct', 'bin'):
             return getattr(self.readbits(length), name)
-        if name in ['bits', 'bytes']:
+        if name in ('bits', 'bytes'):
             return self.readbits(length)
         if name == 'ue':
             return self._readue()
@@ -1617,11 +1627,11 @@ class BitString(object):
                 token[1] = int(token[1])
             name, length, value = token
             if stretchy_token:
-                if name in ['se', 'ue']:
+                if name in ('se', 'ue'):
                     raise BitStringError("It's not possible to parse a variable length token after a 'filler' token.")
                 else:
                     bits_after_stretchy_token += length
-            if length is None and value is None and name not in ['se', 'ue']:
+            if length is None and value is None and name not in ('se', 'ue'):
                 if stretchy_token:
                     raise BitStringError("It's not possible to have more than one 'filler' token.")
                 stretchy_token = token
