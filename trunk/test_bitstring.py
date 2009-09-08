@@ -2702,6 +2702,16 @@ class BitStringTest(unittest.TestCase):
         b = a.reversebytes()
         self.assertTrue(b.empty())
         
+    def testCapitalsInPack(self):
+        a = pack('A', A='0b1')
+        self.assertEqual(a, '0b1')
+        format = 'bits:4=BL_OFFT, uint:12=width, uint:12=height'
+        d = {'BL_OFFT': '0b1011', 'width': 352, 'height': 288}
+        s = bitstring.pack(format, **d)
+        self.assertEqual(s, '0b1011, uint:12=352, uint:12=288')
+        a = pack('0X0, UinT:8, HeX', 45, '0XABcD')
+        self.assertEqual(a, '0x0, UiNt:8=45, 0xabCD')
+        
 def main():
     unittest.main()
 
