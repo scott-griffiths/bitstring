@@ -69,6 +69,7 @@ def _tidyupinputstring(s):
 def _init_with_token(name, token_length, value):
     if token_length is not None:
         token_length = int(token_length)
+    name = name.lower()
     if token_length == 0:
         return BitString()
     if name in ('0x', 'hex'):
@@ -115,11 +116,11 @@ _init_names = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
                'bytes', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne')
 
 _init_names_ored = '|'.join(_init_names)
-_tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len1>[^=]+))|(:?(?P<len2>[\d]+)))?(=(?P<value>.*))?$')
+_tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len1>[^=]+))|(:?(?P<len2>[\d]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
 _keyre = re.compile(r'^(?P<name>[^:=]+)$')
 
 # Hex, oct or binary literals
-_literalre = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)')
+_literalre = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
 _structpackre = re.compile(r'^(?P<endian><|>|@)(?P<format>(?:\d*[bBhHlLqQ])+)$')
@@ -184,7 +185,7 @@ def _tokenparser(format, keys=None):
                 assert endian == '>'
                 new_tokens.extend(_replacements_be[c] for c in format)
         else:
-            new_tokens.append(token.lower())
+            new_tokens.append(token)
 
     for token in new_tokens:
         if keys and token in keys:
@@ -1582,6 +1583,7 @@ class BitString(object):
         """Reads a token from the BitString and returns the result."""
         if length is not None:
             length = int(length)
+        name = name.lower()
         if name in ('uint', 'int', 'intbe', 'uintbe', 'intle', 'uintle',
                     'intne', 'uintne', 'hex', 'oct', 'bin'):
             return getattr(self.readbits(length), name)
