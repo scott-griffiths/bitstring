@@ -2629,19 +2629,44 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(pack('>L', 23), BitString('uintbe:32=23'))
         self.assertEqual(pack('>q', 23), BitString('intbe:64=23'))
         self.assertEqual(pack('>Q', 23), BitString('uintbe:64=23'))
-        
         self.assertRaises(ValueError, pack, '<B', -1)
         self.assertRaises(ValueError, pack, '<H', -1)
         self.assertRaises(ValueError, pack, '<L', -1)
         self.assertRaises(ValueError, pack, '<Q', -1)
     
+    def testStructTokens2(self):
+        endianness = sys.byteorder
+        sys.byteorder = 'little'
+        self.assertEqual(pack('@b', 23), BitString('intle:8=23'))
+        self.assertEqual(pack('@B', 23), BitString('uintle:8=23'))
+        self.assertEqual(pack('@h', 23), BitString('intle:16=23'))
+        self.assertEqual(pack('@H', 23), BitString('uintle:16=23'))
+        self.assertEqual(pack('@l', 23), BitString('intle:32=23'))
+        self.assertEqual(pack('@L', 23), BitString('uintle:32=23'))
+        self.assertEqual(pack('@q', 23), BitString('intle:64=23'))
+        self.assertEqual(pack('@Q', 23), BitString('uintle:64=23'))
+        sys.byteorder = 'big'
+        self.assertEqual(pack('@b', 23), BitString('intbe:8=23'))
+        self.assertEqual(pack('@B', 23), BitString('uintbe:8=23'))
+        self.assertEqual(pack('@h', 23), BitString('intbe:16=23'))
+        self.assertEqual(pack('@H', 23), BitString('uintbe:16=23'))
+        self.assertEqual(pack('@l', 23), BitString('intbe:32=23'))
+        self.assertEqual(pack('@L', 23), BitString('uintbe:32=23'))
+        self.assertEqual(pack('@q', 23), BitString('intbe:64=23'))
+        self.assertEqual(pack('@Q', 23), BitString('uintbe:64=23'))
+        sys.byteorder = endianness
+    
     def testNativeEndianness(self):
-        s = pack('@2L', 40, 40)
-        if sys.byteorder == 'little':
-            self.assertEqual(s, pack('<2L', 40, 40))
-        else:
-            self.assertEqual(sys.byteorder, 'big')
-            self.assertEqual(s, pack('>2L', 40, 40))
+        endianness = sys.byteorder
+        for endian in ('big', 'little'):
+            sys.byteorder = endian
+            s = pack('@2L', 40, 40)
+            if sys.byteorder == 'little':
+                self.assertEqual(s, pack('<2L', 40, 40))
+            else:
+                self.assertEqual(sys.byteorder, 'big')
+                self.assertEqual(s, pack('>2L', 40, 40))
+        sys.byteorder = endianness
 
     def testStructTokens2(self):
         s = pack('>hhl', 1, 2, 3)
@@ -2663,7 +2688,20 @@ class BitStringTest(unittest.TestCase):
     def testStructTokensErrors(self):
         for f in ['>>q', '<>q', 'q>', '2q', 'q', '>-2q', '@a', '>int:8', '>q2']:
             self.assertRaises(ValueError, pack, f, 100)
-         
+    
+    def testReverseBytes(self):
+        a = BitString('0x123456')
+        b = a.reversebytes()
+        self.assertEqual(a, '0x563412')
+        self.assertEqual(a, b)
+        self.assertRaises(BitStringError, (a + '0b1').reversebytes)
+        a = BitString('0x54')
+        a.reversebytes()
+        self.assertEqual(a, '0x54')
+        a = BitString()
+        b = a.reversebytes()
+        self.assertTrue(b.empty())
+        
 def main():
     unittest.main()
 

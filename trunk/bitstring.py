@@ -93,6 +93,10 @@ def _init_with_token(name, token_length, value):
         b = BitString(uintle=int(value), length=token_length)
     elif name == 'intle':
         b = BitString(intle=int(value), length=token_length)
+    elif name == 'uintne':
+        b = BitString(uintne=int(value), length=token_length)
+    elif name == 'intne':
+        b = BitString(intne=int(value), length=token_length)
     elif name == 'bits':
         b = BitString(value)
     elif name == 'bytes':
@@ -106,8 +110,10 @@ def _init_with_token(name, token_length, value):
                          (token_length, b.length, name, token_length, value))
     return b
 
+
 _init_names = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
-               'bytes', 'uintbe', 'intbe', 'uintle', 'intle')
+               'bytes', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne')
+
 _init_names_ored = '|'.join(_init_names)
 _tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len1>[^=]+))|(:?(?P<len2>[\d]+)))?(=(?P<value>.*))?$')
 _keyre = re.compile(r'^(?P<name>[^:=]+)$')
@@ -494,7 +500,7 @@ class BitString(object):
     def __init__(self, auto=None, length=None, offset=0, data=None,
                  filename=None, hex=None, bin=None, oct=None, uint=None,
                  int=None, uintbe=None, intbe=None, uintle=None, intle=None,
-                 ue=None, se=None):
+                 uintne=None, intne=None, ue=None, se=None):
         """
         Initialise the BitString with one (and only one) of:
         auto -- string of comma separated tokens, a list or tuple to be 
@@ -509,6 +515,8 @@ class BitString(object):
         intbe -- a signed big-endian whole byte integer.
         uintle -- an unsigned little-endian whole byte integer.
         intle -- a signed little-endian whole byte integer.
+        uintne -- an unsigned native-endian whole byte integer.
+        intne -- a signed native-endian whole byte integer.
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
         filename -- a file which will be opened in binary read-only mode.
@@ -531,7 +539,7 @@ class BitString(object):
             raise ValueError("BitString length cannot be negative.")
         
         initialisers = [auto, data, filename, hex, bin, oct, int, uint, ue, se,
-                        intbe, uintbe, intle, uintle]
+                        intbe, uintbe, intle, uintle, intne, uintne]
         if initialisers.count(None) == len(initialisers):
             # No initialisers, so initialise with nothing or zero bits
             if length is not None:
@@ -543,13 +551,14 @@ class BitString(object):
         initfuncs = (self._setauto, self._setdata, self._setfile,
                      self._sethex, self._setbin, self._setoct,
                      self._setint, self._setuint, self._setue, self._setse,
-                     self._setintbe, self._setuintbe, self._setintle, self._setuintle)
+                     self._setintbe, self._setuintbe, self._setintle,
+                     self._setuintle, self._setintne, self._setuintne)
         assert len(initialisers) == len(initfuncs)
         if initialisers.count(None) < len(initialisers) - 1:
             raise BitStringError("You must only specify one initialiser when initialising the BitString.")
         if (se is not None or ue is not None) and length is not None:
             raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
-        if (int or uint or intbe or uintbe or intle or uintle or ue or se) and offset != 0:
+        if (int or uint or intbe or uintbe or intle or uintle or intne or uintne or ue or se) and offset != 0:
             raise BitStringError("offset cannot be specified when initialising from an integer.")
         if offset < 0:
             raise ValueError("offset must be >= 0.")
@@ -561,7 +570,7 @@ class BitString(object):
             func(d, offset, length, byteoffset)
         elif d in (se, ue):
             func(d)
-        elif d in (int, uint, intbe, uintbe, intle, uintle):
+        elif d in (int, uint, intbe, uintbe, intle, uintle, intne, uintne):
             func(d, length)
         else:
             func(d, offset, length)
@@ -1243,16 +1252,12 @@ class BitString(object):
         if self.length % 8 != 0:
             raise ValueError("Big-endian integers must be whole-byte. Length = %d bits." % self.length)
         return self._getint()
-    
-    def _reversebytes(self):
-        assert self.length % 8 == 0
-        self.data = self.data[::-1]
      
     def _setuintle(self, uint, length=None):
         if length is not None and length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
         self._setuint(uint, length)
-        self._reversebytes()
+        self.reversebytes()
     
     def _getuintle(self):
         if self.length % 8 != 0:
@@ -1263,12 +1268,36 @@ class BitString(object):
         if length is not None and length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
         self._setint(int, length)
-        self._reversebytes()
+        self.reversebytes()
     
     def _getintle(self):
         if self.length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % self.length)
         return self[::-8]._getint()
+        
+    def _setintne(self, int, length=None):
+        if sys.byteorder == 'little':
+            self._setintle(int, length)
+        else:
+            self._setintbe(int, length)
+    
+    def _getintne(self):
+        if sys.byteorder == 'little':
+            return self._getintle()
+        else:
+            return self._getintbe()
+
+    def _setuintne(self, uint, length=None):
+        if sys.byteorder == 'little':
+            self._setuintle(uint, length)
+        else:
+            self._setuintbe(uint, length)
+    
+    def _getuintne(self):
+        if sys.byteorder == 'little':
+            return self._getuintle()
+        else:
+            return self._getuintbe()
         
     def _setue(self, i):
         """Initialise BitString with unsigned exponential-Golomb code for integer i.
@@ -1366,7 +1395,7 @@ class BitString(object):
         if self.length == 0:
             return ''
         # Use lookup table to convert each byte to string of 8 bits.
-        c = [_byte2bits[x] for x in self._datastore]
+        c = (_byte2bits[x] for x in self._datastore)
         return '0b' + ''.join(c)[self._offset:self._offset + self.length]
 
     def _setoct(self, octstring, offset=0, length=None):
@@ -1553,7 +1582,8 @@ class BitString(object):
         """Reads a token from the BitString and returns the result."""
         if length is not None:
             length = int(length)
-        if name in ('uint', 'int', 'intbe', 'uintbe', 'intle', 'uintle', 'hex', 'oct', 'bin'):
+        if name in ('uint', 'int', 'intbe', 'uintbe', 'intle', 'uintle',
+                    'intne', 'uintne', 'hex', 'oct', 'bin'):
             return getattr(self.readbits(length), name)
         if name in ('bits', 'bytes'):
             return self.readbits(length)
@@ -2334,6 +2364,17 @@ class BitString(object):
         self[startbit:endbit] = BitString(bin=self[startbit:endbit].bin[:1:-1])
         return self
     
+    def reversebytes(self):
+        """Reverse bytes in-place. Return self.
+        
+        Raises BitStringError if BitString is not a whole number of bytes long.
+        
+        """
+        if self.length % 8 != 0:
+            raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
+        self.data = self.data[::-1]
+        return self
+    
     def cut(self, bits, startbit=None, endbit=None, count=None):
         """Return BitString generator by cutting into bits sized chunks.
         
@@ -2543,6 +2584,12 @@ class BitString(object):
     uintle = property(_getuintle, _setuintle,
                       doc="""The BitString as a two's complement little-endian unsigned int. Read and write.
                       """)
+    intne  = property(_getintne, _setintne,
+                      doc="""The BitString as a two's complement native-endian signed int. Read and write.
+                      """)
+    uintne = property(_getuintne, _setuintne,
+                      doc="""The BitString as a two's complement native-endian unsigned int. Read and write.
+                      """)
     ue     = property(_getue, _setue,
                       doc="""The BitString as an unsigned exponential-Golomb code. Read and write.
                       """)
@@ -2571,6 +2618,8 @@ def pack(format, *values, **kwargs):
                     'uintbe:16' : 2 bytes as big-endian unsigned integer
                     'intle:32'  : 4 bytes as little-endian signed integer
                     'uintle:64' : 8 bytes as little-endian unsigned integer
+                    'intne:24'  : 3 bytes as native-endian signed integer
+                    'uintne:64' : 8 bytes as native-endian unsigned integer
                     'hex:8'     : 8 bits as a hex string
                     'oct:9'     : 9 bits as an octal string
                     'bin:1'     : single bit binary string
