@@ -3,7 +3,7 @@
 
 `BitString` objects can be constructed from integers, hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
 
-Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and excellent code coverage is given by over 250 unit tests. It is available for Python 2.4, 2.5, and 2.6, with a separate version for Python 3.
+Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and excellent code coverage is given by over 300 unit tests. It is available for Python 2.4, 2.5, and 2.6, with a separate version for Python 3.
 
 ----
 
@@ -43,11 +43,11 @@ BitString('0x12480f')
 BitString('0x180f')
 }}}
 
-See the Wiki and the user manual for more [Examples].
+See the [Examples Wiki] and the [http://python-bitstring.googlecode.com/svn/tags/bitstring-0.5.1/bitstring_manual.pdf user manual] for more examples.
 ----
 ==Documentation==
 
-The complete documentation for the bitstring module is now available as a PDF. This contains all the information that was in the Wiki, most of which is now deprecated.
+The complete documentation for the bitstring module is now available as a PDF. You can also view this on the [Documentation Wiki].
 
 *[http://python-bitstring.googlecode.com/svn/tags/bitstring-0.5.0/bitstring_manual.pdf Download the bitstring documentation (PDF)]*
 
@@ -57,6 +57,73 @@ Also see [ClassHelp] for quick reference.
 == News ==
 ----
 
+==September 14th 2009: version 0.5.2 for Python 2.x released==
+
+Finally some tools for dealing with endianness!
+
+New interpretations are now available for whole-byte !BitStrings that treat them as big, little, or native-endian.
+
+{{{
+>>> big = BitString(intbe=1, length=16)
+>>> little = BitString(intle=1, length=16)
+>>> print big.hex, little.hex
+0x0001 0x0100
+>>> print big.intbe, little.intle
+1 1
+}}}
+
+==August 26th 2009: version 0.5.1 for Python 2.x released==
+
+This update introduces pack and unpack functions for creating and dissembling
+!BitStrings.
+
+===New pack() and unpack() functions.===
+
+The module level `pack` function provides a flexible new method for creating
+`BitString` objects. Tokens for `BitString` 'literals' can be used in the same way as in
+the constructor.
+{{{
+>>> from bitstring import BitString, pack
+>>> a = pack('0b11, 0xff, 0o77, int:5=-1, se=33')
+}}}
+You can also leave placeholders in the format, which will be filled in by
+the values provided.
+{{{
+>>> b = pack('uint:10, hex:4', 33, 'f')
+}}}
+Finally you can use a dictionary or keywords.
+{{{
+>>> c = pack('bin=a, hex=b, bin=a', a='010', b='ef')
+}}}
+The `unpack` function is similar to the `read` function except that it always
+unpacks from the start of the BitString.
+{{{
+>>> x, y = b.unpack('uint:10, hex')
+}}}
+If a token is given without a length (as above) then it will expand to fill the
+remaining bits in the BitString. This also now works with `read()` and `peek()`.
+
+===New tostring() and tofile() functions.===
+
+The `tostring()` function just returns the data as a string, with up to seven
+zero bits appended to byte align. The `tofile()` function does the same except
+writes to a file object.
+{{{
+>>> f = open('myfile', 'wb')
+>>> BitString('0x1234ff').tofile(f)
+}}}
+
+* Other changes.
+
+The use of '=' is now mandatory in 'auto' initialisers. Tokens like '`uint12 100`' will
+no longer work. Also the use of a '`:`' before the length is encouraged, but not yet
+mandated. So the previous example should be written as '`uint:12=100`'.
+
+The 'auto' initialiser will now take a file object.
+{{{
+>>> f = open('myfile', 'rb')
+>>> s = BitString(f)
+}}}
 ==July 19th 2009: version 0.5.0 for Python 2.x released==
 
 This update breaks backward compatibility in a couple of areas. The only one
