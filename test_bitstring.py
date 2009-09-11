@@ -2073,7 +2073,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, '0b10011')
         a += [True, False, True]
         self.assertEqual(a, '0b10011101')
-        a.find([12, 23], bytealigned=False)
+        a.find([12, 23])
         self.assertEqual(a.bitpos, 3)
         self.assertEqual([1, 0, False, True], BitString('0b1001'))
         a = [True] + BitString('0b1')
@@ -2688,6 +2688,31 @@ class BitStringTest(unittest.TestCase):
     def testStructTokensErrors(self):
         for f in ['>>q', '<>q', 'q>', '2q', 'q', '>-2q', '@a', '>int:8', '>q2']:
             self.assertRaises(ValueError, pack, f, 100)
+
+    def testImmutableBitStrings(self):
+        a = BitString('0x012345')
+        a._mutable = False
+        self.assertEqual(a, '0x012345')
+        b = BitString('0xf') + a
+        self.assertEqual(b, '0xf012345')
+        self.assertRaises(TypeError, a.append, b)
+        self.assertRaises(TypeError, a.prepend, b)
+        self.assertRaises(TypeError, a.__iadd__, b)
+        self.assertRaises(TypeError, a.__imul__, 5)
+        self.assertRaises(TypeError, a.__ilshift__, 3)
+        self.assertRaises(TypeError, a.__irshift__, 3)
+        self.assertRaises(TypeError, a.truncateend, 5)
+        self.assertRaises(TypeError, a.truncatestart, 5)
+        self.assertRaises(TypeError, a.__setitem__, (0), '0b0')
+        self.assertRaises(TypeError, a.__delitem__, 5)
+        self.assertRaises(TypeError, a.replace, '0b1', '0b0')
+        self.assertRaises(TypeError, a.insert, '0b11', 4)
+        self.assertRaises(TypeError, a.overwrite, '0b11', 4)
+        self.assertRaises(TypeError, a.deletebits, 5)
+        self.assertRaises(TypeError, a.deletebytes, 2)
+        self.assertRaises(TypeError, a.reversebits)
+        self.assertRaises(TypeError, a.reversebytes)
+        self.assertEqual(a, '0x012345')
     
     def testReverseBytes(self):
         a = BitString('0x123456')
@@ -2701,7 +2726,25 @@ class BitStringTest(unittest.TestCase):
         a = BitString()
         b = a.reversebytes()
         self.assertTrue(b.empty())
-        
+    
+    def testReverseBytes2(self):
+        a = BitString()
+        a.reversebytes()
+        self.assertTrue(a.empty())
+        a = BitString('0x00112233')
+        a.reversebytes(0, 16)
+        self.assertEqual(a, '0x11002233')
+        a.reversebytes(4, 28)
+        self.assertEqual(a, '0x12302103')
+        self.assertRaises(BitStringError, a.reversebytes, 0, 11)
+        self.assertRaises(ValueError, a.reversebytes, 10, 2)
+        self.assertRaises(ValueError, a.reversebytes, -4, 4)
+        self.assertRaises(ValueError, a.reversebytes, 24, 48)
+        a.reversebytes(24)
+        self.assertEqual(a, '0x12302103')
+        a.reversebytes(11, 11)
+        self.assertEqual(a, '0x12302103')
+
     def testCapitalsInPack(self):
         a = pack('A', A='0b1')
         self.assertEqual(a, '0b1')
