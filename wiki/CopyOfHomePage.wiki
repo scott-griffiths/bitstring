@@ -64,7 +64,7 @@ Also see [ClassHelp] for quick reference.
 New interpretations are now available for whole-byte !BitStrings that treat them as big, little, or native-endian.
 
 {{{
->>> big = BitString(intbe=1, length=16)
+>>> big = BitString(intbe=1, length=16)    # or BitString('intbe:16=1') if you prefer. 
 >>> little = BitString(intle=1, length=16)
 >>> print big.hex, little.hex
 0x0001 0x0100
@@ -95,6 +95,11 @@ creates a !BitString with four little-endian 2-byte integers. While
 }}}
 reads them back as two big-endian two-byte integers and one four-byte big endian integer.
 
+Of course you can combine this new format with the old ones however you like:
+{{{
+>>> s.unpack('<h, intle:24, uint:5, bin')
+[0, 131073, 0, '0b0000000001100000000']
+}}}
 ==August 26th 2009: version 0.5.1 for Python 2.x released==
 
 This update introduces pack and unpack functions for creating and dissembling
@@ -268,56 +273,6 @@ now also use the `peek` function with `ue` and `se`.
 ===Minor bugs fixed===
 
 See the issue tracker for more details.
-
-----
-
-==June 15th 2009: version 0.4.3 for Python 2.x released==
-
-This is a minor update.
-
-== Changes in version 0.4.3 ==
-
-=== New `cut` function===
-
-This function returns a generator for constant sized chunks of a `BitString`.
-{{{
->>> for byte in s.cut(8):
-...     do_something_with(byte)
-}}}
-You can also specify a `startbit` and `endbit`, as well as a `count`, which limits
-the number of items generated:
-{{{
->>> first100TSPackets = list(s.cut(188*8, count=100))
-}}}
-=== `slice` function now equivalent to `__getitem__` ===
-
-This means that a step can also be given to the slice function so that the
-following are now the same thing, and it's just a personal preference which
-to use:
-{{{
->>> s1 = s[a:b:c]
->>> s2 = s.slice(a, b, c)
-}}}
-=== `findall` gets a `count` parameter ===
-
-So now
-{{{
->>> list(a.findall(s, count=n))
-}}}
-is equivalent to
-{{{
->>> list(a.findall(s))[:n]
-}}}
-except that it won't need to generate the whole list and so is much more
-efficient.
-
-=== Changes to `split` ===
-
-The `split` function now has a `count` parameter rather than `maxsplit`. This
-makes the interface closer to that for `cut`, `replace` and `findall`. The final item
-generated is now no longer the whole of the rest of the `BitString`.
-
-* A couple of minor bugs were fixed. See the issue tracker for details.
 
 ----
 
