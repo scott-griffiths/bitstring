@@ -494,7 +494,7 @@ class _CatArray(_Array):
     bitlength = property(_getbitlength)
     bytelength = property(_getbytelength)
     
-        
+
 class BitString(object):
     """A class for general bit-wise manipulations and interpretations."""
 
@@ -536,6 +536,7 @@ class BitString(object):
         """
         self._pos = 0
         self._file = None
+        self._mutable = True
         if length is not None and length < 0:
             raise ValueError("BitString length cannot be negative.")
         
@@ -605,6 +606,8 @@ class BitString(object):
         bs -- the BitString to append.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use += on immutable BitString.")
         return self.append(bs)
     
     def __radd__(self, bs):
@@ -634,6 +637,8 @@ class BitString(object):
         '0xe00f'
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use __setitem__ on immutable BitString.")
         try:
             value = self._converttobitstring(value)
         except TypeError:
@@ -796,6 +801,8 @@ class BitString(object):
         0x0022
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use __delitem__ on immutable BitString.")
         self.__setitem__(key, BitString())
 
     def __len__(self):
@@ -864,12 +871,6 @@ class BitString(object):
             return False
         if self.length != bs.length:
             return False
-        #if self._offset == bs._offset == 0:
-        #    for a, b in itertools.izip(self._datastore.rawbytes, bs._datastore.rawbytes):
-        #        if a != b:
-        #            return False
-        #    return True
-                
         # This could be made faster by exiting with False as early as possible.
         if self.data != bs.data:
             return False
@@ -917,6 +918,8 @@ class BitString(object):
         n -- the number of bits to shift. Must be >= 0.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use <<= on immutable BitString.")
         self.bin = self.__lshift__(n).bin
         return self
 
@@ -939,6 +942,8 @@ class BitString(object):
         n -- the number of bits to shift. Must be >= 0.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use >>= on immutable BitString.")
         self.bin = self.__rshift__(n).bin
         return self
     
@@ -976,6 +981,8 @@ class BitString(object):
         n -- The number of concatenations. Must be >= 0.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use *= on immutable BitString.")
         if not isinstance(n, int):
             raise TypeError("Can only multiply a BitString by an int, but %s was provided." % type(n))
         if n < 0:
@@ -1079,7 +1086,7 @@ class BitString(object):
             assert 0 <= self._pos <= self.length
         assert (self.length + self._offset + 7) // 8 == self._datastore.bytelength
         return True
-    
+
     def _clear(self):
         """Reset the BitString to an empty state."""
         self.data = ''
@@ -2097,6 +2104,8 @@ class BitString(object):
         out of range.
         
         """        
+        if not self._mutable:
+            raise TypeError("Cannot use replace on immutable BitString.")
         old = self._converttobitstring(old)
         new = self._converttobitstring(new)
         if old.empty():
@@ -2157,6 +2166,8 @@ class BitString(object):
         Raises ValueError if bits < 0 or bits > self.length.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use truncatestart on immutable BitString.")
         if bits == 0:
             return self
         if bits < 0 or bits > self.length:
@@ -2179,6 +2190,8 @@ class BitString(object):
         Raises ValueError if bits < 0 or bits > self.length.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use truncateend on immutable BitString.")
         if bits == 0:
             return self
         if bits < 0 or bits > self.length:
@@ -2219,6 +2232,8 @@ class BitString(object):
         Raises ValueError if bitpos < 0 or bitpos > self.length.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use insert on immutable BitString.")
         bs = self._converttobitstring(bs)
         if bs.empty():
             return self
@@ -2247,6 +2262,8 @@ class BitString(object):
         Raises ValueError if bitpos < 0 or bitpos + bs.length > self.length
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use overwrite on immutable BitString.")
         bs = self._converttobitstring(bs)
         if bs.empty():
             return self
@@ -2275,6 +2292,8 @@ class BitString(object):
         Raises ValueError if bits < 0.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use deletebits on immutable BitString.")
         if bitpos is None:
             bitpos = self._pos
         if bits < 0:
@@ -2298,10 +2317,12 @@ class BitString(object):
         Raises ValueError if bytes < 0.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use deletebytes on immutable BitString.")
         if bytepos is None and self._pos % 8 != 0:
             raise BitStringError("Must be byte-aligned for deletebytes().")
         if bytepos is None:
-            bytepos = self._pos//8
+            bytepos = self._pos // 8
         return self.deletebits(bytes*8, bytepos*8)
     
     def append(self, bs):
@@ -2310,6 +2331,8 @@ class BitString(object):
         bs -- The BitString to append.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot append to an immutable BitString.")
         bs = self._converttobitstring(bs)
         if bs.empty():
             return self
@@ -2327,6 +2350,8 @@ class BitString(object):
         bs -- The BitString to prepend.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot prepend to an immutable BitString.")
         bs = self._converttobitstring(bs)
         if bs.empty():
             return self
@@ -2353,6 +2378,8 @@ class BitString(object):
         endbit < startbit.
         
         """
+        if not self._mutable:
+            raise TypeError("Cannot use reversebits on immutable BitString.")
         if startbit is None:
             startbit = 0
         if endbit is None:
@@ -2363,18 +2390,38 @@ class BitString(object):
             raise ValueError("endbit must be <= self.length in reversebits().")
         if endbit < startbit:
             raise ValueError("endbit must be >= startbit in reversebits().")
+        # This could be made much more efficient...
         self[startbit:endbit] = BitString(bin=self[startbit:endbit].bin[:1:-1])
         return self
     
-    def reversebytes(self):
+    def reversebytes(self, startbit=None, endbit=None):
         """Reverse bytes in-place. Return self.
         
-        Raises BitStringError if BitString is not a whole number of bytes long.
+        startbit -- Position of first bit to reverse.
+                    Defaults to 0.
+        endbit -- One past the position of the last bit to reverse.
+                  Defaults to self.length.
+        
+        Raises BitStringError if endbit - startbit is not a whole number of
+        bytes long.
         
         """
-        if self.length % 8 != 0:
+        if not self._mutable:
+            raise TypeError("Cannot use reversebytes on immutable BitString.")
+        if startbit is None:
+            startbit = 0
+        if endbit is None:
+            endbit = self.length
+        if startbit < 0:
+            raise ValueError("startbit must be >= 0 in reversebytes().")
+        if endbit > self.length:
+            raise ValueError("endbit must be <= self.length in reversebytes().")
+        if endbit < startbit:
+            raise ValueError("endbit must be >= startbit in reversebytes().")
+        if (endbit - startbit) % 8 != 0:
             raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
-        self.data = self.data[::-1]
+        # This could be made much more efficient...
+        self[startbit:endbit] = BitString(data=self[startbit:endbit].data[::-1])
         return self
     
     def cut(self, bits, startbit=None, endbit=None, count=None):
