@@ -59,7 +59,7 @@ Also see [ClassHelp] for quick reference.
 
 ==September 14th 2009: version 0.5.2 for Python 2.x released==
 
-Finally some tools for dealing with endianness!
+===Finally some tools for dealing with endianness!===
 
 New interpretations are now available for whole-byte !BitStrings that treat them as big, little, or native-endian.
 
@@ -71,6 +71,29 @@ New interpretations are now available for whole-byte !BitStrings that treat them
 >>> print big.intbe, little.intle
 1 1
 }}}
+
+==='Struct'-like compact format codes===
+
+To save some typing when using `pack`, `unpack`, `read` and `peek`, compact format codes based on those used in the struct and array modules have been added. These must start with a character indicating the endianness (`>`, `<` or `@` for big, little and native-endian), followed by characters giving the format:
+
+|| `b` || 1-byte signed int ||
+|| `B` || 1-byte unsigned int ||
+|| `h` || 2-byte signed int ||
+|| `H` || 2-byte unsigned int ||
+|| `l` || 4-byte signed int ||
+|| `L` || 4-byte unsigned int ||
+|| `q` || 8-byte signed int ||
+|| `Q` || 8-byte unsigned int ||
+
+For example:
+{{{
+>>> s = bitstring.pack('<4h', 0, 1, 2, 3)
+}}}
+creates a !BitString with four little-endian 2-byte integers. While
+{{{
+>>> x, y, z = s.read('>hhl')
+}}}
+reads them back as two big-endian two-byte integers and one four-byte big endian integer.
 
 ==August 26th 2009: version 0.5.1 for Python 2.x released==
 
