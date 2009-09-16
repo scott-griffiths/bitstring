@@ -69,3 +69,15 @@ To download the manual see [Documentation].
 ----
 [http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_34.png]
 ----
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_35.png]
+----
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_36.png]
+----
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_37.png]
+----
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_38.png]
+----
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_39.png]
+----
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_40.png]
+----
