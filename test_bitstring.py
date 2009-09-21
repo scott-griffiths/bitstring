@@ -43,7 +43,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, '0b01 0010 0011 0100 01'*2)
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '0.5.2')
+        self.assertEqual(bitstring.__version__, '1.0.0')
     
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')
@@ -974,10 +974,10 @@ class BitStringTest(unittest.TestCase):
     def testWritingData(self):
         strings = [BitString(bin=x) for x in ['0','001','0011010010','010010','1011']]
         s = BitString().join(strings)
-        s2 = BitString(data = s.data)
+        s2 = BitString(data=s.data)
         self.assertEqual(s2.bin, '0b000100110100100100101011')
         s2.append(BitString(bin='1'))
-        s3 = BitString(data = s2.data)
+        s3 = BitString(data=s2.tostring())
         self.assertEqual(s3.bin, '0b00010011010010010010101110000000')
     
     def testWritingDataWithOffsets(self):
@@ -1883,7 +1883,7 @@ class BitStringTest(unittest.TestCase):
         b += a
         self.assertTrue(b == '0b0011 1111')
         self.assertEqual(a._datastore.rawbytes, '\xff')
-        self.assertEqual(a.data, '\xfc')
+        self.assertEqual(a.tostring(), '\xfc')
     
     def testNonZeroBitsAtEnd(self):
         a = BitString(data='\xff', length=5)
@@ -1891,7 +1891,8 @@ class BitStringTest(unittest.TestCase):
         b = BitString('0b00')
         a += b
         self.assertTrue(a == '0b1111100')
-        self.assertEqual(a.data, '\xf8')
+        self.assertEqual(a.tostring(), '\xf8')
+        self.assertRaises(ValueError, a._getdata)
 
     def testLargeOffsets(self):
         a = BitString('0xffffffff', offset=31)
@@ -2764,6 +2765,14 @@ class BitStringTest(unittest.TestCase):
         a = pack('0X0, UinT:8, HeX', 45, '0XABcD')
         self.assertEqual(a, '0x0, UiNt:8=45, 0xabCD')
 
+    def testEfficientOverwrite(self):
+        a = BitString(length=1000000000)
+        a.overwrite('0b1', 123456)
+        self.assertEqual(a[123456], '0b1')
+        a.overwrite('0xff', 1)
+        self.assertEqual(a[0:4:8], '0x7f800000')
+        b = BitString('0xffff')
+        b.overwrite('0x0000')
 
 def main():
     unittest.main()
