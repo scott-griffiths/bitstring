@@ -180,14 +180,14 @@ def _tokenparser(format, keys=None):
                     assert sys.byteorder == 'big'
                     endian = '>'
             if endian == '<':
-                new_tokens.extend(_replacements_le[c] for c in format)
+                new_tokens.append(_replacements_le[c] for c in format)
             else:
                 assert endian == '>'
-                new_tokens.extend(_replacements_be[c] for c in format)
+                new_tokens.append(_replacements_be[c] for c in format)
         else:
-            new_tokens.append(token)
+            new_tokens.append([token])
 
-    for token in new_tokens:
+    for token in itertools.chain.from_iterable(new_tokens):
         if keys and token in keys:
             # Don't bother parsing it, it's part of a keyword argument
             return_values.append([token, None, None])
@@ -596,7 +596,8 @@ class BitString(object):
         bs -- the BitString to append.
         
         """
-        s = self.__copy__().append(bs)
+        s = self.__copy__()
+        s.append(bs)
         s.bitpos = 0
         return s
 
@@ -608,7 +609,8 @@ class BitString(object):
         """
         if not self._mutable:
             raise TypeError("Cannot use += on immutable BitString.")
-        return self.append(bs)
+        self.append(bs)
+        return self
     
     def __radd__(self, bs):
         """Append current BitString to bs and return new BitString.
@@ -909,7 +911,8 @@ class BitString(object):
             raise ValueError("Cannot shift by a negative amount.")
         if self.empty():
             raise ValueError("Cannot shift an empty BitString.")
-        s = self[n:].append(BitString(length=min(n, self.length)))
+        s = self[n:]
+        s.append(BitString(length=min(n, self.length)))
         return s
     
     def __ilshift__(self, n):
@@ -933,7 +936,8 @@ class BitString(object):
             raise ValueError("Cannot shift by a negative amount.")
         if self.empty():
             raise ValueError("Cannot shift an empty BitString.")
-        s = BitString(length=min(n, self.length)).append(self[:-n])
+        s = BitString(length=min(n, self.length))
+        s.append(self[:-n])
         return s
     
     def __irshift__(self, n):
@@ -1439,6 +1443,7 @@ class BitString(object):
         oldbitpos = self._pos
         self._pos = 0
         octlist = ['0o']
+        # TODO: This is very slow.
         for i in xrange(self.length // 3):
             octlist.append(str(self.readbits(3).uint))
         self._pos = oldbitpos
@@ -2159,7 +2164,7 @@ class BitString(object):
         return skipped
 
     def truncatestart(self, bits):
-        """Truncate bits from the start of the BitString. Return new BitString.
+        """Truncate bits from the start of the BitString.
         
         bits -- Number of bits to remove from start of the BitString.
         
@@ -2180,10 +2185,10 @@ class BitString(object):
         self._setdata(self._datastore[bits // 8:], offset, length=self.length - bits)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
-        return self
+        return
 
     def truncateend(self, bits):
-        """Truncate bits from the end of the BitString. Return new BitString.
+        """Truncate bits from the end of the BitString.
         
         bits -- Number of bits to remove from end of the BitString.
         
@@ -2206,7 +2211,7 @@ class BitString(object):
         self._setdata(self._datastore[:newlength_in_bytes], offset=self._offset,
                       length=self.length - bits)
         assert self._assertsanity()
-        return self
+        return
     
     def slice(self, startbit=None, endbit=None, step=None):
         """Return a new BitString which is the slice [startbit:endbit:step].
@@ -2222,7 +2227,7 @@ class BitString(object):
         return self.__getitem__(slice(startbit, endbit, step))
     
     def insert(self, bs, bitpos=None):
-        """Insert bs at current position, or bitpos if supplied. Return self.
+        """Insert bs at current position, or bitpos if supplied.
         
         bs -- The BitString to insert.
         bitpos -- The bit position to insert the BitString
@@ -2249,10 +2254,10 @@ class BitString(object):
         self.append(end)
         self._pos = bitpos + bs.length
         assert self._assertsanity()
-        return self
+        return
 
     def overwrite(self, bs, bitpos=None):
-        """Overwrite with bs at current position, or bitpos if given. Return self.
+        """Overwrite with bs at current position, or bitpos if given.
         
         bs -- The BitString to overwrite with.
         bitpos -- The bit position to begin overwriting from.
@@ -2280,10 +2285,10 @@ class BitString(object):
         self.append(end)
         self._pos = bitposafter
         assert self._assertsanity()
-        return self
+        return
     
     def deletebits(self, bits, bitpos=None):
-        """Delete bits at current position, or bitpos if given. Return self.
+        """Delete bits at current position, or bitpos if given.
         
         bits -- Number of bits to delete.
         bitpos -- Bit position to delete from.
@@ -2303,10 +2308,10 @@ class BitString(object):
         end = self._slice(bitpos + bits, self.length)
         self.truncateend(max(self.length - bitpos, 0))
         self.append(end)
-        return self
+        return
     
     def deletebytes(self, bytes, bytepos=None):
-        """Delete bytes at current position, or bytepos if given. Return self.
+        """Delete bytes at current position, or bytepos if given.
         
         bytes -- Number of bytes to delete.
         bytepos -- Byte position to delete from.
@@ -2323,10 +2328,11 @@ class BitString(object):
             raise BitStringError("Must be byte-aligned for deletebytes().")
         if bytepos is None:
             bytepos = self._pos // 8
-        return self.deletebits(bytes*8, bytepos*8)
+        self.deletebits(bytes*8, bytepos*8)
+        return
     
     def append(self, bs):
-        """Append a BitString to the current BitString. Return self.
+        """Append a BitString to the current BitString.
         
         bs -- The BitString to append.
         
@@ -2342,10 +2348,10 @@ class BitString(object):
         if bs is self:
             bs = self.__copy__()
         self._datastore.appendarray(bs._datastore)
-        return self       
+        return
         
     def prepend(self, bs):
-        """Prepend a BitString to the current BitString. Return self.
+        """Prepend a BitString to the current BitString.
         
         bs -- The BitString to prepend.
         
@@ -2362,10 +2368,10 @@ class BitString(object):
             bs = self.__copy__()
         self._datastore.prependarray(bs._datastore)
         self.bitpos += bs.length
-        return self
+        return
 
     def reversebits(self, startbit=None, endbit=None):
-        """Reverse bits in-place. Return self.
+        """Reverse bits in-place.
         
         startbit -- Position of first bit to reverse.
                     Defaults to 0.
@@ -2390,12 +2396,12 @@ class BitString(object):
             raise ValueError("endbit must be <= self.length in reversebits().")
         if endbit < startbit:
             raise ValueError("endbit must be >= startbit in reversebits().")
-        # This could be made much more efficient...
+        # TODO: This could be made much more efficient...
         self[startbit:endbit] = BitString(bin=self[startbit:endbit].bin[:1:-1])
-        return self
+        return
     
     def reversebytes(self, startbit=None, endbit=None):
-        """Reverse bytes in-place. Return self.
+        """Reverse bytes in-place.
         
         startbit -- Position of first bit to reverse.
                     Defaults to 0.
@@ -2420,9 +2426,9 @@ class BitString(object):
             raise ValueError("endbit must be >= startbit in reversebytes().")
         if (endbit - startbit) % 8 != 0:
             raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
-        # This could be made much more efficient...
+        # TODO: This could be made much more efficient...
         self[startbit:endbit] = BitString(data=self[startbit:endbit].data[::-1])
-        return self
+        return
     
     def cut(self, bits, startbit=None, endbit=None, count=None):
         """Return BitString generator by cutting into bits sized chunks.
@@ -2564,6 +2570,7 @@ class BitString(object):
         # in to memory.
         chunksize = 1024*1024 # 1 MB chunks
         if self._offset == 0:
+            # TODO: Shouldn't this just use array.tofile() if available ???
             a = 0
             bytelen = self._datastore.bytelength
             p = self._datastore[a:min(a + chunksize, bytelen - 1)]
@@ -2728,4 +2735,5 @@ if __name__=='__main__':
         test_bitstring.unittest.main(test_bitstring)
     except ImportError:
         print "Error: cannot find test_bitstring.py"
-    
+
+ 
