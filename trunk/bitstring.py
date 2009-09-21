@@ -28,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "0.5.2"
+__version__ = "1.0.0"
 
 __author__ = "Scott Griffiths"
 
@@ -463,6 +463,10 @@ class _CatArray(_Array):
         self.flatten()
         return self.arraylist[0].__getitem__(key)
     
+    def __setitem__(self, key, value):
+        self.flatten()
+        self.arraylist[0].__setitem__(key, value)
+    
     def _getrawbytes(self):
         self.flatten()
         return self.arraylist[0].rawbytes
@@ -874,7 +878,7 @@ class BitString(object):
         if self.length != bs.length:
             return False
         # This could be made faster by exiting with False as early as possible.
-        if self.data != bs.data:
+        if self.tostring() != bs.tostring():
             return False
         else:
             return True
@@ -1154,9 +1158,8 @@ class BitString(object):
 
     def _getdata(self):
         """Return the data as an ordinary string."""
-        # This behaviour is going to change (in 0.6.0?). Plan is to raise
-        # a ValueError if length%8 != 0. For now we're just going to
-        # promote the use of tostring().
+        if self.length % 8 != 0:
+            raise ValueError("Cannot convert to string unambiguously - not multiple of 8 bits.")
         return self.tostring()
 
     def _setuint(self, uint, length=None):
@@ -1490,7 +1493,7 @@ class BitString(object):
             raise ValueError("Cannot convert to hex unambiguously - not multiple of 4 bits.")
         if self.length == 0:
             return ''
-        s = '0x' + self.data.encode('hex')
+        s = '0x' + self.tostring().encode('hex')
         if (self.length // 4) % 2 == 1:
             return s[:-1]
         else:
@@ -2247,7 +2250,7 @@ class BitString(object):
         if bitpos is None:
             bitpos = self._pos
         if bitpos < 0 or bitpos > self.length:
-            raise ValueError("Invalid insert position.")
+            raise ValueError("Invalid insert position.")            
         end = self._slice(bitpos, self.length)
         self.truncateend(self.length - bitpos)
         self.append(bs)
@@ -2279,10 +2282,38 @@ class BitString(object):
         bitposafter = bitpos + bs.length
         if bitpos < 0 or bitpos + bs.length > self.length:
             raise ValueError("Overwrite exceeds boundary of BitString.")
-        end = self._slice(bitpos + bs.length, self.length)
-        self.truncateend(self.length - bitpos)
-        self.append(bs)
-        self.append(end)
+        self._ensureinmemory()
+        bs._ensureinmemory()
+        firstbytepos = (self._offset + bitpos) // 8
+        lastbytepos = (self._offset + bitpos + bs.length - 1) // 8
+        if firstbytepos == lastbytepos:
+            bytepos, bitpos = divmod(self._offset + bitpos, 8)
+            mask = (1 << bs.length) - 1
+            mask <<= (8 - bs.length - bitpos)
+            self._datastore[bytepos] &= (~mask)
+            bs._datastore.setoffset(bitpos)
+            bits = bs._datastore[0] & (mask)
+            self._datastore[bytepos] |= bits   
+        else:
+            # Do first byte
+            bytepos, bitpos = divmod(self._offset + bitpos, 8)
+            mask = (1 << (8 - bitpos)) - 1
+            self._datastore[bytepos] &= (~mask)
+            bs._datastore.setoffset(bitpos)
+            bits = bs._datastore[0] & (mask)
+            self._datastore[bytepos] |= bits
+            # Now do all the full bytes
+            # TODO: This loop should be a one-liner copy!
+            for bytepos in xrange(firstbytepos + 1, lastbytepos):
+                self._datastore[bytepos] = bs._datastore[bytepos - firstbytepos]
+            # and finally the last byte
+            bitsleft = (self._offset + bitpos + bs.length) % 8
+            if bitsleft == 0:
+                bitsleft = 8
+            mask = (1 << (8 - bitsleft)) - 1
+            self._datastore[lastbytepos] &= mask
+            bits = bs._datastore[-1] & (~mask)
+            self._datastore[lastbytepos] |= bits
         self._pos = bitposafter
         assert self._assertsanity()
         return
