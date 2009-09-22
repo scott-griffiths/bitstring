@@ -2284,36 +2284,30 @@ class BitString(object):
             raise ValueError("Overwrite exceeds boundary of BitString.")
         self._ensureinmemory()
         bs._ensureinmemory()
+        
         firstbytepos = (self._offset + bitpos) // 8
         lastbytepos = (self._offset + bitpos + bs.length - 1) // 8
-        if firstbytepos == lastbytepos:
-            bytepos, bitpos = divmod(self._offset + bitpos, 8)
-            mask = (1 << bs.length) - 1
-            mask <<= (8 - bs.length - bitpos)
-            self._datastore[bytepos] &= (~mask)
-            bs._datastore.setoffset(bitpos)
-            bits = bs._datastore[0] & (mask)
-            self._datastore[bytepos] |= bits   
+        bytepos, bitoffset = divmod(self._offset + bitpos, 8)
+        if firstbytepos == lastbytepos:    
+            mask = ((1 << bs.length) - 1) << (8 - bs.length - bitoffset)
+            self._datastore[bytepos] &= ~mask
+            bs._datastore.setoffset(bitoffset)
+            self._datastore[bytepos] |= bs._datastore[0] & mask   
         else:
             # Do first byte
-            bytepos, bitpos = divmod(self._offset + bitpos, 8)
-            mask = (1 << (8 - bitpos)) - 1
-            self._datastore[bytepos] &= (~mask)
-            bs._datastore.setoffset(bitpos)
-            bits = bs._datastore[0] & (mask)
-            self._datastore[bytepos] |= bits
+            mask = (1 << (8 - bitoffset)) - 1
+            self._datastore[bytepos] &= ~mask
+            bs._datastore.setoffset(bitoffset)
+            self._datastore[bytepos] |= bs._datastore[0] & mask
             # Now do all the full bytes
-            # TODO: This loop should be a one-liner copy!
-            for bytepos in xrange(firstbytepos + 1, lastbytepos):
-                self._datastore[bytepos] = bs._datastore[bytepos - firstbytepos]
+            self._datastore[firstbytepos + 1:lastbytepos] = bs._datastore[1:lastbytepos - firstbytepos]
             # and finally the last byte
             bitsleft = (self._offset + bitpos + bs.length) % 8
             if bitsleft == 0:
                 bitsleft = 8
             mask = (1 << (8 - bitsleft)) - 1
             self._datastore[lastbytepos] &= mask
-            bits = bs._datastore[-1] & (~mask)
-            self._datastore[lastbytepos] |= bits
+            self._datastore[lastbytepos] |= bs._datastore[-1] & ~mask
         self._pos = bitposafter
         assert self._assertsanity()
         return

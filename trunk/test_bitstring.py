@@ -2773,6 +2773,13 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a[0:4:8], '0x7f800000')
         b = BitString('0xffff')
         b.overwrite('0x0000')
+        s = BitString(length=1000)
+        s = s[5:]
+        s.overwrite('0xffffff', 500)
+        s.bitpos = 500
+        self.assertEqual(s.readbytes(4), '0xffffff00')
+        s.overwrite('0xff', 502)
+        self.assertEqual(s[502:518], '0xffff')
 
 def main():
     unittest.main()
