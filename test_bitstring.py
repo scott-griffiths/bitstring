@@ -350,7 +350,7 @@ class BitStringTest(unittest.TestCase):
     
     def testCreationFromSe(self):
         for i in range(-10, 10):
-            self.assertEqual(BitString(se = i).se, i)
+            self.assertEqual(BitString(se=i).se, i)
 
     def testCreationFromSeWithOffset(self):
         self.assertRaises(BitStringError, BitString, se=-13, offset=1)
@@ -459,7 +459,7 @@ class BitStringTest(unittest.TestCase):
         s = BitString(bin='010 00110 0001010 0001000 00111')
         self.assertEqual(s.read('se'), 1)
         self.assertEqual(s.read('se'), 3)
-        self.assertEqual(s.read('se, se, se'), [5, 4, -3])
+        self.assertEqual(s.readlist('se, se, se'), [5, 4, -3])
         
     def testBitPosition(self):
         s = BitString(data='\x00\x00\x00')
@@ -2207,7 +2207,7 @@ class BitStringTest(unittest.TestCase):
         i = b.read('int44')
         self.assertEqual(i, -12)
         self.assertEqual(b.bitpos, b.length)
-        u2, i2 = (a+b).read('uint23, int44')
+        u2, i2 = (a+b).readlist('uint23, int44')
         self.assertEqual((u2, i2), (123, -12))
         
     def testIntelligentRead2(self):
@@ -2219,7 +2219,7 @@ class BitStringTest(unittest.TestCase):
         s = b.read('se')
         self.assertEqual(s, -1001)
         self.assertEqual(b.bitpos, b.length)
-        s, u1, u2 = (b+2*a).read('se, ue, ue')
+        s, u1, u2 = (b+2*a).readlist('se, ue, ue')
         self.assertEqual((s, u1, u2), (-1001, 822, 822))
     
     def testIntelligentRead3(self):
@@ -2229,7 +2229,7 @@ class BitStringTest(unittest.TestCase):
         b = a.read('bin 5')
         self.assertEqual(b, '0b11101')
         c = b + a
-        b, h = c.read('bin5, hex12')
+        b, h = c.readlist('bin5, hex12')
         self.assertEqual((b, h), ('0b11101', '0x123'))
     
     def testIntelligentRead4(self):
@@ -2240,7 +2240,7 @@ class BitStringTest(unittest.TestCase):
         
     def testIntelligentRead5(self):
         a = BitString('0x00112233')
-        c0, c1, c2 = a.read('bits8, bytes1, bits16')
+        c0, c1, c2 = a.readlist('bits8, bytes1, bits16')
         self.assertEqual((c0, c1, c2), (BitString('0x00'), BitString('0x11'), BitString('0x2233')))
         a.seekbit(0)
         c = a.read('BiTs16')
@@ -2248,14 +2248,14 @@ class BitStringTest(unittest.TestCase):
         
     def testIntelligentRead6(self):
         a = BitString('0b000111000')
-        b1, b2, b3 = a.read('bin 3, int 3, int3')
+        b1, b2, b3 = a.readlist('bin 3, int 3, int3')
         self.assertEqual(b1, '0b000')
         self.assertEqual(b2, -1)
         self.assertEqual(b3, 0)
         
     def testIntelligentRead7(self):
         a = BitString('0x1234')
-        a1, a2, a3, a4, a5 = a.read('bin0, oct0, hex0, bits0, bytes0')
+        a1, a2, a3, a4, a5 = a.readlist('bin0, oct0, hex0, bits0, bytes0')
         self.assertTrue(a1 == a2 == a3 == '')
         self.assertTrue(a4.empty())
         self.assertTrue(a5.empty())
@@ -2274,12 +2274,12 @@ class BitStringTest(unittest.TestCase):
         t = s.read('bits')
         self.assertEqual(s, t)
         s.bitpos = 0
-        a, b = s.read('hex8, hex')
+        a, b = s.readlist('hex8, hex')
         self.assertEqual(a, '0x01')
         self.assertEqual(b, '0x2345')
         self.assertTrue(isinstance(b, str))
         s.seekbyte(0)
-        a, b = s.read('bin, hex20')
+        a, b = s.readlist('bin, hex20')
         self.assertEqual(a, '0b0000')
         self.assertEqual(b, '0x12345')
         self.assertTrue(isinstance(a, str))
@@ -2291,37 +2291,37 @@ class BitStringTest(unittest.TestCase):
 
     def testIntelligentPeek(self):
         a = BitString('0b01, 0x43, 0o4, uint23=2, se=5, ue=3')
-        b, c, e = a.peek('bin2, hex8, oct3')
+        b, c, e = a.peeklist('bin2, hex8, oct3')
         self.assertEquals((b, c, e), ('0b01', '0x43', '0o4'))
         self.assertEqual(a.bitpos, 0)
         a.bitpos = 13
-        f, g, h = a.peek('uint23, se, ue')
+        f, g, h = a.peeklist('uint23, se, ue')
         self.assertEqual((f, g, h), (2, 5, 3))
         self.assertEqual(a.bitpos, 13)
     
     def testReadMultipleBits(self):
         s = BitString('0x123456789abcdef')
-        a, b = s.readbits(4, 4)
+        a, b = s.readbitlist(4, 4)
         self.assertEqual(a, '0x1')
         self.assertEqual(b, '0x2')
-        c, d, e = s.readbytes(1, 2, 1)
+        c, d, e = s.readbytelist(1, 2, 1)
         self.assertEqual(c, '0x34')
         self.assertEqual(d, '0x5678')
         self.assertEqual(e, '0x9a')
     
     def testPeekMultipleBits(self):
         s = BitString('0b1101, 0o721, 0x2234567')
-        a, b, c, d = s.peekbits(2, 1, 1, 9)
+        a, b, c, d = s.peekbitlist(2, 1, 1, 9)
         self.assertEqual(a, '0b11')
         self.assertEqual(b, '0b0')
         self.assertEqual(c, '0b1')
         self.assertEqual(d, '0o721')
         self.assertEqual(s.bitpos, 0)
-        a, b = s.peekbits(4, 9)
+        a, b = s.peekbitlist(4, 9)
         self.assertEqual(a, '0b1101')
         self.assertEqual(b, '0o721')
         s.seekbit(13)
-        a, b = s.peekbytes(2, 1)
+        a, b = s.peekbytelist(2, 1)
         self.assertEqual(a, '0x2234')
         self.assertEqual(b, '0x56')
         self.assertEqual(s.bitpos, 13)
@@ -2773,6 +2773,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a[0:4:8], '0x7f800000')
         b = BitString('0xffff')
         b.overwrite('0x0000')
+        self.assertEqual(b, '0x0000')
+        c = BitString(length=1000)
+        c.overwrite('0xaaaaaaaaaaaa', 81)
+        self.assertEqual(c[81:81+6*8], '0xaaaaaaaaaaaa')
+        self.assertEqual(len(list(c.findall('0b1'))), 24)
         s = BitString(length=1000)
         s = s[5:]
         s.overwrite('0xffffff', 500)
@@ -2780,6 +2785,15 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.readbytes(4), '0xffffff00')
         s.overwrite('0xff', 502)
         self.assertEqual(s[502:518], '0xffff')
+
+    def testPeekAndReadListErrors(self):
+        a = BitString('0x123456')
+        self.assertRaises(ValueError, a.read, 'hex:8, hex:8')
+        self.assertRaises(ValueError, a.peek, 'hex:8, hex:8')
+        self.assertRaises(TypeError, a.readbits, 10, 12)
+        self.assertRaises(TypeError, a.peekbits, 12, 14)
+        self.assertRaises(TypeError, a.readbytes, 1, 1)
+        self.assertRaises(TypeError, a.peekbytes, 10, 10)
 
 def main():
     unittest.main()
