@@ -502,7 +502,7 @@ class _CatArray(_Array):
 class BitString(object):
     """A class for general bit-wise manipulations and interpretations."""
 
-    def __init__(self, auto=None, length=None, offset=0, data=None,
+    def __init__(self, auto=None, length=None, offset=0, bytes=None,
                  filename=None, hex=None, bin=None, oct=None, uint=None,
                  int=None, uintbe=None, intbe=None, uintle=None, intle=None,
                  uintne=None, intne=None, ue=None, se=None):
@@ -510,7 +510,7 @@ class BitString(object):
         Initialise the BitString with one (and only one) of:
         auto -- string of comma separated tokens, a list or tuple to be 
                 interpreted as booleans, a file object or another BitString.
-        data -- raw data as a string, for example read from a binary file.
+        bytes -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
@@ -530,7 +530,7 @@ class BitString(object):
         length -- length of the BitString in bits, if needed and appropriate.
         offset -- bit offset to the data. These offset bits are
                   ignored and this is mainly intended for use when
-                  initialising using 'data'.
+                  initialising using 'bytes'.
        
         e.g.
         a = BitString('0x123ab560')
@@ -544,17 +544,17 @@ class BitString(object):
         if length is not None and length < 0:
             raise ValueError("BitString length cannot be negative.")
         
-        initialisers = [auto, data, filename, hex, bin, oct, int, uint, ue, se,
+        initialisers = [auto, bytes, filename, hex, bin, oct, int, uint, ue, se,
                         intbe, uintbe, intle, uintle, intne, uintne]
         if initialisers.count(None) == len(initialisers):
             # No initialisers, so initialise with nothing or zero bits
             if length is not None:
                 data = '\x00' * ((length + 7) // 8)
-                self._setdata(data, 0, length)
+                self._setbytes(data, 0, length)
             else:
-                self._setdata('', 0)
+                self._setbytes('', 0)
             return
-        initfuncs = (self._setauto, self._setdata, self._setfile,
+        initfuncs = (self._setauto, self._setbytes, self._setfile,
                      self._sethex, self._setbin, self._setoct,
                      self._setint, self._setuint, self._setue, self._setse,
                      self._setintbe, self._setuintbe, self._setintle,
@@ -1097,7 +1097,7 @@ class BitString(object):
 
     def _clear(self):
         """Reset the BitString to an empty state."""
-        self.data = ''
+        self.bytes = ''
         self._pos = 0
     
     def _setauto(self, s, offset, length):
@@ -1112,7 +1112,7 @@ class BitString(object):
                 self._datastore = _FileArray(s._datastore.source, length, bitoffset,
                                              byteoffset)
             else:
-                self._setdata(s._datastore.rawbytes, s._offset + offset, length)
+                self._setbytes(s._datastore.rawbytes, s._offset + offset, length)
             return
         if isinstance(s, (list, tuple)):
             # Evaluate each item as True or False and set bits to 1 or 0.
@@ -1125,7 +1125,7 @@ class BitString(object):
         if not isinstance(s, str):
             raise TypeError("Cannot initialise BitString from %s." % type(s))
         
-        self._setdata('', 0)        
+        self._setbytes('', 0)        
         tokens = _tokenparser(s)
         for token in tokens:
             self.append(_init_with_token(*token))
@@ -1141,7 +1141,7 @@ class BitString(object):
         self._datastore = _FileArray(source, lengthinbits,
                                      offset, byteoffset)
 
-    def _setdata(self, data, offset=0, length=None):
+    def _setbytes(self, data, offset=0, length=None):
         """Set the data from a string."""
         if length is None:
             # Use to the end of the data
@@ -1156,7 +1156,7 @@ class BitString(object):
             else:
                 self._datastore = _CatArray(_MemArray(data, length, offset))
 
-    def _getdata(self):
+    def _getbytes(self):
         """Return the data as an ordinary string."""
         if self.length % 8 != 0:
             raise ValueError("Cannot convert to string unambiguously - not multiple of 8 bits.")
@@ -1548,7 +1548,7 @@ class BitString(object):
             return BitString()
         startbyte, newoffset = divmod(startbit + self._offset, 8)
         endbyte = (endbit + self._offset - 1) // 8
-        return BitString(data=self._datastore[startbyte:endbyte + 1],
+        return BitString(bytes=self._datastore[startbyte:endbyte + 1],
                          length=endbit - startbit,
                          offset=newoffset)
 
@@ -1727,7 +1727,7 @@ class BitString(object):
         startbyte, newoffset = divmod(self._pos + self._offset, 8)
         endbyte = (self._pos + self._offset + bits - 1) // 8
         self._pos += bits
-        bs = BitString(data=self._datastore[startbyte:endbyte + 1],
+        bs = BitString(bytes=self._datastore[startbyte:endbyte + 1],
                        length=bits, offset=newoffset)
         return bs
         
@@ -2021,7 +2021,7 @@ class BitString(object):
         # If everything's byte aligned (and whole-byte) then use the quick algorithm.
         if bytealigned and len(bs) % 8 == 0 and self._datastore.offset == 0:
             # Extract data bytes from BitString to be found.
-            d = bs.data
+            d = bs.bytes
             oldpos = self._pos
             self._pos = startbit
             self.bytealign()
@@ -2249,7 +2249,7 @@ class BitString(object):
             self._clear()
             return self
         offset = (self._offset + bits) % 8
-        self._setdata(self._datastore[bits // 8:], offset, length=self.length - bits)
+        self._setbytes(self._datastore[bits // 8:], offset, length=self.length - bits)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
         return
@@ -2275,7 +2275,7 @@ class BitString(object):
         newlength_in_bytes = (self._offset + self.length - bits + 7) // 8
         # Ensure that the position is still valid
         self._pos = max(0, min(self._pos, self.length - bits))
-        self._setdata(self._datastore[:newlength_in_bytes], offset=self._offset,
+        self._setbytes(self._datastore[:newlength_in_bytes], offset=self._offset,
                       length=self.length - bits)
         assert self._assertsanity()
         return
@@ -2516,7 +2516,7 @@ class BitString(object):
         if (endbit - startbit) % 8 != 0:
             raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
         # TODO: This could be made much more efficient...
-        self[startbit:endbit] = BitString(data=self[startbit:endbit].data[::-1])
+        self[startbit:endbit] = BitString(bytes=self[startbit:endbit].bytes[::-1])
         return
     
     def cut(self, bits, startbit=None, endbit=None, count=None):
@@ -2676,7 +2676,7 @@ class BitString(object):
             a = 0
             p = self[a:a + chunksize*8]
             while p.length == chunksize*8:
-                f.write(p.data)
+                f.write(p.bytes)
                 a += chunksize*8
                 p = self[a:a + chunksize*8]
             f.write(p.tostring())
@@ -2704,7 +2704,7 @@ class BitString(object):
                       When read will be prefixed with '0o' and including any leading zeros.
                       
                       """)
-    data   = property(_getdata, _setdata,
+    bytes   = property(_getbytes, _setbytes,
                       doc="""The BitString as a ordinary string. Read and write.
                       
                       When used to read will add up to seven zero bits to the end of the
