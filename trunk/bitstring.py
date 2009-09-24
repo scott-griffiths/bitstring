@@ -1616,37 +1616,26 @@ class BitString(object):
         return self.length == 0
     
     def unpack(self, *format):
-        """Interpret the whole BitString using format and return result.
+        """Interpret the whole BitString using format and return list.
         
         format - One or more strings with comma separated tokens describing
                  how to interpret the bits in the BitString.
         
-        If only one token is present then a single object is returned,
-        otherwise a list is returned.
-        
         Raises ValueError if the format is not understood.
         
-        See the docstring for 'read' for more information.
+        See the docstring for 'read' for token examples.
         
         """
         bitposbefore = self._pos
         self._pos = 0
-        return_values = self.read(*format)
+        return_values = self.readlist(*format)
         self._pos = bitposbefore
         return return_values
 
-    def read(self, *format):
-        """Interpret next bits according to format string(s) and return result.
+    def read(self, format):
+        """Interpret next bits according to the format string and return result.
         
-        format -- One or more strings with comma separated tokens describing
-                  how to interpret the next bits in the BitString.
-                
-        If only one token is present then a single object is returned,
-        otherwise a list is returned.
-        
-        The position in the BitString is advanced to after the read items.
-        
-        Raises ValueError if the format is not understood.
+        format -- Token string describing how to interpret the next bits.
         
         Token examples: 'int:12'  : 12 bits as a signed integer
                         'uint:8'  : 8 bits as an unsigned integer
@@ -1657,7 +1646,27 @@ class BitString(object):
                         'se'      : next bits as signed exp-Golomb code
                         'bits:5'  : 5 bits as a BitString object
                         'bytes:3' : 3 bytes as a BitString object
-                
+                        
+        The position in the BitString is advanced to after the read items.
+        
+        Raises ValueError if the format is not understood.
+        
+        """   
+        return_values = self.readlist(format)
+        if len(return_values) != 1:
+            raise ValueError("Format string should be a single token - use readlist() instead.")
+        return return_values[0]
+
+    def readlist(self, *format):
+        """Interpret next bits according to format string(s) and return list.
+        
+        format -- One or more strings with comma separated tokens describing
+                  how to interpret the next bits in the BitString.
+                        
+        The position in the BitString is advanced to after the read items.
+        
+        Raises ValueError if the format is not understood.
+
         >>> h, b1, b2 = s.read('hex:20, bin:5, bin:3')
         >>> i, bs1, bs2 = s.read('uint:12', 'bits:10', 'bits:10')
         
@@ -1692,8 +1701,6 @@ class BitString(object):
             if token[1] is not None:
                 bits_left -= token[1]
             return_values.append(self._readtoken(*token))            
-        if len(return_values) == 1:
-            return return_values[0]
         return return_values
     
     def readbit(self):
@@ -1703,32 +1710,39 @@ class BitString(object):
         
         """
         return self.readbits(1)
-
-    def readbits(self, *bits):
-        """Return next bits in BitString as new BitString(s) and advance position.
         
-        bits -- The number of bits to read. If more than one bit length is
-                given a list of BitStrings will be returned.
+    def readbits(self, bits):
+        """Return next bits in BitString as new BitString and advance position.
+        
+        bits -- The number of bits to read.
         
         If not enough bits are available then all remaining will be returned.
         
         Raises ValueError if bits < 0.
         
         """
-        return_values = []
-        for b in bits:
-            if b < 0:
-                raise ValueError("Cannot read negative amount.")
-            b = min(b, self.length - self._pos)
-            startbyte, newoffset = divmod(self._pos + self._offset, 8)
-            endbyte = (self._pos + self._offset + b - 1) // 8
-            self._pos += b
-            bs = BitString(data=self._datastore[startbyte:endbyte + 1],
-                           length=b, offset=newoffset)
-            return_values.append(bs)
-        if len(return_values) == 1:
-            return return_values[0]
-        return return_values
+        if bits < 0:
+            raise ValueError("Cannot read negative amount.")
+        bits = min(bits, self.length - self._pos)
+        startbyte, newoffset = divmod(self._pos + self._offset, 8)
+        endbyte = (self._pos + self._offset + bits - 1) // 8
+        self._pos += bits
+        bs = BitString(data=self._datastore[startbyte:endbyte + 1],
+                       length=bits, offset=newoffset)
+        return bs
+        
+    def readbitlist(self, *bits):
+        """Return next bits as new list of BitString(s) and advance position.
+        
+        bits -- The number of bits to read. A list of BitStrings will be
+                returned even if it only has one item.
+        
+        If not enough bits are available then all remaining will be returned.
+        
+        Raises ValueError if bits < 0.
+        
+        """
+        return [self.readbits(b) for b in bits]
     
     def readbyte(self):
         """Return next byte as a new BitString and advance position.
@@ -1740,33 +1754,58 @@ class BitString(object):
         """
         return self.readbits(8)
 
-    def readbytes(self, *bytes):
-        """Return next bytes as new BitString(s) and advance position.
+    def readbytes(self, bytes):
+        """Return next bytes as a new BitString and advance position.
         
-        bytes -- The number of bytes to read. If more than one byte length is
-                 given a list of BitStrings will be returned.
+        bytes -- The number of bytes to read.
+        
+        Does not byte align.
+        
+        If not enough bits are available then all will be returned.
+        
+        """
+        return self.readbits(bytes*8)
+
+    def readbytelist(self, *bytes):
+        """Return next bytes as list of new BitString(s) and advance position.
+        
+        bytes -- The number of bytes to read. A list of BitStrings will be
+                 returned even if it contains only one item.
         
         Does not byte align.
         If not enough bits are available then all remaining will be returned.
         
         """
-        return self.readbits(*[b*8 for b in bytes])
+        return self.readbitlist(*[b*8 for b in bytes])
+
+    def peek(self, format):
+        """Interpret next bits according to format string and return result.
+        
+        format -- Token string describing how to interpret the next bits.
+                  
+        The position in the BitString is not changed.
+        
+        See the docstring for 'read' for token examples.
+        
+        """
+        return_values = self.peeklist(format)
+        if len(return_values) != 1:
+            raise ValueError("Format string should be a single token - use peeklist() instead.")
+        return return_values[0]
     
-    def peek(self, *format):
-        """Interpret next bits according to format string(s) and return result.
+    def peeklist(self, *format):
+        """Interpret next bits according to format string(s) and return list.
         
         format -- One or more strings with comma separated tokens describing
                   how to interpret the next bits in the BitString.
                   
-        If only one token is present then a single object is returned,
-        otherwise a list is returned.
         The position in the BitString is not changed.
         
-        See the docstring for 'read' for more information.
+        See the docstring for 'read' for token examples.
         
         """
         bitpos = self._pos
-        return_values = self.read(*format)
+        return_values = self.readlist(*format)
         self._pos = bitpos
         return return_values
 
@@ -1778,11 +1817,10 @@ class BitString(object):
         """
         return self.peekbits(1)
 
-    def peekbits(self, *bits):
-        """Return next bits as new BitString(s) without advancing position.
+    def peekbits(self, bits):
+        """Return next bits as a BitString without advancing position.
         
-        bits -- The number of bits to read. If more than one bit length is
-                given a list of BitStrings will be returned.
+        bits -- The number of bits to read.
         
         If not enough bits are available then all remaining will be returned.
         
@@ -1790,7 +1828,23 @@ class BitString(object):
         
         """
         bitpos = self._pos
-        s = self.readbits(*bits)
+        s = self.readbits(bits)
+        self._pos = bitpos
+        return s
+    
+    def peekbitlist(self, *bits):
+        """Return next bits as BitString list without advancing position.
+        
+        bits -- The number of bits to read. A list of BitStrings will be
+                returned even if it contains only one item.
+        
+        If not enough bits are available then all remaining will be returned.
+        
+        Raises ValueError if bits < 0.
+        
+        """
+        bitpos = self._pos
+        s = self.readbitlist(*bits)
         self._pos = bitpos
         return s
     
@@ -1801,17 +1855,27 @@ class BitString(object):
         
         """
         return self.peekbits(8)
-
-    def peekbytes(self, *bytes):
-        """Return next bytes as new BitString(s) without advancing position.
         
-        bytes -- The number of bytes to read. If more than one byte length is
-                 given a list of BitStrings will be returned.
-                     
+    def peekbytes(self, bytes):
+        """Return next bytes as a BitString without advancing position.
+        
+        bytes -- The number of bytes to read.
+
         If not enough bits are available then all remaining will be returned.
         
         """
-        return self.peekbits(*[b*8 for b in bytes])
+        return self.peekbits(bytes*8)
+        
+    def peekbytelist(self, *bytes):
+        """Return next bytes as BitString list without advancing position.
+        
+        bytes -- The number of bytes to read. A list of BitStrings will be
+                 returned even if it contains only one item.
+
+        If not enough bits are available then all remaining will be returned.
+        
+        """
+        return self.peekbitlist(*[b*8 for b in bytes])
 
     def advancebit(self):
         """Advance position by one bit.
