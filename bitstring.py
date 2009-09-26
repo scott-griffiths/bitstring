@@ -1543,14 +1543,14 @@ class BitString(object):
             return BitString(bs)
         raise TypeError("Cannot initialise BitString from %s." % type(bs))
 
-    def _slice(self, startbit, endbit):
+    def _slice(self, start, end):
         """Used internally to get a slice, without error checking."""
-        if endbit == startbit:
+        if end == start:
             return BitString()
-        startbyte, newoffset = divmod(startbit + self._offset, 8)
-        endbyte = (endbit + self._offset - 1) // 8
+        startbyte, newoffset = divmod(start + self._offset, 8)
+        endbyte = (end + self._offset - 1) // 8
         return BitString(bytes=self._datastore[startbyte:endbyte + 1],
-                         length=endbit - startbit,
+                         length=end - start,
                          offset=newoffset)
 
     def _readue(self):
@@ -1991,45 +1991,45 @@ class BitString(object):
         """
         return self.bytepos
 
-    def find(self, bs, startbit=None, endbit=None, bytealigned=False):
+    def find(self, bs, start=None, end=None, bytealigned=False):
         """Seek to start of next occurence of bs. Return True if string is found.
         
         bs -- The BitString to find.
-        startbit -- The bit position to start the search.
+        start -- The bit position to start the search.
                     Defaults to 0.
-        endbit -- The bit position one past the last bit to search.
+        end -- The bit position one past the last bit to search.
                   Defaults to self.length.
         bytealigned -- If True the BitString will only be
                        found on byte boundaries.
         
-        Raises ValueError if bs is empty, if startbit < 0,
-        if endbit > self.length or if endbit < startbit.
+        Raises ValueError if bs is empty, if start < 0,
+        if end > self.length or if end < start.
         
         """
         bs = self._converttobitstring(bs)
         if bs.empty():
             raise ValueError("Cannot find an empty BitString.")
-        if startbit is None:
-            startbit = 0
-        if endbit is None:
-            endbit = self.length
-        if startbit < 0:
-            raise ValueError("Cannot find - startbit must be >= 0.")
-        if endbit > self.length:
-            raise ValueError("Cannot find - endbit is past the end of the BitString.")
-        if endbit < startbit:
-            raise ValueError("endbit must not be less than startbit.")
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
+        if start < 0:
+            raise ValueError("Cannot find - start must be >= 0.")
+        if end > self.length:
+            raise ValueError("Cannot find - end is past the end of the BitString.")
+        if end < start:
+            raise ValueError("end must not be less than start.")
         # If everything's byte aligned (and whole-byte) then use the quick algorithm.
         if bytealigned and len(bs) % 8 == 0 and self._datastore.offset == 0:
             # Extract data bytes from BitString to be found.
             d = bs.bytes
             oldpos = self._pos
-            self._pos = startbit
+            self._pos = start
             self.bytealign()
             bytepos = self._pos // 8
             found = False
             p = bytepos
-            finalpos = endbit // 8
+            finalpos = end // 8
             increment = max(1024, len(d)*10)
             buffersize = increment + len(d)
             while p < finalpos:
@@ -2050,13 +2050,13 @@ class BitString(object):
             oldpos = self._pos
             targetbin = bs._getbin()[2:]
             found = False
-            p = startbit
+            p = start
             # We grab overlapping chunks of the binary representation and
             # do an ordinary string search within that.
             increment = max(16384, bs.length*10)
             buffersize = increment + bs.length
-            while p < endbit:
-                buf = self[p:min(p+buffersize, endbit)]._getbin()[2:]
+            while p < end:
+                buf = self[p:min(p+buffersize, end)]._getbin()[2:]
                 pos = buf.find(targetbin)
                 if pos != -1:
                     # if bytealigned then we only accept byte aligned positions.
@@ -2075,21 +2075,21 @@ class BitString(object):
             self._pos = p
             return True
 
-    def findall(self, bs, startbit=None, endbit=None, count=None,
+    def findall(self, bs, start=None, end=None, count=None,
                 bytealigned=False):
         """Find all occurences of bs. Return generator of bit positions.
         
         bs -- The BitString to find.
-        startbit -- The bit position to start the search.
+        start -- The bit position to start the search.
                     Defaults to 0.
-        endbit -- The bit position one past the last bit to search.
+        end -- The bit position one past the last bit to search.
                   Defaults to self.length.
         count -- The maximum number of occurences to find.
         bytealigned -- If True the BitString will only be found on
                        byte boundaries.
         
-        Raises ValueError if bs is empty, if startbit < 0,
-        if endbit > self.length or if endbit < startbit.
+        Raises ValueError if bs is empty, if start < 0,
+        if end > self.length or if end < start.
         
         Note that all occurences of bs are found, even if they overlap.
         
@@ -2097,66 +2097,66 @@ class BitString(object):
         if count is not None and count < 0:
             raise ValueError("In findall, count must be >= 0.")
         bs = self._converttobitstring(bs)
-        if startbit is None:
-            startbit = 0
-        if endbit is None:
-            endbit = self.length
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
         c = 0
         # Can rely on find() for parameter checking
-        while self.find(bs, startbit, endbit, bytealigned):
+        while self.find(bs, start, end, bytealigned):
             if count is not None and c >= count:
                 return
             c += 1
             yield self._pos
             if bytealigned:
-                startbit = self._pos + 8
+                start = self._pos + 8
             else:
-                startbit = self._pos + 1
-            if startbit >= endbit:
+                start = self._pos + 1
+            if start >= end:
                 break
         return
     
-    def rfind(self, bs, startbit=None, endbit=None, bytealigned=False):
+    def rfind(self, bs, start=None, end=None, bytealigned=False):
         """Seek backwards to start of previous occurence of bs.
         
         Return True if string is found.
         
         bs -- The BitString to find.
-        startbit -- The bit position to end the reverse search.
+        start -- The bit position to end the reverse search.
                     Defaults to 0.
-        endbit -- The bit position one past the first bit to reverse search.
+        end -- The bit position one past the first bit to reverse search.
                   Defaults to self.length.
         bytealigned -- If True the BitString will only be found on byte 
                        boundaries.
         
-        Raises ValueError if bs is empty, if startbit < 0,
-        if endbit > self.length or if endbit < startbit.
+        Raises ValueError if bs is empty, if start < 0,
+        if end > self.length or if end < start.
         
         """
         bs = self._converttobitstring(bs)
-        if startbit is None:
-            startbit = 0
-        if endbit is None:
-            endbit = self.length
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
         if bs.empty():
             raise ValueError("Cannot find an empty BitString.")
         # Search chunks starting near the end and then moving back
         # until we find bs.
         increment = max(8192, bs.length*80)
-        buffersize = min(increment + bs.length, endbit - startbit)
-        pos = max(startbit, endbit - buffersize)
+        buffersize = min(increment + bs.length, end - start)
+        pos = max(start, end - buffersize)
         while(True):
-            found = list(self.findall(bs, startbit=pos, endbit=pos + buffersize,
+            found = list(self.findall(bs, start=pos, end=pos + buffersize,
                                       bytealigned=bytealigned))
             if not found:
-                if pos == startbit:
+                if pos == start:
                     return False
-                pos = max(startbit, pos - increment)
+                pos = max(start, pos - increment)
                 continue
             self._pos = found[-1]
             return True
     
-    def replace(self, old, new, startbit=None, endbit=None, count=None,
+    def replace(self, old, new, start=None, end=None, count=None,
                 bytealigned=False):
         """Replace all occurrences of old with new in place.
         
@@ -2164,16 +2164,16 @@ class BitString(object):
         
         old -- The BitString to replace.
         new -- The replacement BitString.
-        startbit -- Any occurences that start before starbit will not
+        start -- Any occurences that start before starbit will not
                     be replaced. Defaults to 0.
-        endbit -- Any occurences that finish after endbit will not
+        end -- Any occurences that finish after end will not
                   be replaced. Defaults to self.length.
         count -- The maximum number of replacements to make. Defaults to
                  replace all occurences.
         bytealigned -- If True replacements will only be made on byte
                        boundaries.
         
-        Raises ValueError if old is empty or if startbit or endbit are
+        Raises ValueError if old is empty or if start or end are
         out of range.
         
         """        
@@ -2187,7 +2187,7 @@ class BitString(object):
         # Adjust count for use in split()
         if count is not None:
             count += 1
-        sections = self.split(old, startbit, endbit, count, bytealigned)
+        sections = self.split(old, start, end, count, bytealigned)
         lengths = [s.length for s in sections]
         if len(lengths) == 1:
             # Didn't find anything to replace.
@@ -2281,18 +2281,18 @@ class BitString(object):
         assert self._assertsanity()
         return
     
-    def slice(self, startbit=None, endbit=None, step=None):
-        """Return a new BitString which is the slice [startbit:endbit:step].
+    def slice(self, start=None, end=None, step=None):
+        """Return a new BitString which is the slice [start:end:step].
         
-        startbit -- Position of first bit in the new BitString. Defaults to 0.
-        endbit -- One past the position of the last bit in the new BitString.
+        start -- Position of first bit in the new BitString. Defaults to 0.
+        end -- One past the position of the last bit in the new BitString.
                   Defaults to self.length.
-        step -- Multiplicative factor for startbit and endbit. Defaults to 1.
+        step -- Multiplicative factor for start and end. Defaults to 1.
         
         Has the same semantics as __getitem__.
         
         """
-        return self.__getitem__(slice(startbit, endbit, step))
+        return self.__getitem__(slice(start, end, step))
     
     def insert(self, bs, bitpos=None):
         """Insert bs at current position, or bitpos if supplied.
@@ -2460,88 +2460,88 @@ class BitString(object):
         self.bitpos += bs.length
         return
 
-    def reversebits(self, startbit=None, endbit=None):
+    def reversebits(self, start=None, end=None):
         """Reverse bits in-place.
         
-        startbit -- Position of first bit to reverse.
+        start -- Position of first bit to reverse.
                     Defaults to 0.
-        endbit -- One past the position of the last bit to reverse.
+        end -- One past the position of the last bit to reverse.
                   Defaults to self.length.
         
         Using on an empty BitString will have no effect.
         
-        Raises ValueError if startbit < 0, endbit > self.length or
-        endbit < startbit.
+        Raises ValueError if start < 0, end > self.length or
+        end < start.
         
         """
         if not self._mutable:
             raise TypeError("Cannot use reversebits on immutable BitString.")
-        if startbit is None:
-            startbit = 0
-        if endbit is None:
-            endbit = self.length
-        if startbit < 0:
-            raise ValueError("startbit must be >= 0 in reversebits().")
-        if endbit > self.length:
-            raise ValueError("endbit must be <= self.length in reversebits().")
-        if endbit < startbit:
-            raise ValueError("endbit must be >= startbit in reversebits().")
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
+        if start < 0:
+            raise ValueError("start must be >= 0 in reversebits().")
+        if end > self.length:
+            raise ValueError("end must be <= self.length in reversebits().")
+        if end < start:
+            raise ValueError("end must be >= start in reversebits().")
         # TODO: This could be made much more efficient...
-        self[startbit:endbit] = BitString(bin=self[startbit:endbit].bin[:1:-1])
+        self[start:end] = BitString(bin=self[start:end].bin[:1:-1])
         return
     
-    def reversebytes(self, startbit=None, endbit=None):
+    def reversebytes(self, start=None, end=None):
         """Reverse bytes in-place.
         
-        startbit -- Position of first bit to reverse.
+        start -- Position of first bit to reverse.
                     Defaults to 0.
-        endbit -- One past the position of the last bit to reverse.
+        end -- One past the position of the last bit to reverse.
                   Defaults to self.length.
         
-        Raises BitStringError if endbit - startbit is not a whole number of
+        Raises BitStringError if end - start is not a whole number of
         bytes long.
         
         """
         if not self._mutable:
             raise TypeError("Cannot use reversebytes on immutable BitString.")
-        if startbit is None:
-            startbit = 0
-        if endbit is None:
-            endbit = self.length
-        if startbit < 0:
-            raise ValueError("startbit must be >= 0 in reversebytes().")
-        if endbit > self.length:
-            raise ValueError("endbit must be <= self.length in reversebytes().")
-        if endbit < startbit:
-            raise ValueError("endbit must be >= startbit in reversebytes().")
-        if (endbit - startbit) % 8 != 0:
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
+        if start < 0:
+            raise ValueError("start must be >= 0 in reversebytes().")
+        if end > self.length:
+            raise ValueError("end must be <= self.length in reversebytes().")
+        if end < start:
+            raise ValueError("end must be >= start in reversebytes().")
+        if (end - start) % 8 != 0:
             raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
         # TODO: This could be made much more efficient...
-        self[startbit:endbit] = BitString(bytes=self[startbit:endbit].bytes[::-1])
+        self[start:end] = BitString(bytes=self[start:end].bytes[::-1])
         return
     
-    def cut(self, bits, startbit=None, endbit=None, count=None):
+    def cut(self, bits, start=None, end=None, count=None):
         """Return BitString generator by cutting into bits sized chunks.
         
         bits -- The size in bits of the BitString chunks to generate.
-        startbit -- The bit position to start the first cut.
+        start -- The bit position to start the first cut.
                     Defaults to 0.
-        endbit -- The bit position one past the last bit to use in the cut.
+        end -- The bit position one past the last bit to use in the cut.
                   Defaults to self.length.
         count -- If specified then at most count items are generated.
                  Default is to cut as many times as possible.
         
         """
-        if startbit is None:
-            startbit = 0
-        if endbit is None:
-            endbit = self.length
-        if startbit < 0:
-            raise ValueError("Cannot cut - startbit must be >= 0.")
-        if endbit > self.length:
-            raise ValueError("Cannot cut - endbit is past the end of the BitString.")
-        if endbit < startbit:
-            raise ValueError("endbit must not be less than startbit.")
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
+        if start < 0:
+            raise ValueError("Cannot cut - start must be >= 0.")
+        if end > self.length:
+            raise ValueError("Cannot cut - end is past the end of the BitString.")
+        if end < start:
+            raise ValueError("end must not be less than start.")
         if count is not None and count < 0:
             raise ValueError("Cannot cut - count must be >= 0.")
         if bits <= 0:
@@ -2549,15 +2549,15 @@ class BitString(object):
         c = 0
         while count is None or c < count:
             c += 1
-            nextchunk = self._slice(startbit, min(startbit + bits, endbit))
+            nextchunk = self._slice(start, min(start + bits, end))
             if nextchunk.length != bits:
                 return
             assert nextchunk._assertsanity()
             yield nextchunk
-            startbit += bits
+            start += bits
         return
  
-    def split(self, delimiter, startbit=None, endbit=None, count=None,
+    def split(self, delimiter, start=None, end=None, count=None,
               bytealigned=False):
         """Return BitString generator by splittling using a delimiter.
         
@@ -2565,9 +2565,9 @@ class BitString(object):
         which may be an empty BitString.
         
         delimiter -- The BitString used as the divider.
-        startbit -- The bit position to start the split.
+        start -- The bit position to start the split.
                     Defaults to 0.
-        endbit -- The bit position one past the last bit to use in the split.
+        end -- The bit position one past the last bit to use in the split.
                   Defaults to self.length.
         count -- If specified then at most count items are generated.
                  Default is to split as many times as possible.
@@ -2579,39 +2579,39 @@ class BitString(object):
         delimiter = self._converttobitstring(delimiter)
         if delimiter.empty():
             raise ValueError("split delimiter cannot be empty.")
-        if startbit is None:
-            startbit = 0
-        if endbit is None:
-            endbit = self.length
-        if startbit < 0:
-            raise ValueError("Cannot split - startbit must be >= 0.")
-        if endbit > self.length:
-            raise ValueError("Cannot split - endbit is past the end of the BitString.")
-        if endbit < startbit:
-            raise ValueError("endbit must not be less than startbit.")
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
+        if start < 0:
+            raise ValueError("Cannot split - start must be >= 0.")
+        if end > self.length:
+            raise ValueError("Cannot split - end is past the end of the BitString.")
+        if end < start:
+            raise ValueError("end must not be less than start.")
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         oldpos = self._pos
-        self._pos = startbit
+        self._pos = start
         if count == 0:
             return
-        found = self.find(delimiter, startbit, endbit, bytealigned)
+        found = self.find(delimiter, start, end, bytealigned)
         if not found:
             # Initial bits are the whole BitString being searched
             self._pos = oldpos
-            yield self._slice(startbit, endbit)
+            yield self._slice(start, end)
             return
         # yield the bytes before the first occurence of the delimiter, even if empty
-        yield self[startbit:self._pos]
+        yield self[start:self._pos]
         startpos = self._pos
         c = 1
         while count is None or c < count:
             self._pos += delimiter.length
-            found = self.find(delimiter, self._pos, endbit, bytealigned)
+            found = self.find(delimiter, self._pos, end, bytealigned)
             if not found:
                 # No more occurences, so return the rest of the BitString
                 self._pos = oldpos
-                yield self[startpos:endbit]
+                yield self[startpos:end]
                 return
             c += 1
             yield self[startpos:self._pos]
