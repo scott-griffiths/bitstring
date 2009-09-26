@@ -2794,7 +2794,49 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(TypeError, a.peekbits, 12, 14)
         self.assertRaises(TypeError, a.readbytes, 1, 1)
         self.assertRaises(TypeError, a.peekbytes, 10, 10)
-
+        
+    def testStartswith(self):
+        a = BitString()
+        self.assertTrue(a.startswith(BitString()))
+        self.assertFalse(a.startswith('0b0'))
+        a = BitString('0x12ff')
+        self.assertTrue(a.startswith('0x1'))
+        self.assertTrue(a.startswith('0b0001001'))
+        self.assertTrue(a.startswith('0x12ff'))
+        self.assertFalse(a.startswith('0x12ff, 0b1'))
+        self.assertFalse(a.startswith('0x2'))
+    
+    def testStartswithStartEnd(self):
+        s = BitString('0x123456')
+        self.assertTrue(s.startswith('0x234', 4))
+        self.assertFalse(s.startswith('0x123', end=11))
+        self.assertTrue(s.startswith('0x123', end=12))
+        self.assertTrue(s.startswith('0x34', 8, 16))
+        self.assertFalse(s.startswith('0x34', 7, 16))
+        self.assertFalse(s.startswith('0x34', 9, 16))
+        self.assertFalse(s.startswith('0x34', 8, 15))
+        
+    def testEndswith(self):
+        a = BitString()
+        self.assertTrue(a.endswith(''))
+        self.assertFalse(a.endswith(BitString('0b1')))
+        a = BitString('0xf2341')
+        self.assertTrue(a.endswith('0x41'))
+        self.assertTrue(a.endswith('0b001'))
+        self.assertTrue(a.endswith('0xf2341'))
+        self.assertFalse(a.endswith('0x1f2341'))
+        self.assertFalse(a.endswith('0o34'))
+        
+    def testEndswithStartEnd(self):
+        s = BitString('0x123456')
+        self.assertTrue(s.endswith('0x234', end=16))
+        self.assertFalse(s.endswith('0x456', start=13))
+        self.assertTrue(s.endswith('0x456', start=12))
+        self.assertTrue(s.endswith('0x34', 8, 16))
+        self.assertTrue(s.endswith('0x34', 7, 16))
+        self.assertFalse(s.endswith('0x34', 9, 16))
+        self.assertFalse(s.endswith('0x34', 8, 15))
+        
 def main():
     unittest.main()
 
