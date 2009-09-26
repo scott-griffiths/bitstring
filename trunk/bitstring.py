@@ -1075,7 +1075,7 @@ class BitString(object):
     def __contains__(self, bs):
         """Return whether bs is contained in the current BitString.
         
-        bs -- The BitString (or string for 'auto' initialiser) to search for.
+        bs -- The BitString to search for.
         
         """
         oldpos = self._pos
@@ -1996,9 +1996,9 @@ class BitString(object):
         
         bs -- The BitString to find.
         start -- The bit position to start the search.
-                    Defaults to 0.
+                 Defaults to 0.
         end -- The bit position one past the last bit to search.
-                  Defaults to self.length.
+               Defaults to self.length.
         bytealigned -- If True the BitString will only be
                        found on byte boundaries.
         
@@ -2464,9 +2464,9 @@ class BitString(object):
         """Reverse bits in-place.
         
         start -- Position of first bit to reverse.
-                    Defaults to 0.
+                 Defaults to 0.
         end -- One past the position of the last bit to reverse.
-                  Defaults to self.length.
+               Defaults to self.length.
         
         Using on an empty BitString will have no effect.
         
@@ -2494,9 +2494,9 @@ class BitString(object):
         """Reverse bytes in-place.
         
         start -- Position of first bit to reverse.
-                    Defaults to 0.
+                 Defaults to 0.
         end -- One past the position of the last bit to reverse.
-                  Defaults to self.length.
+               Defaults to self.length.
         
         Raises BitStringError if end - start is not a whole number of
         bytes long.
@@ -2525,9 +2525,9 @@ class BitString(object):
         
         bits -- The size in bits of the BitString chunks to generate.
         start -- The bit position to start the first cut.
-                    Defaults to 0.
+                 Defaults to 0.
         end -- The bit position one past the last bit to use in the cut.
-                  Defaults to self.length.
+               Defaults to self.length.
         count -- If specified then at most count items are generated.
                  Default is to cut as many times as possible.
         
@@ -2566,9 +2566,9 @@ class BitString(object):
         
         delimiter -- The BitString used as the divider.
         start -- The bit position to start the split.
-                    Defaults to 0.
+                 Defaults to 0.
         end -- The bit position one past the last bit to use in the split.
-                  Defaults to self.length.
+               Defaults to self.length.
         count -- If specified then at most count items are generated.
                  Default is to split as many times as possible.
         bytealigned -- If True splits will only occur on byte boundaries.
@@ -2683,6 +2683,15 @@ class BitString(object):
             f.write(p.tostring())
             
     def startswith(self, prefix, start=None, end=None):
+        """Return whether the current BitString starts with prefix.
+        
+        prefix -- The BitString to search for.
+        start -- The bit position to start from.
+                 Defaults to 0.
+        end -- The bit position to end at.
+               Defaults to self.length.
+               
+        """
         prefix = self._converttobitstring(prefix)
         if start is None:
             start = 0
@@ -2694,6 +2703,15 @@ class BitString(object):
         return self[start:end] == prefix
         
     def endswith(self, suffix, start=None, end=None):
+        """Return whether the current BitString ends with suffix.
+        
+        suffix -- The BitString to search for.
+        start -- The bit position to start from.
+                 Defaults to 0.
+        end -- The bit position to end at.
+               Defaults to self.length.
+               
+        """
         suffix = self._converttobitstring(suffix)
         if start is None:
             start = 0
