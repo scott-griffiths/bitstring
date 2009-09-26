@@ -1203,6 +1203,7 @@ class BitString(object):
         j = 1
         structsize = struct.calcsize('Q')
         end = self._datastore.bytelength - 1
+        # TODO: This loop could be done with a single struct.unpack (probably more efficient).
         while j + structsize < end:
             shift -= 8*structsize
             # Convert next 8 bytes to an int, then shift it to proper place
@@ -1602,7 +1603,7 @@ class BitString(object):
         if name in ('uint', 'int', 'intbe', 'uintbe', 'intle', 'uintle',
                     'intne', 'uintne', 'hex', 'oct', 'bin'):
             return getattr(self.readbits(length), name)
-        if name in ('bits', 'bytes'):
+        if name in ('bits', 'bytes'): # If it's bytes then it's length has already been converted to bits
             return self.readbits(length)
         if name == 'ue':
             return self._readue()
@@ -2680,6 +2681,28 @@ class BitString(object):
                 a += chunksize*8
                 p = self[a:a + chunksize*8]
             f.write(p.tostring())
+            
+    def startswith(self, prefix, start=None, end=None):
+        prefix = self._converttobitstring(prefix)
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
+        if end < start + prefix.length:
+            return False
+        end = start + prefix.length
+        return self[start:end] == prefix
+        
+    def endswith(self, suffix, start=None, end=None):
+        suffix = self._converttobitstring(suffix)
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
+        if start + suffix.length > end:
+            return False
+        start = end - suffix.length
+        return self[start:end] == suffix
 
     _offset = property(_getoffset)
 
