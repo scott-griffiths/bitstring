@@ -116,7 +116,7 @@ _init_names = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
                'bytes', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne')
 
 _init_names_ored = '|'.join(_init_names)
-_tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len1>[^=]+))|(:?(?P<len2>[\d]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
+_tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
 _keyre = re.compile(r'^(?P<name>[^:=]+)$')
 
 # Hex, oct or binary literals
@@ -206,10 +206,7 @@ def _tokenparser(format, keys=None):
         m = _tokenre.match(token)
         if m:
             name = m.group('name')
-            if m.group('len1'):
-                length = m.group('len1')
-            if m.group('len2'):
-                length = m.group('len2')
+            length = m.group('len')
             if length and name == 'bytes':
                 # Make the length unit bits, not bytes
                 length = str(int(length)*8)
