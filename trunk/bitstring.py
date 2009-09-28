@@ -1635,15 +1635,21 @@ class BitString(object):
         
         format -- Token string describing how to interpret the next bits.
         
-        Token examples: 'int:12'  : 12 bits as a signed integer
-                        'uint:8'  : 8 bits as an unsigned integer
-                        'hex:80'  : 80 bits as a hex string
-                        'oct:9'   : 9 bits as an octal string
-                        'bin:1'   : single bit binary string
-                        'ue'      : next bits as unsigned exp-Golomb code
-                        'se'      : next bits as signed exp-Golomb code
-                        'bits:5'  : 5 bits as a BitString object
-                        'bytes:3' : 3 bytes as a BitString object
+        Token examples: 'int:12'    : 12 bits as a signed integer
+                        'uint:8'    : 8 bits as an unsigned integer
+                        'intbe:16'  : 2 bytes as a big-endian signed integer
+                        'uintbe:16' : 2 bytes as a big-endian unsigned integer
+                        'intle:32'  : 4 bytes as a little-endian signed integer
+                        'uintle:32' : 4 bytes as a little-endian unsigned integer
+                        'intne:24'  : 3 bytes as a native-endian signed integer
+                        'uintne:24' : 3 bytes as a native-endian unsigned integer
+                        'hex:80'    : 80 bits as a hex string
+                        'oct:9'     : 9 bits as an octal string
+                        'bin:1'     : single bit binary string
+                        'ue'        : next bits as unsigned exp-Golomb code
+                        'se'        : next bits as signed exp-Golomb code
+                        'bits:5'    : 5 bits as a BitString object
+                        'bytes:3'   : 3 bytes as a BitString object
                         
         The position in the BitString is advanced to after the read items.
         
@@ -1992,15 +1998,14 @@ class BitString(object):
         """Seek to start of next occurence of bs. Return True if string is found.
         
         bs -- The BitString to find.
-        start -- The bit position to start the search.
-                 Defaults to 0.
+        start -- The bit position to start the search. Defaults to 0.
         end -- The bit position one past the last bit to search.
                Defaults to self.length.
         bytealigned -- If True the BitString will only be
                        found on byte boundaries.
         
-        Raises ValueError if bs is empty, if start < 0,
-        if end > self.length or if end < start.
+        Raises ValueError if bs is empty, if start < 0, if end > self.length or
+        if end < start.
         
         """
         bs = self._converttobitstring(bs)
@@ -2077,16 +2082,15 @@ class BitString(object):
         """Find all occurences of bs. Return generator of bit positions.
         
         bs -- The BitString to find.
-        start -- The bit position to start the search.
-                    Defaults to 0.
+        start -- The bit position to start the search. Defaults to 0.
         end -- The bit position one past the last bit to search.
-                  Defaults to self.length.
+               Defaults to self.length.
         count -- The maximum number of occurences to find.
         bytealigned -- If True the BitString will only be found on
                        byte boundaries.
         
-        Raises ValueError if bs is empty, if start < 0,
-        if end > self.length or if end < start.
+        Raises ValueError if bs is empty, if start < 0, if end > self.length or
+        if end < start.
         
         Note that all occurences of bs are found, even if they overlap.
         
@@ -2119,15 +2123,14 @@ class BitString(object):
         Return True if string is found.
         
         bs -- The BitString to find.
-        start -- The bit position to end the reverse search.
-                    Defaults to 0.
+        start -- The bit position to end the reverse search. Defaults to 0.
         end -- The bit position one past the first bit to reverse search.
-                  Defaults to self.length.
+               Defaults to self.length.
         bytealigned -- If True the BitString will only be found on byte 
                        boundaries.
         
-        Raises ValueError if bs is empty, if start < 0,
-        if end > self.length or if end < start.
+        Raises ValueError if bs is empty, if start < 0, if end > self.length or
+        if end < start.
         
         """
         bs = self._converttobitstring(bs)
@@ -2161,10 +2164,10 @@ class BitString(object):
         
         old -- The BitString to replace.
         new -- The replacement BitString.
-        start -- Any occurences that start before starbit will not
-                    be replaced. Defaults to 0.
-        end -- Any occurences that finish after end will not
-                  be replaced. Defaults to self.length.
+        start -- Any occurences that start before starbit will not be replaced.
+                 Defaults to 0.
+        end -- Any occurences that finish after end will not be replaced.
+               Defaults to self.length.
         count -- The maximum number of replacements to make. Defaults to
                  replace all occurences.
         bytealigned -- If True replacements will only be made on byte
@@ -2283,7 +2286,7 @@ class BitString(object):
         
         start -- Position of first bit in the new BitString. Defaults to 0.
         end -- One past the position of the last bit in the new BitString.
-                  Defaults to self.length.
+               Defaults to self.length.
         step -- Multiplicative factor for start and end. Defaults to 1.
         
         Has the same semantics as __getitem__.
@@ -2378,8 +2381,7 @@ class BitString(object):
         """Delete bits at current position, or bitpos if given.
         
         bits -- Number of bits to delete.
-        bitpos -- Bit position to delete from.
-                  Defaults to self.bitpos.
+        bitpos -- Bit position to delete from. Defaults to self.bitpos.
         
         Raises ValueError if bits < 0.
         
@@ -2401,8 +2403,7 @@ class BitString(object):
         """Delete bytes at current position, or bytepos if given.
         
         bytes -- Number of bytes to delete.
-        bytepos -- Byte position to delete from.
-                   Defaults to self.bytepos.
+        bytepos -- Byte position to delete from. Defaults to self.bytepos.
         
         Raises BitStringError if bytepos not specified and current position
         is not byte aligned.
@@ -2460,8 +2461,7 @@ class BitString(object):
     def reversebits(self, start=None, end=None):
         """Reverse bits in-place.
         
-        start -- Position of first bit to reverse.
-                 Defaults to 0.
+        start -- Position of first bit to reverse. Defaults to 0.
         end -- One past the position of the last bit to reverse.
                Defaults to self.length.
         
@@ -2490,13 +2490,11 @@ class BitString(object):
     def reversebytes(self, start=None, end=None):
         """Reverse bytes in-place.
         
-        start -- Position of first bit to reverse.
-                 Defaults to 0.
+        start -- Position of first bit to reverse. Defaults to 0.
         end -- One past the position of the last bit to reverse.
                Defaults to self.length.
         
-        Raises BitStringError if end - start is not a whole number of
-        bytes long.
+        Raises BitStringError if end - start is not a multiple of 8.
         
         """
         if not self._mutable:
@@ -2521,8 +2519,7 @@ class BitString(object):
         """Return BitString generator by cutting into bits sized chunks.
         
         bits -- The size in bits of the BitString chunks to generate.
-        start -- The bit position to start the first cut.
-                 Defaults to 0.
+        start -- The bit position to start the first cut. Defaults to 0.
         end -- The bit position one past the last bit to use in the cut.
                Defaults to self.length.
         count -- If specified then at most count items are generated.
@@ -2562,8 +2559,7 @@ class BitString(object):
         which may be an empty BitString.
         
         delimiter -- The BitString used as the divider.
-        start -- The bit position to start the split.
-                 Defaults to 0.
+        start -- The bit position to start the split. Defaults to 0.
         end -- The bit position one past the last bit to use in the split.
                Defaults to self.length.
         count -- If specified then at most count items are generated.
@@ -2631,6 +2627,7 @@ class BitString(object):
             s.append(bitstringlist[-1])
         return s
 
+    # TODO: I think this should be renamed tobytes().
     def tostring(self):
         """Return the BitString as a string, padding with zero bits if needed.
         
@@ -2683,10 +2680,8 @@ class BitString(object):
         """Return whether the current BitString starts with prefix.
         
         prefix -- The BitString to search for.
-        start -- The bit position to start from.
-                 Defaults to 0.
-        end -- The bit position to end at.
-               Defaults to self.length.
+        start -- The bit position to start from. Defaults to 0.
+        end -- The bit position to end at. Defaults to self.length.
                
         """
         prefix = self._converttobitstring(prefix)
@@ -2703,10 +2698,8 @@ class BitString(object):
         """Return whether the current BitString ends with suffix.
         
         suffix -- The BitString to search for.
-        start -- The bit position to start from.
-                 Defaults to 0.
-        end -- The bit position to end at.
-               Defaults to self.length.
+        start -- The bit position to start from. Defaults to 0.
+        end -- The bit position to end at. Defaults to self.length.
                
         """
         suffix = self._converttobitstring(suffix)
