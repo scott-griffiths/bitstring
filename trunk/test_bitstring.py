@@ -63,11 +63,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(t.hex, '0xff0123456789abcdef')
         
         s = BitString(filename='test/smalltestfile')
-        s.deletebits(1, 0)
+        s.delete(1, 0)
         self.assertEqual((BitString('0b0') + s).hex, '0x0123456789abcdef')
         
         s = BitString(filename='test/smalltestfile')
-        s.deletebytes(7, 0)
+        s.delete(7*8, 0)
         self.assertEqual(s.hex, '0xef')
         
         s = BitString(filename='test/smalltestfile')
@@ -83,7 +83,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.hex, '0x012aaa6789abcdef')
         
         s = BitString(filename='test/smalltestfile')
-        s.reversebits()
+        s.reverse()
         self.assertEquals(s.hex, '0xf7b3d591e6a2c480')
         
         s = BitString(filename='test/smalltestfile')
@@ -843,36 +843,28 @@ class BitStringTest(unittest.TestCase):
     def testDeleteBits(self):
         s = BitString(bin='000111100000')
         s.bitpos = 4
-        s.deletebits(4)
+        s.delete(4)
         self.assertEqual(s.bin, '0b00010000')
-        s.deletebits(1000)
+        s.delete(1000)
         self.assertTrue(s.bin, '0b0001')
         
     def testDeleteBitsWithPosition(self):
         s = BitString(bin='000111100000')
-        s.deletebits(4, 4)
+        s.delete(4, 4)
         self.assertEqual(s.bin, '0b00010000')
 
     def testDeleteBitsErrors(self):
         s = BitString(bin='000111')
-        self.assertRaises(ValueError, s.deletebits, -3)
+        self.assertRaises(ValueError, s.delete, -3)
 
     def testDeleteBytes(self):
         s = BitString('0x00112233')
-        s.deletebytes(0, 1)
+        s.delete(0, 8)
         self.assertEqual(s.hex, '0x00112233')
-        s.deletebytes(1, 1)
+        s.delete(8, 8)
         self.assertEqual(s.hex, '0x002233')
         self.assertEqual(s.bytepos, 0)
-        s.deletebytes(3)
-        self.assertTrue(s.empty())
-
-    def testDeleteBytesErrors(self):
-        s = BitString('0x112233')
-        self.assertRaises(ValueError, s.deletebytes, -3)
-        s.bitpos = 1
-        self.assertRaises(BitStringError, s.deletebytes, 1)
-        s.deletebytes(777, 0)
+        s.delete(3*8)
         self.assertTrue(s.empty())
 
     def testGetItemWithPositivePosition(self):
@@ -1192,15 +1184,15 @@ class BitStringTest(unittest.TestCase):
         s.overwrite('0x5', 4)
         self.assertEqual(s.hex, '0xf5bfab100')
 
-    def testReverseBits(self):
+    def testReverse(self):
         s = BitString('0b0011')
-        s.reversebits()
+        s.reverse()
         self.assertEqual(s.bin, '0b1100')
         s = BitString('0b10')
-        s.reversebits()
+        s.reverse()
         self.assertEqual(s.bin, '0b01')
         s = BitString()
-        s.reversebits()
+        s.reverse()
         self.assertEqual(s.bin, '')
 
     def testInitWithConcatenatedStrings(self):
@@ -1461,14 +1453,14 @@ class BitStringTest(unittest.TestCase):
         a = '0o707' ^ BitString('0o777')
         self.assertEqual(a.oct, '0o070')
 
-    def testSeekBit(self):
+    def testSeek(self):
         a = BitString('0b11111')
-        a.seekbit(5)
+        a.seek(5)
         self.assertEqual(a.bitpos, 5)
-        a.seekbit(0)
+        a.seek(0)
         self.assertEqual(a.bitpos, 0)
-        self.assertRaises(ValueError, a.seekbit, -1)
-        self.assertRaises(ValueError, a.seekbit, 6)
+        self.assertRaises(ValueError, a.seek, -1)
+        self.assertRaises(ValueError, a.seek, 6)
     
     def testSeekByte(self):
         a = BitString('0x1122334455')
@@ -1625,11 +1617,11 @@ class BitStringTest(unittest.TestCase):
             bsl = list(a.split('0b1', count=i))
             self.assertEqual(len(bsl), i)
     
-    def testTellbit(self):
+    def testTell(self):
         s = BitString('0x12312312414')
         for i in [0, 12, 15, 13]:
             s.bitpos = i
-            self.assertEqual(s.tellbit(), i)
+            self.assertEqual(s.tell(), i)
     
     def testTellbyte(self):
         s = BitString('0x12312341241241245')
@@ -1937,7 +1929,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a[2:0:-6], '0o4523')
         self.assertEqual(a[2::-6], '0o452301')
         b = a[::-1]
-        a.reversebits()
+        a.reverse()
         self.assertEqual(b, a)
         b = BitString('0x01020408') + '0b11'
         self.assertEqual(b[::-8], '0x08040201')
@@ -2058,22 +2050,22 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, a.__setitem__, slice(0, 4), 16)
         self.assertRaises(ValueError, a.__setitem__, slice(0, 4), -9)
     
-    def testReversebitsWithSlice(self):
+    def testReverseWithSlice(self):
         a = BitString('0x0012ff')
-        a.reversebits()
+        a.reverse()
         self.assertEqual(a, '0xff4800')
-        a.reversebits(8, 16)
+        a.reverse(8, 16)
         self.assertEqual(a, '0xff1200')
         b = a[8:16]
-        b.reversebits()
+        b.reverse()
         a[8:16] = b
         self.assertEqual(a, '0xff4800')
     
-    def testReversebitsWithSliceErrors(self):
+    def testReverseWithSliceErrors(self):
         a = BitString('0x123')
-        self.assertRaises(ValueError, a.reversebits, -1, 4)
-        self.assertRaises(ValueError, a.reversebits, 10, 9)        
-        self.assertRaises(ValueError, a.reversebits, 1, 10000)
+        self.assertRaises(ValueError, a.reverse, -1, 4)
+        self.assertRaises(ValueError, a.reverse, 10, 9)        
+        self.assertRaises(ValueError, a.reverse, 1, 10000)
     
     def testInitialiseFromList(self):
         a = BitString([])
@@ -2242,7 +2234,7 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0x00112233')
         c0, c1, c2 = a.readlist('bits:8, bytes:1, bits:16')
         self.assertEqual((c0, c1, c2), (BitString('0x00'), BitString('0x11'), BitString('0x2233')))
-        a.seekbit(0)
+        a.seek(0)
         c = a.read('BiTs:16')
         self.assertEqual(c, BitString('0x0011'))
         
@@ -2320,7 +2312,7 @@ class BitStringTest(unittest.TestCase):
         a, b = s.peekbitlist(4, 9)
         self.assertEqual(a, '0b1101')
         self.assertEqual(b, '0o721')
-        s.seekbit(13)
+        s.seek(13)
         a, b = s.peekbytelist(2, 1)
         self.assertEqual(a, '0x2234')
         self.assertEqual(b, '0x56')
@@ -2719,9 +2711,8 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(TypeError, a.replace, '0b1', '0b0')
         self.assertRaises(TypeError, a.insert, '0b11', 4)
         self.assertRaises(TypeError, a.overwrite, '0b11', 4)
-        self.assertRaises(TypeError, a.deletebits, 5)
-        self.assertRaises(TypeError, a.deletebytes, 2)
-        self.assertRaises(TypeError, a.reversebits)
+        self.assertRaises(TypeError, a.delete, 5)
+        self.assertRaises(TypeError, a.reverse)
         self.assertRaises(TypeError, a.reversebytes)
         self.assertEqual(a, '0x012345')
     

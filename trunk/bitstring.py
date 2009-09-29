@@ -700,7 +700,7 @@ class BitString(object):
                     self.overwrite(value.__getitem__(slice(None, None, step)), start)
                 self._pos = bitposafter
             else:
-                self.deletebits(stop - start, start)
+                self.delete(stop - start, start)
                 if step >= 0:
                     self.insert(value, start)
                 else:
@@ -724,7 +724,7 @@ class BitString(object):
                 self.overwrite(value, key)
                 self._pos = bitposafter
             else:
-                self.deletebits(1, key)
+                self.delete(1, key)
                 self.insert(value, key)
             return
     
@@ -1966,13 +1966,13 @@ class BitString(object):
             raise ValueError("Cannot retreat by a negative amount.")
         self.bitpos -= bytes*8
 
-    def seekbit(self, bitpos):
-        """Seek to absolute bit position bitpos.
+    def seek(self, pos):
+        """Seek to absolute bit position pos.
         
-        Raises ValueError if bitpos < 0 or bitpos > self.length.
+        Raises ValueError if pos < 0 or pos > self.length.
         
         """
-        self.bitpos = bitpos
+        self.pos = pos
     
     def seekbyte(self, bytepos):
         """Seek to absolute byte position bytepos.
@@ -1982,9 +1982,9 @@ class BitString(object):
         """
         self.bytepos = bytepos
     
-    def tellbit(self):
-        """Return current position in the BitString in bits (bitpos)."""
-        return self.bitpos
+    def tell(self):
+        """Return current position in the BitString in bits (pos)."""
+        return self.pos
     
     def tellbyte(self):
         """Return current position in the BitString in bytes (bytepos).
@@ -2077,8 +2077,7 @@ class BitString(object):
             self._pos = p
             return True
 
-    def findall(self, bs, start=None, end=None, count=None,
-                bytealigned=False):
+    def findall(self, bs, start=None, end=None, count=None, bytealigned=False):
         """Find all occurences of bs. Return generator of bit positions.
         
         bs -- The BitString to find.
@@ -2294,15 +2293,15 @@ class BitString(object):
         """
         return self.__getitem__(slice(start, end, step))
     
-    def insert(self, bs, bitpos=None):
-        """Insert bs at current position, or bitpos if supplied.
+    def insert(self, bs, pos=None):
+        """Insert bs at current position, or pos if supplied.
         
         bs -- The BitString to insert.
-        bitpos -- The bit position to insert the BitString
-                  Defaults to self.bitpos.
+        pos -- The bit position to insert the BitString
+               Defaults to self.pos.
         
-        After insertion self.bitpos will be immediately after the inserted bits.
-        Raises ValueError if bitpos < 0 or bitpos > self.length.
+        After insertion self.pos will be immediately after the inserted bits.
+        Raises ValueError if pos < 0 or pos > self.length.
         
         """
         if not self._mutable:
@@ -2312,27 +2311,27 @@ class BitString(object):
             return self
         if bs is self:
             bs = self.__copy__()
-        if bitpos is None:
-            bitpos = self._pos
-        if bitpos < 0 or bitpos > self.length:
+        if pos is None:
+            pos = self._pos
+        if pos < 0 or pos > self.length:
             raise ValueError("Invalid insert position.")            
-        end = self._slice(bitpos, self.length)
-        self.truncateend(self.length - bitpos)
+        end = self._slice(pos, self.length)
+        self.truncateend(self.length - pos)
         self.append(bs)
         self.append(end)
-        self._pos = bitpos + bs.length
+        self._pos = pos + bs.length
         assert self._assertsanity()
         return
 
-    def overwrite(self, bs, bitpos=None):
-        """Overwrite with bs at current position, or bitpos if given.
+    def overwrite(self, bs, pos=None):
+        """Overwrite with bs at current position, or pos if given.
         
         bs -- The BitString to overwrite with.
-        bitpos -- The bit position to begin overwriting from.
-                  Defaults to self.bitpos.
+        pos -- The bit position to begin overwriting from.
+               Defaults to self.pos.
                   
-        After overwriting self.bitpos will be immediately after the new bits.
-        Raises ValueError if bitpos < 0 or bitpos + bs.length > self.length
+        After overwriting self.pos will be immediately after the new bits.
+        Raises ValueError if pos < 0 or pos + bs.length > self.length
         
         """
         if not self._mutable:
@@ -2342,17 +2341,17 @@ class BitString(object):
             return self
         if bs is self:
             bs = self.__copy__()
-        if bitpos is None:
-            bitpos = self._pos
-        bitposafter = bitpos + bs.length
-        if bitpos < 0 or bitpos + bs.length > self.length:
+        if pos is None:
+            pos = self._pos
+        bitposafter = pos + bs.length
+        if pos < 0 or pos + bs.length > self.length:
             raise ValueError("Overwrite exceeds boundary of BitString.")
         self._ensureinmemory()
         bs._ensureinmemory()
         
-        firstbytepos = (self._offset + bitpos) // 8
-        lastbytepos = (self._offset + bitpos + bs.length - 1) // 8
-        bytepos, bitoffset = divmod(self._offset + bitpos, 8)
+        firstbytepos = (self._offset + pos) // 8
+        lastbytepos = (self._offset + pos + bs.length - 1) // 8
+        bytepos, bitoffset = divmod(self._offset + pos, 8)
         if firstbytepos == lastbytepos:    
             mask = ((1 << bs.length) - 1) << (8 - bs.length - bitoffset)
             self._datastore[bytepos] &= ~mask
@@ -2367,7 +2366,7 @@ class BitString(object):
             # Now do all the full bytes
             self._datastore[firstbytepos + 1:lastbytepos] = bs._datastore[1:lastbytepos - firstbytepos]
             # and finally the last byte
-            bitsleft = (self._offset + bitpos + bs.length) % 8
+            bitsleft = (self._offset + pos + bs.length) % 8
             if bitsleft == 0:
                 bitsleft = 8
             mask = (1 << (8 - bitsleft)) - 1
@@ -2377,46 +2376,26 @@ class BitString(object):
         assert self._assertsanity()
         return
     
-    def deletebits(self, bits, bitpos=None):
-        """Delete bits at current position, or bitpos if given.
+    def delete(self, bits, pos=None):
+        """Delete bits at current position, or pos if given.
         
         bits -- Number of bits to delete.
-        bitpos -- Bit position to delete from. Defaults to self.bitpos.
+        pos -- Bit position to delete from. Defaults to self.pos.
         
         Raises ValueError if bits < 0.
         
         """
         if not self._mutable:
             raise TypeError("Cannot use deletebits on immutable BitString.")
-        if bitpos is None:
-            bitpos = self._pos
+        if pos is None:
+            pos = self._pos
         if bits < 0:
             raise ValueError("Cannot delete a negative number of bits.")
         # If too many bits then delete to the end.
-        bits = min(bits, self.length - bitpos)
-        end = self._slice(bitpos + bits, self.length)
-        self.truncateend(max(self.length - bitpos, 0))
+        bits = min(bits, self.length - pos)
+        end = self._slice(pos + bits, self.length)
+        self.truncateend(max(self.length - pos, 0))
         self.append(end)
-        return
-    
-    def deletebytes(self, bytes, bytepos=None):
-        """Delete bytes at current position, or bytepos if given.
-        
-        bytes -- Number of bytes to delete.
-        bytepos -- Byte position to delete from. Defaults to self.bytepos.
-        
-        Raises BitStringError if bytepos not specified and current position
-        is not byte aligned.
-        Raises ValueError if bytes < 0.
-        
-        """
-        if not self._mutable:
-            raise TypeError("Cannot use deletebytes on immutable BitString.")
-        if bytepos is None and self._pos % 8 != 0:
-            raise BitStringError("Must be byte-aligned for deletebytes().")
-        if bytepos is None:
-            bytepos = self._pos // 8
-        self.deletebits(bytes*8, bytepos*8)
         return
     
     def append(self, bs):
@@ -2458,7 +2437,7 @@ class BitString(object):
         self.bitpos += bs.length
         return
 
-    def reversebits(self, start=None, end=None):
+    def reverse(self, start=None, end=None):
         """Reverse bits in-place.
         
         start -- Position of first bit to reverse. Defaults to 0.
@@ -2467,8 +2446,7 @@ class BitString(object):
         
         Using on an empty BitString will have no effect.
         
-        Raises ValueError if start < 0, end > self.length or
-        end < start.
+        Raises ValueError if start < 0, end > self.length or end < start.
         
         """
         if not self._mutable:
@@ -2771,6 +2749,9 @@ class BitString(object):
                       """)
     se     = property(_getse, _setse,
                       doc="""The BitString as a signed exponential-Golomb code. Read and write.
+                      """)
+    pos    = property(_getbitpos, _setbitpos,
+                      doc="""The position in the BitString in bits. Read and write.
                       """)
     bitpos = property(_getbitpos, _setbitpos,
                       doc="""The position in the BitString in bits. Read and write.
