@@ -100,10 +100,6 @@ def _init_with_token(name, token_length, value):
         b = BitString(intne=int(value), length=token_length)
     elif name == 'bits':
         b = BitString(value)
-    elif name == 'bytes':
-        b = BitString(value)
-        if b.length % 8 != 0:
-            raise ValueError("'bytes' token must be given a whole byte value (bytes=%s)." % value)
     else:
         raise ValueError("Can't parse token name %s." % name)
     if token_length is not None and b.length != token_length:
@@ -113,7 +109,7 @@ def _init_with_token(name, token_length, value):
 
 
 _init_names = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
-               'bytes', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne')
+               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne')
 
 _init_names_ored = '|'.join(_init_names)
 _tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
@@ -207,9 +203,6 @@ def _tokenparser(format, keys=None):
         if m:
             name = m.group('name')
             length = m.group('len')
-            if length and name == 'bytes':
-                # Make the length unit bits, not bytes
-                length = str(int(length)*8)
             if m.group('value'):
                 value = m.group('value')
             return_values.append([name, length, value])
@@ -1600,7 +1593,7 @@ class BitString(object):
         if name in ('uint', 'int', 'intbe', 'uintbe', 'intle', 'uintle',
                     'intne', 'uintne', 'hex', 'oct', 'bin'):
             return getattr(self.readbits(length), name)
-        if name in ('bits', 'bytes'): # If it's bytes then it's length has already been converted to bits
+        if name == 'bits':
             return self.readbits(length)
         if name == 'ue':
             return self._readue()
@@ -1649,7 +1642,6 @@ class BitString(object):
                         'ue'        : next bits as unsigned exp-Golomb code
                         'se'        : next bits as signed exp-Golomb code
                         'bits:5'    : 5 bits as a BitString object
-                        'bytes:3'   : 3 bytes as a BitString object
                         
         The position in the BitString is advanced to after the read items.
         
@@ -2783,7 +2775,6 @@ def pack(format, *values, **kwargs):
                     'ue'        : next bits as unsigned exp-Golomb code
                     'se'        : next bits as signed exp-Golomb code
                     'bits:5'    : 5 bits as a BitString object
-                    'bytes:3'   : 3 bytes as a BitString object
 
     >>> s = pack('uint:12, bits', 100, '0xffe')
     >>> t = pack('bits, bin:3', s, '111')
