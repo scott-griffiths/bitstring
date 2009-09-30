@@ -2232,7 +2232,7 @@ class BitStringTest(unittest.TestCase):
         
     def testIntelligentRead5(self):
         a = BitString('0x00112233')
-        c0, c1, c2 = a.readlist('bits:8, bytes:1, bits:16')
+        c0, c1, c2 = a.readlist('bits:8, bits:8, bits:16')
         self.assertEqual((c0, c1, c2), (BitString('0x00'), BitString('0x11'), BitString('0x2233')))
         a.seek(0)
         c = a.read('BiTs:16')
@@ -2247,10 +2247,9 @@ class BitStringTest(unittest.TestCase):
         
     def testIntelligentRead7(self):
         a = BitString('0x1234')
-        a1, a2, a3, a4, a5 = a.readlist('bin:0, oct:0, hex:0, bits:0, bytes:0')
+        a1, a2, a3, a4 = a.readlist('bin:0, oct:0, hex:0, bits:0')
         self.assertTrue(a1 == a2 == a3 == '')
         self.assertTrue(a4.empty())
-        self.assertTrue(a5.empty())
         self.assertRaises(ValueError, a.read, 'int0')
         self.assertRaises(ValueError, a.read, 'uint0')
         self.assertEqual(a.bitpos, 0)
@@ -2340,7 +2339,7 @@ class BitStringTest(unittest.TestCase):
 
     def testUnpack2(self):
         s = BitString('0xff, 0b000, uint:12=100')
-        a, b, c = s.unpack('bytes:1, bits, uint:12')
+        a, b, c = s.unpack('bits:8, bits, uint:12')
         self.assertEqual(type(s), BitString)
         self.assertEqual(a, '0xff')
         self.assertEqual(type(s), BitString)
@@ -2403,7 +2402,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, b)
         a = pack('bits:3=b', b=BitString('0b101'))
         self.assertEqual(a, '0b101')
-        a = pack('bytes:3=b', b=BitString('0x001122'))
+        a = pack('bits:24=b', b=BitString('0x001122'))
         self.assertEqual(a, '0x001122')
         
     def testPackWithDict3(self):
@@ -2445,11 +2444,6 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, pack, 'bits:3', BitString('0b11'))
         self.assertRaises(ValueError, pack, 'bits:3', BitString('0b1111'))
         self.assertRaises(ValueError, pack, 'bits:12=b', b=BitString('0b11'))
-
-        s = pack('bytes:3', BitString('0x112233'))
-        self.assertRaises(ValueError, pack, 'bytes:3', BitString('0b11'))
-        self.assertRaises(ValueError, pack, 'bytes:3', BitString('0x11223344'))
-        self.assertRaises(ValueError, pack, 'bytes:2=b', b=BitString('0x123456'))
     
     def testPackNull(self):
         s = pack('')
@@ -2521,7 +2515,6 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(tp('uint:12'), [['uint', '12', None]])
         self.assertEqual(tp('int:30=-1'), [['int', '30', '-1']])
         self.assertEqual(tp('bits:10'), [['bits', '10', None]])
-        self.assertEqual(tp('bytes:2'), [['bytes', '16', None]])
         self.assertEqual(tp('hello_world'), [['hello_world', None, None]])
         self.assertEqual(tp('send'), [['send', None, None]])
         
