@@ -2820,6 +2820,10 @@ class BitStringTest(unittest.TestCase):
         self.assertFalse(s.endswith('0x34', 9, 16))
         self.assertFalse(s.endswith('0x34', 8, 15))
 
+    def testUnhashability(self):
+        s = BitString('0xf')
+        self.assertRaises(TypeError, set, s)
+        self.assertRaises(TypeError, hash, s)
 
 def main():
     unittest.main()

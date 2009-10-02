@@ -494,6 +494,9 @@ class _CatArray(_Array):
 class BitString(object):
     """A class for general bit-wise manipulations and interpretations."""
 
+    # As BitString objects are mutable, we shouldn't allow them to be hashed.
+    __hash__ = None
+
     def __init__(self, auto=None, length=None, offset=0, bytes=None,
                  filename=None, hex=None, bin=None, oct=None, uint=None,
                  int=None, uintbe=None, intbe=None, uintle=None, intle=None,
