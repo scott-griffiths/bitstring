@@ -178,14 +178,14 @@ def _tokenparser(format, keys=None):
                     assert sys.byteorder == 'big'
                     endian = '>'
             if endian == '<':
-                new_tokens.append(_replacements_le[c] for c in format)
+                new_tokens.extend(_replacements_le[c] for c in format)
             else:
                 assert endian == '>'
-                new_tokens.append(_replacements_be[c] for c in format)
+                new_tokens.extend(_replacements_be[c] for c in format)
         else:
-            new_tokens.append([token])
+            new_tokens.append(token)
 
-    for token in itertools.chain.from_iterable(new_tokens):
+    for token in new_tokens:
         if keys and token in keys:
             # Don't bother parsing it, it's part of a keyword argument
             return_values.append([token, None, None])
