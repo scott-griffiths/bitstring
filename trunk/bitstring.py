@@ -648,7 +648,7 @@ class _ConstBitString(object):
         if self.len != bs.len:
             return False
         # This could be made faster by exiting with False as early as possible.
-        if self.tostring() != bs.tostring():
+        if self.tobytes() != bs.tobytes():
             return False
         else:
             return True
@@ -892,7 +892,7 @@ class _ConstBitString(object):
         """Return the data as an ordinary string."""
         if self.len % 8 != 0:
             raise ValueError("Cannot convert to string unambiguously - not multiple of 8 bits.")
-        return self.tostring()
+        return self.tobytes()
 
     def _setuint(self, uint, length=None):
         """Reset the BitString to have given unsigned int interpretation."""
@@ -1226,7 +1226,7 @@ class _ConstBitString(object):
             raise ValueError("Cannot convert to hex unambiguously - not multiple of 4 bits.")
         if self.len == 0:
             return ''
-        s = '0x' + self.tostring().encode('hex')
+        s = '0x' + self.tobytes().encode('hex')
         if (self.len // 4) % 2 == 1:
             return s[:-1]
         else:
@@ -1264,8 +1264,7 @@ class _ConstBitString(object):
     def _ensureinmemory(self):
         """Ensure the data is held in memory, not in a file."""
         if isinstance(self._datastore, _FileArray):
-            self._datastore = _MemArray(self._datastore[:],
-                                                  self.len, self._offset)
+            self._datastore = _MemArray(self._datastore[:], self.len, self._offset)
     
     def _converttobitstring(self, bs):
         """Attemp to convert bs to a BitString and return it."""
@@ -2098,8 +2097,7 @@ class _ConstBitString(object):
             s._append(bitstringlist[-1])
         return s
 
-    # TODO: I think this should be renamed tobytes().
-    def tostring(self):
+    def tobytes(self):
         """Return the BitString as a string, padding with zero bits if needed.
         
         Up to seven zero bits will be added at the end to byte align.
@@ -2145,7 +2143,7 @@ class _ConstBitString(object):
                 f.write(p.bytes)
                 a += chunksize*8
                 p = self[a:a + chunksize*8]
-            f.write(p.tostring())
+            f.write(p.tobytes())
             
     def startswith(self, prefix, start=None, end=None):
         """Return whether the current BitString starts with prefix.

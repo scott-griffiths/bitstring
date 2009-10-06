@@ -969,7 +969,7 @@ class BitStringTest(unittest.TestCase):
         s2 = BitString(bytes=s.bytes)
         self.assertEqual(s2.bin, '0b000100110100100100101011')
         s2.append(BitString(bin='1'))
-        s3 = BitString(bytes=s2.tostring())
+        s3 = BitString(bytes=s2.tobytes())
         self.assertEqual(s3.bin, '0b00010011010010010010101110000000')
     
     def testWritingDataWithOffsets(self):
@@ -1874,7 +1874,7 @@ class BitStringTest(unittest.TestCase):
         b += a
         self.assertTrue(b == '0b0011 1111')
         self.assertEqual(a._datastore.rawbytes, '\xff')
-        self.assertEqual(a.tostring(), '\xfc')
+        self.assertEqual(a.tobytes(), '\xfc')
     
     def testNonZeroBitsAtEnd(self):
         a = BitString(bytes='\xff', length=5)
@@ -1882,7 +1882,7 @@ class BitStringTest(unittest.TestCase):
         b = BitString('0b00')
         a += b
         self.assertTrue(a == '0b1111100')
-        self.assertEqual(a.tostring(), '\xf8')
+        self.assertEqual(a.tobytes(), '\xf8')
         self.assertRaises(ValueError, a._getbytes)
 
     def testLargeOffsets(self):
@@ -2468,15 +2468,15 @@ class BitStringTest(unittest.TestCase):
             a = pack('uint:n', 0, n=i)
             self.assertEqual(a.bin, '0b'+'0'*i)
     
-    def testToString(self):
+    def testToBytes(self):
         a = BitString(bytes='\xab\x00')
-        b = a.tostring()
+        b = a.tobytes()
         self.assertEqual(a.bytes, b)
         for i in range(7):
             a.truncateend(1)
-            self.assertEqual(a.tostring(), '\xab\x00')
+            self.assertEqual(a.tobytes(), '\xab\x00')
         a.truncateend(1)
-        self.assertEqual(a.tostring(), '\xab')
+        self.assertEqual(a.tobytes(), '\xab')
 
     def testToFile(self):
         a = BitString('0x0000ff', length=17)
