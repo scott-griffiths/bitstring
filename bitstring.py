@@ -540,16 +540,12 @@ class _ConstBitString(object):
         assert self._assertsanity()  
 
     def __copy__(self):
-        """Return a new copy of the BitString."""
-        s_copy = self.__class__()
-        s_copy._pos = self._pos
-        if isinstance(self._datastore, _FileArray):
-            # Let them both point to the same (invariant) file.
-            # If either gets modified then at that point they'll be read into memory.
-            s_copy._datastore = self._datastore
-        else:
-            s_copy._datastore = copy.copy(self._datastore)
-        return s_copy
+        """Return a new copy of the _ConstBitString."""
+        # The copy can use the same datastore as it's immutable.
+        s = _ConstBitString()
+        s._datastore = self._datastore
+        s.pos = self.pos
+        return s
 
     def __add__(self, bs):
         """Concatenate BitStrings and return new BitString.
@@ -557,7 +553,8 @@ class _ConstBitString(object):
         bs -- the BitString to append.
         
         """
-        s = self.__copy__()
+        s = self.__class__()
+        s._datastore = copy.copy(self._datastore)
         bs = self._converttobitstring(bs)
         s._ensureinmemory()
         bs._ensureinmemory()
@@ -2357,7 +2354,19 @@ class BitString(_ConstBitString):
                            uint=uint, int=int, uintbe=uintbe, intbe=intbe,
                            uintle=uintle, intle=intle, uintne=uintne,
                            intne=intne, ue=ue, se=se)
-
+        
+    def __copy__(self):
+        """Return a new copy of the BitString."""
+        s_copy = BitString()
+        s_copy._pos = self._pos
+        if isinstance(self._datastore, _FileArray):
+            # Let them both point to the same (invariant) file.
+            # If either gets modified then at that point they'll be read into memory.
+            s_copy._datastore = self._datastore
+        else:
+            s_copy._datastore = copy.copy(self._datastore)
+        return s_copy
+    
     def __iadd__(self, bs):
         """Append bs to current BitString. Return self.
         
