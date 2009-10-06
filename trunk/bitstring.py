@@ -71,35 +71,35 @@ def _init_with_token(name, token_length, value):
         token_length = int(token_length)
     name = name.lower()
     if token_length == 0:
-        return BitString()
+        return _ConstBitString()
     if name in ('0x', 'hex'):
-        b = BitString(hex=value)
+        b = _ConstBitString(hex=value)
     elif name in ('0b', 'bin'):
-        b = BitString(bin=value)
+        b = _ConstBitString(bin=value)
     elif name in ('0o', 'oct'):
-        b = BitString(oct=value)
+        b = _ConstBitString(oct=value)
     elif name == 'se':
-        b = BitString(se=int(value))
+        b = _ConstBitString(se=int(value))
     elif name == 'ue':
-        b = BitString(ue=int(value))
+        b = _ConstBitString(ue=int(value))
     elif name == 'uint':
-        b = BitString(uint=int(value), length=token_length)
+        b = _ConstBitString(uint=int(value), length=token_length)
     elif name == 'int':
-        b = BitString(int=int(value), length=token_length)
+        b = _ConstBitString(int=int(value), length=token_length)
     elif name == 'uintbe':
-        b = BitString(uintbe=int(value), length=token_length)
+        b = _ConstBitString(uintbe=int(value), length=token_length)
     elif name == 'intbe':
-        b = BitString(intbe=int(value), length=token_length)
+        b = _ConstBitString(intbe=int(value), length=token_length)
     elif name == 'uintle':
-        b = BitString(uintle=int(value), length=token_length)
+        b = _ConstBitString(uintle=int(value), length=token_length)
     elif name == 'intle':
-        b = BitString(intle=int(value), length=token_length)
+        b = _ConstBitString(intle=int(value), length=token_length)
     elif name == 'uintne':
-        b = BitString(uintne=int(value), length=token_length)
+        b = _ConstBitString(uintne=int(value), length=token_length)
     elif name == 'intne':
-        b = BitString(intne=int(value), length=token_length)
+        b = _ConstBitString(intne=int(value), length=token_length)
     elif name == 'bits':
-        b = BitString(value)
+        b = _ConstBitString(value)
     else:
         raise ValueError("Can't parse token name %s." % name)
     if token_length is not None and b.len != token_length:
@@ -490,7 +490,7 @@ class _CatArray(_Array):
 
 
 class _ConstBitString(object):
-    "An immutable (and experimental) base-class for BitString."
+    "An immutable (and experimental) base class for BitString."
     def __init__(self, auto=None, length=None, offset=0, bytes=None,
                  filename=None, hex=None, bin=None, oct=None, uint=None,
                  int=None, uintbe=None, intbe=None, uintle=None, intle=None,
@@ -866,6 +866,12 @@ class _ConstBitString(object):
         self._pos = oldpos
         return found
 
+    def __hash__(self):
+        # Possibly the worst hash function in the history of mankind.
+        # But it does work...
+        # TODO: optimise this!
+        return 1
+
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
         assert self.len >= 0
@@ -885,7 +891,7 @@ class _ConstBitString(object):
     
     def _setauto(self, s, offset, length):
         """Set BitString from a BitString, file, list, tuple or string."""
-        if isinstance(s, BitString):
+        if isinstance(s, _ConstBitString):
             if length is None:
                 length = s.len - offset
             if isinstance(s._datastore, _FileArray):
@@ -906,12 +912,12 @@ class _ConstBitString(object):
             self._datastore = _FileArray(s, length, bitoffset, byteoffset)
             return
         if not isinstance(s, str):
-            raise TypeError("Cannot initialise BitString from %s." % type(s))
+            raise TypeError("Cannot initialise %s from %s." % (self.__class__.__name__, type(s)))
         
         self._setbytes('', 0)        
         tokens = _tokenparser(s)
         for token in tokens:
-            self._datastore.appendarray(_init_with_token(*token)._datastore)
+            self._append(_init_with_token(*token))
         # Finally we honour the offset and length
         self._truncatestart(offset)
         if length is not None:
@@ -1055,7 +1061,7 @@ class _ConstBitString(object):
         if length is not None and length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
         self._setuint(uint, length)
-        self.reversebytes()
+        self._reversebytes()
     
     def _getuintle(self):
         if self.len % 8 != 0:
@@ -1066,7 +1072,7 @@ class _ConstBitString(object):
         if length is not None and length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
         self._setint(int, length)
-        self.reversebytes()
+        self._reversebytes()
     
     def _getintle(self):
         if self.len % 8 != 0:
@@ -1116,7 +1122,7 @@ class _ConstBitString(object):
         remainingpart = i + 1 - (1 << leadingzeros)
         binstring = '0'*leadingzeros + '1' + BitString(uint=remainingpart,
                                                        length=leadingzeros).bin[2:]
-        self.bin = binstring
+        self._setbin(binstring)
 
     def _getue(self):
         """Return data as unsigned exponential-Golomb code.
@@ -1142,7 +1148,7 @@ class _ConstBitString(object):
             u = (i*2) - 1
         else:
             u = -2*i
-        self.ue = u
+        self._setue(u)
 
     def _getse(self):
         """Return data as signed exponential-Golomb code.
@@ -1440,6 +1446,32 @@ class _ConstBitString(object):
         assert self._assertsanity()
         return
     
+    def _reversebytes(self, start=None, end=None):
+        """Reverse bytes in-place.
+        """
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.len
+        if start < 0:
+            raise ValueError("start must be >= 0 in reversebytes().")
+        if end > self.len:
+            raise ValueError("end must be <= self.len in reversebytes().")
+        if end < start:
+            raise ValueError("end must be >= start in reversebytes().")
+        if (end - start) % 8 != 0:
+            raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
+        # Make the start occur on a byte boundary
+        newoffset = 8 - start%8
+        if newoffset == 8:
+            newoffset = 0
+        self._datastore.setoffset(newoffset)
+        # Now just reverse the byte data
+        toreverse = self._datastore[(newoffset + start)//8:(newoffset + end)//8]
+        toreverse.reverse()
+        self._datastore[(newoffset + start)//8:(newoffset + end)//8] = toreverse
+        
+        
     def empty(self):
         """Return True if the BitString is empty (has zero length)."""
         return self.len == 0
@@ -2729,20 +2761,7 @@ class BitString(_ConstBitString):
         Raises BitStringError if end - start is not a multiple of 8.
         
         """
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
-        if start < 0:
-            raise ValueError("start must be >= 0 in reversebytes().")
-        if end > self.len:
-            raise ValueError("end must be <= self.len in reversebytes().")
-        if end < start:
-            raise ValueError("end must be >= start in reversebytes().")
-        if (end - start) % 8 != 0:
-            raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
-        # TODO: This could be made much more efficient...
-        self[start:end] = BitString(bytes=self[start:end].bytes[::-1])
+        self._reversebytes(start, end)
  
     int    = property(_ConstBitString._getint, _ConstBitString._setint,
                       doc="""The BitString as a two's complement signed int. Read and write.

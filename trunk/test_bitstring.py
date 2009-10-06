@@ -2941,6 +2941,16 @@ class BitStringTest(unittest.TestCase):
         a += '0xe'
         self.assertEqual(b, '0xf')
         self.assertEqual(a, '0xfe')
+        c = BitString(a)
+        self.assertEqual(a, c)
+    
+    def testConstBitStringHashibility(self):
+        a = _ConstBitString('0x1')
+        b = _ConstBitString('0x2')
+        c = _ConstBitString('0x1')
+        c.pos = 3
+        s = set((a, b, c))
+        self.assertEqual(len(s), 2)
 
 def main():
     unittest.main()
