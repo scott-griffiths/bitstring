@@ -2951,6 +2951,15 @@ class BitStringTest(unittest.TestCase):
         c.pos = 3
         s = set((a, b, c))
         self.assertEqual(len(s), 2)
+    
+    def testConstBitStringCopy(self):
+        a = _ConstBitString('0xabc')
+        a.pos = 11
+        b = copy.copy(a)
+        b.pos = 4
+        self.assertEqual(id(a._datastore), id(b._datastore))
+        self.assertEqual(a.pos, 11)
+        self.assertEqual(b.pos, 4)
 
 def main():
     unittest.main()
