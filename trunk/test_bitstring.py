@@ -32,7 +32,7 @@ import unittest
 import bitstring
 import copy
 import sys
-from bitstring import BitString, BitStringError, pack
+from bitstring import BitString, BitStringError, _ConstBitString, pack
 
 
 class BitStringTest(unittest.TestCase):
@@ -2685,28 +2685,27 @@ class BitStringTest(unittest.TestCase):
             self.assertRaises(ValueError, pack, f, 100)
 
     def testImmutableBitStrings(self):
-        a = BitString('0x012345')
-        a._mutable = False
+        a = _ConstBitString('0x012345')
         self.assertEqual(a, '0x012345')
         b = BitString('0xf') + a
-        self.assertEqual(b, '0xf012345')
-        self.assertRaises(TypeError, a.append, b)
-        self.assertRaises(TypeError, a.prepend, b)
-        self.assertRaises(TypeError, a.__iadd__, b)
-        self.assertRaises(TypeError, a.__imul__, 5)
-        self.assertRaises(TypeError, a.__ilshift__, 3)
-        self.assertRaises(TypeError, a.__irshift__, 3)
-        self.assertRaises(TypeError, a.truncateend, 5)
-        self.assertRaises(TypeError, a.truncatestart, 5)
-        self.assertRaises(TypeError, a.__setitem__, (0), '0b0')
-        self.assertRaises(TypeError, a.__delitem__, 5)
-        self.assertRaises(TypeError, a.replace, '0b1', '0b0')
-        self.assertRaises(TypeError, a.insert, '0b11', 4)
-        self.assertRaises(TypeError, a.overwrite, '0b11', 4)
-        self.assertRaises(TypeError, a.delete, 5)
-        self.assertRaises(TypeError, a.reverse)
-        self.assertRaises(TypeError, a.reversebytes)
-        self.assertEqual(a, '0x012345')
+        #self.assertEqual(b, '0xf012345')
+        #self.assertRaises(AttributeError, a.append, b)
+        #self.assertRaises(AttributeError, a.prepend, b)
+        #self.assertRaises(AttributeError, a.__iadd__, b)
+        #self.assertRaises(AttributeError, a.__imul__, 5)
+        #self.assertRaises(AttributeError, a.__ilshift__, 3)
+        #self.assertRaises(AttributeError, a.__irshift__, 3)
+        #self.assertRaises(AttributeError, a.truncateend, 5)
+        #self.assertRaises(AttributeError, a.truncatestart, 5)
+        #self.assertRaises(AttributeError, a.__setitem__, (0), '0b0')
+        #self.assertRaises(AttributeError, a.__delitem__, 5)
+        #self.assertRaises(AttributeError, a.replace, '0b1', '0b0')
+        #self.assertRaises(AttributeError, a.insert, '0b11', 4)
+        #self.assertRaises(AttributeError, a.overwrite, '0b11', 4)
+        #self.assertRaises(AttributeError, a.delete, 5)
+        #self.assertRaises(AttributeError, a.reverse)
+        #self.assertRaises(AttributeError, a.reversebytes)
+        #self.assertEqual(a, '0x012345')
     
     def testReverseBytes(self):
         a = BitString('0x123456')
@@ -2824,6 +2823,124 @@ class BitStringTest(unittest.TestCase):
         s = BitString('0xf')
         self.assertRaises(TypeError, set, s)
         self.assertRaises(TypeError, hash, s)
+
+    def testConstBitStringCreation(self):
+        sl = [_ConstBitString(uint=i, length=7) for i in range(15)]
+        self.assertEqual(len(set(sl)), 15)
+        
+    def testConstBitStringFunctions(self):
+        s = _ConstBitString('0xf, 0b1')
+        self.assertEqual(type(s), _ConstBitString)
+        t = copy.copy(s)
+        self.assertEqual(type(t), _ConstBitString)
+        a = s + '0o3'
+        self.assertEqual(type(a), _ConstBitString)
+        b = a[0:4]
+        self.assertEqual(type(b), _ConstBitString)
+        b = a[4:3]
+        self.assertEqual(type(b), _ConstBitString)
+        b = a[5:2:-1]
+        self.assertEqual(type(b), _ConstBitString)
+        b = ~a
+        self.assertEqual(type(b), _ConstBitString)
+        b = a << 2
+        self.assertEqual(type(b), _ConstBitString)
+        b = a >> 2
+        self.assertEqual(type(b), _ConstBitString)
+        b = a*2
+        self.assertEqual(type(b), _ConstBitString)
+        b = a*0
+        self.assertEqual(type(b), _ConstBitString)
+        b = a & ~a
+        self.assertEqual(type(b), _ConstBitString)
+        b = a | ~a
+        self.assertEqual(type(b), _ConstBitString)
+        b = a ^ ~a
+        self.assertEqual(type(b), _ConstBitString)
+        b = a._slice(4, 4)
+        self.assertEqual(type(b), _ConstBitString)
+        b = a.readbits(4)
+        self.assertEqual(type(b), _ConstBitString)
+
+    def testConstBitStringProperties(self):
+        a = _ConstBitString('0x123123')
+        try:
+            a.hex = '0x234'
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.oct = '0o234'
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.bin = '0b101'
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.ue = 3453
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.se = -123
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.int = 432
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.uint = 4412
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.intle = 123
+            self.assertTrue(False)
+        except AttributeError:
+            pass        
+        try:
+            a.uintle = 4412
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.intbe = 123
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.uintbe = 4412
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.intne = 123
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.uintne = 4412
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+        try:
+            a.bytes = 'hello'
+            self.assertTrue(False)
+        except AttributeError:
+            pass
+
+    def testConstBitStringMisc(self):
+        a = _ConstBitString('0xf')
+        b = a
+        a += '0xe'
+        self.assertEqual(b, '0xf')
+        self.assertEqual(a, '0xfe')
 
 def main():
     unittest.main()
