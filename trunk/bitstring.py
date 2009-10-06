@@ -436,59 +436,6 @@ class _MemArray(_Array):
     rawbytes = property(_getrawbytes)
 
 
-class _CatArray(_Array):
-    
-    def __init__(self, array):
-        self.arraylist = [array]
-        
-    def appendarray(self, array):
-        #self.arraylist.append(array)
-        self.arraylist[0].appendarray(array.arraylist[0])
-    
-    def prependarray(self, array):
-        #self.arraylist.insert(0, array)
-        self.arraylist[0].prependarray(array.arraylist[0])
-        
-    def __getitem__(self, key):
-        self.flatten()
-        return self.arraylist[0].__getitem__(key)
-    
-    def __setitem__(self, key, value):
-        self.flatten()
-        self.arraylist[0].__setitem__(key, value)
-    
-    def _getrawbytes(self):
-        self.flatten()
-        return self.arraylist[0].rawbytes
-    
-    def __copy__(self):
-        return _CatArray(copy.copy(self.arraylist[0]))
-    
-    def setoffset(self, newoffset):
-        self.arraylist[0].setoffset(newoffset)
-    
-    def _getoffset(self):
-        return self.arraylist[0].offset
-    
-    def _getbitlength(self):
-        return sum(a.bitlength for a in self.arraylist)
-    
-    def _getbytelength(self):
-        return (self.bitlength + self.offset + 7) // 8
-    
-    def flatten(self):
-        """Concatenate the arraylist items down to a single item."""
-        a = self.arraylist[0]
-        for b in self.arraylist[1:]:
-            a.appendarray(b)
-        self.arraylist = [a]
-    
-    rawbytes = property(_getrawbytes)
-    offset = property(_getoffset)
-    bitlength = property(_getbitlength)
-    bytelength = property(_getbytelength)
-
-
 class _ConstBitString(object):
     "An immutable (and experimental) base class for BitString."
     def __init__(self, auto=None, length=None, offset=0, bytes=None,
@@ -931,15 +878,15 @@ class _ConstBitString(object):
         if length is None:
             # Use to the end of the data
             length = (len(data) - (offset // 8)) * 8 - offset
-            self._datastore = _CatArray(_MemArray(data, length, offset))
+            self._datastore = _MemArray(data, length, offset)
         else:
             if length + offset > len(data)*8:
                 raise ValueError("Not enough data present. Need %d bits, have %d." % \
                                      (length + offset, len(data)*8))
             if length == 0:
-                self._datastore = _CatArray(_MemArray('', 0, 0))
+                self._datastore = _MemArray('', 0, 0)
             else:
-                self._datastore = _CatArray(_MemArray(data, length, offset))
+                self._datastore = _MemArray(data, length, offset)
 
     def _getbytes(self):
         """Return the data as an ordinary string."""
@@ -1189,7 +1136,7 @@ class _ConstBitString(object):
             bytes = [int(padded_binstring[x:x + 8], 2) for x in xrange(0, len(padded_binstring), 8)]
         except ValueError:
             raise ValueError("Invalid character in bin initialiser %s." % binstring)
-        self._datastore = _CatArray(_MemArray(bytes, length, 0))
+        self._datastore = _MemArray(bytes, length, 0)
 
     def _getbin(self):
         """Return interpretation as a binary string."""
@@ -1267,7 +1214,7 @@ class _ConstBitString(object):
                 hexlist.append(_single_byte_from_hex_string(hexstring[-1]))
             except ValueError:
                 raise ValueError("Invalid symbol in hex initialiser.")
-        self._datastore = _CatArray(_MemArray(''.join(hexlist), length, offset))
+        self._datastore = _MemArray(''.join(hexlist), length, offset)
 
     def _gethex(self):
         """Return the hexadecimal representation as a string prefixed with '0x'.
@@ -1317,8 +1264,8 @@ class _ConstBitString(object):
     def _ensureinmemory(self):
         """Ensure the data is held in memory, not in a file."""
         if isinstance(self._datastore, _FileArray):
-            self._datastore = _CatArray(_MemArray(self._datastore[:],
-                                                  self.len, self._offset))
+            self._datastore = _MemArray(self._datastore[:],
+                                                  self.len, self._offset)
     
     def _converttobitstring(self, bs):
         """Attemp to convert bs to a BitString and return it."""

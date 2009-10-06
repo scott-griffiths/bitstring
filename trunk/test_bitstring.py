@@ -1410,7 +1410,7 @@ class BitStringTest(unittest.TestCase):
         a = BitString(filename='test/smalltestfile')
         b = BitString(filename='test/smalltestfile')[:]
         self.assertTrue(isinstance(a._datastore, bitstring._FileArray))
-        self.assertTrue(isinstance(b._datastore, bitstring._CatArray))
+        self.assertTrue(isinstance(b._datastore, bitstring._MemArray))
         self.assertEqual(a._datastore[0], b._datastore[0])
         self.assertEqual(a._datastore[1:5], b._datastore[1:5])
     
@@ -2134,15 +2134,6 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, '0b0101010101010101010')
         a = BitString('0xff').join([])
         self.assertTrue(a.empty())
-
-    def testCatArray(self):
-        m1 = bitstring._MemArray('\xff', 8, 0)
-        c1 = bitstring._CatArray(m1)
-        self.assertEqual(c1.rawbytes, '\xff')
-        m2 = bitstring._MemArray('\xff', 1, 1)
-        c1.appendarray(bitstring._CatArray(m2))
-        self.assertEqual(c1.bitlength, 9)
-        self.assertEqual(c1.offset, 0)
     
     def testAddingBitpos(self):
         a = BitString('0xff')
