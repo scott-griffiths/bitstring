@@ -670,7 +670,7 @@ class _ConstBitString(object):
         Raises BitStringError if the BitString is empty.
         
         """
-        if self.empty():
+        if not self:
             raise BitStringError("Cannot invert empty BitString.")
         s = self.__class__(int=~(self.int), length=self.len)
         return s
@@ -683,7 +683,7 @@ class _ConstBitString(object):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if self.empty():
+        if not self:
             raise ValueError("Cannot shift an empty BitString.")
         s = self[n:]
         s._append(self.__class__(length=min(n, self.len)))
@@ -697,7 +697,7 @@ class _ConstBitString(object):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if self.empty():
+        if not self:
             raise ValueError("Cannot shift an empty BitString.")
         s = self.__class__(length=min(n, self.len))
         s._append(self[:-n])
@@ -916,7 +916,7 @@ class _ConstBitString(object):
         
     def _getuint(self):
         """Return data as an unsigned int."""
-        if self.empty():
+        if not self:
             raise ValueError("An empty BitString cannot be interpreted as an integer.")
         # Special case if the datastore is only one byte long.
         if self._datastore.bytelength == 1:
@@ -1346,7 +1346,7 @@ class _ConstBitString(object):
     def _append(self, bs):
         """Append a BitString to the current BitString."""
         bs = self._converttobitstring(bs)
-        if bs.empty():
+        if not bs:
             return self
         # Can't modify file, so ensure it's read into memory
         self._ensureinmemory()
@@ -1413,11 +1413,6 @@ class _ConstBitString(object):
         toreverse = self._datastore[(newoffset + start)//8:(newoffset + end)//8]
         toreverse.reverse()
         self._datastore[(newoffset + start)//8:(newoffset + end)//8] = toreverse
-        
-        
-    def empty(self):
-        """Return True if the BitString is empty (has zero length)."""
-        return self.len == 0
     
     def unpack(self, *format):
         """Interpret the whole BitString using format and return list.
@@ -1814,7 +1809,7 @@ class _ConstBitString(object):
         
         """
         bs = self._converttobitstring(bs)
-        if bs.empty():
+        if not bs:
             raise ValueError("Cannot find an empty BitString.")
         if start is None:
             start = 0
@@ -1942,7 +1937,7 @@ class _ConstBitString(object):
             start = 0
         if end is None:
             end = self.len
-        if bs.empty():
+        if not bs:
             raise ValueError("Cannot find an empty BitString.")
         # Search chunks starting near the end and then moving back
         # until we find bs.
@@ -2040,7 +2035,7 @@ class _ConstBitString(object):
         
         """  
         delimiter = self._converttobitstring(delimiter)
-        if delimiter.empty():
+        if not delimiter:
             raise ValueError("split delimiter cannot be empty.")
         if start is None:
             start = 0
@@ -2501,7 +2496,7 @@ class BitString(_ConstBitString):
         """        
         old = self._converttobitstring(old)
         new = self._converttobitstring(new)
-        if old.empty():
+        if not old:
             raise ValueError("Empty BitString cannot be replaced.")
         newpos = self._pos
         # Adjust count for use in split()
@@ -2571,7 +2566,7 @@ class BitString(_ConstBitString):
         
         """
         bs = self._converttobitstring(bs)
-        if bs.empty():
+        if not bs:
             return self
         if bs is self:
             bs = self.__copy__()
@@ -2598,7 +2593,7 @@ class BitString(_ConstBitString):
         
         """
         bs = self._converttobitstring(bs)
-        if bs.empty():
+        if not bs:
             return self
         if bs is self:
             bs = self.__copy__()
@@ -2670,7 +2665,7 @@ class BitString(_ConstBitString):
         
         """
         bs = self._converttobitstring(bs)
-        if bs.empty():
+        if not bs:
             return self
         # Can't modify file so ensure it's read into memory
         self._ensureinmemory()
