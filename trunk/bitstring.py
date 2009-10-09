@@ -2595,13 +2595,14 @@ class BitString(_ConstBitString):
         bs = self._converttobitstring(bs)
         if not bs:
             return self
-        if bs is self:
-            bs = self.__copy__()
         if pos is None:
             pos = self._pos
         bitposafter = pos + bs.len
         if pos < 0 or pos + bs.len > self.len:
             raise ValueError("Overwrite exceeds boundary of BitString.")
+        if bs is self:
+            # Just overwriting with self, so do nothing.
+            return
         self._ensureinmemory()
         bs._ensureinmemory()
         
