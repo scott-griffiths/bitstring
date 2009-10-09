@@ -32,6 +32,7 @@ import unittest
 import bitstring
 import copy
 import sys
+import os
 from bitstring import BitString, BitStringError, _ConstBitString, pack
 
 
@@ -693,6 +694,8 @@ class BitStringTest(unittest.TestCase):
         s1.insert('0xee', 24)
         self.assertEqual(s1.hex, '0x12ff34ee56')
         self.assertEqual(s1.bitpos, 32)
+        self.assertRaises(ValueError, s1.insert, '0b1', -1)
+        self.assertRaises(ValueError, s1.insert, '0b1', 1000)
 
     def testInsertNull(self):
         s = BitString(hex='0x123').insert(BitString(), 3)
@@ -821,6 +824,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual((s1.hex, s1.bytepos), ('0x01ff456', 2))
         s1.overwrite('0xff', 0)
         self.assertEqual((s1.hex, s1.bytepos), ('0xffff456', 1))
+    
+    def testOverwriteWithSelf(self):
+        s = BitString('0x123')
+        s.overwrite(s)
+        self.assertEqual(s, '0x123')
     
     def testTruncateAsserts(self):
         s = BitString('0x001122')
@@ -1696,6 +1704,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(c, '0xcdef')
         self.assertEqual(a, '0xab')
         self.assertEqual(b, '0xcd')
+        a = BitString('0x0011223344')
+        a.pos = 12
+        a.replace('0x11', '0xfff', bytealigned=True)
+        self.assertEqual(a.pos, 8)
+        self.assertEqual(a, '0x00fff223344')
 
     def testReplaceWithSelf(self):
         a = BitString('0b11')
@@ -1992,6 +2005,9 @@ class BitStringTest(unittest.TestCase):
         a[-1::-8] = '0xffdd'
         self.assertEqual(a, '0xddff')
         self.assertRaises(ValueError, a.__setitem__, slice(3, 4, -1), '0x12')
+        b = BitString('0x00')
+        b[::-1] = '0b10001111'
+        self.assertEqual(b, '0xf1')
 
     def testInsertingUsingSetItem(self):
         a = BitString()
@@ -2007,6 +2023,8 @@ class BitStringTest(unittest.TestCase):
         a.bytepos = 6
         a[0:0] = '0xff'
         self.assertEqual(a.bytepos, 1)
+        a[8:0] = '0x00000'
+        self.assertTrue(a.startswith('0xff00000adead'))
     
     def testInsertionOrderAndBitpos(self):
         b = BitString()
@@ -2493,6 +2511,28 @@ class BitStringTest(unittest.TestCase):
         f.close()
         b = BitString(filename='temp_bitstring_unit_testing_file')
         self.assertEqual(b, '0x222222')
+        os.remove('temp_bitstring_unit_testing_file')
+    
+    def testToFileWithLargerFile(self):
+        a = BitString(length=16000000)
+        a[1] = '0b1'
+        a[-2] = '0b1'
+        f = open('temp_bitstring_unit_testing_file' ,'wb')
+        a.tofile(f)
+        f.close()
+        b = BitString(filename='temp_bitstring_unit_testing_file')
+        self.assertEqual(b.len, 16000000)
+        self.assertEqual(b[1], '0b1')
+
+        # This is needed for complete code coverage, but takes ages at the moment!        
+        #f = open('temp_bitstring_unit_testing_file' ,'wb')
+        #a[1:].tofile(f)
+        #f.close()
+        #b = BitString(filename='temp_bitstring_unit_testing_file')
+        #print b[:80]
+        #self.assertEqual(b.len, 16000000)
+        #self.assertEqual(b[0], '0b1')
+        os.remove('temp_bitstring_unit_testing_file')
         
     def testTokenParser(self):
         tp = bitstring._tokenparser
