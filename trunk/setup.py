@@ -5,7 +5,7 @@ kwds = {}
 kwds['long_description'] = open('readme.txt').read()
 
 setup(name='bitstring',
-      version='0.5.2',
+      version='1.0.0',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
@@ -15,7 +15,7 @@ setup(name='bitstring',
       py_modules=['bitstring'],
       platforms='all',
       classifiers = [
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
@@ -24,6 +24,7 @@ setup(name='bitstring',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.0',
+        'Programming Language :: Python :: 3.1',
         'Topic :: Software Development :: Libraries :: Python Modules',
       ],
       **kwds
