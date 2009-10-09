@@ -1,6 +1,113 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+-------------------------------------------------------
+October 9th 2009: version 1.0.0 for Python 2.x released
+-------------------------------------------------------
+Version 1 is here!
+
+This is the first release not to carry the 'beta' tag. It contains a couple of
+minor new features but is principally a release to fix the API. If you've been
+using an older version then you almost certainly will have to recode a bit. If
+you're not ready to do that then you may wish to delay updating.
+
+So the bad news is that there are lots of small changes to the API. The good
+news is that all the changes are pretty trivial, the new API is cleaner and
+more 'Pythonic', and that by making it version 1.0 I'm promising not to
+tweak it again for some time.
+
+** API Changes **
+
+* New read / peek functions for returning multiple items.
+
+The functions read, readbits, readbytes, peek, peekbits and peekbytes now only
+ever return a single item, never a list.
+
+The new functions readlist, readbitlist, readbytelist, peeklist, peekbitlist
+and peekbytelist can be used to read multiple items and will always return a
+list.
+
+So a line like:
+
+>>> a, b = s.read('uint:12, hex:32')
+
+becomes
+
+>>> a, b = s.readlist('uint:12, hex:32')
+
+* Renaming / removing functions.
+
+Functions have been renamed as follows:
+
+seekbit -> seek
+tellbit -> tell
+reversebits -> reverse
+deletebits -> delete
+tostring -> tobytes
+
+and a couple have been removed altogether:
+
+deletebytes - use delete instead.
+empty - use 'not s' rather than 's.empty()'.
+
+* Renaming parameters.
+
+The parameters 'startbit' and 'endbit' have been renamed 'start' and 'end'.
+This affects the functions slice, find, findall, rfind, reverse, cut and split.
+
+The parameter 'bitpos' has been renamed to 'pos'. The affects the functions
+seek, tell, insert, overwrite and delete.
+
+* Mutating methods return None rather than self.
+
+This means that you can't chain functions together so
+
+>>> s.append('0x00').prepend('0xff')
+>>> t = s.reverse()
+
+Needs to be rewritten
+
+>>> s.append('0x00')
+>>> s.prepend('0xff)
+>>> s.reverse()
+>>> t = s
+
+Affects truncatestart, truncateend, insert, overwrite, delete, append,
+prepend, reverse and reversebytes.
+
+* Properties renamed.
+
+The 'data' property has been renamed to 'bytes'. Also if the BitString is not a
+whole number of bytes then a ValueError exception will be raised when using
+'bytes' as a 'getter'.
+
+Properties 'len' and 'pos' have been added to replace 'length' and 'bitpos',
+although the longer names have not been removed so you can continue to use them
+if you prefer.
+
+* Other changes.
+
+The unpack function now always returns a list, never a single item.
+
+BitStrings are now 'unhashable', so calling hash on one or making a set will
+fail.
+
+The colon separating the token name from its length is now mandatory. So for
+example BitString('uint12=100') becomes BitString('uint:12=100').
+
+Removed support for the 'bytes' token in format strings. Instead of
+s.read('bytes:4') use s.read('bits:32'). 
+
+** New features **
+
+* Added endswith and startswith functions.
+
+These do much as you'd expect; they return True or False depending on whether
+the BitString starts or ends with the parameter.
+
+>>> BitString('0xef342').startswith('0b11101')
+True
+
 ----------------------------------------------------------
 September 11th 2009: version 0.5.2 for Python 2.x released
 ----------------------------------------------------------
