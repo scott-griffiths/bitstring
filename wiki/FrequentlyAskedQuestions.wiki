@@ -13,7 +13,7 @@ The module is pure Python at the moment, and I've got no plans to move any of it
 
 ===When is it coming out of beta?===
 
-Probably in October 2009.
+October 9th 2009. :-)
 
 ----
 
@@ -27,7 +27,7 @@ There will probably be a port of version 1.0 appearing in October 2009.
 
 ===Will Python 2.4 and 2.5 continue to be supported?===
 
-Yes, until at least version 1.0. I am very tempted to drop support for older Python versions after this point because there are lots of simplifications I can make using newer Python 2.6 syntax and features, plus this will ease the transition to Python 3.
+Now that version 1.0 has been reached I am very tempted to drop support for older Python versions. This is because there are lots of simplifications I can make using newer Python 2.6 syntax and features, plus this will ease the transition to Python 3.
 
 ----
 
