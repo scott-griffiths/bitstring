@@ -13,7 +13,7 @@ The module is pure Python at the moment, and I've got no plans to move any of it
 
 ===When is it coming out of beta?===
 
-When it's ready :-). I still find myself wanting to tweak parts of the current interface, as well as having a healthy list of features to add so I'm not rushing to get to version 1.0. If pressed, I'd say it is likely to hit that milestone in late 2009, but who knows.
+Probably in October 2009.
 
 ----
 
@@ -21,7 +21,7 @@ When it's ready :-). I still find myself wanting to tweak parts of the current i
 
 I made a port of version 0.4.0 to Python 3 as an experiment, partly to see how much demand there would be. The answer is not a lot - I estimate that there have been twenty Python 2 downloads per Python 3 download. As there's only one of me and my time is precious I haven't ported any later versions, but I am planning to do so when I get to version 1.0.
 
-If you really need a later version for Python 3 then feel free to ask, I could be persuaded.
+There will probably be a port of version 1.0 appearing in October 2009.
 
 ----
 
@@ -40,11 +40,5 @@ That depends. If you have any feature requests then please take a look at the Is
 ===Do you have a feature roadmap?===
 
 Not really, but you can get a good idea of the future direction by looking through the open enhancement requests on the Issues tab.
-
-----
-
-===How do you deal with big-endian / little-endian data?===
-
-Currently (version 0.5.0) all of the interpretations are big-endian, both byte-wise and bit-wise. I am planning to add little-endian integer types for whole-byte !BitStrings (tentatively called `uintle` and `intle`). In the meantime to get a little-endian value, byte reverse the !BitString and use the big-endian interpretation (e.g. `le = s[::-8].int`)
 
 ----
