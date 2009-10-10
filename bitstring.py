@@ -3,6 +3,7 @@
 Module for bit-wise data manipulation.
 http://python-bitstring.googlecode.com
 """
+from __future__ import print_function
 
 __licence__ = """
 The MIT License
@@ -28,9 +29,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 __author__ = "Scott Griffiths"
+
 
 import array
 import copy
@@ -40,11 +42,22 @@ import struct
 import re
 import sys
 import itertools
+import platform
+import io
+
+# For 2.6 / 3.x coexistence
+# Yes this is very very hacky.
+python_version = platform.python_version_tuple()[0]
+python_version = int(python_version)
+assert python_version in [2, 3]
+if python_version == 2:
+    from future_builtins import zip
+else:    
+    xrange = range
+    file = io.IOBase
 
 # Maximum number of digits to use in __str__ and __repr__.
 _maxchars = 250
-
-os.SEEK_SET = 0 # For backward compatibility with Python 2.4
 
 def _single_byte_from_hex_string(h):
     """Return a byte equal to the input hex string."""
@@ -57,13 +70,22 @@ def _single_byte_from_hex_string(h):
     if len(h) > 2:
         raise ValueError("Hex string can't be more than one byte in size")
     if len(h) == 2:
-        return struct.pack('B', i)  
+        return bytes(struct.pack('B', i))
     elif len(h) == 1:
-        return struct.pack('B', i<<4)
+        return bytes(struct.pack('B', i<<4))
+        
+def _hex_string_from_single_byte(b):
+    """Return a two character hex string from a single byte value."""
+    if b > 15:
+        return hex(b)[2:]
+    elif b > 0:
+        return '0' + hex(b)[2:]
+    else:
+        return '00'
 
 def _tidyupinputstring(s):
     """Return string made lowercase and with all whitespace removed."""
-    s = string.join(s.split(), '').lower()
+    s = ''.join(s.split()).lower()
     return s
     
 def _init_with_token(name, token_length, value):
@@ -150,7 +172,7 @@ def _tokenparser(format, keys=None):
     
     """
     # Split tokens be ',' and remove whitespace
-    tokens = (string.join(f.split(), '') for f in format.split(','))
+    tokens = (''.join(f.split()) for f in format.split(','))
     return_values = []
     new_tokens = []
     for token in tokens:
@@ -160,13 +182,7 @@ def _tokenparser(format, keys=None):
             # Split the format string into a list of 'q', '4h' etc.
             formatlist = re.findall(_structsplitre, m.group('format'))
             # Now deal with mulitplicative factors, 4h -> hhhh etc.
-            format = []
-            for f in formatlist:
-                if len(f) != 1:
-                    format.append(f[-1]*int(f[:-1]))
-                else:
-                    format.append(f)
-            format = ''.join(format)
+            format = ''.join([f[-1]*int(f[:-1]) if len(f) != 1 else f for f in formatlist])
             endian = m.group('endian')
             if endian == '@':
                 # Native endianness
@@ -453,10 +469,10 @@ class _ConstBitString(object):
         if initialisers.count(None) == len(initialisers):
             # No initialisers, so initialise with nothing or zero bits
             if length is not None:
-                data = '\x00' * ((length + 7) // 8)
+                data = b'\x00' * ((length + 7) // 8)
                 self._setbytes(data, 0, length)
             else:
-                self._setbytes('', 0)
+                self._setbytes(b'', 0)
             return
         initfuncs = (self._setauto, self._setbytes, self._setfile,
                      self._sethex, self._setbin, self._setoct,
@@ -858,7 +874,7 @@ class _ConstBitString(object):
         if not isinstance(s, str):
             raise TypeError("Cannot initialise %s from %s." % (self.__class__.__name__, type(s)))
         
-        self._setbytes('', 0)        
+        self._setbytes(b'', 0)        
         tokens = _tokenparser(s)
         for token in tokens:
             self._append(_init_with_token(*token))
@@ -884,7 +900,7 @@ class _ConstBitString(object):
                 raise ValueError("Not enough data present. Need %d bits, have %d." % \
                                      (length + offset, len(data)*8))
             if length == 0:
-                self._datastore = _MemArray('', 0, 0)
+                self._datastore = _MemArray(b'', 0, 0)
             else:
                 self._datastore = _MemArray(data, length, offset)
 
@@ -1128,10 +1144,8 @@ class _ConstBitString(object):
         binstring = binstring[offset:length + offset]
         # pad with zeros up to byte boundary if needed
         boundary = ((length + 7) // 8) * 8
-        if len(binstring) < boundary:
-            padded_binstring = binstring + '0'*(boundary - length)
-        else:
-            padded_binstring = binstring
+        padded_binstring = binstring + '0'*(boundary - length) \
+                           if len(binstring) < boundary else binstring
         try:
             bytes = [int(padded_binstring[x:x + 8], 2) for x in xrange(0, len(padded_binstring), 8)]
         except ValueError:
@@ -1214,18 +1228,26 @@ class _ConstBitString(object):
                 hexlist.append(_single_byte_from_hex_string(hexstring[-1]))
             except ValueError:
                 raise ValueError("Invalid symbol in hex initialiser.")
-        self._datastore = _MemArray(''.join(hexlist), length, offset)
+        data = b''.join(hexlist)
+        self._datastore = _MemArray(data, length, offset)
 
     def _gethex(self):
         """Return the hexadecimal representation as a string prefixed with '0x'.
         
         Raises a ValueError if the BitString's length is not a multiple of 4.
         
-        """        
+        """
         if self.len % 4 != 0:
             raise ValueError("Cannot convert to hex unambiguously - not multiple of 4 bits.")
         if self.len == 0:
             return ''
+        if python_version == 3:
+            s = self.tobytes()
+            hexstrings = [_hex_string_from_single_byte(i) for i in s]
+            if (self.len // 4) % 2 == 1:
+                # only a nibble left at the end
+                hexstrings[-1] = hexstrings[-1][0]
+            return '0x' + ''.join(hexstrings)
         s = '0x' + self.tobytes().encode('hex')
         if (self.len // 4) % 2 == 1:
             return s[:-1]
@@ -2105,7 +2127,10 @@ class _ConstBitString(object):
         unusedbits = 8 - self.len % 8
         if unusedbits != 8:
             # This is horrible. Shouldn't have to copy the string here!
-            return d[:-1] + chr(ord(d[-1]) & (255 << unusedbits))
+            if python_version == 2:
+                return d[:-1] + chr(ord(d[-1]) & (255 << unusedbits))
+            else:
+                return d[:-1] + bytes([d[-1] & (255 << unusedbits)])
         return d
 
     def tofile(self, f):
@@ -2128,8 +2153,7 @@ class _ConstBitString(object):
                 p = self._datastore[a:min(a + chunksize, bytelen - 1)]
             f.write(p)
             # Now the final byte, ensuring that unused bits at end are set to 0.
-            unusedbits = 8 - self.len % 8
-            f.write(chr(self._datastore[-1] & (255 << unusedbits)))
+            f.write(self[-1].tobytes())
         else:
             # Really quite inefficient...
             a = 0
@@ -2820,13 +2844,13 @@ def pack(format, *values, **kwargs):
                 length = int(length)
             if value is None:
                 # Take the next value from the ones provided
-                value = value_iter.next()
+                value = next(value_iter)
             s.append(_init_with_token(name, length, value))
     except StopIteration:
         raise ValueError("Not enough parameters present to pack according to the "
                          "format. %d values are needed." % len(tokens))
     try:
-        value_iter.next()
+        next(value_iter)
     except StopIteration:
         # Good, we've used up all the *values.
         return s
@@ -2834,11 +2858,11 @@ def pack(format, *values, **kwargs):
 
 
 if __name__=='__main__':
-    print "Running bitstring module unit tests:"
+    print ("Running bitstring module unit tests:")
     try:
         import test_bitstring
         test_bitstring.unittest.main(test_bitstring)
     except ImportError:
-        print "Error: cannot find test_bitstring.py"
+        print ("Error: cannot find test_bitstring.py")
 
  
