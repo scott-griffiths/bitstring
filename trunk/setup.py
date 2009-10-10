@@ -5,7 +5,7 @@ kwds = {}
 kwds['long_description'] = open('readme.txt').read()
 
 setup(name='bitstring',
-      version='1.0.0',
+      version='1.0.1',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',

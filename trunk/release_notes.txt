@@ -1,6 +1,17 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+--------------------------------------------------------
+October 10th 2009: version 1.0.1 for Python 3.x released
+--------------------------------------------------------
+This is a straight port of version 1.0.0 to Python 3.
+
+For changes since the last Python 3 release read all the way down in this
+document to version 0.4.3.
+
+This version will also work for Python 2.6, but there's no advantage to using
+it over the 1.0.0 release. It won't work for anything before 2.6.
+
 -------------------------------------------------------
 October 9th 2009: version 1.0.0 for Python 2.x released
 -------------------------------------------------------
