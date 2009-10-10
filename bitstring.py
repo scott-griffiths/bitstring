@@ -47,10 +47,9 @@ import io
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
-python_version = platform.python_version_tuple()[0]
-python_version = int(python_version)
-assert python_version in [2, 3]
-if python_version == 2:
+_python_version = int(platform.python_version_tuple()[0])
+assert _python_version in [2, 3]
+if _python_version == 2:
     from future_builtins import zip
 else:    
     xrange = range
@@ -1241,7 +1240,7 @@ class _ConstBitString(object):
             raise ValueError("Cannot convert to hex unambiguously - not multiple of 4 bits.")
         if self.len == 0:
             return ''
-        if python_version == 3:
+        if _python_version == 3:
             s = self.tobytes()
             hexstrings = [_hex_string_from_single_byte(i) for i in s]
             if (self.len // 4) % 2 == 1:
@@ -2127,7 +2126,7 @@ class _ConstBitString(object):
         unusedbits = 8 - self.len % 8
         if unusedbits != 8:
             # This is horrible. Shouldn't have to copy the string here!
-            if python_version == 2:
+            if _python_version == 2:
                 return d[:-1] + chr(ord(d[-1]) & (255 << unusedbits))
             else:
                 return d[:-1] + bytes([d[-1] & (255 << unusedbits)])

@@ -2988,6 +2988,15 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a.pos, 11)
         self.assertEqual(b.pos, 4)
 
+    def testPython26stuff(self):
+        s = BitString('0xff')
+        self.assertTrue(isinstance(s.tobytes(), bytes))
+        self.assertTrue(isinstance(s.bytes, bytes))
+    
+    def testPython3stuff(self):
+        if bitstring._python_version == 3:
+            pass
+
 def main():
     unittest.main()
 

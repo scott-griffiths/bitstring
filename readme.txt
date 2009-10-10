@@ -11,7 +11,6 @@ reversed, inserted into, overwritten, etc. with simple functions
 or slice notation. They can also be read from, searched, and
 navigated in, similar to a file or stream.
 
-
 Installation
 ------------
 To install run the ``setup.py`` script with the 'install' argument::
@@ -32,9 +31,9 @@ To run the unit tests::
 
      python test_bitstring.py
 
-The unit tests should all pass for Python 2.4, 2.5 and 2.6.
+The unit tests for version 1.0.1 should all pass for Python 2.6, 3.0 and 3.1.
 
----
+----
 
 The bitstring module has been released as open source under the MIT License.
 Copyright (c) 2009 Scott Griffiths
