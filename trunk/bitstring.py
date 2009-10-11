@@ -302,21 +302,22 @@ class _Array(object):
 class _FileArray(_Array):
     """A class that mimics the array.array type but gets data from a file object."""
     
-    def __init__(self, source, bitlength, offset, byteoffset):
+    def __init__(self, source, bitlength, offset):
         # byteoffset - bytes to ignore at start of file
         # bitoffset - bits (0-7) to ignore after the byteoffset
+        byteoffset, bitoffset = divmod(offset, 8)
         filelength = os.path.getsize(source.name)
         self.source = source
         if bitlength is None:
             self.bytelength = filelength - byteoffset
-            bitlength = self.bytelength*8 - offset
+            bitlength = self.bytelength*8 - bitoffset
         else:
-            self.bytelength = (bitlength + offset + 7) // 8
+            self.bytelength = (bitlength + bitoffset + 7) // 8
         if self.bytelength > filelength - byteoffset:
             raise ValueError("File is not long enough for specified BitString length and offset.")
         self.byteoffset = byteoffset
         self.bitlength = bitlength
-        self.offset = offset
+        self.offset = bitoffset
     
     def __getitem__(self, key):
         try:
@@ -348,7 +349,7 @@ class _FileArray(_Array):
 class _MemArray(_Array):
     """Stores raw bytes together with a bit offset and length."""
     
-    def __init__(self, data, bitlength, offset):
+    def __init__(self, data, bitlength=0, offset=0):
         self._rawarray = array.array('B', data[offset // 8: (offset + bitlength + 7)//8])
         self.offset = offset % 8
         self.bitlength = bitlength
@@ -469,9 +470,9 @@ class _ConstBitString(object):
             # No initialisers, so initialise with nothing or zero bits
             if length is not None:
                 data = b'\x00' * ((length + 7) // 8)
-                self._setbytes(data, 0, length)
+                self._setbytes(data, length)
             else:
-                self._setbytes(b'', 0)
+                self._setbytes(b'')
             return
         initfuncs = (self._setauto, self._setbytes, self._setfile,
                      self._sethex, self._setbin, self._setoct,
@@ -490,15 +491,12 @@ class _ConstBitString(object):
         init = [(d, func) for (d, func) in zip(initialisers, initfuncs) if d is not None]
         assert len(init) == 1
         (d, func) = init[0]
-        if d == filename:
-            byteoffset, offset = divmod(offset, 8)
-            func(d, offset, length, byteoffset)
-        elif d in (se, ue):
+        if d in (se, ue):
             func(d)
         elif d in (int, uint, intbe, uintbe, intle, uintle, intne, uintne):
             func(d, length)
         else:
-            func(d, offset, length)
+            func(d, length, offset)
         assert self._assertsanity()  
 
     def __copy__(self):
@@ -848,32 +846,28 @@ class _ConstBitString(object):
         self.bytes = ''
         self._pos = 0
     
-    def _setauto(self, s, offset, length):
+    def _setauto(self, s, length, offset):
         """Set BitString from a BitString, file, list, tuple or string."""
         if isinstance(s, _ConstBitString):
             if length is None:
                 length = s.len - offset
             if isinstance(s._datastore, _FileArray):
-                byteoffset, bitoffset = divmod(s._datastore.offset + \
-                                               s._datastore.byteoffset*8  + \
-                                               offset, 8)
-                self._datastore = _FileArray(s._datastore.source, length, bitoffset,
-                                             byteoffset)
+                offset += s._datastore.offset + s._datastore.byteoffset*8
+                self._datastore = _FileArray(s._datastore.source, length, offset)
             else:
-                self._setbytes(s._datastore.rawbytes, s._offset + offset, length)
+                self._setbytes(s._datastore.rawbytes, length, s._offset + offset)
             return
         if isinstance(s, (list, tuple)):
             # Evaluate each item as True or False and set bits to 1 or 0.
-            self._setbin(''.join([str(int(bool(x))) for x in s]), offset, length)
+            self._setbin(''.join([str(int(bool(x))) for x in s]), length, offset)
             return
         if isinstance(s, file):
-            byteoffset, bitoffset = divmod(offset, 8)
-            self._datastore = _FileArray(s, length, bitoffset, byteoffset)
+            self._datastore = _FileArray(s, length, offset)
             return
         if not isinstance(s, str):
             raise TypeError("Cannot initialise %s from %s." % (self.__class__.__name__, type(s)))
         
-        self._setbytes(b'', 0)        
+        self._setbytes(b'')        
         tokens = _tokenparser(s)
         for token in tokens:
             self._append(_init_with_token(*token))
@@ -882,13 +876,12 @@ class _ConstBitString(object):
         if length is not None:
             self._truncateend(self.len - length)
         
-    def _setfile(self, filename, offset, lengthinbits=None, byteoffset=None):
+    def _setfile(self, filename, length, offset):
         "Use file as source of bits."
         source = open(filename, 'rb')
-        self._datastore = _FileArray(source, lengthinbits,
-                                     offset, byteoffset)
+        self._datastore = _FileArray(source, length, offset)
 
-    def _setbytes(self, data, offset=0, length=None):
+    def _setbytes(self, data, length=None, offset=0):
         """Set the data from a string."""
         if length is None:
             # Use to the end of the data
@@ -899,7 +892,7 @@ class _ConstBitString(object):
                 raise ValueError("Not enough data present. Need %d bits, have %d." % \
                                      (length + offset, len(data)*8))
             if length == 0:
-                self._datastore = _MemArray(b'', 0, 0)
+                self._datastore = _MemArray(b'')
             else:
                 self._datastore = _MemArray(data, length, offset)
 
@@ -927,7 +920,7 @@ class _ConstBitString(object):
         if leadingzeros > 0:
             hexstring = '0'*leadingzeros + hexstring
         offset = (4*hexlengthneeded) - length
-        self._sethex(hexstring, offset)
+        self._sethex(hexstring, None, offset)
         
     def _getuint(self):
         """Return data as an unsigned int."""
@@ -1127,7 +1120,7 @@ class _ConstBitString(object):
         self._pos = oldpos
         return value
     
-    def _setbin(self, binstring, offset=0, length=None):
+    def _setbin(self, binstring, length=None, offset=0):
         """Reset the BitString to the value given in binstring."""
         binstring = _tidyupinputstring(binstring)
         # remove any 0b if present
@@ -1149,7 +1142,7 @@ class _ConstBitString(object):
             bytes = [int(padded_binstring[x:x + 8], 2) for x in xrange(0, len(padded_binstring), 8)]
         except ValueError:
             raise ValueError("Invalid character in bin initialiser %s." % binstring)
-        self._datastore = _MemArray(bytes, length, 0)
+        self._datastore = _MemArray(bytes, length)
 
     def _getbin(self):
         """Return interpretation as a binary string."""
@@ -1159,7 +1152,7 @@ class _ConstBitString(object):
         c = (_byte2bits[x] for x in self._datastore)
         return '0b' + ''.join(c)[self._offset:self._offset + self.len]
 
-    def _setoct(self, octstring, offset=0, length=None):
+    def _setoct(self, octstring, length=None, offset=0):
         """Reset the BitString to have the value given in octstring."""
         octstring = _tidyupinputstring(octstring)
         # remove any 0o if present
@@ -1181,7 +1174,7 @@ class _ConstBitString(object):
                 binlist.append(_oct2bits[int(i)])
             except ValueError:
                 raise ValueError("Invalid symbol '%s' in oct initialiser." % i)
-        self._setbin(''.join(binlist), offset=offset, length=length)
+        self._setbin(''.join(binlist), length, offset)
 
     def _getoct(self):
         """Return interpretation as an octal string."""
@@ -1198,7 +1191,7 @@ class _ConstBitString(object):
         self._pos = oldbitpos
         return ''.join(octlist)
     
-    def _sethex(self, hexstring, offset=0, length=None):
+    def _sethex(self, hexstring, length=None, offset=0):
         """Reset the BitString to have the value given in hexstring."""
         hexstring = _tidyupinputstring(hexstring)
         # remove any 0x if present
@@ -1387,7 +1380,7 @@ class _ConstBitString(object):
             self._clear()
             return self
         offset = (self._offset + bits) % 8
-        self._setbytes(self._datastore[bits // 8:], offset, length=self.len - bits)
+        self._setbytes(self._datastore[bits // 8:], self.len - bits, offset)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
         return
@@ -1405,8 +1398,7 @@ class _ConstBitString(object):
         newlength_in_bytes = (self._offset + self.len - bits + 7) // 8
         # Ensure that the position is still valid
         self._pos = max(0, min(self._pos, self.len - bits))
-        self._setbytes(self._datastore[:newlength_in_bytes], offset=self._offset,
-                      length=self.len - bits)
+        self._setbytes(self._datastore[:newlength_in_bytes], self.len - bits, self._offset)
         assert self._assertsanity()
         return
     
