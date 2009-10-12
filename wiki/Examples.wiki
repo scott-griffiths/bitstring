@@ -31,12 +31,12 @@ With integers the length of the BitString in bits needs to be supplied. It must 
 }}}
 or
 {{{
->>> ui = BitString('uint6=15')
+>>> ui = BitString('uint:6=15')
 }}}
 
 You can also combine the different methods to join sections together:
 {{{
->>> s = BitString('0xfe, 0b110, int12=100, 0o7')
+>>> s = BitString('0xfe, 0b110, int:12=100, 0o7')
 }}}
 
 ===Interpreting `BitString` objects===
@@ -68,7 +68,7 @@ Slicing
 }}}
 Joining lists
 {{{
->>> bsl = ['0b0', '0b1', BitString('uint3=5'), '0xf']
+>>> bsl = ['0b0', '0b1', BitString('uint:3=5'), '0xf']
 >>> print BitString().join(bsl)
 0b011011111
 }}}
@@ -83,7 +83,7 @@ BitString('0xaa00bb')
 >>> s.truncateend(4)
 >>> s
 BitString('0xa00b')
->>> s.deletebits(8, 4)  # delete 8 bits at bit position 4
+>>> s.delete(8, 4)  # delete 8 bits at bit position 4
 >>> s
 BitString('0xab')
 }}}
