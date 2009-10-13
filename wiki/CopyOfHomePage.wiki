@@ -1,14 +1,20 @@
 #labels Deprecated
 *bitstring* is a pure Python module designed to help make the creation and analysis of binary data as painless as possible.
 
-`BitString` objects can be constructed from integers, hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
+!BitStrings can be constructed from integers (big and little endian), hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
 
-Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and excellent code coverage is given by over 300 unit tests. It is available for Python 2.4, 2.5, and 2.6, with a separate version for Python 3.
+Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and excellent code coverage is given by over 300 unit tests. It is available for Python 2.4+ and for Python 3.
 
 ----
 
 ==Examples==
 
+Creation:
+{{{
+>>> a = BitString('0xff, 0b101, 0o65, uint:6=22')
+>>> b = pack('intle:16, hex=a, 0b1', 100, a='0x34f')
+>>> c = pack('<16h', *range(16))
+}}}
 Different interpretations, slicing and concatenation:
 {{{
 >>> a = BitString('0x1af')
@@ -23,7 +29,7 @@ BitString('0o0657056705674')
 Reading data sequentially.
 {{{
 >>> b = BitString('0x160120f')
->>> b.read('uint12, uint12, bin3')
+>>> b.readlist('uint:12, uint:12, bin:3')
 [352, 288, '0b111']
 >>> b[0:12] = 408
 >>> b.hex
@@ -38,242 +44,37 @@ True
 >>> c.readbyte().hex
 '0x48'
 >>> c.insert('0b0000')
-BitString('0x12480f')
 >>> del c[4:12]
-BitString('0x180f')
 }}}
 
-See the [Examples Wiki] and the [http://python-bitstring.googlecode.com/svn/tags/bitstring-0.5.1/bitstring_manual.pdf user manual] for more examples.
-----
-==Documentation==
-
-The complete documentation for the bitstring module is now available as a PDF. You can also view this on the [Documentation Wiki].
-
-*[http://python-bitstring.googlecode.com/svn/tags/bitstring-0.5.0/bitstring_manual.pdf Download the bitstring documentation (PDF)]*
-
-Also see [ClassHelp] for quick reference.
+See the [Examples Wiki] and the [http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.0/bitstring_manual.pdf user manual] for more examples.
 
 ----
 == News ==
 ----
 
-==September 14th 2009: version 0.5.2 for Python 2.x released==
+==October 10th 2009: version 1.0 for Python 2.x and 3.x released==
 
-===Finally some tools for dealing with endianness!===
+Version 1 is here!
 
-New interpretations are now available for whole-byte !BitStrings that treat them as big, little, or native-endian.
+This is the first release not to carry the 'beta' tag. It contains a couple of
+minor new features but is principally a release to fix the API. If you've been
+using an older version then you almost certainly will have to recode a bit. If
+you're not ready to do that then you may wish to delay updating.
 
-{{{
->>> big = BitString(intbe=1, length=16)    # or BitString('intbe:16=1') if you prefer. 
->>> little = BitString(intle=1, length=16)
->>> print big.hex, little.hex
-0x0001 0x0100
->>> print big.intbe, little.intle
-1 1
-}}}
+So the bad news is that there are lots of small changes to the API. The good
+news is that all the changes are pretty trivial, the new API is cleaner and
+more 'Pythonic', and that by making it version 1.0 I'm promising not to
+tweak it again for some time.
 
-==='Struct'-like compact format codes===
+For full details on the API changes and for earlier changes, see the [http://python-bitstring.googlecode.com/svn/trunk/release_notes.txt release notes].
 
-To save some typing when using `pack`, `unpack`, `read` and `peek`, compact format codes based on those used in the struct and array modules have been added. These must start with a character indicating the endianness (`>`, `<` or `@` for big, little and native-endian), followed by characters giving the format:
-
-|| `b` || 1-byte signed int ||
-|| `B` || 1-byte unsigned int ||
-|| `h` || 2-byte signed int ||
-|| `H` || 2-byte unsigned int ||
-|| `l` || 4-byte signed int ||
-|| `L` || 4-byte unsigned int ||
-|| `q` || 8-byte signed int ||
-|| `Q` || 8-byte unsigned int ||
-
-For example:
-{{{
->>> s = bitstring.pack('<4h', 0, 1, 2, 3)
-}}}
-creates a !BitString with four little-endian 2-byte integers. While
-{{{
->>> x, y, z = s.read('>hhl')
-}}}
-reads them back as two big-endian two-byte integers and one four-byte big endian integer.
-
-Of course you can combine this new format with the old ones however you like:
-{{{
->>> s.unpack('<h, intle:24, uint:5, bin')
-[0, 131073, 0, '0b0000000001100000000']
-}}}
-==August 26th 2009: version 0.5.1 for Python 2.x released==
-
-This update introduces pack and unpack functions for creating and dissembling
-!BitStrings.
-
-===New pack() and unpack() functions.===
-
-The module level `pack` function provides a flexible new method for creating
-`BitString` objects. Tokens for `BitString` 'literals' can be used in the same way as in
-the constructor.
-{{{
->>> from bitstring import BitString, pack
->>> a = pack('0b11, 0xff, 0o77, int:5=-1, se=33')
-}}}
-You can also leave placeholders in the format, which will be filled in by
-the values provided.
-{{{
->>> b = pack('uint:10, hex:4', 33, 'f')
-}}}
-Finally you can use a dictionary or keywords.
-{{{
->>> c = pack('bin=a, hex=b, bin=a', a='010', b='ef')
-}}}
-The `unpack` function is similar to the `read` function except that it always
-unpacks from the start of the BitString.
-{{{
->>> x, y = b.unpack('uint:10, hex')
-}}}
-If a token is given without a length (as above) then it will expand to fill the
-remaining bits in the BitString. This also now works with `read()` and `peek()`.
-
-===New tostring() and tofile() functions.===
-
-The `tostring()` function just returns the data as a string, with up to seven
-zero bits appended to byte align. The `tofile()` function does the same except
-writes to a file object.
-{{{
->>> f = open('myfile', 'wb')
->>> BitString('0x1234ff').tofile(f)
-}}}
-
-* Other changes.
-
-The use of '=' is now mandatory in 'auto' initialisers. Tokens like '`uint12 100`' will
-no longer work. Also the use of a '`:`' before the length is encouraged, but not yet
-mandated. So the previous example should be written as '`uint:12=100`'.
-
-The 'auto' initialiser will now take a file object.
-{{{
->>> f = open('myfile', 'rb')
->>> s = BitString(f)
-}}}
-==July 19th 2009: version 0.5.0 for Python 2.x released==
-
-This update breaks backward compatibility in a couple of areas. The only one
-you probably need to be concerned about is the change to the default for
-bytealigned in find, replace, split, etc.
-
-See the user manual for more details on each of these items.
-
-===Expanded abilities of 'auto' initialiser===
-
-More types can be initialised through the 'auto' initialiser. For example
-instead of
-{{{
->>> a = BitString(uint=44, length=16)
-}}}
-you can write
-{{{
->>> a = BitString('uint16=44')
-}}}
-Also, different comma-separated tokens will be joined together, e.g.
-{{{
->>> b = BitString('0xff') + 'int8=-5'
-}}}
-can be written
-{{{
->>> b = BitString('0xff, int8=-5')
-}}}
-===New formatted `read()` and `peek()` functions===
-
-These takes a format string similar to that used in the auto initialiser.
-If only one token is provided then a single value is returned, otherwise a
-list of values is returned.
-{{{
->>> start_code, width, height = s.read('hex32, uint12, uint12')
-}}}
-is equivalent to
-{{{
->>> start_code = s.readbits(32).hex
->>> width = s.readbits(12).uint
->>> height = s.readbits(12).uint
-}}}
-The tokens are:
-
-  int n   : n bits as an unsigned integer.
-
-  uint n  : n bits as a signed integer.
-
-  hex n   : n bits as a hexadecimal string.
-
-  oct n   : n bits as an octal string.
-
-  bin n   : n bits as a binary string.
-
-  ue      : next bits as an unsigned exp-Golomb.
-
-  se      : next bits as a signed exp-Golomb.
-
-  bits n  : n bits as a new `BitString`.
-
-  bytes n : n bytes as a new `BitString`.
-
-See the user manual for more details.
-
-===`hex()` and `oct()` functions removed===
-
-The special functions for `hex()` and `oct()` have been removed. Please use the
-`hex` and `oct` properties instead.
-{{{
->>> hex(s)
-}}}
-becomes
-{{{ 
->>> s.hex
-}}}
-===join made a member function===
-
-The join function must now be called on a `BitString` object, which will be
-used to join the list together. You may need to recode slightly:
-{{{
->>> s = bitstring.join('0x34', '0b1001', '0b1')
-}}}
-becomes
-{{{
->>> s = BitString().join('0x34', '0b1001', '0b1')
-}}}
-
-===More than one value allowed in readbits, readbytes, peekbits and peekbytes===
-
-If you specify more than one bit or byte length then a list of BitStrings will
-be returned.
-{{{
->>> a, b, c = s.readbits(10, 5, 5)
-}}}
-is equivalent to
-{{{
->>> a = readbits(10)
->>> b = readbits(5)
->>> c = readbits(5)
-}}}
-===`bytealigned` defaults to `False`, and is at the end of the parameter list===
-
-Functions that have a `bytealigned` paramater have changed so that it now
-defaults to `False` rather than `True`. Also its position in the parameter list
-has changed to be at the end. You may need to recode slightly (sorry!)
-
-===`readue` and `readse` functions have been removed===
-
-Instead you should use the new `read` function with a `ue` or `se` token:
-{{{
->>> i = s.readue()
-}}}
-becomes
-{{{
->>> i = s.read('ue')
-}}}
-This is more flexible as you can read multiple items in one go, plus you can
-now also use the `peek` function with `ue` and `se`.
-
-===Minor bugs fixed===
-
-See the issue tracker for more details.
-
+There is one version for Python 2.4 / 2.5 / 2.6 (version 1.0.0) and another for Python 3.0 / 3.1 (version 1.0.1). 
 ----
+==Documentation==
 
-For earlier changes, see the [http://python-bitstring.googlecode.com/svn/trunk/release_notes.txt release notes].
+The complete documentation for the bitstring module is now available as a PDF. You can also view this on the [Manual Wiki].
+
+*[http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.0/bitstring_manual.pdf Download the bitstring documentation (PDF)]*
+
+Also see [ClassHelp] for quick reference.
