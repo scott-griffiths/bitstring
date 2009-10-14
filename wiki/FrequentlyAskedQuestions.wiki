@@ -7,7 +7,7 @@ _disclaimer_: None of these questions have really been frequently asked. I'm jus
 
 ===How well optimised is the code? Are you planning to port to C?===
 
-The module is pure Python at the moment, and I've got no plans to move any of it to C. That may change in the future, but certainly won't happen before it comes out of beta. Attention has been paid to using the right algorithms to maximise the speed, and I have some grand plans for further algorithmic improvements in the medium term. If you have a particular case that you think is unreasonably slow then please tell me about it. 
+The module is pure Python at the moment, and I've got no plans to move any of it to C. That may change in the future, but it isn't a priority right now. Attention has been paid to using the right algorithms to maximise the speed, and I have some grand plans for further algorithmic improvements in the medium term. If you have a particular case that you think is unreasonably slow then please tell me about it. 
 
 ----
 
@@ -15,19 +15,21 @@ The module is pure Python at the moment, and I've got no plans to move any of it
 
 October 9th 2009. :-)
 
+The current version is 'production/stable'. This means that you can expect the API to remain stable for the whole of version 1. There will still be new features, but I'll try really hard not to break backwards compatibility.
+
 ----
 
 ===What's the deal with Python 3 support?===
 
-I made a port of version 0.4.0 to Python 3 as an experiment, partly to see how much demand there would be. The answer is not a lot - I estimate that there have been twenty Python 2 downloads per Python 3 download. As there's only one of me and my time is precious I haven't ported any later versions, but I am planning to do so when I get to version 1.0.
-
-There will probably be a port of version 1.0 appearing in October 2009.
+I'm hoping to release future versions that are both Python 2.6 and 3.x compatible. I tried this as an experiment for version 1.0.1 and it worked surprisingly well.
 
 ----
 
 ===Will Python 2.4 and 2.5 continue to be supported?===
 
 Now that version 1.0 has been reached I am very tempted to drop support for older Python versions. This is because there are lots of simplifications I can make using newer Python 2.6 syntax and features, plus this will ease the transition to Python 3.
+
+There will probably be updates for 2.4 and 2.5, but I'm not planning to include support in all releases.
 
 ----
 
