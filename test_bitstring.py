@@ -33,7 +33,7 @@ import bitstring
 import copy
 import sys
 import os
-from bitstring import BitString, BitStringError, _ConstBitString, pack
+from bitstring import BitString, BitStringError, _Bits, pack
 
 
 class BitStringTest(unittest.TestCase):
@@ -2712,7 +2712,7 @@ class BitStringTest(unittest.TestCase):
             self.assertRaises(ValueError, pack, f, 100)
 
     def testImmutableBitStrings(self):
-        a = _ConstBitString('0x012345')
+        a = _Bits('0x012345')
         self.assertEqual(a, '0x012345')
         b = BitString('0xf') + a
         #self.assertEqual(b, '0xf012345')
@@ -2852,45 +2852,45 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(TypeError, hash, s)
 
     def testConstBitStringCreation(self):
-        sl = [_ConstBitString(uint=i, length=7) for i in range(15)]
+        sl = [_Bits(uint=i, length=7) for i in range(15)]
         self.assertEqual(len(set(sl)), 15)
         
     def testConstBitStringFunctions(self):
-        s = _ConstBitString('0xf, 0b1')
-        self.assertEqual(type(s), _ConstBitString)
+        s = _Bits('0xf, 0b1')
+        self.assertEqual(type(s), _Bits)
         t = copy.copy(s)
-        self.assertEqual(type(t), _ConstBitString)
+        self.assertEqual(type(t), _Bits)
         a = s + '0o3'
-        self.assertEqual(type(a), _ConstBitString)
+        self.assertEqual(type(a), _Bits)
         b = a[0:4]
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a[4:3]
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a[5:2:-1]
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = ~a
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a << 2
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a >> 2
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a*2
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a*0
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a & ~a
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a | ~a
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a ^ ~a
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a._slice(4, 4)
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
         b = a.readbits(4)
-        self.assertEqual(type(b), _ConstBitString)
+        self.assertEqual(type(b), _Bits)
 
     def testConstBitStringProperties(self):
-        a = _ConstBitString('0x123123')
+        a = _Bits('0x123123')
         try:
             a.hex = '0x234'
             self.assertTrue(False)
@@ -2963,7 +2963,7 @@ class BitStringTest(unittest.TestCase):
             pass
 
     def testConstBitStringMisc(self):
-        a = _ConstBitString('0xf')
+        a = _Bits('0xf')
         b = a
         a += '0xe'
         self.assertEqual(b, '0xf')
@@ -2972,15 +2972,15 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, c)
     
     def testConstBitStringHashibility(self):
-        a = _ConstBitString('0x1')
-        b = _ConstBitString('0x2')
-        c = _ConstBitString('0x1')
+        a = _Bits('0x1')
+        b = _Bits('0x2')
+        c = _Bits('0x1')
         c.pos = 3
         s = set((a, b, c))
         self.assertEqual(len(s), 2)
     
     def testConstBitStringCopy(self):
-        a = _ConstBitString('0xabc')
+        a = _Bits('0xabc')
         a.pos = 11
         b = copy.copy(a)
         b.pos = 4
