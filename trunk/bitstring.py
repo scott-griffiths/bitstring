@@ -92,35 +92,35 @@ def _init_with_token(name, token_length, value):
         token_length = int(token_length)
     name = name.lower()
     if token_length == 0:
-        return _ConstBitString()
+        return _Bits()
     if name in ('0x', 'hex'):
-        b = _ConstBitString(hex=value)
+        b = _Bits(hex=value)
     elif name in ('0b', 'bin'):
-        b = _ConstBitString(bin=value)
+        b = _Bits(bin=value)
     elif name in ('0o', 'oct'):
-        b = _ConstBitString(oct=value)
+        b = _Bits(oct=value)
     elif name == 'se':
-        b = _ConstBitString(se=int(value))
+        b = _Bits(se=int(value))
     elif name == 'ue':
-        b = _ConstBitString(ue=int(value))
+        b = _Bits(ue=int(value))
     elif name == 'uint':
-        b = _ConstBitString(uint=int(value), length=token_length)
+        b = _Bits(uint=int(value), length=token_length)
     elif name == 'int':
-        b = _ConstBitString(int=int(value), length=token_length)
+        b = _Bits(int=int(value), length=token_length)
     elif name == 'uintbe':
-        b = _ConstBitString(uintbe=int(value), length=token_length)
+        b = _Bits(uintbe=int(value), length=token_length)
     elif name == 'intbe':
-        b = _ConstBitString(intbe=int(value), length=token_length)
+        b = _Bits(intbe=int(value), length=token_length)
     elif name == 'uintle':
-        b = _ConstBitString(uintle=int(value), length=token_length)
+        b = _Bits(uintle=int(value), length=token_length)
     elif name == 'intle':
-        b = _ConstBitString(intle=int(value), length=token_length)
+        b = _Bits(intle=int(value), length=token_length)
     elif name == 'uintne':
-        b = _ConstBitString(uintne=int(value), length=token_length)
+        b = _Bits(uintne=int(value), length=token_length)
     elif name == 'intne':
-        b = _ConstBitString(intne=int(value), length=token_length)
+        b = _Bits(intne=int(value), length=token_length)
     elif name == 'bits':
-        b = _ConstBitString(value)
+        b = _Bits(value)
     else:
         raise ValueError("Can't parse token name %s." % name)
     if token_length is not None and b.len != token_length:
@@ -452,8 +452,8 @@ class _MemArray(_Array):
     rawbytes = property(_getrawbytes)
 
 
-class _ConstBitString(object):
-    "An immutable (and experimental) base class for BitString."
+class _Bits(object):
+    "An immutable sequence of bits."
     def __init__(self, auto=None, length=None, offset=0, bytes=None,
                  filename=None, hex=None, bin=None, oct=None, uint=None,
                  int=None, uintbe=None, intbe=None, uintle=None, intle=None,
@@ -462,7 +462,7 @@ class _ConstBitString(object):
         self._file = None
 
         if length is not None and length < 0:
-            raise ValueError("BitString length cannot be negative.")
+            raise ValueError("%s length cannot be negative." % self.__class__.__name__)
         
         initialisers = [auto, bytes, filename, hex, bin, oct, int, uint, ue, se,
                         intbe, uintbe, intle, uintle, intne, uintne]
@@ -481,7 +481,7 @@ class _ConstBitString(object):
                      self._setuintle, self._setintne, self._setuintne)
         assert len(initialisers) == len(initfuncs)
         if initialisers.count(None) < len(initialisers) - 1:
-            raise BitStringError("You must only specify one initialiser when initialising the BitString.")
+            raise BitStringError("You must only specify one initialiser.")
         if (se is not None or ue is not None) and length is not None:
             raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
         if (int or uint or intbe or uintbe or intle or uintle or intne or uintne or ue or se) and offset != 0:
@@ -500,9 +500,9 @@ class _ConstBitString(object):
         assert self._assertsanity()  
 
     def __copy__(self):
-        """Return a new copy of the _ConstBitString."""
+        """Return a new copy of the _Bits."""
         # The copy can use the same datastore as it's immutable.
-        s = _ConstBitString()
+        s = _Bits()
         s._datastore = self._datastore
         s.pos = self.pos
         return s
@@ -848,7 +848,7 @@ class _ConstBitString(object):
     
     def _setauto(self, s, length, offset):
         """Set BitString from a BitString, file, list, tuple or string."""
-        if isinstance(s, _ConstBitString):
+        if isinstance(s, _Bits):
             if length is None:
                 length = s.len - offset
             if isinstance(s._datastore, _FileArray):
@@ -968,8 +968,8 @@ class _ConstBitString(object):
 
     def _setint(self, int, length=None):
         """Reset the BitString to have given signed int interpretation."""
-        # TODO: This next line is pretty hacky. Either rewrite or comment.
-        if length is None and hasattr(self, "_datastore") and self.len != 0:
+        # If no length given, and we've previously been given a length, use it.
+        if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
             raise ValueError("A non-zero length must be specified with an int initialiser.")
@@ -1282,7 +1282,7 @@ class _ConstBitString(object):
     
     def _converttobitstring(self, bs):
         """Attemp to convert bs to a BitString and return it."""
-        if isinstance(bs, _ConstBitString):
+        if isinstance(bs, _Bits):
             return bs
         if isinstance(bs, (str, list, tuple)):
             return self.__class__(bs)
@@ -2261,7 +2261,7 @@ class _ConstBitString(object):
                       """)
     
 
-class BitString(_ConstBitString):
+class BitString(_Bits):
     """A class for general bit-wise manipulations and interpretations."""
 
     # As BitString objects are mutable, we shouldn't allow them to be hashed.
@@ -2304,7 +2304,7 @@ class BitString(_ConstBitString):
         c = BitString(int=10, length=6)
 
         """
-        _ConstBitString.__init__(self, auto=auto, length=length, offset=offset, bytes=bytes,
+        _Bits.__init__(self, auto=auto, length=length, offset=offset, bytes=bytes,
                            filename=filename, hex=hex, bin=bin, oct=oct,
                            uint=uint, int=int, uintbe=uintbe, intbe=intbe,
                            uintle=uintle, intle=intle, uintne=uintne,
@@ -2728,55 +2728,55 @@ class BitString(_ConstBitString):
         """
         self._reversebytes(start, end)
  
-    int    = property(_ConstBitString._getint, _ConstBitString._setint,
+    int    = property(_Bits._getint, _Bits._setint,
                       doc="""The BitString as a two's complement signed int. Read and write.
                       """)
-    uint   = property(_ConstBitString._getuint, _ConstBitString._setuint,
+    uint   = property(_Bits._getuint, _Bits._setuint,
                       doc="""The BitString as a two's complement unsigned int. Read and write.
                       """)
-    intbe  = property(_ConstBitString._getintbe, _ConstBitString._setintbe,
+    intbe  = property(_Bits._getintbe, _Bits._setintbe,
                       doc="""The BitString as a two's complement big-endian signed int. Read and write.
                       """)
-    uintbe = property(_ConstBitString._getuintbe, _ConstBitString._setuintbe,
+    uintbe = property(_Bits._getuintbe, _Bits._setuintbe,
                       doc="""The BitString as a two's complement big-endian unsigned int. Read and write.
                       """)
-    intle  = property(_ConstBitString._getintle, _ConstBitString._setintle,
+    intle  = property(_Bits._getintle, _Bits._setintle,
                       doc="""The BitString as a two's complement little-endian signed int. Read and write.
                       """)
-    uintle = property(_ConstBitString._getuintle, _ConstBitString._setuintle,
+    uintle = property(_Bits._getuintle, _Bits._setuintle,
                       doc="""The BitString as a two's complement little-endian unsigned int. Read and write.
                       """)
-    intne  = property(_ConstBitString._getintne, _ConstBitString._setintne,
+    intne  = property(_Bits._getintne, _Bits._setintne,
                       doc="""The BitString as a two's complement native-endian signed int. Read and write.
                       """)
-    uintne = property(_ConstBitString._getuintne, _ConstBitString._setuintne,
+    uintne = property(_Bits._getuintne, _Bits._setuintne,
                       doc="""The BitString as a two's complement native-endian unsigned int. Read and write.
                       """)
-    ue     = property(_ConstBitString._getue, _ConstBitString._setue,
+    ue     = property(_Bits._getue, _Bits._setue,
                       doc="""The BitString as an unsigned exponential-Golomb code. Read and write.
                       """)
-    se     = property(_ConstBitString._getse, _ConstBitString._setse,
+    se     = property(_Bits._getse, _Bits._setse,
                       doc="""The BitString as a signed exponential-Golomb code. Read and write.
                       """)
-    hex    = property(_ConstBitString._gethex, _ConstBitString._sethex,
+    hex    = property(_Bits._gethex, _Bits._sethex,
                       doc="""The BitString as a hexadecimal string. Read and write.
                       
                       When read will be prefixed with '0x' and including any leading zeros.
                       
                       """)
-    bin    = property(_ConstBitString._getbin, _ConstBitString._setbin,
+    bin    = property(_Bits._getbin, _Bits._setbin,
                       doc="""The BitString as a binary string. Read and write.
                       
                       When read will be prefixed with '0b' and including any leading zeros.
                       
                       """)
-    oct    = property(_ConstBitString._getoct, _ConstBitString._setoct,
+    oct    = property(_Bits._getoct, _Bits._setoct,
                       doc="""The BitString as an octal string. Read and write.
                       
                       When read will be prefixed with '0o' and including any leading zeros.
                       
                       """)
-    bytes  = property(_ConstBitString._getbytes, _ConstBitString._setbytes,
+    bytes  = property(_Bits._getbytes, _Bits._setbytes,
                       doc="""The BitString as a ordinary string. Read and write.
                       """)
 
