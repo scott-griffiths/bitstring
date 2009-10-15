@@ -11,9 +11,11 @@ Internally the data is efficiently stored as byte arrays, the module has been op
 
 Creation:
 {{{
->>> a = BitString('0xff, 0b101, 0o65, uint:6=22')
->>> b = pack('intle:16, hex=a, 0b1', 100, a='0x34f')
->>> c = pack('<16h', *range(16))
+>>> a = BitString(bin='00101')
+>>> b = BitString(a_file_object)
+>>> c = BitString('0xff, 0b101, 0o65, uint:6=22')
+>>> d = pack('intle:16, hex=a, 0b1', 100, a='0x34f')
+>>> e = pack('<16h', *range(16))
 }}}
 Different interpretations, slicing and concatenation:
 {{{
@@ -29,11 +31,13 @@ BitString('0o0657056705674')
 Reading data sequentially.
 {{{
 >>> b = BitString('0x160120f')
->>> b.readlist('uint:12, uint:12, bin:3')
-[352, 288, '0b111']
->>> b[0:12] = 408
->>> b.hex
-'0x198120f'
+>>> b.readbits(12).hex
+'0x160'
+>>> b.pos = 0
+>>> b.read('uint:12')
+352
+>>> b.readlist('uint:12, bin:3')
+[288, '0b111']
 }}}
 
 Searching, inserting and deleting:
@@ -41,10 +45,9 @@ Searching, inserting and deleting:
 >>> c = BitString('0b00010010010010001111')   # c.hex == '0x1248f'
 >>> c.find('0x48')
 True
->>> c.readbyte().hex
-'0x48'
+>>> c.replace('0b001', '0xabc')
 >>> c.insert('0b0000')
->>> del c[4:12]
+>>> c.delete(4, 12)
 }}}
 
 See the [Examples Wiki] and the [http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.0/bitstring_manual.pdf user manual] for more examples.
