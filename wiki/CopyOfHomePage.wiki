@@ -1,11 +1,12 @@
 #labels Deprecated
-<font color="green">*bitstring* is a pure Python module designed to help make the creation and analysis of binary data as painless as possible.</font>
+*bitstring* is a pure Python module designed to help make the creation and analysis of binary data as simple and natural as possible.
 
 !BitStrings can be constructed from integers (big and little endian), hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
 
 Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and excellent code coverage is given by over 300 unit tests. It is available for Python 2.4+ and for Python 3.
+
 ----
-==<font color="purple">Documentation</font>==
+==<font color="#4444cc">Documentation</font>==
 
 The manual for the bitstring module is [http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.0/bitstring_manual.pdf available as a PDF]. It contains a walk-through of all the features and a complete reference section.
 
@@ -13,7 +14,7 @@ You can also view this on the [Manual Wiki].
 
 ----
 
-==<font color="purple">Examples</font>==
+==<font color="#4444cc">Examples</font>==
 
 Creation:
 {{{
@@ -61,7 +62,7 @@ See the [Examples Wiki] and the [http://python-bitstring.googlecode.com/svn/tags
 ----
 =News=
 
-==<font color="purple">October 10th 2009:</font> <font color="green">Version 1.0 for Python 2.x and 3.x released</font>==
+==<font color="#4444cc">October 10th 2009:</font> <font color="green">Version 1.0 for Python 2.x and 3.x released</font>==
 
 Version 1 is here!
 
