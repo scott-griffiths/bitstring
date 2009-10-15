@@ -1,13 +1,19 @@
 #labels Deprecated
-*bitstring* is a pure Python module designed to help make the creation and analysis of binary data as painless as possible.
+<font color="green">*bitstring* is a pure Python module designed to help make the creation and analysis of binary data as painless as possible.</font>
 
 !BitStrings can be constructed from integers (big and little endian), hex, octal, binary, strings or files. They can be sliced, joined, reversed, inserted into, overwritten, etc. with simple functions or slice notation. They can also be read from, searched and replaced, and navigated in, similar to a file or stream.
 
 Internally the data is efficiently stored as byte arrays, the module has been optimized for speed, and excellent code coverage is given by over 300 unit tests. It is available for Python 2.4+ and for Python 3.
+----
+==<font color="purple">Documentation</font>==
+
+The manual for the bitstring module is [http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.0/bitstring_manual.pdf available as a PDF]. It contains a walk-through of all the features and a complete reference section.
+
+You can also view this on the [Manual Wiki].
 
 ----
 
-==Examples==
+==<font color="purple">Examples</font>==
 
 Creation:
 {{{
@@ -53,10 +59,9 @@ True
 See the [Examples Wiki] and the [http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.0/bitstring_manual.pdf user manual] for more examples.
 
 ----
-== News ==
-----
+=News=
 
-==October 10th 2009: version 1.0 for Python 2.x and 3.x released==
+==<font color="purple">October 10th 2009:</font> <font color="green">Version 1.0 for Python 2.x and 3.x released</font>==
 
 Version 1 is here!
 
@@ -73,11 +78,3 @@ tweak it again for some time.
 For full details on the API changes and for earlier changes, see the [http://python-bitstring.googlecode.com/svn/trunk/release_notes.txt release notes].
 
 There is one version for Python 2.4 / 2.5 / 2.6 (version 1.0.0) and another for Python 3.0 / 3.1 (version 1.0.1). 
-----
-==Documentation==
-
-The complete documentation for the bitstring module is now available as a PDF. You can also view this on the [Manual Wiki].
-
-*[http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.0/bitstring_manual.pdf Download the bitstring documentation (PDF)]*
-
-Also see [ClassHelp] for quick reference.
