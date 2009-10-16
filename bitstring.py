@@ -44,6 +44,7 @@ import sys
 import itertools
 import platform
 import io
+import binascii
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
@@ -72,15 +73,6 @@ def _single_byte_from_hex_string(h):
         return bytes(struct.pack('B', i))
     elif len(h) == 1:
         return bytes(struct.pack('B', i<<4))
-        
-def _hex_string_from_single_byte(b):
-    """Return a two character hex string from a single byte value."""
-    if b > 15:
-        return hex(b)[2:]
-    elif b > 0:
-        return '0' + hex(b)[2:]
-    else:
-        return '00'
 
 def _tidyupinputstring(s):
     """Return string made lowercase and with all whitespace removed."""
@@ -1233,18 +1225,13 @@ class _Bits(object):
             raise ValueError("Cannot convert to hex unambiguously - not multiple of 4 bits.")
         if self.len == 0:
             return ''
-        if _python_version == 3:
-            s = self.tobytes()
-            hexstrings = [_hex_string_from_single_byte(i) for i in s]
-            if (self.len // 4) % 2 == 1:
-                # only a nibble left at the end
-                hexstrings[-1] = hexstrings[-1][0]
-            return '0x' + ''.join(hexstrings)
-        s = '0x' + self.tobytes().encode('hex')
+        # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
+        s = str(binascii.hexlify(self.tobytes()).decode('utf-8'))
         if (self.len // 4) % 2 == 1:
-            return s[:-1]
+            # We've got one nibble too many, so cut it off.
+            return '0x' + s[:-1]
         else:
-            return s
+            return '0x' + s
 
     def _setbytepos(self, bytepos):
         """Move to absolute byte-aligned position in stream."""
