@@ -25,11 +25,11 @@ or you can initialise with a filename - the file will only read as necessary:
 {{{
 >>> f = BitString(filename='ABigFile.ext')
 }}}
-With integers the length of the BitString in bits needs to be supplied. It must be long enough to contain the integer.
+With integers the length of the !BitString in bits needs to be supplied. It must be long enough to contain the integer.
 {{{
 >>> ui = BitString(uint=15, length=6)
 }}}
-or
+or equivalently
 {{{
 >>> ui = BitString('uint:6=15')
 }}}
@@ -39,7 +39,8 @@ You can also combine the different methods to join sections together:
 >>> s = BitString('0xfe, 0b110, int:12=100, 0o7')
 }}}
 
-===Interpreting `BitString` objects===
+===Interpreting !BitStrings===
+
 Python properties are used to give different interpretations of the binary data. These properties are calculated only when you ask for them, they're not stored as part of the object.
 {{{
 >>> print h.hex
@@ -54,7 +55,7 @@ Python properties are used to give different interpretations of the binary data.
 0b001111 
 }}}
 
-===Manipulating `BitString` objects===
+===Manipulating !BitStrings===
 You can treat a `BitString` just like a list whose elements are all single bits.
 
 Slicing
