@@ -59,21 +59,6 @@ else:
 # Maximum number of digits to use in __str__ and __repr__.
 _maxchars = 250
 
-def _single_byte_from_hex_string(h):
-    """Return a byte equal to the input hex string."""
-    try:
-        i = int(h, 16)
-        if i < 0:
-            raise ValueError
-    except ValueError:
-        raise ValueError("Can't convert hex string to a single byte")
-    if len(h) > 2:
-        raise ValueError("Hex string can't be more than one byte in size")
-    if len(h) == 2:
-        return bytes(struct.pack('B', i))
-    elif len(h) == 1:
-        return bytes(struct.pack('B', i<<4))
-
 def _tidyupinputstring(s):
     """Return string made lowercase and with all whitespace removed."""
     s = ''.join(s.split()).lower()
@@ -1196,23 +1181,13 @@ class _Bits(object):
             self._clear()
             return
         hexstring = hexstring[offset // 4:(length + offset + 3) // 4]
+        if len(hexstring) % 2:
+            hexstring += '0'
         offset %= 4
-        hexlist = []
-        # First do the whole bytes
-        for i in xrange(len(hexstring) // 2):
-            try:
-                j = int(hexstring[i*2:i*2 + 2], 16) 
-                hexlist.append(_single_byte_from_hex_string(hexstring[i*2:i*2 + 2]))
-            except ValueError:
-                raise ValueError("Invalid symbol in hex initialiser.")
-        # then any remaining nibble
-        if len(hexstring) % 2 == 1:
-            try:
-                j = int(hexstring[-1], 16)
-                hexlist.append(_single_byte_from_hex_string(hexstring[-1]))
-            except ValueError:
-                raise ValueError("Invalid symbol in hex initialiser.")
-        data = b''.join(hexlist)
+        try:
+            data = binascii.unhexlify(hexstring)
+        except TypeError:
+            raise ValueError("Invalid symbol in hex initialiser.")
         self._datastore = _MemArray(data, length, offset)
 
     def _gethex(self):

@@ -220,6 +220,7 @@ class BitStringTest(unittest.TestCase):
 
     def testCreationFromHexWithOffset(self):
         s = BitString(hex='0xa0b1c2', offset = 4)
+        #s.hex
         self.assertEqual((s.length, s.hex), (20, '0x0b1c2'))
     
     def testCreationFromHexWithWhitespace(self):
@@ -740,16 +741,6 @@ class BitStringTest(unittest.TestCase):
     def testSetInvalidBin(self):
         s = BitString()
         self.assertRaises(ValueError, s._setbin, '00102')
-
-    def testSingleByteFromHexString(self):
-        for i in range(0, 16):
-            s = BitString(bytes=bitstring._single_byte_from_hex_string('0' + hex(i)[2:]), length=8)
-            self.assertEqual(s.hex[3:], hex(i)[2:])
-        for i in range(16, 256):
-            s = BitString(bytes=bitstring._single_byte_from_hex_string(hex(i)[2:]), length=8)
-            self.assertEqual(s.hex, hex(i))
-        self.assertRaises(ValueError, bitstring._single_byte_from_hex_string, 'q')
-        self.assertRaises(ValueError, bitstring._single_byte_from_hex_string, '1234')
 
     def testAdding(self):
         s1 = BitString(hex = '0x0102')
@@ -2996,6 +2987,15 @@ class BitStringTest(unittest.TestCase):
     def testPython3stuff(self):
         if bitstring._python_version == 3:
             pass
+    
+    def testReadFromBits(self):
+        a = _Bits('0xaabbccdd')
+        b = a.readbits(8)
+        self.assertEqual(b, '0xaa')
+        self.assertEqual(a[0:8], '0xaa')
+        self.assertEqual(a[-1], '0b1')
+        a.pos = 0
+        self.assertEqual(a.readbits(4).uint, 10)
 
 def main():
     unittest.main()
