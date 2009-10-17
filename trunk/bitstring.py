@@ -428,6 +428,8 @@ class _MemArray(_Array):
     
     rawbytes = property(_getrawbytes)
 
+# Make a new reference to the bytes function as it gets hidden in __init__.
+bytes_ = bytes
 
 class _Bits(object):
     "An immutable sequence of bits."
@@ -445,9 +447,9 @@ class _Bits(object):
                         intbe, uintbe, intle, uintle, intne, uintne]
         if initialisers.count(None) == len(initialisers):
             # No initialisers, so initialise with nothing or zero bits
-            if length is not None:
-                data = b'\x00' * ((length + 7) // 8)
-                self._setbytes(data, length)
+            if length is not None and length != 0:
+                data = bytearray((length + 7) // 8)
+                self._setbytes(bytes_(data), length)
             else:
                 self._setbytes(b'')
             return
@@ -720,6 +722,7 @@ class _Bits(object):
         """
         return self.__mul__(n)   
 
+    # TODO: All these need to be speeded up. This is very inefficient!
     def __and__(self, bs):
         """Bit-wise 'and' between two BitStrings. Returns new BitString.
         
@@ -888,16 +891,18 @@ class _Bits(object):
         if uint >= (1 << length):
             raise ValueError("uint %d is too large for a BitString of length %d." % (uint, length))  
         if uint < 0:
-            raise ValueError("uint cannot be initialsed by a negative number.")     
-        hexstring = hex(uint)[2:]
-        if hexstring[-1] == 'L':
-            hexstring = hexstring[:-1]
-        hexlengthneeded = (length + 3) // 4
-        leadingzeros = hexlengthneeded - len(hexstring)
-        if leadingzeros > 0:
-            hexstring = '0'*leadingzeros + hexstring
-        offset = (4*hexlengthneeded) - length
-        self._sethex(hexstring, None, offset)
+            raise ValueError("uint cannot be initialsed by a negative number.")
+        blist = []
+        while uint:
+            blist.append(uint & 255)
+            uint >>= 8
+        extrabytes = ((length + 7) // 8) - len(blist)
+        blist.reverse()
+        data = bytes(bytearray(extrabytes) + bytearray(blist))
+        offset = 8 - (length % 8)
+        if offset == 8:
+            offset = 0
+        self._setbytes(data, length, offset)
         
     def _getuint(self):
         """Return data as an unsigned int."""
