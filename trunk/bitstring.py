@@ -45,6 +45,7 @@ import itertools
 import platform
 import io
 import binascii
+import collections
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
@@ -1452,7 +1453,33 @@ class _Bits(object):
         toreverse = self._datastore[(newoffset + start)//8:(newoffset + end)//8]
         toreverse.reverse()
         self._datastore[(newoffset + start)//8:(newoffset + end)//8] = toreverse
+
+    def _set(self, pos):
+        "Set bit(s) given by pos to 1."
+        if not isinstance(pos, collections.Iterable):
+            pos = (pos,)
+        length = self.len
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position %d out of range." % pos)
+            byte, bit = divmod(self._offset + p, 8)
+            self._datastore._rawarray[byte] |= (128 >> bit)
     
+    def _unset(self, pos):
+        "Set bit(s) given by pos to 0."
+        if not isinstance(pos, collections.Iterable):
+            pos = (pos,)
+        length = self.len
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position %d out of range." % pos)
+            byte, bit = divmod(self._offset + p, 8)
+            self._datastore._rawarray[byte] &= ~(128 >> bit)
+
     def unpack(self, *format):
         """Interpret the whole BitString using format and return list.
         
@@ -1571,7 +1598,7 @@ class _Bits(object):
         endbyte = (self._pos + self._offset + bits - 1) // 8
         self._pos += bits
         bs = self.__class__(bytes=self._datastore[startbyte:endbyte + 1],
-                       length=bits, offset=newoffset)
+                            length=bits, offset=newoffset)
         return bs
         
     def readbitlist(self, *bits):
@@ -2710,6 +2737,28 @@ class BitString(_Bits):
         
         """
         self._reversebytes(start, end)
+        
+    def set(self, pos):
+        """Set one or many bits to 1.
+        
+        pos -- Either a single bit position or an iterable or bit positions.
+               Negative numbers are treated in the same way as slice indices.
+        
+        Raises IndexError if pos < -self.len or pos >= self.len.
+        
+        """        
+        self._set(pos)
+    
+    def unset(self, pos):
+        """Set one or many bits to 0.
+        
+        pos -- Either a single bit position or an iterable or bit positions.
+               Negative numbers are treated in the same way as slice indices.
+        
+        Raises IndexError if pos < -self.len or pos >= self.len.
+        
+        """ 
+        self._unset(pos)
  
     int    = property(_Bits._getint, _Bits._setint,
                       doc="""The BitString as a two's complement signed int. Read and write.
