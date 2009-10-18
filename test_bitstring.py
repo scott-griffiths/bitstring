@@ -2995,6 +2995,45 @@ class BitStringTest(unittest.TestCase):
         a.pos = 0
         self.assertEqual(a.readbits(4).uint, 10)
 
+    def testSet(self):
+        a = BitString(length=16)
+        a.set(0)
+        self.assertEqual(a, '0b10000000 00000000')
+        a.set(15)
+        self.assertEqual(a, '0b10000000 00000001')
+        b = a[4:12]
+        b.set(1)
+        self.assertEqual(b, '0b01000000')
+        b.set(-1)
+        self.assertEqual(b, '0b01000001')
+        b.set(-8)
+        self.assertEqual(b, '0b11000001')
+        self.assertRaises(IndexError, b.set, -9)
+        self.assertRaises(IndexError, b.set, 8)
+
+    def testSetList(self):
+        a = BitString(length=18)
+        a.set(range(18))
+        self.assertEqual(a.int, -1)
+        a.unset(range(18))
+        self.assertEqual(a.int, 0)
+
+    def testUnset(self):
+        a = BitString(length=16, int=-1)
+        a.unset(0)
+        self.assertEqual(~a, '0b10000000 00000000')
+        a.unset(15)
+        self.assertEqual(~a, '0b10000000 00000001')
+        b = a[4:12]
+        b.unset(1)
+        self.assertEqual(~b, '0b01000000')
+        b.unset(-1)
+        self.assertEqual(~b, '0b01000001')
+        b.unset(-8)
+        self.assertEqual(~b, '0b11000001')
+        self.assertRaises(IndexError, b.unset, -9)
+        self.assertRaises(IndexError, b.unset, 8)
+
 def main():
     unittest.main()
 
