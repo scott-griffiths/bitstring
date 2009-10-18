@@ -124,7 +124,6 @@ class BitStringTest(unittest.TestCase):
 
     def testCreataionFromFileErrors(self):
         self.assertRaises(IOError, BitString, filename='Idonotexist')
-        self.assertRaises(BitStringError, BitString, filename='test/test.m1v', int=9)
 
     def testFindInFile(self):
         s = BitString(filename = 'test/test.m1v')
@@ -346,8 +345,9 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(ValueError, BitString, int=-5, length=3)
     
     def testCreationFromSe(self):
-        for i in range(-10, 10):
-            self.assertEqual(BitString(se=i).se, i)
+        for i in range(-100, 10):
+            s = BitString(se=i)
+            self.assertEqual(s.se, i)
 
     def testCreationFromSeWithOffset(self):
         self.assertRaises(BitStringError, BitString, se=-13, offset=1)
@@ -570,8 +570,6 @@ class BitStringTest(unittest.TestCase):
             self.assertEqual(s1.hex, '0xf10204')
             s2._datastore.setoffset(i)
             self.assertEqual(s2.bin, '0b11110001000000100000010')
-        self.assertRaises(ValueError, s1._datastore.setoffset, -1)
-        self.assertRaises(ValueError, s1._datastore.setoffset, 8)
     
     def testAppend(self):
         s1 = BitString('0x00', 5)

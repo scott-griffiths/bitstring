@@ -354,15 +354,14 @@ class _MemArray(_Array):
         """Realign BitString with new offset to first bit."""
         if newoffset == self.offset:
             return
-        if not 0 <= newoffset < 8:
-            raise ValueError("Can only align to an offset from 0 to 7.")
+        assert 0 <= newoffset < 8
         if newoffset < self.offset:
             # We need to shift everything left
             shiftleft = self.offset - newoffset
             # First deal with everything except for the final byte
             for x in xrange(self.bytelength - 1):
-                self[x] = ((self[x] << shiftleft) & 255) + \
-                                     (self[x + 1] >> (8 - shiftleft))
+                self._rawarray[x] = ((self._rawarray[x] << shiftleft) & 255) + \
+                                     (self._rawarray[x + 1] >> (8 - shiftleft))
             # if we've shifted all of the data in the last byte then we need to truncate by 1
             bits_in_last_byte = (self.offset + self.bitlength) % 8
             if bits_in_last_byte == 0:
@@ -372,7 +371,7 @@ class _MemArray(_Array):
                 self._rawarray.pop()
             # otherwise just shift the last byte
             else:
-                self[-1] = (self[-1] << shiftleft) & 255
+                self._rawarray[-1] = (self._rawarray[-1] << shiftleft) & 255
         else: # offset > self._offset
             shiftright = newoffset - self.offset
             # Give some overflow room for the last byte
@@ -380,9 +379,9 @@ class _MemArray(_Array):
             if (b + shiftright) // 8 > b // 8:
                 self.appendbytes(0)
             for x in xrange(self.bytelength - 1, 0, -1):
-                self[x] = ((self[x-1] << (8 - shiftright)) & 255) + \
-                                     (self[x] >> shiftright)
-            self[0] = self[0] >> shiftright
+                self._rawarray[x] = ((self._rawarray[x-1] << (8 - shiftright)) & 255) + \
+                                     (self._rawarray[x] >> shiftright)
+            self._rawarray[0] >>= shiftright
         self.offset = newoffset
     
     def appendarray(self, array):
@@ -393,7 +392,7 @@ class _MemArray(_Array):
         array.setoffset(bits_in_final_byte)
         if array.offset != 0:
             # first do the byte with the join.
-            self[-1] = (self[-1] & (255 ^ (255 >> array.offset)) | \
+            self._rawarray[-1] = (self._rawarray[-1] & (255 ^ (255 >> array.offset)) | \
                                    (array[0] & (255 >> array.offset)))
             self.appendbytes(array[1 : array.bytelength])
         else:
@@ -437,46 +436,106 @@ class _Bits(object):
                  filename=None, hex=None, bin=None, oct=None, uint=None,
                  int=None, uintbe=None, intbe=None, uintle=None, intle=None,
                  uintne=None, intne=None, ue=None, se=None):
+        """
+        Initialise the BitString with one (and only one) of:
+        auto -- string of comma separated tokens, a list or tuple to be 
+                interpreted as booleans, a file object or another BitString.
+        bytes -- raw data as a string, for example read from a binary file.
+        bin -- binary string representation, e.g. '0b001010'.
+        hex -- hexadecimal string representation, e.g. '0x2ef'
+        oct -- octal string representation, e.g. '0o777'.
+        uint -- an unsigned integer.
+        int -- a signed integer.
+        uintbe -- an unsigned big-endian whole byte integer.
+        intbe -- a signed big-endian whole byte integer.
+        uintle -- an unsigned little-endian whole byte integer.
+        intle -- a signed little-endian whole byte integer.
+        uintne -- an unsigned native-endian whole byte integer.
+        intne -- a signed native-endian whole byte integer.
+        se -- a signed exponential-Golomb code.
+        ue -- an unsigned exponential-Golomb code.
+        filename -- a file which will be opened in binary read-only mode.
+    
+        Other keyword arguments:
+        length -- length of the BitString in bits, if needed and appropriate.
+                  It must be supplied for all integer initialisers.
+        offset -- bit offset to the data. These offset bits are
+                  ignored and this is mainly intended for use when
+                  initialising using 'bytes'.
+       
+        e.g.
+        a = BitString('0x123ab560')
+        b = BitString(filename="movie.ts")
+        c = BitString(int=10, length=6)
+    
+        """
         self._pos = 0
         self._file = None
-
         if length is not None and length < 0:
             raise ValueError("%s length cannot be negative." % self.__class__.__name__)
-        
-        initialisers = [auto, bytes, filename, hex, bin, oct, int, uint, ue, se,
-                        intbe, uintbe, intle, uintle, intne, uintne]
-        if initialisers.count(None) == len(initialisers):
-            # No initialisers, so initialise with nothing or zero bits
-            if length is not None and length != 0:
-                data = bytearray((length + 7) // 8)
-                self._setbytes(bytes_(data), length)
-            else:
-                self._setbytes(b'')
-            return
-        initfuncs = (self._setauto, self._setbytes, self._setfile,
-                     self._sethex, self._setbin, self._setoct,
-                     self._setint, self._setuint, self._setue, self._setse,
-                     self._setintbe, self._setuintbe, self._setintle,
-                     self._setuintle, self._setintne, self._setuintne)
-        assert len(initialisers) == len(initfuncs)
-        if initialisers.count(None) < len(initialisers) - 1:
-            raise BitStringError("You must only specify one initialiser.")
-        if (se is not None or ue is not None) and length is not None:
-            raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
-        if (int or uint or intbe or uintbe or intle or uintle or intne or uintne or ue or se) and offset != 0:
-            raise BitStringError("offset cannot be specified when initialising from an integer.")
         if offset < 0:
-            raise ValueError("offset must be >= 0.")
-        init = [(d, func) for (d, func) in zip(initialisers, initfuncs) if d is not None]
-        assert len(init) == 1
-        (d, func) = init[0]
-        if d in (se, ue):
-            func(d)
-        elif d in (int, uint, intbe, uintbe, intle, uintle, intne, uintne):
-            func(d, length)
+            raise ValueError("offset must be >= 0.")  
+        if auto is not None:
+            self._setauto(auto, length, offset)
+            return
+        if bytes is not None:
+            self._setbytes(bytes, length, offset)
+            return
+        if filename is not None:
+            self._setfile(filename, length, offset)
+            return
+        if hex is not None:
+            self._sethex(hex, length, offset)
+            return
+        if bin is not None:
+            self._setbin(bin, length, offset)
+            return
+        if oct is not None:
+            self._setoct(oct, length, offset)
+            return
+        if offset != 0:
+            raise BitStringError("An offset should not be given when using this initialiser.")
+        if uint is not None:
+            self._setuint(uint, length)
+            return
+        if int is not None:
+            self._setint(int, length)
+            return
+        if uintbe is not None:
+            self._setuintbe(uintbe, length)
+            return
+        if intbe is not None:
+            self._setintbe(intbe, length)
+            return
+        if uintle is not None:
+            self._setuintle(uintle, length)
+            return
+        if intle is not None:
+            self._setintle(intle, length)
+            return
+        if uintne is not None:
+            self._setuintne(uintne, length)
+            return
+        if intne is not None:
+            self._setintne(intne, length)
+            return
+        if ue is not None:
+            if length is not None:
+                raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
+            self._setue(ue)
+            return
+        if se is not None:
+            if length is not None:
+                raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
+            self._setse(se)
+            return
+        # No initialisers, so initialise with nothing or zero bits
+        if length is not None and length != 0:
+            data = bytearray((length + 7) // 8)
+            self._setbytes(bytes_(data), length)
         else:
-            func(d, length, offset)
-        assert self._assertsanity()  
+            self._setbytes(b'')
+        return
 
     def __copy__(self):
         """Return a new copy of the _Bits."""
@@ -2234,49 +2293,6 @@ class BitString(_Bits):
     # As BitString objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
 
-    def __init__(self, auto=None, length=None, offset=0, bytes=None,
-                 filename=None, hex=None, bin=None, oct=None, uint=None,
-                 int=None, uintbe=None, intbe=None, uintle=None, intle=None,
-                 uintne=None, intne=None, ue=None, se=None):
-        """
-        Initialise the BitString with one (and only one) of:
-        auto -- string of comma separated tokens, a list or tuple to be 
-                interpreted as booleans, a file object or another BitString.
-        bytes -- raw data as a string, for example read from a binary file.
-        bin -- binary string representation, e.g. '0b001010'.
-        hex -- hexadecimal string representation, e.g. '0x2ef'
-        oct -- octal string representation, e.g. '0o777'.
-        uint -- an unsigned integer.
-        int -- a signed integer.
-        uintbe -- an unsigned big-endian whole byte integer.
-        intbe -- a signed big-endian whole byte integer.
-        uintle -- an unsigned little-endian whole byte integer.
-        intle -- a signed little-endian whole byte integer.
-        uintne -- an unsigned native-endian whole byte integer.
-        intne -- a signed native-endian whole byte integer.
-        se -- a signed exponential-Golomb code.
-        ue -- an unsigned exponential-Golomb code.
-        filename -- a file which will be opened in binary read-only mode.
-    
-        Other keyword arguments:
-        length -- length of the BitString in bits, if needed and appropriate.
-                  It must be supplied for all integer initialisers.
-        offset -- bit offset to the data. These offset bits are
-                  ignored and this is mainly intended for use when
-                  initialising using 'bytes'.
-       
-        e.g.
-        a = BitString('0x123ab560')
-        b = BitString(filename="movie.ts")
-        c = BitString(int=10, length=6)
-
-        """
-        _Bits.__init__(self, auto=auto, length=length, offset=offset, bytes=bytes,
-                           filename=filename, hex=hex, bin=bin, oct=oct,
-                           uint=uint, int=int, uintbe=uintbe, intbe=intbe,
-                           uintle=uintle, intle=intle, uintne=uintne,
-                           intne=intne, ue=ue, se=se)
-        
     def __copy__(self):
         """Return a new copy of the BitString."""
         s_copy = BitString()
