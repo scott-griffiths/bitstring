@@ -3034,6 +3034,11 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(IndexError, b.unset, -9)
         self.assertRaises(IndexError, b.unset, 8)
 
+    def testFlip(self):
+        a = BitString('0b111000')
+        a.flip(range(a.len))
+        self.assertEqual(a, '0b000111')
+
 def main():
     unittest.main()
 
