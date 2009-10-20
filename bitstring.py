@@ -699,7 +699,7 @@ class _Bits(object):
             return False
         if self.len != bs.len:
             return False
-        # This could be made faster by exiting with False as early as possible.
+        # TODO: This could be made faster by exiting with False as early as possible.
         if self.tobytes() != bs.tobytes():
             return False
         else:
@@ -724,7 +724,8 @@ class _Bits(object):
         """
         if not self:
             raise BitStringError("Cannot invert empty BitString.")
-        s = self.__class__(int=~(self.int), length=self.len)
+        s = self.__class__(bytes=self._datastore[:], length=self.len, offset=self._datastore.offset)
+        s._flip(xrange(s.len))
         return s
 
     def __lshift__(self, n):
@@ -1017,10 +1018,17 @@ class _Bits(object):
             raise ValueError("A non-zero length must be specified with an int initialiser.")
         if int >=  (1 << (length - 1)) or int < -(1 << (length - 1)):
             raise ValueError("int %d is too large for a BitString of length %d." % (int, length))   
-        if int < 0:
-            # the two's complement thing to get the equivalent +ive number
-            int = (-int - 1)^((1 << length) - 1)
-        self._setuint(int, length)
+        if int >= 0:
+            self._setuint(int, length)
+            return
+        # TODO: We should decide whether to just use the _setuint, or to do the bit flipping,
+        # based upon which will be quicker. If the -ive number is less than half the maximum
+        # possible then it's probably quicker to do the bit flipping...
+        
+        # Do the 2's complement thing. Add one, set to minus number, then flip bits.
+        int += 1
+        self._setuint(-int, length)
+        self._flip(xrange(self.len))
 
     def _getint(self):
         """Return data as a two's complement signed int."""
@@ -1479,6 +1487,19 @@ class _Bits(object):
                 raise IndexError("Bit position %d out of range." % pos)
             byte, bit = divmod(self._offset + p, 8)
             self._datastore._rawarray[byte] &= ~(128 >> bit)
+    
+    def _flip(self, pos):
+        "Invert bit(s) given by pos to 0."
+        if not isinstance(pos, collections.Iterable):
+            pos = (pos,)
+        length = self.len
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position %d out of range." % pos)
+            byte, bit = divmod(self._offset + p, 8)
+            self._datastore._rawarray[byte] ^= (128 >> bit)
 
     def unpack(self, *format):
         """Interpret the whole BitString using format and return list.
@@ -2741,7 +2762,7 @@ class BitString(_Bits):
     def set(self, pos):
         """Set one or many bits to 1.
         
-        pos -- Either a single bit position or an iterable or bit positions.
+        pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
         
         Raises IndexError if pos < -self.len or pos >= self.len.
@@ -2752,13 +2773,25 @@ class BitString(_Bits):
     def unset(self, pos):
         """Set one or many bits to 0.
         
-        pos -- Either a single bit position or an iterable or bit positions.
+        pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
         
         Raises IndexError if pos < -self.len or pos >= self.len.
         
         """ 
         self._unset(pos)
+
+    
+    def flip(self, pos):
+        """Flip one or many bits from 0 to 1 or vice versa.
+        
+        pos -- Either a single bit position or an iterable of bit positions.
+               Negative numbers are treated in the same way as slice indices.
+        
+        Raises IndexError if pos < -self.len or pos >= self.len.
+        
+        """ 
+        self._flip(pos)
  
     int    = property(_Bits._getint, _Bits._setint,
                       doc="""The BitString as a two's complement signed int. Read and write.
