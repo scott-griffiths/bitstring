@@ -725,7 +725,7 @@ class _Bits(object):
         if not self:
             raise BitStringError("Cannot invert empty BitString.")
         s = self.__class__(bytes=self._datastore[:], length=self.len, offset=self._datastore.offset)
-        s._flip(xrange(s.len))
+        s._invert(xrange(s.len))
         return s
 
     def __lshift__(self, n):
@@ -1028,7 +1028,7 @@ class _Bits(object):
         # Do the 2's complement thing. Add one, set to minus number, then flip bits.
         int += 1
         self._setuint(-int, length)
-        self._flip(xrange(self.len))
+        self._invert(xrange(self.len))
 
     def _getint(self):
         """Return data as a two's complement signed int."""
@@ -1462,44 +1462,65 @@ class _Bits(object):
         toreverse.reverse()
         self._datastore[(newoffset + start)//8:(newoffset + end)//8] = toreverse
 
+    #def _changebits(self, pos, type):
+    #    """Low level setting, unsetting and flipping of bits.
+    #    
+    #    pos -- Either a single bit position or an iterable of them.
+    #    type -- One of 'set', 'unset', 'flip'.
+    #    
+    #    """
+    #    if type == 'set':
+    #        f = operator.or_
+    #    elif type == 'flip':
+    #        f = operator.xor
+    #    elif type == 'unset':
+    #        def f(a, b): return a & (~b)
+    #    if not isinstance(pos, collections.Iterable):
+    #        pos = (pos,)
+    #    length = self.len 
+    #    offset = self._offset
+    #    rawbytes = self._datastore._rawarray
+    #    for p in pos:
+    #        if p < 0:
+    #            p += length
+    #        if not 0 <= p < length:
+    #            raise IndexError("Bit position %d out of range." % p)
+    #        byte, bit = divmod(offset + p, 8)
+    #        rawbytes[byte] = f(rawbytes[byte], 128 >> bit)
+
+    def _bit_tweaker(self, pos, f):
+        """Examines or changes bits based on the function f.
+        
+        pos -- A single bit position or iterable of bit positions.
+        f -- A function that takes a byte position and a bit sub-position.
+             If it returns True then an early exit will be made.
+             
+        """
+        if not isinstance(pos, collections.Iterable):
+            pos = (pos,)
+        length = self.len 
+        offset = self._offset
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position %d out of range." % p)
+            byte, bit = divmod(offset + p, 8)
+            if f(byte, bit) is True:
+                return True
+        return False
+
     def _set(self, pos):
-        "Set bit(s) given by pos to 1."
-        if not isinstance(pos, collections.Iterable):
-            pos = (pos,)
-        length = self.len
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError("Bit position %d out of range." % pos)
-            byte, bit = divmod(self._offset + p, 8)
-            self._datastore._rawarray[byte] |= (128 >> bit)
-    
+        def f(a, b): self._datastore._rawarray[a] |= 128 >> b
+        self._bit_tweaker(pos, f)
+
     def _unset(self, pos):
-        "Set bit(s) given by pos to 0."
-        if not isinstance(pos, collections.Iterable):
-            pos = (pos,)
-        length = self.len
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError("Bit position %d out of range." % pos)
-            byte, bit = divmod(self._offset + p, 8)
-            self._datastore._rawarray[byte] &= ~(128 >> bit)
-    
-    def _flip(self, pos):
-        "Invert bit(s) given by pos to 0."
-        if not isinstance(pos, collections.Iterable):
-            pos = (pos,)
-        length = self.len
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError("Bit position %d out of range." % pos)
-            byte, bit = divmod(self._offset + p, 8)
-            self._datastore._rawarray[byte] ^= (128 >> bit)
+        def f(a, b): self._datastore._rawarray[a] &= ~(128 >> b)
+        self._bit_tweaker(pos, f)
+        
+    def _invert(self, pos):
+        def f(a, b): self._datastore._rawarray[a] ^= 128 >> b
+        self._bit_tweaker(pos, f)
 
     def unpack(self, *format):
         """Interpret the whole BitString using format and return list.
@@ -2264,6 +2285,51 @@ class _Bits(object):
             return False
         start = end - suffix.len
         return self[start:end] == suffix
+    
+    def allset(self, pos):
+        """Return if one or many bits are all set to 1.
+        
+        pos -- Either a single bit position or an iterable of bit positions.
+               Negative numbers are treated in the same way as slice indices.
+
+        """
+        def f(a, b):
+            if not self._datastore._rawarray[a] & (128 >> b):
+                return True
+        # If early exit was made we want to return False, and vice versa.
+        return not self._bit_tweaker(pos, f)
+
+    def anyset(self, pos):
+        """Return if one or many bits are all set to 1.
+        
+        pos -- Either a single bit position or an iterable of bit positions.
+               Negative numbers are treated in the same way as slice indices.
+
+        """
+        def f(a, b):
+            if self._datastore._rawarray[a] & (128 >> b):
+                return True
+        return self._bit_tweaker(pos, f)
+    
+    def allunset(self, pos):
+        """Return if one or many bits are all set to 1.
+        
+        pos -- Either a single bit position or an iterable of bit positions.
+               Negative numbers are treated in the same way as slice indices.
+
+        """
+        # If more are set, they must all be unset.
+        return not self.anyset(pos)
+
+    def anyunset(self, pos):
+        """Return if one or many bits are all set to 1.
+        
+        pos -- Either a single bit position or an iterable of bit positions.
+               Negative numbers are treated in the same way as slice indices.
+
+        """
+        # If they're not all set, some must be unset.
+        return not self.allset(pos)
 
     _offset = property(_getoffset)
 
@@ -2518,6 +2584,24 @@ class BitString(_Bits):
         for i in xrange(n - 1):
             self.append(s)
         return self
+    
+    def __ior__(self, bs):
+        bs = self._converttobitstring(bs)
+        # Give the two BitStrings the same offset
+        if bs._offset != self._offset:
+            if self._offset == 0:
+                bs._datastore.setoffset(0)
+            else:
+                self._datastore.setoffset(bs._offset)
+        assert self._offset == bs._offset
+        
+        
+    
+    def __iand__(self, bs):
+        pass
+    
+    def __ixor__(self, bs):
+        pass
 
     def replace(self, old, new, start=None, end=None, count=None,
                 bytealigned=False):
@@ -2767,7 +2851,8 @@ class BitString(_Bits):
         
         Raises IndexError if pos < -self.len or pos >= self.len.
         
-        """        
+        """
+        #self._changebits(pos, 'set')
         self._set(pos)
     
     def unset(self, pos):
@@ -2779,11 +2864,11 @@ class BitString(_Bits):
         Raises IndexError if pos < -self.len or pos >= self.len.
         
         """ 
+        #self._changebits(pos, 'unset')
         self._unset(pos)
 
-    
-    def flip(self, pos):
-        """Flip one or many bits from 0 to 1 or vice versa.
+    def invert(self, pos):
+        """Invert one or many bits from 0 to 1 or vice versa.
         
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
@@ -2791,7 +2876,7 @@ class BitString(_Bits):
         Raises IndexError if pos < -self.len or pos >= self.len.
         
         """ 
-        self._flip(pos)
+        self._invert(pos)
  
     int    = property(_Bits._getint, _Bits._setint,
                       doc="""The BitString as a two's complement signed int. Read and write.
