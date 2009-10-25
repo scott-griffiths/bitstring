@@ -46,6 +46,7 @@ import platform
 import io
 import binascii
 import collections
+import operator
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
@@ -783,7 +784,6 @@ class _Bits(object):
         """
         return self.__mul__(n)   
 
-    # TODO: All these need to be speeded up. This is very inefficient!
     def __and__(self, bs):
         """Bit-wise 'and' between two BitStrings. Returns new BitString.
         
@@ -792,10 +792,9 @@ class _Bits(object):
         Raises ValueError if the two BitStrings have differing lengths.
         
         """
-        bs = self._converttobitstring(bs)
-        if self.len != bs.len:
-            raise ValueError('BitStrings must have the same length for & operator.')
-        return self.__class__(uint=self.uint & bs.uint, length=self.len)
+        s = self[:]
+        s &= bs
+        return s
     
     def __rand__(self, bs):
         """Bit-wise 'and' between a string and a BitString. Returns new BitString.
@@ -815,10 +814,9 @@ class _Bits(object):
         Raises ValueError if the two BitStrings have differing lengths.
         
         """
-        bs = self._converttobitstring(bs)
-        if self.len != bs.len:
-            raise ValueError('BitStrings must have the same length for | operator.')
-        return self.__class__(uint=self.uint | bs.uint, length=self.len)
+        s = self[:]
+        s |= bs
+        return s
 
     def __ror__(self, bs):
         """Bit-wise 'or' between a string and a BitString. Returns new BitString.
@@ -838,11 +836,10 @@ class _Bits(object):
         Raises ValueError if the two BitStrings have differing lengths.
         
         """
-        bs = self._converttobitstring(bs)
-        if self.len != bs.len:
-            raise ValueError('BitStrings must have the same length for ^ operator.')
-        return self.__class__(uint=self.uint ^ bs.uint, length=self.len)
-    
+        s = self[:]
+        s ^= bs
+        return s
+
     def __rxor__(self, bs):
         """Bit-wise 'xor' between a string and a BitString. Returns new BitString.
         
@@ -2585,8 +2582,12 @@ class BitString(_Bits):
             self.append(s)
         return self
     
-    def __ior__(self, bs):
+    def _inplace_logical_helper(self, bs, f):
+        """Helper function containing most of the __ior__, __iand__, __ixor__ code."""
         bs = self._converttobitstring(bs)
+        if self.len != bs.len:
+            raise ValueError('BitStrings must have the same length for logical operators.')
+        self._ensureinmemory()
         # Give the two BitStrings the same offset
         if bs._offset != self._offset:
             if self._offset == 0:
@@ -2594,14 +2595,21 @@ class BitString(_Bits):
             else:
                 self._datastore.setoffset(bs._offset)
         assert self._offset == bs._offset
-        
-        
+        a = self._datastore._rawarray
+        b = bs._datastore._rawarray
+        assert len(a) == len(b)
+        for i in xrange(len(a)):
+            a[i] = f(a[i], b[i])
+        return self
+    
+    def __ior__(self, bs):
+        return self._inplace_logical_helper(bs, operator.ior)
     
     def __iand__(self, bs):
-        pass
+        return self._inplace_logical_helper(bs, operator.iand)
     
     def __ixor__(self, bs):
-        pass
+        return self._inplace_logical_helper(bs, operator.xor)
 
     def replace(self, old, new, start=None, end=None, count=None,
                 bytealigned=False):
