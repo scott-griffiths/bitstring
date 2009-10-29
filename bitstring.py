@@ -113,7 +113,7 @@ _init_names = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
 
 _init_names_ored = '|'.join(_init_names)
 _tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
-_keyre = re.compile(r'^(?P<name>[^:=]+)$')
+_defaultuint = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
 # Hex, oct or binary literals
 _literalre = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
@@ -201,12 +201,15 @@ def _tokenparser(format, keys=None):
                 value = m.group('value')
             return_values.append([name, length, value])
             continue
-        # Try it as a key in a dictionary
-        m = _keyre.match(token)
+        # The default 'name' is 'uint':
+        m = _defaultuint.match(token)
         if m:
-            name = m.group('name')
-            return_values.append([token, None, None])
+            length = m.group('len')
+            if m.group('value'):
+                value = m.group('value')
+            return_values.append(['uint', length, value])
             continue
+        
         raise ValueError("Don't understand token '%s'." % token)
     return return_values
     
@@ -910,8 +913,12 @@ class _Bits(object):
         for token in tokens:
             self._append(_init_with_token(*token))
         # Finally we honour the offset and length
+        if offset > self.len:
+            raise ValueError("Can't apply offset of %d. Length is only %d." % (offset, self.len))
         self._truncatestart(offset)
         if length is not None:
+            if length > self.len:
+                raise ValueError("Can't truncate to length %d, as source is only %d bits long." % (length, self.len))
             self._truncateend(self.len - length)
         
     def _setfile(self, filename, length, offset):
@@ -1060,7 +1067,7 @@ class _Bits(object):
         if length is not None and length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
         self._setuint(uint, length)
-        self._reversebytes()
+        self._reversebytes(0, self.len)
     
     def _getuintle(self):
         if self.len % 8 != 0:
@@ -1071,7 +1078,7 @@ class _Bits(object):
         if length is not None and length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
         self._setint(int, length)
-        self._reversebytes()
+        self._reversebytes(0, self.len)
     
     def _getintle(self):
         if self.len % 8 != 0:
@@ -1391,23 +1398,25 @@ class _Bits(object):
 
     def _append(self, bs):
         """Append a BitString to the current BitString."""
-        bs = self._converttobitstring(bs)
         if not bs:
             return self
-        # Can't modify file, so ensure it's read into memory
-        self._ensureinmemory()
-        bs._ensureinmemory()
         if bs is self:
-            bs = self.__copy__()
+            bs = self.__copy__() # TODO: This copy won't work for _Bits.
         self._datastore.appendarray(bs._datastore)
+
+    def _prepend(self, bs):
+        """Prepend a BitString to the current BitString."""
+        if not bs:
+            return self
+        if bs is self:
+            bs = self.__copy__() # TODO: This copy won't work for _Bits.
+        self._datastore.prependarray(bs._datastore)
+        self.bitpos += bs.len
 
     def _truncatestart(self, bits):
         """Truncate bits from the start of the BitString."""
         if bits == 0:
             return self
-        if bits < 0 or bits > self.len:
-            raise ValueError("Truncation length of %d not possible. Length = %d."
-                             % (bits, self.len))
         if bits == self.len:
             self._clear()
             return self
@@ -1421,9 +1430,6 @@ class _Bits(object):
         """Truncate bits from the end of the BitString."""
         if bits == 0:
             return self
-        if bits < 0 or bits > self.len:
-            raise ValueError("Truncation length of %d bits not possible. Length = %d."
-                             % (bits, self.len))
         if bits == self.len:
             self._clear()
             return self
@@ -1434,23 +1440,54 @@ class _Bits(object):
         assert self._assertsanity()
         return
     
-    def _reversebytes(self, start=None, end=None):
+    def _insert(self, bs, pos):
+        """Insert bs at pos."""  
+        end = self._slice(pos, self.len)
+        self._truncateend(self.len - pos)
+        self._append(bs)
+        self._append(end)
+        self._pos = pos + bs.len
+        assert self._assertsanity()
+        
+    def _overwrite(self, bs, pos):
+        """Overwrite with bs at pos."""
+        bitposafter = pos + bs.len
+        if bs is self:
+            # Just overwriting with self, so do nothing.
+            assert pos == 0
+            return
+        firstbytepos = (self._offset + pos) // 8
+        lastbytepos = (self._offset + pos + bs.len - 1) // 8
+        bytepos, bitoffset = divmod(self._offset + pos, 8)
+        if firstbytepos == lastbytepos:    
+            mask = ((1 << bs.len) - 1) << (8 - bs.len - bitoffset)
+            self._datastore[bytepos] &= ~mask
+            bs._datastore.setoffset(bitoffset)
+            self._datastore[bytepos] |= bs._datastore[0] & mask   
+        else:
+            # Do first byte
+            mask = (1 << (8 - bitoffset)) - 1
+            self._datastore[bytepos] &= ~mask
+            bs._datastore.setoffset(bitoffset)
+            self._datastore[bytepos] |= bs._datastore[0] & mask
+            # Now do all the full bytes
+            self._datastore[firstbytepos + 1:lastbytepos] = bs._datastore[1:lastbytepos - firstbytepos]
+            # and finally the last byte
+            bitsleft = (self._offset + pos + bs.len) % 8
+            if bitsleft == 0:
+                bitsleft = 8
+            mask = (1 << (8 - bitsleft)) - 1
+            self._datastore[lastbytepos] &= mask
+            self._datastore[lastbytepos] |= bs._datastore[-1] & ~mask
+        self._pos = bitposafter
+        assert self._assertsanity()
+
+    def _reversebytes(self, start, end):
         """Reverse bytes in-place.
         """
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
-        if start < 0:
-            raise ValueError("start must be >= 0 in reversebytes().")
-        if end > self.len:
-            raise ValueError("end must be <= self.len in reversebytes().")
-        if end < start:
-            raise ValueError("end must be >= start in reversebytes().")
-        if (end - start) % 8 != 0:
-            raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
         # Make the start occur on a byte boundary
-        newoffset = 8 - start%8
+        # TODO: We could be cleverer here to avoid changing the offset.
+        newoffset = 8 - (start % 8)
         if newoffset == 8:
             newoffset = 0
         self._datastore.setoffset(newoffset)
@@ -1458,32 +1495,6 @@ class _Bits(object):
         toreverse = self._datastore[(newoffset + start)//8:(newoffset + end)//8]
         toreverse.reverse()
         self._datastore[(newoffset + start)//8:(newoffset + end)//8] = toreverse
-
-    #def _changebits(self, pos, type):
-    #    """Low level setting, unsetting and flipping of bits.
-    #    
-    #    pos -- Either a single bit position or an iterable of them.
-    #    type -- One of 'set', 'unset', 'flip'.
-    #    
-    #    """
-    #    if type == 'set':
-    #        f = operator.or_
-    #    elif type == 'flip':
-    #        f = operator.xor
-    #    elif type == 'unset':
-    #        def f(a, b): return a & (~b)
-    #    if not isinstance(pos, collections.Iterable):
-    #        pos = (pos,)
-    #    length = self.len 
-    #    offset = self._offset
-    #    rawbytes = self._datastore._rawarray
-    #    for p in pos:
-    #        if p < 0:
-    #            p += length
-    #        if not 0 <= p < length:
-    #            raise IndexError("Bit position %d out of range." % p)
-    #        byte, bit = divmod(offset + p, 8)
-    #        rawbytes[byte] = f(rawbytes[byte], 128 >> bit)
 
     def _bit_tweaker(self, pos, f):
         """Examines or changes bits based on the function f.
@@ -1508,17 +1519,65 @@ class _Bits(object):
         return False
 
     def _set(self, pos):
-        def f(a, b): self._datastore._rawarray[a] |= 128 >> b
+        def f(a, b):
+            self._datastore._rawarray[a] |= 128 >> b
         self._bit_tweaker(pos, f)
 
     def _unset(self, pos):
-        def f(a, b): self._datastore._rawarray[a] &= ~(128 >> b)
+        def f(a, b):
+            self._datastore._rawarray[a] &= ~(128 >> b)
         self._bit_tweaker(pos, f)
         
     def _invert(self, pos):
-        def f(a, b): self._datastore._rawarray[a] ^= 128 >> b
+        def f(a, b):
+            self._datastore._rawarray[a] ^= 128 >> b
         self._bit_tweaker(pos, f)
+    
+    def _ilshift(self, n):
+        """Shift bits by n to the left in place. Return self."""
+        self.bin = self.__lshift__(n).bin
+        return self
 
+    def _irshift(self, n):
+        """Shift bits by n to the right in place. Return self."""
+        self.bin = self.__rshift__(n).bin
+        return self
+    
+    def _imul(self, n):
+        """Concatenate n copies of self in place. Return self."""
+        if n == 0:
+            self._clear()
+            return self
+        s = self.__class__(self)
+        for i in xrange(n - 1):
+            self._append(s)
+        return self
+    
+    def _inplace_logical_helper(self, bs, f):
+        """Helper function containing most of the __ior__, __iand__, __ixor__ code."""
+        # Give the two BitStrings the same offset
+        if bs._offset != self._offset:
+            if self._offset == 0:
+                bs._datastore.setoffset(0)
+            else:
+                self._datastore.setoffset(bs._offset)
+        assert self._offset == bs._offset
+        a = self._datastore._rawarray
+        b = bs._datastore._rawarray
+        assert len(a) == len(b)
+        for i in xrange(len(a)):
+            a[i] = f(a[i], b[i])
+        return self
+    
+    def _ior(self, bs):
+        return self._inplace_logical_helper(bs, operator.ior)
+    
+    def _iand(self, bs):
+        return self._inplace_logical_helper(bs, operator.iand)
+    
+    def _ixor(self, bs):
+        return self._inplace_logical_helper(bs, operator.xor)
+        
     def unpack(self, *format):
         """Interpret the whole BitString using format and return list.
         
@@ -1536,6 +1595,23 @@ class _Bits(object):
         self._pos = bitposbefore
         return return_values
 
+    def decode(self, format, **kwargs):
+        """Interpret the BitString using format and kwargs and return dictionary."""
+        tokens = _tokenparser(format)
+        # Scan tokens to see if one has no length (TODO)
+        
+        return_dict = {}
+        for name, length, value in tokens:
+            result = self._readtoken(name, length, value)
+            #if value has already been defined in some way...
+            #    if result != value:
+            #        raise BitStringError("When parsing token %s:%s=%s, got result %s" % (name, length, value, result))
+            return_dict[value] = result
+            
+        return return_dict
+        
+        
+    
     def read(self, format):
         """Interpret next bits according to the format string and return result.
         
@@ -1576,8 +1652,8 @@ class _Bits(object):
         
         Raises ValueError if the format is not understood.
 
-        >>> h, b1, b2 = s.read('hex:20, bin:5, bin:3')
-        >>> i, bs1, bs2 = s.read('uint:12', 'bits:10', 'bits:10')
+        >>> h, b1, b2 = s.readlist('hex:20, bin:5, bin:3')
+        >>> i, bs1, bs2 = s.readlist('uint:12', 'bits:10', 'bits:10')
         
         """
         tokens = []
@@ -2192,9 +2268,10 @@ class _Bits(object):
         s = self.__class__()
         if bitstringlist:
             for bs in bitstringlist[:-1]:
+                bs = self._converttobitstring(bs)
                 s._append(bs)
                 s._append(self)
-            s._append(bitstringlist[-1])
+            s._append(self._converttobitstring(bitstringlist[-1]))
         return s
 
     def tobytes(self):
@@ -2493,12 +2570,14 @@ class BitString(_Bits):
                 else:
                     value = BitString(int=value, length=stop - start)
             if (stop - start) == value.len:
+                if value.len == 0:
+                    return
                 # This is an overwrite, so we retain the bitpos
                 bitposafter = self._pos
                 if step >= 0:
-                    self.overwrite(value, start)
+                    self._overwrite(value, start)
                 else:
-                    self.overwrite(value.__getitem__(slice(None, None, step)), start)
+                    self._overwrite(value.__getitem__(slice(None, None, step)), start)
                 self._pos = bitposafter
             else:
                 self.delete(stop - start, start)
@@ -2522,7 +2601,7 @@ class BitString(_Bits):
             if value.len == 1:
                 # This is an overwrite, so we retain the bitpos
                 bitposafter = self._pos
-                self.overwrite(value, key)
+                self._overwrite(value, key)
                 self._pos = bitposafter
             else:
                 self.delete(1, key)
@@ -2551,8 +2630,7 @@ class BitString(_Bits):
         n -- the number of bits to shift. Must be >= 0.
         
         """
-        self.bin = self.__lshift__(n).bin
-        return self
+        return self._ilshift(n)
 
     def __irshift__(self, n):
         """Shift bits by n to the right in place. Return self.
@@ -2560,8 +2638,7 @@ class BitString(_Bits):
         n -- the number of bits to shift. Must be >= 0.
         
         """
-        self.bin = self.__rshift__(n).bin
-        return self
+        return self._irshift(n)
     
     def __imul__(self, n):
         """Concatenate n copies of self in place. Return self.
@@ -2574,42 +2651,29 @@ class BitString(_Bits):
             raise TypeError("Can only multiply a BitString by an int, but %s was provided." % type(n))
         if n < 0:
             raise ValueError("Cannot multiply by a negative integer.")
-        if n == 0:
-            self._clear()
-            return self
-        s = BitString(self)
-        for i in xrange(n - 1):
-            self.append(s)
-        return self
-    
-    def _inplace_logical_helper(self, bs, f):
-        """Helper function containing most of the __ior__, __iand__, __ixor__ code."""
-        bs = self._converttobitstring(bs)
-        if self.len != bs.len:
-            raise ValueError('BitStrings must have the same length for logical operators.')
         self._ensureinmemory()
-        # Give the two BitStrings the same offset
-        if bs._offset != self._offset:
-            if self._offset == 0:
-                bs._datastore.setoffset(0)
-            else:
-                self._datastore.setoffset(bs._offset)
-        assert self._offset == bs._offset
-        a = self._datastore._rawarray
-        b = bs._datastore._rawarray
-        assert len(a) == len(b)
-        for i in xrange(len(a)):
-            a[i] = f(a[i], b[i])
-        return self
+        return self._imul(n)
     
     def __ior__(self, bs):
-        return self._inplace_logical_helper(bs, operator.ior)
+        bs = self._converttobitstring(bs)
+        if self.len != bs.len:
+            raise ValueError('BitStrings must have the same length for |= operator.')
+        self._ensureinmemory()
+        return self._ior(bs)
     
     def __iand__(self, bs):
-        return self._inplace_logical_helper(bs, operator.iand)
+        bs = self._converttobitstring(bs)
+        if self.len != bs.len:
+            raise ValueError('BitStrings must have the same length for &= operator.')
+        self._ensureinmemory()
+        return self._iand(bs)
     
     def __ixor__(self, bs):
-        return self._inplace_logical_helper(bs, operator.xor)
+        bs = self._converttobitstring(bs)
+        if self.len != bs.len:
+            raise ValueError('BitStrings must have the same length for ^= operator.')
+        self._ensureinmemory()
+        return self._ixor(bs)
 
     def replace(self, old, new, start=None, end=None, count=None,
                 bytealigned=False):
@@ -2680,6 +2744,9 @@ class BitString(_Bits):
         Raises ValueError if bits < 0 or bits > self.len.
         
         """
+        if bits < 0 or bits > self.len:
+            raise ValueError("Truncation length of %d not possible. Length = %d."
+                             % (bits, self.len))
         self._truncatestart(bits)
 
     def truncateend(self, bits):
@@ -2690,6 +2757,9 @@ class BitString(_Bits):
         Raises ValueError if bits < 0 or bits > self.len.
         
         """
+        if bits < 0 or bits > self.len:
+            raise ValueError("Truncation length of %d bits not possible. Length = %d."
+                             % (bits, self.len))
         self._truncateend(bits)
 
     def insert(self, bs, pos=None):
@@ -2711,14 +2781,9 @@ class BitString(_Bits):
         if pos is None:
             pos = self._pos
         if pos < 0 or pos > self.len:
-            raise ValueError("Invalid insert position.")            
-        end = self._slice(pos, self.len)
-        self.truncateend(self.len - pos)
-        self.append(bs)
-        self.append(end)
-        self._pos = pos + bs.len
-        assert self._assertsanity()
-
+            raise ValueError("Invalid insert position.")
+        self._insert(bs, pos)
+        
     def overwrite(self, bs, pos=None):
         """Overwrite with bs at current position, or pos if given.
         
@@ -2738,37 +2803,9 @@ class BitString(_Bits):
         bitposafter = pos + bs.len
         if pos < 0 or pos + bs.len > self.len:
             raise ValueError("Overwrite exceeds boundary of BitString.")
-        if bs is self:
-            # Just overwriting with self, so do nothing.
-            return
         self._ensureinmemory()
         bs._ensureinmemory()
-        
-        firstbytepos = (self._offset + pos) // 8
-        lastbytepos = (self._offset + pos + bs.len - 1) // 8
-        bytepos, bitoffset = divmod(self._offset + pos, 8)
-        if firstbytepos == lastbytepos:    
-            mask = ((1 << bs.len) - 1) << (8 - bs.len - bitoffset)
-            self._datastore[bytepos] &= ~mask
-            bs._datastore.setoffset(bitoffset)
-            self._datastore[bytepos] |= bs._datastore[0] & mask   
-        else:
-            # Do first byte
-            mask = (1 << (8 - bitoffset)) - 1
-            self._datastore[bytepos] &= ~mask
-            bs._datastore.setoffset(bitoffset)
-            self._datastore[bytepos] |= bs._datastore[0] & mask
-            # Now do all the full bytes
-            self._datastore[firstbytepos + 1:lastbytepos] = bs._datastore[1:lastbytepos - firstbytepos]
-            # and finally the last byte
-            bitsleft = (self._offset + pos + bs.len) % 8
-            if bitsleft == 0:
-                bitsleft = 8
-            mask = (1 << (8 - bitsleft)) - 1
-            self._datastore[lastbytepos] &= mask
-            self._datastore[lastbytepos] |= bs._datastore[-1] & ~mask
-        self._pos = bitposafter
-        assert self._assertsanity()
+        self._overwrite(bs, pos)
     
     def delete(self, bits, pos=None):
         """Delete bits at current position, or pos if given.
@@ -2786,8 +2823,8 @@ class BitString(_Bits):
         # If too many bits then delete to the end.
         bits = min(bits, self.len - pos)
         end = self._slice(pos + bits, self.len)
-        self.truncateend(max(self.len - pos, 0))
-        self.append(end)
+        self._truncateend(max(self.len - pos, 0))
+        self._append(end)
     
     def append(self, bs):
         """Append a BitString to the current BitString.
@@ -2795,6 +2832,10 @@ class BitString(_Bits):
         bs -- The BitString to append.
         
         """
+        bs = self._converttobitstring(bs)
+        # Can't modify file, so ensure it's read into memory
+        self._ensureinmemory()
+        bs._ensureinmemory()
         self._append(bs)
         
     def prepend(self, bs):
@@ -2804,15 +2845,10 @@ class BitString(_Bits):
         
         """
         bs = self._converttobitstring(bs)
-        if not bs:
-            return self
         # Can't modify file so ensure it's read into memory
         self._ensureinmemory()
         bs._ensureinmemory()
-        if bs is self:
-            bs = self.__copy__()
-        self._datastore.prependarray(bs._datastore)
-        self.bitpos += bs.len
+        self._prepend(bs)
 
     def reverse(self, start=None, end=None):
         """Reverse bits in-place.
@@ -2836,6 +2872,7 @@ class BitString(_Bits):
             raise ValueError("end must be <= self.len in reversebits().")
         if end < start:
             raise ValueError("end must be >= start in reversebits().")
+        self._ensureinmemory()
         # TODO: This could be made much more efficient...
         self[start:end] = BitString(bin=self[start:end].bin[:1:-1])
     
@@ -2849,6 +2886,19 @@ class BitString(_Bits):
         Raises BitStringError if end - start is not a multiple of 8.
         
         """
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.len
+        if start < 0:
+            raise ValueError("start must be >= 0 in reversebytes().")
+        if end > self.len:
+            raise ValueError("end must be <= self.len in reversebytes().")
+        if end < start:
+            raise ValueError("end must be >= start in reversebytes().")
+        if (end - start) % 8 != 0:
+            raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
+        self._ensureinmemory()
         self._reversebytes(start, end)
         
     def set(self, pos):
@@ -2860,7 +2910,6 @@ class BitString(_Bits):
         Raises IndexError if pos < -self.len or pos >= self.len.
         
         """
-        #self._changebits(pos, 'set')
         self._set(pos)
     
     def unset(self, pos):
@@ -2872,7 +2921,6 @@ class BitString(_Bits):
         Raises IndexError if pos < -self.len or pos >= self.len.
         
         """ 
-        #self._changebits(pos, 'unset')
         self._unset(pos)
 
     def invert(self, pos):
@@ -2994,7 +3042,7 @@ def pack(format, *values, **kwargs):
             if value is None:
                 # Take the next value from the ones provided
                 value = next(value_iter)
-            s.append(_init_with_token(name, length, value))
+            s._append(_init_with_token(name, length, value))
     except StopIteration:
         raise ValueError("Not enough parameters present to pack according to the "
                          "format. %d values are needed." % len(tokens))
