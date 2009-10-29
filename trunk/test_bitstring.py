@@ -1389,6 +1389,12 @@ class BitStringTest(unittest.TestCase):
         self.assertFalse(q)
         self.assertEqual(q.bitpos, 0)
 
+    def testMultiplicationWithFiles(self):
+        a = BitString(filename='test/test.m1v')
+        b = a.len
+        a *= 3
+        self.assertEqual(a.len, 3*b)
+
     def testMultiplicationErrors(self):
         a = BitString('0b1')
         b = BitString('0b0')
@@ -2251,7 +2257,7 @@ class BitStringTest(unittest.TestCase):
         
     def testIntelligentRead8(self):
         a = BitString('0x123456')
-        for t in ['hex:1', 'oct:1', 'hex4', '-5', '5', 'fred', 'bin:-2',
+        for t in ['hex:1', 'oct:1', 'hex4', '-5', 'fred', 'bin:-2',
                   'uint:p', 'uint:-2', 'int:u', 'int:-3', 'ses', 'uee']:
             self.assertRaises(ValueError, a.read, t)
 
@@ -2416,6 +2422,12 @@ class BitStringTest(unittest.TestCase):
         s = pack('int:8, div,'*5, *a, **{'div': '0b1'})
         t = BitString('int:8=1, 0b1, int:8=2, 0b1, int:8=3, 0b1, int:8=4, 0b1, int:8=5, 0b1')
         self.assertEqual(s, t)
+    
+    def testPackWithLocals(self):
+        width = 352
+        height = 288
+        s = pack('uint:12=width, uint:12=height', **locals())
+        self.assertEqual(s, '0x160120')
         
     def testPackWithLengthRestriction(self):
         s = pack('bin:3', '0b000')
@@ -2451,6 +2463,11 @@ class BitStringTest(unittest.TestCase):
         a, b = s.unpack(',,,uint:12,,,,bin:3,,,')
         self.assertEqual(a, 100)
         self.assertEqual(b, '0b100')
+    
+    def testPackDefaultUint(self):
+        s = pack('10, 5', 1, 2)
+        a, b = s.unpack('10, 5')
+        self.assertEqual((a, b), (1, 2))
     
     def testUnpackNull(self):
         s = pack('0b1, , , 0xf,')
@@ -2524,7 +2541,7 @@ class BitStringTest(unittest.TestCase):
     def testTokenParser(self):
         tp = bitstring._tokenparser
         self.assertEqual(tp('hex'), [['hex', None, None]])
-        self.assertEqual(tp('hex12'), [['hex12', None, None]])
+        self.assertEqual(tp('hex12'), [['uint', 'hex12', None]])
         self.assertEqual(tp('hex=14'), [['hex', None, '14']])
         self.assertEqual(tp('se'), [['se', None, None]])
         self.assertEqual(tp('ue=12'), [['ue', None, '12']])
@@ -2532,11 +2549,9 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(tp('uint:12'), [['uint', '12', None]])
         self.assertEqual(tp('int:30=-1'), [['int', '30', '-1']])
         self.assertEqual(tp('bits:10'), [['bits', '10', None]])
-        self.assertEqual(tp('hello_world'), [['hello_world', None, None]])
-        self.assertEqual(tp('send'), [['send', None, None]])
-        
-    def testInitWithToken(self):
-        pass
+        self.assertEqual(tp('hello'), [['uint', 'hello', None]])
+        self.assertEqual(tp('send'), [['uint', 'send', None]])
+        self.assertEqual(tp('hello', ['bye', 'hello']), [['hello', None, None]])
 
     def testAutoFromFileObject(self):
         f = open('test/test.m1v', 'rb')
@@ -3085,8 +3100,12 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue(a.anyunset((4, 5, 6, 2)))
         self.assertFalse(a.anyunset((1, 15, 20)))
 
+    def testDecode(self):
+        a = BitString('0x471000112233445566778899aabbccddeeff')
+        d = a.decode('hex:8=0x47, uint:8=length, bits:92=data')
+        self.assertEqual(d['length'], 16)
+        
 
-    # TODO: test file objects with ior etc, if there's an offset.
 
 def main():
     unittest.main()
