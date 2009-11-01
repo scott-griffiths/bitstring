@@ -543,7 +543,8 @@ class _Bits(object):
         return
 
     def __copy__(self):
-        """Return a new copy of the _Bits."""
+        """Return a new copy of the _Bits for the copy module."""
+        # Note that if you want a new copy (different ID), use _copy instead.
         # The copy can use the same datastore as it's immutable.
         s = _Bits()
         s._datastore = self._datastore
@@ -556,13 +557,11 @@ class _Bits(object):
         bs -- the BitString to append.
         
         """
-        s = self.__class__()
-        s._datastore = copy.copy(self._datastore)
         bs = self._converttobitstring(bs)
-        s._ensureinmemory()
-        bs._ensureinmemory()
-        s._datastore.appendarray(bs._datastore)
-        s.bitpos = 0
+        bs._ensureinmemory() 
+        s = self._copy()
+        s._append(bs)
+        s.pos = 0
         return s
 
     def __radd__(self, bs):
@@ -1327,6 +1326,16 @@ class _Bits(object):
             return self.__class__(bs)
         raise TypeError("Cannot initialise BitString from %s." % type(bs))
 
+    def _copy(self):
+        """Create and return a new copy of the _Bits (always in memory)."""
+        s_copy = self.__class__()
+        s_copy._pos = self._pos
+        if isinstance(self._datastore, _FileArray):
+            s_copy._datastore = _MemArray(self._datastore[:], self.len, self._offset)
+        else:
+            s_copy._datastore = copy.copy(self._datastore)
+        return s_copy
+    
     def _slice(self, start, end):
         """Used internally to get a slice, without error checking."""
         if end == start:
@@ -1334,8 +1343,7 @@ class _Bits(object):
         startbyte, newoffset = divmod(start + self._offset, 8)
         endbyte = (end + self._offset - 1) // 8
         return self.__class__(bytes=self._datastore[startbyte:endbyte + 1],
-                         length=end - start,
-                         offset=newoffset)
+                              length=end - start, offset=newoffset)
 
     def _readue(self):
         """Return interpretation of next bits as unsigned exponential-Golomb code.
@@ -1481,6 +1489,14 @@ class _Bits(object):
             self._datastore[lastbytepos] |= bs._datastore[-1] & ~mask
         self._pos = bitposafter
         assert self._assertsanity()
+
+    def _delete(self, bits, pos):
+        """Delete bits at pos."""
+        # If too many bits then delete to the end.
+        bits = min(bits, self.len - pos)
+        end = self._slice(pos + bits, self.len)
+        self._truncateend(max(self.len - pos, 0))
+        self._append(end)
 
     def _reversebytes(self, start, end):
         """Reverse bytes in-place.
@@ -2361,7 +2377,7 @@ class _Bits(object):
         return self[start:end] == suffix
     
     def allset(self, pos):
-        """Return if one or many bits are all set to 1.
+        """Return True if one or many bits are all set to 1.
         
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
@@ -2374,7 +2390,7 @@ class _Bits(object):
         return not self._bit_tweaker(pos, f)
 
     def anyset(self, pos):
-        """Return if one or many bits are all set to 1.
+        """Return True if one or many bits are all set to 1.
         
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
@@ -2386,7 +2402,7 @@ class _Bits(object):
         return self._bit_tweaker(pos, f)
     
     def allunset(self, pos):
-        """Return if one or many bits are all set to 1.
+        """Return True if one or many bits are all set to 1.
         
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
@@ -2396,7 +2412,7 @@ class _Bits(object):
         return not self.anyset(pos)
 
     def anyunset(self, pos):
-        """Return if one or many bits are all set to 1.
+        """Return True if one or many bits are all set to 1.
         
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
@@ -2534,10 +2550,9 @@ class BitString(_Bits):
                 stop = 0
             else:
                 # default stop needs to be a multiple of step
+                stop = self.len
                 if key.stop is not None:
-                    stop = self.len - (self.len % abs(step))
-                else:
-                    stop = self.len
+                    stop -= (self.len % abs(step))
             if key.start is not None:
                 start = key.start * abs(step)
                 if key.start < 0:
@@ -2580,14 +2595,15 @@ class BitString(_Bits):
                     self._overwrite(value.__getitem__(slice(None, None, step)), start)
                 self._pos = bitposafter
             else:
-                self.delete(stop - start, start)
+                self._delete(stop - start, start)
                 if step >= 0:
-                    self.insert(value, start)
+                    self._insert(value, start)
                 else:
-                    self.insert(value.__getitem__(slice(None, None, step)), start)
+                    self._insert(value.__getitem__(slice(None, None, step)), start)
                 # bitpos is now after the inserted piece.
             return
         except AttributeError:
+            # TODO: Can be rewritten in terms of set() / unset().
             # single element
             if isinstance(value, int):
                 if value >= 0:
@@ -2604,8 +2620,8 @@ class BitString(_Bits):
                 self._overwrite(value, key)
                 self._pos = bitposafter
             else:
-                self.delete(1, key)
-                self.insert(value, key)
+                self._delete(1, key)
+                self._insert(value, key)
             return
     
     def __delitem__(self, key):
@@ -2622,7 +2638,53 @@ class BitString(_Bits):
         0x0022
         
         """
-        self.__setitem__(key, BitString())
+        try:
+            # A slice
+            start = 0
+            step = key.step if key.step is not None else 1
+            if step == 0:
+                stop = 0
+            else:
+                # default stop needs to be a multiple of step
+                stop = self.len
+                if key.stop is not None:
+                    stop -= self.len % abs(step)
+            if key.start is not None:
+                start = key.start * abs(step)
+                if key.start < 0:
+                    start += stop
+                if start < 0:
+                    start = 0
+            if key.stop is not None:
+                stop = key.stop * abs(step)
+                if key.stop < 0:
+                    stop += self.len - (self.len % abs(step))
+            # Adjust start and stop if we're stepping backwards
+            if step < 0:
+                if key.start is None:
+                    start = self.len + step
+                if key.stop is None:
+                    stop = step
+                start, stop = stop - step, start - step
+            if start > stop:
+                if step == 1:
+                    # The standard behaviour for lists is to just insert at the
+                    # start position if stop < start and step == 1.
+                    stop = start
+                else:
+                    # We have a step which takes us in the wrong direction,
+                    # and will never get from start to stop.
+                    raise ValueError("Attempt to assign to badly defined extended slice.")
+            self._delete(stop - start, start)
+            return
+        except AttributeError:
+            # single element
+            if key < 0:
+                key += self.len
+            if not 0 <= key < self.len:
+                raise IndexError("Slice index out of range.")
+            self._delete(1, key)
+            return
     
     def __ilshift__(self, n):
         """Shift bits by n to the left in place. Return self.
@@ -2779,7 +2841,7 @@ class BitString(_Bits):
         if bs is self:
             bs = self.__copy__()
         if pos is None:
-            pos = self._pos
+            pos = self.pos
         if pos < 0 or pos > self.len:
             raise ValueError("Invalid insert position.")
         self._insert(bs, pos)
@@ -2820,11 +2882,7 @@ class BitString(_Bits):
             pos = self._pos
         if bits < 0:
             raise ValueError("Cannot delete a negative number of bits.")
-        # If too many bits then delete to the end.
-        bits = min(bits, self.len - pos)
-        end = self._slice(pos + bits, self.len)
-        self._truncateend(max(self.len - pos, 0))
-        self._append(end)
+        self._delete(bits, pos)
     
     def append(self, bs):
         """Append a BitString to the current BitString.
