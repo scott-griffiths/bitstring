@@ -29,34 +29,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 __author__ = "Scott Griffiths"
 
 
 import array
-import copy
 import string
 import os
 import struct
 import re
-import sys
-import itertools
-import platform
-import io
-import binascii
-import collections
 import operator
+from sys import byteorder
+from platform import python_version_tuple
+from binascii import hexlify, unhexlify
+from collections import Iterable
+from copy import copy
+
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
-_python_version = int(platform.python_version_tuple()[0])
+_python_version = int(python_version_tuple()[0])
 assert _python_version in [2, 3]
 if _python_version == 2:
     from future_builtins import zip
-else:    
+else:
+    from io import IOBase
     xrange = range
-    file = io.IOBase
+    file = IOBase
 
 # Maximum number of digits to use in __str__ and __repr__.
 _maxchars = 250
@@ -164,10 +164,10 @@ def _tokenparser(format, keys=None):
             endian = m.group('endian')
             if endian == '@':
                 # Native endianness
-                if sys.byteorder == 'little':
+                if byteorder == 'little':
                     endian = '<'
                 else:
-                    assert sys.byteorder == 'big'
+                    assert byteorder == 'big'
                     endian = '>'
             if endian == '<':
                 new_tokens.extend(_replacements_le[c] for c in format)
@@ -411,7 +411,7 @@ class _MemArray(_Array):
         # Set the offset of copy of array so that it's final byte
         # ends in a position that matches the offset of self,
         # then join self on to the end of it.
-        array = copy.copy(array)
+        array = copy(array)
         array.setoffset((self.offset - array.bitlength) % 8)
         assert (array.offset + array.bitlength) % 8 == self.offset
         if self.offset != 0:
@@ -1085,25 +1085,25 @@ class _Bits(object):
         return self[::-8]._getint()
         
     def _setintne(self, int, length=None):
-        if sys.byteorder == 'little':
+        if byteorder == 'little':
             self._setintle(int, length)
         else:
             self._setintbe(int, length)
     
     def _getintne(self):
-        if sys.byteorder == 'little':
+        if byteorder == 'little':
             return self._getintle()
         else:
             return self._getintbe()
 
     def _setuintne(self, uint, length=None):
-        if sys.byteorder == 'little':
+        if byteorder == 'little':
             self._setuintle(uint, length)
         else:
             self._setuintbe(uint, length)
     
     def _getuintne(self):
-        if sys.byteorder == 'little':
+        if byteorder == 'little':
             return self._getuintle()
         else:
             return self._getuintbe()
@@ -1261,7 +1261,7 @@ class _Bits(object):
             hexstring += '0'
         offset %= 4
         try:
-            data = binascii.unhexlify(hexstring)
+            data = unhexlify(hexstring)
         except TypeError:
             raise ValueError("Invalid symbol in hex initialiser.")
         self._datastore = _MemArray(data, length, offset)
@@ -1277,7 +1277,7 @@ class _Bits(object):
         if self.len == 0:
             return ''
         # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
-        s = str(binascii.hexlify(self.tobytes()).decode('utf-8'))
+        s = str(hexlify(self.tobytes()).decode('utf-8'))
         if (self.len // 4) % 2 == 1:
             # We've got one nibble too many, so cut it off.
             return '0x' + s[:-1]
@@ -1333,7 +1333,7 @@ class _Bits(object):
         if isinstance(self._datastore, _FileArray):
             s_copy._datastore = _MemArray(self._datastore[:], self.len, self._offset)
         else:
-            s_copy._datastore = copy.copy(self._datastore)
+            s_copy._datastore = copy(self._datastore)
         return s_copy
     
     def _slice(self, start, end):
@@ -1520,7 +1520,7 @@ class _Bits(object):
              If it returns True then an early exit will be made.
              
         """
-        if not isinstance(pos, collections.Iterable):
+        if not isinstance(pos, Iterable):
             pos = (pos,)
         length = self.len 
         offset = self._offset
@@ -2506,7 +2506,7 @@ class BitString(_Bits):
             # If either gets modified then at that point they'll be read into memory.
             s_copy._datastore = self._datastore
         else:
-            s_copy._datastore = copy.copy(self._datastore)
+            s_copy._datastore = copy(self._datastore)
         return s_copy
     
     def __iadd__(self, bs):
@@ -2774,7 +2774,7 @@ class BitString(_Bits):
             return 0 # no replacements done
         if new is self:
             # Prevent self assignment woes
-            new = copy.copy(self)
+            new = copy(self)
         positions = [lengths[0]]
         for l in lengths[1:-1]:
             # Next position is the previous one plus the length of the next section.
