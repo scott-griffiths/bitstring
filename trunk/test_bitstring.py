@@ -39,7 +39,7 @@ from bitstring import BitString, BitStringError, _Bits, pack
 class BitStringTest(unittest.TestCase):
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '1.0.1')
+        self.assertEqual(bitstring.__version__, '1.0.2')
     
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')
@@ -2685,16 +2685,12 @@ class BitStringTest(unittest.TestCase):
         sys.byteorder = endianness
     
     def testNativeEndianness(self):
-        endianness = sys.byteorder
-        for endian in ('big', 'little'):
-            sys.byteorder = endian
-            s = pack('@2L', 40, 40)
-            if sys.byteorder == 'little':
-                self.assertEqual(s, pack('<2L', 40, 40))
-            else:
-                self.assertEqual(sys.byteorder, 'big')
-                self.assertEqual(s, pack('>2L', 40, 40))
-        sys.byteorder = endianness
+        s = pack('@2L', 40, 40)
+        if sys.byteorder == 'little':
+            self.assertEqual(s, pack('<2L', 40, 40))
+        else:
+            self.assertEqual(sys.byteorder, 'big')
+            self.assertEqual(s, pack('>2L', 40, 40))
 
     def testStructTokens2(self):
         s = pack('>hhl', 1, 2, 3)
