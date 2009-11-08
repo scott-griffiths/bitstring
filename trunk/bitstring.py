@@ -40,10 +40,10 @@ import os
 import struct
 import re
 import operator
+import collections
 from sys import byteorder
 from platform import python_version_tuple
 from binascii import hexlify, unhexlify
-from collections import Iterable
 from copy import copy
 
 
@@ -249,8 +249,29 @@ _byte2bits = ('00000000', '00000001', '00000010', '00000011', '00000100', '00000
 
 _oct2bits = ('000', '001', '010', '011', '100', '101', '110', '111')
 
+# This creates a dictionary for every possible byte with the value being
+# the key with its bits reversed.
+_bytereversalstring = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
+                       "\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8" \
+                       "\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4" \
+                       "\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc" \
+                       "\x02\x82\x42\xc2\x22\xa2\x62\xe2\x12\x92\x52\xd2\x32\xb2\x72\xf2" \
+                       "\x0a\x8a\x4a\xca\x2a\xaa\x6a\xea\x1a\x9a\x5a\xda\x3a\xba\x7a\xfa" \
+                       "\x06\x86\x46\xc6\x26\xa6\x66\xe6\x16\x96\x56\xd6\x36\xb6\x76\xf6" \
+                       "\x0e\x8e\x4e\xce\x2e\xae\x6e\xee\x1e\x9e\x5e\xde\x3e\xbe\x7e\xfe" \
+                       "\x01\x81\x41\xc1\x21\xa1\x61\xe1\x11\x91\x51\xd1\x31\xb1\x71\xf1" \
+                       "\x09\x89\x49\xc9\x29\xa9\x69\xe9\x19\x99\x59\xd9\x39\xb9\x79\xf9" \
+                       "\x05\x85\x45\xc5\x25\xa5\x65\xe5\x15\x95\x55\xd5\x35\xb5\x75\xf5" \
+                       "\x0d\x8d\x4d\xcd\x2d\xad\x6d\xed\x1d\x9d\x5d\xdd\x3d\xbd\x7d\xfd" \
+                       "\x03\x83\x43\xc3\x23\xa3\x63\xe3\x13\x93\x53\xd3\x33\xb3\x73\xf3" \
+                       "\x0b\x8b\x4b\xcb\x2b\xab\x6b\xeb\x1b\x9b\x5b\xdb\x3b\xbb\x7b\xfb" \
+                       "\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7" \
+                       "\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
+_bytereversaldict = dict(zip(''.join(chr(i) for i in range(256)), _bytereversalstring))
+
 class BitStringError(Exception):
     """For errors in the bitstring module."""
+
 
 class _Array(object):
     
@@ -437,6 +458,7 @@ bytes_ = bytes
 
 class _Bits(object):
     "An immutable sequence of bits."
+    
     def __init__(self, auto=None, length=None, offset=0, bytes=None,
                  filename=None, hex=None, bin=None, oct=None, uint=None,
                  int=None, uintbe=None, intbe=None, uintle=None, intle=None,
@@ -1520,7 +1542,7 @@ class _Bits(object):
              If it returns True then an early exit will be made.
              
         """
-        if not isinstance(pos, Iterable):
+        if not isinstance(pos, collections.Iterable):
             pos = (pos,)
         length = self.len 
         offset = self._offset
@@ -2908,6 +2930,18 @@ class BitString(_Bits):
         bs._ensureinmemory()
         self._prepend(bs)
 
+    def _reverse(self):
+        """Reverse all bits in-place."""
+        # Reverse the contents of each byte
+        n = [_bytereversaldict[b] for b in self._datastore.rawbytes]
+        # Then reverse the order of the bytes
+        n.reverse()
+        # The new offset is the number of bits that were unused at the end.
+        newoffset = 8 - (self._offset + self.len) % 8
+        if newoffset == 8:
+            newoffset = 0
+        self._datastore = _MemArray(''.join(n), self.length, newoffset)
+
     def reverse(self, start=None, end=None):
         """Reverse bits in-place.
         
@@ -2931,8 +2965,12 @@ class BitString(_Bits):
         if end < start:
             raise ValueError("end must be >= start in reversebits().")
         self._ensureinmemory()
-        # TODO: This could be made much more efficient...
-        self[start:end] = BitString(bin=self[start:end].bin[:1:-1])
+        if start == 0 and end == self.len:
+            self._reverse()
+            return
+        s = self[start:end]
+        s._reverse()
+        self[start:end] = s
     
     def reversebytes(self, start=None, end=None):
         """Reverse bytes in-place.
@@ -3119,5 +3157,3 @@ if __name__=='__main__':
         test_bitstring.unittest.main(test_bitstring)
     except ImportError:
         print ("Error: cannot find test_bitstring.py")
-
- 

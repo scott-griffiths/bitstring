@@ -33,6 +33,7 @@ import bitstring
 import copy
 import sys
 import os
+import collections
 from bitstring import BitString, BitStringError, _Bits, pack
 
 
@@ -1186,6 +1187,13 @@ class BitStringTest(unittest.TestCase):
         s = BitString()
         s.reverse()
         self.assertEqual(s.bin, '')
+    
+    def testReverseDict(self):
+        d = bitstring._bytereversaldict
+        for i in range(256):
+            a = BitString(uint=i, length=8)
+            b = d[chr(i)]
+            self.assertEqual(a.bin[2:][::-1], BitString(bytes=b).bin[2:])
 
     def testInitWithConcatenatedStrings(self):
         s = BitString('0xff 0Xee 0xd 0xcc')
@@ -3101,7 +3109,11 @@ class BitStringTest(unittest.TestCase):
         d = a.decode('hex:8=0x47, uint:8=length, bits:92=data')
         self.assertEqual(d['length'], 16)
         
-
+    #def testAbc(self):
+    #    a = _Bits()
+    #    b = BitString()
+    #    self.assertTrue(isinstance(a, collections.Sequence))
+    #    self.assertTrue(isinstance(b, collections.MutableSequence))
 
 def main():
     unittest.main()
