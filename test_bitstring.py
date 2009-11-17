@@ -40,7 +40,7 @@ from bitstring import BitString, BitStringError, _Bits, pack
 class BitStringTest(unittest.TestCase):
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '1.0.2')
+        self.assertEqual(bitstring.__version__, '1.1.0')
     
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')
@@ -3108,7 +3108,53 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0x471000112233445566778899aabbccddeeff')
         d = a.decode('hex:8=0x47, uint:8=length, bits:92=data')
         self.assertEqual(d['length'], 16)
-        
+    
+    def testFloatInitialisation(self):
+        for f in (0.0000001, -1.0, 1.0, 0.2, -3.1415265, 1.331e32):
+            a = BitString(float=f, length=64)
+            self.assertEqual(a.float, f)
+            a = BitString('float:64=%s' % str(f))
+            self.assertEqual(a.float, f)
+            a = BitString('floatbe:64=%s' % str(f))
+            self.assertEqual(a.floatbe, f)
+            a = BitString('floatle:64=%s' % str(f))
+            self.assertEqual(a.floatle, f)
+            a = BitString('floatne:64=%s' % str(f))
+            self.assertEqual(a.floatne, f)
+            b = BitString(float=f, length=32)
+            self.assertAlmostEqual(b.float/f, 1.0)
+            b = BitString('float:32=%s' % str(f))
+            self.assertAlmostEqual(b.float/f, 1.0)
+            b = BitString('floatbe:32=%s' % str(f))
+            self.assertAlmostEqual(b.floatbe/f, 1.0)
+            b = BitString('floatle:32=%s' % str(f))
+            self.assertAlmostEqual(b.floatle/f, 1.0)
+            b = BitString('floatne:32=%s' % str(f))
+            self.assertAlmostEqual(b.floatne/f, 1.0)
+        a = BitString('0x12345678')
+        a.float = 23
+        self.assertEqual(a.float, 23.0)
+    
+    def testFloatPacking(self):
+        a = pack('>d', 0.01)
+        self.assertEqual(a.float, 0.01)
+        self.assertEqual(a.floatbe, 0.01)
+        self.assertEqual(a[::-8].floatle, 0.01)
+        b = pack('>f', 1e10)
+        self.assertAlmostEqual(b.float/1e10, 1.0)
+        c = pack('<f', 10.3)
+        self.assertAlmostEqual(c.floatle/10.3, 1.0)
+        d = pack('>5d', 10.0, 5.0, 2.5, 1.25, 0.1)
+        self.assertEqual(d.unpack('>5d'), [10.0, 5.0, 2.5, 1.25, 0.1])
+
+    def testFloatErrors(self):
+        a = BitString('0x3')
+        self.assertRaises(ValueError, a._getfloat)
+        self.assertRaises(ValueError, a._setfloat, -0.2)
+        for l in (8, 10, 12, 16, 30, 128, 200):
+            self.assertRaises(ValueError, BitString, float=1.0, length=l)
+    
+    
     #def testAbc(self):
     #    a = _Bits()
     #    b = BitString()

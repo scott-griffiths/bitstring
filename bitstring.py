@@ -29,7 +29,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "1.0.2"
+__version__ = "1.1.0"
 
 __author__ = "Scott Griffiths"
 
@@ -98,6 +98,14 @@ def _init_with_token(name, token_length, value):
         b = _Bits(uintne=int(value), length=token_length)
     elif name == 'intne':
         b = _Bits(intne=int(value), length=token_length)
+    elif name == 'float':
+        b = _Bits(float=float(value), length=token_length)
+    elif name == 'floatbe':
+        b = _Bits(floatbe=float(value), length=token_length)
+    elif name == 'floatle':
+        b = _Bits(floatle=float(value), length=token_length)
+    elif name == 'floatne':
+        b = _Bits(floatne=float(value), length=token_length)
     elif name == 'bits':
         b = _Bits(value)
     else:
@@ -109,7 +117,8 @@ def _init_with_token(name, token_length, value):
 
 
 _init_names = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
-               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne')
+               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
+               'float', 'floatbe', 'floatle', 'floatne')
 
 _init_names_ored = '|'.join(_init_names)
 _tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
@@ -119,22 +128,24 @@ _defaultuint = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 _literalre = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-_structpackre = re.compile(r'^(?P<endian><|>|@)(?P<format>(?:\d*[bBhHlLqQ])+)$')
+_structpackre = re.compile(r'^(?P<endian><|>|@)(?P<format>(?:\d*[bBhHlLqQfd])+)$')
 
 # A number followed by a single character struct.pack code
-_structsplitre = re.compile(r'\d*[bBhHlLqQ]')
+_structsplitre = re.compile(r'\d*[bBhHlLqQfd]')
 
 # These replicate the struct.pack codes
 # Big-endian
 _replacements_be = {'b': 'intbe:8',  'B': 'uintbe:8',
                     'h': 'intbe:16', 'H': 'uintbe:16',
                     'l': 'intbe:32', 'L': 'uintbe:32',
-                    'q': 'intbe:64', 'Q': 'uintbe:64'}
+                    'q': 'intbe:64', 'Q': 'uintbe:64',
+                    'f': 'floatbe:32', 'd': 'floatbe:64'}
 # Little-endian
 _replacements_le = {'b': 'intle:8',  'B': 'uintle:8',
                     'h': 'intle:16', 'H': 'uintle:16',
                     'l': 'intle:32', 'L': 'uintle:32',
-                    'q': 'intle:64', 'Q': 'uintle:64'}
+                    'q': 'intle:64', 'Q': 'uintle:64',
+                    'f': 'floatle:32', 'd': 'floatle:64'}
 
 def _tokenparser(format, keys=None):
     """Divide the format string into tokens and parse them.
@@ -462,7 +473,8 @@ class _Bits(object):
     def __init__(self, auto=None, length=None, offset=0, bytes=None,
                  filename=None, hex=None, bin=None, oct=None, uint=None,
                  int=None, uintbe=None, intbe=None, uintle=None, intle=None,
-                 uintne=None, intne=None, ue=None, se=None):
+                 uintne=None, intne=None, ue=None, se=None, float=None,
+                 floatbe=None, floatle=None, floatne=None):
         """
         Initialise the BitString with one (and only one) of:
         auto -- string of comma separated tokens, a list or tuple to be 
@@ -473,12 +485,16 @@ class _Bits(object):
         oct -- octal string representation, e.g. '0o777'.
         uint -- an unsigned integer.
         int -- a signed integer.
+        float -- a floating point number.
         uintbe -- an unsigned big-endian whole byte integer.
         intbe -- a signed big-endian whole byte integer.
+        floatbe - a big-endian floating point number.
         uintle -- an unsigned little-endian whole byte integer.
         intle -- a signed little-endian whole byte integer.
+        floatle -- a little-endian floating point number.
         uintne -- an unsigned native-endian whole byte integer.
         intne -- a signed native-endian whole byte integer.
+        floatne -- a native-endian floating point number.
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
         filename -- a file which will be opened in binary read-only mode.
@@ -528,11 +544,17 @@ class _Bits(object):
         if int is not None:
             self._setint(int, length)
             return
+        if float is not None:
+            self._setfloat(float, length)
+            return
         if uintbe is not None:
             self._setuintbe(uintbe, length)
             return
         if intbe is not None:
             self._setintbe(intbe, length)
+            return
+        if floatbe is not None:
+            self._setfloatbe(floatbe, length)
             return
         if uintle is not None:
             self._setuintle(uintle, length)
@@ -540,11 +562,17 @@ class _Bits(object):
         if intle is not None:
             self._setintle(intle, length)
             return
+        if floatle is not None:
+            self._setfloatle(floatle, length)
+            return
         if uintne is not None:
             self._setuintne(uintne, length)
             return
         if intne is not None:
             self._setintne(intne, length)
+            return
+        if floatne is not None:
+            self._setfloatne(floatne, length)
             return
         if ue is not None:
             if length is not None:
@@ -1129,7 +1157,56 @@ class _Bits(object):
             return self._getuintle()
         else:
             return self._getuintbe()
-        
+    
+    def _setfloat(self, f, length=None):
+        # If no length given, and we've previously been given a length, use it.
+        if length is None and hasattr(self, 'len') and self.len != 0:
+            length = self.len
+        if length is None or length == 0:
+            raise ValueError("A non-zero length must be specified with a float initialiser.")
+        if length not in (32, 64):
+            raise ValueError("floats can only be 32 or 64 bits long, not %d bits" % length)
+        if length == 32:
+            b = struct.pack('>f', f)
+        else:
+            b = struct.pack('>d', f)
+        self._setbytes(b, length, 0)
+
+    def _getfloat(self):
+        if self.len not in (32, 64):
+            raise ValueError("floats can only be 32 or 64 bits long, not %d bits" % self.len)
+        if self.len == 32:
+            f, = struct.unpack('>f', self.bytes)
+        else:
+            f, = struct.unpack('>d', self.bytes)
+        return f
+
+    def _setfloatbe(self, f, length=None):
+        self._setfloat(f, length)
+    
+    def _getfloatbe(self):
+        return self._getfloat()
+    
+    # TODO: Could be improved by simply packing with <f or <d.
+    def _setfloatle(self, f, length=None):
+        self._setfloat(f, length)
+        self._reversebytes(0, self.len)
+    
+    def _getfloatle(self):
+        return self[::-8]._getfloat()
+    
+    def _setfloatne(self, f, length=None):
+        if byteorder == 'little':
+            self._setfloatle(f, length)
+        else:
+            self._setfloat(f, length)
+    
+    def _getfloatne(self):
+        if byteorder == 'little':
+            return self._getfloatle()
+        else:
+            return self._getfloat()
+    
     def _setue(self, i):
         """Initialise BitString with unsigned exponential-Golomb code for integer i.
         
@@ -1415,7 +1492,8 @@ class _Bits(object):
             length = int(length)
         name = name.lower()
         if name in ('uint', 'int', 'intbe', 'uintbe', 'intle', 'uintle',
-                    'intne', 'uintne', 'hex', 'oct', 'bin'):
+                    'intne', 'uintne', 'hex', 'oct', 'bin',
+                    'float', 'floatle', 'floatbe', 'floatne'):
             return getattr(self.readbits(length), name)
         if name == 'bits':
             return self.readbits(length)
@@ -2478,11 +2556,17 @@ class _Bits(object):
     uint   = property(_getuint,
                       doc="""The BitString as a two's complement unsigned int. Read only.
                       """)
+    float  = property(_getfloat,
+                      doc="""The BitString as a floating point number. Read only.
+                      """)
     intbe  = property(_getintbe,
                       doc="""The BitString as a two's complement big-endian signed int. Read only.
                       """)
     uintbe = property(_getuintbe,
                       doc="""The BitString as a two's complement big-endian unsigned int. Read only.
+                      """)
+    floatbe= property(_getfloatbe,
+                      doc="""The BitString as a big-endian floating point number. Read only.
                       """)
     intle  = property(_getintle,
                       doc="""The BitString as a two's complement little-endian signed int. Read only.
@@ -2490,11 +2574,17 @@ class _Bits(object):
     uintle = property(_getuintle,
                       doc="""The BitString as a two's complement little-endian unsigned int. Read only.
                       """)
+    floatle= property(_getfloatle,
+                      doc="""The BitString as a little-endian floating point number. Read only.
+                      """)
     intne  = property(_getintne,
                       doc="""The BitString as a two's complement native-endian signed int. Read only.
                       """)
     uintne = property(_getuintne,
                       doc="""The BitString as a two's complement native-endian unsigned int. Read only.
+                      """)
+    floatne= property(_getfloatne,
+                      doc="""The BitString as a native-endian floating point number. Read only.
                       """)
     ue     = property(_getue,
                       doc="""The BitString as an unsigned exponential-Golomb code. Read only.
@@ -3036,11 +3126,17 @@ class BitString(_Bits):
     uint   = property(_Bits._getuint, _Bits._setuint,
                       doc="""The BitString as a two's complement unsigned int. Read and write.
                       """)
+    float  = property(_Bits._getfloat, _Bits._setfloat,
+                      doc="""The BitString as a floating point number. Read and write.
+                      """)
     intbe  = property(_Bits._getintbe, _Bits._setintbe,
                       doc="""The BitString as a two's complement big-endian signed int. Read and write.
                       """)
     uintbe = property(_Bits._getuintbe, _Bits._setuintbe,
                       doc="""The BitString as a two's complement big-endian unsigned int. Read and write.
+                      """)
+    floatbe= property(_Bits._getfloatbe, _Bits._setfloatbe,
+                      doc="""The BitString as a big-endian floating point number. Read and write.
                       """)
     intle  = property(_Bits._getintle, _Bits._setintle,
                       doc="""The BitString as a two's complement little-endian signed int. Read and write.
@@ -3048,11 +3144,17 @@ class BitString(_Bits):
     uintle = property(_Bits._getuintle, _Bits._setuintle,
                       doc="""The BitString as a two's complement little-endian unsigned int. Read and write.
                       """)
+    floatle= property(_Bits._getfloatle, _Bits._setfloatle,
+                      doc="""The BitString as a little-endian floating point number. Read and write.
+                      """)
     intne  = property(_Bits._getintne, _Bits._setintne,
                       doc="""The BitString as a two's complement native-endian signed int. Read and write.
                       """)
     uintne = property(_Bits._getuintne, _Bits._setuintne,
                       doc="""The BitString as a two's complement native-endian unsigned int. Read and write.
+                      """)
+    floatne= property(_Bits._getfloatne, _Bits._setfloatne,
+                      doc="""The BitString as a native-endian floating point number. Read and write.
                       """)
     ue     = property(_Bits._getue, _Bits._setue,
                       doc="""The BitString as an unsigned exponential-Golomb code. Read and write.
