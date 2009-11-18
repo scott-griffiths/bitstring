@@ -262,59 +262,34 @@ _oct2bits = ('000', '001', '010', '011', '100', '101', '110', '111')
 
 # This creates a dictionary for every possible byte with the value being
 # the key with its bits reversed.
-_bytereversalstring = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
-                       "\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8" \
-                       "\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4" \
-                       "\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc" \
-                       "\x02\x82\x42\xc2\x22\xa2\x62\xe2\x12\x92\x52\xd2\x32\xb2\x72\xf2" \
-                       "\x0a\x8a\x4a\xca\x2a\xaa\x6a\xea\x1a\x9a\x5a\xda\x3a\xba\x7a\xfa" \
-                       "\x06\x86\x46\xc6\x26\xa6\x66\xe6\x16\x96\x56\xd6\x36\xb6\x76\xf6" \
-                       "\x0e\x8e\x4e\xce\x2e\xae\x6e\xee\x1e\x9e\x5e\xde\x3e\xbe\x7e\xfe" \
-                       "\x01\x81\x41\xc1\x21\xa1\x61\xe1\x11\x91\x51\xd1\x31\xb1\x71\xf1" \
-                       "\x09\x89\x49\xc9\x29\xa9\x69\xe9\x19\x99\x59\xd9\x39\xb9\x79\xf9" \
-                       "\x05\x85\x45\xc5\x25\xa5\x65\xe5\x15\x95\x55\xd5\x35\xb5\x75\xf5" \
-                       "\x0d\x8d\x4d\xcd\x2d\xad\x6d\xed\x1d\x9d\x5d\xdd\x3d\xbd\x7d\xfd" \
-                       "\x03\x83\x43\xc3\x23\xa3\x63\xe3\x13\x93\x53\xd3\x33\xb3\x73\xf3" \
-                       "\x0b\x8b\x4b\xcb\x2b\xab\x6b\xeb\x1b\x9b\x5b\xdb\x3b\xbb\x7b\xfb" \
-                       "\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7" \
-                       "\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
-_bytereversaldict = dict(zip(''.join(chr(i) for i in range(256)), _bytereversalstring))
+_reversalbytes = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
+                      b"\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8" \
+                      b"\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4" \
+                      b"\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc" \
+                      b"\x02\x82\x42\xc2\x22\xa2\x62\xe2\x12\x92\x52\xd2\x32\xb2\x72\xf2" \
+                      b"\x0a\x8a\x4a\xca\x2a\xaa\x6a\xea\x1a\x9a\x5a\xda\x3a\xba\x7a\xfa" \
+                      b"\x06\x86\x46\xc6\x26\xa6\x66\xe6\x16\x96\x56\xd6\x36\xb6\x76\xf6" \
+                      b"\x0e\x8e\x4e\xce\x2e\xae\x6e\xee\x1e\x9e\x5e\xde\x3e\xbe\x7e\xfe" \
+                      b"\x01\x81\x41\xc1\x21\xa1\x61\xe1\x11\x91\x51\xd1\x31\xb1\x71\xf1" \
+                      b"\x09\x89\x49\xc9\x29\xa9\x69\xe9\x19\x99\x59\xd9\x39\xb9\x79\xf9" \
+                      b"\x05\x85\x45\xc5\x25\xa5\x65\xe5\x15\x95\x55\xd5\x35\xb5\x75\xf5" \
+                      b"\x0d\x8d\x4d\xcd\x2d\xad\x6d\xed\x1d\x9d\x5d\xdd\x3d\xbd\x7d\xfd" \
+                      b"\x03\x83\x43\xc3\x23\xa3\x63\xe3\x13\x93\x53\xd3\x33\xb3\x73\xf3" \
+                      b"\x0b\x8b\x4b\xcb\x2b\xab\x6b\xeb\x1b\x9b\x5b\xdb\x3b\xbb\x7b\xfb" \
+                      b"\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7" \
+                      b"\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
 
+if _python_version == 2:
+    _bytereversaldict = dict(zip(range(256), _reversalbytes))
+else:
+    _bytereversaldict = dict(zip(range(256), [bytes([x]) for x in _reversalbytes]))
+    
 class BitStringError(Exception):
     """For errors in the bitstring module."""
 
-
-class _Array(object):
     
-    def __init__(self):
-        raise NotImplementedError
-    
-    def __copy__(self):
-        raise NotImplementedError
-    
-    def __getitem__(self, key):
-        """Return a slice of the raw bytes."""
-        raise NotImplementedError
-
-    def __setitem__(self, key, item):
-        """Set a slice of the raw bytes."""
-        raise NotImplementedError
-    
-    def appendbytes(self, data):
-        """Append raw byte data."""
-        raise NotImplementedError
-
-    def appendarray(self, array):
-        """Append another array to this one."""
-        raise NotImplementedError
-    
-    def prependarray(self, array):
-        """Prepend another array to this one."""
-        raise NotImplementedError
-
-    
-class _FileArray(_Array):
-    """A class that mimics the array.array type but gets data from a file object."""
+class _FileArray(object):
+    """A class that mimics bytearray but gets data from a file object."""
     
     def __init__(self, source, bitlength, offset):
         # byteoffset - bytes to ignore at start of file
@@ -346,9 +321,9 @@ class _FileArray(_Array):
             assert stop >= 0
             if start < stop:
                 self.source.seek(start, os.SEEK_SET)
-                return array.array('B', self.source.read(stop-start))
+                return bytes(self.source.read(stop-start))
             else:
-                return ''
+                return b''
         except AttributeError:
             # single element
             if key < 0:
@@ -360,14 +335,14 @@ class _FileArray(_Array):
             return ord(self.source.read(1))
 
 
-class _MemArray(_Array):
+class _MemArray(object):
     """Stores raw bytes together with a bit offset and length."""
     
     def __init__(self, data, bitlength=0, offset=0):
-        self._rawarray = array.array('B', data[offset // 8: (offset + bitlength + 7)//8])
+        self._rawarray = bytearray(data[offset // 8: (offset + bitlength + 7) // 8])
         self.offset = offset % 8
         self.bitlength = bitlength
-        assert (self.bitlength + self.offset + 7)//8 == len(self._rawarray)
+        assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray)
 
     def __copy__(self):
         return _MemArray(self._rawarray, self.bitlength, self.offset)
@@ -458,7 +433,7 @@ class _MemArray(_Array):
         self.bitlength += array.bitlength
 
     def _getrawbytes(self):
-        return self._rawarray.tostring()
+        return self._rawarray
         
     bytelength = property(_getbytelength)
     
@@ -554,7 +529,7 @@ class _Bits(object):
             self._setintbe(intbe, length)
             return
         if floatbe is not None:
-            self._setfloatbe(floatbe, length)
+            self._setfloat(floatbe, length)
             return
         if uintle is not None:
             self._setuintle(uintle, length)
@@ -933,7 +908,7 @@ class _Bits(object):
 
     def _clear(self):
         """Reset the BitString to an empty state."""
-        self.bytes = ''
+        self.bytes = b''
         self._pos = 0
     
     def _setauto(self, s, length, offset):
@@ -1044,8 +1019,8 @@ class _Bits(object):
             shift -= 8*structsize
             # Convert next 8 bytes to an int, then shift it to proper place
             # and add it
-            d = self._datastore[j:j + structsize].tostring()
-            val += (struct.unpack('>Q', d)[0] << shift)
+            d = self._datastore[j:j + structsize]
+            val += (struct.unpack('>Q', bytes(d))[0] << shift)
             j += structsize
         # Do the remaining bytes, except for the final one
         while j < end:
@@ -1164,36 +1139,45 @@ class _Bits(object):
             length = self.len
         if length is None or length == 0:
             raise ValueError("A non-zero length must be specified with a float initialiser.")
-        if length not in (32, 64):
-            raise ValueError("floats can only be 32 or 64 bits long, not %d bits" % length)
         if length == 32:
             b = struct.pack('>f', f)
-        else:
+        elif length == 64:
             b = struct.pack('>d', f)
+        else:
+            raise ValueError("floats can only be 32 or 64 bits long, not %d bits" % length)
         self._setbytes(b, length, 0)
 
     def _getfloat(self):
-        if self.len not in (32, 64):
-            raise ValueError("floats can only be 32 or 64 bits long, not %d bits" % self.len)
         if self.len == 32:
             f, = struct.unpack('>f', self.bytes)
-        else:
+        elif self.len == 64:
             f, = struct.unpack('>d', self.bytes)
+        else:
+            raise ValueError("floats can only be 32 or 64 bits long, not %d bits" % self.len)
         return f
-
-    def _setfloatbe(self, f, length=None):
-        self._setfloat(f, length)
     
-    def _getfloatbe(self):
-        return self._getfloat()
-    
-    # TODO: Could be improved by simply packing with <f or <d.
     def _setfloatle(self, f, length=None):
-        self._setfloat(f, length)
-        self._reversebytes(0, self.len)
+        # If no length given, and we've previously been given a length, use it.
+        if length is None and hasattr(self, 'len') and self.len != 0:
+            length = self.len
+        if length is None or length == 0:
+            raise ValueError("A non-zero length must be specified with a float initialiser.")
+        if length == 32:
+            b = struct.pack('<f', f)
+        elif length == 64:
+            b = struct.pack('<d', f)
+        else:
+            raise ValueError("floats can only be 32 or 64 bits long, not %d bits" % length)
+        self._setbytes(b, length, 0)
     
     def _getfloatle(self):
-        return self[::-8]._getfloat()
+        if self.len == 32:
+            f, = struct.unpack('<f', self.bytes)
+        elif self.len == 64:
+            f, = struct.unpack('<d', self.bytes)
+        else:
+            raise ValueError("floats can only be 32 or 64 bits long, not %d bits" % self.len)
+        return f
     
     def _setfloatne(self, f, length=None):
         if byteorder == 'little':
@@ -1711,20 +1695,20 @@ class _Bits(object):
         self._pos = bitposbefore
         return return_values
 
-    def decode(self, format, **kwargs):
-        """Interpret the BitString using format and kwargs and return dictionary."""
-        tokens = _tokenparser(format)
-        # Scan tokens to see if one has no length (TODO)
-        
-        return_dict = {}
-        for name, length, value in tokens:
-            result = self._readtoken(name, length, value)
-            #if value has already been defined in some way...
-            #    if result != value:
-            #        raise BitStringError("When parsing token %s:%s=%s, got result %s" % (name, length, value, result))
-            return_dict[value] = result
-            
-        return return_dict
+    #def decode(self, format, **kwargs):
+    #    """Interpret the BitString using format and kwargs and return dictionary."""
+    #    tokens = _tokenparser(format)
+    #    # Scan tokens to see if one has no length (TODO)
+    #    
+    #    return_dict = {}
+    #    for name, length, value in tokens:
+    #        result = self._readtoken(name, length, value)
+    #        #if value has already been defined in some way...
+    #        #    if result != value:
+    #        #        raise BitStringError("When parsing token %s:%s=%s, got result %s" % (name, length, value, result))
+    #        return_dict[value] = result
+    #        
+    #    return return_dict
         
         
     
@@ -1752,9 +1736,11 @@ class _Bits(object):
         
         Raises ValueError if the format is not understood.
         
-        """   
+        """
+        p = self.pos
         return_values = self.readlist(format)
         if len(return_values) != 1:
+            self.pos = p
             raise ValueError("Format string should be a single token - use readlist() instead.")
         return return_values[0]
 
@@ -2133,7 +2119,7 @@ class _Bits(object):
             buffersize = increment + len(d)
             while p < finalpos:
                 # Read in file or from memory in overlapping chunks and search the chunks.
-                buf = self._datastore[p:min(p + buffersize, finalpos)].tostring()
+                buf = self._datastore[p:min(p + buffersize, finalpos)]
                 pos = buf.find(d)
                 if pos != -1:
                     found = True
@@ -2403,11 +2389,10 @@ class _Bits(object):
         unusedbits = 8 - self.len % 8
         if unusedbits != 8:
             # This is horrible. Shouldn't have to copy the string here!
-            if _python_version == 2:
-                return d[:-1] + chr(ord(d[-1]) & (255 << unusedbits))
-            else:
-                return d[:-1] + bytes([d[-1] & (255 << unusedbits)])
-        return d
+            t1 = d[:-1]
+            t1.append(d[-1] & (255 << unusedbits))
+            return bytes(t1)
+        return bytes(d)
 
     def tofile(self, f):
         """Write the BitString to a file object, padding with zero bits if needed.
@@ -2565,7 +2550,7 @@ class _Bits(object):
     uintbe = property(_getuintbe,
                       doc="""The BitString as a two's complement big-endian unsigned int. Read only.
                       """)
-    floatbe= property(_getfloatbe,
+    floatbe= property(_getfloat,
                       doc="""The BitString as a big-endian floating point number. Read only.
                       """)
     intle  = property(_getintle,
@@ -3030,7 +3015,7 @@ class BitString(_Bits):
         newoffset = 8 - (self._offset + self.len) % 8
         if newoffset == 8:
             newoffset = 0
-        self._datastore = _MemArray(''.join(n), self.length, newoffset)
+        self._datastore = _MemArray(b''.join(n), self.length, newoffset)
 
     def reverse(self, start=None, end=None):
         """Reverse bits in-place.
@@ -3135,7 +3120,7 @@ class BitString(_Bits):
     uintbe = property(_Bits._getuintbe, _Bits._setuintbe,
                       doc="""The BitString as a two's complement big-endian unsigned int. Read and write.
                       """)
-    floatbe= property(_Bits._getfloatbe, _Bits._setfloatbe,
+    floatbe= property(_Bits._getfloat, _Bits._setfloat,
                       doc="""The BitString as a big-endian floating point number. Read and write.
                       """)
     intle  = property(_Bits._getintle, _Bits._setintle,

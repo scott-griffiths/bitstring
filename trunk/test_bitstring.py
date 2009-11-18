@@ -1192,7 +1192,7 @@ class BitStringTest(unittest.TestCase):
         d = bitstring._bytereversaldict
         for i in range(256):
             a = BitString(uint=i, length=8)
-            b = d[chr(i)]
+            b = d[i]
             self.assertEqual(a.bin[2:][::-1], BitString(bytes=b).bin[2:])
 
     def testInitWithConcatenatedStrings(self):
@@ -3104,10 +3104,10 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue(a.anyunset((4, 5, 6, 2)))
         self.assertFalse(a.anyunset((1, 15, 20)))
 
-    def testDecode(self):
-        a = BitString('0x471000112233445566778899aabbccddeeff')
-        d = a.decode('hex:8=0x47, uint:8=length, bits:92=data')
-        self.assertEqual(d['length'], 16)
+    #def testDecode(self):
+    #    a = BitString('0x471000112233445566778899aabbccddeeff')
+    #    d = a.decode('hex:8=0x47, uint:8=length, bits:92=data')
+    #    self.assertEqual(d['length'], 16)
     
     def testFloatInitialisation(self):
         for f in (0.0000001, -1.0, 1.0, 0.2, -3.1415265, 1.331e32):
@@ -3135,6 +3135,12 @@ class BitStringTest(unittest.TestCase):
         a.float = 23
         self.assertEqual(a.float, 23.0)
     
+    def testFloatInitStrings(self):
+        for s in ('5', '+0.0001', '-1e101', '4.', '.2', '-.65', '43.21E+32'):
+            a = BitString('float:64=%s' % s)
+            self.assertEqual(a.float, float(s))
+            
+    
     def testFloatPacking(self):
         a = pack('>d', 0.01)
         self.assertEqual(a.float, 0.01)
@@ -3154,6 +3160,13 @@ class BitStringTest(unittest.TestCase):
         for l in (8, 10, 12, 16, 30, 128, 200):
             self.assertRaises(ValueError, BitString, float=1.0, length=l)
     
+    def testReadErrorChangesPos(self):
+        a = BitString('0x123123')
+        try:
+            a.read('10, 5')
+        except ValueError:
+            pass
+        self.assertEqual(a.pos, 0)
     
     #def testAbc(self):
     #    a = _Bits()
