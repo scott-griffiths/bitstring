@@ -765,6 +765,7 @@ class _Bits(object):
         s._invert(xrange(s.len))
         return s
 
+    # TODO: optimise!
     def __lshift__(self, n):
         """Return BitString with bits shifted by n to the left.
         
@@ -779,6 +780,7 @@ class _Bits(object):
         s._append(self.__class__(length=min(n, self.len)))
         return s
     
+    # TODO: optimise!
     def __rshift__(self, n):
         """Return BitString with bits shifted by n to the right.
         
@@ -1642,11 +1644,13 @@ class _Bits(object):
             self._datastore._rawarray[a] ^= 128 >> b
         self._bit_tweaker(pos, f)
     
+    # TODO: Optimise!
     def _ilshift(self, n):
         """Shift bits by n to the left in place. Return self."""
         self.bin = self.__lshift__(n).bin
         return self
 
+    # TODO: Optimise!
     def _irshift(self, n):
         """Shift bits by n to the right in place. Return self."""
         self.bin = self.__rshift__(n).bin
@@ -3113,7 +3117,34 @@ class BitString(_Bits):
         
         """ 
         self._invert(pos)
- 
+    
+    # TODO: Add start, end. Optimise!
+    def ror(self, bits):
+        """Rotate bits to the right in-place."""
+        if self.len == 0:
+            raise BitStringError("Cannot rotate an empty BitString.")
+        if bits < 0:
+            raise ValueError("Cannot rotate right by negative amount.")
+        bits %= self.len
+        if bits == 0:
+            return
+        rhs = self[-bits:]
+        self.truncateend(bits)
+        self.prepend(rhs)
+
+    def rol(self, bits):
+        """Rotate bits to the left in-place."""
+        if self.len == 0:
+            raise BitStringError("Cannot rotate an empty BitString.")
+        if bits < 0:
+            raise ValueError("Cannot rotate left by negative amount.")
+        bits %= self.len
+        if bits == 0:
+            return
+        lhs = self[:bits]
+        self.truncatestart(bits)
+        self.append(lhs)
+
     int    = property(_Bits._getint, _Bits._setint,
                       doc="""The BitString as a two's complement signed int. Read and write.
                       """)
