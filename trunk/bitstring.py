@@ -34,13 +34,13 @@ __version__ = "1.1.0"
 __author__ = "Scott Griffiths"
 
 
-import array
 import string
 import os
 import struct
 import re
 import operator
 import collections
+import itertools
 from sys import byteorder
 from platform import python_version_tuple
 from binascii import hexlify, unhexlify
@@ -135,13 +135,13 @@ _structsplitre = re.compile(r'\d*[bBhHlLqQfd]')
 
 # These replicate the struct.pack codes
 # Big-endian
-_replacements_be = {'b': 'intbe:8',  'B': 'uintbe:8',
+_replacements_be = {'b': 'intbe:8', 'B': 'uintbe:8',
                     'h': 'intbe:16', 'H': 'uintbe:16',
                     'l': 'intbe:32', 'L': 'uintbe:32',
                     'q': 'intbe:64', 'Q': 'uintbe:64',
                     'f': 'floatbe:32', 'd': 'floatbe:64'}
 # Little-endian
-_replacements_le = {'b': 'intle:8',  'B': 'uintle:8',
+_replacements_le = {'b': 'intle:8', 'B': 'uintle:8',
                     'h': 'intle:16', 'H': 'uintle:16',
                     'l': 'intle:32', 'L': 'uintle:32',
                     'q': 'intle:64', 'Q': 'uintle:64',
@@ -727,11 +727,20 @@ class _Bits(object):
             return False
         if self.len != bs.len:
             return False
-        # TODO: This could be made faster by exiting with False as early as possible.
-        if self.tobytes() != bs.tobytes():
+        # TODO: There's still a lot we can do to make this faster. We should be
+        # looking at the raw data so that we don't change offsets unless we really
+        # have to.
+        # Check in chunks so that we can exit early if possible.
+        chunk_size = (1 << 21)
+        if self.len <= chunk_size:
+            return self.tobytes() == bs.tobytes()
+        for s_chunk, bs_chunk in itertools.izip(self.cut(chunk_size), bs.cut(chunk_size)):
+            if s_chunk.tobytes() != bs_chunk.tobytes():
+                return False
+        final_bits = self.len % chunk_size
+        if self[-final_bits:].tobytes() != bs[-final_bits:].tobytes():
             return False
-        else:
-            return True
+        return True
         
     def __ne__(self, bs):
         """Return False if two BitStrings have the same binary representation.
