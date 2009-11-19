@@ -3168,6 +3168,59 @@ class BitStringTest(unittest.TestCase):
             pass
         self.assertEqual(a.pos, 0)
     
+    def testRor(self):
+        a = BitString('0b11001')
+        a.ror(0)
+        self.assertEqual(a, '0b11001')
+        a.ror(1)
+        self.assertEqual(a, '0b11100')
+        a.ror(5)
+        self.assertEqual(a, '0b11100')
+        a.ror(101)
+        self.assertEqual(a, '0b01110')
+        a = BitString('0b1')
+        a.ror(1000000)
+        self.assertEqual(a, '0b1')
+    
+    def testRorErrors(self):
+        a = BitString()
+        self.assertRaises(BitStringError, a.ror, 0)
+        a += '0b001'
+        self.assertRaises(ValueError, a.ror, -1)
+    
+    def testRol(self):
+        a = BitString('0b11001')
+        a.rol(0)
+        self.assertEqual(a, '0b11001')
+        a.rol(1)
+        self.assertEqual(a, '0b10011')
+        a.rol(5)
+        self.assertEqual(a, '0b10011')
+        a.rol(101)
+        self.assertEqual(a, '0b00111')
+        a = BitString('0b1')
+        a.rol(1000000)
+        self.assertEqual(a, '0b1')
+    
+    def testRolErrors(self):
+        a = BitString()
+        self.assertRaises(BitStringError, a.rol, 0)
+        a += '0b001'
+        self.assertRaises(ValueError, a.rol, -1)
+    
+    def testShr(self):
+        pass
+    
+    def testShrErrors(self):
+        pass
+    
+    def testShl(self):
+        pass
+    
+    def testShlErrors(self):
+        pass
+    
+    
     #def testAbc(self):
     #    a = _Bits()
     #    b = BitString()
