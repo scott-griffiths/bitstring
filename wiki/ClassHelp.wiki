@@ -1,4 +1,5 @@
 #summary Help on module bitstring:
+#labels Deprecated
 {{{
 Help on class BitString in module bitstring:
 
