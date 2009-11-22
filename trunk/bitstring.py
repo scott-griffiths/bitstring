@@ -53,14 +53,14 @@ import functools
 def _deprecated(help):
     def decorator(func):
         """This decorator can be used to mark functions as deprecated.
-        It will result in a warning being emmitted when the function is used.
+        It will result in a warning being emitted when the function is used.
         """
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
             #warnings.warn("Call to deprecated function %s." % func.__name__,
             #              category=DeprecationWarning, stacklevel=2)
             return func(self, *args, **kwargs)
-        wrapper.__doc__ = "*Deprecated* " + help + func.__doc__
+        wrapper.__doc__ = "*Deprecated*: " + help + '\n\n        ' + func.__doc__
         return wrapper
     return decorator
 
@@ -851,8 +851,11 @@ class _Bits(object):
         Raises ValueError if the two BitStrings have differing lengths.
         
         """
+        bs = self._converttobitstring(bs)
+        if self.len != bs.len:
+            raise ValueError('BitStrings must have the same length for & operator.')
         s = self[:]
-        s &= bs
+        s._iand(bs)
         return s
     
     def __rand__(self, bs):
@@ -873,8 +876,11 @@ class _Bits(object):
         Raises ValueError if the two BitStrings have differing lengths.
         
         """
+        bs = self._converttobitstring(bs)
+        if self.len != bs.len:
+            raise ValueError('BitStrings must have the same length for | operator.')
         s = self[:]
-        s |= bs
+        s._ior(bs)
         return s
 
     def __ror__(self, bs):
@@ -895,8 +901,11 @@ class _Bits(object):
         Raises ValueError if the two BitStrings have differing lengths.
         
         """
+        bs = self._converttobitstring(bs)
+        if self.len != bs.len:
+            raise ValueError('BitStrings must have the same length for ^ operator.')
         s = self[:]
-        s ^= bs
+        s._ixor(bs)
         return s
 
     def __rxor__(self, bs):
@@ -1013,13 +1022,14 @@ class _Bits(object):
             raise ValueError("uint %d is too large for a BitString of length %d." % (uint, length))  
         if uint < 0:
             raise ValueError("uint cannot be initialsed by a negative number.")
-        # TODO: Efficiency. Could struct.pack be used here? Plus array manipulations are wasteful.
         blist = []
         while uint:
+            # Pack lowest bytes as little endian (as it will be reversed shortly)
             x = struct.pack('<Q', uint & 0xffffffffffffffff)
             blist.extend(x)
             uint >>= 64
         blist.reverse()
+        # Now add or remove bytes as needed to get the right length.
         extrabytes = ((length + 7) // 8) - len(blist)
         if extrabytes > 0:
             data = bytes(bytearray(extrabytes) + b''.join(blist))
@@ -1416,13 +1426,13 @@ class _Bits(object):
             raise BitStringError("Not byte aligned in _getbytepos().")
         return self._pos // 8
 
-    def _setbitpos(self, bitpos):
+    def _setbitpos(self, pos):
         """Move to absolute postion bit in bitstream."""
-        if bitpos < 0:
+        if pos < 0:
             raise ValueError("Bit position cannot be negative.")
-        if bitpos > self.len:
+        if pos > self.len:
             raise ValueError("Cannot seek past the end of the data.")
-        self._pos = bitpos
+        self._pos = pos
 
     def _getbitpos(self):
         """Return the current position in the stream in bits."""
@@ -1544,7 +1554,7 @@ class _Bits(object):
         if bs is self:
             bs = self.__copy__() # TODO: This copy won't work for _Bits.
         self._datastore.prependarray(bs._datastore)
-        self.bitpos += bs.len
+        self.pos += bs.len
 
     def _truncatestart(self, bits):
         """Truncate bits from the start of the BitString."""
@@ -1826,7 +1836,7 @@ class _Bits(object):
                     raise BitStringError("It's not possible to have more than one 'filler' token.")
                 stretchy_token = token
                 
-        bits_left = self.len - self.bitpos
+        bits_left = self.len - self.pos
         return_values = []
         for token in tokens:
             if token is stretchy_token:
@@ -1840,7 +1850,7 @@ class _Bits(object):
     def readbit(self):
         """Return next bit in BitString as new BitString and advance position.
         
-        Returns empty BitString if bitpos is at the end of the BitString.
+        Returns empty BitString if pos is at the end of the BitString.
         
         """
         return self.readbits(1)
@@ -1938,15 +1948,15 @@ class _Bits(object):
         See the docstring for 'read' for token examples.
         
         """
-        bitpos = self._pos
+        pos = self._pos
         return_values = self.readlist(*format)
-        self._pos = bitpos
+        self._pos = pos
         return return_values
 
     def peekbit(self):
         """Return next bit as a new BitString without advancing position.
         
-        Returns empty BitString if bitpos is at the end of the BitString.
+        Returns empty BitString if pos is at the end of the BitString.
         
         """
         return self.peekbits(1)
@@ -1961,9 +1971,9 @@ class _Bits(object):
         Raises ValueError if bits < 0.
         
         """
-        bitpos = self._pos
+        pos = self._pos
         s = self.readbits(bits)
-        self._pos = bitpos
+        self._pos = pos
         return s
     
     def peekbitlist(self, *bits):
@@ -1977,9 +1987,9 @@ class _Bits(object):
         Raises ValueError if bits < 0.
         
         """
-        bitpos = self._pos
+        pos = self._pos
         s = self.readbitlist(*bits)
-        self._pos = bitpos
+        self._pos = pos
         return s
     
     def peekbyte(self):
@@ -2015,7 +2025,7 @@ class _Bits(object):
     def advancebit(self):
         """Advance position by one bit.
         
-        Raises ValueError if bitpos is past the last bit in the BitString.
+        Raises ValueError if pos is past the last bit in the BitString.
         
         """
         self.pos += 1
@@ -2024,9 +2034,9 @@ class _Bits(object):
     def advancebits(self, bits):
         """Advance position by bits.
         
-        bits -- Number of bits to increment bitpos by. Must be >= 0.
+        bits -- Number of bits to increment pos by. Must be >= 0.
         
-        Raises ValueError if bits is negative or if bitpos goes past the end
+        Raises ValueError if bits is negative or if pos goes past the end
         of the BitString.
         
         """
@@ -2038,7 +2048,7 @@ class _Bits(object):
     def advancebyte(self):
         """Advance position by one byte. Does not byte align.
         
-        Raises ValueError if there is less than one byte from bitpos to
+        Raises ValueError if there is less than one byte from pos to
         the end of the BitString.
         
         """
@@ -2048,61 +2058,61 @@ class _Bits(object):
     def advancebytes(self, bytes):
         """Advance position by bytes. Does not byte align.
         
-        bytes -- Number of bytes to increment bitpos by. Must be >= 0.
+        bytes -- Number of bytes to increment pos by. Must be >= 0.
         
-        Raises ValueError if there are not enough bytes from bitpos to
+        Raises ValueError if there are not enough bytes from pos to
         the end of the BitString.
         
         """
         if bytes < 0:
             raise ValueError("Cannot advance by a negative amount.")
-        self.bitpos += bytes*8
+        self.pos += bytes*8
 
     @_deprecated("Instead of 's.retreatbit()' use 's.pos -= 1'.")
     def retreatbit(self):
         """Retreat position by one bit.
         
-        Raises ValueError if bitpos is already at the start of the BitString.
+        Raises ValueError if pos is already at the start of the BitString.
         
         """
-        self.bitpos -= 1
+        self.pos -= 1
  
     @_deprecated("Instead of 's.retreatbits(n)' use 's.pos -= n'.")
     def retreatbits(self, bits):
         """Retreat position by bits.
         
-        bits -- Number of bits to decrement bitpos by. Must be >= 0.
+        bits -- Number of bits to decrement pos by. Must be >= 0.
         
-        Raises ValueError if bits negative or if bitpos goes past the start
+        Raises ValueError if bits negative or if pos goes past the start
         of the BitString.
         
         """
         if bits < 0:
             raise ValueError("Cannot retreat by a negative amount.")
-        self.bitpos -= bits
+        self.pos -= bits
 
     @_deprecated("Instead of 's.retreatbyte()' use 's.pos -= 8'.")
     def retreatbyte(self):
         """Retreat position by one byte. Does not byte align.
         
-        Raises ValueError if bitpos is less than 8.
+        Raises ValueError if pos is less than 8.
         
         """
-        self.bitpos -= 8
+        self.pos -= 8
 
     @_deprecated("Instead of 's.retreatbytes(n)' use 's.pos -= 8*n'.")
     def retreatbytes(self, bytes):
         """Retreat position by bytes. Does not byte align.
         
-        bytes -- Number of bytes to decrement bitpos by. Must be >= 0.
+        bytes -- Number of bytes to decrement pos by. Must be >= 0.
         
-        Raises ValueError if bytes negative or if bitpos goes past the start
+        Raises ValueError if bytes negative or if pos goes past the start
         of the BitString.
         
         """
         if bytes < 0:
             raise ValueError("Cannot retreat by a negative amount.")
-        self.bitpos -= bytes*8
+        self.pos -= bytes*8
 
     @_deprecated("Instead of 's.seek(p)' use 's.pos = p'.")
     def seek(self, pos):
@@ -2305,7 +2315,7 @@ class _Bits(object):
         
         """
         skipped = (8 - (self._pos % 8)) % 8
-        self.bitpos = self._pos + self._offset + skipped
+        self.pos += self._offset + skipped
         assert self._assertsanity()
         return skipped
 
@@ -2681,7 +2691,7 @@ class BitString(_Bits):
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
         
-        If the length of the BitString is changed then bitpos will be moved
+        If the length of the BitString is changed then pos will be moved
         to after the inserted section, otherwise it will remain unchanged.
         
         >>> s = BitString('0xff')
@@ -2744,7 +2754,7 @@ class BitString(_Bits):
             if (stop - start) == value.len:
                 if value.len == 0:
                     return
-                # This is an overwrite, so we retain the bitpos
+                # This is an overwrite, so we retain the pos
                 bitposafter = self._pos
                 if step >= 0:
                     self._overwrite(value, start)
@@ -2757,7 +2767,7 @@ class BitString(_Bits):
                     self._insert(value, start)
                 else:
                     self._insert(value.__getitem__(slice(None, None, step)), start)
-                # bitpos is now after the inserted piece.
+                # pos is now after the inserted piece.
             return
         except AttributeError:
             # TODO: Can be rewritten in terms of set() / unset().
@@ -2772,7 +2782,7 @@ class BitString(_Bits):
             if not 0 <= key < self.len:
                 raise IndexError("Slice index out of range.")
             if value.len == 1:
-                # This is an overwrite, so we retain the bitpos
+                # This is an overwrite, so we retain the pos
                 bitposafter = self._pos
                 self._overwrite(value, key)
                 self._pos = bitposafter
@@ -2787,7 +2797,7 @@ class BitString(_Bits):
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
         
-        After deletion bitpos will be moved to the deleted slice's position.
+        After deletion pos will be moved to the deleted slice's position.
         
         >>> a = BitString('0x001122')
         >>> del a[1:2:8]
@@ -2942,7 +2952,7 @@ class BitString(_Bits):
         for p in positions:
             self[p:p + old.len] = new
         if old.len != new.len:
-            # Need to calculate new bitpos
+            # Need to calculate new pos
             diff = new.len - old.len
             for p in positions:
                 if p >= newpos:
@@ -3167,7 +3177,13 @@ class BitString(_Bits):
     
     # TODO: Add start, end. Optimise!
     def ror(self, bits):
-        """Rotate bits to the right in-place."""
+        """Rotate bits to the right in-place.
+        
+        bits -- The number of bits to rotate by.
+        
+        Raises ValueError if bits < 0.
+        
+        """
         if self.len == 0:
             raise BitStringError("Cannot rotate an empty BitString.")
         if bits < 0:
@@ -3180,7 +3196,13 @@ class BitString(_Bits):
         self.prepend(rhs)
 
     def rol(self, bits):
-        """Rotate bits to the left in-place."""
+        """Rotate bits to the left in-place.
+        
+        bits -- The number of bits to rotate by.
+        
+        Raises ValueError if bits < 0.
+        
+        """
         if self.len == 0:
             raise BitStringError("Cannot rotate an empty BitString.")
         if bits < 0:

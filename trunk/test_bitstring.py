@@ -2724,24 +2724,64 @@ class BitStringTest(unittest.TestCase):
         a = _Bits('0x012345')
         self.assertEqual(a, '0x012345')
         b = BitString('0xf') + a
-        #self.assertEqual(b, '0xf012345')
-        #self.assertRaises(AttributeError, a.append, b)
-        #self.assertRaises(AttributeError, a.prepend, b)
-        #self.assertRaises(AttributeError, a.__iadd__, b)
-        #self.assertRaises(AttributeError, a.__imul__, 5)
-        #self.assertRaises(AttributeError, a.__ilshift__, 3)
-        #self.assertRaises(AttributeError, a.__irshift__, 3)
-        #self.assertRaises(AttributeError, a.truncateend, 5)
-        #self.assertRaises(AttributeError, a.truncatestart, 5)
-        #self.assertRaises(AttributeError, a.__setitem__, (0), '0b0')
-        #self.assertRaises(AttributeError, a.__delitem__, 5)
-        #self.assertRaises(AttributeError, a.replace, '0b1', '0b0')
-        #self.assertRaises(AttributeError, a.insert, '0b11', 4)
-        #self.assertRaises(AttributeError, a.overwrite, '0b11', 4)
-        #self.assertRaises(AttributeError, a.delete, 5)
-        #self.assertRaises(AttributeError, a.reverse)
-        #self.assertRaises(AttributeError, a.reversebytes)
-        #self.assertEqual(a, '0x012345')
+        self.assertEqual(b, '0xf012345')
+        try:
+            a.append(b)
+            self.assertTrue(False)
+        except AttributeError:
+            pass   
+        try:
+            a.prepend(b)
+            self.assertTrue(False)
+        except AttributeError:
+            pass   
+        try:
+            a.truncateend(5)
+            self.assertTrue(False)
+        except AttributeError:
+            pass   
+        try:
+            a.truncatestart(5)
+            self.assertTrue(False)
+        except AttributeError:
+            pass   
+        try:
+            a[0] = '0b1'
+            self.assertTrue(False)
+        except TypeError:
+            pass   
+        try:
+            del a[5]
+            self.assertTrue(False)
+        except TypeError:
+            pass   
+        try:
+            a.replace('0b1', '0b0')
+            self.assertTrue(False)
+        except AttributeError:
+            pass   
+        try:
+            a.insert('0b11', 4)
+            self.assertTrue(False)
+        except AttributeError:
+            pass   
+        try:
+            a.delete(5)
+            self.assertTrue(False)
+        except AttributeError:
+            pass   
+        try:
+            a.reverse()
+            self.assertTrue(False)
+        except AttributeError:
+            pass   
+        try:
+            a.reversebytes()
+            self.assertTrue(False)
+        except AttributeError:
+            pass   
+        self.assertEqual(a, '0x012345')
+        self.assertTrue(isinstance(a, _Bits))
     
     def testReverseBytes(self):
         a = BitString('0x123456')
@@ -2886,13 +2926,12 @@ class BitStringTest(unittest.TestCase):
         b = a*2
         self.assertEqual(type(b), _Bits)
         b = a*0
-        #  TODO: Fix these       
-        #self.assertEqual(type(b), _Bits)
-        #b = a & ~a
-        #self.assertEqual(type(b), _Bits)
-        #b = a | ~a
-        #self.assertEqual(type(b), _Bits)
-        #b = a ^ ~a
+        self.assertEqual(type(b), _Bits)
+        b = a & ~a
+        self.assertEqual(type(b), _Bits)
+        b = a | ~a
+        self.assertEqual(type(b), _Bits)
+        b = a ^ ~a
         self.assertEqual(type(b), _Bits)
         b = a._slice(4, 4)
         self.assertEqual(type(b), _Bits)
