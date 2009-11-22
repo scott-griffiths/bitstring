@@ -42,14 +42,31 @@ import operator
 import collections
 import itertools
 from sys import byteorder
-from platform import python_version_tuple
-from binascii import hexlify, unhexlify
-from copy import copy
+import platform
+import binascii
+import copy
+import warnings
+import functools
 
+# Decorator adapted from Michael Chermside's recipe:
+# http://code.activestate.com/recipes/391367/
+def _deprecated(help):
+    def decorator(func):
+        """This decorator can be used to mark functions as deprecated.
+        It will result in a warning being emmitted when the function is used.
+        """
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            #warnings.warn("Call to deprecated function %s." % func.__name__,
+            #              category=DeprecationWarning, stacklevel=2)
+            return func(self, *args, **kwargs)
+        wrapper.__doc__ = "*Deprecated* " + help + func.__doc__
+        return wrapper
+    return decorator
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
-_python_version = int(python_version_tuple()[0])
+_python_version = int(platform.python_version_tuple()[0])
 assert _python_version in [2, 3]
 if _python_version == 2:
     from future_builtins import zip
@@ -108,6 +125,10 @@ def _init_with_token(name, token_length, value):
         b = _Bits(floatne=float(value), length=token_length)
     elif name == 'bits':
         b = _Bits(value)
+    elif name == 'bytes':
+        b = _Bits(bytes=value)
+        if token_length is not None:
+            token_length *= 8
     else:
         raise ValueError("Can't parse token name %s." % name)
     if token_length is not None and b.len != token_length:
@@ -118,7 +139,7 @@ def _init_with_token(name, token_length, value):
 
 _init_names = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
                'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
-               'float', 'floatbe', 'floatle', 'floatne')
+               'float', 'floatbe', 'floatle', 'floatne', 'bytes')
 
 _init_names_ored = '|'.join(_init_names)
 _tokenre = re.compile(r'^(?P<name>' + _init_names_ored + r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
@@ -145,7 +166,7 @@ _replacements_le = {'b': 'intle:8', 'B': 'uintle:8',
                     'h': 'intle:16', 'H': 'uintle:16',
                     'l': 'intle:32', 'L': 'uintle:32',
                     'q': 'intle:64', 'Q': 'uintle:64',
-                    'f': 'floatle:32', 'd': 'floatle:64'}
+                    'f': 'floatle:32', 'd': 'floatle:64'} 
 
 def _tokenparser(format, keys=None):
     """Divide the format string into tokens and parse them.
@@ -418,7 +439,7 @@ class _MemArray(object):
         # Set the offset of copy of array so that it's final byte
         # ends in a position that matches the offset of self,
         # then join self on to the end of it.
-        array = copy(array)
+        array = copy.copy(array)
         array.setoffset((self.offset - array.bitlength) % 8)
         assert (array.offset + array.bitlength) % 8 == self.offset
         if self.offset != 0:
@@ -992,13 +1013,20 @@ class _Bits(object):
             raise ValueError("uint %d is too large for a BitString of length %d." % (uint, length))  
         if uint < 0:
             raise ValueError("uint cannot be initialsed by a negative number.")
+        # TODO: Efficiency. Could struct.pack be used here? Plus array manipulations are wasteful.
         blist = []
         while uint:
-            blist.append(uint & 255)
-            uint >>= 8
-        extrabytes = ((length + 7) // 8) - len(blist)
+            x = struct.pack('<Q', uint & 0xffffffffffffffff)
+            blist.extend(x)
+            uint >>= 64
         blist.reverse()
-        data = bytes(bytearray(extrabytes) + bytearray(blist))
+        extrabytes = ((length + 7) // 8) - len(blist)
+        if extrabytes > 0:
+            data = bytes(bytearray(extrabytes) + b''.join(blist))
+        elif extrabytes < 0:
+            data = b''.join(blist[-extrabytes:])
+        else:
+            data = b''.join(blist)
         offset = 8 - (length % 8)
         if offset == 8:
             offset = 0
@@ -1355,7 +1383,7 @@ class _Bits(object):
             hexstring += '0'
         offset %= 4
         try:
-            data = unhexlify(hexstring)
+            data = binascii.unhexlify(hexstring)
         except TypeError:
             raise ValueError("Invalid symbol in hex initialiser.")
         self._datastore = _MemArray(data, length, offset)
@@ -1371,7 +1399,7 @@ class _Bits(object):
         if self.len == 0:
             return ''
         # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
-        s = str(hexlify(self.tobytes()).decode('utf-8'))
+        s = str(binascii.hexlify(self.tobytes()).decode('utf-8'))
         if (self.len // 4) % 2 == 1:
             # We've got one nibble too many, so cut it off.
             return '0x' + s[:-1]
@@ -1427,7 +1455,7 @@ class _Bits(object):
         if isinstance(self._datastore, _FileArray):
             s_copy._datastore = _MemArray(self._datastore[:], self.len, self._offset)
         else:
-            s_copy._datastore = copy(self._datastore)
+            s_copy._datastore = copy.copy(self._datastore)
         return s_copy
     
     def _slice(self, start, end):
@@ -1496,6 +1524,8 @@ class _Bits(object):
             return self._readue()
         if name == 'se':
             return self._readse()
+        if name == 'bytes':
+            return self.readbytes(length).bytes
         else:
             raise ValueError("Can't parse token %s:%d" % (name, length))
 
@@ -1732,18 +1762,22 @@ class _Bits(object):
         
         Token examples: 'int:12'    : 12 bits as a signed integer
                         'uint:8'    : 8 bits as an unsigned integer
+                        'float:64'  : 8 bytes as a big-endian float
                         'intbe:16'  : 2 bytes as a big-endian signed integer
                         'uintbe:16' : 2 bytes as a big-endian unsigned integer
                         'intle:32'  : 4 bytes as a little-endian signed integer
                         'uintle:32' : 4 bytes as a little-endian unsigned integer
+                        'floatle:64': 8 bytes as a little-endian float
                         'intne:24'  : 3 bytes as a native-endian signed integer
                         'uintne:24' : 3 bytes as a native-endian unsigned integer
+                        'floatne:32': 4 bytes as a native-endian float
                         'hex:80'    : 80 bits as a hex string
                         'oct:9'     : 9 bits as an octal string
                         'bin:1'     : single bit binary string
                         'ue'        : next bits as unsigned exp-Golomb code
                         'se'        : next bits as signed exp-Golomb code
                         'bits:5'    : 5 bits as a BitString object
+                        'bytes:10'  : 10 bytes as a bytes object
                         
         The position in the BitString is advanced to after the read items.
         
@@ -1977,14 +2011,16 @@ class _Bits(object):
         """
         return self.peekbitlist(*[b*8 for b in bytes])
 
+    @_deprecated("Instead of 's.advancebit()' use 's.pos +=1'.")
     def advancebit(self):
         """Advance position by one bit.
         
         Raises ValueError if bitpos is past the last bit in the BitString.
         
         """
-        self.bitpos += 1
+        self.pos += 1
 
+    @_deprecated("Instead of 's.advancebits(n)' use 's.pos += n'.")
     def advancebits(self, bits):
         """Advance position by bits.
         
@@ -1996,8 +2032,9 @@ class _Bits(object):
         """
         if bits < 0:
             raise ValueError("Cannot advance by a negative amount.")
-        self.bitpos += bits
+        self.pos += bits
 
+    @_deprecated("Instead of 's.advancebyte()' use 's.pos += 8'.")
     def advancebyte(self):
         """Advance position by one byte. Does not byte align.
         
@@ -2005,8 +2042,9 @@ class _Bits(object):
         the end of the BitString.
         
         """
-        self.bitpos += 8
+        self.pos += 8
 
+    @_deprecated("Instead of 's.advancebytes(n)' use 's.pos += 8*n'.")
     def advancebytes(self, bytes):
         """Advance position by bytes. Does not byte align.
         
@@ -2020,6 +2058,7 @@ class _Bits(object):
             raise ValueError("Cannot advance by a negative amount.")
         self.bitpos += bytes*8
 
+    @_deprecated("Instead of 's.retreatbit()' use 's.pos -= 1'.")
     def retreatbit(self):
         """Retreat position by one bit.
         
@@ -2028,6 +2067,7 @@ class _Bits(object):
         """
         self.bitpos -= 1
  
+    @_deprecated("Instead of 's.retreatbits(n)' use 's.pos -= n'.")
     def retreatbits(self, bits):
         """Retreat position by bits.
         
@@ -2041,6 +2081,7 @@ class _Bits(object):
             raise ValueError("Cannot retreat by a negative amount.")
         self.bitpos -= bits
 
+    @_deprecated("Instead of 's.retreatbyte()' use 's.pos -= 8'.")
     def retreatbyte(self):
         """Retreat position by one byte. Does not byte align.
         
@@ -2049,6 +2090,7 @@ class _Bits(object):
         """
         self.bitpos -= 8
 
+    @_deprecated("Instead of 's.retreatbytes(n)' use 's.pos -= 8*n'.")
     def retreatbytes(self, bytes):
         """Retreat position by bytes. Does not byte align.
         
@@ -2062,6 +2104,7 @@ class _Bits(object):
             raise ValueError("Cannot retreat by a negative amount.")
         self.bitpos -= bytes*8
 
+    @_deprecated("Instead of 's.seek(p)' use 's.pos = p'.")
     def seek(self, pos):
         """Seek to absolute bit position pos.
         
@@ -2069,7 +2112,8 @@ class _Bits(object):
         
         """
         self.pos = pos
-    
+
+    @_deprecated("Instead of 's.seekbyte(p)' use 's.bytepos = p'.")
     def seekbyte(self, bytepos):
         """Seek to absolute byte position bytepos.
         
@@ -2077,11 +2121,13 @@ class _Bits(object):
         
         """
         self.bytepos = bytepos
-    
+
+    @_deprecated("Instead of 's.tell()' use 's.pos'.") 
     def tell(self):
         """Return current position in the BitString in bits (pos)."""
         return self.pos
-    
+
+    @_deprecated("Instead of 's.tellbyte()' use 's.bytepos'.")  
     def tellbyte(self):
         """Return current position in the BitString in bytes (bytepos).
         
@@ -2263,6 +2309,7 @@ class _Bits(object):
         assert self._assertsanity()
         return skipped
 
+    @_deprecated("Instead of 's.slice(a, b, c)' use 's[a:b:c]'.")
     def slice(self, start=None, end=None, step=None):
         """Return a new BitString which is the slice [start:end:step].
         
@@ -2616,7 +2663,7 @@ class BitString(_Bits):
             # If either gets modified then at that point they'll be read into memory.
             s_copy._datastore = self._datastore
         else:
-            s_copy._datastore = copy(self._datastore)
+            s_copy._datastore = copy.copy(self._datastore)
         return s_copy
     
     def __iadd__(self, bs):
@@ -2884,7 +2931,7 @@ class BitString(_Bits):
             return 0 # no replacements done
         if new is self:
             # Prevent self assignment woes
-            new = copy(self)
+            new = copy.copy(self)
         positions = [lengths[0]]
         for l in lengths[1:-1]:
             # Next position is the previous one plus the length of the next section.
