@@ -1104,7 +1104,6 @@ class BitStringTest(unittest.TestCase):
         for s in ['bin:1=01', 'bits:4=0b1', 'bytes:8=0xff', 'oct:3=000',
                   'hex:4=0x1234']:
             self.assertRaises(ValueError, BitString, s)
-        self.assertRaises(ValueError, BitString, 'bytes=0b111')
 
     def testInsertUsingAuto(self):
         s = BitString('0xff')
@@ -3220,7 +3219,18 @@ class BitStringTest(unittest.TestCase):
     def testShlErrors(self):
         pass
     
-    
+    def testBytesToken(self):
+        a = BitString('0x010203')
+        b = a.read('bytes:1')
+        self.assertTrue(isinstance(b, bytes))
+        self.assertEqual(b, b'\x01')
+        x, y, z = a.unpack('4, bytes:2, uint')
+        self.assertEqual(x, 0)
+        self.assertEqual(y, b'\x10\x20')
+        self.assertEqual(z, 3)
+        s = pack('bytes:4', b'abcd')
+        self.assertEqual(s.bytes, b'abcd')
+
     #def testAbc(self):
     #    a = _Bits()
     #    b = BitString()
