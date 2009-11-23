@@ -1101,8 +1101,7 @@ class BitStringTest(unittest.TestCase):
         
         s = BitString('bin:2=01', length=1)
         self.assertEqual(s, '0b0')
-        for s in ['bin:1=01', 'bits:4=0b1', 'bytes:8=0xff', 'oct:3=000',
-                  'hex:4=0x1234']:
+        for s in ['bin:1=01', 'bits:4=0b1', 'oct:3=000', 'hex:4=0x1234']:
             self.assertRaises(ValueError, BitString, s)
 
     def testInsertUsingAuto(self):

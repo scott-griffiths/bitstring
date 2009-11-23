@@ -1023,20 +1023,22 @@ class _Bits(object):
         if uint < 0:
             raise ValueError("uint cannot be initialsed by a negative number.")
         blist = []
+        structsize = struct.calcsize('Q')
+        mask = (1 << (structsize*8)) - 1
         while uint:
             # Pack lowest bytes as little endian (as it will be reversed shortly)
-            x = struct.pack('<Q', uint & 0xffffffffffffffff)
-            blist.extend(x)
-            uint >>= 64
+            x = bytearray(struct.pack('>Q', uint & mask))
+            blist.append(x)
+            uint >>= structsize*8
         blist.reverse()
         # Now add or remove bytes as needed to get the right length.
-        extrabytes = ((length + 7) // 8) - len(blist)
+        extrabytes = ((length + 7) // 8) - len(blist)*structsize
         if extrabytes > 0:
-            data = bytes(bytearray(extrabytes) + b''.join(blist))
+            data = bytes(bytearray(extrabytes) + bytearray().join(blist))
         elif extrabytes < 0:
-            data = b''.join(blist[-extrabytes:])
+            data = bytearray().join(blist)[-extrabytes:]
         else:
-            data = b''.join(blist)
+            data = bytearray().join(blist)
         offset = 8 - (length % 8)
         if offset == 8:
             offset = 0
@@ -3347,9 +3349,9 @@ def pack(format, *values, **kwargs):
 
 
 if __name__=='__main__':
-    print ("Running bitstring module unit tests:")
+    print("Running bitstring module unit tests:")
     try:
         import test_bitstring
         test_bitstring.unittest.main(test_bitstring)
     except ImportError:
-        print ("Error: cannot find test_bitstring.py")
+        print("Error: cannot find test_bitstring.py")
