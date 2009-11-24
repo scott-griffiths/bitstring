@@ -2474,6 +2474,13 @@ class BitStringTest(unittest.TestCase):
         s = pack('10, 5', 1, 2)
         a, b = s.unpack('10, 5')
         self.assertEqual((a, b), (1, 2))
+        s = pack('10=150, 12=qee', qee=3)
+        self.assertEqual(s, 'uint:10=150, uint:12=3')
+        t = BitString('100=5')
+        self.assertEqual(t, 'uint:100=5')
+    
+    def testPackDefualtUintErrors(self):
+        self.assertRaises(ValueError, BitString, '5=-1')
     
     def testUnpackNull(self):
         s = pack('0b1, , , 0xf,')
@@ -3176,7 +3183,6 @@ class BitStringTest(unittest.TestCase):
         for s in ('5', '+0.0001', '-1e101', '4.', '.2', '-.65', '43.21E+32'):
             a = BitString('float:64=%s' % s)
             self.assertEqual(a.float, float(s))
-            
     
     def testFloatPacking(self):
         a = pack('>d', 0.01)
@@ -3268,6 +3274,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(z, 3)
         s = pack('bytes:4', b'abcd')
         self.assertEqual(s.bytes, b'abcd')
+
 
     #def testAbc(self):
     #    a = _Bits()
