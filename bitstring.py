@@ -3291,18 +3291,22 @@ def pack(format, *values, **kwargs):
                 
     Token examples: 'int:12'    : 12 bits as a signed integer
                     'uint:8'    : 8 bits as an unsigned integer
-                    'intbe:16'  : 2 bytes as big-endian signed integer
-                    'uintbe:16' : 2 bytes as big-endian unsigned integer
-                    'intle:32'  : 4 bytes as little-endian signed integer
-                    'uintle:64' : 8 bytes as little-endian unsigned integer
-                    'intne:24'  : 3 bytes as native-endian signed integer
-                    'uintne:64' : 8 bytes as native-endian unsigned integer
-                    'hex:8'     : 8 bits as a hex string
+                    'float:64'  : 8 bytes as a big-endian float
+                    'intbe:16'  : 2 bytes as a big-endian signed integer
+                    'uintbe:16' : 2 bytes as a big-endian unsigned integer
+                    'intle:32'  : 4 bytes as a little-endian signed integer
+                    'uintle:32' : 4 bytes as a little-endian unsigned integer
+                    'floatle:64': 8 bytes as a little-endian float
+                    'intne:24'  : 3 bytes as a native-endian signed integer
+                    'uintne:24' : 3 bytes as a native-endian unsigned integer
+                    'floatne:32': 4 bytes as a native-endian float
+                    'hex:80'    : 80 bits as a hex string
                     'oct:9'     : 9 bits as an octal string
                     'bin:1'     : single bit binary string
                     'ue'        : next bits as unsigned exp-Golomb code
                     'se'        : next bits as signed exp-Golomb code
                     'bits:5'    : 5 bits as a BitString object
+                    'bytes:10'  : 10 bytes as a bytes object
 
     >>> s = pack('uint:12, bits', 100, '0xffe')
     >>> t = pack('bits, bin:3', s, '111')
