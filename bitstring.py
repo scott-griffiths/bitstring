@@ -166,7 +166,8 @@ _replacements_le = {'b': 'intle:8', 'B': 'uintle:8',
                     'h': 'intle:16', 'H': 'uintle:16',
                     'l': 'intle:32', 'L': 'uintle:32',
                     'q': 'intle:64', 'Q': 'uintle:64',
-                    'f': 'floatle:32', 'd': 'floatle:64'} 
+                    'f': 'floatle:32', 'd': 'floatle:64'}
+
 
 def _tokenparser(format, keys=None):
     """Divide the format string into tokens and parse them.
@@ -181,10 +182,9 @@ def _tokenparser(format, keys=None):
     tokens must be of the form: initialiser[:][length][=value]
     
     """
-    # Split tokens be ',' and remove whitespace
+    # Split tokens by ',' and remove whitespace
     tokens = (''.join(f.split()) for f in format.split(','))
     return_values = []
-    new_tokens = []
     for token in tokens:
         # See if it's a struct-like format
         m = _structpackre.match(token)
@@ -202,47 +202,47 @@ def _tokenparser(format, keys=None):
                     assert byteorder == 'big'
                     endian = '>'
             if endian == '<':
-                new_tokens.extend(_replacements_le[c] for c in format)
+                ts = [_replacements_le[c] for c in format]
             else:
                 assert endian == '>'
-                new_tokens.extend(_replacements_be[c] for c in format)
+                ts = [_replacements_be[c] for c in format]
         else:
-            new_tokens.append(token)
-
-    for token in new_tokens:
-        if keys and token in keys:
-            # Don't bother parsing it, it's part of a keyword argument
-            return_values.append([token, None, None])
-            continue
-        value = length = None
-        if token == '':
-            continue
-        # Match literal tokens of the form 0x... 0o... and 0b...
-        m = _literalre.match(token)
-        if m:
-            name = m.group('name')
-            value = m.group('value')
-            return_values.append([name, length, value])
-            continue
-        # Match everything else!
-        m = _tokenre.match(token)
-        if m:
-            name = m.group('name')
-            length = m.group('len')
-            if m.group('value'):
+            ts = [token]
+        ret_vals = []
+        for t in ts:
+            if keys and t in keys:
+                # Don't bother parsing it, it's part of a keyword argument
+                ret_vals.append([t, None, None])
+                continue
+            value = length = None
+            if t == '':
+                continue
+            # Match literal tokens of the form 0x... 0o... and 0b...
+            m = _literalre.match(t)
+            if m:
+                name = m.group('name')
                 value = m.group('value')
-            return_values.append([name, length, value])
-            continue
-        # The default 'name' is 'uint':
-        m = _defaultuint.match(token)
-        if m:
-            length = m.group('len')
-            if m.group('value'):
-                value = m.group('value')
-            return_values.append(['uint', length, value])
-            continue
-        
-        raise ValueError("Don't understand token '%s'." % token)
+                ret_vals.append([name, length, value])
+                continue
+            # Match everything else!
+            m = _tokenre.match(t)
+            if m:
+                name = m.group('name')
+                length = m.group('len')
+                if m.group('value'):
+                    value = m.group('value')
+                ret_vals.append([name, length, value])
+                continue
+            # The default 'name' is 'uint':
+            m = _defaultuint.match(t)
+            if m:
+                length = m.group('len')
+                if m.group('value'):
+                    value = m.group('value')
+                ret_vals.append(['uint', length, value])
+                continue
+            raise ValueError("Don't understand token '%s'." % t)
+        return_values.extend(ret_vals)
     return return_values
     
 # Not pretty, but a byte to bitstring lookup really speeds things up.
@@ -1043,50 +1043,35 @@ class _Bits(object):
         if offset == 8:
             offset = 0
         self._setbytes(data, length, offset)
-        
+
+    def _readuint(self, length):
+        startbyte = (self.pos + self._offset) // 8
+        endbyte = (self.pos + self._offset + length - 1) // 8
+        val = 0
+        structsize = struct.calcsize('L')
+        while startbyte + structsize < endbyte:
+            val <<= 8*structsize
+            val += (struct.unpack('>L', bytes(self._datastore[startbyte:startbyte+structsize]))[0])
+            startbyte += structsize
+        for b in xrange(startbyte, endbyte + 1):
+            val <<= 8
+            val += self._datastore[b]
+        final_bits = 8 - ((self.pos + self._offset + length) % 8)
+        if final_bits != 8:
+            val >>= final_bits
+        val &= (1 << length) - 1
+        self.pos += length
+        return val
+
     def _getuint(self):
         """Return data as an unsigned int."""
         if not self:
             raise ValueError("An empty BitString cannot be interpreted as an integer.")
-        # Special case if the datastore is only one byte long.
-        if self._datastore.bytelength == 1:
-            mask = ((1 << self.len) - 1) << (8 - self.len - self._offset)
-            val = self._datastore[0] & mask
-            val >>= 8 - self._offset - self.len
-            return val
-        # Take the bits in the first byte and shift them to their final position
-        firstbits = 8 - self._offset
-        mask = (1 << firstbits) - 1
-        shift = self.len - firstbits
-        val = (self._datastore[0] & mask) << shift
-        # For the middle of the data we use struct.unpack to do the conversion
-        # as it's more efficient. This loop only gets invoked if the BitString's
-        # data is more than 10 bytes.
-        j = 1
-        structsize = struct.calcsize('Q')
-        end = self._datastore.bytelength - 1
-        # TODO: This loop could be done with a single struct.unpack (probably more efficient).
-        while j + structsize < end:
-            shift -= 8*structsize
-            # Convert next 8 bytes to an int, then shift it to proper place
-            # and add it
-            d = self._datastore[j:j + structsize]
-            val += (struct.unpack('>Q', bytes(d))[0] << shift)
-            j += structsize
-        # Do the remaining bytes, except for the final one
-        while j < end:
-            shift -= 8
-            val += (self._datastore[j] << shift)
-            j += 1
-        # And the very final byte
-        assert shift <= 8
-        bitsleft = (self._offset + self.len) % 8
-        if bitsleft == 0:
-            bitsleft = 8
-        lastbyte = self._datastore[-1]
-        mask = 255 - ((1 << (8 - bitsleft)) - 1)
-        val += (lastbyte & mask) >> (8 - bitsleft)
-        return val
+        oldpos = self.pos
+        self.pos = 0
+        value = self._readuint(self.len)
+        self.pos = oldpos
+        return value
 
     def _setint(self, int, length=None):
         """Reset the BitString to have given signed int interpretation."""
@@ -1526,10 +1511,13 @@ class _Bits(object):
         if length is not None:
             length = int(length)
         name = name.lower()
-        if name in ('uint', 'int', 'intbe', 'uintbe', 'intle', 'uintle',
+        if name in ('int', 'intbe', 'uintbe', 'intle', 'uintle',
                     'intne', 'uintne', 'hex', 'oct', 'bin',
                     'float', 'floatle', 'floatbe', 'floatne'):
             return getattr(self.readbits(length), name)
+        if name == 'uint':
+            length = min(length, self.len - self.pos)
+            return self._readuint(length)
         if name == 'bits':
             return self.readbits(length)
         if name == 'ue':
@@ -3313,7 +3301,7 @@ def pack(format, *values, **kwargs):
     >>> u = pack('uint:8=a, uint:8=b, uint:55=a', a=6, b=44)
     
     """
-    tokens = _tokenparser(format, kwargs.keys())
+    tokens = _tokenparser(format, tuple(kwargs.keys()))
     new_values = []
     # This is a bit clumsy...
     for v in values:

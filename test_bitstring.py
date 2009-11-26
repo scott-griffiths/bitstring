@@ -2564,7 +2564,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(tp('bits:10'), [['bits', '10', None]])
         self.assertEqual(tp('hello'), [['uint', 'hello', None]])
         self.assertEqual(tp('send'), [['uint', 'send', None]])
-        self.assertEqual(tp('hello', ['bye', 'hello']), [['hello', None, None]])
+        self.assertEqual(tp('hello', ('bye', 'hello')), [['hello', None, None]])
 
     def testAutoFromFileObject(self):
         f = open('test/test.m1v', 'rb')
@@ -3195,6 +3195,19 @@ class BitStringTest(unittest.TestCase):
         self.assertAlmostEqual(c.floatle/10.3, 1.0)
         d = pack('>5d', 10.0, 5.0, 2.5, 1.25, 0.1)
         self.assertEqual(d.unpack('>5d'), [10.0, 5.0, 2.5, 1.25, 0.1])
+    
+    def testFloatReading(self):
+        a = BitString('floatle:64=12, floatbe:64=-0.01, floatne:64=3e33')
+        x, y, z = a.readlist('floatle:64, floatbe:64, floatne:64')
+        self.assertEqual(x, 12.0)
+        self.assertEqual(y, -0.01)
+        self.assertEqual(z, 3e33)
+        a = BitString('floatle:32=12, floatbe:32=-0.01, floatne:32=3e33')
+        x, y, z = a.readlist('floatle:32, floatbe:32, floatne:32')
+        self.assertAlmostEqual(x/12.0, 1.0)
+        self.assertAlmostEqual(y/-0.01, 1.0)
+        self.assertAlmostEqual(z/3e33, 1.0)
+                
 
     def testFloatErrors(self):
         a = BitString('0x3')
