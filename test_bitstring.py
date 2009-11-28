@@ -34,7 +34,7 @@ import copy
 import sys
 import os
 import collections
-from bitstring import BitString, BitStringError, _Bits, pack
+from bitstring import BitString, BitStringError, Bits, pack
 
 
 class BitStringTest(unittest.TestCase):
@@ -2553,18 +2553,20 @@ class BitStringTest(unittest.TestCase):
         
     def testTokenParser(self):
         tp = bitstring._tokenparser
-        self.assertEqual(tp('hex'), [['hex', None, None]])
-        self.assertEqual(tp('hex12'), [['uint', 'hex12', None]])
-        self.assertEqual(tp('hex=14'), [['hex', None, '14']])
-        self.assertEqual(tp('se'), [['se', None, None]])
-        self.assertEqual(tp('ue=12'), [['ue', None, '12']])
-        self.assertEqual(tp('0xef'), [['0x', None, 'ef']])
-        self.assertEqual(tp('uint:12'), [['uint', '12', None]])
-        self.assertEqual(tp('int:30=-1'), [['int', '30', '-1']])
-        self.assertEqual(tp('bits:10'), [['bits', '10', None]])
-        self.assertEqual(tp('hello'), [['uint', 'hello', None]])
-        self.assertEqual(tp('send'), [['uint', 'send', None]])
-        self.assertEqual(tp('hello', ('bye', 'hello')), [['hello', None, None]])
+        self.assertEqual(tp('hex'), [('hex', None, None)])
+        self.assertEqual(tp('hex12'), [('uint', 'hex12', None)])
+        self.assertEqual(tp('hex=14'), [('hex', None, '14')])
+        self.assertEqual(tp('se'), [('se', None, None)])
+        self.assertEqual(tp('ue=12'), [('ue', None, '12')])
+        self.assertEqual(tp('0xef'), [('0x', None, 'ef')])
+        self.assertEqual(tp('uint:12'), [('uint', '12', None)])
+        self.assertEqual(tp('int:30=-1'), [('int', '30', '-1')])
+        self.assertEqual(tp('bits:10'), [('bits', '10', None)])
+        self.assertEqual(tp('bits:10'), [('bits', '10', None)])
+        self.assertEqual(tp('hello'), [('uint', 'hello', None)])
+        self.assertEqual(tp('send'), [('uint', 'send', None)])
+        self.assertEqual(tp('send'), [('uint', 'send', None)])
+        self.assertEqual(tp('hello', ('bye', 'hello')), [('hello', None, None)])
 
     def testAutoFromFileObject(self):
         f = open('test/test.m1v', 'rb')
@@ -2727,7 +2729,7 @@ class BitStringTest(unittest.TestCase):
             self.assertRaises(ValueError, pack, f, 100)
 
     def testImmutableBitStrings(self):
-        a = _Bits('0x012345')
+        a = Bits('0x012345')
         self.assertEqual(a, '0x012345')
         b = BitString('0xf') + a
         self.assertEqual(b, '0xf012345')
@@ -2787,7 +2789,7 @@ class BitStringTest(unittest.TestCase):
         except AttributeError:
             pass   
         self.assertEqual(a, '0x012345')
-        self.assertTrue(isinstance(a, _Bits))
+        self.assertTrue(isinstance(a, Bits))
     
     def testReverseBytes(self):
         a = BitString('0x123456')
@@ -2907,45 +2909,45 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(TypeError, hash, s)
 
     def testConstBitStringCreation(self):
-        sl = [_Bits(uint=i, length=7) for i in range(15)]
+        sl = [Bits(uint=i, length=7) for i in range(15)]
         self.assertEqual(len(set(sl)), 15)
         
     def testConstBitStringFunctions(self):
-        s = _Bits('0xf, 0b1')
-        self.assertEqual(type(s), _Bits)
+        s = Bits('0xf, 0b1')
+        self.assertEqual(type(s), Bits)
         t = copy.copy(s)
-        self.assertEqual(type(t), _Bits)
+        self.assertEqual(type(t), Bits)
         a = s + '0o3'
-        self.assertEqual(type(a), _Bits)
+        self.assertEqual(type(a), Bits)
         b = a[0:4]
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a[4:3]
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a[5:2:-1]
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = ~a
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a << 2
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a >> 2
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a*2
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a*0
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a & ~a
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a | ~a
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a ^ ~a
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a._slice(4, 4)
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
         b = a.readbits(4)
-        self.assertEqual(type(b), _Bits)
+        self.assertEqual(type(b), Bits)
 
     def testConstBitStringProperties(self):
-        a = _Bits('0x123123')
+        a = Bits('0x123123')
         try:
             a.hex = '0x234'
             self.assertTrue(False)
@@ -3018,7 +3020,7 @@ class BitStringTest(unittest.TestCase):
             pass
 
     def testConstBitStringMisc(self):
-        a = _Bits('0xf')
+        a = Bits('0xf')
         b = a
         a += '0xe'
         self.assertEqual(b, '0xf')
@@ -3027,15 +3029,15 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, c)
     
     def testConstBitStringHashibility(self):
-        a = _Bits('0x1')
-        b = _Bits('0x2')
-        c = _Bits('0x1')
+        a = Bits('0x1')
+        b = Bits('0x2')
+        c = Bits('0x1')
         c.pos = 3
         s = set((a, b, c))
         self.assertEqual(len(s), 2)
     
     def testConstBitStringCopy(self):
-        a = _Bits('0xabc')
+        a = Bits('0xabc')
         a.pos = 11
         b = copy.copy(a)
         b.pos = 4
@@ -3053,7 +3055,7 @@ class BitStringTest(unittest.TestCase):
             pass
     
     def testReadFromBits(self):
-        a = _Bits('0xaabbccdd')
+        a = Bits('0xaabbccdd')
         b = a.readbits(8)
         self.assertEqual(b, '0xaa')
         self.assertEqual(a[0:8], '0xaa')
@@ -3207,7 +3209,9 @@ class BitStringTest(unittest.TestCase):
         self.assertAlmostEqual(x/12.0, 1.0)
         self.assertAlmostEqual(y/-0.01, 1.0)
         self.assertAlmostEqual(z/3e33, 1.0)
-                
+        a = BitString('0b11, floatle:64=12, 0xfffff')
+        a.pos = 2
+        self.assertEqual(a.read('floatle:64'), 12.0)
 
     def testFloatErrors(self):
         a = BitString('0x3')
@@ -3290,7 +3294,7 @@ class BitStringTest(unittest.TestCase):
 
 
     #def testAbc(self):
-    #    a = _Bits()
+    #    a = Bits()
     #    b = BitString()
     #    self.assertTrue(isinstance(a, collections.Sequence))
     #    self.assertTrue(isinstance(b, collections.MutableSequence))
