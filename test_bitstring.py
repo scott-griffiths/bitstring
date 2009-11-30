@@ -2266,6 +2266,10 @@ class BitStringTest(unittest.TestCase):
         for t in ['hex:1', 'oct:1', 'hex4', '-5', 'fred', 'bin:-2',
                   'uint:p', 'uint:-2', 'int:u', 'int:-3', 'ses', 'uee']:
             self.assertRaises(ValueError, a.read, t)
+    
+    def testIntelligentRead9(self):
+        a = BitString('0xff')
+        self.assertEqual(a.read('intle'), -1)
 
     def testFillerReads1(self):
         s = BitString('0x012345')
@@ -3158,26 +3162,37 @@ class BitStringTest(unittest.TestCase):
     def testFloatInitialisation(self):
         for f in (0.0000001, -1.0, 1.0, 0.2, -3.1415265, 1.331e32):
             a = BitString(float=f, length=64)
+            a.pos = 6
             self.assertEqual(a.float, f)
             a = BitString('float:64=%s' % str(f))
+            a.pos = 6
             self.assertEqual(a.float, f)
             a = BitString('floatbe:64=%s' % str(f))
+            a.pos = 6
             self.assertEqual(a.floatbe, f)
             a = BitString('floatle:64=%s' % str(f))
+            a.pos = 6
             self.assertEqual(a.floatle, f)
             a = BitString('floatne:64=%s' % str(f))
+            a.pos = 6
             self.assertEqual(a.floatne, f)
             b = BitString(float=f, length=32)
+            b.pos = 6
             self.assertAlmostEqual(b.float/f, 1.0)
             b = BitString('float:32=%s' % str(f))
+            b.pos = 6
             self.assertAlmostEqual(b.float/f, 1.0)
             b = BitString('floatbe:32=%s' % str(f))
+            b.pos = 6
             self.assertAlmostEqual(b.floatbe/f, 1.0)
             b = BitString('floatle:32=%s' % str(f))
+            b.pos = 6
             self.assertAlmostEqual(b.floatle/f, 1.0)
             b = BitString('floatne:32=%s' % str(f))
+            b.pos = 6
             self.assertAlmostEqual(b.floatne/f, 1.0)
         a = BitString('0x12345678')
+        a.pos = 6
         a.float = 23
         self.assertEqual(a.float, 23.0)
     
@@ -3317,7 +3332,11 @@ class BitStringTest(unittest.TestCase):
         #intne
         #float
         #floatbe
-        #floatle
+        a = BitString('0b111, floatle:64=9.9998, 0b111')
+        a.pos = 3
+        self.assertEqual(a.read('floatle:64'), 9.9998)
+        
+        
         #floatne
 
     #def testAbc(self):

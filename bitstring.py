@@ -1133,13 +1133,15 @@ class Bits(object):
 
     def _readuintbe(self, length):
         if length % 8 != 0:
-            raise ValueError # TODO
+            raise ValueError("Big-endian integers must be whole-byte. Length = %d bits." % length)
         return self._readuint(length)
     
     def _getuintbe(self):
-        if self.len % 8 != 0:
-            raise ValueError("Big-endian integers must be whole-byte. Length = %d bits." % self.len)
-        return self._getuint()
+        oldpos = self._pos
+        self._pos = 0
+        val = self._readuintbe(self.len)
+        self._pos = oldpos
+        return val
     
     def _setintbe(self, int, length=None):
         if length is not None and length % 8 != 0:
@@ -1148,14 +1150,16 @@ class Bits(object):
     
     def _readintbe(self, length):
         if length % 8 != 0:
-            raise ValueError # TODO
+            raise ValueError("Big-endian integers must be whole-byte. Length = %d bits." % length)
         return self._readint(length)
     
     def _getintbe(self):
-        if self.len % 8 != 0:
-            raise ValueError("Big-endian integers must be whole-byte. Length = %d bits." % self.len)
-        return self._getint()
-     
+        oldpos = self._pos
+        self._pos = 0
+        val = self._readintbe(self.len)
+        self._pos = oldpos
+        return val
+        
     def _setuintle(self, uint, length=None):
         if length is not None and length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
@@ -1164,7 +1168,7 @@ class Bits(object):
         
     def _readuintle(self, length):
         if length % 8 != 0:
-            raise ValueError # TODO
+            raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
         startbyte = (self._pos + self._offset) // 8
         endbyte = (self._pos + self._offset + length - 1) // 8
         val = 0
@@ -1180,8 +1184,6 @@ class Bits(object):
         return val
         
     def _getuintle(self):
-        if self.len % 8 != 0:
-            raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % self.len)
         oldpos = self._pos
         self._pos = 0
         val = self._readuintle(self.len)
@@ -1195,9 +1197,13 @@ class Bits(object):
         self._reversebytes(0, self.len)
     
     def _readintle(self, length):
-        v = self._readuintle(length)
-        # TODO: Do the 2s complement thing
-        return v
+        ui = self._readuintle(length)
+        if not ui >> (length - 1):
+            # Top bit not set, number is positive
+            return ui
+        # Top bit is set, so number is negative
+        tmp = (~(ui - 1)) & ((1 << length) - 1)
+        return -tmp
     
     def _getintle(self):
         if self.len % 8 != 0:
@@ -1207,9 +1213,7 @@ class Bits(object):
         val = self._readintle(self.len)
         self._pos = oldpos
         return val
-        
-    # TODO: _readuintne test
-    
+
     def _setfloat(self, f, length=None):
         # If no length given, and we've previously been given a length, use it.
         if length is None and hasattr(self, 'len') and self.len != 0:
@@ -1283,7 +1287,7 @@ class Bits(object):
     
     def _getfloatle(self):
         oldpos = self._pos
-        # TODO: This shouldn't work. Where is the self._pos = 0 ????
+        self._pos = 0
         val = self._readfloatle(self.len)
         self._pos = oldpos
         return val
@@ -1602,7 +1606,7 @@ class Bits(object):
         if length is not None:
             length = int(length)
             if length < 0:
-                raise ValueError # TODO
+                raise ValueError("Can't read a token with a negative length.")
         if name == 'bytes':
             length *= 8
         length = min(length, self.len - self._pos)
