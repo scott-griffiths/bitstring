@@ -2242,7 +2242,7 @@ class BitStringTest(unittest.TestCase):
         c0, c1, c2 = a.readlist('bits:8, bits:8, bits:16')
         self.assertEqual((c0, c1, c2), (BitString('0x00'), BitString('0x11'), BitString('0x2233')))
         a.seek(0)
-        c = a.read('BiTs:16')
+        c = a.read('bits:16')
         self.assertEqual(c, BitString('0x0011'))
         
     def testIntelligentRead6(self):
@@ -3292,6 +3292,33 @@ class BitStringTest(unittest.TestCase):
         s = pack('bytes:4', b'abcd')
         self.assertEqual(s.bytes, b'abcd')
 
+    def testDedicatedReadFunctions(self):
+        a = BitString('0b11, uint:43=98798798172, 0b11111')
+        a.pos = 2
+        x = a._readuint(43)
+        self.assertEqual(x, 98798798172)
+        self.assertEqual(a.pos, 45)
+        a.pos = 2
+        x = a._readint(43)
+        self.assertEqual(x, 98798798172)
+        self.assertEqual(a.pos, 45)
+        a = BitString('0b11, uint:48=98798798172, 0b11111')
+        a.pos = 2
+        x = a._readuintbe(48)
+        self.assertEqual(x, 98798798172)
+        self.assertEqual(a.pos, 50)
+        a.pos = 2
+        x = a._readintbe(48)
+        self.assertEqual(x, 98798798172)
+        self.assertEqual(a.pos, 50)
+        #uintle
+        #intle
+        #uintne
+        #intne
+        #float
+        #floatbe
+        #floatle
+        #floatne
 
     #def testAbc(self):
     #    a = Bits()
