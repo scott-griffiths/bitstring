@@ -480,8 +480,8 @@ class Bits(object):
                  floatbe=None, floatle=None, floatne=None):
         """
         Initialise the BitString with one (and only one) of:
-        auto -- string of comma separated tokens, a list or tuple to be 
-                interpreted as booleans, a file object or another BitString.
+        auto -- a string of comma separated tokens, an integer, a file object,
+                an iterable to be interpreted as booleans or another BitString.
         bytes -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
@@ -976,6 +976,13 @@ class Bits(object):
             return
         if isinstance(s, file):
             self._datastore = _FileArray(s, length, offset)
+            return
+        if isinstance(s, int):
+            # Initialise with s zero bits.
+            if s < 0:
+                raise ValueError("Can't create %s of negative length %d." % (self.__class__.__name__, s))
+            data = bytearray((s + 7) // 8)
+            self._setbytes(bytes(data), s)
             return
         if not isinstance(s, str):
             raise TypeError("Cannot initialise %s from %s." % (self.__class__.__name__, type(s)))

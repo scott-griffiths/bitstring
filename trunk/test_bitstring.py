@@ -3339,9 +3339,16 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0b111, floatle:64=9.9998, 0b111')
         a.pos = 3
         self.assertEqual(a.read('floatle:64'), 9.9998)
-        
-        
         #floatne
+        
+    def testAutoInitWithInt(self):
+        a = BitString(0)
+        self.assertFalse(a)
+        a = BitString(1)
+        self.assertEqual(a, '0b0')
+        a = BitString(1007)
+        self.assertEqual(a, BitString(length=1007))
+        self.assertRaises(ValueError, BitString, -1)
 
     #def testAbc(self):
     #    a = Bits()
