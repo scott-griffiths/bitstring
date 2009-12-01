@@ -29,7 +29,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 __author__ = "Scott Griffiths"
 
@@ -1159,7 +1159,7 @@ class Bits(object):
         val = self._readintbe(self.len)
         self._pos = oldpos
         return val
-        
+
     def _setuintle(self, uint, length=None):
         if length is not None and length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
@@ -1169,17 +1169,24 @@ class Bits(object):
     def _readuintle(self, length):
         if length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. Length = %d bits." % length)
-        startbyte = (self._pos + self._offset) // 8
-        endbyte = (self._pos + self._offset + length - 1) // 8
         val = 0
-        chunksize = 4 # for 'L' format
-        while endbyte - chunksize >= startbyte:
-            val <<= 8 * chunksize
-            val += (struct.unpack('<L', bytes(self._datastore[endbyte - chunksize:endbyte]))[0])
-            endbyte -= chunksize
-        for b in xrange(endbyte, startbyte - 1, -1):
-            val <<= 8
-            val += self._datastore[b]
+        if (self._offset + self._pos) % 8 == 0:
+            startbyte = (self._pos + self._offset) // 8
+            endbyte = (self._pos + self._offset + length - 1) // 8
+            chunksize = 4 # for 'L' format
+            while endbyte - chunksize + 1 >= startbyte:
+                val <<= 8 * chunksize
+                val += (struct.unpack('<L', bytes(self._datastore[endbyte + 1 - chunksize:endbyte + 1]))[0])
+                endbyte -= chunksize
+            for b in xrange(endbyte, startbyte - 1, -1):
+                val <<= 8
+                val += self._datastore[b]
+        else:
+            data = self[self._pos:self._pos + length]
+            data.reversebytes()
+            for b in bytearray(data.bytes):
+                val <<= 8
+                val += b
         self._pos += length
         return val
         
