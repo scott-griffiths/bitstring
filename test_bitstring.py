@@ -40,7 +40,7 @@ from bitstring import BitString, BitStringError, Bits, pack
 class BitStringTest(unittest.TestCase):
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '1.1.0')
+        self.assertEqual(bitstring.__version__, '1.1.1')
     
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')
@@ -2570,7 +2570,6 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(tp('hello'), [('uint', 'hello', None)])
         self.assertEqual(tp('send'), [('uint', 'send', None)])
         self.assertEqual(tp('send'), [('uint', 'send', None)])
-        self.assertEqual(tp('hello', ('bye', 'hello')), [('hello', None, None)])
 
     def testAutoFromFileObject(self):
         f = open('test/test.m1v', 'rb')
@@ -3326,7 +3325,12 @@ class BitStringTest(unittest.TestCase):
         x = a._readintbe(48)
         self.assertEqual(x, 98798798172)
         self.assertEqual(a.pos, 50)
-        #uintle
+        a = BitString('0b111, uintle:40=123516, 0b111')
+        a.pos = 3
+        self.assertEqual(a.read('uintle:40'), 123516)
+        b = BitString('0xff, uintle:800=999, 0xffff')
+        b.pos = 8
+        self.assertEqual(b.read('uintle:800'), 999)
         #intle
         #uintne
         #intne
