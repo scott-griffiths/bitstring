@@ -2264,7 +2264,7 @@ class BitStringTest(unittest.TestCase):
     def testIntelligentRead8(self):
         a = BitString('0x123456')
         for t in ['hex:1', 'oct:1', 'hex4', '-5', 'fred', 'bin:-2',
-                  'uint:p', 'uint:-2', 'int:u', 'int:-3', 'ses', 'uee']:
+                  'uint:p', 'uint:-2', 'int:u', 'int:-3', 'ses', 'uee', '-14']:
             self.assertRaises(ValueError, a.read, t)
     
     def testIntelligentRead9(self):
@@ -2563,10 +2563,10 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(tp('se'), [('se', None, None)])
         self.assertEqual(tp('ue=12'), [('ue', None, '12')])
         self.assertEqual(tp('0xef'), [('0x', None, 'ef')])
-        self.assertEqual(tp('uint:12'), [('uint', '12', None)])
-        self.assertEqual(tp('int:30=-1'), [('int', '30', '-1')])
-        self.assertEqual(tp('bits:10'), [('bits', '10', None)])
-        self.assertEqual(tp('bits:10'), [('bits', '10', None)])
+        self.assertEqual(tp('uint:12'), [('uint', 12, None)])
+        self.assertEqual(tp('int:30=-1'), [('int', 30, '-1')])
+        self.assertEqual(tp('bits:10'), [('bits', 10, None)])
+        self.assertEqual(tp('bits:10'), [('bits', 10, None)])
         self.assertEqual(tp('hello'), [('uint', 'hello', None)])
         self.assertEqual(tp('send'), [('uint', 'send', None)])
         self.assertEqual(tp('send'), [('uint', 'send', None)])

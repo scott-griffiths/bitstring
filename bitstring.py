@@ -127,8 +127,6 @@ def _init_with_token(name, token_length, value):
         b = Bits(value)
     elif name == 'bytes':
         b = Bits(bytes=value)
-        if token_length is not None:
-            token_length *= 8
     else:
         raise ValueError("Can't parse token name %s." % name)
     if token_length is not None and b.len != token_length:
@@ -233,6 +231,16 @@ def _tokenparser(format, keys=None, token_cache={}):
             if m:
                 name = m.group('name')
                 length = m.group('len')
+                try:
+                    length = int(length)
+                    if length < 0:
+                        raise BitStringError
+                    if name == 'bytes':
+                        length *= 8
+                except BitStringError:
+                    raise ValueError("Can't read a token with a negative length.")
+                except (TypeError, ValueError):
+                    pass
                 if m.group('value'):
                     value = m.group('value')
                 ret_vals.append([name, length, value])
@@ -241,6 +249,14 @@ def _tokenparser(format, keys=None, token_cache={}):
             m = _defaultuint.match(token)
             if m:
                 length = m.group('len')
+                try:
+                    length = int(length)
+                    if length < 0:
+                        raise BitStringError
+                except BitStringError:
+                    raise ValueError("Can't read a token with a negative length.")
+                except (TypeError, ValueError):
+                    pass
                 if m.group('value'):
                     value = m.group('value')
                 ret_vals.append(['uint', length, value])
@@ -461,7 +477,10 @@ class _MemArray(object):
 
     def _getrawbytes(self):
         return self._rawarray
-        
+    
+    def freeze(self):
+        self._rawarray = bytes(self._rawarray)
+    
     bytelength = property(_getbytelength)
     
     rawbytes = property(_getrawbytes)
@@ -1183,7 +1202,7 @@ class Bits(object):
             chunksize = 4 # for 'L' format
             while endbyte - chunksize + 1 >= startbyte:
                 val <<= 8 * chunksize
-                val += (struct.unpack('<L', bytes(self._datastore[endbyte + 1 - chunksize:endbyte + 1]))[0])
+                val += struct.unpack('<L', bytes(self._datastore[endbyte + 1 - chunksize:endbyte + 1]))[0]
                 endbyte -= chunksize
             for b in xrange(endbyte, startbyte - 1, -1):
                 val <<= 8
@@ -1615,14 +1634,8 @@ class Bits(object):
         return self.__class__(bytes=self._datastore[startbyte:endbyte + 1],
                               length=end - start, offset=newoffset)
 
-    def _readtoken(self, name, length, value):
+    def _readtoken(self, name, length):
         """Reads a token from the BitString and returns the result."""
-        if length is not None:
-            length = int(length)
-            if length < 0:
-                raise ValueError("Can't read a token with a negative length.")
-        if name == 'bytes':
-            length *= 8
         length = min(length, self.len - self._pos)
         try:
             return _name_to_init[name](self, length)
@@ -1929,7 +1942,7 @@ class Bits(object):
         bits_left = self.len - self._pos
         return_values = []
         if not stretchy_token:
-            return_values.extend([self._readtoken(*token) for token in tokens])
+            return_values.extend([self._readtoken(token[0], token[1]) for token in tokens])
         else:
             for token in tokens:
                 name, length, value = token
@@ -1940,7 +1953,7 @@ class Bits(object):
                     length = max(bits_left - bits_after_stretchy_token, 0)
                 if length is not None:
                     bits_left -= length
-                return_values.append(self._readtoken(name, length, value))            
+                return_values.append(self._readtoken(name, length))            
         return return_values
     
     def readbit(self):
