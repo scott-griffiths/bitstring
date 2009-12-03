@@ -1296,8 +1296,8 @@ class Bits(object):
         self._setbytes(b, length, 0)
     
     def _readfloatle(self, length):
-        if (self._pos + self._offset) % 8 == 0:
-            startbyte = (self._pos + self._offset) // 8
+        startbyte, offset = divmod(self._pos + self._offset, 8)
+        if offset == 0:
             if length == 32:
                 f, = struct.unpack('<f', bytes(self._datastore[startbyte:startbyte + 4]))
             elif length == 64:
@@ -1892,11 +1892,14 @@ class Bits(object):
         
         """
         p = self._pos
-        return_values = self.readlist(format)
-        if len(return_values) != 1:
+        token = _tokenparser(format)
+        if len(token) != 1:
             self._pos = p
-            raise ValueError("Format string should be a single token - use readlist() instead.")
-        return return_values[0]
+            raise ValueError("Format string should be a single token, not %d tokens - use readlist() instead." % len(token))
+        name, length, _ = token[0]
+        if length is None:
+            length = self.len - self.pos
+        return self._readtoken(name, length)
 
     def readlist(self, *format):
         """Interpret next bits according to format string(s) and return list.
@@ -1920,13 +1923,13 @@ class Bits(object):
         bits_after_stretchy_token = 0
         stretchy_token = None
         for token in tokens:
-            name, length, value = token
+            name, length, _ = token
             if stretchy_token:
                 if name in ('se', 'ue'):
                     raise BitStringError("It's not possible to parse a variable length token after a 'filler' token.")
                 else:
                     bits_after_stretchy_token += length
-            if length is None and value is None and name not in ('se', 'ue'):
+            if length is None and name not in ('se', 'ue'):
                 if stretchy_token:
                     raise BitStringError("It's not possible to have more than one 'filler' token.")
                 stretchy_token = token
@@ -1936,7 +1939,7 @@ class Bits(object):
             return_values.extend([self._readtoken(token[0], token[1]) for token in tokens])
         else:
             for token in tokens:
-                name, length, value = token
+                name, length, _ = token
                 if token is stretchy_token:
                     # Set length to the remaining bits
                     length = max(bits_left - bits_after_stretchy_token, 0)
@@ -2637,7 +2640,7 @@ class Bits(object):
 
         """
         def f(a, b):
-            if not self._datastore._rawarray[a] & (128 >> b):
+            if not self._datastore[a] & (128 >> b):
                 return True
         # If early exit was made we want to return False, and vice versa.
         return not self._bit_tweaker(pos, f)
@@ -2650,7 +2653,7 @@ class Bits(object):
 
         """
         def f(a, b):
-            if self._datastore._rawarray[a] & (128 >> b):
+            if self._datastore[a] & (128 >> b):
                 return True
         return self._bit_tweaker(pos, f)
     
@@ -3271,6 +3274,7 @@ class BitString(Bits):
         Raises IndexError if pos < -self.len or pos >= self.len.
         
         """
+        self._ensureinmemory()
         self._set(pos)
     
     def unset(self, pos):
@@ -3281,7 +3285,8 @@ class BitString(Bits):
         
         Raises IndexError if pos < -self.len or pos >= self.len.
         
-        """ 
+        """
+        self._ensureinmemory()
         self._unset(pos)
 
     def invert(self, pos):
@@ -3469,16 +3474,26 @@ def pack(format, *values, **kwargs):
         return s
     raise ValueError("Too many parameters present to pack according to the format.")
     
-
-_name_to_init = {'uint': Bits._readuint, 'uintle': Bits._readuintle,
-                 'uintbe': Bits._readuintbe, 'uintne': Bits._readuintne,
-                 'int': Bits._readint, 'intle': Bits._readintle,
-                 'intbe': Bits._readintbe, 'intne': Bits._readintne,
-                 'float': Bits._readfloat, 'floatbe': Bits._readfloat, # floatbe is synonym for float
-                 'floatle': Bits ._readfloatle, 'floatne': Bits._readfloatne,
-                 'hex': Bits._readhex, 'oct': Bits._readoct, 'bin': Bits._readbin,
-                 'bits': Bits.readbits, 'bytes': Bits._readbytes,
-                 'ue': Bits._readue, 'se': Bits._readse
+# Dictionary that maps token names to the function that reads them.
+_name_to_init = {'uint':    Bits._readuint,
+                 'uintle':  Bits._readuintle,
+                 'uintbe':  Bits._readuintbe,
+                 'uintne':  Bits._readuintne,
+                 'int':     Bits._readint,
+                 'intle':   Bits._readintle,
+                 'intbe':   Bits._readintbe,
+                 'intne':   Bits._readintne,
+                 'float':   Bits._readfloat,
+                 'floatbe': Bits._readfloat, # floatbe is a synonym for float
+                 'floatle': Bits._readfloatle,
+                 'floatne': Bits._readfloatne,
+                 'hex':     Bits._readhex,
+                 'oct':     Bits._readoct,
+                 'bin':     Bits._readbin,
+                 'bits':    Bits.readbits,
+                 'bytes':   Bits._readbytes,
+                 'ue':      Bits._readue,
+                 'se':      Bits._readse
                  }
 
 if __name__=='__main__':

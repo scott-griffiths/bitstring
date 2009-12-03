@@ -2288,8 +2288,8 @@ class BitStringTest(unittest.TestCase):
 
     def testFillerReads2(self):
         s = BitString('0xabcdef')
-        self.assertRaises(BitStringError, s.read, 'bits, se')
-        self.assertRaises(BitStringError, s.read, 'hex:4, bits, ue, bin:4')
+        self.assertRaises(BitStringError, s.readlist, 'bits, se')
+        self.assertRaises(BitStringError, s.readlist, 'hex:4, bits, ue, bin:4')
 
     def testIntelligentPeek(self):
         a = BitString('0b01, 0x43, 0o4, uint:23=2, se=5, ue=3')
@@ -3087,6 +3087,14 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(b, '0b11000001')
         self.assertRaises(IndexError, b.set, -9)
         self.assertRaises(IndexError, b.set, 8)
+    
+    def testFileBasedSetUnset(self):
+        a = BitString(filename='test/test.m1v')
+        a.set((0, 1, 2, 3, 4))
+        self.assertEqual(a[0:4:8], '0xf80001b3')
+        a = BitString(filename='test/test.m1v')
+        a.unset((28, 29, 30, 31))
+        self.assertTrue(a.startswith('0x000001b0'))
 
     def testSetList(self):
         a = BitString(length=18)
@@ -3144,9 +3152,21 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue(a.allset((1, 3)))
         self.assertFalse(a.allset((0, 1, 2)))
     
+    def testFileBasedAllSetUnset(self):
+        a = BitString(filename='test/test.m1v')
+        self.assertTrue(a.allset(31))
+        a = BitString(filename='test/test.m1v')
+        self.assertTrue(a.allunset((0, 1, 2, 3, 4)))
+
+    def testFileBasedAnySetUnset(self):
+        a = BitString(filename='test/test.m1v')
+        self.assertTrue(a.anyset((31, 12)))
+        a = BitString(filename='test/test.m1v')
+        self.assertTrue(a.anyunset((0, 1, 2, 3, 4)))
+ 
     def testAnySet(self):
         a = BitString('0b10011011')
-        self.assertTrue(a.anyset((1,2,3,5)))
+        self.assertTrue(a.anyset((1, 2, 3, 5)))
         self.assertFalse(a.anyset((1, 2, 5)))
 
     def testAllUnset(self):
