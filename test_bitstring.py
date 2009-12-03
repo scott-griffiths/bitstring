@@ -2257,8 +2257,8 @@ class BitStringTest(unittest.TestCase):
         a1, a2, a3, a4 = a.readlist('bin:0, oct:0, hex:0, bits:0')
         self.assertTrue(a1 == a2 == a3 == '')
         self.assertFalse(a4)
-        self.assertRaises(ValueError, a.read, 'int0')
-        self.assertRaises(ValueError, a.read, 'uint0')
+        self.assertRaises(ValueError, a.read, 'int:0')
+        self.assertRaises(ValueError, a.read, 'uint:0')
         self.assertEqual(a.pos, 0)
         
     def testIntelligentRead8(self):
@@ -2546,19 +2546,17 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(b[1], '0b1')
 
         # This is needed for complete code coverage, but takes ages at the moment!        
-        #f = open('temp_bitstring_unit_testing_file' ,'wb')
-        #a[1:].tofile(f)
-        #f.close()
-        #b = BitString(filename='temp_bitstring_unit_testing_file')
-        #print b[:80]
-        #self.assertEqual(b.len, 16000000)
-        #self.assertEqual(b[0], '0b1')
+        f = open('temp_bitstring_unit_testing_file' ,'wb')
+        a[1:].tofile(f)
+        f.close()
+        b = BitString(filename='temp_bitstring_unit_testing_file')
+        self.assertEqual(b.len, 16000000)
+        self.assertEqual(b[0], '0b1')
         os.remove('temp_bitstring_unit_testing_file')
         
     def testTokenParser(self):
         tp = bitstring._tokenparser
         self.assertEqual(tp('hex'), [('hex', None, None)])
-        self.assertEqual(tp('hex12'), [('uint', 'hex12', None)])
         self.assertEqual(tp('hex=14'), [('hex', None, '14')])
         self.assertEqual(tp('se'), [('se', None, None)])
         self.assertEqual(tp('ue=12'), [('ue', None, '12')])
@@ -2567,9 +2565,10 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(tp('int:30=-1'), [('int', 30, '-1')])
         self.assertEqual(tp('bits:10'), [('bits', 10, None)])
         self.assertEqual(tp('bits:10'), [('bits', 10, None)])
-        self.assertEqual(tp('hello'), [('uint', 'hello', None)])
-        self.assertEqual(tp('send'), [('uint', 'send', None)])
-        self.assertEqual(tp('send'), [('uint', 'send', None)])
+        self.assertEqual(tp('123'), [('uint', 123, None)])
+        self.assertEqual(tp('123'), [('uint', 123, None)])
+        self.assertRaises(ValueError, tp, 'hex12')
+        self.assertEqual(tp('hex12', ('hex12',)), [('hex12', None, None)])
 
     def testAutoFromFileObject(self):
         f = open('test/test.m1v', 'rb')
@@ -3030,6 +3029,13 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, '0xfe')
         c = BitString(a)
         self.assertEqual(a, c)
+        a = Bits('0b1')
+        a._append(a)
+        self.assertEqual(a, '0b11')
+        self.assertEqual(type(a), Bits)
+        a._prepend(a)
+        self.assertEqual(a, '0b1111')
+        self.assertEqual(type(a), Bits)
     
     def testConstBitStringHashibility(self):
         a = Bits('0x1')

@@ -176,7 +176,7 @@ def _tokenparser(format, keys=None, token_cache={}):
     If the token is in the keyword dictionary (keys) then it counts as a
     special case and isn't messed with.
     
-    tokens must be of the form: initialiser[:][length][=value]
+    tokens must be of the form: [initialiser][:][length][=value]
     
     """
     try:
@@ -213,7 +213,7 @@ def _tokenparser(format, keys=None, token_cache={}):
         ret_vals = []
         for token in tokens:
             if keys and token in keys:
-                # Don't bother parsing it, it's part of a keyword argument
+                # Don't bother parsing it, it's a keyword argument
                 ret_vals.append([token, None, None])
                 continue
             value = length = None
@@ -226,42 +226,38 @@ def _tokenparser(format, keys=None, token_cache={}):
                 value = m.group('value')
                 ret_vals.append([name, length, value])
                 continue
-            # Match everything else!
-            m = _tokenre.match(token)
-            if m:
-                name = m.group('name')
-                length = m.group('len')
+            # Match everything else:
+            m1 = _tokenre.match(token)
+            # and if you don't specify a 'name' then the defualt is 'uint':
+            m2 = _defaultuint.match(token)
+            if not (m1 or m2):
+                raise ValueError("Don't understand token '%s'." % token)
+            if m1:
+                name = m1.group('name')
+                length = m1.group('len')
+                if m1.group('value'):
+                    value = m1.group('value')
+            else:
+                assert m2
+                name = 'uint'
+                length = m2.group('len')
+                if m2.group('value'):
+                    value = m2.group('value')
+            if length is not None:
+                # Try converting length to int, otherwise check if it's in the keys.
                 try:
                     length = int(length)
                     if length < 0:
                         raise BitStringError
+                    # For the 'bytes' token convert length to bits.
                     if name == 'bytes':
                         length *= 8
                 except BitStringError:
                     raise ValueError("Can't read a token with a negative length.")
-                except (TypeError, ValueError):
-                    pass
-                if m.group('value'):
-                    value = m.group('value')
-                ret_vals.append([name, length, value])
-                continue
-            # The default 'name' is 'uint':
-            m = _defaultuint.match(token)
-            if m:
-                length = m.group('len')
-                try:
-                    length = int(length)
-                    if length < 0:
-                        raise BitStringError
-                except BitStringError:
-                    raise ValueError("Can't read a token with a negative length.")
-                except (TypeError, ValueError):
-                    pass
-                if m.group('value'):
-                    value = m.group('value')
-                ret_vals.append(['uint', length, value])
-                continue
-            raise ValueError("Don't understand token '%s'." % token)
+                except ValueError:
+                    if not keys or length not in keys:
+                        raise ValueError("Don't understand length '%s' of token." % length)
+            ret_vals.append([name, length, value])
         return_values.extend(ret_vals)
     return_values = [tuple(x) for x in return_values]
     token_cache[token_key] = return_values
@@ -477,9 +473,6 @@ class _MemArray(object):
 
     def _getrawbytes(self):
         return self._rawarray
-    
-    def freeze(self):
-        self._rawarray = bytes(self._rawarray)
     
     bytelength = property(_getbytelength)
     
@@ -1086,6 +1079,8 @@ class Bits(object):
         self._setbytes(data, length, offset)
 
     def _readuint(self, length):
+        if length == 0:
+            raise ValueError("Cannot read an integer of length zero.")
         startbyte = (self._pos + self._offset) // 8
         endbyte = (self._pos + self._offset + length - 1) // 8
         val = 0
@@ -1636,7 +1631,6 @@ class Bits(object):
 
     def _readtoken(self, name, length):
         """Reads a token from the BitString and returns the result."""
-        length = min(length, self.len - self._pos)
         try:
             return _name_to_init[name](self, length)
         except KeyError:
@@ -1647,7 +1641,7 @@ class Bits(object):
         if not bs:
             return self
         if bs is self:
-            bs = self.__copy__() # TODO: This copy won't work for Bits.
+            bs = self._copy()
         self._datastore.appendarray(bs._datastore)
 
     def _prepend(self, bs):
@@ -1655,7 +1649,7 @@ class Bits(object):
         if not bs:
             return self
         if bs is self:
-            bs = self.__copy__() # TODO: This copy won't work for Bits.
+            bs = self._copy()
         self._datastore.prependarray(bs._datastore)
         self._pos += bs.len
 
@@ -1927,8 +1921,6 @@ class Bits(object):
         stretchy_token = None
         for token in tokens:
             name, length, value = token
-            if length is not None:
-                length = int(length)
             if stretchy_token:
                 if name in ('se', 'ue'):
                     raise BitStringError("It's not possible to parse a variable length token after a 'filler' token.")
@@ -1938,7 +1930,6 @@ class Bits(object):
                 if stretchy_token:
                     raise BitStringError("It's not possible to have more than one 'filler' token.")
                 stretchy_token = token
-                
         bits_left = self.len - self._pos
         return_values = []
         if not stretchy_token:
@@ -1946,8 +1937,6 @@ class Bits(object):
         else:
             for token in tokens:
                 name, length, value = token
-                if length is not None:
-                    length = int(length)
                 if token is stretchy_token:
                     # Set length to the remaining bits
                     length = max(bits_left - bits_after_stretchy_token, 0)
