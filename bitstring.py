@@ -67,9 +67,9 @@ def deprecated(help):
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
-python_version = int(platform.python_version_tuple()[0])
-assert python_version in [2, 3]
-if python_version == 2:
+PYTHON_VERSION = int(platform.python_version_tuple()[0])
+assert PYTHON_VERSION in [2, 3]
+if PYTHON_VERSION == 2:
     from future_builtins import zip
 else:
     from io import IOBase
@@ -77,7 +77,7 @@ else:
     file = IOBase
 
 # Maximum number of digits to use in __str__ and __repr__.
-maxchars = 250
+MAX_CHARS = 250
 
 def tidy_input_string(s):
     """Return string made lowercase and with all whitespace removed."""
@@ -136,32 +136,32 @@ def init_with_token(name, token_length, value):
     return b
 
 
-init_names = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
+INIT_NAMES = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
               'float', 'floatbe', 'floatle', 'floatne', 'bytes')
 
-init_names_ored = '|'.join(init_names)
-tokenre = re.compile(r'^(?P<name>' + init_names_ored + r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
-defaultuint = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
+INIT_NAMES_ORED = '|'.join(INIT_NAMES)
+TOKEN_RE = re.compile(r'^(?P<name>' + INIT_NAMES_ORED + r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
+DEFAULT_UINT = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
 # Hex, oct or binary literals
-literalre = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
+LITERAL_RE = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-structpackre = re.compile(r'^(?P<endian><|>|@)(?P<format>(?:\d*[bBhHlLqQfd])+)$')
+STRUCT_PACK_RE = re.compile(r'^(?P<endian><|>|@)(?P<format>(?:\d*[bBhHlLqQfd])+)$')
 
 # A number followed by a single character struct.pack code
-structsplitre = re.compile(r'\d*[bBhHlLqQfd]')
+STRUCT_SPLIT_RE = re.compile(r'\d*[bBhHlLqQfd]')
 
 # These replicate the struct.pack codes
 # Big-endian
-replacements_be = {'b': 'intbe:8', 'B': 'uintbe:8',
+REPLACEMENTS_BE = {'b': 'intbe:8', 'B': 'uintbe:8',
                    'h': 'intbe:16', 'H': 'uintbe:16',
                    'l': 'intbe:32', 'L': 'uintbe:32',
                    'q': 'intbe:64', 'Q': 'uintbe:64',
                    'f': 'floatbe:32', 'd': 'floatbe:64'}
 # Little-endian
-replacements_le = {'b': 'intle:8', 'B': 'uintle:8',
+REPLACEMENTS_LE = {'b': 'intle:8', 'B': 'uintle:8',
                    'h': 'intle:16', 'H': 'uintle:16',
                    'l': 'intle:32', 'L': 'uintle:32',
                    'q': 'intle:64', 'Q': 'uintle:64',
@@ -191,12 +191,12 @@ def tokenparser(format, keys=None, token_cache={}):
     stretchy_token = False
     for meta_token in meta_tokens:
         # See if it's a struct-like format
-        m = structpackre.match(meta_token)
+        m = STRUCT_PACK_RE.match(meta_token)
         if not m:
             tokens = [meta_token]
         else:
             # Split the format string into a list of 'q', '4h' etc.
-            formatlist = re.findall(structsplitre, m.group('format'))
+            formatlist = re.findall(STRUCT_SPLIT_RE, m.group('format'))
             # Now deal with mulitplicative factors, 4h -> hhhh etc.
             format = ''.join([f[-1]*int(f[:-1]) if len(f) != 1 else f for f in formatlist])
             endian = m.group('endian')
@@ -208,10 +208,10 @@ def tokenparser(format, keys=None, token_cache={}):
                     assert byteorder == 'big'
                     endian = '>'
             if endian == '<':
-                tokens = [replacements_le[c] for c in format]
+                tokens = [REPLACEMENTS_LE[c] for c in format]
             else:
                 assert endian == '>'
-                tokens = [replacements_be[c] for c in format]
+                tokens = [REPLACEMENTS_BE[c] for c in format]
         ret_vals = []
         for token in tokens:
             if keys and token in keys:
@@ -222,16 +222,16 @@ def tokenparser(format, keys=None, token_cache={}):
             if token == '':
                 continue
             # Match literal tokens of the form 0x... 0o... and 0b...
-            m = literalre.match(token)
+            m = LITERAL_RE.match(token)
             if m:
                 name = m.group('name')
                 value = m.group('value')
                 ret_vals.append([name, length, value])
                 continue
             # Match everything else:
-            m1 = tokenre.match(token)
+            m1 = TOKEN_RE.match(token)
             # and if you don't specify a 'name' then the defualt is 'uint':
-            m2 = defaultuint.match(token)
+            m2 = DEFAULT_UINT.match(token)
             if not (m1 or m2):
                 raise ValueError("Don't understand token '%s'." % token)
             if m1:
@@ -268,7 +268,7 @@ def tokenparser(format, keys=None, token_cache={}):
     return stretchy_token, return_values
     
 # Not pretty, but a byte to bitstring lookup really speeds things up.
-byte2bits = ('00000000', '00000001', '00000010', '00000011', '00000100', '00000101', '00000110', '00000111',
+BYTE_TO_BITS = ('00000000', '00000001', '00000010', '00000011', '00000100', '00000101', '00000110', '00000111',
              '00001000', '00001001', '00001010', '00001011', '00001100', '00001101', '00001110', '00001111',
              '00010000', '00010001', '00010010', '00010011', '00010100', '00010101', '00010110', '00010111',
              '00011000', '00011001', '00011010', '00011011', '00011100', '00011101', '00011110', '00011111',
@@ -301,11 +301,11 @@ byte2bits = ('00000000', '00000001', '00000010', '00000011', '00000100', '000001
              '11110000', '11110001', '11110010', '11110011', '11110100', '11110101', '11110110', '11110111',
              '11111000', '11111001', '11111010', '11111011', '11111100', '11111101', '11111110', '11111111')
 
-oct2bits = ('000', '001', '010', '011', '100', '101', '110', '111')
+OCT_TO_BITS = ('000', '001', '010', '011', '100', '101', '110', '111')
 
 # This creates a dictionary for every possible byte with the value being
 # the key with its bits reversed.
-reversalbytes = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
+REVERSAL_BYTES = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
                 b"\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8" \
                 b"\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4" \
                 b"\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc" \
@@ -322,10 +322,10 @@ reversalbytes = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\x
                 b"\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7" \
                 b"\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
 
-if python_version == 2:
-    bytereversaldict = dict(zip(range(256), reversalbytes))
+if PYTHON_VERSION == 2:
+    bytereversaldict = dict(zip(range(256), REVERSAL_BYTES))
 else:
-    bytereversaldict = dict(zip(range(256), [bytes([x]) for x in reversalbytes]))
+    bytereversaldict = dict(zip(range(256), [bytes([x]) for x in REVERSAL_BYTES]))
     
 class BitStringError(Exception):
     """For errors in the bitstring module."""
@@ -721,9 +721,9 @@ class Bits(object):
         length = self.len
         if length == 0:
             return ''
-        if length > maxchars*4:
+        if length > MAX_CHARS*4:
             # Too long for hex. Truncate...
-            return self[:maxchars:4].hex + '...'
+            return self[:MAX_CHARS:4].hex + '...'
         # If it's quite short and we can't do hex then use bin
         if length < 32 and length % 4 != 0:
             return self.bin
@@ -1469,10 +1469,10 @@ class Bits(object):
         padded_binstring = binstring + '0'*(boundary - length) \
                            if len(binstring) < boundary else binstring
         try:
-            bytes = [int(padded_binstring[x:x + 8], 2) for x in xrange(0, len(padded_binstring), 8)]
+            bytelist = [int(padded_binstring[x:x + 8], 2) for x in xrange(0, len(padded_binstring), 8)]
         except ValueError:
             raise ValueError("Invalid character in bin initialiser %s." % binstring)
-        self._datastore = MemArray(bytes, length)
+        self._datastore = MemArray(bytelist, length)
     
     def _readbin(self, length):
         if length == 0:
@@ -1480,7 +1480,7 @@ class Bits(object):
         # Use lookup table to convert each byte to string of 8 bits.
         startbyte, startoffset = divmod(self._pos + self._offset, 8)
         endbyte = (self._pos + self._offset + length - 1) // 8
-        c = (byte2bits[x] for x in self._datastore[startbyte:endbyte + 1])
+        c = (BYTE_TO_BITS[x] for x in self._datastore[startbyte:endbyte + 1])
         self._pos += length
         return '0b' + ''.join(c)[startoffset:startoffset + length]
 
@@ -1511,7 +1511,7 @@ class Bits(object):
             try:
                 if not 0 <= int(i) < 8:
                     raise ValueError
-                binlist.append(oct2bits[int(i)])
+                binlist.append(OCT_TO_BITS[int(i)])
             except ValueError:
                 raise ValueError("Invalid symbol '%s' in oct initialiser." % i)
         self._setbin(''.join(binlist), length, offset)
@@ -1621,12 +1621,13 @@ class Bits(object):
         if isinstance(self._datastore, FileArray):
             self._datastore = MemArray(self._datastore[:], self.len, self._offset)
     
-    def _converttobitstring(self, bs):
+    @classmethod
+    def _converttobitstring(cls, bs):
         """Attemp to convert bs to a BitString and return it."""
         if isinstance(bs, Bits):
             return bs
         if isinstance(bs, (str, list, tuple)):
-            return self.__class__(bs)
+            return cls(bs)
         raise TypeError("Cannot initialise BitString from %s." % type(bs))
 
     def _copy(self):
@@ -1651,7 +1652,7 @@ class Bits(object):
     def _readtoken(self, name, length):
         """Reads a token from the BitString and returns the result."""
         try:
-            return _name_to_init[name](self, length)
+            return name_to_init[name](self, length)
         except KeyError:
             raise ValueError("Can't parse token %s:%d" % (name, length))
 
@@ -3175,7 +3176,6 @@ class BitString(Bits):
             return self
         if pos is None:
             pos = self._pos
-        bitposafter = pos + bs.len
         if pos < 0 or pos + bs.len > self.len:
             raise ValueError("Overwrite exceeds boundary of BitString.")
         self._ensureinmemory()
@@ -3498,26 +3498,26 @@ def pack(format, *values, **kwargs):
     raise ValueError("Too many parameters present to pack according to the format.")
     
 # Dictionary that maps token names to the function that reads them.
-_name_to_init = {'uint':    Bits._readuint,
-                 'uintle':  Bits._readuintle,
-                 'uintbe':  Bits._readuintbe,
-                 'uintne':  Bits._readuintne,
-                 'int':     Bits._readint,
-                 'intle':   Bits._readintle,
-                 'intbe':   Bits._readintbe,
-                 'intne':   Bits._readintne,
-                 'float':   Bits._readfloat,
-                 'floatbe': Bits._readfloat, # floatbe is a synonym for float
-                 'floatle': Bits._readfloatle,
-                 'floatne': Bits._readfloatne,
-                 'hex':     Bits._readhex,
-                 'oct':     Bits._readoct,
-                 'bin':     Bits._readbin,
-                 'bits':    Bits.readbits,
-                 'bytes':   Bits._readbytes,
-                 'ue':      Bits._readue,
-                 'se':      Bits._readse
-                 }
+name_to_init = {'uint':    Bits._readuint,
+                'uintle':  Bits._readuintle,
+                'uintbe':  Bits._readuintbe,
+                'uintne':  Bits._readuintne,
+                'int':     Bits._readint,
+                'intle':   Bits._readintle,
+                'intbe':   Bits._readintbe,
+                'intne':   Bits._readintne,
+                'float':   Bits._readfloat,
+                'floatbe': Bits._readfloat, # floatbe is a synonym for float
+                'floatle': Bits._readfloatle,
+                'floatne': Bits._readfloatne,
+                'hex':     Bits._readhex,
+                'oct':     Bits._readoct,
+                'bin':     Bits._readbin,
+                'bits':    Bits.readbits,
+                'bytes':   Bits._readbytes,
+                'ue':      Bits._readue,
+                'se':      Bits._readse
+                }
 
 if __name__=='__main__':
     print("Running bitstring module unit tests:")
