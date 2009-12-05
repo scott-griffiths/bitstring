@@ -1421,8 +1421,8 @@ class BitStringTest(unittest.TestCase):
     def testFileAndMemEquivalence(self):
         a = BitString(filename='test/smalltestfile')
         b = BitString(filename='test/smalltestfile')[:]
-        self.assertTrue(isinstance(a._datastore, bitstring._FileArray))
-        self.assertTrue(isinstance(b._datastore, bitstring._MemArray))
+        self.assertTrue(isinstance(a._datastore, bitstring.FileArray))
+        self.assertTrue(isinstance(b._datastore, bitstring.MemArray))
         self.assertEqual(a._datastore[0], b._datastore[0])
         self.assertEqual(a._datastore[1:5], b._datastore[1:5])
     
@@ -1841,7 +1841,7 @@ class BitStringTest(unittest.TestCase):
         self.assertFalse('0xfeed' in a)
     
     def testRepr(self):
-        max = bitstring._maxchars
+        max = bitstring.maxchars
         bls = ['', '0b1', '0o5', '0x43412424f41', '0b00101001010101']
         for bs in bls:
             a = BitString(bs)
@@ -1868,7 +1868,7 @@ class BitStringTest(unittest.TestCase):
         s = BitString(hex='0x00')
         self.assertEqual(s.hex, s.__str__())
         s = BitString(filename='test/test.m1v')
-        self.assertEqual(s[0:bitstring._maxchars*4].hex+'...', s.__str__())
+        self.assertEqual(s[0:bitstring.maxchars*4].hex+'...', s.__str__())
         self.assertEqual(BitString().__str__(), '')
     
     def testIter(self):
@@ -3051,6 +3051,7 @@ class BitStringTest(unittest.TestCase):
         c.pos = 3
         s = set((a, b, c))
         self.assertEqual(len(s), 2)
+        self.assertEqual(hash(a), hash(c))
     
     def testConstBitStringCopy(self):
         a = Bits('0xabc')

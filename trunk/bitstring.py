@@ -51,7 +51,7 @@ import functools
 
 # Decorator adapted from Michael Chermside's recipe:
 # http://code.activestate.com/recipes/391367/
-def _deprecated(help):
+def deprecated(help):
     def decorator(func):
         """This decorator can be used to mark functions as deprecated.
         It will result in a warning being emitted when the function is used.
@@ -77,7 +77,7 @@ else:
     file = IOBase
 
 # Maximum number of digits to use in __str__ and __repr__.
-_maxchars = 250
+maxchars = 250
 
 def tidy_input_string(s):
     """Return string made lowercase and with all whitespace removed."""
@@ -331,7 +331,7 @@ class BitStringError(Exception):
     """For errors in the bitstring module."""
 
     
-class _FileArray(object):
+class FileArray(object):
     """A class that mimics bytearray but gets data from a file object."""
     
     def __init__(self, source, bitlength, offset):
@@ -378,7 +378,7 @@ class _FileArray(object):
             return ord(self.source.read(1))
 
 
-class _MemArray(object):
+class MemArray(object):
     """Stores raw bytes together with a bit offset and length."""
     
     def __init__(self, data, bitlength=0, offset=0):
@@ -388,7 +388,7 @@ class _MemArray(object):
         assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray)
 
     def __copy__(self):
-        return _MemArray(self._rawarray, self.bitlength, self.offset)
+        return MemArray(self._rawarray, self.bitlength, self.offset)
     
     def __getitem__(self, key):
         return self._rawarray.__getitem__(key)
@@ -490,7 +490,7 @@ class Bits(object):
     "An immutable sequence of bits."
     
     # This function hides a lot of built-ins. Instead of bytes use bytes_.
-    # If you need int, hex, oct, bin or float then alias them as with bytes.
+    # If you need int, hex, oct, bin or float then alias them in the same way.
     def __init__(self, auto=None, length=None, offset=0, bytes=None,
                  filename=None, hex=None, bin=None, oct=None, uint=None,
                  int=None, uintbe=None, intbe=None, uintle=None, intle=None,
@@ -538,7 +538,7 @@ class Bits(object):
         if length is not None and length < 0:
             raise ValueError("%s length cannot be negative." % self.__class__.__name__)
         if offset < 0:
-            raise ValueError("offset must be >= 0.")  
+            raise ValueError("offset must be >= 0.")
         if auto is not None:
             self._setauto(auto, length, offset)
             return
@@ -608,7 +608,7 @@ class Bits(object):
         # No initialisers, so initialise with nothing or zero bits
         if length is not None and length != 0:
             data = bytearray((length + 7) // 8)
-            self._setbytes(bytes_(data), length)
+            self._setbytes(data, length)
         else:
             self._setbytes(b'')
         return
@@ -721,14 +721,19 @@ class Bits(object):
         length = self.len
         if length == 0:
             return ''
-        if length > _maxchars*4:
+        if length > maxchars*4:
             # Too long for hex. Truncate...
-            return self[:_maxchars:4].hex + '...'
+            return self[:maxchars:4].hex + '...'
         # If it's quite short and we can't do hex then use bin
         if length < 32 and length % 4 != 0:
             return self.bin
         # First we do as much as we can in hex
-        s = self[::4].hex
+        # TODO: This trick could be used earlier in this function too,
+        # but really we shouldn't have to. Maybe we should have a
+        # self._readhex(length, start)
+        oldpos = self._pos
+        s = self._readhex(self.len - self.len % 4)
+        self._pos = oldpos
         if length % 4 != 0:
             # Add on 1, 2 or 3 bits at the end
             if s:
@@ -743,7 +748,7 @@ class Bits(object):
         
         """
         length = self.len
-        if isinstance(self._datastore, _FileArray):
+        if isinstance(self._datastore, FileArray):
             offsetstring = ''
             if self._datastore.byteoffset or self._offset:
                 offsetstring = ", offset=%d" % (self._datastore.byteoffset * 8 + self._offset)
@@ -990,9 +995,9 @@ class Bits(object):
         if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
-            if isinstance(s._datastore, _FileArray):
+            if isinstance(s._datastore, FileArray):
                 offset += s._datastore.offset + s._datastore.byteoffset*8
-                self._datastore = _FileArray(s._datastore.source, length, offset)
+                self._datastore = FileArray(s._datastore.source, length, offset)
             else:
                 self._setbytes(s._datastore.rawbytes, length, s._offset + offset)
             return
@@ -1001,7 +1006,7 @@ class Bits(object):
             self._setbin(''.join([str(int(bool(x))) for x in s]), length, offset)
             return
         if isinstance(s, file):
-            self._datastore = _FileArray(s, length, offset)
+            self._datastore = FileArray(s, length, offset)
             return
         if isinstance(s, int):
             # Initialise with s zero bits.
@@ -1029,22 +1034,22 @@ class Bits(object):
     def _setfile(self, filename, length, offset):
         "Use file as source of bits."
         source = open(filename, 'rb')
-        self._datastore = _FileArray(source, length, offset)
+        self._datastore = FileArray(source, length, offset)
 
     def _setbytes(self, data, length=None, offset=0):
         """Set the data from a string."""
         if length is None:
             # Use to the end of the data
             length = (len(data) - (offset // 8)) * 8 - offset
-            self._datastore = _MemArray(data, length, offset)
+            self._datastore = MemArray(data, length, offset)
         else:
             if length + offset > len(data)*8:
                 raise ValueError("Not enough data present. Need %d bits, have %d." % \
                                      (length + offset, len(data)*8))
             if length == 0:
-                self._datastore = _MemArray(b'')
+                self._datastore = MemArray(b'')
             else:
-                self._datastore = _MemArray(data, length, offset)
+                self._datastore = MemArray(data, length, offset)
 
     def _readbytes(self, length):
         self._pos += length
@@ -1467,7 +1472,7 @@ class Bits(object):
             bytes = [int(padded_binstring[x:x + 8], 2) for x in xrange(0, len(padded_binstring), 8)]
         except ValueError:
             raise ValueError("Invalid character in bin initialiser %s." % binstring)
-        self._datastore = _MemArray(bytes, length)
+        self._datastore = MemArray(bytes, length)
     
     def _readbin(self, length):
         if length == 0:
@@ -1553,7 +1558,7 @@ class Bits(object):
             data = binascii.unhexlify(hexstring)
         except TypeError:
             raise ValueError("Invalid symbol in hex initialiser.")
-        self._datastore = _MemArray(data, length, offset)
+        self._datastore = MemArray(data, length, offset)
 
     def _readhex(self, length):
         if length % 4 != 0:
@@ -1613,8 +1618,8 @@ class Bits(object):
     
     def _ensureinmemory(self):
         """Ensure the data is held in memory, not in a file."""
-        if isinstance(self._datastore, _FileArray):
-            self._datastore = _MemArray(self._datastore[:], self.len, self._offset)
+        if isinstance(self._datastore, FileArray):
+            self._datastore = MemArray(self._datastore[:], self.len, self._offset)
     
     def _converttobitstring(self, bs):
         """Attemp to convert bs to a BitString and return it."""
@@ -1628,8 +1633,8 @@ class Bits(object):
         """Create and return a new copy of the Bits (always in memory)."""
         s_copy = self.__class__()
         s_copy._pos = self._pos
-        if isinstance(self._datastore, _FileArray):
-            s_copy._datastore = _MemArray(self._datastore[:], self.len, self._offset)
+        if isinstance(self._datastore, FileArray):
+            s_copy._datastore = MemArray(self._datastore[:], self.len, self._offset)
         else:
             s_copy._datastore = copy.copy(self._datastore)
         return s_copy
@@ -2140,7 +2145,7 @@ class Bits(object):
         """
         return self.peekbitlist(*[b*8 for b in bytes])
 
-    @_deprecated("Instead of 's.advancebit()' use 's.pos +=1'.")
+    @deprecated("Instead of 's.advancebit()' use 's.pos +=1'.")
     def advancebit(self):
         """Advance position by one bit.
         
@@ -2149,7 +2154,7 @@ class Bits(object):
         """
         self.pos += 1
 
-    @_deprecated("Instead of 's.advancebits(n)' use 's.pos += n'.")
+    @deprecated("Instead of 's.advancebits(n)' use 's.pos += n'.")
     def advancebits(self, bits):
         """Advance position by bits.
         
@@ -2163,7 +2168,7 @@ class Bits(object):
             raise ValueError("Cannot advance by a negative amount.")
         self.pos += bits
 
-    @_deprecated("Instead of 's.advancebyte()' use 's.pos += 8'.")
+    @deprecated("Instead of 's.advancebyte()' use 's.pos += 8'.")
     def advancebyte(self):
         """Advance position by one byte. Does not byte align.
         
@@ -2173,7 +2178,7 @@ class Bits(object):
         """
         self.pos += 8
 
-    @_deprecated("Instead of 's.advancebytes(n)' use 's.pos += 8*n'.")
+    @deprecated("Instead of 's.advancebytes(n)' use 's.pos += 8*n'.")
     def advancebytes(self, bytes):
         """Advance position by bytes. Does not byte align.
         
@@ -2187,7 +2192,7 @@ class Bits(object):
             raise ValueError("Cannot advance by a negative amount.")
         self.pos += bytes*8
 
-    @_deprecated("Instead of 's.retreatbit()' use 's.pos -= 1'.")
+    @deprecated("Instead of 's.retreatbit()' use 's.pos -= 1'.")
     def retreatbit(self):
         """Retreat position by one bit.
         
@@ -2196,7 +2201,7 @@ class Bits(object):
         """
         self.pos -= 1
  
-    @_deprecated("Instead of 's.retreatbits(n)' use 's.pos -= n'.")
+    @deprecated("Instead of 's.retreatbits(n)' use 's.pos -= n'.")
     def retreatbits(self, bits):
         """Retreat position by bits.
         
@@ -2210,7 +2215,7 @@ class Bits(object):
             raise ValueError("Cannot retreat by a negative amount.")
         self.pos -= bits
 
-    @_deprecated("Instead of 's.retreatbyte()' use 's.pos -= 8'.")
+    @deprecated("Instead of 's.retreatbyte()' use 's.pos -= 8'.")
     def retreatbyte(self):
         """Retreat position by one byte. Does not byte align.
         
@@ -2219,7 +2224,7 @@ class Bits(object):
         """
         self.pos -= 8
 
-    @_deprecated("Instead of 's.retreatbytes(n)' use 's.pos -= 8*n'.")
+    @deprecated("Instead of 's.retreatbytes(n)' use 's.pos -= 8*n'.")
     def retreatbytes(self, bytes):
         """Retreat position by bytes. Does not byte align.
         
@@ -2233,7 +2238,7 @@ class Bits(object):
             raise ValueError("Cannot retreat by a negative amount.")
         self.pos -= bytes*8
 
-    @_deprecated("Instead of 's.seek(p)' use 's.pos = p'.")
+    @deprecated("Instead of 's.seek(p)' use 's.pos = p'.")
     def seek(self, pos):
         """Seek to absolute bit position pos.
         
@@ -2242,7 +2247,7 @@ class Bits(object):
         """
         self.pos = pos
 
-    @_deprecated("Instead of 's.seekbyte(p)' use 's.bytepos = p'.")
+    @deprecated("Instead of 's.seekbyte(p)' use 's.bytepos = p'.")
     def seekbyte(self, bytepos):
         """Seek to absolute byte position bytepos.
         
@@ -2251,12 +2256,12 @@ class Bits(object):
         """
         self.bytepos = bytepos
 
-    @_deprecated("Instead of 's.tell()' use 's.pos'.") 
+    @deprecated("Instead of 's.tell()' use 's.pos'.") 
     def tell(self):
         """Return current position in the BitString in bits (pos)."""
         return self._pos
 
-    @_deprecated("Instead of 's.tellbyte()' use 's.bytepos'.")  
+    @deprecated("Instead of 's.tellbyte()' use 's.bytepos'.")  
     def tellbyte(self):
         """Return current position in the BitString in bytes (bytepos).
         
@@ -2438,7 +2443,7 @@ class Bits(object):
         assert self._assertsanity()
         return skipped
 
-    @_deprecated("Instead of 's.slice(a, b, c)' use 's[a:b:c]'.")
+    @deprecated("Instead of 's.slice(a, b, c)' use 's[a:b:c]'.")
     def slice(self, start=None, end=None, step=None):
         """Return a new BitString which is the slice [start:end:step].
         
@@ -2809,7 +2814,7 @@ class BitString(Bits):
         """Return a new copy of the BitString."""
         s_copy = BitString()
         s_copy._pos = self._pos
-        if isinstance(self._datastore, _FileArray):
+        if isinstance(self._datastore, FileArray):
             # Let them both point to the same (invariant) file.
             # If either gets modified then at that point they'll be read into memory.
             s_copy._datastore = self._datastore
@@ -3226,7 +3231,7 @@ class BitString(Bits):
         newoffset = 8 - (self._offset + self.len) % 8
         if newoffset == 8:
             newoffset = 0
-        self._datastore = _MemArray(b''.join(n), self.length, newoffset)
+        self._datastore = MemArray(b''.join(n), self.length, newoffset)
 
     def reverse(self, start=None, end=None):
         """Reverse bits in-place.
