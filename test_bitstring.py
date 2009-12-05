@@ -42,6 +42,13 @@ class BitStringTest(unittest.TestCase):
     def testVersion(self):
         self.assertEqual(bitstring.__version__, '1.1.1')
     
+    def testAll(self):
+        a = bitstring.__all__
+        self.assertEqual(len(a), 3)
+        self.assertTrue('Bits' in a)
+        self.assertTrue('BitString' in a)
+        self.assertTrue('pack' in a)
+    
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')
         self.assertEqual(s[0:32].hex, '0x000001b3')
@@ -1187,7 +1194,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.bin, '')
     
     def testReverseDict(self):
-        d = bitstring._bytereversaldict
+        d = bitstring.bytereversaldict
         for i in range(256):
             a = BitString(uint=i, length=8)
             b = d[i]
@@ -1421,7 +1428,7 @@ class BitStringTest(unittest.TestCase):
     
     def testByte2Bits(self):
         for i in range(256):
-            s = BitString(bin=bitstring._byte2bits[i])
+            s = BitString(bin=bitstring.byte2bits[i])
             self.assertEqual(i, s.uint)
             self.assertEqual(s.length, 8)
     
@@ -2555,8 +2562,8 @@ class BitStringTest(unittest.TestCase):
         os.remove('temp_bitstring_unit_testing_file')
         
     def testTokenParser(self):
-        tp = bitstring._tokenparser
-        self.assertEqual(tp('hex'), [('hex', None, None)])
+        tp = bitstring.tokenparser
+        self.assertEqual(tp('hex'), (True, [('hex', None, None)]))
         self.assertEqual(tp('hex=14'), [('hex', None, '14')])
         self.assertEqual(tp('se'), [('se', None, None)])
         self.assertEqual(tp('ue=12'), [('ue', None, '12')])
@@ -3060,7 +3067,7 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue(isinstance(s.bytes, bytes))
     
     def testPython3stuff(self):
-        if bitstring._python_version == 3:
+        if bitstring.python_version == 3:
             pass
     
     def testReadFromBits(self):
@@ -3302,6 +3309,22 @@ class BitStringTest(unittest.TestCase):
         a.rol(1000000)
         self.assertEqual(a, '0b1')
     
+    def testRolFromFile(self):
+        a = BitString(filename='test/test.m1v')
+        l = a.len
+        a.rol(1)
+        self.assertTrue(a.startswith('0x000003'))
+        self.assertEqual(a.len, l)
+        self.assertTrue(a.endswith('0x0036e'))
+
+    def testRorFromFile(self):
+        a = BitString(filename='test/test.m1v')
+        l = a.len
+        a.ror(1)
+        self.assertTrue(a.startswith('0x800000'))
+        self.assertEqual(a.len, l)
+        self.assertTrue(a.endswith('0x000db'))
+
     def testRolErrors(self):
         a = BitString()
         self.assertRaises(BitStringError, a.rol, 0)
