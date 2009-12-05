@@ -1428,7 +1428,7 @@ class BitStringTest(unittest.TestCase):
     
     def testByte2Bits(self):
         for i in range(256):
-            s = BitString(bin=bitstring.byte2bits[i])
+            s = BitString(bin=bitstring.BYTE_TO_BITS[i])
             self.assertEqual(i, s.uint)
             self.assertEqual(s.length, 8)
     
@@ -1841,7 +1841,7 @@ class BitStringTest(unittest.TestCase):
         self.assertFalse('0xfeed' in a)
     
     def testRepr(self):
-        max = bitstring.maxchars
+        max = bitstring.MAX_CHARS
         bls = ['', '0b1', '0o5', '0x43412424f41', '0b00101001010101']
         for bs in bls:
             a = BitString(bs)
@@ -1868,7 +1868,7 @@ class BitStringTest(unittest.TestCase):
         s = BitString(hex='0x00')
         self.assertEqual(s.hex, s.__str__())
         s = BitString(filename='test/test.m1v')
-        self.assertEqual(s[0:bitstring.maxchars*4].hex+'...', s.__str__())
+        self.assertEqual(s[0:bitstring.MAX_CHARS*4].hex+'...', s.__str__())
         self.assertEqual(BitString().__str__(), '')
     
     def testIter(self):
@@ -3068,7 +3068,7 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue(isinstance(s.bytes, bytes))
     
     def testPython3stuff(self):
-        if bitstring.python_version == 3:
+        if bitstring.PYTHON_VERSION == 3:
             pass
     
     def testReadFromBits(self):
