@@ -3358,23 +3358,19 @@ class BitStringTest(unittest.TestCase):
 
     def testDedicatedReadFunctions(self):
         a = BitString('0b11, uint:43=98798798172, 0b11111')
-        a.pos = 2
-        x = a._readuint(43)
+        x = a._readuint(43, 2)
         self.assertEqual(x, 98798798172)
-        self.assertEqual(a.pos, 45)
-        a.pos = 2
-        x = a._readint(43)
+        self.assertEqual(a.pos, 0)
+        x = a._readint(43, 2)
         self.assertEqual(x, 98798798172)
-        self.assertEqual(a.pos, 45)
+        self.assertEqual(a.pos, 0)
         a = BitString('0b11, uint:48=98798798172, 0b11111')
-        a.pos = 2
-        x = a._readuintbe(48)
+        x = a._readuintbe(48, 2)
         self.assertEqual(x, 98798798172)
-        self.assertEqual(a.pos, 50)
-        a.pos = 2
-        x = a._readintbe(48)
+        self.assertEqual(a.pos, 0)
+        x = a._readintbe(48, 2)
         self.assertEqual(x, 98798798172)
-        self.assertEqual(a.pos, 50)
+        self.assertEqual(a.pos, 0)
         a = BitString('0b111, uintle:40=123516, 0b111')
         a.pos = 3
         self.assertEqual(a.read('uintle:40'), 123516)
