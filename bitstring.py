@@ -71,10 +71,12 @@ PYTHON_VERSION = int(platform.python_version_tuple()[0])
 assert PYTHON_VERSION in [2, 3]
 if PYTHON_VERSION == 2:
     from future_builtins import zip
+    LEADING_OCT_CHARS = 1 # e.g. 0755
 else:
     from io import IOBase
     xrange = range
     file = IOBase
+    LEADING_OCT_CHARS = 2 # e.g. 0o755
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS = 250
@@ -1468,14 +1470,14 @@ class Bits(object):
             raise ValueError("Cannot convert to octal unambiguously - not multiple of 3 bits.")
         if length == 0:
             return ''
-        oldbitpos = self._pos
-        self._pos = start
-        octlist = ['0o']
-        # TODO: This is very slow. Very slow.
-        for i in xrange(length // 3):
-            octlist.append(str(self.read('uint:3')))
-        self._pos = oldbitpos
-        return ''.join(octlist)
+        beginning = '0o'
+        # Get main octal bit by converting from int.
+        # Strip starting 0 or 0o depending on Python version.
+        end = oct(self._readuint(length, start))[LEADING_OCT_CHARS:]
+        if end.endswith('L'):
+            end = end[:-1]
+        middle = '0'*(length // 3 - len(end))
+        return ''.join((beginning, middle, end))
 
     def _getoct(self):
         """Return interpretation as an octal string."""
