@@ -379,7 +379,6 @@ class FileArray(object):
             self.source.seek(key, os.SEEK_SET)
             return ord(self.source.read(1))
 
-
 class MemArray(object):
     """Stores raw bytes together with a bit offset and length."""
     
@@ -387,16 +386,21 @@ class MemArray(object):
         self._rawarray = bytearray(data[offset // 8: (offset + bitlength + 7) // 8])
         self.offset = offset % 8
         self.bitlength = bitlength
+        self.frozen = False
         assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray)
 
     def __copy__(self):
         return MemArray(self._rawarray, self.bitlength, self.offset)
     
     def __getitem__(self, key):
-        return self._rawarray.__getitem__(key)
+        # If (and only if) it's a single item from a bytes object in Python 2
+        # then we need to convert it to an int. Kinda annoying really.
+        if isinstance(self._rawarray, bytes) and isinstance(key, int) and PYTHON_VERSION == 2:
+            return ord(self._rawarray[key])
+        return self._rawarray[key]
 
     def __setitem__(self, key, item):
-        self._rawarray.__setitem__(key, item)
+        self._rawarray[key] = item
     
     def _getbytelength(self):
         return len(self._rawarray)
@@ -417,8 +421,8 @@ class MemArray(object):
             shiftleft = self.offset - newoffset
             # First deal with everything except for the final byte
             for x in xrange(self.bytelength - 1):
-                self._rawarray[x] = ((self._rawarray[x] << shiftleft) & 255) + \
-                                     (self._rawarray[x + 1] >> (8 - shiftleft))
+                self[x] = ((self[x] << shiftleft) & 255) + \
+                                     (self[x + 1] >> (8 - shiftleft))
             # if we've shifted all of the data in the last byte then we need to truncate by 1
             bits_in_last_byte = (self.offset + self.bitlength) % 8
             if bits_in_last_byte == 0:
@@ -428,7 +432,7 @@ class MemArray(object):
                 self._rawarray.pop()
             # otherwise just shift the last byte
             else:
-                self._rawarray[-1] = (self._rawarray[-1] << shiftleft) & 255
+                self[-1] = (self[-1] << shiftleft) & 255
         else: # offset > self._offset
             shiftright = newoffset - self.offset
             # Give some overflow room for the last byte
@@ -436,9 +440,9 @@ class MemArray(object):
             if (b + shiftright) // 8 > b // 8:
                 self.appendbytes(0)
             for x in xrange(self.bytelength - 1, 0, -1):
-                self._rawarray[x] = ((self._rawarray[x-1] << (8 - shiftright)) & 255) + \
-                                     (self._rawarray[x] >> shiftright)
-            self._rawarray[0] >>= shiftright
+                self[x] = ((self[x-1] << (8 - shiftright)) & 255) + \
+                                     (self[x] >> shiftright)
+            self[0] >>= shiftright
         self.offset = newoffset
     
     def appendarray(self, array):
@@ -479,6 +483,18 @@ class MemArray(object):
 
     def _getrawbytes(self):
         return self._rawarray
+    
+    def freeze(self):
+        if not self.frozen:
+            assert isinstance(self._rawarray, bytearray)
+            self._rawarray = bytes(self._rawarray)
+            self.frozen = True
+    
+    def thaw(self):
+        if self.frozen:
+            assert isinstance(self._rawarray, bytes)
+            self._rawarray = bytearray(self._rawarray)
+            self.frozen = False
     
     bytelength = property(_getbytelength)
     
@@ -541,78 +557,83 @@ class Bits(object):
             raise ValueError("%s length cannot be negative." % self.__class__.__name__)
         if offset < 0:
             raise ValueError("offset must be >= 0.")
-        if auto is not None:
-            self._setauto(auto, length, offset)
-            return
-        if bytes is not None:
-            self._setbytes(bytes, length, offset)
-            return
-        if filename is not None:
-            self._setfile(filename, length, offset)
-            return
-        if hex is not None:
-            self._sethex(hex, length, offset)
-            return
-        if bin is not None:
-            self._setbin(bin, length, offset)
-            return
-        if oct is not None:
-            self._setoct(oct, length, offset)
-            return
-        if offset != 0:
-            raise BitStringError("An offset should not be given when using this initialiser.")
-        if uint is not None:
-            self._setuint(uint, length)
-            return
-        if int is not None:
-            self._setint(int, length)
-            return
-        if float is not None:
-            self._setfloat(float, length)
-            return
-        if uintbe is not None:
-            self._setuintbe(uintbe, length)
-            return
-        if intbe is not None:
-            self._setintbe(intbe, length)
-            return
-        if floatbe is not None:
-            self._setfloat(floatbe, length)
-            return
-        if uintle is not None:
-            self._setuintle(uintle, length)
-            return
-        if intle is not None:
-            self._setintle(intle, length)
-            return
-        if floatle is not None:
-            self._setfloatle(floatle, length)
-            return
-        if uintne is not None:
-            self._setuintne(uintne, length)
-            return
-        if intne is not None:
-            self._setintne(intne, length)
-            return
-        if floatne is not None:
-            self._setfloatne(floatne, length)
-            return
-        if ue is not None:
-            if length is not None:
-                raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
-            self._setue(ue)
-            return
-        if se is not None:
-            if length is not None:
-                raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
-            self._setse(se)
-            return
-        # No initialisers, so initialise with nothing or zero bits
-        if length is not None and length != 0:
-            data = bytearray((length + 7) // 8)
-            self._setbytes(data, length)
-        else:
+        while(True):
+            if auto is not None:
+                self._setauto(auto, length, offset)
+                break
+            if bytes is not None:
+                self._setbytes(bytes, length, offset)
+                break
+            if filename is not None:
+                self._setfile(filename, length, offset)
+                break
+            if hex is not None:
+                self._sethex(hex, length, offset)
+                break
+            if bin is not None:
+                self._setbin(bin, length, offset)
+                break
+            if oct is not None:
+                self._setoct(oct, length, offset)
+                break
+            if offset != 0:
+                raise BitStringError("An offset should not be given when using this initialiser.")
+            if uint is not None:
+                self._setuint(uint, length)
+                break
+            if int is not None:
+                self._setint(int, length)
+                break
+            if float is not None:
+                self._setfloat(float, length)
+                break
+            if uintbe is not None:
+                self._setuintbe(uintbe, length)
+                break
+            if intbe is not None:
+                self._setintbe(intbe, length)
+                break
+            if floatbe is not None:
+                self._setfloat(floatbe, length)
+                break
+            if uintle is not None:
+                self._setuintle(uintle, length)
+                break
+            if intle is not None:
+                self._setintle(intle, length)
+                break
+            if floatle is not None:
+                self._setfloatle(floatle, length)
+                break
+            if uintne is not None:
+                self._setuintne(uintne, length)
+                break
+            if intne is not None:
+                self._setintne(intne, length)
+                break
+            if floatne is not None:
+                self._setfloatne(floatne, length)
+                break
+            if ue is not None:
+                if length is not None:
+                    raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
+                self._setue(ue)
+                break
+            if se is not None:
+                if length is not None:
+                    raise BitStringError("A length cannot be specified for an exponential-Golomb initialiser.")
+                self._setse(se)
+                break
+            # No initialisers, so initialise with nothing or zero bits
+            if length is not None and length != 0:
+                data = bytearray((length + 7) // 8)
+                self._setbytes(data, length)
+                break
             self._setbytes(b'')
+            break
+        if not isinstance(self, BitString):
+            pass
+            #self._datastore.freeze()
         return
 
     def __copy__(self):
@@ -1016,7 +1037,7 @@ class Bits(object):
         if not isinstance(s, str):
             raise TypeError("Cannot initialise %s from %s." % (self.__class__.__name__, type(s)))
         
-        self._setbytes(b'')        
+        self._setbytes(b'')
         _, tokens = tokenparser(s)
         for token in tokens:
             self._append(init_with_token(*token))
@@ -1092,7 +1113,7 @@ class Bits(object):
 
     def _readuint(self, length, start):
         if length == 0:
-            raise ValueError("Cannot read an integer of length zero.")
+            raise ValueError("Cannot interpret a zero length BitString as an integer.")
         startbyte = (start + self._offset) // 8
         endbyte = (start + self._offset + length - 1) // 8
         val = 0
@@ -1112,8 +1133,6 @@ class Bits(object):
 
     def _getuint(self):
         """Return data as an unsigned int."""
-        if not self:
-            raise ValueError("An empty BitString cannot be interpreted as an integer.")
         return self._readuint(self.len, 0)
 
     def _setint(self, int_, length=None):
