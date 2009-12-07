@@ -5,7 +5,7 @@ kwds = {}
 kwds['long_description'] = open('readme.txt').read()
 
 setup(name='bitstring',
-      version='1.1.0',
+      version='1.1.1',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
@@ -113,7 +113,7 @@ To run the unit tests::
 
      python test_bitstring.py
 
-The unit tests for version 1.1.0 should all pass for Python 2.6, 3.0 and 3.1.
+The unit tests for version 1.1.1 should all pass for Python 2.6, 3.0 and 3.1.
 
 ----
 

@@ -1,6 +1,59 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+
+-----------------------------------------------------------------
+December xx 2009: version 1.1.1 for Python 2.6 and 3.x released
+-----------------------------------------------------------------
+This is a minor update with few new features.
+
+* Improved efficiency.
+
+The speed of many typical operations has been increased, some substantially.
+
+* Initialise from integer.
+
+A BitString of zero bits can be created using just an integer to give the length
+in bits. So instead of
+
+>>> s = BitString(length=100)
+
+you can write just
+
+>>> s = BitString(100)
+
+This matches the behaviour of bytearrays and (in Python 3) bytes.
+
+* New 'Bits' class (beta quality).
+
+The Bits class is the base class for BitString, and represents an immutable
+sequence of bits. This class is considered only beta quality, unlike the rest
+of the code which is production quality, so use with care and be aware that the
+interface might change.
+
+The differences between Bits and BitStrings are:
+
+1) Bits are immutable, so once they have been created their value cannot change.
+This of course means that mutating methods (append, replace, del etc.) are not
+available for Bits.
+
+2) Bits are hashable, so they can be used in sets and as keys in dictionaries.
+
+3) Bits are potentially more efficient than BitStrings, both in terms of
+computation and memory. The current beta implementation is only marginally
+more efficient though.
+
+You can switch from Bits to a BitString or vice versa by constructing a new
+object from the old.
+
+>>> s = Bits('0xabcd')
+>>> t = BitString(s)
+>>> t.append('0xe')
+>>> u = Bits(t)
+
+The relationship between Bits and BitString is supposed to loosely mirror that
+between bytes and bytearray in Python 3.
+
 -----------------------------------------------------------------
 November 24th 2009: version 1.1.0 for Python 2.6 and 3.x released
 -----------------------------------------------------------------
