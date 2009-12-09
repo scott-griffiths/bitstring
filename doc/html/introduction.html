@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &mdash; bitstring manual</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.1.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring manual" href="index.html" />
+    <link rel="next" title="Creation and Interpretation" href="creation.html" />
+    <link rel="prev" title="Features" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="creation.html" title="Creation and Interpretation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Features"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Introduction</a><ul>
+<li><a class="reference external" href="#getting-started">Getting Started</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">Features</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="creation.html"
+                                  title="next chapter">Creation and Interpretation</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>While it is not difficult to manipulate binary data in Python, for example using the struct and array modules, it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing only with whole-byte data.</p>
+<p>The bitstring module provides a single class, <tt class="docutils literal"><span class="pre">BitString</span></tt>, instances of which can be constructed from integers, floats, hex, octal, binary, strings or files, but they all just represent a string of binary digits. They can be sliced, joined, reversed, inserted into, overwritten, packed, unpacked etc. with simple functions or slice notation. They can also be read from, searched in, and navigated in, similar to a file or stream.</p>
+<p><tt class="docutils literal"><span class="pre">BitString</span></tt> objects are designed to be as lightweight as possible and can be considered to be just a list of binary digits. They are however stored very efficiently - although there are a variety of ways of creating and viewing the binary data, the <tt class="docutils literal"><span class="pre">BitString</span></tt> itself just stores the byte data, and all views are calculated as needed, and are not stored as part of the object.</p>
+<p>The different views or interpretations on the data are accessed through properties such as hex, bin and int, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.</p>
+<p>A complete reference for the module is given in Appendix A, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">bitstring</span> <span class="kn">import</span> <span class="n">BitString</span>
+
+<span class="c"># Just some of the ways to create BitStrings</span>
+<span class="c"># from a binary string</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b001&#39;</span><span class="p">)</span>
+<span class="c"># from a hexadecimal string</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xff470001&#39;</span><span class="p">)</span>
+<span class="c"># straight from a file</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;somefile.ext&#39;</span><span class="p">)</span>
+<span class="c"># from an integer</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">int</span><span class="o">=</span><span class="mi">540</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="c"># using a format string</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;int:11=540&#39;</span><span class="p">)</span>
+<span class="c"># Easily construct new BitStrings</span>
+<span class="n">e</span> <span class="o">=</span> <span class="mi">5</span><span class="o">*</span><span class="n">a</span> <span class="o">+</span> <span class="s">&#39;0xcdcd&#39;</span>                         <span class="c"># 5 copies of &#39;a&#39; followed by two new bytes</span>
+<span class="n">e</span><span class="o">.</span><span class="n">prepend</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">)</span>                           <span class="c"># put a single bit on the front</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="mi">7</span><span class="p">:]</span>                                  <span class="c"># cut the first 7 bits off</span>
+<span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;0o775&#39;</span>                           <span class="c"># replace 3 bits with 9 bits from octal string</span>
+<span class="n">f</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;0b01&#39;</span><span class="p">,</span> <span class="s">&#39;0xee34&#39;</span><span class="p">)</span>                <span class="c"># find and replace 2 bit string with 16 bit string</span>
+
+<span class="c"># Interpret the BitString however you want</span>
+<span class="k">print</span> <span class="n">e</span><span class="o">.</span><span class="n">hex</span>                                <span class="c"># 0x9249cdcd</span>
+<span class="k">print</span> <span class="n">e</span><span class="o">.</span><span class="n">int</span>                                <span class="c"># -1840656947 (signed 2&#39;s complement integer)</span>
+<span class="k">print</span> <span class="n">e</span><span class="o">.</span><span class="n">uint</span>                               <span class="c"># 2454310349  (unsigned integer)</span>
+<span class="nb">open</span><span class="p">(</span><span class="s">&#39;somefile.ext&#39;</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">bytes</span><span class="p">)</span>  <span class="c"># Output raw byte data to a file</span>
+</pre></div>
+</div>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>First download the latest release for either Python 2.4 / 2.5 or Python 2.6 / 3.0 / 3.1 (see the Downloads tab on the project’s homepage). Note that this manual covers only the Python 2.6 and later version. An earlier version is available for Python 2.4 / 2.5, which is available on the project&#8217;s homepage.</p>
+<p>If you&#8217;re using Windows and just want to install for your default Python installation then get the .exe and run it to install - you&#8217;ll need to download this manual separately, but I guess you must have worked that out.</p>
+<p>Otherwise you&#8217;ll need to download and extract the contents of the .zip. You should find:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">bitstring.py</span></tt> : The bitstring module itself.</li>
+<li><tt class="docutils literal"><span class="pre">test_bitstring.py</span></tt> : Unit tests for the module.</li>
+<li><tt class="docutils literal"><span class="pre">setup.py</span></tt> : The setup script.</li>
+<li><tt class="docutils literal"><span class="pre">readme.txt</span></tt> : A short readme.</li>
+<li><tt class="docutils literal"><span class="pre">release_notes.txt</span></tt> : History of changes in this and previous versions.</li>
+<li><tt class="docutils literal"><span class="pre">test/test.m1v</span></tt> : An example file (MPEG-1 video) for testing purposes.</li>
+<li><tt class="docutils literal"><span class="pre">test/smalltestfile</span></tt> : Another small file for testing.</li>
+<li><tt class="docutils literal"><span class="pre">bitstring_manual.pdf</span></tt> : This document</li>
+</ul>
+<p>To install, run:</p>
+<div class="highlight-python"><pre>python setup.py install</pre>
+</div>
+<p>This will copy <tt class="docutils literal"><span class="pre">bitstring.py</span></tt> to your Python installation&#8217;s <tt class="docutils literal"><span class="pre">site-packages</span></tt> directory. If you prefer you can do this by hand, or just make sure that your Python program can see <tt class="docutils literal"><span class="pre">bitstring.py</span></tt>, for example by putting in the same directory as the program that will use it.</p>
+<p>The module comes with comprehensive unit tests. To run them yourself use:</p>
+<div class="highlight-python"><pre>python test_bitstring.py</pre>
+</div>
+<p>which should run all the tests (over 300) and say OK. If tests fail then either your version of Python isn&#8217;t supported (there&#8217;s one version of bitstring for Python 2.4 and 2.5 and a separate version for Python 2.6, 3.0 and 3.1) or something unexpected has happened - in which case please tell me about it.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="creation.html" title="Creation and Interpretation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Features"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Scott Griffiths.
+    </div>
+  </body>
+</html>
