@@ -1,5 +1,4 @@
 #summary Documentation for the bitstring module
-#labels Featured
 
 [http://python-bitstring.googlecode.com/svn/wiki/bitstring.png]
 
