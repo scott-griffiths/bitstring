@@ -7,21 +7,21 @@ Note that in places where a ``BitString`` can be used as a parameter, any other 
 
 * Starting with ``hex=``, or simply starting with ``0x`` implies hexadecimal. e.g. ``0x013ff``, ``hex=013ff``
 
-* Starting with ``oct=`, or simply starting with ``0o`` implies octal. e.g. ``0o755``, ``oct=755``
+* Starting with ``oct=``, or simply starting with ``0o`` implies octal. e.g. ``0o755``, ``oct=755``
 
 * Starting with ``bin=``, or simply starting with ``0b`` implies binary. e.g. ``0b0011010``, ``bin=0011010``
 
-* Starting with ``int:`` or ``uint:`` followed by a length in bits then ``=`` gives base-2 integers. e.g. ``uint:8=255``, ``int:4=-7``
+* Starting with ``int:`` or ``uint:`` followed by a length in bits and ``=`` gives base-2 integers. e.g. ``uint:8=255``, ``int:4=-7``
 
 * To get big, little and native-endian whole-byte integers append ``be``, ``le`` or ``ne`` respectively to the ``uint`` or ``int`` identifier. e.g. ``uintle:32=1``, ``intne:16=-23``
 
-* For floating point numbers use ``float:`` followed by the length in bits then ``=`` and the number. The default is big-endian, but you can also append ``be``, ``le`` or ``ne`` as with integers. e.g. ``float:64=0.2``, ``floatle:32=-0.3e12``
+* For floating point numbers use ``float:`` followed by the length in bits and ``=`` and the number. The default is big-endian, but you can also append ``be``, ``le`` or ``ne`` as with integers. e.g. ``float:64=0.2``, ``floatle:32=-0.3e12``
 
 * Starting with ``ue=`` or ``se=`` implies an exponential-Golomb coded integer. e.g. ``ue=12``, ``se=-4``
 
 Multiples tokens can be joined by separating them with commas, so for example ``se=4, 0b1, se=-1`` represents the concatenation of three elements.
 
-The ``auto`` parameter also accepts a list or tuple, whose elements will be evaluated as booleans (imagine calling bool() on each item) and the bits set to 1 for ``True`` items and 0 for ``False`` items.
+The ``auto`` parameter also accepts a list or tuple, whose elements will be evaluated as booleans (imagine calling ``bool()`` on each item) and the bits set to ``1`` for ``True`` items and ``0`` for ``False`` items.
 
 Finally if you pass in a file object, presumably opened in read-binary mode, then the ``BitString`` will be formed from the contents of the file.
 
@@ -53,6 +53,10 @@ For the ``read``, ``unpack``, ``pack`` and ``peek`` functions you can use compac
 
 Class properties
 ----------------
+
+``BitString`` objects use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions.
+
+The different interpretations such as ``bin``, ``hex``, ``uint`` etc. are not stored as part of the object, but are calculated as needed.
 
 .. index:: bin
 
@@ -327,7 +331,7 @@ bytealign
 ^^^^^^^^^
 ``s.bytealign()``
 
-Aligns to the start of the next byte (so that s.pos is a multiple of 8) and returns the number of bits skipped.
+Aligns to the start of the next byte (so that ``s.pos`` is a multiple of 8) and returns the number of bits skipped.
 
 If the current position is already byte aligned then it is unchanged. ::
 
@@ -344,9 +348,9 @@ cut
 ^^^
 ``s.cut(bits, start=None, end=None, count=None)``
 
-Returns a generator for slices of the ``BitString`` of length bits.
+Returns a generator for slices of the ``BitString`` of length ``bits``.
 
-At most count items are returned and the range is given by the slice ``[start:end]``, which defaults to the whole ``BitString``. ::
+At most ``count`` items are returned and the range is given by the slice ``[start:end]``, which defaults to the whole ``BitString``. ::
 
  >>> s = BitString('0x1234')
  >>> for nibble in s.cut(4):
@@ -360,7 +364,7 @@ delete
 ^^^^^^
 ``s.delete(bits, pos=None)``
 
-Removes bits bits from the ``BitString`` at position pos. 
+Removes ``bits`` bits from the ``BitString`` at position ``pos``. 
 
 If ``pos`` is not specified then the current position is used. Is equivalent to ``del s[pos:pos+bits]``. ::
 
@@ -375,7 +379,7 @@ endswith
 ^^^^^^^^
 ``s.endswith(bs, start=None, end=None)``
 
-Returns ``True`` if the ``BitString`` ends with the sub-string bs, otherwise returns ``False``.
+Returns ``True`` if the ``BitString`` ends with the sub-string ``bs``, otherwise returns ``False``.
 
 A slice can be given using the ``start`` and ``end`` bit positions and defaults to the whole ``BitString``. ::
 
@@ -591,7 +595,7 @@ Reads from current bit position pos in the ``BitString`` according the the forma
 ``uint:n``       ``n`` bits as an unsigned integer.
 ``float:n``      ``n`` bits as a floating point number.
 ``intbe:n``      ``n`` bits as a big-endian signed integer.
-``uintbe:n``     ``n   bits as a big-endian unsigned integer.
+``uintbe:n``     ``n`` bits as a big-endian unsigned integer.
 ``floatbe:n``    ``n`` bits as a big-endian float.
 ``intle:n``      ``n`` bits as a little-endian signed int.
 ``uintle:n``     ``n`` bits as a little-endian unsigned int.
@@ -605,7 +609,7 @@ Reads from current bit position pos in the ``BitString`` according the the forma
 ``ue``           next bits as an unsigned exp-Golomb.
 ``se``           next bits as a signed exp-Golomb.
 ``bits:n``       ``n`` bits as a new ``BitString``.
-``bytes:n``      ``n`` bytes as bytes object.
+``bytes:n``      ``n`` bytes as ``bytes`` object.
 ==============   ===============================================
 
 For example::
@@ -699,7 +703,7 @@ readbytes
 ^^^^^^^^^
 ``s.readbytes(bytes)``
 
-Returns the next bytes bytes of the current ``BitString`` as a new ``BitString`` and advances the position.
+Returns the next ``bytes`` bytes of the current ``BitString`` as a new ``BitString`` and advances the position.
 
 .. index:: readbytelist
 
@@ -818,7 +822,9 @@ split
 
 Splits ``s`` into sections that start with ``delimiter``. Returns a generator for ``BitString`` objects.
 
-The first item generated is always the bits before the first occurrence of delimiter (even if empty). A slice can be optionally specified with ``start`` and ``end``, while ``count`` specifies the maximum number of items generated. ::
+The first item generated is always the bits before the first occurrence of delimiter (even if empty). A slice can be optionally specified with ``start`` and ``end``, while ``count`` specifies the maximum number of items generated.
+
+If ``bytealigned`` is ``True`` then the delimiter will only be found if it starts at a byte aligned position. ::
 
  >>> s = BitString('0x42423')
  >>> [bs.bin for bs in s.split('0x4')]
@@ -942,7 +948,7 @@ __contains__
 
 Returns ``True`` if ``bs`` can be found in ``s``, otherwise returns ``False``.
 
-Equivalent to using ``find``, except that ``pos`` will not be changed. ::
+Equivalent to using ``find``, except that ``pos`` will not be changed so you don't know where it was found. ::
 
  >>> '0b11' in BitString('0x06')
  True
@@ -1064,7 +1070,7 @@ Specifying ``length`` is mandatory when using the various integer initialisers. 
  >>> s1 == s2 == s3 == s4 == s5 == s6
  True
 
-For information on the use of the ``auto`` initialiser see the introduction to this appendix. ::
+For information on the use of the ``auto`` initialiser see the introduction to this reference section. ::
 
  >>> s = BitString('uint:12=32, 0b110')
  >>> t = BitString('0o755, ue:12, int:3=-1') 
@@ -1349,7 +1355,7 @@ retreatbytes
 
 ``s.retreatbytes(bytes)``
 
-Retreats position by ``bytes*``8 bits.
+Retreats position by ``bytes*8`` bits.
 
 Equivalent to ``s.pos -= 8*bytes``.
 
@@ -1403,8 +1409,3 @@ Returns the current byte position.
 
 Equivalent to using the ``bytepos`` property as a getter.
 
-
-
-
-
-1 http://python-bitstring.googlecode.com2 You may need to use 'sudo' or similar depending on your permissions on your system.3 For the single byte codes b and B the endianness doesn't make any difference but you still need to specify one so that the format string can be parsed correctly.4 You could also just create it in one go without joining using BitString('0b000, 0xf')5 The stream is provided in the test directory if you downloaded the source archive.6 The reason you can't use exponential-Golomb codes after a stretchy token is that the codes can only be read forwards; that is you can't ask "if this code ends here, where did it begin?" as there could be many possible answers.7 There is also a property called 'bitpos', which is just a synonym for 'pos'.8 the limit is sys.maxsize, which equates to just 256MB of data on many platforms.

@@ -1,7 +1,7 @@
-Reading, Unpacking and Navigating
-=================================
+Reading, Parsing and Unpacking
+==============================
 
-Reading and unpacking
+Reading and parsing
 ---------------------
 
 A common need is to parse a large ``BitString`` into smaller parts. Functions for reading in the ``BitString`` as if it were a file or stream are provided and will return new ``BitString`` objects. These new objects are top-level ``BitString`` objects and can be interpreted using properties or could be read from themselves to form a hierarchy of reads.
@@ -13,7 +13,7 @@ The property ``bytepos`` is also available, and is useful if you are only dealin
 ``readbit(s) / readbitlist / readbyte(s) / readbytelist``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For simple reading of a number of bits you can use ``readbits`` or ``readbytes``. The following example does some simple parsing of an MPEG-1 video stream. ::
+For simple reading of a number of bits you can use ``readbits`` or ``readbytes``. The following example does some simple parsing of an MPEG-1 video stream (the stream is provided in the ``test`` directory if you downloaded the source archive). ::
 
  >>> s = BitString(filename='test/test.m1v')
  >>> print s.pos
@@ -87,7 +87,7 @@ You are allowed to use one 'stretchy' token in a ``readlist``. This is a token w
 
 In this example the ``bits`` token will consist of everything left after the first two tokens are read, and could be empty.
 
-It is an error to use more than one stretchy token, or to use a ``ue`` or ``se`` token after a stretchy token.
+It is an error to use more than one stretchy token, or to use a ``ue`` or ``se`` token after a stretchy token (the reason you can't use exponential-Golomb codes after a stretchy token is that the codes can only be read forwards; that is you can't ask "if this code ends here, where did it begin?" as there could be many possible answers).
 
 ``peek``
 ^^^^^^^^
@@ -96,14 +96,14 @@ In addition to the read functions there are matching peek functions. These are i
 
  s = BitString('0x4732aa34')
  if s.peekbyte() == '0x47':
-     t = s.readbytes(2)          # t.hex == '0x4732'
+     t = s.readbytes(2)          # t is first 2 bytes '0x4732'
  else:
      s.find('0x47')
 
 The complete list of read and peek functions is ``read(format)``, ``readlist(*format)``, ``readbit()``, ``readbits(bits)``, ``readbitlist(*bits)``, ``readbyte()``, ``readbytes(bytes)``, ``readbytelist(*bytes)``, ``peek(*format)``, ``peeklist(*format)``, ``peekbit()``, ``peekbits(bits)``, ``peekbitlist(*bits)``, ``peekbyte()``, ``peekbytes(bytes)`` and ``peekbytelist(*bytes)``.
 
-``unpack``
-^^^^^^^^^^
+Unpacking
+---------
 
 The ``unpack`` function works in a very similar way to ``readlist``. The major difference is that it interprets the whole ``BitString`` from the start, and takes no account of the current ``pos``. It's a natural complement of the ``pack`` function. ::
 

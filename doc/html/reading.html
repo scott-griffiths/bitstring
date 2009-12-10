@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Reading, Unpacking and Navigating &mdash; bitstring manual</title>
+    <title>Reading, Parsing and Unpacking &mdash; bitstring manual</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1.1',
+        VERSION:     '1.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -20,6 +20,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bitstring manual" href="index.html" />
+    <link rel="up" title="Walkthrough" href="contents.html" />
     <link rel="next" title="Miscellany" href="misc.html" />
     <link rel="prev" title="Slicing, Dicing and Splicing" href="slicing.html" /> 
   </head>
@@ -36,7 +37,8 @@
         <li class="right" >
           <a href="slicing.html" title="Slicing, Dicing and Splicing"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">bitstring</a> &raquo;</li> 
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" accesskey="U">Walkthrough</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -46,14 +48,14 @@
             </a></p>
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="">Reading, Unpacking and Navigating</a><ul>
-<li><a class="reference external" href="#reading-and-unpacking">Reading and unpacking</a><ul>
+<li><a class="reference external" href="">Reading, Parsing and Unpacking</a><ul>
+<li><a class="reference external" href="#reading-and-parsing">Reading and parsing</a><ul>
 <li><a class="reference external" href="#readbit-s-readbitlist-readbyte-s-readbytelist"><tt class="docutils literal"><span class="pre">readbit(s)</span> <span class="pre">/</span> <span class="pre">readbitlist</span> <span class="pre">/</span> <span class="pre">readbyte(s)</span> <span class="pre">/</span> <span class="pre">readbytelist</span></tt></a></li>
 <li><a class="reference external" href="#read-readlist"><tt class="docutils literal"><span class="pre">read</span> <span class="pre">/</span> <span class="pre">readlist</span></tt></a></li>
 <li><a class="reference external" href="#peek"><tt class="docutils literal"><span class="pre">peek</span></tt></a></li>
-<li><a class="reference external" href="#unpack"><tt class="docutils literal"><span class="pre">unpack</span></tt></a></li>
 </ul>
 </li>
+<li><a class="reference external" href="#unpacking">Unpacking</a></li>
 <li><a class="reference external" href="#seeking">Seeking</a></li>
 <li><a class="reference external" href="#finding-and-replacing">Finding and replacing</a><ul>
 <li><a class="reference external" href="#find-rfind"><tt class="docutils literal"><span class="pre">find</span> <span class="pre">/</span> <span class="pre">rfind</span></tt></a></li>
@@ -92,16 +94,16 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="reading-unpacking-and-navigating">
-<h1>Reading, Unpacking and Navigating<a class="headerlink" href="#reading-unpacking-and-navigating" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="reading-and-unpacking">
-<h2>Reading and unpacking<a class="headerlink" href="#reading-and-unpacking" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="reading-parsing-and-unpacking">
+<h1>Reading, Parsing and Unpacking<a class="headerlink" href="#reading-parsing-and-unpacking" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="reading-and-parsing">
+<h2>Reading and parsing<a class="headerlink" href="#reading-and-parsing" title="Permalink to this headline">¶</a></h2>
 <p>A common need is to parse a large <tt class="docutils literal"><span class="pre">BitString</span></tt> into smaller parts. Functions for reading in the <tt class="docutils literal"><span class="pre">BitString</span></tt> as if it were a file or stream are provided and will return new <tt class="docutils literal"><span class="pre">BitString</span></tt> objects. These new objects are top-level <tt class="docutils literal"><span class="pre">BitString</span></tt> objects and can be interpreted using properties or could be read from themselves to form a hierarchy of reads.</p>
 <p>In order to behave like a file or stream, every <tt class="docutils literal"><span class="pre">BitString</span></tt> has a property <tt class="docutils literal"><span class="pre">pos</span></tt> which is the current position from which reads occur. <tt class="docutils literal"><span class="pre">pos</span></tt> can range from zero (its value on construction) to the length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, a position from which all reads will fail as it is past the last bit.</p>
 <p>The property <tt class="docutils literal"><span class="pre">bytepos</span></tt> is also available, and is useful if you are only dealing with byte data and don&#8217;t want to always have to divide the bit position by eight. Note that if you try to use <tt class="docutils literal"><span class="pre">bytepos</span></tt> and the <tt class="docutils literal"><span class="pre">BitString</span></tt> isn&#8217;t byte aligned (i.e. <tt class="docutils literal"><span class="pre">pos</span></tt> isn&#8217;t a multiple of 8) then a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> exception will be raised.</p>
 <div class="section" id="readbit-s-readbitlist-readbyte-s-readbytelist">
 <h3><tt class="docutils literal"><span class="pre">readbit(s)</span> <span class="pre">/</span> <span class="pre">readbitlist</span> <span class="pre">/</span> <span class="pre">readbyte(s)</span> <span class="pre">/</span> <span class="pre">readbytelist</span></tt><a class="headerlink" href="#readbit-s-readbitlist-readbyte-s-readbytelist" title="Permalink to this headline">¶</a></h3>
-<p>For simple reading of a number of bits you can use <tt class="docutils literal"><span class="pre">readbits</span></tt> or <tt class="docutils literal"><span class="pre">readbytes</span></tt>. The following example does some simple parsing of an MPEG-1 video stream.</p>
+<p>For simple reading of a number of bits you can use <tt class="docutils literal"><span class="pre">readbits</span></tt> or <tt class="docutils literal"><span class="pre">readbytes</span></tt>. The following example does some simple parsing of an MPEG-1 video stream (the stream is provided in the <tt class="docutils literal"><span class="pre">test</span></tt> directory if you downloaded the source archive).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;test/test.m1v&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">pos</span>
 <span class="go">0</span>
@@ -214,27 +216,27 @@
 </pre></div>
 </div>
 <p>In this example the <tt class="docutils literal"><span class="pre">bits</span></tt> token will consist of everything left after the first two tokens are read, and could be empty.</p>
-<p>It is an error to use more than one stretchy token, or to use a <tt class="docutils literal"><span class="pre">ue</span></tt> or <tt class="docutils literal"><span class="pre">se</span></tt> token after a stretchy token.</p>
+<p>It is an error to use more than one stretchy token, or to use a <tt class="docutils literal"><span class="pre">ue</span></tt> or <tt class="docutils literal"><span class="pre">se</span></tt> token after a stretchy token (the reason you can&#8217;t use exponential-Golomb codes after a stretchy token is that the codes can only be read forwards; that is you can&#8217;t ask &#8220;if this code ends here, where did it begin?&#8221; as there could be many possible answers).</p>
 </div>
 <div class="section" id="peek">
 <h3><tt class="docutils literal"><span class="pre">peek</span></tt><a class="headerlink" href="#peek" title="Permalink to this headline">¶</a></h3>
 <p>In addition to the read functions there are matching peek functions. These are identical to the read except that they do not advance the position in the <tt class="docutils literal"><span class="pre">BitString</span></tt> to after the read elements.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x4732aa34&#39;</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">peekbyte</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;0x47&#39;</span><span class="p">:</span>
-    <span class="n">t</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readbytes</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>          <span class="c"># t.hex == &#39;0x4732&#39;</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readbytes</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>          <span class="c"># t is first 2 bytes &#39;0x4732&#39;</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="n">s</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;0x47&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The complete list of read and peek functions is <tt class="docutils literal"><span class="pre">read(format)</span></tt>, <tt class="docutils literal"><span class="pre">readlist(*format)</span></tt>, <tt class="docutils literal"><span class="pre">readbit()</span></tt>, <tt class="docutils literal"><span class="pre">readbits(bits)</span></tt>, <tt class="docutils literal"><span class="pre">readbitlist(*bits)</span></tt>, <tt class="docutils literal"><span class="pre">readbyte()</span></tt>, <tt class="docutils literal"><span class="pre">readbytes(bytes)</span></tt>, <tt class="docutils literal"><span class="pre">readbytelist(*bytes)</span></tt>, <tt class="docutils literal"><span class="pre">peek(*format)</span></tt>, <tt class="docutils literal"><span class="pre">peeklist(*format)</span></tt>, <tt class="docutils literal"><span class="pre">peekbit()</span></tt>, <tt class="docutils literal"><span class="pre">peekbits(bits)</span></tt>, <tt class="docutils literal"><span class="pre">peekbitlist(*bits)</span></tt>, <tt class="docutils literal"><span class="pre">peekbyte()</span></tt>, <tt class="docutils literal"><span class="pre">peekbytes(bytes)</span></tt> and <tt class="docutils literal"><span class="pre">peekbytelist(*bytes)</span></tt>.</p>
 </div>
-<div class="section" id="unpack">
-<h3><tt class="docutils literal"><span class="pre">unpack</span></tt><a class="headerlink" href="#unpack" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="unpacking">
+<h2>Unpacking<a class="headerlink" href="#unpacking" title="Permalink to this headline">¶</a></h2>
 <p>The <tt class="docutils literal"><span class="pre">unpack</span></tt> function works in a very similar way to <tt class="docutils literal"><span class="pre">readlist</span></tt>. The major difference is that it interprets the whole <tt class="docutils literal"><span class="pre">BitString</span></tt> from the start, and takes no account of the current <tt class="docutils literal"><span class="pre">pos</span></tt>. It&#8217;s a natural complement of the <tt class="docutils literal"><span class="pre">pack</span></tt> function.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;uint:10, hex, int:13, 0b11&#39;</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="s">&#39;3d&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">23</span><span class="p">)</span>
 <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;uint:10, hex, int:13, bin:2&#39;</span><span class="p">)</span>
 </pre></div>
-</div>
 </div>
 </div>
 <div class="section" id="seeking">
@@ -322,7 +324,8 @@
         <li class="right" >
           <a href="slicing.html" title="Slicing, Dicing and Splicing"
              >previous</a> |</li>
-        <li><a href="index.html">bitstring</a> &raquo;</li> 
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" >Walkthrough</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
