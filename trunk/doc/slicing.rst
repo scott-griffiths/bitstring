@@ -2,14 +2,16 @@
 Slicing, Dicing and Splicing
 ============================
 
-Manipulating binary data can be a bit of a challenge in Python. One of its strengths is that you don't have to worry about the low level data, but this can make life difficult when what you care about is precisely the thing that is safely hidden by high level abstractions. In this section some more methods are described that treat data as a series of bits, rather than bytes.
+Manipulating binary data can be a bit of a challenge in Python. One of its strengths is that you don't have to worry about the low level data, but this can make life difficult when what you care about is precisely the thing that is safely hidden by high level abstractions.
+
+In this section some more methods are described that treat data as a series of bits, rather than bytes.
 
 Slicing
 -------
 
-Slicing takes three arguments: the first bit position you want, one past the last bit position you want and a multiplicative factor which defaults to 1. So for example ``a[10:12]`` will return a 2-bit ``BitString`` of the 10th and 11th bits in a.
+Slicing takes three arguments: the first position you want, one past the last position you want and a multiplicative factor which defaults to 1. 
 
-Note that as always the unit is bits rather than bytes. ::
+The third argument (the 'step') will be described shortly, but most of the time you'll probably just need the bit-wise slice, where for example ``a[10:12]`` will return a 2-bit ``BitString`` of the 10th and 11th bits in ``a``, and ``a[32]`` will return just the 32nd bit. ::
 
  >>> a = BitString('0b00011110')
  >>> b = a[3:7]
@@ -66,7 +68,7 @@ To join together a couple of ``BitString`` objects use the ``+`` or ``+=`` opera
  a5 = BitString('0xf')
  a5.prepend('0b000')
  a6 = BitString('0b000')
- a6 += '0xf'4
+ a6 += '0xf'
 
 If you want to join a large number of ``BitString`` objects then the function ``join`` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the ``BitString`` that it is called on as a separator when joining the list of ``BitString`` objects it is given. If you don't want a separator then it can be called on an empty ``BitString``. ::
 
@@ -132,16 +134,16 @@ The BitString as a list
 
 If you treat a ``BitString`` object as a list whose elements are all either '1' or '0' then you won't go far wrong. The table below gives some of the equivalent ways of using functions and the standard slice notation.
 
-======================  ======================================
-Using functions	 	Using slices
-s.truncatestart(bits) 	del s[:bits]
-s.truncateend(bits)  	del s[-bits:]
-s.insert(bs, pos)  	s[pos:pos] = bs
-s.overwrite(bs, pos) 	s[pos:pos + bs.length] = bs
-s.delete(bits, pos)  	del s[pos:pos + bits]
-s.append(bs) 	 	s[s.length:s.length] = bs
-s.prepend(bs) 	 	s[0:0] = bs
-======================  ======================================
+===========================  ======================================
+Using functions              Using slices
+``s.truncatestart(bits)``    ``del s[:bits]``
+``s.truncateend(bits)``      ``del s[-bits:]``
+``s.insert(bs, pos)``        ``s[pos:pos] = bs``
+``s.overwrite(bs, pos)``     ``s[pos:pos + bs.length] = bs``
+``s.delete(bits, pos)``      ``del s[pos:pos + bits]``
+``s.append(bs)``             ``s[s.length:s.length] = bs``
+``s.prepend(bs)``            ``s[0:0] = bs``
+===========================  ======================================
 
 Splitting
 ---------
@@ -165,6 +167,7 @@ Note that the first item returned is always the BitString before the first occur
 ^^^^^^^
 
 If you just want to split into equal parts then use the ``cut`` function. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
+
  >>> a = BitString('0x47001243')
  >>> for byte in a.cut(8):
  ...     print byte.hex

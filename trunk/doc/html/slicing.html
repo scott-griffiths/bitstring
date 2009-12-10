@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1.1',
+        VERSION:     '1.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -20,7 +20,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bitstring manual" href="index.html" />
-    <link rel="next" title="Reading, Unpacking and Navigating" href="reading.html" />
+    <link rel="up" title="Walkthrough" href="contents.html" />
+    <link rel="next" title="Reading, Parsing and Unpacking" href="reading.html" />
     <link rel="prev" title="Creation and Interpretation" href="creation.html" /> 
   </head>
   <body>
@@ -31,12 +32,13 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="reading.html" title="Reading, Unpacking and Navigating"
+          <a href="reading.html" title="Reading, Parsing and Unpacking"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="creation.html" title="Creation and Interpretation"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">bitstring</a> &raquo;</li> 
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" accesskey="U">Walkthrough</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -74,7 +76,7 @@
                                   title="previous chapter">Creation and Interpretation</a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="reading.html"
-                                  title="next chapter">Reading, Unpacking and Navigating</a></p>
+                                  title="next chapter">Reading, Parsing and Unpacking</a></p>
           <div id="searchbox" style="display: none">
             <h3>Quick search</h3>
               <form class="search" action="search.html" method="get">
@@ -98,11 +100,12 @@
             
   <div class="section" id="slicing-dicing-and-splicing">
 <h1>Slicing, Dicing and Splicing<a class="headerlink" href="#slicing-dicing-and-splicing" title="Permalink to this headline">¶</a></h1>
-<p>Manipulating binary data can be a bit of a challenge in Python. One of its strengths is that you don&#8217;t have to worry about the low level data, but this can make life difficult when what you care about is precisely the thing that is safely hidden by high level abstractions. In this section some more methods are described that treat data as a series of bits, rather than bytes.</p>
+<p>Manipulating binary data can be a bit of a challenge in Python. One of its strengths is that you don&#8217;t have to worry about the low level data, but this can make life difficult when what you care about is precisely the thing that is safely hidden by high level abstractions.</p>
+<p>In this section some more methods are described that treat data as a series of bits, rather than bytes.</p>
 <div class="section" id="slicing">
 <h2>Slicing<a class="headerlink" href="#slicing" title="Permalink to this headline">¶</a></h2>
-<p>Slicing takes three arguments: the first bit position you want, one past the last bit position you want and a multiplicative factor which defaults to 1. So for example <tt class="docutils literal"><span class="pre">a[10:12]</span></tt> will return a 2-bit <tt class="docutils literal"><span class="pre">BitString</span></tt> of the 10th and 11th bits in a.</p>
-<p>Note that as always the unit is bits rather than bytes.</p>
+<p>Slicing takes three arguments: the first position you want, one past the last position you want and a multiplicative factor which defaults to 1.</p>
+<p>The third argument (the &#8216;step&#8217;) will be described shortly, but most of the time you&#8217;ll probably just need the bit-wise slice, where for example <tt class="docutils literal"><span class="pre">a[10:12]</span></tt> will return a 2-bit <tt class="docutils literal"><span class="pre">BitString</span></tt> of the 10th and 11th bits in <tt class="docutils literal"><span class="pre">a</span></tt>, and <tt class="docutils literal"><span class="pre">a[32]</span></tt> will return just the 32nd bit.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b00011110&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span>
@@ -147,16 +150,17 @@
 <div class="section" id="joining">
 <h2>Joining<a class="headerlink" href="#joining" title="Permalink to this headline">¶</a></h2>
 <p>To join together a couple of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects use the <tt class="docutils literal"><span class="pre">+</span></tt> or <tt class="docutils literal"><span class="pre">+=</span></tt> operators, or the <tt class="docutils literal"><span class="pre">append</span></tt> and <tt class="docutils literal"><span class="pre">prepend</span></tt> functions.</p>
-<div class="highlight-python"><pre># Six ways of creating the same BitString:
-a1 = BitString(bin='000') + BitString(hex='f')
-a2 = BitString('0b000') + BitString('0xf')
-a3 = BitString('0b000') + '0xf'
-a4 = BitString('0b000')
-a4.append('0xf')
-a5 = BitString('0xf')
-a5.prepend('0b000')
-a6 = BitString('0b000')
-a6 += '0xf'4</pre>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Six ways of creating the same BitString:</span>
+<span class="n">a1</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bin</span><span class="o">=</span><span class="s">&#39;000&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">hex</span><span class="o">=</span><span class="s">&#39;f&#39;</span><span class="p">)</span>
+<span class="n">a2</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b000&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf&#39;</span><span class="p">)</span>
+<span class="n">a3</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b000&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;0xf&#39;</span>
+<span class="n">a4</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b000&#39;</span><span class="p">)</span>
+<span class="n">a4</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;0xf&#39;</span><span class="p">)</span>
+<span class="n">a5</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf&#39;</span><span class="p">)</span>
+<span class="n">a5</span><span class="o">.</span><span class="n">prepend</span><span class="p">(</span><span class="s">&#39;0b000&#39;</span><span class="p">)</span>
+<span class="n">a6</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b000&#39;</span><span class="p">)</span>
+<span class="n">a6</span> <span class="o">+=</span> <span class="s">&#39;0xf&#39;</span>
+</pre></div>
 </div>
 <p>If you want to join a large number of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects then the function <tt class="docutils literal"><span class="pre">join</span></tt> can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the <tt class="docutils literal"><span class="pre">BitString</span></tt> that it is called on as a separator when joining the list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects it is given. If you don&#8217;t want a separator then it can be called on an empty <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">bslist</span> <span class="o">=</span> <span class="p">[</span><span class="n">BitString</span><span class="p">(</span><span class="n">uint</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1000</span><span class="p">)]</span>
@@ -221,33 +225,33 @@ a6 += '0xf'4</pre>
 <p>If you treat a <tt class="docutils literal"><span class="pre">BitString</span></tt> object as a list whose elements are all either &#8216;1&#8217; or &#8216;0&#8217; then you won&#8217;t go far wrong. The table below gives some of the equivalent ways of using functions and the standard slice notation.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="37%" />
-<col width="63%" />
+<col width="42%" />
+<col width="58%" />
 </colgroup>
 <tbody valign="top">
 <tr><td>Using functions</td>
 <td>Using slices</td>
 </tr>
-<tr><td>s.truncatestart(bits)</td>
-<td>del s[:bits]</td>
+<tr><td><tt class="docutils literal"><span class="pre">s.truncatestart(bits)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[:bits]</span></tt></td>
 </tr>
-<tr><td>s.truncateend(bits)</td>
-<td>del s[-bits:]</td>
+<tr><td><tt class="docutils literal"><span class="pre">s.truncateend(bits)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[-bits:]</span></tt></td>
 </tr>
-<tr><td>s.insert(bs, pos)</td>
-<td>s[pos:pos] = bs</td>
+<tr><td><tt class="docutils literal"><span class="pre">s.insert(bs,</span> <span class="pre">pos)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">s[pos:pos]</span> <span class="pre">=</span> <span class="pre">bs</span></tt></td>
 </tr>
-<tr><td>s.overwrite(bs, pos)</td>
-<td>s[pos:pos + bs.length] = bs</td>
+<tr><td><tt class="docutils literal"><span class="pre">s.overwrite(bs,</span> <span class="pre">pos)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">s[pos:pos</span> <span class="pre">+</span> <span class="pre">bs.length]</span> <span class="pre">=</span> <span class="pre">bs</span></tt></td>
 </tr>
-<tr><td>s.delete(bits, pos)</td>
-<td>del s[pos:pos + bits]</td>
+<tr><td><tt class="docutils literal"><span class="pre">s.delete(bits,</span> <span class="pre">pos)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[pos:pos</span> <span class="pre">+</span> <span class="pre">bits]</span></tt></td>
 </tr>
-<tr><td>s.append(bs)</td>
-<td>s[s.length:s.length] = bs</td>
+<tr><td><tt class="docutils literal"><span class="pre">s.append(bs)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">s[s.length:s.length]</span> <span class="pre">=</span> <span class="pre">bs</span></tt></td>
 </tr>
-<tr><td>s.prepend(bs)</td>
-<td>s[0:0] = bs</td>
+<tr><td><tt class="docutils literal"><span class="pre">s.prepend(bs)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">s[0:0]</span> <span class="pre">=</span> <span class="pre">bs</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -270,9 +274,8 @@ a6 += '0xf'4</pre>
 </div>
 <div class="section" id="cut">
 <h3><tt class="docutils literal"><span class="pre">cut</span></tt><a class="headerlink" href="#cut" title="Permalink to this headline">¶</a></h3>
-<dl class="docutils">
-<dt>If you just want to split into equal parts then use the <tt class="docutils literal"><span class="pre">cut</span></tt> function. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x47001243&#39;</span><span class="p">)</span>
+<p>If you just want to split into equal parts then use the <tt class="docutils literal"><span class="pre">cut</span></tt> function. This takes a number of bits as its first argument and returns a generator for chunks of that size.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x47001243&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">byte</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">print</span> <span class="n">byte</span><span class="o">.</span><span class="n">hex</span>
 <span class="go">0x47</span>
@@ -281,8 +284,6 @@ a6 += '0xf'4</pre>
 <span class="go">0x43</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </div>
 </div>
 </div>
@@ -300,12 +301,13 @@ a6 += '0xf'4</pre>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="reading.html" title="Reading, Unpacking and Navigating"
+          <a href="reading.html" title="Reading, Parsing and Unpacking"
              >next</a> |</li>
         <li class="right" >
           <a href="creation.html" title="Creation and Interpretation"
              >previous</a> |</li>
-        <li><a href="index.html">bitstring</a> &raquo;</li> 
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" >Walkthrough</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

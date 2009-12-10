@@ -21,7 +21,9 @@ There are lots of ways of creating new ``BitString`` objects. The most flexible 
  aspect_ratio, frame_rate = s.readlist('bin:4, bin:4')
 
 Manipulation
------------- ::
+------------
+
+::
 
  s = BitString('0x0123456789abcdef')
  
@@ -58,6 +60,8 @@ This example creates a class that parses a structure that is part of the H.264 v
              self.bit_depth_luma_minus8 = s.read('ue')
              self.bit_depth_chroma_minus8 = s.read('ue')
              # etc.
+
+::
  
  >>> s = BitString('0x6410281bc0')
  >>> sps = seq_parameter_set_data(s)

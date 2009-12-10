@@ -316,13 +316,14 @@ Compact format strings
 Another option when using pack is to use a format specifier similar to those used in the ``struct`` and ``array`` modules. These consist of a character to give the endianness, followed by more single characters to give the format.
 
 The endianness character must start the format string and unlike in the struct module it is not optional:
+
 =====   =============
 ``>``   Big-endian
 ``<``   Little-endian
 ``@``   Native-endian
 =====   =============
 
-For 'network' endianness use '``>``' as network and big-endian are equivalent. This is followed by at least one of these format characters:
+For 'network' endianness use ``>`` as network and big-endian are equivalent. This is followed by at least one of these format characters:
 
 =====   ===============================
 ``b``   8 bit signed integer
@@ -345,7 +346,7 @@ The exact type is determined by combining the endianness character with the form
 ``@h``  Native-endian 16 bit signed integer      ``intne:16``
 ======  ======================================   ============
 
-As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian ``@h`` will equal the big-endian ``>h`` on big-endian systems, and equal the little-endian ``<h`` on little-endian systems.
+As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian ``@h`` will equal the big-endian ``>h`` on big-endian systems, and equal the little-endian ``<h`` on little-endian systems. For the single byte codes ``b`` and ``B`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
 
 An example::
 
@@ -504,3 +505,7 @@ The ``se`` property does much the same as ``ue`` and the provisos there all appl
  2
  0
  -1
+ 
+
+ 
+ 

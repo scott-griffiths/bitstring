@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1.1',
+        VERSION:     '1.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -20,8 +20,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bitstring manual" href="index.html" />
-    <link rel="next" title="Exponential-Golomb Codes" href="exp-golomb.html" />
-    <link rel="prev" title="Examples" href="examples.html" /> 
+    <link rel="prev" title="Internals" href="internals.html" /> 
   </head>
   <body>
     <div class="related">
@@ -31,10 +30,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="exp-golomb.html" title="Exponential-Golomb Codes"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="examples.html" title="Examples"
+          <a href="internals.html" title="Internals"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li> 
       </ul>
@@ -164,11 +160,8 @@
 </ul>
 
             <h4>Previous topic</h4>
-            <p class="topless"><a href="examples.html"
-                                  title="previous chapter">Examples</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="exp-golomb.html"
-                                  title="next chapter">Exponential-Golomb Codes</a></p>
+            <p class="topless"><a href="internals.html"
+                                  title="previous chapter">Internals</a></p>
           <div id="searchbox" style="display: none">
             <h3>Quick search</h3>
               <form class="search" action="search.html" method="get">
@@ -196,15 +189,15 @@
 <p>Note that in places where a <tt class="docutils literal"><span class="pre">BitString</span></tt> can be used as a parameter, any other valid input to the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser can also be used. This means that the parameter can also be a format string which consists of tokens:</p>
 <ul class="simple">
 <li>Starting with <tt class="docutils literal"><span class="pre">hex=</span></tt>, or simply starting with <tt class="docutils literal"><span class="pre">0x</span></tt> implies hexadecimal. e.g. <tt class="docutils literal"><span class="pre">0x013ff</span></tt>, <tt class="docutils literal"><span class="pre">hex=013ff</span></tt></li>
-<li>Starting with <tt class="docutils literal"><span class="pre">oct=`,</span> <span class="pre">or</span> <span class="pre">simply</span> <span class="pre">starting</span> <span class="pre">with</span> <span class="pre">``0o</span></tt> implies octal. e.g. <tt class="docutils literal"><span class="pre">0o755</span></tt>, <tt class="docutils literal"><span class="pre">oct=755</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">oct=</span></tt>, or simply starting with <tt class="docutils literal"><span class="pre">0o</span></tt> implies octal. e.g. <tt class="docutils literal"><span class="pre">0o755</span></tt>, <tt class="docutils literal"><span class="pre">oct=755</span></tt></li>
 <li>Starting with <tt class="docutils literal"><span class="pre">bin=</span></tt>, or simply starting with <tt class="docutils literal"><span class="pre">0b</span></tt> implies binary. e.g. <tt class="docutils literal"><span class="pre">0b0011010</span></tt>, <tt class="docutils literal"><span class="pre">bin=0011010</span></tt></li>
-<li>Starting with <tt class="docutils literal"><span class="pre">int:</span></tt> or <tt class="docutils literal"><span class="pre">uint:</span></tt> followed by a length in bits then <tt class="docutils literal"><span class="pre">=</span></tt> gives base-2 integers. e.g. <tt class="docutils literal"><span class="pre">uint:8=255</span></tt>, <tt class="docutils literal"><span class="pre">int:4=-7</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">int:</span></tt> or <tt class="docutils literal"><span class="pre">uint:</span></tt> followed by a length in bits and <tt class="docutils literal"><span class="pre">=</span></tt> gives base-2 integers. e.g. <tt class="docutils literal"><span class="pre">uint:8=255</span></tt>, <tt class="docutils literal"><span class="pre">int:4=-7</span></tt></li>
 <li>To get big, little and native-endian whole-byte integers append <tt class="docutils literal"><span class="pre">be</span></tt>, <tt class="docutils literal"><span class="pre">le</span></tt> or <tt class="docutils literal"><span class="pre">ne</span></tt> respectively to the <tt class="docutils literal"><span class="pre">uint</span></tt> or <tt class="docutils literal"><span class="pre">int</span></tt> identifier. e.g. <tt class="docutils literal"><span class="pre">uintle:32=1</span></tt>, <tt class="docutils literal"><span class="pre">intne:16=-23</span></tt></li>
-<li>For floating point numbers use <tt class="docutils literal"><span class="pre">float:</span></tt> followed by the length in bits then <tt class="docutils literal"><span class="pre">=</span></tt> and the number. The default is big-endian, but you can also append <tt class="docutils literal"><span class="pre">be</span></tt>, <tt class="docutils literal"><span class="pre">le</span></tt> or <tt class="docutils literal"><span class="pre">ne</span></tt> as with integers. e.g. <tt class="docutils literal"><span class="pre">float:64=0.2</span></tt>, <tt class="docutils literal"><span class="pre">floatle:32=-0.3e12</span></tt></li>
+<li>For floating point numbers use <tt class="docutils literal"><span class="pre">float:</span></tt> followed by the length in bits and <tt class="docutils literal"><span class="pre">=</span></tt> and the number. The default is big-endian, but you can also append <tt class="docutils literal"><span class="pre">be</span></tt>, <tt class="docutils literal"><span class="pre">le</span></tt> or <tt class="docutils literal"><span class="pre">ne</span></tt> as with integers. e.g. <tt class="docutils literal"><span class="pre">float:64=0.2</span></tt>, <tt class="docutils literal"><span class="pre">floatle:32=-0.3e12</span></tt></li>
 <li>Starting with <tt class="docutils literal"><span class="pre">ue=</span></tt> or <tt class="docutils literal"><span class="pre">se=</span></tt> implies an exponential-Golomb coded integer. e.g. <tt class="docutils literal"><span class="pre">ue=12</span></tt>, <tt class="docutils literal"><span class="pre">se=-4</span></tt></li>
 </ul>
 <p>Multiples tokens can be joined by separating them with commas, so for example <tt class="docutils literal"><span class="pre">se=4,</span> <span class="pre">0b1,</span> <span class="pre">se=-1</span></tt> represents the concatenation of three elements.</p>
-<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> parameter also accepts a list or tuple, whose elements will be evaluated as booleans (imagine calling bool() on each item) and the bits set to 1 for <tt class="xref docutils literal"><span class="pre">True</span></tt> items and 0 for <tt class="xref docutils literal"><span class="pre">False</span></tt> items.</p>
+<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> parameter also accepts a list or tuple, whose elements will be evaluated as booleans (imagine calling <tt class="docutils literal"><span class="pre">bool()</span></tt> on each item) and the bits set to <tt class="docutils literal"><span class="pre">1</span></tt> for <tt class="xref docutils literal"><span class="pre">True</span></tt> items and <tt class="docutils literal"><span class="pre">0</span></tt> for <tt class="xref docutils literal"><span class="pre">False</span></tt> items.</p>
 <p>Finally if you pass in a file object, presumably opened in read-binary mode, then the <tt class="docutils literal"><span class="pre">BitString</span></tt> will be formed from the contents of the file.</p>
 <p>For the <tt class="docutils literal"><span class="pre">read</span></tt>, <tt class="docutils literal"><span class="pre">unpack</span></tt>, <tt class="docutils literal"><span class="pre">pack</span></tt> and <tt class="docutils literal"><span class="pre">peek</span></tt> functions you can use compact format strings similar to those used in the <tt class="docutils literal"><span class="pre">struct</span></tt> and <tt class="docutils literal"><span class="pre">array</span></tt> modules. These start with an endian identifier: <tt class="docutils literal"><span class="pre">&gt;</span></tt> for big-endian, <tt class="docutils literal"><span class="pre">&lt;</span></tt> for little-endian or <tt class="docutils literal"><span class="pre">&#64;</span></tt> for native-endian. This must be followed by at least one of these codes:</p>
 <table border="1" class="docutils">
@@ -252,8 +245,10 @@
 </table>
 <div class="section" id="class-properties">
 <h2>Class properties<a class="headerlink" href="#class-properties" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">BitString</span></tt> objects use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions.</p>
+<p>The different interpretations such as <tt class="docutils literal"><span class="pre">bin</span></tt>, <tt class="docutils literal"><span class="pre">hex</span></tt>, <tt class="docutils literal"><span class="pre">uint</span></tt> etc. are not stored as part of the object, but are calculated as needed.</p>
 <div class="section" id="bin">
-<span id="index-0"></span><h3>bin<a class="headerlink" href="#bin" title="Permalink to this headline">¶</a></h3>
+<span id="index-336"></span><h3>bin<a class="headerlink" href="#bin" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.bin</span></tt></p>
 <p>Read and write property for setting and getting the representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt> as a binary string starting with <tt class="docutils literal"><span class="pre">0b</span></tt>.</p>
 <p>When used as a getter, the returned value is always calculated - the value is never cached. When used as a setter the length of the <tt class="docutils literal"><span class="pre">BitString</span></tt> will be adjusted to fit its new contents.</p>
@@ -265,13 +260,13 @@
 </div>
 </div>
 <div class="section" id="bytepos">
-<span id="index-1"></span><h3>bytepos<a class="headerlink" href="#bytepos" title="Permalink to this headline">¶</a></h3>
+<span id="index-337"></span><h3>bytepos<a class="headerlink" href="#bytepos" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.bytepos</span></tt></p>
 <p>Read and write property for setting and getting the current byte position in the <tt class="docutils literal"><span class="pre">BitString</span></tt>.
 When used as a getter will raise a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> if the current position in not byte aligned.</p>
 </div>
 <div class="section" id="bytes">
-<span id="index-2"></span><h3>bytes<a class="headerlink" href="#bytes" title="Permalink to this headline">¶</a></h3>
+<span id="index-338"></span><h3>bytes<a class="headerlink" href="#bytes" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.bytes</span></tt></p>
 <p>Read and write property for setting and getting the underlying byte data that contains the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>Set using an ordinary Python string - the length will be adjusted to contain the data.</p>
@@ -287,7 +282,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="hex">
-<span id="index-3"></span><h3>hex<a class="headerlink" href="#hex" title="Permalink to this headline">¶</a></h3>
+<span id="index-339"></span><h3>hex<a class="headerlink" href="#hex" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.hex</span></tt></p>
 <p>Read and write property for setting and getting the hexadecimal representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>When used as a getter the value will be preceded by <tt class="docutils literal"><span class="pre">0x</span></tt>, which is optional when setting the value. If the <tt class="docutils literal"><span class="pre">BitString</span></tt> is not a multiple of four bits long then getting its hex value will raise a <tt class="docutils literal"><span class="pre">ValueError</span></tt>.</p>
@@ -301,7 +296,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="int">
-<span id="index-4"></span><h3>int<a class="headerlink" href="#int" title="Permalink to this headline">¶</a></h3>
+<span id="index-340"></span><h3>int<a class="headerlink" href="#int" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.int</span></tt></p>
 <p>Read and write property for setting and getting the signed two’s complement integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
@@ -314,28 +309,28 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="intbe">
-<span id="index-5"></span><h3>intbe<a class="headerlink" href="#intbe" title="Permalink to this headline">¶</a></h3>
+<span id="index-341"></span><h3>intbe<a class="headerlink" href="#intbe" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.intbe</span></tt></p>
 <p>Read and write property for setting and getting the byte-wise big-endian signed two&#8217;s complement integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>Only valid if <tt class="docutils literal"><span class="pre">s</span></tt> is whole-byte, in which case it is equal to <tt class="docutils literal"><span class="pre">s.int</span></tt>, otherwise a <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
 <p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
 </div>
 <div class="section" id="intle">
-<span id="index-6"></span><h3>intle<a class="headerlink" href="#intle" title="Permalink to this headline">¶</a></h3>
+<span id="index-342"></span><h3>intle<a class="headerlink" href="#intle" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.intle</span></tt></p>
 <p>Read and write property for setting and getting the byte-wise little-endian signed two&#8217;s complement integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>Only valid if <tt class="docutils literal"><span class="pre">s</span></tt> is whole-byte, in which case it is equal to <tt class="docutils literal"><span class="pre">s[::-8].int</span></tt>, i.e. the integer representation of the byte-reversed <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
 </div>
 <div class="section" id="intne">
-<span id="index-7"></span><h3>intne<a class="headerlink" href="#intne" title="Permalink to this headline">¶</a></h3>
+<span id="index-343"></span><h3>intne<a class="headerlink" href="#intne" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.intne</span></tt></p>
 <p>Read and write property for setting and getting the byte-wise native-endian signed two&#8217;s complement integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>Only valid if <tt class="docutils literal"><span class="pre">s</span></tt> is whole-byte, and will equal either the big-endian or the little-endian integer representation depending on the platform being used.</p>
 <p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
 </div>
 <div class="section" id="float-floatbe">
-<span id="index-8"></span><h3>float / floatbe<a class="headerlink" href="#float-floatbe" title="Permalink to this headline">¶</a></h3>
+<span id="index-344"></span><h3>float / floatbe<a class="headerlink" href="#float-floatbe" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.float</span></tt></p>
 <p>Read and write property for setting and getting the floating point representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>The <tt class="docutils literal"><span class="pre">BitString</span></tt> must be either 32 or 64 bits long to support the floating point interpretations.</p>
@@ -343,23 +338,23 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 <p>The <tt class="docutils literal"><span class="pre">float</span></tt> property is bit-wise big-endian, which as all floats must be whole-byte is exactly equivalent to the byte-wise big-endian <tt class="docutils literal"><span class="pre">floatbe</span></tt>.</p>
 </div>
 <div class="section" id="floatle">
-<span id="index-9"></span><h3>floatle<a class="headerlink" href="#floatle" title="Permalink to this headline">¶</a></h3>
+<span id="index-345"></span><h3>floatle<a class="headerlink" href="#floatle" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.floatle</span></tt></p>
 <p>Read and write property for setting and getting the byte-wise little-endian floating point representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 </div>
 <div class="section" id="floatne">
-<span id="index-10"></span><h3>floatne<a class="headerlink" href="#floatne" title="Permalink to this headline">¶</a></h3>
+<span id="index-346"></span><h3>floatne<a class="headerlink" href="#floatne" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.floatne</span></tt></p>
 <p>Read and write property for setting and getting the byte-wise native-endian floating point representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 </div>
 <div class="section" id="len-length">
-<span id="index-11"></span><h3>len / length<a class="headerlink" href="#len-length" title="Permalink to this headline">¶</a></h3>
+<span id="index-347"></span><h3>len / length<a class="headerlink" href="#len-length" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.len</span></tt></p>
 <p>Read-only properties that give the length of the <tt class="docutils literal"><span class="pre">BitString</span></tt> in bits (<tt class="docutils literal"><span class="pre">len</span></tt> and <tt class="docutils literal"><span class="pre">length</span></tt> are equivalent).</p>
 <p>This is almost equivalent to using <tt class="docutils literal"><span class="pre">len(s)</span></tt>, expect that for large <tt class="docutils literal"><span class="pre">BitString</span></tt> objects <tt class="docutils literal"><span class="pre">len()</span></tt> may fail with an <tt class="docutils literal"><span class="pre">OverflowError</span></tt>, whereas the <tt class="docutils literal"><span class="pre">len</span></tt> property continues to work.</p>
 </div>
 <div class="section" id="oct">
-<span id="index-12"></span><h3>oct<a class="headerlink" href="#oct" title="Permalink to this headline">¶</a></h3>
+<span id="index-348"></span><h3>oct<a class="headerlink" href="#oct" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.oct</span></tt></p>
 <p>Read and write property for setting and getting the octal representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>When used as a getter the value will be preceded by <tt class="docutils literal"><span class="pre">0o</span></tt>, which is optional when setting the value. If the <tt class="docutils literal"><span class="pre">BitString</span></tt> is not a multiple of three bits long then getting its oct value will raise a <tt class="docutils literal"><span class="pre">ValueError</span></tt>.</p>
@@ -373,7 +368,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="pos-bitpos">
-<span id="index-13"></span><h3>pos / bitpos<a class="headerlink" href="#pos-bitpos" title="Permalink to this headline">¶</a></h3>
+<span id="index-349"></span><h3>pos / bitpos<a class="headerlink" href="#pos-bitpos" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.pos</span></tt></p>
 <p>Read and write property for setting and getting the current bit position in the <tt class="docutils literal"><span class="pre">BitString</span></tt>. Can be set to any value from <tt class="docutils literal"><span class="pre">0</span></tt> to <tt class="docutils literal"><span class="pre">s.len</span></tt>.</p>
 <p>The <tt class="docutils literal"><span class="pre">pos</span></tt> and <tt class="docutils literal"><span class="pre">bitpos</span></tt> properties are exactly equivalent - you can use whichever you prefer.</p>
@@ -383,7 +378,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="se">
-<span id="index-14"></span><h3>se<a class="headerlink" href="#se" title="Permalink to this headline">¶</a></h3>
+<span id="index-350"></span><h3>se<a class="headerlink" href="#se" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.se</span></tt></p>
 <p>Read and write property for setting and getting the signed exponential-Golomb code representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>The property is set from an signed integer, and when used as a getter a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> will be raised if the <tt class="docutils literal"><span class="pre">BitString</span></tt> is not a single code.</p>
@@ -397,31 +392,31 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="ue">
-<span id="index-15"></span><h3>ue<a class="headerlink" href="#ue" title="Permalink to this headline">¶</a></h3>
+<span id="index-351"></span><h3>ue<a class="headerlink" href="#ue" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.ue</span></tt></p>
 <p>Read and write property for setting and getting the unsigned exponential-Golomb code representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>The property is set from an unsigned integer, and when used as a getter a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> will be raised if the <tt class="docutils literal"><span class="pre">BitString</span></tt> is not a single code.</p>
 </div>
 <div class="section" id="uint">
-<span id="index-16"></span><h3>uint<a class="headerlink" href="#uint" title="Permalink to this headline">¶</a></h3>
+<span id="index-352"></span><h3>uint<a class="headerlink" href="#uint" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.uint</span></tt></p>
 <p>Read and write property for setting and getting the unsigned base-2 integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
 </div>
 <div class="section" id="uintbe">
-<span id="index-17"></span><h3>uintbe<a class="headerlink" href="#uintbe" title="Permalink to this headline">¶</a></h3>
+<span id="index-353"></span><h3>uintbe<a class="headerlink" href="#uintbe" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.uintbe</span></tt></p>
 <p>Read and write property for setting and getting the byte-wise big-endian unsigned base-2 integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
 </div>
 <div class="section" id="uintle">
-<span id="index-18"></span><h3>uintle<a class="headerlink" href="#uintle" title="Permalink to this headline">¶</a></h3>
+<span id="index-354"></span><h3>uintle<a class="headerlink" href="#uintle" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.uintle</span></tt></p>
 <p>Read and write property for setting and getting the byte-wise little-endian unsigned base-2 integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
 </div>
 <div class="section" id="uintne">
-<span id="index-19"></span><h3>uintne<a class="headerlink" href="#uintne" title="Permalink to this headline">¶</a></h3>
+<span id="index-355"></span><h3>uintne<a class="headerlink" href="#uintne" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.uintne</span></tt></p>
 <p>Read and write property for setting and getting the byte-wise native-endian unsigned base-2 integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
@@ -430,7 +425,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 <div class="section" id="class-methods">
 <h2>Class methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="append">
-<span id="index-20"></span><h3>append<a class="headerlink" href="#append" title="Permalink to this headline">¶</a></h3>
+<span id="index-356"></span><h3>append<a class="headerlink" href="#append" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.append(bs)</span></tt></p>
 <p>Join a <tt class="docutils literal"><span class="pre">BitString</span></tt> to the end of the current <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xbad&#39;</span><span class="p">)</span>
@@ -441,9 +436,9 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="bytealign">
-<span id="index-21"></span><h3>bytealign<a class="headerlink" href="#bytealign" title="Permalink to this headline">¶</a></h3>
+<span id="index-357"></span><h3>bytealign<a class="headerlink" href="#bytealign" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.bytealign()</span></tt></p>
-<p>Aligns to the start of the next byte (so that s.pos is a multiple of 8) and returns the number of bits skipped.</p>
+<p>Aligns to the start of the next byte (so that <tt class="docutils literal"><span class="pre">s.pos</span></tt> is a multiple of 8) and returns the number of bits skipped.</p>
 <p>If the current position is already byte aligned then it is unchanged.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xabcdef&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">advancebits</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
@@ -455,10 +450,10 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="cut">
-<span id="index-22"></span><h3>cut<a class="headerlink" href="#cut" title="Permalink to this headline">¶</a></h3>
+<span id="index-358"></span><h3>cut<a class="headerlink" href="#cut" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.cut(bits,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">count=None)</span></tt></p>
-<p>Returns a generator for slices of the <tt class="docutils literal"><span class="pre">BitString</span></tt> of length bits.</p>
-<p>At most count items are returned and the range is given by the slice <tt class="docutils literal"><span class="pre">[start:end]</span></tt>, which defaults to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>Returns a generator for slices of the <tt class="docutils literal"><span class="pre">BitString</span></tt> of length <tt class="docutils literal"><span class="pre">bits</span></tt>.</p>
+<p>At most <tt class="docutils literal"><span class="pre">count</span></tt> items are returned and the range is given by the slice <tt class="docutils literal"><span class="pre">[start:end]</span></tt>, which defaults to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x1234&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">nibble</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">s</span><span class="o">.</span><span class="n">prepend</span><span class="p">(</span><span class="n">nibble</span><span class="p">)</span>
@@ -468,9 +463,9 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="delete">
-<span id="index-23"></span><h3>delete<a class="headerlink" href="#delete" title="Permalink to this headline">¶</a></h3>
+<span id="index-359"></span><h3>delete<a class="headerlink" href="#delete" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.delete(bits,</span> <span class="pre">pos=None)</span></tt></p>
-<p>Removes bits bits from the <tt class="docutils literal"><span class="pre">BitString</span></tt> at position pos.</p>
+<p>Removes <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the <tt class="docutils literal"><span class="pre">BitString</span></tt> at position <tt class="docutils literal"><span class="pre">pos</span></tt>.</p>
 <p>If <tt class="docutils literal"><span class="pre">pos</span></tt> is not specified then the current position is used. Is equivalent to <tt class="docutils literal"><span class="pre">del&nbsp;s[pos:pos+bits]</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1111001&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
@@ -480,9 +475,9 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="endswith">
-<span id="index-24"></span><h3>endswith<a class="headerlink" href="#endswith" title="Permalink to this headline">¶</a></h3>
+<span id="index-360"></span><h3>endswith<a class="headerlink" href="#endswith" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.endswith(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None)</span></tt></p>
-<p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if the <tt class="docutils literal"><span class="pre">BitString</span></tt> ends with the sub-string bs, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if the <tt class="docutils literal"><span class="pre">BitString</span></tt> ends with the sub-string <tt class="docutils literal"><span class="pre">bs</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
 <p>A slice can be given using the <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> bit positions and defaults to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x35e22&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;0b10, 0x22&#39;</span><span class="p">)</span>
@@ -493,7 +488,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="find">
-<span id="index-25"></span><h3>find<a class="headerlink" href="#find" title="Permalink to this headline">¶</a></h3>
+<span id="index-361"></span><h3>find<a class="headerlink" href="#find" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.find(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
 <p>Searches for <tt class="docutils literal"><span class="pre">bs</span></tt> in the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and sets <tt class="docutils literal"><span class="pre">pos</span></tt> to the start of <tt class="docutils literal"><span class="pre">bs</span></tt> and returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if found, otherwise it returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
 <p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then it will look for <tt class="docutils literal"><span class="pre">bs</span></tt> only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the search range and default to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
@@ -506,7 +501,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="findall">
-<span id="index-26"></span><h3>findall<a class="headerlink" href="#findall" title="Permalink to this headline">¶</a></h3>
+<span id="index-362"></span><h3>findall<a class="headerlink" href="#findall" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.findall(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">count=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
 <p>Searches for all occurrences of <tt class="docutils literal"><span class="pre">bs</span></tt> (even overlapping ones) and returns a generator of their bit positions.</p>
 <p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then <tt class="docutils literal"><span class="pre">bs</span></tt> will only be looked for at byte aligned positions. <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> optionally define a search range and default to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
@@ -519,7 +514,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="insert">
-<span id="index-27"></span><h3>insert<a class="headerlink" href="#insert" title="Permalink to this headline">¶</a></h3>
+<span id="index-363"></span><h3>insert<a class="headerlink" href="#insert" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.insert(bs,</span> <span class="pre">pos=None)</span></tt></p>
 <p>Inserts <tt class="docutils literal"><span class="pre">bs</span></tt> at <tt class="docutils literal"><span class="pre">pos</span></tt>. After insertion <tt class="docutils literal"><span class="pre">pos</span></tt> will be immediately after the inserted <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>The default for <tt class="docutils literal"><span class="pre">pos</span></tt> is the current position.</p>
@@ -534,7 +529,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="join">
-<span id="index-28"></span><h3>join<a class="headerlink" href="#join" title="Permalink to this headline">¶</a></h3>
+<span id="index-364"></span><h3>join<a class="headerlink" href="#join" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.join(bsl)</span></tt></p>
 <p>Returns the concatenation of the BitString objects in the list <tt class="docutils literal"><span class="pre">bsl</span></tt> joined with <tt class="docutils literal"><span class="pre">s</span></tt> as a separator.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">()</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;0x0001ee&#39;</span><span class="p">,</span> <span class="s">&#39;uint:24=13&#39;</span><span class="p">,</span> <span class="s">&#39;0b0111&#39;</span><span class="p">])</span>
@@ -548,7 +543,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="overwrite">
-<span id="index-29"></span><h3>overwrite<a class="headerlink" href="#overwrite" title="Permalink to this headline">¶</a></h3>
+<span id="index-365"></span><h3>overwrite<a class="headerlink" href="#overwrite" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.overwrite(bs,</span> <span class="pre">pos=None)</span></tt></p>
 <p>Replaces the contents of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> with <tt class="docutils literal"><span class="pre">bs</span></tt> at <tt class="docutils literal"><span class="pre">pos</span></tt>. After overwriting <tt class="docutils literal"><span class="pre">pos</span></tt> will be immediately after the overwritten section.</p>
 <p>The default for <tt class="docutils literal"><span class="pre">pos</span></tt> is the current position.</p>
@@ -562,26 +557,26 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="peek">
-<span id="index-30"></span><h3>peek<a class="headerlink" href="#peek" title="Permalink to this headline">¶</a></h3>
+<span id="index-366"></span><h3>peek<a class="headerlink" href="#peek" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.peek(format)</span></tt></p>
 <p>Reads from the current bit position <tt class="docutils literal"><span class="pre">pos</span></tt> in the <tt class="docutils literal"><span class="pre">BitString</span></tt> according the the format string and returns a new <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>The bit position is unchanged after calling <tt class="docutils literal"><span class="pre">peek</span></tt>.</p>
 <p>For information on the format string see the entry for the <tt class="docutils literal"><span class="pre">read</span></tt> function.</p>
 </div>
 <div class="section" id="peeklist">
-<span id="index-31"></span><h3>peeklist<a class="headerlink" href="#peeklist" title="Permalink to this headline">¶</a></h3>
+<span id="index-367"></span><h3>peeklist<a class="headerlink" href="#peeklist" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.peeklist(*format)</span></tt></p>
 <p>Reads from current bit position pos in the <tt class="docutils literal"><span class="pre">BitString</span></tt> according to the <tt class="docutils literal"><span class="pre">format</span></tt> string and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
 <p>The position is not advanced to after the read items.</p>
 <p>See the entries for <tt class="docutils literal"><span class="pre">read</span></tt> and <tt class="docutils literal"><span class="pre">readlist</span></tt> for more information.</p>
 </div>
 <div class="section" id="peekbit">
-<span id="index-32"></span><h3>peekbit<a class="headerlink" href="#peekbit" title="Permalink to this headline">¶</a></h3>
+<span id="index-368"></span><h3>peekbit<a class="headerlink" href="#peekbit" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.peekbit()</span></tt></p>
 <p>Returns the next bit in the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> but does not advance the position.</p>
 </div>
 <div class="section" id="peekbits">
-<span id="index-33"></span><h3>peekbits<a class="headerlink" href="#peekbits" title="Permalink to this headline">¶</a></h3>
+<span id="index-369"></span><h3>peekbits<a class="headerlink" href="#peekbits" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.peekbits(bits)</span></tt></p>
 <p>Returns the next <tt class="docutils literal"><span class="pre">bits</span></tt> bits of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> but does not advance the position.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf01&#39;</span><span class="p">)</span>
@@ -594,7 +589,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="peekbitlist">
-<span id="index-34"></span><h3>peekbitlist<a class="headerlink" href="#peekbitlist" title="Permalink to this headline">¶</a></h3>
+<span id="index-370"></span><h3>peekbitlist<a class="headerlink" href="#peekbitlist" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.peekbitlist(*bits)</span></tt></p>
 <p>Reads multiple bits from the current position and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects, but does not advance the position.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf01&#39;</span><span class="p">)</span>
@@ -609,18 +604,18 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="peekbyte">
-<span id="index-35"></span><h3>peekbyte<a class="headerlink" href="#peekbyte" title="Permalink to this headline">¶</a></h3>
+<span id="index-371"></span><h3>peekbyte<a class="headerlink" href="#peekbyte" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.peekbyte()</span></tt></p>
 <p>Returns the next byte of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> but does not advance the position.</p>
 </div>
 <div class="section" id="peekbytes">
-<span id="index-36"></span><h3>peekbytes<a class="headerlink" href="#peekbytes" title="Permalink to this headline">¶</a></h3>
+<span id="index-372"></span><h3>peekbytes<a class="headerlink" href="#peekbytes" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.peekbytes(*bytes)</span></tt></p>
 <p>Returns the next <tt class="docutils literal"><span class="pre">bytes</span></tt> bytes of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> but does not advance the position.</p>
 <p>If multiple bytes are specified then a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects is returned.</p>
 </div>
 <div class="section" id="peekbytelist">
-<span id="index-37"></span><h3>peekbytelist<a class="headerlink" href="#peekbytelist" title="Permalink to this headline">¶</a></h3>
+<span id="index-373"></span><h3>peekbytelist<a class="headerlink" href="#peekbytelist" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.peekbytelist(*bytes)</span></tt></p>
 <p>Reads multiple bytes from the current position and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects, but does not advance the position.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x34eedd&#39;</span><span class="p">)</span>
@@ -630,7 +625,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="prepend">
-<span id="index-38"></span><h3>prepend<a class="headerlink" href="#prepend" title="Permalink to this headline">¶</a></h3>
+<span id="index-374"></span><h3>prepend<a class="headerlink" href="#prepend" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.prepend(bs)</span></tt></p>
 <p>Inserts <tt class="docutils literal"><span class="pre">bs</span></tt> at the beginning of the current <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b0&#39;</span><span class="p">)</span>
@@ -641,7 +636,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="read">
-<span id="index-39"></span><h3>read<a class="headerlink" href="#read" title="Permalink to this headline">¶</a></h3>
+<span id="index-375"></span><h3>read<a class="headerlink" href="#read" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.read(format)</span></tt></p>
 <p>Reads from current bit position pos in the <tt class="docutils literal"><span class="pre">BitString</span></tt> according the the format string and returns a single <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p><tt class="docutils literal"><span class="pre">format</span></tt> is a token string that describe how to interpret the next bits in the <tt class="docutils literal"><span class="pre">BitString</span></tt>. The tokens are:</p>
@@ -664,7 +659,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 <td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian signed integer.</td>
 </tr>
 <tr><td><tt class="docutils literal"><span class="pre">uintbe:n</span></tt></td>
-<td><a href="#id1"><span class="problematic" id="id2">``</span></a>n   bits as a big-endian unsigned integer.</td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian unsigned integer.</td>
 </tr>
 <tr><td><tt class="docutils literal"><span class="pre">floatbe:n</span></tt></td>
 <td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian float.</td>
@@ -706,7 +701,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 <td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a new <tt class="docutils literal"><span class="pre">BitString</span></tt>.</td>
 </tr>
 <tr><td><tt class="docutils literal"><span class="pre">bytes:n</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">n</span></tt> bytes as bytes object.</td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bytes as <tt class="docutils literal"><span class="pre">bytes</span></tt> object.</td>
 </tr>
 </tbody>
 </table>
@@ -732,7 +727,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="readlist">
-<span id="index-40"></span><h3>readlist<a class="headerlink" href="#readlist" title="Permalink to this headline">¶</a></h3>
+<span id="index-376"></span><h3>readlist<a class="headerlink" href="#readlist" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.readlist(*format)</span></tt></p>
 <p>Reads from current bit position <tt class="docutils literal"><span class="pre">pos</span></tt> in the <tt class="docutils literal"><span class="pre">BitString</span></tt> according to the <tt class="docutils literal"><span class="pre">format</span></tt> string(s) and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
 <p>The position is advanced to after the read items.</p>
@@ -747,12 +742,12 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="readbit">
-<span id="index-41"></span><h3>readbit<a class="headerlink" href="#readbit" title="Permalink to this headline">¶</a></h3>
+<span id="index-377"></span><h3>readbit<a class="headerlink" href="#readbit" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.readbit()</span></tt></p>
 <p>Returns the next bit of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> and advances the position.</p>
 </div>
 <div class="section" id="readbits">
-<span id="index-42"></span><h3>readbits<a class="headerlink" href="#readbits" title="Permalink to this headline">¶</a></h3>
+<span id="index-378"></span><h3>readbits<a class="headerlink" href="#readbits" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.readbits(bits)</span></tt></p>
 <p>Returns the next <tt class="docutils literal"><span class="pre">bits</span></tt> bits of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> and advances the position.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0001e2&#39;</span><span class="p">)</span>
@@ -764,7 +759,7 @@ When used as a getter will raise a <tt class="docutils literal"><span class="pre
 </div>
 </div>
 <div class="section" id="readbitlist">
-<span id="index-43"></span><h3>readbitlist<a class="headerlink" href="#readbitlist" title="Permalink to this headline">¶</a></h3>
+<span id="index-379"></span><h3>readbitlist<a class="headerlink" href="#readbitlist" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.readbitlist(*bits)</span></tt></p>
 <p>Reads multiple bits from the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.
 The position is advanced to after the read items.</p>
@@ -777,23 +772,23 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="readbyte">
-<span id="index-44"></span><h3>readbyte<a class="headerlink" href="#readbyte" title="Permalink to this headline">¶</a></h3>
+<span id="index-380"></span><h3>readbyte<a class="headerlink" href="#readbyte" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.readbyte()</span></tt></p>
 <p>Returns the next byte of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> and advances the position.</p>
 </div>
 <div class="section" id="readbytes">
-<span id="index-45"></span><h3>readbytes<a class="headerlink" href="#readbytes" title="Permalink to this headline">¶</a></h3>
+<span id="index-381"></span><h3>readbytes<a class="headerlink" href="#readbytes" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.readbytes(bytes)</span></tt></p>
-<p>Returns the next bytes bytes of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> and advances the position.</p>
+<p>Returns the next <tt class="docutils literal"><span class="pre">bytes</span></tt> bytes of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> and advances the position.</p>
 </div>
 <div class="section" id="readbytelist">
-<span id="index-46"></span><h3>readbytelist<a class="headerlink" href="#readbytelist" title="Permalink to this headline">¶</a></h3>
+<span id="index-382"></span><h3>readbytelist<a class="headerlink" href="#readbytelist" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.readbytelist(*bytes)</span></tt></p>
 <p>Reads multiple bytes from the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
 <p>The position is advanced to after the read items.</p>
 </div>
 <div class="section" id="replace">
-<span id="index-47"></span><h3>replace<a class="headerlink" href="#replace" title="Permalink to this headline">¶</a></h3>
+<span id="index-383"></span><h3>replace<a class="headerlink" href="#replace" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.replace(old,</span> <span class="pre">new,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">count=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
 <p>Finds occurrences of <tt class="docutils literal"><span class="pre">old</span></tt> and replaces them with <tt class="docutils literal"><span class="pre">new</span></tt>. Returns the number of replacements made.</p>
 <p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then replacements will only be made on byte boundaries. <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the search range and default to <tt class="docutils literal"><span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">s.length</span></tt> respectively. If <tt class="docutils literal"><span class="pre">count</span></tt> is specified then no more than this many replacements will be made.</p>
@@ -810,7 +805,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="reverse">
-<span id="index-48"></span><h3>reverse<a class="headerlink" href="#reverse" title="Permalink to this headline">¶</a></h3>
+<span id="index-384"></span><h3>reverse<a class="headerlink" href="#reverse" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.reverse(start=None,</span> <span class="pre">end=None)</span></tt></p>
 <p>Reverses bits in the <tt class="docutils literal"><span class="pre">BitString</span></tt> in-place.</p>
 <p><tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the range and default to <tt class="docutils literal"><span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">s.length</span></tt> respectively.</p>
@@ -822,7 +817,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="reversebytes">
-<span id="index-49"></span><h3>reversebytes<a class="headerlink" href="#reversebytes" title="Permalink to this headline">¶</a></h3>
+<span id="index-385"></span><h3>reversebytes<a class="headerlink" href="#reversebytes" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.reversebytes(start=None,</span> <span class="pre">end=None)</span></tt></p>
 <p>Reverses bytes in the <tt class="docutils literal"><span class="pre">BitString</span></tt> in-place.</p>
 <p><tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the range and default to <tt class="docutils literal"><span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">s.length</span></tt> respectively. Note that <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> are specified in bits so if <tt class="docutils literal"><span class="pre">end&nbsp;-&nbsp;start</span></tt> is not a multiple of 8 then a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> is raised.</p>
@@ -835,7 +830,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="rfind">
-<span id="index-50"></span><h3>rfind<a class="headerlink" href="#rfind" title="Permalink to this headline">¶</a></h3>
+<span id="index-386"></span><h3>rfind<a class="headerlink" href="#rfind" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.rfind(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
 <p>Searches backwards for <tt class="docutils literal"><span class="pre">bs</span></tt> in the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if found, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
 <p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then it will look for <tt class="docutils literal"><span class="pre">bs</span></tt> only at byte aligned positions. <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the search range and default to <tt class="docutils literal"><span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">s.length</span></tt> respectively.</p>
@@ -853,7 +848,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="rol">
-<span id="index-51"></span><h3>rol<a class="headerlink" href="#rol" title="Permalink to this headline">¶</a></h3>
+<span id="index-387"></span><h3>rol<a class="headerlink" href="#rol" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.rol(bits)</span></tt></p>
 <p>Rotates the contents of the <tt class="docutils literal"><span class="pre">BitString</span></tt> in-place by <tt class="docutils literal"><span class="pre">bits</span></tt> bits to the left.</p>
 <p>Raises <tt class="docutils literal"><span class="pre">ValueError</span></tt> if <tt class="docutils literal"><span class="pre">bits&nbsp;&lt;&nbsp;0</span></tt>.</p>
@@ -865,16 +860,17 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="ror">
-<span id="index-52"></span><h3>ror<a class="headerlink" href="#ror" title="Permalink to this headline">¶</a></h3>
+<span id="index-388"></span><h3>ror<a class="headerlink" href="#ror" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.ror(bits)</span></tt></p>
 <p>Rotates the contents of the <tt class="docutils literal"><span class="pre">BitString</span></tt> in-place by <tt class="docutils literal"><span class="pre">bits</span></tt> bits to the right.</p>
 <p>Raises <tt class="docutils literal"><span class="pre">ValueError</span></tt> if <tt class="docutils literal"><span class="pre">bits</span> <span class="pre">&lt;</span> <span class="pre">0</span></tt>.</p>
 </div>
 <div class="section" id="split">
-<span id="index-53"></span><h3>split<a class="headerlink" href="#split" title="Permalink to this headline">¶</a></h3>
+<span id="index-389"></span><h3>split<a class="headerlink" href="#split" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.split(delimiter,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">count=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
 <p>Splits <tt class="docutils literal"><span class="pre">s</span></tt> into sections that start with <tt class="docutils literal"><span class="pre">delimiter</span></tt>. Returns a generator for <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
 <p>The first item generated is always the bits before the first occurrence of delimiter (even if empty). A slice can be optionally specified with <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt>, while <tt class="docutils literal"><span class="pre">count</span></tt> specifies the maximum number of items generated.</p>
+<p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then the delimiter will only be found if it starts at a byte aligned position.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x42423&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">bs</span><span class="o">.</span><span class="n">bin</span> <span class="k">for</span> <span class="n">bs</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;0x4&#39;</span><span class="p">)]</span>
 <span class="go">[&#39;&#39;, &#39;0b01000&#39;, &#39;0b01001000&#39;, &#39;0b0100011&#39;]</span>
@@ -882,13 +878,13 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="startswith">
-<span id="index-54"></span><h3>startswith<a class="headerlink" href="#startswith" title="Permalink to this headline">¶</a></h3>
+<span id="index-390"></span><h3>startswith<a class="headerlink" href="#startswith" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.startswith(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None)</span></tt></p>
 <p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if the <tt class="docutils literal"><span class="pre">BitString</span></tt> starts with the sub-string <tt class="docutils literal"><span class="pre">bs</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
 <p>A slice can be given using the <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> bit positions and defaults to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 </div>
 <div class="section" id="tobytes">
-<span id="index-55"></span><h3>tobytes<a class="headerlink" href="#tobytes" title="Permalink to this headline">¶</a></h3>
+<span id="index-391"></span><h3>tobytes<a class="headerlink" href="#tobytes" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.tobytes()</span></tt></p>
 <p>Returns the <tt class="docutils literal"><span class="pre">BitString</span></tt> as a <tt class="docutils literal"><span class="pre">bytes</span></tt> object (equivalent to a <tt class="docutils literal"><span class="pre">str</span></tt> in Python 2.6).</p>
 <p>The returned value will be padded at the end with between zero and seven <tt class="docutils literal"><span class="pre">0</span></tt> bits to make it byte aligned.</p>
@@ -901,7 +897,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="tofile">
-<span id="index-56"></span><h3>tofile<a class="headerlink" href="#tofile" title="Permalink to this headline">¶</a></h3>
+<span id="index-392"></span><h3>tofile<a class="headerlink" href="#tofile" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.tofile(f)</span></tt></p>
 <p>Writes the <tt class="docutils literal"><span class="pre">BitString</span></tt> to the file object <tt class="docutils literal"><span class="pre">f</span></tt>.</p>
 <p>The data written will be padded at the end with between zero and seven <tt class="docutils literal"><span class="pre">0</span></tt> bits to make it byte aligned.</p>
@@ -911,7 +907,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="truncateend">
-<span id="index-57"></span><h3>truncateend<a class="headerlink" href="#truncateend" title="Permalink to this headline">¶</a></h3>
+<span id="index-393"></span><h3>truncateend<a class="headerlink" href="#truncateend" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.truncateend(bits)</span></tt></p>
 <p>Remove the last <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the end of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>A <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised if you try to truncate a negative number of bits, or more bits than the <tt class="docutils literal"><span class="pre">BitString</span></tt> contains.</p>
@@ -923,7 +919,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="truncatestart">
-<span id="index-58"></span><h3>truncatestart<a class="headerlink" href="#truncatestart" title="Permalink to this headline">¶</a></h3>
+<span id="index-394"></span><h3>truncatestart<a class="headerlink" href="#truncatestart" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.truncatestart(bits)</span></tt></p>
 <p>Remove the first <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the start of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>A <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised if you try to truncate a negative number of bits, or more bits than the <tt class="docutils literal"><span class="pre">BitString</span></tt> contains.</p>
@@ -935,7 +931,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="unpack">
-<span id="index-59"></span><h3>unpack<a class="headerlink" href="#unpack" title="Permalink to this headline">¶</a></h3>
+<span id="index-395"></span><h3>unpack<a class="headerlink" href="#unpack" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s.unpack(*format)</span></tt></p>
 <p>Interprets the whole <tt class="docutils literal"><span class="pre">BitString</span></tt> according to the <tt class="docutils literal"><span class="pre">format</span></tt> string(s) and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
 <p><tt class="docutils literal"><span class="pre">format</span></tt> is one or more strings with comma separated tokens that describe how to interpret the next bits in the <tt class="docutils literal"><span class="pre">BitString</span></tt>. See the entry for <tt class="docutils literal"><span class="pre">read</span></tt> for details.</p>
@@ -949,7 +945,7 @@ The position is advanced to after the read items.</p>
 <div class="section" id="class-special-methods">
 <h2>Class special methods<a class="headerlink" href="#class-special-methods" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="add-radd">
-<span id="index-60"></span><h3>__add__ / __radd__<a class="headerlink" href="#add-radd" title="Permalink to this headline">¶</a></h3>
+<span id="index-396"></span><h3>__add__ / __radd__<a class="headerlink" href="#add-radd" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">+</span> <span class="pre">s2</span></tt></p>
 <p>Concatenate two <tt class="docutils literal"><span class="pre">BitString</span></tt> objects and return the result. Either <tt class="docutils literal"><span class="pre">s1</span></tt> or <tt class="docutils literal"><span class="pre">s2</span></tt> can be &#8216;auto&#8217; initialised.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">132</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;0xff&#39;</span>
@@ -958,7 +954,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="and-rand">
-<span id="index-61"></span><h3>__and__ / __rand__<a class="headerlink" href="#and-rand" title="Permalink to this headline">¶</a></h3>
+<span id="index-397"></span><h3>__and__ / __rand__<a class="headerlink" href="#and-rand" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">&amp;</span> <span class="pre">s2</span></tt></p>
 <p>Returns the bit-wise AND between <tt class="docutils literal"><span class="pre">s1</span></tt> and <tt class="docutils literal"><span class="pre">s2</span></tt>, which must have the same length otherwise a <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x33&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="s">&#39;0x0f&#39;</span>
@@ -967,10 +963,10 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="contains">
-<span id="index-62"></span><h3>__contains__<a class="headerlink" href="#contains" title="Permalink to this headline">¶</a></h3>
+<span id="index-398"></span><h3>__contains__<a class="headerlink" href="#contains" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">bs</span> <span class="pre">in</span> <span class="pre">s</span></tt></p>
 <p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if <tt class="docutils literal"><span class="pre">bs</span></tt> can be found in <tt class="docutils literal"><span class="pre">s</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
-<p>Equivalent to using <tt class="docutils literal"><span class="pre">find</span></tt>, except that <tt class="docutils literal"><span class="pre">pos</span></tt> will not be changed.</p>
+<p>Equivalent to using <tt class="docutils literal"><span class="pre">find</span></tt>, except that <tt class="docutils literal"><span class="pre">pos</span></tt> will not be changed so you don&#8217;t know where it was found.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;0b11&#39;</span> <span class="ow">in</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x06&#39;</span><span class="p">)</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;0b111&#39;</span> <span class="ow">in</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x06&#39;</span><span class="p">)</span>
@@ -979,7 +975,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="copy">
-<span id="index-63"></span><h3>__copy__<a class="headerlink" href="#copy" title="Permalink to this headline">¶</a></h3>
+<span id="index-399"></span><h3>__copy__<a class="headerlink" href="#copy" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s2</span> <span class="pre">=</span> <span class="pre">copy.copy(s1)</span></tt></p>
 <p>This allows the <tt class="docutils literal"><span class="pre">copy</span></tt> module to correctly copy <tt class="docutils literal"><span class="pre">BitString</span></tt> objects. Other equivalent methods are to initialise a new <tt class="docutils literal"><span class="pre">BitString</span></tt> with the old one or to take a complete slice.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">copy</span>
@@ -993,13 +989,13 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="delitem">
-<span id="index-64"></span><h3>__delitem__<a class="headerlink" href="#delitem" title="Permalink to this headline">¶</a></h3>
+<span id="index-400"></span><h3>__delitem__<a class="headerlink" href="#delitem" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[start:end:step]</span></tt></p>
 <p>Deletes the slice specified.</p>
 <p>After deletion <tt class="docutils literal"><span class="pre">pos</span></tt> will be at the deleted slice&#8217;s position.</p>
 </div>
 <div class="section" id="eq">
-<span id="index-65"></span><h3>__eq__<a class="headerlink" href="#eq" title="Permalink to this headline">¶</a></h3>
+<span id="index-401"></span><h3>__eq__<a class="headerlink" href="#eq" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">==</span> <span class="pre">s2</span></tt></p>
 <p>Compares two <tt class="docutils literal"><span class="pre">BitString</span></tt> objects for equality, returning <tt class="xref docutils literal"><span class="pre">True</span></tt> if they have the same binary representation, otherwise returning <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o7777&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;0xfff&#39;</span>
@@ -1012,7 +1008,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="getitem">
-<span id="index-66"></span><h3>__getitem__<a class="headerlink" href="#getitem" title="Permalink to this headline">¶</a></h3>
+<span id="index-402"></span><h3>__getitem__<a class="headerlink" href="#getitem" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s[start:end:step]</span></tt></p>
 <p>Returns a slice of <tt class="docutils literal"><span class="pre">s</span></tt>.</p>
 <p>The usual slice behaviour applies except that the step parameter gives a multiplicative factor for <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> (i.e. the bits &#8216;stepped over&#8217; are included in the slice).</p>
@@ -1025,7 +1021,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="iadd">
-<span id="index-67"></span><h3>__iadd__<a class="headerlink" href="#iadd" title="Permalink to this headline">¶</a></h3>
+<span id="index-403"></span><h3>__iadd__<a class="headerlink" href="#iadd" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">+=</span> <span class="pre">s2</span></tt></p>
 <p>Append a <tt class="docutils literal"><span class="pre">BitString</span></tt> to the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and return the result.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">423</span><span class="p">)</span>
@@ -1038,12 +1034,12 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="ilshift">
-<span id="index-68"></span><h3>__ilshift__<a class="headerlink" href="#ilshift" title="Permalink to this headline">¶</a></h3>
+<span id="index-404"></span><h3>__ilshift__<a class="headerlink" href="#ilshift" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">&lt;&lt;=</span> <span class="pre">n</span></tt></p>
 <p>Shifts the bits in <tt class="docutils literal"><span class="pre">s</span></tt> in place to the left by <tt class="docutils literal"><span class="pre">n</span></tt> places. Returns <tt class="docutils literal"><span class="pre">self</span></tt>. Bits shifted off the left hand side are lost, and replaced by <tt class="docutils literal"><span class="pre">0</span></tt> bits on the right hand side.</p>
 </div>
 <div class="section" id="imul">
-<span id="index-69"></span><h3>__imul__<a class="headerlink" href="#imul" title="Permalink to this headline">¶</a></h3>
+<span id="index-405"></span><h3>__imul__<a class="headerlink" href="#imul" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">*=</span> <span class="pre">n</span></tt></p>
 <p>Concatenates <tt class="docutils literal"><span class="pre">n</span></tt> copies of <tt class="docutils literal"><span class="pre">s</span></tt> and returns <tt class="docutils literal"><span class="pre">self</span></tt>. Raises <tt class="docutils literal"><span class="pre">ValueError</span></tt> if <tt class="docutils literal"><span class="pre">n</span> <span class="pre">&lt;</span> <span class="pre">0</span></tt>.</p>
 <div class="highlight-python"><pre>&gt;&gt;&gt; s = BitString(‘0xef’)
@@ -1053,7 +1049,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="init">
-<span id="index-70"></span><h3>__init__<a class="headerlink" href="#init" title="Permalink to this headline">¶</a></h3>
+<span id="index-406"></span><h3>__init__<a class="headerlink" href="#init" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">BitString(auto=None,</span> <span class="pre">length=None,</span> <span class="pre">offset=0,</span> <span class="pre">bytes=None,</span> <span class="pre">filename=None,</span> <span class="pre">hex=None,</span> <span class="pre">bin=None,</span> <span class="pre">oct=None,</span> <span class="pre">uint=None,</span> <span class="pre">int=None,</span> <span class="pre">uintbe=None,</span> <span class="pre">intbe=None,</span> <span class="pre">uintle=None,</span> <span class="pre">intle=None,</span> <span class="pre">uintne=None,</span> <span class="pre">intne=None,</span> <span class="pre">ue=None,</span> <span class="pre">se=None,</span> <span class="pre">float=None,</span> <span class="pre">floatbe=None,</span> <span class="pre">floatle=None,</span> <span class="pre">floatne=None)</span></tt></p>
 <p>Creates a new <tt class="docutils literal"><span class="pre">BitString</span></tt>. You must specify at most one of the initialisers <tt class="docutils literal"><span class="pre">auto</span></tt>, <tt class="docutils literal"><span class="pre">bytes</span></tt>, <tt class="docutils literal"><span class="pre">bin</span></tt>, <tt class="docutils literal"><span class="pre">hex</span></tt>, <tt class="docutils literal"><span class="pre">oct</span></tt>, <tt class="docutils literal"><span class="pre">uint</span></tt>, <tt class="docutils literal"><span class="pre">int</span></tt>, <tt class="docutils literal"><span class="pre">uintbe</span></tt>, <tt class="docutils literal"><span class="pre">intbe</span></tt>, <tt class="docutils literal"><span class="pre">uintle</span></tt>, <tt class="docutils literal"><span class="pre">intle</span></tt>, <tt class="docutils literal"><span class="pre">uintne</span></tt>, <tt class="docutils literal"><span class="pre">intne</span></tt>, <tt class="docutils literal"><span class="pre">se</span></tt>, <tt class="docutils literal"><span class="pre">ue</span></tt>, <tt class="docutils literal"><span class="pre">float</span></tt>, <tt class="docutils literal"><span class="pre">floatbe</span></tt>, <tt class="docutils literal"><span class="pre">floatle</span></tt>, <tt class="docutils literal"><span class="pre">floatne</span></tt> or <tt class="docutils literal"><span class="pre">filename</span></tt>. If no initialiser is given then a zeroed <tt class="docutils literal"><span class="pre">BitString</span></tt> of length bits is created.</p>
 <p><tt class="docutils literal"><span class="pre">offset</span></tt> is optional for most initialisers, but only really useful for <tt class="docutils literal"><span class="pre">bytes</span></tt> and <tt class="docutils literal"><span class="pre">filename</span></tt>. It gives a number of bits to ignore at the start of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
@@ -1068,14 +1064,14 @@ The position is advanced to after the read items.</p>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>For information on the use of the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser see the introduction to this appendix.</p>
+<p>For information on the use of the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser see the introduction to this reference section.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;uint:12=32, 0b110&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o755, ue:12, int:3=-1&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="invert">
-<span id="index-71"></span><h3>__invert__<a class="headerlink" href="#invert" title="Permalink to this headline">¶</a></h3>
+<span id="index-407"></span><h3>__invert__<a class="headerlink" href="#invert" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">~s</span></tt></p>
 <p>Returns the <tt class="docutils literal"><span class="pre">BitString</span></tt> with every bit inverted, that is all zeros replaced with ones, and all ones replaced with zeros.</p>
 <p>If the <tt class="docutils literal"><span class="pre">BitString</span></tt> is empty then a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> will be raised.</p>
@@ -1087,7 +1083,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="irshift">
-<span id="index-72"></span><h3>__irshift__<a class="headerlink" href="#irshift" title="Permalink to this headline">¶</a></h3>
+<span id="index-408"></span><h3>__irshift__<a class="headerlink" href="#irshift" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">&gt;&gt;=</span> <span class="pre">n</span></tt></p>
 <p>Shifts the bits in <tt class="docutils literal"><span class="pre">s</span></tt> in place by <tt class="docutils literal"><span class="pre">n</span></tt> places to the right and returns <tt class="docutils literal"><span class="pre">self</span></tt>. The <tt class="docutils literal"><span class="pre">n</span></tt> left-most bits will become zeros.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b110&#39;</span><span class="p">)</span>
@@ -1098,7 +1094,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="len">
-<span id="index-73"></span><h3>__len__<a class="headerlink" href="#len" title="Permalink to this headline">¶</a></h3>
+<span id="index-409"></span><h3>__len__<a class="headerlink" href="#len" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">len(s)</span></tt></p>
 <p>Returns the length of the <tt class="docutils literal"><span class="pre">BitString</span></tt> in bits if it is less than <tt class="docutils literal"><span class="pre">sys.maxsize</span></tt>, otherwise raises <tt class="docutils literal"><span class="pre">OverflowError</span></tt>.</p>
 <p>It&#8217;s recommended that you use the <tt class="docutils literal"><span class="pre">len</span></tt> property rather than the <tt class="docutils literal"><span class="pre">len</span></tt> function because of the function&#8217;s behaviour for large <tt class="docutils literal"><span class="pre">BitString</span></tt> objects, although calling the special function directly will always work.</p>
@@ -1113,7 +1109,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="lshift">
-<span id="index-74"></span><h3>__lshift__<a class="headerlink" href="#lshift" title="Permalink to this headline">¶</a></h3>
+<span id="index-410"></span><h3>__lshift__<a class="headerlink" href="#lshift" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">&lt;&lt;</span> <span class="pre">n</span></tt></p>
 <p>Returns the <tt class="docutils literal"><span class="pre">BitString</span></tt> with its bits shifted <tt class="docutils literal"><span class="pre">n</span></tt> places to the left. The <tt class="docutils literal"><span class="pre">n</span></tt> right-most bits will become zeros.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xff&#39;</span><span class="p">)</span>
@@ -1123,7 +1119,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="mul-rmul">
-<span id="index-75"></span><h3>__mul__ / __rmul__<a class="headerlink" href="#mul-rmul" title="Permalink to this headline">¶</a></h3>
+<span id="index-411"></span><h3>__mul__ / __rmul__<a class="headerlink" href="#mul-rmul" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">*</span> <span class="pre">n</span> <span class="pre">/</span> <span class="pre">n</span> <span class="pre">*</span> <span class="pre">s</span></tt></p>
 <p>Return <tt class="docutils literal"><span class="pre">BitString</span></tt> consisting of n concatenations of s.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x34&#39;</span><span class="p">)</span>
@@ -1134,12 +1130,12 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="ne">
-<span id="index-76"></span><h3>__ne__<a class="headerlink" href="#ne" title="Permalink to this headline">¶</a></h3>
+<span id="index-412"></span><h3>__ne__<a class="headerlink" href="#ne" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">!=</span> <span class="pre">s2</span></tt></p>
 <p>Compares two <tt class="docutils literal"><span class="pre">BitString</span></tt> objects for inequality, returning <tt class="xref docutils literal"><span class="pre">False</span></tt> if they have the same binary representation, otherwise returning <tt class="xref docutils literal"><span class="pre">True</span></tt>.</p>
 </div>
 <div class="section" id="or-ror">
-<span id="index-77"></span><h3>__or__ / __ror__<a class="headerlink" href="#or-ror" title="Permalink to this headline">¶</a></h3>
+<span id="index-413"></span><h3>__or__ / __ror__<a class="headerlink" href="#or-ror" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">|</span> <span class="pre">s2</span></tt></p>
 <p>Returns the bit-wise OR between <tt class="docutils literal"><span class="pre">s1</span></tt> and <tt class="docutils literal"><span class="pre">s2</span></tt>, which must have the same length otherwise a <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x33&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="s">&#39;0x0f&#39;</span>
@@ -1148,7 +1144,7 @@ The position is advanced to after the read items.</p>
 </div>
 </div>
 <div class="section" id="repr">
-<span id="index-78"></span><h3>__repr__<a class="headerlink" href="#repr" title="Permalink to this headline">¶</a></h3>
+<span id="index-414"></span><h3>__repr__<a class="headerlink" href="#repr" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">repr(s)</span></tt></p>
 <p>A representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt> that could be used to create it (which will often not be the form used to create it).</p>
 <p>If the result is too long then it will be truncated with <tt class="docutils literal"><span class="pre">...</span></tt> and the length of the whole <tt class="docutils literal"><span class="pre">BitString</span></tt> will be given.</p>
@@ -1157,7 +1153,7 @@ BitString(‘0xe3’)</pre>
 </div>
 </div>
 <div class="section" id="rshift">
-<span id="index-79"></span><h3>__rshift__<a class="headerlink" href="#rshift" title="Permalink to this headline">¶</a></h3>
+<span id="index-415"></span><h3>__rshift__<a class="headerlink" href="#rshift" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">&gt;&gt;</span> <span class="pre">n</span></tt></p>
 <p>Returns the <tt class="docutils literal"><span class="pre">BitString</span></tt> with its bits shifted <tt class="docutils literal"><span class="pre">n</span></tt> places to the right. The <tt class="docutils literal"><span class="pre">n</span></tt> left-most bits will become zeros.</p>
 <div class="highlight-python"><pre>&gt;&gt;&gt; s = BitString(‘0xff’)
@@ -1166,7 +1162,7 @@ BitString(‘0x0f’)</pre>
 </div>
 </div>
 <div class="section" id="setitem">
-<span id="index-80"></span><h3>__setitem__<a class="headerlink" href="#setitem" title="Permalink to this headline">¶</a></h3>
+<span id="index-416"></span><h3>__setitem__<a class="headerlink" href="#setitem" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s1[start:end:step]</span> <span class="pre">=</span> <span class="pre">s2</span></tt></p>
 <p>Replaces the slice specified with <tt class="docutils literal"><span class="pre">s2</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00112233&#39;</span><span class="p">)</span>
@@ -1180,7 +1176,7 @@ BitString(‘0x0f’)</pre>
 </div>
 </div>
 <div class="section" id="str">
-<span id="index-81"></span><h3>__str__<a class="headerlink" href="#str" title="Permalink to this headline">¶</a></h3>
+<span id="index-417"></span><h3>__str__<a class="headerlink" href="#str" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">print</span> <span class="pre">s</span></tt></p>
 <p>Prints a representation of <tt class="docutils literal"><span class="pre">s</span></tt>, trying to be as brief as possible.</p>
 <p>If <tt class="docutils literal"><span class="pre">s</span></tt> is a multiple of 4 bits long then hex will be used, otherwise either binary or a mix of hex and binary will be used. Very long strings will be truncated with <tt class="docutils literal"><span class="pre">...</span></tt>.</p>
@@ -1193,7 +1189,7 @@ BitString(‘0x0f’)</pre>
 </div>
 </div>
 <div class="section" id="xor-rxor">
-<span id="index-82"></span><h3>__xor__ / __rxor__<a class="headerlink" href="#xor-rxor" title="Permalink to this headline">¶</a></h3>
+<span id="index-418"></span><h3>__xor__ / __rxor__<a class="headerlink" href="#xor-rxor" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">^</span> <span class="pre">s2</span></tt></p>
 <p>Returns the bit-wise XOR between <tt class="docutils literal"><span class="pre">s1</span></tt> and <tt class="docutils literal"><span class="pre">s2</span></tt>, which must have the same length otherwise a <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised. Either <tt class="docutils literal"><span class="pre">s1</span></tt> or <tt class="docutils literal"><span class="pre">s2</span></tt> can be a string for the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x33&#39;</span><span class="p">)</span> <span class="o">^</span> <span class="s">&#39;0x0f&#39;</span>
@@ -1205,7 +1201,7 @@ BitString(‘0x0f’)</pre>
 <div class="section" id="module-methods">
 <h2>Module methods<a class="headerlink" href="#module-methods" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="pack">
-<span id="index-83"></span><h3>pack<a class="headerlink" href="#pack" title="Permalink to this headline">¶</a></h3>
+<span id="index-419"></span><h3>pack<a class="headerlink" href="#pack" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">bitstring.pack(format,</span> <span class="pre">*values,</span> <span class="pre">**kwargs)</span></tt></p>
 <p>Packs the values and keyword arguments according to the <tt class="docutils literal"><span class="pre">format</span></tt> string and returns a new <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <p>The format string consists of comma separated tokens of the form <tt class="docutils literal"><span class="pre">name:length=value</span></tt>. See the entry for <tt class="docutils literal"><span class="pre">read</span></tt> for more details.</p>
@@ -1289,7 +1285,7 @@ BitString(‘0x0f’)</pre>
 <h3>retreatbytes<a class="headerlink" href="#retreatbytes" title="Permalink to this headline">¶</a></h3>
 <p>(deprecated)</p>
 <p><tt class="docutils literal"><span class="pre">s.retreatbytes(bytes)</span></tt></p>
-<p>Retreats position by <a href="#id3"><span class="problematic" id="id4">``</span></a>bytes*``8 bits.</p>
+<p>Retreats position by <tt class="docutils literal"><span class="pre">bytes*8</span></tt> bits.</p>
 <p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos&nbsp;-=&nbsp;8*bytes</span></tt>.</p>
 </div>
 <div class="section" id="seek">
@@ -1326,7 +1322,6 @@ BitString(‘0x0f’)</pre>
 <p><tt class="docutils literal"><span class="pre">s.tellbyte()</span></tt></p>
 <p>Returns the current byte position.</p>
 <p>Equivalent to using the <tt class="docutils literal"><span class="pre">bytepos</span></tt> property as a getter.</p>
-<p>1 <a class="reference external" href="http://python-bitstring.googlecode">http://python-bitstring.googlecode</a>.com2 You may need to use &#8216;sudo&#8217; or similar depending on your permissions on your system.3 For the single byte codes b and B the endianness doesn&#8217;t make any difference but you still need to specify one so that the format string can be parsed correctly.4 You could also just create it in one go without joining using BitString(&#8216;0b000, 0xf&#8217;)5 The stream is provided in the test directory if you downloaded the source archive.6 The reason you can&#8217;t use exponential-Golomb codes after a stretchy token is that the codes can only be read forwards; that is you can&#8217;t ask &#8220;if this code ends here, where did it begin?&#8221; as there could be many possible answers.7 There is also a property called &#8216;bitpos&#8217;, which is just a synonym for &#8216;pos&#8217;.8 the limit is sys.maxsize, which equates to just 256MB of data on many platforms.</p>
 </div>
 </div>
 </div>
@@ -1344,10 +1339,7 @@ BitString(‘0x0f’)</pre>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="exp-golomb.html" title="Exponential-Golomb Codes"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="examples.html" title="Examples"
+          <a href="internals.html" title="Internals"
              >previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li> 
       </ul>
