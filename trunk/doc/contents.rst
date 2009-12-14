@@ -1,5 +1,5 @@
-Walkthrough
-===========
+Manual
+======
 
 .. toctree:: 
    :maxdepth: 2

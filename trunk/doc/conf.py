@@ -70,7 +70,7 @@ exclude_trees = ['_build']
 #default_role = None
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
-#add_function_parentheses = True
+add_function_parentheses = False
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
@@ -103,7 +103,7 @@ html_theme = 'sphinxdoc'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "bitstring manual"
+html_title = "bitstring documentation"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 html_short_title = 'bitstring'

@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Slicing, Dicing and Splicing &mdash; bitstring manual</title>
+    <title>Slicing, Dicing and Splicing &mdash; bitstring documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -19,8 +19,8 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="bitstring manual" href="index.html" />
-    <link rel="up" title="Walkthrough" href="contents.html" />
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="Manual" href="contents.html" />
     <link rel="next" title="Reading, Parsing and Unpacking" href="reading.html" />
     <link rel="prev" title="Creation and Interpretation" href="creation.html" /> 
   </head>
@@ -38,7 +38,7 @@
           <a href="creation.html" title="Creation and Interpretation"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" accesskey="U">Walkthrough</a> &raquo;</li> 
+          <li><a href="contents.html" accesskey="U">Manual</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -149,7 +149,7 @@
 </div>
 <div class="section" id="joining">
 <h2>Joining<a class="headerlink" href="#joining" title="Permalink to this headline">¶</a></h2>
-<p>To join together a couple of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects use the <tt class="docutils literal"><span class="pre">+</span></tt> or <tt class="docutils literal"><span class="pre">+=</span></tt> operators, or the <tt class="docutils literal"><span class="pre">append</span></tt> and <tt class="docutils literal"><span class="pre">prepend</span></tt> functions.</p>
+<p>To join together a couple of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects use the <tt class="docutils literal"><span class="pre">+</span></tt> or <tt class="docutils literal"><span class="pre">+=</span></tt> operators, or the <a title="append" class="reference external" href="reference.html#append"><tt class="xref docutils literal"><span class="pre">append</span></tt></a> and <a title="prepend" class="reference external" href="reference.html#prepend"><tt class="xref docutils literal"><span class="pre">prepend</span></tt></a> functions.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># Six ways of creating the same BitString:</span>
 <span class="n">a1</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bin</span><span class="o">=</span><span class="s">&#39;000&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">hex</span><span class="o">=</span><span class="s">&#39;f&#39;</span><span class="p">)</span>
 <span class="n">a2</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b000&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf&#39;</span><span class="p">)</span>
@@ -162,7 +162,7 @@
 <span class="n">a6</span> <span class="o">+=</span> <span class="s">&#39;0xf&#39;</span>
 </pre></div>
 </div>
-<p>If you want to join a large number of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects then the function <tt class="docutils literal"><span class="pre">join</span></tt> can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the <tt class="docutils literal"><span class="pre">BitString</span></tt> that it is called on as a separator when joining the list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects it is given. If you don&#8217;t want a separator then it can be called on an empty <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>If you want to join a large number of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects then the function <a title="join" class="reference external" href="reference.html#join"><tt class="xref docutils literal"><span class="pre">join</span></tt></a> can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the <tt class="docutils literal"><span class="pre">BitString</span></tt> that it is called on as a separator when joining the list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects it is given. If you don&#8217;t want a separator then it can be called on an empty <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">bslist</span> <span class="o">=</span> <span class="p">[</span><span class="n">BitString</span><span class="p">(</span><span class="n">uint</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1000</span><span class="p">)]</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1111&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bslist</span><span class="p">)</span>
 </pre></div>
@@ -173,7 +173,7 @@
 <p>The functions in this section all modify the <tt class="docutils literal"><span class="pre">BitString</span></tt> that they operate on.</p>
 <div class="section" id="truncatestart-truncateend">
 <h3><tt class="docutils literal"><span class="pre">truncatestart</span> <span class="pre">/</span> <span class="pre">truncateend</span></tt><a class="headerlink" href="#truncatestart-truncateend" title="Permalink to this headline">¶</a></h3>
-<p>The truncate functions take a single integer argument and remove that number of bits from the start or end.</p>
+<p>The <a title="truncatestart" class="reference external" href="reference.html#truncatestart"><tt class="xref docutils literal"><span class="pre">truncatestart</span></tt></a> and <a title="truncateend" class="reference external" href="reference.html#truncateend"><tt class="xref docutils literal"><span class="pre">truncateend</span></tt></a> functions take a single integer argument and remove that number of bits from the start or end.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x001122&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">truncateend</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">truncatestart</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
@@ -185,7 +185,7 @@
 </div>
 <div class="section" id="insert">
 <h3><tt class="docutils literal"><span class="pre">insert</span></tt><a class="headerlink" href="#insert" title="Permalink to this headline">¶</a></h3>
-<p>As you might expect, <tt class="docutils literal"><span class="pre">insert</span></tt> takes one <tt class="docutils literal"><span class="pre">BitString</span></tt> and inserts it into another. A bit position can be specified, but if not present then the current <tt class="docutils literal"><span class="pre">pos</span></tt> is used.</p>
+<p>As you might expect, <a title="insert" class="reference external" href="reference.html#insert"><tt class="xref docutils literal"><span class="pre">insert</span></tt></a> takes one <tt class="docutils literal"><span class="pre">BitString</span></tt> and inserts it into another. A bit position can be specified, but if not present then the current <tt class="docutils literal"><span class="pre">pos</span></tt> is used.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00112233&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s">&#39;0xffff&#39;</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">hex</span>
@@ -195,7 +195,7 @@
 </div>
 <div class="section" id="overwrite">
 <h3><tt class="docutils literal"><span class="pre">overwrite</span></tt><a class="headerlink" href="#overwrite" title="Permalink to this headline">¶</a></h3>
-<p><tt class="docutils literal"><span class="pre">overwrite</span></tt> does much the same as <tt class="docutils literal"><span class="pre">insert</span></tt>, but predictably the <tt class="docutils literal"><span class="pre">BitString</span></tt> object&#8217;s data is overwritten by the new data.</p>
+<p><a title="overwrite" class="reference external" href="reference.html#overwrite"><tt class="xref docutils literal"><span class="pre">overwrite</span></tt></a> does much the same as <a title="insert" class="reference external" href="reference.html#insert"><tt class="xref docutils literal"><span class="pre">insert</span></tt></a>, but predictably the <tt class="docutils literal"><span class="pre">BitString</span></tt> object&#8217;s data is overwritten by the new data.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00112233&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="mi">4</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">overwrite</span><span class="p">(</span><span class="s">&#39;0b1111&#39;</span><span class="p">)</span>         <span class="c"># Uses current pos as default</span>
@@ -206,7 +206,7 @@
 </div>
 <div class="section" id="delete">
 <h3><tt class="docutils literal"><span class="pre">delete</span></tt><a class="headerlink" href="#delete" title="Permalink to this headline">¶</a></h3>
-<p><tt class="docutils literal"><span class="pre">delete</span></tt> removes a section of the <tt class="docutils literal"><span class="pre">BitString</span></tt>. By default it is removed at the current pos:</p>
+<p><a title="delete" class="reference external" href="reference.html#delete"><tt class="xref docutils literal"><span class="pre">delete</span></tt></a> removes a section of the <tt class="docutils literal"><span class="pre">BitString</span></tt>. By default it is removed at the current pos:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b00011000&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>                <span class="c"># remove 2 bits at pos 3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">bin</span>
@@ -228,10 +228,12 @@
 <col width="42%" />
 <col width="58%" />
 </colgroup>
-<tbody valign="top">
-<tr><td>Using functions</td>
-<td>Using slices</td>
+<thead valign="bottom">
+<tr><th class="head">Using functions</th>
+<th class="head">Using slices</th>
 </tr>
+</thead>
+<tbody valign="top">
 <tr><td><tt class="docutils literal"><span class="pre">s.truncatestart(bits)</span></tt></td>
 <td><tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[:bits]</span></tt></td>
 </tr>
@@ -260,7 +262,7 @@
 <h2>Splitting<a class="headerlink" href="#splitting" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="split">
 <h3><tt class="docutils literal"><span class="pre">split</span></tt><a class="headerlink" href="#split" title="Permalink to this headline">¶</a></h3>
-<p>Sometimes it can be very useful to use a delimiter to split a <tt class="docutils literal"><span class="pre">BitString</span></tt> into sections. The split function returns a generator for the sections.</p>
+<p>Sometimes it can be very useful to use a delimiter to split a <tt class="docutils literal"><span class="pre">BitString</span></tt> into sections. The <a title="split" class="reference external" href="reference.html#split"><tt class="xref docutils literal"><span class="pre">split</span></tt></a> function returns a generator for the sections.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x4700004711472222&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;0x47&#39;</span><span class="p">,</span> <span class="n">bytealigned</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">print</span> <span class="s">&quot;Empty&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="k">else</span> <span class="n">s</span><span class="o">.</span><span class="n">hex</span>
@@ -274,7 +276,7 @@
 </div>
 <div class="section" id="cut">
 <h3><tt class="docutils literal"><span class="pre">cut</span></tt><a class="headerlink" href="#cut" title="Permalink to this headline">¶</a></h3>
-<p>If you just want to split into equal parts then use the <tt class="docutils literal"><span class="pre">cut</span></tt> function. This takes a number of bits as its first argument and returns a generator for chunks of that size.</p>
+<p>If you just want to split into equal parts then use the <a title="cut" class="reference external" href="reference.html#cut"><tt class="xref docutils literal"><span class="pre">cut</span></tt></a> function. This takes a number of bits as its first argument and returns a generator for chunks of that size.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x47001243&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">byte</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">print</span> <span class="n">byte</span><span class="o">.</span><span class="n">hex</span>
@@ -307,7 +309,7 @@
           <a href="creation.html" title="Creation and Interpretation"
              >previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" >Walkthrough</a> &raquo;</li> 
+          <li><a href="contents.html" >Manual</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

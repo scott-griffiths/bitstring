@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Miscellany &mdash; bitstring manual</title>
+    <title>Miscellany &mdash; bitstring documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -19,8 +19,8 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="bitstring manual" href="index.html" />
-    <link rel="up" title="Walkthrough" href="contents.html" />
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="Manual" href="contents.html" />
     <link rel="next" title="Examples" href="examples.html" />
     <link rel="prev" title="Reading, Parsing and Unpacking" href="reading.html" /> 
   </head>
@@ -38,7 +38,7 @@
           <a href="reading.html" title="Reading, Parsing and Unpacking"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" accesskey="U">Walkthrough</a> &raquo;</li> 
+          <li><a href="contents.html" accesskey="U">Manual</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -107,7 +107,7 @@
 <h2>Other Functions<a class="headerlink" href="#other-functions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="bytealign">
 <h3><tt class="docutils literal"><span class="pre">bytealign</span></tt><a class="headerlink" href="#bytealign" title="Permalink to this headline">¶</a></h3>
-<p>This function advances between zero and seven bits to make the <tt class="docutils literal"><span class="pre">pos</span></tt> a multiple of eight. It returns the number of bits advanced.</p>
+<p><a title="bytealign" class="reference external" href="reference.html#bytealign"><tt class="xref docutils literal"><span class="pre">bytealign</span></tt></a> advances between zero and seven bits to make the <tt class="docutils literal"><span class="pre">pos</span></tt> a multiple of eight. It returns the number of bits advanced.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x11223344&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">skipped</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">bytealign</span><span class="p">()</span>
@@ -147,7 +147,7 @@
 </div>
 <div class="section" id="tobytes">
 <h3><tt class="docutils literal"><span class="pre">tobytes</span></tt><a class="headerlink" href="#tobytes" title="Permalink to this headline">¶</a></h3>
-<p>Returns the byte data contained in the <tt class="docutils literal"><span class="pre">BitString</span></tt> as a <tt class="docutils literal"><span class="pre">bytes</span></tt> object (equivalent to a <tt class="docutils literal"><span class="pre">str</span></tt> if you&#8217;re using Python 2.6). This differs from using the plain <tt class="docutils literal"><span class="pre">bytes</span></tt> property in that if the <tt class="docutils literal"><span class="pre">BitString</span></tt> isn&#8217;t a whole number of bytes long then it will be made so by appending up to seven zero bits.</p>
+<p>Returns the byte data contained in the <tt class="docutils literal"><span class="pre">BitString</span></tt> as a <tt class="docutils literal"><span class="pre">bytes</span></tt> object (equivalent to a <tt class="docutils literal"><span class="pre">str</span></tt> if you&#8217;re using Python 2.6). This differs from using the plain <a title="bytes" class="reference external" href="reference.html#bytes"><tt class="xref docutils literal"><span class="pre">bytes</span></tt></a> property in that if the <tt class="docutils literal"><span class="pre">BitString</span></tt> isn&#8217;t a whole number of bytes long then it will be made so by appending up to seven zero bits.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
 <span class="go">&#39;\x80&#39;</span>
 </pre></div>
@@ -160,7 +160,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xffee3241fed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In exactly the same manner as with <tt class="docutils literal"><span class="pre">tobytes</span></tt>, up to seven zero bits will be appended to make the file a whole number of bytes long.</p>
+<p>In exactly the same manner as with <a title="tobytes" class="reference external" href="reference.html#tobytes"><tt class="xref docutils literal"><span class="pre">tobytes</span></tt></a>, up to seven zero bits will be appended to make the file a whole number of bytes long.</p>
 </div>
 <div class="section" id="startswith-endswith">
 <h3><tt class="docutils literal"><span class="pre">startswith</span> <span class="pre">/</span> <span class="pre">endswith</span></tt><a class="headerlink" href="#startswith-endswith" title="Permalink to this headline">¶</a></h3>
@@ -175,7 +175,7 @@
 </div>
 <div class="section" id="ror-rol">
 <h3><tt class="docutils literal"><span class="pre">ror</span> <span class="pre">/</span> <span class="pre">rol</span></tt><a class="headerlink" href="#ror-rol" title="Permalink to this headline">¶</a></h3>
-<p>To rotate the bits in a <tt class="docutils literal"><span class="pre">BitString</span></tt> use <tt class="docutils literal"><span class="pre">ror</span></tt> and <tt class="docutils literal"><span class="pre">rol</span></tt> for right and left rotations respectively. The changes are done in-place.</p>
+<p>To rotate the bits in a <tt class="docutils literal"><span class="pre">BitString</span></tt> use <a title="ror" class="reference external" href="reference.html#ror"><tt class="xref docutils literal"><span class="pre">ror</span></tt></a> and <a title="rol" class="reference external" href="reference.html#rol"><tt class="xref docutils literal"><span class="pre">rol</span></tt></a> for right and left rotations respectively. The changes are done in-place.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00001&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">rol</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">hex</span>
@@ -186,7 +186,7 @@
 </div>
 <div class="section" id="special-methods">
 <h2>Special Methods<a class="headerlink" href="#special-methods" title="Permalink to this headline">¶</a></h2>
-<p>A few of the special methods have already been covered, for example <tt class="docutils literal"><span class="pre">__add__</span></tt> and <tt class="docutils literal"><span class="pre">__aid__</span></tt> (the <tt class="docutils literal"><span class="pre">+</span></tt> and <tt class="docutils literal"><span class="pre">+=</span></tt> operators) and <tt class="docutils literal"><span class="pre">__getitem__</span></tt> and <tt class="docutils literal"><span class="pre">__setitem__</span></tt> (reading and setting slices via <tt class="docutils literal"><span class="pre">[]</span></tt>). Here are the rest:</p>
+<p>A few of the special methods have already been covered, for example <tt class="docutils literal"><span class="pre">__add__</span></tt> and <tt class="docutils literal"><span class="pre">__iadd__</span></tt> (the <tt class="docutils literal"><span class="pre">+</span></tt> and <tt class="docutils literal"><span class="pre">+=</span></tt> operators) and <tt class="docutils literal"><span class="pre">__getitem__</span></tt> and <tt class="docutils literal"><span class="pre">__setitem__</span></tt> (reading and setting slices via <tt class="docutils literal"><span class="pre">[]</span></tt>). Here are the rest:</p>
 <div class="section" id="len">
 <h3><tt class="docutils literal"><span class="pre">__len__</span></tt><a class="headerlink" href="#len" title="Permalink to this headline">¶</a></h3>
 <p>This implements the <tt class="docutils literal"><span class="pre">len</span></tt> function and returns the length of the <tt class="docutils literal"><span class="pre">BitString</span></tt> in bits.</p>
@@ -312,7 +312,7 @@
           <a href="reading.html" title="Reading, Parsing and Unpacking"
              >previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" >Walkthrough</a> &raquo;</li> 
+          <li><a href="contents.html" >Manual</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

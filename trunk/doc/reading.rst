@@ -13,7 +13,7 @@ The property ``bytepos`` is also available, and is useful if you are only dealin
 ``readbit(s) / readbitlist / readbyte(s) / readbytelist``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For simple reading of a number of bits you can use ``readbits`` or ``readbytes``. The following example does some simple parsing of an MPEG-1 video stream (the stream is provided in the ``test`` directory if you downloaded the source archive). ::
+For simple reading of a number of bits you can use :func:`readbits` or :func:`readbytes`. The following example does some simple parsing of an MPEG-1 video stream (the stream is provided in the ``test`` directory if you downloaded the source archive). ::
 
  >>> s = BitString(filename='test/test.m1v')
  >>> print s.pos
@@ -30,7 +30,7 @@ For simple reading of a number of bits you can use ``readbits`` or ``readbytes``
  >>> print s.pos, flags.pos
  95 2
 
-If you want to read multiple items in one go you can use ``readbitlist`` or ``readbytelist``. These take one or more integer parameters and return a list of ``BitString`` objects. So for example instead of writing::
+If you want to read multiple items in one go you can use :func:`readbitlist` or :func:`readbytelist`. These take one or more integer parameters and return a list of ``BitString`` objects. So for example instead of writing::
 
  a = s.readbytes(4)
  b = s.readbyte()
@@ -43,7 +43,7 @@ you can equivalently use just::
 ``read / readlist``
 ^^^^^^^^^^^^^^^^^^^
 
-As well as the ``readbits`` / ``readbytes`` functions there are also plain ``read`` / ``readlist`` functions. These takes a format string similar to that used in the auto initialiser. Only one token should be provided to ``read`` and a single value is returned. To read multiple tokens use ``readlist``, which unsurprisingly returns a list.
+As well as the :func:`readbits` / :func:`readbytes` functions there are also plain :func:`read` / :func:`readlist` functions. These takes a format string similar to that used in the auto initialiser. Only one token should be provided to :func:`read` and a single value is returned. To read multiple tokens use :func:`readlist`, which unsurprisingly returns a list.
 
 The format string consists of comma separated tokens that describe how to interpret the next bits in the ``BitString``. The tokens are:
 
@@ -105,7 +105,7 @@ The complete list of read and peek functions is ``read(format)``, ``readlist(*fo
 Unpacking
 ---------
 
-The ``unpack`` function works in a very similar way to ``readlist``. The major difference is that it interprets the whole ``BitString`` from the start, and takes no account of the current ``pos``. It's a natural complement of the ``pack`` function. ::
+The :func:`unpack` function works in a very similar way to :func:`readlist`. The major difference is that it interprets the whole ``BitString`` from the start, and takes no account of the current ``pos``. It's a natural complement of the :func:`pack` function. ::
 
  s = pack('uint:10, hex, int:13, 0b11', 130, '3d', -23)
  a, b, c, d = s.unpack('uint:10, hex, int:13, bin:2')
@@ -134,7 +134,7 @@ Finding and replacing
 ``find / rfind``
 ^^^^^^^^^^^^^^^^
 
-To search for a sub-string use the ``find`` function. If the find succeeds it will set the position to the start of the next occurrence of the searched for string and return ``True``, otherwise it will return ``False``. By default the sub-string will be found at any bit position - to allow it to only be found on byte boundaries set ``bytealigned=True``.
+To search for a sub-string use the :func:`find` function. If the find succeeds it will set the position to the start of the next occurrence of the searched for string and return ``True``, otherwise it will return ``False``. By default the sub-string will be found at any bit position - to allow it to only be found on byte boundaries set ``bytealigned=True``.
 
  >>> s = BitString('0x00123400001234')
  >>> found = s.find('0x1234', bytealigned=True)
@@ -144,7 +144,7 @@ To search for a sub-string use the ``find`` function. If the find succeeds it wi
  >>> print found, s.bytepos
  False 1
 
-``rfind`` does much the same as ``find``, except that it will find the last occurrence, rather than the first. ::
+:func:`rfind` does much the same as :func:`find`, except that it will find the last occurrence, rather than the first. ::
 
  >>> t = BitString('0x0f231443e8')
  >>> found = t.rfind('0xf')           # Search all bit positions in reverse
@@ -156,7 +156,7 @@ For all of these finding functions you can optionally specify a ``start`` and / 
 ``findall``
 ^^^^^^^^^^^
 
-To find all occurrences of a ``BitString`` inside another (even overlapping ones), use ``findall``. This returns a generator for the bit positions of the found strings. ::
+To find all occurrences of a ``BitString`` inside another (even overlapping ones), use :func:`findall`. This returns a generator for the bit positions of the found strings. ::
 
  >>> r = BitString('0b011101011001')
  >>> ones = r.findall('0b1')
@@ -166,7 +166,7 @@ To find all occurrences of a ``BitString`` inside another (even overlapping ones
 ``replace``
 ^^^^^^^^^^^
 
-To replace all occurrences of one ``BitString`` with another use ``replace``. The replacements are done in-place, and the number of replacements made is returned. ::
+To replace all occurrences of one ``BitString`` with another use :func:`replace`. The replacements are done in-place, and the number of replacements made is returned. ::
 
  >>> s = BitString('0b110000110110')
  >>> s.replace('0b110', '0b1111')

@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Creation and Interpretation &mdash; bitstring manual</title>
+    <title>Creation and Interpretation &mdash; bitstring documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -19,8 +19,8 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="bitstring manual" href="index.html" />
-    <link rel="up" title="Walkthrough" href="contents.html" />
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="Manual" href="contents.html" />
     <link rel="next" title="Slicing, Dicing and Splicing" href="slicing.html" />
     <link rel="prev" title="Introduction" href="introduction.html" /> 
   </head>
@@ -38,7 +38,7 @@
           <a href="introduction.html" title="Introduction"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" accesskey="U">Walkthrough</a> &raquo;</li> 
+          <li><a href="contents.html" accesskey="U">Manual</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -111,7 +111,7 @@
             
   <div class="section" id="creation-and-interpretation">
 <h1>Creation and Interpretation<a class="headerlink" href="#creation-and-interpretation" title="Permalink to this headline">¶</a></h1>
-<p>You can create <tt class="docutils literal"><span class="pre">BitString</span></tt> objects in a variety of ways. Internally, <tt class="docutils literal"><span class="pre">BitString</span></tt> objects are stored as byte arrays (in particular an array module byte array). This means that no space is wasted and a <tt class="docutils literal"><span class="pre">BitString</span></tt> containing 10MB of binary data will only take up 10MB of memory.</p>
+<p>You can create <tt class="docutils literal"><span class="pre">BitString</span></tt> objects in a variety of ways. Internally, <tt class="docutils literal"><span class="pre">BitString</span></tt> objects are stored as byte arrays. This means that no space is wasted and a <tt class="docutils literal"><span class="pre">BitString</span></tt> containing 10MB of binary data will only take up 10MB of memory.</p>
 <p>When a <tt class="docutils literal"><span class="pre">BitString</span></tt> is created all that is stored is the byte array, the length in bits, an offset to the first used bit in the byte array plus a bit position in the <tt class="docutils literal"><span class="pre">BitString</span></tt>, used for reading etc. This means that the actual initialiser used to create the <tt class="docutils literal"><span class="pre">BitString</span></tt> isn&#8217;t stored itself - if you create using a hex string for example then if you ask for the hex interpretation it has to be calculated from the stored byte array.</p>
 <div class="section" id="using-the-constructor">
 <h2>Using the constructor<a class="headerlink" href="#using-the-constructor" title="Permalink to this headline">¶</a></h2>
@@ -735,7 +735,7 @@ For example using just the <tt class="docutils literal"><span class="pre">*value
           <a href="introduction.html" title="Introduction"
              >previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" >Walkthrough</a> &raquo;</li> 
+          <li><a href="contents.html" >Manual</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
