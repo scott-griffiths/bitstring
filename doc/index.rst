@@ -26,13 +26,16 @@ For defect reports, enhancement requests and SubVersion repository browsing go t
 Documentation
 -------------
 
-The walkthrough provides an introduction to the module and details most its capabilities.
+The walkthrough give a brief tour of some of module's features without going into great depth. For most users it's the best place to start although it can be safely skipped if you want to go straight to the manual.
+
+The manual provides an introduction to the module and details most its capabilities.
 
 The reference section has a complete list of all of the properties and methods of the ``BitString`` class, together with short examples for many items.
 
 .. toctree::
    :maxdepth: 1
    
+   walkthrough.rst
    contents.rst
    reference.rst
 

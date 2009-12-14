@@ -1,6 +1,6 @@
 Creation and Interpretation
 ===========================
-You can create ``BitString`` objects in a variety of ways. Internally, ``BitString`` objects are stored as byte arrays (in particular an array module byte array). This means that no space is wasted and a ``BitString`` containing 10MB of binary data will only take up 10MB of memory.
+You can create ``BitString`` objects in a variety of ways. Internally, ``BitString`` objects are stored as byte arrays. This means that no space is wasted and a ``BitString`` containing 10MB of binary data will only take up 10MB of memory.
 
 When a ``BitString`` is created all that is stored is the byte array, the length in bits, an offset to the first used bit in the byte array plus a bit position in the ``BitString``, used for reading etc. This means that the actual initialiser used to create the ``BitString`` isn't stored itself - if you create using a hex string for example then if you ask for the hex interpretation it has to be calculated from the stored byte array. 
 

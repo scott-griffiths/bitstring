@@ -8,7 +8,7 @@ Other Functions
 ``bytealign``
 ^^^^^^^^^^^^^
 
-This function advances between zero and seven bits to make the ``pos`` a multiple of eight. It returns the number of bits advanced. ::
+:func:`bytealign` advances between zero and seven bits to make the ``pos`` a multiple of eight. It returns the number of bits advanced. ::
 
  >>> a = BitString('0x11223344')
  >>> a.pos = 1
@@ -48,7 +48,7 @@ This reverses the bytes of the ``BitString`` in place. You can optionally specif
 ``tobytes``
 ^^^^^^^^^^^
 
-Returns the byte data contained in the ``BitString`` as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.6). This differs from using the plain ``bytes`` property in that if the ``BitString`` isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
+Returns the byte data contained in the ``BitString`` as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.6). This differs from using the plain :func:`bytes` property in that if the ``BitString`` isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
 
  >>> BitString('0b1').tobytes()
  '\x80'
@@ -61,7 +61,7 @@ Writes the byte data contained in the ``BitString`` to a file. The file should h
  >>> f = open('newfile', 'wb')
  >>> BitString('0xffee3241fed').tofile(f)
 
-In exactly the same manner as with ``tobytes``, up to seven zero bits will be appended to make the file a whole number of bytes long.
+In exactly the same manner as with :func:`tobytes`, up to seven zero bits will be appended to make the file a whole number of bytes long.
 
 ``startswith / endswith``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -77,7 +77,7 @@ These act like the same named functions on strings, that is they return ``True``
 ``ror / rol``
 ^^^^^^^^^^^^^
 
-To rotate the bits in a ``BitString`` use ``ror`` and ``rol`` for right and left rotations respectively. The changes are done in-place. ::
+To rotate the bits in a ``BitString`` use :func:`ror` and :func:`rol` for right and left rotations respectively. The changes are done in-place. ::
 
  >>> s = BitString('0x00001')
  >>> s.rol(6)
@@ -87,10 +87,10 @@ To rotate the bits in a ``BitString`` use ``ror`` and ``rol`` for right and left
 Special Methods
 ---------------
 
-A few of the special methods have already been covered, for example ``__add__`` and ``__aid__`` (the ``+`` and ``+=`` operators) and ``__getitem__`` and ``__setitem__`` (reading and setting slices via ``[]``). Here are the rest:
+A few of the special methods have already been covered, for example ``__add__`` and ``__iadd__`` (the ``+`` and ``+=`` operators) and ``__getitem__`` and ``__setitem__`` (reading and setting slices via ``[]``). Here are the rest:
 
 ``__len__``
-^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 
 This implements the ``len`` function and returns the length of the ``BitString`` in bits.
 

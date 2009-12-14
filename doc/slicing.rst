@@ -57,7 +57,7 @@ Negative slices are also allowed, and should do what you'd expect. So for exampl
 Joining
 -------
 
-To join together a couple of ``BitString`` objects use the ``+`` or ``+=`` operators, or the ``append`` and ``prepend`` functions. ::
+To join together a couple of ``BitString`` objects use the ``+`` or ``+=`` operators, or the :func:`append` and :func:`prepend` functions. ::
 
  # Six ways of creating the same BitString:
  a1 = BitString(bin='000') + BitString(hex='f')
@@ -70,7 +70,7 @@ To join together a couple of ``BitString`` objects use the ``+`` or ``+=`` opera
  a6 = BitString('0b000')
  a6 += '0xf'
 
-If you want to join a large number of ``BitString`` objects then the function ``join`` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the ``BitString`` that it is called on as a separator when joining the list of ``BitString`` objects it is given. If you don't want a separator then it can be called on an empty ``BitString``. ::
+If you want to join a large number of ``BitString`` objects then the function :func:`join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the ``BitString`` that it is called on as a separator when joining the list of ``BitString`` objects it is given. If you don't want a separator then it can be called on an empty ``BitString``. ::
 
  bslist = [BitString(uint=n, length=12) for n in xrange(1000)]
  s = BitString('0b1111').join(bslist)
@@ -83,7 +83,7 @@ The functions in this section all modify the ``BitString`` that they operate on.
 ``truncatestart / truncateend``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The truncate functions take a single integer argument and remove that number of bits from the start or end. ::
+The :func:`truncatestart` and :func:`truncateend` functions take a single integer argument and remove that number of bits from the start or end. ::
 
  >>> a = BitString('0x001122')
  >>> a.truncateend(8)
@@ -96,7 +96,7 @@ A similar effect can be obtained using slicing - the major difference being that
 ``insert``
 ^^^^^^^^^^
 
-As you might expect, ``insert`` takes one ``BitString`` and inserts it into another. A bit position can be specified, but if not present then the current ``pos`` is used. ::
+As you might expect, :func:`insert` takes one ``BitString`` and inserts it into another. A bit position can be specified, but if not present then the current ``pos`` is used. ::
 
  >>> a = BitString('0x00112233')
  >>> a.insert('0xffff', 16)
@@ -106,7 +106,7 @@ As you might expect, ``insert`` takes one ``BitString`` and inserts it into anot
 ``overwrite``
 ^^^^^^^^^^^^^
 
-``overwrite`` does much the same as ``insert``, but predictably the ``BitString`` object's data is overwritten by the new data. ::
+:func:`overwrite` does much the same as :func:`insert`, but predictably the ``BitString`` object's data is overwritten by the new data. ::
 
  >>> a = BitString('0x00112233')
  >>> a.pos = 4
@@ -117,7 +117,7 @@ As you might expect, ``insert`` takes one ``BitString`` and inserts it into anot
 ``delete``
 ^^^^^^^^^^
 
-``delete`` removes a section of the ``BitString``. By default it is removed at the current pos::
+:func:`delete` removes a section of the ``BitString``. By default it is removed at the current pos::
 
  >>> a = BitString('0b00011000')
  >>> a.delete(2, 3)                # remove 2 bits at pos 3
@@ -136,6 +136,7 @@ If you treat a ``BitString`` object as a list whose elements are all either '1' 
 
 ===========================  ======================================
 Using functions              Using slices
+===========================  ======================================
 ``s.truncatestart(bits)``    ``del s[:bits]``
 ``s.truncateend(bits)``      ``del s[-bits:]``
 ``s.insert(bs, pos)``        ``s[pos:pos] = bs``
@@ -151,7 +152,7 @@ Splitting
 ``split``
 ^^^^^^^^^
 
-Sometimes it can be very useful to use a delimiter to split a ``BitString`` into sections. The split function returns a generator for the sections. ::
+Sometimes it can be very useful to use a delimiter to split a ``BitString`` into sections. The :func:`split` function returns a generator for the sections. ::
 
  >>> a = BitString('0x4700004711472222')
  >>> for s in a.split('0x47', bytealigned=True):
@@ -166,7 +167,7 @@ Note that the first item returned is always the BitString before the first occur
 ``cut``
 ^^^^^^^
 
-If you just want to split into equal parts then use the ``cut`` function. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
+If you just want to split into equal parts then use the :func:`cut` function. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
 
  >>> a = BitString('0x47001243')
  >>> for byte in a.cut(8):

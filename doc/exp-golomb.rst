@@ -8,6 +8,7 @@ Exponential-Golomb codes represent integers using bit patterns that get longer f
 
 =============  ===========  ===========
 Bit pattern    Unsigned     Signed 
+=============  ===========  ===========
 ``1``          0            0
 ``010``        1            1
 ``011``        2            -1
