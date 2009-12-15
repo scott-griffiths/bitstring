@@ -1,5 +1,6 @@
-include test_bitstring.py
+include bitstring.py
+include test/test_bitstring.py
 include test/test.m1v
 include test/smalltestfile
 include release_notes.txt
-include bitstring_manual.pdf
+prune doc
