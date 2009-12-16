@@ -13,10 +13,10 @@ Other Functions
  >>> a = BitString('0x11223344')
  >>> a.pos = 1
  >>> skipped = a.bytealign()
- >>> print skipped, a.pos
+ >>> print(skipped, a.pos)
  7 8
  >>> skipped = a.bytealign()
- >>> print skipped, a.pos
+ >>> print(skipped, a.pos)
  0 8
 
 ``reverse``
@@ -109,14 +109,14 @@ These get called when you try to print a ``BitString``. As ``BitString`` objects
 The form used for the ``BitString`` is generally the one which gives it the shortest representation. If the resulting string is too long then it will be truncated with ``...`` - this prevents very long ``BitString`` objects from tying up your interactive session while they print themselves. ::
 
  >>> a = BitString('0b1111 111')
- >>> print a
+ >>> print(a)
  0b1111111
  >>> a
  BitString('0b1111111')
  >>> a += '0b1'
- >>> print a
+ >>> print(a)
  0xff
- >>> print a.bin
+ >>> print(a.bin)
  0b11111111
 
 ``__eq__ / __ne__``
@@ -135,9 +135,9 @@ The equality of two ``BitString`` objects is determined by their binary represen
 To invert all the bits in a ``BitString`` use the ``~`` operator, which returns a bit-inverted copy. ::
 
  >>> a = BitString('0b0001100111')
- >>> print a
+ >>> print(a)
  0b0001100111
- >>> print ~a
+ >>> print(~a)
  0b1110011000
  >>> ~~a == a
  True
@@ -149,10 +149,10 @@ Bitwise shifts can be achieved using ``<<``, ``>>``, ``<<=`` and ``>>=``. Bits s
 
  >>> a = BitString('0b10011001')
  >>> b = a << 2
- >>> print b
+ >>> print(b)
  0b01100100
  >>> a >>= 2
- >>> print a
+ >>> print(a)
  0b00100110
 
 ``__mul__ / __imul__ / __rmul__``
@@ -161,7 +161,7 @@ Bitwise shifts can be achieved using ``<<``, ``>>``, ``<<=`` and ``>>=``. Bits s
 Multiplication of a ``BitString`` by an integer means the same as it does for ordinary strings: concatenation of multiple copies of the ``BitString``. ::
 
  >>> a = BitString('0b10')*8
- >>> print a.bin
+ >>> print(a.bin)
  0b1010101010101010
 
 ``__copy__``
@@ -186,12 +186,12 @@ Bit-wise AND, OR and XOR are provided for ``BitString`` objects of equal length 
 
  >>> a = BitString('0b00001111')
  >>> b = BitString('0b01010101')
- >>> print (a&b).bin
+ >>> print((a&b).bin)
  0b00000101
- >>> print (a|b).bin
+ >>> print((a|b).bin)
  0b01011111
- >>> print (a^b).bin
+ >>> print((a^b).bin)
  0b01010000
  >>> b &= '0x1f'
- >>> print b.bin
+ >>> print(b.bin)
  0b00010101

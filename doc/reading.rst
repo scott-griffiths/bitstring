@@ -16,18 +16,18 @@ The property ``bytepos`` is also available, and is useful if you are only dealin
 For simple reading of a number of bits you can use :func:`readbits` or :func:`readbytes`. The following example does some simple parsing of an MPEG-1 video stream (the stream is provided in the ``test`` directory if you downloaded the source archive). ::
 
  >>> s = BitString(filename='test/test.m1v')
- >>> print s.pos
+ >>> print(s.pos)
  0
  >>> start_code = s.readbytes(4).hex
  >>> width = s.readbits(12).uint
  >>> height = s.readbits(12).uint
- >>> print start_code, width, height, s.pos
+ >>> print(start_code, width, height, s.pos)
  0x000001b3 352 288 56
  >>> s.pos += 37
  >>> flags = s.readbits(2)
  >>> constrained_parameters_flag = flags.readbit().uint
  >>> load_intra_quantiser_matrix = flags.readbit().uint
- >>> print s.pos, flags.pos
+ >>> print(s.pos, flags.pos)
  95 2
 
 If you want to read multiple items in one go you can use :func:`readbitlist` or :func:`readbytelist`. These take one or more integer parameters and return a list of ``BitString`` objects. So for example instead of writing::
@@ -122,10 +122,10 @@ For example::
  >>> s.pos
  0
  >>> s.bytepos += 2
- >>> s.pos                   # note pos verses bytepos
+ >>> s.pos                    # note pos verses bytepos
  16
  >>> s.pos += 4
- >>> print s.read('bin:4')   # the final nibble '0x6'
+ >>> print(s.read('bin:4'))   # the final nibble '0x6'
  0b0110
 
 Finding and replacing
@@ -138,17 +138,17 @@ To search for a sub-string use the :func:`find` function. If the find succeeds i
 
  >>> s = BitString('0x00123400001234')
  >>> found = s.find('0x1234', bytealigned=True)
- >>> print found, s.bytepos
+ >>> print(found, s.bytepos)
  True 1
  >>> found = s.find('0xff', bytealigned=True)
- >>> print found, s.bytepos
+ >>> print(found, s.bytepos)
  False 1
 
 :func:`rfind` does much the same as :func:`find`, except that it will find the last occurrence, rather than the first. ::
 
  >>> t = BitString('0x0f231443e8')
  >>> found = t.rfind('0xf')           # Search all bit positions in reverse
- >>> print found, t.pos
+ >>> print(found, t.pos)
  True 31                              # Found within the 0x3e near the end
 
 For all of these finding functions you can optionally specify a ``start`` and / or ``end`` to narrow the search range. Note though that because it's searching backwards ``rfind`` will start at ``end`` and end at ``start`` (so you always need ``start`` < ``end``).
@@ -160,7 +160,7 @@ To find all occurrences of a ``BitString`` inside another (even overlapping ones
 
  >>> r = BitString('0b011101011001')
  >>> ones = r.findall('0b1')
- >>> print list(ones)
+ >>> print(list(ones))
  [1, 2, 3, 5, 7, 8, 11]
 
 ``replace``

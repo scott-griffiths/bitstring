@@ -10,7 +10,7 @@ Prerequisites
 * Python 2.4 or later.
 * An installed bitstring module.
 * A rudimentory knowledge of binary concepts.
-* Al little free time.
+* A little free time.
 
 If you haven't yet downloaded and installed bitstring then please do so (it might be as easy as typing "``easy_install bitstring``" depending on your system). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along. ::
 
@@ -21,7 +21,7 @@ First things first, we're going to be typing ``BitString`` a lot, so importing d
  >>> a = BitString('0xff01')
  >>> b = BitString('0b110')
  
-The first of these we made from the hexadecimal string '0xff01'. Each hex digit represents four bits, so we have a ``BitString`` of length 16 bits.
+The first of these we made from the hexadecimal string '0xff01'. Each hex digit represents four bits, so we have a bitstring of length 16 bits.
 
 The second was created from a binary string. In this case it is just three bits long. Don't worry about it not being a whole number of bytes long, that's all been taken care of internally.
 
@@ -53,6 +53,19 @@ Great - let's try some more::
  >>> b.hex
  ValueError: Cannot convert to hex unambiguously - not multiple of 4 bits.
  
-Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are other similar restrictions on other interpretations (octal must be mulitple of 3 bits, bytes a multiple of  8 bits etc.) 
+Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are other similar restrictions on other interpretations (octal must be mulitple of 3 bits, bytes a multiple of  8 bits etc.)
+
+A bitstring can be treated just like a list of bits. You can slice it, delete sections, insert new bits and more using standard index notation::
+
+ >>> print(a[3:9])
+ 0b111110
+ >>> del a[-6:]
+ >>> print(a)
+ 0b1111111100
+
+
+
+
+
 
 

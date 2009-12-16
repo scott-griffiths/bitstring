@@ -39,6 +39,6 @@ The answer is that it decodes to 3, 0, 0, 2, 2, 1, 0, 0, 8, 4. Note how you donâ
 and to read it back::
 
  while a.pos != a.len:
-     print a.read('ue')
+     print(a.read('ue'))
 
 The notation ``ue`` and ``se`` for the exponential-Golomb code properties comes from the H.264 video standard, which uses these types of code a lot. The particular way that the signed integers are represented might be peculiar to this standard as I haven't seen it elsewhere (and an obvious alternative is minus the one given here), but the unsigned mapping seems to be universal.
