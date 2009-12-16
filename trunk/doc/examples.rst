@@ -65,13 +65,13 @@ This example creates a class that parses a structure that is part of the H.264 v
  
  >>> s = BitString('0x6410281bc0')
  >>> sps = seq_parameter_set_data(s)
- >>> print sps.profile_idc
+ >>> print(sps.profile_idc)
  100
- >>> print sps.level_idc
+ >>> print(sps.level_idc)
  40
- >>> print sps.reserved_zero_4bits
+ >>> print(sps.reserved_zero_4bits)
  0b0000
- >>> print sps.constraint_flags
+ >>> print(sps.constraint_flags)
  [0, 0, 0, 1]
 
 

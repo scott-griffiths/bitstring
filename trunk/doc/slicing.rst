@@ -15,21 +15,21 @@ The third argument (the 'step') will be described shortly, but most of the time 
 
  >>> a = BitString('0b00011110')
  >>> b = a[3:7]
- >>> print a, b
+ >>> print(a, b)
  0x1e 0xf
 
 Indexing also works for missing and negative arguments, just as it does for other containers. ::
 
  >>> a = BitString('0b00011110')
- >>> print a[:5]         # first 5 bits
+ >>> print(a[:5])         # first 5 bits
  0b00011            
- >>> print a[3:]         # everything except first 3 bits
+ >>> print(a[3:])         # everything except first 3 bits
  0b11110
- >>> print a[-4:]        # final 4 bits
+ >>> print(a[-4:])        # final 4 bits
  0xe
- >>> print a[:-1]        # everything except last bit
+ >>> print(a[:-1])        # everything except last bit
  0b0001111
- >>> print a[-6:-4]      # from 6 from the end to 4 from the end
+ >>> print(a[-6:-4])      # from 6 from the end to 4 from the end
  0b01
 
 Stepping in slices
@@ -42,16 +42,16 @@ For example this makes it more convenient if you want to give slices in terms of
 When using a step, the ``BitString`` is effectively truncated to a multiple of the step, so ``s[::8]`` is equal to ``s`` if ``s`` is an integer number of bytes, otherwise it is truncated by up to 7 bits. This means that, for example, the final seven complete 16-bit words could be written as ``s[-7::16]``. ::
 
  >>> a = BitString('0x470000125e')
- >>> print a[0:4:8]                  # The first four bytes
+ >>> print(a[0:4:8])                  # The first four bytes
  0x47000012
- >>> print a[-3::4]                  # The final three nibbles
+ >>> print(a[-3::4])                  # The final three nibbles
  0x25e
 
 Negative slices are also allowed, and should do what you'd expect. So for example ``s[::-1]`` returns a bit-reversed copy of ``s`` (which is similar to using ``s.reverse()``, which does the same operation on ``s`` in-place). As another example, to get the first 10 bytes in reverse byte order you could use ``s_bytereversed = s[0:10:-8]``. ::
 
- >>> print a[:-5:-4]                 # Final five nibbles reversed
+ >>> print(a[:-5:-4])                 # Final five nibbles reversed
  0xe5210                                 
- >>> print a[::-8]                   # The whole BitString byte reversed
+ >>> print(a[::-8])                   # The whole BitString byte reversed
  0x5e12000047
 
 Joining
@@ -156,8 +156,8 @@ Sometimes it can be very useful to use a delimiter to split a ``BitString`` into
 
  >>> a = BitString('0x4700004711472222')
  >>> for s in a.split('0x47', bytealigned=True):
- ...     print "Empty" if not s else s.hex
- Empty
+ ...     print(s.hex)
+ 
  0x470000
  0x4711
  0x472222
@@ -171,7 +171,7 @@ If you just want to split into equal parts then use the :func:`cut` function. Th
 
  >>> a = BitString('0x47001243')
  >>> for byte in a.cut(8):
- ...     print byte.hex
+ ...     print(byte.hex)
  0x47
  0x00
  0x12

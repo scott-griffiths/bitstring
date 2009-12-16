@@ -488,7 +488,7 @@ The ``ue`` property interprets the ``BitString`` as a single unsigned exponentia
  >>> s.bin
  '0b0001101'
  >>> s.append(BitString(ue=3))
- >>> print s.read('ue, ue'))
+ >>> print(s.read('ue, ue'))
  [12, 3]
 
 se
@@ -500,7 +500,7 @@ The ``se`` property does much the same as ``ue`` and the provisos there all appl
  >>> s.se
  BitStringError: BitString is not a single exponential-Golomb code.
  >>> while s.pos < s.length:
- ...     print s.read('se')
+ ...     print(s.read('se'))
  -5
  2
  0

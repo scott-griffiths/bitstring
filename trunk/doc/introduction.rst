@@ -41,11 +41,11 @@ Easily construct new BitStrings::
 
 Interpret the ``BitString`` however you want::
 
- >>> print e.hex
+ >>> print(e.hex)
  '0x9249cdcd'
- >>> print e.int
+ >>> print(e.int)
  -1840656947
- >>> print e.uint
+ >>> print(e.uint)
  2454310349
 
 

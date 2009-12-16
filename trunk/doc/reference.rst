@@ -351,7 +351,7 @@ At most ``count`` items are returned and the range is given by the slice ``[star
  >>> s = BitString('0x1234')
  >>> for nibble in s.cut(4):
  ...     s.prepend(nibble)
- >>> print s
+ >>> print(s)
  0x43211234
 
 .. function:: delete
@@ -364,7 +364,7 @@ If ``pos`` is not specified then the current position is used. Is equivalent to 
 
  >>> s = BitString('0b1111001')
  >>> s.delete(2, 4)
- >>> print s
+ >>> print(s)
  0b11111
 
 .. function:: endswith
@@ -433,11 +433,11 @@ The default for ``pos`` is the current position. ::
 Returns the concatenation of the BitString objects in the list ``bsl`` joined with ``s`` as a separator. ::
 
  >>> s = BitString().join(['0x0001ee', 'uint:24=13', '0b0111'])
- >>> print s
+ >>> print(s)
  0x0001ee00000d7
  
  >>> s = BitString('0b1').join(['0b0']*5)
- >>> print s.bin
+ >>> print(s.bin)
  0b010101010
 
 .. function:: overwrite
@@ -502,7 +502,7 @@ Reads multiple bits from the current position and returns a list of ``BitString`
 
  >>> s = BitString('0xf01')
  >>> for bs in s.peekbits(2, 2, 8):
- ...     print bs
+ ...     print(bs)
  0b11
  0b11
  0x01
@@ -530,7 +530,7 @@ If multiple bytes are specified then a list of ``BitString`` objects is returned
 Reads multiple bytes from the current position and returns a list of ``BitString`` objects, but does not advance the position. ::
 
  >>> s = BitString('0x34eedd')
- >>> print s.peekbytelist(1, 2)
+ >>> print(s.peekbytelist(1, 2))
  [BitString('0x34'), BitString('0xeedd')]
 
 .. function:: prepend
@@ -674,11 +674,11 @@ If ``bytealigned`` is ``True`` then replacements will only be made on byte bound
  >>> s = BitString('0b0011001')
  >>> s.replace('0b1', '0xf')
  3
- >>> print s.bin
+ >>> print(s.bin)
  0b0011111111001111
  >>> s.replace('0b1', '', count=6)
  6
- >>> print s.bin
+ >>> print(s.bin)
  0b0011001111
 
 .. function:: reverse
@@ -706,7 +706,7 @@ Can be used to change the endianness of the ``BitString``. ::
 
  >>> s = BitString('uintle:32=1234')
  >>> s.reversebytes()
- >>> print s.uintbe
+ >>> print(s.uintbe)
  1234
 
 .. function:: rfind
@@ -762,7 +762,7 @@ See also :func:`unset`. ::
 
  >>> s = BitString('0x0000')
  >>> s.set(-1)
- >>> print s
+ >>> print(s)
  0x0001
  >>> s.set((0, 4, 5, 7, 9))
  >>> s.bin
@@ -885,7 +885,7 @@ Concatenate two ``BitString`` objects and return the result. Either ``s1`` or ``
 
 Returns the bit-wise AND between ``s1`` and ``s2``, which must have the same length otherwise a ``ValueError`` is raised. ::
 
- >>> print BitString('0x33') & '0x0f'
+ >>> print(BitString('0x33') & '0x0f')
  0x03
 
 .. function:: __contains__
@@ -977,7 +977,7 @@ Concatenates ``n`` copies of ``s`` and returns ``self``. Raises ``ValueError`` i
 
  >>> s = BitString(‘0xef’)
  >>> s *= 3
- >>> print s
+ >>> print(s)
  0xefefef
 
 .. function:: __init__
@@ -1014,9 +1014,9 @@ Returns the ``BitString`` with every bit inverted, that is all zeros replaced wi
 If the ``BitString`` is empty then a ``BitStringError`` will be raised. ::
 
  >>> s = BitString(‘0b1110010’)
- >>> print ~s
+ >>> print(~s)
  0b0001101
- >>> print ~s & s
+ >>> print(~s & s)
  0b0000000
 
 .. function:: __irshift__
@@ -1064,7 +1064,7 @@ Return ``BitString`` consisting of n concatenations of s. ::
 
  >>> a = BitString('0x34')
  >>> b = a*5
- >>> print b
+ >>> print(b)
  0x3434343434
 
 .. function:: __ne__
@@ -1079,7 +1079,7 @@ Compares two ``BitString`` objects for inequality, returning ``False`` if they h
 
 Returns the bit-wise OR between ``s1`` and ``s2``, which must have the same length otherwise a ``ValueError`` is raised. ::
 
- >>> print BitString('0x33') | '0x0f'
+ >>> print(BitString('0x33') | '0x0f')
  0x3f
 
 .. function:: __repr__
@@ -1111,24 +1111,24 @@ Replaces the slice specified with ``s2``. ::
 
  >>> s = BitString('0x00112233')
  >>> s[1:2:8] = '0xfff'
- >>> print s
+ >>> print(s)
  0x00fff2233
  >>> s[-12:] = '0xc'
- >>> print s
+ >>> print(s)
  0x00fff2c
 
 .. function:: __str__
 
-``print s``
+``print(s)``
 
 Prints a representation of ``s``, trying to be as brief as possible.
 
 If ``s`` is a multiple of 4 bits long then hex will be used, otherwise either binary or a mix of hex and binary will be used. Very long strings will be truncated with ``...``. ::
 
  >>> s = BitString('0b1')*7
- >>> print s
+ >>> print(s)
  0b1111111 
- >>> print s + '0b1'
+ >>> print(s + '0b1')
  0xff
 
 .. function:: __xor__, __rxor__
@@ -1137,7 +1137,7 @@ If ``s`` is a multiple of 4 bits long then hex will be used, otherwise either bi
 
 Returns the bit-wise XOR between ``s1`` and ``s2``, which must have the same length otherwise a ``ValueError`` is raised. Either ``s1`` or ``s2`` can be a string for the ``auto`` initialiser. ::
 
- >>> print BitString('0x33') ^ '0x0f'
+ >>> print(BitString('0x33') ^ '0x0f')
  0x3c
 
 
