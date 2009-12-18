@@ -1011,7 +1011,10 @@ class Bits(object):
         shorter += self[-endbits:]
         h = 0
         for byte in shorter.tobytes():
-            h = (h << 4) + ord(byte)
+            if PYTHON_VERSION == 2:
+                h = (h << 4) + ord(byte)
+            else:
+                h = (h << 4) + byte
             g = h & 0xf0000000
             if g & (1 << 31):
                 h = h ^ (g >> 24)
@@ -3578,9 +3581,10 @@ name_to_init = {'uint':    Bits._readuint,
 if __name__=='__main__':
     print("Running bitstring module unit tests:")
     try:
-        import sys
+        import sys, os
         sys.path.insert(0, 'test')
         import test_bitstring
+        os.chdir('test')
         test_bitstring.unittest.main(test_bitstring)
     except ImportError:
         print("Error: cannot find test_bitstring.py")
