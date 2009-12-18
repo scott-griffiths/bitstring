@@ -1684,7 +1684,8 @@ class Bits(object):
 
     def _readtoken(self, name, length):
         """Reads a token from the BitString and returns the result."""
-        length = min(length, self.length - self._pos)
+        if length is not None:
+            length = min(length, self.length - self._pos)
         try:
             val = name_to_init[name](self, length, self._pos)
             self._pos += length
