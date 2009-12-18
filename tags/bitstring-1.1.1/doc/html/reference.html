@@ -1,0 +1,1506 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Reference &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="prev" title="Internals" href="internals.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="internals.html" title="Internals"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Reference</a><ul>
+<li><a class="reference external" href="#class-properties">Class properties</a></li>
+<li><a class="reference external" href="#class-methods">Class methods</a></li>
+<li><a class="reference external" href="#class-special-methods">Class special methods</a></li>
+<li><a class="reference external" href="#module-methods">Module methods</a></li>
+<li><a class="reference external" href="#deprecated-methods">Deprecated methods</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="internals.html"
+                                  title="previous chapter">Internals</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="reference">
+<h1>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="BitString">
+<em class="property">class </em><tt class="descname">BitString</tt><a class="headerlink" href="#BitString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The bitstring module provides just one class, <tt class="docutils literal"><span class="pre">BitString</span></tt>, whose public methods, special methods and properties are detailed in this section.</p>
+<p>Note that in places where a <tt class="docutils literal"><span class="pre">BitString</span></tt> can be used as a parameter, any other valid input to the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser can also be used. This means that the parameter can also be a format string which consists of tokens:</p>
+<ul class="simple">
+<li>Starting with <tt class="docutils literal"><span class="pre">hex=</span></tt>, or simply starting with <tt class="docutils literal"><span class="pre">0x</span></tt> implies hexadecimal. e.g. <tt class="docutils literal"><span class="pre">0x013ff</span></tt>, <tt class="docutils literal"><span class="pre">hex=013ff</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">oct=</span></tt>, or simply starting with <tt class="docutils literal"><span class="pre">0o</span></tt> implies octal. e.g. <tt class="docutils literal"><span class="pre">0o755</span></tt>, <tt class="docutils literal"><span class="pre">oct=755</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">bin=</span></tt>, or simply starting with <tt class="docutils literal"><span class="pre">0b</span></tt> implies binary. e.g. <tt class="docutils literal"><span class="pre">0b0011010</span></tt>, <tt class="docutils literal"><span class="pre">bin=0011010</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">int:</span></tt> or <tt class="docutils literal"><span class="pre">uint:</span></tt> followed by a length in bits and <tt class="docutils literal"><span class="pre">=</span></tt> gives base-2 integers. e.g. <tt class="docutils literal"><span class="pre">uint:8=255</span></tt>, <tt class="docutils literal"><span class="pre">int:4=-7</span></tt></li>
+<li>To get big, little and native-endian whole-byte integers append <tt class="docutils literal"><span class="pre">be</span></tt>, <tt class="docutils literal"><span class="pre">le</span></tt> or <tt class="docutils literal"><span class="pre">ne</span></tt> respectively to the <tt class="docutils literal"><span class="pre">uint</span></tt> or <tt class="docutils literal"><span class="pre">int</span></tt> identifier. e.g. <tt class="docutils literal"><span class="pre">uintle:32=1</span></tt>, <tt class="docutils literal"><span class="pre">intne:16=-23</span></tt></li>
+<li>For floating point numbers use <tt class="docutils literal"><span class="pre">float:</span></tt> followed by the length in bits and <tt class="docutils literal"><span class="pre">=</span></tt> and the number. The default is big-endian, but you can also append <tt class="docutils literal"><span class="pre">be</span></tt>, <tt class="docutils literal"><span class="pre">le</span></tt> or <tt class="docutils literal"><span class="pre">ne</span></tt> as with integers. e.g. <tt class="docutils literal"><span class="pre">float:64=0.2</span></tt>, <tt class="docutils literal"><span class="pre">floatle:32=-0.3e12</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">ue=</span></tt> or <tt class="docutils literal"><span class="pre">se=</span></tt> implies an exponential-Golomb coded integer. e.g. <tt class="docutils literal"><span class="pre">ue=12</span></tt>, <tt class="docutils literal"><span class="pre">se=-4</span></tt></li>
+</ul>
+<p>Multiples tokens can be joined by separating them with commas, so for example <tt class="docutils literal"><span class="pre">se=4,</span> <span class="pre">0b1,</span> <span class="pre">se=-1</span></tt> represents the concatenation of three elements.</p>
+<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> parameter also accepts a list or tuple, whose elements will be evaluated as booleans (imagine calling <tt class="docutils literal"><span class="pre">bool()</span></tt> on each item) and the bits set to <tt class="docutils literal"><span class="pre">1</span></tt> for <tt class="xref docutils literal"><span class="pre">True</span></tt> items and <tt class="docutils literal"><span class="pre">0</span></tt> for <tt class="xref docutils literal"><span class="pre">False</span></tt> items.</p>
+<p>Finally if you pass in a file object, presumably opened in read-binary mode, then the <tt class="docutils literal"><span class="pre">BitString</span></tt> will be formed from the contents of the file.</p>
+<p>For the <a title="read" class="reference internal" href="#read"><tt class="xref docutils literal"><span class="pre">read</span></tt></a>, <a title="unpack" class="reference internal" href="#unpack"><tt class="xref docutils literal"><span class="pre">unpack</span></tt></a>, <a title="pack" class="reference internal" href="#pack"><tt class="xref docutils literal"><span class="pre">pack</span></tt></a> and <a title="peek" class="reference internal" href="#peek"><tt class="xref docutils literal"><span class="pre">peek</span></tt></a> functions you can use compact format strings similar to those used in the <tt class="docutils literal"><span class="pre">struct</span></tt> and <tt class="docutils literal"><span class="pre">array</span></tt> modules. These start with an endian identifier: <tt class="docutils literal"><span class="pre">&gt;</span></tt> for big-endian, <tt class="docutils literal"><span class="pre">&lt;</span></tt> for little-endian or <tt class="docutils literal"><span class="pre">&#64;</span></tt> for native-endian. This must be followed by at least one of these codes:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Code</th>
+<th class="head">Interpretation</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">b</span></tt></td>
+<td>8 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">B</span></tt></td>
+<td>8 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">h</span></tt></td>
+<td>16 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">H</span></tt></td>
+<td>16 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">l</span></tt></td>
+<td>32 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">L</span></tt></td>
+<td>32 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">q</span></tt></td>
+<td>64 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">Q</span></tt></td>
+<td>64 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">f</span></tt></td>
+<td>32 bit floating point number</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">d</span></tt></td>
+<td>64 bit floating point number</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="class-properties">
+<h2>Class properties<a class="headerlink" href="#class-properties" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">BitString</span></tt> objects use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions.</p>
+<p>The different interpretations such as <tt class="docutils literal"><span class="pre">bin</span></tt>, <tt class="docutils literal"><span class="pre">hex</span></tt>, <tt class="docutils literal"><span class="pre">uint</span></tt> etc. are not stored as part of the object, but are calculated as needed.</p>
+<dl class="attribute">
+<dt id="bin">
+<tt class="descname">bin</tt><a class="headerlink" href="#bin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.bin</span></tt></p>
+<p>Read and write property for setting and getting the representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt> as a binary string starting with <tt class="docutils literal"><span class="pre">0b</span></tt>.</p>
+<p>When used as a getter, the returned value is always calculated - the value is never cached. When used as a setter the length of the <tt class="docutils literal"><span class="pre">BitString</span></tt> will be adjusted to fit its new contents.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">bin</span> <span class="o">==</span> <span class="s">&#39;0b001&#39;</span><span class="p">:</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">bin</span> <span class="o">=</span> <span class="s">&#39;0b1111&#39;</span>
+<span class="c"># Equivalent to s.append(&#39;0b1&#39;)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">bin</span> <span class="o">+=</span> <span class="s">&#39;1&#39;</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="bytepos">
+<tt class="descname">bytepos</tt><a class="headerlink" href="#bytepos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.bytepos</span></tt></p>
+<p>Read and write property for setting and getting the current byte position in the <tt class="docutils literal"><span class="pre">BitString</span></tt>.
+When used as a getter will raise a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> if the current position in not byte aligned.</p>
+<dl class="attribute">
+<dt id="bytes">
+<tt class="descname">bytes</tt><a class="headerlink" href="#bytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.bytes</span></tt></p>
+<p>Read and write property for setting and getting the underlying byte data that contains the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>Set using an ordinary Python string - the length will be adjusted to contain the data.</p>
+<p>When used as a getter the <tt class="docutils literal"><span class="pre">BitString</span></tt> must be a whole number of byte long or a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
+<p>An alternative is to use the <a title="tobytes" class="reference internal" href="#tobytes"><tt class="xref docutils literal"><span class="pre">tobytes</span></tt></a> method, which will pad with between zero and seven <tt class="docutils literal"><span class="pre">0</span></tt> bits to make it byte aligned if needed.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\x12\xff\x30</span><span class="s">&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bytes</span>
+<span class="go">&#39;\x12\xff0&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">hex</span> <span class="o">=</span> <span class="s">&#39;0x12345678&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bytes</span>
+<span class="go">&#39;\x124Vx&#39;</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="hex">
+<tt class="descname">hex</tt><a class="headerlink" href="#hex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.hex</span></tt></p>
+<p>Read and write property for setting and getting the hexadecimal representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>When used as a getter the value will be preceded by <tt class="docutils literal"><span class="pre">0x</span></tt>, which is optional when setting the value. If the <tt class="docutils literal"><span class="pre">BitString</span></tt> is not a multiple of four bits long then getting its hex value will raise a <tt class="docutils literal"><span class="pre">ValueError</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bin</span><span class="o">=</span><span class="s">&#39;1111 0000&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0xf0&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">hex</span> <span class="o">=</span> <span class="s">&#39;abcdef&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0xabcdef&#39;</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="int">
+<tt class="descname">int</tt><a class="headerlink" href="#int" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.int</span></tt></p>
+<p>Read and write property for setting and getting the signed two’s complement integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">int</span>
+<span class="go">-13</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">int</span> <span class="o">=</span> <span class="mi">1232</span>
+<span class="go">ValueError: int 1232 is too large for a BitString of length 8.</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="intbe">
+<tt class="descname">intbe</tt><a class="headerlink" href="#intbe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.intbe</span></tt></p>
+<p>Read and write property for setting and getting the byte-wise big-endian signed two&#8217;s complement integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>Only valid if <tt class="docutils literal"><span class="pre">s</span></tt> is whole-byte, in which case it is equal to <tt class="docutils literal"><span class="pre">s.int</span></tt>, otherwise a <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
+<p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
+<dl class="attribute">
+<dt id="intle">
+<tt class="descname">intle</tt><a class="headerlink" href="#intle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.intle</span></tt></p>
+<p>Read and write property for setting and getting the byte-wise little-endian signed two&#8217;s complement integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>Only valid if <tt class="docutils literal"><span class="pre">s</span></tt> is whole-byte, in which case it is equal to <tt class="docutils literal"><span class="pre">s[::-8].int</span></tt>, i.e. the integer representation of the byte-reversed <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
+<dl class="attribute">
+<dt id="intne">
+<tt class="descname">intne</tt><a class="headerlink" href="#intne" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.intne</span></tt></p>
+<p>Read and write property for setting and getting the byte-wise native-endian signed two&#8217;s complement integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>Only valid if <tt class="docutils literal"><span class="pre">s</span></tt> is whole-byte, and will equal either the big-endian or the little-endian integer representation depending on the platform being used.</p>
+<p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
+<dl class="attribute">
+<dt>
+<tt class="descname">float, floatbe</tt></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.float</span></tt></p>
+<p>Read and write property for setting and getting the floating point representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">BitString</span></tt> must be either 32 or 64 bits long to support the floating point interpretations.</p>
+<p>If the underlying floating point methods on your machine are not IEEE 754 compliant then using the float interpretations is undefined (this is unlikely unless you&#8217;re on some very unusual hardware).</p>
+<p>The <tt class="docutils literal"><span class="pre">float</span></tt> property is bit-wise big-endian, which as all floats must be whole-byte is exactly equivalent to the byte-wise big-endian <tt class="docutils literal"><span class="pre">floatbe</span></tt>.</p>
+<dl class="attribute">
+<dt id="floatle">
+<tt class="descname">floatle</tt><a class="headerlink" href="#floatle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.floatle</span></tt></p>
+<p>Read and write property for setting and getting the byte-wise little-endian floating point representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<dl class="attribute">
+<dt id="floatne">
+<tt class="descname">floatne</tt><a class="headerlink" href="#floatne" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.floatne</span></tt></p>
+<p>Read and write property for setting and getting the byte-wise native-endian floating point representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<dl class="attribute">
+<dt>
+<tt class="descname">len, length</tt></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.len</span></tt></p>
+<p>Read-only properties that give the length of the <tt class="docutils literal"><span class="pre">BitString</span></tt> in bits (<tt class="docutils literal"><span class="pre">len</span></tt> and <tt class="docutils literal"><span class="pre">length</span></tt> are equivalent).</p>
+<p>This is almost equivalent to using <tt class="docutils literal"><span class="pre">len(s)</span></tt>, expect that for large <tt class="docutils literal"><span class="pre">BitString</span></tt> objects <tt class="docutils literal"><span class="pre">len()</span></tt> may fail with an <tt class="docutils literal"><span class="pre">OverflowError</span></tt>, whereas the <tt class="docutils literal"><span class="pre">len</span></tt> property continues to work.</p>
+<dl class="attribute">
+<dt id="oct">
+<tt class="descname">oct</tt><a class="headerlink" href="#oct" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.oct</span></tt></p>
+<p>Read and write property for setting and getting the octal representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>When used as a getter the value will be preceded by <tt class="docutils literal"><span class="pre">0o</span></tt>, which is optional when setting the value. If the <tt class="docutils literal"><span class="pre">BitString</span></tt> is not a multiple of three bits long then getting its oct value will raise a <tt class="docutils literal"><span class="pre">ValueError</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b111101101&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">oct</span>
+<span class="go">&#39;0o755&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">oct</span> <span class="o">=</span> <span class="s">&#39;01234567&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">oct</span>
+<span class="go">&#39;0o01234567&#39;</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt>
+<tt class="descname">pos, bitpos</tt></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.pos</span></tt></p>
+<p>Read and write property for setting and getting the current bit position in the <tt class="docutils literal"><span class="pre">BitString</span></tt>. Can be set to any value from <tt class="docutils literal"><span class="pre">0</span></tt> to <tt class="docutils literal"><span class="pre">s.len</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">pos</span></tt> and <tt class="docutils literal"><span class="pre">bitpos</span></tt> properties are exactly equivalent - you can use whichever you prefer.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">pos</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">pos</span> <span class="o">+=</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="se">
+<tt class="descname">se</tt><a class="headerlink" href="#se" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.se</span></tt></p>
+<p>Read and write property for setting and getting the signed exponential-Golomb code representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>The property is set from an signed integer, and when used as a getter a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> will be raised if the <tt class="docutils literal"><span class="pre">BitString</span></tt> is not a single code.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">se</span><span class="o">=-</span><span class="mi">40</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">0b0000001010001</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">+=</span> <span class="s">&#39;0b1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">se</span>
+<span class="go">BitStringError: BitString is not a single exponential-Golomb code.</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="ue">
+<tt class="descname">ue</tt><a class="headerlink" href="#ue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.ue</span></tt></p>
+<p>Read and write property for setting and getting the unsigned exponential-Golomb code representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>The property is set from an unsigned integer, and when used as a getter a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> will be raised if the <tt class="docutils literal"><span class="pre">BitString</span></tt> is not a single code.</p>
+<dl class="attribute">
+<dt id="uint">
+<tt class="descname">uint</tt><a class="headerlink" href="#uint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.uint</span></tt></p>
+<p>Read and write property for setting and getting the unsigned base-2 integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
+<dl class="attribute">
+<dt id="uintbe">
+<tt class="descname">uintbe</tt><a class="headerlink" href="#uintbe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.uintbe</span></tt></p>
+<p>Read and write property for setting and getting the byte-wise big-endian unsigned base-2 integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
+<dl class="attribute">
+<dt id="uintle">
+<tt class="descname">uintle</tt><a class="headerlink" href="#uintle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.uintle</span></tt></p>
+<p>Read and write property for setting and getting the byte-wise little-endian unsigned base-2 integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
+<dl class="attribute">
+<dt id="uintne">
+<tt class="descname">uintne</tt><a class="headerlink" href="#uintne" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.uintne</span></tt></p>
+<p>Read and write property for setting and getting the byte-wise native-endian unsigned base-2 integer representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>When used as a setter the value must fit into the current length of the <tt class="docutils literal"><span class="pre">BitString</span></tt>, else a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised.</p>
+</div>
+<div class="section" id="class-methods">
+<h2>Class methods<a class="headerlink" href="#class-methods" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="allset">
+<tt class="descname">allset</tt><big>(</big><big>)</big><a class="headerlink" href="#allset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.allset(pos)</span></tt></p>
+<p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if one or many bits are all set to <tt class="docutils literal"><span class="pre">1</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">pos</span></tt> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
+<p>See also <a title="allunset" class="reference internal" href="#allunset"><tt class="xref docutils literal"><span class="pre">allunset</span></tt></a>.</p>
+<dl class="function">
+<dt id="allunset">
+<tt class="descname">allunset</tt><big>(</big><big>)</big><a class="headerlink" href="#allunset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.allunset(pos)</span></tt></p>
+<p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if one or many bits are all set to <tt class="docutils literal"><span class="pre">0</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">pos</span></tt> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
+<p>See also <a title="allset" class="reference internal" href="#allset"><tt class="xref docutils literal"><span class="pre">allset</span></tt></a>.</p>
+<dl class="function">
+<dt id="anyset">
+<tt class="descname">anyset</tt><big>(</big><big>)</big><a class="headerlink" href="#anyset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.anyset(pos)</span></tt></p>
+<p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if any of one or many bits are set to <tt class="docutils literal"><span class="pre">1</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">pos</span></tt> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
+<p>See also <a title="anyunset" class="reference internal" href="#anyunset"><tt class="xref docutils literal"><span class="pre">anyunset</span></tt></a>.</p>
+<dl class="function">
+<dt id="anyunset">
+<tt class="descname">anyunset</tt><big>(</big><big>)</big><a class="headerlink" href="#anyunset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.anyunset(pos)</span></tt></p>
+<p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if any of one or many bits are set to <tt class="docutils literal"><span class="pre">0</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">pos</span></tt> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
+<p>See also <a title="anyset" class="reference internal" href="#anyset"><tt class="xref docutils literal"><span class="pre">anyset</span></tt></a>.</p>
+<dl class="function">
+<dt id="append">
+<tt class="descname">append</tt><big>(</big><big>)</big><a class="headerlink" href="#append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.append(bs)</span></tt></p>
+<p>Join a <tt class="docutils literal"><span class="pre">BitString</span></tt> to the end of the current <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xbad&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;0xf00d&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span>
+<span class="go">BitString(&#39;0xbadf00d&#39;)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="bytealign">
+<tt class="descname">bytealign</tt><big>(</big><big>)</big><a class="headerlink" href="#bytealign" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.bytealign()</span></tt></p>
+<p>Aligns to the start of the next byte (so that <tt class="docutils literal"><span class="pre">s.pos</span></tt> is a multiple of 8) and returns the number of bits skipped.</p>
+<p>If the current position is already byte aligned then it is unchanged.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xabcdef&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">advancebits</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bytealign</span><span class="p">()</span>
+<span class="go">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span>
+<span class="go">8</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="cut">
+<tt class="descname">cut</tt><big>(</big><big>)</big><a class="headerlink" href="#cut" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.cut(bits,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">count=None)</span></tt></p>
+<p>Returns a generator for slices of the <tt class="docutils literal"><span class="pre">BitString</span></tt> of length <tt class="docutils literal"><span class="pre">bits</span></tt>.</p>
+<p>At most <tt class="docutils literal"><span class="pre">count</span></tt> items are returned and the range is given by the slice <tt class="docutils literal"><span class="pre">[start:end]</span></tt>, which defaults to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x1234&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">nibble</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">s</span><span class="o">.</span><span class="n">prepend</span><span class="p">(</span><span class="n">nibble</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span>
+<span class="go">0x43211234</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="delete">
+<tt class="descname">delete</tt><big>(</big><big>)</big><a class="headerlink" href="#delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.delete(bits,</span> <span class="pre">pos=None)</span></tt></p>
+<p>Removes <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the <tt class="docutils literal"><span class="pre">BitString</span></tt> at position <tt class="docutils literal"><span class="pre">pos</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">pos</span></tt> is not specified then the current position is used. Is equivalent to <tt class="docutils literal"><span class="pre">del&nbsp;s[pos:pos+bits]</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1111001&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span>
+<span class="go">0b11111</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="endswith">
+<tt class="descname">endswith</tt><big>(</big><big>)</big><a class="headerlink" href="#endswith" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.endswith(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None)</span></tt></p>
+<p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if the <tt class="docutils literal"><span class="pre">BitString</span></tt> ends with the sub-string <tt class="docutils literal"><span class="pre">bs</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p>A slice can be given using the <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> bit positions and defaults to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x35e22&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;0b10, 0x22&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;0x22&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="find">
+<tt class="descname">find</tt><big>(</big><big>)</big><a class="headerlink" href="#find" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.find(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
+<p>Searches for <tt class="docutils literal"><span class="pre">bs</span></tt> in the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and sets <tt class="docutils literal"><span class="pre">pos</span></tt> to the start of <tt class="docutils literal"><span class="pre">bs</span></tt> and returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if found, otherwise it returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then it will look for <tt class="docutils literal"><span class="pre">bs</span></tt> only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the search range and default to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0023122&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;0b000100&#39;</span><span class="p">,</span> <span class="n">bytealigned</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span>
+<span class="go">16</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="findall">
+<tt class="descname">findall</tt><big>(</big><big>)</big><a class="headerlink" href="#findall" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.findall(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">count=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
+<p>Searches for all occurrences of <tt class="docutils literal"><span class="pre">bs</span></tt> (even overlapping ones) and returns a generator of their bit positions.</p>
+<p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then <tt class="docutils literal"><span class="pre">bs</span></tt> will only be looked for at byte aligned positions. <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> optionally define a search range and default to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">count</span></tt> paramater limits the number of items that will be found - the default is to find all occurences.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xab220101&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&#39;0x22&#39;</span><span class="p">,</span>
+<span class="go">         bytealigned=True))</span>
+<span class="go">[8, 40, 72, 104, 136]</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="insert">
+<tt class="descname">insert</tt><big>(</big><big>)</big><a class="headerlink" href="#insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.insert(bs,</span> <span class="pre">pos=None)</span></tt></p>
+<p>Inserts <tt class="docutils literal"><span class="pre">bs</span></tt> at <tt class="docutils literal"><span class="pre">pos</span></tt>. After insertion <tt class="docutils literal"><span class="pre">pos</span></tt> will be immediately after the inserted <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>The default for <tt class="docutils literal"><span class="pre">pos</span></tt> is the current position.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xccee&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s">&#39;0xd&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span>
+<span class="go">BitString(&#39;0xccdee&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s">&#39;0x00&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span>
+<span class="go">BitString(&#39;0xccd00ee&#39;)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="join">
+<tt class="descname">join</tt><big>(</big><big>)</big><a class="headerlink" href="#join" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.join(bsl)</span></tt></p>
+<p>Returns the concatenation of the BitString objects in the list <tt class="docutils literal"><span class="pre">bsl</span></tt> joined with <tt class="docutils literal"><span class="pre">s</span></tt> as a separator.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">()</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;0x0001ee&#39;</span><span class="p">,</span> <span class="s">&#39;uint:24=13&#39;</span><span class="p">,</span> <span class="s">&#39;0b0111&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span>
+<span class="go">0x0001ee00000d7</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;0b0&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">0b010101010</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="overwrite">
+<tt class="descname">overwrite</tt><big>(</big><big>)</big><a class="headerlink" href="#overwrite" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.overwrite(bs,</span> <span class="pre">pos=None)</span></tt></p>
+<p>Replaces the contents of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> with <tt class="docutils literal"><span class="pre">bs</span></tt> at <tt class="docutils literal"><span class="pre">pos</span></tt>. After overwriting <tt class="docutils literal"><span class="pre">pos</span></tt> will be immediately after the overwritten section.</p>
+<p>The default for <tt class="docutils literal"><span class="pre">pos</span></tt> is the current position.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">overwrite</span><span class="p">(</span><span class="s">&#39;0b111&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span>
+<span class="go">BitString(&#39;0b0001110000&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span>
+<span class="go">6</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="peek">
+<tt class="descname">peek</tt><big>(</big><big>)</big><a class="headerlink" href="#peek" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.peek(format)</span></tt></p>
+<p>Reads from the current bit position <tt class="docutils literal"><span class="pre">pos</span></tt> in the <tt class="docutils literal"><span class="pre">BitString</span></tt> according the the format string and returns a new <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>The bit position is unchanged after calling <tt class="docutils literal"><span class="pre">peek</span></tt>.</p>
+<p>For information on the format string see the entry for the <a title="read" class="reference internal" href="#read"><tt class="xref docutils literal"><span class="pre">read</span></tt></a> function.</p>
+<dl class="function">
+<dt id="peeklist">
+<tt class="descname">peeklist</tt><big>(</big><big>)</big><a class="headerlink" href="#peeklist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.peeklist(*format)</span></tt></p>
+<p>Reads from current bit position pos in the <tt class="docutils literal"><span class="pre">BitString</span></tt> according to the <tt class="docutils literal"><span class="pre">format</span></tt> string and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
+<p>The position is not advanced to after the read items.</p>
+<p>See the entries for <a title="read" class="reference internal" href="#read"><tt class="xref docutils literal"><span class="pre">read</span></tt></a> and <a title="readlist" class="reference internal" href="#readlist"><tt class="xref docutils literal"><span class="pre">readlist</span></tt></a> for more information.</p>
+<dl class="function">
+<dt id="peekbit">
+<tt class="descname">peekbit</tt><big>(</big><big>)</big><a class="headerlink" href="#peekbit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.peekbit()</span></tt></p>
+<p>Returns the next bit in the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> but does not advance the position.</p>
+<dl class="function">
+<dt id="peekbits">
+<tt class="descname">peekbits</tt><big>(</big><big>)</big><a class="headerlink" href="#peekbits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.peekbits(bits)</span></tt></p>
+<p>Returns the next <tt class="docutils literal"><span class="pre">bits</span></tt> bits of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> but does not advance the position.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf01&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">peekbits</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">BitString(&#39;0x0&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">peekbits</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="go">BitString(&#39;0x01&#39;)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="peekbitlist">
+<tt class="descname">peekbitlist</tt><big>(</big><big>)</big><a class="headerlink" href="#peekbitlist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.peekbitlist(*bits)</span></tt></p>
+<p>Reads multiple bits from the current position and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects, but does not advance the position.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf01&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">bs</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">peekbits</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">bs</span>
+<span class="go">0b11</span>
+<span class="go">0b11</span>
+<span class="go">0x01</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="peekbyte">
+<tt class="descname">peekbyte</tt><big>(</big><big>)</big><a class="headerlink" href="#peekbyte" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.peekbyte()</span></tt></p>
+<p>Returns the next byte of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> but does not advance the position.</p>
+<dl class="function">
+<dt id="peekbytes">
+<tt class="descname">peekbytes</tt><big>(</big><big>)</big><a class="headerlink" href="#peekbytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.peekbytes(*bytes)</span></tt></p>
+<p>Returns the next <tt class="docutils literal"><span class="pre">bytes</span></tt> bytes of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> but does not advance the position.</p>
+<p>If multiple bytes are specified then a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects is returned.</p>
+<dl class="function">
+<dt id="peekbytelist">
+<tt class="descname">peekbytelist</tt><big>(</big><big>)</big><a class="headerlink" href="#peekbytelist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.peekbytelist(*bytes)</span></tt></p>
+<p>Reads multiple bytes from the current position and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects, but does not advance the position.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x34eedd&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">peekbytelist</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">[BitString(&#39;0x34&#39;), BitString(&#39;0xeedd&#39;)]</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="prepend">
+<tt class="descname">prepend</tt><big>(</big><big>)</big><a class="headerlink" href="#prepend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.prepend(bs)</span></tt></p>
+<p>Inserts <tt class="docutils literal"><span class="pre">bs</span></tt> at the beginning of the current <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b0&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">prepend</span><span class="p">(</span><span class="s">&#39;0xf&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span>
+<span class="go">BitString(&#39;0b11110&#39;)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.read(format)</span></tt></p>
+<p>Reads from current bit position pos in the <tt class="docutils literal"><span class="pre">BitString</span></tt> according the the format string and returns a single <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">format</span></tt> is a token string that describe how to interpret the next bits in the <tt class="docutils literal"><span class="pre">BitString</span></tt>. The tokens are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">int:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uint:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as an unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">float:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a floating point number.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intbe:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintbe:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatbe:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian float.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intle:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a little-endian signed int.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintle:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a little-endian unsigned int.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatle:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a little-endian float.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intne:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a native-endian signed int.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintne:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a native-endian unsigned int.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatne:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a native-endian float.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">hex:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a hexadecimal string.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">oct:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as an octal string.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">bin:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a binary string.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">ue</span></tt></td>
+<td>next bits as an unsigned exp-Golomb.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">se</span></tt></td>
+<td>next bits as a signed exp-Golomb.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">bits:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a new <tt class="docutils literal"><span class="pre">BitString</span></tt>.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">bytes:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bytes as <tt class="docutils literal"><span class="pre">bytes</span></tt> object.</td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x23ef55302&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;hex12&#39;</span><span class="p">)</span>
+<span class="go">&#39;0x23e&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;bin:4&#39;</span><span class="p">)</span>
+<span class="go">&#39;0b1111&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:5&#39;</span><span class="p">)</span>
+<span class="go">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;bits:4&#39;</span><span class="p">)</span>
+<span class="go">BitString(&#39;0xa&#39;)</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">read</span></tt> function is useful for reading exponential-Golomb codes, which can&#8217;t be read easily by <tt class="docutils literal"><span class="pre">readbits</span></tt> as their lengths aren&#8217;t know beforehand.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;se=-9, ue=4&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;se&#39;</span><span class="p">)</span>
+<span class="go">-9</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="readlist">
+<tt class="descname">readlist</tt><big>(</big><big>)</big><a class="headerlink" href="#readlist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.readlist(*format)</span></tt></p>
+<p>Reads from current bit position <tt class="docutils literal"><span class="pre">pos</span></tt> in the <tt class="docutils literal"><span class="pre">BitString</span></tt> according to the <tt class="docutils literal"><span class="pre">format</span></tt> string(s) and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
+<p>The position is advanced to after the read items.</p>
+<p>See the entry for <a title="read" class="reference internal" href="#read"><tt class="xref docutils literal"><span class="pre">read</span></tt></a> for information on the format strings.</p>
+<p>For multiple items you can separate using commas or given multiple parameters:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x43fe01ff21&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">(</span><span class="s">&#39;hex:8, uint:6&#39;</span><span class="p">)</span>
+<span class="go">[&#39;0x43&#39;, 63]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">(</span><span class="s">&#39;bin:3&#39;</span><span class="p">,</span> <span class="s">&#39;intle:16&#39;</span><span class="p">)</span>
+<span class="go">[&#39;0b100&#39;, -509]</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="readbit">
+<tt class="descname">readbit</tt><big>(</big><big>)</big><a class="headerlink" href="#readbit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.readbit()</span></tt></p>
+<p>Returns the next bit of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> and advances the position.</p>
+<dl class="function">
+<dt id="readbits">
+<tt class="descname">readbits</tt><big>(</big><big>)</big><a class="headerlink" href="#readbits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.readbits(bits)</span></tt></p>
+<p>Returns the next <tt class="docutils literal"><span class="pre">bits</span></tt> bits of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> and advances the position.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0001e2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">readbits</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+<span class="go">BitString(&#39;0x0001&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">readbits</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b111&#39;</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="readbitlist">
+<tt class="descname">readbitlist</tt><big>(</big><big>)</big><a class="headerlink" href="#readbitlist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.readbitlist(*bits)</span></tt></p>
+<p>Reads multiple bits from the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.
+The position is advanced to after the read items.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0001e2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">readbitlist</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">[BitString(&#39;0x0001&#39;), BitString(&#39;0b111&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">readbitlist</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">[BitString(&#39;0b0&#39;)]</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="readbyte">
+<tt class="descname">readbyte</tt><big>(</big><big>)</big><a class="headerlink" href="#readbyte" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.readbyte()</span></tt></p>
+<p>Returns the next byte of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> and advances the position.</p>
+<dl class="function">
+<dt id="readbytes">
+<tt class="descname">readbytes</tt><big>(</big><big>)</big><a class="headerlink" href="#readbytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.readbytes(bytes)</span></tt></p>
+<p>Returns the next <tt class="docutils literal"><span class="pre">bytes</span></tt> bytes of the current <tt class="docutils literal"><span class="pre">BitString</span></tt> as a new <tt class="docutils literal"><span class="pre">BitString</span></tt> and advances the position.</p>
+<dl class="function">
+<dt id="readbytelist">
+<tt class="descname">readbytelist</tt><big>(</big><big>)</big><a class="headerlink" href="#readbytelist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.readbytelist(*bytes)</span></tt></p>
+<p>Reads multiple bytes from the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
+<p>The position is advanced to after the read items.</p>
+<dl class="function">
+<dt id="replace">
+<tt class="descname">replace</tt><big>(</big><big>)</big><a class="headerlink" href="#replace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.replace(old,</span> <span class="pre">new,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">count=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
+<p>Finds occurrences of <tt class="docutils literal"><span class="pre">old</span></tt> and replaces them with <tt class="docutils literal"><span class="pre">new</span></tt>. Returns the number of replacements made.</p>
+<p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then replacements will only be made on byte boundaries. <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the search range and default to <tt class="docutils literal"><span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">s.length</span></tt> respectively. If <tt class="docutils literal"><span class="pre">count</span></tt> is specified then no more than this many replacements will be made.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b0011001&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">,</span> <span class="s">&#39;0xf&#39;</span><span class="p">)</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">0b0011111111001111</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="go">6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">0b0011001111</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="reverse">
+<tt class="descname">reverse</tt><big>(</big><big>)</big><a class="headerlink" href="#reverse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.reverse(start=None,</span> <span class="pre">end=None)</span></tt></p>
+<p>Reverses bits in the <tt class="docutils literal"><span class="pre">BitString</span></tt> in-place.</p>
+<p><tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the range and default to <tt class="docutils literal"><span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">s.length</span></tt> respectively.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b10111&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">reversebits</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b11101&#39;</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="reversebytes">
+<tt class="descname">reversebytes</tt><big>(</big><big>)</big><a class="headerlink" href="#reversebytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.reversebytes(start=None,</span> <span class="pre">end=None)</span></tt></p>
+<p>Reverses bytes in the <tt class="docutils literal"><span class="pre">BitString</span></tt> in-place.</p>
+<p><tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the range and default to <tt class="docutils literal"><span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">s.length</span></tt> respectively. Note that <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> are specified in bits so if <tt class="docutils literal"><span class="pre">end&nbsp;-&nbsp;start</span></tt> is not a multiple of 8 then a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> is raised.</p>
+<p>Can be used to change the endianness of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;uintle:32=1234&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">reversebytes</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">uintbe</span>
+<span class="go">1234</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="rfind">
+<tt class="descname">rfind</tt><big>(</big><big>)</big><a class="headerlink" href="#rfind" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.rfind(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
+<p>Searches backwards for <tt class="docutils literal"><span class="pre">bs</span></tt> in the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if found, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then it will look for <tt class="docutils literal"><span class="pre">bs</span></tt> only at byte aligned positions. <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> give the search range and default to <tt class="docutils literal"><span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">s.length</span></tt> respectively.</p>
+<p>Note that as it&#8217;s a reverse search it will start at <tt class="docutils literal"><span class="pre">end</span></tt> and finish at <tt class="docutils literal"><span class="pre">start</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o031544&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s">&#39;0b100&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span>
+<span class="go">15</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s">&#39;0b100&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span>
+<span class="go">12</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="rol">
+<tt class="descname">rol</tt><big>(</big><big>)</big><a class="headerlink" href="#rol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.rol(bits)</span></tt></p>
+<p>Rotates the contents of the <tt class="docutils literal"><span class="pre">BitString</span></tt> in-place by <tt class="docutils literal"><span class="pre">bits</span></tt> bits to the left.</p>
+<p>Raises <tt class="docutils literal"><span class="pre">ValueError</span></tt> if <tt class="docutils literal"><span class="pre">bits&nbsp;&lt;&nbsp;0</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b01000001&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">rol</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b00000101&#39;</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="ror">
+<tt class="descname">ror</tt><big>(</big><big>)</big><a class="headerlink" href="#ror" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.ror(bits)</span></tt></p>
+<p>Rotates the contents of the <tt class="docutils literal"><span class="pre">BitString</span></tt> in-place by <tt class="docutils literal"><span class="pre">bits</span></tt> bits to the right.</p>
+<p>Raises <tt class="docutils literal"><span class="pre">ValueError</span></tt> if <tt class="docutils literal"><span class="pre">bits</span> <span class="pre">&lt;</span> <span class="pre">0</span></tt>.</p>
+<dl class="function">
+<dt id="set">
+<tt class="descname">set</tt><big>(</big><big>)</big><a class="headerlink" href="#set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.set(pos)</span></tt></p>
+<p>Sets one or many bits to <tt class="docutils literal"><span class="pre">1</span></tt>. <tt class="docutils literal"><span class="pre">pos</span></tt> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise <tt class="docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt>.</p>
+<p>Using <tt class="docutils literal"><span class="pre">s.set(x)</span></tt> is considerably more efficent than other equivalent methods such as <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">1</span></tt>, <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">&quot;0b1&quot;</span></tt> or <tt class="docutils literal"><span class="pre">s.overwrite('0b1',</span> <span class="pre">x)</span></tt>.</p>
+<p>See also <a title="unset" class="reference internal" href="#unset"><tt class="xref docutils literal"><span class="pre">unset</span></tt></a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0000&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span>
+<span class="go">0x0001</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b1000110101000001&#39;</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="split">
+<tt class="descname">split</tt><big>(</big><big>)</big><a class="headerlink" href="#split" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.split(delimiter,</span> <span class="pre">start=None,</span> <span class="pre">end=None,</span> <span class="pre">count=None,</span> <span class="pre">bytealigned=False)</span></tt></p>
+<p>Splits <tt class="docutils literal"><span class="pre">s</span></tt> into sections that start with <tt class="docutils literal"><span class="pre">delimiter</span></tt>. Returns a generator for <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
+<p>The first item generated is always the bits before the first occurrence of delimiter (even if empty). A slice can be optionally specified with <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt>, while <tt class="docutils literal"><span class="pre">count</span></tt> specifies the maximum number of items generated.</p>
+<p>If <tt class="docutils literal"><span class="pre">bytealigned</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then the delimiter will only be found if it starts at a byte aligned position.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x42423&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">bs</span><span class="o">.</span><span class="n">bin</span> <span class="k">for</span> <span class="n">bs</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;0x4&#39;</span><span class="p">)]</span>
+<span class="go">[&#39;&#39;, &#39;0b01000&#39;, &#39;0b01001000&#39;, &#39;0b0100011&#39;]</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="startswith">
+<tt class="descname">startswith</tt><big>(</big><big>)</big><a class="headerlink" href="#startswith" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.startswith(bs,</span> <span class="pre">start=None,</span> <span class="pre">end=None)</span></tt></p>
+<p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if the <tt class="docutils literal"><span class="pre">BitString</span></tt> starts with the sub-string <tt class="docutils literal"><span class="pre">bs</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p>A slice can be given using the <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> bit positions and defaults to the whole <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<dl class="function">
+<dt id="tobytes">
+<tt class="descname">tobytes</tt><big>(</big><big>)</big><a class="headerlink" href="#tobytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.tobytes()</span></tt></p>
+<p>Returns the <tt class="docutils literal"><span class="pre">BitString</span></tt> as a <tt class="docutils literal"><span class="pre">bytes</span></tt> object (equivalent to a <tt class="docutils literal"><span class="pre">str</span></tt> in Python 2.6).</p>
+<p>The returned value will be padded at the end with between zero and seven <tt class="docutils literal"><span class="pre">0</span></tt> bits to make it byte aligned.</p>
+<p>The <tt class="docutils literal"><span class="pre">tobytes</span></tt> function can also be used to output your <tt class="docutils literal"><span class="pre">BitString</span></tt> to a file - just open a file in binary write mode and write the function&#8217;s output.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="s">&#39;hello&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">+=</span> <span class="s">&#39;0b01&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+<span class="go">&#39;hello@&#39;</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="tofile">
+<tt class="descname">tofile</tt><big>(</big><big>)</big><a class="headerlink" href="#tofile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.tofile(f)</span></tt></p>
+<p>Writes the <tt class="docutils literal"><span class="pre">BitString</span></tt> to the file object <tt class="docutils literal"><span class="pre">f</span></tt>.</p>
+<p>The data written will be padded at the end with between zero and seven <tt class="docutils literal"><span class="pre">0</span></tt> bits to make it byte aligned.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;newfile&#39;</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x1234&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="truncateend">
+<tt class="descname">truncateend</tt><big>(</big><big>)</big><a class="headerlink" href="#truncateend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.truncateend(bits)</span></tt></p>
+<p>Remove the last <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the end of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>A <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised if you try to truncate a negative number of bits, or more bits than the <tt class="docutils literal"><span class="pre">BitString</span></tt> contains.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xabcdef&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">truncateend</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span>
+<span class="go">BitString(&#39;0xabc&#39;)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="truncatestart">
+<tt class="descname">truncatestart</tt><big>(</big><big>)</big><a class="headerlink" href="#truncatestart" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.truncatestart(bits)</span></tt></p>
+<p>Remove the first <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the start of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>A <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised if you try to truncate a negative number of bits, or more bits than the <tt class="docutils literal"><span class="pre">BitString</span></tt> contains.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xabcdef&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">truncatestart</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span>
+<span class="go">BitString(&#39;0xdef&#39;)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="unpack">
+<tt class="descname">unpack</tt><big>(</big><big>)</big><a class="headerlink" href="#unpack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.unpack(*format)</span></tt></p>
+<p>Interprets the whole <tt class="docutils literal"><span class="pre">BitString</span></tt> according to the <tt class="docutils literal"><span class="pre">format</span></tt> string(s) and returns a list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects.</p>
+<p><tt class="docutils literal"><span class="pre">format</span></tt> is one or more strings with comma separated tokens that describe how to interpret the next bits in the <tt class="docutils literal"><span class="pre">BitString</span></tt>. See the entry for <a title="read" class="reference internal" href="#read"><tt class="xref docutils literal"><span class="pre">read</span></tt></a> for details.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;int:4=-1, 0b1110&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;int:4, bin&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If a token doesn&#8217;t supply a length (as with <tt class="docutils literal"><span class="pre">bin</span></tt> above) then it will try to consume the rest of the <tt class="docutils literal"><span class="pre">BitString</span></tt>. Only one such token is allowed.</p>
+<dl class="function">
+<dt id="unset">
+<tt class="descname">unset</tt><big>(</big><big>)</big><a class="headerlink" href="#unset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s.unset(pos)</span></tt></p>
+<p>Sets one or many bits to <tt class="docutils literal"><span class="pre">0</span></tt>. <tt class="docutils literal"><span class="pre">pos</span></tt> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise <tt class="docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt>.</p>
+<p>Using <tt class="docutils literal"><span class="pre">s.unset(x)</span></tt> is considerably more efficent than other equivalent methods such as <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">0</span></tt>, <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">&quot;0b0&quot;</span></tt> or <tt class="docutils literal"><span class="pre">s.overwrite('0b0',</span> <span class="pre">x)</span></tt>.</p>
+<p>See also <a title="set" class="reference internal" href="#set"><tt class="xref docutils literal"><span class="pre">set</span></tt></a>.</p>
+</div>
+<div class="section" id="class-special-methods">
+<h2>Class special methods<a class="headerlink" href="#class-special-methods" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt>
+<tt class="descname">__add__, __radd__</tt></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">+</span> <span class="pre">s2</span></tt></p>
+<p>Concatenate two <tt class="docutils literal"><span class="pre">BitString</span></tt> objects and return the result. Either <tt class="docutils literal"><span class="pre">s1</span></tt> or <tt class="docutils literal"><span class="pre">s2</span></tt> can be &#8216;auto&#8217; initialised.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">132</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;0xff&#39;</span>
+<span class="n">s2</span> <span class="o">=</span> <span class="s">&#39;0b101&#39;</span> <span class="o">+</span> <span class="n">s</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt>
+<tt class="descname">__and__, __rand__</tt></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">&amp;</span> <span class="pre">s2</span></tt></p>
+<p>Returns the bit-wise AND between <tt class="docutils literal"><span class="pre">s1</span></tt> and <tt class="docutils literal"><span class="pre">s2</span></tt>, which must have the same length otherwise a <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x33&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="s">&#39;0x0f&#39;</span>
+<span class="go">0x03</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__contains__">
+<tt class="descname">__contains__</tt><big>(</big><big>)</big><a class="headerlink" href="#__contains__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">bs</span> <span class="pre">in</span> <span class="pre">s</span></tt></p>
+<p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if <tt class="docutils literal"><span class="pre">bs</span></tt> can be found in <tt class="docutils literal"><span class="pre">s</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p>Equivalent to using <a title="find" class="reference internal" href="#find"><tt class="xref docutils literal"><span class="pre">find</span></tt></a>, except that <tt class="docutils literal"><span class="pre">pos</span></tt> will not be changed so you don&#8217;t know where it was found.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;0b11&#39;</span> <span class="ow">in</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x06&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;0b111&#39;</span> <span class="ow">in</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x06&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__copy__">
+<tt class="descname">__copy__</tt><big>(</big><big>)</big><a class="headerlink" href="#__copy__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s2</span> <span class="pre">=</span> <span class="pre">copy.copy(s1)</span></tt></p>
+<p>This allows the <tt class="docutils literal"><span class="pre">copy</span></tt> module to correctly copy <tt class="docutils literal"><span class="pre">BitString</span></tt> objects. Other equivalent methods are to initialise a new <tt class="docutils literal"><span class="pre">BitString</span></tt> with the old one or to take a complete slice.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o775&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s_copy1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s_copy2</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s_copy3</span> <span class="o">=</span> <span class="n">s</span><span class="p">[:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">==</span> <span class="n">s_copy1</span> <span class="o">==</span> <span class="n">s_copy2</span> <span class="o">==</span> <span class="n">s_copy3</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__delitem__">
+<tt class="descname">__delitem__</tt><big>(</big><big>)</big><a class="headerlink" href="#__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[start:end:step]</span></tt></p>
+<p>Deletes the slice specified.</p>
+<p>After deletion <tt class="docutils literal"><span class="pre">pos</span></tt> will be at the deleted slice&#8217;s position.</p>
+<dl class="function">
+<dt id="__eq__">
+<tt class="descname">__eq__</tt><big>(</big><big>)</big><a class="headerlink" href="#__eq__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">==</span> <span class="pre">s2</span></tt></p>
+<p>Compares two <tt class="docutils literal"><span class="pre">BitString</span></tt> objects for equality, returning <tt class="xref docutils literal"><span class="pre">True</span></tt> if they have the same binary representation, otherwise returning <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o7777&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;0xfff&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">uint</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">uint</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__getitem__">
+<tt class="descname">__getitem__</tt><big>(</big><big>)</big><a class="headerlink" href="#__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s[start:end:step]</span></tt></p>
+<p>Returns a slice of <tt class="docutils literal"><span class="pre">s</span></tt>.</p>
+<p>The usual slice behaviour applies except that the step parameter gives a multiplicative factor for <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> (i.e. the bits &#8216;stepped over&#8217; are included in the slice).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0123456&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">BitString(&#39;0x1&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span>
+<span class="go">BitString(&#39;0x012345&#39;)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__iadd__">
+<tt class="descname">__iadd__</tt><big>(</big><big>)</big><a class="headerlink" href="#__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">+=</span> <span class="pre">s2</span></tt></p>
+<p>Append a <tt class="docutils literal"><span class="pre">BitString</span></tt> to the current <tt class="docutils literal"><span class="pre">BitString</span></tt> and return the result.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">423</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">+=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+<span class="go">423</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+<span class="go">12</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__ilshift__">
+<tt class="descname">__ilshift__</tt><big>(</big><big>)</big><a class="headerlink" href="#__ilshift__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">&lt;&lt;=</span> <span class="pre">n</span></tt></p>
+<p>Shifts the bits in <tt class="docutils literal"><span class="pre">s</span></tt> in place to the left by <tt class="docutils literal"><span class="pre">n</span></tt> places. Returns <tt class="docutils literal"><span class="pre">self</span></tt>. Bits shifted off the left hand side are lost, and replaced by <tt class="docutils literal"><span class="pre">0</span></tt> bits on the right hand side.</p>
+<dl class="function">
+<dt id="__imul__">
+<tt class="descname">__imul__</tt><big>(</big><big>)</big><a class="headerlink" href="#__imul__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">*=</span> <span class="pre">n</span></tt></p>
+<p>Concatenates <tt class="docutils literal"><span class="pre">n</span></tt> copies of <tt class="docutils literal"><span class="pre">s</span></tt> and returns <tt class="docutils literal"><span class="pre">self</span></tt>. Raises <tt class="docutils literal"><span class="pre">ValueError</span></tt> if <tt class="docutils literal"><span class="pre">n</span> <span class="pre">&lt;</span> <span class="pre">0</span></tt>.</p>
+<div class="highlight-python"><pre>&gt;&gt;&gt; s = BitString(‘0xef’)
+&gt;&gt;&gt; s *= 3
+&gt;&gt;&gt; print s
+0xefefef</pre>
+</div>
+<dl class="function">
+<dt id="__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">BitString(auto=None,</span> <span class="pre">length=None,</span> <span class="pre">offset=0,</span> <span class="pre">bytes=None,</span> <span class="pre">filename=None,</span> <span class="pre">hex=None,</span> <span class="pre">bin=None,</span> <span class="pre">oct=None,</span> <span class="pre">uint=None,</span> <span class="pre">int=None,</span> <span class="pre">uintbe=None,</span> <span class="pre">intbe=None,</span> <span class="pre">uintle=None,</span> <span class="pre">intle=None,</span> <span class="pre">uintne=None,</span> <span class="pre">intne=None,</span> <span class="pre">ue=None,</span> <span class="pre">se=None,</span> <span class="pre">float=None,</span> <span class="pre">floatbe=None,</span> <span class="pre">floatle=None,</span> <span class="pre">floatne=None)</span></tt></p>
+<p>Creates a new <tt class="docutils literal"><span class="pre">BitString</span></tt>. You must specify at most one of the initialisers <tt class="docutils literal"><span class="pre">auto</span></tt>, <tt class="docutils literal"><span class="pre">bytes</span></tt>, <tt class="docutils literal"><span class="pre">bin</span></tt>, <tt class="docutils literal"><span class="pre">hex</span></tt>, <tt class="docutils literal"><span class="pre">oct</span></tt>, <tt class="docutils literal"><span class="pre">uint</span></tt>, <tt class="docutils literal"><span class="pre">int</span></tt>, <tt class="docutils literal"><span class="pre">uintbe</span></tt>, <tt class="docutils literal"><span class="pre">intbe</span></tt>, <tt class="docutils literal"><span class="pre">uintle</span></tt>, <tt class="docutils literal"><span class="pre">intle</span></tt>, <tt class="docutils literal"><span class="pre">uintne</span></tt>, <tt class="docutils literal"><span class="pre">intne</span></tt>, <tt class="docutils literal"><span class="pre">se</span></tt>, <tt class="docutils literal"><span class="pre">ue</span></tt>, <tt class="docutils literal"><span class="pre">float</span></tt>, <tt class="docutils literal"><span class="pre">floatbe</span></tt>, <tt class="docutils literal"><span class="pre">floatle</span></tt>, <tt class="docutils literal"><span class="pre">floatne</span></tt> or <tt class="docutils literal"><span class="pre">filename</span></tt>. If no initialiser is given then a zeroed <tt class="docutils literal"><span class="pre">BitString</span></tt> of length bits is created.</p>
+<p><tt class="docutils literal"><span class="pre">offset</span></tt> is optional for most initialisers, but only really useful for <tt class="docutils literal"><span class="pre">bytes</span></tt> and <tt class="docutils literal"><span class="pre">filename</span></tt>. It gives a number of bits to ignore at the start of the <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>Specifying <tt class="docutils literal"><span class="pre">length</span></tt> is mandatory when using the various integer initialisers. It must be large enough that a <tt class="docutils literal"><span class="pre">BitString</span></tt> can contain the integer in <tt class="docutils literal"><span class="pre">length</span></tt> bits. It is an error to specify <tt class="docutils literal"><span class="pre">length</span></tt> when using the <tt class="docutils literal"><span class="pre">ue</span></tt> or <tt class="docutils literal"><span class="pre">se</span></tt> initialisers. For other initialisers <tt class="docutils literal"><span class="pre">length</span></tt> can be used to truncate data from the end of the input value.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">hex</span><span class="o">=</span><span class="s">&#39;0x934&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">oct</span><span class="o">=</span><span class="s">&#39;0o4464&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s3</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bin</span><span class="o">=</span><span class="s">&#39;0b001000110100&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s4</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">int</span><span class="o">=-</span><span class="mi">1740</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s5</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">uint</span><span class="o">=</span><span class="mi">2356</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s6</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\x93</span><span class="s">@&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">==</span> <span class="n">s2</span> <span class="o">==</span> <span class="n">s3</span> <span class="o">==</span> <span class="n">s4</span> <span class="o">==</span> <span class="n">s5</span> <span class="o">==</span> <span class="n">s6</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>For information on the use of the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser see the introduction to this reference section.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;uint:12=32, 0b110&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o755, ue:12, int:3=-1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__invert__">
+<tt class="descname">__invert__</tt><big>(</big><big>)</big><a class="headerlink" href="#__invert__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">~s</span></tt></p>
+<p>Returns the <tt class="docutils literal"><span class="pre">BitString</span></tt> with every bit inverted, that is all zeros replaced with ones, and all ones replaced with zeros.</p>
+<p>If the <tt class="docutils literal"><span class="pre">BitString</span></tt> is empty then a <tt class="docutils literal"><span class="pre">BitStringError</span></tt> will be raised.</p>
+<div class="highlight-python"><pre>&gt;&gt;&gt; s = BitString(‘0b1110010’)
+&gt;&gt;&gt; print ~s
+0b0001101
+&gt;&gt;&gt; print ~s &amp; s
+0b0000000</pre>
+</div>
+<dl class="function">
+<dt id="__irshift__">
+<tt class="descname">__irshift__</tt><big>(</big><big>)</big><a class="headerlink" href="#__irshift__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">&gt;&gt;=</span> <span class="pre">n</span></tt></p>
+<p>Shifts the bits in <tt class="docutils literal"><span class="pre">s</span></tt> in place by <tt class="docutils literal"><span class="pre">n</span></tt> places to the right and returns <tt class="docutils literal"><span class="pre">self</span></tt>. The <tt class="docutils literal"><span class="pre">n</span></tt> left-most bits will become zeros.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b110&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">&gt;&gt;=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b001&#39;</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__len__">
+<tt class="descname">__len__</tt><big>(</big><big>)</big><a class="headerlink" href="#__len__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">len(s)</span></tt></p>
+<p>Returns the length of the <tt class="docutils literal"><span class="pre">BitString</span></tt> in bits if it is less than <tt class="docutils literal"><span class="pre">sys.maxsize</span></tt>, otherwise raises <tt class="docutils literal"><span class="pre">OverflowError</span></tt>.</p>
+<p>It&#8217;s recommended that you use the <tt class="docutils literal"><span class="pre">len</span></tt> property rather than the <tt class="docutils literal"><span class="pre">len</span></tt> function because of the function&#8217;s behaviour for large <tt class="docutils literal"><span class="pre">BitString</span></tt> objects, although calling the special function directly will always work.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;11GB.mkv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">len</span>
+<span class="go">93944160032L</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">OverflowError: long int too large to convert to int</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">__len__</span><span class="p">()</span>
+<span class="go">93944160032L</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__lshift__">
+<tt class="descname">__lshift__</tt><big>(</big><big>)</big><a class="headerlink" href="#__lshift__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">&lt;&lt;</span> <span class="pre">n</span></tt></p>
+<p>Returns the <tt class="docutils literal"><span class="pre">BitString</span></tt> with its bits shifted <tt class="docutils literal"><span class="pre">n</span></tt> places to the left. The <tt class="docutils literal"><span class="pre">n</span></tt> right-most bits will become zeros.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xff&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span>
+<span class="go">BitString(&#39;0xf0&#39;)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt>
+<tt class="descname">__mul__, __rmul__</tt></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">*</span> <span class="pre">n</span> <span class="pre">/</span> <span class="pre">n</span> <span class="pre">*</span> <span class="pre">s</span></tt></p>
+<p>Return <tt class="docutils literal"><span class="pre">BitString</span></tt> consisting of n concatenations of s.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x34&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">b</span>
+<span class="go">0x3434343434</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__ne__">
+<tt class="descname">__ne__</tt><big>(</big><big>)</big><a class="headerlink" href="#__ne__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">!=</span> <span class="pre">s2</span></tt></p>
+<p>Compares two <tt class="docutils literal"><span class="pre">BitString</span></tt> objects for inequality, returning <tt class="xref docutils literal"><span class="pre">False</span></tt> if they have the same binary representation, otherwise returning <tt class="xref docutils literal"><span class="pre">True</span></tt>.</p>
+<dl class="function">
+<dt>
+<tt class="descname">__or__, __ror__</tt></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">|</span> <span class="pre">s2</span></tt></p>
+<p>Returns the bit-wise OR between <tt class="docutils literal"><span class="pre">s1</span></tt> and <tt class="docutils literal"><span class="pre">s2</span></tt>, which must have the same length otherwise a <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x33&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="s">&#39;0x0f&#39;</span>
+<span class="go">0x3f</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__repr__">
+<tt class="descname">__repr__</tt><big>(</big><big>)</big><a class="headerlink" href="#__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">repr(s)</span></tt></p>
+<p>A representation of the <tt class="docutils literal"><span class="pre">BitString</span></tt> that could be used to create it (which will often not be the form used to create it).</p>
+<p>If the result is too long then it will be truncated with <tt class="docutils literal"><span class="pre">...</span></tt> and the length of the whole <tt class="docutils literal"><span class="pre">BitString</span></tt> will be given.</p>
+<div class="highlight-python"><pre>&gt;&gt;&gt; BitString(‘0b11100011’)
+BitString(‘0xe3’)</pre>
+</div>
+<dl class="function">
+<dt id="__rshift__">
+<tt class="descname">__rshift__</tt><big>(</big><big>)</big><a class="headerlink" href="#__rshift__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">&gt;&gt;</span> <span class="pre">n</span></tt></p>
+<p>Returns the <tt class="docutils literal"><span class="pre">BitString</span></tt> with its bits shifted <tt class="docutils literal"><span class="pre">n</span></tt> places to the right. The <tt class="docutils literal"><span class="pre">n</span></tt> left-most bits will become zeros.</p>
+<div class="highlight-python"><pre>&gt;&gt;&gt; s = BitString(‘0xff’)
+&gt;&gt;&gt; s &gt;&gt; 4
+BitString(‘0x0f’)</pre>
+</div>
+<dl class="function">
+<dt id="__setitem__">
+<tt class="descname">__setitem__</tt><big>(</big><big>)</big><a class="headerlink" href="#__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s1[start:end:step]</span> <span class="pre">=</span> <span class="pre">s2</span></tt></p>
+<p>Replaces the slice specified with <tt class="docutils literal"><span class="pre">s2</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00112233&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;0xfff&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span>
+<span class="go">0x00fff2233</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">12</span><span class="p">:]</span> <span class="o">=</span> <span class="s">&#39;0xc&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span>
+<span class="go">0x00fff2c</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="__str__">
+<tt class="descname">__str__</tt><big>(</big><big>)</big><a class="headerlink" href="#__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">print</span> <span class="pre">s</span></tt></p>
+<p>Prints a representation of <tt class="docutils literal"><span class="pre">s</span></tt>, trying to be as brief as possible.</p>
+<p>If <tt class="docutils literal"><span class="pre">s</span></tt> is a multiple of 4 bits long then hex will be used, otherwise either binary or a mix of hex and binary will be used. Very long strings will be truncated with <tt class="docutils literal"><span class="pre">...</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">7</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span>
+<span class="go">0b1111111</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span> <span class="o">+</span> <span class="s">&#39;0b1&#39;</span>
+<span class="go">0xff</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt>
+<tt class="descname">__xor__, __rxor__</tt></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">^</span> <span class="pre">s2</span></tt></p>
+<p>Returns the bit-wise XOR between <tt class="docutils literal"><span class="pre">s1</span></tt> and <tt class="docutils literal"><span class="pre">s2</span></tt>, which must have the same length otherwise a <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised. Either <tt class="docutils literal"><span class="pre">s1</span></tt> or <tt class="docutils literal"><span class="pre">s2</span></tt> can be a string for the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x33&#39;</span><span class="p">)</span> <span class="o">^</span> <span class="s">&#39;0x0f&#39;</span>
+<span class="go">0x3c</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="module-methods">
+<h2>Module methods<a class="headerlink" href="#module-methods" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pack">
+<tt class="descname">pack</tt><big>(</big><big>)</big><a class="headerlink" href="#pack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">bitstring.pack(format,</span> <span class="pre">*values,</span> <span class="pre">**kwargs)</span></tt></p>
+<p>Packs the values and keyword arguments according to the <tt class="docutils literal"><span class="pre">format</span></tt> string and returns a new <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>The format string consists of comma separated tokens of the form <tt class="docutils literal"><span class="pre">name:length=value</span></tt>. See the entry for <a title="read" class="reference internal" href="#read"><tt class="xref docutils literal"><span class="pre">read</span></tt></a> for more details.</p>
+<p>The tokens can be &#8216;literals&#8217;, like <tt class="docutils literal"><span class="pre">0xef</span></tt>, <tt class="docutils literal"><span class="pre">0b110</span></tt>, <tt class="docutils literal"><span class="pre">uint:8=55</span></tt>, etc. which just represent a set sequence of bits.</p>
+<p>They can also have the value missing, in which case the values contained in <tt class="docutils literal"><span class="pre">*values</span></tt> will be used.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;bin:3, hex:4&#39;</span><span class="p">,</span> <span class="s">&#39;001&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;uint:10&#39;</span><span class="p">,</span> <span class="mi">33</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A dictionary or keyword arguments can also be provided. These will replace items in the format string.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;int:a=b&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;int:8=a, bin=b, int:4=a&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="s">&#39;0b110&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Plain names can also be used as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;a, b, b, a&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="s">&#39;0b11&#39;</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="s">&#39;0o2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Tokens starting with an endianness identifier (<tt class="docutils literal"><span class="pre">&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt> or <tt class="docutils literal"><span class="pre">&#64;</span></tt>) implies a struct-like compact format string. For example this packs three little-endian 16-bit integers:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;&lt;3h&#39;</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">108</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And of course you can combine the different methods in a single pack.</p>
+<p>A <tt class="docutils literal"><span class="pre">ValueError</span></tt> will be raised if the <tt class="docutils literal"><span class="pre">*values</span></tt> are not all used up by the format string, and if a value provided doesn&#8217;t match the length specified by a token.</p>
+</div>
+<div class="section" id="deprecated-methods">
+<h2>Deprecated methods<a class="headerlink" href="#deprecated-methods" title="Permalink to this headline">¶</a></h2>
+<p>These methods were all present in the 1.0 release, but have now been deprecated to simplify the API as they have trivial alternatives and offer no extra functionality.</p>
+<p>There are no current plans to remove them, but this could happen for version 2.0 so their use is discouraged.</p>
+<dl class="function">
+<dt id="advancebit">
+<tt class="descname">advancebit</tt><big>(</big><big>)</big><a class="headerlink" href="#advancebit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.advancebit()</span></tt></p>
+<p>Advances position by 1 bit.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos&nbsp;+=&nbsp;1</span></tt>.</p>
+<dl class="function">
+<dt id="advancebits">
+<tt class="descname">advancebits</tt><big>(</big><big>)</big><a class="headerlink" href="#advancebits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.advancebits(bits)</span></tt></p>
+<p>Advances position by <tt class="docutils literal"><span class="pre">bits</span></tt> bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos&nbsp;+=&nbsp;bits</span></tt>.</p>
+<dl class="function">
+<dt id="advancebyte">
+<tt class="descname">advancebyte</tt><big>(</big><big>)</big><a class="headerlink" href="#advancebyte" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.advancebyte()</span></tt></p>
+<p>Advances position by 8 bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos&nbsp;+=&nbsp;8</span></tt>.</p>
+<dl class="function">
+<dt id="advancebytes">
+<tt class="descname">advancebytes</tt><big>(</big><big>)</big><a class="headerlink" href="#advancebytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.advancebytes(bytes)</span></tt></p>
+<p>Advances position by <tt class="docutils literal"><span class="pre">8*bytes</span></tt> bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos&nbsp;+=&nbsp;8*bytes</span></tt>.</p>
+<dl class="function">
+<dt id="retreatbit">
+<tt class="descname">retreatbit</tt><big>(</big><big>)</big><a class="headerlink" href="#retreatbit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.retreatbit()</span></tt></p>
+<p>Retreats position by 1 bit.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos&nbsp;-=&nbsp;1</span></tt>.</p>
+<dl class="function">
+<dt id="retreatbits">
+<tt class="descname">retreatbits</tt><big>(</big><big>)</big><a class="headerlink" href="#retreatbits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.retreatbits(bits)</span></tt></p>
+<p>Retreats position by <tt class="docutils literal"><span class="pre">bits</span></tt> bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos&nbsp;-=&nbsp;bits</span></tt>.</p>
+<dl class="function">
+<dt id="retreatbyte">
+<tt class="descname">retreatbyte</tt><big>(</big><big>)</big><a class="headerlink" href="#retreatbyte" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.retreatbyte()</span></tt></p>
+<p>Retreats position by 8 bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos&nbsp;-=&nbsp;8</span></tt>.</p>
+<dl class="function">
+<dt id="retreatbytes">
+<tt class="descname">retreatbytes</tt><big>(</big><big>)</big><a class="headerlink" href="#retreatbytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.retreatbytes(bytes)</span></tt></p>
+<p>Retreats position by <tt class="docutils literal"><span class="pre">bytes*8</span></tt> bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos&nbsp;-=&nbsp;8*bytes</span></tt>.</p>
+<dl class="function">
+<dt id="seek">
+<tt class="descname">seek</tt><big>(</big><big>)</big><a class="headerlink" href="#seek" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.seek(pos)</span></tt></p>
+<p>Moves the current position to <tt class="docutils literal"><span class="pre">pos</span></tt>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">=</span> <span class="pre">pos</span></tt>.</p>
+<dl class="function">
+<dt id="seekbyte">
+<tt class="descname">seekbyte</tt><big>(</big><big>)</big><a class="headerlink" href="#seekbyte" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.seekbyte(bytepos)</span></tt></p>
+<p>Moves the current position to <tt class="docutils literal"><span class="pre">bytepos</span></tt>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.bytepos</span> <span class="pre">=</span> <span class="pre">bytepos</span></tt>, or <tt class="docutils literal"><span class="pre">s.pos&nbsp;=&nbsp;bytepos*8</span></tt>.</p>
+<dl class="function">
+<dt id="slice">
+<tt class="descname">slice</tt><big>(</big><big>)</big><a class="headerlink" href="#slice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.slice(start,</span> <span class="pre">end,</span> <span class="pre">step)</span></tt></p>
+<p>Returns the <tt class="docutils literal"><span class="pre">BitString</span></tt> slice <tt class="docutils literal"><span class="pre">s[start*step</span> <span class="pre">:</span> <span class="pre">end*step]</span></tt>.</p>
+<p>It&#8217;s use is equivalent to using the slice notation <tt class="docutils literal"><span class="pre">s[start:end:step]</span></tt>; see <tt class="docutils literal"><span class="pre">__getitem__</span></tt> for examples.</p>
+<dl class="function">
+<dt id="tell">
+<tt class="descname">tell</tt><big>(</big><big>)</big><a class="headerlink" href="#tell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.tell()</span></tt></p>
+<p>Returns the current bit position.</p>
+<p>Equivalent to using the <tt class="docutils literal"><span class="pre">pos</span></tt> property as a getter.</p>
+<dl class="function">
+<dt id="tellbyte">
+<tt class="descname">tellbyte</tt><big>(</big><big>)</big><a class="headerlink" href="#tellbyte" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>(deprecated)</p>
+<p><tt class="docutils literal"><span class="pre">s.tellbyte()</span></tt></p>
+<p>Returns the current byte position.</p>
+<p>Equivalent to using the <tt class="docutils literal"><span class="pre">bytepos</span></tt> property as a getter.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="internals.html" title="Internals"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Scott Griffiths.
+    </div>
+  </body>
+</html>
