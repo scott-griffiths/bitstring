@@ -4,3 +4,4 @@ include test/test.m1v
 include test/smalltestfile
 include release_notes.txt
 prune doc
+include doc/bitstring_manual.pdf
