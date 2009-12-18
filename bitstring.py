@@ -33,7 +33,7 @@ __version__ = "1.1.1"
 
 __author__ = "Scott Griffiths"
 
-__all__ = ['BitString', 'Bits', 'pack']
+__all__ = ['BitString', 'pack']
 
 import os
 import struct
