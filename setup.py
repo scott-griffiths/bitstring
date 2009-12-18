@@ -2,7 +2,7 @@
 from distutils.core import setup
 
 kwds = {}
-kwds['long_description'] = open('readme.txt').read()
+kwds['long_description'] = open('README.txt').read()
 
 setup(name='bitstring',
       version='1.1.2',
