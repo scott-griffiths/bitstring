@@ -41,7 +41,7 @@ from bitstring import BitString, BitStringError, Bits, pack
 class BitStringTest(unittest.TestCase):
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '1.1.1')
+        self.assertEqual(bitstring.__version__, '1.1.2')
     
     def testAll(self):
         a = bitstring.__all__
@@ -3396,6 +3396,18 @@ class BitStringTest(unittest.TestCase):
         a = BitString(1007)
         self.assertEqual(a, BitString(length=1007))
         self.assertRaises(ValueError, BitString, -1)
+
+    def testReadingProblems(self):
+        a = BitString('0x000001')
+        b = a.read('uint:32')
+        self.assertEqual(b, 1)
+        a.pos = 0
+        b = a.read('bytes:4')
+        self.assertEqual(b, b'\x00\x00\x01')
+        a.pos = 0
+        b = a.read('bits:32')
+        self.assertEqual(b, '0x000001')
+
 
     #def testAbc(self):
     #    a = Bits()
