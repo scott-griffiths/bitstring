@@ -41,12 +41,12 @@ from bitstring import BitString, BitStringError, Bits, pack
 class BitStringTest(unittest.TestCase):
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '1.1.2')
+        self.assertEqual(bitstring.__version__, '1.2.0')
     
     def testAll(self):
         a = bitstring.__all__
-        self.assertEqual(len(a), 2)
-#        self.assertTrue('Bits' in a)
+        self.assertEqual(len(a), 3)
+        self.assertTrue('Bits' in a)
         self.assertTrue('BitString' in a)
         self.assertTrue('pack' in a)
     

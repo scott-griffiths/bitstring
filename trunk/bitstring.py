@@ -29,11 +29,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "1.1.2"
+__version__ = "1.2.0"
 
 __author__ = "Scott Griffiths"
 
-__all__ = ['BitString', 'pack']
+__all__ = ['BitString', 'Bits', 'pack']
 
 import os
 import struct
@@ -45,7 +45,7 @@ from sys import byteorder
 import platform
 import binascii
 import copy
-#import warnings
+import warnings
 import functools
 
 # Decorator adapted from Michael Chermside's recipe:
@@ -57,8 +57,8 @@ def deprecated(explanation):
         """
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
-            #warnings.warn("Call to deprecated function %s." % func.__name__,
-            #              category=DeprecationWarning, stacklevel=2)
+        #    warnings.warn("Call to deprecated function %s. %s" % (func.__name__, explanation),
+        #                  category=DeprecationWarning, stacklevel=2)
             return func(self, *args, **kwargs)
         wrapper.__doc__ = "*Deprecated*: " + explanation + '\n\n        ' + func.__doc__
         return wrapper
@@ -1007,6 +1007,7 @@ class Bits(object):
     def __hash__(self):
         # Take first 10 bytes
         shorter = self[0:10:8]
+        # Append up to 10 bytes from the end.
         endbits = min(self.len - shorter.len, 80)
         shorter += self[-endbits:]
         h = 0
@@ -1899,7 +1900,8 @@ class Bits(object):
         format - One or more strings with comma separated tokens describing
                  how to interpret the bits in the BitString.
         
-        Raises ValueError if the format is not understood.
+        Raises ValueError if the format is not understood. If not enough bits
+        are available then all bits to the end of the BitString will be used.
         
         See the docstring for 'read' for token examples.
         
@@ -1952,6 +1954,8 @@ class Bits(object):
                         'bytes:10'  : 10 bytes as a bytes object
                         
         The position in the BitString is advanced to after the read items.
+        If not enough bits are available then all bits to the end of the
+        BitString will be used.
         
         Raises ValueError if the format is not understood.
         
@@ -1974,6 +1978,8 @@ class Bits(object):
                   how to interpret the next bits in the BitString.
                         
         The position in the BitString is advanced to after the read items.
+        If not enough bits are available then all bits to the end of the
+        BitString will be used.                
         
         Raises ValueError if the format is not understood.
 
@@ -2105,7 +2111,8 @@ class Bits(object):
         
         format -- Token string describing how to interpret the next bits.
                   
-        The position in the BitString is not changed.
+        The position in the BitString is not changed. If not enough bits are
+        available then all bits to the end of the BitString will be used.
         
         See the docstring for 'read' for token examples.
         
@@ -2122,7 +2129,8 @@ class Bits(object):
         format -- One or more strings with comma separated tokens describing
                   how to interpret the next bits in the BitString.
                   
-        The position in the BitString is not changed.
+        The position in the BitString is not changed. If not enough bits are
+        available then all bits to the end of the BitString will be used.
         
         See the docstring for 'read' for token examples.
         
