@@ -5,7 +5,7 @@ Examples
 Creation
 --------
 
-There are lots of ways of creating new ``BitString`` objects. The most flexible is via the ``auto`` parameter, which is used in this example. ::
+There are lots of ways of creating new bitstrings. The most flexible is via the ``auto`` parameter, which is used in this example. ::
 
  # Multiple parts can be joined with a single expression...
  s = BitString('0x000001b3, uint:12=352, uint:12=288, 0x1, 0x3') 

@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>Slicing, Dicing and Splicing &mdash; bitstring documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -20,7 +20,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bitstring documentation" href="index.html" />
-    <link rel="up" title="Manual" href="contents.html" />
+    <link rel="up" title="User Manual" href="contents.html" />
     <link rel="next" title="Reading, Parsing and Unpacking" href="reading.html" />
     <link rel="prev" title="Creation and Interpretation" href="creation.html" /> 
   </head>
@@ -38,60 +38,9 @@
           <a href="creation.html" title="Creation and Interpretation"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" accesskey="U">Manual</a> &raquo;</li> 
+          <li><a href="contents.html" accesskey="U">User Manual</a> &raquo;</li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
-            </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">Slicing, Dicing and Splicing</a><ul>
-<li><a class="reference external" href="#slicing">Slicing</a><ul>
-<li><a class="reference external" href="#stepping-in-slices">Stepping in slices</a></li>
-</ul>
-</li>
-<li><a class="reference external" href="#joining">Joining</a></li>
-<li><a class="reference external" href="#truncating-inserting-deleting-and-overwriting">Truncating, inserting, deleting and overwriting</a><ul>
-<li><a class="reference external" href="#truncatestart-truncateend"><tt class="docutils literal"><span class="pre">truncatestart</span> <span class="pre">/</span> <span class="pre">truncateend</span></tt></a></li>
-<li><a class="reference external" href="#insert"><tt class="docutils literal"><span class="pre">insert</span></tt></a></li>
-<li><a class="reference external" href="#overwrite"><tt class="docutils literal"><span class="pre">overwrite</span></tt></a></li>
-<li><a class="reference external" href="#delete"><tt class="docutils literal"><span class="pre">delete</span></tt></a></li>
-</ul>
-</li>
-<li><a class="reference external" href="#the-bitstring-as-a-list">The BitString as a list</a></li>
-<li><a class="reference external" href="#splitting">Splitting</a><ul>
-<li><a class="reference external" href="#split"><tt class="docutils literal"><span class="pre">split</span></tt></a></li>
-<li><a class="reference external" href="#cut"><tt class="docutils literal"><span class="pre">cut</span></tt></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="creation.html"
-                                  title="previous chapter">Creation and Interpretation</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="reading.html"
-                                  title="next chapter">Reading, Parsing and Unpacking</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -105,24 +54,24 @@
 <div class="section" id="slicing">
 <h2>Slicing<a class="headerlink" href="#slicing" title="Permalink to this headline">¶</a></h2>
 <p>Slicing takes three arguments: the first position you want, one past the last position you want and a multiplicative factor which defaults to 1.</p>
-<p>The third argument (the &#8216;step&#8217;) will be described shortly, but most of the time you&#8217;ll probably just need the bit-wise slice, where for example <tt class="docutils literal"><span class="pre">a[10:12]</span></tt> will return a 2-bit <tt class="docutils literal"><span class="pre">BitString</span></tt> of the 10th and 11th bits in <tt class="docutils literal"><span class="pre">a</span></tt>, and <tt class="docutils literal"><span class="pre">a[32]</span></tt> will return just the 32nd bit.</p>
+<p>The third argument (the &#8216;step&#8217;) will be described shortly, but most of the time you&#8217;ll probably just need the bit-wise slice, where for example <tt class="docutils literal"><span class="pre">a[10:12]</span></tt> will return a 2-bit bitstring of the 10th and 11th bits in <tt class="docutils literal"><span class="pre">a</span></tt>, and <tt class="docutils literal"><span class="pre">a[32]</span></tt> will return just the 32nd bit.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b00011110&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 <span class="go">0x1e 0xf</span>
 </pre></div>
 </div>
 <p>Indexing also works for missing and negative arguments, just as it does for other containers.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b00011110&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>         <span class="c"># first 5 bits</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span>         <span class="c"># first 5 bits</span>
 <span class="go">0b00011</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>         <span class="c"># everything except first 3 bits</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">:])</span>         <span class="c"># everything except first 3 bits</span>
 <span class="go">0b11110</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>        <span class="c"># final 4 bits</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:])</span>        <span class="c"># final 4 bits</span>
 <span class="go">0xe</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>        <span class="c"># everything except last bit</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>        <span class="c"># everything except last bit</span>
 <span class="go">0b0001111</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>      <span class="c"># from 6 from the end to 4 from the end</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:</span><span class="o">-</span><span class="mi">4</span><span class="p">])</span>      <span class="c"># from 6 from the end to 4 from the end</span>
 <span class="go">0b01</span>
 </pre></div>
 </div>
@@ -130,18 +79,18 @@
 <h3>Stepping in slices<a class="headerlink" href="#stepping-in-slices" title="Permalink to this headline">¶</a></h3>
 <p>The step parameter (also known as the stride) can be used in slices. Its use is rather non-standard as it effectively gives a multiplicative factor to apply to the start and stop parameters, rather than skipping over bits.</p>
 <p>For example this makes it more convenient if you want to give slices in terms of bytes instead of bits. Instead of writing <tt class="docutils literal"><span class="pre">s[a*8:b*8]</span></tt> you can use <tt class="docutils literal"><span class="pre">s[a:b:8]</span></tt>.</p>
-<p>When using a step, the <tt class="docutils literal"><span class="pre">BitString</span></tt> is effectively truncated to a multiple of the step, so <tt class="docutils literal"><span class="pre">s[::8]</span></tt> is equal to <tt class="docutils literal"><span class="pre">s</span></tt> if <tt class="docutils literal"><span class="pre">s</span></tt> is an integer number of bytes, otherwise it is truncated by up to 7 bits. This means that, for example, the final seven complete 16-bit words could be written as <tt class="docutils literal"><span class="pre">s[-7::16]</span></tt>.</p>
+<p>When using a step, the bitstring is effectively truncated to a multiple of the step, so <tt class="docutils literal"><span class="pre">s[::8]</span></tt> is equal to <tt class="docutils literal"><span class="pre">s</span></tt> if <tt class="docutils literal"><span class="pre">s</span></tt> is an integer number of bytes, otherwise it is truncated by up to 7 bits. This means that, for example, the final seven complete 16-bit words could be written as <tt class="docutils literal"><span class="pre">s[-7::16]</span></tt>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x470000125e&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span>                  <span class="c"># The first four bytes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">])</span>                  <span class="c"># The first four bytes</span>
 <span class="go">0x47000012</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">::</span><span class="mi">4</span><span class="p">]</span>                  <span class="c"># The final three nibbles</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">::</span><span class="mi">4</span><span class="p">])</span>                  <span class="c"># The final three nibbles</span>
 <span class="go">0x25e</span>
 </pre></div>
 </div>
-<p>Negative slices are also allowed, and should do what you&#8217;d expect. So for example <tt class="docutils literal"><span class="pre">s[::-1]</span></tt> returns a bit-reversed copy of <tt class="docutils literal"><span class="pre">s</span></tt> (which is similar to using <tt class="docutils literal"><span class="pre">s.reverse()</span></tt>, which does the same operation on <tt class="docutils literal"><span class="pre">s</span></tt> in-place). As another example, to get the first 10 bytes in reverse byte order you could use <tt class="docutils literal"><span class="pre">s_bytereversed&nbsp;=&nbsp;s[0:10:-8]</span></tt>.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>                 <span class="c"># Final five nibbles reversed</span>
+<p>Negative slices are also allowed, and should do what you&#8217;d expect. So for example <tt class="docutils literal"><span class="pre">s[::-1]</span></tt> returns a bit-reversed copy of <tt class="docutils literal"><span class="pre">s</span></tt> (which is similar to using <tt class="docutils literal"><span class="pre">s.reverse()</span></tt>, which does the same operation on <tt class="docutils literal"><span class="pre">s</span></tt> in-place). As another example, to get the first 10 bytes in reverse byte order you could use <tt class="docutils literal"><span class="pre">s_bytereversed</span>&nbsp; <span class="pre">=</span>&nbsp; <span class="pre">s[0:10:-8]</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">:</span><span class="o">-</span><span class="mi">4</span><span class="p">])</span>                 <span class="c"># Final five nibbles reversed</span>
 <span class="go">0xe5210</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="p">[::</span><span class="o">-</span><span class="mi">8</span><span class="p">]</span>                   <span class="c"># The whole BitString byte reversed</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[::</span><span class="o">-</span><span class="mi">8</span><span class="p">])</span>                   <span class="c"># The whole BitString byte reversed</span>
 <span class="go">0x5e12000047</span>
 </pre></div>
 </div>
@@ -149,7 +98,7 @@
 </div>
 <div class="section" id="joining">
 <h2>Joining<a class="headerlink" href="#joining" title="Permalink to this headline">¶</a></h2>
-<p>To join together a couple of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects use the <tt class="docutils literal"><span class="pre">+</span></tt> or <tt class="docutils literal"><span class="pre">+=</span></tt> operators, or the <a title="append" class="reference external" href="reference.html#append"><tt class="xref docutils literal"><span class="pre">append</span></tt></a> and <a title="prepend" class="reference external" href="reference.html#prepend"><tt class="xref docutils literal"><span class="pre">prepend</span></tt></a> functions.</p>
+<p>To join together a couple of bitstring objects use the <tt class="docutils literal"><span class="pre">+</span></tt> or <tt class="docutils literal"><span class="pre">+=</span></tt> operators, or the <a title="append" class="reference external" href="reference.html#append"><tt class="xref docutils literal"><span class="pre">append</span></tt></a> and <a title="prepend" class="reference external" href="reference.html#prepend"><tt class="xref docutils literal"><span class="pre">prepend</span></tt></a> functions.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># Six ways of creating the same BitString:</span>
 <span class="n">a1</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bin</span><span class="o">=</span><span class="s">&#39;000&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">hex</span><span class="o">=</span><span class="s">&#39;f&#39;</span><span class="p">)</span>
 <span class="n">a2</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b000&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf&#39;</span><span class="p">)</span>
@@ -162,7 +111,8 @@
 <span class="n">a6</span> <span class="o">+=</span> <span class="s">&#39;0xf&#39;</span>
 </pre></div>
 </div>
-<p>If you want to join a large number of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects then the function <a title="join" class="reference external" href="reference.html#join"><tt class="xref docutils literal"><span class="pre">join</span></tt></a> can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the <tt class="docutils literal"><span class="pre">BitString</span></tt> that it is called on as a separator when joining the list of <tt class="docutils literal"><span class="pre">BitString</span></tt> objects it is given. If you don&#8217;t want a separator then it can be called on an empty <tt class="docutils literal"><span class="pre">BitString</span></tt>.</p>
+<p>Note that the final three methods all modify a bitstring, and so will only work with <tt class="docutils literal"><span class="pre">BitString</span></tt> objects, not the immutable <tt class="docutils literal"><span class="pre">Bits</span></tt> objects.</p>
+<p>If you want to join a large number of bitstrings then the function <a title="join" class="reference external" href="reference.html#join"><tt class="xref docutils literal"><span class="pre">join</span></tt></a> can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don&#8217;t want a separator then it can be called on an empty bitstring.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">bslist</span> <span class="o">=</span> <span class="p">[</span><span class="n">BitString</span><span class="p">(</span><span class="n">uint</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1000</span><span class="p">)]</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1111&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bslist</span><span class="p">)</span>
 </pre></div>
@@ -170,7 +120,7 @@
 </div>
 <div class="section" id="truncating-inserting-deleting-and-overwriting">
 <h2>Truncating, inserting, deleting and overwriting<a class="headerlink" href="#truncating-inserting-deleting-and-overwriting" title="Permalink to this headline">¶</a></h2>
-<p>The functions in this section all modify the <tt class="docutils literal"><span class="pre">BitString</span></tt> that they operate on.</p>
+<p>The functions in this section all modify the bitstring that they operate on and so are not available for <tt class="docutils literal"><span class="pre">Bits</span></tt> objects.</p>
 <div class="section" id="truncatestart-truncateend">
 <h3><tt class="docutils literal"><span class="pre">truncatestart</span> <span class="pre">/</span> <span class="pre">truncateend</span></tt><a class="headerlink" href="#truncatestart-truncateend" title="Permalink to this headline">¶</a></h3>
 <p>The <a title="truncatestart" class="reference external" href="reference.html#truncatestart"><tt class="xref docutils literal"><span class="pre">truncatestart</span></tt></a> and <a title="truncateend" class="reference external" href="reference.html#truncateend"><tt class="xref docutils literal"><span class="pre">truncateend</span></tt></a> functions take a single integer argument and remove that number of bits from the start or end.</p>
@@ -222,7 +172,7 @@
 </div>
 <div class="section" id="the-bitstring-as-a-list">
 <h2>The BitString as a list<a class="headerlink" href="#the-bitstring-as-a-list" title="Permalink to this headline">¶</a></h2>
-<p>If you treat a <tt class="docutils literal"><span class="pre">BitString</span></tt> object as a list whose elements are all either &#8216;1&#8217; or &#8216;0&#8217; then you won&#8217;t go far wrong. The table below gives some of the equivalent ways of using functions and the standard slice notation.</p>
+<p>If you treat a bitstring object as a list whose elements are all either &#8216;1&#8217; or &#8216;0&#8217; then you won&#8217;t go far wrong. The table below gives some of the equivalent ways of using functions and the standard slice notation.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="42%" />
@@ -262,11 +212,11 @@
 <h2>Splitting<a class="headerlink" href="#splitting" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="split">
 <h3><tt class="docutils literal"><span class="pre">split</span></tt><a class="headerlink" href="#split" title="Permalink to this headline">¶</a></h3>
-<p>Sometimes it can be very useful to use a delimiter to split a <tt class="docutils literal"><span class="pre">BitString</span></tt> into sections. The <a title="split" class="reference external" href="reference.html#split"><tt class="xref docutils literal"><span class="pre">split</span></tt></a> function returns a generator for the sections.</p>
+<p>Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The <a title="split" class="reference external" href="reference.html#split"><tt class="xref docutils literal"><span class="pre">split</span></tt></a> function returns a generator for the sections.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x4700004711472222&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;0x47&#39;</span><span class="p">,</span> <span class="n">bytealigned</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">print</span> <span class="s">&quot;Empty&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="k">else</span> <span class="n">s</span><span class="o">.</span><span class="n">hex</span>
-<span class="go">Empty</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
+
 <span class="go">0x470000</span>
 <span class="go">0x4711</span>
 <span class="go">0x472222</span>
@@ -279,7 +229,7 @@
 <p>If you just want to split into equal parts then use the <a title="cut" class="reference external" href="reference.html#cut"><tt class="xref docutils literal"><span class="pre">cut</span></tt></a> function. This takes a number of bits as its first argument and returns a generator for chunks of that size.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x47001243&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">byte</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">print</span> <span class="n">byte</span><span class="o">.</span><span class="n">hex</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">byte</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
 <span class="go">0x47</span>
 <span class="go">0x00</span>
 <span class="go">0x12</span>
@@ -292,6 +242,57 @@
 
 
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Slicing, Dicing and Splicing</a><ul>
+<li><a class="reference external" href="#slicing">Slicing</a><ul>
+<li><a class="reference external" href="#stepping-in-slices">Stepping in slices</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#joining">Joining</a></li>
+<li><a class="reference external" href="#truncating-inserting-deleting-and-overwriting">Truncating, inserting, deleting and overwriting</a><ul>
+<li><a class="reference external" href="#truncatestart-truncateend"><tt class="docutils literal"><span class="pre">truncatestart</span> <span class="pre">/</span> <span class="pre">truncateend</span></tt></a></li>
+<li><a class="reference external" href="#insert"><tt class="docutils literal"><span class="pre">insert</span></tt></a></li>
+<li><a class="reference external" href="#overwrite"><tt class="docutils literal"><span class="pre">overwrite</span></tt></a></li>
+<li><a class="reference external" href="#delete"><tt class="docutils literal"><span class="pre">delete</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#the-bitstring-as-a-list">The BitString as a list</a></li>
+<li><a class="reference external" href="#splitting">Splitting</a><ul>
+<li><a class="reference external" href="#split"><tt class="docutils literal"><span class="pre">split</span></tt></a></li>
+<li><a class="reference external" href="#cut"><tt class="docutils literal"><span class="pre">cut</span></tt></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="creation.html"
+                                  title="previous chapter">Creation and Interpretation</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="reading.html"
+                                  title="next chapter">Reading, Parsing and Unpacking</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -309,7 +310,7 @@
           <a href="creation.html" title="Creation and Interpretation"
              >previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" >Manual</a> &raquo;</li> 
+          <li><a href="contents.html" >User Manual</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

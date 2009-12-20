@@ -1,11 +1,20 @@
+*********
 Reference
-=========
+*********
+
+BitString and Bits
+==================
 
 .. class:: BitString
+.. class:: Bits
 
-The bitstring module provides just one class, ``BitString``, whose public methods, special methods and properties are detailed in this section.
+The bitstring module provides just two classes, ``BitString`` and ``Bits``. These share many methods as ``Bits`` is the base class for ``BitString``. The distinction between them is that ``Bits`` represents an immutable sequence of bits whereas ``BitString`` objects support many methods that mutate their contents.
 
-Note that in places where a ``BitString`` can be used as a parameter, any other valid input to the ``auto`` initialiser can also be used. This means that the parameter can also be a format string which consists of tokens:
+If you need to change the contents of a bitstring then you must use the ``BitString`` class. If you need to use bitstrings as keys in a dictionary or members of a set then you must use the ``Bits`` class (``Bits`` are hashable).
+
+The public methods, special methods and properties of both classes are detailed in this section.
+
+Note that in places where a bitstring can be used as a parameter, any other valid input to the ``auto`` initialiser can also be used. This means that the parameter can also be a format string which consists of tokens:
 
 * Starting with ``hex=``, or simply starting with ``0x`` implies hexadecimal. e.g. ``0x013ff``, ``hex=013ff``
 
@@ -25,7 +34,7 @@ Multiples tokens can be joined by separating them with commas, so for example ``
 
 The ``auto`` parameter also accepts a list or tuple, whose elements will be evaluated as booleans (imagine calling ``bool()`` on each item) and the bits set to ``1`` for ``True`` items and ``0`` for ``False`` items.
 
-Finally if you pass in a file object, presumably opened in read-binary mode, then the ``BitString`` will be formed from the contents of the file.
+Finally if you pass in a file object, presumably opened in read-binary mode, then the bitstring will be formed from the contents of the file.
 
 For the :func:`read`, :func:`unpack`, :func:`pack` and :func:`peek` functions you can use compact format strings similar to those used in the ``struct`` and ``array`` modules. These start with an endian identifier: ``>`` for big-endian, ``<`` for little-endian or ``@`` for native-endian. This must be followed by at least one of these codes:
 
@@ -56,7 +65,7 @@ For the :func:`read`, :func:`unpack`, :func:`pack` and :func:`peek` functions yo
 Class properties
 ----------------
 
-``BitString`` objects use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions.
+Bitstring objects use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions.
 
 The different interpretations such as ``bin``, ``hex``, ``uint`` etc. are not stored as part of the object, but are calculated as needed.
 
@@ -158,7 +167,8 @@ Only valid if ``s`` is whole-byte, and will equal either the big-endian or the l
 
 When used as a setter the value must fit into the current length of the ``BitString``, else a ``ValueError`` will be raised.
 
-.. attribute:: float, floatbe
+.. attribute:: float
+.. attribute:: floatbe
 
 ``s.float``
 
@@ -182,7 +192,8 @@ Read and write property for setting and getting the byte-wise little-endian floa
 
 Read and write property for setting and getting the byte-wise native-endian floating point representation of the ``BitString``.
 
-.. attribute:: len, length
+.. attribute:: len
+.. attribute:: length
 
 ``s.len``
 
@@ -205,7 +216,8 @@ When used as a getter the value will be preceded by ``0o``, which is optional wh
  >>> s.oct
  '0o01234567'
 
-.. attribute:: pos, bitpos
+.. attribute:: pos
+.. attribute:: bitpos
 
 ``s.pos``
 
@@ -318,6 +330,8 @@ See also :func:`anyset`.
 
 ``s.append(bs)``
 
+``BitString`` only.
+
 Join a ``BitString`` to the end of the current ``BitString``. ::
 
  >>> s = BitString('0xbad')
@@ -344,9 +358,9 @@ If the current position is already byte aligned then it is unchanged. ::
 
 ``s.cut(bits, start=None, end=None, count=None)``
 
-Returns a generator for slices of the ``BitString`` of length ``bits``.
+Returns a generator for slices of the bitstring of length ``bits``.
 
-At most ``count`` items are returned and the range is given by the slice ``[start:end]``, which defaults to the whole ``BitString``. ::
+At most ``count`` items are returned and the range is given by the slice ``[start:end]``, which defaults to the whole bitstring. ::
 
  >>> s = BitString('0x1234')
  >>> for nibble in s.cut(4):
@@ -358,9 +372,11 @@ At most ``count`` items are returned and the range is given by the slice ``[star
 
 ``s.delete(bits, pos=None)``
 
+``BitString`` only.
+
 Removes ``bits`` bits from the ``BitString`` at position ``pos``. 
 
-If ``pos`` is not specified then the current position is used. Is equivalent to ``del s[pos:pos+bits]``. ::
+If ``pos`` is not specified then the current position is used. Is equivalent to ``del s[pos:pos+bits]``. ::
 
  >>> s = BitString('0b1111001')
  >>> s.delete(2, 4)
@@ -371,9 +387,9 @@ If ``pos`` is not specified then the current position is used. Is equivalent to 
 
 ``s.endswith(bs, start=None, end=None)``
 
-Returns ``True`` if the ``BitString`` ends with the sub-string ``bs``, otherwise returns ``False``.
+Returns ``True`` if the bitstring ends with the sub-string ``bs``, otherwise returns ``False``.
 
-A slice can be given using the ``start`` and ``end`` bit positions and defaults to the whole ``BitString``. ::
+A slice can be given using the ``start`` and ``end`` bit positions and defaults to the whole bitstring. ::
 
  >>> s = BitString('0x35e22')
  >>> s.endswith('0b10, 0x22')
@@ -385,9 +401,9 @@ A slice can be given using the ``start`` and ``end`` bit positions and defaults 
 
 ``s.find(bs, start=None, end=None, bytealigned=False)``
 
-Searches for ``bs`` in the current ``BitString`` and sets ``pos`` to the start of ``bs`` and returns ``True`` if found, otherwise it returns ``False``.
+Searches for ``bs`` in the current bitstring and sets ``pos`` to the start of ``bs`` and returns ``True`` if found, otherwise it returns ``False``.
 
-If ``bytealigned`` is ``True`` then it will look for ``bs`` only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). ``start`` and ``end`` give the search range and default to the whole ``BitString``. ::
+If ``bytealigned`` is ``True`` then it will look for ``bs`` only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). ``start`` and ``end`` give the search range and default to the whole bitstring. ::
 
  >>> s = BitString('0x0023122')
  >>> s.find('0b000100', bytealigned=True)
@@ -401,7 +417,7 @@ If ``bytealigned`` is ``True`` then it will look for ``bs`` only at byte aligned
 
 Searches for all occurrences of ``bs`` (even overlapping ones) and returns a generator of their bit positions.
 
-If ``bytealigned`` is ``True`` then ``bs`` will only be looked for at byte aligned positions. ``start`` and ``end`` optionally define a search range and default to the whole ``BitString``.
+If ``bytealigned`` is ``True`` then ``bs`` will only be looked for at byte aligned positions. ``start`` and ``end`` optionally define a search range and default to the whole bitstring.
 
 The ``count`` paramater limits the number of items that will be found - the default is to find all occurences. ::
 
@@ -414,7 +430,9 @@ The ``count`` paramater limits the number of items that will be found - the defa
 
 ``s.insert(bs, pos=None)``
 
-Inserts ``bs`` at ``pos``. After insertion ``pos`` will be immediately after the inserted ``BitString``.
+``BitString`` only.
+
+Inserts ``bs`` at ``pos``. After insertion ``pos`` will be immediately after the inserted bitstring.
 
 The default for ``pos`` is the current position. ::
 
@@ -444,6 +462,8 @@ Returns the concatenation of the BitString objects in the list ``bsl`` joined wi
 
 ``s.overwrite(bs, pos=None)``
 
+``BitString`` only.
+
 Replaces the contents of the current ``BitString`` with ``bs`` at ``pos``. After overwriting ``pos`` will be immediately after the overwritten section.
 
 The default for ``pos`` is the current position. ::
@@ -459,7 +479,7 @@ The default for ``pos`` is the current position. ::
 
 ``s.peek(format)``
 
-Reads from the current bit position ``pos`` in the ``BitString`` according the the format string and returns a new ``BitString``.
+Reads from the current bit position ``pos`` in the bitstring according the the format string and returns a new bitstring.
 
 The bit position is unchanged after calling ``peek``.
 
@@ -469,7 +489,7 @@ For information on the format string see the entry for the :func:`read` function
 
 ``s.peeklist(*format)``
 
-Reads from current bit position pos in the ``BitString`` according to the ``format`` string and returns a list of ``BitString`` objects.
+Reads from current bit position pos in the bitstring according to the ``format`` string and returns a list of bitstring objects.
 
 The position is not advanced to after the read items.
 
@@ -479,13 +499,13 @@ See the entries for :func:`read` and :func:`readlist` for more information.
 
 ``s.peekbit()``
 
-Returns the next bit in the current ``BitString`` as a new ``BitString`` but does not advance the position. 
+Returns the next bit in the current bitstring as a new bitstring but does not advance the position. 
 
 .. function:: peekbits
 
 ``s.peekbits(bits)``
 
-Returns the next ``bits`` bits of the current ``BitString`` as a new ``BitString`` but does not advance the position. ::
+Returns the next ``bits`` bits of the current bitstring as a new bitstring but does not advance the position. ::
 
  >>> s = BitString('0xf01')
  >>> s.pos = 4
@@ -498,7 +518,7 @@ Returns the next ``bits`` bits of the current ``BitString`` as a new ``BitString
 
 ``s.peekbitlist(*bits)``
 
-Reads multiple bits from the current position and returns a list of ``BitString`` objects, but does not advance the position. ::
+Reads multiple bits from the current position and returns a list of bitstring objects, but does not advance the position. ::
 
  >>> s = BitString('0xf01')
  >>> for bs in s.peekbits(2, 2, 8):
@@ -513,21 +533,21 @@ Reads multiple bits from the current position and returns a list of ``BitString`
 
 ``s.peekbyte()``
 
-Returns the next byte of the current ``BitString`` as a new ``BitString`` but does not advance the position. 
+Returns the next byte of the current bitstring as a new bitstring but does not advance the position. 
 
 .. function:: peekbytes
 
 ``s.peekbytes(*bytes)``
 
-Returns the next ``bytes`` bytes of the current ``BitString`` as a new ``BitString`` but does not advance the position.
+Returns the next ``bytes`` bytes of the current bitstring as a new bitstring but does not advance the position.
 
-If multiple bytes are specified then a list of ``BitString`` objects is returned.
+If multiple bytes are specified then a list of bitstring objects is returned.
 
 .. function:: peekbytelist
 
 ``s.peekbytelist(*bytes)``
 
-Reads multiple bytes from the current position and returns a list of ``BitString`` objects, but does not advance the position. ::
+Reads multiple bytes from the current position and returns a list of bitstring objects, but does not advance the position. ::
 
  >>> s = BitString('0x34eedd')
  >>> print(s.peekbytelist(1, 2))
@@ -536,6 +556,8 @@ Reads multiple bytes from the current position and returns a list of ``BitString
 .. function:: prepend
 
 ``s.prepend(bs)``
+
+``BitString`` only.
 
 Inserts ``bs`` at the beginning of the current ``BitString``. ::
 
@@ -548,9 +570,9 @@ Inserts ``bs`` at the beginning of the current ``BitString``. ::
 
 ``s.read(format)``
 
-Reads from current bit position pos in the ``BitString`` according the the format string and returns a single ``BitString``.
+Reads from current bit position pos in the bitstring according the the format string and returns a single bitstring. If not enough bits are available then all bits to the end of the bitstring will be used.
 
-``format`` is a token string that describe how to interpret the next bits in the ``BitString``. The tokens are:
+``format`` is a token string that describe how to interpret the next bits in the bitstring. The tokens are:
 
 ==============   ===============================================
 ``int:n``        ``n`` bits as a signed integer.
@@ -570,7 +592,7 @@ Reads from current bit position pos in the ``BitString`` according the the forma
 ``bin:n``        ``n`` bits as a binary string.
 ``ue``           next bits as an unsigned exp-Golomb.
 ``se``           next bits as a signed exp-Golomb.
-``bits:n``       ``n`` bits as a new ``BitString``.
+``bits:n``       ``n`` bits as a new bitstring.
 ``bytes:n``      ``n`` bytes as ``bytes`` object.
 ==============   ===============================================
 
@@ -598,7 +620,7 @@ The ``read`` function is useful for reading exponential-Golomb codes, which can'
 
 ``s.readlist(*format)``
 
-Reads from current bit position ``pos`` in the ``BitString`` according to the ``format`` string(s) and returns a list of ``BitString`` objects.
+Reads from current bit position ``pos`` in the bitstring according to the ``format`` string(s) and returns a list of bitstring objects. If not enough bits are available then all bits to the end of the bitstring will be used.
 
 The position is advanced to after the read items.
 
@@ -616,13 +638,13 @@ For multiple items you can separate using commas or given multiple parameters::
 
 ``s.readbit()``
 
-Returns the next bit of the current ``BitString`` as a new ``BitString`` and advances the position. 
+Returns the next bit of the current bitstring as a new bitstring and advances the position. 
 
 .. function:: readbits
 
 ``s.readbits(bits)``
 
-Returns the next ``bits`` bits of the current ``BitString`` as a new ``BitString`` and advances the position. ::
+Returns the next ``bits`` bits of the current bitstring as a new bitstring and advances the position. ::
 
  >>> s = BitString('0x0001e2')
  >>> s.readbits(16)
@@ -634,7 +656,7 @@ Returns the next ``bits`` bits of the current ``BitString`` as a new ``BitString
 
 ``s.readbitlist(*bits)``
 
-Reads multiple bits from the current ``BitString`` and returns a list of ``BitString`` objects.
+Reads multiple bits from the current bitstring and returns a list of bitstring objects.
 The position is advanced to after the read items. ::
 
  >>> s = BitString('0x0001e2')
@@ -647,19 +669,19 @@ The position is advanced to after the read items. ::
 
 ``s.readbyte()``
 
-Returns the next byte of the current ``BitString`` as a new ``BitString`` and advances the position. 
+Returns the next byte of the current bitstring as a new bitstring and advances the position. 
 
 .. function:: readbytes
 
 ``s.readbytes(bytes)``
 
-Returns the next ``bytes`` bytes of the current ``BitString`` as a new ``BitString`` and advances the position.
+Returns the next ``bytes`` bytes of the current bitstring as a new bitstring and advances the position.
 
 .. function:: readbytelist
 
 ``s.readbytelist(*bytes)``
 
-Reads multiple bytes from the current ``BitString`` and returns a list of ``BitString`` objects.
+Reads multiple bytes from the current bitstring and returns a list of bitstring objects.
 
 The position is advanced to after the read items.
 
@@ -685,6 +707,8 @@ If ``bytealigned`` is ``True`` then replacements will only be made on byte bound
 
 ``s.reverse(start=None, end=None)``
 
+``BitString`` only.
+
 Reverses bits in the ``BitString`` in-place.
 
 ``start`` and ``end`` give the range and default to ``0`` and ``s.length`` respectively. ::
@@ -698,9 +722,11 @@ Reverses bits in the ``BitString`` in-place.
 
 ``s.reversebytes(start=None, end=None)``
 
+``BitString`` only.
+
 Reverses bytes in the ``BitString`` in-place.
 
-``start`` and ``end`` give the range and default to ``0`` and ``s.length`` respectively. Note that ``start`` and ``end`` are specified in bits so if ``end - start`` is not a multiple of 8 then a ``BitStringError`` is raised.
+``start`` and ``end`` give the range and default to ``0`` and ``s.length`` respectively. Note that ``start`` and ``end`` are specified in bits so if ``end - start`` is not a multiple of 8 then a ``BitStringError`` is raised.
 
 Can be used to change the endianness of the ``BitString``. ::
 
@@ -713,7 +739,7 @@ Can be used to change the endianness of the ``BitString``. ::
 
 ``s.rfind(bs, start=None, end=None, bytealigned=False)``
 
-Searches backwards for ``bs`` in the current ``BitString`` and returns ``True`` if found, otherwise returns ``False``.
+Searches backwards for ``bs`` in the current bitstring and returns ``True`` if found, otherwise returns ``False``.
 
 If ``bytealigned`` is ``True`` then it will look for ``bs`` only at byte aligned positions. ``start`` and ``end`` give the search range and default to ``0`` and ``s.length`` respectively.
 
@@ -733,9 +759,11 @@ Note that as it's a reverse search it will start at ``end`` and finish at ``star
 
 ``s.rol(bits)``
 
+``BitString`` only.
+
 Rotates the contents of the ``BitString`` in-place by ``bits`` bits to the left.
 
-Raises ``ValueError`` if ``bits < 0``. ::
+Raises ``ValueError`` if ``bits < 0``. ::
 
  >>> s = BitString('0b01000001')
  >>> s.rol(2)
@@ -745,6 +773,8 @@ Raises ``ValueError`` if ``bits < 0``. ::
 .. function:: ror
 
 ``s.ror(bits)``
+
+``BitString`` only.
 
 Rotates the contents of the ``BitString`` in-place by ``bits`` bits to the right.
 
@@ -772,7 +802,7 @@ See also :func:`unset`. ::
 
 ``s.split(delimiter, start=None, end=None, count=None, bytealigned=False)``
 
-Splits ``s`` into sections that start with ``delimiter``. Returns a generator for ``BitString`` objects.
+Splits ``s`` into sections that start with ``delimiter``. Returns a generator for bitstring objects.
 
 The first item generated is always the bits before the first occurrence of delimiter (even if empty). A slice can be optionally specified with ``start`` and ``end``, while ``count`` specifies the maximum number of items generated.
 
@@ -786,19 +816,19 @@ If ``bytealigned`` is ``True`` then the delimiter will only be found if it start
 
 ``s.startswith(bs, start=None, end=None)``
 
-Returns ``True`` if the ``BitString`` starts with the sub-string ``bs``, otherwise returns ``False``.
+Returns ``True`` if the bitstring starts with the sub-string ``bs``, otherwise returns ``False``.
 
-A slice can be given using the ``start`` and ``end`` bit positions and defaults to the whole ``BitString``.
+A slice can be given using the ``start`` and ``end`` bit positions and defaults to the whole bitstring.
 
 .. function:: tobytes
 
 ``s.tobytes()``
 
-Returns the ``BitString`` as a ``bytes`` object (equivalent to a ``str`` in Python 2.6).
+Returns the bitstring as a ``bytes`` object (equivalent to a ``str`` in Python 2.6).
 
 The returned value will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
 
-The ``tobytes`` function can also be used to output your ``BitString`` to a file - just open a file in binary write mode and write the function's output. ::
+The ``tobytes`` function can also be used to output your bitstring to a file - just open a file in binary write mode and write the function's output. ::
 
  >>> s.bytes = 'hello'
  >>> s += '0b01'
@@ -809,7 +839,7 @@ The ``tobytes`` function can also be used to output your ``BitString`` to a file
 
 ``s.tofile(f)``
 
-Writes the ``BitString`` to the file object ``f``.
+Writes the bitstring to the file object ``f``.
 
 The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned. ::
 
@@ -819,6 +849,8 @@ The data written will be padded at the end with between zero and seven ``0`` bit
 .. function:: truncateend
 
 ``s.truncateend(bits)``
+
+``BitString`` only.
 
 Remove the last ``bits`` bits from the end of the ``BitString``.
 
@@ -833,6 +865,8 @@ A ``ValueError`` is raised if you try to truncate a negative number of bits, or 
 
 ``s.truncatestart(bits)``
 
+``BitString`` only.
+
 Remove the first ``bits`` bits from the start of the ``BitString``.
 
 A ``ValueError`` is raised if you try to truncate a negative number of bits, or more bits than the ``BitString`` contains. ::
@@ -846,14 +880,14 @@ A ``ValueError`` is raised if you try to truncate a negative number of bits, or 
 
 ``s.unpack(*format)``
 
-Interprets the whole ``BitString`` according to the ``format`` string(s) and returns a list of ``BitString`` objects.
+Interprets the whole bitstring according to the ``format`` string(s) and returns a list of bitstring objects.
 
-``format`` is one or more strings with comma separated tokens that describe how to interpret the next bits in the ``BitString``. See the entry for :func:`read` for details. ::
+``format`` is one or more strings with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :func:`read` for details. ::
 
  >>> s = BitString('int:4=-1, 0b1110')
  >>> i, b = s.unpack('int:4, bin')
 
-If a token doesn't supply a length (as with ``bin`` above) then it will try to consume the rest of the ``BitString``. Only one such token is allowed.
+If a token doesn't supply a length (as with ``bin`` above) then it will try to consume the rest of the bitstring. Only one such token is allowed.
 
 .. function:: unset
 
@@ -870,16 +904,18 @@ See also :func:`set`. ::
 Class special methods
 ---------------------
 
-.. function:: __add__, __radd__
+.. function:: __add__
+.. function:: __radd__
 
 ``s1 + s2``
 
-Concatenate two ``BitString`` objects and return the result. Either ``s1`` or ``s2`` can be 'auto' initialised. ::
+Concatenate two bitstring objects and return the result. Either ``s1`` or ``s2`` can be 'auto' initialised. ::
 
  s = BitString(ue=132) + '0xff'
  s2 = '0b101' + s 
 
-.. function:: __and__, __rand__
+.. function:: __and__
+.. function:: __rand__
 
 ``s1 & s2``
 
@@ -905,7 +941,7 @@ Equivalent to using :func:`find`, except that ``pos`` will not be changed so you
 
 ``s2 = copy.copy(s1)``
 
-This allows the ``copy`` module to correctly copy ``BitString`` objects. Other equivalent methods are to initialise a new ``BitString`` with the old one or to take a complete slice. ::
+This allows the ``copy`` module to correctly copy bitstring objects. Other equivalent methods are to initialise a new bitstring with the old one or to take a complete slice. ::
 
  >>> import copy
  >>> s = BitString('0o775')
@@ -927,7 +963,7 @@ After deletion ``pos`` will be at the deleted slice's position.
 
 ``s1 == s2``
 
-Compares two ``BitString`` objects for equality, returning ``True`` if they have the same binary representation, otherwise returning ``False``. ::
+Compares two bitstring objects for equality, returning ``True`` if they have the same binary representation, otherwise returning ``False``. ::
 
  >>> BitString('0o7777') == '0xfff'
  True
@@ -953,6 +989,8 @@ The usual slice behaviour applies except that the step parameter gives a multipl
 .. function:: __iadd__
 
 ``s1 += s2``
+
+``BitString`` only.
 
 Append a ``BitString`` to the current ``BitString`` and return the result. ::
 
@@ -985,11 +1023,13 @@ Concatenates ``n`` copies of ``s`` and returns ``self``. Raises ``ValueError`` i
 
 ``s = BitString(auto=None, length=None, offset=0, bytes=None, filename=None, hex=None, bin=None, oct=None, uint=None, int=None, uintbe=None, intbe=None, uintle=None, intle=None, uintne=None, intne=None, ue=None, se=None, float=None, floatbe=None, floatle=None, floatne=None)``
 
-Creates a new ``BitString``. You must specify at most one of the initialisers ``auto``, ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``float``, ``floatbe``, ``floatle``, ``floatne`` or ``filename``. If no initialiser is given then a zeroed ``BitString`` of length bits is created.
+Creates a new bitstring. You must specify at most one of the initialisers ``auto``, ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``float``, ``floatbe``, ``floatle``, ``floatne`` or ``filename``. If no initialiser is given then a zeroed bitstring of length bits is created.
 
-``offset`` is optional for most initialisers, but only really useful for ``bytes`` and ``filename``. It gives a number of bits to ignore at the start of the ``BitString``.
+The initialiser for the ``Bits`` class is precisely the same as for ``BitString``.
 
-Specifying ``length`` is mandatory when using the various integer initialisers. It must be large enough that a ``BitString`` can contain the integer in ``length`` bits. It is an error to specify ``length`` when using the ``ue`` or ``se`` initialisers. For other initialisers ``length`` can be used to truncate data from the end of the input value. ::
+``offset`` is optional for most initialisers, but only really useful for ``bytes`` and ``filename``. It gives a number of bits to ignore at the start of the bitstring.
+
+Specifying ``length`` is mandatory when using the various integer initialisers. It must be large enough that a bitstring can contain the integer in ``length`` bits. It is an error to specify ``length`` when using the ``ue`` or ``se`` initialisers. For other initialisers ``length`` can be used to truncate data from the end of the input value. ::
 
  >>> s1 = BitString(hex='0x934')
  >>> s2 = BitString(oct='0o4464')
@@ -1009,9 +1049,9 @@ For information on the use of the ``auto`` initialiser see the introduction to t
 
 ``~s``
 
-Returns the ``BitString`` with every bit inverted, that is all zeros replaced with ones, and all ones replaced with zeros.
+Returns the bitstring with every bit inverted, that is all zeros replaced with ones, and all ones replaced with zeros.
 
-If the ``BitString`` is empty then a ``BitStringError`` will be raised. ::
+If the bitstring is empty then a ``BitStringError`` will be raised. ::
 
  >>> s = BitString(‘0b1110010’)
  >>> print(~s)
@@ -1034,9 +1074,9 @@ Shifts the bits in ``s`` in place by ``n`` places to the right and returns ``sel
 
 ``len(s)``
 
-Returns the length of the ``BitString`` in bits if it is less than ``sys.maxsize``, otherwise raises ``OverflowError``.
+Returns the length of the bitstring in bits if it is less than ``sys.maxsize``, otherwise raises ``OverflowError``.
 
-It's recommended that you use the ``len`` property rather than the ``len`` function because of the function's behaviour for large ``BitString`` objects, although calling the special function directly will always work. ::
+It's recommended that you use the ``len`` property rather than the ``len`` function because of the function's behaviour for large bitstring objects, although calling the special function directly will always work. ::
 
  >>> s = BitString(filename='11GB.mkv')
  >>> s.len
@@ -1050,17 +1090,18 @@ It's recommended that you use the ``len`` property rather than the ``len`` funct
 
 ``s << n``
 
-Returns the ``BitString`` with its bits shifted ``n`` places to the left. The ``n`` right-most bits will become zeros. ::
+Returns the bitstring with its bits shifted ``n`` places to the left. The ``n`` right-most bits will become zeros. ::
 
  >>> s = BitString('0xff') 
  >>> s << 4
  BitString('0xf0')
 
-.. function:: __mul__, __rmul__
+.. function:: __mul__
+.. function:: __rmul__
 
 ``s * n / n * s``
 
-Return ``BitString`` consisting of n concatenations of s. ::
+Return bitstring consisting of n concatenations of s. ::
 
  >>> a = BitString('0x34')
  >>> b = a*5
@@ -1071,9 +1112,10 @@ Return ``BitString`` consisting of n concatenations of s. ::
 
 ``s1 != s2``
 
-Compares two ``BitString`` objects for inequality, returning ``False`` if they have the same binary representation, otherwise returning ``True``. 
+Compares two bitstring objects for inequality, returning ``False`` if they have the same binary representation, otherwise returning ``True``. 
 
-.. function:: __or__, __ror__
+.. function:: __or__
+.. function:: __ror__
 
 ``s1 | s2``
 
@@ -1086,9 +1128,9 @@ Returns the bit-wise OR between ``s1`` and ``s2``, which must have the same leng
 
 ``repr(s)``
 
-A representation of the ``BitString`` that could be used to create it (which will often not be the form used to create it). 
+A representation of the bitstring that could be used to create it (which will often not be the form used to create it). 
 
-If the result is too long then it will be truncated with ``...`` and the length of the whole ``BitString`` will be given. ::
+If the result is too long then it will be truncated with ``...`` and the length of the whole will be given. ::
 
  >>> BitString(‘0b11100011’)
  BitString(‘0xe3’)
@@ -1097,7 +1139,7 @@ If the result is too long then it will be truncated with ``...`` and the length 
 
 ``s >> n``
 
-Returns the ``BitString`` with its bits shifted ``n`` places to the right. The ``n`` left-most bits will become zeros. ::
+Returns the bitstring with its bits shifted ``n`` places to the right. The ``n`` left-most bits will become zeros. ::
 
  >>> s = BitString(‘0xff’)
  >>> s >> 4
@@ -1131,7 +1173,8 @@ If ``s`` is a multiple of 4 bits long then hex will be used, otherwise either bi
  >>> print(s + '0b1')
  0xff
 
-.. function:: __xor__, __rxor__
+.. function:: __xor__
+.. function:: __rxor__
 
 ``s1 ^ s2``
 
@@ -1191,7 +1234,7 @@ There are no current plans to remove them, but this could happen for version 2.0
 
 Advances position by 1 bit.
 
-Equivalent to ``s.pos += 1``. 
+Equivalent to ``s.pos += 1``. 
 
 .. function:: advancebits
 
@@ -1201,7 +1244,7 @@ Equivalent to ``s.pos += 1``.
 
 Advances position by ``bits`` bits.
 
-Equivalent to ``s.pos += bits``.
+Equivalent to ``s.pos += bits``.
 
 .. function:: advancebyte
 
@@ -1211,7 +1254,7 @@ Equivalent to ``s.pos += bits``.
 
 Advances position by 8 bits.
 
-Equivalent to ``s.pos += 8``.
+Equivalent to ``s.pos += 8``.
 
 .. function:: advancebytes
 
@@ -1221,7 +1264,7 @@ Equivalent to ``s.pos += 8``.
 
 Advances position by ``8*bytes`` bits.
 
-Equivalent to ``s.pos += 8*bytes``.
+Equivalent to ``s.pos += 8*bytes``.
 
 .. function:: retreatbit
 
@@ -1231,7 +1274,7 @@ Equivalent to ``s.pos += 8*bytes``.
 
 Retreats position by 1 bit.
 
-Equivalent to ``s.pos -= 1``. 
+Equivalent to ``s.pos -= 1``. 
 
 .. function:: retreatbits
 
@@ -1241,7 +1284,7 @@ Equivalent to ``s.pos -= 1``.
 
 Retreats position by ``bits`` bits.
 
-Equivalent to ``s.pos -= bits``. 
+Equivalent to ``s.pos -= bits``. 
 
 .. function:: retreatbyte
 
@@ -1251,7 +1294,7 @@ Equivalent to ``s.pos -= bits``.
 
 Retreats position by 8 bits.
 
-Equivalent to ``s.pos -= 8``.
+Equivalent to ``s.pos -= 8``.
 
 .. function:: retreatbytes
 
@@ -1261,7 +1304,7 @@ Equivalent to ``s.pos -= 8``.
 
 Retreats position by ``bytes*8`` bits.
 
-Equivalent to ``s.pos -= 8*bytes``.
+Equivalent to ``s.pos -= 8*bytes``.
 
 .. function:: seek
 
@@ -1281,7 +1324,7 @@ Equivalent to ``s.pos = pos``.
 
 Moves the current position to ``bytepos``.
 
-Equivalent to ``s.bytepos = bytepos``, or ``s.pos = bytepos*8``. 
+Equivalent to ``s.bytepos = bytepos``, or ``s.pos = bytepos*8``. 
 
 .. function:: slice
 

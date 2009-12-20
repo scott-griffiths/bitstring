@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>Examples &mdash; bitstring documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -20,7 +20,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bitstring documentation" href="index.html" />
-    <link rel="up" title="Manual" href="contents.html" />
+    <link rel="up" title="User Manual" href="contents.html" />
     <link rel="next" title="Exponential-Golomb Codes" href="exp-golomb.html" />
     <link rel="prev" title="Miscellany" href="misc.html" /> 
   </head>
@@ -38,45 +38,9 @@
           <a href="misc.html" title="Miscellany"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" accesskey="U">Manual</a> &raquo;</li> 
+          <li><a href="contents.html" accesskey="U">User Manual</a> &raquo;</li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
-            </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">Examples</a><ul>
-<li><a class="reference external" href="#creation">Creation</a></li>
-<li><a class="reference external" href="#manipulation">Manipulation</a></li>
-<li><a class="reference external" href="#parsing">Parsing</a></li>
-</ul>
-</li>
-</ul>
-
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="misc.html"
-                                  title="previous chapter">Miscellany</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="exp-golomb.html"
-                                  title="next chapter">Exponential-Golomb Codes</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -87,7 +51,7 @@
 <h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="creation">
 <h2>Creation<a class="headerlink" href="#creation" title="Permalink to this headline">¶</a></h2>
-<p>There are lots of ways of creating new <tt class="docutils literal"><span class="pre">BitString</span></tt> objects. The most flexible is via the <tt class="docutils literal"><span class="pre">auto</span></tt> parameter, which is used in this example.</p>
+<p>There are lots of ways of creating new bitstrings. The most flexible is via the <tt class="docutils literal"><span class="pre">auto</span></tt> parameter, which is used in this example.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># Multiple parts can be joined with a single expression...</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x000001b3, uint:12=352, uint:12=288, 0x1, 0x3&#39;</span><span class="p">)</span>
 
@@ -144,13 +108,13 @@
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x6410281bc0&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sps</span> <span class="o">=</span> <span class="n">seq_parameter_set_data</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">sps</span><span class="o">.</span><span class="n">profile_idc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">profile_idc</span><span class="p">)</span>
 <span class="go">100</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">sps</span><span class="o">.</span><span class="n">level_idc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">level_idc</span><span class="p">)</span>
 <span class="go">40</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">sps</span><span class="o">.</span><span class="n">reserved_zero_4bits</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">reserved_zero_4bits</span><span class="p">)</span>
 <span class="go">0b0000</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">sps</span><span class="o">.</span><span class="n">constraint_flags</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">constraint_flags</span><span class="p">)</span>
 <span class="go">[0, 0, 0, 1]</span>
 </pre></div>
 </div>
@@ -159,6 +123,42 @@
 
 
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Examples</a><ul>
+<li><a class="reference external" href="#creation">Creation</a></li>
+<li><a class="reference external" href="#manipulation">Manipulation</a></li>
+<li><a class="reference external" href="#parsing">Parsing</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="misc.html"
+                                  title="previous chapter">Miscellany</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="exp-golomb.html"
+                                  title="next chapter">Exponential-Golomb Codes</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -176,7 +176,7 @@
           <a href="misc.html" title="Miscellany"
              >previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" >Manual</a> &raquo;</li> 
+          <li><a href="contents.html" >User Manual</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

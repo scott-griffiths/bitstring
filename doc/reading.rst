@@ -1,14 +1,15 @@
+******************************
 Reading, Parsing and Unpacking
-==============================
+******************************
 
 Reading and parsing
 ---------------------
 
-A common need is to parse a large ``BitString`` into smaller parts. Functions for reading in the ``BitString`` as if it were a file or stream are provided and will return new ``BitString`` objects. These new objects are top-level ``BitString`` objects and can be interpreted using properties or could be read from themselves to form a hierarchy of reads.
+A common need is to parse a large bitstring into smaller parts. Functions for reading in the bitstring as if it were a file or stream are provided and will return new bitstrings. These new objects are top-level bitstring objects and can be interpreted using properties or could be read from themselves to form a hierarchy of reads.
 
-In order to behave like a file or stream, every ``BitString`` has a property ``pos`` which is the current position from which reads occur. ``pos`` can range from zero (its value on construction) to the length of the ``BitString``, a position from which all reads will fail as it is past the last bit.
+In order to behave like a file or stream, every bitstring has a property ``pos`` which is the current position from which reads occur. ``pos`` can range from zero (its value on construction) to the length of the bitstring, a position from which all reads will fail as it is past the last bit.
 
-The property ``bytepos`` is also available, and is useful if you are only dealing with byte data and don't want to always have to divide the bit position by eight. Note that if you try to use ``bytepos`` and the ``BitString`` isn't byte aligned (i.e. ``pos`` isn't a multiple of 8) then a ``BitStringError`` exception will be raised.
+The property ``bytepos`` is also available, and is useful if you are only dealing with byte data and don't want to always have to divide the bit position by eight. Note that if you try to use ``bytepos`` and the bitstring isn't byte aligned (i.e. ``pos`` isn't a multiple of 8) then a ``BitStringError`` exception will be raised.
 
 ``readbit(s) / readbitlist / readbyte(s) / readbytelist``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -30,7 +31,7 @@ For simple reading of a number of bits you can use :func:`readbits` or :func:`re
  >>> print(s.pos, flags.pos)
  95 2
 
-If you want to read multiple items in one go you can use :func:`readbitlist` or :func:`readbytelist`. These take one or more integer parameters and return a list of ``BitString`` objects. So for example instead of writing::
+If you want to read multiple items in one go you can use :func:`readbitlist` or :func:`readbytelist`. These take one or more integer parameters and return a list of bitstring objects. So for example instead of writing::
 
  a = s.readbytes(4)
  b = s.readbyte()
@@ -45,7 +46,7 @@ you can equivalently use just::
 
 As well as the :func:`readbits` / :func:`readbytes` functions there are also plain :func:`read` / :func:`readlist` functions. These takes a format string similar to that used in the auto initialiser. Only one token should be provided to :func:`read` and a single value is returned. To read multiple tokens use :func:`readlist`, which unsurprisingly returns a list.
 
-The format string consists of comma separated tokens that describe how to interpret the next bits in the ``BitString``. The tokens are:
+The format string consists of comma separated tokens that describe how to interpret the next bits in the bitstring. The tokens are:
 
 ==============  ===================================================================
 ``int:n``       ``n`` bits as a signed integer.
@@ -63,7 +64,7 @@ The format string consists of comma separated tokens that describe how to interp
 ``hex:n``       ``n`` bits as a hexadecimal string.
 ``oct:n``       ``n`` bits as an octal string.
 ``bin:n``       ``n`` bits as a binary string.
-``bits:n``      ``n`` bits as a new ``BitString``.
+``bits:n``      ``n`` bits as a new bitstring.
 ``bytes:n``     ``n`` bytes as a ``bytes`` object.
 ``ue``          next bits as an unsigned exponential-Golomb code.
 ``se``          next bits as a signed exponential-Golomb code.
@@ -81,7 +82,7 @@ and we also could have combined the three reads as::
 
 where here we are also taking advantage of the default ``uint`` interpretation for the second and third tokens.
 
-You are allowed to use one 'stretchy' token in a ``readlist``. This is a token without a length specified which will stretch to fill encompass as many bits as possible. This is often useful when you just want to assign something to 'the rest' of the ``BitString``::
+You are allowed to use one 'stretchy' token in a ``readlist``. This is a token without a length specified which will stretch to fill encompass as many bits as possible. This is often useful when you just want to assign something to 'the rest' of the bitstring::
 
  a, b, everthing_else = s.readlist('intle:16, intle:24, bits')
 
@@ -92,7 +93,7 @@ It is an error to use more than one stretchy token, or to use a ``ue`` or ``se``
 ``peek``
 ^^^^^^^^
 
-In addition to the read functions there are matching peek functions. These are identical to the read except that they do not advance the position in the ``BitString`` to after the read elements. ::
+In addition to the read functions there are matching peek functions. These are identical to the read except that they do not advance the position in the bitstring to after the read elements. ::
 
  s = BitString('0x4732aa34')
  if s.peekbyte() == '0x47':
@@ -105,7 +106,7 @@ The complete list of read and peek functions is ``read(format)``, ``readlist(*fo
 Unpacking
 ---------
 
-The :func:`unpack` function works in a very similar way to :func:`readlist`. The major difference is that it interprets the whole ``BitString`` from the start, and takes no account of the current ``pos``. It's a natural complement of the :func:`pack` function. ::
+The :func:`unpack` function works in a very similar way to :func:`readlist`. The major difference is that it interprets the whole bitstring from the start, and takes no account of the current ``pos``. It's a natural complement of the :func:`pack` function. ::
 
  s = pack('uint:10, hex, int:13, 0b11', 130, '3d', -23)
  a, b, c, d = s.unpack('uint:10, hex, int:13, bin:2')
@@ -113,7 +114,7 @@ The :func:`unpack` function works in a very similar way to :func:`readlist`. The
 Seeking
 -------
 
-The properties ``pos`` and ``bytepos`` are available for getting and setting the position, which is zero on creation of the ``BitString``.
+The properties ``pos`` and ``bytepos`` are available for getting and setting the position, which is zero on creation of the bitstring.
 
 Note that you can only use ``bytepos`` if the position is byte aligned, i.e. the bit position is a multiple of 8. Otherwise a ``BitStringError`` exception is raised.
 
@@ -151,12 +152,12 @@ To search for a sub-string use the :func:`find` function. If the find succeeds i
  >>> print(found, t.pos)
  True 31                              # Found within the 0x3e near the end
 
-For all of these finding functions you can optionally specify a ``start`` and / or ``end`` to narrow the search range. Note though that because it's searching backwards ``rfind`` will start at ``end`` and end at ``start`` (so you always need ``start`` < ``end``).
+For all of these finding functions you can optionally specify a ``start`` and / or ``end`` to narrow the search range. Note though that because it's searching backwards ``rfind`` will start at ``end`` and end at ``start`` (so you always need ``start``  <  ``end``).
 
 ``findall``
 ^^^^^^^^^^^
 
-To find all occurrences of a ``BitString`` inside another (even overlapping ones), use :func:`findall`. This returns a generator for the bit positions of the found strings. ::
+To find all occurrences of a bitstring inside another (even overlapping ones), use :func:`findall`. This returns a generator for the bit positions of the found strings. ::
 
  >>> r = BitString('0b011101011001')
  >>> ones = r.findall('0b1')
@@ -166,7 +167,7 @@ To find all occurrences of a ``BitString`` inside another (even overlapping ones
 ``replace``
 ^^^^^^^^^^^
 
-To replace all occurrences of one ``BitString`` with another use :func:`replace`. The replacements are done in-place, and the number of replacements made is returned. ::
+To replace all occurrences of one ``BitString`` with another use :func:`replace`. The replacements are done in-place, and the number of replacements made is returned. This methods changes the contents of the bitstring and so isn't available for the ``Bits`` class. ::
 
  >>> s = BitString('0b110000110110')
  >>> s.replace('0b110', '0b1111')

@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>Exponential-Golomb Codes &mdash; bitstring documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -20,7 +20,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bitstring documentation" href="index.html" />
-    <link rel="up" title="Manual" href="contents.html" />
+    <link rel="up" title="User Manual" href="contents.html" />
     <link rel="next" title="Internals" href="internals.html" />
     <link rel="prev" title="Examples" href="examples.html" /> 
   </head>
@@ -38,35 +38,9 @@
           <a href="examples.html" title="Examples"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" accesskey="U">Manual</a> &raquo;</li> 
+          <li><a href="contents.html" accesskey="U">User Manual</a> &raquo;</li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
-            </a></p>
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="examples.html"
-                                  title="previous chapter">Examples</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="internals.html"
-                                  title="next chapter">Internals</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -76,7 +50,7 @@
   <div class="section" id="exponential-golomb-codes">
 <h1>Exponential-Golomb Codes<a class="headerlink" href="#exponential-golomb-codes" title="Permalink to this headline">¶</a></h1>
 <p>As this type of representation of integers isn&#8217;t as well known as the standard base-2 representation I thought that a short explanation of them might be welcome. This section can be safely skipped if you&#8217;re not interested.</p>
-<p>Exponential-Golomb codes represent integers using bit patterns that get longer for larger numbers. For unsigned and signed numbers (the <tt class="docutils literal"><span class="pre">BitString</span></tt> properties <tt class="docutils literal"><span class="pre">ue</span></tt> and <tt class="docutils literal"><span class="pre">se</span></tt> respectively) the patterns start like this:</p>
+<p>Exponential-Golomb codes represent integers using bit patterns that get longer for larger numbers. For unsigned and signed numbers (the bitstring properties <tt class="docutils literal"><span class="pre">ue</span></tt> and <tt class="docutils literal"><span class="pre">se</span></tt> respectively) the patterns start like this:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="37%" />
@@ -154,7 +128,7 @@
 </div>
 <p>and to read it back:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">while</span> <span class="n">a</span><span class="o">.</span><span class="n">pos</span> <span class="o">!=</span> <span class="n">a</span><span class="o">.</span><span class="n">len</span><span class="p">:</span>
-    <span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>The notation <tt class="docutils literal"><span class="pre">ue</span></tt> and <tt class="docutils literal"><span class="pre">se</span></tt> for the exponential-Golomb code properties comes from the H.264 video standard, which uses these types of code a lot. The particular way that the signed integers are represented might be peculiar to this standard as I haven&#8217;t seen it elsewhere (and an obvious alternative is minus the one given here), but the unsigned mapping seems to be universal.</p>
@@ -162,6 +136,32 @@
 
 
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="examples.html"
+                                  title="previous chapter">Examples</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="internals.html"
+                                  title="next chapter">Internals</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -179,7 +179,7 @@
           <a href="examples.html" title="Examples"
              >previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li>
-          <li><a href="contents.html" >Manual</a> &raquo;</li> 
+          <li><a href="contents.html" >User Manual</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
