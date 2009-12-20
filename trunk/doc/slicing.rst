@@ -11,7 +11,7 @@ Slicing
 
 Slicing takes three arguments: the first position you want, one past the last position you want and a multiplicative factor which defaults to 1. 
 
-The third argument (the 'step') will be described shortly, but most of the time you'll probably just need the bit-wise slice, where for example ``a[10:12]`` will return a 2-bit ``BitString`` of the 10th and 11th bits in ``a``, and ``a[32]`` will return just the 32nd bit. ::
+The third argument (the 'step') will be described shortly, but most of the time you'll probably just need the bit-wise slice, where for example ``a[10:12]`` will return a 2-bit bitstring of the 10th and 11th bits in ``a``, and ``a[32]`` will return just the 32nd bit. ::
 
  >>> a = BitString('0b00011110')
  >>> b = a[3:7]
@@ -39,7 +39,7 @@ The step parameter (also known as the stride) can be used in slices. Its use is 
 
 For example this makes it more convenient if you want to give slices in terms of bytes instead of bits. Instead of writing ``s[a*8:b*8]`` you can use ``s[a:b:8]``.
 
-When using a step, the ``BitString`` is effectively truncated to a multiple of the step, so ``s[::8]`` is equal to ``s`` if ``s`` is an integer number of bytes, otherwise it is truncated by up to 7 bits. This means that, for example, the final seven complete 16-bit words could be written as ``s[-7::16]``. ::
+When using a step, the bitstring is effectively truncated to a multiple of the step, so ``s[::8]`` is equal to ``s`` if ``s`` is an integer number of bytes, otherwise it is truncated by up to 7 bits. This means that, for example, the final seven complete 16-bit words could be written as ``s[-7::16]``. ::
 
  >>> a = BitString('0x470000125e')
  >>> print(a[0:4:8])                  # The first four bytes
@@ -47,7 +47,7 @@ When using a step, the ``BitString`` is effectively truncated to a multiple of t
  >>> print(a[-3::4])                  # The final three nibbles
  0x25e
 
-Negative slices are also allowed, and should do what you'd expect. So for example ``s[::-1]`` returns a bit-reversed copy of ``s`` (which is similar to using ``s.reverse()``, which does the same operation on ``s`` in-place). As another example, to get the first 10 bytes in reverse byte order you could use ``s_bytereversed = s[0:10:-8]``. ::
+Negative slices are also allowed, and should do what you'd expect. So for example ``s[::-1]`` returns a bit-reversed copy of ``s`` (which is similar to using ``s.reverse()``, which does the same operation on ``s`` in-place). As another example, to get the first 10 bytes in reverse byte order you could use ``s_bytereversed  =  s[0:10:-8]``. ::
 
  >>> print(a[:-5:-4])                 # Final five nibbles reversed
  0xe5210                                 
@@ -57,7 +57,7 @@ Negative slices are also allowed, and should do what you'd expect. So for exampl
 Joining
 -------
 
-To join together a couple of ``BitString`` objects use the ``+`` or ``+=`` operators, or the :func:`append` and :func:`prepend` functions. ::
+To join together a couple of bitstring objects use the ``+`` or ``+=`` operators, or the :func:`append` and :func:`prepend` functions. ::
 
  # Six ways of creating the same BitString:
  a1 = BitString(bin='000') + BitString(hex='f')
@@ -70,7 +70,9 @@ To join together a couple of ``BitString`` objects use the ``+`` or ``+=`` opera
  a6 = BitString('0b000')
  a6 += '0xf'
 
-If you want to join a large number of ``BitString`` objects then the function :func:`join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the ``BitString`` that it is called on as a separator when joining the list of ``BitString`` objects it is given. If you don't want a separator then it can be called on an empty ``BitString``. ::
+Note that the final three methods all modify a bitstring, and so will only work with ``BitString`` objects, not the immutable ``Bits`` objects.
+
+If you want to join a large number of bitstrings then the function :func:`join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don't want a separator then it can be called on an empty bitstring. ::
 
  bslist = [BitString(uint=n, length=12) for n in xrange(1000)]
  s = BitString('0b1111').join(bslist)
@@ -78,7 +80,7 @@ If you want to join a large number of ``BitString`` objects then the function :f
 Truncating, inserting, deleting and overwriting
 -----------------------------------------------
 
-The functions in this section all modify the ``BitString`` that they operate on.
+The functions in this section all modify the bitstring that they operate on and so are not available for ``Bits`` objects.
 
 ``truncatestart / truncateend``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -132,7 +134,7 @@ As you might expect, :func:`insert` takes one ``BitString`` and inserts it into 
 The BitString as a list
 -----------------------
 
-If you treat a ``BitString`` object as a list whose elements are all either '1' or '0' then you won't go far wrong. The table below gives some of the equivalent ways of using functions and the standard slice notation.
+If you treat a bitstring object as a list whose elements are all either '1' or '0' then you won't go far wrong. The table below gives some of the equivalent ways of using functions and the standard slice notation.
 
 ===========================  ======================================
 Using functions              Using slices
@@ -152,7 +154,7 @@ Splitting
 ``split``
 ^^^^^^^^^
 
-Sometimes it can be very useful to use a delimiter to split a ``BitString`` into sections. The :func:`split` function returns a generator for the sections. ::
+Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The :func:`split` function returns a generator for the sections. ::
 
  >>> a = BitString('0x4700004711472222')
  >>> for s in a.split('0x47', bytealigned=True):

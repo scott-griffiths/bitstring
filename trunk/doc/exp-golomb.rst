@@ -4,7 +4,7 @@ Exponential-Golomb Codes
 
 As this type of representation of integers isn't as well known as the standard base-2 representation I thought that a short explanation of them might be welcome. This section can be safely skipped if you're not interested.
 
-Exponential-Golomb codes represent integers using bit patterns that get longer for larger numbers. For unsigned and signed numbers (the ``BitString`` properties ``ue`` and ``se`` respectively) the patterns start like this:
+Exponential-Golomb codes represent integers using bit patterns that get longer for larger numbers. For unsigned and signed numbers (the bitstring properties ``ue`` and ``se`` respectively) the patterns start like this:
 
 =============  ===========  ===========
 Bit pattern    Unsigned     Signed 

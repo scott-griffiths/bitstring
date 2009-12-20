@@ -1,11 +1,15 @@
+
+************
 Introduction
-============
+************
 
 While it is not difficult to manipulate binary data in Python, for example using the ``struct`` and ``array`` modules, it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing only with whole-byte data.
 
-The bitstring module provides a single class, ``BitString``, instances of which can be constructed from integers, floats, hex, octal, binary, strings or files, but they all just represent a string of binary digits. They can be sliced, joined, reversed, inserted into, overwritten, packed, unpacked etc. with simple functions or slice notation. They can also be read from, searched in, and navigated in, similar to a file or stream. 
+The bitstring module provides two classes, ``BitString`` and ``Bits``, instances of which can be constructed from integers, floats, hex, octal, binary, strings or files, but they all just represent a string of binary digits. The ``Bits`` class differs from ``BitString`` in that it is immutable and so does not support methods that would modify it after creation. I shall use the general term 'bitstring' when referring to either the ``Bits`` or ``BitString`` class, and use the class names for parts that apply to only one or the other.
 
-``BitString`` objects are designed to be as lightweight as possible and can be considered to be just a list of binary digits. They are however stored efficiently - although there are a variety of ways of creating and viewing the binary data, the ``BitString`` itself just stores the byte data, and all views are calculated as needed, and are not stored as part of the object.
+``BitString`` objects can be sliced, joined, reversed, inserted into, overwritten, packed, unpacked etc. with simple functions or slice notation. They can also be read from, searched in, and navigated in, similar to a file or stream. 
+
+Bitstrings are designed to be as lightweight as possible and can be considered to be just a list of binary digits. They are however stored efficiently - although there are a variety of ways of creating and viewing the binary data, the bitstring itself just stores the byte data, and all views are calculated as needed, and are not stored as part of the object.
 
 The different views or interpretations on the data are accessed through properties such as ``hex``, ``bin`` and ``int``, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.
 
@@ -39,7 +43,7 @@ Easily construct new BitStrings::
  # find and replace 2 bit string with 16 bit string
  f.replace('0b01', '0xee34')                
 
-Interpret the ``BitString`` however you want::
+Interpret the bitstring however you want::
 
  >>> print(e.hex)
  '0x9249cdcd'

@@ -91,12 +91,26 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'sphinxdoc'
+html_theme = 'default'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+main_colour = "#ffbbbb"
+html_theme_options = {
+"rightsidebar": "true",
+"stickysidebar": "true",
+"bodyfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
+"headfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
+"sidebarbgcolor": "#f0f0f0",
+"footerbgcolor": "#771111",
+"relbarbgcolor": "#993333",
+"sidebartextcolor": "#000000",
+"sidebarlinkcolor": "#330000",
+"codebgcolor": "#f0f0f0",
+"headtextcolor": "#200000",
+"headbgcolor": "#f8f8f8",
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -174,19 +188,20 @@ html_show_sphinx = False
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'bitstring.tex', u'bitstring Documentation',
-   u'Scott Griffiths', 'manual'),
+   u'Scott Griffiths', 'manual', 'True'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = "bitstring_logo.png"
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-#latex_use_parts = False
+latex_use_parts = True
 
 # Additional stuff for the LaTeX preamble.
 #latex_preamble = ''
+latex_elements = {'preamble': '\setcounter{tocdepth}{1}'}
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []

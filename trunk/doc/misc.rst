@@ -48,7 +48,7 @@ This reverses the bytes of the ``BitString`` in place. You can optionally specif
 ``tobytes``
 ^^^^^^^^^^^
 
-Returns the byte data contained in the ``BitString`` as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.6). This differs from using the plain :func:`bytes` property in that if the ``BitString`` isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
+Returns the byte data contained in the bitstring as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.6). This differs from using the plain :func:`bytes` property in that if the bitstring isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
 
  >>> BitString('0b1').tobytes()
  '\x80'
@@ -56,7 +56,7 @@ Returns the byte data contained in the ``BitString`` as a ``bytes`` object (equi
 ``tofile``
 ^^^^^^^^^^
 
-Writes the byte data contained in the ``BitString`` to a file. The file should have been opened in a binary write mode, for example::
+Writes the byte data contained in the bitstring to a file. The file should have been opened in a binary write mode, for example::
 
  >>> f = open('newfile', 'wb')
  >>> BitString('0xffee3241fed').tofile(f)
@@ -66,7 +66,7 @@ In exactly the same manner as with :func:`tobytes`, up to seven zero bits will b
 ``startswith / endswith``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-These act like the same named functions on strings, that is they return ``True`` if the ``BitString`` starts or ends with the parameter given. Optionally you can specify a range of bits to use. ::
+These act like the same named functions on strings, that is they return ``True`` if the bitstring starts or ends with the parameter given. Optionally you can specify a range of bits to use. ::
 
  >>> s = BitString('0xef133')
  >>> s.startswith('0b111011')
@@ -92,9 +92,9 @@ A few of the special methods have already been covered, for example ``__add__`` 
 ``__len__``
 ^^^^^^^^^^^^^^^
 
-This implements the ``len`` function and returns the length of the ``BitString`` in bits.
+This implements the ``len`` function and returns the length of the bitstring in bits.
 
-It's recommended that you use the ``len`` property instead of the function as a limitation of Python means that the function will raise an ``OverflowError`` if the ``BitString`` has more than sys.maxsize elements (that's typically 256MB of data).
+It's recommended that you use the ``len`` property instead of the function as a limitation of Python means that the function will raise an ``OverflowError`` if the bitstring has more than sys.maxsize elements (that's typically 256MB of data).
 
 There's not much more to say really, except to emphasise that it is always in bits and never bytes. ::
 
@@ -104,9 +104,9 @@ There's not much more to say really, except to emphasise that it is always in bi
 ``__str__ / __repr__``
 ^^^^^^^^^^^^^^^^^^^^^^
 
-These get called when you try to print a ``BitString``. As ``BitString`` objects have no preferred interpretation the form printed might not be what you want - if not then use the ``hex``, ``bin``, ``int`` etc. properties. The main use here is in interactive sessions when you just want a quick look at the ``BitString``. The ``__repr__`` tries to give a code fragment which if evaluated would give an equal ``BitString``.
+These get called when you try to print a bitstring. As bitstrings have no preferred interpretation the form printed might not be what you want - if not then use the ``hex``, ``bin``, ``int`` etc. properties. The main use here is in interactive sessions when you just want a quick look at the bitstring. The ``__repr__`` tries to give a code fragment which if evaluated would give an equal bitstring.
 
-The form used for the ``BitString`` is generally the one which gives it the shortest representation. If the resulting string is too long then it will be truncated with ``...`` - this prevents very long ``BitString`` objects from tying up your interactive session while they print themselves. ::
+The form used for the bitstring is generally the one which gives it the shortest representation. If the resulting string is too long then it will be truncated with ``...`` - this prevents very long bitstrings from tying up your interactive session while they print themselves. ::
 
  >>> a = BitString('0b1111 111')
  >>> print(a)
@@ -122,7 +122,7 @@ The form used for the ``BitString`` is generally the one which gives it the shor
 ``__eq__ / __ne__``
 ^^^^^^^^^^^^^^^^^^^
 
-The equality of two ``BitString`` objects is determined by their binary representations being equal. If you have a different criterion you wish to use then code it explicitly, for example ``a.int == b.int`` could be true even if ``a == b`` wasn't (as they could be different lengths). ::
+The equality of two bitstring objects is determined by their binary representations being equal. If you have a different criterion you wish to use then code it explicitly, for example ``a.int  ==  b.int`` could be true even if ``a  ==  b`` wasn't (as they could be different lengths). ::
 
  >>> BitString('0b0010') == '0x2'
  True
@@ -132,7 +132,7 @@ The equality of two ``BitString`` objects is determined by their binary represen
 ``__invert__``
 ^^^^^^^^^^^^^^
 
-To invert all the bits in a ``BitString`` use the ``~`` operator, which returns a bit-inverted copy. ::
+To get a bit-inverted copy of a bitstring use the ``~`` operator::
 
  >>> a = BitString('0b0001100111')
  >>> print(a)
@@ -158,7 +158,7 @@ Bitwise shifts can be achieved using ``<<``, ``>>``, ``<<=`` and ``>>=``. Bits s
 ``__mul__ / __imul__ / __rmul__``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Multiplication of a ``BitString`` by an integer means the same as it does for ordinary strings: concatenation of multiple copies of the ``BitString``. ::
+Multiplication of a bitstring by an integer means the same as it does for ordinary strings: concatenation of multiple copies of the bitstring. ::
 
  >>> a = BitString('0b10')*8
  >>> print(a.bin)
@@ -167,7 +167,7 @@ Multiplication of a ``BitString`` by an integer means the same as it does for or
 ``__copy__``
 ^^^^^^^^^^^^
 
-This allows the ``BitString`` to be copied via the ``copy`` module. ::
+This allows the bitstring to be copied via the ``copy`` module. ::
 
  >>> import copy
  >>> a = BitString('0x4223fbddec2231')
@@ -177,12 +177,12 @@ This allows the ``BitString`` to be copied via the ``copy`` module. ::
  >>> b is a
  False
 
-It's not terribly exciting, and isn't the only method of making a copy. Using ``b = BitString(a)`` is another option, but ``b = a[:]`` may be more familiar to some.
+It's not terribly exciting, and isn't the only method of making a copy. Using ``b  =  BitString(a)`` is another option, but ``b  =  a[:]`` may be more familiar to some.
 
 ``__and__ / __or__ / __xor__ / __iand__ / __ior__ / __ixor__``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Bit-wise AND, OR and XOR are provided for ``BitString`` objects of equal length only (otherwise a ``ValueError`` is raised). ::
+Bit-wise AND, OR and XOR are provided for bitstring objects of equal length only (otherwise a ``ValueError`` is raised). ::
 
  >>> a = BitString('0b00001111')
  >>> b = BitString('0b01010101')
