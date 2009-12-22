@@ -15,7 +15,7 @@ bitstring is open source software, and has been released under the MIT
 licence.
 
 This version supports Python 2.6 and 3.x. For Python 2.4 and 2.5 you should
-instead download version 1.0.0.
+instead download version 1.0.
 
 Documentation
 -------------

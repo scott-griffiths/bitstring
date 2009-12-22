@@ -29,11 +29,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "1.2.0"
+__version__ = "1.1.3"
 
 __author__ = "Scott Griffiths"
 
-__all__ = ['BitString', 'Bits', 'pack']
+__all__ = ['BitString', 'pack']
 
 import os
 import struct
