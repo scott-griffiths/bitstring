@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 from distutils.core import setup
 
-kwds = {}
-kwds['long_description'] = open('README.txt').read()
+#kwds = {}
+#kwds['long_description'] = open('README.txt').read()
 
 setup(name='bitstring',
-      version='1.1.2',
+      version='1.1.3',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
@@ -40,7 +40,7 @@ They can also be read from, searched and replaced, and navigated in,
 similar to a file or stream.
 
 This version supports Python 2.6 and 3.x. For Python 2.4 and 2.5 you should
-instead download version 1.0.0.
+instead download version 1.0.
 
 Documentation
 -------------
