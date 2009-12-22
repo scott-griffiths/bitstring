@@ -2,10 +2,10 @@
 from distutils.core import setup
 
 kwds = {}
-kwds['long_description'] = open('readme.txt').read()
+kwds['long_description'] = open('README.txt').read()
 
 setup(name='bitstring',
-      version='1.0.0',
+      version='1.0.2',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',

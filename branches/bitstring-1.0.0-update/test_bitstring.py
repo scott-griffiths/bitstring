@@ -44,7 +44,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, '0b01 0010 0011 0100 01'*2)
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '1.0.0')
+        self.assertEqual(bitstring.__version__, '1.0.2')
     
     def testCreationFromFile(self):
         s = BitString(filename = 'test/test.m1v')

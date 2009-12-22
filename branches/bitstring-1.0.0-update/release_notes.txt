@@ -1,6 +1,14 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+
+---------------------------------------------------------
+December 22nd 2009: version 1.0.2 for Python 2.x released
+---------------------------------------------------------
+
+This version hopefully fixes an installation problem for platforms with
+case-sensitive file systems. There are no new features or other bug fixes.
+
 -------------------------------------------------------
 October 9th 2009: version 1.0.0 for Python 2.x released
 -------------------------------------------------------
