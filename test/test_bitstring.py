@@ -1186,7 +1186,7 @@ class BitStringTest(unittest.TestCase):
     
     def testNullSlice(self):
         s = BitString('0x111')
-        t = s.slice(1, 1)
+        t = s[1:1]
         self.assertEqual(t._datastore.bytelength, 0)
         
     def testMultipleAutos(self):
@@ -1211,7 +1211,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.bin, '')
     
     def testReverseDict(self):
-        d = bitstring.bytereversaldict
+        d = bitstring.BYTE_REVERSAL_DICT
         for i in range(256):
             a = BitString(uint=i, length=8)
             b = d[i]

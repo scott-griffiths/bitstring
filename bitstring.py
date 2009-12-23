@@ -84,58 +84,6 @@ def tidy_input_string(s):
     """Return string made lowercase and with all whitespace removed."""
     s = ''.join(s.split()).lower()
     return s
-    
-def init_with_token(name, token_length, value):
-    if token_length is not None:
-        token_length = int(token_length)
-    name = name.lower()
-    if token_length == 0:
-        return Bits()
-    if name in ('0x', 'hex'):
-        b = Bits(hex=value)
-    elif name in ('0b', 'bin'):
-        b = Bits(bin=value)
-    elif name in ('0o', 'oct'):
-        b = Bits(oct=value)
-    elif name == 'se':
-        b = Bits(se=int(value))
-    elif name == 'ue':
-        b = Bits(ue=int(value))
-    elif name == 'uint':
-        b = Bits(uint=int(value), length=token_length)
-    elif name == 'int':
-        b = Bits(int=int(value), length=token_length)
-    elif name == 'uintbe':
-        b = Bits(uintbe=int(value), length=token_length)
-    elif name == 'intbe':
-        b = Bits(intbe=int(value), length=token_length)
-    elif name == 'uintle':
-        b = Bits(uintle=int(value), length=token_length)
-    elif name == 'intle':
-        b = Bits(intle=int(value), length=token_length)
-    elif name == 'uintne':
-        b = Bits(uintne=int(value), length=token_length)
-    elif name == 'intne':
-        b = Bits(intne=int(value), length=token_length)
-    elif name == 'float':
-        b = Bits(float=float(value), length=token_length)
-    elif name == 'floatbe':
-        b = Bits(floatbe=float(value), length=token_length)
-    elif name == 'floatle':
-        b = Bits(floatle=float(value), length=token_length)
-    elif name == 'floatne':
-        b = Bits(floatne=float(value), length=token_length)
-    elif name == 'bits':
-        b = Bits(value)
-    elif name == 'bytes':
-        b = Bits(bytes=value)
-    else:
-        raise ValueError("Can't parse token name %s." % name)
-    if token_length is not None and b.len != token_length:
-        raise ValueError("Token with length %d packed with value of length %d (%s:%d=%s)." %
-                         (token_length, b.len, name, token_length, value))
-    return b
-
 
 INIT_NAMES = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
@@ -338,9 +286,9 @@ REVERSED = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
            b"\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
 
 if PYTHON_VERSION == 2:
-    bytereversaldict = dict(zip(range(256), REVERSED))
+    BYTE_REVERSAL_DICT = dict(zip(range(256), REVERSED))
 else:
-    bytereversaldict = dict(zip(range(256), [bytes([x]) for x in REVERSED]))
+    BYTE_REVERSAL_DICT = dict(zip(range(256), [bytes([x]) for x in REVERSED]))
     
 class BitStringError(Exception):
     """For errors in the bitstring module."""
@@ -1034,6 +982,58 @@ class Bits(object):
         assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength
         return True
 
+    @classmethod
+    def init_with_token(cls, name, token_length, value):
+        if token_length is not None:
+            token_length = int(token_length)
+        name = name.lower()
+        if token_length == 0:
+            return cls()
+        if name in ('0x', 'hex'):
+            b = cls(hex=value)
+        elif name in ('0b', 'bin'):
+            b = cls(bin=value)
+        elif name in ('0o', 'oct'):
+            b = cls(oct=value)
+        elif name == 'se':
+            b = cls(se=int(value))
+        elif name == 'ue':
+            b = cls(ue=int(value))
+        elif name == 'uint':
+            b = cls(uint=int(value), length=token_length)
+        elif name == 'int':
+            b = cls(int=int(value), length=token_length)
+        elif name == 'uintbe':
+            b = cls(uintbe=int(value), length=token_length)
+        elif name == 'intbe':
+            b = cls(intbe=int(value), length=token_length)
+        elif name == 'uintle':
+            b = cls(uintle=int(value), length=token_length)
+        elif name == 'intle':
+            b = cls(intle=int(value), length=token_length)
+        elif name == 'uintne':
+            b = cls(uintne=int(value), length=token_length)
+        elif name == 'intne':
+            b = cls(intne=int(value), length=token_length)
+        elif name == 'float':
+            b = cls(float=float(value), length=token_length)
+        elif name == 'floatbe':
+            b = cls(floatbe=float(value), length=token_length)
+        elif name == 'floatle':
+            b = cls(floatle=float(value), length=token_length)
+        elif name == 'floatne':
+            b = cls(floatne=float(value), length=token_length)
+        elif name == 'bits':
+            b = cls(value)
+        elif name == 'bytes':
+            b = cls(bytes=value)
+        else:
+            raise ValueError("Can't parse token name %s." % name)
+        if token_length is not None and b.len != token_length:
+            raise ValueError("Token with length %d packed with value of length %d (%s:%d=%s)." %
+                             (token_length, b.len, name, token_length, value))
+        return b
+
     def _clear(self):
         """Reset the BitString to an empty state."""
         self.bytes = b''
@@ -1072,7 +1072,7 @@ class Bits(object):
         self._setbytes(b'')
         _, tokens = tokenparser(s)
         for token in tokens:
-            self._append(init_with_token(*token))
+            self._append(self.init_with_token(*token))
         # Finally we honour the offset and length
         if offset > self.len:
             raise ValueError("Can't apply offset of %d. Length is only %d." %
@@ -3293,7 +3293,7 @@ class BitString(Bits):
     def _reverse(self):
         """Reverse all bits in-place."""
         # Reverse the contents of each byte
-        n = [bytereversaldict[b] for b in self._datastore.rawbytes]
+        n = [BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
         # Then reverse the order of the bytes
         n.reverse()
         # The new offset is the number of bits that were unused at the end.
@@ -3555,7 +3555,7 @@ def pack(format, *values, **kwargs):
             if value is None:
                 # Take the next value from the ones provided
                 value = next(value_iter)
-            s._append(init_with_token(name, length, value))
+            s._append(BitString.init_with_token(name, length, value))
     except StopIteration:
         raise ValueError("Not enough parameters present to pack according to the "
                          "format. %d values are needed." % len(tokens))
