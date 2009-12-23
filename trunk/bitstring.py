@@ -29,11 +29,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "1.1.3"
+__version__ = "1.2.0"
 
 __author__ = "Scott Griffiths"
 
-__all__ = ['BitString', 'pack']
+__all__ = ['BitString', 'Bits', 'pack']
 
 import os
 import struct
@@ -57,8 +57,8 @@ def deprecated(explanation):
         """
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
-        #    warnings.warn("Call to deprecated function %s. %s" % (func.__name__, explanation),
-        #                  category=DeprecationWarning, stacklevel=2)
+            warnings.warn("Call to deprecated function %s. %s" % (func.__name__, explanation),
+                          category=DeprecationWarning, stacklevel=2)
             return func(self, *args, **kwargs)
         wrapper.__doc__ = "*Deprecated*: " + explanation + '\n\n        ' + func.__doc__
         return wrapper
