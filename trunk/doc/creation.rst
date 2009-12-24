@@ -1,5 +1,6 @@
 Creation and Interpretation
 ===========================
+
 You can create bitstring objects in a variety of ways. Internally, bitstrings are stored as byte arrays. This means that no space is wasted and a bitstring containing 10MB of binary data will only take up 10MB of memory.
 
 When a bitstring is created all that is stored is the byte array, the length in bits, an offset to the first used bit in the byte array plus a bit position in the bitstring, used for reading etc. This means that the actual initialiser used to create the bitstring isn't stored itself - if you create using a hex string for example then if you ask for the hex interpretation it has to be calculated from the stored byte array.
@@ -7,17 +8,17 @@ When a bitstring is created all that is stored is the byte array, the length in 
 The Bits and BitString classes
 ------------------------------
 
-The two classes provided by the bitstring module are ``Bits`` and ``BitString``. The major difference between them is that ``BitString`` objects are mutable, whereas ``Bits`` objects cannot be changed after creation.
+The two classes provided by the bitstring module are :class:`Bits` and :class:`BitString`. The major difference between them is that :class:`BitString` objects are mutable, whereas :class:`Bits` objects cannot be changed after creation.
 
-Most of the exampes in this manual use the ``BitString`` class rather than the ``Bits`` class, which is partly historical (the ``Bits`` class is a new addition) but also because the ``BitString`` is more versatile and so probably your best choice when starting to use the module.
+Most of the exampes in this manual use the :class:`BitString` class rather than the :class:`Bits` class, which is partly historical (the :class:`Bits` class is a new addition) but also because the :class:`BitString` is more versatile and so probably your best choice when starting to use the module.
 
 To summarise when to use each class:
 
-* If you need to change the contents of the bitstring then you must use ``BitString``. Truncating, replacing, inserting, appending etc. are not available for ``Bits`` objects.
-* If you need to use a bitstring as the key in a dictionary or as a member of a ``set`` then you must use ``Bits``. As ``BitString`` objects are mutable they do not support hashing and so cannot be used in these ways.
-* If you don't need the extra functionality of ``BitString`` objects then using ``Bits`` might be faster and more memory efficient. Currently the speed difference is quite marginal, but this is expected to improve in future releases.
+* If you need to change the contents of the bitstring then you must use :class:`BitString`. Truncating, replacing, inserting, appending etc. are not available for :class:`Bits` objects.
+* If you need to use a bitstring as the key in a dictionary or as a member of a ``set`` then you must use :class:`Bits`. As :class:`BitString` objects are mutable they do not support hashing and so cannot be used in these ways.
+* If you don't need the extra functionality of :class:`BitString` objects then using :class:`Bits` might be faster and more memory efficient. Currently the speed difference is quite marginal, but this is expected to improve in future releases.
 
-The ``Bits`` class is the base class of ``BitString``. This means that for example ``isinstance(s, Bits)`` will be true if ``s`` is an instance of either class.
+The :class:`Bits` class is the base class of :class:`BitString`. This means that for example ``isinstance(s, Bits)`` will be true if ``s`` is an instance of either class.
 
 
 Using the constructor
@@ -44,7 +45,7 @@ From a hexadecimal string
 
 The initial ``0x`` or ``0X`` is optional, as is a length parameter, which can be used to truncate bits from the end. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of ``c`` will be 32.
 
-If you include the initial ``0x`` then you can use the ``auto`` initialiser instead. As it is the first parameter in ``__init__`` this will work equally well::
+If you include the initial ``0x`` then you can use the ``auto`` initialiser instead. As it is the first parameter in :meth:`__init__` this will work equally well::
 
  c = BitString('0x000001b3')
 
@@ -102,7 +103,7 @@ Big and little-endian integers
 
 There are unsigned and signed versions of three additional 'endian' types. The unsigned versions are used above to create three bitstrings.
 
-The first of these, ``big_endian``, is equivalent to just using the plain bit-wise big-endian ``uint`` initialiser, except that all ``intbe`` or ``uintbe`` interpretations must be of whole-byte bitstrings, otherwise a ``ValueError`` is raised.
+The first of these, ``big_endian``, is equivalent to just using the plain bit-wise big-endian ``uint`` initialiser, except that all ``intbe`` or ``uintbe`` interpretations must be of whole-byte bitstrings, otherwise a :exc:`ValueError` is raised.
 
 The second, ``little_endian``, is interpreted as least significant byte first, i.e. it is a byte reversal of ``big_endian``. So we have::
 
@@ -184,7 +185,7 @@ It's also possible to use the ``auto`` initialiser for file objects. It's as sim
 
 The auto initialiser
 --------------------
-The ``auto`` parameter is the first parameter in the ``__init__`` function and so the ``auto=`` can be omitted when using it. It accepts either a string, a list or tuple, another bitstring, an integer or a file object.
+The ``auto`` parameter is the first parameter in the :meth:`__init__` function and so the ``auto=`` can be omitted when using it. It accepts either a string, a list or tuple, another bitstring, an integer or a file object.
 
 Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, lists and tuples are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
 
@@ -199,7 +200,7 @@ Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` 
  >>> fromfile = BitString(f)
  >>> zeroed = BitString(1000)
  
-It can also be used to convert between the ``BitString`` and ``Bits`` classes::
+It can also be used to convert between the :class:`BitString` and :class:`Bits` classes::
 
  >>> immutable = Bits('0xabc')
  >>> mutable = BitString(immutable)
@@ -240,26 +241,25 @@ Again, note how the format used in the ``auto`` initialiser can be used in many 
 Packing
 -------
 
-Another method of creating ``BitString`` objects is to use the ``pack`` function. This takes a format specifier which is a string with comma separated tokens, and a number of items to pack according to it. It's signature is ``bitstring.pack(format, *values, **kwargs)``.
+Another method of creating :class:`BitString` objects is to use the :func:`pack` function. This takes a format specifier which is a string with comma separated tokens, and a number of items to pack according to it. It's signature is ``bitstring.pack(format, *values, **kwargs)``.
+
 For example using just the ``*values`` arguments we can say::
 
- s = bitstring.pack('hex:32, uint:12, uint:12',
-                    '0x000001b3', 352, 288)
+ s = bitstring.pack('hex:32, uint:12, uint:12', '0x000001b3', 352, 288)
 
 which is equivalent to initialising as::
 
  s = BitString('0x0000001b3, uint:12=352, uint:12=288')
 
-The advantage of the pack method is if you want to write more general code for creation. ::
+The advantage of the pack function is if you want to write more general code for creation. ::
 
  def foo(a, b, c, d):
-     return bitstring.pack('uint:8, 0b110, int:6, bin, bits',
-	                        a, b, c, d)
+     return bitstring.pack('uint:8, 0b110, int:6, bin, bits', a, b, c, d)
  
  s1 = foo(12, 5, '0b00000', '')
  s2 = foo(101, 3, '0b11011', s1)
 
-Note how you can use some tokens without sizes (such as ``bin`` and ``bits`` in the above example), and use values of any length to fill them. If the size had been specified then a ``ValueError`` would be raised if the parameter given was the wrong length. Note also how bitstring literals can be used (the ``0b110`` in the bitstring returned by ``foo``) and these don't consume any of the items in ``*values``.
+Note how you can use some tokens without sizes (such as ``bin`` and ``bits`` in the above example), and use values of any length to fill them. If the size had been specified then a :exc:`ValueError` would be raised if the parameter given was the wrong length. Note also how bitstring literals can be used (the ``0b110`` in the bitstring returned by ``foo``) and these don't consume any of the items in ``*values``.
 
 You can also include keyword, value pairs (or an equivalent dictionary) as the final parameter(s). The values are then packed according to the positions of the keywords in the format string. This is most easily explained with some examples. Firstly the format string needs to contain parameter names::
 
@@ -327,7 +327,7 @@ And finally it is also possible just to use a keyword as a token::
 
  s = bitstring.pack('hello, world', world='0x123', hello='0b110')
 
-As you would expect, there is also an ``unpack`` function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is::
+As you would expect, there is also an :meth:`unpack` function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is::
 
  >>> s = bitstring.pack('ue, oct:3, hex:8, uint:14', 3, '0o7', '0xff', 90)
  >>> s.unpack('ue, oct:3, hex:8, uint:14')
@@ -336,7 +336,7 @@ As you would expect, there is also an ``unpack`` function that takes a bitstring
 Compact format strings
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Another option when using pack is to use a format specifier similar to those used in the ``struct`` and ``array`` modules. These consist of a character to give the endianness, followed by more single characters to give the format.
+Another option when using pack is to use a format specifier similar to those used in the :mod:`struct` and :mod:`array` modules. These consist of a character to give the endianness, followed by more single characters to give the format.
 
 The endianness character must start the format string and unlike in the struct module it is not optional:
 
@@ -406,7 +406,7 @@ For the properties described below we will use these::
 bin
 ^^^
 
-The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The ``bin`` property returns a string of the binary representation of the bitstring prefixed with ``0b``. All bitstrings can use this property and it is used to test equality between bitstrings. ::
+The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The :attr:`bin` property returns a string of the binary representation of the bitstring prefixed with ``0b``. All bitstrings can use this property and it is used to test equality between bitstrings. ::
 
  >>> a.bin
  '0b000100100011'
@@ -420,7 +420,7 @@ hex
 
 For whole-byte bitstrings the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits. Hex values are prefixed with ``0x``.
 
-If the bitstring does not have a length that is a multiple of four bits then a ``ValueError`` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code. ::
+If the bitstring does not have a length that is a multiple of four bits then a :exc:`ValueError` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code. ::
 
  >>> a.hex
  '0x123'
@@ -430,9 +430,9 @@ If the bitstring does not have a length that is a multiple of four bits then a `
 oct
 ^^^
 
-For an octal interpretation use the ``oct`` property. Octal values are prefixed with ``0o``, which is the Python 2.6 / 3 way of doing things (rather than just starting with ``0``).
+For an octal interpretation use the :attr:`oct` property. Octal values are prefixed with ``0o``, which is the Python 2.6 / 3 way of doing things (rather than just starting with ``0``).
 
-If the bitstring does not have a length that is a multiple of three then a ``ValueError`` exception will be raised. ::
+If the bitstring does not have a length that is a multiple of three then a :exc:`ValueError` exception will be raised. ::
 
  >>> a.oct
  '0o0443'
@@ -444,14 +444,14 @@ If the bitstring does not have a length that is a multiple of three then a ``Val
 uint / uintbe / uintle / uintne
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the ``uint`` property.
+To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the :attr:`uint` property.
 
  >>> a.uint
  283
  >>> b.uint
  7
 
-For byte-wise big-endian, little-endian and native-endian interpretations use ``uintbe``, ``uintle`` and ``uintne`` respectively. These will raise a ``ValueError`` if the bitstring is not a whole number of bytes long. ::
+For byte-wise big-endian, little-endian and native-endian interpretations use :attr:`uintbe`, :attr:`uintle` and :attr:`uintne` respectively. These will raise a :exc:`ValueError` if the bitstring is not a whole number of bytes long. ::
 
  >>> s = BitString('0x000001')
  >>> s.uint     # bit-wise big-endian
@@ -466,30 +466,30 @@ For byte-wise big-endian, little-endian and native-endian interpretations use ``
 int / intbe / intle / intne
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For a two's complement interpretation as a base-2 signed integer use the ``int`` property. If the first bit of the bitstring is zero then the ``int`` and ``uint`` interpretations will be equal, otherwise the ``int`` will represent a negative number. ::
+For a two's complement interpretation as a base-2 signed integer use the :attr:`int` property. If the first bit of the bitstring is zero then the :attr:`int` and :attr:`uint` interpretations will be equal, otherwise the :attr:`int` will represent a negative number. ::
 
  >>> a.int
  283
  >>> b.int
  -1
 
-For byte-wise big, little and native endian signed integer interpretations use ``intbe``, ``intle`` and ``intne`` respectively. These work in the same manner as their unsigned counterparts described above.
+For byte-wise big, little and native endian signed integer interpretations use :attr:`intbe`, :attr:`intle` and :attr:`intne` respectively. These work in the same manner as their unsigned counterparts described above.
 
 float / floatbe / floatle / floatne
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For a floating point interpretation use the ``float`` property. This uses your machine's underlying floating point representation and will only work if the bitstring is 32 or 64 bits long.
+For a floating point interpretation use the :attr:`float` property. This uses your machine's underlying floating point representation and will only work if the bitstring is 32 or 64 bits long.
 
-Different endiannesses are provided via ``floatle`` and ``floatne``. Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian float and the byte-wise big-endian ``floatbe``.
+Different endiannesses are provided via :attr:`floatle` and :attr:`floatne`. Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian :attr:`float` and the byte-wise big-endian :attr:`floatbe`.
 
 Note also that standard floating point numbers in Python are stored in 64 bits, so use this size if you wish to avoid rounding errors.
 
 bytes
 ^^^^^
 
-A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the ``bytes`` interpretation, which returns a ``bytes`` object (which is equivalent to an ordinary ``str`` in Python 2.6).
+A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the :attr:`bytes` interpretation, which returns a ``bytes`` object (which is equivalent to an ordinary ``str`` in Python 2.6).
 
-If the length of the bitstring isn't a multiple of eight then a ``ValueError`` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method ``tobytes`` as this will be pad with between one and seven zero bits up to a byte boundary if neccessary. ::
+If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`tobytes` as this will be pad with between one and seven zero bits up to a byte boundary if neccessary. ::
 
  >>> open('somefile', 'wb').write(a.tobytes())
  >>> open('anotherfile', 'wb').write(('0x0'+a).bytes)
@@ -500,12 +500,12 @@ If the length of the bitstring isn't a multiple of eight then a ``ValueError`` w
  >>> a2.hex
  '0x0123'
 
-Note that the ``tobytes`` method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the ``bytes`` property.
+Note that the :meth:`tobytes` method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the :attr:`bytes` property.
 
 ue
 ^^
 
-The ``ue`` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a ``BitStringError`` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See Appendix B for a short explanation of this type of integer representation. ::
+The :attr:`ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a :exc:`BitStringError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See Appendix B for a short explanation of this type of integer representation. ::
 
  >>> s = BitString(ue=12)
  >>> s.bin
@@ -517,7 +517,7 @@ The ``ue`` property interprets the bitstring as a single unsigned exponential-Go
 se
 ^^
 
-The ``se`` property does much the same as ``ue`` and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see Appendix B for more information. ::
+The :attr:`se` property does much the same as ``ue`` and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see Appendix B for more information. ::
 
  >>> s = BitString('0x164b')
  >>> s.se

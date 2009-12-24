@@ -69,7 +69,7 @@ exclude_trees = ['_build']
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
 
-# If true, '()' will be appended to :func: etc. cross-reference text.
+# If true, '()' will be appended to :meth: etc. cross-reference text.
 add_function_parentheses = False
 
 # If true, the current module name will be prepended to all description
@@ -100,16 +100,17 @@ main_colour = "#ffbbbb"
 html_theme_options = {
 "rightsidebar": "true",
 "stickysidebar": "true",
-"bodyfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
+#"bodyfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
 "headfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
-"sidebarbgcolor": "#f0f0f0",
+"sidebarbgcolor": "#f0f0ff",
 "footerbgcolor": "#771111",
 "relbarbgcolor": "#993333",
 "sidebartextcolor": "#000000",
 "sidebarlinkcolor": "#330000",
-"codebgcolor": "#f0f0f0",
-"headtextcolor": "#200000",
-"headbgcolor": "#f8f8f8",
+"codebgcolor": "#fffff0",
+"headtextcolor": "#000080",
+"headbgcolor": "#f0f0ff",
+"bgcolor": "#ffffff",
 }
 
 # Add any paths that contain custom themes here, relative to this directory.

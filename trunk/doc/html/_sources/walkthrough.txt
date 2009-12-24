@@ -26,7 +26,7 @@ Getting started
 
  >>> from bitstring import BitString
  
-First things first, we're going to be typing ``BitString`` a lot, so importing directly saves us a lot of ``bitstring.BitString`` nonsense. We can now create a couple of bitstrings::
+First things first, we're going to be typing :class:`BitString` a lot, so importing directly saves us a lot of ``bitstring.BitString`` nonsense. We can now create a couple of bitstrings::
 
  >>> a = BitString('0xff01')
  >>> b = BitString('0b110')
@@ -35,7 +35,9 @@ The first of these we made from the hexadecimal string '0xff01' - the ``0x`` pre
 
 The second was created from a binary string. In this case it is just three bits long. Don't worry about it not being a whole number of bytes long, that's all been taken care of internally.
 
-Be sure to remember the quotes around the hex and binary strings. If you forget them you would just have an ordinary Python integer, which would instead create a bitstring of that many '0' bits. For example ``0xff01`` is the same as the base-10 number ``65281``, so ``BitString(0xff01)`` would consist of 65281 zero bits! 
+.. note::
+
+ Be sure to remember the quotes around the hex and binary strings. If you forget them you would just have an ordinary Python integer, which would instead create a bitstring of that many '0' bits. For example ``0xff01`` is the same as the base-10 number ``65281``, so ``BitString(0xff01)`` would consist of 65281 zero bits! 
 
 There are lots of things we can do with our new bitstrings, the simplest of which is just to print them::
 

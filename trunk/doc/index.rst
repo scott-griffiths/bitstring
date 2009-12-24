@@ -30,7 +30,7 @@ The walkthrough give a brief tour of some of module's features without going int
 
 The manual provides an introduction to the module and details most its capabilities.
 
-The reference section has a complete list of all of the properties and methods of the ``BitString`` class, together with short examples for many items.
+The reference section has a complete list of all of the properties and methods of the :class:`BitString` class, together with short examples for many items.
 
 
 .. toctree::
@@ -47,7 +47,13 @@ The reference section has a complete list of all of the properties and methods o
    :maxdepth: 3
    
    reference
-   
+
+Index and search
+----------------
+
+* :ref:`genindex`
+* :ref:`search`
+
 Credits
 -------
 
@@ -55,10 +61,6 @@ Written by Scott Griffiths <scott@griffiths.name>. If you have any questions, su
 
 This document last updated: |today|
 
-Index and search
-----------------
 
-* :ref:`genindex`
-* :ref:`search`
 
 
