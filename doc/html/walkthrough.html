@@ -49,7 +49,8 @@
 <h1>Walkthrough<a class="headerlink" href="#walkthrough" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="a-brief-introduction">
 <h2>A Brief Introduction<a class="headerlink" href="#a-brief-introduction" title="Permalink to this headline">¶</a></h2>
-<p>The aim of the <strong>bitstring</strong> module is make dealing with binary data in Python as easy as possible. In this section I will take you through some of the features of the module to help you get started using it. Only a few of the module&#8217;s features will be covered in this walkthrough; the manual and reference section provide a more thorough guide. The whole of this section can be safely skipped or skimmed over if you prefer to start with the manual. If however you&#8217;d like a gentler introduction then you might prefer to follow along the examples with a Python interpreter.</p>
+<p>The aim of the <strong>bitstring</strong> module is make dealing with binary data in Python as easy as possible. In this section I will take you through some of the features of the module to help you get started using it.</p>
+<p>Only a few of the module&#8217;s features will be covered in this walkthrough; the manual and reference section provide a more thorough guide. The whole of this section can be safely skipped or skimmed over if you prefer to start with the manual. If however you&#8217;d like a gentler introduction then you might like to follow along the examples with a Python interpreter.</p>
 <div class="section" id="prerequisites">
 <h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
@@ -65,15 +66,18 @@
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bitstring</span> <span class="kn">import</span> <span class="n">BitString</span>
 </pre></div>
 </div>
-<p>First things first, we&#8217;re going to be typing <tt class="docutils literal"><span class="pre">BitString</span></tt> a lot, so importing directly saves us a lot of <tt class="docutils literal"><span class="pre">bitstring.BitString</span></tt> nonsense. We can now create a couple of bitstrings:</p>
+<p>First things first, we&#8217;re going to be typing <a title="BitString" class="reference external" href="reference.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> a lot, so importing directly saves us a lot of <tt class="docutils literal"><span class="pre">bitstring.BitString</span></tt> nonsense. We can now create a couple of bitstrings:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xff01&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b110&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The first of these we made from the hexadecimal string &#8216;0xff01&#8217;. Each hex digit represents four bits, so we have a bitstring of length 16 bits.</p>
+<p>The first of these we made from the hexadecimal string &#8216;0xff01&#8217; - the <tt class="docutils literal"><span class="pre">0x</span></tt> prefix makes it hexadecimal just as <tt class="docutils literal"><span class="pre">0b</span></tt> means binary and <tt class="docutils literal"><span class="pre">0o</span></tt> means octal. Each hex digit represents four bits, so we have a bitstring of length 16 bits.</p>
 <p>The second was created from a binary string. In this case it is just three bits long. Don&#8217;t worry about it not being a whole number of bytes long, that&#8217;s all been taken care of internally.</p>
-<p>Be sure to remember the quotes around the hex and binary strings. If you forget them you would just have an ordinary Python integer, which would instead create a bitstring of that many &#8216;0&#8217; bits. For example <tt class="docutils literal"><span class="pre">0xff01</span></tt> is the same as the base-10 number 65281, so <tt class="docutils literal"><span class="pre">BitString(0xff01)</span></tt> would consist of 65281 zero bits!</p>
-<p>There are lots of things we can do with <tt class="docutils literal"><span class="pre">a</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt>, the simplest of which is just to print them:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Be sure to remember the quotes around the hex and binary strings. If you forget them you would just have an ordinary Python integer, which would instead create a bitstring of that many &#8216;0&#8217; bits. For example <tt class="docutils literal"><span class="pre">0xff01</span></tt> is the same as the base-10 number <tt class="docutils literal"><span class="pre">65281</span></tt>, so <tt class="docutils literal"><span class="pre">BitString(0xff01)</span></tt> would consist of 65281 zero bits!</p>
+</div>
+<p>There are lots of things we can do with our new bitstrings, the simplest of which is just to print them:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="go">0xff01</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>

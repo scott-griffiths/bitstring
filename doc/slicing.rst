@@ -57,7 +57,7 @@ Negative slices are also allowed, and should do what you'd expect. So for exampl
 Joining
 -------
 
-To join together a couple of bitstring objects use the ``+`` or ``+=`` operators, or the :func:`append` and :func:`prepend` functions. ::
+To join together a couple of bitstring objects use the ``+`` or ``+=`` operators, or the :meth:`append` and :meth:`prepend` functions. ::
 
  # Six ways of creating the same BitString:
  a1 = BitString(bin='000') + BitString(hex='f')
@@ -70,7 +70,7 @@ To join together a couple of bitstring objects use the ``+`` or ``+=`` operators
  a6 = BitString('0b000')
  a6 += '0xf'
 
-Note that the final three methods all modify a bitstring, and so will only work with ``BitString`` objects, not the immutable ``Bits`` objects.
+Note that the final three methods all modify a bitstring, and so will only work with :class:`BitString` objects, not the immutable :class:`Bits` objects.
 
 If you want to join a large number of bitstrings then the function :func:`join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don't want a separator then it can be called on an empty bitstring. ::
 
@@ -80,12 +80,12 @@ If you want to join a large number of bitstrings then the function :func:`join` 
 Truncating, inserting, deleting and overwriting
 -----------------------------------------------
 
-The functions in this section all modify the bitstring that they operate on and so are not available for ``Bits`` objects.
+The functions in this section all modify the bitstring that they operate on and so are not available for :class:`Bits` objects.
 
 ``truncatestart / truncateend``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The :func:`truncatestart` and :func:`truncateend` functions take a single integer argument and remove that number of bits from the start or end. ::
+The :meth:`truncatestart` and :meth:`truncateend` functions take a single integer argument and remove that number of bits from the start or end. ::
 
  >>> a = BitString('0x001122')
  >>> a.truncateend(8)
@@ -93,12 +93,12 @@ The :func:`truncatestart` and :func:`truncateend` functions take a single intege
  >>> a == '0x11'
  True
 
-A similar effect can be obtained using slicing - the major difference being that if a slice is used a new ``BitString`` is returned and the ``BitString`` being operated on remains unchanged.
+A similar effect can be obtained using slicing - the major difference being that if a slice is used a new :class:`BitString` is returned and the :class:`BitString` being operated on remains unchanged.
 
 ``insert``
 ^^^^^^^^^^
 
-As you might expect, :func:`insert` takes one ``BitString`` and inserts it into another. A bit position can be specified, but if not present then the current ``pos`` is used. ::
+As you might expect, :meth:`insert` takes one :class:`BitString` and inserts it into another. A bit position can be specified, but if not present then the current :attr:`pos` is used. ::
 
  >>> a = BitString('0x00112233')
  >>> a.insert('0xffff', 16)
@@ -108,7 +108,7 @@ As you might expect, :func:`insert` takes one ``BitString`` and inserts it into 
 ``overwrite``
 ^^^^^^^^^^^^^
 
-:func:`overwrite` does much the same as :func:`insert`, but predictably the ``BitString`` object's data is overwritten by the new data. ::
+:meth:`overwrite` does much the same as :meth:`insert`, but predictably the :class:`BitString` object's data is overwritten by the new data. ::
 
  >>> a = BitString('0x00112233')
  >>> a.pos = 4
@@ -119,7 +119,7 @@ As you might expect, :func:`insert` takes one ``BitString`` and inserts it into 
 ``delete``
 ^^^^^^^^^^
 
-:func:`delete` removes a section of the ``BitString``. By default it is removed at the current pos::
+:meth:`delete` removes a section of the :class:`BitString`. By default it is removed at the current :attr:`pos`::
 
  >>> a = BitString('0b00011000')
  >>> a.delete(2, 3)                # remove 2 bits at pos 3
@@ -154,7 +154,7 @@ Splitting
 ``split``
 ^^^^^^^^^
 
-Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The :func:`split` function returns a generator for the sections. ::
+Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The :meth:`split` function returns a generator for the sections. ::
 
  >>> a = BitString('0x4700004711472222')
  >>> for s in a.split('0x47', bytealigned=True):
@@ -169,7 +169,7 @@ Note that the first item returned is always the BitString before the first occur
 ``cut``
 ^^^^^^^
 
-If you just want to split into equal parts then use the :func:`cut` function. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
+If you just want to split into equal parts then use the :meth:`cut` function. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
 
  >>> a = BitString('0x47001243')
  >>> for byte in a.cut(8):

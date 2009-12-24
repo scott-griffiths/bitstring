@@ -1,11 +1,11 @@
 Internals
 =========
 
-I am including some information on the internals of the ``BitString`` class here, things that the general user shouldn’t need to know. The objects and methods described here all start with an underscore, which means that they are a private part of the implementation, not a part of the public interface and that that I reserve the right to change, rename and remove them at any time!
+I am including some information on the internals of the :class:`BitString` class here, things that the general user shouldn’t need to know. The objects and methods described here all start with an underscore, which means that they are a private part of the implementation, not a part of the public interface and that that I reserve the right to change, rename and remove them at any time!
 
 This appendix isn't complete, and may not even be accurate as I am in the process of refactoring the core, so with those disclaimers in mind...
 
-The data in a ``BitString`` can be considered to consist of three parts.
+The data in a :class:`BitString` can be considered to consist of three parts.
 
 * The byte data, either contained in memory, or as part of a file.
 * A length in bits.
@@ -25,6 +25,6 @@ The procedure is simply to copy the byte data containing the substring and set t
  a : bytes = '\x01\xff\x00', offset = 0, len = 24
  b : bytes = '\x01\xff', offset = 7, len = 5
 
-This method also means that ``BitString`` objects initialised from a file don’t have to copy anything into memory - the data instead is obtained with a byte offset into the file. This brings us onto the different types of datastores used.
+This method also means that :class:`BitString` objects initialised from a file don’t have to copy anything into memory - the data instead is obtained with a byte offset into the file. This brings us onto the different types of datastores used.
 
-The ``BitString`` has a ``_datastore`` member, which at present is either a ``MemArray`` class or a ``FileArray`` class. The ``MemArray`` class is really just a light wrapper around a ``bytearray`` object that contains the real byte data, so when we were talking about the data earlier I was really referring to the byte data contained in the ``bytearray``, in the ``MemArray``, in the ``_datastore``, in the ``BitString`` (but that seemed a bit much to give you in one go).
+The :class:`BitString` has a ``_datastore`` member, which at present is either a ``MemArray`` class or a ``FileArray`` class. The ``MemArray`` class is really just a light wrapper around a ``bytearray`` object that contains the real byte data, so when we were talking about the data earlier I was really referring to the byte data contained in the ``bytearray``, in the ``MemArray``, in the ``_datastore``, in the :class:`BitString` (but that seemed a bit much to give you in one go).
