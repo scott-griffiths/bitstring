@@ -119,6 +119,7 @@ The properties :attr:`pos` and :attr:`bytepos` are available for getting and set
 Note that you can only use :attr:`bytepos` if the position is byte aligned, i.e. the bit position is a multiple of 8. Otherwise a :exc:`BitStringError` exception is raised.
 
 For example::
+
  >>> s = BitString('0x123456')
  >>> s.pos
  0

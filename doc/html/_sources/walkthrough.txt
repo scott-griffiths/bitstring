@@ -5,9 +5,9 @@ Walkthrough
 A Brief Introduction
 ====================
 
-The aim of the **bitstring** module is make dealing with binary data in Python as easy as possible. In this section I will take you through some of the features of the module to help you get started using it.
+The aim of the :mod:`bitstring` module is make dealing with binary data in Python as easy as possible. In this section I will take you through some of the features of the module to help you get started using it.
 
-Only a few of the module's features will be covered in this walkthrough; the manual and reference section provide a more thorough guide. The whole of this section can be safely skipped or skimmed over if you prefer to start with the manual. If however you'd like a gentler introduction then you might like to follow along the examples with a Python interpreter.
+Only a few of the module's features will be covered in this walkthrough; the :ref:`manual` and :ref:`reference` provide a more thorough guide. The whole of this section can be safely skipped or skimmed over if you prefer to start with the manual. If however you'd like a gentler introduction then you might like to follow along the examples with a Python interpreter.
 
 Prerequisites
 -------------
@@ -17,16 +17,16 @@ Prerequisites
 * A rudimentory knowledge of binary concepts.
 * A little free time.
 
-If you haven't yet downloaded and installed bitstring then please do so (it might be as easy as typing "``easy_install bitstring``" depending on your system). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.
+If you haven't yet downloaded and installed :mod:`bitstring` then please do so (it might be as easy as typing "``easy_install bitstring``" depending on your system). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.
 
 Getting started
 ---------------
 
 ::
 
- >>> from bitstring import BitString
+ >>> from bitstring import Bits, BitString
  
-First things first, we're going to be typing :class:`BitString` a lot, so importing directly saves us a lot of ``bitstring.BitString`` nonsense. We can now create a couple of bitstrings::
+First things first, we're going to be typing 'bitstring' a lot, so importing directly saves us a lot of ``bitstring.BitString`` nonsense. We can now create a couple of bitstrings::
 
  >>> a = BitString('0xff01')
  >>> b = BitString('0b110')
@@ -37,7 +37,7 @@ The second was created from a binary string. In this case it is just three bits 
 
 .. note::
 
- Be sure to remember the quotes around the hex and binary strings. If you forget them you would just have an ordinary Python integer, which would instead create a bitstring of that many '0' bits. For example ``0xff01`` is the same as the base-10 number ``65281``, so ``BitString(0xff01)`` would consist of 65281 zero bits! 
+ Be sure to remember the quotes around the hex and binary strings. If you forget them you would just have an ordinary Python integer, which would instead create a bitstring of that many '0' bits. For example ``0xff01`` is the same as the base-10 number 65281, so ``BitString(0xff01)`` would consist of 65281 zero bits! 
 
 There are lots of things we can do with our new bitstrings, the simplest of which is just to print them::
 

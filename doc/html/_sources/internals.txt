@@ -3,7 +3,7 @@ Internals
 
 I am including some information on the internals of the :class:`BitString` class here, things that the general user shouldn’t need to know. The objects and methods described here all start with an underscore, which means that they are a private part of the implementation, not a part of the public interface and that that I reserve the right to change, rename and remove them at any time!
 
-This appendix isn't complete, and may not even be accurate as I am in the process of refactoring the core, so with those disclaimers in mind...
+This section isn't complete, and may not even be accurate as I am in the process of refactoring the core, so with those disclaimers in mind...
 
 The data in a :class:`BitString` can be considered to consist of three parts.
 

@@ -1,3 +1,6 @@
+
+.. _manual:
+
 ###########
 User Manual
 ###########
@@ -10,6 +13,4 @@ User Manual
    slicing
    reading
    misc
-   examples
-   exp-golomb
-   internals
+
