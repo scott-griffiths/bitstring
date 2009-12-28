@@ -1,4 +1,6 @@
 
+.. _exp-golomb:
+
 Exponential-Golomb Codes
 ========================
 

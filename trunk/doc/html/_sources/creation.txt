@@ -143,7 +143,7 @@ Initialisation with integers represented by exponential-Golomb codes is also pos
  >>> h.bin
  '0b0000000001100100101'
 
-For these initialisers the length of the bitstring is fixed by the value it is initialised with, so the length parameter must not be supplied and it is an error to do so. If you don't know what exponential-Golomb codes are then you are in good company, but they are quite interesting, so I’ve included an appendix on them (see Appendix B).
+For these initialisers the length of the bitstring is fixed by the value it is initialised with, so the length parameter must not be supplied and it is an error to do so. If you don't know what exponential-Golomb codes are then you are in good company, but they are quite interesting, so I’ve included a section on them (see :ref:`exp-golomb`).
 
 The ``auto`` initialiser may also be used by giving an equals sign and the value immediately after a ``ue`` or ``se`` token::
 
@@ -169,7 +169,7 @@ Using the ``filename`` initialiser allows a file to be analysed without the need
 
  p = BitString(filename="my2GBfile")
 
-This will open the file in binary read-only mode. The file will only be read as and when other operations require it, and the contents of the file will not be changed by any operations. If only a portion of the file is needed then the offset and length parameters (specified in bits) can be used.
+This will open the file in binary read-only mode. The file will only be read as and when other operations require it, and the contents of the file will not be changed by any operations. If only a portion of the file is needed then the ``offset`` and ``length`` parameters (specified in bits) can be used.
 
 Something to watch out for are operations that could cause a copy of large parts of the object to be made in memory, for example::
 
@@ -182,6 +182,7 @@ It's also possible to use the ``auto`` initialiser for file objects. It's as sim
 
  f = open('my2GBfile', 'rb')
  p = BitString(f)
+
 
 The auto initialiser
 --------------------
@@ -505,7 +506,7 @@ Note that the :meth:`tobytes` method automatically padded with four zero bits at
 ue
 ^^
 
-The :attr:`ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a :exc:`BitStringError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See Appendix B for a short explanation of this type of integer representation. ::
+The :attr:`ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a :exc:`BitStringError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
 
  >>> s = BitString(ue=12)
  >>> s.bin
@@ -517,7 +518,7 @@ The :attr:`ue` property interprets the bitstring as a single unsigned exponentia
 se
 ^^
 
-The :attr:`se` property does much the same as ``ue`` and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see Appendix B for more information. ::
+The :attr:`se` property does much the same as ``ue`` and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see :ref:`exp-golomb` for more information. ::
 
  >>> s = BitString('0x164b')
  >>> s.se

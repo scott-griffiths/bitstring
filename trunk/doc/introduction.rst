@@ -13,7 +13,7 @@ Bitstrings are designed to be as lightweight as possible and can be considered t
 
 The different views or interpretations on the data are accessed through properties such as :attr:`hex`, :attr:`bin` and :attr:`int`, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.
 
-A complete reference for the module is given in Appendix A, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual. ::
+A complete reference for the module is given in :ref:`reference`, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual. ::
 
  from bitstring import BitString
 
@@ -62,14 +62,14 @@ The easiest way to install ``bitstring`` is to use ``easy_install`` via::
  
 or similar.
 
-If you want an earlier version, or need other files in the full package you can download and extract the contents of the .zip provided on the project's website.
+If you want an earlier version, or need other files in the full package, you can download and extract the contents of the .zip provided on the project's website.
 
 First download the latest release for either Python 2.4 / 2.5 or Python 2.6 / 3.0 / 3.1 (see the Downloads tab on the project’s homepage). Note that this manual covers only the Python 2.6 and later version. An earlier version is available for Python 2.4 / 2.5, which is available on the project's homepage.
 
 If you then extract the contents of the zip file you should find:
 
 * ``bitstring.py`` : The bitstring module itself.
-* ``test_bitstring.py`` : Unit tests for the module.
+* ``test/test_bitstring.py`` : Unit tests for the module.
 * ``setup.py`` : The setup script.
 * ``readme.txt`` : A short readme.
 * ``release_notes.txt`` : History of changes in this and previous versions.

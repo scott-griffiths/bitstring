@@ -13,7 +13,7 @@ Bitstrings are designed to be as lightweight as possible and can be considered t
 
 The different views or interpretations on the data are accessed through properties such as :attr:`hex`, :attr:`bin` and :attr:`int`, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.
 
-A complete reference for the module is given in Appendix A, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual. ::
+A complete reference for the module is given in :ref:`reference`, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual. ::
 
  from bitstring import BitString
 

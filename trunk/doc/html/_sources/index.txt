@@ -48,6 +48,11 @@ The reference section has a complete list of all of the properties and methods o
    
    reference
 
+.. toctree::
+   :maxdepth: 3
+   
+   appendices
+
 Index and search
 ----------------
 
