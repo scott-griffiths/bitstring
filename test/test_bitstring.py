@@ -918,7 +918,7 @@ class BitStringTest(unittest.TestCase):
         s1 = BitString(hex='00112233445566778899aabbccddeeff')
         s2 = BitString(bin='0b000011')
         bsl = [s1[0:32], s1[4:12], s2, s2, s2, s2]
-        s = BitString().join(bsl)
+        s = Bits().join(bsl)
         self.assertEqual(s.hex, '0x00112233010c30c3')
                 
         bsl = [BitString(uint=j, length=12) for j in range(10) for i in range(10)]
@@ -3383,7 +3383,111 @@ class BitStringTest(unittest.TestCase):
         b = a.read('bits:32')
         self.assertEqual(b, '0x000001')
 
+    def testAddVersesInPlaceAdd(self):
+        a1 = Bits('0xabc')
+        b1 = a1
+        a1 += '0xdef'
+        self.assertEqual(a1, '0xabcdef')
+        self.assertEqual(b1, '0xabc')
+        
+        a2 = BitString('0xabc')
+        b2 = a2
+        c2 = a2 + '0x0'
+        a2 += '0xdef'
+        self.assertEqual(a2, '0xabcdef')
+        self.assertEqual(b2, '0xabcdef')
+        self.assertEqual(c2, '0xabc0')
 
+    def testAndVersesInPlaceAnd(self):
+        a1 = Bits('0xabc')
+        b1 = a1
+        a1 &= '0xf0f'
+        self.assertEqual(a1, '0xa0c')
+        self.assertEqual(b1, '0xabc')
+        
+        a2 = BitString('0xabc')
+        b2 = a2
+        c2 = a2 & '0x00f'
+        a2 &= '0xf0f'
+        self.assertEqual(a2, '0xa0c')
+        self.assertEqual(b2, '0xa0c')
+        self.assertEqual(c2, '0x00c')
+
+    def testOrVersesInPlaceOr(self):
+        a1 = Bits('0xabc')
+        b1 = a1
+        a1 |= '0xf0f'
+        self.assertEqual(a1, '0xfbf')
+        self.assertEqual(b1, '0xabc')
+        
+        a2 = BitString('0xabc')
+        b2 = a2
+        c2 = a2 | '0x00f'
+        a2 |= '0xf0f'
+        self.assertEqual(a2, '0xfbf')
+        self.assertEqual(b2, '0xfbf')
+        self.assertEqual(c2, '0xabf')
+
+    def testXorVersesInPlaceXor(self):
+        a1 = Bits('0xabc')
+        b1 = a1
+        a1 ^= '0xf0f'
+        self.assertEqual(a1, '0x5b3')
+        self.assertEqual(b1, '0xabc')
+        
+        a2 = BitString('0xabc')
+        b2 = a2
+        c2 = a2 ^ '0x00f'
+        a2 ^= '0xf0f'
+        self.assertEqual(a2, '0x5b3')
+        self.assertEqual(b2, '0x5b3')
+        self.assertEqual(c2, '0xab3')
+
+    def testMulVersesInPlaceMul(self):
+        a1 = Bits('0xabc')
+        b1 = a1
+        a1 *= 3
+        self.assertEqual(a1, '0xabcabcabc')
+        self.assertEqual(b1, '0xabc')
+        
+        a2 = BitString('0xabc')
+        b2 = a2
+        c2 = a2 * 2
+        a2 *= 3
+        self.assertEqual(a2, '0xabcabcabc')
+        self.assertEqual(b2, '0xabcabcabc')
+        self.assertEqual(c2, '0xabcabc')
+
+    def testLshiftVersesInPlaceLshift(self):
+        a1 = Bits('0xabc')
+        b1 = a1
+        a1 <<= 4
+        self.assertEqual(a1, '0xbc0')
+        self.assertEqual(b1, '0xabc')
+        
+        a2 = BitString('0xabc')
+        b2 = a2
+        c2 = a2 << 8
+        a2 <<= 4
+        self.assertEqual(a2, '0xbc0')
+        self.assertEqual(b2, '0xbc0')
+        self.assertEqual(c2, '0xc00')
+
+    def testRshiftVersesInPlaceRshift(self):
+        a1 = Bits('0xabc')
+        b1 = a1
+        a1 >>= 4
+        self.assertEqual(a1, '0x0ab')
+        self.assertEqual(b1, '0xabc')
+        
+        a2 = BitString('0xabc')
+        b2 = a2
+        c2 = a2 >> 8
+        a2 >>= 4
+        self.assertEqual(a2, '0x0ab')
+        self.assertEqual(b2, '0x0ab')
+        self.assertEqual(c2, '0x00a')
+        
     #def testAbc(self):
     #    a = Bits()
     #    b = BitString()
