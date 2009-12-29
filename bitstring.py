@@ -341,32 +341,47 @@ class FileArray(object):
             self.source.seek(key, os.SEEK_SET)
             return ord(self.source.read(1))
 
-class MemArray(object):
+class ConstMemArray(object):
+    
+    def __init__(self, data, bitlength=0, offset=0):
+        self._rawarray = bytes(data[offset // 8:(offset + bitlength + 7) // 8])
+        self.offset = offset % 8
+        self.bitlength = bitlength
+
+    def __getitem__(self, key):
+        # If (and only if) it's a single item from a bytes object in Python 2
+        # then we need to convert it to an int. Kinda annoying really.
+        if isinstance(key, int) and PYTHON_VERSION == 2:
+            return ord(self._rawarray[key])
+        return self._rawarray[key]
+
+    def _getbytelength(self):
+        return len(self._rawarray)
+        
+    def _getrawbytes(self):
+        return self._rawarray
+    
+    bytelength = property(_getbytelength)
+    
+    rawbytes = property(_getrawbytes)       
+        
+class MemArray(ConstMemArray):
     """Stores raw bytes together with a bit offset and length."""
     
     def __init__(self, data, bitlength=0, offset=0):
         self._rawarray = bytearray(data[offset // 8:(offset + bitlength + 7) // 8])
         self.offset = offset % 8
         self.bitlength = bitlength
-        self.frozen = False
         assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray)
 
     def __copy__(self):
         return MemArray(self._rawarray, self.bitlength, self.offset)
     
     def __getitem__(self, key):
-        # If (and only if) it's a single item from a bytes object in Python 2
-        # then we need to convert it to an int. Kinda annoying really.
-        if (isinstance(self._rawarray, bytes) and isinstance(key, int)
-            and PYTHON_VERSION == 2):
-            return ord(self._rawarray[key])
         return self._rawarray[key]
 
     def __setitem__(self, key, item):
         self._rawarray[key] = item
-    
-    def _getbytelength(self):
-        return len(self._rawarray)
     
     def appendbytes(self, data):
         try:
@@ -444,24 +459,6 @@ class MemArray(object):
         self.offset = array.offset
         self.bitlength += array.bitlength
 
-    def _getrawbytes(self):
-        return self._rawarray
-    
-    def freeze(self):
-        if not self.frozen:
-            assert isinstance(self._rawarray, bytearray)
-            self._rawarray = bytes(self._rawarray)
-            self.frozen = True
-    
-    def thaw(self):
-        if self.frozen:
-            assert isinstance(self._rawarray, bytes)
-            self._rawarray = bytearray(self._rawarray)
-            self.frozen = False
-    
-    bytelength = property(_getbytelength)
-    
-    rawbytes = property(_getrawbytes)
 
 # Make a new reference to the bytes function as it gets hidden in __init__.
 bytes_ = bytes
@@ -509,9 +506,9 @@ class Bits(object):
                   initialising using 'bytes'.
        
         e.g.
-        a = BitString('0x123ab560')
-        b = BitString(filename="movie.ts")
-        c = BitString(int=10, length=6)
+        a = Bits('0x123ab560')
+        b = Bits(filename="movie.ts")
+        c = Bits(int=10, length=6)
     
         """
         self._pos = 0
@@ -598,9 +595,10 @@ class Bits(object):
                 break
             self._setbytes(b'')
             break
-        if not isinstance(self, BitString):
-            pass
-            #self._datastore.freeze()
+        self.mutable = True
+        #if not isinstance(self, BitString):
+        #    self.mutable = False
+        #    self._datastore = ConstMemArray(self._datastore[:], self._datastore.bitlength, self._datastore.offset)
         return
 
     def __copy__(self):
@@ -1072,7 +1070,7 @@ class Bits(object):
         self._setbytes(b'')
         _, tokens = tokenparser(s)
         for token in tokens:
-            self._append(self.init_with_token(*token))
+            self._append(BitString.init_with_token(*token))
         # Finally we honour the offset and length
         if offset > self.len:
             raise ValueError("Can't apply offset of %d. Length is only %d." %
@@ -2640,8 +2638,13 @@ class Bits(object):
         
         """
         self._ensureinmemory()
-        self._datastore.setoffset(0)
-        d = self._datastore.rawbytes
+        if self.mutable:
+            self._datastore.setoffset(0)
+            d = self._datastore.rawbytes
+        else:
+            tmp = BitString(self)
+            tmp._datastore.setoffset(0)
+            d = self._datastore.rawbytes
         # Need to ensure that unused bits at end are set to zero
         unusedbits = 8 - self.len % 8
         if unusedbits != 8:
