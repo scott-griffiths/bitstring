@@ -3186,6 +3186,7 @@ class BitString(Bits):
         assert self._assertsanity()
         return len(lengths) - 1
 
+    @deprecated("Instead of 's.truncatestart(n)' use 'del s[:n]'.")
     def truncatestart(self, bits):
         """Truncate bits from the start of the BitString.
         
@@ -3199,6 +3200,7 @@ class BitString(Bits):
                              % (bits, self.len))
         self._truncatestart(bits)
 
+    @deprecated("Instead of 's.truncateend(n)' use 'del s[-n:]'.")
     def truncateend(self, bits):
         """Truncate bits from the end of the BitString.
         
@@ -3255,7 +3257,8 @@ class BitString(Bits):
         self._ensureinmemory()
         bs._ensureinmemory()
         self._overwrite(bs, pos)
-    
+
+    @deprecated("Instead of 's.delete(n, pos)' use 'del s[pos:pos+n]'.")
     def delete(self, bits, pos=None):
         """Delete bits at current position, or pos if given.
         
@@ -3414,7 +3417,7 @@ class BitString(Bits):
         if bits == 0:
             return
         rhs = self[-bits:]
-        self.truncateend(bits)
+        del self[-bits:]
         self.prepend(rhs)
 
     def rol(self, bits):
@@ -3433,7 +3436,7 @@ class BitString(Bits):
         if bits == 0:
             return
         lhs = self[:bits]
-        self.truncatestart(bits)
+        del self[:bits]
         self.append(lhs)
 
     int    = property(Bits._getint, Bits._setint,

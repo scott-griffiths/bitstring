@@ -68,11 +68,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(t.hex, '0xff0123456789abcdef')
         
         s = BitString(filename='smalltestfile')
-        s.delete(1, 0)
+        del s[:1]
         self.assertEqual((BitString('0b0') + s).hex, '0x0123456789abcdef')
         
         s = BitString(filename='smalltestfile')
-        s.delete(7*8, 0)
+        del s[:7*8]
         self.assertEqual(s.hex, '0xef')
         
         s = BitString(filename='smalltestfile')
@@ -92,11 +92,11 @@ class BitStringTest(unittest.TestCase):
         self.assertEquals(s.hex, '0xf7b3d591e6a2c480')
         
         s = BitString(filename='smalltestfile')
-        s.truncateend(60)
+        del s[-60:]
         self.assertEqual(s.hex, '0x0')
         
         s = BitString(filename='smalltestfile')
-        s.truncatestart(60)
+        del s[:60]
         self.assertEqual(s.hex, '0xf')
 
     def testFileProperties(self):
@@ -624,49 +624,37 @@ class BitStringTest(unittest.TestCase):
 
     def testTruncateStart(self):
         s = BitString('0b1')
-        s.truncatestart(1)
+        del s[:1]
         self.assertFalse(s)
         s = BitString(hex='1234')
-        s.truncatestart(0)
         self.assertEqual(s.hex, '0x1234')
-        s.truncatestart(4)
+        del s[:4]
         self.assertEqual(s.hex, '0x234')
-        s.truncatestart(9)
+        del s[:9]
         self.assertEqual(s.bin, '0b100')
-        s.truncatestart(2)
+        del s[:2]
         self.assertEqual(s.bin, '0b0')
         self.assertEqual(s.len, 1)
-        s.truncatestart(1)
+        del s[:1]
         self.assertFalse(s)
-    
-    def testTruncateStartErrors(self):
-        a = BitString('0xf')
-        self.assertRaises(ValueError, a.truncatestart, 5)
-        self.assertRaises(ValueError, a.truncatestart, -1)
 
     def testTruncateEnd(self):
         s = BitString('0b1')
-        s.truncateend(1)
+        del s[-1:]
         self.assertFalse(s)
         s = BitString(bytes=b'\x12\x34')
-        s.truncateend(0)
         self.assertEqual(s.hex, '0x1234')
-        s.truncateend(4)
+        del s[-4:]
         self.assertEqual(s.hex, '0x123')
-        s.truncateend(9)
+        del s[-9:]
         self.assertEqual(s.bin, '0b000')
-        s.truncateend(3)
+        del s[-3:]
         self.assertFalse(s)
         s = BitString('0b001')
-        s.truncatestart(2)
-        s.truncateend(1)
+        del s[:2]
+        del s[-1:]
         self.assertFalse(s)
 
-    def testTruncateEndErrors(self):
-        a = BitString('0xf')
-        self.assertRaises(ValueError, a.truncateend, 5)
-        self.assertRaises(ValueError, a.truncateend, -1)
-    
     def testByteAlignedSlice(self):
         s = BitString(hex='0x123456')
         self.assertEqual(s[8:16].hex, '0x34')
@@ -826,12 +814,12 @@ class BitStringTest(unittest.TestCase):
     def testTruncateAsserts(self):
         s = BitString('0x001122')
         s.bytepos = 2
-        s.truncateend(s.len)
+        del s[-s.len:]
         self.assertEqual(s.bytepos, 0)
         s.append('0x00')
         s.append('0x1122')
         s.bytepos = 2
-        s.truncatestart(s.len)
+        del s[:s.len]
         self.assertEqual(s.bytepos, 0)
         s.append('0x00')
         
@@ -844,28 +832,24 @@ class BitStringTest(unittest.TestCase):
     def testDeleteBits(self):
         s = BitString(bin='000111100000')
         s.bitpos = 4
-        s.delete(4)
+        del s[4:8]
         self.assertEqual(s.bin, '0b00010000')
-        s.delete(1000)
+        del s[4:1004]
         self.assertTrue(s.bin, '0b0001')
         
     def testDeleteBitsWithPosition(self):
         s = BitString(bin='000111100000')
-        s.delete(4, 4)
+        del s[4:8]
         self.assertEqual(s.bin, '0b00010000')
-
-    def testDeleteBitsErrors(self):
-        s = BitString(bin='000111')
-        self.assertRaises(ValueError, s.delete, -3)
 
     def testDeleteBytes(self):
         s = BitString('0x00112233')
-        s.delete(0, 8)
+        del s[8:8]
         self.assertEqual(s.hex, '0x00112233')
-        s.delete(8, 8)
+        del s[8:16]
         self.assertEqual(s.hex, '0x002233')
         self.assertEqual(s.bytepos, 0)
-        s.delete(3*8)
+        del s[:3*8]
         self.assertFalse(s)
 
     def testGetItemWithPositivePosition(self):
@@ -1335,7 +1319,7 @@ class BitStringTest(unittest.TestCase):
         s = BitString('0xabcdef')
         t = BitString(s)
         self.assertEqual(t.hex, '0xabcdef')
-        s.truncateend(8)
+        del s[-8:]
         self.assertEqual(t.hex, '0xabcdef')
         
     def testSliceAssignmentSingleBit(self):
@@ -2495,9 +2479,9 @@ class BitStringTest(unittest.TestCase):
         b = a.tobytes()
         self.assertEqual(a.bytes, b)
         for i in range(7):
-            a.truncateend(1)
+            del a[-1:]
             self.assertEqual(a.tobytes(), b'\xab\x00')
-        a.truncateend(1)
+        del a[-1:]
         self.assertEqual(a.tobytes(), b'\xab')
 
     def testToFile(self):
@@ -2509,7 +2493,7 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(b, '0x000080')
         
         a = BitString('0x911111')
-        a.truncatestart(1)
+        del a[:1]
         f = open('temp_bitstring_unit_testing_file', 'wb')
         a.tofile(f)
         f.close()
@@ -2727,17 +2711,7 @@ class BitStringTest(unittest.TestCase):
             a.prepend(b)
             self.assertTrue(False)
         except AttributeError:
-            pass   
-        try:
-            a.truncateend(5)
-            self.assertTrue(False)
-        except AttributeError:
-            pass   
-        try:
-            a.truncatestart(5)
-            self.assertTrue(False)
-        except AttributeError:
-            pass   
+            pass    
         try:
             a[0] = '0b1'
             self.assertTrue(False)
@@ -2755,11 +2729,6 @@ class BitStringTest(unittest.TestCase):
             pass   
         try:
             a.insert('0b11', 4)
-            self.assertTrue(False)
-        except AttributeError:
-            pass   
-        try:
-            a.delete(5)
             self.assertTrue(False)
         except AttributeError:
             pass   
