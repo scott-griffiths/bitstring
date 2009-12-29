@@ -428,6 +428,8 @@ class MemArray(ConstMemArray):
         """Join another array on to the end of this one."""
         if array.bitlength == 0:
             return
+        if array is self:
+            array = copy.copy(self)
         bits_in_final_byte = (self.offset + self.bitlength) % 8
         array.setoffset(bits_in_final_byte)
         if array.offset != 0:
@@ -847,7 +849,7 @@ class Bits(object):
             raise ValueError("Cannot multiply by a negative integer.")
         if n == 0:
             return self.__class__()
-        s = self.__copy__()
+        s = self._copy()
         for i in xrange(n - 1):
             s._append(self)
         return s
