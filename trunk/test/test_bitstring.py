@@ -2494,6 +2494,7 @@ class BitStringTest(unittest.TestCase):
         
         a = BitString('0x911111')
         del a[:1]
+        self.assertEqual(a+'0b0', '0x222222')
         f = open('temp_bitstring_unit_testing_file', 'wb')
         a.tofile(f)
         f.close()
@@ -3309,28 +3310,30 @@ class BitStringTest(unittest.TestCase):
         x = a._readint(43, 2)
         self.assertEqual(x, 98798798172)
         self.assertEqual(a.pos, 0)
-        a = BitString('0b11, uint:48=98798798172, 0b11111')
+        
+        a = BitString('0b11, uintbe:48=98798798172, 0b11111')
         x = a._readuintbe(48, 2)
         self.assertEqual(x, 98798798172)
         self.assertEqual(a.pos, 0)
         x = a._readintbe(48, 2)
         self.assertEqual(x, 98798798172)
         self.assertEqual(a.pos, 0)
+        
         a = BitString('0b111, uintle:40=123516, 0b111')
-        a.pos = 3
-        self.assertEqual(a.read('uintle:40'), 123516)
+        self.assertEqual(a._readuintle(40, 3), 123516)
         b = BitString('0xff, uintle:800=999, 0xffff')
-        b.pos = 8
-        self.assertEqual(b.read('uintle:800'), 999)
-        #intle
-        #uintne
-        #intne
-        #float
-        #floatbe
+        self.assertEqual(b._readuintle(800, 8), 999)
+        
+        a = BitString('0b111, intle:48=999999999, 0b111111111111')
+        self.assertEqual(a._readintle(48, 3), 999999999)
+        b = BitString('0xff, intle:200=918019283740918263512351235, 0xfffffff')
+        self.assertEqual(b._readintle(200, 8), 918019283740918263512351235)
+                      
+        a = BitString('0b111, floatbe:64=-5.32, 0xffffffff')
+        self.assertEqual(a._readfloat(64, 3), -5.32)
+        
         a = BitString('0b111, floatle:64=9.9998, 0b111')
-        a.pos = 3
-        self.assertEqual(a.read('floatle:64'), 9.9998)
-        #floatne
+        self.assertEqual(a._readfloatle(64, 3), 9.9998)
         
     def testAutoInitWithInt(self):
         a = BitString(0)
