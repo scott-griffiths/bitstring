@@ -2676,7 +2676,10 @@ class Bits(object):
                 p = self._datastore[a:min(a + chunksize, bytelen - 1)]
             f.write(p)
             # Now the final byte, ensuring that unused bits at end are set to 0.
-            f.write(self[-1].tobytes())
+            bits_in_final_byte = self.len % 8
+            if bits_in_final_byte == 0:
+                bits_in_final_byte = 8
+            f.write(self[-bits_in_final_byte:].tobytes())
         else:
             # Really quite inefficient...
             a = 0
