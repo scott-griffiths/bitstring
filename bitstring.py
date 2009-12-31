@@ -983,7 +983,7 @@ class Bits(object):
         return True
 
     @classmethod
-    def init_with_token(cls, name, token_length, value):
+    def _init_with_token(cls, name, token_length, value):
         if token_length is not None:
             token_length = int(token_length)
         name = name.lower()
@@ -1040,7 +1040,7 @@ class Bits(object):
         self._pos = 0
     
     def _setauto(self, s, length, offset):
-        """Set BitString from a BitString, file, list, tuple or string."""
+        """Set BitString from a BitString, file, integer, list, tuple or string."""
         if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
@@ -1057,6 +1057,7 @@ class Bits(object):
         if isinstance(s, file):
             self._datastore = FileArray(s, length, offset)
             return
+        # TODO: if isinstance(s, bool):
         if isinstance(s, int):
             # Initialise with s zero bits.
             if s < 0:
@@ -1072,7 +1073,7 @@ class Bits(object):
         self._setbytes(b'')
         _, tokens = tokenparser(s)
         for token in tokens:
-            self._append(BitString.init_with_token(*token))
+            self._append(BitString._init_with_token(*token))
         # Finally we honour the offset and length
         if offset > self.len:
             raise ValueError("Can't apply offset of %d. Length is only %d." %
@@ -1255,6 +1256,7 @@ class Bits(object):
         if length % 8 != 0:
             raise ValueError("Little-endian integers must be whole-byte. "
                              "Length = %d bits." % length)
+        assert start + length <= self.len
         absolute_pos = start + self._offset
         startbyte, offset = divmod(absolute_pos, 8)
         val = 0
@@ -1270,6 +1272,7 @@ class Bits(object):
                 val += self._datastore[b]
         else:
             data = self[start:start + length]
+            assert data.len % 8 == 0
             data.reversebytes()
             for b in bytearray(data.bytes):
                 val <<= 8
@@ -1659,9 +1662,7 @@ class Bits(object):
         """Attemp to convert bs to a BitString and return it."""
         if isinstance(bs, Bits):
             return bs
-        if isinstance(bs, (str, list, tuple)):
-            return cls(bs)
-        raise TypeError("Cannot initialise BitString from %s." % type(bs))
+        return cls(bs)
 
     def _copy(self):
         """Create and return a new copy of the Bits (always in memory)."""
@@ -1789,6 +1790,9 @@ class Bits(object):
         """Delete bits at pos."""
         # If too many bits then delete to the end.
         bits = min(bits, self.len - pos)
+        if pos == 0:
+            self._truncatestart(bits)
+            return
         end = self._slice(pos + bits, self.len)
         self._truncateend(max(self.len - pos, 0))
         self._append(end)
@@ -2920,11 +2924,13 @@ class BitString(Bits):
         '0xe00f'
         
         """
-        try:
-            value = self._converttobitstring(value)
-        except TypeError:
-            if not isinstance(value, int):
-                raise TypeError("BitString, int or string expected. "
+        # If value is an integer then we want to set the slice to that
+        # value rather than initialise a new bitstring of that length.
+        if not isinstance(value, int):
+            try:
+                value = self._converttobitstring(value)
+            except TypeError:
+                raise TypeError("Bitstring, int or string expected. "
                                 "Got %s." % type(value))
         try:
             # A slice
@@ -3060,6 +3066,7 @@ class BitString(Bits):
                 else:
                     # We have a step which takes us in the wrong direction,
                     # and will never get from start to stop.
+                    # TODO: Is this ever reached? And is the error message wrong?
                     raise ValueError("Attempt to assign to badly defined "
                                      "extended slice.")
             self._delete(stop - start, start)
@@ -3566,7 +3573,7 @@ def pack(format, *values, **kwargs):
             if value is None:
                 # Take the next value from the ones provided
                 value = next(value_iter)
-            s._append(BitString.init_with_token(name, length, value))
+            s._append(BitString._init_with_token(name, length, value))
     except StopIteration:
         raise ValueError("Not enough parameters present to pack according to the "
                          "format. %d values are needed." % len(tokens))
