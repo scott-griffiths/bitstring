@@ -479,7 +479,7 @@ class Bits(object):
         """
         Initialise the BitString with one (and only one) of:
         auto -- a string of comma separated tokens, an integer, a file object,
-                an iterable to be interpreted as booleans or another BitString.
+                a bool, a boolean iterable or another bitstring.
         bytes -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
@@ -1040,7 +1040,7 @@ class Bits(object):
         self._pos = 0
     
     def _setauto(self, s, length, offset):
-        """Set BitString from a BitString, file, integer, list, tuple or string."""
+        """Set BitString from a BitString, file, bool, integer, list, tuple or string."""
         if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
@@ -1057,7 +1057,12 @@ class Bits(object):
         if isinstance(s, file):
             self._datastore = FileArray(s, length, offset)
             return
-        # TODO: if isinstance(s, bool):
+        if isinstance(s, bool):
+            if s:
+                self._setbytes(b'\x80', 1)
+            else:
+                self._setbytes(b'\x00', 1)
+            return
         if isinstance(s, int):
             # Initialise with s zero bits.
             if s < 0:

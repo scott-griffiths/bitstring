@@ -3468,7 +3468,18 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a2, '0x0ab')
         self.assertEqual(b2, '0x0ab')
         self.assertEqual(c2, '0x00a')
-        
+    
+    def testAutoFromBool(self):
+        a = Bits() + True + False + True
+        self.assertEqual(a, '0b101')
+        b = Bits(False)
+        self.assertEqual(b, '0b0')
+        c = Bits(True)
+        self.assertEqual(c, '0b1')
+        self.assertEqual(b, False)
+        self.assertEqual(c, True)
+        self.assertEqual(b & True, False)
+    
     #def testAbc(self):
     #    a = Bits()
     #    b = BitString()
