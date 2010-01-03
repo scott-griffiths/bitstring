@@ -301,6 +301,7 @@ class FileArray(object):
             return ord(self.source.read(1))
 
 class ConstMemArray(object):
+    """Stores immutable raw bytes with a bit offset and length."""
     
     def __init__(self, data, bitlength=0, offset=0):
         self._rawarray = bytes(data[offset // 8:(offset + bitlength + 7) // 8])
@@ -436,7 +437,7 @@ class Bits(object):
                  uintne=None, intne=None, ue=None, se=None, float=None,
                  floatbe=None, floatle=None, floatne=None):
         """
-        Initialise the BitString with one (and only one) of:
+        Initialise the bitstring with one (and only one) of:
         auto -- a string of comma separated tokens, an integer, a file object,
                 a bool, a boolean iterable or another bitstring.
         bytes -- raw data as a string, for example read from a binary file.
@@ -460,7 +461,7 @@ class Bits(object):
         filename -- a file which will be opened in binary read-only mode.
     
         Other keyword arguments:
-        length -- length of the BitString in bits, if needed and appropriate.
+        length -- length of the bitstring in bits, if needed and appropriate.
                   It must be supplied for all integer initialisers.
         offset -- bit offset to the data. These offset bits are
                   ignored and this is mainly intended for use when
@@ -572,9 +573,9 @@ class Bits(object):
         return s
 
     def __add__(self, bs):
-        """Concatenate BitStrings and return new BitString.
+        """Concatenate bitstrings and return new bitstring.
         
-        bs -- the BitString to append.
+        bs -- the bitstring to append.
         
         """
         bs = self._converttobitstring(bs)
@@ -585,7 +586,7 @@ class Bits(object):
         return s
 
     def __radd__(self, bs):
-        """Append current BitString to bs and return new BitString.
+        """Append current bitstring to bs and return new bitstring.
         
         bs -- the string for the 'auto' initialiser that will be appended to.
         
@@ -594,14 +595,14 @@ class Bits(object):
         return bs.__add__(self)  
 
     def __getitem__(self, key):
-        """Return a new BitString representing a slice of the current BitString.
+        """Return a new bitstring representing a slice of the current bitstring.
         
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
         
-        >>> print BitString('0b00110')[1:4]
+        >>> print Bits('0b00110')[1:4]
         '0b011'
-        >>> print BitString('0x00112233')[1:3:8]
+        >>> print Bits('0x00112233')[1:3:8]
         '0x1122'
         
         """
@@ -656,11 +657,11 @@ class Bits(object):
             return self._slice(key, key + 1)
 
     def __len__(self):
-        """Return the length of the BitString in bits."""
+        """Return the length of the bitstring in bits."""
         return self._getlength()
 
     def __str__(self):
-        """Return approximate string representation of BitString for printing.
+        """Return approximate string representation of bitstring for printing.
         
         Short strings will be given wholly in hexadecimal or binary. Longer
         strings may be part hexadecimal and part binary. Very long strings will
@@ -687,7 +688,7 @@ class Bits(object):
                         self._readbin(bits_at_end, length - bits_at_end)))
 
     def __repr__(self):
-        """Return representation that could be used to recreate the BitString.
+        """Return representation that could be used to recreate the bitstring.
         
         If the returned string is too long it will be truncated. See __str__().
         
@@ -710,9 +711,7 @@ class Bits(object):
             return "%s('%s'%s)" % (self.__class__.__name__, s, lengthstring)
             
     def __eq__(self, bs):
-        """Return True if two BitStrings have the same binary representation.
-        
-        Can also be used with a string for the 'auto' initialiser.
+        """Return True if two bitstrings have the same binary representation.
 
         >>> BitString('0b1110') == '0xe'
         True
@@ -741,9 +740,7 @@ class Bits(object):
         return True
         
     def __ne__(self, bs):
-        """Return False if two BitStrings have the same binary representation.
-        
-        Can also be used with a string for the 'auto' initialiser.
+        """Return False if two bitstrings have the same binary representation.
         
         >>> BitString('0b111') == '0x7'
         False
@@ -752,13 +749,13 @@ class Bits(object):
         return not self.__eq__(bs)
 
     def __invert__(self):
-        """Return BitString with every bit inverted.
+        """Return bitstring with every bit inverted.
         
         Raises BitStringError if the BitString is empty.
         
         """
         if not self:
-            raise BitStringError("Cannot invert empty BitString.")
+            raise BitStringError("Cannot invert empty bitstring.")
         s = self.__class__(bytes=self._datastore[:], length=self.len,
                            offset=self._datastore.offset)
         s._invert(xrange(s.len))
@@ -766,7 +763,7 @@ class Bits(object):
 
     # TODO: optimise!
     def __lshift__(self, n):
-        """Return BitString with bits shifted by n to the left.
+        """Return bitstring with bits shifted by n to the left.
         
         n -- the number of bits to shift. Must be >= 0.
         
@@ -774,14 +771,14 @@ class Bits(object):
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
         if not self:
-            raise ValueError("Cannot shift an empty BitString.")
+            raise ValueError("Cannot shift an empty bitstring.")
         s = self[n:]
         s._append(self.__class__(length=min(n, self.len)))
         return s
     
     # TODO: optimise!
     def __rshift__(self, n):
-        """Return BitString with bits shifted by n to the right.
+        """Return bitstring with bits shifted by n to the right.
         
         n -- the number of bits to shift. Must be >= 0.
         
@@ -789,32 +786,33 @@ class Bits(object):
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
         if not self:
-            raise ValueError("Cannot shift an empty BitString.")
+            raise ValueError("Cannot shift an empty bitstring.")
         s = self.__class__(length=min(n, self.len))
         s._append(self[:-n])
         return s
     
     def __mul__(self, n):
-        """Return BitString consisting of n concatenations of self.
+        """Return bitstring consisting of n concatenations of self.
         
         Called for expression of the form 'a = b*3'.
         n -- The number of concatenations. Must be >= 0.
         
         """
         if not isinstance(n, int):
-            raise TypeError("Can only multiply a BitString by an int, "
+            raise TypeError("Can only multiply a bitstring by an int, "
                             "but %s was provided." % type(n))
         if n < 0:
             raise ValueError("Cannot multiply by a negative integer.")
         if n == 0:
             return self.__class__()
+        # TODO: optimise
         s = self._copy()
         for i in xrange(n - 1):
             s._append(self)
         return s
 
     def __rmul__(self, n):
-        """Return BitString consisting of n concatenations of self.
+        """Return bitstring consisting of n concatenations of self.
         
         Called for expressions of the form 'a = 3*b'.
         n -- The number of concatenations. Must be >= 0.
@@ -823,63 +821,63 @@ class Bits(object):
         return self.__mul__(n)   
 
     def __and__(self, bs):
-        """Bit-wise 'and' between two BitStrings. Returns new BitString.
+        """Bit-wise 'and' between two bitstrings. Returns new bitstring.
         
-        bs -- The BitString (or string for 'auto' initialiser) to & with.
+        bs -- The bitstring to '&' with.
         
-        Raises ValueError if the two BitStrings have differing lengths.
+        Raises ValueError if the two bitstrings have differing lengths.
         
         """
         bs = self._converttobitstring(bs)
         if self.len != bs.len:
-            raise ValueError("BitStrings must have the same length "
+            raise ValueError("Bitstrings must have the same length "
                              "for & operator.")
         s = self[:]
         s._iand(bs)
         return s
     
     def __rand__(self, bs):
-        """Bit-wise 'and' between a string and a BitString. Returns new BitString.
+        """Bit-wise 'and' between two bitstrings. Returns new bitstring.
         
-        bs -- the string for the 'auto' initialiser to use.
+        bs -- the bitstring to '&' with.
         
-        Raises ValueError if the two BitStrings have differing lengths.
+        Raises ValueError if the two bitstrings have differing lengths.
         
         """
         return self.__and__(bs)
         
     def __or__(self, bs):
-        """Bit-wise 'or' between two BitStrings. Returns new BitString.
+        """Bit-wise 'or' between two bitstrings. Returns new bitstring.
         
-        bs -- The BitString (or string for 'auto' initialiser) to | with.
+        bs -- The bitstring to '|' with.
         
-        Raises ValueError if the two BitStrings have differing lengths.
+        Raises ValueError if the two bitstrings have differing lengths.
         
         """
         bs = self._converttobitstring(bs)
         if self.len != bs.len:
-            raise ValueError("BitStrings must have the same length "
+            raise ValueError("Bitstrings must have the same length "
                              "for | operator.")
         s = self[:]
         s._ior(bs)
         return s
 
     def __ror__(self, bs):
-        """Bit-wise 'or' between a string and a BitString. Returns new BitString.
+        """Bit-wise 'or' between two bitstrings. Returns new bitstring.
         
-        bs -- the string for the 'auto' initialiser to use.
+        bs -- The bitstring to '|' with.
         
-        Raises ValueError if the two BitStrings have differing lengths.
+        Raises ValueError if the two bitstrings have differing lengths.
         
         """
         return self.__or__(bs)
 
     def __xor__(self, bs):
-        """Bit-wise 'xor' between two BitStrings. Returns new BitString.
+        """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
         
-        bs -- The BitString (or string for 'auto' initialiser) to ^ with.
+        bs -- The BitString to '^' with.
         
-        Raises ValueError if the two BitStrings have differing lengths.
+        Raises ValueError if the two bitstrings have differing lengths.
         
         """
         bs = self._converttobitstring(bs)
@@ -891,19 +889,19 @@ class Bits(object):
         return s
 
     def __rxor__(self, bs):
-        """Bit-wise 'xor' between a string and a BitString. Returns new BitString.
+        """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
         
-        bs -- the string for the 'auto' initialiser to use.
+        bs -- The BitString to '^' with.
         
-        Raises ValueError if the two BitStrings have differing lengths.
+        Raises ValueError if the two bitstrings have differing lengths.
         
         """
         return self.__xor__(bs)
 
     def __contains__(self, bs):
-        """Return whether bs is contained in the current BitString.
+        """Return whether bs is contained in the current bitstring.
         
-        bs -- The BitString to search for.
+        bs -- The bitstring to search for.
         
         """
         oldpos = self._pos
@@ -912,6 +910,7 @@ class Bits(object):
         return found
 
     def __hash__(self):
+        """Return an integer hash of the current Bits object."""
         # Take first 10 bytes
         shorter = self[0:10:8]
         # Append up to 10 bytes from the end.
@@ -994,12 +993,12 @@ class Bits(object):
         return b
 
     def _clear(self):
-        """Reset the BitString to an empty state."""
+        """Reset the bitstring to an empty state."""
         self.bytes = b''
         self._pos = 0
     
     def _setauto(self, s, length, offset):
-        """Set BitString from a BitString, file, bool, integer, list, tuple or string."""
+        """Set bitstring from a bitstring, file, bool, integer, list, tuple or string."""
         if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
@@ -1081,14 +1080,14 @@ class Bits(object):
         return self._readbytes(self.len, 0)
 
     def _setuint(self, uint, length=None):
-        """Reset the BitString to have given unsigned int interpretation."""
+        """Reset the bitstring to have given unsigned int interpretation."""
         if length is None and hasattr(self, "_datastore") and self.len != 0:
             length = self.len
         if length is None or length == 0:
             raise ValueError("A non-zero length must be specified with a "
                              "uint initialiser.")
         if uint >= (1 << length):
-            raise ValueError("uint %d is too large for a BitString of "
+            raise ValueError("uint %d is too large for a bitstring of "
                              "length %d." % (uint, length))  
         if uint < 0:
             raise ValueError("uint cannot be initialsed by a negative number.")
@@ -1117,7 +1116,7 @@ class Bits(object):
     def _readuint(self, length, start):
         """Read bits and interpret as an unsigned int."""
         if length == 0:
-            raise ValueError("Cannot interpret a zero length BitString "
+            raise ValueError("Cannot interpret a zero length bitstring "
                              "as an integer.")
         startbyte = (start + self._offset) // 8
         endbyte = (start + self._offset + length - 1) // 8
@@ -1141,14 +1140,14 @@ class Bits(object):
         return self._readuint(self.len, 0)
 
     def _setint(self, int_, length=None):
-        """Reset the BitString to have given signed int interpretation."""
+        """Reset the bitstring to have given signed int interpretation."""
         # If no length given, and we've previously been given a length, use it.
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
             raise ValueError("A non-zero length must be specified with an int initialiser.")
         if int_ >=  (1 << (length - 1)) or int_ < -(1 << (length - 1)):
-            raise ValueError("int %d is too large for a BitString of length %d." % (int_, length))   
+            raise ValueError("int %d is too large for a bitstring of length %d." % (int_, length))   
         if int_ >= 0:
             self._setuint(int_, length)
             return
@@ -1176,7 +1175,7 @@ class Bits(object):
         return self._readint(self.len, 0)
         
     def _setuintbe(self, uintbe, length=None):
-        """Set the BitString to have big-endian unsigned int interpretation."""
+        """Set the bitstring to have big-endian unsigned int interpretation."""
         if length is not None and length % 8 != 0:
             raise ValueError("Big-endian integers must be whole-byte. "
                              "Length = %d bits." % length)
@@ -1345,7 +1344,7 @@ class Bits(object):
         return self._readfloatle(self.len, 0)
     
     def _setue(self, i):
-        """Initialise BitString with unsigned exponential-Golomb code for integer i.
+        """Initialise bitstring with unsigned exponential-Golomb code for integer i.
         
         Raises ValueError if i < 0.
         
@@ -1371,7 +1370,7 @@ class Bits(object):
            
         Advances position to after the read code.
         
-        Raises BitStringError if the end of the BitString is encountered while
+        Raises BitStringError if the end of the bitstring is encountered while
         reading the code.
         
         """
@@ -1379,13 +1378,13 @@ class Bits(object):
         foundone = self.find('0b1', self._pos)
         if not foundone:
             self._pos = self.len
-            raise BitStringError("Read off end of BitString trying to read code.")
+            raise BitStringError("Read off end of bitstring trying to read code.")
         leadingzeros = self._pos - oldpos
         codenum = (1 << leadingzeros) - 1
         if leadingzeros > 0:
             restofcode = self.readbits(leadingzeros + 1)
             if restofcode.len != leadingzeros + 1:
-                raise BitStringError("Read off end of BitString trying to read code.")
+                raise BitStringError("Read off end of bitstring trying to read code.")
             codenum += restofcode[1:].uint
         else:
             assert codenum == 0
@@ -1395,7 +1394,7 @@ class Bits(object):
     def _getue(self):
         """Return data as unsigned exponential-Golomb code.
         
-        Raises BitStringError if BitString is not a single exponential-Golomb code.
+        Raises BitStringError if bitstring is not a single exponential-Golomb code.
         
         """
         oldpos = self._pos
@@ -1406,13 +1405,13 @@ class Bits(object):
                 raise BitStringError
         except BitStringError:
             self._pos = oldpos
-            raise BitStringError("BitString is not a single "
+            raise BitStringError("bitstring is not a single "
                                  "exponential-Golomb code.")
         self._pos = oldpos
         return value
     
     def _setse(self, i):
-        """Initialise BitString with signed exponential-Golomb code for integer i."""
+        """Initialise bitstring with signed exponential-Golomb code for integer i."""
         if i > 0:
             u = (i*2) - 1
         else:
@@ -1422,7 +1421,7 @@ class Bits(object):
     def _getse(self):
         """Return data as signed exponential-Golomb code.
         
-        Raises BitStringError if BitString is not a single exponential-Golomb code.
+        Raises BitStringError if bitstring is not a single exponential-Golomb code.
                 
         """
         oldpos = self._pos
@@ -1433,7 +1432,7 @@ class Bits(object):
                 raise BitStringError
         except BitStringError:
             self._pos = oldpos
-            raise BitStringError("BitString is not a single "
+            raise BitStringError("Bitstring is not a single "
                                  "exponential-Golomb code.")
         self._pos = oldpos
         return value
@@ -1443,7 +1442,7 @@ class Bits(object):
         
         Advances position to after the read code.
         
-        Raises BitStringError if the end of the BitString is encountered while
+        Raises BitStringError if the end of the bitstring is encountered while
         reading the code.
         
         """
@@ -1455,7 +1454,7 @@ class Bits(object):
             return m
         
     def _setbin(self, binstring, length=None, offset=0):
-        """Reset the BitString to the value given in binstring."""
+        """Reset the bitstring to the value given in binstring."""
         binstring = tidy_input_string(binstring)
         # remove any 0b if present
         binstring = binstring.replace('0b', '')
@@ -1495,7 +1494,7 @@ class Bits(object):
         return self._readbin(self.len, 0)
         
     def _setoct(self, octstring, length=None, offset=0):
-        """Reset the BitString to have the value given in octstring."""
+        """Reset the bitstring to have the value given in octstring."""
         octstring = tidy_input_string(octstring)
         # remove any 0o if present
         octstring = octstring.replace('0o', '')
@@ -1540,7 +1539,7 @@ class Bits(object):
         return self._readoct(self.len, 0)
     
     def _sethex(self, hexstring, length=None, offset=0):
-        """Reset the BitString to have the value given in hexstring."""
+        """Reset the bitstring to have the value given in hexstring."""
         hexstring = tidy_input_string(hexstring)
         # remove any 0x if present
         hexstring = hexstring.replace('0x', '')
@@ -1581,7 +1580,7 @@ class Bits(object):
     def _gethex(self):
         """Return the hexadecimal representation as a string prefixed with '0x'.
         
-        Raises a ValueError if the BitString's length is not a multiple of 4.
+        Raises a ValueError if the bitstring's length is not a multiple of 4.
         
         """
         return self._readhex(self.len, 0)
@@ -1612,7 +1611,7 @@ class Bits(object):
         return self._datastore.offset
 
     def _getlength(self):
-        """Return the length of the BitString in bits."""
+        """Return the length of the bitstring in bits."""
         return self._datastore.bitlength
     
     def _ensureinmemory(self):
@@ -1623,7 +1622,7 @@ class Bits(object):
     
     @classmethod
     def _converttobitstring(cls, bs):
-        """Attemp to convert bs to a BitString and return it."""
+        """Attemp to convert bs to a bitstring and return it."""
         if isinstance(bs, Bits):
             return bs
         return cls(bs)
@@ -1649,7 +1648,7 @@ class Bits(object):
                               length=end - start, offset=newoffset)
 
     def _readtoken(self, name, length):
-        """Reads a token from the BitString and returns the result."""
+        """Reads a token from the bitstring and returns the result."""
         if length is not None:
             length = min(length, self.length - self._pos)
         try:
@@ -1664,7 +1663,7 @@ class Bits(object):
             return val
 
     def _append(self, bs):
-        """Append a BitString to the current BitString."""
+        """Append a bitstring to the current bitstring."""
         if not bs:
             return self
         if bs is self:
@@ -1672,7 +1671,7 @@ class Bits(object):
         self._datastore.appendarray(bs._datastore)
 
     def _prepend(self, bs):
-        """Prepend a BitString to the current BitString."""
+        """Prepend a bitstring to the current bitstring."""
         if not bs:
             return self
         if bs is self:
@@ -1681,7 +1680,7 @@ class Bits(object):
         self._pos += bs.len
 
     def _truncatestart(self, bits):
-        """Truncate bits from the start of the BitString."""
+        """Truncate bits from the start of the bitstring."""
         if bits == 0:
             return self
         if bits == self.len:
@@ -1694,7 +1693,7 @@ class Bits(object):
         return
 
     def _truncateend(self, bits):
-        """Truncate bits from the end of the BitString."""
+        """Truncate bits from the end of the bitstring."""
         if bits == 0:
             return self
         if bits == self.len:
@@ -1889,13 +1888,13 @@ class Bits(object):
         return bs
      
     def unpack(self, *format):
-        """Interpret the whole BitString using format and return list.
+        """Interpret the whole bitstring using format and return list.
         
         format - One or more strings with comma separated tokens describing
-                 how to interpret the bits in the BitString.
+                 how to interpret the bits in the bitstring.
         
         Raises ValueError if the format is not understood. If not enough bits
-        are available then all bits to the end of the BitString will be used.
+        are available then all bits to the end of the bitstring will be used.
         
         See the docstring for 'read' for token examples.
         
@@ -1907,7 +1906,7 @@ class Bits(object):
         return return_values
 
     #def decode(self, format, **kwargs):
-    #    """Interpret the BitString using format and kwargs and return dictionary."""
+    #    """Interpret the bitstring using format and kwargs and return dictionary."""
     #    tokens = _tokenparser(format)
     #    # Scan tokens to see if one has no length (TODO)
     #    
@@ -1944,12 +1943,12 @@ class Bits(object):
                         'bin:1'     : single bit binary string
                         'ue'        : next bits as unsigned exp-Golomb code
                         'se'        : next bits as signed exp-Golomb code
-                        'bits:5'    : 5 bits as a BitString object
+                        'bits:5'    : 5 bits as a bitstring
                         'bytes:10'  : 10 bytes as a bytes object
                         
-        The position in the BitString is advanced to after the read items.
+        The position in the bitstring is advanced to after the read items.
         If not enough bits are available then all bits to the end of the
-        BitString will be used.
+        bitstring will be used.
         
         Raises ValueError if the format is not understood.
         
@@ -1969,11 +1968,11 @@ class Bits(object):
         """Interpret next bits according to format string(s) and return list.
         
         format -- One or more strings with comma separated tokens describing
-                  how to interpret the next bits in the BitString.
+                  how to interpret the next bits in the bitstring.
                         
-        The position in the BitString is advanced to after the read items.
+        The position in the bitstring is advanced to after the read items.
         If not enough bits are available then all bits to the end of the
-        BitString will be used.                
+        bitstring will be used.                
         
         Raises ValueError if the format is not understood.
 
@@ -2022,15 +2021,15 @@ class Bits(object):
         return return_values
     
     def readbit(self):
-        """Return next bit in BitString as new BitString and advance position.
+        """Return next bit in bitstring as new bitstring and advance position.
         
-        Returns empty BitString if pos is at the end of the BitString.
+        Returns empty bitstring if pos is at the end of the bitstring.
         
         """
         return self.readbits(1)
         
     def readbits(self, bits):
-        """Return next bits in BitString as new BitString and advance position.
+        """Return next bits in bitstring as new bitstring and advance position.
         
         bits -- The number of bits to read.
         
@@ -2047,7 +2046,7 @@ class Bits(object):
         return bs
         
     def readbitlist(self, *bits):
-        """Return next bits as new list of BitString(s) and advance position.
+        """Return next bits as new list of bitstring(s) and advance position.
         
         bits -- The number of bits to read. A list of BitStrings will be
                 returned even if it only has one item.
@@ -2060,7 +2059,7 @@ class Bits(object):
         return [self.readbits(b) for b in bits]
     
     def readbyte(self):
-        """Return next byte as a new BitString and advance position.
+        """Return next byte as a new bitstring and advance position.
         
         Does not byte align.
         
@@ -2070,7 +2069,7 @@ class Bits(object):
         return self.readbits(8)
 
     def readbytes(self, bytes):
-        """Return next bytes as a new BitString and advance position.
+        """Return next bytes as a new bitstring and advance position.
         
         bytes -- The number of bytes to read.
         
@@ -2082,7 +2081,7 @@ class Bits(object):
         return self.readbits(bytes*8)
 
     def readbytelist(self, *bytes):
-        """Return next bytes as list of new BitString(s) and advance position.
+        """Return next bytes as list of new bitstring(s) and advance position.
         
         bytes -- The number of bytes to read. A list of BitStrings will be
                  returned even if it contains only one item.
@@ -2098,8 +2097,8 @@ class Bits(object):
         
         format -- Token string describing how to interpret the next bits.
                   
-        The position in the BitString is not changed. If not enough bits are
-        available then all bits to the end of the BitString will be used.
+        The position in the bitstring is not changed. If not enough bits are
+        available then all bits to the end of the bitstring will be used.
         
         See the docstring for 'read' for token examples.
         
@@ -2114,10 +2113,10 @@ class Bits(object):
         """Interpret next bits according to format string(s) and return list.
         
         format -- One or more strings with comma separated tokens describing
-                  how to interpret the next bits in the BitString.
+                  how to interpret the next bits in the bitstring.
                   
-        The position in the BitString is not changed. If not enough bits are
-        available then all bits to the end of the BitString will be used.
+        The position in the bitstring is not changed. If not enough bits are
+        available then all bits to the end of the bitstring will be used.
         
         See the docstring for 'read' for token examples.
         
@@ -2128,15 +2127,15 @@ class Bits(object):
         return return_values
 
     def peekbit(self):
-        """Return next bit as a new BitString without advancing position.
+        """Return next bit as a new bitstring without advancing position.
         
-        Returns empty BitString if pos is at the end of the BitString.
+        Returns empty bitstring if pos is at the end of the bitstring.
         
         """
         return self.peekbits(1)
 
     def peekbits(self, bits):
-        """Return next bits as a BitString without advancing position.
+        """Return next bits as a bitstring without advancing position.
         
         bits -- The number of bits to read.
         
@@ -2151,7 +2150,7 @@ class Bits(object):
         return s
     
     def peekbitlist(self, *bits):
-        """Return next bits as BitString list without advancing position.
+        """Return next bits as bitstring list without advancing position.
         
         bits -- The number of bits to read. A list of BitStrings will be
                 returned even if it contains only one item.
@@ -2167,7 +2166,7 @@ class Bits(object):
         return s
     
     def peekbyte(self):
-        """Return next byte as a new BitString without advancing position.
+        """Return next byte as a new bitstring without advancing position.
         
         If not enough bits are available then all will be returned.
         
@@ -2175,7 +2174,7 @@ class Bits(object):
         return self.peekbits(8)
         
     def peekbytes(self, bytes):
-        """Return next bytes as a BitString without advancing position.
+        """Return next bytes as a bitstring without advancing position.
         
         bytes -- The number of bytes to read.
 
@@ -2185,7 +2184,7 @@ class Bits(object):
         return self.peekbits(bytes*8)
         
     def peekbytelist(self, *bytes):
-        """Return next bytes as BitString list without advancing position.
+        """Return next bytes as bitstring list without advancing position.
         
         bytes -- The number of bytes to read. A list of BitStrings will be
                  returned even if it contains only one item.
@@ -2199,7 +2198,7 @@ class Bits(object):
     def advancebit(self):
         """Advance position by one bit.
         
-        Raises ValueError if pos is past the last bit in the BitString.
+        Raises ValueError if pos is past the last bit in the bitstring.
         
         """
         self.pos += 1
@@ -2211,7 +2210,7 @@ class Bits(object):
         bits -- Number of bits to increment pos by. Must be >= 0.
         
         Raises ValueError if bits is negative or if pos goes past the end
-        of the BitString.
+        of the bitstring.
         
         """
         if bits < 0:
@@ -2223,7 +2222,7 @@ class Bits(object):
         """Advance position by one byte. Does not byte align.
         
         Raises ValueError if there is less than one byte from pos to
-        the end of the BitString.
+        the end of the bitstring.
         
         """
         self.pos += 8
@@ -2235,7 +2234,7 @@ class Bits(object):
         bytes -- Number of bytes to increment pos by. Must be >= 0.
         
         Raises ValueError if there are not enough bytes from pos to
-        the end of the BitString.
+        the end of the bitstring.
         
         """
         if bytes < 0:
@@ -2246,7 +2245,7 @@ class Bits(object):
     def retreatbit(self):
         """Retreat position by one bit.
         
-        Raises ValueError if pos is already at the start of the BitString.
+        Raises ValueError if pos is already at the start of the bitstring.
         
         """
         self.pos -= 1
@@ -2258,7 +2257,7 @@ class Bits(object):
         bits -- Number of bits to decrement pos by. Must be >= 0.
         
         Raises ValueError if bits negative or if pos goes past the start
-        of the BitString.
+        of the bitstring.
         
         """
         if bits < 0:
@@ -2281,7 +2280,7 @@ class Bits(object):
         bytes -- Number of bytes to decrement pos by. Must be >= 0.
         
         Raises ValueError if bytes negative or if pos goes past the start
-        of the BitString.
+        of the bitstring.
         
         """
         if bytes < 0:
@@ -2308,12 +2307,12 @@ class Bits(object):
 
     @deprecated("Instead of 's.tell()' use 's.pos'.") 
     def tell(self):
-        """Return current position in the BitString in bits (pos)."""
+        """Return current position in the bitstring in bits (pos)."""
         return self._pos
 
     @deprecated("Instead of 's.tellbyte()' use 's.bytepos'.")  
     def tellbyte(self):
-        """Return current position in the BitString in bytes (bytepos).
+        """Return current position in the bitstring in bytes (bytepos).
         
         Raises BitStringError if position is not byte-aligned.
         
@@ -2323,11 +2322,11 @@ class Bits(object):
     def find(self, bs, start=None, end=None, bytealigned=False):
         """Seek to start of next occurence of bs. Return True if string is found.
         
-        bs -- The BitString to find.
+        bs -- The bitstring to find.
         start -- The bit position to start the search. Defaults to 0.
         end -- The bit position one past the last bit to search.
                Defaults to self.len.
-        bytealigned -- If True the BitString will only be
+        bytealigned -- If True the bitstring will only be
                        found on byte boundaries.
         
         Raises ValueError if bs is empty, if start < 0, if end > self.len or
@@ -2336,7 +2335,7 @@ class Bits(object):
         """
         bs = self._converttobitstring(bs)
         if not bs:
-            raise ValueError("Cannot find an empty BitString.")
+            raise ValueError("Cannot find an empty bitstring.")
         if start is None:
             start = 0
         if end is None:
@@ -2344,12 +2343,12 @@ class Bits(object):
         if start < 0:
             raise ValueError("Cannot find - start must be >= 0.")
         if end > self.len:
-            raise ValueError("Cannot find - end is past the end of the BitString.")
+            raise ValueError("Cannot find - end is past the end of the bitstring.")
         if end < start:
             raise ValueError("end must not be less than start.")
         # If everything's byte aligned (and whole-byte) use the quick algorithm.
         if bytealigned and len(bs) % 8 == 0 and self._datastore.offset == 0:
-            # Extract data bytes from BitString to be found.
+            # Extract data bytes from bitstring to be found.
             d = bs.bytes
             oldpos = self._pos
             self._pos = start
@@ -2406,12 +2405,12 @@ class Bits(object):
     def findall(self, bs, start=None, end=None, count=None, bytealigned=False):
         """Find all occurences of bs. Return generator of bit positions.
         
-        bs -- The BitString to find.
+        bs -- The bitstring to find.
         start -- The bit position to start the search. Defaults to 0.
         end -- The bit position one past the last bit to search.
                Defaults to self.len.
         count -- The maximum number of occurences to find.
-        bytealigned -- If True the BitString will only be found on
+        bytealigned -- If True the bitstring will only be found on
                        byte boundaries.
         
         Raises ValueError if bs is empty, if start < 0, if end > self.len or
@@ -2447,11 +2446,11 @@ class Bits(object):
         
         Return True if string is found.
         
-        bs -- The BitString to find.
+        bs -- The bitstring to find.
         start -- The bit position to end the reverse search. Defaults to 0.
         end -- The bit position one past the first bit to reverse search.
                Defaults to self.len.
-        bytealigned -- If True the BitString will only be found on byte 
+        bytealigned -- If True the bitstring will only be found on byte 
                        boundaries.
         
         Raises ValueError if bs is empty, if start < 0, if end > self.len or
@@ -2464,7 +2463,7 @@ class Bits(object):
         if end is None:
             end = self.len
         if not bs:
-            raise ValueError("Cannot find an empty BitString.")
+            raise ValueError("Cannot find an empty bitstring.")
         # Search chunks starting near the end and then moving back
         # until we find bs.
         increment = max(8192, bs.len*80)
@@ -2484,7 +2483,7 @@ class Bits(object):
     def bytealign(self):
         """Align to next byte and return number of skipped bits.
         
-        Raises ValueError if the end of the BitString is reached before
+        Raises ValueError if the end of the bitstring is reached before
         aligning to the next byte.
         
         """
@@ -2495,10 +2494,10 @@ class Bits(object):
 
     @deprecated("Instead of 's.slice(a, b, c)' use 's[a:b:c]'.")
     def slice(self, start=None, end=None, step=None):
-        """Return a new BitString which is the slice [start:end:step].
+        """Return a new bitstring which is the slice [start:end:step].
         
-        start -- Position of first bit in the new BitString. Defaults to 0.
-        end -- One past the position of the last bit in the new BitString.
+        start -- Position of first bit in the new bitstring. Defaults to 0.
+        end -- One past the position of the last bit in the new bitstring.
                Defaults to self.len.
         step -- Multiplicative factor for start and end. Defaults to 1.
         
@@ -2508,9 +2507,9 @@ class Bits(object):
         return self.__getitem__(slice(start, end, step))
 
     def cut(self, bits, start=None, end=None, count=None):
-        """Return BitString generator by cutting into bits sized chunks.
+        """Return bitstring generator by cutting into bits sized chunks.
         
-        bits -- The size in bits of the BitString chunks to generate.
+        bits -- The size in bits of the bitstring chunks to generate.
         start -- The bit position to start the first cut. Defaults to 0.
         end -- The bit position one past the last bit to use in the cut.
                Defaults to self.len.
@@ -2525,7 +2524,7 @@ class Bits(object):
         if start < 0:
             raise ValueError("Cannot cut - start must be >= 0.")
         if end > self.len:
-            raise ValueError("Cannot cut - end is past the end of the BitString.")
+            raise ValueError("Cannot cut - end is past the end of the bitstring.")
         if end < start:
             raise ValueError("end must not be less than start.")
         if count is not None and count < 0:
@@ -2545,12 +2544,12 @@ class Bits(object):
  
     def split(self, delimiter, start=None, end=None, count=None,
               bytealigned=False):
-        """Return BitString generator by splittling using a delimiter.
+        """Return bitstring generator by splittling using a delimiter.
         
-        The first item returned is the initial BitString before the delimiter,
-        which may be an empty BitString.
+        The first item returned is the initial bitstring before the delimiter,
+        which may be an empty bitstring.
         
-        delimiter -- The BitString used as the divider.
+        delimiter -- The bitstring used as the divider.
         start -- The bit position to start the split. Defaults to 0.
         end -- The bit position one past the last bit to use in the split.
                Defaults to self.len.
@@ -2571,7 +2570,7 @@ class Bits(object):
         if start < 0:
             raise ValueError("Cannot split - start must be >= 0.")
         if end > self.len:
-            raise ValueError("Cannot split - end is past the end of the BitString.")
+            raise ValueError("Cannot split - end is past the end of the bitstring.")
         if end < start:
             raise ValueError("end must not be less than start.")
         if count is not None and count < 0:
@@ -2582,7 +2581,7 @@ class Bits(object):
             return
         found = self.find(delimiter, start, end, bytealigned)
         if not found:
-            # Initial bits are the whole BitString being searched
+            # Initial bits are the whole bitstring being searched
             self._pos = oldpos
             yield self._slice(start, end)
             return
@@ -2594,7 +2593,7 @@ class Bits(object):
             self._pos += delimiter.len
             found = self.find(delimiter, self._pos, end, bytealigned)
             if not found:
-                # No more occurences, so return the rest of the BitString
+                # No more occurences, so return the rest of the bitstring
                 self._pos = oldpos
                 yield self[startpos:end]
                 return
@@ -2621,7 +2620,7 @@ class Bits(object):
         return s
 
     def tobytes(self):
-        """Return the BitString as bytes, padding with zero bits if needed.
+        """Return the bitstring as bytes, padding with zero bits if needed.
         
         Up to seven zero bits will be added at the end to byte align.
         
@@ -2644,12 +2643,12 @@ class Bits(object):
         return bytes(d)
 
     def tofile(self, f):
-        """Write the BitString to a file object, padding with zero bits if needed.
+        """Write the bitstring to a file object, padding with zero bits if needed.
         
         Up to seven zero bits will be added at the end to byte align.
         
         """
-        # If the BitString is file based then we don't want to read it all
+        # If the bitstring is file based then we don't want to read it all
         # in to memory.
         chunksize = 1024*1024 # 1 MB chunks
         if self._offset == 0:
@@ -2678,9 +2677,9 @@ class Bits(object):
             f.write(p.tobytes())
             
     def startswith(self, prefix, start=None, end=None):
-        """Return whether the current BitString starts with prefix.
+        """Return whether the current bitstring starts with prefix.
         
-        prefix -- The BitString to search for.
+        prefix -- The bitstring to search for.
         start -- The bit position to start from. Defaults to 0.
         end -- The bit position to end at. Defaults to self.len.
                
@@ -2696,9 +2695,9 @@ class Bits(object):
         return self[start:end] == prefix
         
     def endswith(self, suffix, start=None, end=None):
-        """Return whether the current BitString ends with suffix.
+        """Return whether the current bitstring ends with suffix.
         
-        suffix -- The BitString to search for.
+        suffix -- The bitstring to search for.
         start -- The bit position to start from. Defaults to 0.
         end -- The bit position to end at. Defaults to self.len.
                
@@ -2783,82 +2782,82 @@ class Bits(object):
     _offset = property(_getoffset)
 
     len    = property(_getlength,
-                      doc="""The length of the BitString in bits. Read only.
+                      doc="""The length of the bitstring in bits. Read only.
                       """)
     length = property(_getlength,
-                      doc="""The length of the BitString in bits. Read only.
+                      doc="""The length of the bitstring in bits. Read only.
                       """)
     hex    = property(_gethex,
-                      doc="""The BitString as a hexadecimal string. Read only.
+                      doc="""The bitstring as a hexadecimal string. Read only.
                       
-                      When read will be prefixed with '0x' and including any leading zeros.
+                      Will be prefixed with '0x' and including any leading zeros.
                       
                       """)
     bin    = property(_getbin,
-                      doc="""The BitString as a binary string. Read only.
+                      doc="""The bitstring as a binary string. Read only.
                       
-                      When read will be prefixed with '0b' and including any leading zeros.
+                      Will be prefixed with '0b' and including any leading zeros.
                       
                       """)
     oct    = property(_getoct,
-                      doc="""The BitString as an octal string. Read only.
+                      doc="""The bitstring as an octal string. Read only.
                       
-                      When read will be prefixed with '0o' and including any leading zeros.
+                      Will be prefixed with '0o' and including any leading zeros.
                       
                       """)
     bytes   = property(_getbytes,
-                      doc="""The BitString as an ordinary string. Read only.
+                      doc="""The bitstring as a bytes object. Read only.
                       """)
     int    = property(_getint,
-                      doc="""The BitString as a two's complement signed int. Read only.
+                      doc="""The bitstring as a two's complement signed int. Read only.
                       """)
     uint   = property(_getuint,
-                      doc="""The BitString as a two's complement unsigned int. Read only.
+                      doc="""The bitstring as a two's complement unsigned int. Read only.
                       """)
     float  = property(_getfloat,
-                      doc="""The BitString as a floating point number. Read only.
+                      doc="""The bitstring as a floating point number. Read only.
                       """)
     intbe  = property(_getintbe,
-                      doc="""The BitString as a two's complement big-endian signed int. Read only.
+                      doc="""The bitstring as a two's complement big-endian signed int. Read only.
                       """)
     uintbe = property(_getuintbe,
-                      doc="""The BitString as a two's complement big-endian unsigned int. Read only.
+                      doc="""The bitstring as a two's complement big-endian unsigned int. Read only.
                       """)
     floatbe= property(_getfloat,
-                      doc="""The BitString as a big-endian floating point number. Read only.
+                      doc="""The bitstring as a big-endian floating point number. Read only.
                       """)
     intle  = property(_getintle,
-                      doc="""The BitString as a two's complement little-endian signed int. Read only.
+                      doc="""The bitstring as a two's complement little-endian signed int. Read only.
                       """)
     uintle = property(_getuintle,
-                      doc="""The BitString as a two's complement little-endian unsigned int. Read only.
+                      doc="""The bitstring as a two's complement little-endian unsigned int. Read only.
                       """)
     floatle= property(_getfloatle,
-                      doc="""The BitString as a little-endian floating point number. Read only.
+                      doc="""The bitstring as a little-endian floating point number. Read only.
                       """)
     intne  = property(_getintne,
-                      doc="""The BitString as a two's complement native-endian signed int. Read only.
+                      doc="""The bitstring as a two's complement native-endian signed int. Read only.
                       """)
     uintne = property(_getuintne,
-                      doc="""The BitString as a two's complement native-endian unsigned int. Read only.
+                      doc="""The bitstring as a two's complement native-endian unsigned int. Read only.
                       """)
     floatne= property(_getfloatne,
-                      doc="""The BitString as a native-endian floating point number. Read only.
+                      doc="""The bitstring as a native-endian floating point number. Read only.
                       """)
     ue     = property(_getue,
-                      doc="""The BitString as an unsigned exponential-Golomb code. Read only.
+                      doc="""The bitstring as an unsigned exponential-Golomb code. Read only.
                       """)
     se     = property(_getse,
-                      doc="""The BitString as a signed exponential-Golomb code. Read only.
+                      doc="""The bitstring as a signed exponential-Golomb code. Read only.
                       """)
     pos    = property(_getbitpos, _setbitpos,
-                      doc="""The position in the BitString in bits. Read and write.
+                      doc="""The position in the bitstring in bits. Read and write.
                       """)
     bitpos = property(_getbitpos, _setbitpos,
-                      doc="""The position in the BitString in bits. Read and write.
+                      doc="""The position in the bitstring in bits. Read and write.
                       """)
     bytepos= property(_getbytepos, _setbytepos,
-                      doc="""The position in the BitString in bytes. Read and write.
+                      doc="""The position in the bitstring in bytes. Read and write.
                       """)
     
 
