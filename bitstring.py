@@ -1793,14 +1793,31 @@ class Bits(object):
 
     def _delete(self, bits, pos):
         """Delete bits at pos."""
-        # If too many bits then delete to the end.
-        bits = min(bits, self.len - pos)
+        assert 0 <= pos <= self.len
+        assert pos + bits <= self.len
         if pos == 0:
+            # Cutting bits off at the start.
             self._truncatestart(bits)
             return
+        if pos + bits == self.len:
+            # Cutting bits off at the end.
+            self._truncateend(bits)
+            return
+        #if pos > self.len - pos - bits:
+        # More bits before cut point than after it, so do bit shifting
+        # on the final bits.
         end = self._slice(pos + bits, self.len)
-        self._truncateend(max(self.len - pos, 0))
+        assert self.len - pos > 0
+        self._truncateend(self.len - pos)
+        self._pos = self.len
         self._append(end)
+        return
+        ## More bits after the cut point than before it.
+        #start = self._slice(0, pos)
+        #self._truncatestart(pos + bits)
+        #self._pos = 0
+        #self._prepend(start)
+        #return
 
     def _reversebytes(self, start, end):
         """Reverse bytes in-place.
@@ -1902,7 +1919,15 @@ class Bits(object):
     
     def _ixor(self, bs):
         return self._inplace_logical_helper(bs, operator.xor)
-        
+   
+    def _readbits(self, length, start):
+        """Read some bits from the bitstring and return newly constructed bitstring."""
+        startbyte, newoffset = divmod(start + self._offset, 8)
+        endbyte = (start + self._offset + length - 1) // 8
+        bs = self.__class__(bytes=self._datastore[startbyte:endbyte + 1],
+                            length=length, offset=newoffset)
+        return bs
+     
     def unpack(self, *format):
         """Interpret the whole BitString using format and return list.
         
@@ -2059,13 +2084,6 @@ class Bits(object):
         bits = min(bits, self.len - self._pos)
         bs = self._readbits(bits, self._pos)
         self._pos += bits
-        return bs
-        
-    def _readbits(self, length, start):
-        startbyte, newoffset = divmod(start + self._offset, 8)
-        endbyte = (start + self._offset + length - 1) // 8
-        bs = self.__class__(bytes=self._datastore[startbyte:endbyte + 1],
-                            length=length, offset=newoffset)
         return bs
         
     def readbitlist(self, *bits):
@@ -2992,6 +3010,9 @@ class BitString(Bits):
                     self._overwrite(value.__getitem__(slice(None, None, step)), start)
                 self._pos = bitposafter
             else:
+                stop = min(stop, self.len)
+                start = max(start, 0)
+                start = min(start, stop)
                 self._delete(stop - start, start)
                 if step >= 0:
                     self._insert(value, start)
@@ -3074,6 +3095,9 @@ class BitString(Bits):
                     # TODO: Is this ever reached? And is the error message wrong?
                     raise ValueError("Attempt to assign to badly defined "
                                      "extended slice.")
+            stop = min(stop, self.len)
+            start = max(start, 0)
+            start = min(start, stop)
             self._delete(stop - start, start)
             return
         except AttributeError:
