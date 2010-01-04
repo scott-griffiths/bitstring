@@ -220,10 +220,10 @@ def tokenparser(format, keys=None, token_cache={}):
     return stretchy_token, return_values
     
 # This byte to bitstring lookup really speeds things up.
-BYTE_TO_BITS = ['{0:08b}'.format(i) for i in range(256)]
+BYTE_TO_BITS = tuple('{0:08b}'.format(i) for i in range(256))
 
 # And this convers a single octal digit to 3 bits.
-OCT_TO_BITS = ['{0:03b}'.format(i) for i in range(8)]
+OCT_TO_BITS = tuple('{0:03b}'.format(i) for i in range(8))
 
 # This creates a dictionary for every possible byte with the value being
 # the key with its bits reversed.
@@ -1686,8 +1686,8 @@ class Bits(object):
         if bits == self.len:
             self._clear()
             return self
-        offset = (self._offset + bits) % 8
-        self._setbytes(self._datastore[bits // 8:], self.len - bits, offset)
+        bytepos, offset = divmod(self._offset + bits, 8)
+        self._setbytes(self._datastore[bytepos:], self.len - bits, offset)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
         return
@@ -1761,22 +1761,21 @@ class Bits(object):
             # Cutting bits off at the end.
             self._truncateend(bits)
             return
-        #if pos > self.len - pos - bits:
-        # More bits before cut point than after it, so do bit shifting
-        # on the final bits.
-        end = self._slice(pos + bits, self.len)
-        assert self.len - pos > 0
-        self._truncateend(self.len - pos)
-        self._pos = self.len
-        self._append(end)
+        if pos > self.len - pos - bits:
+            # More bits before cut point than after it, so do bit shifting
+            # on the final bits.
+            end = self._slice(pos + bits, self.len)
+            assert self.len - pos > 0
+            self._truncateend(self.len - pos)
+            self._pos = self.len
+            self._append(end)
+            return
+        # More bits after the cut point than before it.
+        start = self._slice(0, pos)
+        self._truncatestart(pos + bits)
+        self._pos = 0
+        self._prepend(start)
         return
-        # TODO
-        ## More bits after the cut point than before it.
-        #start = self._slice(0, pos)
-        #self._truncatestart(pos + bits)
-        #self._pos = 0
-        #self._prepend(start)
-        #return
 
     def _reversebytes(self, start, end):
         """Reverse bytes in-place.
