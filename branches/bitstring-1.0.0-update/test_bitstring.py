@@ -2992,6 +2992,12 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a.pos, 11)
         self.assertEqual(b.pos, 4)
 
+    def testTruncateStartBug(self):
+        a = BitString('0b000000111', offset=2)
+        a._truncatestart(6)
+        self.assertEqual(a, '0b1')
+
+
 def main():
     unittest.main()
 

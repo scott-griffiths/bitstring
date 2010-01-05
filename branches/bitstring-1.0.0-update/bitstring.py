@@ -1366,7 +1366,8 @@ class _ConstBitString(object):
             self._clear()
             return self
         offset = (self._offset + bits) % 8
-        self._setbytes(self._datastore[bits // 8:], offset, length=self.len - bits)
+        bytepos, offset = divmod(self._offset + bits, 8)
+        self._setbytes(self._datastore[bytepos:], offset, length=self.len - bits)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
         return
