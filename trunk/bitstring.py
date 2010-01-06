@@ -354,13 +354,14 @@ class MemArray(ConstMemArray):
         if newoffset == self.offset:
             return
         assert 0 <= newoffset < 8
+        data = self._rawarray
         if newoffset < self.offset:
             # We need to shift everything left
             shiftleft = self.offset - newoffset
             # First deal with everything except for the final byte
             for x in xrange(self.bytelength - 1):
-                self[x] = ((self[x] << shiftleft) & 255) + \
-                                     (self[x + 1] >> (8 - shiftleft))
+                data[x] = ((data[x] << shiftleft) & 255) + \
+                                     (data[x + 1] >> (8 - shiftleft))
             # if we've shifted all of the data in the last byte then we need
             # to truncate by 1
             bits_in_last_byte = (self.offset + self.bitlength) % 8
@@ -368,10 +369,10 @@ class MemArray(ConstMemArray):
                 bits_in_last_byte = 8
             if bits_in_last_byte <= shiftleft:
                 # Remove the last byte
-                self._rawarray.pop()
+                data.pop()
             # otherwise just shift the last byte
             else:
-                self[-1] = (self[-1] << shiftleft) & 255
+                data[-1] = (data[-1] << shiftleft) & 255
         else: # offset > self._offset
             shiftright = newoffset - self.offset
             # Give some overflow room for the last byte
@@ -379,9 +380,9 @@ class MemArray(ConstMemArray):
             if (b + shiftright) // 8 > b // 8:
                 self.appendbytes(0)
             for x in xrange(self.bytelength - 1, 0, -1):
-                self[x] = ((self[x-1] << (8 - shiftright)) & 255) + \
-                                     (self[x] >> shiftright)
-            self[0] >>= shiftright
+                data[x] = ((data[x-1] << (8 - shiftright)) & 255) + \
+                                     (data[x] >> shiftright)
+            data[0] >>= shiftright
         self.offset = newoffset
     
     def appendarray(self, array):
@@ -911,11 +912,17 @@ class Bits(object):
 
     def __hash__(self):
         """Return an integer hash of the current Bits object."""
-        # Take first 10 bytes
-        shorter = self[0:10:8]
-        # Append up to 10 bytes from the end.
-        endbits = min(self.len - shorter.len, 80)
-        shorter += self[-endbits:]
+        # We can't in general hash the whole Bits (it could take hours!)
+        # So instead take some bits from the start and end.
+        if self.len <= 80:
+            # Use the whole Bits.
+            shorter = self
+        else:
+            # Take first 10 bytes
+            shorter = self._slice(0, 80)
+            # Append up to 10 bytes from the end.
+            endbits = min(self.len - 80, 80)
+            shorter += self[-endbits:]
         h = 0
         for byte in shorter.tobytes():
             if PYTHON_VERSION == 2:
@@ -1708,7 +1715,8 @@ class Bits(object):
         return
     
     def _insert(self, bs, pos):
-        """Insert bs at pos."""  
+        """Insert bs at pos."""
+        # TODO: This can be speeded up in the same way as delete was.
         end = self._slice(pos, self.len)
         self._truncateend(self.len - pos)
         self._append(bs)
