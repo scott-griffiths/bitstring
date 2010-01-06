@@ -1716,11 +1716,18 @@ class Bits(object):
     
     def _insert(self, bs, pos):
         """Insert bs at pos."""
-        # TODO: This can be speeded up in the same way as delete was.
-        end = self._slice(pos, self.len)
-        self._truncateend(self.len - pos)
-        self._append(bs)
-        self._append(end)
+        if pos > self.len // 2:
+            # Inserting nearer end, so cut off end.
+            end = self._slice(pos, self.len)
+            self._truncateend(self.len - pos)
+            self._append(bs)
+            self._append(end)
+        else:
+            # Inserting neart start, so cut off start.
+            start = self._slice(0, pos)
+            self._truncatestart(pos)
+            self._prepend(bs)
+            self._prepend(start)
         self._pos = pos + bs.len
         assert self._assertsanity()
         
