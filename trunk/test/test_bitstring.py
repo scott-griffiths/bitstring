@@ -2033,15 +2033,19 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a.uint, 100)
         a[0] = 1
         self.assertEqual(a.bin, '0b11100100')
+        a[1] = 0
+        self.assertEqual(a.bin, '0b10100100')
         a[-1] = -1
-        self.assertEqual(a.bin, '0b11100101')
+        self.assertEqual(a.bin, '0b10100101')
         a[-3:] = -2
-        self.assertEqual(a.bin, '0b11100110')
+        self.assertEqual(a.bin, '0b10100110')
     
     def testInitSliceWithIntErrors(self):
         a = BitString('0b0000')
         self.assertRaises(ValueError, a.__setitem__, slice(0, 4), 16)
         self.assertRaises(ValueError, a.__setitem__, slice(0, 4), -9)
+        self.assertRaises(ValueError, a.__setitem__, 0, 2)
+        self.assertRaises(ValueError, a.__setitem__, 0, -2)
     
     def testReverseWithSlice(self):
         a = BitString('0x0012ff')
@@ -2868,9 +2872,13 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(TypeError, set, s)
         self.assertRaises(TypeError, hash, s)
 
-    def testConstBitStringCreation(self):
+    def testConstBitStringSetCreation(self):
         sl = [Bits(uint=i, length=7) for i in range(15)]
-        self.assertEqual(len(set(sl)), 15)
+        s = set(sl)
+        self.assertEqual(len(s), 15)
+        s.add(Bits('0b0000011'))
+        self.assertEqual(len(s), 15)
+        self.assertRaises(TypeError, s.add, BitString('0b0000011'))
         
     def testConstBitStringFunctions(self):
         s = Bits('0xf, 0b1')
