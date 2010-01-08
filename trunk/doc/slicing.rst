@@ -82,19 +82,6 @@ Truncating, inserting, deleting and overwriting
 
 The functions in this section all modify the bitstring that they operate on and so are not available for :class:`Bits` objects.
 
-``truncatestart / truncateend``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The :meth:`truncatestart` and :meth:`truncateend` functions take a single integer argument and remove that number of bits from the start or end. ::
-
- >>> a = BitString('0x001122')
- >>> a.truncateend(8)
- >>> a.truncatestart(8)
- >>> a == '0x11'
- True
-
-A similar effect can be obtained using slicing - the major difference being that if a slice is used a new :class:`BitString` is returned and the :class:`BitString` being operated on remains unchanged.
-
 ``insert``
 ^^^^^^^^^^
 
@@ -116,20 +103,6 @@ As you might expect, :meth:`insert` takes one :class:`BitString` and inserts it 
  >>> a.hex
  '0x0f112233'
 
-``delete``
-^^^^^^^^^^
-
-:meth:`delete` removes a section of the :class:`BitString`. By default it is removed at the current :attr:`pos`::
-
- >>> a = BitString('0b00011000')
- >>> a.delete(2, 3)                # remove 2 bits at pos 3
- >>> a.bin
- ‘0b000000’
- >>> b = BitString('0x112233445566')
- >>> b.bytepos = 3
- >>> b.delete(16)
- >>> b.hex
- '0x11223366'
 
 The BitString as a list
 -----------------------
@@ -139,11 +112,8 @@ If you treat a bitstring object as a list whose elements are all either '1' or '
 ===========================  ======================================
 Using functions              Using slices
 ===========================  ======================================
-``s.truncatestart(bits)``    ``del s[:bits]``
-``s.truncateend(bits)``      ``del s[-bits:]``
 ``s.insert(bs, pos)``        ``s[pos:pos] = bs``
 ``s.overwrite(bs, pos)``     ``s[pos:pos + bs.length] = bs``
-``s.delete(bits, pos)``      ``del s[pos:pos + bits]``
 ``s.append(bs)``             ``s[s.length:s.length] = bs``
 ``s.prepend(bs)``            ``s[0:0] = bs``
 ===========================  ======================================

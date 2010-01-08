@@ -49,7 +49,7 @@
             
   <div class="section" id="creation-and-interpretation">
 <h1>Creation and Interpretation<a class="headerlink" href="#creation-and-interpretation" title="Permalink to this headline">¶</a></h1>
-<p>You can create bitstring objects in a variety of ways. Internally, bitstrings are stored as byte arrays. This means that no space is wasted and a bitstring containing 10MB of binary data will only take up 10MB of memory.</p>
+<p>You can create bitstrings in a variety of ways. Internally, bitstrings are stored as byte arrays. This means that no space is wasted and a bitstring containing 10MB of binary data will only take up 10MB of memory.</p>
 <p>When a bitstring is created all that is stored is the byte array, the length in bits, an offset to the first used bit in the byte array plus a bit position in the bitstring, used for reading etc. This means that the actual initialiser used to create the bitstring isn&#8217;t stored itself - if you create using a hex string for example then if you ask for the hex interpretation it has to be calculated from the stored byte array.</p>
 <div class="section" id="the-bits-and-bitstring-classes">
 <h2>The Bits and BitString classes<a class="headerlink" href="#the-bits-and-bitstring-classes" title="Permalink to this headline">¶</a></h2>
@@ -98,7 +98,7 @@
 <span class="go">&#39;0b001100&#39;</span>
 </pre></div>
 </div>
-<p>An initial <tt class="docutils literal"><span class="pre">0b</span></tt> or <tt class="docutils literal"><span class="pre">0B</span></tt> is optional. Once again a length can optionally be supplied to truncate the bitstring (here it is used to remove the final &#8216;<tt class="docutils literal"><span class="pre">0</span></tt>&#8216;) and whitespace will be ignored.</p>
+<p>An initial <tt class="docutils literal"><span class="pre">0b</span></tt> or <tt class="docutils literal"><span class="pre">0B</span></tt> is optional. Once again a length can optionally be supplied to truncate the bitstring (here it is used to remove the final <tt class="docutils literal"><span class="pre">0</span></tt>) and whitespace will be ignored.</p>
 <p>As with <tt class="docutils literal"><span class="pre">hex</span></tt>, the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser will work if the binary string is prefixed by <tt class="docutils literal"><span class="pre">0b</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b001100&#39;</span><span class="p">)</span>
 </pre></div>
@@ -433,7 +433,7 @@
 <div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;hello, world&#39;</span><span class="p">,</span> <span class="n">world</span><span class="o">=</span><span class="s">&#39;0x123&#39;</span><span class="p">,</span> <span class="n">hello</span><span class="o">=</span><span class="s">&#39;0b110&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>As you would expect, there is also an <tt class="xref docutils literal"><span class="pre">unpack</span></tt> function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is:</p>
+<p>As you would expect, there is also an <a title="Bits.unpack" class="reference external" href="bitstring_classes.html#Bits.unpack"><tt class="xref docutils literal"><span class="pre">Bits.unpack</span></tt></a> function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;ue, oct:3, hex:8, uint:14&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&#39;0o7&#39;</span><span class="p">,</span> <span class="s">&#39;0xff&#39;</span><span class="p">,</span> <span class="mi">90</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;ue, oct:3, hex:8, uint:14&#39;</span><span class="p">)</span>
 <span class="go">[3, &#39;0o7&#39;, &#39;0xff&#39;, 90]</span>
@@ -542,18 +542,18 @@
 </div>
 </div>
 <div class="section" id="interpreting-bitstrings">
-<h2>Interpreting BitStrings<a class="headerlink" href="#interpreting-bitstrings" title="Permalink to this headline">¶</a></h2>
+<h2>Interpreting Bitstrings<a class="headerlink" href="#interpreting-bitstrings" title="Permalink to this headline">¶</a></h2>
 <p>Bitstrings don&#8217;t know or care how they were created; they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.</p>
 <p>Several Python properties are used to create interpretations for the bitstring. These properties call private functions which will calculate and return the appropriate interpretation. These don’t change the bitstring in any way and it remains just a collection of bits. If you use the property again then the calculation will be repeated.</p>
 <p>Note that these properties can potentially be very expensive in terms of both computation and memory requirements. For example if you have initialised a bitstring from a 10 GB file object and ask for its binary string representation then that string will be around 80 GB in size!</p>
 <p>For the properties described below we will use these:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x123&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b111&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="s">&#39;0x123&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="s">&#39;0b111&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="section" id="bin">
 <h3>bin<a class="headerlink" href="#bin" title="Permalink to this headline">¶</a></h3>
-<p>The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The <a title="bin" class="reference external" href="properties.html#bin"><tt class="xref docutils literal"><span class="pre">bin</span></tt></a> property returns a string of the binary representation of the bitstring prefixed with <tt class="docutils literal"><span class="pre">0b</span></tt>. All bitstrings can use this property and it is used to test equality between bitstrings.</p>
+<p>The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The <a title="bin" class="reference external" href="bitstring_classes.html#bin"><tt class="xref docutils literal"><span class="pre">bin</span></tt></a> property returns a string of the binary representation of the bitstring prefixed with <tt class="docutils literal"><span class="pre">0b</span></tt>. All bitstrings can use this property and it is used to test equality between bitstrings.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">bin</span>
 <span class="go">&#39;0b000100100011&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">bin</span>
@@ -575,7 +575,7 @@
 </div>
 <div class="section" id="oct">
 <h3>oct<a class="headerlink" href="#oct" title="Permalink to this headline">¶</a></h3>
-<p>For an octal interpretation use the <a title="oct" class="reference external" href="properties.html#oct"><tt class="xref docutils literal"><span class="pre">oct</span></tt></a> property. Octal values are prefixed with <tt class="docutils literal"><span class="pre">0o</span></tt>, which is the Python 2.6 / 3 way of doing things (rather than just starting with <tt class="docutils literal"><span class="pre">0</span></tt>).</p>
+<p>For an octal interpretation use the <a title="oct" class="reference external" href="bitstring_classes.html#oct"><tt class="xref docutils literal"><span class="pre">oct</span></tt></a> property. Octal values are prefixed with <tt class="docutils literal"><span class="pre">0o</span></tt>, which is the Python 2.6 / 3 way of doing things (rather than just starting with <tt class="docutils literal"><span class="pre">0</span></tt>).</p>
 <p>If the bitstring does not have a length that is a multiple of three then a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> exception will be raised.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">oct</span>
 <span class="go">&#39;0o0443&#39;</span>
@@ -588,14 +588,14 @@
 </div>
 <div class="section" id="uint-uintbe-uintle-uintne">
 <h3>uint / uintbe / uintle / uintne<a class="headerlink" href="#uint-uintbe-uintle-uintne" title="Permalink to this headline">¶</a></h3>
-<p>To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the <a title="uint" class="reference external" href="properties.html#uint"><tt class="xref docutils literal"><span class="pre">uint</span></tt></a> property.</p>
+<p>To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the <a title="uint" class="reference external" href="bitstring_classes.html#uint"><tt class="xref docutils literal"><span class="pre">uint</span></tt></a> property.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">uint</span>
 <span class="go">283</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">uint</span>
 <span class="go">7</span>
 </pre></div>
 </div>
-<p>For byte-wise big-endian, little-endian and native-endian interpretations use <a title="uintbe" class="reference external" href="properties.html#uintbe"><tt class="xref docutils literal"><span class="pre">uintbe</span></tt></a>, <a title="uintle" class="reference external" href="properties.html#uintle"><tt class="xref docutils literal"><span class="pre">uintle</span></tt></a> and <a title="uintne" class="reference external" href="properties.html#uintne"><tt class="xref docutils literal"><span class="pre">uintne</span></tt></a> respectively. These will raise a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> if the bitstring is not a whole number of bytes long.</p>
+<p>For byte-wise big-endian, little-endian and native-endian interpretations use <a title="uintbe" class="reference external" href="bitstring_classes.html#uintbe"><tt class="xref docutils literal"><span class="pre">uintbe</span></tt></a>, <a title="uintle" class="reference external" href="bitstring_classes.html#uintle"><tt class="xref docutils literal"><span class="pre">uintle</span></tt></a> and <a title="uintne" class="reference external" href="bitstring_classes.html#uintne"><tt class="xref docutils literal"><span class="pre">uintne</span></tt></a> respectively. These will raise a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> if the bitstring is not a whole number of bytes long.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x000001&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">uint</span>     <span class="c"># bit-wise big-endian</span>
 <span class="go">1</span>
@@ -610,24 +610,24 @@
 </div>
 <div class="section" id="int-intbe-intle-intne">
 <h3>int / intbe / intle / intne<a class="headerlink" href="#int-intbe-intle-intne" title="Permalink to this headline">¶</a></h3>
-<p>For a two&#8217;s complement interpretation as a base-2 signed integer use the <a title="int" class="reference external" href="properties.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> property. If the first bit of the bitstring is zero then the <a title="int" class="reference external" href="properties.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> and <a title="uint" class="reference external" href="properties.html#uint"><tt class="xref docutils literal"><span class="pre">uint</span></tt></a> interpretations will be equal, otherwise the <a title="int" class="reference external" href="properties.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> will represent a negative number.</p>
+<p>For a two&#8217;s complement interpretation as a base-2 signed integer use the <a title="int" class="reference external" href="bitstring_classes.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> property. If the first bit of the bitstring is zero then the <a title="int" class="reference external" href="bitstring_classes.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> and <a title="uint" class="reference external" href="bitstring_classes.html#uint"><tt class="xref docutils literal"><span class="pre">uint</span></tt></a> interpretations will be equal, otherwise the <a title="int" class="reference external" href="bitstring_classes.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> will represent a negative number.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">int</span>
 <span class="go">283</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">int</span>
 <span class="go">-1</span>
 </pre></div>
 </div>
-<p>For byte-wise big, little and native endian signed integer interpretations use <a title="intbe" class="reference external" href="properties.html#intbe"><tt class="xref docutils literal"><span class="pre">intbe</span></tt></a>, <a title="intle" class="reference external" href="properties.html#intle"><tt class="xref docutils literal"><span class="pre">intle</span></tt></a> and <a title="intne" class="reference external" href="properties.html#intne"><tt class="xref docutils literal"><span class="pre">intne</span></tt></a> respectively. These work in the same manner as their unsigned counterparts described above.</p>
+<p>For byte-wise big, little and native endian signed integer interpretations use <a title="intbe" class="reference external" href="bitstring_classes.html#intbe"><tt class="xref docutils literal"><span class="pre">intbe</span></tt></a>, <a title="intle" class="reference external" href="bitstring_classes.html#intle"><tt class="xref docutils literal"><span class="pre">intle</span></tt></a> and <a title="intne" class="reference external" href="bitstring_classes.html#intne"><tt class="xref docutils literal"><span class="pre">intne</span></tt></a> respectively. These work in the same manner as their unsigned counterparts described above.</p>
 </div>
 <div class="section" id="float-floatbe-floatle-floatne">
 <h3>float / floatbe / floatle / floatne<a class="headerlink" href="#float-floatbe-floatle-floatne" title="Permalink to this headline">¶</a></h3>
-<p>For a floating point interpretation use the <a title="float" class="reference external" href="properties.html#float"><tt class="xref docutils literal"><span class="pre">float</span></tt></a> property. This uses your machine&#8217;s underlying floating point representation and will only work if the bitstring is 32 or 64 bits long.</p>
-<p>Different endiannesses are provided via <a title="floatle" class="reference external" href="properties.html#floatle"><tt class="xref docutils literal"><span class="pre">floatle</span></tt></a> and <a title="floatne" class="reference external" href="properties.html#floatne"><tt class="xref docutils literal"><span class="pre">floatne</span></tt></a>. Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian <a title="float" class="reference external" href="properties.html#float"><tt class="xref docutils literal"><span class="pre">float</span></tt></a> and the byte-wise big-endian <a title="floatbe" class="reference external" href="properties.html#floatbe"><tt class="xref docutils literal"><span class="pre">floatbe</span></tt></a>.</p>
+<p>For a floating point interpretation use the <a title="float" class="reference external" href="bitstring_classes.html#float"><tt class="xref docutils literal"><span class="pre">float</span></tt></a> property. This uses your machine&#8217;s underlying floating point representation and will only work if the bitstring is 32 or 64 bits long.</p>
+<p>Different endiannesses are provided via <a title="floatle" class="reference external" href="bitstring_classes.html#floatle"><tt class="xref docutils literal"><span class="pre">floatle</span></tt></a> and <a title="floatne" class="reference external" href="bitstring_classes.html#floatne"><tt class="xref docutils literal"><span class="pre">floatne</span></tt></a>. Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian <a title="float" class="reference external" href="bitstring_classes.html#float"><tt class="xref docutils literal"><span class="pre">float</span></tt></a> and the byte-wise big-endian <a title="floatbe" class="reference external" href="bitstring_classes.html#floatbe"><tt class="xref docutils literal"><span class="pre">floatbe</span></tt></a>.</p>
 <p>Note also that standard floating point numbers in Python are stored in 64 bits, so use this size if you wish to avoid rounding errors.</p>
 </div>
 <div class="section" id="bytes">
 <h3>bytes<a class="headerlink" href="#bytes" title="Permalink to this headline">¶</a></h3>
-<p>A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the <a title="bytes" class="reference external" href="properties.html#bytes"><tt class="xref docutils literal"><span class="pre">bytes</span></tt></a> interpretation, which returns a <tt class="docutils literal"><span class="pre">bytes</span></tt> object (which is equivalent to an ordinary <tt class="docutils literal"><span class="pre">str</span></tt> in Python 2.6).</p>
+<p>A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the <a title="bytes" class="reference external" href="bitstring_classes.html#bytes"><tt class="xref docutils literal"><span class="pre">bytes</span></tt></a> interpretation, which returns a <tt class="docutils literal"><span class="pre">bytes</span></tt> object (which is equivalent to an ordinary <tt class="docutils literal"><span class="pre">str</span></tt> in Python 2.6).</p>
 <p>If the length of the bitstring isn&#8217;t a multiple of eight then a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> will be raised. This is because there isn&#8217;t an unequivocal representation as <tt class="docutils literal"><span class="pre">bytes</span></tt>. You may prefer to use the method <tt class="xref docutils literal"><span class="pre">tobytes</span></tt> as this will be pad with between one and seven zero bits up to a byte boundary if neccessary.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">open</span><span class="p">(</span><span class="s">&#39;somefile&#39;</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">open</span><span class="p">(</span><span class="s">&#39;anotherfile&#39;</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">((</span><span class="s">&#39;0x0&#39;</span><span class="o">+</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">bytes</span><span class="p">)</span>
@@ -639,11 +639,11 @@
 <span class="go">&#39;0x0123&#39;</span>
 </pre></div>
 </div>
-<p>Note that the <tt class="xref docutils literal"><span class="pre">tobytes</span></tt> method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the <a title="bytes" class="reference external" href="properties.html#bytes"><tt class="xref docutils literal"><span class="pre">bytes</span></tt></a> property.</p>
+<p>Note that the <tt class="xref docutils literal"><span class="pre">tobytes</span></tt> method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the <a title="bytes" class="reference external" href="bitstring_classes.html#bytes"><tt class="xref docutils literal"><span class="pre">bytes</span></tt></a> property.</p>
 </div>
 <div class="section" id="ue">
 <h3>ue<a class="headerlink" href="#ue" title="Permalink to this headline">¶</a></h3>
-<p>The <a title="ue" class="reference external" href="properties.html#ue"><tt class="xref docutils literal"><span class="pre">ue</span></tt></a> property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a <a title="BitStringError" class="reference external" href="bitstring_classes.html#BitStringError"><tt class="xref docutils literal"><span class="pre">BitStringError</span></tt></a> is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a <tt class="docutils literal"><span class="pre">ue</span></tt> format string. See <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a> for a short explanation of this type of integer representation.</p>
+<p>The <a title="ue" class="reference external" href="bitstring_classes.html#ue"><tt class="xref docutils literal"><span class="pre">ue</span></tt></a> property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a <a title="BitStringError" class="reference external" href="bitstring_classes.html#BitStringError"><tt class="xref docutils literal"><span class="pre">BitStringError</span></tt></a> is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a <tt class="docutils literal"><span class="pre">ue</span></tt> format string. See <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a> for a short explanation of this type of integer representation.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bin</span>
 <span class="go">&#39;0b0001101&#39;</span>
@@ -655,7 +655,7 @@
 </div>
 <div class="section" id="se">
 <h3>se<a class="headerlink" href="#se" title="Permalink to this headline">¶</a></h3>
-<p>The <a title="se" class="reference external" href="properties.html#se"><tt class="xref docutils literal"><span class="pre">se</span></tt></a> property does much the same as <tt class="docutils literal"><span class="pre">ue</span></tt> and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a> for more information.</p>
+<p>The <a title="se" class="reference external" href="bitstring_classes.html#se"><tt class="xref docutils literal"><span class="pre">se</span></tt></a> property does much the same as <tt class="docutils literal"><span class="pre">ue</span></tt> and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a> for more information.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x164b&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">se</span>
 <span class="go">BitStringError: BitString is not a single exponential-Golomb code.</span>
@@ -701,7 +701,7 @@
 <li><a class="reference external" href="#compact-format-strings">Compact format strings</a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#interpreting-bitstrings">Interpreting BitStrings</a><ul>
+<li><a class="reference external" href="#interpreting-bitstrings">Interpreting Bitstrings</a><ul>
 <li><a class="reference external" href="#bin">bin</a></li>
 <li><a class="reference external" href="#hex">hex</a></li>
 <li><a class="reference external" href="#oct">oct</a></li>
