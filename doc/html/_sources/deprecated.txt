@@ -30,6 +30,12 @@ It is likely that they will be removed in version 2.0 so their use is discourage
 
    Equivalent to ``s.pos += 8*bytes``.
 
+.. method:: BitString.delete(bits[, pos])
+
+   Removes ``bits`` bits from the :class:`BitString` at position ``pos``. 
+
+   Equivalent to ``del s[pos:pos+bits]``.
+    
 .. method:: Bits.retreatbit()
 
    Retreats position by 1 bit.
@@ -84,4 +90,15 @@ It is likely that they will be removed in version 2.0 so their use is discourage
 
    Equivalent to using the :attr:`bytepos` property as a getter.
 
+.. method:: BitString.truncateend(bits)
+
+   Remove the last ``bits`` bits from the end of the :class:`BitString`.
+
+   Equivalent to ``del s[-bits:]``.
+
+.. method:: BitString.truncatestart(bits)
+
+   Remove the first ``bits`` bits from the start of the :class:`BitString`.
+
+   Equivalent to ``del s[:bits]``.
 

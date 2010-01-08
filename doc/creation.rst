@@ -328,7 +328,7 @@ And finally it is also possible just to use a keyword as a token::
 
  s = bitstring.pack('hello, world', world='0x123', hello='0b110')
 
-As you would expect, there is also an :meth:`unpack` function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is::
+As you would expect, there is also an :meth:`Bits.unpack` function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is::
 
  >>> s = bitstring.pack('ue, oct:3, hex:8, uint:14', 3, '0o7', '0xff', 90)
  >>> s.unpack('ue, oct:3, hex:8, uint:14')
@@ -390,7 +390,7 @@ You can of course combine these format strings with other initialisers, even mix
 
 This rather contrived example takes the numbers 0 to 17 and packs the first 6 as signed big-endian 2-byte integers, the next 3 as single bytes, then inserts a single 1 bit, before packing the remaining 9 as little-endian 4-byte unsigned integers.
 
-Interpreting BitStrings
+Interpreting Bitstrings
 -----------------------
 
 Bitstrings don't know or care how they were created; they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
@@ -401,8 +401,8 @@ Note that these properties can potentially be very expensive in terms of both co
 
 For the properties described below we will use these::
 
- >>> a = BitString('0x123')
- >>> b = BitString('0b111')
+ >>> a = Bits('0x123')
+ >>> b = Bits('0b111')
 
 bin
 ^^^

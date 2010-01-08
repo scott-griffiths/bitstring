@@ -80,6 +80,13 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="BitString.delete">
+<tt class="descclassname">BitString.</tt><tt class="descname">delete</tt><big>(</big><em>bits</em><span class="optional">[</span>, <em>pos</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#BitString.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> at position <tt class="docutils literal"><span class="pre">pos</span></tt>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[pos:pos+bits]</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="Bits.retreatbit">
 <tt class="descclassname">Bits.</tt><tt class="descname">retreatbit</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.retreatbit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retreats position by 1 bit.</p>
@@ -132,14 +139,28 @@
 <dt id="Bits.tell">
 <tt class="descclassname">Bits.</tt><tt class="descname">tell</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.tell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the current bit position.</p>
-<p>Equivalent to using the <a title="pos" class="reference external" href="properties.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> property as a getter.</p>
+<p>Equivalent to using the <a title="pos" class="reference external" href="bitstring_classes.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> property as a getter.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="Bits.tellbyte">
 <tt class="descclassname">Bits.</tt><tt class="descname">tellbyte</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.tellbyte" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the current byte position.</p>
-<p>Equivalent to using the <a title="bytepos" class="reference external" href="properties.html#bytepos"><tt class="xref docutils literal"><span class="pre">bytepos</span></tt></a> property as a getter.</p>
+<p>Equivalent to using the <a title="bytepos" class="reference external" href="bitstring_classes.html#bytepos"><tt class="xref docutils literal"><span class="pre">bytepos</span></tt></a> property as a getter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="BitString.truncateend">
+<tt class="descclassname">BitString.</tt><tt class="descname">truncateend</tt><big>(</big><em>bits</em><big>)</big><a class="headerlink" href="#BitString.truncateend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the last <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the end of the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[-bits:]</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="BitString.truncatestart">
+<tt class="descclassname">BitString.</tt><tt class="descname">truncatestart</tt><big>(</big><em>bits</em><big>)</big><a class="headerlink" href="#BitString.truncatestart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the first <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the start of the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[:bits]</span></tt>.</p>
 </dd></dl>
 
 </div>

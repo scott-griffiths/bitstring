@@ -19,9 +19,7 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="bitstring documentation" href="index.html" />
-    <link rel="next" title="User Manual" href="contents.html" />
-    <link rel="prev" title="Features" href="index.html" /> 
+    <link rel="top" title="bitstring documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -30,12 +28,6 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="contents.html" title="User Manual"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="Features"
-             accesskey="P">previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li> 
       </ul>
     </div>  
@@ -54,7 +46,7 @@
 <div class="section" id="prerequisites">
 <h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Python 2.4 or later.</li>
+<li>Python 2.4 or later. Preferably 2.6 or 3.1.</li>
 <li>An installed bitstring module.</li>
 <li>A rudimentory knowledge of binary concepts.</li>
 <li>A little free time.</li>
@@ -106,7 +98,10 @@
 </pre></div>
 </div>
 <p>Oh dear. The problem we have here is that <tt class="docutils literal"><span class="pre">b</span></tt> is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are other similar restrictions on other interpretations (octal must be mulitple of 3 bits, bytes a multiple of  8 bits etc.)</p>
-<p>A bitstring can be treated just like a list of bits. You can slice it, delete sections, insert new bits and more using standard index notation:</p>
+</div>
+<div class="section" id="modifying-bitstrings">
+<h3>Modifying bitstrings<a class="headerlink" href="#modifying-bitstrings" title="Permalink to this headline">¶</a></h3>
+<p>A <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> can be treated just like a list of bits. You can slice it, delete sections, insert new bits and more using standard index notation:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">9</span><span class="p">])</span>
 <span class="go">0b111110</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:]</span>
@@ -115,6 +110,18 @@
 </pre></div>
 </div>
 <p>The slicing works just as it does for other containers, so the deletion above removes the final six bits.</p>
+<p>To join together bitstrings you can use a variety of methods, including <a title="BitString.append" class="reference external" href="bitstring_classes.html#BitString.append"><tt class="xref docutils literal"><span class="pre">BitString.append</span></tt></a>, <a title="BitString.prepend" class="reference external" href="bitstring_classes.html#BitString.prepend"><tt class="xref docutils literal"><span class="pre">BitString.prepend</span></tt></a>, <a title="BitString.insert" class="reference external" href="bitstring_classes.html#BitString.insert"><tt class="xref docutils literal"><span class="pre">BitString.insert</span></tt></a>, and plain <tt class="docutils literal"><span class="pre">+</span></tt> or <tt class="docutils literal"><span class="pre">+=</span></tt> operations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">prepend</span><span class="p">(</span><span class="s">&#39;0b01&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;0o7&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">+=</span> <span class="s">&#39;0x06&#39;</span>
+</pre></div>
+</div>
+<p>Here we first put two bits at the start of <tt class="docutils literal"><span class="pre">a</span></tt>, then three bits on the end (a single octal digit) and finally another byte (two hex digits) on the end.</p>
+<p>Note how we are just using ordinary strings to specify the new bitstrings we are adding. These get converted automatically to the right sequence of bits.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The length in bits of bitstrings specified with strings depends on the number of characters, including leading zeros. So each hex character is four bits, each octal character three bits and each binary character one bit.</p>
+</div>
 </div>
 </div>
 </div>
@@ -134,18 +141,13 @@
 <li><a class="reference external" href="#a-brief-introduction">A Brief Introduction</a><ul>
 <li><a class="reference external" href="#prerequisites">Prerequisites</a></li>
 <li><a class="reference external" href="#getting-started">Getting started</a></li>
+<li><a class="reference external" href="#modifying-bitstrings">Modifying bitstrings</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="index.html"
-                                  title="previous chapter">Features</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="contents.html"
-                                  title="next chapter">User Manual</a></p>
           <div id="searchbox" style="display: none">
             <h3>Quick search</h3>
               <form class="search" action="search.html" method="get">
@@ -169,12 +171,6 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="contents.html" title="User Manual"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="Features"
-             >previous</a> |</li>
         <li><a href="index.html">bitstring</a> &raquo;</li> 
       </ul>
     </div>

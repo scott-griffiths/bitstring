@@ -1,7 +1,7 @@
 Creation and Interpretation
 ===========================
 
-You can create bitstring objects in a variety of ways. Internally, bitstrings are stored as byte arrays. This means that no space is wasted and a bitstring containing 10MB of binary data will only take up 10MB of memory.
+You can create bitstrings in a variety of ways. Internally, bitstrings are stored as byte arrays. This means that no space is wasted and a bitstring containing 10MB of binary data will only take up 10MB of memory.
 
 When a bitstring is created all that is stored is the byte array, the length in bits, an offset to the first used bit in the byte array plus a bit position in the bitstring, used for reading etc. This means that the actual initialiser used to create the bitstring isn't stored itself - if you create using a hex string for example then if you ask for the hex interpretation it has to be calculated from the stored byte array.
 
@@ -56,7 +56,7 @@ From a binary string
  >>> d.bin
  '0b001100'
 
-An initial ``0b`` or ``0B`` is optional. Once again a length can optionally be supplied to truncate the bitstring (here it is used to remove the final '``0``') and whitespace will be ignored.
+An initial ``0b`` or ``0B`` is optional. Once again a length can optionally be supplied to truncate the bitstring (here it is used to remove the final ``0``) and whitespace will be ignored.
 
 As with ``hex``, the ``auto`` initialiser will work if the binary string is prefixed by ``0b``::
  
@@ -328,7 +328,7 @@ And finally it is also possible just to use a keyword as a token::
 
  s = bitstring.pack('hello, world', world='0x123', hello='0b110')
 
-As you would expect, there is also an :meth:`unpack` function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is::
+As you would expect, there is also an :meth:`Bits.unpack` function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is::
 
  >>> s = bitstring.pack('ue, oct:3, hex:8, uint:14', 3, '0o7', '0xff', 90)
  >>> s.unpack('ue, oct:3, hex:8, uint:14')
@@ -390,7 +390,7 @@ You can of course combine these format strings with other initialisers, even mix
 
 This rather contrived example takes the numbers 0 to 17 and packs the first 6 as signed big-endian 2-byte integers, the next 3 as single bytes, then inserts a single 1 bit, before packing the remaining 9 as little-endian 4-byte unsigned integers.
 
-Interpreting BitStrings
+Interpreting Bitstrings
 -----------------------
 
 Bitstrings don't know or care how they were created; they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
@@ -401,8 +401,8 @@ Note that these properties can potentially be very expensive in terms of both co
 
 For the properties described below we will use these::
 
- >>> a = BitString('0x123')
- >>> b = BitString('0b111')
+ >>> a = Bits('0x123')
+ >>> b = Bits('0b111')
 
 bin
 ^^^

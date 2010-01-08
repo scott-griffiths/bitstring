@@ -12,7 +12,7 @@ Only a few of the module's features will be covered in this walkthrough; the :re
 Prerequisites
 -------------
 
-* Python 2.4 or later.
+* Python 2.4 or later. Preferably 2.6 or 3.1.
 * An installed bitstring module.
 * A rudimentory knowledge of binary concepts.
 * A little free time.
@@ -24,8 +24,8 @@ Getting started
 
 ::
 
- >>> from bitstring import Bits, BitString
- 
+ >>> from bitstring import Bits, BitString  
+  
 First things first, we're going to be typing 'bitstring' a lot, so importing directly saves us a lot of ``bitstring.BitString`` nonsense. We can now create a couple of bitstrings::
 
  >>> a = BitString('0xff01')
@@ -69,7 +69,10 @@ Great - let's try some more::
  
 Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are other similar restrictions on other interpretations (octal must be mulitple of 3 bits, bytes a multiple of  8 bits etc.)
 
-A bitstring can be treated just like a list of bits. You can slice it, delete sections, insert new bits and more using standard index notation::
+Modifying bitstrings
+--------------------
+
+A :class:`BitString` can be treated just like a list of bits. You can slice it, delete sections, insert new bits and more using standard index notation::
 
  >>> print(a[3:9])
  0b111110
@@ -77,7 +80,22 @@ A bitstring can be treated just like a list of bits. You can slice it, delete se
  >>> print(a)
  0b1111111100
 
-The slicing works just as it does for other containers, so the deletion above removes the final six bits. 
+The slicing works just as it does for other containers, so the deletion above removes the final six bits.
+
+To join together bitstrings you can use a variety of methods, including :meth:`BitString.append`, :meth:`BitString.prepend`, :meth:`BitString.insert`, and plain ``+`` or ``+=`` operations::
+
+ >>> a.prepend('0b01')
+ >>> a.append('0o7')
+ >>> a += '0x06'
+ 
+Here we first put two bits at the start of ``a``, then three bits on the end (a single octal digit) and finally another byte (two hex digits) on the end.
+
+Note how we are just using ordinary strings to specify the new bitstrings we are adding. These get converted automatically to the right sequence of bits.
+
+.. note::
+
+ The length in bits of bitstrings specified with strings depends on the number of characters, including leading zeros. So each hex character is four bits, each octal character three bits and each binary character one bit.
+
 
 
 

@@ -26,17 +26,10 @@ You may also be able to use just ``easy_install bitstring``.
 Documentation
 -------------
 
-The walkthrough give a brief tour of some of module's features without going into great depth. For most users it's the best place to start although it can be safely skipped if you want to go straight to the manual.
-
 The manual provides an introduction to the module and details most its capabilities.
 
-The reference section has a complete list of all of the properties and methods of the :class:`BitString` class, together with short examples for many items.
+The reference section has a complete list of all the classes, methods, attributes and functions of the :mod:`bitstring` module, together with short examples for many items.
 
-
-.. toctree::
-   :maxdepth: 3
-   
-   walkthrough
 
 .. toctree::
    :maxdepth: 3
@@ -64,7 +57,7 @@ Credits
 
 Written by Scott Griffiths <scott@griffiths.name>. If you have any questions, suggestions or criticisms (about this module!) then please email me. Also if you use bitstring in your own project then I'd be interested to hear how it's being used.
 
-This document last updated: |today|
+
 
 
 

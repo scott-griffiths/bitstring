@@ -11,7 +11,7 @@ Module functions
    :param kwargs: a dictionary of token replacements
    :rtype: :class:`BitString`
 
-The format string consists of comma separated tokens of the form ``name:length=value``. See the entry for :meth:`read` for more details.
+The format string consists of comma separated tokens of the form ``name:length=value``. See the entry for :meth:`Bits.read` for more details.
 
 The tokens can be 'literals', like ``0xef``, ``0b110``, ``uint:8=55``, etc. which just represent a set sequence of bits.
 
