@@ -1672,7 +1672,7 @@ class Bits(object):
     def _append(self, bs):
         """Append a bitstring to the current bitstring."""
         if not bs:
-            return self
+            return
         if bs is self:
             bs = self._copy()
         self._datastore.appendarray(bs._datastore)
@@ -1680,7 +1680,7 @@ class Bits(object):
     def _prepend(self, bs):
         """Prepend a bitstring to the current bitstring."""
         if not bs:
-            return self
+            return
         if bs is self:
             bs = self._copy()
         self._datastore.prependarray(bs._datastore)
@@ -1689,30 +1689,28 @@ class Bits(object):
     def _truncatestart(self, bits):
         """Truncate bits from the start of the bitstring."""
         if bits == 0:
-            return self
+            return
         if bits == self.len:
             self._clear()
-            return self
+            return
         bytepos, offset = divmod(self._offset + bits, 8)
         self._setbytes(self._datastore[bytepos:], self.len - bits, offset)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
-        return
 
     def _truncateend(self, bits):
         """Truncate bits from the end of the bitstring."""
         if bits == 0:
-            return self
+            return
         if bits == self.len:
             self._clear()
-            return self
+            return
         newlength_in_bytes = (self._offset + self.len - bits + 7) // 8
         # Ensure that the position is still valid
         self._pos = max(0, min(self._pos, self.len - bits))
         self._setbytes(self._datastore[:newlength_in_bytes], self.len - bits,
                        self._offset)
         assert self._assertsanity()
-        return
     
     def _insert(self, bs, pos):
         """Insert bs at pos."""
@@ -1723,7 +1721,7 @@ class Bits(object):
             self._append(bs)
             self._append(end)
         else:
-            # Inserting neart start, so cut off start.
+            # Inserting nearer start, so cut off start.
             start = self._slice(0, pos)
             self._truncatestart(pos)
             self._prepend(bs)
@@ -2627,8 +2625,7 @@ class Bits(object):
         s = self.__class__()
         if bitstringlist:
             for bs in bitstringlist[:-1]:
-                bs = self._converttobitstring(bs)
-                s._append(bs)
+                s._append(self._converttobitstring(bs))
                 s._append(self)
             s._append(self._converttobitstring(bitstringlist[-1]))
         return s
@@ -2986,6 +2983,8 @@ class BitString(Bits):
                 stop = min(stop, self.len)
                 start = max(start, 0)
                 start = min(start, stop)
+                # TODO: A delete then insert is wasteful - it could do unneeded shifts.
+                # Could be either overwrite + insert or overwrite + delete.
                 self._delete(stop - start, start)
                 if step >= 0:
                     self._insert(value, start)
@@ -2994,22 +2993,25 @@ class BitString(Bits):
                 # pos is now after the inserted piece.
             return
         except AttributeError:
-            # TODO: Can be rewritten in terms of set() / unset().
             # single element
-            if isinstance(value, int):
-                if value >= 0:
-                    value = BitString(uint=value, length=1)
-                else:
-                    value = BitString(int=value, length=1)
             if key < 0:
                 key += self.len
             if not 0 <= key < self.len:
                 raise IndexError("Slice index out of range.")
+            if isinstance(value, int):
+                if value == 0:
+                    self._unset(key)
+                    return
+                if value in (1, -1):
+                    self._set(key)
+                    return
+                raise ValueError("Cannot set a single bit with integer %d." %
+                                 value)
             if value.len == 1:
-                # This is an overwrite, so we retain the pos
-                bitposafter = self._pos
-                self._overwrite(value, key)
-                self._pos = bitposafter
+                if value.allset(0):
+                    self._set(key)
+                else:
+                    self._unset(key)
             else:
                 self._delete(1, key)
                 self._insert(value, key)
@@ -3065,8 +3067,7 @@ class BitString(Bits):
                 else:
                     # We have a step which takes us in the wrong direction,
                     # and will never get from start to stop.
-                    # TODO: Is this ever reached? And is the error message wrong?
-                    raise ValueError("Attempt to assign to badly defined "
+                    raise ValueError("Attempt to delete badly defined "
                                      "extended slice.")
             stop = min(stop, self.len)
             start = max(start, 0)
@@ -3136,6 +3137,18 @@ class BitString(Bits):
                              "for ^= operator.")
         self._ensureinmemory()
         return self._ixor(bs)
+
+    def _reverse(self):
+        """Reverse all bits in-place."""
+        # Reverse the contents of each byte
+        n = [BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
+        # Then reverse the order of the bytes
+        n.reverse()
+        # The new offset is the number of bits that were unused at the end.
+        newoffset = 8 - (self._offset + self.len) % 8
+        if newoffset == 8:
+            newoffset = 0
+        self._datastore = MemArray(b''.join(n), self.length, newoffset)
 
     def replace(self, old, new, start=None, end=None, count=None,
                 bytealigned=False):
@@ -3309,18 +3322,6 @@ class BitString(Bits):
         self._ensureinmemory()
         bs._ensureinmemory()
         self._prepend(bs)
-
-    def _reverse(self):
-        """Reverse all bits in-place."""
-        # Reverse the contents of each byte
-        n = [BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
-        # Then reverse the order of the bytes
-        n.reverse()
-        # The new offset is the number of bits that were unused at the end.
-        newoffset = 8 - (self._offset + self.len) % 8
-        if newoffset == 8:
-            newoffset = 0
-        self._datastore = MemArray(b''.join(n), self.length, newoffset)
 
     def reverse(self, start=None, end=None):
         """Reverse bits in-place.
