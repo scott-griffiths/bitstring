@@ -17,19 +17,15 @@ October 9th 2009. :-)
 
 The current version is 'production/stable'. This means that you can expect the API to remain stable for the whole of version 1. There will still be new features, but I'll try really hard not to break backwards compatibility.
 
-----
-
-===What's the deal with Python 3 support?===
-
-I'm hoping to release future versions that are both Python 2.6 and 3.x compatible. I tried this as an experiment for version 1.0.1 and it worked surprisingly well.
+There will be a version 2 some time in 2010. This won't be a radical revision, but will tweak a few bits of the interface. See the 2.0 Milestone items in the Issues tab for the current candidate changes.
 
 ----
 
 ===Will Python 2.4 and 2.5 continue to be supported?===
 
-Now that version 1.0 has been reached I am very tempted to drop support for older Python versions. This is because there are lots of simplifications I can make using newer Python 2.6 syntax and features, plus this will ease the transition to Python 3.
+The versions after 1.0 have been for Python 2.6 or later only. This has allowed a number of simplifications, including having just one code-base for Python 2.6 and 3.x.
 
-There will probably be updates for 2.4 and 2.5, but I'm not planning to include support in all releases.
+There may be future releases for Python 2.4 and 2.5 (beyond bug fixes) but it's quite possible that there won't be. The work needed to make a new release is considerable and as I estimate over 90% of people are using the newer Python versions I'm not convinced it is time well spent.
 
 ----
 
