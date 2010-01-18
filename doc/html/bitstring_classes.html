@@ -519,7 +519,7 @@ The position is advanced to after the read items.</p>
 <dl class="method">
 <dt id="Bits.split">
 <tt class="descname">split</tt><big>(</big><em>delimiter</em><span class="optional">[</span>, <em>start</em>, <em>end</em>, <em>count</em>, <em>bytealigned=False</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Bits.split" title="Permalink to this definition">¶</a></dt>
-<dd><p>Splits the bitstring into sections that start with <em>delimiter*</em>. Returns a generator for bitstring objects.</p>
+<dd><p>Splits the bitstring into sections that start with <em>delimiter</em>. Returns a generator for bitstring objects.</p>
 <p>The first item generated is always the bits before the first occurrence of delimiter (even if empty). A slice can be optionally specified with <em>start</em> and <em>end</em>, while <em>count</em> specifies the maximum number of items generated.</p>
 <p>If <em>bytealigned</em> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then the delimiter will only be found if it starts at a byte aligned position.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="s">&#39;0x42423&#39;</span><span class="p">)</span>
@@ -730,6 +730,8 @@ The position is advanced to after the read items.</p>
 <span class="go">Bits(&#39;0xf0&#39;)</span>
 </pre></div>
 </div>
+</dd></dl>
+
 <dl class="method">
 <dt id="Bits.__mul__">
 <tt class="descname">__mul__</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#Bits.__mul__" title="Permalink to this definition">¶</a></dt>
@@ -738,9 +740,7 @@ The position is advanced to after the read items.</p>
 <dl class="method">
 <dt id="Bits.__rmul__">
 <tt class="descname">__rmul__</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#Bits.__rmul__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">*</span> <span class="pre">n</span> <span class="pre">/</span> <span class="pre">n</span> <span class="pre">*</span> <span class="pre">s</span></tt></p>
+<dd><p><tt class="docutils literal"><span class="pre">s</span> <span class="pre">*</span> <span class="pre">n</span> <span class="pre">/</span> <span class="pre">n</span> <span class="pre">*</span> <span class="pre">s</span></tt></p>
 <p>Return bitstring consisting of <em>n</em> concatenations of another.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="s">&#39;0x34&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="mi">5</span>
@@ -755,6 +755,8 @@ The position is advanced to after the read items.</p>
 <tt class="descname">__ne__</tt><big>(</big><em>bs</em><big>)</big><a class="headerlink" href="#Bits.__ne__" title="Permalink to this definition">¶</a></dt>
 <dd><p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">!=</span> <span class="pre">s2</span></tt></p>
 <p>Compares two bitstring objects for inequality, returning <tt class="xref docutils literal"><span class="pre">False</span></tt> if they have the same binary representation, otherwise returning <tt class="xref docutils literal"><span class="pre">True</span></tt>.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="Bits.__or__">
 <tt class="descname">__or__</tt><big>(</big><em>bs</em><big>)</big><a class="headerlink" href="#Bits.__or__" title="Permalink to this definition">¶</a></dt>
@@ -763,9 +765,7 @@ The position is advanced to after the read items.</p>
 <dl class="method">
 <dt id="Bits.__ror__">
 <tt class="descname">__ror__</tt><big>(</big><em>bs</em><big>)</big><a class="headerlink" href="#Bits.__ror__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">|</span> <span class="pre">s2</span></tt></p>
+<dd><p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">|</span> <span class="pre">s2</span></tt></p>
 <p>Returns the bit-wise OR between two bitstring, which must have the same length otherwise a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">Bits</span><span class="p">(</span><span class="s">&#39;0x33&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="s">&#39;0x0f&#39;</span><span class="p">)</span>
 <span class="go">0x3f</span>

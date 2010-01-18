@@ -389,7 +389,7 @@ The ``Bits`` class
 
     .. method:: split(delimiter[, start, end, count, bytealigned=False])
 
-        Splits the bitstring into sections that start with *delimiter**. Returns a generator for bitstring objects.
+        Splits the bitstring into sections that start with *delimiter*. Returns a generator for bitstring objects.
 
         The first item generated is always the bits before the first occurrence of delimiter (even if empty). A slice can be optionally specified with *start* and *end*, while *count* specifies the maximum number of items generated.
 
@@ -575,8 +575,8 @@ The ``Bits`` class
          >>> s << 4
          Bits('0xf0')
 
-        .. method:: __mul__(n)
-        .. method:: __rmul__(n)
+    .. method:: __mul__(n)
+    .. method:: __rmul__(n)
 
         ``s * n / n * s``
 
@@ -593,8 +593,8 @@ The ``Bits`` class
 
         Compares two bitstring objects for inequality, returning ``False`` if they have the same binary representation, otherwise returning ``True``. 
 
-        .. method:: __or__(bs)
-        .. method:: __ror__(bs)
+    .. method:: __or__(bs)
+    .. method:: __ror__(bs)
 
         ``s1 | s2``
 
