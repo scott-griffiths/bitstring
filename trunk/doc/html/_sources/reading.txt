@@ -16,7 +16,7 @@ The property :attr:`bytepos` is also available, and is useful if you are only de
 
 For simple reading of a number of bits you can use :meth:`readbits` or :meth:`readbytes`. The following example does some simple parsing of an MPEG-1 video stream (the stream is provided in the ``test`` directory if you downloaded the source archive). ::
 
- >>> s = BitString(filename='test/test.m1v')
+ >>> s = Bits(filename='test/test.m1v')
  >>> print(s.pos)
  0
  >>> start_code = s.readbytes(4).hex

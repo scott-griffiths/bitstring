@@ -67,8 +67,8 @@
 <h2>Using the constructor<a class="headerlink" href="#using-the-constructor" title="Permalink to this headline">¶</a></h2>
 <p>When initialising a bitstring you need to specify at most one initialiser. These will be explained in full below, but briefly they are:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">auto</span></tt> : Either a specially formatted string, a list or tuple, a file object or another bitstring.</li>
-<li><tt class="docutils literal"><span class="pre">bytes</span></tt> : A Python string, for example read from a binary file.</li>
+<li><tt class="docutils literal"><span class="pre">auto</span></tt> : Either a specially formatted string, a list or tuple, a file object, integer, bool or another bitstring.</li>
+<li><tt class="docutils literal"><span class="pre">bytes</span></tt> : A <tt class="docutils literal"><span class="pre">bytes</span></tt> object (a <tt class="docutils literal"><span class="pre">str</span></tt> in Python 2.6), for example read from a binary file.</li>
 <li><tt class="docutils literal"><span class="pre">hex</span></tt>, <tt class="docutils literal"><span class="pre">oct</span></tt>, <tt class="docutils literal"><span class="pre">bin</span></tt>: Hexadecimal, octal or binary strings.</li>
 <li><tt class="docutils literal"><span class="pre">int</span></tt>, <tt class="docutils literal"><span class="pre">uint</span></tt>: Signed or unsigned bit-wise big-endian binary integers.</li>
 <li><tt class="docutils literal"><span class="pre">intle</span></tt>, <tt class="docutils literal"><span class="pre">uintle</span></tt>: Signed or unsigned byte-wise little-endian binary integers.</li>
@@ -218,7 +218,7 @@
 </div>
 <div class="section" id="the-auto-initialiser">
 <h2>The auto initialiser<a class="headerlink" href="#the-auto-initialiser" title="Permalink to this headline">¶</a></h2>
-<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> parameter is the first parameter in the <tt class="xref docutils literal"><span class="pre">__init__</span></tt> function and so the <tt class="docutils literal"><span class="pre">auto=</span></tt> can be omitted when using it. It accepts either a string, a list or tuple, another bitstring, an integer or a file object.</p>
+<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> parameter is the first parameter in the <tt class="xref docutils literal"><span class="pre">__init__</span></tt> function and so the <tt class="docutils literal"><span class="pre">auto=</span></tt> can be omitted when using it. It accepts either a string, a list or tuple, another bitstring, an integer, a bool or a file object.</p>
 <p>Strings starting with <tt class="docutils literal"><span class="pre">0x</span></tt> or <tt class="docutils literal"><span class="pre">hex:</span></tt> are interpreted as hexadecimal, <tt class="docutils literal"><span class="pre">0o</span></tt> or <tt class="docutils literal"><span class="pre">oct:</span></tt> implies octal, and strings starting with <tt class="docutils literal"><span class="pre">0b</span></tt> or <tt class="docutils literal"><span class="pre">bin:</span></tt> are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, lists and tuples are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fromhex</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x01ffc9&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frombin</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b01&#39;</span><span class="p">)</span>
@@ -230,6 +230,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;somefile&#39;</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fromfile</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">zeroed</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frombool</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>It can also be used to convert between the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> and <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> classes:</p>

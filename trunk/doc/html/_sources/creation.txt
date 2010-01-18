@@ -25,8 +25,8 @@ Using the constructor
 ---------------------
 When initialising a bitstring you need to specify at most one initialiser. These will be explained in full below, but briefly they are:
 
-* ``auto`` : Either a specially formatted string, a list or tuple, a file object or another bitstring.
-* ``bytes`` : A Python string, for example read from a binary file.
+* ``auto`` : Either a specially formatted string, a list or tuple, a file object, integer, bool or another bitstring.
+* ``bytes`` : A ``bytes`` object (a ``str`` in Python 2.6), for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
 * ``int``, ``uint``: Signed or unsigned bit-wise big-endian binary integers.
 * ``intle``, ``uintle``: Signed or unsigned byte-wise little-endian binary integers.
@@ -186,7 +186,7 @@ It's also possible to use the ``auto`` initialiser for file objects. It's as sim
 
 The auto initialiser
 --------------------
-The ``auto`` parameter is the first parameter in the :meth:`__init__` function and so the ``auto=`` can be omitted when using it. It accepts either a string, a list or tuple, another bitstring, an integer or a file object.
+The ``auto`` parameter is the first parameter in the :meth:`__init__` function and so the ``auto=`` can be omitted when using it. It accepts either a string, a list or tuple, another bitstring, an integer, a bool or a file object.
 
 Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, lists and tuples are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
 
@@ -200,6 +200,7 @@ Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` 
  >>> f = open('somefile', 'rb')
  >>> fromfile = BitString(f)
  >>> zeroed = BitString(1000)
+ >>> frombool = BitString(True)
  
 It can also be used to convert between the :class:`BitString` and :class:`Bits` classes::
 

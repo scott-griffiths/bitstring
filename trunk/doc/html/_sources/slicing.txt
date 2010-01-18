@@ -82,6 +82,29 @@ Truncating, inserting, deleting and overwriting
 
 The functions in this section all modify the bitstring that they operate on and so are not available for :class:`Bits` objects.
 
+Deleting and truncating
+^^^^^^^^^^^^^^^^^^^^^^^
+
+To delete bits just use ``del`` as you would with any other container::
+
+ >>> a = BitString('0b00011000')
+ >>> del a[3:5]                # remove 2 bits at pos 3
+ >>> a.bin
+ ‘0b000000’
+ >>> b = BitString('0x112233445566')
+ >>> del b[24:40]
+ >>> b.hex
+ '0x11223366'
+
+You can of course use this to truncate the start or end bits just as easily::
+
+ >>> a = BitString('0x001122')
+ >>> del a[-8:]   # remove last 8 bits
+ >>> del a[:8]    # remove first 8 bits
+ >>> a == '0x11'
+ True
+
+
 ``insert``
 ^^^^^^^^^^
 
@@ -113,8 +136,8 @@ If you treat a bitstring object as a list whose elements are all either '1' or '
 Using functions              Using slices
 ===========================  ======================================
 ``s.insert(bs, pos)``        ``s[pos:pos] = bs``
-``s.overwrite(bs, pos)``     ``s[pos:pos + bs.length] = bs``
-``s.append(bs)``             ``s[s.length:s.length] = bs``
+``s.overwrite(bs, pos)``     ``s[pos:pos + bs.len] = bs``
+``s.append(bs)``             ``s[s.len:s.len] = bs``
 ``s.prepend(bs)``            ``s[0:0] = bs``
 ===========================  ======================================
 
