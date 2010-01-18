@@ -11,7 +11,7 @@ Bits.__eq__ method bitstring_classes.html
 Bits.seek method deprecated.html
 intle attribute bitstring_classes.html
 Bits.cut method bitstring_classes.html
-Bits.anyset method bitstring_classes.html
+Bits.retreatbits method deprecated.html
 Bits.peekbyte method bitstring_classes.html
 BitString.truncatestart method deprecated.html
 uintle attribute bitstring_classes.html
@@ -37,8 +37,9 @@ intne attribute bitstring_classes.html
 Bits.__len__ method bitstring_classes.html
 Bits.peekbits method bitstring_classes.html
 Bits.__rmul__ method bitstring_classes.html
-Bits.retreatbits method deprecated.html
+Bits.advancebits method deprecated.html
 Bits class bitstring_classes.html
+Bits.readbitlist method bitstring_classes.html
 Bits.retreatbyte method deprecated.html
 Bits.join method bitstring_classes.html
 Bits.bytealign method bitstring_classes.html
@@ -54,7 +55,6 @@ Bits.peekbit method bitstring_classes.html
 Bits.__ror__ method bitstring_classes.html
 uint attribute bitstring_classes.html
 float attribute bitstring_classes.html
-Bits.__contains__ method bitstring_classes.html
 pos attribute bitstring_classes.html
 Bits.__add__ method bitstring_classes.html
 BitString class bitstring_classes.html
@@ -62,7 +62,7 @@ Bits.advancebytes method deprecated.html
 BitString.truncateend method deprecated.html
 BitString.prepend method bitstring_classes.html
 Bits.__ne__ method bitstring_classes.html
-Bits.readbitlist method bitstring_classes.html
+Bits.anyset method bitstring_classes.html
 Bits.__copy__ method bitstring_classes.html
 Bits.readbytes method bitstring_classes.html
 Bits.findall method bitstring_classes.html
@@ -101,7 +101,7 @@ Bits.peekbitlist method bitstring_classes.html
 Bits.peeklist method bitstring_classes.html
 Bits.endswith method bitstring_classes.html
 Bits.slice method deprecated.html
-Bits.advancebits method deprecated.html
+Bits.__contains__ method bitstring_classes.html
 bytepos attribute bitstring_classes.html
 Bits.__invert__ method bitstring_classes.html
 Bits.retreatbit method deprecated.html

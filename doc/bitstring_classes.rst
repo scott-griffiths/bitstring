@@ -389,7 +389,7 @@ The ``Bits`` class
 
     .. method:: split(delimiter[, start, end, count, bytealigned=False])
 
-        Splits the bitstring into sections that start with *delimiter**. Returns a generator for bitstring objects.
+        Splits the bitstring into sections that start with *delimiter*. Returns a generator for bitstring objects.
 
         The first item generated is always the bits before the first occurrence of delimiter (even if empty). A slice can be optionally specified with *start* and *end*, while *count* specifies the maximum number of items generated.
 
