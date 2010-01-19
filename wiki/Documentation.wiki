@@ -1,4 +1,5 @@
 #summary Documentation for the bitstring module
+#labels Deprecated
 
 [http://python-bitstring.googlecode.com/svn/wiki/bitstring.png]
 
