@@ -25,7 +25,6 @@ Bits.__or__ method bitstring_classes.html
 Bits.rfind method bitstring_classes.html
 Bits.startswith method bitstring_classes.html
 Bits.__and__ method bitstring_classes.html
-Bits.__iadd__ method bitstring_classes.html
 Bits.allunset method bitstring_classes.html
 Bits.__str__ method bitstring_classes.html
 bytes attribute bitstring_classes.html
@@ -78,6 +77,7 @@ Bits.__rshift__ method bitstring_classes.html
 BitString.delete method deprecated.html
 Bits.seekbyte method deprecated.html
 Bits.__mul__ method bitstring_classes.html
+BitString.__iadd__ method bitstring_classes.html
 BitString.__delitem__ method bitstring_classes.html
 BitString.overwrite method bitstring_classes.html
 uintne attribute bitstring_classes.html

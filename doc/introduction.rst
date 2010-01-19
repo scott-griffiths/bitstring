@@ -17,7 +17,7 @@ A complete reference for the module is given in :ref:`reference`, while the rest
 
  from bitstring import BitString
 
-Just some of the ways to create BitStrings::
+Just some of the ways to create bitstrings::
 
  # from a binary string
  a = BitString('0b001')
@@ -30,7 +30,7 @@ Just some of the ways to create BitStrings::
  # using a format string
  d = BitString('int:11=540')
  
-Easily construct new BitStrings::
+Easily construct new bitstrings::
 
  # 5 copies of 'a' followed by two new bytes
  e = 5*a + '0xcdcd' 
@@ -56,7 +56,7 @@ Interpret the bitstring however you want::
 Getting Started
 ---------------
 
-The easiest way to install ``bitstring`` is to use ``easy_install`` via::
+The easiest way to install :mod:`bitstring` is to use ``easy_install`` via::
 
  sudo easy_install bitstring
  
@@ -71,11 +71,12 @@ If you then extract the contents of the zip file you should find:
 * ``bitstring.py`` : The bitstring module itself.
 * ``test/test_bitstring.py`` : Unit tests for the module.
 * ``setup.py`` : The setup script.
-* ``readme.txt`` : A short readme.
+* ``README.txt`` : A short readme.
 * ``release_notes.txt`` : History of changes in this and previous versions.
 * ``test/test.m1v`` : An example file (MPEG-1 video) for testing purposes.
 * ``test/smalltestfile`` : Another small file for testing.
-* ``bitstring_manual.pdf`` : This document.
+* ``doc/bitstring_manual.pdf`` : This manual as a PDF.
+* ``doc/html`` : This manual as HTML.
 
 To install, run::
 

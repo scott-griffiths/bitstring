@@ -8,7 +8,7 @@ Other Functions
 ``bytealign``
 ^^^^^^^^^^^^^
 
-:meth:`bytealign` advances between zero and seven bits to make the :attr:`pos` a multiple of eight. It returns the number of bits advanced. ::
+:meth:`Bits.bytealign` advances between zero and seven bits to make the :attr:`pos` a multiple of eight. It returns the number of bits advanced. ::
 
  >>> a = BitString('0x11223344')
  >>> a.pos = 1
@@ -61,7 +61,7 @@ Writes the byte data contained in the bitstring to a file. The file should have 
  >>> f = open('newfile', 'wb')
  >>> BitString('0xffee3241fed').tofile(f)
 
-In exactly the same manner as with :meth:`tobytes`, up to seven zero bits will be appended to make the file a whole number of bytes long.
+In exactly the same manner as with :meth:`Bits.tobytes`, up to seven zero bits will be appended to make the file a whole number of bytes long.
 
 ``startswith / endswith``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -77,7 +77,7 @@ These act like the same named functions on strings, that is they return ``True``
 ``ror / rol``
 ^^^^^^^^^^^^^
 
-To rotate the bits in a :class:`BitString` use :meth:`ror` and :meth:`rol` for right and left rotations respectively. The changes are done in-place. ::
+To rotate the bits in a :class:`BitString` use :meth:`BitString.ror` and :meth:`BitString.rol` for right and left rotations respectively. The changes are done in-place. ::
 
  >>> s = BitString('0x00001')
  >>> s.rol(6)
@@ -87,12 +87,12 @@ To rotate the bits in a :class:`BitString` use :meth:`ror` and :meth:`rol` for r
 Special Methods
 ---------------
 
-A few of the special methods have already been covered, for example :meth:`__add__` and :meth:`__iadd__` (the ``+`` and ``+=`` operators) and :meth:`__getitem__` and :meth:`__setitem__` (reading and setting slices via ``[]``). Here are the rest:
+A few of the special methods have already been covered, for example :meth:`Bits.__add__` and :meth:`BitString.__iadd__` (the ``+`` and ``+=`` operators) and :meth:`Bits.__getitem__` and :meth:`BitString.__setitem__` (reading and setting slices via ``[]``). Here are the rest:
 
 ``__len__``
 ^^^^^^^^^^^^^^^
 
-This implements the ``len`` function and returns the length of the bitstring in bits.
+This implements the :func:`len` function and returns the length of the bitstring in bits.
 
 It's recommended that you use the :attr:`len` property instead of the function as a limitation of Python means that the function will raise an :exc:`OverflowError` if the bitstring has more than ``sys.maxsize`` elements (that's typically 256MB of data).
 
@@ -104,7 +104,7 @@ There's not much more to say really, except to emphasise that it is always in bi
 ``__str__ / __repr__``
 ^^^^^^^^^^^^^^^^^^^^^^
 
-These get called when you try to print a bitstring. As bitstrings have no preferred interpretation the form printed might not be what you want - if not then use the :attr:`hex`, :attr:`bin`, :attr:`int` etc. properties. The main use here is in interactive sessions when you just want a quick look at the bitstring. The :meth:`__repr__` tries to give a code fragment which if evaluated would give an equal bitstring.
+These get called when you try to print a bitstring. As bitstrings have no preferred interpretation the form printed might not be what you want - if not then use the :attr:`hex`, :attr:`bin`, :attr:`int` etc. properties. The main use here is in interactive sessions when you just want a quick look at the bitstring. The :meth:`Bits.__repr__` tries to give a code fragment which if evaluated would give an equal bitstring.
 
 The form used for the bitstring is generally the one which gives it the shortest representation. If the resulting string is too long then it will be truncated with ``...`` - this prevents very long bitstrings from tying up your interactive session while they print themselves. ::
 
@@ -145,7 +145,7 @@ To get a bit-inverted copy of a bitstring use the ``~`` operator::
 ``__lshift__ / __rshift__ / __ilshift__ / __irshift__``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Bitwise shifts can be achieved using ``<<``, ``>>``, ``<<=`` and ``>>=``. Bits shifted off the left or right are replaced with zero bits. If you need special behaviour, such as keeping the sign of two's complement integers then do the shift on the property instead. ::
+Bitwise shifts can be achieved using ``<<``, ``>>``, ``<<=`` and ``>>=``. Bits shifted off the left or right are replaced with zero bits. If you need special behaviour, such as keeping the sign of two's complement integers then do the shift on the property instead, for example use ``a.int >>= 2``. ::
 
  >>> a = BitString('0b10011001')
  >>> b = a << 2
@@ -167,7 +167,7 @@ Multiplication of a bitstring by an integer means the same as it does for ordina
 ``__copy__``
 ^^^^^^^^^^^^
 
-This allows the bitstring to be copied via the ``copy`` module. ::
+This allows the bitstring to be copied via the :mod:`copy` module. ::
 
  >>> import copy
  >>> a = BitString('0x4223fbddec2231')

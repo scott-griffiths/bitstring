@@ -57,7 +57,7 @@ Negative slices are also allowed, and should do what you'd expect. So for exampl
 Joining
 -------
 
-To join together a couple of bitstring objects use the ``+`` or ``+=`` operators, or the :meth:`append` and :meth:`prepend` functions. ::
+To join together a couple of bitstring objects use the ``+`` or ``+=`` operators, or the :meth:`BitString.append` and :meth:`BitString.prepend` methods. ::
 
  # Six ways of creating the same BitString:
  a1 = BitString(bin='000') + BitString(hex='f')
@@ -72,7 +72,7 @@ To join together a couple of bitstring objects use the ``+`` or ``+=`` operators
 
 Note that the final three methods all modify a bitstring, and so will only work with :class:`BitString` objects, not the immutable :class:`Bits` objects.
 
-If you want to join a large number of bitstrings then the function :func:`join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don't want a separator then it can be called on an empty bitstring. ::
+If you want to join a large number of bitstrings then the method :meth:`Bits.join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don't want a separator then it can be called on an empty bitstring. ::
 
  bslist = [BitString(uint=n, length=12) for n in xrange(1000)]
  s = BitString('0b1111').join(bslist)
@@ -108,7 +108,7 @@ You can of course use this to truncate the start or end bits just as easily::
 ``insert``
 ^^^^^^^^^^
 
-As you might expect, :meth:`insert` takes one :class:`BitString` and inserts it into another. A bit position can be specified, but if not present then the current :attr:`pos` is used. ::
+As you might expect, :meth:`BitString.insert` takes one :class:`BitString` and inserts it into another. A bit position can be specified, but if not present then the current :attr:`pos` is used. ::
 
  >>> a = BitString('0x00112233')
  >>> a.insert('0xffff', 16)
@@ -118,7 +118,7 @@ As you might expect, :meth:`insert` takes one :class:`BitString` and inserts it 
 ``overwrite``
 ^^^^^^^^^^^^^
 
-:meth:`overwrite` does much the same as :meth:`insert`, but predictably the :class:`BitString` object's data is overwritten by the new data. ::
+:meth:`BitString.overwrite` does much the same as :meth:`BitString.insert`, but predictably the :class:`BitString` object's data is overwritten by the new data. ::
 
  >>> a = BitString('0x00112233')
  >>> a.pos = 4
@@ -130,7 +130,7 @@ As you might expect, :meth:`insert` takes one :class:`BitString` and inserts it 
 The BitString as a list
 -----------------------
 
-If you treat a bitstring object as a list whose elements are all either '1' or '0' then you won't go far wrong. The table below gives some of the equivalent ways of using functions and the standard slice notation.
+If you treat a bitstring object as a list whose elements are all either '1' or '0' then you won't go far wrong. The table below gives some of the equivalent ways of using methods and the standard slice notation.
 
 ===========================  ======================================
 Using functions              Using slices
@@ -147,7 +147,7 @@ Splitting
 ``split``
 ^^^^^^^^^
 
-Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The :meth:`split` function returns a generator for the sections. ::
+Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The :meth:`Bits.split` method returns a generator for the sections. ::
 
  >>> a = BitString('0x4700004711472222')
  >>> for s in a.split('0x47', bytealigned=True):
@@ -157,12 +157,12 @@ Sometimes it can be very useful to use a delimiter to split a bitstring into sec
  0x4711
  0x472222
 
-Note that the first item returned is always the BitString before the first occurrence of the delimiter, even if it is empty.
+Note that the first item returned is always the bitstring before the first occurrence of the delimiter, even if it is empty.
 
 ``cut``
 ^^^^^^^
 
-If you just want to split into equal parts then use the :meth:`cut` function. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
+If you just want to split into equal parts then use the :meth:`Bits.cut` method. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
 
  >>> a = BitString('0x47001243')
  >>> for byte in a.cut(8):

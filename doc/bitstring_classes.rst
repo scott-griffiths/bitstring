@@ -8,7 +8,7 @@ The bitstring module provides just two classes, :class:`BitString` and :class:`B
 
 If you need to change the contents of a bitstring then you must use the :class:`BitString` class. If you need to use bitstrings as keys in a dictionary or members of a set then you must use the :class:`Bits` class (:class:`Bits` are hashable). Otherwise you can use whichever you prefer, but note that :class:`Bits` objects can potentially be more efficent than :class:`BitString` objects. In this section the generic term 'bitstring' means either a :class:`Bits` or a :class:`BitString` object.
 
-Note that it is bit position within the bitstring (the position from which reads occur) can change without affecting the equality operation. This means that the :attr:`pos` and :attr:`bytepos` properties can change even for a :class:`Bits` object.
+Note that the bit position within the bitstring (the position from which reads occur) can change without affecting the equality operation. This means that the :attr:`pos` and :attr:`bytepos` properties can change even for a :class:`Bits` object.
 
 The public methods, special methods and properties of both classes are detailed in this section.
 
@@ -103,7 +103,7 @@ The ``Bits`` class
 
        *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
 
-       See also :meth:`allunset`.
+       See also :meth:`Bits.allunset`.
 
     .. method:: allunset(pos)
 
@@ -111,7 +111,7 @@ The ``Bits`` class
 
        *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as    slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
 
-       See also :meth:`allset`.
+       See also :meth:`Bits.allset`.
 
     .. method:: anyset(pos)
 
@@ -119,7 +119,7 @@ The ``Bits`` class
 
        *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
 
-       See also :meth:`anyunset`.
+       See also :meth:`Bits.anyunset`.
 
     .. method:: anyunset(pos)
 
@@ -127,7 +127,7 @@ The ``Bits`` class
 
        *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
 
-       See also :meth:`anyset`.
+       See also :meth:`Bits.anyset`.
 
     .. method:: bytealign()
 
@@ -519,21 +519,6 @@ The ``Bits`` class
         Returns an integer hash of the :class:`Bits`.
         
         This method is not available for the :class:`BitString` class, as only immutable objects should be hashed. You typically won't need to call it directly, instead it is used for dictionary keys and in sets.
-        
-    .. method:: __iadd__(bs)
-
-        ``s1 += s2``
-
-        Return the result of appending *bs* to the current bitstring.
-        
-        Note that for :class:`BitString` objects this will be an in-place change, whereas for :class:`Bits` objects a new object will be created (it is equivalent to a copy and an :meth:`Bits.__add__`). ::
-
-         >>> s = Bits(ue=423)
-         >>> s += Bits(ue=12)
-         >>> s.read('ue')
-         423
-         >>> s.read('ue')
-         12
          
     .. method:: __invert__()
 
@@ -555,13 +540,13 @@ The ``Bits`` class
 
         Returns the length of the bitstring in bits if it is less than ``sys.maxsize``, otherwise raises :exc:`OverflowError`.
 
-        It's recommended that you use the :attr:`len` property rather than the ``len`` function because of the function's behaviour for large bitstring objects, although calling the special function directly will always work. ::
+        It's recommended that you use the :attr:`len` property rather than the :func:`len` function because of the function's behaviour for large bitstring objects, although calling the special function directly will always work. ::
 
          >>> s = Bits(filename='11GB.mkv')
          >>> s.len
          93944160032
          >>> len(s)
-         :exc:`OverflowError`: long int too large to convert to int
+         OverflowError: long int too large to convert to int
          >>> s.__len__()
          93944160032
 
@@ -796,7 +781,22 @@ The ``BitString`` class
         Deletes the slice specified.
 
         After deletion :attr:`pos` will be at the deleted slice's position.
+        
+    .. method:: __iadd__(bs)
 
+        ``s1 += s2``
+
+        Return the result of appending *bs* to the current bitstring.
+        
+        Note that for :class:`BitString` objects this will be an in-place change, whereas for :class:`Bits` objects using ``+=`` will not call this method - instead a new object will be created (it is equivalent to a copy and an :meth:`Bits.__add__`). ::
+
+         >>> s = BitString(ue=423)
+         >>> s += BitString(ue=12)
+         >>> s.read('ue')
+         423
+         >>> s.read('ue')
+         12
+         
     .. method:: __setitem__(key, value)
 
         ``s1[start:end:step] = s2``
