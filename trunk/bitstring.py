@@ -2969,6 +2969,9 @@ class BitString(Bits):
                     value = BitString(uint=value, length=stop - start)
                 else:
                     value = BitString(int=value, length=stop - start)
+            stop = min(stop, self.len)
+            start = max(start, 0)
+            start = min(start, stop)
             if (stop - start) == value.len:
                 if value.len == 0:
                     return
@@ -2980,9 +2983,6 @@ class BitString(Bits):
                     self._overwrite(value.__getitem__(slice(None, None, step)), start)
                 self._pos = bitposafter
             else:
-                stop = min(stop, self.len)
-                start = max(start, 0)
-                start = min(start, stop)
                 # TODO: A delete then insert is wasteful - it could do unneeded shifts.
                 # Could be either overwrite + insert or overwrite + delete.
                 self._delete(stop - start, start)

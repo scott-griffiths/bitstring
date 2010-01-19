@@ -1375,8 +1375,8 @@ class BitStringTest(unittest.TestCase):
         a = BitString()
         self.assertRaises(IndexError, a.__setitem__, 0, '0b00')
         a += '0b1'
-        #self.assertRaises(IndexError, a.__setitem__, slice(0, 2), '0b11')
-        # TODO: There shouldn't be a ValueError from the above. Overwrite shouldn't complain in this case. Not usual slice behaviour.
+        a[0:2] = '0b11'
+        self.assertEqual(a, '0b11')
     
     def testMultiplication(self):
         a = BitString('0xff')
