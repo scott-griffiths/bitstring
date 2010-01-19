@@ -1,7 +1,7 @@
 Creation and Interpretation
 ===========================
 
-You can create bitstrings in a variety of ways. Internally, bitstrings are stored as byte arrays. This means that no space is wasted and a bitstring containing 10MB of binary data will only take up 10MB of memory.
+You can create bitstrings in a variety of ways. Internally they are stored as byte arrays, which means that no space is wasted, and a bitstring containing 10MB of binary data will only take up 10MB of memory.
 
 When a bitstring is created all that is stored is the byte array, the length in bits, an offset to the first used bit in the byte array plus a bit position in the bitstring, used for reading etc. This means that the actual initialiser used to create the bitstring isn't stored itself - if you create using a hex string for example then if you ask for the hex interpretation it has to be calculated from the stored byte array.
 

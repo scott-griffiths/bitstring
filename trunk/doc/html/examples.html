@@ -78,7 +78,7 @@
 <span class="c"># This replaces every &#39;1&#39; bit with a 5 byte Ascii string!</span>
 <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">,</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="s">&#39;hello&#39;</span><span class="p">))</span>
 
-<span class="n">s</span><span class="o">.</span><span class="n">truncateend</span><span class="p">(</span><span class="mi">1001</span><span class="p">)</span>             <span class="c"># deletes final 1001 bits</span>
+<span class="k">del</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1001</span><span class="p">:]</span>                   <span class="c"># deletes final 1001 bits</span>
 <span class="n">s</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>                     <span class="c"># reverses whole BitString</span>
 <span class="n">s</span><span class="o">.</span><span class="n">prepend</span><span class="p">(</span><span class="s">&#39;uint:12=44&#39;</span><span class="p">)</span>         <span class="c"># prepend a 12 bit integer</span>
 </pre></div>

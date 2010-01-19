@@ -34,7 +34,7 @@ Manipulation
  # This replaces every '1' bit with a 5 byte Ascii string!
  s.replace('0b1', BitString(bytes='hello'))
  
- s.truncateend(1001)             # deletes final 1001 bits
+ del s[-1001:]                   # deletes final 1001 bits
  s.reverse()                     # reverses whole BitString
  s.prepend('uint:12=44')         # prepend a 12 bit integer
 

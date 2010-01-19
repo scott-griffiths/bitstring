@@ -53,7 +53,7 @@
 <h2>BitString and Bits<a class="headerlink" href="#bitstring-and-bits" title="Permalink to this headline">¶</a></h2>
 <p>The bitstring module provides just two classes, <a title="BitString" class="reference internal" href="#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> and <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a>. These share many methods as <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> is the base class for <a title="BitString" class="reference internal" href="#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>. The distinction between them is that <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> represents an immutable sequence of bits whereas <a title="BitString" class="reference internal" href="#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects support many methods that mutate their contents.</p>
 <p>If you need to change the contents of a bitstring then you must use the <a title="BitString" class="reference internal" href="#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> class. If you need to use bitstrings as keys in a dictionary or members of a set then you must use the <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> class (<a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> are hashable). Otherwise you can use whichever you prefer, but note that <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> objects can potentially be more efficent than <a title="BitString" class="reference internal" href="#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects. In this section the generic term &#8216;bitstring&#8217; means either a <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> or a <a title="BitString" class="reference internal" href="#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> object.</p>
-<p>Note that it is bit position within the bitstring (the position from which reads occur) can change without affecting the equality operation. This means that the <a title="pos" class="reference internal" href="#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> and <a title="bytepos" class="reference internal" href="#bytepos"><tt class="xref docutils literal"><span class="pre">bytepos</span></tt></a> properties can change even for a <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> object.</p>
+<p>Note that the bit position within the bitstring (the position from which reads occur) can change without affecting the equality operation. This means that the <a title="pos" class="reference internal" href="#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> and <a title="bytepos" class="reference internal" href="#bytepos"><tt class="xref docutils literal"><span class="pre">bytepos</span></tt></a> properties can change even for a <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> object.</p>
 <p>The public methods, special methods and properties of both classes are detailed in this section.</p>
 <div class="section" id="the-auto-initialiser">
 <h3>The auto initialiser<a class="headerlink" href="#the-auto-initialiser" title="Permalink to this headline">¶</a></h3>
@@ -153,7 +153,7 @@
 <tt class="descname">allset</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#Bits.allset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if one or many bits are all set to <tt class="docutils literal"><span class="pre">1</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
 <p><em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
-<p>See also <tt class="xref docutils literal"><span class="pre">allunset</span></tt>.</p>
+<p>See also <a title="Bits.allunset" class="reference internal" href="#Bits.allunset"><tt class="xref docutils literal"><span class="pre">Bits.allunset</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -161,7 +161,7 @@
 <tt class="descname">allunset</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#Bits.allunset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if one or many bits are all set to <tt class="docutils literal"><span class="pre">0</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
 <p><em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as    slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
-<p>See also <tt class="xref docutils literal"><span class="pre">allset</span></tt>.</p>
+<p>See also <a title="Bits.allset" class="reference internal" href="#Bits.allset"><tt class="xref docutils literal"><span class="pre">Bits.allset</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -169,7 +169,7 @@
 <tt class="descname">anyset</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#Bits.anyset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if any of one or many bits are set to <tt class="docutils literal"><span class="pre">1</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
 <p><em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
-<p>See also <tt class="xref docutils literal"><span class="pre">anyunset</span></tt>.</p>
+<p>See also <a title="Bits.anyunset" class="reference internal" href="#Bits.anyunset"><tt class="xref docutils literal"><span class="pre">Bits.anyunset</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -177,7 +177,7 @@
 <tt class="descname">anyunset</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#Bits.anyunset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if any of one or many bits are set to <tt class="docutils literal"><span class="pre">0</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
 <p><em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
-<p>See also <tt class="xref docutils literal"><span class="pre">anyset</span></tt>.</p>
+<p>See also <a title="Bits.anyset" class="reference internal" href="#Bits.anyset"><tt class="xref docutils literal"><span class="pre">Bits.anyset</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -674,22 +674,6 @@ The position is advanced to after the read items.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Bits.__iadd__">
-<tt class="descname">__iadd__</tt><big>(</big><em>bs</em><big>)</big><a class="headerlink" href="#Bits.__iadd__" title="Permalink to this definition">¶</a></dt>
-<dd><p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">+=</span> <span class="pre">s2</span></tt></p>
-<p>Return the result of appending <em>bs</em> to the current bitstring.</p>
-<p>Note that for <a title="BitString" class="reference internal" href="#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects this will be an in-place change, whereas for <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> objects a new object will be created (it is equivalent to a copy and an <a title="Bits.__add__" class="reference internal" href="#Bits.__add__"><tt class="xref docutils literal"><span class="pre">Bits.__add__</span></tt></a>).</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">423</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">+=</span> <span class="n">Bits</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
-<span class="go">423</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
-<span class="go">12</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
 <dt id="Bits.__invert__">
 <tt class="descname">__invert__</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.__invert__" title="Permalink to this definition">¶</a></dt>
 <dd><p><tt class="docutils literal"><span class="pre">~s</span></tt></p>
@@ -708,12 +692,12 @@ The position is advanced to after the read items.</p>
 <tt class="descname">__len__</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.__len__" title="Permalink to this definition">¶</a></dt>
 <dd><p><tt class="docutils literal"><span class="pre">len(s)</span></tt></p>
 <p>Returns the length of the bitstring in bits if it is less than <tt class="docutils literal"><span class="pre">sys.maxsize</span></tt>, otherwise raises <tt class="xref docutils literal"><span class="pre">OverflowError</span></tt>.</p>
-<p>It&#8217;s recommended that you use the <a title="len" class="reference internal" href="#len"><tt class="xref docutils literal"><span class="pre">len</span></tt></a> property rather than the <tt class="docutils literal"><span class="pre">len</span></tt> function because of the function&#8217;s behaviour for large bitstring objects, although calling the special function directly will always work.</p>
+<p>It&#8217;s recommended that you use the <a title="len" class="reference internal" href="#len"><tt class="xref docutils literal"><span class="pre">len</span></tt></a> property rather than the <a title="len" class="reference internal" href="#len"><tt class="xref docutils literal"><span class="pre">len</span></tt></a> function because of the function&#8217;s behaviour for large bitstring objects, although calling the special function directly will always work.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;11GB.mkv&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">len</span>
 <span class="go">93944160032</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="go">:exc:`OverflowError`: long int too large to convert to int</span>
+<span class="go">OverflowError: long int too large to convert to int</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">__len__</span><span class="p">()</span>
 <span class="go">93944160032</span>
 </pre></div>
@@ -992,6 +976,22 @@ Bits(‘0x0f’)</pre>
 <dd><p><tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[start:end:step]</span></tt></p>
 <p>Deletes the slice specified.</p>
 <p>After deletion <a title="pos" class="reference internal" href="#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> will be at the deleted slice&#8217;s position.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="BitString.__iadd__">
+<tt class="descname">__iadd__</tt><big>(</big><em>bs</em><big>)</big><a class="headerlink" href="#BitString.__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd><p><tt class="docutils literal"><span class="pre">s1</span> <span class="pre">+=</span> <span class="pre">s2</span></tt></p>
+<p>Return the result of appending <em>bs</em> to the current bitstring.</p>
+<p>Note that for <a title="BitString" class="reference internal" href="#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects this will be an in-place change, whereas for <a title="Bits" class="reference internal" href="#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> objects using <tt class="docutils literal"><span class="pre">+=</span></tt> will not call this method - instead a new object will be created (it is equivalent to a copy and an <a title="Bits.__add__" class="reference internal" href="#Bits.__add__"><tt class="xref docutils literal"><span class="pre">Bits.__add__</span></tt></a>).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">423</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">+=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+<span class="go">423</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+<span class="go">12</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
