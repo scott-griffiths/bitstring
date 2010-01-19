@@ -19,9 +19,9 @@ instead download version 1.0.
 
 Documentation
 -------------
-The manual for the bitstring module is available as a PDF. It contains a
-walk-through of all the features and a complete reference section. It can be
-dowloaded or viewed on the project's homepage.
+The manual for the bitstring module is available as HTML and as a PDF. It
+contains a walk-through of all the features and a complete reference section.
+It can be dowloaded or viewed on the project's homepage.
 
 Simple Examples
 ---------------
@@ -61,7 +61,7 @@ Searching, inserting and deleting::
      True
      >>> c.replace('0b001', '0xabc')
      >>> c.insert('0b0000')
-     >>> c.delete(4, 12)
+     >>> del c[12:16]
 
 Installation
 ------------
@@ -88,7 +88,7 @@ To run the unit tests::
 
      python test_bitstring.py
 
-The unit tests for version 1.1 should all pass for Python 2.6, 3.0 and 3.1.
+The unit tests should all pass for Python 2.6, 3.0 and 3.1.
 
 ----
 

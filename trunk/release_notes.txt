@@ -1,6 +1,71 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+----------------------------------------------------------------
+January 19th 2010: version 1.2.0 for Python 2.6 and 3.x released
+----------------------------------------------------------------
+
+* New 'Bits' class.
+
+Introducing a brand new class, Bits, representing an immutable sequence of
+bits.
+
+The Bits class is the base class for the mutable BitString. The differences
+between Bits and BitStrings are:
+
+1) Bits are immutable, so once they have been created their value cannot change.
+This of course means that mutating methods (append, replace, del etc.) are not
+available for Bits.
+
+2) Bits are hashable, so they can be used in sets and as keys in dictionaries.
+
+3) Bits are potentially more efficient than BitStrings, both in terms of
+computation and memory. The current implementation is only marginally
+more efficient though - this should improve in future versions.
+
+You can switch from Bits to a BitString or vice versa by constructing a new
+object from the old.
+
+>>> s = Bits('0xabcd')
+>>> t = BitString(s)
+>>> t.append('0xe')
+>>> u = Bits(t)
+
+The relationship between Bits and BitString is supposed to loosely mirror that
+between bytes and bytearray in Python 3.
+
+* Deprecation messages turned on.
+
+A number of methods have been flagged for removal in version 2. Deprecation
+warnings will now be given, which include an alternative way to do the same
+thing. All of the deprecated methods have simpler equivalent alternatives.
+
+>>> t = s.slice(0, 2)
+__main__:1: DeprecationWarning: Call to deprecated function slice.
+Instead of 's.slice(a, b, c)' use 's[a:b:c]'.
+
+The deprecated methods are: advancebit, advancebits, advancebyte, advancebytes,
+retreatbit, retreatbits, retreatbyte, retreatbytes, tell, seek, slice, delete,
+tellbyte, seekbyte, truncatestart and truncateend.
+
+* Initialise from bool.
+
+Booleans have been added to the list of types that can 'auto'
+initialise a bitstring.
+
+>>> zerobit = BitString(False)
+>>> onebit = BitString(True)
+
+* Improved efficiency.
+
+More methods have been speeded up, in particular some deletions and insertions.
+
+* Bug fixes.
+
+A rare problem with truncating the start of bitstrings was fixed.
+
+A possible problem outputting the final byte in tofile() was fixed.
+
 -----------------------------------------------------------------
 December 22nd 2009: version 1.1.3 for Python 2.6 and 3.x released
 -----------------------------------------------------------------
