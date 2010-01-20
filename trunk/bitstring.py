@@ -3175,6 +3175,8 @@ class BitString(Bits):
         new = self._converttobitstring(new)
         if not old:
             raise ValueError("Empty BitString cannot be replaced.")
+        if start is None:
+            start = 0
         newpos = self._pos
         # Adjust count for use in split()
         if count is not None:
@@ -3188,7 +3190,7 @@ class BitString(Bits):
         if new is self:
             # Prevent self assignment woes
             new = copy.copy(self)
-        positions = [lengths[0]]
+        positions = [lengths[0] + start]
         for l in lengths[1:-1]:
             # Next position is the previous one plus the length of the next section.
             positions.append(positions[-1] + l)

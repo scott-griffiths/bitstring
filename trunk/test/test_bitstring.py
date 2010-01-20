@@ -3494,6 +3494,17 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0b000000111', offset=2)
         a._truncatestart(6)
         self.assertEqual(a, '0b1')
+
+    def testBugInReplace(self):
+        s = BitString('0x00112233')
+        l = list(s.split('0x22', start=8, bytealigned=True))
+        self.assertEqual(l, ['0x11', '0x2233'])
+        s = BitString('0x00112233')
+        s.replace('0x22', '0xffff', start=8, bytealigned=True)
+        self.assertEqual(s, '0x0011ffff33')
+        s = BitString('0x0123412341234')
+        s.replace('0x23', '0xf', start=9, bytealigned=True)
+        self.assertEqual(s, '0x012341f41f4')
     
     #def testAbc(self):
     #    a = Bits()
