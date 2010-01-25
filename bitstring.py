@@ -48,6 +48,8 @@ import copy
 import warnings
 import functools
 
+_ = b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
+
 # Decorator adapted from Michael Chermside's recipe:
 # http://code.activestate.com/recipes/391367/
 def deprecated(explanation):
@@ -94,6 +96,8 @@ TOKEN_RE = re.compile(r'^(?P<name>' + INIT_NAMES_ORED +
                       r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
 DEFAULT_UINT = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
+MULTIPLICATIVE_RE = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
+
 # Hex, oct or binary literals
 LITERAL_RE = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
 
@@ -127,7 +131,7 @@ def tokenparser(format, keys=None, token_cache={}):
     If the token is in the keyword dictionary (keys) then it counts as a
     special case and isn't messed with.
     
-    tokens must be of the form: [initialiser][:][length][=value]
+    tokens must be of the form: [factor*][initialiser][:][length][=value]
     
     """
     try:
@@ -141,6 +145,13 @@ def tokenparser(format, keys=None, token_cache={}):
     return_values = []
     stretchy_token = False
     for meta_token in meta_tokens:
+        # See if it has a multiplicative factor
+        m = MULTIPLICATIVE_RE.match(meta_token)
+        if not m:
+            factor = 1
+        else:
+            factor = int(m.group('factor'))
+            meta_token = m.group('token')
         # See if it's a struct-like format
         m = STRUCT_PACK_RE.match(meta_token)
         if not m:
@@ -214,7 +225,12 @@ def tokenparser(format, keys=None, token_cache={}):
                     if not keys or length not in keys:
                         raise ValueError("Don't understand length '%s' of token." % length)
             ret_vals.append([name, length, value])
-        return_values.extend(ret_vals)
+        # This multiplies by the multiplicative factor, but this means that
+        # we can't allow keyword values as multipliers (e.g. n*uint:8).
+        # The only way to do this would be to return the factor in some fashion
+        # (we can't use the key's value here as it would mean that we couldn't
+        # sensibly continue to cache the function's results. (TODO).
+        return_values.extend(ret_vals*factor)
     return_values = [tuple(x) for x in return_values]
     token_cache[token_key] = stretchy_token, return_values
     return stretchy_token, return_values
@@ -1005,7 +1021,10 @@ class Bits(object):
         self._pos = 0
     
     def _setauto(self, s, length, offset):
-        """Set bitstring from a bitstring, file, bool, integer, list, tuple or string."""
+        """Set bitstring from a bitstring, file, bool, integer, iterable or string."""
+        # As s can be so many different things it's important to do the checks
+        # in the correct order, as some types are also other allowed types.
+        # So 'str' must be checked before Iterable and bool before int.
         if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
@@ -1014,10 +1033,6 @@ class Bits(object):
                 self._datastore = FileArray(s._datastore.source, length, offset)
             else:
                 self._setbytes(s._datastore.rawbytes, length, s._offset + offset)
-            return
-        if isinstance(s, (list, tuple)):
-            # Evaluate each item as True or False and set bits to 1 or 0.
-            self._setbin(''.join([str(int(bool(x))) for x in s]), length, offset)
             return
         if isinstance(s, file):
             self._datastore = FileArray(s, length, offset)
@@ -1036,24 +1051,29 @@ class Bits(object):
             data = bytearray((s + 7) // 8)
             self._setbytes(bytes(data), s)
             return
-        if not isinstance(s, str):
-            raise TypeError("Cannot initialise %s from %s." %
-                            (self.__class__.__name__, type(s)))
+        if isinstance(s, str):
+            self._setbytes(b'')
+            _, tokens = tokenparser(s)
+            for token in tokens:
+                self._append(BitString._init_with_token(*token))
+            # Finally we honour the offset and length
+            if offset > self.len:
+                raise ValueError("Can't apply offset of %d. Length is only %d." %
+                                 (offset, self.len))
+            self._truncatestart(offset)
+            if length is not None:
+                if length > self.len:
+                    raise ValueError("Can't truncate to length %d, as source is "
+                                     "only %d bits long." % (length, self.len))
+                self._truncateend(self.len - length)
+            return
+        if isinstance(s, collections.Iterable):
+            # Evaluate each item as True or False and set bits to 1 or 0.
+            self._setbin(''.join(str(int(bool(x))) for x in s), length, offset)
+            return
+        raise TypeError("Cannot initialise %s from %s." %
+                        (self.__class__.__name__, type(s)))
         
-        self._setbytes(b'')
-        _, tokens = tokenparser(s)
-        for token in tokens:
-            self._append(BitString._init_with_token(*token))
-        # Finally we honour the offset and length
-        if offset > self.len:
-            raise ValueError("Can't apply offset of %d. Length is only %d." %
-                             (offset, self.len))
-        self._truncatestart(offset)
-        if length is not None:
-            if length > self.len:
-                raise ValueError("Can't truncate to length %d, as source is "
-                                 "only %d bits long." % (length, self.len))
-            self._truncateend(self.len - length)
         
     def _setfile(self, filename, length, offset):
         "Use file as source of bits."
@@ -3551,7 +3571,7 @@ def pack(format, *values, **kwargs):
     >>> u = pack('uint:8=a, uint:8=b, uint:55=a', a=6, b=44)
     
     """
-    _, tokens = tokenparser(format, tuple(kwargs.keys()))
+    _, tokens = tokenparser(format, tuple(sorted(kwargs.keys())))
     new_values = []
     # This is a bit clumsy...
     for v in values:
