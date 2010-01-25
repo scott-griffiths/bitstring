@@ -2542,6 +2542,8 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(tp('123'), (False, [('uint', 123, None)]))
         self.assertRaises(ValueError, tp, 'hex12')
         self.assertEqual(tp('hex12', ('hex12',)), (False, [('hex12', None, None)]))
+        
+        self.assertEqual(tp('2*bits:6'), (False, [('bits', 6, None), ('bits', 6, None)]))
 
     def testAutoFromFileObject(self):
         f = open('test.m1v', 'rb')
@@ -3505,7 +3507,52 @@ class BitStringTest(unittest.TestCase):
         s = BitString('0x0123412341234')
         s.replace('0x23', '0xf', start=9, bytealigned=True)
         self.assertEqual(s, '0x012341f41f4')
+
+    def testMultiplicativeFactorsCreation(self):
+        s = BitString('1*0b1')
+        self.assertEqual(s, '0b1')
+        s = BitString('4*0xc')
+        self.assertEqual(s, '0xcccc')
+        s = BitString('0b1, 0*0b0')
+        self.assertEqual(s, '0b1')
+        s = BitString('0b1, 3*uint:8=34, 2*0o755')
+        self.assertEqual(s, '0b1, uint:8=34, uint:8=34, uint:8=34, 0o755755')
+        
+    def testMultiplicativeFactorsReading(self):
+        s = BitString('0xc')*5
+        a, b, c, d, e = s.readlist('5*4')
+        self.assertTrue(a == b == c == d == e == 12)
+        s = Bits('2*0b101, 4*uint:7=3')
+        a, b, c, d, e = s.readlist('2*bin:3, 3*uint:7') 
+        self.assertTrue(a == b == '0b101')
+        self.assertTrue(c == d == e == 3)
     
+    def testMultiplicativeFactorsPacking(self):
+        s = pack('3*bin', '1', '001', '101')
+        self.assertEqual(s, '0b1001101')
+        s = pack('hex, 2*se=-56, 3*uint:37', '34', 1, 2, 3)
+        a, b, c, d, e, f = s.unpack('hex:8, 2*se, 3*uint:37')
+        self.assertEqual(a, '0x34')
+        self.assertEqual(b, -56)
+        self.assertEqual(c, -56)
+        self.assertEqual((d, e, f), (1, 2, 3))
+        # This isn't allowed yet. See comment in tokenparser.
+        #s = pack('fluffy*uint:8', *range(3), fluffy=3)
+        #a, b, c = s.readlist('2*uint:8, 1*uint:8, 0*uint:8')
+        #self.assertEqual((a, b, c), (0, 1, 2))
+    
+    def testPackingDefaultIntWithKeyword(self):
+        s = pack('12', 100)
+        self.assertEqual(s.unpack('12')[0], 100)
+        s = pack('oh_no_not_the_eyes=33', oh_no_not_the_eyes=17)
+        self.assertEqual(s.uint, 33)
+        self.assertEqual(s.len, 17)
+        
+    def testInitFromIterable(self):
+        self.assertTrue(isinstance(xrange(10), collections.Iterable))
+        s = Bits(xrange(12))
+        self.assertEqual(s, '0x7ff')
+        
     #def testAbc(self):
     #    a = Bits()
     #    b = BitString()
