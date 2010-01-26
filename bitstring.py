@@ -1918,6 +1918,24 @@ class Bits(object):
         bs = self.__class__(bytes=self._datastore[startbyte:endbyte + 1],
                             length=length, offset=newoffset)
         return bs
+
+    def _validate_slice(self, start, end):
+        """Validate start and end and return them as positive bit positions."""
+        if start is None:
+            start = 0
+        elif start < 0:
+            start += self.len
+        if end is None:
+            end = self.len
+        elif end < 0:
+            end += self.len
+        if not 0 <= end <= self.len:
+            raise ValueError("end is not a valid position in the bitstring.")
+        if not 0 <= start <= self.len:
+            raise ValueError("start is not a valid position in the bitstring.")
+        if end < start:
+            raise ValueError("end must not be less than start.")
+        return start, end
      
     def unpack(self, *format):
         """Interpret the whole bitstring using format and return list.
@@ -1951,8 +1969,6 @@ class Bits(object):
     #        return_dict[value] = result
     #        
     #    return return_dict
-        
-        
     
     def read(self, format):
         """Interpret next bits according to the format string and return result.
@@ -2368,16 +2384,7 @@ class Bits(object):
         bs = self._converttobitstring(bs)
         if not bs:
             raise ValueError("Cannot find an empty bitstring.")
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
-        if start < 0:
-            raise ValueError("Cannot find - start must be >= 0.")
-        if end > self.len:
-            raise ValueError("Cannot find - end is past the end of the bitstring.")
-        if end < start:
-            raise ValueError("end must not be less than start.")
+        start, end = self._validate_slice(start, end)
         # If everything's byte aligned (and whole-byte) use the quick algorithm.
         if bytealigned and len(bs) % 8 == 0 and self._datastore.offset == 0:
             # Extract data bytes from bitstring to be found.
@@ -2454,12 +2461,8 @@ class Bits(object):
         if count is not None and count < 0:
             raise ValueError("In findall, count must be >= 0.")
         bs = self._converttobitstring(bs)
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
+        start, end = self._validate_slice(start, end)
         c = 0
-        # Can rely on find() for parameter checking
         while self.find(bs, start, end, bytealigned):
             if count is not None and c >= count:
                 return
@@ -2490,10 +2493,7 @@ class Bits(object):
         
         """
         bs = self._converttobitstring(bs)
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
+        start, end = self._validate_slice(start, end)
         if not bs:
             raise ValueError("Cannot find an empty bitstring.")
         # Search chunks starting near the end and then moving back
@@ -2549,16 +2549,7 @@ class Bits(object):
                  Default is to cut as many times as possible.
         
         """
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
-        if start < 0:
-            raise ValueError("Cannot cut - start must be >= 0.")
-        if end > self.len:
-            raise ValueError("Cannot cut - end is past the end of the bitstring.")
-        if end < start:
-            raise ValueError("end must not be less than start.")
+        start, end = self._validate_slice(start, end)
         if count is not None and count < 0:
             raise ValueError("Cannot cut - count must be >= 0.")
         if bits <= 0:
@@ -2595,16 +2586,7 @@ class Bits(object):
         delimiter = self._converttobitstring(delimiter)
         if not delimiter:
             raise ValueError("split delimiter cannot be empty.")
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
-        if start < 0:
-            raise ValueError("Cannot split - start must be >= 0.")
-        if end > self.len:
-            raise ValueError("Cannot split - end is past the end of the bitstring.")
-        if end < start:
-            raise ValueError("end must not be less than start.")
+        start, end = self._validate_slice(start, end)
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         oldpos = self._pos
@@ -2716,10 +2698,7 @@ class Bits(object):
                
         """
         prefix = self._converttobitstring(prefix)
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
+        start, end = self._validate_slice(start, end)
         if end < start + prefix.len:
             return False
         end = start + prefix.len
@@ -2734,10 +2713,7 @@ class Bits(object):
                
         """
         suffix = self._converttobitstring(suffix)
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
+        start, end = self._validate_slice(start, end)
         if start + suffix.len > end:
             return False
         start = end - suffix.len
@@ -3195,8 +3171,7 @@ class BitString(Bits):
         new = self._converttobitstring(new)
         if not old:
             raise ValueError("Empty BitString cannot be replaced.")
-        if start is None:
-            start = 0
+        start, end = self._validate_slice(start, end)
         newpos = self._pos
         # Adjust count for use in split()
         if count is not None:
@@ -3279,7 +3254,9 @@ class BitString(Bits):
             bs = self.__copy__()
         if pos is None:
             pos = self._pos
-        if pos < 0 or pos > self.len:
+        if pos < 0:
+            pos += self.len
+        if not 0 <= pos <= self.len:
             raise ValueError("Invalid insert position.")
         self._insert(bs, pos)
         
@@ -3299,6 +3276,8 @@ class BitString(Bits):
             return self
         if pos is None:
             pos = self._pos
+        if pos < 0:
+            pos += self.len
         if pos < 0 or pos + bs.len > self.len:
             raise ValueError("Overwrite exceeds boundary of BitString.")
         self._ensureinmemory()
@@ -3357,16 +3336,7 @@ class BitString(Bits):
         Raises ValueError if start < 0, end > self.len or end < start.
         
         """
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
-        if start < 0:
-            raise ValueError("start must be >= 0 in reversebits().")
-        if end > self.len:
-            raise ValueError("end must be <= self.len in reversebits().")
-        if end < start:
-            raise ValueError("end must be >= start in reversebits().")
+        start, end = self._validate_slice(start, end)
         self._ensureinmemory()
         if start == 0 and end == self.len:
             self._reverse()
@@ -3385,16 +3355,7 @@ class BitString(Bits):
         Raises BitStringError if end - start is not a multiple of 8.
         
         """
-        if start is None:
-            start = 0
-        if end is None:
-            end = self.len
-        if start < 0:
-            raise ValueError("start must be >= 0 in reversebytes().")
-        if end > self.len:
-            raise ValueError("end must be <= self.len in reversebytes().")
-        if end < start:
-            raise ValueError("end must be >= start in reversebytes().")
+        start, end = self._validate_slice(start, end)
         if (end - start) % 8 != 0:
             raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
         self._ensureinmemory()
