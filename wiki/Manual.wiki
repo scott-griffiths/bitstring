@@ -7,4 +7,4 @@ _A Python module to help you manage your bits_
 
 The bitstring manual is now available online: *[http://python-bitstring.googlecode.com/svn/trunk/doc/html/index.html Read the manual online]*.
 
-If you prefer, it is also available as a PDF: *[http://python-bitstring.googlecode.com/svn/tags/bitstring-1.2.0/docs/bitstring_manual.pdf Download the bitstring manual (PDF)]*
+If you prefer, it is also available as a PDF: *[http://python-bitstring.googlecode.com/svn/tags/bitstring-1.2.0/doc/bitstring_manual.pdf Download the bitstring manual (PDF)]*
