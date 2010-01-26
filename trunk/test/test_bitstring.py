@@ -684,7 +684,7 @@ class BitStringTest(unittest.TestCase):
         s1.insert('0xee', 24)
         self.assertEqual(s1.hex, '0x12ff34ee56')
         self.assertEqual(s1.bitpos, 32)
-        self.assertRaises(ValueError, s1.insert, '0b1', -1)
+        self.assertRaises(ValueError, s1.insert, '0b1', -1000)
         self.assertRaises(ValueError, s1.insert, '0b1', 1000)
 
     def testInsertNull(self):
@@ -824,7 +824,7 @@ class BitStringTest(unittest.TestCase):
         
     def testOverwriteErrors(self):
         s = BitString(bin='11111')
-        self.assertRaises(ValueError, s.overwrite, BitString(bin='1'), -1)
+        self.assertRaises(ValueError, s.overwrite, BitString(bin='1'), -10)
         self.assertRaises(ValueError, s.overwrite, BitString(bin='1'), 6)
         self.assertRaises(ValueError, s.overwrite, BitString(bin='11111'), 1)
 
@@ -1568,11 +1568,11 @@ class BitStringTest(unittest.TestCase):
     
     def testFindStartEndbitErrors(self):
         a = BitString('0b00100')
-        self.assertRaises(ValueError, a.find, '0b1', bytealigned=False, start=-1)
+        self.assertRaises(ValueError, a.find, '0b1', bytealigned=False, start=-100)
         self.assertRaises(ValueError, a.find, '0b1', end=6)
         self.assertRaises(ValueError, a.find, '0b1', start=4, end=3)
         b = BitString('0x0011223344')
-        self.assertRaises(ValueError, a.find, '0x22', bytealigned=True, start=-1)
+        self.assertRaises(ValueError, a.find, '0x22', bytealigned=True, start=-100)
         self.assertRaises(ValueError, a.find, '0x22', end=41, bytealigned=True)
 
     def testSplitStartbit(self):
@@ -1730,7 +1730,7 @@ class BitStringTest(unittest.TestCase):
     def testReplaceErrors(self):
         a = BitString('0o123415')
         self.assertRaises(ValueError, a.replace, '', '0o7', bytealigned=True)
-        self.assertRaises(ValueError, a.replace, '0b1', '0b1', start=-1, bytealigned=True)
+        self.assertRaises(ValueError, a.replace, '0b1', '0b1', start=-100, bytealigned=True)
         self.assertRaises(ValueError, a.replace, '0b1', '0b1', end=19, bytealigned=True)
 
     def testFindAll(self):
@@ -1801,7 +1801,7 @@ class BitStringTest(unittest.TestCase):
     def testRfindErrors(self):
         a = BitString('0x43234234')
         self.assertRaises(ValueError, a.rfind, '', bytealigned=True)
-        self.assertRaises(ValueError, a.rfind, '0b1', start=-1, bytealigned=True)
+        self.assertRaises(ValueError, a.rfind, '0b1', start=-99, bytealigned=True)
         self.assertRaises(ValueError, a.rfind, '0b1', end=33, bytealigned=True)
         self.assertRaises(ValueError, a.rfind, '0b1', start=10, end=9, bytealigned=True)
     
@@ -2103,7 +2103,7 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0b1')
         b = a.cut(1, 1, 2)
         self.assertRaises(ValueError, next, b)
-        b = a.cut(1, -1, 1)
+        b = a.cut(1, -2, 1)
         self.assertRaises(ValueError, next, b)
         b = a.cut(0)
         self.assertRaises(ValueError, next, b)
@@ -3517,6 +3517,8 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s, '0b1')
         s = BitString('0b1, 3*uint:8=34, 2*0o755')
         self.assertEqual(s, '0b1, uint:8=34, uint:8=34, uint:8=34, 0o755755')
+        s = BitString('0*0b1001010')
+        self.assertFalse(s)
         
     def testMultiplicativeFactorsReading(self):
         s = BitString('0xc')*5
@@ -3552,6 +3554,89 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue(isinstance(xrange(10), collections.Iterable))
         s = Bits(xrange(12))
         self.assertEqual(s, '0x7ff')
+        
+    def testFunctionNegativeIndices(self):
+        # insert
+        s = BitString('0b0111')
+        s.insert('0b0', -1)
+        self.assertEqual(s, '0b01101')
+        self.assertRaises(ValueError, s.insert, '0b0', -1000)
+        
+        # reverse
+        s.reverse(-2)
+        self.assertEqual(s, '0b01110')
+        t = BitString('0x778899abcdef')
+        t.reverse(-12, -4)
+        self.assertEqual(t, '0x778899abc7bf')
+        
+        # reversebytes
+        t.reversebytes(-40, -16)
+        self.assertEqual(t, '0x77ab9988c7bf')
+        
+        # overwrite
+        t.overwrite('0x666', -20)
+        self.assertEqual(t, '0x77ab998666bf')
+        
+        # find
+        found = t.find('0x998', bytealigned=True, start=-31)
+        self.assertFalse(found)
+        found = t.find('0x998', bytealigned=True, start=-32)
+        self.assertTrue(found)
+        self.assertEqual(t.pos, 16)
+        t.pos = 0
+        found = t.find('0x988', bytealigned=True, end=-21)
+        self.assertFalse(found)
+        found = t.find('0x998', bytealigned=True, end=-20)
+        self.assertTrue(found)
+        self.assertEqual(t.pos, 16)
+        
+        #findall
+        s = BitString('0x1234151f')
+        l = list(s.findall('0x1', bytealigned=True, start=-15))
+        self.assertEqual(l, [24])
+        l = list(s.findall('0x1', bytealigned=True, start=-16))
+        self.assertEqual(l, [16, 24])
+        l = list(s.findall('0x1', bytealigned=True, end=-5))
+        self.assertEqual(l, [0, 16])
+        l = list(s.findall('0x1', bytealigned=True, end=-4))
+        self.assertEqual(l, [0, 16, 24])
+        
+        # rfind
+        found = s.rfind('0x1f', end=-1)
+        self.assertFalse(found)
+        found = s.rfind('0x12', start=-31)
+        self.assertFalse(found)
+        
+        # cut
+        s = BitString('0x12345')
+        l = list(s.cut(4, start=-12, end=-4))
+        self.assertEqual(l, ['0x3', '0x4'])
+        
+        # split
+        s = BitString('0xfe0012fe1200fe')
+        l = list(s.split('0xfe', bytealigned=True, end=-1))
+        self.assertEqual(l, ['', '0xfe0012', '0xfe1200f, 0b111'])
+        l = list(s.split('0xfe', bytealigned=True, start=-8))
+        self.assertEqual(l, ['', '0xfe'])
+        
+        # startswith
+        self.assertTrue(s.startswith('0x00f', start=-16))
+        self.assertTrue(s.startswith('0xfe00', end=-40))
+        self.assertFalse(s.startswith('0xfe00', end=-41))
+        
+        # endswith
+        self.assertTrue(s.endswith('0x00fe', start=-16))
+        self.assertFalse(s.endswith('0x00fe', start=-15))
+        self.assertFalse(s.endswith('0x00fe', end=-1))
+        self.assertTrue(s.endswith('0x00f', end=-4))
+        
+        # replace
+        s.replace('0xfe', '', end=-1)
+        self.assertEqual(s, '0x00121200fe')
+        s.replace('0x00', '', start=-24)
+        self.assertEqual(s, '0x001212fe')
+        
+        
         
     #def testAbc(self):
     #    a = Bits()
