@@ -3645,6 +3645,18 @@ class BitStringTest(unittest.TestCase):
         
     # TODO: write tests for all the ABC methods like count and extend that have been added.
     
+    def testRotateStartAndEnd(self):
+        a = BitString('0b110100001')
+        a.rol(1, 3, 6)
+        self.assertEqual(a, '0b110001001')
+        a.ror(1, start=-4)
+        self.assertEqual(a, '0b110001100')
+        a.rol(202, end=-5)
+        self.assertEqual(a, '0b001101100')
+        a.ror(3, end=4)
+        self.assertEqual(a, '0b011001100')
+        self.assertRaises(ValueError, a.rol, 5, start=-4, end=-6)
+        
 
 def main():
     unittest.main()

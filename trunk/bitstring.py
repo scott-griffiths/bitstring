@@ -3154,9 +3154,9 @@ class BitString(Bits, collections.MutableSequence):
         
         old -- The BitString to replace.
         new -- The replacement BitString.
-        start -- Any occurences that start before starbit will not be replaced.
+        start -- Any occurences that start before this will not be replaced.
                  Defaults to 0.
-        end -- Any occurences that finish after end will not be replaced.
+        end -- Any occurences that finish after this will not be replaced.
                Defaults to self.len.
         count -- The maximum number of replacements to make. Defaults to
                  replace all occurences.
@@ -3396,11 +3396,12 @@ class BitString(Bits, collections.MutableSequence):
         """ 
         self._invert(pos)
     
-    # TODO: Add start, end. Optimise!
-    def ror(self, bits):
+    def ror(self, bits, start=None, end=None):
         """Rotate bits to the right in-place.
         
         bits -- The number of bits to rotate by.
+        start -- Start of slice to rotate. Defaults to 0.
+        end -- End of slice to rotate. Defaults to self.len.
         
         Raises ValueError if bits < 0.
         
@@ -3409,17 +3410,20 @@ class BitString(Bits, collections.MutableSequence):
             raise BitStringError("Cannot rotate an empty BitString.")
         if bits < 0:
             raise ValueError("Cannot rotate right by negative amount.")
-        bits %= self.len
+        start, end = self._validate_slice(start, end)
+        bits %= (end - start)
         if bits == 0:
             return
-        rhs = self[-bits:]
-        del self[-bits:]
-        self.prepend(rhs)
+        rhs = self[end - bits:end]
+        del self[end - bits:end]
+        self.insert(rhs, start)
 
-    def rol(self, bits):
+    def rol(self, bits, start=None, end=None):
         """Rotate bits to the left in-place.
         
         bits -- The number of bits to rotate by.
+        start -- Start of slice to rotate. Defaults to 0.
+        end -- End of slice to rotate. Defaults to self.len.
         
         Raises ValueError if bits < 0.
         
@@ -3428,12 +3432,13 @@ class BitString(Bits, collections.MutableSequence):
             raise BitStringError("Cannot rotate an empty BitString.")
         if bits < 0:
             raise ValueError("Cannot rotate left by negative amount.")
-        bits %= self.len
+        start, end = self._validate_slice(start, end)
+        bits %= (end - start)
         if bits == 0:
             return
-        lhs = self[:bits]
-        del self[:bits]
-        self.append(lhs)
+        lhs = self[start:start + bits]
+        del self[start:start + bits]
+        self.insert(lhs, end - bits)
 
     int    = property(Bits._getint, Bits._setint,
                       doc="""The BitString as a two's complement signed int. Read and write.
