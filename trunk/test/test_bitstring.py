@@ -41,7 +41,7 @@ from bitstring import BitString, BitStringError, Bits, pack
 class BitStringTest(unittest.TestCase):
     
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '1.2.0')
+        self.assertEqual(bitstring.__version__, '1.3.0')
     
     def testAll(self):
         a = bitstring.__all__
@@ -3636,13 +3636,15 @@ class BitStringTest(unittest.TestCase):
         s.replace('0x00', '', start=-24)
         self.assertEqual(s, '0x001212fe')
         
+    def testAbc(self):
+        a = Bits()
+        b = BitString()
+        self.assertTrue(isinstance(a, collections.Sequence))
+        self.assertFalse(isinstance(a, collections.MutableSequence))
+        self.assertTrue(isinstance(b, collections.MutableSequence))
         
-        
-    #def testAbc(self):
-    #    a = Bits()
-    #    b = BitString()
-    #    self.assertTrue(isinstance(a, collections.Sequence))
-    #    self.assertTrue(isinstance(b, collections.MutableSequence))
+    # TODO: write tests for all the ABC methods like count and extend that have been added.
+    
 
 def main():
     unittest.main()

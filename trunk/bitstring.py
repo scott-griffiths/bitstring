@@ -29,7 +29,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 __author__ = "Scott Griffiths"
 
@@ -443,7 +443,7 @@ class MemArray(ConstMemArray):
 bytes_ = bytes
 
 
-class Bits(object):
+class Bits(collections.Sequence):
     "An immutable sequence of bits."
     
     # This function hides a lot of built-ins. Instead of bytes use bytes_.
@@ -479,10 +479,10 @@ class Bits(object):
     
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
-                  It must be supplied for all integer initialisers.
+                  It must be supplied for all integer and float initialisers.
         offset -- bit offset to the data. These offset bits are
                   ignored and this is mainly intended for use when
-                  initialising using 'bytes'.
+                  initialising using 'bytes' or 'filename'.
        
         e.g.
         a = Bits('0x123ab560')
@@ -2868,7 +2868,7 @@ class Bits(object):
                       """)
     
 
-class BitString(Bits):
+class BitString(Bits, collections.MutableSequence):
     """A class for general bit-wise manipulations and interpretations."""
 
     # As BitString objects are mutable, we shouldn't allow them to be hashed.
