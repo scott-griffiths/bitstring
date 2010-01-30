@@ -3656,7 +3656,40 @@ class BitStringTest(unittest.TestCase):
         a.ror(3, end=4)
         self.assertEqual(a, '0b011001100')
         self.assertRaises(ValueError, a.rol, 5, start=-4, end=-6)
-        
+    
+    def testByteSwapInt(self):
+        s = pack('5*uintle:16', *range(10, 15))
+        self.assertEqual(list(range(10, 15)), s.unpack('5*uintle:16'))
+        swaps = s.byteswap(2)
+        self.assertEqual(list(range(10, 15)), s.unpack('5*uintbe:16'))
+        self.assertEqual(swaps, 5)
+        s = BitString('0xf234567f')
+        swaps = s.byteswap(1, start=4)
+        self.assertEqual(swaps, 3)
+        self.assertEqual(s, '0xf234567f')
+        s.byteswap(2, start=4)
+        self.assertEqual(s, '0xf452367f')
+        s.byteswap(2, start=4, end=-4)
+        self.assertEqual(s, '0xf234567f')
+        s.byteswap(3)
+        self.assertEqual(s, '0x5634f27f')
+        s.byteswap(2, repeat=False)
+        self.assertEqual(s, '0x3456f27f')
+        swaps = s.byteswap(5)
+        self.assertEqual(swaps, 0)
+        swaps = s.byteswap(4, repeat=False)
+        self.assertEqual(swaps, 1)
+        self.assertEqual(s, '0x7ff25634')
+    
+    def testByteSwapPackCode(self):
+        s = BitString('0x0011223344556677')
+        swaps = s.byteswap('b')
+        self.assertEqual(s, '0x0011223344556677')
+        self.assertEqual(swaps, 8)
+        swaps = s.byteswap('3h', repeat=False)
+        self.assertEqual(s, '0x1100332255446677')
+        self.assertEqual(swaps, 1)
+
 
 def main():
     unittest.main()

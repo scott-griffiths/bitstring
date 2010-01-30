@@ -102,7 +102,7 @@ MULTIPLICATIVE_RE = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
 LITERAL_RE = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-STRUCT_PACK_RE = re.compile(r'^(?P<endian><|>|@)(?P<format>(?:\d*[bBhHlLqQfd])+)$')
+STRUCT_PACK_RE = re.compile(r'^(?P<endian><|>|@)?(?P<format>(?:\d*[bBhHlLqQfd])+)$')
 
 # A number followed by a single character struct.pack code
 STRUCT_SPLIT_RE = re.compile(r'\d*[bBhHlLqQfd]')
@@ -120,6 +120,38 @@ REPLACEMENTS_LE = {'b': 'intle:8', 'B': 'uintle:8',
                    'l': 'intle:32', 'L': 'uintle:32',
                    'q': 'intle:64', 'Q': 'uintle:64',
                    'f': 'floatle:32', 'd': 'floatle:64'}
+
+# Size in bytes of all the pack codes.
+PACK_CODE_SIZE = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
+                  'q': 8, 'Q': 8, 'f': 4, 'F': 4}
+
+def structparser(token):
+    """Parse struct-like format string token into sub-token list."""
+    m = STRUCT_PACK_RE.match(token)
+    if not m:
+        return [token]
+    else:
+        endian = m.group('endian')
+        if endian is None:
+            return [token]
+        # Split the format string into a list of 'q', '4h' etc.
+        formatlist = re.findall(STRUCT_SPLIT_RE, m.group('format'))
+        # Now deal with mulitplicative factors, 4h -> hhhh etc.
+        format = ''.join([f[-1]*int(f[:-1]) if len(f) != 1 else
+                          f for f in formatlist])
+        if endian == '@':
+            # Native endianness
+            if byteorder == 'little':
+                endian = '<'
+            else:
+                assert byteorder == 'big'
+                endian = '>'
+        if endian == '<':
+            tokens = [REPLACEMENTS_LE[c] for c in format]
+        else:
+            assert endian == '>'
+            tokens = [REPLACEMENTS_BE[c] for c in format]
+    return tokens
 
 def tokenparser(format, keys=None, token_cache={}):
     """Divide the format string into tokens and parse them.
@@ -153,28 +185,7 @@ def tokenparser(format, keys=None, token_cache={}):
             factor = int(m.group('factor'))
             meta_token = m.group('token')
         # See if it's a struct-like format
-        m = STRUCT_PACK_RE.match(meta_token)
-        if not m:
-            tokens = [meta_token]
-        else:
-            # Split the format string into a list of 'q', '4h' etc.
-            formatlist = re.findall(STRUCT_SPLIT_RE, m.group('format'))
-            # Now deal with mulitplicative factors, 4h -> hhhh etc.
-            format = ''.join([f[-1]*int(f[:-1]) if len(f) != 1 else
-                              f for f in formatlist])
-            endian = m.group('endian')
-            if endian == '@':
-                # Native endianness
-                if byteorder == 'little':
-                    endian = '<'
-                else:
-                    assert byteorder == 'big'
-                    endian = '>'
-            if endian == '<':
-                tokens = [REPLACEMENTS_LE[c] for c in format]
-            else:
-                assert endian == '>'
-                tokens = [REPLACEMENTS_BE[c] for c in format]
+        tokens = structparser(meta_token)
         ret_vals = []
         for token in tokens:
             if keys and token in keys:
@@ -3439,6 +3450,57 @@ class BitString(Bits, collections.MutableSequence):
         lhs = self[start:start + bits]
         del self[start:start + bits]
         self.insert(lhs, end - bits)
+    
+    def byteswap(self, format, start=None, end=None, repeat=True):
+        """Change the endianness in-place. Return number of repeats done.
+        
+        format -- A compact structure string, an integer number of bytes or
+                  an iterable of integers.
+        start -- Start bit position, defaults to 0.
+        end -- End bit position, defaults to self.len.
+        repeat -- If True (the default) the byte swapping pattern is repeated
+                  as much as possible.
+        
+        """
+        start, end = self._validate_slice(start, end)
+        self._ensureinmemory()
+
+        if isinstance(format, int):
+            if format < 1:
+                raise ValueError("Improper byte length %d." % format)
+            bytesizes = [format]
+
+        elif isinstance(format, str):
+            m = STRUCT_PACK_RE.match(format)
+            if not m:
+                raise ValueError("Cannot parse format string %s." % format)
+            # Split the format string into a list of 'q', '4h' etc.
+            formatlist = re.findall(STRUCT_SPLIT_RE, m.group('format'))
+            # Now deal with mulitplicative factors, 4h -> hhhh etc.
+            bytesizes = []
+            for f in formatlist:
+                if len(f) == 1:
+                    bytesizes.append(PACK_CODE_SIZE[f])
+                else:
+                    bytesizes.extend([PACK_CODE_SIZE[f[-1]]]*int(f[:-1]))
+        repeats = 0
+        totalbitsize = 8*sum(bytesizes)
+
+        if repeat:
+            # Try to repeat up to the end of the bitstring.
+            finalbit = end + 1
+        else:
+            # Just try one byteswap.
+            finalbit = start + totalbitsize + 1
+        for patternend in xrange(start + totalbitsize, finalbit, totalbitsize):
+            bytestart = patternend - totalbitsize
+            for bytesize in bytesizes:
+                byteend = bytestart + bytesize*8
+                self._reversebytes(bytestart, byteend)
+                bytestart += bytesize*8
+            repeats += 1
+        return repeats
+        
 
     int    = property(Bits._getint, Bits._setint,
                       doc="""The BitString as a two's complement signed int. Read and write.
