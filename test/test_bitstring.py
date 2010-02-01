@@ -3686,10 +3686,36 @@ class BitStringTest(unittest.TestCase):
         swaps = s.byteswap('b')
         self.assertEqual(s, '0x0011223344556677')
         self.assertEqual(swaps, 8)
-        swaps = s.byteswap('3h', repeat=False)
+        swaps = s.byteswap('>3h', repeat=False)
         self.assertEqual(s, '0x1100332255446677')
         self.assertEqual(swaps, 1)
+        
+    def testByteSwapIterable(self):
+        s = BitString('0x0011223344556677')
+        swaps = s.byteswap(xrange(1, 4), repeat=False)
+        self.assertEqual(swaps, 1)
+        self.assertEqual(s, '0x0022115544336677')
+        swaps = s.byteswap([2], start=8)
+        self.assertEqual(s, '0x0011224455663377')
+        self.assertEqual(3, swaps)
+        swaps = s.byteswap([2, 3], start=4)
+        self.assertEqual(swaps, 1)
+        self.assertEqual(s, '0x0120156452463377')
+        
+    def testByteSwapErrors(self):
+        s = BitString('0x0011223344556677')
+        self.assertRaises(ValueError, s.byteswap, 'z')
+        self.assertRaises(ValueError, s.byteswap, 0)
+        self.assertRaises(ValueError, s.byteswap, [-1])
+        self.assertRaises(ValueError, s.byteswap, [1, 'e'])
+        self.assertRaises(ValueError, s.byteswap, '!h')
+        self.assertRaises(ValueError, s.byteswap, 2, start=-1000)
 
+    def testByteSwapFromFile(self):
+        s = BitString(filename='smalltestfile')
+        swaps = s.byteswap('2bh')
+        self.assertEqual(s, '0x0123674589abefcd')
+        self.assertEqual(swaps, 2)
 
 def main():
     unittest.main()
