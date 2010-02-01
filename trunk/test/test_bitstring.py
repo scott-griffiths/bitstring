@@ -3716,6 +3716,27 @@ class BitStringTest(unittest.TestCase):
         swaps = s.byteswap('2bh')
         self.assertEqual(s, '0x0123674589abefcd')
         self.assertEqual(swaps, 2)
+        
+    def testBracketExpander(self):
+        be = bitstring.expand_brackets
+        self.assertEqual(be('hello'), 'hello')
+        self.assertEqual(be('(hello)'), 'hello')
+        self.assertEqual(be('1*(hello)'), 'hello')
+        self.assertEqual(be('2*(hello)'), 'hello,hello')
+        self.assertEqual(be('1*(a, b)'), 'a,b')
+        self.assertEqual(be('2*(a, b)'), 'a,b,a,b')
+        self.assertEqual(be('2*(a), 3*(b)'), 'a,a,b,b,b')
+        self.assertEqual(be('2*(a, b, 3*(c, d), e)'), 'a,b,c,d,c,d,c,d,e,a,b,c,d,c,d,c,d,e')
+        
+    def testBracketTokens(self):
+        s = BitString('3*(0x0, 0b1)')
+        self.assertEqual(s, '0x0, 0b1, 0x0, 0b1, 0x0, 0b1')
+        s = pack('2*(uint:12, 3*(7, 6))', *xrange(3, 17))
+        a = s.unpack('12, 7, 6, 7, 6, 7, 6, 12, 7, 6, 7, 6, 7, 6')
+        self.assertEqual(a, list(xrange(3, 17)))
+        b = s.unpack('2*(12,3*(7,6))')
+        self.assertEqual(a, b)
+        
 
 def main():
     unittest.main()

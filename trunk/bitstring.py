@@ -170,6 +170,8 @@ def tokenparser(format, keys=None, token_cache={}):
         return token_cache[(format, keys)]
     except KeyError:
         token_key = (format, keys)
+    # Very inefficent expanding of brackets.
+    format = expand_brackets(format)
     # Split tokens by ',' and remove whitespace
     # The meta_tokens can either be ordinary single tokens or multiple
     # struct-format token strings.
@@ -245,7 +247,40 @@ def tokenparser(format, keys=None, token_cache={}):
     return_values = [tuple(x) for x in return_values]
     token_cache[token_key] = stretchy_token, return_values
     return stretchy_token, return_values
-    
+
+# Looks for first number*(
+BRACKET_RE = re.compile(r'(?P<factor>\d+)\*\(')
+
+def expand_brackets(s):
+    """Remove whitespace and expand all brackets."""
+    s = ''.join(s.split())
+    while True:
+        start = s.find('(')
+        if start == -1:
+            return s
+        count = 1 # Number of hanging open brackets
+        for p in xrange(start + 1, len(s)):
+            if s[p] == '(':
+                count += 1
+            if s[p] == ')':
+                count -= 1
+            if count == 0:
+                break
+        if count != 0:
+            raise ValueError("Unbalanced parenthesis in '%s'." % s)
+        if start == 0 or s[start-1] != '*':
+            s = s[0:start] + s[start + 1:p] + s[p + 1:]
+        else:
+            m = BRACKET_RE.search(s)
+            if m:
+                factor = int(m.group('factor'))
+                matchstart = m.start('factor')
+                s = s[0:matchstart] + (factor - 1)*(s[start + 1:p] + ',') + s[start + 1:p] + s[p + 1:]
+            else:
+                raise ValueError("Failed to parse '%s'." % s)
+    return s
+            
+
 # This byte to bitstring lookup really speeds things up.
 BYTE_TO_BITS = tuple('{0:08b}'.format(i) for i in range(256))
 
