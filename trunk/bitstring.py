@@ -3452,7 +3452,7 @@ class BitString(Bits, collections.MutableSequence):
         self.insert(lhs, end - bits)
     
     def byteswap(self, format, start=None, end=None, repeat=True):
-        """Change the endianness in-place. Return number of repeats done.
+        """Change the endianness in-place. Return number of repeats of format done.
         
         format -- A compact structure string, an integer number of bytes or
                   an iterable of integers.
@@ -3464,12 +3464,10 @@ class BitString(Bits, collections.MutableSequence):
         """
         start, end = self._validate_slice(start, end)
         self._ensureinmemory()
-
         if isinstance(format, int):
             if format < 1:
                 raise ValueError("Improper byte length %d." % format)
             bytesizes = [format]
-
         elif isinstance(format, str):
             m = STRUCT_PACK_RE.match(format)
             if not m:
@@ -3483,16 +3481,23 @@ class BitString(Bits, collections.MutableSequence):
                     bytesizes.append(PACK_CODE_SIZE[f])
                 else:
                     bytesizes.extend([PACK_CODE_SIZE[f[-1]]]*int(f[:-1]))
+        elif isinstance(format, collections.Iterable):
+            bytesizes = format
+            for bytesize in bytesizes:
+                if not isinstance(bytesize, int) or bytesize < 1:
+                    raise ValueError("Improper byte length {0}.".format(bytesize))
+        else:
+            raise ValueError("format must be an integer, string or iterable.")
+                    
         repeats = 0
         totalbitsize = 8*sum(bytesizes)
-
         if repeat:
             # Try to repeat up to the end of the bitstring.
-            finalbit = end + 1
+            finalbit = end
         else:
-            # Just try one byteswap.
-            finalbit = start + totalbitsize + 1
-        for patternend in xrange(start + totalbitsize, finalbit, totalbitsize):
+            # Just try one (set of) byteswap(s).
+            finalbit = start + totalbitsize 
+        for patternend in xrange(start + totalbitsize, finalbit + 1, totalbitsize):
             bytestart = patternend - totalbitsize
             for bytesize in bytesizes:
                 byteend = bytestart + bytesize*8
