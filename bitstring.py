@@ -123,7 +123,7 @@ REPLACEMENTS_LE = {'b': 'intle:8', 'B': 'uintle:8',
 
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
-                  'q': 8, 'Q': 8, 'f': 4, 'F': 4}
+                  'q': 8, 'Q': 8, 'f': 4, 'd': 8}
 
 def structparser(token):
     """Parse struct-like format string token into sub-token list."""
@@ -257,7 +257,7 @@ def expand_brackets(s):
     while True:
         start = s.find('(')
         if start == -1:
-            return s
+            break
         count = 1 # Number of hanging open brackets
         for p in xrange(start + 1, len(s)):
             if s[p] == '(':
@@ -621,9 +621,9 @@ class Bits(collections.Sequence):
             self._setbytes(b'')
             break
         self.mutable = True
-        #if not isinstance(self, BitString):
-        #    self.mutable = False
-        #    self._datastore = ConstMemArray(self._datastore[:], self._datastore.bitlength, self._datastore.offset)
+#        if not isinstance(self, BitString):
+#            self.mutable = False
+#            self._datastore = ConstMemArray(self._datastore[:], self._datastore.bitlength, self._datastore.offset)
         return
 
     def __copy__(self):
@@ -642,7 +642,7 @@ class Bits(collections.Sequence):
         
         """
         bs = self._converttobitstring(bs)
-        bs._ensureinmemory() 
+        bs._ensureinmemory()
         s = self._copy()
         s._append(bs)
         s._pos = 0
@@ -1704,11 +1704,8 @@ class Bits(collections.Sequence):
         """Create and return a new copy of the Bits (always in memory)."""
         s_copy = self.__class__()
         s_copy._pos = self._pos
-        if isinstance(self._datastore, FileArray):
-            s_copy._datastore = MemArray(self._datastore[:], self.len,
+        s_copy._datastore = MemArray(self._datastore[:], self.len,
                                          self._offset)
-        else:
-            s_copy._datastore = copy.copy(self._datastore)
         return s_copy
     
     def _slice(self, start, end):
@@ -2672,10 +2669,10 @@ class Bits(collections.Sequence):
         """
         s = self.__class__()
         if bitstringlist:
-            for bs in bitstringlist[:-1]:
-                s._append(self._converttobitstring(bs))
+            s._append(self._converttobitstring(bitstringlist[0]))
+            for i in xrange(1, len(bitstringlist)):
                 s._append(self)
-            s._append(self._converttobitstring(bitstringlist[-1]))
+                s._append(self._converttobitstring(bitstringlist[i]))
         return s
 
     def tobytes(self):

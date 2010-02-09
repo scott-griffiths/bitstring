@@ -3736,7 +3736,17 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(a, list(xrange(3, 17)))
         b = s.unpack('2*(12,3*(7,6))')
         self.assertEqual(a, b)
-        
+    
+    def testPackCodeDicts(self):
+        self.assertEqual(sorted(bitstring.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.REPLACEMENTS_LE.keys()))
+        self.assertEqual(sorted(bitstring.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.PACK_CODE_SIZE.keys()))
+        for key in bitstring.PACK_CODE_SIZE:
+            be = pack(bitstring.REPLACEMENTS_BE[key], 0)
+            le = pack(bitstring.REPLACEMENTS_LE[key], 0)
+            self.assertEqual(be.len, bitstring.PACK_CODE_SIZE[key]*8)
+            self.assertEqual(le.len, be.len)
 
 def main():
     unittest.main()
