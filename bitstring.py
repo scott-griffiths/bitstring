@@ -537,7 +537,7 @@ class Bits(collections.Sequence):
     
         """
         self._pos = 0
-        self._file = None
+        self._filebased = False
         if length is not None and length < 0:
             raise ValueError("%s length cannot be negative." %
                              self.__class__.__name__)
@@ -1077,11 +1077,13 @@ class Bits(collections.Sequence):
             if isinstance(s._datastore, FileArray):
                 offset += s._datastore.offset + s._datastore.byteoffset*8
                 self._datastore = FileArray(s._datastore.source, length, offset)
+                self._filebased = True
             else:
                 self._setbytes(s._datastore.rawbytes, length, s._offset + offset)
             return
         if isinstance(s, file):
             self._datastore = FileArray(s, length, offset)
+            self._filebased = True
             return
         if isinstance(s, bool):
             if s:
@@ -1125,6 +1127,7 @@ class Bits(collections.Sequence):
         "Use file as source of bits."
         source = open(filename, 'rb')
         self._datastore = FileArray(source, length, offset)
+        self._filebased = True
 
     def _setbytes(self, data, length=None, offset=0):
         """Set the data from a string."""
@@ -1689,15 +1692,23 @@ class Bits(collections.Sequence):
     
     def _ensureinmemory(self):
         """Ensure the data is held in memory, not in a file."""
-        if isinstance(self._datastore, FileArray):
+        if self._filebased:
+            self._filebased = False
             self._datastore = MemArray(self._datastore[:], self.len,
                                        self._offset)
     
     @classmethod
-    def _converttobitstring(cls, bs):
+    def _converttobitstring(cls, bs, cache={}):
         """Attemp to convert bs to a bitstring and return it."""
         if isinstance(bs, Bits):
             return bs
+        if isinstance(bs, str):
+            try:
+                return cache[bs]
+            except KeyError:
+                b = cls(bs)
+                cache[bs] = b
+                return b
         return cls(bs)
 
     def _copy(self):
@@ -2661,18 +2672,22 @@ class Bits(collections.Sequence):
         self._pos = oldpos
         return
 
-    def join(self, bitstringlist):
-        """Return the BitStrings in a list joined by self.
+    def join(self, sequence):
+        """Return concatenation of bitstrings joined by self.
         
-        bitstringlist -- A list of BitStrings.
+        sequence -- A sequence of bitstrings.
         
         """
         s = self.__class__()
-        if bitstringlist:
-            s._append(self._converttobitstring(bitstringlist[0]))
-            for i in xrange(1, len(bitstringlist)):
+        i = iter(sequence)
+        try:
+            s._append(self._converttobitstring(next(i)))
+            while(True):
+                n = next(i)
                 s._append(self)
-                s._append(self._converttobitstring(bitstringlist[i]))
+                s._append(self._converttobitstring(n))
+        except StopIteration:
+            pass
         return s
 
     def tobytes(self):
@@ -2925,8 +2940,10 @@ class BitString(Bits, collections.MutableSequence):
             # Let them both point to the same (invariant) file.
             # If either gets modified then at that point they'll be read into memory.
             s_copy._datastore = self._datastore
+            s_copy._filebased = True
         else:
             s_copy._datastore = copy.copy(self._datastore)
+            s_copy._filebased = False
         return s_copy
     
     def __iadd__(self, bs):
