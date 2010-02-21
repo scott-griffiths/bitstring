@@ -1426,7 +1426,7 @@ class BitStringTest(unittest.TestCase):
         self.assertTrue(isinstance(a._datastore, bitstring.FileArray))
         self.assertTrue(isinstance(b._datastore, bitstring.MemArray))
         self.assertEqual(a._datastore[0], b._datastore[0])
-        self.assertEqual(a._datastore[1:5], b._datastore[1:5])
+        self.assertEqual(a._datastore[1:5], bytearray(b._datastore[1:5]))
     
     def testByte2Bits(self):
         for i in range(256):
