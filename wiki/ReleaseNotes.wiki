@@ -1,8 +1,5 @@
 #summary Release Notes
 
-
-== bitstring module version history ==
-
 ------------
 == January 19th 2010: version 1.2.0 for Python 2.6 and 3.x released ==
 
@@ -241,21 +238,21 @@ becomes
 
 Functions have been renamed as follows:
 
-seekbit -> seek
+``seekbit`` -> ``seek``
 
-tellbit -> tell
+``tellbit`` -> ``tell``
 
-reversebits -> reverse
+``reversebits`` -> ``reverse``
 
-deletebits -> delete
+``deletebits`` -> ``delete``
 
-tostring -> tobytes
+``tostring`` -> ``tobytes``
 
 and a couple have been removed altogether:
 
-deletebytes - use delete instead.
+``deletebytes`` - use ``delete`` instead.
 
-empty - use 'not s' rather than 's.empty()'.
+``empty`` - use ``not s`` rather than ``s.empty()``.
 
 ===Renaming parameters===
 
@@ -322,27 +319,28 @@ True
 }}}
 
 ----------------------------------------------------------
-September 11th 2009: version 0.5.2 for Python 2.x released
-----------------------------------------------------------
+==September 11th 2009: version 0.5.2 for Python 2.x released==
+
 Finally some tools for dealing with endianness!
 
-* New interpretations are now available for whole-byte BitStrings that treat
-them as big, little, or native-endian.
-
+===New interpretations are now available for whole-byte !BitStrings that treat
+them as big, little, or native-endian===
+{{{
 >>> big = BitString(intbe=1, length=16) # or BitString('intbe:16=1') if you prefer.
 >>> little = BitString(intle=1, length=16)
 >>> print big.hex, little.hex
 0x0001 0x0100
 >>> print big.intbe, little.intle
 1 1
+}}}
 
-* 'Struct'-like compact format codes
+==='Struct'-like compact format codes===
 
 To save some typing when using pack, unpack, read and peek, compact format
 codes based on those used in the struct and array modules have been added.
 These must start with a character indicating the endianness (>, < or @ for
 big, little and native-endian), followed by characters giving the format:
-
+{{{
 b 	1-byte signed int
 B 	1-byte unsigned int
 h 	2-byte signed int
@@ -351,79 +349,78 @@ l 	4-byte signed int
 L 	4-byte unsigned int
 q 	8-byte signed int
 Q 	8-byte unsigned int
+}}}
 
 For example:
-
+{{{
 >>> s = bitstring.pack('<4h', 0, 1, 2, 3)
-
-creates a BitString with four little-endian 2-byte integers. While
-
+}}}
+creates a !BitString with four little-endian 2-byte integers. While
+{{{
 >>> x, y, z = s.read('>hhl')
-
+}}}
 reads them back as two big-endian two-byte integers and one four-byte big
 endian integer.
 
 Of course you can combine this new format with the old ones however you like:
-
+{{{
 >>> s.unpack('<h, intle:24, uint:5, bin')
 [0, 131073, 0, '0b0000000001100000000']
-
+}}}
 -------------------------------------------------------
-August 26th 2009: version 0.5.1 for Python 2.x released
--------------------------------------------------------
+==August 26th 2009: version 0.5.1 for Python 2.x released==
 
 This update introduces pack and unpack functions for creating and dissembling
-BitStrings.
+!BitStrings.
 
-* New pack() and unpack() functions.
+===New pack() and unpack() functions===
 
 The module level pack function provides a flexible new method for creating
-BitStrings. Tokens for BitString 'literals' can be used in the same way as in
+!BitStrings. Tokens for !BitString 'literals' can be used in the same way as in
 the constructor.
-
+{{{
 >>> from bitstring import BitString, pack
 >>> a = pack('0b11, 0xff, 0o77, int:5=-1, se=33')
-
+}}}
 You can also leave placeholders in the format, which will be filled in by
 the values provided.
-
+{{{
 >>> b = pack('uint:10, hex:4', 33, 'f')
-
+}}}
 Finally you can use a dictionary or keywords.
-
+{{{
 >>> c = pack('bin=a, hex=b, bin=a', a='010', b='ef')
-
+}}}
 The unpack function is similar to the read function except that it always
-unpacks from the start of the BitString.
-
+unpacks from the start of the !BitString.
+{{{
 >>> x, y = b.unpack('uint:10, hex')
-
+}}}
 If a token is given without a length (as above) then it will expand to fill the
-remaining bits in the BitString. This also now works with read() and peek().
+remaining bits in the !BitString. This also now works with read() and peek().
 
-* New tostring() and tofile() functions.
+===New tostring() and tofile() functions===
 
 The tostring() function just returns the data as a string, with up to seven
 zero bits appended to byte align. The tofile() function does the same except
 writes to a file object.
-
+{{{
 >>> f = open('myfile', 'wb')
 >>> BitString('0x1234ff').tofile(f)
+}}}
+===Other changes===
 
-* Other changes.
-
-The use of '=' is now mandatory in 'auto' initialisers. Tokens like 'uint12 100' will
-no longer work. Also the use of a ':' before the length is encouraged, but not yet
-mandated. So the previous example should be written as 'uint:12=100'.
+The use of '=' is now mandatory in 'auto' initialisers. Tokens like ``uint12 100`` will
+no longer work. Also the use of a ``:`` before the length is encouraged, but not yet
+mandated. So the previous example should be written as ``uint:12=100``.
 
 The 'auto' initialiser will now take a file object.
-
+{{{
 >>> f = open('myfile', 'rb')
 >>> s = BitString(f)
-
+}}}
 -----------------------------------------------------
-July 19th 2009: version 0.5.0 for Python 2.x released
------------------------------------------------------
+==July 19th 2009: version 0.5.0 for Python 2.x released==
 
 This update breaks backward compatibility in a couple of areas. The only one
 you probably need to be concerned about is the change to the default for
@@ -431,26 +428,27 @@ bytealigned in find, replace, split, etc.
 
 See the user manual for more details on each of these items.
 
-* Expanded abilities of 'auto' initialiser.
+===Expanded abilities of 'auto' initialiser===
 
 More types can be initialised through the 'auto' initialiser. For example
 instead of
-
+{{{
 >>> a = BitString(uint=44, length=16)
-
+}}}
 you can write
-
+{{{
 >>> a = BitString('uint16=44')
-
+}}}
 Also, different comma-separated tokens will be joined together, e.g.
-
+{{{
 >>> b = BitString('0xff') + 'int8=-5'
-
+}}}
 can be written
-
+{{{
 >>> b = BitString('0xff, int8=-5')
+}}}
 
-* New formatted read() and peek() functions.
+===New formatted read() and peek() functions===
 
 These takes a format string similar to that used in the auto initialiser.
 If only one token is provided then a single value is returned, otherwise a
