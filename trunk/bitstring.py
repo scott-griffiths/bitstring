@@ -362,32 +362,31 @@ class FileArray(object):
             self.source.seek(key, os.SEEK_SET)
             return ord(self.source.read(1))
 
-class ConstMemArray(object):
-    """Stores immutable raw bytes with a bit offset and length."""
+        
+class BaseArray(object):
+    """Array types should implement the methods given here."""
     
     def __init__(self, data, bitlength=0, offset=0):
-        self._rawarray = bytes(data[offset // 8:(offset + bitlength + 7) // 8])
-        self.offset = offset % 8
-        self.bitlength = bitlength
-
+        raise NotImplementedError
+    
     def __getitem__(self, key):
-        # If (and only if) it's a single item from a bytes object in Python 2
-        # then we need to convert it to an int. Kinda annoying really.
-        if isinstance(key, int) and PYTHON_VERSION == 2:
-            return ord(self._rawarray[key])
-        return self._rawarray[key]
-
-    def _getbytelength(self):
-        return len(self._rawarray)
-        
-    def _getrawbytes(self):
-        return self._rawarray
+        """For a single item return the integer value of the stored byte.
+        For a slice return the byte slice or a buffer to it."""
+        raise NotImplementedError
     
-    bytelength = property(_getbytelength)
+    def __copy__(self):
+        raise NotImplementedError
     
-    rawbytes = property(_getrawbytes)       
-        
-class MemArray(ConstMemArray):
+    def setoffset(self, newoffset):
+        raise NotImplementedError
+    
+    def appendarray(self, array):
+        raise NotImplementedError
+    
+    def prependarray(self, array):
+        raise NotImplementedError
+    
+class MemArray(BaseArray):
     """Stores raw bytes together with a bit offset and length."""
     
     def __init__(self, data, bitlength=0, offset=0):
@@ -400,16 +399,18 @@ class MemArray(ConstMemArray):
         return MemArray(self._rawarray, self.bitlength, self.offset)
     
     def __getitem__(self, key):
-        return self._rawarray[key]
+        try:
+            # For a slice return a buffer to avoid copying.
+            stop = len(self._rawarray) if key.stop is None else key.stop
+            start = 0 if key.start is None else key.start
+            return buffer(self._rawarray, start, stop - start)
+        except AttributeError:
+            # Single element - return the byte's integer value.
+            assert isinstance(key, int)
+            return self._rawarray[key]
 
     def __setitem__(self, key, item):
         self._rawarray[key] = item
-    
-    def appendbytes(self, data):
-        try:
-            self._rawarray.extend(data)
-        except TypeError:
-            self._rawarray.append(data)
     
     def setoffset(self, newoffset):
         """Realign BitString with new offset to first bit."""
@@ -440,7 +441,7 @@ class MemArray(ConstMemArray):
             # Give some overflow room for the last byte
             b = self.offset + self.bitlength + 7
             if (b + shiftright) // 8 > b // 8:
-                self.appendbytes(0)
+                self._rawarray.append(0)
             for x in xrange(self.bytelength - 1, 0, -1):
                 data[x] = ((data[x-1] << (8 - shiftright)) & 255) + \
                                      (data[x] >> shiftright)
@@ -458,9 +459,9 @@ class MemArray(ConstMemArray):
         if array.offset != 0:
             # first do the byte with the join.
             self._rawarray[-1] = (self._rawarray[-1] & (255 ^ (255 >> array.offset)) | (array[0] & (255 >> array.offset)))
-            self.appendbytes(array[1 : array.bytelength])
+            self._rawarray.extend(array[1 : array.bytelength])
         else:
-            self.appendbytes(array[0 : array.bytelength])
+            self._rawarray.extend(array[0 : array.bytelength])
         self.bitlength += array.bitlength
 
     def prependarray(self, array):
@@ -477,13 +478,23 @@ class MemArray(ConstMemArray):
             # first do the byte with the join.
             array[-1] = (array[-1] & (255 ^ (255 >> self.offset)) | \
                                    (self._rawarray[0] & (255 >> self.offset)))
-            array.appendbytes(self._rawarray[1 : self.bytelength])
+            array._rawarray.extend(self._rawarray[1 : self.bytelength])
         else:
-            array.appendbytes(self._rawarray[0 : self.bytelength])
+            array._rawarray.extend(self._rawarray[0 : self.bytelength])
         self._rawarray = array._rawarray
         self.offset = array.offset
         self.bitlength += array.bitlength
 
+    def _getbytelength(self):
+        return len(self._rawarray)
+        
+    def _getrawbytes(self):
+        return self._rawarray
+    
+    bytelength = property(_getbytelength)
+    
+    rawbytes = property(_getrawbytes)
+    
 
 class Bits(collections.Sequence):
     "An immutable sequence of bits."
@@ -1523,7 +1534,7 @@ class Bits(collections.Sequence):
         # Use lookup table to convert each byte to string of 8 bits.
         startbyte, startoffset = divmod(start + self._offset, 8)
         endbyte = (start + self._offset + length - 1) // 8
-        c = (BYTE_TO_BITS[x] for x in self._datastore[startbyte:endbyte + 1])
+        c = (BYTE_TO_BITS[x] for x in bytearray(self._datastore[startbyte:endbyte + 1]))
         return '0b' + ''.join(c)[startoffset:startoffset + length]
 
     def _getbin(self):
@@ -1839,7 +1850,7 @@ class Bits(collections.Sequence):
             newoffset = 0
         self._datastore.setoffset(newoffset)
         # Now just reverse the byte data
-        toreverse = self._datastore[(newoffset + start)//8:(newoffset + end)//8]
+        toreverse = bytearray(self._datastore[(newoffset + start)//8:(newoffset + end)//8])
         toreverse.reverse()
         self._datastore[(newoffset + start)//8:(newoffset + end)//8] = toreverse
 
@@ -2404,7 +2415,7 @@ class Bits(collections.Sequence):
             buffersize = increment + len(d)
             while p < finalpos:
                 # Read in file or from memory in overlapping chunks and search the chunks.
-                buf = self._datastore[p:min(p + buffersize, finalpos)]
+                buf = bytearray(self._datastore[p:min(p + buffersize, finalpos)])
                 pos = buf.find(d)
                 if pos != -1:
                     found = True
