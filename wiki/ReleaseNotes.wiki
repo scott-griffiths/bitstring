@@ -238,21 +238,21 @@ becomes
 
 Functions have been renamed as follows:
 
-``seekbit`` -> ``seek``
+`seekbit` -> `seek`
 
-``tellbit`` -> ``tell``
+`tellbit` -> `tell`
 
-``reversebits`` -> ``reverse``
+`reversebits` -> `reverse`
 
-``deletebits`` -> ``delete``
+`deletebits` -> `delete`
 
-``tostring`` -> ``tobytes``
+`tostring` -> `tobytes`
 
 and a couple have been removed altogether:
 
-``deletebytes`` - use ``delete`` instead.
+`deletebytes` - use `delete` instead.
 
-``empty`` - use ``not s`` rather than ``s.empty()``.
+`empty`` - use `not s` rather than `s.empty()`.
 
 ===Renaming parameters===
 
