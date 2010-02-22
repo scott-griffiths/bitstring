@@ -453,17 +453,18 @@ can be written
 These takes a format string similar to that used in the auto initialiser.
 If only one token is provided then a single value is returned, otherwise a
 list of values is returned.
-
+{{{
 >>> start_code, width, height = s.read('hex32, uint12, uint12')
-
+}}}
 is equivalent to
-
+{{{
 >>> start_code = s.readbits(32).hex
 >>> width = s.readbits(12).uint
 >>> height = s.readbits(12).uint
+}}}
 
 The tokens are:
-
+{{{
   int n   : n bits as an unsigned integer.
   uint n  : n bits as a signed integer.
   hex n   : n bits as a hexadecimal string.
@@ -473,129 +474,135 @@ The tokens are:
   se      : next bits as a signed exp-Golomb.
   bits n  : n bits as a new BitString.
   bytes n : n bytes as a new BitString.
+}}}
 
 See the user manual for more details.
 
-* hex() and oct() functions removed.
+===hex() and oct() functions removed===
 
 The special functions for hex() and oct() have been removed. Please use the
 hex and oct properties instead.
-
+{{{
 >>> hex(s)
-
+}}}
 becomes
- 
+{{{
 >>> s.hex
+}}}
 
-* join made a member function.
+===join made a member function===
 
-The join function must now be called on a BitString object, which will be
+The join function must now be called on a !BitString object, which will be
 used to join the list together. You may need to recode slightly:
-
+{{{
 >>> s = bitstring.join('0x34', '0b1001', '0b1')
-
+}}}
 becomes
-
+{{{
 >>> s = BitString().join('0x34', '0b1001', '0b1')
+}}}
 
-* More than one value allowed in readbits, readbytes, peekbits and peekbytes
+===More than one value allowed in readbits, readbytes, peekbits and peekbytes===
 
 If you specify more than one bit or byte length then a list of BitStrings will
 be returned.
-
+{{{
 >>> a, b, c = s.readbits(10, 5, 5)
-
+}}}
 is equivalent to
-
+{{{
 >>> a = readbits(10)
 >>> b = readbits(5)
 >>> c = readbits(5)
+}}}
 
-* bytealigned defaults to False, and is at the end of the parameter list
+===bytealigned defaults to False, and is at the end of the parameter list===
 
 Functions that have a bytealigned paramater have changed so that it now
 defaults to False rather than True. Also its position in the parameter list
 has changed to be at the end. You may need to recode slightly (sorry!)
 
-* readue and readse functions have been removed
+===readue and readse functions have been removed===
 
 Instead you should use the new read function with a 'ue' or 'se' token:
-
+{{{
 >>> i = s.readue()
-
+}}}
 becomes
-
+{{{
 >>> i = s.read('ue')
-
+}}}
 This is more flexible as you can read multiple items in one go, plus you can
 now also use the peek function with ue and se.
 
-* Minor bugs fixed.
+===Minor bugs fixed===
 
 See the issue tracker for more details.
 
 -----------------------------------------------------
-June 15th 2009: version 0.4.3 for Python 2.x released
------------------------------------------------------
+==June 15th 2009: version 0.4.3 for Python 2.x released==
 
 This is a minor update. This release is the first to bundle the bitstring
 manual. This is a PDF and you can find it in the docs directory.
 
-Changes in version 0.4.3
+==Changes in version 0.4.3==
 
-* New 'cut' function
+===New 'cut' function===
 
 This function returns a generator for constant sized chunks of a BitString.
-
+{{{
 >>> for byte in s.cut(8):
 ...     do_something_with(byte)
+}}}
 
 You can also specify a startbit and endbit, as well as a count, which limits
 the number of items generated:
 
+{{{
 >>> first100TSPackets = list(s.cut(188*8, count=100))
+}}}
 
-* 'slice' function now equivalent to __getitem__.
+==='slice' function now equivalent to `__getitem__`===
 
 This means that a step can also be given to the slice function so that the
 following are now the same thing, and it's just a personal preference which
 to use:
-
+{{{
 >>> s1 = s[a:b:c]
 >>> s2 = s.slice(a, b, c)
+}}}
 
-* findall gets a 'count' parameter.
+===findall gets a 'count' parameter===
 
 So now
-
+{{{
 >>> list(a.findall(s, count=n))
-
+}}}
 is equivalent to
-
+{{{
 >>> list(a.findall(s))[:n]
-
+}}}
 except that it won't need to generate the whole list and so is much more
 efficient.
 
-* Changes to 'split'.
+===Changes to 'split'===
 
 The split function now has a 'count' parameter rather than 'maxsplit'. This
 makes the interface closer to that for cut, replace and findall. The final item
-generated is now no longer the whole of the rest of the BitString.
+generated is now no longer the whole of the rest of the !BitString.
 
 * A couple of minor bugs were fixed. See the issue tracker for details.
 
 ----------------------------------------------------
-May 25th 2009: version 0.4.2 for Python 2.x released
-----------------------------------------------------
+==May 25th 2009: version 0.4.2 for Python 2.x released==
 
 This is a minor update, and almost doesn't break compatibility with version
 0.4.0, but with the slight exception of findall() returning a generator,
 detailed below.
 
-Changes in version 0.4.2
+==Changes in version 0.4.2==
 
-* Stepping in slices
+===Stepping in slices===
 
 The use of the step parameter (also known as the stride) in slices has been
 added. Its use is a little non-standard as it effectively gives a multiplicative
