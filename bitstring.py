@@ -47,8 +47,12 @@ import binascii
 import copy
 import warnings
 import functools
-from bitarray import bitarray
-
+try:
+    from bitarray import bitarray
+    bitarray_available = True
+except ImportError:
+    bitarray_available = False
+    
 
 _ = b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
 
@@ -80,6 +84,9 @@ else:
     xrange = range
     file = IOBase
     LEADING_OCT_CHARS = 2 # e.g. 0o755
+    # Use memoryview as buffer isn't available.
+    def buffer(data, start, size):
+        return memoryview(data)[start:start + size]
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS = 250
@@ -316,54 +323,6 @@ else:
 class BitStringError(Exception):
     """For errors in the bitstring module."""
 
-    
-class FileArray(object):
-    """A class that mimics bytearray but gets data from a file object."""
-    
-    def __init__(self, source, bitlength, offset):
-        # byteoffset - bytes to ignore at start of file
-        # bitoffset - bits (0-7) to ignore after the byteoffset
-        byteoffset, bitoffset = divmod(offset, 8)
-        filelength = os.path.getsize(source.name)
-        self.source = source
-        if bitlength is None:
-            self.bytelength = filelength - byteoffset
-            bitlength = self.bytelength*8 - bitoffset
-        else:
-            self.bytelength = (bitlength + bitoffset + 7) // 8
-        if self.bytelength > filelength - byteoffset:
-            raise ValueError("File is not long enough for specified "
-                             "BitString length and offset.")
-        self.byteoffset = byteoffset
-        self.bitlength = bitlength
-        self.offset = bitoffset
-    
-    def __getitem__(self, key):
-        try:
-            # A slice
-            start = self.byteoffset
-            assert start >= 0
-            if key.start is not None:
-                start += key.start
-            stop = self.bytelength + self.byteoffset
-            if key.stop is not None:
-                stop += key.stop - self.bytelength
-            assert stop >= 0
-            if start < stop:
-                self.source.seek(start, os.SEEK_SET)
-                return bytearray(self.source.read(stop-start))
-            else:
-                return bytearray()
-        except AttributeError:
-            # single element
-            if key < 0:
-                key += self.bytelength
-            if key >= self.bytelength:
-                raise IndexError
-            key += self.byteoffset
-            self.source.seek(key, os.SEEK_SET)
-            return ord(self.source.read(1))
-
         
 class BaseArray(object):
     """Array types should implement the methods given here."""
@@ -387,6 +346,7 @@ class BaseArray(object):
     
     def prependarray(self, array):
         raise NotImplementedError
+    
 
 class BitArray(BaseArray):
     """Uses the bitarray module to do the heavy lifting."""
@@ -561,9 +521,69 @@ class ByteArray(BaseArray):
     bytelength = property(_getbytelength)
     
     rawbytes = property(_getrawbytes)
-    
+
 MemArray = ByteArray
+
+def fast_mode(on=True):
+    """Turn on or off the use of the bitarray module."""
+    if not on:
+        # Use pure Python implementation.
+        MemArray = ByteArray
+        return
+    if bitarray_available:
+        # Use bitstring module for a bit of extra speed.
+        MemArray = BitArray
+        return
+    raise BitStringError("Couldn't turn on fast mode - the import of the bitarray module failed.")
     
+class FileArray(BaseArray):
+    """A class that mimics bytearray but gets data from a file object."""
+    
+    def __init__(self, source, bitlength, offset):
+        # byteoffset - bytes to ignore at start of file
+        # bitoffset - bits (0-7) to ignore after the byteoffset
+        byteoffset, bitoffset = divmod(offset, 8)
+        filelength = os.path.getsize(source.name)
+        self.source = source
+        if bitlength is None:
+            self.bytelength = filelength - byteoffset
+            bitlength = self.bytelength*8 - bitoffset
+        else:
+            self.bytelength = (bitlength + bitoffset + 7) // 8
+        if self.bytelength > filelength - byteoffset:
+            raise ValueError("File is not long enough for specified "
+                             "BitString length and offset.")
+        self.byteoffset = byteoffset
+        self.bitlength = bitlength
+        self.offset = bitoffset
+    
+    def __getitem__(self, key):
+        try:
+            # A slice
+            start = self.byteoffset
+            assert start >= 0
+            if key.start is not None:
+                start += key.start
+            stop = self.bytelength + self.byteoffset
+            if key.stop is not None:
+                stop += key.stop - self.bytelength
+            assert stop >= 0
+            if start < stop:
+                self.source.seek(start, os.SEEK_SET)
+                return bytearray(self.source.read(stop-start))
+            else:
+                return bytearray()
+        except AttributeError:
+            # single element
+            if key < 0:
+                key += self.bytelength
+            if key >= self.bytelength:
+                raise IndexError
+            key += self.byteoffset
+            self.source.seek(key, os.SEEK_SET)
+            return ord(self.source.read(1))
+
+        
 class Bits(collections.Sequence):
     "An immutable sequence of bits."
 

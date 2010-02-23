@@ -3551,8 +3551,8 @@ class BitStringTest(unittest.TestCase):
         self.assertEqual(s.len, 17)
         
     def testInitFromIterable(self):
-        self.assertTrue(isinstance(xrange(10), collections.Iterable))
-        s = Bits(xrange(12))
+        self.assertTrue(isinstance(range(10), collections.Iterable))
+        s = Bits(range(12))
         self.assertEqual(s, '0x7ff')
         
     def testFunctionNegativeIndices(self):
@@ -3692,7 +3692,7 @@ class BitStringTest(unittest.TestCase):
         
     def testByteSwapIterable(self):
         s = BitString('0x0011223344556677')
-        swaps = s.byteswap(xrange(1, 4), repeat=False)
+        swaps = s.byteswap(range(1, 4), repeat=False)
         self.assertEqual(swaps, 1)
         self.assertEqual(s, '0x0022115544336677')
         swaps = s.byteswap([2], start=8)
@@ -3731,9 +3731,9 @@ class BitStringTest(unittest.TestCase):
     def testBracketTokens(self):
         s = BitString('3*(0x0, 0b1)')
         self.assertEqual(s, '0x0, 0b1, 0x0, 0b1, 0x0, 0b1')
-        s = pack('2*(uint:12, 3*(7, 6))', *xrange(3, 17))
+        s = pack('2*(uint:12, 3*(7, 6))', *range(3, 17))
         a = s.unpack('12, 7, 6, 7, 6, 7, 6, 12, 7, 6, 7, 6, 7, 6')
-        self.assertEqual(a, list(xrange(3, 17)))
+        self.assertEqual(a, list(range(3, 17)))
         b = s.unpack('2*(12,3*(7,6))')
         self.assertEqual(a, b)
     
