@@ -47,6 +47,8 @@ import binascii
 import copy
 import warnings
 import functools
+from bitarray import bitarray
+
 
 _ = b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
 
@@ -385,8 +387,72 @@ class BaseArray(object):
     
     def prependarray(self, array):
         raise NotImplementedError
+
+class BitArray(BaseArray):
+    """Uses the bitarray module to do the heavy lifting."""
     
-class MemArray(BaseArray):
+    def __init__(self, data, bitlength=0, offset=0):
+        if isinstance(data, bitarray):
+            self._rawarray = copy.copy(data)
+            self.offset = offset
+        else:
+            self._rawarray = bitarray()
+            self._rawarray.fromstring(bytes(data[offset // 8: (offset + bitlength + 7) // 8]))
+            self.offset = offset % 8
+        self.bitlength = bitlength
+#        assert self._rawarray.length() == self.offset + self.bitlength
+        
+    def __copy__(self):
+        return BitArray(self._rawarray, self.bitlength, self.offset)
+    
+    def __getitem__(self, key):
+        try:
+            stop = self.bytelength if key.stop is None else key.stop
+            start = 0 if key.start is None else key.start
+            return self._rawarray.tostring()[start:stop]
+        except AttributeError:
+            assert 0 <= key
+            assert key < self.bytelength
+            return ord(self._rawarray[key*8:key*8 + 8].tostring())
+
+    def __setitem__(self, key, item):
+        ba = bytearray(self._rawarray.tostring())
+        len_before = len(ba)
+        ba[key] = item
+        self.bitlength += 8*(len(ba) - len_before)
+        self._rawarray = bitarray()
+        self._rawarray.fromstring(bytes(ba))
+    
+    def setoffset(self, newoffset):
+        if newoffset == self.offset:
+            return
+        if newoffset < self.offset:
+            del self._rawarray[0:self.offset - newoffset]
+        else:
+            self._rawarray[0:0] = bitarray('0'*(newoffset - self.offset))
+        self.offset = newoffset
+        
+    def appendarray(self, array):
+        self._rawarray[self.bitlength + self.offset:] = array._rawarray[array.offset:array.offset + array.bitlength]
+        self.bitlength += array.bitlength
+    
+    def prependarray(self, array):
+        array._rawarray[array.bitlength + array.offset:] = self._rawarray[self.offset:self.offset + self.bitlength]
+        self._rawarray = array._rawarray
+        self.bitlength += array.bitlength
+        self.offset = array.offset
+
+    def _getbytelength(self):
+        return (self.bitlength + self.offset + 7) // 8
+        
+    def _getrawbytes(self):
+        return bytearray(self._rawarray.tostring())[self.offset // 8: (self.offset + self.bitlength + 7) // 8]
+    
+    bytelength = property(_getbytelength)
+    
+    rawbytes = property(_getrawbytes)    
+    
+class ByteArray(BaseArray):
     """Stores raw bytes together with a bit offset and length."""
     
     def __init__(self, data, bitlength=0, offset=0):
@@ -396,7 +462,7 @@ class MemArray(BaseArray):
         assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray)
 
     def __copy__(self):
-        return MemArray(self._rawarray, self.bitlength, self.offset)
+        return ByteArray(self._rawarray, self.bitlength, self.offset)
     
     def __getitem__(self, key):
         try:
@@ -407,6 +473,7 @@ class MemArray(BaseArray):
         except AttributeError:
             # Single element - return the byte's integer value.
             assert isinstance(key, int)
+            assert key < self.bytelength
             return self._rawarray[key]
 
     def __setitem__(self, key, item):
@@ -495,7 +562,8 @@ class MemArray(BaseArray):
     
     rawbytes = property(_getrawbytes)
     
-
+MemArray = ByteArray
+    
 class Bits(collections.Sequence):
     "An immutable sequence of bits."
 
@@ -1525,7 +1593,7 @@ class Bits(collections.Sequence):
                         for x in xrange(0, len(padded_binstring), 8)]
         except ValueError:
             raise ValueError("Invalid character in bin initialiser %s." % binstring)
-        self._datastore = MemArray(bytelist, length)
+        self._datastore = MemArray(bytearray(bytelist), length)
     
     def _readbin(self, length, start):
         """Read bits and interpret as a binary string."""
@@ -1669,6 +1737,7 @@ class Bits(collections.Sequence):
             self._datastore = MemArray(self._datastore[:], self.len,
                                        self._offset)
     
+    # TODO: I've hard-wired the offset to 0 to fix a BitArray problem?
     @classmethod
     def _converttobitstring(cls, bs, offset=0, cache={}):
         """Convert bs to a bitstring and return it.
@@ -1680,11 +1749,11 @@ class Bits(collections.Sequence):
             return bs
         if isinstance(bs, str):
             try:
-                return cache[(bs, offset)]
+                return cache[(bs, 0)]
             except KeyError:
                 b = BitString(bs)
-                b._datastore.setoffset(offset)
-                cache[(bs, offset)] = b
+#                b._datastore.setoffset(0)
+                cache[(bs, 0)] = b
                 return b
         return cls(bs)
 
@@ -1809,7 +1878,7 @@ class Bits(collections.Sequence):
                 bitsleft = 8
             mask = (1 << (8 - bitsleft)) - 1
             self._datastore[lastbytepos] &= mask
-            self._datastore[lastbytepos] |= bs._datastore[-1] & ~mask
+            self._datastore[lastbytepos] |= bs._datastore[bs._datastore.bytelength - 1] & ~mask
         self._pos = bitposafter
         assert self._assertsanity()
 
@@ -1879,19 +1948,19 @@ class Bits(collections.Sequence):
     def _set(self, pos):
         """Set all the bits given by pos to 1."""
         def f(a, b):
-            self._datastore._rawarray[a] |= 128 >> b
+            self._datastore[a] |= 128 >> b
         self._bit_tweaker(pos, f)
 
     def _unset(self, pos):
         """Set all the bits given by pos to 0."""
         def f(a, b):
-            self._datastore._rawarray[a] &= ~(128 >> b)
+            self._datastore[a] &= ~(128 >> b)
         self._bit_tweaker(pos, f)
         
     def _invert(self, pos):
         """Flip all the bits given by pos 1<->0."""
         def f(a, b):
-            self._datastore._rawarray[a] ^= 128 >> b
+            self._datastore[a] ^= 128 >> b
         self._bit_tweaker(pos, f)
     
     # TODO: Optimise!
@@ -1925,10 +1994,10 @@ class Bits(collections.Sequence):
             else:
                 self._datastore.setoffset(bs._offset)
         assert self._offset == bs._offset
-        a = self._datastore._rawarray
-        b = bs._datastore._rawarray
-        assert len(a) == len(b)
-        for i in xrange(len(a)):
+        a = self._datastore
+        b = bs._datastore
+        assert a.bytelength == b.bytelength
+        for i in xrange(a.bytelength):
             a[i] = f(a[i], b[i])
         return self
     
@@ -2658,19 +2727,16 @@ class Bits(collections.Sequence):
         
         """
         self._ensureinmemory()
-        if self.mutable:
-            self._datastore.setoffset(0)
-            d = self._datastore.rawbytes
-        else:
-            tmp = BitString(self)
-            tmp._datastore.setoffset(0)
-            d = self._datastore.rawbytes
+        assert self.mutable
+        self._datastore.setoffset(0)
+        d = self._datastore.rawbytes
+
         # Need to ensure that unused bits at end are set to zero
         unusedbits = 8 - self.len % 8
         if unusedbits != 8:
             # This is horrible. Shouldn't have to copy the string here!
-            t1 = d[:-1]
-            t1.append(d[-1] & (255 << unusedbits))
+            t1 = d[:self._datastore.bytelength - 1]
+            t1.append(d[self._datastore.bytelength - 1] & (255 << unusedbits))
             return bytes(t1)
         return bytes(d)
 
