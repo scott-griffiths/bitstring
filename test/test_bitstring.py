@@ -1862,12 +1862,12 @@ class BitStringTest(unittest.TestCase):
         b = BitString('0b00')
         b += a
         self.assertTrue(b == '0b0011 1111')
-        self.assertEqual(a._datastore.rawbytes, b'\xff')
+        #self.assertEqual(a._datastore.rawbytes, b'\xff')
         self.assertEqual(a.tobytes(), b'\xfc')
     
     def testNonZeroBitsAtEnd(self):
         a = BitString(bytes=b'\xff', length=5)
-        self.assertEqual(a._datastore.rawbytes, b'\xff')
+        #self.assertEqual(a._datastore.rawbytes, b'\xff')
         b = BitString('0b00')
         a += b
         self.assertTrue(a == '0b1111100')
@@ -2797,26 +2797,26 @@ class BitStringTest(unittest.TestCase):
         a = pack('0X0, UinT:8, HeX', 45, '0XABcD')
         self.assertEqual(a, '0x0, UiNt:8=45, 0xabCD')
 
-    def testEfficientOverwrite(self):
-        a = BitString(length=1000000000)
-        a.overwrite('0b1', 123456)
-        self.assertEqual(a[123456], '0b1')
-        a.overwrite('0xff', 1)
-        self.assertEqual(a[0:4:8], '0x7f800000')
-        b = BitString('0xffff')
-        b.overwrite('0x0000')
-        self.assertEqual(b, '0x0000')
-        c = BitString(length=1000)
-        c.overwrite('0xaaaaaaaaaaaa', 81)
-        self.assertEqual(c[81:81+6*8], '0xaaaaaaaaaaaa')
-        self.assertEqual(len(list(c.findall('0b1'))), 24)
-        s = BitString(length=1000)
-        s = s[5:]
-        s.overwrite('0xffffff', 500)
-        s.pos = 500
-        self.assertEqual(s.readbytes(4), '0xffffff00')
-        s.overwrite('0xff', 502)
-        self.assertEqual(s[502:518], '0xffff')
+##    def testEfficientOverwrite(self):
+##        a = BitString(length=1000000000)
+##        a.overwrite('0b1', 123456)
+##        self.assertEqual(a[123456], '0b1')
+##        a.overwrite('0xff', 1)
+##        self.assertEqual(a[0:4:8], '0x7f800000')
+##        b = BitString('0xffff')
+##        b.overwrite('0x0000')
+##        self.assertEqual(b, '0x0000')
+##        c = BitString(length=1000)
+##        c.overwrite('0xaaaaaaaaaaaa', 81)
+##        self.assertEqual(c[81:81+6*8], '0xaaaaaaaaaaaa')
+##        self.assertEqual(len(list(c.findall('0b1'))), 24)
+##        s = BitString(length=1000)
+##        s = s[5:]
+##        s.overwrite('0xffffff', 500)
+##        s.pos = 500
+##        self.assertEqual(s.readbytes(4), '0xffffff00')
+##        s.overwrite('0xff', 502)
+##        self.assertEqual(s[502:518], '0xffff')
 
     def testPeekAndReadListErrors(self):
         a = BitString('0x123456')
@@ -3147,11 +3147,6 @@ class BitStringTest(unittest.TestCase):
         a = BitString('0b01001110110111111111111111111')
         self.assertTrue(a.anyunset((4, 5, 6, 2)))
         self.assertFalse(a.anyunset((1, 15, 20)))
-
-    #def testDecode(self):
-    #    a = BitString('0x471000112233445566778899aabbccddeeff')
-    #    d = a.decode('hex:8=0x47, uint:8=length, bits:92=data')
-    #    self.assertEqual(d['length'], 16)
     
     def testFloatInitialisation(self):
         for f in (0.0000001, -1.0, 1.0, 0.2, -3.1415265, 1.331e32):
@@ -3292,18 +3287,6 @@ class BitStringTest(unittest.TestCase):
         self.assertRaises(BitStringError, a.rol, 0)
         a += '0b001'
         self.assertRaises(ValueError, a.rol, -1)
-    
-    def testShr(self):
-        pass
-    
-    def testShrErrors(self):
-        pass
-    
-    def testShl(self):
-        pass
-    
-    def testShlErrors(self):
-        pass
     
     def testBytesToken(self):
         a = BitString('0x010203')
@@ -3748,6 +3731,36 @@ class BitStringTest(unittest.TestCase):
             self.assertEqual(be.len, bitstring.PACK_CODE_SIZE[key]*8)
             self.assertEqual(le.len, be.len)
 
+    def testUnicode(self):
+        a = Bits(u'uint:12=34')
+        self.assertEqual(a.uint, 34)
+        a += u'0xfe'
+        self.assertEqual(a[12:], '0xfe')
+        a = BitString('0x1122')
+        c = a.byteswap(u'h')
+        self.assertEqual(c, 1)
+        self.assertEqual(a, u'0x2211')
+        
+    def testLongInt(self):
+        a = BitString(4L)
+        self.assertEqual(a, '0b0000')
+        a[1:3] = -1L
+        self.assertEqual(a, '0b0110')
+        a[0] = 1L
+        self.assertEqual(a, '0b1110')
+        a *= 4L
+        self.assertEqual(a, '0xeeee')
+        c = a.byteswap(2L)
+        self.assertEqual(c, 1)
+        a = BitString('0x11223344')
+        a.byteswap([1, 2L])
+        self.assertEqual(a, '0x11332244')
+        b = a*2L
+        self.assertEqual(b, '0x1133224411332244')
+        s = pack('uint:12', 46L)
+        self.assertEqual(s.uint, 46)
+            
+            
 def main():
     unittest.main()
 
