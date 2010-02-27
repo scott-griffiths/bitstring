@@ -102,7 +102,7 @@ you can write just
 
 This matches the behaviour of bytearrays and (in Python 3) bytes.
 
-* A defect related to using the set / unset functions on BitStrings initialised
+* A defect related to using the set / unset functions on !BitStrings initialised
 from a file has been fixed.
 
 -----------------------------------------------------------------
@@ -252,7 +252,7 @@ and a couple have been removed altogether:
 
 `deletebytes` - use `delete` instead.
 
-`empty`` - use `not s` rather than `s.empty()`.
+`empty` - use `not s` rather than `s.empty()`.
 
 ===Renaming parameters===
 
@@ -301,10 +301,10 @@ The unpack function now always returns a list, never a single item.
 fail.
 
 The colon separating the token name from its length is now mandatory. So for
-example ``BitString('uint12=100')`` becomes ``BitString('uint:12=100')``.
+example `BitString('uint12=100')` becomes `BitString('uint:12=100')`.
 
 Removed support for the 'bytes' token in format strings. Instead of
-``s.read('bytes:4')`` use ``s.read('bits:32')``. 
+`s.read('bytes:4')` use `s.read('bits:32')`. 
 
 ==New features==
 
@@ -338,7 +338,7 @@ them as big, little, or native-endian===
 
 To save some typing when using pack, unpack, read and peek, compact format
 codes based on those used in the struct and array modules have been added.
-These must start with a character indicating the endianness (>, < or @ for
+These must start with a character indicating the endianness (`>`, `<` or `@` for
 big, little and native-endian), followed by characters giving the format:
 {{{
 b 	1-byte signed int
@@ -504,7 +504,7 @@ becomes
 
 ===More than one value allowed in readbits, readbytes, peekbits and peekbytes===
 
-If you specify more than one bit or byte length then a list of BitStrings will
+If you specify more than one bit or byte length then a list of !BitStrings will
 be returned.
 {{{
 >>> a, b, c = s.readbits(10, 5, 5)
@@ -549,7 +549,7 @@ manual. This is a PDF and you can find it in the docs directory.
 
 ===New 'cut' function===
 
-This function returns a generator for constant sized chunks of a BitString.
+This function returns a generator for constant sized chunks of a !BitString.
 {{{
 >>> for byte in s.cut(8):
 ...     do_something_with(byte)
@@ -668,19 +668,18 @@ True
 
 ===Miscellany===
 
-* reversebits() now has optional startbit and endbit parameters.
+  * reversebits() now has optional startbit and endbit parameters.
 
-* As an optimisation findall() will return a generator, rather than a list. If you
+  * As an optimisation findall() will return a generator, rather than a list. If you
 still want the whole list then of course you can just call list() on the
 generator.
 
-* Improved efficiency of rfind().
+  * Improved efficiency of rfind().
 
-* A couple of minor bugs were fixed. See the issue tracker for details. 
+  * A couple of minor bugs were fixed. See the issue tracker for details. 
 
 -----------------------------------------------------
 ==April 23rd 2009: Python 3 only version 0.4.1 released==
-
 
 This version is just a port of version 0.4.0 to Python 3. All the unit tests
 pass, but beyond that only limited ad hoc testing has been done and so it
@@ -739,7 +738,7 @@ object interface.
 
 The offset property was previously read-only, and has now been removed from
 public view altogether. As it is used internally for efficiency reasons you
-shouldn't really have needed to use it. If you do then use the _offset parameter
+shouldn't really have needed to use it. If you do then use the `_offset` parameter
 instead (with caution).
 
 ---------------------------------------
@@ -846,7 +845,7 @@ argument. For example:
 >>> a.find('0b1111')
 }}}
 
-===BitString made more mutable===
+===!BitString made more mutable===
 
 The functions append, deletebits, insert, overwrite, truncatestart and
 truncateend now modify the BitString that they act upon. This allows for
