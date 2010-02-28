@@ -33,12 +33,15 @@ Note that in places where a bitstring can be used as a parameter, any other vali
 
 Multiples tokens can be joined by separating them with commas, so for example ``se=4, 0b1, se=-1`` represents the concatenation of three elements.
 
+Parentheses and multiplicative factors can also be used, for example ``2*(0b10, 0xf)`` is equivalent to ``0b10, 0xf, 0b10, 0xf``. The multiplying factor must come before the thing it is being used to repeat.
+
 The ``auto`` parameter also accepts other types:
 
 * A list or tuple, whose elements will be evaluated as booleans (imagine calling ``bool()`` on each item) and the bits set to ``1`` for ``True`` items and ``0`` for ``False`` items.
 * A positive integer, used to create a bitstring of that many zero bits.
 * A file object, presumably opened in read-binary mode, from which the bitstring will be formed.
 * A bool (``True`` or ``False``) which will be converted to a single ``1`` or ``0`` bit respectively.
+
 
 
 Compact format strings
@@ -70,12 +73,14 @@ For the :meth:`Bits.read`, :meth:`Bits.unpack`, :meth:`Bits.peek` methods and :f
 |``d`` |      64 bit floating point number  |
 +------+------------------------------------+
 
+For more detail see :ref:`compact_format`.
+
 The ``Bits`` class
 ------------------
 
-.. class:: Bits([auto, length, offset, bytes, filename, hex, bin, oct, uint, int, uintbe, intbe, uintle, intle, uintne, intne, ue, se, float, floatbe, floatle, floatne])
+.. class:: Bits([auto, length, offset, **kwargs])
 
-    Creates a new bitstring. You must specify at most one of the initialisers ``auto``, ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``float``, ``floatbe``, ``floatle``, ``floatne`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``float``, ``floatbe``, ``floatle``, ``floatne`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitString`.
 
@@ -148,7 +153,7 @@ The ``Bits`` class
 
         At most *count* items are returned and the range is given by the slice *[start:end]*, which defaults to the whole bitstring. ::
 
-         >>> s = Bits('0x1234')
+         >>> s = BitString('0x1234')
          >>> for nibble in s.cut(4):
          ...     s.prepend(nibble)
          >>> print(s)
@@ -188,13 +193,12 @@ The ``Bits`` class
         The *count* paramater limits the number of items that will be found - the default is to find all occurences. ::
 
          >>> s = Bits('0xab220101')*5
-         >>> list(s.findall('0x22', 
-                  bytealigned=True))
+         >>> list(s.findall('0x22', bytealigned=True))
          [8, 40, 72, 104, 136]
 
-    .. method:: join(bsl)
+    .. method:: join(sequence)
 
-        Returns the concatenation of the bitstrings in the list *bsl* joined with ``self`` as a separator. ::
+        Returns the concatenation of the bitstrings in the iterable *sequence* joined with ``self`` as a separator. ::
 
          >>> s = Bits().join(['0x0001ee', 'uint:24=13', '0b0111'])
          >>> print(s)
@@ -652,6 +656,28 @@ The ``BitString`` class
         >>> s
         BitString('0xbadf00d')
 
+    .. method:: byteswap(format[, start, end, repeat=True])
+    
+       Change the endianness of the :class:`BitString` in-place according to the *format*. Return the number of swaps done.
+       
+       The *format* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact-format`). It gives a pattern of byte sizes to use to swap the endianness of the :class:`BitString`. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``@``) is not needed, and if present it will be ignored.
+       
+       *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitString`). If *repeat* is ``True`` then the byte swapping pattern given by the *format* is repeated in its entirety as many times as possible.
+       
+        >>> s = BitString('0x00112233445566')
+        >>> s.byteswap(2)
+        3
+        >>> s
+        BitString('0x11003322554466')
+        >>> s.byteswap('h')
+        3
+        >>> s
+        BitString('0x00112233445566')
+        >>> s.byteswap([2, 5])
+        1
+        >>> s
+        BitString('0x11006655443322')
+        
     .. method:: insert(bs[, pos])
 
         Inserts *bs* at *pos*. After insertion the property :attr:`pos` will be immediately after the inserted bitstring.
@@ -732,10 +758,12 @@ The ``BitString`` class
          >>> print(s.uintbe)
          1234
 
-    .. method:: rol(bits)
+    .. method:: rol(bits[, start, end])
 
         Rotates the contents of the :class:`BitString` in-place by *bits* bits to the left.
 
+        *start* and *end* define the slice to use and default to ``0`` and :attr:`len` respectively.
+        
         Raises :exc:`ValueError` if ``bits < 0``. ::
 
          >>> s = BitString('0b01000001')
@@ -743,10 +771,12 @@ The ``BitString`` class
          >>> s.bin
          '0b00000101'
 
-    .. method:: ror(bits)
+    .. method:: ror(bits[, start, end])
 
         Rotates the contents of the :class:`BitString` in-place by *bits* bits to the right.
 
+        *start* and *end* define the slice to use and default to ``0`` and :attr:`len` respectively.
+        
         Raises :exc:`ValueError` if ``bits < 0``.
 
     .. method:: set(pos)
