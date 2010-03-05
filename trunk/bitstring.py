@@ -1168,7 +1168,7 @@ class Bits(collections.Sequence):
             data = bytearray((s + 7) // 8)
             self._setbytes(bytes(data), s)
             return
-        if isinstance(s, (str, unicode)):
+        if isinstance(s, basestring):
             self._setbytes(b'')
             _, tokens = tokenparser(s)
             for token in tokens:
@@ -1783,7 +1783,7 @@ class Bits(collections.Sequence):
         try:
             return cache[(bs, offset)]
         except KeyError:
-            if isinstance(bs, (str, unicode)):
+            if isinstance(bs, basestring):
                 b = Bits(bs)
                 b._datastore.setoffset(offset)
                 cache[(bs, offset)] = b
@@ -3587,7 +3587,7 @@ class BitString(Bits, collections.MutableSequence):
             if format < 1:
                 raise ValueError("Improper byte length %d." % format)
             bytesizes = [format]
-        elif isinstance(format, (str, unicode)):
+        elif isinstance(format, basestring):
             m = STRUCT_PACK_RE.match(format)
             if not m:
                 raise ValueError("Cannot parse format string %s." % format)
