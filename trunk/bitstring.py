@@ -215,7 +215,7 @@ def tokenparser(format, keys=None, token_cache={}):
                 continue
             # Match everything else:
             m1 = TOKEN_RE.match(token)
-            # and if you don't specify a 'name' then the defualt is 'uint':
+            # and if you don't specify a 'name' then the default is 'uint':
             m2 = DEFAULT_UINT.match(token)
             if not (m1 or m2):
                 raise ValueError("Don't understand token '%s'." % token)
@@ -545,6 +545,7 @@ MemArray = ByteArray
 
 def fast_mode(on=True):
     """Turn on or off the use of the bitarray module."""
+    global MemArray
     if not on:
         # Use pure Python implementation.
         MemArray = ByteArray
@@ -2081,7 +2082,7 @@ class Bits(collections.Sequence):
             raise ValueError("end must not be less than start.")
         return start, end
 
-    def unpack(self, *format):
+    def unpack(self, *format, **kwargs):
         """Interpret the whole bitstring using format and return list.
 
         format - One or more strings with comma separated tokens describing
@@ -2095,7 +2096,7 @@ class Bits(collections.Sequence):
         """
         bitposbefore = self._pos
         self._pos = 0
-        return_values = self.readlist(*format)
+        return_values = self.readlist(*format, **kwargs)
         self._pos = bitposbefore
         return return_values
 
@@ -2141,7 +2142,7 @@ class Bits(collections.Sequence):
             length = self.len - self.pos
         return self._readtoken(name, length)
 
-    def readlist(self, *format):
+    def readlist(self, *format, **kwargs):
         """Interpret next bits according to format string(s) and return list.
 
         format -- One or more strings with comma separated tokens describing
@@ -2160,7 +2161,7 @@ class Bits(collections.Sequence):
         tokens = []
         stretchy_token = None
         for f_item in format:
-            stretchy, tkns = tokenparser(f_item)
+            stretchy, tkns = tokenparser(f_item, tuple(sorted(kwargs.keys())))
             if stretchy:
                 if stretchy_token:
                     raise BitStringError("It's not possible to have more than "
@@ -2168,12 +2169,25 @@ class Bits(collections.Sequence):
                 stretchy_token = stretchy
             tokens.extend(tkns)
         if not stretchy_token:
-            return [self._readtoken(token[0], token[1]) for token in tokens]
-
+            lst = []
+            for name, length, _ in tokens:
+                if length in kwargs:
+                    length = kwargs[length]
+                if name in kwargs and length is None:
+                    # Using default 'uint' - the name is really the length.
+                    lst.append(self._readtoken('uint', kwargs[name]))
+                    continue
+                lst.append(self._readtoken(name, length))
+            return lst
         stretchy_token = False
         bits_after_stretchy_token = 0
         for token in tokens:
             name, length, _ = token
+            if length in kwargs:
+                length = kwargs[length]
+            if name in kwargs and length is None:
+                # Default 'uint'.
+                length = kwargs[name]
             if stretchy_token:
                 if name in ('se', 'ue'):
                     raise BitStringError("It's not possible to parse a variable"
@@ -2192,6 +2206,11 @@ class Bits(collections.Sequence):
             if token is stretchy_token:
                 # Set length to the remaining bits
                 length = max(bits_left - bits_after_stretchy_token, 0)
+            if length in kwargs:
+                length = kwargs[length]
+            if name in kwargs and length is None:
+                # Default 'uint'
+                length = kwargs[name]
             if length is not None:
                 bits_left -= length
             return_values.append(self._readtoken(name, length))
@@ -3733,10 +3752,10 @@ def pack(format, *values, **kwargs):
                 value = str(kwargs[value])
             # If the length is in the kwd dictionary then use that too.
             if length in kwargs:
-                length = str(kwargs[length])
+                length = kwargs[length]
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
-                s.append(str(kwargs[name]))
+                s.append(kwargs[name])
                 continue
             if length is not None:
                 length = int(length)
