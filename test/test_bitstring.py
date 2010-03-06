@@ -3823,6 +3823,34 @@ class Adding(unittest.TestCase):
         self.assertEqual(b, '0x1133224411332244')
         s = pack('uint:12', 46L)
         self.assertEqual(s.uint, 46)
+ 
+class UnpackWithDict(unittest.TestCase):
+    
+    def testLengthKeywords(self):
+        a = Bits('2*13=100, 0b111')
+        x, y, z = a.unpack('n, uint:m, bin:q', n=13, m=13, q=3)
+        self.assertEqual(x, 100)
+        self.assertEqual(y, 100)
+        self.assertEqual(z, '0b111')
+        
+    def testLengthKeywordsWithStretch(self):
+        a = Bits('0xff, 0b000, 0xf')
+        x, y, z = a.unpack('hex:a, bin, hex:b', a=8, b=4)
+        self.assertEqual(y, '0b000')
+        
+    def testUnusedKeyword(self):
+        a = Bits('0b110')
+        x, = a.unpack('bin:3', notused=33)
+        self.assertEqual(x, '0b110')
+    
+    def testLengthKeywordErrors(self):
+        a = Bits('uint:12=33')
+        self.assertRaises(ValueError, a.unpack, 'uint:p')
+        self.assertRaises(ValueError, a.unpack, 'uint:p', p='a_string')
+        
+
+class ReadWithDict(unittest.TestCase):
+    pass
 
 
 def main():
