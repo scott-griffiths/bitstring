@@ -2,61 +2,62 @@
 #labels Featured
 
 {{{
->>> from bitstring import BitString
+>>> from bitstring import BitString, Bits
 }}}
-===Creating !BitStrings===
-There are many ways to create and modify !BitStrings, but no matter how they are created they are always internally stored as byte arrays. To create from hexadecimal, octal and binary strings use:
+===Creating bitstring===
+
+There are many ways to create and modify bitstrings, but no matter how they are created they are always internally stored as byte arrays. To create from hexadecimal, octal and binary strings use:
 {{{
->>> h = BitString(hex='000001b3')
->>> o = BitString(oct='755')
->>> b = BitString(bin='001001111')
+>>> h = Bits(hex='000001b3')
+>>> o = Bits(oct='755')
+>>> b = Bits(bin='001001111')
 }}}
 Even better, you can use hex, oct and bin with automatic interpretation by prefixing with '0b', '0o' or '0x'
 {{{
->>> h = BitString('0x000001b3')
->>> o = BitString('0o755')
->>> b = BitString('0b001001111')
+>>> h = Bits('0x000001b3')
+>>> o = Bits('0o755')
+>>> b = Bits('0b001001111')
 }}}
 If you want to initialise from an ordinary Python string (read from a binary file, for example) then use the `bytes` initialiser.
 {{{
->>> d = BitString(bytes='\x03\xff\x23')
+>>> d = Bits(bytes=b'\x03\xff\x23')
 }}}
 or you can initialise with a filename - the file will only read as necessary:
 {{{
->>> f = BitString(filename='ABigFile.ext')
+>>> f = Bits(filename='ABigFile.ext')
 }}}
-With integers the length of the !BitString in bits needs to be supplied. It must be long enough to contain the integer.
+With integers the length of the bitstring in bits needs to be supplied. It must be long enough to contain the integer.
 {{{
->>> ui = BitString(uint=15, length=6)
+>>> ui = Bits(uint=15, length=6)
 }}}
 or equivalently
 {{{
->>> ui = BitString('uint:6=15')
+>>> ui = Bits('uint:6=15')
 }}}
 
 You can also combine the different methods to join sections together:
 {{{
->>> s = BitString('0xfe, 0b110, int:12=100, 0o7')
+>>> s = Bits('0xfe, 0b110, int:12=100, 0o7')
 }}}
 
-===Interpreting !BitStrings===
+===Interpreting bitstrings===
 
 Python properties are used to give different interpretations of the binary data. These properties are calculated only when you ask for them, they're not stored as part of the object.
 {{{
->>> print h.hex
+>>> print(h.hex)
 0x000001b3
->>> print b.oct
+>>> print(b.oct)
 0o117
->>> print h.bin
+>>> print(h.bin)
 0b00000000000000000000000110110011
->>> print ui.uint
+>>> print(ui.uint)
 15
->>> print ui.bin  # (note the leading zeros because we gave it a length of 6)
+>>> print(ui.bin)  # (note the leading zeros because we gave it a length of 6)
 0b001111 
 }}}
 
-===Manipulating !BitStrings===
-You can treat a `BitString` just like a list whose elements are all single bits.
+===Manipulating bitstrings===
+You can treat a bitstring just like a list whose elements are all single bits.
 
 Slicing
 {{{
@@ -69,35 +70,35 @@ Slicing
 }}}
 Joining lists
 {{{
->>> bsl = ['0b0', '0b1', BitString('uint:3=5'), '0xf']
->>> print BitString().join(bsl)
+>>> bsl = ['0b0', '0b1', Bits('uint:3=5'), '0xf']
+>>> print(Bits().join(bsl))
 0b011011111
 }}}
-Appending, prepending, truncating and deleting
+Appending, prepending, truncating and deleting. Note that here we use the ``BitString`` class rather than the ``Bits`` class. The main difference between them is that instances of ``BitString`` can be modified after creation whereas ``Bits`` are constant.
 {{{
 >>> s = BitString('0x00')
 >>> s.prepend('0xaa')
 >>> s.append('0xbb')
 >>> s
 BitString('0xaa00bb')
->>> s.truncatestart(4)
->>> s.truncateend(4)
+>>> del s[:4]   # truncate first 4 bits
+>>> del s[-4:]  # truncate final 4 bits
 >>> s
 BitString('0xa00b')
->>> s.delete(8, 4)  # delete 8 bits at bit position 4
+>>> del s[4:12] # delete 8 bits at bit position 4
 >>> s
 BitString('0xab')
 }}}
 Using a bitstring as a source for other bitstrings
 {{{
 >>> s = BitString('0x00112233445566778899aabbccddeeff')
->>> print s.readbit()           
+>>> print(s.readbit())           
 0b0
->>> s.advancebits(7)            # Move on 7 bits to byte align.
->>> print s.readbytes(3)       
+>>> s.pos += 7            # Move on 7 bits to byte align.
+>>> print(s.readbytes(3))       
 0x112233
->>> s.findbytealigned('0x99aa')
+>>> s.find('0x99aa', bytealigned=True)
 True
->>> print s.readbytes(5)        
+>>> print(s.readbytes(5))      
 0x99aabbccdd
 }}}
