@@ -74,7 +74,7 @@ Joining lists
 >>> print(Bits().join(bsl))
 0b011011111
 }}}
-Appending, prepending, truncating and deleting. Note that here we use the ``BitString`` class rather than the ``Bits`` class. The main difference between them is that instances of ``BitString`` can be modified after creation whereas ``Bits`` are constant.
+Appending, prepending, truncating and deleting. Note that here we use the `BitString` class rather than the `Bits` class. The main difference between them is that instances of `BitString` can be modified after creation whereas `Bits` are constant.
 {{{
 >>> s = BitString('0x00')
 >>> s.prepend('0xaa')
