@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 from distutils.core import setup
+import sys
 
 kwds = {}
 kwds['long_description'] = open('README.txt').read()
 
+if sys.version_info[:2] < (2, 6):
+    raise Exception('This version of bitstring needs Python 2.6 or later. '
+                    'For Python 2.4 / 2.5 please use bitstring version 1.0 instead.')
+
 setup(name='bitstring',
-      version='1.2.0',
+      version='1.3.0',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
