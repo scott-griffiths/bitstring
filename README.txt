@@ -17,11 +17,31 @@ licence.
 This version supports Python 2.6 and 3.x. For Python 2.4 and 2.5 you should
 instead download version 1.0.
 
+Installation
+------------
+If you have downloaded and unzipped the package then you need to run the
+``setup.py`` script with the 'install' argument::
+
+     python setup.py install
+
+This should put ``bitstring.py`` in your ``site-packages`` directory. You may
+need to run this with root privileges on Unix-like systems.
+
+Alternatively just copy the ``bitstring.py`` file to where you want it!
+
+If you haven't downloaded the package then you can just try::
+
+     easy_install bitstring
+
+If you're using Windows then there is an installer available from the
+downloads tab on the project's homepage.
+
 Documentation
 -------------
 The manual for the bitstring module is available as HTML and as a PDF. It
 contains a walk-through of all the features and a complete reference section.
-It can be dowloaded or viewed on the project's homepage.
+It is part of the source package and it can also be viewed on the project's
+homepage.
 
 Simple Examples
 ---------------
@@ -63,25 +83,6 @@ Searching, inserting and deleting::
      >>> c.insert('0b0000')
      >>> del c[12:16]
 
-Installation
-------------
-First try::
-
-     easy_install bitstring
-     
-If you don't have easy_install then download the zip file and run the
-``setup.py`` script with the 'install' argument::
-
-     python setup.py install
-
-This should put ``bitstring.py`` in your ``site-packages`` directory. You may
-need to run this with root privileges on Unix-like systems.
-
-Alternatively just copy the ``bitstring.py`` file to where you want it!
-
-If you're using Windows then there is an installer available from the
-downloads tab on the project's homepage.
-
 Unit Tests
 ----------
 To run the unit tests::
@@ -93,7 +94,7 @@ The unit tests should all pass for Python 2.6, 3.0 and 3.1.
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2009 Scott Griffiths
+Copyright (c) 2010 Scott Griffiths
 
 For more information see the project's homepage on Google Code:
 <http://python-bitstring.googlecode.com>
