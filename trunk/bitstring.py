@@ -82,6 +82,8 @@ if PYTHON_VERSION == 2:
 else:
     from io import IOBase
     xrange = range
+    long = int
+    basestring = str
     file = IOBase
     LEADING_OCT_CHARS = 2 # e.g. 0o755
     # Use memoryview as buffer isn't available.
@@ -422,15 +424,14 @@ class BitArray(BaseArray):
         self.offset = array.offset
         assert self._rawarray.length() == self.offset + self.bitlength
 
-    def _getbytelength(self):
+    @property
+    def bytelength(self):
         return (self.bitlength + self.offset + 7) // 8
 
-    def _getrawbytes(self):
+    @property
+    def rawbytes(self):
         return bytearray(self._rawarray.tostring())[self.offset // 8: (self.offset + self.bitlength + 7) // 8]
 
-    bytelength = property(_getbytelength)
-
-    rawbytes = property(_getrawbytes)
 
 class ByteArray(BaseArray):
     """Stores raw bytes together with a bit offset and length."""
@@ -531,15 +532,14 @@ class ByteArray(BaseArray):
         self.offset = array.offset
         self.bitlength += array.bitlength
 
-    def _getbytelength(self):
+    @property
+    def bytelength(self):
         return len(self._rawarray)
 
-    def _getrawbytes(self):
+    @property
+    def rawbytes(self):
         return self._rawarray
 
-    bytelength = property(_getbytelength)
-
-    rawbytes = property(_getrawbytes)
 
 MemArray = ByteArray
 
@@ -743,6 +743,7 @@ class Bits(collections.Sequence):
         '0x1122'
 
         """
+        # TODO: This try block is far too long when catching an AttributeError!
         try:
             start, step = 0, 1
             if key.step is not None:
@@ -1192,7 +1193,6 @@ class Bits(collections.Sequence):
         raise TypeError("Cannot initialise %s from %s." %
                         (self.__class__.__name__, type(s)))
 
-
     def _setfile(self, filename, length, offset):
         "Use file as source of bits."
         source = open(filename, 'rb')
@@ -1526,7 +1526,7 @@ class Bits(collections.Sequence):
 
         """
         oldpos = self._pos
-        foundone = self.find('0b1', self._pos)
+        foundone = self.find(True, self._pos)
         if not foundone:
             self._pos = self.len
             raise BitStringError("Read off end of bitstring trying to read code.")
@@ -1814,7 +1814,7 @@ class Bits(collections.Sequence):
     def _readtoken(self, name, length):
         """Reads a token from the bitstring and returns the result."""
         if length is not None:
-            length = min(length, self.length - self._pos)
+            length = min(int(length), self.length - self._pos)
         try:
             val = name_to_read[name](self, length, self._pos)
             self._pos += length
@@ -2087,6 +2087,8 @@ class Bits(collections.Sequence):
 
         format - One or more strings with comma separated tokens describing
                  how to interpret the bits in the bitstring.
+        kwargs -- A dictionary or keyword-value pairs - the keywords used in the
+                  format string will be replaced with their given value.
 
         Raises ValueError if the format is not understood. If not enough bits
         are available then all bits to the end of the bitstring will be used.
@@ -2147,6 +2149,8 @@ class Bits(collections.Sequence):
 
         format -- One or more strings with comma separated tokens describing
                   how to interpret the next bits in the bitstring.
+        kwargs -- A dictionary or keyword-value pairs - the keywords used in the
+                  format string will be replaced with their given value.
 
         The position in the bitstring is advanced to after the read items.
         If not enough bits are available then all bits to the end of the
@@ -2305,20 +2309,24 @@ class Bits(collections.Sequence):
                              "use peeklist() instead.")
         return return_values[0]
 
-    def peeklist(self, *format):
+    def peeklist(self, *format, **kwargs):
         """Interpret next bits according to format string(s) and return list.
 
         format -- One or more strings with comma separated tokens describing
                   how to interpret the next bits in the bitstring.
+        kwargs -- A dictionary or keyword-value pairs - the keywords used in the
+                  format string will be replaced with their given value.
 
         The position in the bitstring is not changed. If not enough bits are
         available then all bits to the end of the bitstring will be used.
+
+        Raises ValueError if the format is not understood.
 
         See the docstring for 'read' for token examples.
 
         """
         pos = self._pos
-        return_values = self.readlist(*format)
+        return_values = self.readlist(*format, **kwargs)
         self._pos = pos
         return return_values
 
@@ -2961,7 +2969,7 @@ class Bits(collections.Sequence):
                       Will be prefixed with '0o' and including any leading zeros.
 
                       """)
-    bytes   = property(_getbytes,
+    bytes  = property(_getbytes,
                       doc="""The bitstring as a bytes object. Read only.
                       """)
     int    = property(_getint,
@@ -3081,6 +3089,31 @@ class BitString(Bits, collections.MutableSequence):
             start, step = 0, 1
             if key.step is not None:
                 step = key.step
+        except AttributeError:
+            # single element
+            if key < 0:
+                key += self.len
+            if not 0 <= key < self.len:
+                raise IndexError("Slice index out of range.")
+            if isinstance(value, (int, long)):
+                if value == 0:
+                    self._unset(key)
+                    return
+                if value in (1, -1):
+                    self._set(key)
+                    return
+                raise ValueError("Cannot set a single bit with integer %d." %
+                                 value)
+            if value.len == 1:
+                if value.allset(0):
+                    self._set(key)
+                else:
+                    self._unset(key)
+            else:
+                self._delete(1, key)
+                self._insert(value, key)
+            return
+        else:
             if step == 0:
                 stop = 0
             else:
@@ -3143,30 +3176,7 @@ class BitString(Bits, collections.MutableSequence):
                     self._insert(value.__getitem__(slice(None, None, step)), start)
                 # pos is now after the inserted piece.
             return
-        except AttributeError:
-            # single element
-            if key < 0:
-                key += self.len
-            if not 0 <= key < self.len:
-                raise IndexError("Slice index out of range.")
-            if isinstance(value, (int, long)):
-                if value == 0:
-                    self._unset(key)
-                    return
-                if value in (1, -1):
-                    self._set(key)
-                    return
-                raise ValueError("Cannot set a single bit with integer %d." %
-                                 value)
-            if value.len == 1:
-                if value.allset(0):
-                    self._set(key)
-                else:
-                    self._unset(key)
-            else:
-                self._delete(1, key)
-                self._insert(value, key)
-            return
+
 
     def __delitem__(self, key):
         """Delete item or range.
