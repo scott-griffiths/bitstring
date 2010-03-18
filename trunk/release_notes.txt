@@ -1,10 +1,29 @@
 --------------------------------
 bitstring module version history
 --------------------------------
-
-March xx 2010: version 1.3.0 for Python 2.6 and 3.x released
+--------------------------------------------------------------
+March 18th 2010: version 1.3.0 for Python 2.6 and 3.x released
+--------------------------------------------------------------
+New features:
 
 * byteswap method for changing endianness.
+
+Changes the endianness in-place according to a format string or
+integer(s) giving the byte pattern. See the manual for details.
+
+>>> s = BitString('0x00112233445566')
+>>> s.byteswap(2)
+3
+>>> s
+BitString('0x11003322554466')
+>>> s.byteswap('h')
+3
+>>> s
+BitString('0x00112233445566')
+>>> s.byteswap([2, 5])
+1
+>>> s
+BitString('0x11006655443322')
 
 * Multiplicative factors in bitstring creation and reading.
 
@@ -49,10 +68,10 @@ referring to the parameter by name.
 * __init__ method accepts keywords.
 
 Rather than a long list of initialisers the __init__ methods now use a
-**kwargs dictionary for all initialisers except 'auto'. The effect of this
-should be zero, except that this is a small backward incompatibility, but
-only if you use positional arguments when initialising with anything other
-than auto (which would be rather unusual).
+**kwargs dictionary for all initialisers except 'auto'. This should have no
+effect, except that this is a small backward incompatibility if you use
+positional arguments when initialising with anything other than auto
+(which would be rather unusual).
 
 * More optimisations.
 
