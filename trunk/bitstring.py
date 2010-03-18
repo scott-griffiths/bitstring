@@ -29,7 +29,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "1.3.0"
+__version__ = "2.0.0"
 
 __author__ = "Scott Griffiths"
 
@@ -239,11 +239,11 @@ def tokenparser(format, keys=None, token_cache={}):
                 try:
                     length = int(length)
                     if length < 0:
-                        raise BitStringError
+                        raise Error
                     # For the 'bytes' token convert length to bits.
                     if name == 'bytes':
                         length *= 8
-                except BitStringError:
+                except Error:
                     raise ValueError("Can't read a token with a negative length.")
                 except ValueError:
                     if not keys or length not in keys:
@@ -322,7 +322,7 @@ if PYTHON_VERSION == 2:
 else:
     BYTE_REVERSAL_DICT = dict(zip(range(256), [bytes([x]) for x in REVERSED]))
 
-class BitStringError(Exception):
+class Error(Exception):
     """For errors in the bitstring module."""
 
 
@@ -554,7 +554,7 @@ def fast_mode(on=True):
         # Use bitstring module for a bit of extra speed.
         MemArray = BitArray
         return
-    raise BitStringError("Couldn't turn on fast mode - the import of the bitarray module failed.")
+    raise Error("Couldn't turn on fast mode - the import of the bitarray module failed.")
 
 class FileArray(BaseArray):
     """A class that mimics bytearray but gets data from a file object."""
@@ -671,7 +671,7 @@ class Bits(collections.Sequence):
             return
         k, v = kwargs.popitem()
         if offset is not None and k not in name_to_init_with_offset:
-                raise BitStringError("An offset should not be given when "
+                raise Error("An offset should not be given when "
                                      "using this initialiser.")
         self._initialise_from_keyword(k, v, length, offset)
 
@@ -692,12 +692,12 @@ class Bits(collections.Sequence):
                 name_to_init_with_length[k](self, v, length)
             except KeyError:
                 if length is not None:
-                    raise BitStringError("A length cannot be specified for an "
+                    raise Error("A length cannot be specified for an "
                                          "exponential-Golomb initialiser.")
                 try:
                     name_to_init[k](self, v)
                 except KeyError:
-                    raise BitStringError("Unrecognised keyword '%s' used to initialise." % k)
+                    raise Error("Unrecognised keyword '%s' used to initialise." % k)
 
 
 
@@ -792,7 +792,7 @@ class Bits(collections.Sequence):
                 key += self.len
             if not 0 <= key < self.len:
                 raise IndexError("Slice index out of range.")
-            return self._slice(key, key + 1)
+            return self._slice(key)
 
     def __len__(self):
         """Return the length of the bitstring in bits."""
@@ -889,11 +889,11 @@ class Bits(collections.Sequence):
     def __invert__(self):
         """Return bitstring with every bit inverted.
 
-        Raises BitStringError if the BitString is empty.
+        Raises Error if the BitString is empty.
 
         """
         if not self:
-            raise BitStringError("Cannot invert empty bitstring.")
+            raise Error("Cannot invert empty bitstring.")
         s = self.__class__(bytes=self._datastore[:], length=self.len,
                            offset=self._datastore.offset)
         s._invert(xrange(s.len))
@@ -962,7 +962,7 @@ class Bits(collections.Sequence):
         """Bit-wise 'and' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '&' with.
-
+re
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
@@ -1521,7 +1521,7 @@ class Bits(collections.Sequence):
 
         Advances position to after the read code.
 
-        Raises BitStringError if the end of the bitstring is encountered while
+        Raises Error if the end of the bitstring is encountered while
         reading the code.
 
         """
@@ -1529,13 +1529,13 @@ class Bits(collections.Sequence):
         foundone = self.find(True, self._pos)
         if not foundone:
             self._pos = self.len
-            raise BitStringError("Read off end of bitstring trying to read code.")
+            raise Error("Read off end of bitstring trying to read code.")
         leadingzeros = self._pos - oldpos
         codenum = (1 << leadingzeros) - 1
         if leadingzeros > 0:
             restofcode = self.readbits(leadingzeros + 1)
             if restofcode.len != leadingzeros + 1:
-                raise BitStringError("Read off end of bitstring trying to read code.")
+                raise Error("Read off end of bitstring trying to read code.")
             codenum += restofcode[1:].uint
         else:
             assert codenum == 0
@@ -1545,7 +1545,7 @@ class Bits(collections.Sequence):
     def _getue(self):
         """Return data as unsigned exponential-Golomb code.
 
-        Raises BitStringError if bitstring is not a single exponential-Golomb code.
+        Raises Error if bitstring is not a single exponential-Golomb code.
 
         """
         oldpos = self._pos
@@ -1553,10 +1553,10 @@ class Bits(collections.Sequence):
         try:
             value = self._readue()
             if self._pos != self.len:
-                raise BitStringError
-        except BitStringError:
+                raise Error
+        except Error:
             self._pos = oldpos
-            raise BitStringError("bitstring is not a single "
+            raise Error("bitstring is not a single "
                                  "exponential-Golomb code.")
         self._pos = oldpos
         return value
@@ -1572,7 +1572,7 @@ class Bits(collections.Sequence):
     def _getse(self):
         """Return data as signed exponential-Golomb code.
 
-        Raises BitStringError if bitstring is not a single exponential-Golomb code.
+        Raises Error if bitstring is not a single exponential-Golomb code.
 
         """
         oldpos = self._pos
@@ -1580,10 +1580,10 @@ class Bits(collections.Sequence):
         try:
             value = self._readse()
             if value is None or self._pos != self.len:
-                raise BitStringError
-        except BitStringError:
+                raise Error
+        except Error:
             self._pos = oldpos
-            raise BitStringError("Bitstring is not a single "
+            raise Error("Bitstring is not a single "
                                  "exponential-Golomb code.")
         self._pos = oldpos
         return value
@@ -1593,7 +1593,7 @@ class Bits(collections.Sequence):
 
         Advances position to after the read code.
 
-        Raises BitStringError if the end of the bitstring is encountered while
+        Raises Error if the end of the bitstring is encountered while
         reading the code.
 
         """
@@ -1743,7 +1743,7 @@ class Bits(collections.Sequence):
     def _getbytepos(self):
         """Return the current position in the stream in bytes. Must be byte aligned."""
         if self._pos % 8 != 0:
-            raise BitStringError("Not byte aligned in _getbytepos().")
+            raise Error("Not byte aligned in _getbytepos().")
         return self._pos // 8
 
     def _setbitpos(self, pos):
@@ -1802,14 +1802,15 @@ class Bits(collections.Sequence):
                                      self._offset)
         return s_copy
 
-    def _slice(self, start, end):
+    def _slice(self, start, end=None):
         """Used internally to get a slice, without error checking."""
         if end == start:
             return self.__class__()
-        startbyte, newoffset = divmod(start + self._offset, 8)
-        endbyte = (end + self._offset - 1) // 8
-        return self.__class__(bytes=self._datastore[startbyte:endbyte + 1],
-                              length=end - start, offset=newoffset)
+        if end is None:
+            # Single bit, return True or False
+            # TODO: Optimise (shouldn't be range checked)
+            return self.allset(start)
+        return self._readbits(end-start, start)
 
     def _readtoken(self, name, length):
         """Reads a token from the bitstring and returns the result."""
@@ -2058,6 +2059,8 @@ class Bits(collections.Sequence):
 
     def _readbits(self, length, start):
         """Read some bits from the bitstring and return newly constructed bitstring."""
+        if length is None:
+            return self.allset(start)
         startbyte, newoffset = divmod(start + self._offset, 8)
         endbyte = (start + self._offset + length - 1) // 8
         bs = self.__class__(bytes=self._datastore[startbyte:endbyte + 1],
@@ -2082,7 +2085,7 @@ class Bits(collections.Sequence):
             raise ValueError("end must not be less than start.")
         return start, end
 
-    def unpack(self, *format, **kwargs):
+    def unpack(self, format, **kwargs):
         """Interpret the whole bitstring using format and return list.
 
         format - One or more strings with comma separated tokens describing
@@ -2098,7 +2101,7 @@ class Bits(collections.Sequence):
         """
         bitposbefore = self._pos
         self._pos = 0
-        return_values = self.readlist(*format, **kwargs)
+        return_values = self.readlist(format, **kwargs)
         self._pos = bitposbefore
         return return_values
 
@@ -2144,7 +2147,7 @@ class Bits(collections.Sequence):
             length = self.len - self.pos
         return self._readtoken(name, length)
 
-    def readlist(self, *format, **kwargs):
+    def readlist(self, format, **kwargs):
         """Interpret next bits according to format string(s) and return list.
 
         format -- One or more strings with comma separated tokens describing
@@ -2159,16 +2162,18 @@ class Bits(collections.Sequence):
         Raises ValueError if the format is not understood.
 
         >>> h, b1, b2 = s.readlist('hex:20, bin:5, bin:3')
-        >>> i, bs1, bs2 = s.readlist('uint:12', 'bits:10', 'bits:10')
+        >>> i, bs1, bs2 = s.readlist(['uint:12', 'bits:10', 'bits:10'])
 
         """
         tokens = []
         stretchy_token = None
+        if isinstance(format, basestring):
+            format = [format]
         for f_item in format:
             stretchy, tkns = tokenparser(f_item, tuple(sorted(kwargs.keys())))
             if stretchy:
                 if stretchy_token:
-                    raise BitStringError("It's not possible to have more than "
+                    raise Error("It's not possible to have more than "
                                          "one 'filler' token.")
                 stretchy_token = stretchy
             tokens.extend(tkns)
@@ -2194,13 +2199,13 @@ class Bits(collections.Sequence):
                 length = kwargs[name]
             if stretchy_token:
                 if name in ('se', 'ue'):
-                    raise BitStringError("It's not possible to parse a variable"
+                    raise Error("It's not possible to parse a variable"
                                          "length token after a 'filler' token.")
                 else:
                     bits_after_stretchy_token += length
             if length is None and name not in ('se', 'ue'):
                 if stretchy_token:
-                    raise BitStringError("It's not possible to have more than "
+                    raise Error("It's not possible to have more than "
                                          "one 'filler' token.")
                 stretchy_token = token
         bits_left = self.len - self._pos
@@ -2238,6 +2243,10 @@ class Bits(collections.Sequence):
         Raises ValueError if bits < 0.
 
         """
+        if bits == 1:
+            bs = self._readbits(None, self.pos)
+            self._pos += 1
+            return bs
         if bits < 0:
             raise ValueError("Cannot read negative amount.")
         bits = min(bits, self.len - self._pos)
@@ -2245,7 +2254,7 @@ class Bits(collections.Sequence):
         self._pos += bits
         return bs
 
-    def readbitlist(self, *bits):
+    def readbitlist(self, bits):
         """Return next bits as new list of bitstring(s) and advance position.
 
         bits -- The number of bits to read. A list of BitStrings will be
@@ -2280,7 +2289,7 @@ class Bits(collections.Sequence):
         """
         return self.readbits(bytes*8)
 
-    def readbytelist(self, *bytes):
+    def readbytelist(self, bytes):
         """Return next bytes as list of new bitstring(s) and advance position.
 
         bytes -- The number of bytes to read. A list of BitStrings will be
@@ -2290,7 +2299,7 @@ class Bits(collections.Sequence):
         If not enough bits are available then all remaining will be returned.
 
         """
-        return self.readbitlist(*[b*8 for b in bytes])
+        return self.readbitlist([b*8 for b in bytes])
 
     def peek(self, format):
         """Interpret next bits according to format string and return result.
@@ -2353,7 +2362,7 @@ class Bits(collections.Sequence):
         self._pos = pos
         return s
 
-    def peekbitlist(self, *bits):
+    def peekbitlist(self, bits):
         """Return next bits as bitstring list without advancing position.
 
         bits -- The number of bits to read. A list of BitStrings will be
@@ -2365,7 +2374,7 @@ class Bits(collections.Sequence):
 
         """
         pos = self._pos
-        s = self.readbitlist(*bits)
+        s = self.readbitlist(bits)
         self._pos = pos
         return s
 
@@ -2387,7 +2396,7 @@ class Bits(collections.Sequence):
         """
         return self.peekbits(bytes*8)
 
-    def peekbytelist(self, *bytes):
+    def peekbytelist(self, bytes):
         """Return next bytes as bitstring list without advancing position.
 
         bytes -- The number of bytes to read. A list of BitStrings will be
@@ -2396,132 +2405,7 @@ class Bits(collections.Sequence):
         If not enough bits are available then all remaining will be returned.
 
         """
-        return self.peekbitlist(*[b*8 for b in bytes])
-
-    @deprecated("Instead of 's.advancebit()' use 's.pos +=1'.")
-    def advancebit(self):
-        """Advance position by one bit.
-
-        Raises ValueError if pos is past the last bit in the bitstring.
-
-        """
-        self.pos += 1
-
-    @deprecated("Instead of 's.advancebits(n)' use 's.pos += n'.")
-    def advancebits(self, bits):
-        """Advance position by bits.
-
-        bits -- Number of bits to increment pos by. Must be >= 0.
-
-        Raises ValueError if bits is negative or if pos goes past the end
-        of the bitstring.
-
-        """
-        if bits < 0:
-            raise ValueError("Cannot advance by a negative amount.")
-        self.pos += bits
-
-    @deprecated("Instead of 's.advancebyte()' use 's.pos += 8'.")
-    def advancebyte(self):
-        """Advance position by one byte. Does not byte align.
-
-        Raises ValueError if there is less than one byte from pos to
-        the end of the bitstring.
-
-        """
-        self.pos += 8
-
-    @deprecated("Instead of 's.advancebytes(n)' use 's.pos += 8*n'.")
-    def advancebytes(self, bytes):
-        """Advance position by bytes. Does not byte align.
-
-        bytes -- Number of bytes to increment pos by. Must be >= 0.
-
-        Raises ValueError if there are not enough bytes from pos to
-        the end of the bitstring.
-
-        """
-        if bytes < 0:
-            raise ValueError("Cannot advance by a negative amount.")
-        self.pos += bytes*8
-
-    @deprecated("Instead of 's.retreatbit()' use 's.pos -= 1'.")
-    def retreatbit(self):
-        """Retreat position by one bit.
-
-        Raises ValueError if pos is already at the start of the bitstring.
-
-        """
-        self.pos -= 1
-
-    @deprecated("Instead of 's.retreatbits(n)' use 's.pos -= n'.")
-    def retreatbits(self, bits):
-        """Retreat position by bits.
-
-        bits -- Number of bits to decrement pos by. Must be >= 0.
-
-        Raises ValueError if bits negative or if pos goes past the start
-        of the bitstring.
-
-        """
-        if bits < 0:
-            raise ValueError("Cannot retreat by a negative amount.")
-        self.pos -= bits
-
-    @deprecated("Instead of 's.retreatbyte()' use 's.pos -= 8'.")
-    def retreatbyte(self):
-        """Retreat position by one byte. Does not byte align.
-
-        Raises ValueError if pos is less than 8.
-
-        """
-        self.pos -= 8
-
-    @deprecated("Instead of 's.retreatbytes(n)' use 's.pos -= 8*n'.")
-    def retreatbytes(self, bytes):
-        """Retreat position by bytes. Does not byte align.
-
-        bytes -- Number of bytes to decrement pos by. Must be >= 0.
-
-        Raises ValueError if bytes negative or if pos goes past the start
-        of the bitstring.
-
-        """
-        if bytes < 0:
-            raise ValueError("Cannot retreat by a negative amount.")
-        self.pos -= bytes*8
-
-    @deprecated("Instead of 's.seek(p)' use 's.pos = p'.")
-    def seek(self, pos):
-        """Seek to absolute bit position pos.
-
-        Raises ValueError if pos < 0 or pos > self.len.
-
-        """
-        self.pos = pos
-
-    @deprecated("Instead of 's.seekbyte(p)' use 's.bytepos = p'.")
-    def seekbyte(self, bytepos):
-        """Seek to absolute byte position bytepos.
-
-        Raises ValueError if bytepos < 0 or bytepos*8 > self.len.
-
-        """
-        self.bytepos = bytepos
-
-    @deprecated("Instead of 's.tell()' use 's.pos'.")
-    def tell(self):
-        """Return current position in the bitstring in bits (pos)."""
-        return self._pos
-
-    @deprecated("Instead of 's.tellbyte()' use 's.bytepos'.")
-    def tellbyte(self):
-        """Return current position in the bitstring in bytes (bytepos).
-
-        Raises BitStringError if position is not byte-aligned.
-
-        """
-        return self.bytepos
+        return self.peekbitlist([b*8 for b in bytes])
 
     def find(self, bs, start=None, end=None, bytealigned=False):
         """Seek to start of next occurence of bs. Return True if string is found.
@@ -2679,20 +2563,6 @@ class Bits(collections.Sequence):
         self.pos += self._offset + skipped
         assert self._assertsanity()
         return skipped
-
-    @deprecated("Instead of 's.slice(a, b, c)' use 's[a:b:c]'.")
-    def slice(self, start=None, end=None, step=None):
-        """Return a new bitstring which is the slice [start:end:step].
-
-        start -- Position of first bit in the new bitstring. Defaults to 0.
-        end -- One past the position of the last bit in the new bitstring.
-               Defaults to self.len.
-        step -- Multiplicative factor for start and end. Defaults to 1.
-
-        Has the same semantics as __getitem__.
-
-        """
-        return self.__getitem__(slice(start, end, step))
 
     def cut(self, bits, start=None, end=None, count=None):
         """Return bitstring generator by cutting into bits sized chunks.
@@ -3373,34 +3243,6 @@ class BitString(Bits, collections.MutableSequence):
         assert self._assertsanity()
         return len(lengths) - 1
 
-    @deprecated("Instead of 's.truncatestart(n)' use 'del s[:n]'.")
-    def truncatestart(self, bits):
-        """Truncate bits from the start of the BitString.
-
-        bits -- Number of bits to remove from start of the BitString.
-
-        Raises ValueError if bits < 0 or bits > self.len.
-
-        """
-        if bits < 0 or bits > self.len:
-            raise ValueError("Truncation length of %d not possible. Length = %d."
-                             % (bits, self.len))
-        self._truncatestart(bits)
-
-    @deprecated("Instead of 's.truncateend(n)' use 'del s[-n:]'.")
-    def truncateend(self, bits):
-        """Truncate bits from the end of the BitString.
-
-        bits -- Number of bits to remove from end of the BitString.
-
-        Raises ValueError if bits < 0 or bits > self.len.
-
-        """
-        if bits < 0 or bits > self.len:
-            raise ValueError("Truncation length of %d bits not possible. Length = %d."
-                             % (bits, self.len))
-        self._truncateend(bits)
-
     def insert(self, bs, pos=None):
         """Insert bs at current position, or pos if supplied.
 
@@ -3449,22 +3291,6 @@ class BitString(Bits, collections.MutableSequence):
         bs._ensureinmemory()
         self._overwrite(bs, pos)
 
-    @deprecated("Instead of 's.delete(n, pos)' use 'del s[pos:pos+n]'.")
-    def delete(self, bits, pos=None):
-        """Delete bits at current position, or pos if given.
-
-        bits -- Number of bits to delete.
-        pos -- Bit position to delete from. Defaults to self.pos.
-
-        Raises ValueError if bits < 0.
-
-        """
-        if pos is None:
-            pos = self._pos
-        if bits < 0:
-            raise ValueError("Cannot delete a negative number of bits.")
-        self._delete(bits, pos)
-
     def append(self, bs):
         """Append a BitString to the current BitString.
 
@@ -3511,12 +3337,12 @@ class BitString(Bits, collections.MutableSequence):
         end -- One past the position of the last bit to reverse.
                Defaults to self.len.
 
-        Raises BitStringError if end - start is not a multiple of 8.
+        Raises Error if end - start is not a multiple of 8.
 
         """
         start, end = self._validate_slice(start, end)
         if (end - start) % 8 != 0:
-            raise BitStringError("Can only use reversebytes on whole-byte BitStrings.")
+            raise Error("Can only use reversebytes on whole-byte BitStrings.")
         self._ensureinmemory()
         self._reversebytes(start, end)
 
@@ -3566,7 +3392,7 @@ class BitString(Bits, collections.MutableSequence):
 
         """
         if self.len == 0:
-            raise BitStringError("Cannot rotate an empty BitString.")
+            raise Error("Cannot rotate an empty BitString.")
         if bits < 0:
             raise ValueError("Cannot rotate right by negative amount.")
         start, end = self._validate_slice(start, end)
@@ -3588,7 +3414,7 @@ class BitString(Bits, collections.MutableSequence):
 
         """
         if self.len == 0:
-            raise BitStringError("Cannot rotate an empty BitString.")
+            raise Error("Cannot rotate an empty BitString.")
         if bits < 0:
             raise ValueError("Cannot rotate left by negative amount.")
         start, end = self._validate_slice(start, end)

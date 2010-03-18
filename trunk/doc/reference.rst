@@ -11,6 +11,5 @@ Reference
    
    bitstring_classes
    functions
-   deprecated
 
 

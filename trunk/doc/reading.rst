@@ -9,7 +9,7 @@ A common need is to parse a large bitstring into smaller parts. Functions for re
 
 In order to behave like a file or stream, every bitstring has a property :attr:`pos` which is the current position from which reads occur. :attr:`pos` can range from zero (its value on construction) to the length of the bitstring, a position from which all reads will fail as it is past the last bit.
 
-The property :attr:`bytepos` is also available, and is useful if you are only dealing with byte data and don't want to always have to divide the bit position by eight. Note that if you try to use :attr:`bytepos` and the bitstring isn't byte aligned (i.e. :attr:`pos` isn't a multiple of 8) then a :exc:`BitStringError` exception will be raised.
+The property :attr:`bytepos` is also available, and is useful if you are only dealing with byte data and don't want to always have to divide the bit position by eight. Note that if you try to use :attr:`bytepos` and the bitstring isn't byte aligned (i.e. :attr:`pos` isn't a multiple of 8) then a :exc:`Error` exception will be raised.
 
 ``readbit(s) / readbitlist / readbyte(s) / readbytelist``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -116,7 +116,7 @@ Seeking
 
 The properties :attr:`pos` and :attr:`bytepos` are available for getting and setting the position, which is zero on creation of the bitstring.
 
-Note that you can only use :attr:`bytepos` if the position is byte aligned, i.e. the bit position is a multiple of 8. Otherwise a :exc:`BitStringError` exception is raised.
+Note that you can only use :attr:`bytepos` if the position is byte aligned, i.e. the bit position is a multiple of 8. Otherwise a :exc:`Error` exception is raised.
 
 For example::
 
