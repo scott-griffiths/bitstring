@@ -535,7 +535,7 @@ The ``Bits`` class
 
         Returns the bitstring with every bit inverted, that is all zeros replaced with ones, and all ones replaced with zeros.
 
-        If the bitstring is empty then a :exc:`BitStringError` will be raised. ::
+        If the bitstring is empty then a :exc:`Error` will be raised. ::
 
          >>> s = Bits(‘0b1110010’)
          >>> print(~s)
@@ -754,7 +754,7 @@ The ``BitString`` class
 
         Reverses bytes in the :class:`BitString` in-place.
 
-        *start* and *end* give the range and default to ``0`` and :attr:`len` respectively. Note that *start* and *end* are specified in bits so if ``end - start`` is not a multiple of 8 then a :exc:`BitStringError` is raised.
+        *start* and *end* give the range and default to ``0`` and :attr:`len` respectively. Note that *start* and *end* are specified in bits so if ``end - start`` is not a multiple of 8 then a :exc:`Error` is raised.
 
         Can be used to change the endianness of the :class:`BitString`. ::
 
@@ -869,7 +869,7 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 .. attribute:: bytepos
 
     Property for setting and getting the current byte position in the bitstring.
-    When used as a getter will raise a :exc:`BitStringError` if the current position in not byte aligned.
+    When used as a getter will raise a :exc:`Error` if the current position in not byte aligned.
 
 .. attribute:: bytes
 
@@ -990,20 +990,20 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     Property for the signed exponential-Golomb code representation of the bitstring.
 
-    The property is set from an signed integer, and when used as a getter a :exc:`BitStringError` will be raised if the bitstring is not a single code. ::
+    The property is set from an signed integer, and when used as a getter a :exc:`Error` will be raised if the bitstring is not a single code. ::
 
      >>> s = BitString(se=-40)
      >>> s.bin
      0b0000001010001
      >>> s += '0b1'
      >>> s.se
-     BitStringError: BitString is not a single exponential-Golomb code.
+     Error: BitString is not a single exponential-Golomb code.
 
 .. attribute:: ue
 
     Property for the unsigned exponential-Golomb code representation of the bitstring.
 
-    The property is set from an unsigned integer, and when used as a getter a :exc:`BitStringError` will be raised if the bitstring is not a single code.
+    The property is set from an unsigned integer, and when used as a getter a :exc:`Error` will be raised if the bitstring is not a single code.
 
 .. attribute:: uint
 
@@ -1033,6 +1033,6 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 Exceptions
 ----------
 
-.. exception:: BitStringError
+.. exception:: Error
 
 Used for miscellaneous exceptions where built-in exception classes are not appropriate.

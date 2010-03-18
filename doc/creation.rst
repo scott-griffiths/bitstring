@@ -509,7 +509,7 @@ Note that the :meth:`tobytes` method automatically padded with four zero bits at
 ue
 ^^
 
-The :attr:`ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a :exc:`BitStringError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
+The :attr:`ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a :exc:`Error` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
 
  >>> s = BitString(ue=12)
  >>> s.bin
@@ -525,7 +525,7 @@ The :attr:`se` property does much the same as ``ue`` and the provisos there all 
 
  >>> s = BitString('0x164b')
  >>> s.se
- BitStringError: BitString is not a single exponential-Golomb code.
+ Error: BitString is not a single exponential-Golomb code.
  >>> while s.pos < s.length:
  ...     print(s.read('se'))
  -5
