@@ -3795,63 +3795,76 @@ class Adding(unittest.TestCase):
             self.assertEqual(be.len, bitstring.PACK_CODE_SIZE[key]*8)
             self.assertEqual(le.len, be.len)
 
-    def testUnicode(self):
-        a = Bits(u'uint:12=34')
-        self.assertEqual(a.uint, 34)
-        a += u'0xfe'
-        self.assertEqual(a[12:], '0xfe')
-        a = BitString('0x1122')
-        c = a.byteswap(u'h')
-        self.assertEqual(c, 1)
-        self.assertEqual(a, u'0x2211')
+    # These tests don't compile for Python 3, so they're commented out to save me stress.
+    #def testUnicode(self):
+        #a = Bits(u'uint:12=34')
+        #self.assertEqual(a.uint, 34)
+        #a += u'0xfe'
+        #self.assertEqual(a[12:], '0xfe')
+        #a = BitString('0x1122')
+        #c = a.byteswap(u'h')
+        #self.assertEqual(c, 1)
+        #self.assertEqual(a, u'0x2211')
 
-    def testLongInt(self):
-        a = BitString(4L)
-        self.assertEqual(a, '0b0000')
-        a[1:3] = -1L
-        self.assertEqual(a, '0b0110')
-        a[0] = 1L
-        self.assertEqual(a, '0b1110')
-        a *= 4L
-        self.assertEqual(a, '0xeeee')
-        c = a.byteswap(2L)
-        self.assertEqual(c, 1)
-        a = BitString('0x11223344')
-        a.byteswap([1, 2L])
-        self.assertEqual(a, '0x11332244')
-        b = a*2L
-        self.assertEqual(b, '0x1133224411332244')
-        s = pack('uint:12', 46L)
-        self.assertEqual(s.uint, 46)
- 
+    #def testLongInt(self):
+        #a = BitString(4L)
+        #self.assertEqual(a, '0b0000')
+        #a[1:3] = -1L
+        #self.assertEqual(a, '0b0110')
+        #a[0] = 1L
+        #self.assertEqual(a, '0b1110')
+        #a *= 4L
+        #self.assertEqual(a, '0xeeee')
+        #c = a.byteswap(2L)
+        #self.assertEqual(c, 1)
+        #a = BitString('0x11223344')
+        #a.byteswap([1, 2L])
+        #self.assertEqual(a, '0x11332244')
+        #b = a*2L
+        #self.assertEqual(b, '0x1133224411332244')
+        #s = pack('uint:12', 46L)
+        #self.assertEqual(s.uint, 46)
+
 class UnpackWithDict(unittest.TestCase):
-    
+
     def testLengthKeywords(self):
         a = Bits('2*13=100, 0b111')
         x, y, z = a.unpack('n, uint:m, bin:q', n=13, m=13, q=3)
         self.assertEqual(x, 100)
         self.assertEqual(y, 100)
         self.assertEqual(z, '0b111')
-        
+
     def testLengthKeywordsWithStretch(self):
         a = Bits('0xff, 0b000, 0xf')
         x, y, z = a.unpack('hex:a, bin, hex:b', a=8, b=4)
         self.assertEqual(y, '0b000')
-        
+
     def testUnusedKeyword(self):
         a = Bits('0b110')
         x, = a.unpack('bin:3', notused=33)
         self.assertEqual(x, '0b110')
-    
+
     def testLengthKeywordErrors(self):
-        a = Bits('uint:12=33')
+        a = pack('uint:p=33', p=12)
         self.assertRaises(ValueError, a.unpack, 'uint:p')
         self.assertRaises(ValueError, a.unpack, 'uint:p', p='a_string')
-        
+
 
 class ReadWithDict(unittest.TestCase):
-    pass
 
+    def testLengthKeywords(self):
+        s = BitString('0x0102')
+        x, y = s.readlist('a, hex:b', a=8, b=4)
+        self.assertEqual((x, y), (1, '0x0'))
+        self.assertEqual(s.pos, 12)
+
+class PeekWithDict(unittest.TestCase):
+
+    def testLengthKeywords(self):
+        s = BitString('0x0102')
+        x, y = s.peeklist('a, hex:b', a=8, b=4)
+        self.assertEqual((x, y), (1, '0x0'))
+        self.assertEqual(s.pos, 0)
 
 def main():
     unittest.main()
