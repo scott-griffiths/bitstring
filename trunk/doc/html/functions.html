@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.2',
+        VERSION:     '1.3',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -52,7 +52,7 @@
 <dl class="function">
 <dt id="pack">
 <tt class="descname">pack</tt><big>(</big><em>format</em><span class="optional">[</span>, <em>*values</em>, <em>**kwargs</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#pack" title="Permalink to this definition">¶</a></dt>
-<dd><p>Packs the values and keyword arguments according to the <tt class="docutils literal"><span class="pre">format</span></tt> string and returns a new <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>.</p>
+<dd><p>Packs the values and keyword arguments according to the <em>format</em> string and returns a new <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -87,7 +87,7 @@
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;a, b, b, a&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="s">&#39;0b11&#39;</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="s">&#39;0o2&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Tokens starting with an endianness identifier (<tt class="docutils literal"><span class="pre">&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt> or <tt class="docutils literal"><span class="pre">&#64;</span></tt>) implies a struct-like compact format string. For example this packs three little-endian 16-bit integers:</p>
+<p>Tokens starting with an endianness identifier (<tt class="docutils literal"><span class="pre">&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt> or <tt class="docutils literal"><span class="pre">&#64;</span></tt>) implies a struct-like compact format string (see <a class="reference external" href="creation.html#compact-format"><em>Compact format strings</em></a>). For example this packs three little-endian 16-bit integers:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;&lt;3h&#39;</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">108</span><span class="p">)</span>
 </pre></div>
 </div>

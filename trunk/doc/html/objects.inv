@@ -1,6 +1,6 @@
 # Sphinx inventory version 1
 # Project: bitstring
-# Version: 1.2
+# Version: 1.3
 bitstring mod index.html
 Bits.read method bitstring_classes.html
 Bits.retreatbytes method deprecated.html
@@ -22,6 +22,7 @@ bin attribute bitstring_classes.html
 Bits.advancebyte method deprecated.html
 Bits.__xor__ method bitstring_classes.html
 Bits.__or__ method bitstring_classes.html
+BitString.byteswap method bitstring_classes.html
 Bits.rfind method bitstring_classes.html
 Bits.startswith method bitstring_classes.html
 Bits.__and__ method bitstring_classes.html

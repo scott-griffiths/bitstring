@@ -41,7 +41,7 @@ One anti-pattern to watch out for is using ``+=`` on a :class:`Bits` object. For
 Now this is inefficient for a few reasons, but the one I'm highlighting is that as the immutable bitstring doesn't have an ``__iadd__`` special method the ordinary ``__add__`` gets used instead. In other words ``s += '0xab'`` gets converted to ``s = s + '0xab'``, which creates a new :class:`Bits` from the old on every iteration. This isn't what you'd want or possibly expect. If ``s`` had been a :class:`BitString` then the addition would have been done in-place, and have been much more efficient.
 
 
-Used dedicated functions for bit setting and checking
+Use dedicated functions for bit setting and checking
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you need to set or check individual bits then there are special functions for this. For example one way to set bits would be::

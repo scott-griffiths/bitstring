@@ -4,7 +4,7 @@ Module functions
 
 .. function:: pack(format[, *values, **kwargs])
 
-   Packs the values and keyword arguments according to the ``format`` string and returns a new :class:`BitString`.
+   Packs the values and keyword arguments according to the *format* string and returns a new :class:`BitString`.
    
    :param format: string with comma separated tokens
    :param values: extra values used to contruct the :class:`BitString`
@@ -29,7 +29,7 @@ Plain names can also be used as follows::
 
  >>> e = pack('a, b, b, a', a='0b11', b='0o2')
  
-Tokens starting with an endianness identifier (``<``, ``>`` or ``@``) implies a struct-like compact format string. For example this packs three little-endian 16-bit integers::
+Tokens starting with an endianness identifier (``<``, ``>`` or ``@``) implies a struct-like compact format string (see :ref:`compact_format`). For example this packs three little-endian 16-bit integers::
 
  >>> f = pack('<3h', 12, 3, 108)
 
