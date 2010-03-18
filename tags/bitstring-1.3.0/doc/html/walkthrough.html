@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Walkthrough &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.3',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="walkthrough">
+<h1>Walkthrough<a class="headerlink" href="#walkthrough" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="a-brief-introduction">
+<h2>A Brief Introduction<a class="headerlink" href="#a-brief-introduction" title="Permalink to this headline">¶</a></h2>
+<p>The aim of the <a title="" class="reference external" href="index.html#module-bitstring"><tt class="xref docutils literal"><span class="pre">bitstring</span></tt></a> module is make dealing with binary data in Python as easy as possible. In this section I will take you through some of the features of the module to help you get started using it.</p>
+<p>Only a few of the module&#8217;s features will be covered in this walkthrough; the <a class="reference external" href="contents.html#manual"><em>User Manual</em></a> and <a class="reference external" href="reference.html#reference"><em>Reference</em></a> provide a more thorough guide. The whole of this section can be safely skipped or skimmed over if you prefer to start with the manual. If however you&#8217;d like a gentler introduction then you might like to follow along the examples with a Python interpreter.</p>
+<div class="section" id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Python 2.4 or later. Preferably 2.6 or 3.1.</li>
+<li>An installed bitstring module.</li>
+<li>A rudimentory knowledge of binary concepts.</li>
+<li>A little free time.</li>
+</ul>
+<p>If you haven&#8217;t yet downloaded and installed <a title="" class="reference external" href="index.html#module-bitstring"><tt class="xref docutils literal"><span class="pre">bitstring</span></tt></a> then please do so (it might be as easy as typing &#8220;<tt class="docutils literal"><span class="pre">easy_install</span> <span class="pre">bitstring</span></tt>&#8221; depending on your system). I&#8217;ll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.</p>
+</div>
+<div class="section" id="getting-started">
+<h3>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bitstring</span> <span class="kn">import</span> <span class="n">Bits</span><span class="p">,</span> <span class="n">BitString</span>
+</pre></div>
+</div>
+<p>First things first, we&#8217;re going to be typing &#8216;bitstring&#8217; a lot, so importing directly saves us a lot of <tt class="docutils literal"><span class="pre">bitstring.BitString</span></tt> nonsense. We can now create a couple of bitstrings:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xff01&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b110&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first of these we made from the hexadecimal string &#8216;0xff01&#8217; - the <tt class="docutils literal"><span class="pre">0x</span></tt> prefix makes it hexadecimal just as <tt class="docutils literal"><span class="pre">0b</span></tt> means binary and <tt class="docutils literal"><span class="pre">0o</span></tt> means octal. Each hex digit represents four bits, so we have a bitstring of length 16 bits.</p>
+<p>The second was created from a binary string. In this case it is just three bits long. Don&#8217;t worry about it not being a whole number of bytes long, that&#8217;s all been taken care of internally.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Be sure to remember the quotes around the hex and binary strings. If you forget them you would just have an ordinary Python integer, which would instead create a bitstring of that many &#8216;0&#8217; bits. For example <tt class="docutils literal"><span class="pre">0xff01</span></tt> is the same as the base-10 number 65281, so <tt class="docutils literal"><span class="pre">BitString(0xff01)</span></tt> would consist of 65281 zero bits!</p>
+</div>
+<p>There are lots of things we can do with our new bitstrings, the simplest of which is just to print them:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">0xff01</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="go">0b110</span>
+</pre></div>
+</div>
+<p>Now you would be forgiven for thinking that the strings that we used to create the two bitstrings had just been stored to be given back when printed, but that&#8217;s not the case. Every bitstring should be considered just as a sequence of bits. As we&#8217;ll see there are lots of ways to create and manipulate them, but they have no memory of how they were created. When they are printed they just pick the simplest hex or binary representation of themselves. If you prefer you can pick the representation that you want:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b1111111100000001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">oct</span>
+<span class="go">&#39;0o6&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">int</span>
+<span class="go">-2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">bytes</span>
+<span class="go">&#39;\xff\x01&#39;</span>
+</pre></div>
+</div>
+<p>There are a few things to note here:</p>
+<ul class="simple">
+<li>To get the different interpretations of the binary data we use properties such as <tt class="docutils literal"><span class="pre">bin</span></tt>, <tt class="docutils literal"><span class="pre">hex</span></tt>, <tt class="docutils literal"><span class="pre">oct</span></tt>, <tt class="docutils literal"><span class="pre">int</span></tt> and <tt class="docutils literal"><span class="pre">bytes</span></tt>. You can probably guess what these all mean, but you don&#8217;t need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.</li>
+<li>The <tt class="docutils literal"><span class="pre">bytes</span></tt> property returns a <tt class="docutils literal"><span class="pre">bytes</span></tt> object. This is slightly different in Python 2 to Python 3 - in Python 3 you would get <tt class="docutils literal"><span class="pre">b'\xff\x01'</span></tt> returned instead.</li>
+</ul>
+<p>Great - let&#8217;s try some more:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">ValueError: Cannot convert to hex unambiguously - not multiple of 4 bits.</span>
+</pre></div>
+</div>
+<p>Oh dear. The problem we have here is that <tt class="docutils literal"><span class="pre">b</span></tt> is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are other similar restrictions on other interpretations (octal must be mulitple of 3 bits, bytes a multiple of  8 bits etc.)</p>
+</div>
+<div class="section" id="modifying-bitstrings">
+<h3>Modifying bitstrings<a class="headerlink" href="#modifying-bitstrings" title="Permalink to this headline">¶</a></h3>
+<p>A <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> can be treated just like a list of bits. You can slice it, delete sections, insert new bits and more using standard index notation:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">9</span><span class="p">])</span>
+<span class="go">0b111110</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">0b1111111100</span>
+</pre></div>
+</div>
+<p>The slicing works just as it does for other containers, so the deletion above removes the final six bits.</p>
+<p>To join together bitstrings you can use a variety of methods, including <a title="BitString.append" class="reference external" href="bitstring_classes.html#BitString.append"><tt class="xref docutils literal"><span class="pre">BitString.append</span></tt></a>, <a title="BitString.prepend" class="reference external" href="bitstring_classes.html#BitString.prepend"><tt class="xref docutils literal"><span class="pre">BitString.prepend</span></tt></a>, <a title="BitString.insert" class="reference external" href="bitstring_classes.html#BitString.insert"><tt class="xref docutils literal"><span class="pre">BitString.insert</span></tt></a>, and plain <tt class="docutils literal"><span class="pre">+</span></tt> or <tt class="docutils literal"><span class="pre">+=</span></tt> operations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">prepend</span><span class="p">(</span><span class="s">&#39;0b01&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;0o7&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">+=</span> <span class="s">&#39;0x06&#39;</span>
+</pre></div>
+</div>
+<p>Here we first put two bits at the start of <tt class="docutils literal"><span class="pre">a</span></tt>, then three bits on the end (a single octal digit) and finally another byte (two hex digits) on the end.</p>
+<p>Note how we are just using ordinary strings to specify the new bitstrings we are adding. These get converted automatically to the right sequence of bits.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The length in bits of bitstrings specified with strings depends on the number of characters, including leading zeros. So each hex character is four bits, each octal character three bits and each binary character one bit.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Walkthrough</a><ul>
+<li><a class="reference external" href="#a-brief-introduction">A Brief Introduction</a><ul>
+<li><a class="reference external" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference external" href="#getting-started">Getting started</a></li>
+<li><a class="reference external" href="#modifying-bitstrings">Modifying bitstrings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>

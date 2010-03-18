@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Module functions &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.3',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="Reference" href="reference.html" />
+    <link rel="next" title="Deprecated methods" href="deprecated.html" />
+    <link rel="prev" title="Classes" href="bitstring_classes.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="deprecated.html" title="Deprecated methods"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bitstring_classes.html" title="Classes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="reference.html" accesskey="U">Reference</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-functions">
+<h1>Module functions<a class="headerlink" href="#module-functions" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pack">
+<tt class="descname">pack</tt><big>(</big><em>format</em><span class="optional">[</span>, <em>*values</em>, <em>**kwargs</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#pack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Packs the values and keyword arguments according to the <em>format</em> string and returns a new <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><em>format</em> &#8211; string with comma separated tokens</li>
+<li><em>values</em> &#8211; extra values used to contruct the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a></li>
+<li><em>kwargs</em> &#8211; a dictionary of token replacements</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The format string consists of comma separated tokens of the form <tt class="docutils literal"><span class="pre">name:length=value</span></tt>. See the entry for <a title="Bits.read" class="reference external" href="bitstring_classes.html#Bits.read"><tt class="xref docutils literal"><span class="pre">Bits.read</span></tt></a> for more details.</p>
+<p>The tokens can be &#8216;literals&#8217;, like <tt class="docutils literal"><span class="pre">0xef</span></tt>, <tt class="docutils literal"><span class="pre">0b110</span></tt>, <tt class="docutils literal"><span class="pre">uint:8=55</span></tt>, etc. which just represent a set sequence of bits.</p>
+<p>They can also have the value missing, in which case the values contained in <tt class="docutils literal"><span class="pre">*values</span></tt> will be used.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;bin:3, hex:4&#39;</span><span class="p">,</span> <span class="s">&#39;001&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;uint:10&#39;</span><span class="p">,</span> <span class="mi">33</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A dictionary or keyword arguments can also be provided. These will replace items in the format string.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;int:a=b&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;int:8=a, bin=b, int:4=a&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="s">&#39;0b110&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Plain names can also be used as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;a, b, b, a&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="s">&#39;0b11&#39;</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="s">&#39;0o2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Tokens starting with an endianness identifier (<tt class="docutils literal"><span class="pre">&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt> or <tt class="docutils literal"><span class="pre">&#64;</span></tt>) implies a struct-like compact format string (see <a class="reference external" href="creation.html#compact-format"><em>Compact format strings</em></a>). For example this packs three little-endian 16-bit integers:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;&lt;3h&#39;</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">108</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And of course you can combine the different methods in a single pack.</p>
+<p>A <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> will be raised if the <tt class="docutils literal"><span class="pre">*values</span></tt> are not all used up by the format string, and if a value provided doesn&#8217;t match the length specified by a token.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="bitstring_classes.html"
+                                  title="previous chapter">Classes</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="deprecated.html"
+                                  title="next chapter">Deprecated methods</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="deprecated.html" title="Deprecated methods"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="bitstring_classes.html" title="Classes"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="reference.html" >Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>

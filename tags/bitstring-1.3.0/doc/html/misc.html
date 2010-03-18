@@ -1,0 +1,322 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Miscellany &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.3',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="User Manual" href="contents.html" />
+    <link rel="next" title="Reference" href="reference.html" />
+    <link rel="prev" title="Reading, Parsing and Unpacking" href="reading.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="reading.html" title="Reading, Parsing and Unpacking"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" accesskey="U">User Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="miscellany">
+<h1>Miscellany<a class="headerlink" href="#miscellany" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="other-functions">
+<h2>Other Functions<a class="headerlink" href="#other-functions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="bytealign">
+<h3><tt class="docutils literal"><span class="pre">bytealign</span></tt><a class="headerlink" href="#bytealign" title="Permalink to this headline">¶</a></h3>
+<p><a title="Bits.bytealign" class="reference external" href="bitstring_classes.html#Bits.bytealign"><tt class="xref docutils literal"><span class="pre">Bits.bytealign</span></tt></a> advances between zero and seven bits to make the <a title="pos" class="reference external" href="bitstring_classes.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> a multiple of eight. It returns the number of bits advanced.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x11223344&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">skipped</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">bytealign</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">skipped</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+<span class="go">7 8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">skipped</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">bytealign</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">skipped</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+<span class="go">0 8</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reverse">
+<h3><tt class="docutils literal"><span class="pre">reverse</span></tt><a class="headerlink" href="#reverse" title="Permalink to this headline">¶</a></h3>
+<p>This simply reverses the bits of the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> in place. You can optionally specify a range of bits to reverse.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b000001101&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b101100000&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">reverse</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b110100000&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reversebytes">
+<h3><tt class="docutils literal"><span class="pre">reversebytes</span></tt><a class="headerlink" href="#reversebytes" title="Permalink to this headline">¶</a></h3>
+<p>This reverses the bytes of the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> in place. You can optionally specify a range of bits to reverse. If the length to reverse isn&#8217;t a multiple of 8 then a <a title="BitStringError" class="reference external" href="bitstring_classes.html#BitStringError"><tt class="xref docutils literal"><span class="pre">BitStringError</span></tt></a> is raised.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x123456&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">reversebytes</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0x563412&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">reversebytes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0x345612&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="tobytes">
+<h3><tt class="docutils literal"><span class="pre">tobytes</span></tt><a class="headerlink" href="#tobytes" title="Permalink to this headline">¶</a></h3>
+<p>Returns the byte data contained in the bitstring as a <tt class="docutils literal"><span class="pre">bytes</span></tt> object (equivalent to a <tt class="docutils literal"><span class="pre">str</span></tt> if you&#8217;re using Python 2.6). This differs from using the plain <a title="bytes" class="reference external" href="bitstring_classes.html#bytes"><tt class="xref docutils literal"><span class="pre">bytes</span></tt></a> property in that if the bitstring isn&#8217;t a whole number of bytes long then it will be made so by appending up to seven zero bits.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+<span class="go">&#39;\x80&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="tofile">
+<h3><tt class="docutils literal"><span class="pre">tofile</span></tt><a class="headerlink" href="#tofile" title="Permalink to this headline">¶</a></h3>
+<p>Writes the byte data contained in the bitstring to a file. The file should have been opened in a binary write mode, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;newfile&#39;</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xffee3241fed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In exactly the same manner as with <a title="Bits.tobytes" class="reference external" href="bitstring_classes.html#Bits.tobytes"><tt class="xref docutils literal"><span class="pre">Bits.tobytes</span></tt></a>, up to seven zero bits will be appended to make the file a whole number of bytes long.</p>
+</div>
+<div class="section" id="startswith-endswith">
+<h3><tt class="docutils literal"><span class="pre">startswith</span> <span class="pre">/</span> <span class="pre">endswith</span></tt><a class="headerlink" href="#startswith-endswith" title="Permalink to this headline">¶</a></h3>
+<p>These act like the same named functions on strings, that is they return <tt class="xref docutils literal"><span class="pre">True</span></tt> if the bitstring starts or ends with the parameter given. Optionally you can specify a range of bits to use.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xef133&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;0b111011&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;0x4&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ror-rol">
+<h3><tt class="docutils literal"><span class="pre">ror</span> <span class="pre">/</span> <span class="pre">rol</span></tt><a class="headerlink" href="#ror-rol" title="Permalink to this headline">¶</a></h3>
+<p>To rotate the bits in a <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> use <a title="BitString.ror" class="reference external" href="bitstring_classes.html#BitString.ror"><tt class="xref docutils literal"><span class="pre">BitString.ror</span></tt></a> and <a title="BitString.rol" class="reference external" href="bitstring_classes.html#BitString.rol"><tt class="xref docutils literal"><span class="pre">BitString.rol</span></tt></a> for right and left rotations respectively. The changes are done in-place.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00001&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">rol</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0x00040&#39;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="special-methods">
+<h2>Special Methods<a class="headerlink" href="#special-methods" title="Permalink to this headline">¶</a></h2>
+<p>A few of the special methods have already been covered, for example <a title="Bits.__add__" class="reference external" href="bitstring_classes.html#Bits.__add__"><tt class="xref docutils literal"><span class="pre">Bits.__add__</span></tt></a> and <a title="BitString.__iadd__" class="reference external" href="bitstring_classes.html#BitString.__iadd__"><tt class="xref docutils literal"><span class="pre">BitString.__iadd__</span></tt></a> (the <tt class="docutils literal"><span class="pre">+</span></tt> and <tt class="docutils literal"><span class="pre">+=</span></tt> operators) and <a title="Bits.__getitem__" class="reference external" href="bitstring_classes.html#Bits.__getitem__"><tt class="xref docutils literal"><span class="pre">Bits.__getitem__</span></tt></a> and <a title="BitString.__setitem__" class="reference external" href="bitstring_classes.html#BitString.__setitem__"><tt class="xref docutils literal"><span class="pre">BitString.__setitem__</span></tt></a> (reading and setting slices via <tt class="docutils literal"><span class="pre">[]</span></tt>). Here are the rest:</p>
+<div class="section" id="len">
+<h3><tt class="docutils literal"><span class="pre">__len__</span></tt><a class="headerlink" href="#len" title="Permalink to this headline">¶</a></h3>
+<p>This implements the <a title="len" class="reference external" href="bitstring_classes.html#len"><tt class="xref docutils literal"><span class="pre">len</span></tt></a> function and returns the length of the bitstring in bits.</p>
+<p>It&#8217;s recommended that you use the <a title="len" class="reference external" href="bitstring_classes.html#len"><tt class="xref docutils literal"><span class="pre">len</span></tt></a> property instead of the function as a limitation of Python means that the function will raise an <tt class="xref docutils literal"><span class="pre">OverflowError</span></tt> if the bitstring has more than <tt class="docutils literal"><span class="pre">sys.maxsize</span></tt> elements (that&#8217;s typically 256MB of data).</p>
+<p>There&#8217;s not much more to say really, except to emphasise that it is always in bits and never bytes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00&#39;</span><span class="p">))</span>
+<span class="go">8</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="str-repr">
+<h3><tt class="docutils literal"><span class="pre">__str__</span> <span class="pre">/</span> <span class="pre">__repr__</span></tt><a class="headerlink" href="#str-repr" title="Permalink to this headline">¶</a></h3>
+<p>These get called when you try to print a bitstring. As bitstrings have no preferred interpretation the form printed might not be what you want - if not then use the <a title="hex" class="reference external" href="bitstring_classes.html#hex"><tt class="xref docutils literal"><span class="pre">hex</span></tt></a>, <a title="bin" class="reference external" href="bitstring_classes.html#bin"><tt class="xref docutils literal"><span class="pre">bin</span></tt></a>, <a title="int" class="reference external" href="bitstring_classes.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> etc. properties. The main use here is in interactive sessions when you just want a quick look at the bitstring. The <a title="Bits.__repr__" class="reference external" href="bitstring_classes.html#Bits.__repr__"><tt class="xref docutils literal"><span class="pre">Bits.__repr__</span></tt></a> tries to give a code fragment which if evaluated would give an equal bitstring.</p>
+<p>The form used for the bitstring is generally the one which gives it the shortest representation. If the resulting string is too long then it will be truncated with <tt class="docutils literal"><span class="pre">...</span></tt> - this prevents very long bitstrings from tying up your interactive session while they print themselves.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1111 111&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">0b1111111</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
+<span class="go">BitString(&#39;0b1111111&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">+=</span> <span class="s">&#39;0b1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">0xff</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">bin</span><span class="p">)</span>
+<span class="go">0b11111111</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="eq-ne">
+<h3><tt class="docutils literal"><span class="pre">__eq__</span> <span class="pre">/</span> <span class="pre">__ne__</span></tt><a class="headerlink" href="#eq-ne" title="Permalink to this headline">¶</a></h3>
+<p>The equality of two bitstring objects is determined by their binary representations being equal. If you have a different criterion you wish to use then code it explicitly, for example <tt class="docutils literal"><span class="pre">a.int</span>&nbsp; <span class="pre">==</span>&nbsp; <span class="pre">b.int</span></tt> could be true even if <tt class="docutils literal"><span class="pre">a</span>&nbsp; <span class="pre">==</span>&nbsp; <span class="pre">b</span></tt> wasn&#8217;t (as they could be different lengths).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b0010&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;0x2&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x2&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s">&#39;0o2&#39;</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="invert">
+<h3><tt class="docutils literal"><span class="pre">__invert__</span></tt><a class="headerlink" href="#invert" title="Permalink to this headline">¶</a></h3>
+<p>To get a bit-inverted copy of a bitstring use the <tt class="docutils literal"><span class="pre">~</span></tt> operator:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b0001100111&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">0b0001100111</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="o">~</span><span class="n">a</span><span class="p">)</span>
+<span class="go">0b1110011000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">~~</span><span class="n">a</span> <span class="o">==</span> <span class="n">a</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="lshift-rshift-ilshift-irshift">
+<h3><tt class="docutils literal"><span class="pre">__lshift__</span> <span class="pre">/</span> <span class="pre">__rshift__</span> <span class="pre">/</span> <span class="pre">__ilshift__</span> <span class="pre">/</span> <span class="pre">__irshift__</span></tt><a class="headerlink" href="#lshift-rshift-ilshift-irshift" title="Permalink to this headline">¶</a></h3>
+<p>Bitwise shifts can be achieved using <tt class="docutils literal"><span class="pre">&lt;&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&gt;&gt;</span></tt>, <tt class="docutils literal"><span class="pre">&lt;&lt;=</span></tt> and <tt class="docutils literal"><span class="pre">&gt;&gt;=</span></tt>. Bits shifted off the left or right are replaced with zero bits. If you need special behaviour, such as keeping the sign of two&#8217;s complement integers then do the shift on the property instead, for example use <tt class="docutils literal"><span class="pre">a.int</span> <span class="pre">&gt;&gt;=</span> <span class="pre">2</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b10011001&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="go">0b01100100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">&gt;&gt;=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">0b00100110</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="mul-imul-rmul">
+<h3><tt class="docutils literal"><span class="pre">__mul__</span> <span class="pre">/</span> <span class="pre">__imul__</span> <span class="pre">/</span> <span class="pre">__rmul__</span></tt><a class="headerlink" href="#mul-imul-rmul" title="Permalink to this headline">¶</a></h3>
+<p>Multiplication of a bitstring by an integer means the same as it does for ordinary strings: concatenation of multiple copies of the bitstring.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b10&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">bin</span><span class="p">)</span>
+<span class="go">0b1010101010101010</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="copy">
+<h3><tt class="docutils literal"><span class="pre">__copy__</span></tt><a class="headerlink" href="#copy" title="Permalink to this headline">¶</a></h3>
+<p>This allows the bitstring to be copied via the <tt class="xref docutils literal"><span class="pre">copy</span></tt> module.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x4223fbddec2231&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">==</span> <span class="n">a</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="ow">is</span> <span class="n">a</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>It&#8217;s not terribly exciting, and isn&#8217;t the only method of making a copy. Using <tt class="docutils literal"><span class="pre">b</span>&nbsp; <span class="pre">=</span>&nbsp; <span class="pre">BitString(a)</span></tt> is another option, but <tt class="docutils literal"><span class="pre">b</span>&nbsp; <span class="pre">=</span>&nbsp; <span class="pre">a[:]</span></tt> may be more familiar to some.</p>
+</div>
+<div class="section" id="and-or-xor-iand-ior-ixor">
+<h3><tt class="docutils literal"><span class="pre">__and__</span> <span class="pre">/</span> <span class="pre">__or__</span> <span class="pre">/</span> <span class="pre">__xor__</span> <span class="pre">/</span> <span class="pre">__iand__</span> <span class="pre">/</span> <span class="pre">__ior__</span> <span class="pre">/</span> <span class="pre">__ixor__</span></tt><a class="headerlink" href="#and-or-xor-iand-ior-ixor" title="Permalink to this headline">¶</a></h3>
+<p>Bit-wise AND, OR and XOR are provided for bitstring objects of equal length only (otherwise a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> is raised).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b00001111&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b01010101&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">((</span><span class="n">a</span><span class="o">&amp;</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">bin</span><span class="p">)</span>
+<span class="go">0b00000101</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">((</span><span class="n">a</span><span class="o">|</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">bin</span><span class="p">)</span>
+<span class="go">0b01011111</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">((</span><span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">bin</span><span class="p">)</span>
+<span class="go">0b01010000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">&amp;=</span> <span class="s">&#39;0x1f&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">bin</span><span class="p">)</span>
+<span class="go">0b00010101</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Miscellany</a><ul>
+<li><a class="reference external" href="#other-functions">Other Functions</a><ul>
+<li><a class="reference external" href="#bytealign"><tt class="docutils literal"><span class="pre">bytealign</span></tt></a></li>
+<li><a class="reference external" href="#reverse"><tt class="docutils literal"><span class="pre">reverse</span></tt></a></li>
+<li><a class="reference external" href="#reversebytes"><tt class="docutils literal"><span class="pre">reversebytes</span></tt></a></li>
+<li><a class="reference external" href="#tobytes"><tt class="docutils literal"><span class="pre">tobytes</span></tt></a></li>
+<li><a class="reference external" href="#tofile"><tt class="docutils literal"><span class="pre">tofile</span></tt></a></li>
+<li><a class="reference external" href="#startswith-endswith"><tt class="docutils literal"><span class="pre">startswith</span> <span class="pre">/</span> <span class="pre">endswith</span></tt></a></li>
+<li><a class="reference external" href="#ror-rol"><tt class="docutils literal"><span class="pre">ror</span> <span class="pre">/</span> <span class="pre">rol</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#special-methods">Special Methods</a><ul>
+<li><a class="reference external" href="#len"><tt class="docutils literal"><span class="pre">__len__</span></tt></a></li>
+<li><a class="reference external" href="#str-repr"><tt class="docutils literal"><span class="pre">__str__</span> <span class="pre">/</span> <span class="pre">__repr__</span></tt></a></li>
+<li><a class="reference external" href="#eq-ne"><tt class="docutils literal"><span class="pre">__eq__</span> <span class="pre">/</span> <span class="pre">__ne__</span></tt></a></li>
+<li><a class="reference external" href="#invert"><tt class="docutils literal"><span class="pre">__invert__</span></tt></a></li>
+<li><a class="reference external" href="#lshift-rshift-ilshift-irshift"><tt class="docutils literal"><span class="pre">__lshift__</span> <span class="pre">/</span> <span class="pre">__rshift__</span> <span class="pre">/</span> <span class="pre">__ilshift__</span> <span class="pre">/</span> <span class="pre">__irshift__</span></tt></a></li>
+<li><a class="reference external" href="#mul-imul-rmul"><tt class="docutils literal"><span class="pre">__mul__</span> <span class="pre">/</span> <span class="pre">__imul__</span> <span class="pre">/</span> <span class="pre">__rmul__</span></tt></a></li>
+<li><a class="reference external" href="#copy"><tt class="docutils literal"><span class="pre">__copy__</span></tt></a></li>
+<li><a class="reference external" href="#and-or-xor-iand-ior-ixor"><tt class="docutils literal"><span class="pre">__and__</span> <span class="pre">/</span> <span class="pre">__or__</span> <span class="pre">/</span> <span class="pre">__xor__</span> <span class="pre">/</span> <span class="pre">__iand__</span> <span class="pre">/</span> <span class="pre">__ior__</span> <span class="pre">/</span> <span class="pre">__ixor__</span></tt></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="reading.html"
+                                  title="previous chapter">Reading, Parsing and Unpacking</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="reference.html"
+                                  title="next chapter">Reference</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="Reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="reading.html" title="Reading, Parsing and Unpacking"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" >User Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>

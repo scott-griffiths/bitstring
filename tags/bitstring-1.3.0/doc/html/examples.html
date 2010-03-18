@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Examples &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.3',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="Appendices" href="appendices.html" />
+    <link rel="next" title="Exponential-Golomb Codes" href="exp-golomb.html" />
+    <link rel="prev" title="Appendices" href="appendices.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="exp-golomb.html" title="Exponential-Golomb Codes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="appendices.html" title="Appendices"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="appendices.html" accesskey="U">Appendices</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="creation">
+<h2>Creation<a class="headerlink" href="#creation" title="Permalink to this headline">¶</a></h2>
+<p>There are lots of ways of creating new bitstrings. The most flexible is via the <tt class="docutils literal"><span class="pre">auto</span></tt> parameter, which is used in this example.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Multiple parts can be joined with a single expression...</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x000001b3, uint:12=352, uint:12=288, 0x1, 0x3&#39;</span><span class="p">)</span>
+
+<span class="c"># and extended just as easily</span>
+<span class="n">s</span> <span class="o">+=</span> <span class="s">&#39;uint:18=48000, 0b1, uint:10=4000, 0b100&#39;</span>
+
+<span class="c"># To covert to an ordinary string use the bytes property</span>
+<span class="nb">open</span><span class="p">(</span><span class="s">&#39;video.m2v&#39;</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">bytes</span><span class="p">)</span>
+
+<span class="c"># The information can be read back with a similar syntax</span>
+<span class="n">start_code</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">(</span><span class="s">&#39;hex:32, uint:12, uint:12&#39;</span><span class="p">)</span>
+<span class="n">aspect_ratio</span><span class="p">,</span> <span class="n">frame_rate</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">(</span><span class="s">&#39;bin:4, bin:4&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="manipulation">
+<h2>Manipulation<a class="headerlink" href="#manipulation" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0123456789abcdef&#39;</span><span class="p">)</span>
+
+<span class="k">del</span> <span class="n">s</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span>                      <span class="c"># deletes the &#39;1&#39;</span>
+<span class="n">s</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s">&#39;0xcc&#39;</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>            <span class="c"># inserts &#39;cc&#39; between the &#39;3&#39; and &#39;4&#39;</span>
+<span class="n">s</span><span class="o">.</span><span class="n">overwrite</span><span class="p">(</span><span class="s">&#39;0b01&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>         <span class="c"># changes the &#39;6&#39; to a &#39;5&#39;</span>
+
+<span class="c"># This replaces every &#39;1&#39; bit with a 5 byte Ascii string!</span>
+<span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">,</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="s">&#39;hello&#39;</span><span class="p">))</span>
+
+<span class="k">del</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1001</span><span class="p">:]</span>                   <span class="c"># deletes final 1001 bits</span>
+<span class="n">s</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>                     <span class="c"># reverses whole BitString</span>
+<span class="n">s</span><span class="o">.</span><span class="n">prepend</span><span class="p">(</span><span class="s">&#39;uint:12=44&#39;</span><span class="p">)</span>         <span class="c"># prepend a 12 bit integer</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="parsing">
+<h2>Parsing<a class="headerlink" href="#parsing" title="Permalink to this headline">¶</a></h2>
+<p>This example creates a class that parses a structure that is part of the H.264 video standard.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">seq_parameter_set_data</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Interpret next bits in BitString s as an SPS.&quot;&quot;&quot;</span>
+        <span class="c"># Read and interpret bits in a single expression:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">profile_idc</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:8&#39;</span><span class="p">)</span>
+        <span class="c"># Multiple reads in one go returns a list:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constraint_flags</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">(</span><span class="s">&#39;uint:1, uint:1, uint:1, uint:1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reserved_zero_4bits</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;bin:4&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level_idc</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:8&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq_parameter_set_id</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile_idc</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">122</span><span class="p">,</span> <span class="mi">244</span><span class="p">,</span> <span class="mi">44</span><span class="p">,</span> <span class="mi">83</span><span class="p">,</span> <span class="mi">86</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chroma_format_idc</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroma_format_idc</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">separate_colour_plane_flag</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:1&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bit_depth_luma_minus8</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bit_depth_chroma_minus8</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">)</span>
+            <span class="c"># etc.</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x6410281bc0&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sps</span> <span class="o">=</span> <span class="n">seq_parameter_set_data</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">profile_idc</span><span class="p">)</span>
+<span class="go">100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">level_idc</span><span class="p">)</span>
+<span class="go">40</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">reserved_zero_4bits</span><span class="p">)</span>
+<span class="go">0b0000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">constraint_flags</span><span class="p">)</span>
+<span class="go">[0, 0, 0, 1]</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Examples</a><ul>
+<li><a class="reference external" href="#creation">Creation</a></li>
+<li><a class="reference external" href="#manipulation">Manipulation</a></li>
+<li><a class="reference external" href="#parsing">Parsing</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="appendices.html"
+                                  title="previous chapter">Appendices</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="exp-golomb.html"
+                                  title="next chapter">Exponential-Golomb Codes</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="exp-golomb.html" title="Exponential-Golomb Codes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="appendices.html" title="Appendices"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="appendices.html" >Appendices</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>
