@@ -216,11 +216,11 @@ The ``Bits`` class
 
         For information on the format string see the entry for the :meth:`Bits.read` method.
 
-    .. method:: peeklist(*format)
+    .. method:: peeklist(*format, **kwargs)
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *format* string(s) and returns a list of results.
 
-        The position is not advanced to after the read items.
+        A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is not advanced to after the read items.
 
         See the entries for :meth:`Bits.read` and :meth:`Bits.readlist` for more information.
 
@@ -318,11 +318,11 @@ The ``Bits`` class
          >>> s.read('ue')
          4
 
-    .. method:: readlist(*format)
+    .. method:: readlist(*format, **kwargs)
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *format* string(s) and returns a list of results. If not enough bits are available then all bits to the end of the bitstring will be used.
 
-        The position is advanced to after the read items.
+        A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is advanced to after the read items.
 
         See the entry for :meth:`Bits.read` for information on the format strings.
 
@@ -333,6 +333,9 @@ The ``Bits`` class
          ['0x43', 63]
          >>> s.readlist('bin:3', 'intle:16')
          ['0b100', -509]
+         >>> s.pos = 0
+         >>> s.readlist('hex:b, uint:d', b=8, d=6)
+         ['0x43', 63]
 
     .. method:: readbit()
 
@@ -431,9 +434,11 @@ The ``Bits`` class
          >>> f = open('newfile', 'wb')
          >>> Bits('0x1234').tofile(f)
 
-    .. method:: unpack(*format)
+    .. method:: unpack(*format, **kwargs)
 
         Interprets the whole bitstring according to the *format* string(s) and returns a list of bitstring objects.
+        
+        A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string.
 
         *format* is one or more strings with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`Bits.read` for details. ::
 
@@ -660,7 +665,7 @@ The ``BitString`` class
     
        Change the endianness of the :class:`BitString` in-place according to the *format*. Return the number of swaps done.
        
-       The *format* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact-format`). It gives a pattern of byte sizes to use to swap the endianness of the :class:`BitString`. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``@``) is not needed, and if present it will be ignored.
+       The *format* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact_format`). It gives a pattern of byte sizes to use to swap the endianness of the :class:`BitString`. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``@``) is not needed, and if present it will be ignored.
        
        *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitString`). If *repeat* is ``True`` then the byte swapping pattern given by the *format* is repeated in its entirety as many times as possible.
        

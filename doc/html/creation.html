@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.2',
+        VERSION:     '1.3',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -441,9 +441,9 @@
 </pre></div>
 </div>
 <div class="section" id="compact-format-strings">
-<h3>Compact format strings<a class="headerlink" href="#compact-format-strings" title="Permalink to this headline">¶</a></h3>
-<p>Another option when using pack is to use a format specifier similar to those used in the <tt class="xref docutils literal"><span class="pre">struct</span></tt> and <tt class="xref docutils literal"><span class="pre">array</span></tt> modules. These consist of a character to give the endianness, followed by more single characters to give the format.</p>
-<p>The endianness character must start the format string and unlike in the struct module it is not optional:</p>
+<span id="compact-format"></span><h3>Compact format strings<a class="headerlink" href="#compact-format-strings" title="Permalink to this headline">¶</a></h3>
+<p>Another option when using <a title="pack" class="reference external" href="functions.html#pack"><tt class="xref docutils literal"><span class="pre">pack</span></tt></a>, as well as other methods such as <a title="Bits.read" class="reference external" href="bitstring_classes.html#Bits.read"><tt class="xref docutils literal"><span class="pre">Bits.read</span></tt></a> and <a title="BitString.byteswap" class="reference external" href="bitstring_classes.html#BitString.byteswap"><tt class="xref docutils literal"><span class="pre">BitString.byteswap</span></tt></a>, is to use a format specifier similar to those used in the <tt class="xref docutils literal"><span class="pre">struct</span></tt> and <tt class="xref docutils literal"><span class="pre">array</span></tt> modules. These consist of a character to give the endianness, followed by more single characters to give the format.</p>
+<p>The endianness character must start the format string and unlike in the struct module it is not optional (except when used with <a title="BitString.byteswap" class="reference external" href="bitstring_classes.html#BitString.byteswap"><tt class="xref docutils literal"><span class="pre">BitString.byteswap</span></tt></a>):</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="28%" />

@@ -335,12 +335,14 @@ As you would expect, there is also an :meth:`Bits.unpack` function that takes a 
  >>> s.unpack('ue, oct:3, hex:8, uint:14')
  [3, '0o7', '0xff', 90]
 
+.. _compact_format:
+
 Compact format strings
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Another option when using pack is to use a format specifier similar to those used in the :mod:`struct` and :mod:`array` modules. These consist of a character to give the endianness, followed by more single characters to give the format.
+Another option when using :func:`pack`, as well as other methods such as :meth:`Bits.read` and :meth:`BitString.byteswap`, is to use a format specifier similar to those used in the :mod:`struct` and :mod:`array` modules. These consist of a character to give the endianness, followed by more single characters to give the format.
 
-The endianness character must start the format string and unlike in the struct module it is not optional:
+The endianness character must start the format string and unlike in the struct module it is not optional (except when used with :meth:`BitString.byteswap`):
 
 =====   =============
 ``>``   Big-endian

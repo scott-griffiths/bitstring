@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.2',
+        VERSION:     '1.3',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -82,8 +82,8 @@
 </div>
 <p>Now this is inefficient for a few reasons, but the one I&#8217;m highlighting is that as the immutable bitstring doesn&#8217;t have an <tt class="docutils literal"><span class="pre">__iadd__</span></tt> special method the ordinary <tt class="docutils literal"><span class="pre">__add__</span></tt> gets used instead. In other words <tt class="docutils literal"><span class="pre">s</span> <span class="pre">+=</span> <span class="pre">'0xab'</span></tt> gets converted to <tt class="docutils literal"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">s</span> <span class="pre">+</span> <span class="pre">'0xab'</span></tt>, which creates a new <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> from the old on every iteration. This isn&#8217;t what you&#8217;d want or possibly expect. If <tt class="docutils literal"><span class="pre">s</span></tt> had been a <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> then the addition would have been done in-place, and have been much more efficient.</p>
 </div>
-<div class="section" id="used-dedicated-functions-for-bit-setting-and-checking">
-<h2>Used dedicated functions for bit setting and checking<a class="headerlink" href="#used-dedicated-functions-for-bit-setting-and-checking" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="use-dedicated-functions-for-bit-setting-and-checking">
+<h2>Use dedicated functions for bit setting and checking<a class="headerlink" href="#use-dedicated-functions-for-bit-setting-and-checking" title="Permalink to this headline">¶</a></h2>
 <p>If you need to set or check individual bits then there are special functions for this. For example one way to set bits would be:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">501</span><span class="p">]:</span>
@@ -122,7 +122,7 @@
 <li><a class="reference external" href="">Optimisation Techniques</a><ul>
 <li><a class="reference external" href="#use-combined-read-and-interpretation">Use combined read and interpretation</a></li>
 <li><a class="reference external" href="#choose-between-bits-and-bitstring">Choose between Bits and BitString</a></li>
-<li><a class="reference external" href="#used-dedicated-functions-for-bit-setting-and-checking">Used dedicated functions for bit setting and checking</a></li>
+<li><a class="reference external" href="#use-dedicated-functions-for-bit-setting-and-checking">Use dedicated functions for bit setting and checking</a></li>
 </ul>
 </li>
 </ul>
