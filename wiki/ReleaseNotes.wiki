@@ -30,7 +30,7 @@ BitString('0x11006655443322')
 For example:
 {{{
 >>> s = Bits('100*0x123')
-}
+}}}
 ===Token grouping using parenthesis===
 
 For example:
