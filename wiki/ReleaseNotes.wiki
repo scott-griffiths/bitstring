@@ -47,7 +47,7 @@ parameters.
 ===Sequence ABCs used===
 
 The Bits class now derives from collections.Sequence, while the !BitString
-class derives from collections.MutableSequence.
+class derives from collections.!MutableSequence.
 
 ===Keywords allowed in readlist, peeklist and unpack===
 
@@ -76,6 +76,7 @@ positional arguments when initialising with anything other than auto
 (which would be rather unusual).
 
 ===More optimisations===
+A number of methods have been speeded up.
 
 ===Bug fixed in replace method===
 (it could fail if start != 0).
