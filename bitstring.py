@@ -331,10 +331,13 @@ class BaseArray(object):
 
     def __init__(self, data, bitlength=0, offset=0):
         raise NotImplementedError
-
-    def __getitem__(self, key):
-        """For a single item return the integer value of the stored byte.
-        For a slice return the byte slice or a buffer to it."""
+    
+    def getbyte(self, pos):
+        """Return the integer value of the byte stored at pos."""
+        raise NotImplementedError
+    
+    def getbyteslice(self, start, end):
+        """Return a byte slice"""
         raise NotImplementedError
 
     def __copy__(self):
@@ -445,16 +448,11 @@ class ByteArray(BaseArray):
     def __copy__(self):
         return ByteArray(self._rawarray, self.bitlength, self.offset)
 
-    def __getitem__(self, key):
-        try:
-            # For a slice return a buffer to avoid copying.
-            stop = len(self._rawarray) if key.stop is None else key.stop
-            start = 0 if key.start is None else key.start
-            return buffer(self._rawarray, start, stop - start)
-        except AttributeError:
-            # Single element - return the byte's integer value.
-            assert key < self.bytelength
-            return self._rawarray[key]
+    def getbyte(self, pos):
+        return self._rawarray[pos]
+    
+    def getbyteslice(self, start, end):
+        return buffer(self._rawarray, start, end - start)
 
     def __setitem__(self, key, item):
         self._rawarray[key] = item
@@ -505,10 +503,10 @@ class ByteArray(BaseArray):
         array.setoffset(bits_in_final_byte)
         if array.offset != 0:
             # first do the byte with the join.
-            self._rawarray[-1] = (self._rawarray[-1] & (255 ^ (255 >> array.offset)) | (array[0] & (255 >> array.offset)))
-            self._rawarray.extend(array[1 : array.bytelength])
+            self._rawarray[-1] = (self._rawarray[-1] & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
+            self._rawarray.extend(array.getbyteslice(1, array.bytelength))
         else:
-            self._rawarray.extend(array[0 : array.bytelength])
+            self._rawarray.extend(array.getbyteslice(0, array.bytelength))
         self.bitlength += array.bitlength
 
     def prependarray(self, array):
@@ -523,7 +521,7 @@ class ByteArray(BaseArray):
         assert (array.offset + array.bitlength) % 8 == self.offset
         if self.offset != 0:
             # first do the byte with the join.
-            array[-1] = (array[-1] & (255 ^ (255 >> self.offset)) | \
+            array[-1] = (array.getbyte(-1) & (255 ^ (255 >> self.offset)) | \
                                    (self._rawarray[0] & (255 >> self.offset)))
             array._rawarray.extend(self._rawarray[1 : self.bytelength])
         else:
@@ -577,33 +575,20 @@ class FileArray(BaseArray):
         self.bitlength = bitlength
         self.offset = bitoffset
 
-    def __getitem__(self, key):
-        try:
-            # A slice
-            start = self.byteoffset
-            assert start >= 0
-            if key.start is not None:
-                start += key.start
-            stop = self.bytelength + self.byteoffset
-            if key.stop is not None:
-                stop += key.stop - self.bytelength
-            assert stop >= 0
-            if start < stop:
-                self.source.seek(start, os.SEEK_SET)
-                return self.source.read(stop-start)
-            else:
-                return b''
-        except AttributeError:
-            # single element
-            if key < 0:
-                key += self.bytelength
-            if key >= self.bytelength:
-                raise IndexError
-            key += self.byteoffset
-            self.source.seek(key, os.SEEK_SET)
-            return ord(self.source.read(1))
-
-
+    def getbyte(self, pos):
+        if pos < 0:
+            pos += self.bytelength
+        pos += self.byteoffset
+        self.source.seek(pos, os.SEEK_SET)
+        return ord(self.source.read(1))
+    
+    def getbyteslice(self, start, end):
+        if start < end:
+            self.source.seek(start + self.byteoffset, os.SEEK_SET)
+            return self.source.read(end - start)
+        else:
+            return b''
+        
 class Bits(collections.Sequence):
     "An immutable sequence of bits."
 
@@ -698,8 +683,6 @@ class Bits(collections.Sequence):
                     name_to_init[k](self, v)
                 except KeyError:
                     raise Error("Unrecognised keyword '%s' used to initialise." % k)
-
-
 
     def __copy__(self):
         """Return a new copy of the Bits for the copy module."""
@@ -894,7 +877,7 @@ class Bits(collections.Sequence):
         """
         if not self:
             raise Error("Cannot invert empty bitstring.")
-        s = self.__class__(bytes=self._datastore[:], length=self.len,
+        s = self.__class__(bytes=self._datastore.getbyteslice(0, self._datastore.bytelength), length=self.len,
                            offset=self._datastore.offset)
         s._invert(xrange(s.len))
         return s
@@ -1270,11 +1253,11 @@ re
         chunksize = 4 # for 'L' format
         while startbyte + chunksize <= endbyte + 1:
             val <<= 8 * chunksize
-            val += struct.unpack('>L', self._datastore[startbyte:startbyte + chunksize])[0]
+            val += struct.unpack('>L', self._datastore.getbyteslice(startbyte, startbyte + chunksize))[0]
             startbyte += chunksize
         for b in xrange(startbyte, endbyte + 1):
             val <<= 8
-            val += self._datastore[b]
+            val += self._datastore.getbyte(b)
         final_bits = 8 - ((start + self._offset + length) % 8)
         if final_bits != 8:
             val >>= final_bits
@@ -1377,11 +1360,11 @@ re
             chunksize = 4 # for 'L' format
             while endbyte - chunksize + 1 >= startbyte:
                 val <<= 8 * chunksize
-                val += struct.unpack('<L', self._datastore[endbyte + 1 - chunksize:endbyte + 1])[0]
+                val += struct.unpack('<L', self._datastore.getbyteslice(endbyte + 1 - chunksize, endbyte + 1))[0]
                 endbyte -= chunksize
             for b in xrange(endbyte, startbyte - 1, -1):
                 val <<= 8
-                val += self._datastore[b]
+                val += self._datastore.getbyte(b)
         else:
             data = self[start:start + length]
             assert data.len % 8 == 0
@@ -1438,9 +1421,9 @@ re
         if (start + self._offset) % 8 == 0:
             startbyte = (start + self._offset) // 8
             if length == 32:
-                f, = struct.unpack('>f', self._datastore[startbyte:startbyte + 4])
+                f, = struct.unpack('>f', self._datastore.getbyteslice(startbyte, startbyte + 4))
             elif length == 64:
-                f, = struct.unpack('>d', self._datastore[startbyte:startbyte + 8])
+                f, = struct.unpack('>d', self._datastore.getbyteslice(startbyte, startbyte + 8))
         else:
             if length == 32:
                 f, = struct.unpack('>f', self[start:start + 32].bytes)
@@ -1476,9 +1459,9 @@ re
         startbyte, offset = divmod(start + self._offset, 8)
         if offset == 0:
             if length == 32:
-                f, = struct.unpack('<f', self._datastore[startbyte:startbyte + 4])
+                f, = struct.unpack('<f', self._datastore.getbyteslice(startbyte, startbyte + 4))
             elif length == 64:
-                f, = struct.unpack('<d', self._datastore[startbyte:startbyte + 8])
+                f, = struct.unpack('<d', self._datastore.getbyteslice(startbyte, startbyte + 8))
         else:
             if length == 32:
                 f, = struct.unpack('<f', self[start:start + 32].bytes)
@@ -1637,7 +1620,7 @@ re
         # Use lookup table to convert each byte to string of 8 bits.
         startbyte, startoffset = divmod(start + self._offset, 8)
         endbyte = (start + self._offset + length - 1) // 8
-        c = (BYTE_TO_BITS[x] for x in bytearray(self._datastore[startbyte:endbyte + 1]))
+        c = (BYTE_TO_BITS[x] for x in bytearray(self._datastore.getbyteslice(startbyte,endbyte + 1)))
         return '0b' + ''.join(c)[startoffset:startoffset + length]
 
     def _getbin(self):
@@ -1769,7 +1752,7 @@ re
         """Ensure the data is held in memory, not in a file."""
         if self._filebased:
             self._filebased = False
-            self._datastore = MemArray(self._datastore[:], self.len,
+            self._datastore = MemArray(self._datastore.getbyteslice(0, self._datastore.bytelength), self.len,
                                        self._offset)
 
     @classmethod
@@ -1798,7 +1781,7 @@ re
         """Create and return a new copy of the Bits (always in memory)."""
         s_copy = self.__class__()
         s_copy._pos = self._pos
-        s_copy._datastore = MemArray(self._datastore[:], self.len,
+        s_copy._datastore = MemArray(self._datastore.getbyteslice(0, self._datastore.bytelength), self.len,
                                      self._offset)
         return s_copy
 
@@ -1861,7 +1844,7 @@ re
             self._clear()
             return
         bytepos, offset = divmod(self._offset + bits, 8)
-        self._setbytes(self._datastore[bytepos:], self.len - bits, offset)
+        self._setbytes(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits, offset)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
 
@@ -1875,7 +1858,7 @@ re
         newlength_in_bytes = (self._offset + self.len - bits + 7) // 8
         # Ensure that the position is still valid
         self._pos = max(0, min(self._pos, self.len - bits))
-        self._setbytes(self._datastore[:newlength_in_bytes], self.len - bits,
+        self._setbytes(self._datastore.getbyteslice(0, newlength_in_bytes), self.len - bits,
                        self._offset)
         assert self._assertsanity()
 
@@ -1908,24 +1891,24 @@ re
         bytepos, bitoffset = divmod(self._offset + pos, 8)
         if firstbytepos == lastbytepos:
             mask = ((1 << bs.len) - 1) << (8 - bs.len - bitoffset)
-            self._datastore[bytepos] &= ~mask
+            self._datastore[bytepos] = self._datastore.getbyte(bytepos) & (~mask)
             bs._datastore.setoffset(bitoffset)
-            self._datastore[bytepos] |= bs._datastore[0] & mask
+            self._datastore[bytepos] = self._datastore.getbyte(bytepos) | (bs._datastore.getbyte(0) & mask)
         else:
             # Do first byte
             mask = (1 << (8 - bitoffset)) - 1
-            self._datastore[bytepos] &= ~mask
+            self._datastore[bytepos] = self._datastore.getbyte(bytepos) & (~mask)
             bs._datastore.setoffset(bitoffset)
-            self._datastore[bytepos] |= bs._datastore[0] & mask
+            self._datastore[bytepos] = self._datastore.getbyte(bytepos) | (bs._datastore.getbyte(0) & mask)
             # Now do all the full bytes
-            self._datastore[firstbytepos + 1:lastbytepos] = bs._datastore[1:lastbytepos - firstbytepos]
+            self._datastore[firstbytepos + 1:lastbytepos] = bs._datastore.getbyteslice(1, lastbytepos - firstbytepos)
             # and finally the last byte
             bitsleft = (self._offset + pos + bs.len) % 8
             if bitsleft == 0:
                 bitsleft = 8
             mask = (1 << (8 - bitsleft)) - 1
-            self._datastore[lastbytepos] &= mask
-            self._datastore[lastbytepos] |= bs._datastore[bs._datastore.bytelength - 1] & ~mask
+            self._datastore[lastbytepos] = self._datastore.getbyte(lastbytepos) & mask
+            self._datastore[lastbytepos] = self._datastore.getbyte(lastbytepos) | (bs._datastore.getbyte(bs._datastore.bytelength - 1) & ~mask)
         self._pos = bitposafter
         assert self._assertsanity()
 
@@ -1966,7 +1949,7 @@ re
             newoffset = 0
         self._datastore.setoffset(newoffset)
         # Now just reverse the byte data
-        toreverse = bytearray(self._datastore[(newoffset + start)//8:(newoffset + end)//8])
+        toreverse = bytearray(self._datastore.getbyteslice((newoffset + start)//8, (newoffset + end)//8))
         toreverse.reverse()
         self._datastore[(newoffset + start)//8:(newoffset + end)//8] = toreverse
 
@@ -1995,19 +1978,19 @@ re
     def _set(self, pos):
         """Set all the bits given by pos to 1."""
         def f(a, b):
-            self._datastore[a] |= 128 >> b
+            self._datastore[a] = self._datastore.getbyte(a) | (128 >> b)
         self._bit_tweaker(pos, f)
 
     def _unset(self, pos):
         """Set all the bits given by pos to 0."""
         def f(a, b):
-            self._datastore[a] &= ~(128 >> b)
+            self._datastore[a] = self._datastore.getbyte(a) & (~(128 >> b))
         self._bit_tweaker(pos, f)
 
     def _invert(self, pos):
         """Flip all the bits given by pos 1<->0."""
         def f(a, b):
-            self._datastore[a] ^= 128 >> b
+            self._datastore[a] = self._datastore.getbyte(a) ^ (128 >> b)
         self._bit_tweaker(pos, f)
 
     # TODO: Optimise!
@@ -2045,7 +2028,7 @@ re
         b = bs._datastore
         assert a.bytelength == b.bytelength
         for i in xrange(a.bytelength):
-            a[i] = f(a[i], b[i])
+            a[i] = f(a.getbyte(i), b.getbyte(i))
         return self
 
     def _ior(self, bs):
@@ -2063,7 +2046,7 @@ re
             return self.allset(start)
         startbyte, newoffset = divmod(start + self._offset, 8)
         endbyte = (start + self._offset + length - 1) // 8
-        bs = self.__class__(bytes=self._datastore[startbyte:endbyte + 1],
+        bs = self.__class__(bytes=self._datastore.getbyteslice(startbyte, endbyte + 1),
                             length=length, offset=newoffset)
         return bs
 
@@ -2440,7 +2423,7 @@ re
             buffersize = increment + len(d)
             while p < finalpos:
                 # Read in file or from memory in overlapping chunks and search the chunks.
-                buf = bytearray(self._datastore[p:min(p + buffersize, finalpos)])
+                buf = bytearray(self._datastore.getbyteslice(p, min(p + buffersize, finalpos)))
                 pos = buf.find(d)
                 if pos != -1:
                     found = True
@@ -2692,14 +2675,13 @@ re
         # in to memory.
         chunksize = 1024*1024 # 1 MB chunks
         if self._offset == 0:
-            # TODO: Shouldn't this just use array.tofile() if available ???
             a = 0
             bytelen = self._datastore.bytelength
-            p = self._datastore[a:min(a + chunksize, bytelen - 1)]
+            p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
             while len(p) == chunksize:
                 f.write(p)
                 a += chunksize
-                p = self._datastore[a:min(a + chunksize, bytelen - 1)]
+                p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
             f.write(p)
             # Now the final byte, ensuring that unused bits at end are set to 0.
             bits_in_final_byte = self.len % 8
@@ -2754,7 +2736,7 @@ re
 
         """
         def f(a, b):
-            if not self._datastore[a] & (128 >> b):
+            if not self._datastore.getbyte(a) & (128 >> b):
                 return True
         # If early exit was made we want to return False, and vice versa.
         return not self._bit_tweaker(pos, f)
@@ -2767,7 +2749,7 @@ re
 
         """
         def f(a, b):
-            if self._datastore[a] & (128 >> b):
+            if self._datastore.getbyte(a) & (128 >> b):
                 return True
         return self._bit_tweaker(pos, f)
 
