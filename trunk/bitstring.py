@@ -103,17 +103,17 @@ INIT_NAMES = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
               'float', 'floatbe', 'floatle', 'floatne', 'bytes')
 
 INIT_NAMES_ORED = '|'.join(INIT_NAMES)
-TOKEN_RE = re.compile(r'^(?P<name>' + INIT_NAMES_ORED +
+TOKEN_RE = re.compile(r'(?P<name>' + INIT_NAMES_ORED +
                       r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
-DEFAULT_UINT = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
+DEFAULT_UINT = re.compile(r'(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
-MULTIPLICATIVE_RE = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
+MULTIPLICATIVE_RE = re.compile(r'(?P<factor>.*)\*(?P<token>.+)')
 
 # Hex, oct or binary literals
-LITERAL_RE = re.compile(r'^(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
+LITERAL_RE = re.compile(r'(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-STRUCT_PACK_RE = re.compile(r'^(?P<endian><|>|@)?(?P<format>(?:\d*[bBhHlLqQfd])+)$')
+STRUCT_PACK_RE = re.compile(r'(?P<endian><|>|@)?(?P<format>(?:\d*[bBhHlLqQfd])+)$')
 
 # A number followed by a single character struct.pack code
 STRUCT_SPLIT_RE = re.compile(r'\d*[bBhHlLqQfd]')
@@ -331,11 +331,11 @@ class BaseArray(object):
 
     def __init__(self, data, bitlength=0, offset=0):
         raise NotImplementedError
-    
+
     def getbyte(self, pos):
         """Return the integer value of the byte stored at pos."""
         raise NotImplementedError
-    
+
     def getbyteslice(self, start, end):
         """Return a byte slice"""
         raise NotImplementedError
@@ -373,15 +373,11 @@ class BitArray(BaseArray):
         assert b._rawarray.length() == b.offset + b.bitlength
         return b
 
-    def __getitem__(self, key):
-        try:
-            stop = self.bytelength if key.stop is None else key.stop
-            start = 0 if key.start is None else key.start
-            return self._rawarray[start*8:stop*8].tostring()
-        except AttributeError:
-            assert 0 <= key
-            assert key < self.bytelength
-            return ord(self._rawarray[key*8:key*8 + 8].tostring())
+    def getbyte(self, pos):
+        return ord(self._rawarray[pos*8:pos*8 + 8].tostring())
+
+    def getbyteslice(self, start, end):
+        return self._rawarray[start*8:end*8].tostring()
 
     def __setitem__(self, key, item):
         assert self._rawarray.length() == self.offset + self.bitlength
@@ -450,7 +446,7 @@ class ByteArray(BaseArray):
 
     def getbyte(self, pos):
         return self._rawarray[pos]
-    
+
     def getbyteslice(self, start, end):
         return buffer(self._rawarray, start, end - start)
 
@@ -495,8 +491,6 @@ class ByteArray(BaseArray):
 
     def appendarray(self, array):
         """Join another array on to the end of this one."""
-        if array.bitlength == 0:
-            return
         if array is self:
             array = copy.copy(self)
         bits_in_final_byte = (self.offset + self.bitlength) % 8
@@ -511,8 +505,6 @@ class ByteArray(BaseArray):
 
     def prependarray(self, array):
         """Join another array on to the start of this one."""
-        if array.bitlength == 0:
-            return
         # Set the offset of copy of array so that it's final byte
         # ends in a position that matches the offset of self,
         # then join self on to the end of it.
@@ -581,14 +573,15 @@ class FileArray(BaseArray):
         pos += self.byteoffset
         self.source.seek(pos, os.SEEK_SET)
         return ord(self.source.read(1))
-    
+
     def getbyteslice(self, start, end):
         if start < end:
             self.source.seek(start + self.byteoffset, os.SEEK_SET)
             return self.source.read(end - start)
         else:
             return b''
-        
+
+
 class Bits(collections.Sequence):
     "An immutable sequence of bits."
 
@@ -632,7 +625,7 @@ class Bits(collections.Sequence):
         c = Bits(int=10, length=6)
 
         """
-        self.mutable = True
+        self.mutable = True # TODO: Clearly this isn't mutable...
         self._initialise(auto, length, offset, **kwargs)
 
     def _initialise(self, auto, length, offset, **kwargs):
@@ -655,34 +648,28 @@ class Bits(collections.Sequence):
             self._setbytes(b'')
             return
         k, v = kwargs.popitem()
-        if offset is not None and k not in name_to_init_with_offset:
-                raise Error("An offset should not be given when "
-                                     "using this initialiser.")
-        self._initialise_from_keyword(k, v, length, offset)
+        try:
+            init_without_length_or_offset[k](self, v)
+            if length is not None or offset is not None:
+                raise Error("Cannot use length or offset with this initialiser.")
+        except KeyError:
+            try:
+                init_with_length_only[k](self, v, length)
+                if offset is not None:
+                    raise Error("Cannot use offset with this initialiser.")
+            except KeyError:
+                if offset is None:
+                    offset = 0
+                try:
+                    init_with_length_and_offset[k](self, v, length, offset)
+                except KeyError:
+                    raise Error("Unrecognised keyword '%s' used to initialise." % k)
 
     def _initialise_from_auto(self, auto, length, offset):
         if offset is None:
             offset = 0
         self._setauto(auto, length, offset)
         return
-
-    def _initialise_from_keyword(self, k, v, length, offset):
-        if offset is None:
-            offset = 0
-        try:
-            name_to_init_with_offset[k](self, v, length, offset)
-        except KeyError:
-            # TODO: This error checking should be moved into __init__.
-            try:
-                name_to_init_with_length[k](self, v, length)
-            except KeyError:
-                if length is not None:
-                    raise Error("A length cannot be specified for an "
-                                         "exponential-Golomb initialiser.")
-                try:
-                    name_to_init[k](self, v)
-                except KeyError:
-                    raise Error("Unrecognised keyword '%s' used to initialise." % k)
 
     def __copy__(self):
         """Return a new copy of the Bits for the copy module."""
@@ -726,11 +713,18 @@ class Bits(collections.Sequence):
         '0x1122'
 
         """
-        # TODO: This try block is far too long when catching an AttributeError!
         try:
             start, step = 0, 1
             if key.step is not None:
                 step = key.step
+        except AttributeError:
+            # single element
+            if key < 0:
+                key += self.len
+            if not 0 <= key < self.len:
+                raise IndexError("Slice index out of range.")
+            return self._slice(key)
+        else:
             if step != 0:
                 stop = self.len - (self.len % abs(step))
             else:
@@ -769,13 +763,6 @@ class Bits(collections.Sequence):
                     return self.__class__().join(bsl)
             else:
                 return self.__class__()
-        except AttributeError:
-            # single element
-            if key < 0:
-                key += self.len
-            if not 0 <= key < self.len:
-                raise IndexError("Slice index out of range.")
-            return self._slice(key)
 
     def __len__(self):
         """Return the length of the bitstring in bits."""
@@ -1071,14 +1058,13 @@ re
     def _init_with_token(cls, name, token_length, value):
         if token_length is not None:
             token_length = int(token_length)
-        name = name.lower()
         if token_length == 0:
             return cls()
-        if name in ('0x', 'hex'):
+        if name in ('0x', '0X', 'hex'):
             b = cls(hex=value)
-        elif name in ('0b', 'bin'):
+        elif name in ('0b', '0B', 'bin'):
             b = cls(bin=value)
-        elif name in ('0o', 'oct'):
+        elif name in ('0o', '0O', 'oct'):
             b = cls(oct=value)
         elif name == 'se':
             b = cls(se=int(value))
@@ -1132,6 +1118,7 @@ re
         if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
+            # TODO: We don't really want to force it to be read into memory here.
             s._ensureinmemory()
             self._setbytes(s._datastore.rawbytes, length, s._offset + offset)
             return
@@ -1139,6 +1126,10 @@ re
             self._datastore = FileArray(s, length, offset)
             self._filebased = True
             return
+        if length is not None:
+            raise Error("The length keyword isn't applicable to this initialiser.")
+        if offset != 0:
+            raise Error("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, bool):
             if s:
                 self._setbytes(b'\x80', 1)
@@ -1154,24 +1145,15 @@ re
             self._setbytes(bytes(data), s)
             return
         if isinstance(s, basestring):
+            # TODO: Can't we just use _converttobitstring here? With all its cacheing goodness?
             self._setbytes(b'')
             _, tokens = tokenparser(s)
             for token in tokens:
                 self._append(BitString._init_with_token(*token))
-            # Finally we honour the offset and length
-            if offset > self.len:
-                raise ValueError("Can't apply offset of %d. Length is only %d." %
-                                 (offset, self.len))
-            self._truncatestart(offset)
-            if length is not None:
-                if length > self.len:
-                    raise ValueError("Can't truncate to length %d, as source is "
-                                     "only %d bits long." % (length, self.len))
-                self._truncateend(self.len - length)
             return
         if isinstance(s, collections.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
-            self._setbin(''.join(str(int(bool(x))) for x in s), length, offset)
+            self._setbin(''.join(str(int(bool(x))) for x in s))
             return
         raise TypeError("Cannot initialise %s from %s." %
                         (self.__class__.__name__, type(s)))
@@ -1210,8 +1192,14 @@ re
 
     def _setuint(self, uint, length=None):
         """Reset the bitstring to have given unsigned int interpretation."""
-        if length is None and hasattr(self, "_datastore") and self.len != 0:
-            length = self.len
+        try:
+            if length is None:
+                # Use the whole length. Deliberately not using .len here.
+                length = self._datastore.bitlength
+        except AttributeError:
+            # bitstring doesn't have a _datastore as it hasn't been created!
+            pass
+        # TODO: All this checking code should be hoisted out of here!
         if length is None or length == 0:
             raise ValueError("A non-zero length must be specified with a "
                              "uint initialiser.")
@@ -1587,21 +1575,12 @@ re
         else:
             return m
 
-    def _setbin(self, binstring, length=None, offset=0):
+    def _setbin(self, binstring):
         """Reset the bitstring to the value given in binstring."""
         binstring = tidy_input_string(binstring)
         # remove any 0b if present
         binstring = binstring.replace('0b', '')
-        if length is None:
-            length = length or len(binstring) - offset
-        if length < 0 or length > (len(binstring) - offset):
-            raise ValueError("Invalid length of binary string. String %s, "
-                             "length %d, offset %d." % (binstring, length, offset))
-        if length == 0:
-            self._clear()
-            return
-        # Truncate the bin_string if needed
-        binstring = binstring[offset:length + offset]
+        length = len(binstring)
         # pad with zeros up to byte boundary if needed
         boundary = ((length + 7) // 8) * 8
         padded_binstring = binstring + '0'*(boundary - length) \
@@ -1627,21 +1606,11 @@ re
         """Return interpretation as a binary string."""
         return self._readbin(self.len, 0)
 
-    def _setoct(self, octstring, length=None, offset=0):
+    def _setoct(self, octstring):
         """Reset the bitstring to have the value given in octstring."""
         octstring = tidy_input_string(octstring)
         # remove any 0o if present
         octstring = octstring.replace('0o', '')
-        if length is None:
-            length = len(octstring)*3 - offset
-        if length < 0 or length + offset > len(octstring) * 3:
-            raise ValueError("Invalid length %s, offset %d for oct "
-                             "initialiser %s" % (length, offset, octstring))
-        if length == 0:
-            self._clear()
-            return
-        octstring = octstring[offset // 3:(length + offset + 2) // 3]
-        offset %= 3
         binlist = []
         for i in octstring:
             try:
@@ -1650,7 +1619,7 @@ re
                 binlist.append(OCT_TO_BITS[int(i)])
             except ValueError:
                 raise ValueError("Invalid symbol '%s' in oct initialiser." % i)
-        self._setbin(''.join(binlist), length, offset)
+        self._setbin(''.join(binlist))
 
     def _readoct(self, length, start):
         """Read bits and interpret as an octal string."""
@@ -1672,28 +1641,20 @@ re
         """Return interpretation as an octal string."""
         return self._readoct(self.len, 0)
 
-    def _sethex(self, hexstring, length=None, offset=0):
+    # TODO: These methods should have the error checking code moved out to public methods.
+    def _sethex(self, hexstring):
         """Reset the bitstring to have the value given in hexstring."""
         hexstring = tidy_input_string(hexstring)
         # remove any 0x if present
         hexstring = hexstring.replace('0x', '')
-        if length is None:
-            length = len(hexstring)*4 - offset
-        if length < 0 or length + offset > len(hexstring)*4:
-            raise ValueError("Invalid length %d, offset %d for hexstring 0x%s."
-                             % (length, offset, hexstring))
-        if length == 0:
-            self._clear()
-            return
-        hexstring = hexstring[offset // 4:(length + offset + 3) // 4]
-        if len(hexstring) % 2:
+        length = len(hexstring)
+        if length % 2:
             hexstring += '0'
-        offset %= 4
         try:
             data = binascii.unhexlify(hexstring)
         except TypeError:
             raise ValueError("Invalid symbol in hex initialiser.")
-        self._datastore = MemArray(data, length, offset)
+        self._datastore = MemArray(data, length*4, 0)
 
     def _readhex(self, length, start):
         """Read bits and interpret as a hex string."""
@@ -1762,11 +1723,11 @@ re
         offset gives the suggested bit offset of first significant
         bit, to optimise append etc.
         """
-        if isinstance(bs, Bits):
-            return bs
         try:
             return cache[(bs, offset)]
         except KeyError:
+            if isinstance(bs, Bits):
+                return bs
             if isinstance(bs, basestring):
                 b = Bits(bs)
                 b._datastore.setoffset(offset)
@@ -1797,8 +1758,8 @@ re
 
     def _readtoken(self, name, length):
         """Reads a token from the bitstring and returns the result."""
-        if length is not None:
-            length = min(int(length), self.length - self._pos)
+        if length is not None and int(length) > self.length - self._pos:
+            raise IndexError("Reading off the end of the data.")
         try:
             val = name_to_read[name](self, length, self._pos)
             self._pos += length
@@ -1812,10 +1773,6 @@ re
 
     def _append(self, bs):
         """Append a bitstring to the current bitstring."""
-        if not bs:
-            return
-        if bs is self:
-            bs = self._copy()
         try:
             self._datastore.appendarray(bs._datastore)
         except NotImplementedError:
@@ -1825,14 +1782,11 @@ re
 
     def _prepend(self, bs):
         """Prepend a bitstring to the current bitstring."""
-        if not bs:
-            return
-        if bs is self:
-            bs = self._copy()
         try:
             self._datastore.prependarray(bs._datastore)
         except NotImplementedError:
             self._ensureinmemory()
+            bs._ensureinmemory()
             self._datastore.prependarray(bs._datastore)
         self._pos += bs.len
 
@@ -3048,6 +3002,15 @@ class BitString(Bits, collections.MutableSequence):
             # A slice
             start = 0
             step = key.step if key.step is not None else 1
+        except AttributeError:
+            # single element
+            if key < 0:
+                key += self.len
+            if not 0 <= key < self.len:
+                raise IndexError("Slice index out of range.")
+            self._delete(1, key)
+            return
+        else:
             if step == 0:
                 stop = 0
             else:
@@ -3087,14 +3050,7 @@ class BitString(Bits, collections.MutableSequence):
             start = min(start, stop)
             self._delete(stop - start, start)
             return
-        except AttributeError:
-            # single element
-            if key < 0:
-                key += self.len
-            if not 0 <= key < self.len:
-                raise IndexError("Slice index out of range.")
-            self._delete(1, key)
-            return
+
 
     def __ilshift__(self, n):
         """Shift bits by n to the left in place. Return self.
@@ -3613,28 +3569,31 @@ name_to_read = {'uint':    Bits._readuint,
                 'se':      Bits._readse
                 }
 
-name_to_init_with_offset = {'bytes':    Bits._setbytes,
-                            'filename': Bits._setfile,
-                            'hex':      Bits._sethex,
-                            'oct':      Bits._setoct,
-                            'bin':      Bits._setbin,
-                            }
-name_to_init_with_length = {'uint':    Bits._setuint,
-                            'int':     Bits._setint,
-                            'float':   Bits._setfloat,
-                            'uintbe':  Bits._setuintbe,
-                            'intbe':   Bits._setintbe,
-                            'floatbe': Bits._setfloat,
-                            'uintle':  Bits._setuintle,
-                            'intle':   Bits._setintle,
-                            'floatle': Bits._setfloatle,
-                            'uintne':  Bits._setuintne,
-                            'intne':   Bits._setintne,
-                            'floatne': Bits._setfloatne,
-                            }
-name_to_init = {'ue': Bits._setue,
-                'se': Bits._setse,
-                }
+# Dictionaries for mapping init keywords with init functions.
+init_with_length_and_offset = {'bytes':    Bits._setbytes,
+                               'filename': Bits._setfile,
+                              }
+
+init_with_length_only = {'uint':    Bits._setuint,
+                         'int':     Bits._setint,
+                         'float':   Bits._setfloat,
+                         'uintbe':  Bits._setuintbe,
+                         'intbe':   Bits._setintbe,
+                         'floatbe': Bits._setfloat,
+                         'uintle':  Bits._setuintle,
+                         'intle':   Bits._setintle,
+                         'floatle': Bits._setfloatle,
+                         'uintne':  Bits._setuintne,
+                         'intne':   Bits._setintne,
+                         'floatne': Bits._setfloatne,
+                         }
+
+init_without_length_or_offset = {'bin': Bits._setbin,
+                                 'hex': Bits._sethex,
+                                 'oct': Bits._setoct,
+                                 'ue':  Bits._setue,
+                                 'se':  Bits._setse,
+                                 }
 
 if __name__=='__main__':
     print("Running bitstring module unit tests:")
