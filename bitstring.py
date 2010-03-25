@@ -1215,16 +1215,15 @@ re
         if uint < 0:
             raise ValueError("uint cannot be initialsed by a negative number.")
         blist = []
-        structsize = struct.calcsize('Q')
-        mask = (1 << (structsize*8)) - 1
+        mask = 0xffff
         while uint:
             # Pack lowest bytes as little endian (as it will be reversed shortly)
-            x = bytearray(struct.pack('>Q', uint & mask))
+            x = bytearray(struct.pack('>H', uint & mask))
             blist.append(x)
-            uint >>= structsize*8
+            uint >>= 16
         blist.reverse()
         # Now add or remove bytes as needed to get the right length.
-        extrabytes = ((length + 7) // 8) - len(blist)*structsize
+        extrabytes = ((length + 7) // 8) - len(blist)*2
         if extrabytes > 0:
             data = bytes(bytearray(extrabytes) + bytearray().join(blist))
         elif extrabytes < 0:

@@ -3819,6 +3819,17 @@ class PeekWithDict(unittest.TestCase):
         self.assertEqual((x, y), (1, '0x0'))
         self.assertEqual(s.pos, 0)
 
+class Miscellany(unittest.TestCase):
+
+    def testNumpyInt(self):
+        try:
+            import numpy
+            a = Bits(uint=numpy.uint8(5), length=3)
+            self.assertEqual(a.uint, 5)
+        except ImportError:
+            # Not to worry
+            pass
+
 def main():
     unittest.main()
 
