@@ -41,8 +41,7 @@ import re
 import operator
 import collections
 import itertools
-from sys import byteorder
-import platform
+import sys
 import binascii
 import copy
 import warnings
@@ -53,6 +52,7 @@ try:
 except ImportError:
     bitarray_available = False
 
+byteorder = sys.byteorder
 
 _ = b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
 
@@ -74,7 +74,7 @@ def deprecated(explanation):
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
-PYTHON_VERSION = int(platform.python_version_tuple()[0])
+PYTHON_VERSION = sys.version_info[0]
 assert PYTHON_VERSION in [2, 3]
 if PYTHON_VERSION == 2:
     from future_builtins import zip
@@ -379,11 +379,14 @@ class BitArray(BaseArray):
     def getbyteslice(self, start, end):
         return self._rawarray[start*8:end*8].tostring()
 
-    def __setitem__(self, key, item):
+    def setbyte(self, pos, value):
+        self._rawarray[pos*8:pos*8+8] = bitarray(BYTE_TO_BITS[value])
+
+    def setbyteslice(self, start, end, value):
         assert self._rawarray.length() == self.offset + self.bitlength
         ba = bytearray(self._rawarray.tostring())
         len_before = len(ba)
-        ba[key] = item
+        ba[start:end] = value
         self.bitlength += 8*(len(ba) - len_before)
         self._rawarray = bitarray()
         self._rawarray.fromstring(bytes(ba))
@@ -448,10 +451,17 @@ class ByteArray(BaseArray):
         return self._rawarray[pos]
 
     def getbyteslice(self, start, end):
-        return buffer(self._rawarray, start, end - start)
+        c = self._rawarray[start:end]
+        # We convert to bytes because struct.unpack can't handle a bytearray (in Python 2.6 only).
+        # Probably a struct module bug. We could return a buffer object here though, but I don't
+        # think that it would be faster.
+        return bytes(c)
 
-    def __setitem__(self, key, item):
-        self._rawarray[key] = item
+    def setbyte(self, pos, value):
+        self._rawarray[pos] = value
+
+    def setbyteslice(self, start, end, value):
+        self._rawarray[start:end] = value
 
     def setoffset(self, newoffset):
         """Realign BitString with new offset to first bit."""
@@ -513,8 +523,8 @@ class ByteArray(BaseArray):
         assert (array.offset + array.bitlength) % 8 == self.offset
         if self.offset != 0:
             # first do the byte with the join.
-            array[-1] = (array.getbyte(-1) & (255 ^ (255 >> self.offset)) | \
-                                   (self._rawarray[0] & (255 >> self.offset)))
+            array.setbyte(-1, (array.getbyte(-1) & (255 ^ (255 >> self.offset)) | \
+                                   (self._rawarray[0] & (255 >> self.offset))))
             array._rawarray.extend(self._rawarray[1 : self.bytelength])
         else:
             array._rawarray.extend(self._rawarray[0 : self.bytelength])
@@ -838,8 +848,7 @@ class Bits(collections.Sequence):
         chunk_size = (1 << 21)
         if self.len <= chunk_size:
             return self.tobytes() == bs.tobytes()
-        for s_chunk, bs_chunk in itertools.izip(self.cut(chunk_size),
-                                                bs.cut(chunk_size)):
+        for s_chunk, bs_chunk in zip(self.cut(chunk_size), bs.cut(chunk_size)):
             if s_chunk.tobytes() != bs_chunk.tobytes():
                 return False
         final_bits = self.len % chunk_size
@@ -1130,6 +1139,10 @@ re
             raise Error("The length keyword isn't applicable to this initialiser.")
         if offset != 0:
             raise Error("The offset keyword isn't applicable to this initialiser.")
+        if isinstance(s, basestring):
+            bs = self._converttobitstring(s)
+            self._setbytes(bs._datastore.rawbytes, bs.length, bs._offset)
+            return
         if isinstance(s, bool):
             if s:
                 self._setbytes(b'\x80', 1)
@@ -1143,13 +1156,6 @@ re
                                  (self.__class__.__name__, s))
             data = bytearray((s + 7) // 8)
             self._setbytes(bytes(data), s)
-            return
-        if isinstance(s, basestring):
-            # TODO: Can't we just use _converttobitstring here? With all its cacheing goodness?
-            self._setbytes(b'')
-            _, tokens = tokenparser(s)
-            for token in tokens:
-                self._append(BitString._init_with_token(*token))
             return
         if isinstance(s, collections.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
@@ -1729,7 +1735,10 @@ re
             if isinstance(bs, Bits):
                 return bs
             if isinstance(bs, basestring):
-                b = Bits(bs)
+                b = Bits()
+                _, tokens = tokenparser(bs)
+                for token in tokens:
+                    b._append(BitString._init_with_token(*token))
                 b._datastore.setoffset(offset)
                 cache[(bs, offset)] = b
                 return b
@@ -1845,24 +1854,24 @@ re
         bytepos, bitoffset = divmod(self._offset + pos, 8)
         if firstbytepos == lastbytepos:
             mask = ((1 << bs.len) - 1) << (8 - bs.len - bitoffset)
-            self._datastore[bytepos] = self._datastore.getbyte(bytepos) & (~mask)
+            self._datastore.setbyte(bytepos, self._datastore.getbyte(bytepos) & (~mask))
             bs._datastore.setoffset(bitoffset)
-            self._datastore[bytepos] = self._datastore.getbyte(bytepos) | (bs._datastore.getbyte(0) & mask)
+            self._datastore.setbyte(bytepos, self._datastore.getbyte(bytepos) | (bs._datastore.getbyte(0) & mask))
         else:
             # Do first byte
             mask = (1 << (8 - bitoffset)) - 1
-            self._datastore[bytepos] = self._datastore.getbyte(bytepos) & (~mask)
+            self._datastore.setbyte(bytepos, self._datastore.getbyte(bytepos) & (~mask))
             bs._datastore.setoffset(bitoffset)
-            self._datastore[bytepos] = self._datastore.getbyte(bytepos) | (bs._datastore.getbyte(0) & mask)
+            self._datastore.setbyte(bytepos, self._datastore.getbyte(bytepos) | (bs._datastore.getbyte(0) & mask))
             # Now do all the full bytes
-            self._datastore[firstbytepos + 1:lastbytepos] = bs._datastore.getbyteslice(1, lastbytepos - firstbytepos)
+            self._datastore.setbyteslice(firstbytepos + 1, lastbytepos, bs._datastore.getbyteslice(1, lastbytepos - firstbytepos))
             # and finally the last byte
             bitsleft = (self._offset + pos + bs.len) % 8
             if bitsleft == 0:
                 bitsleft = 8
             mask = (1 << (8 - bitsleft)) - 1
-            self._datastore[lastbytepos] = self._datastore.getbyte(lastbytepos) & mask
-            self._datastore[lastbytepos] = self._datastore.getbyte(lastbytepos) | (bs._datastore.getbyte(bs._datastore.bytelength - 1) & ~mask)
+            self._datastore.setbyte(lastbytepos, self._datastore.getbyte(lastbytepos) & mask)
+            self._datastore.setbyte(lastbytepos, self._datastore.getbyte(lastbytepos) | (bs._datastore.getbyte(bs._datastore.bytelength - 1) & ~mask))
         self._pos = bitposafter
         assert self._assertsanity()
 
@@ -1905,7 +1914,7 @@ re
         # Now just reverse the byte data
         toreverse = bytearray(self._datastore.getbyteslice((newoffset + start)//8, (newoffset + end)//8))
         toreverse.reverse()
-        self._datastore[(newoffset + start)//8:(newoffset + end)//8] = toreverse
+        self._datastore.setbyteslice((newoffset + start)//8, (newoffset + end)//8, toreverse)
 
     def _bit_tweaker(self, pos, f):
         """Examines or changes bits based on the function f.
@@ -1932,19 +1941,19 @@ re
     def _set(self, pos):
         """Set all the bits given by pos to 1."""
         def f(a, b):
-            self._datastore[a] = self._datastore.getbyte(a) | (128 >> b)
+            self._datastore.setbyte(a, self._datastore.getbyte(a) | (128 >> b))
         self._bit_tweaker(pos, f)
 
     def _unset(self, pos):
         """Set all the bits given by pos to 0."""
         def f(a, b):
-            self._datastore[a] = self._datastore.getbyte(a) & (~(128 >> b))
+            self._datastore.setbyte(a, self._datastore.getbyte(a) & (~(128 >> b)))
         self._bit_tweaker(pos, f)
 
     def _invert(self, pos):
         """Flip all the bits given by pos 1<->0."""
         def f(a, b):
-            self._datastore[a] = self._datastore.getbyte(a) ^ (128 >> b)
+            self._datastore.setbyte(a, self._datastore.getbyte(a) ^ (128 >> b))
         self._bit_tweaker(pos, f)
 
     # TODO: Optimise!
@@ -1982,7 +1991,7 @@ re
         b = bs._datastore
         assert a.bytelength == b.bytelength
         for i in xrange(a.bytelength):
-            a[i] = f(a.getbyte(i), b.getbyte(i))
+            a.setbyte(i, f(a.getbyte(i), b.getbyte(i)))
         return self
 
     def _ior(self, bs):
