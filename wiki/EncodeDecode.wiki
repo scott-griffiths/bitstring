@@ -4,7 +4,7 @@
 N.B. These are ramblings on possible future methods - none of this is implemented yet, so feel free to comment, but don't expect any of this to work!
 
 
-encode would be much like pack, but would append to the end of current BitString.
+encode would be much like pack, but would append to the end of current !BitString.
 {{{
 >>> a = BitString()
 >>> a.encode('0x01, 0b1, uint:5=6')
@@ -12,8 +12,8 @@ encode would be much like pack, but would append to the end of current BitString
 }}}
 Similarly decode would be like unpack, but would change pos (so just like readlist, but bear with me).
 {{{
->>> a.decode('hex:8, uint:5')
-'0x01', 6
+>>> a.decode('hex:8, bin:1, uint:5')
+'0x01', '0b1', 6
 >>> a.decode('bin:3')
 '0b110'
 }}}
@@ -41,3 +41,16 @@ Now let's do the decode:
 >>> a.decode('0x01=sc, 0b1, uint:5=val')
 {'sc': '0x01', 'val': 6}
 }}}
+
+For the literals '0x01' and '0b1' a !ParseError will be raised if they are not the values specified in the format string. [Question: Should we even return 'sc' in the dictionary? It can only ever be one value.]
+{{{
+>>> a.decode('0b111=flags')
+ParseError: flags was '0b110', expected '0b111'.
+}}}
+
+For a !BitString created with encode, the decode can be more concise:
+{{{
+>>> a.decode('sc, bin:1, val')
+{'sc': '0x01', 'val': 6}
+}}}
+Note that the unnamed token doesn't get returned. Partly because I can't think of a nice way to do so!
