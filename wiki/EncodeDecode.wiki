@@ -1,0 +1,43 @@
+#summary Thoughts on encode / decode methods
+#labels Phase-Design
+
+N.B. These are ramblings on possible future methods - none of this is implemented yet, so feel free to comment, but don't expect any of this to work!
+
+
+encode would be much like pack, but would append to the end of current BitString.
+{{{
+>>> a = BitString()
+>>> a.encode('0x01, 0b1, uint:5=6')
+>>> a.encode('0b110')
+}}}
+Similarly decode would be like unpack, but would change pos (so just like readlist, but bear with me).
+{{{
+>>> a.decode('hex:8, uint:5')
+'0x01', 6
+>>> a.decode('bin:3')
+'0b110'
+}}}
+The fun comes with keywords:
+{{{
+>>> a = BitString()
+>>> a.encode('0x01=sc, 0b1, uint:5=val', val=6)
+>>> a.encode('bin:3=flags', flags='110')
+}}}
+After this you have the same bitstring, but can also say
+{{{
+>>> a.sc
+'0x01'
+>>> a.val
+6
+>>> a.val = 4
+}}}
+etc.
+
+So the encode also adds attributes to the !BitString for the different fields.
+
+Now let's do the decode:
+
+{{{
+>>> a.decode('0x01=sc, 0b1, uint:5=val')
+{'sc': '0x01', 'val': 6}
+}}}
