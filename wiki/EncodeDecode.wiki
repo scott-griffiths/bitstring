@@ -42,7 +42,7 @@ Now let's do the decode:
 {'sc': '0x01', 'val': 6}
 }}}
 
-For the literals '0x01' and '0b1' a !ParseError will be raised if they are not the values specified in the format string. [Question: Should we even return 'sc' in the dictionary? It can only ever be one value.]
+For the literals '0x01' and '0b1' a !ParseError will be raised if they are not the values specified in the format string. (Question: Should we even return 'sc' in the dictionary? It can only ever be one value.)
 {{{
 >>> a.decode('0b111=flags')
 ParseError: flags was '0b110', expected '0b111'.
@@ -54,3 +54,30 @@ For a !BitString created with encode, the decode can be more concise:
 {'sc': '0x01', 'val': 6}
 }}}
 Note that the unnamed token doesn't get returned. Partly because I can't think of a nice way to do so!
+
+*Format Specifiers*
+
+I'm trying to get to a point where a format can be specified by a string (or many strings) which can then be used both for encoding and decoding. A couple of examples would be helpful:
+
+{{{
+>>> header = '0x000001b3=start_code, uint:12=width, uint:12=height, bin:4=flags'
+>>> s = BitString()
+>>> s.encode(header, width=352, height=288, flags='1110')
+}}}
+Note that naming start_code isn't strictly neccessary, but I guess it helps in error messages when decoding.
+{{{
+>>> s.height //= 2
+>>> s.decode(header)
+{'width': 352, 'height': 144, 'flags':'0b1110'}
+}}}
+
+Another example:
+{{{
+>>> format = '0x47=sync_byte, uint:8=payload_length, bytes:payload_length=payload'
+>>> s = BitString()
+>>> s.encode(format, payload_length=12, payload=b'123456789abc')
+>>> s.decode(format)
+{'payload_length': 12, 'payload': b'123456789abc'}
+}}}
+We would again get a !ParseError if the payload wansn't the expected size.
+
