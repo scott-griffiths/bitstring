@@ -81,3 +81,27 @@ Another example:
 }}}
 We would again get a !ParseError if the payload wansn't the expected size.
 
+OK, so a more complete example, from MPEG-2 video.
+
+{{{
+picture_start_code = '0x00000100'
+sequence_header_code = '0x000001b3'
+...
+def video_sequence(s):
+    d = {}
+    next_start_code(s)
+    sequence_header(s, d)
+    ...
+
+def sequence_header(s, d)
+    format = [sequence_header_code, 'uint:12=horizontal_size_value', 
+              'uint:12=vertical_size_value', ... '0b1=marker_bit', ...
+              'uint:1=load_intra_quantiser_matrix']
+    d.update(s.decode(format))
+    if d['load_intra_quantiser_matrix']:
+        ...
+
+
+
+
+}}}
