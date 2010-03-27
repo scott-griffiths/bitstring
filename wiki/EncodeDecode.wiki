@@ -91,11 +91,16 @@ def video_sequence(s):
     d = {}
     next_start_code(s)
     sequence_header(s, d)
+    sequence_extension(s, d)
     ...
 
 def sequence_header(s, d)
-    format = [sequence_header_code, 'uint:12=horizontal_size_value', 
-              'uint:12=vertical_size_value', ... '0b1=marker_bit', ...
+    format = [sequence_header_code,
+              'uint:12=horizontal_size_value', 
+              'uint:12=vertical_size_value',
+              ...
+              '0b1=marker_bit',
+              ...
               'uint:1=load_intra_quantiser_matrix']
     d.update(s.decode(format))
     if d['load_intra_quantiser_matrix']:
