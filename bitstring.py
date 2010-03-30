@@ -1516,7 +1516,7 @@ re
         leadingzeros = self._pos - oldpos
         codenum = (1 << leadingzeros) - 1
         if leadingzeros > 0:
-            restofcode = self.readbits(leadingzeros + 1)
+            restofcode = self.read(leadingzeros + 1)
             if restofcode.len != leadingzeros + 1:
                 raise Error("Read off end of bitstring trying to read code.")
             codenum += restofcode[1:].uint
@@ -2109,6 +2109,18 @@ re
         Raises ValueError if the format is not understood.
 
         """
+        if isinstance(format, (int, long)):
+            if format == 1:
+                bs = self._readbits(None, self._pos)
+                self._pos += 1
+                return bs
+            if format < 0:
+                raise ValueError("Cannot read negative amount.")
+            # TODO: Shouldn't this min go?
+            bits = min(format, self.len - self._pos)
+            bs = self._readbits(bits, self._pos)
+            self._pos += bits
+            return bs
         p = self._pos
         _, token = tokenparser(format)
         if len(token) != 1:
@@ -2198,35 +2210,6 @@ re
             return_values.append(self._readtoken(name, length))
         return return_values
 
-    def readbit(self):
-        """Return next bit in bitstring as new bitstring and advance position.
-
-        Returns empty bitstring if pos is at the end of the bitstring.
-
-        """
-        return self.readbits(1)
-
-    def readbits(self, bits):
-        """Return next bits in bitstring as new bitstring and advance position.
-
-        bits -- The number of bits to read.
-
-        If not enough bits are available then all remaining will be returned.
-
-        Raises ValueError if bits < 0.
-
-        """
-        if bits == 1:
-            bs = self._readbits(None, self.pos)
-            self._pos += 1
-            return bs
-        if bits < 0:
-            raise ValueError("Cannot read negative amount.")
-        bits = min(bits, self.len - self._pos)
-        bs = self._readbits(bits, self._pos)
-        self._pos += bits
-        return bs
-
     def readbitlist(self, bits):
         """Return next bits as new list of bitstring(s) and advance position.
 
@@ -2238,29 +2221,7 @@ re
         Raises ValueError if bits < 0.
 
         """
-        return [self.readbits(b) for b in bits]
-
-    def readbyte(self):
-        """Return next byte as a new bitstring and advance position.
-
-        Does not byte align.
-
-        If not enough bits are available then all will be returned.
-
-        """
-        return self.readbits(8)
-
-    def readbytes(self, bytes):
-        """Return next bytes as a new bitstring and advance position.
-
-        bytes -- The number of bytes to read.
-
-        Does not byte align.
-
-        If not enough bits are available then all will be returned.
-
-        """
-        return self.readbits(bytes*8)
+        return [self.read(b) for b in bits]
 
     def readbytelist(self, bytes):
         """Return next bytes as list of new bitstring(s) and advance position.
@@ -2285,11 +2246,10 @@ re
         See the docstring for 'read' for token examples.
 
         """
-        return_values = self.peeklist(format)
-        if len(return_values) != 1:
-            raise ValueError("Format string should be a single token - "
-                             "use peeklist() instead.")
-        return return_values[0]
+        pos_before = self._pos
+        value = self.read(format)
+        self._pos = pos_before
+        return value
 
     def peeklist(self, *format, **kwargs):
         """Interpret next bits according to format string(s) and return list.
@@ -2312,29 +2272,6 @@ re
         self._pos = pos
         return return_values
 
-    def peekbit(self):
-        """Return next bit as a new bitstring without advancing position.
-
-        Returns empty bitstring if pos is at the end of the bitstring.
-
-        """
-        return self.peekbits(1)
-
-    def peekbits(self, bits):
-        """Return next bits as a bitstring without advancing position.
-
-        bits -- The number of bits to read.
-
-        If not enough bits are available then all remaining will be returned.
-
-        Raises ValueError if bits < 0.
-
-        """
-        pos = self._pos
-        s = self.readbits(bits)
-        self._pos = pos
-        return s
-
     def peekbitlist(self, bits):
         """Return next bits as bitstring list without advancing position.
 
@@ -2350,24 +2287,6 @@ re
         s = self.readbitlist(bits)
         self._pos = pos
         return s
-
-    def peekbyte(self):
-        """Return next byte as a new bitstring without advancing position.
-
-        If not enough bits are available then all will be returned.
-
-        """
-        return self.peekbits(8)
-
-    def peekbytes(self, bytes):
-        """Return next bytes as a bitstring without advancing position.
-
-        bytes -- The number of bytes to read.
-
-        If not enough bits are available then all remaining will be returned.
-
-        """
-        return self.peekbits(bytes*8)
 
     def peekbytelist(self, bytes):
         """Return next bytes as bitstring list without advancing position.
