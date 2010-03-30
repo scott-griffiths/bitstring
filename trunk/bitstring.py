@@ -100,7 +100,7 @@ def tidy_input_string(s):
 
 INIT_NAMES = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
-              'float', 'floatbe', 'floatle', 'floatne', 'bytes')
+              'float', 'floatbe', 'floatle', 'floatne', 'bytes', 'bool')
 
 INIT_NAMES_ORED = '|'.join(INIT_NAMES)
 TOKEN_RE = re.compile(r'(?P<name>' + INIT_NAMES_ORED +
@@ -1107,6 +1107,13 @@ re
             b = cls(value)
         elif name == 'bytes':
             b = cls(bytes=value)
+        elif name == 'bool':
+            if value is True or value == 'True':
+                b = cls(True)
+            elif value is False or value == 'False':
+                b = cls(False)
+            else:
+                raise ValueError("bool token can only be 'True' or 'False'.")
         else:
             raise ValueError("Can't parse token name %s." % name)
         if token_length is not None and b.len != token_length:
@@ -1579,6 +1586,26 @@ re
             return -m
         else:
             return m
+
+    def _setbool(self, value):
+        # We deliberately don't want to have implicit conversions to bool here.
+        # If we did then it would be difficult to deal with the 'False' string.
+        if value is True or value == 'True':
+            self._setbytes(b'\x80', 1)
+        elif value is False or value == 'False':
+            self._setbytes(b'\x00', 1)
+        else:
+            raise ValueError('Cannot initialise boolean with %s' % value)
+
+    def _getbool(self):
+        if self.length != 1:
+            raise ValueError("For a bool interpretation a bitstring must be 1 bit long, not %s." % self.length)
+        return self[0]
+
+    def _readbool(self):
+        b = self[self._pos]
+        self._pos += 1
+        return b
 
     def _setbin(self, binstring):
         """Reset the bitstring to the value given in binstring."""
@@ -2073,6 +2100,7 @@ re
                         'se'        : next bits as signed exp-Golomb code
                         'bits:5'    : 5 bits as a bitstring
                         'bytes:10'  : 10 bytes as a bytes object
+                        'bool'      : 1 bit as a bool
 
         The position in the bitstring is advanced to after the read items.
         If not enough bits are available then all bits to the end of the
@@ -2765,6 +2793,9 @@ re
     length = property(_getlength,
                       doc="""The length of the bitstring in bits. Read only.
                       """)
+    bool   = property(_getbool,
+                      doc="""The bitstring as a bool (True or False)."""
+                      )
     hex    = property(_gethex,
                       doc="""The bitstring as a hexadecimal string. Read only.
 
@@ -3487,6 +3518,9 @@ class BitString(Bits, collections.MutableSequence):
                       When read will be prefixed with '0o' and including any leading zeros.
 
                       """)
+    bool   = property(Bits._getbool, Bits._setbool,
+                      doc="""The BitString as a bool (True or False). Read and write."""
+                      )
     bytes  = property(Bits._getbytes, Bits._setbytes,
                       doc="""The BitString as a ordinary string. Read and write.
                       """)
@@ -3518,6 +3552,7 @@ def pack(format, *values, **kwargs):
                     'se'        : next bits as signed exp-Golomb code
                     'bits:5'    : 5 bits as a BitString object
                     'bytes:10'  : 10 bytes as a bytes object
+                    'bool'      : 1 bit as a bool
 
     >>> s = pack('uint:12, bits', 100, '0xffe')
     >>> t = pack('bits, bin:3', s, '111')
@@ -3574,7 +3609,8 @@ name_to_read = {'uint':    Bits._readuint,
                 'bits':    Bits._readbits,
                 'bytes':   Bits._readbytes,
                 'ue':      Bits._readue,
-                'se':      Bits._readse
+                'se':      Bits._readse,
+                'bool':    Bits._readbool,
                 }
 
 # Dictionaries for mapping init keywords with init functions.
