@@ -3830,6 +3830,51 @@ class Miscellany(unittest.TestCase):
             # Not to worry
             pass
 
+class BoolToken(unittest.TestCase):
+
+    def testInterpretation(self):
+        a = Bits(True)
+        self.assertEqual(a.bool, True)
+        self.assertEqual(a.read('bool'), True)
+        self.assertEqual(a.unpack('bool')[0], True)
+        b = Bits(False)
+        self.assertEqual(b.bool, False)
+        self.assertEqual(b.peek('bool'), False)
+        self.assertEqual(b.unpack('bool')[0], False)
+
+    def testPack(self):
+        a = pack('bool=True')
+        b = pack('bool=False')
+        self.assertEqual(a.bool, True)
+        self.assertEqual(b.bool, False)
+        c = pack('4*bool', False, True, 'False', 'True')
+        self.assertEqual(c, '0b0101')
+
+    def testAssignment(self):
+        a = BitString()
+        a.bool = True
+        self.assertEqual(a.bool, True)
+        a.hex = 'ee'
+        a.bool = False
+        self.assertEqual(a.bool, False)
+        a.bool = 'False'
+        self.assertEqual(a.bool, False)
+        a.bool = 'True'
+        self.assertEqual(a.bool, True)
+
+    def testErrors(self):
+        self.assertRaises(ValueError, pack, 'bool', 'hello')
+        self.assertRaises(ValueError, pack, 'bool=true')
+        self.assertRaises(ValueError, pack, 'True')
+        self.assertRaises(ValueError, pack, 'bool', 0)
+        a = BitString('0b11')
+        self.assertRaises(ValueError, a._getbool)
+        b = BitString()
+        self.assertRaises(ValueError, a._getbool)
+        self.assertRaises(ValueError, a._setbool, 0)
+        self.assertRaises(ValueError, a._setbool, 'false')
+
+
 def main():
     unittest.main()
 
