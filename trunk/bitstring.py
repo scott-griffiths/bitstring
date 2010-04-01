@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Module for bit-wise data manipulation.
+Module for simple bit-wise data creation, manipulation and interpretation.
 http://python-bitstring.googlecode.com
 """
 from __future__ import print_function
@@ -33,7 +33,8 @@ __version__ = "2.0.0"
 
 __author__ = "Scott Griffiths"
 
-__all__ = ['BitString', 'Bits', 'pack']
+__all__ = ['BitString', 'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
+           'ByteAlignError', 'CreationError']
 
 import os
 import struct
@@ -322,8 +323,22 @@ if PYTHON_VERSION == 2:
 else:
     BYTE_REVERSAL_DICT = dict(zip(range(256), [bytes([x]) for x in REVERSED]))
 
+
 class Error(Exception):
-    """For errors in the bitstring module."""
+    """Base class for errors in the bitstring module."""
+
+class ReadError(Error, IndexError):
+    """Reading or peeking past the end of a bitstring."""
+
+class InterpretError(Error, ValueError):
+    """Inappropriate interpretation of binary data."""
+
+class ByteAlignError(Error):
+    """Whole-byte position or length needed."""
+
+class CreationError(Error, ValueError):
+    """Inappropriate argument during bitstring creation."""
+
 
 
 class BaseArray(object):
@@ -571,7 +586,7 @@ class FileArray(BaseArray):
         else:
             self.bytelength = (bitlength + bitoffset + 7) // 8
         if self.bytelength > filelength - byteoffset:
-            raise ValueError("File is not long enough for specified "
+            raise CreationError("File is not long enough for specified "
                              "BitString length and offset.")
         self.byteoffset = byteoffset
         self.bitlength = bitlength
@@ -640,10 +655,10 @@ class Bits(collections.Sequence):
 
     def _initialise(self, auto, length, offset, **kwargs):
         if length is not None and length < 0:
-            raise ValueError("%s length cannot be negative." %
+            raise CreationError("%s length cannot be negative." %
                              self.__class__.__name__)
         if offset is not None and offset < 0:
-            raise ValueError("offset must be >= 0.")
+            raise CreationError("offset must be >= 0.")
         self._pos = 0
         self._filebased = False
         if auto is not None:
@@ -661,19 +676,19 @@ class Bits(collections.Sequence):
         try:
             init_without_length_or_offset[k](self, v)
             if length is not None or offset is not None:
-                raise Error("Cannot use length or offset with this initialiser.")
+                raise CreationError("Cannot use length or offset with this initialiser.")
         except KeyError:
             try:
                 init_with_length_only[k](self, v, length)
                 if offset is not None:
-                    raise Error("Cannot use offset with this initialiser.")
+                    raise CreationError("Cannot use offset with this initialiser.")
             except KeyError:
                 if offset is None:
                     offset = 0
                 try:
                     init_with_length_and_offset[k](self, v, length, offset)
                 except KeyError:
-                    raise Error("Unrecognised keyword '%s' used to initialise." % k)
+                    raise CreationError("Unrecognised keyword '%s' used to initialise." % k)
 
     def _initialise_from_auto(self, auto, length, offset):
         if offset is None:
@@ -941,7 +956,7 @@ class Bits(collections.Sequence):
         """Bit-wise 'and' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '&' with.
-re
+
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
@@ -1113,11 +1128,11 @@ re
             elif value is False or value == 'False':
                 b = cls(False)
             else:
-                raise ValueError("bool token can only be 'True' or 'False'.")
+                raise CreationError("bool token can only be 'True' or 'False'.")
         else:
-            raise ValueError("Can't parse token name %s." % name)
+            raise CreationError("Can't parse token name %s." % name)
         if token_length is not None and b.len != token_length:
-            raise ValueError("Token with length %d packed with value of length %d (%s:%d=%s)." %
+            raise CreationError("Token with length %d packed with value of length %d (%s:%d=%s)." %
                              (token_length, b.len, name, token_length, value))
         return b
 
@@ -1143,9 +1158,9 @@ re
             self._filebased = True
             return
         if length is not None:
-            raise Error("The length keyword isn't applicable to this initialiser.")
+            raise CreationError("The length keyword isn't applicable to this initialiser.")
         if offset != 0:
-            raise Error("The offset keyword isn't applicable to this initialiser.")
+            raise CreationError("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, basestring):
             bs = self._converttobitstring(s)
             self._setbytes(bs._datastore.rawbytes, bs.length, bs._offset)
@@ -1159,7 +1174,7 @@ re
         if isinstance(s, (int, long)):
             # Initialise with s zero bits.
             if s < 0:
-                raise ValueError("Can't create %s of negative length %d." %
+                raise CreationError("Can't create %s of negative length %d." %
                                  (self.__class__.__name__, s))
             data = bytearray((s + 7) // 8)
             self._setbytes(bytes(data), s)
@@ -1185,7 +1200,7 @@ re
             self._datastore = MemArray(data, length, offset)
         else:
             if length + offset > len(data)*8:
-                raise ValueError("Not enough data present. Need %d bits, "
+                raise CreationError("Not enough data present. Need %d bits, "
                                  "have %d." % (length + offset, len(data)*8))
             if length == 0:
                 self._datastore = MemArray(b'')
@@ -1199,7 +1214,7 @@ re
     def _getbytes(self):
         """Return the data as an ordinary string."""
         if self.len % 8 != 0:
-            raise ValueError("Cannot convert to string unambiguously - "
+            raise InterpretError("Cannot convert to string unambiguously - "
                              "not multiple of 8 bits.")
         return self._readbytes(self.len, 0)
 
@@ -1214,13 +1229,13 @@ re
             pass
         # TODO: All this checking code should be hoisted out of here!
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with a "
+            raise CreationError("A non-zero length must be specified with a "
                              "uint initialiser.")
         if uint >= (1 << length):
-            raise ValueError("uint %d is too large for a bitstring of "
+            raise CreationError("uint %d is too large for a bitstring of "
                              "length %d." % (uint, length))
         if uint < 0:
-            raise ValueError("uint cannot be initialsed by a negative number.")
+            raise CreationError("uint cannot be initialsed by a negative number.")
         blist = []
         mask = 0xffff
         while uint:
@@ -1245,7 +1260,7 @@ re
     def _readuint(self, length, start):
         """Read bits and interpret as an unsigned int."""
         if length == 0:
-            raise ValueError("Cannot interpret a zero length bitstring "
+            raise InterpretError("Cannot interpret a zero length bitstring "
                              "as an integer.")
         startbyte = (start + self._offset) // 8
         endbyte = (start + self._offset + length - 1) // 8
@@ -1274,9 +1289,9 @@ re
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with an int initialiser.")
+            raise CreationError("A non-zero length must be specified with an int initialiser.")
         if int_ >=  (1 << (length - 1)) or int_ < -(1 << (length - 1)):
-            raise ValueError("int %d is too large for a bitstring of length %d." % (int_, length))
+            raise CreationError("int %d is too large for a bitstring of length %d." % (int_, length))
         if int_ >= 0:
             self._setuint(int_, length)
             return
@@ -1306,14 +1321,14 @@ re
     def _setuintbe(self, uintbe, length=None):
         """Set the bitstring to a big-endian unsigned int interpretation."""
         if length is not None and length % 8 != 0:
-            raise ValueError("Big-endian integers must be whole-byte. "
+            raise CreationError("Big-endian integers must be whole-byte. "
                              "Length = %d bits." % length)
         self._setuint(uintbe, length)
 
     def _readuintbe(self, length, start):
         """Read bits and interpret as a big-endian unsigned int."""
         if length % 8 != 0:
-            raise ValueError("Big-endian integers must be whole-byte. "
+            raise InterpretError("Big-endian integers must be whole-byte. "
                              "Length = %d bits." % length)
         return self._readuint(length, start)
 
@@ -1324,14 +1339,14 @@ re
     def _setintbe(self, intbe, length=None):
         """Set bitstring to a big-endian signed int interpretation."""
         if length is not None and length % 8 != 0:
-            raise ValueError("Big-endian integers must be whole-byte. "
+            raise CreationError("Big-endian integers must be whole-byte. "
                              "Length = %d bits." % length)
         self._setint(intbe, length)
 
     def _readintbe(self, length, start):
         """Read bits and interpret as a big-endian signed int."""
         if length % 8 != 0:
-            raise ValueError("Big-endian integers must be whole-byte. "
+            raise InterpretError("Big-endian integers must be whole-byte. "
                              "Length = %d bits." % length)
         return self._readint(length, start)
 
@@ -1341,7 +1356,7 @@ re
 
     def _setuintle(self, uintle, length=None):
         if length is not None and length % 8 != 0:
-            raise ValueError("Little-endian integers must be whole-byte. "
+            raise CreationError("Little-endian integers must be whole-byte. "
                              "Length = %d bits." % length)
         self._setuint(uintle, length)
         self._reversebytes(0, self.len)
@@ -1349,7 +1364,7 @@ re
     def _readuintle(self, length, start):
         """Read bits and interpret as a little-endian unsigned int."""
         if length % 8 != 0:
-            raise ValueError("Little-endian integers must be whole-byte. "
+            raise InterpretError("Little-endian integers must be whole-byte. "
                              "Length = %d bits." % length)
         assert start + length <= self.len
         absolute_pos = start + self._offset
@@ -1379,7 +1394,7 @@ re
 
     def _setintle(self, intle, length=None):
         if length is not None and length % 8 != 0:
-            raise ValueError("Little-endian integers must be whole-byte. "
+            raise CreationError("Little-endian integers must be whole-byte. "
                              "Length = %d bits." % length)
         self._setint(intle, length)
         self._reversebytes(0, self.len)
@@ -1396,7 +1411,7 @@ re
 
     def _getintle(self):
         if self.len % 8 != 0:
-            raise ValueError("Little-endian integers must be whole-byte. "
+            raise InterpretError("Little-endian integers must be whole-byte. "
                              "Length = %d bits." % self.len)
         return self._readintle(self.len, 0)
 
@@ -1405,14 +1420,14 @@ re
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with a "
+            raise CreationError("A non-zero length must be specified with a "
                              "float initialiser.")
         if length == 32:
             b = struct.pack('>f', f)
         elif length == 64:
             b = struct.pack('>d', f)
         else:
-            raise ValueError("floats can only be 32 or 64 bits long, "
+            raise CreationError("floats can only be 32 or 64 bits long, "
                              "not %d bits" % length)
         self._setbytes(b, length, 0)
 
@@ -1432,7 +1447,7 @@ re
         try:
             return f
         except NameError:
-            raise ValueError("floats can only be 32 or 64 bits long, not %d bits" % length)
+            raise InterpretError("floats can only be 32 or 64 bits long, not %d bits" % length)
 
     def _getfloat(self):
         """Interpret the whole bitstring as a float."""
@@ -1443,14 +1458,14 @@ re
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with a "
+            raise CreationError("A non-zero length must be specified with a "
                              "float initialiser.")
         if length == 32:
             b = struct.pack('<f', f)
         elif length == 64:
             b = struct.pack('<d', f)
         else:
-            raise ValueError("floats can only be 32 or 64 bits long, "
+            raise CreationError("floats can only be 32 or 64 bits long, "
                              "not %d bits" % length)
         self._setbytes(b, length, 0)
 
@@ -1470,8 +1485,8 @@ re
         try:
             return f
         except NameError:
-            raise ValueError("floats can only be 32 or 64 bits long, "
-                             "not %d bits" % length)
+            raise InterpretError("floats can only be 32 or 64 bits long, "
+                                      "not %d bits" % length)
 
     def _getfloatle(self):
         """Interpret the whole bitstring as a little-endian float."""
@@ -1480,11 +1495,11 @@ re
     def _setue(self, i):
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
 
-        Raises ValueError if i < 0.
+        Raises CreationError if i < 0.
 
         """
         if i < 0:
-            raise ValueError("Cannot use negative initialiser for unsigned "
+            raise CreationError("Cannot use negative initialiser for unsigned "
                              "exponential-Golomb.")
         if i == 0:
             self._setbin('1')
@@ -1504,7 +1519,7 @@ re
 
         Advances position to after the read code.
 
-        Raises Error if the end of the bitstring is encountered while
+        Raises ReadError if the end of the bitstring is encountered while
         reading the code.
 
         """
@@ -1512,13 +1527,13 @@ re
         foundone = self.find(True, self._pos)
         if not foundone:
             self._pos = self.len
-            raise Error("Read off end of bitstring trying to read code.")
+            raise ReadError("Read off end of bitstring trying to read code.")
         leadingzeros = self._pos - oldpos
         codenum = (1 << leadingzeros) - 1
         if leadingzeros > 0:
             restofcode = self.read(leadingzeros + 1)
             if restofcode.len != leadingzeros + 1:
-                raise Error("Read off end of bitstring trying to read code.")
+                raise ReadError("Read off end of bitstring trying to read code.")
             codenum += restofcode[1:].uint
         else:
             assert codenum == 0
@@ -1528,7 +1543,7 @@ re
     def _getue(self):
         """Return data as unsigned exponential-Golomb code.
 
-        Raises Error if bitstring is not a single exponential-Golomb code.
+        Raises InterpretError if bitstring is not a single exponential-Golomb code.
 
         """
         oldpos = self._pos
@@ -1539,8 +1554,8 @@ re
                 raise Error
         except Error:
             self._pos = oldpos
-            raise Error("bitstring is not a single "
-                                 "exponential-Golomb code.")
+            raise InterpretError("bitstring is not a single "
+                                      "exponential-Golomb code.")
         self._pos = oldpos
         return value
 
@@ -1555,7 +1570,7 @@ re
     def _getse(self):
         """Return data as signed exponential-Golomb code.
 
-        Raises Error if bitstring is not a single exponential-Golomb code.
+        Raises InterpretError if bitstring is not a single exponential-Golomb code.
 
         """
         oldpos = self._pos
@@ -1563,11 +1578,11 @@ re
         try:
             value = self._readse()
             if value is None or self._pos != self.len:
-                raise Error
-        except Error:
+                raise ReadError
+        except ReadError:
             self._pos = oldpos
-            raise Error("Bitstring is not a single "
-                                 "exponential-Golomb code.")
+            raise InterpretError("Bitstring is not a single "
+                                      "exponential-Golomb code.")
         self._pos = oldpos
         return value
 
@@ -1576,7 +1591,7 @@ re
 
         Advances position to after the read code.
 
-        Raises Error if the end of the bitstring is encountered while
+        Raises ReadError if the end of the bitstring is encountered while
         reading the code.
 
         """
@@ -1595,11 +1610,11 @@ re
         elif value is False or value == 'False':
             self._setbytes(b'\x00', 1)
         else:
-            raise ValueError('Cannot initialise boolean with %s' % value)
+            raise CreationError('Cannot initialise boolean with %s' % value)
 
     def _getbool(self):
         if self.length != 1:
-            raise ValueError("For a bool interpretation a bitstring must be 1 bit long, not %s." % self.length)
+            raise InterpretError("For a bool interpretation a bitstring must be 1 bit long, not %s." % self.length)
         return self[0]
 
     def _readbool(self):
@@ -1621,7 +1636,7 @@ re
             bytelist = [int(padded_binstring[x:x + 8], 2)
                         for x in xrange(0, len(padded_binstring), 8)]
         except ValueError:
-            raise ValueError("Invalid character in bin initialiser %s." % binstring)
+            raise CreationError("Invalid character in bin initialiser %s." % binstring)
         self._datastore = MemArray(bytearray(bytelist), length)
 
     def _readbin(self, length, start):
@@ -1650,13 +1665,13 @@ re
                     raise ValueError
                 binlist.append(OCT_TO_BITS[int(i)])
             except ValueError:
-                raise ValueError("Invalid symbol '%s' in oct initialiser." % i)
+                raise CreationError("Invalid symbol '%s' in oct initialiser." % i)
         self._setbin(''.join(binlist))
 
     def _readoct(self, length, start):
         """Read bits and interpret as an octal string."""
         if length % 3 != 0:
-            raise ValueError("Cannot convert to octal unambiguously - "
+            raise InterpretError("Cannot convert to octal unambiguously - "
                              "not multiple of 3 bits.")
         if length == 0:
             return ''
@@ -1685,13 +1700,13 @@ re
         try:
             data = binascii.unhexlify(hexstring)
         except TypeError:
-            raise ValueError("Invalid symbol in hex initialiser.")
+            raise CreationError("Invalid symbol in hex initialiser.")
         self._datastore = MemArray(data, length*4, 0)
 
     def _readhex(self, length, start):
         """Read bits and interpret as a hex string."""
         if length % 4 != 0:
-            raise ValueError("Cannot convert to hex unambiguously - "
+            raise InterpretError("Cannot convert to hex unambiguously - "
                              "not multiple of 4 bits.")
         if length == 0:
             return ''
@@ -1707,7 +1722,7 @@ re
     def _gethex(self):
         """Return the hexadecimal representation as a string prefixed with '0x'.
 
-        Raises a ValueError if the bitstring's length is not a multiple of 4.
+        Raises an InterpretError if the bitstring's length is not a multiple of 4.
 
         """
         return self._readhex(self.len, 0)
@@ -1719,7 +1734,7 @@ re
     def _getbytepos(self):
         """Return the current position in the stream in bytes. Must be byte aligned."""
         if self._pos % 8 != 0:
-            raise Error("Not byte aligned in _getbytepos().")
+            raise ByteAlignError("Not byte aligned in _getbytepos().")
         return self._pos // 8
 
     def _setbitpos(self, pos):
@@ -1762,7 +1777,10 @@ re
                 return bs
             if isinstance(bs, basestring):
                 b = Bits()
-                _, tokens = tokenparser(bs)
+                try:
+                    _, tokens = tokenparser(bs)
+                except ValueError as e:
+                    raise CreationError(e.args)
                 for token in tokens:
                     b._append(BitString._init_with_token(*token))
                 b._datastore.setoffset(offset)
@@ -1794,7 +1812,7 @@ re
     def _readtoken(self, name, length):
         """Reads a token from the bitstring and returns the result."""
         if length is not None and int(length) > self.length - self._pos:
-            raise IndexError("Reading off the end of the data.")
+            raise ReadError("Reading off the end of the data.")
         try:
             val = name_to_read[name](self, length, self._pos)
             self._pos += length
@@ -2111,13 +2129,18 @@ re
         """
         if isinstance(format, (int, long)):
             if format == 1:
-                bs = self._readbits(None, self._pos)
-                self._pos += 1
-                return bs
+                try:
+                    bs = self._readbits(None, self._pos)
+                    self._pos += 1
+                    return bs
+                except IndexError:
+                    raise ReadError("Cannot read off the end of the bitstring.")
             if format < 0:
                 raise ValueError("Cannot read negative amount.")
             # TODO: Shouldn't this min go?
             bits = min(format, self.len - self._pos)
+            if bits != format:
+                raise ReadError("Cannot read %d bits, only %d available." % (format, bits))
             bs = self._readbits(bits, self._pos)
             self._pos += bits
             return bs
@@ -2251,7 +2274,7 @@ re
         self._pos = pos_before
         return value
 
-    def peeklist(self, *format, **kwargs):
+    def peeklist(self, format, **kwargs):
         """Interpret next bits according to format string(s) and return list.
 
         format -- One or more strings with comma separated tokens describing
@@ -2268,7 +2291,7 @@ re
 
         """
         pos = self._pos
-        return_values = self.readlist(*format, **kwargs)
+        return_values = self.readlist(format, **kwargs)
         self._pos = pos
         return return_values
 
@@ -3233,12 +3256,12 @@ class BitString(Bits, collections.MutableSequence):
         end -- One past the position of the last bit to reverse.
                Defaults to self.len.
 
-        Raises Error if end - start is not a multiple of 8.
+        Raises ByteAlignError if end - start is not a multiple of 8.
 
         """
         start, end = self._validate_slice(start, end)
         if (end - start) % 8 != 0:
-            raise Error("Can only use reversebytes on whole-byte BitStrings.")
+            raise ByteAlignError("Can only use reversebytes on whole-byte BitStrings.")
         self._ensureinmemory()
         self._reversebytes(start, end)
 
@@ -3478,7 +3501,10 @@ def pack(format, *values, **kwargs):
     >>> u = pack('uint:8=a, uint:8=b, uint:55=a', a=6, b=44)
 
     """
-    _, tokens = tokenparser(format, tuple(sorted(kwargs.keys())))
+    try:
+        _, tokens = tokenparser(format, tuple(sorted(kwargs.keys())))
+    except ValueError as e:
+        raise CreationError(e.args)
     value_iter = iter(values)
     s = BitString()
     try:
@@ -3500,14 +3526,14 @@ def pack(format, *values, **kwargs):
                 value = next(value_iter)
             s._append(BitString._init_with_token(name, length, value))
     except StopIteration:
-        raise ValueError("Not enough parameters present to pack according to the "
+        raise CreationError("Not enough parameters present to pack according to the "
                          "format. %d values are needed." % len(tokens))
     try:
         next(value_iter)
     except StopIteration:
         # Good, we've used up all the *values.
         return s
-    raise ValueError("Too many parameters present to pack according to the format.")
+    raise CreationError("Too many parameters present to pack according to the format.")
 
 # Dictionary that maps token names to the function that reads them.
 name_to_read = {'uint':    Bits._readuint,
