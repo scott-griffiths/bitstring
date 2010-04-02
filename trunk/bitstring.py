@@ -951,7 +951,7 @@ class Bits(collections.Sequence):
         """
         if not isinstance(n, (int, long)):
             raise TypeError("Can only multiply a bitstring by an int, "
-                            "but {0} was provided.", type(n))
+                            "but {0} was provided.".format(type(n)))
         if n < 0:
             raise ValueError("Cannot multiply by a negative integer.")
         if n == 0:
