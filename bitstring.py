@@ -114,7 +114,7 @@ MULTIPLICATIVE_RE = re.compile(r'(?P<factor>.*)\*(?P<token>.+)')
 LITERAL_RE = re.compile(r'(?P<name>0(x|o|b))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-STRUCT_PACK_RE = re.compile(r'(?P<endian><|>|@)?(?P<format>(?:\d*[bBhHlLqQfd])+)$')
+STRUCT_PACK_RE = re.compile(r'(?P<endian><|>|@)?(?P<fmt>(?:\d*[bBhHlLqQfd])+)$')
 
 # A number followed by a single character struct.pack code
 STRUCT_SPLIT_RE = re.compile(r'\d*[bBhHlLqQfd]')
@@ -147,9 +147,9 @@ def structparser(token):
         if endian is None:
             return [token]
         # Split the format string into a list of 'q', '4h' etc.
-        formatlist = re.findall(STRUCT_SPLIT_RE, m.group('format'))
+        formatlist = re.findall(STRUCT_SPLIT_RE, m.group('fmt'))
         # Now deal with mulitplicative factors, 4h -> hhhh etc.
-        format = ''.join([f[-1]*int(f[:-1]) if len(f) != 1 else
+        fmt = ''.join([f[-1]*int(f[:-1]) if len(f) != 1 else
                           f for f in formatlist])
         if endian == '@':
             # Native endianness
@@ -159,13 +159,13 @@ def structparser(token):
                 assert byteorder == 'big'
                 endian = '>'
         if endian == '<':
-            tokens = [REPLACEMENTS_LE[c] for c in format]
+            tokens = [REPLACEMENTS_LE[c] for c in fmt]
         else:
             assert endian == '>'
-            tokens = [REPLACEMENTS_BE[c] for c in format]
+            tokens = [REPLACEMENTS_BE[c] for c in fmt]
     return tokens
 
-def tokenparser(format, keys=None, token_cache={}):
+def tokenparser(fmt, keys=None, token_cache={}):
     """Divide the format string into tokens and parse them.
 
     Return stretchy token and list of [initialiser, length, value]
@@ -179,15 +179,15 @@ def tokenparser(format, keys=None, token_cache={}):
 
     """
     try:
-        return token_cache[(format, keys)]
+        return token_cache[(fmt, keys)]
     except KeyError:
-        token_key = (format, keys)
+        token_key = (fmt, keys)
     # Very inefficent expanding of brackets.
-    format = expand_brackets(format)
+    fmt = expand_brackets(fmt)
     # Split tokens by ',' and remove whitespace
     # The meta_tokens can either be ordinary single tokens or multiple
     # struct-format token strings.
-    meta_tokens = (''.join(f.split()) for f in format.split(','))
+    meta_tokens = (''.join(f.split()) for f in fmt.split(','))
     return_values = []
     stretchy_token = False
     for meta_token in meta_tokens:
@@ -2075,11 +2075,11 @@ class Bits(collections.Sequence):
             raise ValueError("end must not be less than start.")
         return start, end
 
-    def unpack(self, format, **kwargs):
-        """Interpret the whole bitstring using format and return list.
+    def unpack(self, fmt, **kwargs):
+        """Interpret the whole bitstring using fmt and return list.
 
-        format - One or more strings with comma separated tokens describing
-                 how to interpret the bits in the bitstring.
+        fmt - One or more strings with comma separated tokens describing
+              how to interpret the bits in the bitstring.
         kwargs -- A dictionary or keyword-value pairs - the keywords used in the
                   format string will be replaced with their given value.
 
@@ -2091,14 +2091,14 @@ class Bits(collections.Sequence):
         """
         bitposbefore = self._pos
         self._pos = 0
-        return_values = self.readlist(format, **kwargs)
+        return_values = self.readlist(fmt, **kwargs)
         self._pos = bitposbefore
         return return_values
 
-    def read(self, format):
+    def read(self, fmt):
         """Interpret next bits according to the format string and return result.
 
-        format -- Token string describing how to interpret the next bits.
+        fmt -- Token string describing how to interpret the next bits.
 
         Token examples: 'int:12'    : 12 bits as a signed integer
                         'uint:8'    : 8 bits as an unsigned integer
@@ -2127,25 +2127,25 @@ class Bits(collections.Sequence):
         Raises ValueError if the format is not understood.
 
         """
-        if isinstance(format, (int, long)):
-            if format == 1:
+        if isinstance(fmt, (int, long)):
+            if fmt == 1:
                 try:
                     bs = self._readbits(None, self._pos)
                     self._pos += 1
                     return bs
                 except IndexError:
                     raise ReadError("Cannot read off the end of the bitstring.")
-            if format < 0:
+            if fmt < 0:
                 raise ValueError("Cannot read negative amount.")
             # TODO: Shouldn't this min go?
-            bits = min(format, self.len - self._pos)
-            if bits != format:
-                raise ReadError("Cannot read %d bits, only %d available." % (format, bits))
+            bits = min(fmt, self.len - self._pos)
+            if bits != fmt:
+                raise ReadError("Cannot read %d bits, only %d available." % (fmt, bits))
             bs = self._readbits(bits, self._pos)
             self._pos += bits
             return bs
         p = self._pos
-        _, token = tokenparser(format)
+        _, token = tokenparser(fmt)
         if len(token) != 1:
             self._pos = p
             raise ValueError("Format string should be a single token, not %d "
@@ -2155,11 +2155,11 @@ class Bits(collections.Sequence):
             length = self.len - self.pos
         return self._readtoken(name, length)
 
-    def readlist(self, format, **kwargs):
+    def readlist(self, fmt, **kwargs):
         """Interpret next bits according to format string(s) and return list.
 
-        format -- One or more strings with comma separated tokens describing
-                  how to interpret the next bits in the bitstring.
+        fmt -- One or more strings with comma separated tokens describing
+               how to interpret the next bits in the bitstring.
         kwargs -- A dictionary or keyword-value pairs - the keywords used in the
                   format string will be replaced with their given value.
 
@@ -2175,9 +2175,9 @@ class Bits(collections.Sequence):
         """
         tokens = []
         stretchy_token = None
-        if isinstance(format, basestring):
-            format = [format]
-        for f_item in format:
+        if isinstance(fmt, basestring):
+            fmt = [fmt]
+        for f_item in fmt:
             stretchy, tkns = tokenparser(f_item, tuple(sorted(kwargs.keys())))
             if stretchy:
                 if stretchy_token:
@@ -2258,10 +2258,10 @@ class Bits(collections.Sequence):
         """
         return self.readbitlist([b*8 for b in bytes])
 
-    def peek(self, format):
+    def peek(self, fmt):
         """Interpret next bits according to format string and return result.
 
-        format -- Token string describing how to interpret the next bits.
+        fmt -- Token string describing how to interpret the next bits.
 
         The position in the bitstring is not changed. If not enough bits are
         available then all bits to the end of the bitstring will be used.
@@ -2270,15 +2270,15 @@ class Bits(collections.Sequence):
 
         """
         pos_before = self._pos
-        value = self.read(format)
+        value = self.read(fmt)
         self._pos = pos_before
         return value
 
-    def peeklist(self, format, **kwargs):
+    def peeklist(self, fmt, **kwargs):
         """Interpret next bits according to format string(s) and return list.
 
-        format -- One or more strings with comma separated tokens describing
-                  how to interpret the next bits in the bitstring.
+        fmt -- One or more strings with comma separated tokens describing
+               how to interpret the next bits in the bitstring.
         kwargs -- A dictionary or keyword-value pairs - the keywords used in the
                   format string will be replaced with their given value.
 
@@ -2291,7 +2291,7 @@ class Bits(collections.Sequence):
 
         """
         pos = self._pos
-        return_values = self.readlist(format, **kwargs)
+        return_values = self.readlist(fmt, **kwargs)
         self._pos = pos
         return return_values
 
@@ -3344,11 +3344,11 @@ class BitString(Bits, collections.MutableSequence):
         del self[start:start + bits]
         self.insert(lhs, end - bits)
 
-    def byteswap(self, format, start=None, end=None, repeat=True):
-        """Change the endianness in-place. Return number of repeats of format done.
+    def byteswap(self, fmt, start=None, end=None, repeat=True):
+        """Change the endianness in-place. Return number of repeats of fmt done.
 
-        format -- A compact structure string, an integer number of bytes or
-                  an iterable of integers.
+        fmt -- A compact structure string, an integer number of bytes or
+               an iterable of integers.
         start -- Start bit position, defaults to 0.
         end -- End bit position, defaults to self.len.
         repeat -- If True (the default) the byte swapping pattern is repeated
@@ -3357,16 +3357,16 @@ class BitString(Bits, collections.MutableSequence):
         """
         start, end = self._validate_slice(start, end)
         self._ensureinmemory()
-        if isinstance(format, (int, long)):
-            if format < 1:
-                raise ValueError("Improper byte length %d." % format)
-            bytesizes = [format]
-        elif isinstance(format, basestring):
-            m = STRUCT_PACK_RE.match(format)
+        if isinstance(fmt, (int, long)):
+            if fmt < 1:
+                raise ValueError("Improper byte length %d." % fmt)
+            bytesizes = [fmt]
+        elif isinstance(fmt, basestring):
+            m = STRUCT_PACK_RE.match(fmt)
             if not m:
-                raise ValueError("Cannot parse format string %s." % format)
+                raise ValueError("Cannot parse format string %s." % fmt)
             # Split the format string into a list of 'q', '4h' etc.
-            formatlist = re.findall(STRUCT_SPLIT_RE, m.group('format'))
+            formatlist = re.findall(STRUCT_SPLIT_RE, m.group('fmt'))
             # Now deal with multiplicative factors, 4h -> hhhh etc.
             bytesizes = []
             for f in formatlist:
@@ -3374,13 +3374,13 @@ class BitString(Bits, collections.MutableSequence):
                     bytesizes.append(PACK_CODE_SIZE[f])
                 else:
                     bytesizes.extend([PACK_CODE_SIZE[f[-1]]]*int(f[:-1]))
-        elif isinstance(format, collections.Iterable):
-            bytesizes = format
+        elif isinstance(fmt, collections.Iterable):
+            bytesizes = fmt
             for bytesize in bytesizes:
                 if not isinstance(bytesize, (int, long)) or bytesize < 1:
                     raise ValueError("Improper byte length {0}.".format(bytesize))
         else:
-            raise ValueError("format must be an integer, string or iterable.")
+            raise ValueError("Format must be an integer, string or iterable.")
 
         repeats = 0
         totalbitsize = 8*sum(bytesizes)
@@ -3467,11 +3467,11 @@ class BitString(Bits, collections.MutableSequence):
                       doc="""The BitString as a ordinary string. Read and write.
                       """)
 
-def pack(format, *values, **kwargs):
+def pack(fmt, *values, **kwargs):
     """Pack the values according to the format string and return a new BitString.
 
-    format -- A string with comma separated tokens describing how to create the
-              next bits in the BitString.
+    fmt -- A string with comma separated tokens describing how to create the
+           next bits in the BitString.
     values -- Zero or more values to pack according to the format.
     kwargs -- A dictionary or keyword-value pairs - the keywords used in the
               format string will be replaced with their given value.
@@ -3502,7 +3502,7 @@ def pack(format, *values, **kwargs):
 
     """
     try:
-        _, tokens = tokenparser(format, tuple(sorted(kwargs.keys())))
+        _, tokens = tokenparser(fmt, tuple(sorted(kwargs.keys())))
     except ValueError as e:
         raise CreationError(e.args)
     value_iter = iter(values)
@@ -3527,7 +3527,7 @@ def pack(format, *values, **kwargs):
             s._append(BitString._init_with_token(name, length, value))
     except StopIteration:
         raise CreationError("Not enough parameters present to pack according to the "
-                         "format. %d values are needed." % len(tokens))
+                            "format. %d values are needed." % len(tokens))
     try:
         next(value_iter)
     except StopIteration:
