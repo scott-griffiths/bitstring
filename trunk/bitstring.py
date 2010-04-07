@@ -29,7 +29,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "2.0.0"
+__version__ = "2.0.0 beta 1"
 
 __author__ = "Scott Griffiths"
 
@@ -447,6 +447,9 @@ class BitArray(BaseArray):
         assert self._rawarray.length() == self.offset + self.bitlength
 
     def appendarray(self, array):
+        # TEST:
+        #self._rawarray.extend(array._rawarray)
+        #return
         assert self._rawarray.length() == self.offset + self.bitlength
         del self._rawarray[self.bitlength + self.offset:]
         self._rawarray += array._rawarray[array.offset:array.offset + array.bitlength]
@@ -500,52 +503,52 @@ class ByteArray(BaseArray):
 
     def setoffset(self, newoffset):
         """Realign BitString with new offset to first bit."""
-        if newoffset == self.offset:
-            return
-        assert 0 <= newoffset < 8
-        data = self._rawarray
-        if newoffset < self.offset:
-            # We need to shift everything left
-            shiftleft = self.offset - newoffset
-            # First deal with everything except for the final byte
-            for x in xrange(self.bytelength - 1):
-                data[x] = ((data[x] << shiftleft) & 255) + \
-                                     (data[x + 1] >> (8 - shiftleft))
-            # if we've shifted all of the data in the last byte then we need
-            # to truncate by 1
-            bits_in_last_byte = (self.offset + self.bitlength) % 8
-            if bits_in_last_byte == 0:
-                bits_in_last_byte = 8
-            if bits_in_last_byte <= shiftleft:
-                # Remove the last byte
-                data.pop()
-            # otherwise just shift the last byte
-            else:
-                data[-1] = (data[-1] << shiftleft) & 255
-        else: # offset > self._offset
-            shiftright = newoffset - self.offset
-            # Give some overflow room for the last byte
-            b = self.offset + self.bitlength + 7
-            if (b + shiftright) // 8 > b // 8:
-                self._rawarray.append(0)
-            for x in xrange(self.bytelength - 1, 0, -1):
-                data[x] = ((data[x-1] << (8 - shiftright)) & 255) + \
-                                     (data[x] >> shiftright)
-            data[0] >>= shiftright
-        self.offset = newoffset
+        if newoffset != self.offset:
+            assert 0 <= newoffset < 8
+            data = self._rawarray
+            if newoffset < self.offset:
+                # We need to shift everything left
+                shiftleft = self.offset - newoffset
+                # First deal with everything except for the final byte
+                for x in xrange(self.bytelength - 1):
+                    data[x] = ((data[x] << shiftleft) & 255) + \
+                                         (data[x + 1] >> (8 - shiftleft))
+                # if we've shifted all of the data in the last byte then we need
+                # to truncate by 1
+                bits_in_last_byte = (self.offset + self.bitlength) % 8
+                if bits_in_last_byte == 0:
+                    bits_in_last_byte = 8
+                if bits_in_last_byte <= shiftleft:
+                    # Remove the last byte
+                    data.pop()
+                # otherwise just shift the last byte
+                else:
+                    data[-1] = (data[-1] << shiftleft) & 255
+            else: # offset > self._offset
+                shiftright = newoffset - self.offset
+                # Give some overflow room for the last byte
+                b = self.offset + self.bitlength + 7
+                if (b + shiftright) // 8 > b // 8:
+                    self._rawarray.append(0)
+                for x in xrange(self.bytelength - 1, 0, -1):
+                    data[x] = ((data[x-1] << (8 - shiftright)) & 255) + \
+                                         (data[x] >> shiftright)
+                data[0] >>= shiftright
+            self.offset = newoffset
 
     def appendarray(self, array):
         """Join another array on to the end of this one."""
         if array is self:
             array = copy.copy(self)
-        bits_in_final_byte = (self.offset + self.bitlength) % 8
-        array.setoffset(bits_in_final_byte)
+        # Set new array offset to the number of bits in the final byte of current array.
+        array.setoffset((self.offset + self.bitlength) % 8)
         if array.offset != 0:
             # first do the byte with the join.
-            self._rawarray[-1] = (self._rawarray[-1] & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
-            self._rawarray.extend(array.getbyteslice(1, array.bytelength))
+            joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
+            self._rawarray.append(joinval)
+            self._rawarray.extend(array._rawarray[1:])
         else:
-            self._rawarray.extend(array.getbyteslice(0, array.bytelength))
+            self._rawarray.extend(array._rawarray)
         self.bitlength += array.bitlength
 
     def prependarray(self, array):
@@ -1193,8 +1196,8 @@ class Bits(collections.Sequence):
         if isinstance(s, (int, long)):
             # Initialise with s zero bits.
             if s < 0:
-                msg = "Can't create {0} of negative length {1}."
-                raise CreationError(msg, self.__class__.__name__, s)
+                msg = "Can't create bitstring of negative length {0}."
+                raise CreationError(msg, s)
             data = bytearray((s + 7) // 8)
             self._setbytes(bytes(data), s)
             return
@@ -1227,6 +1230,9 @@ class Bits(collections.Sequence):
 
     def _readbytes(self, length, start):
         """Read bytes and return them."""
+        # TODO: Optimise.
+        assert length % 8 == 0
+        assert start + length <= self.len
         return self[start:start + length].tobytes()
 
     def _getbytes(self):
@@ -1428,9 +1434,6 @@ class Bits(collections.Sequence):
         return -tmp
 
     def _getintle(self):
-        if self.len % 8 != 0:
-            raise InterpretError("Little-endian integers must be whole-byte. "
-                                 "Length = {0} bits.", self.len)
         return self._readintle(self.len, 0)
 
     def _setfloat(self, f, length=None):
@@ -2137,10 +2140,11 @@ class Bits(collections.Sequence):
                         'bytes:10'  : 10 bytes as a bytes object
                         'bool'      : 1 bit as a bool
 
-        The position in the bitstring is advanced to after the read items.
-        If not enough bits are available then all bits to the end of the
-        bitstring will be used.
+        fmt may also be an integer, which will be treated like the 'bits' token.
 
+        The position in the bitstring is advanced to after the read items.
+
+        Raises ReadError if not enough bits are available.
         Raises ValueError if the format is not understood.
 
         """
@@ -2175,21 +2179,28 @@ class Bits(collections.Sequence):
     def readlist(self, fmt, **kwargs):
         """Interpret next bits according to format string(s) and return list.
 
-        fmt -- One or more strings with comma separated tokens describing
-               how to interpret the next bits in the bitstring.
+        fmt -- A single string or list of strings with comma separated tokens
+               describing how to interpret the next bits in the bitstring. Items
+               can also be integers, for reading new bitstring of the given length.
         kwargs -- A dictionary or keyword-value pairs - the keywords used in the
                   format string will be replaced with their given value.
 
         The position in the bitstring is advanced to after the read items.
-        If not enough bits are available then all bits to the end of the
-        bitstring will be used.
 
+        Raises ReadError is not enough bits are available.
         Raises ValueError if the format is not understood.
 
+        See the docstring for 'read' for token examples.
+
         >>> h, b1, b2 = s.readlist('hex:20, bin:5, bin:3')
-        >>> i, bs1, bs2 = s.readlist(['uint:12', 'bits:10', 'bits:10'])
+        >>> i, bs1, bs2 = s.readlist(['uint:12', 10, 10])
 
         """
+        # Not very optimal this, but replace integers with 'bits' tokens
+        for i, f in enumerate(fmt):
+            if isinstance(f, (int, long)):
+                fmt[i] = "bits:{0}".format(f)
+
         tokens = []
         stretchy_token = None
         if isinstance(fmt, basestring):
@@ -2249,31 +2260,6 @@ class Bits(collections.Sequence):
             return_values.append(self._readtoken(name, length))
         return return_values
 
-    def readbitlist(self, bits):
-        """Return next bits as new list of bitstring(s) and advance position.
-
-        bits -- The number of bits to read. A list of BitStrings will be
-                returned even if it only has one item.
-
-        If not enough bits are available then all remaining will be returned.
-
-        Raises ValueError if bits < 0.
-
-        """
-        return [self.read(b) for b in bits]
-
-    def readbytelist(self, bytes):
-        """Return next bytes as list of new bitstring(s) and advance position.
-
-        bytes -- The number of bytes to read. A list of BitStrings will be
-                 returned even if it contains only one item.
-
-        Does not byte align.
-        If not enough bits are available then all remaining will be returned.
-
-        """
-        return self.readbitlist([b*8 for b in bytes])
-
     def peek(self, fmt):
         """Interpret next bits according to format string and return result.
 
@@ -2281,6 +2267,9 @@ class Bits(collections.Sequence):
 
         The position in the bitstring is not changed. If not enough bits are
         available then all bits to the end of the bitstring will be used.
+
+        Raises ReadError if not enough bits are available.
+        Raises ValueError if the format is not understood.
 
         See the docstring for 'read' for token examples.
 
@@ -2301,6 +2290,7 @@ class Bits(collections.Sequence):
         The position in the bitstring is not changed. If not enough bits are
         available then all bits to the end of the bitstring will be used.
 
+        Raises ReadError if not enough bits are available.
         Raises ValueError if the format is not understood.
 
         See the docstring for 'read' for token examples.
@@ -2310,33 +2300,6 @@ class Bits(collections.Sequence):
         return_values = self.readlist(fmt, **kwargs)
         self._pos = pos
         return return_values
-
-    def peekbitlist(self, bits):
-        """Return next bits as bitstring list without advancing position.
-
-        bits -- The number of bits to read. A list of BitStrings will be
-                returned even if it contains only one item.
-
-        If not enough bits are available then all remaining will be returned.
-
-        Raises ValueError if bits < 0.
-
-        """
-        pos = self._pos
-        s = self.readbitlist(bits)
-        self._pos = pos
-        return s
-
-    def peekbytelist(self, bytes):
-        """Return next bytes as bitstring list without advancing position.
-
-        bytes -- The number of bytes to read. A list of BitStrings will be
-                 returned even if it contains only one item.
-
-        If not enough bits are available then all remaining will be returned.
-
-        """
-        return self.peekbitlist([b*8 for b in bytes])
 
     def find(self, bs, start=None, end=None, bytealigned=False):
         """Seek to start of next occurence of bs. Return True if string is found.
@@ -3231,6 +3194,7 @@ class BitString(Bits, collections.MutableSequence):
         bs -- The BitString to append.
 
         """
+        # The offset is a hint to make bs easily appendable.
         bs = self._converttobitstring(bs, offset=(self.len + self._offset) % 8)
         self._append(bs)
 
