@@ -40,7 +40,7 @@ from bitstring import BitString, Bits, pack
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.0.0')
+        self.assertEqual(bitstring.__version__, '2.0.0 beta 1')
 
     def testAll(self):
         exported = ['Bits', 'BitString', 'pack', 'Error', 'ReadError',
@@ -2437,27 +2437,27 @@ class Adding(unittest.TestCase):
 
     def testReadMultipleBits(self):
         s = BitString('0x123456789abcdef')
-        a, b = s.readbitlist([4, 4])
+        a, b = s.readlist([4, 4])
         self.assertEqual(a, '0x1')
         self.assertEqual(b, '0x2')
-        c, d, e = s.readbytelist([1, 2, 1])
+        c, d, e = s.readlist([8, 16, 8])
         self.assertEqual(c, '0x34')
         self.assertEqual(d, '0x5678')
         self.assertEqual(e, '0x9a')
 
     def testPeekMultipleBits(self):
         s = BitString('0b1101, 0o721, 0x2234567')
-        a, b, c, d = s.peekbitlist([2, 1, 1, 9])
+        a, b, c, d = s.peeklist([2, 1, 1, 9])
         self.assertEqual(a, '0b11')
         self.assertEqual(b, False)
         self.assertEqual(c, True)
         self.assertEqual(d, '0o721')
         self.assertEqual(s.pos, 0)
-        a, b = s.peekbitlist([4, 9])
+        a, b = s.peeklist([4, 9])
         self.assertEqual(a, '0b1101')
         self.assertEqual(b, '0o721')
         s.pos = 13
-        a, b = s.peekbytelist([2, 1])
+        a, b = s.peeklist([16, 8])
         self.assertEqual(a, '0x2234')
         self.assertEqual(b, '0x56')
         self.assertEqual(s.pos, 13)
@@ -3880,6 +3880,8 @@ class ReadWithIntegers(unittest.TestCase):
     def testReadIntList(self):
         a = Bits('0xab, 0b110')
         b, c = a.readlist([8, 3])
+        self.assertEqual(b.hex, '0xab')
+        self.assertEqual(c.bin, '0b110')
 
 
 
