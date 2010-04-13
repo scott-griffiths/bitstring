@@ -629,7 +629,6 @@ class FileArray(BaseArray):
         else:
             return b''
 
-LE4 = struct.Struct('<L')
 
 class Bits(collections.Sequence):
     "An immutable sequence of bits."
@@ -868,7 +867,7 @@ class Bits(collections.Sequence):
     def __eq__(self, bs):
         """Return True if two bitstrings have the same binary representation.
 
-        >>> BitString('0b1110') == '0xe'
+        >>> Bits('0b1110') == '0xe'
         True
 
         """
@@ -896,7 +895,7 @@ class Bits(collections.Sequence):
     def __ne__(self, bs):
         """Return False if two bitstrings have the same binary representation.
 
-        >>> BitString('0b111') == '0x7'
+        >>> Bits('0b111') == '0x7'
         False
 
         """
@@ -905,7 +904,7 @@ class Bits(collections.Sequence):
     def __invert__(self):
         """Return bitstring with every bit inverted.
 
-        Raises Error if the BitString is empty.
+        Raises Error if the bitstring is empty.
 
         """
         if not self:
@@ -1029,7 +1028,7 @@ class Bits(collections.Sequence):
     def __xor__(self, bs):
         """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
 
-        bs -- The BitString to '^' with.
+        bs -- The bitsntring to '^' with.
 
         Raises ValueError if the two bitstrings have differing lengths.
 
@@ -1045,7 +1044,7 @@ class Bits(collections.Sequence):
     def __rxor__(self, bs):
         """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
 
-        bs -- The BitString to '^' with.
+        bs -- The bitstring to '^' with.
 
         Raises ValueError if the two bitstrings have differing lengths.
 
@@ -1067,15 +1066,12 @@ class Bits(collections.Sequence):
         """Return an integer hash of the current Bits object."""
         # We can't in general hash the whole Bits (it could take hours!)
         # So instead take some bits from the start and end.
-        if self.len <= 80:
+        if self.len <= 160:
             # Use the whole Bits.
             shorter = self
         else:
-            # Take first 10 bytes
-            shorter = self._slice(0, 80)
-            # Append up to 10 bytes from the end.
-            endbits = min(self.len - 80, 80)
-            shorter += self[-endbits:]
+            # Take 10 bytes from start and end
+            shorter = self[:80] + self[-80:]
         h = 0
         for byte in shorter.tobytes():
             if PYTHON_VERSION == 2:
@@ -1160,7 +1156,7 @@ class Bits(collections.Sequence):
 
     def _clear(self):
         """Reset the bitstring to an empty state."""
-        self.bytes = b''
+        self._datastore = MemArray(b'')
         self._pos = 0
 
     def _setauto(self, s, length, offset):
@@ -1205,7 +1201,7 @@ class Bits(collections.Sequence):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin(''.join(str(int(bool(x))) for x in s))
             return
-        raise TypeError("Cannot initialise {0} from {1}.".format(self.__class__.__name__, type(s)))
+        raise TypeError("Cannot initialise bitstring from {0}.".format(type(s)))
 
     def _setfile(self, filename, length, offset):
         "Use file as source of bits."
@@ -1399,7 +1395,7 @@ class Bits(collections.Sequence):
             chunksize = 4 # for 'L' format
             while endbyte - chunksize + 1 >= startbyte:
                 val <<= 8 * chunksize
-                val += LE4.unpack(self._datastore.getbyteslice(endbyte + 1 - chunksize, endbyte + 1))[0]
+                val += struct.unpack('<L', self._datastore.getbyteslice(endbyte + 1 - chunksize, endbyte + 1))[0]
                 endbyte -= chunksize
             for b in xrange(endbyte, startbyte - 1, -1):
                 val <<= 8
@@ -3446,6 +3442,7 @@ class BitString(Bits, collections.MutableSequence):
                       doc="""The BitString as a ordinary string. Read and write.
                       """)
 
+# TODO: shouldn't this also be just values (which can be an iterable?)
 def pack(fmt, *values, **kwargs):
     """Pack the values according to the format string and return a new BitString.
 
