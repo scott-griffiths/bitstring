@@ -673,7 +673,8 @@ class Bits(collections.Sequence):
         c = Bits(int=10, length=6)
 
         """
-        self.mutable = True # TODO: Clearly this isn't mutable...
+        self._mutable = False
+        self._filebased = False
         self._initialise(auto, length, offset, **kwargs)
 
     def _initialise(self, auto, length, offset, **kwargs):
@@ -682,7 +683,6 @@ class Bits(collections.Sequence):
         if offset is not None and offset < 0:
             raise CreationError("offset must be >= 0.")
         self._pos = 0
-        self._filebased = False
         if auto is not None:
             self._initialise_from_auto(auto, length, offset)
             return
@@ -861,8 +861,8 @@ class Bits(collections.Sequence):
             s = self.__str__()
             lengthstring = ''
             if s.endswith('...'):
-                lengthstring = ", length={0}".format(length)
-            return "{0}('{1}'{2})".format(self.__class__.__name__, s, lengthstring)
+                lengthstring = " # length={0}".format(length)
+            return "{0}('{1}'){2}".format(self.__class__.__name__, s, lengthstring)
 
     def __eq__(self, bs):
         """Return True if two bitstrings have the same binary representation.
@@ -1167,13 +1167,18 @@ class Bits(collections.Sequence):
         if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
-            # TODO: We don't really want to force it to be read into memory here.
-            s._ensureinmemory()
-            self._setbytes(s._datastore.rawbytes, length, s._offset + offset)
+            if s._filebased:
+                self._setfile(s._datastore.source.name, length, s._offset + offset)
+            else:
+                self._setbytes(s._datastore.rawbytes, length, s._offset + offset)
             return
         if isinstance(s, file):
             self._datastore = FileArray(s, length, offset)
-            self._filebased = True
+            if self._mutable:
+                # For mutable BitStrings we immediately read into memory.
+                self._ensureinmemory()
+            else:
+                self._filebased = True
             return
         if length is not None:
             raise CreationError("The length keyword isn't applicable to this initialiser.")
@@ -1207,7 +1212,10 @@ class Bits(collections.Sequence):
         "Use file as source of bits."
         source = open(filename, 'rb')
         self._datastore = FileArray(source, length, offset)
-        self._filebased = True
+        if self._mutable:
+            self._ensureinmemory()
+        else:
+            self._filebased = True
 
     def _setbytes(self, data, length=None, offset=0):
         """Set the data from a string."""
@@ -1774,9 +1782,9 @@ class Bits(collections.Sequence):
 
     def _ensureinmemory(self):
         """Ensure the data is held in memory, not in a file."""
-        if self._filebased:
-            self._filebased = False
-            self._datastore = MemArray(self._datastore.getbyteslice(0, self._datastore.bytelength), self.len,
+        # TODO: uncomment the next line and fix any problems
+        #assert self._filebased == False
+        self._datastore = MemArray(self._datastore.getbyteslice(0, self._datastore.bytelength), self.len,
                                        self._offset)
 
     @classmethod
@@ -2559,7 +2567,6 @@ class Bits(collections.Sequence):
 
         """
         self._ensureinmemory()
-        assert self.mutable
         self._datastore.setoffset(0)
         d = self._datastore.rawbytes
 
@@ -2794,7 +2801,8 @@ class BitString(Bits, collections.MutableSequence):
     __hash__ = None
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
-        self.mutable = True
+        self._mutable = True
+        self._filebased = False
         self._initialise(auto, length, offset, **kwargs)
 
     def __copy__(self):

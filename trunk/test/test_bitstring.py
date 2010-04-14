@@ -1835,8 +1835,8 @@ class Adding(unittest.TestCase):
         self.assertRaises(TypeError, a.__imul__, b)
 
     def testFileAndMemEquivalence(self):
-        a = BitString(filename='smalltestfile')
-        b = BitString(filename='smalltestfile')[:]
+        a = Bits(filename='smalltestfile')
+        b = Bits(filename='smalltestfile')[:]
         self.assertTrue(isinstance(a._datastore, bitstring.FileArray))
         self.assertTrue(isinstance(b._datastore, bitstring.MemArray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
@@ -2091,9 +2091,9 @@ class Adding(unittest.TestCase):
             a = BitString(bs)
             b = eval(a.__repr__())
             self.assertTrue(a == b)
-        for f in [BitString(filename='test.m1v'),
-                  BitString(filename='test.m1v', length=307),
-                  BitString(filename='test.m1v', length=23, offset=23102)]:
+        for f in [Bits(filename='test.m1v'),
+                  Bits(filename='test.m1v', length=307),
+                  Bits(filename='test.m1v', length=23, offset=23102)]:
             f2 = eval(f.__repr__())
             self.assertEqual(f._datastore.source.name, f2._datastore.source.name)
             self.assertTrue(f2 == f)
@@ -2106,7 +2106,7 @@ class Adding(unittest.TestCase):
         a *= max
         self.assertEqual(repr(a), "BitString('0x" + "f"*max + "')")
         a += '0xf'
-        self.assertEqual(repr(a), "BitString('0x" + "f"*max + "...', length=%d)" % (max*4 + 4))
+        self.assertEqual(repr(a), "BitString('0x" + "f"*max + "...') # length=%d" % (max*4 + 4))
 
     def testPrint(self):
         s = BitString(hex='0x00')
@@ -3484,10 +3484,9 @@ class Adding(unittest.TestCase):
         self.assertEqual(c, True)
         self.assertEqual(b & True, False)
 
-    def testTruncateStartBug(self):
-        a = BitString('0b000000111')[2:]
-        a._truncatestart(6)
-        self.assertEqual(a, '0b1')
+
+
+class Bugs(unittest.TestCase):
 
     def testBugInReplace(self):
         s = BitString('0x00112233')
@@ -3499,6 +3498,22 @@ class Adding(unittest.TestCase):
         s = BitString('0x0123412341234')
         s.replace('0x23', '0xf', start=9, bytealigned=True)
         self.assertEqual(s, '0x012341f41f4')
+
+    def testTruncateStartBug(self):
+        a = BitString('0b000000111')[2:]
+        a._truncatestart(6)
+        self.assertEqual(a, '0b1')
+
+    def testNullBits(self):
+        s = Bits(bin='')
+        t = Bits(oct='')
+        u = Bits(hex='')
+        v = Bits(bytes='')
+        self.assertFalse(s)
+        self.assertFalse(t)
+        self.assertFalse(u)
+        self.assertFalse(v)
+
 
     def testMultiplicativeFactorsCreation(self):
         s = BitString('1*0b1')
@@ -3883,6 +3898,29 @@ class ReadWithIntegers(unittest.TestCase):
         self.assertEqual(b.hex, '0xab')
         self.assertEqual(c.bin, '0b110')
 
+class FileReadingStrategy(unittest.TestCase):
+
+    def testBitStringIsAlwaysRead(self):
+        a = BitString(filename='smalltestfile')
+        self.assertTrue(isinstance(a._datastore, bitstring.MemArray))
+        self.assertFalse(a._filebased)
+        self.assertTrue(a._mutable)
+        f = open('smalltestfile', 'rb')
+        b = BitString(f)
+        self.assertTrue(isinstance(b._datastore, bitstring.MemArray))
+        self.assertFalse(b._filebased)
+        self.assertTrue(a._mutable)
+
+    def testBitsIsNeverRead(self):
+        a = Bits(filename='smalltestfile')
+        self.assertTrue(isinstance(a._datastore, bitstring.FileArray))
+        self.assertTrue(a._filebased)
+        self.assertFalse(a._mutable)
+        f = open('smalltestfile', 'rb')
+        b = Bits(f)
+        self.assertTrue(isinstance(b._datastore, bitstring.FileArray))
+        self.assertTrue(b._filebased)
+        self.assertFalse(a._mutable)
 
 
 def main():
