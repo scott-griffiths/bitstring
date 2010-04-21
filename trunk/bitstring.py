@@ -690,9 +690,9 @@ class Bits(collections.Sequence):
             # No initialisers, so initialise with nothing or zero bits
             if length is not None and length != 0:
                 data = bytearray((length + 7) // 8)
-                self._setbytes(data, length)
+                self._setbytes_safe(data, length)
                 return
-            self._setbytes(b'')
+            self._setbytes_unsafe(b'', 0, 0)
             return
         k, v = kwargs.popitem()
         try:
@@ -1170,7 +1170,7 @@ class Bits(collections.Sequence):
             if s._filebased:
                 self._setfile(s._datastore.source.name, length, s._offset + offset)
             else:
-                self._setbytes(s._datastore.rawbytes, length, s._offset + offset)
+                self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
             return
         if isinstance(s, file):
             self._datastore = FileArray(s, length, offset)
@@ -1186,13 +1186,13 @@ class Bits(collections.Sequence):
             raise CreationError("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, basestring):
             bs = self._converttobitstring(s)
-            self._setbytes(bs._datastore.rawbytes, bs.length, bs._offset)
+            self._setbytes_unsafe(bs._datastore.rawbytes, bs.length, bs._offset)
             return
         if isinstance(s, bool):
             if s:
-                self._setbytes(b'\x80', 1)
+                self._setbytes_unsafe(b'\x80', 1, 0)
             else:
-                self._setbytes(b'\x00', 1)
+                self._setbytes_unsafe(b'\x00', 1, 0)
             return
         if isinstance(s, (int, long)):
             # Initialise with s zero bits.
@@ -1200,11 +1200,11 @@ class Bits(collections.Sequence):
                 msg = "Can't create bitstring of negative length {0}."
                 raise CreationError(msg, s)
             data = bytearray((s + 7) // 8)
-            self._setbytes(bytes(data), s)
+            self._setbytes_unsafe(bytes(data), s, 0)
             return
         if isinstance(s, collections.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
-            self._setbin(''.join(str(int(bool(x))) for x in s))
+            self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
             return
         raise TypeError("Cannot initialise bitstring from {0}.".format(type(s)))
 
@@ -1217,7 +1217,7 @@ class Bits(collections.Sequence):
         else:
             self._filebased = True
 
-    def _setbytes(self, data, length=None, offset=0):
+    def _setbytes_safe(self, data, length=None, offset=0):
         """Set the data from a string."""
         if length is None:
             # Use to the end of the data
@@ -1231,6 +1231,10 @@ class Bits(collections.Sequence):
                 self._datastore = MemArray(b'')
             else:
                 self._datastore = MemArray(data, length, offset)
+    
+    def _setbytes_unsafe(self, data, length, offset):
+        """Unchecked version of _setbytes_safe."""
+        self._datastore = MemArray(data, length, offset)
 
     def _readbytes(self, length, start):
         """Read bytes and return them."""
@@ -1283,7 +1287,7 @@ class Bits(collections.Sequence):
         offset = 8 - (length % 8)
         if offset == 8:
             offset = 0
-        self._setbytes(data, length, offset)
+        self._setbytes_unsafe(data, length, offset)
 
     def _readuint(self, length, start):
         """Read bits and interpret as an unsigned int."""
@@ -1454,7 +1458,7 @@ class Bits(collections.Sequence):
         else:
             raise CreationError("floats can only be 32 or 64 bits long, "
                                 "not {0} bits", length)
-        self._setbytes(b, length, 0)
+        self._setbytes_unsafe(b, length, 0)
 
     def _readfloat(self, length, start):
         """Read bits and interpret as a float."""
@@ -1492,7 +1496,7 @@ class Bits(collections.Sequence):
         else:
             raise CreationError("floats can only be 32 or 64 bits long, "
                                 "not {0} bits", length)
-        self._setbytes(b, length, 0)
+        self._setbytes_unsafe(b, length, 0)
 
     def _readfloatle(self, length, start):
         """Read bits and interpret as a little-endian float."""
@@ -1527,7 +1531,7 @@ class Bits(collections.Sequence):
             raise CreationError("Cannot use negative initialiser for unsigned "
                                 "exponential-Golomb.")
         if i == 0:
-            self._setbin('1')
+            self._setbin_unsafe('1')
             return
         tmp = i + 1
         leadingzeros = -1
@@ -1537,7 +1541,7 @@ class Bits(collections.Sequence):
         remainingpart = i + 1 - (1 << leadingzeros)
         binstring = '0'*leadingzeros + '1' + BitString(uint=remainingpart,
                                                        length=leadingzeros).bin[2:]
-        self._setbin(binstring)
+        self._setbin_unsafe(binstring)
 
     def _readue(self):
         """Return interpretation of next bits as unsigned exponential-Golomb code.
@@ -1629,11 +1633,11 @@ class Bits(collections.Sequence):
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
         if value is True or value == 'True':
-            self._setbytes(b'\x80', 1)
+            self._setbytes_unsafe(b'\x80', 1, 0)
         elif value is False or value == 'False':
-            self._setbytes(b'\x00', 1)
+            self._setbytes_unsafe(b'\x00', 1, 0)
         else:
-            raise CreationError('Cannot initialise boolean with %s' % value)
+            raise CreationError('Cannot initialise boolean with {0}.', value)
 
     def _getbool(self):
         if self.length != 1:
@@ -1646,11 +1650,15 @@ class Bits(collections.Sequence):
         self._pos += 1
         return b
 
-    def _setbin(self, binstring):
+    def _setbin_safe(self, binstring):
         """Reset the bitstring to the value given in binstring."""
         binstring = tidy_input_string(binstring)
         # remove any 0b if present
         binstring = binstring.replace('0b', '')
+        self._setbin_unsafe(binstring)
+        
+    def _setbin_unsafe(self, binstring):
+        """Same as _setbin_safe, but input isn't sanity checked. binstring mustn't start with '0b'."""
         length = len(binstring)
         # pad with zeros up to byte boundary if needed
         boundary = ((length + 7) // 8) * 8
@@ -1661,7 +1669,7 @@ class Bits(collections.Sequence):
                         for x in xrange(0, len(padded_binstring), 8)]
         except ValueError:
             raise CreationError("Invalid character in bin initialiser {0}.", binstring)
-        self._datastore = MemArray(bytearray(bytelist), length)
+        self._setbytes_unsafe(bytearray(bytelist), length, 0)
 
     def _readbin(self, length, start):
         """Read bits and interpret as a binary string."""
@@ -1690,7 +1698,7 @@ class Bits(collections.Sequence):
                 binlist.append(OCT_TO_BITS[int(i)])
             except ValueError:
                 raise CreationError("Invalid symbol '{0}' in oct initialiser.", i)
-        self._setbin(''.join(binlist))
+        self._setbin_unsafe(''.join(binlist))
 
     def _readoct(self, length, start):
         """Read bits and interpret as an octal string."""
@@ -1712,7 +1720,6 @@ class Bits(collections.Sequence):
         """Return interpretation as an octal string."""
         return self._readoct(self.len, 0)
 
-    # TODO: These methods should have the error checking code moved out to public methods.
     def _sethex(self, hexstring):
         """Reset the bitstring to have the value given in hexstring."""
         hexstring = tidy_input_string(hexstring)
@@ -1725,7 +1732,7 @@ class Bits(collections.Sequence):
             data = binascii.unhexlify(hexstring)
         except TypeError:
             raise CreationError("Invalid symbol in hex initialiser.")
-        self._datastore = MemArray(data, length*4, 0)
+        self._setbytes_unsafe(data, length*4, 0)
 
     def _readhex(self, length, start):
         """Read bits and interpret as a hex string."""
@@ -1784,8 +1791,8 @@ class Bits(collections.Sequence):
         """Ensure the data is held in memory, not in a file."""
         # TODO: uncomment the next line and fix any problems
         #assert self._filebased == False
-        self._datastore = MemArray(self._datastore.getbyteslice(0, self._datastore.bytelength), self.len,
-                                       self._offset)
+        self._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength), self.len,
+                              self._offset)
 
     @classmethod
     def _converttobitstring(cls, bs, offset=0, cache={}):
@@ -1819,8 +1826,8 @@ class Bits(collections.Sequence):
         """Create and return a new copy of the Bits (always in memory)."""
         s_copy = self.__class__()
         s_copy._pos = self._pos
-        s_copy._datastore = MemArray(self._datastore.getbyteslice(0, self._datastore.bytelength), self.len,
-                                     self._offset)
+        s_copy._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength),
+                                self.len, self._offset)
         return s_copy
 
     def _slice(self, start, end=None):
@@ -1875,7 +1882,7 @@ class Bits(collections.Sequence):
             self._clear()
             return
         bytepos, offset = divmod(self._offset + bits, 8)
-        self._setbytes(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits, offset)
+        self._setbytes_unsafe(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits, offset)
         self._pos = max(0, self._pos - bits)
         assert self._assertsanity()
 
@@ -1889,7 +1896,7 @@ class Bits(collections.Sequence):
         newlength_in_bytes = (self._offset + self.len - bits + 7) // 8
         # Ensure that the position is still valid
         self._pos = max(0, min(self._pos, self.len - bits))
-        self._setbytes(self._datastore.getbyteslice(0, newlength_in_bytes), self.len - bits,
+        self._setbytes_unsafe(self._datastore.getbyteslice(0, newlength_in_bytes), self.len - bits,
                        self._offset)
         assert self._assertsanity()
 
@@ -3080,7 +3087,7 @@ class BitString(Bits, collections.MutableSequence):
         newoffset = 8 - (self._offset + self.len) % 8
         if newoffset == 8:
             newoffset = 0
-        self._datastore = MemArray(b''.join(n), self.length, newoffset)
+        self._setbytes_unsafe(b''.join(n), self.length, newoffset)
 
     def replace(self, old, new, start=None, end=None, count=None,
                 bytealigned=False):
@@ -3431,7 +3438,7 @@ class BitString(Bits, collections.MutableSequence):
                       When read will be prefixed with '0x' and including any leading zeros.
 
                       """)
-    bin    = property(Bits._getbin, Bits._setbin,
+    bin    = property(Bits._getbin, Bits._setbin_safe,
                       doc="""The BitString as a binary string. Read and write.
 
                       When read will be prefixed with '0b' and including any leading zeros.
@@ -3446,7 +3453,7 @@ class BitString(Bits, collections.MutableSequence):
     bool   = property(Bits._getbool, Bits._setbool,
                       doc="""The BitString as a bool (True or False). Read and write."""
                       )
-    bytes  = property(Bits._getbytes, Bits._setbytes,
+    bytes  = property(Bits._getbytes, Bits._setbytes_safe,
                       doc="""The BitString as a ordinary string. Read and write.
                       """)
 
@@ -3543,7 +3550,7 @@ name_to_read = {'uint':    Bits._readuint,
                 }
 
 # Dictionaries for mapping init keywords with init functions.
-init_with_length_and_offset = {'bytes':    Bits._setbytes,
+init_with_length_and_offset = {'bytes':    Bits._setbytes_safe,
                                'filename': Bits._setfile,
                               }
 
@@ -3561,7 +3568,7 @@ init_with_length_only = {'uint':    Bits._setuint,
                          'floatne': Bits._setfloatne,
                          }
 
-init_without_length_or_offset = {'bin': Bits._setbin,
+init_without_length_or_offset = {'bin': Bits._setbin_safe,
                                  'hex': Bits._sethex,
                                  'oct': Bits._setoct,
                                  'ue':  Bits._setue,
