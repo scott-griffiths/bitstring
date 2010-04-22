@@ -983,7 +983,7 @@ class CreationErrors(unittest.TestCase):
 
     def testIncorrectBinAssignment(self):
         s = BitString()
-        self.assertRaises(bitstring.CreationError, s._setbin, '0010020')
+        self.assertRaises(bitstring.CreationError, s._setbin_safe, '0010020')
 
     def testIncorrectHexAssignment(self):
         s = BitString()
@@ -1263,7 +1263,7 @@ class Resetting(unittest.TestCase):
 
     def testSetInvalidBin(self):
         s = BitString()
-        self.assertRaises(bitstring.CreationError, s._setbin, '00102')
+        self.assertRaises(bitstring.CreationError, s._setbin_safe, '00102')
 
 
 class Adding(unittest.TestCase):
@@ -3925,6 +3925,7 @@ class FileReadingStrategy(unittest.TestCase):
 
 def main():
     unittest.main()
+
 
 if __name__ == '__main__':
     main()
