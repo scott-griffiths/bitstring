@@ -1,8 +1,28 @@
 #!/usr/bin/env python
 """
-Module for simple bit-wise data creation, manipulation and interpretation.
+This module defines classes that simplify bit-wise creation, manipulation and
+interpretation of data.
+
+Classes:
+
+Bits -- An immutable container for binary data.
+BitString -- A mutable container for binary data.
+
+Functions:
+
+pack -- Create BitString from a format string.
+
+Exceptions:
+
+Error -- Module exception base class.
+CreationError -- Error during creation.
+InterpretError -- Inappropriate interpretation of binary data.
+ByteAlignError -- Whole byte position or length needed.
+ReadError -- Reading or peeking past the end of a bitstring.
+
 http://python-bitstring.googlecode.com
 """
+
 from __future__ import print_function
 
 __licence__ = """
@@ -56,22 +76,6 @@ except ImportError:
 byteorder = sys.byteorder
 
 _ = b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
-
-# Decorator adapted from Michael Chermside's recipe:
-# http://code.activestate.com/recipes/391367/
-def deprecated(explanation):
-    def decorator(func):
-        """This decorator can be used to mark functions as deprecated.
-        It will result in a warning being emitted when the function is used.
-        """
-        @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
-            warnings.warn("Call to deprecated function %s. %s" % (func.__name__, explanation),
-                          category=DeprecationWarning, stacklevel=2)
-            return func(self, *args, **kwargs)
-        wrapper.__doc__ = "*Deprecated*: " + explanation + '\n\n        ' + func.__doc__
-        return wrapper
-    return decorator
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
@@ -480,7 +484,7 @@ class ByteArray(BaseArray):
         self._rawarray = bytearray(data[offset // 8:(offset + bitlength + 7) // 8])
         self.offset = offset % 8
         self.bitlength = bitlength
-        assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray)
+        assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray), "bitlength:{0}, offset:{1}, bytelength:{2}".format(self.bitlength, self.offset, len(self._rawarray))
 
     def __copy__(self):
         return ByteArray(self._rawarray, self.bitlength, self.offset)
@@ -631,11 +635,67 @@ class FileArray(BaseArray):
 
 
 class Bits(collections.Sequence):
-    "An immutable sequence of bits."
+    
+    """A container holding an immutable sequence of bits.
+    
+    For a mutable container use the BitString class instead.
+    
+    Methods:
+    
+    allset() -- Check if all specified bits are set to one.
+    allunset() -- Check if all specified bits are set to zero.
+    anyset() -- Check if any of specified bits are set to one.
+    anyunset() -- Check if all specified bits are set to zero.
+    bytealign() -- Align to next byte boundary.
+    cut() -- Create generator of constant sized chunks.
+    endswith() -- Return whether the bitstring ends with a sub-string.
+    find() -- Find a sub-bitstring in the current bitstring.
+    findall() -- Find all occurences of a sub-bitstring in the current bitstring.
+    join() -- Join bitstrings together using current bitstring.
+    peek() -- Peek at and interpret next bits as a single item.
+    peeklist() -- Peek at and interpret next bits as a list of items.
+    read() -- Read and interpret next bits as a single item.
+    readlist() -- Read and interpret next bits as a list of items.
+    rfind() -- Seek backwards to find a sub-bitstring.
+    split() -- Create generator of chunks split by a delimiter.
+    startswith() -- Return whether the bitstring starts with a sub-bitstring.
+    tobytes() -- Return bitstring as bytes, padding if needed.
+    tofile() -- Write bitstring to file, padding if needed.
+    unpack() -- Interpret bits using format string.
+    
+    Special methods:
+
+    Also available are the operators [], ==, !=, +, *, ~, <<, >>, &, |, ^.
+    
+    Properties:
+
+    bin -- The bitstring as a binary string.
+    bool -- For single bit bitstrings, interpret as True or False.
+    bytepos -- The current byte position in the bitstring.
+    bytes -- The bitstring as a bytes object.
+    float -- Interpret as a floating point number.
+    floatbe -- Interpret as a big-endian floating point number.
+    floatle -- Interpret as a little-endian floating point number.
+    floatne -- Interpret as a native-endian floating point number.
+    hex -- The bitstring as a hexadecimal string.
+    int -- Interpret as a two's complement signed integer.
+    intbe -- Interpret as a big-endian signed integer.
+    intle -- Interpret as a little-endian signed integer.
+    intne -- Interpret as a native-endian signed integer.
+    len -- Length of the bitstring in bits.
+    oct -- The bitstring as an octal string.
+    pos -- The current bit position in the bitstring.
+    se -- Interpret as a signed exponential-Golomb code.
+    ue -- Interpret as an unsigned exponential-Golomb code.
+    uint -- Interpret as a two's complement unsigned integer.
+    uintbe -- Interpret as a big-endian unsigned integer.
+    uintle -- Interpret as a little-endian unsigned integer.
+    uintne -- Interpret as a native-endian unsigned integer.
+    
+    """
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
-        """
-        Either specify an 'auto' initialiser:
+        """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
                 a bool, a boolean iterable or another bitstring.
 
@@ -666,11 +726,6 @@ class Bits(collections.Sequence):
         offset -- bit offset to the data. These offset bits are
                   ignored and this is mainly intended for use when
                   initialising using 'bytes' or 'filename'.
-
-        e.g.
-        a = Bits('0x123ab560')
-        b = Bits(filename="movie.ts")
-        c = Bits(int=10, length=6)
 
         """
         self._mutable = False
@@ -925,6 +980,12 @@ class Bits(collections.Sequence):
             raise ValueError("Cannot shift by a negative amount.")
         if not self:
             raise ValueError("Cannot shift an empty bitstring.")
+        
+#        cut_bytes, new_offset = divmod(self._offset + n, 8)
+#        new_bytes = (self.len + new_offset + 7) // 8 - self._datastore.bytelength + cut_bytes
+#        s = self.__class__()
+#        s._setbytes_unsafe(self._datastore.getbyteslice(cut_bytes, self._datastore.bytelength) +
+#                              bytearray(new_bytes), self.len, new_offset)    
         s = self[n:]
         s._append(self.__class__(length=min(n, self.len)))
         return s
@@ -1832,8 +1893,6 @@ class Bits(collections.Sequence):
 
     def _slice(self, start, end=None):
         """Used internally to get a slice, without error checking."""
-        if end == start:
-            return self.__class__()
         if end is None:
             # Single bit, return True or False
             # TODO: Optimise (shouldn't be range checked)
@@ -2031,16 +2090,24 @@ class Bits(collections.Sequence):
             self._datastore.setbyte(a, self._datastore.getbyte(a) ^ (128 >> b))
         self._bit_tweaker(pos, f)
 
-    # TODO: Optimise!
     def _ilshift(self, n):
         """Shift bits by n to the left in place. Return self."""
+        #cut_bytes, new_offset = divmod(self._offset + n, 8)
+        #new_bytes = (self.len + new_offset + 7) // 8 - self._datastore.bytelength + cut_bytes
+        #self._setbytes_unsafe(self._datastore.getbyteslice(cut_bytes, self._datastore.bytelength) +
+        #                      bytearray(new_bytes), self.len, new_offset)
         self.bin = self.__lshift__(n).bin
         return self
 
-    # TODO: Optimise!
     def _irshift(self, n):
         """Shift bits by n to the right in place. Return self."""
-        self.bin = self.__rshift__(n).bin
+        #new_offset = (self._offset - n) % 8
+        #new_bytes = -(self._offset - n - 8) // 8
+        #cut_bytes = (self.len + new_offset + 7) // 8 - self._datastore.bytelength + new_bytes
+        #self._setbytes_unsafe(bytearray(new_bytes) +
+        #                      self._datastore.getbyteslice(0, self._datastore.bytelength + cut_bytes),
+        #                      self.len, new_offset)
+        self.bin = self.__rshift__(n).bin        
         return self
 
     def _imul(self, n):
@@ -2675,7 +2742,7 @@ class Bits(collections.Sequence):
         return self._bit_tweaker(pos, f)
 
     def allunset(self, pos):
-        """Return True if one or many bits are all set to 1.
+        """Return True if one or many bits are all set to 0.
 
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
@@ -2685,7 +2752,7 @@ class Bits(collections.Sequence):
         return not self.anyset(pos)
 
     def anyunset(self, pos):
-        """Return True if one or many bits are all set to 1.
+        """Return True if one or many bits are all set to 0.
 
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
@@ -2802,12 +2869,120 @@ class Bits(collections.Sequence):
 
 
 class BitString(Bits, collections.MutableSequence):
-    """A class for general bit-wise manipulations and interpretations."""
+    
+    """A container holding a mutable sequence of bits.
+
+    Subclass of the immutable Bits class. Inherits all of its methods (except
+    __hash__) and adds mutating methods.
+    
+    Mutating methods:
+    
+    append(): Append a bitstring.
+    byteswap(): Change byte endianness in-place.
+    insert(): Insert a bitstring.
+    invert(): Flip bit(s) between one and zero.
+    overwrite(): Overwrite a section with a new bitstring.
+    prepend(): Prepend a bitstring.
+    replace(): Replace occurences of one bitstring with another.
+    reverse(): Reverse bits in-place.
+    reversebytes(): Reverse bytes in-place.
+    rol(): Rotate bits to the left.
+    ror(): Rotate bits to the right.
+    set(): Set bit(s) to one.
+    unset(): Set bit(s) to zero.
+    
+    Methods inherited from Bits:
+    
+    allset() -- Check if all specified bits are set to one.
+    allunset() -- Check if all specified bits are set to zero.
+    anyset() -- Check if any of specified bits are set to one.
+    anyunset() -- Check if all specified bits are set to zero.
+    bytealign() -- Align to next byte boundary.
+    cut() -- Create generator of constant sized chunks.
+    endswith() -- Return whether the bitstring ends with a sub-string.
+    find() -- Find a sub-bitstring in the current bitstring.
+    findall() -- Find all occurences of a sub-bitstring in the current bitstring.
+    join() -- Join bitstrings together using current bitstring.
+    peek() -- Peek at and interpret next bits as a single item.
+    peeklist() -- Peek at and interpret next bits as a list of items.
+    read() -- Read and interpret next bits as a single item.
+    readlist() -- Read and interpret next bits as a list of items.
+    rfind() -- Seek backwards to find a sub-bitstring.
+    split() -- Create generator of chunks split by a delimiter.
+    startswith() -- Return whether the bitstring starts with a sub-bitstring.
+    tobytes() -- Return bitstring as bytes, padding if needed.
+    tofile() -- Write bitstring to file, padding if needed.
+    unpack() -- Interpret bits using format string.
+    
+    Special methods:
+
+    Mutating operators are available: [], <<=, >>=, *=, &=, |= and ^=
+    in addition to the inherited [], ==, !=, +, *, ~, <<, >>, &, | and ^.
+    
+    Properties:
+
+    bin -- The bitstring as a binary string.
+    bool -- For single bit bitstrings, interpret as True or False.
+    bytepos -- The current byte position in the bitstring.
+    bytes -- The bitstring as a bytes object.
+    float -- Interpret as a floating point number.
+    floatbe -- Interpret as a big-endian floating point number.
+    floatle -- Interpret as a little-endian floating point number.
+    floatne -- Interpret as a native-endian floating point number.
+    hex -- The bitstring as a hexadecimal string.
+    int -- Interpret as a two's complement signed integer.
+    intbe -- Interpret as a big-endian signed integer.
+    intle -- Interpret as a little-endian signed integer.
+    intne -- Interpret as a native-endian signed integer.
+    len -- Length of the bitstring in bits.
+    oct -- The bitstring as an octal string.
+    pos -- The current bit position in the bitstring.
+    se -- Interpret as a signed exponential-Golomb code.
+    ue -- Interpret as an unsigned exponential-Golomb code.
+    uint -- Interpret as a two's complement unsigned integer.
+    uintbe -- Interpret as a big-endian unsigned integer.
+    uintle -- Interpret as a little-endian unsigned integer.
+    uintne -- Interpret as a native-endian unsigned integer.
+    
+    """
 
     # As BitString objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
+        """Either specify an 'auto' initialiser:
+        auto -- a string of comma separated tokens, an integer, a file object,
+                a bool, a boolean iterable or another bitstring.
+
+        Or initialise via **kwargs with one (and only one) of:
+        bytes -- raw data as a string, for example read from a binary file.
+        bin -- binary string representation, e.g. '0b001010'.
+        hex -- hexadecimal string representation, e.g. '0x2ef'
+        oct -- octal string representation, e.g. '0o777'.
+        uint -- an unsigned integer.
+        int -- a signed integer.
+        float -- a floating point number.
+        uintbe -- an unsigned big-endian whole byte integer.
+        intbe -- a signed big-endian whole byte integer.
+        floatbe - a big-endian floating point number.
+        uintle -- an unsigned little-endian whole byte integer.
+        intle -- a signed little-endian whole byte integer.
+        floatle -- a little-endian floating point number.
+        uintne -- an unsigned native-endian whole byte integer.
+        intne -- a signed native-endian whole byte integer.
+        floatne -- a native-endian floating point number.
+        se -- a signed exponential-Golomb code.
+        ue -- an unsigned exponential-Golomb code.
+        filename -- a file which will be opened in binary read-only mode.
+
+        Other keyword arguments:
+        length -- length of the bitstring in bits, if needed and appropriate.
+                  It must be supplied for all integer and float initialisers.
+        offset -- bit offset to the data. These offset bits are
+                  ignored and this is mainly intended for use when
+                  initialising using 'bytes' or 'filename'.
+                  
+        """
         self._mutable = True
         self._filebased = False
         self._initialise(auto, length, offset, **kwargs)
@@ -3028,6 +3203,10 @@ class BitString(Bits, collections.MutableSequence):
         n -- the number of bits to shift. Must be >= 0.
 
         """
+        if n < 0:
+            raise ValueError("Cannot shift by a negative amount.")
+        if not self:
+            raise ValueError("Cannot shift an empty bitstring.")
         return self._ilshift(n)
 
     def __irshift__(self, n):
@@ -3036,6 +3215,10 @@ class BitString(Bits, collections.MutableSequence):
         n -- the number of bits to shift. Must be >= 0.
 
         """
+        if n < 0:
+            raise ValueError("Cannot shift by a negative amount.")
+        if not self:
+            raise ValueError("Cannot shift an empty bitstring.")
         return self._irshift(n)
 
     def __imul__(self, n):
