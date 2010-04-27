@@ -1,6 +1,99 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+
+April xxth 2010: version 2.0.0 beta 1 for Python 2.6 and 3.x released
+
+This is a major release, with a number of backwardly incompatibile changes.
+The changes are all quite minor, although a number of methods have been
+removed and so some recoding may be needed.
+
+The release is labelled a beta, just in case the changes raise any problems
+that need to be fixed. I am not expecting any more changes however so you are
+encouraged to use this release, and please tell me if the changes cause
+you undue pain as there is a small window in which they can be tweaked.
+
+I plan to release 2.0 proper about one month after this beta.
+
+The backwardly incompatibile changes are:
+
+* Methods removed.
+
+Twenty eight methods have been removed from the API. They all have
+simple alternatives:
+
+s.advancebit()              ->   s.pos += 1
+s.advancebits(bits)         ->   s.pos += bits
+s.advancebyte()             ->   s.pos += 8
+s.advancebytes(bytes)       ->   s.pos += 8*bytes
+s.delete(bits, pos)         ->   del s[pos:pos+bits]
+s.peekbit()                 ->   s.peek(1)
+s.peekbitlist(a, b)         ->   s.peeklist([a, b])
+s.peekbits(bits)            ->   s.peek(bits)
+s.peekbyte()                ->   s.peek(8)
+s.peekbytelist(a, b)        ->   s.peeklist([8*a, 8*b])
+s.peekbytes(bytes)          ->   s.peek(8*bytes)
+s.readbit()                 ->   s.read(1)
+s.readbitlist(a, b)         ->   s.readlist([a, b])
+s.readbits(bits)            ->   s.read(bits)
+s.readbyte()                ->   s.read(8)
+s.readbytelist(a, b)        ->   s.readlist([8*a, 8*b])
+s.readbytes(bytes)          ->   s.read(8*bytes)
+s.retreatbit()              ->   s.pos -= 1
+s.retreatbits(bits)         ->   s.pos -= bits
+s.retreatbyte()             ->   s.pos -= 8
+s.retreatbytes(bytes)       ->   s.pos -= 8*bytes
+s.seek(pos)                 ->   s.pos = pos
+s.seekbyte(bytepos)         ->   s.bytepos = bytepos
+s.slice(start, end, step)   ->   s[start:end:step]
+s.tell()                    ->   s.pos
+s.tellbyte()                ->   s.bytepos
+s.truncateend(bits)         ->   del s[-bits:]
+s.truncatestart(bits)       ->   del s[:bits]
+
+* Exception raised on reading off end of bitstring.
+
+* BitStringError renamed to Error.
+
+* Single bit slices and reads return a bool.
+
+* Length and offset disallowed for some initialisers.
+
+* Renamed 'format' parameter 'fmt'.
+
+* Iterables instead of *values\*format accepted for some methods.
+
+* Zero bit reads now an error (???)
+
+* Creation from file strategy (???)
+
+The new features in this release are:
+
+* read and peek methods accept integers.
+
+* New exception types.
+
+As well as renaming BitStringError to just Error (so it appears in
+your code as bitstring.Error rather than bitstring.BitStringError)
+there are also new exceptions which use Error as a base class.
+
+These can be caught in preference to Error if you need finer control.
+The new exceptions sometimes also derive from built-in exceptions:
+
+ByteAlignError(Error) - whole byte position or length needed.
+
+ReadError(Error, IndexError) - reading or peeking off the end of
+the bitstring.
+
+CreationError(Error, ValueError) - inappropriate argument during
+bitstring creation.
+
+InterpretError(Error, ValueError) - inappropriate interpretation of
+binary data.
+
+
+
+
 --------------------------------------------------------------
 March 18th 2010: version 1.3.0 for Python 2.6 and 3.x released
 --------------------------------------------------------------
