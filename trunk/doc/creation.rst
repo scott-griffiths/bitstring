@@ -43,7 +43,7 @@ From a hexadecimal string
  >>> c.hex
  '0x000001b3'
 
-The initial ``0x`` or ``0X`` is optional, as is a length parameter, which can be used to truncate bits from the end. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of ``c`` will be 32.
+The initial ``0x`` or ``0X`` is optional. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of ``c`` will be 32.
 
 If you include the initial ``0x`` then you can use the ``auto`` initialiser instead. As it is the first parameter in :meth:`__init__` this will work equally well::
 
@@ -52,11 +52,11 @@ If you include the initial ``0x`` then you can use the ``auto`` initialiser inst
 From a binary string
 ^^^^^^^^^^^^^^^^^^^^
 
- >>> d = BitString(bin='0011 000', length=6)
+ >>> d = BitString(bin='0011 00')
  >>> d.bin
  '0b001100'
 
-An initial ``0b`` or ``0B`` is optional. Once again a length can optionally be supplied to truncate the bitstring (here it is used to remove the final ``0``) and whitespace will be ignored.
+An initial ``0b`` or ``0B`` is optional and whitespace will be ignored.
 
 As with ``hex``, the ``auto`` initialiser will work if the binary string is prefixed by ``0b``::
  
@@ -69,7 +69,7 @@ From an octal string
  >>> o.oct
  '0o34100'
 
-An initial ``0o`` or ``0O`` is optional, but ``0o`` (a zero and lower-case 'o') is preferred as it is slightly more readable. Once again a length can optionally be supplied to truncate the bitstring and whitespace will be ignored.
+An initial ``0o`` or ``0O`` is optional, but ``0o`` (a zero and lower-case 'o') is preferred as it is slightly more readable. 
 
 As with ``hex`` and ``bin``, the ``auto`` initialiser will work if the octal string is prefixed by ``0o``::
 
@@ -186,9 +186,9 @@ It's also possible to use the ``auto`` initialiser for file objects. It's as sim
 
 The auto initialiser
 --------------------
-The ``auto`` parameter is the first parameter in the :meth:`__init__` function and so the ``auto=`` can be omitted when using it. It accepts either a string, a list or tuple, another bitstring, an integer, a bool or a file object.
+The ``auto`` parameter is the first parameter in the :meth:`__init__` function and so the ``auto=`` can be omitted when using it. It accepts either a string, an iterable, another bitstring, an integer, a bool or a file object.
 
-Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, lists and tuples are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
+Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, (non string) iterables are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
 
  >>> fromhex = BitString('0x01ffc9')
  >>> frombin = BitString('0b01')
@@ -424,7 +424,7 @@ hex
 
 For whole-byte bitstrings the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits. Hex values are prefixed with ``0x``.
 
-If the bitstring does not have a length that is a multiple of four bits then a :exc:`ValueError` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code. ::
+If the bitstring does not have a length that is a multiple of four bits then an :exc:`InterpretError` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code. ::
 
  >>> a.hex
  '0x123'
@@ -436,7 +436,7 @@ oct
 
 For an octal interpretation use the :attr:`oct` property. Octal values are prefixed with ``0o``, which is the Python 2.6 / 3 way of doing things (rather than just starting with ``0``).
 
-If the bitstring does not have a length that is a multiple of three then a :exc:`ValueError` exception will be raised. ::
+If the bitstring does not have a length that is a multiple of three then an :exc:`InterpretError` exception will be raised. ::
 
  >>> a.oct
  '0o0443'
@@ -509,7 +509,7 @@ Note that the :meth:`tobytes` method automatically padded with four zero bits at
 ue
 ^^
 
-The :attr:`ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a :exc:`Error` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
+The :attr:`ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
 
  >>> s = BitString(ue=12)
  >>> s.bin
@@ -525,7 +525,7 @@ The :attr:`se` property does much the same as ``ue`` and the provisos there all 
 
  >>> s = BitString('0x164b')
  >>> s.se
- Error: BitString is not a single exponential-Golomb code.
+ InterpretError: BitString is not a single exponential-Golomb code.
  >>> while s.pos < s.length:
  ...     print(s.read('se'))
  -5

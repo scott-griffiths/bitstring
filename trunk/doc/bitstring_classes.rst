@@ -86,7 +86,7 @@ The ``Bits`` class
 
     ``offset`` is optional for most initialisers, but only really useful for ``bytes`` and ``filename``. It gives a number of bits to ignore at the start of the bitstring.
 
-    Specifying ``length`` is mandatory when using the various integer initialisers. It must be large enough that a bitstring can contain the integer in ``length`` bits. It is an error to specify ``length`` when using the ``ue`` or ``se`` initialisers. For other initialisers ``length`` can be used to truncate data from the end of the input value. ::
+    Specifying ``length`` is mandatory when using the various integer initialisers. It must be large enough that a bitstring can contain the integer in ``length`` bits. It must also be specified for the float initialisers (the only valid values are 32 and 64). It is optional for the ``bytes`` and ``filename`` initialisers and can be used to truncate data from the end of the input value. ::
 
      >>> s1 = Bits(hex='0x934')
      >>> s2 = Bits(oct='0o4464')
@@ -210,65 +210,19 @@ The ``Bits`` class
 
     .. method:: peek(format)
 
-        Reads from the current bit position :attr:`pos` in the bitstring according to the *format* string and returns result.
+        Reads from the current bit position :attr:`pos` in the bitstring according to the *format* string or integer and returns the result.
 
         The bit position is unchanged.
 
         For information on the format string see the entry for the :meth:`Bits.read` method.
 
-    .. method:: peeklist(*format, **kwargs)
+    .. method:: peeklist(format, **kwargs)
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *format* string(s) and returns a list of results.
 
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is not advanced to after the read items.
 
         See the entries for :meth:`Bits.read` and :meth:`Bits.readlist` for more information.
-
-    .. method:: peekbit()
-
-        Returns the next bit in the current bitstring as a new bitstring but does not advance the position. 
-
-    .. method:: peekbits(bits)
-
-        Returns the next *bits* bits of the current bitstring as a new bitstring but does not advance the position. ::
-
-         >>> s = Bits('0xf01')
-         >>> s.pos = 4
-         >>> s.peekbits(4)
-         Bits('0x0')
-         >>> s.peekbits(8)
-         Bits('0x01')
-
-    .. method:: peekbitlist(*bits)
-
-        Reads multiple *bits* from the current position and returns a list of bitstring objects, but does not advance the position. ::
-
-         >>> s = Bits('0xf01')
-         >>> for bs in s.peekbits(2, 2, 8):
-         ...     print(bs)
-         0b11
-         0b11
-         0x01
-         >>> s.pos
-         0 
-
-    .. method:: peekbyte()
-
-        Returns the next byte of the current bitstring as a new bitstring but does not advance the position. 
-
-    .. method:: peekbytes(*bytes)
-
-        Returns the next *bytes* bytes of the current bitstring as a new bitstring but does not advance the position.
-
-        If multiple bytes are specified then a list of bitstring objects is returned.
-
-    .. method:: peekbytelist(*bytes)
-
-        Reads multiple *bytes* from the current position and returns a list of bitstring objects, but does not advance the position. ::
-
-         >>> s = Bits('0x34eedd')
-         >>> print(s.peekbytelist(1, 2))
-         [Bits('0x34'), Bits('0xeedd')]
 
     .. method:: read(format)
 
@@ -296,6 +250,7 @@ The ``Bits`` class
         ``se``           next bits as a signed exp-Golomb.
         ``bits:n``       ``n`` bits as a new bitstring.
         ``bytes:n``      ``n`` bytes as ``bytes`` object.
+        ``bool``         next bit as a boolean.
         ==============   ===============================================
 
         For example::
@@ -310,7 +265,7 @@ The ``Bits`` class
          >>> s.read('bits:4')
          Bits('0xa')
 
-        The :meth:`Bits.read` method is useful for reading exponential-Golomb codes, which can't be read easily by :meth:`Bits.readbits` as their lengths aren't know beforehand. ::
+        The :meth:`Bits.read` method is useful for reading exponential-Golomb codes. ::
 
          >>> s = Bits('se=-9, ue=4')
          >>> s.read('se')
@@ -318,7 +273,7 @@ The ``Bits`` class
          >>> s.read('ue')
          4
 
-    .. method:: readlist(*format, **kwargs)
+    .. method:: readlist(format, **kwargs)
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *format* string(s) and returns a list of results. If not enough bits are available then all bits to the end of the bitstring will be used.
 
@@ -336,45 +291,6 @@ The ``Bits`` class
          >>> s.pos = 0
          >>> s.readlist('hex:b, uint:d', b=8, d=6)
          ['0x43', 63]
-
-    .. method:: readbit()
-
-        Returns the next bit of the current bitstring as a new bitstring and advances the position. 
-
-    .. method:: readbits(bits)
-
-        Returns the next *bits* bits of the current bitstring as a new bitstring and advances the position. ::
-
-         >>> s = Bits('0x0001e2')
-         >>> s.readbits(16)
-         Bits('0x0001')
-         >>> s.readbits(3).bin
-         '0b111'
-
-    .. method:: readbitlist(*bits)
-
-        Reads multiple *bits* from the current bitstring and returns a list of bitstring objects.
-        The position is advanced to after the read items. ::
-
-         >>> s = Bits('0x0001e2')
-         >>> s.readbitlist(16, 3)
-         [Bits('0x0001'), Bits('0b111')]
-         >>> s.readbitlist(1)
-         [Bits('0b0')]
-
-    .. method:: readbyte()
-
-        Returns the next byte of the current bitstring as a new bitstring and advances the position. 
-
-    .. method:: readbytes(bytes)
-
-        Returns the next *bytes* bytes of the current bitstring as a new bitstring and advances the position.
-
-    .. method:: readbytelist(*bytes)
-
-        Reads multiple bytes from the current bitstring and returns a list of bitstring objects.
-
-        The position is advanced to after the read items.
 
     .. method:: rfind(bs[, start, end, bytealigned=False])
 
@@ -434,7 +350,7 @@ The ``Bits`` class
          >>> f = open('newfile', 'wb')
          >>> Bits('0x1234').tofile(f)
 
-    .. method:: unpack(*format, **kwargs)
+    .. method:: unpack(format, **kwargs)
 
         Interprets the whole bitstring according to the *format* string(s) and returns a list of bitstring objects.
         
@@ -520,6 +436,13 @@ The ``Bits`` class
          Bits('0x1')
          >>> s[0:3:8]
          Bits('0x012345')
+         
+        If a single element is asked for then either ``True`` or ``False`` will be returned. ::
+        
+         >>> s[0]
+         False
+         >>> s[-1]
+         True
 
     .. method:: __hash__()
     
@@ -535,7 +458,7 @@ The ``Bits`` class
 
         Returns the bitstring with every bit inverted, that is all zeros replaced with ones, and all ones replaced with zeros.
 
-        If the bitstring is empty then a :exc:`Error` will be raised. ::
+        If the bitstring is empty then an :exc:`Error` will be raised. ::
 
          >>> s = Bits(‘0b1110010’)
          >>> print(~s)
@@ -861,15 +784,21 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     When used as a getter, the returned value is always calculated - the value is never cached. For :class:`BitString` objects it can also be used as a setter, in which case the length of the :class:`BitString` will be adjusted to fit its new contents. ::
 
-     if s.bin == '0b001':
-         s.bin = '0b1111'
-     # Equivalent to s.append('0b1'), only for BitStrings, not Bits.
-     s.bin += '1'
+        if s.bin == '0b001':
+            s.bin = '0b1111'
+        # Equivalent to s.append('0b1'), only for BitStrings, not Bits.
+        s.bin += '1'
+     
+.. attribute:: bool
+
+   Property for representing the bitstring as a boolean (``True`` or ``False``).
+   
+   If the bitstring is not a single bit then the getter will raise an :exc:`InterpretError`.
 
 .. attribute:: bytepos
 
     Property for setting and getting the current byte position in the bitstring.
-    When used as a getter will raise a :exc:`Error` if the current position in not byte aligned.
+    When used as a getter will raise a :exc:`ByteAlignError` if the current position in not byte aligned.
 
 .. attribute:: bytes
 
@@ -892,7 +821,7 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     Property representing the hexadecimal value of the bitstring.
 
-    When used as a getter the value will be preceded by ``0x``, which is optional when setting the value of a :class:`BitString`. If the bitstring is not a multiple of four bits long then getting its hex value will raise a :exc:`ValueError`. ::
+    When used as a getter the value will be preceded by ``0x``, which is optional when setting the value of a :class:`BitString`. If the bitstring is not a multiple of four bits long then getting its hex value will raise a :exc:`InterpretError`. ::
 
      >>> s = BitString(bin='1111 0000')
      >>> s.hex
@@ -990,7 +919,7 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     Property for the signed exponential-Golomb code representation of the bitstring.
 
-    The property is set from an signed integer, and when used as a getter a :exc:`Error` will be raised if the bitstring is not a single code. ::
+    The property is set from an signed integer, and when used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code. ::
 
      >>> s = BitString(se=-40)
      >>> s.bin
@@ -1003,7 +932,7 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     Property for the unsigned exponential-Golomb code representation of the bitstring.
 
-    The property is set from an unsigned integer, and when used as a getter a :exc:`Error` will be raised if the bitstring is not a single code.
+    The property is set from an unsigned integer, and when used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
 
 .. attribute:: uint
 
@@ -1027,12 +956,21 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     Property for the byte-wise native-endian unsigned base-2 integer representation of the bitstring.
 
-    When used as a setter the value must fit into the current length of the :class:`BitString`, else a :exc:`ValueError` will be raised.
+    When used as a setter the value must fit into the current length of the :class:`BitString`, else a :exc:`ValueError` will be raised..
 
 
 Exceptions
 ----------
 
-.. exception:: Error
+.. exception:: Error(Exception)
 
-Used for miscellaneous exceptions where built-in exception classes are not appropriate.
+Base class for all module exceptions where built-in exception classes are not appropriate.
+
+.. exception:: InterpretError(Error, ValueError)
+
+.. exception:: ByteAlignError(Error)
+
+.. exception:: CreationError(Error, ValueError)
+
+.. exception:: ReadError(Error, IndexError)
+
