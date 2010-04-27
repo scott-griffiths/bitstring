@@ -125,16 +125,16 @@ STRUCT_SPLIT_RE = re.compile(r'\d*[bBhHlLqQfd]')
 
 # These replicate the struct.pack codes
 # Big-endian
-REPLACEMENTS_BE = {'b': 'intbe:8', 'B': 'uintbe:8',
-                   'h': 'intbe:16', 'H': 'uintbe:16',
-                   'l': 'intbe:32', 'L': 'uintbe:32',
-                   'q': 'intbe:64', 'Q': 'uintbe:64',
+REPLACEMENTS_BE = {'b': 'intbe:8',    'B': 'uintbe:8',
+                   'h': 'intbe:16',   'H': 'uintbe:16',
+                   'l': 'intbe:32',   'L': 'uintbe:32',
+                   'q': 'intbe:64',   'Q': 'uintbe:64',
                    'f': 'floatbe:32', 'd': 'floatbe:64'}
 # Little-endian
-REPLACEMENTS_LE = {'b': 'intle:8', 'B': 'uintle:8',
-                   'h': 'intle:16', 'H': 'uintle:16',
-                   'l': 'intle:32', 'L': 'uintle:32',
-                   'q': 'intle:64', 'Q': 'uintle:64',
+REPLACEMENTS_LE = {'b': 'intle:8',    'B': 'uintle:8',
+                   'h': 'intle:16',   'H': 'uintle:16',
+                   'l': 'intle:32',   'L': 'uintle:32',
+                   'q': 'intle:64',   'Q': 'uintle:64',
                    'f': 'floatle:32', 'd': 'floatle:64'}
 
 # Size in bytes of all the pack codes.
@@ -969,7 +969,6 @@ class Bits(collections.Sequence):
         s._invert(xrange(s.len))
         return s
 
-    # TODO: optimise!
     def __lshift__(self, n):
         """Return bitstring with bits shifted by n to the left.
 
@@ -980,17 +979,10 @@ class Bits(collections.Sequence):
             raise ValueError("Cannot shift by a negative amount.")
         if not self:
             raise ValueError("Cannot shift an empty bitstring.")
-        
-#        cut_bytes, new_offset = divmod(self._offset + n, 8)
-#        new_bytes = (self.len + new_offset + 7) // 8 - self._datastore.bytelength + cut_bytes
-#        s = self.__class__()
-#        s._setbytes_unsafe(self._datastore.getbyteslice(cut_bytes, self._datastore.bytelength) +
-#                              bytearray(new_bytes), self.len, new_offset)    
         s = self[n:]
-        s._append(self.__class__(length=min(n, self.len)))
+        s._append(Bits(length=min(n, self.len)))
         return s
 
-    # TODO: optimise!
     def __rshift__(self, n):
         """Return bitstring with bits shifted by n to the right.
 
@@ -1148,12 +1140,11 @@ class Bits(collections.Sequence):
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
         assert self.len >= 0
-        assert 0 <= self._offset < 8
+        assert 0 <= self._offset < 8, "offset={0}".format(self._offset)
         if self.len == 0:
-            assert self._datastore.bytelength == 0
-            assert self._pos == 0
+            assert self._pos == 0, "len=0, pos={0}".format(self._pos)
         else:
-            assert 0 <= self._pos <= self.len
+            assert 0 <= self._pos <= self.len, "len={0}, pos={1}".format(self.len, self._pos)
         assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength
         return True
 
@@ -1296,6 +1287,7 @@ class Bits(collections.Sequence):
     def _setbytes_unsafe(self, data, length, offset):
         """Unchecked version of _setbytes_safe."""
         self._datastore = MemArray(data, length, offset)
+        assert self._assertsanity()
 
     def _readbytes(self, length, start):
         """Read bytes and return them."""
@@ -1791,7 +1783,7 @@ class Bits(collections.Sequence):
             hexstring += '0'
         try:
             data = binascii.unhexlify(hexstring)
-        except TypeError:
+        except (TypeError, binascii.Error):
             raise CreationError("Invalid symbol in hex initialiser.")
         self._setbytes_unsafe(data, length*4, 0)
 
@@ -1876,6 +1868,7 @@ class Bits(collections.Sequence):
                 for token in tokens:
                     b._append(BitString._init_with_token(*token))
                 b._datastore.setoffset(offset)
+                assert b._assertsanity()
                 cache[(bs, offset)] = b
                 return b
         except TypeError:
@@ -1935,18 +1928,20 @@ class Bits(collections.Sequence):
 
     def _truncatestart(self, bits):
         """Truncate bits from the start of the bitstring."""
+        assert 0 <= bits <= self.len
         if bits == 0:
             return
         if bits == self.len:
             self._clear()
             return
         bytepos, offset = divmod(self._offset + bits, 8)
-        self._setbytes_unsafe(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits, offset)
         self._pos = max(0, self._pos - bits)
+        self._setbytes_unsafe(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits, offset)
         assert self._assertsanity()
 
     def _truncateend(self, bits):
         """Truncate bits from the end of the bitstring."""
+        assert 0 <= bits <= self.len
         if bits == 0:
             return
         if bits == self.len:
@@ -2092,26 +2087,21 @@ class Bits(collections.Sequence):
 
     def _ilshift(self, n):
         """Shift bits by n to the left in place. Return self."""
-        #cut_bytes, new_offset = divmod(self._offset + n, 8)
-        #new_bytes = (self.len + new_offset + 7) // 8 - self._datastore.bytelength + cut_bytes
-        #self._setbytes_unsafe(self._datastore.getbyteslice(cut_bytes, self._datastore.bytelength) +
-        #                      bytearray(new_bytes), self.len, new_offset)
-        self.bin = self.__lshift__(n).bin
+        assert 0 < n <= self.len
+        self._append(Bits(n))
+        self._truncatestart(n)
         return self
 
     def _irshift(self, n):
         """Shift bits by n to the right in place. Return self."""
-        #new_offset = (self._offset - n) % 8
-        #new_bytes = -(self._offset - n - 8) // 8
-        #cut_bytes = (self.len + new_offset + 7) // 8 - self._datastore.bytelength + new_bytes
-        #self._setbytes_unsafe(bytearray(new_bytes) +
-        #                      self._datastore.getbyteslice(0, self._datastore.bytelength + cut_bytes),
-        #                      self.len, new_offset)
-        self.bin = self.__rshift__(n).bin        
+        assert 0 < n <= self.len
+        self._prepend(Bits(n))
+        self._truncateend(n)       
         return self
 
     def _imul(self, n):
         """Concatenate n copies of self in place. Return self."""
+        assert n >= 0
         if n == 0:
             self._clear()
             return self
@@ -3207,6 +3197,7 @@ class BitString(Bits, collections.MutableSequence):
             raise ValueError("Cannot shift by a negative amount.")
         if not self:
             raise ValueError("Cannot shift an empty bitstring.")
+        n = min(n, self.len)
         return self._ilshift(n)
 
     def __irshift__(self, n):
@@ -3219,6 +3210,7 @@ class BitString(Bits, collections.MutableSequence):
             raise ValueError("Cannot shift by a negative amount.")
         if not self:
             raise ValueError("Cannot shift an empty bitstring.")
+        n = min(n, self.len)
         return self._irshift(n)
 
     def __imul__(self, n):
@@ -3640,7 +3632,7 @@ class BitString(Bits, collections.MutableSequence):
                       doc="""The BitString as a ordinary string. Read and write.
                       """)
 
-# TODO: shouldn't this also be just values (which can be an iterable?)
+    
 def pack(fmt, *values, **kwargs):
     """Pack the values according to the format string and return a new BitString.
 

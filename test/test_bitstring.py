@@ -433,11 +433,17 @@ class Shift(unittest.TestCase):
         self.assertRaises(ValueError, s.__rshift__, -1)
 
     def testShiftRightInPlace(self):
+        s = BitString('0xffff')[4:12]
+        s >>= 1
+        self.assertEqual(s, '0b01111111')
         s = BitString('0b11011')
         s >>= 2
         self.assertEqual(s.bin, '0b00110')
-        s >>= 1000
+        s >>= 100000000000000
         self.assertEqual(s.bin, '0b00000')
+        s = BitString('0xff')
+        s >>= 1
+        self.assertEqual(s, '0x7f')
 
     def testShiftRightInPlaceErrors(self):
         s = BitString()
@@ -446,11 +452,18 @@ class Shift(unittest.TestCase):
         self.assertRaises(ValueError, s.__irshift__, -1)
 
     def testShiftLeftInPlace(self):
+        s = BitString('0xffff')
+        t = s[4:12]
+        t <<= 2
+        self.assertEqual(t, '0b11111100')
         s = BitString('0b11011')
         s <<= 2
         self.assertEqual(s.bin, '0b01100')
-        s <<= 1000
+        s <<= 100000000000000000000
         self.assertEqual(s.bin, '0b00000')
+        s = BitString('0xff')
+        s <<= 1
+        self.assertEqual(s, '0xfe')
 
     def testShiftLeftInPlaceErrors(self):
         s = BitString()
@@ -3508,7 +3521,7 @@ class Bugs(unittest.TestCase):
         s = Bits(bin='')
         t = Bits(oct='')
         u = Bits(hex='')
-        v = Bits(bytes='')
+        v = Bits(bytes=b'')
         self.assertFalse(s)
         self.assertFalse(t)
         self.assertFalse(u)
@@ -3826,16 +3839,16 @@ class PeekWithDict(unittest.TestCase):
         self.assertEqual((x, y), (1, '0x0'))
         self.assertEqual(s.pos, 0)
 
-class Miscellany(unittest.TestCase):
-
-    def testNumpyInt(self):
-        try:
-            import numpy
-            a = Bits(uint=numpy.uint8(5), length=3)
-            self.assertEqual(a.uint, 5)
-        except ImportError:
-            # Not to worry
-            pass
+##class Miscellany(unittest.TestCase):
+##
+##    def testNumpyInt(self):
+##        try:
+##            import numpy
+##            a = Bits(uint=numpy.uint8(5), length=3)
+##            self.assertEqual(a.uint, 5)
+##        except ImportError:
+##            # Not to worry
+##            pass
 
 class BoolToken(unittest.TestCase):
 
