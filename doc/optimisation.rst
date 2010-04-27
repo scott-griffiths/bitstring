@@ -11,17 +11,17 @@ Use combined read and interpretation
 
 When parsing a bitstring one way to write code is in the following style::
 
- width = s.readbits(12).uint
- height = s.readbits(12).uint
- flags = s.readbits(4).bin
+ width = s.read(12).uint
+ height = s.read(12).uint
+ flags = s.read(4).bin
  
-This works fine, but is not very quick. The problem is that the call to :meth:`Bits.readbits` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead of using :meth:`Bits.readbits` (or similar methods) it is better to use a single method that does the read and interpretation together::
+This works fine, but is not very quick. The problem is that the call to :meth:`Bits.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
 
  width = s.read('uint:12')
  height = s.read('uint:12')
  flags = s.read('bin:4')
  
-This is much faster, although not as fast as the combined call::
+This is much faster, although probably not as fast as the combined call::
 
  width, height, flags = s.readlist('uint:12, uint:12, bin:4')
  
@@ -30,7 +30,7 @@ Choose between Bits and BitString
 
 If you don't need to modify your bitstring after creation then prefer the immutable :class:`Bits` over the mutable :class:`BitString`. This is typically the case when parsing, or when creating directly from files.
 
-As of version 1.2.0 the speed difference between the classes is marginal, but the speed of :class:`Bits` is expected to improve. There are also memory usage optimisations that can be made if objects are known to be immutable so there should be improvements in this area too.
+As of version 2.0 the speed difference between the classes is marginal, but the speed of :class:`Bits` is expected to improve. There are also memory usage optimisations that can be made if objects are known to be immutable so there should be improvements in this area too.
 
 One anti-pattern to watch out for is using ``+=`` on a :class:`Bits` object. For example, don't do this::
 
@@ -57,10 +57,10 @@ This creates a 1000 bit bitstring and sets three of the bits to '1'. Unfortunate
  
 As well as :meth:`BitString.set`, :meth:`BitString.unset` and :meth:`BitString.invert` there are also checking methods :meth:`Bits.allset` and :meth:`Bits.allunset`. So rather than using ::
 
- if s[100] == '0b1' and s[200] == '0b1':
+ if s[100] and s[200]:
      do_something()
      
-it's much better to say ::
+it's better to say ::
 
  if s.allset((100, 200)):
      do_something()
