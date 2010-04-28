@@ -779,6 +779,7 @@ class Bits(collections.Sequence):
         # The copy can use the same datastore as it's immutable.
         s = Bits()
         s._datastore = self._datastore
+        # TODO: should the copy keep the same bit position?
         s._pos = self._pos
         return s
 
@@ -964,8 +965,7 @@ class Bits(collections.Sequence):
         """
         if not self:
             raise Error("Cannot invert empty bitstring.")
-        s = self.__class__(bytes=self._datastore.getbyteslice(0, self._datastore.bytelength), length=self.len,
-                           offset=self._datastore.offset)
+        s = self._copy()
         s._invert(xrange(s.len))
         return s
 
@@ -1011,10 +1011,8 @@ class Bits(collections.Sequence):
             raise ValueError("Cannot multiply by a negative integer.")
         if n == 0:
             return self.__class__()
-        # TODO: optimise
         s = self._copy()
-        for i in xrange(n - 1):
-            s._append(self)
+        s._imul(n)
         return s
 
     def __rmul__(self, n):
@@ -1038,7 +1036,7 @@ class Bits(collections.Sequence):
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for & operator.")
-        s = self[:]
+        s = self._copy()
         s._iand(bs)
         return s
 
@@ -1064,7 +1062,7 @@ class Bits(collections.Sequence):
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for | operator.")
-        s = self[:]
+        s = self._copy()
         s._ior(bs)
         return s
 
@@ -1090,7 +1088,7 @@ class Bits(collections.Sequence):
         if self.len != bs.len:
             raise ValueError("BitStrings must have the same length "
                              "for ^ operator.")
-        s = self[:]
+        s = self._copy()
         s._ixor(bs)
         return s
 
@@ -1783,6 +1781,7 @@ class Bits(collections.Sequence):
             hexstring += '0'
         try:
             data = binascii.unhexlify(hexstring)
+        # Python 2.6 raises TypeError, Python 3 raises binascii.Error.
         except (TypeError, binascii.Error):
             raise CreationError("Invalid symbol in hex initialiser.")
         self._setbytes_unsafe(data, length*4, 0)
@@ -1797,7 +1796,7 @@ class Bits(collections.Sequence):
         # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
         # TODO: Optimize
         s = str(binascii.hexlify(self[start:start+length].tobytes()).decode('utf-8'))
-        if (length // 4) % 2 == 1:
+        if (length // 4) % 2:
             # We've got one nibble too many, so cut it off.
             return '0x' + s[:-1]
         else:
@@ -1879,7 +1878,8 @@ class Bits(collections.Sequence):
     def _copy(self):
         """Create and return a new copy of the Bits (always in memory)."""
         s_copy = self.__class__()
-        s_copy._pos = self._pos
+        # The copy doesn't keep the same bit position.
+        s_copy._pos = 0
         s_copy._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength),
                                 self.len, self._offset)
         return s_copy
@@ -2105,9 +2105,12 @@ class Bits(collections.Sequence):
         if n == 0:
             self._clear()
             return self
-        s = self.__class__(self)
-        for i in xrange(n - 1):
-            self._append(s)
+        m = 1
+        old_len = self.len
+        while m*2 < n:
+            self._append(self)
+            m *= 2
+        self._append(self[0:(n-m)*old_len])
         return self
 
     def _inplace_logical_helper(self, bs, f):
@@ -2226,12 +2229,11 @@ class Bits(collections.Sequence):
                     raise ReadError("Cannot read off the end of the bitstring.")
             if fmt < 0:
                 raise ValueError("Cannot read negative amount.")
-            # TODO: Shouldn't this min go?
-            bits = min(fmt, self.len - self._pos)
-            if bits != fmt:
-                raise ReadError("Cannot read {0} bits, only {1} available.", fmt, bits)
-            bs = self._readbits(bits, self._pos)
-            self._pos += bits
+            if fmt > self.len - self._pos:
+                raise ReadError("Cannot read {0} bits, only {1} available.",
+                                fmt, self.len - self._pos)
+            bs = self._readbits(fmt, self._pos)
+            self._pos += fmt
             return bs
         p = self._pos
         _, token = tokenparser(fmt)
@@ -2265,6 +2267,7 @@ class Bits(collections.Sequence):
 
         """
         # Not very optimal this, but replace integers with 'bits' tokens
+        # TODO: optimise.
         for i, f in enumerate(fmt):
             if isinstance(f, (int, long)):
                 fmt[i] = "bits:{0}".format(f)
