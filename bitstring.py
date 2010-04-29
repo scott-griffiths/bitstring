@@ -542,8 +542,10 @@ class ByteArray(BaseArray):
 
     def appendarray(self, array):
         """Join another array on to the end of this one."""
-        if array is self:
-            array = copy.copy(self)
+        # TODO: The copy here and in prepend array is needed in case array is self
+        # or if array is a FileArray. The logic needs looking at to see when it can
+        # be skipped.
+        array = copy.copy(array)
         # Set new array offset to the number of bits in the final byte of current array.
         array.setoffset((self.offset + self.bitlength) % 8)
         if array.offset != 0:
@@ -619,6 +621,11 @@ class FileArray(BaseArray):
         self.bitlength = bitlength
         self.offset = bitoffset
 
+    def __copy__(self):
+        # Asking for a copy of a FileArray gets you a MemArray. After all,
+        # why would you want a copy if you didn't want to modify it?
+        return MemArray(self.rawbytes, self.bitlength, self.offset)
+
     def getbyte(self, pos):
         if pos < 0:
             pos += self.bytelength
@@ -632,6 +639,10 @@ class FileArray(BaseArray):
             return self.source.read(end - start)
         else:
             return b''
+
+    @property
+    def rawbytes(self):
+        return bytearray(self.getbyteslice(0, self.bytelength))
 
 
 class Bits(collections.Sequence):
@@ -1841,8 +1852,7 @@ class Bits(collections.Sequence):
 
     def _ensureinmemory(self):
         """Ensure the data is held in memory, not in a file."""
-        # TODO: uncomment the next line and fix any problems
-        #assert self._filebased == False
+        assert self._filebased == False
         self._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength), self.len,
                               self._offset)
 
@@ -1912,8 +1922,6 @@ class Bits(collections.Sequence):
         try:
             self._datastore.appendarray(bs._datastore)
         except NotImplementedError:
-            self._ensureinmemory()
-            bs._ensureinmemory()
             self._datastore.appendarray(bs._datastore)
 
     def _prepend(self, bs):
@@ -1921,8 +1929,6 @@ class Bits(collections.Sequence):
         try:
             self._datastore.prependarray(bs._datastore)
         except NotImplementedError:
-            self._ensureinmemory()
-            bs._ensureinmemory()
             self._datastore.prependarray(bs._datastore)
         self._pos += bs.len
 
@@ -2633,10 +2639,16 @@ class Bits(collections.Sequence):
         Up to seven zero bits will be added at the end to byte align.
 
         """
-        self._ensureinmemory()
-        self._datastore.setoffset(0)
-        d = self._datastore.rawbytes
-
+        if self._filebased:
+            if self._offset == 0:
+                d = self._datastore.rawbytes
+            else:
+                s = Bits(bytes=self._datastore.rawbytes, offset=self._offset)
+                s._datastore.setoffset(0)
+                d = self._datastore.rawbytes
+        else:
+            self._datastore.setoffset(0)
+            d = self._datastore.rawbytes
         # Need to ensure that unused bits at end are set to zero
         unusedbits = 8 - self.len % 8
         if unusedbits != 8:
@@ -3228,7 +3240,6 @@ class BitString(Bits, collections.MutableSequence):
                             "but {0} was provided.".format(type(n)))
         if n < 0:
             raise ValueError("Cannot multiply by a negative integer.")
-        self._ensureinmemory()
         return self._imul(n)
 
     def __ior__(self, bs):
@@ -3236,7 +3247,6 @@ class BitString(Bits, collections.MutableSequence):
         if self.len != bs.len:
             raise ValueError("BitStrings must have the same length "
                              "for |= operator.")
-        self._ensureinmemory()
         return self._ior(bs)
 
     def __iand__(self, bs):
@@ -3244,7 +3254,6 @@ class BitString(Bits, collections.MutableSequence):
         if self.len != bs.len:
             raise ValueError("BitStrings must have the same length "
                              "for &= operator.")
-        self._ensureinmemory()
         return self._iand(bs)
 
     def __ixor__(self, bs):
@@ -3252,7 +3261,6 @@ class BitString(Bits, collections.MutableSequence):
         if self.len != bs.len:
             raise ValueError("BitStrings must have the same length "
                              "for ^= operator.")
-        self._ensureinmemory()
         return self._ixor(bs)
 
     def _reverse(self):
@@ -3373,8 +3381,6 @@ class BitString(Bits, collections.MutableSequence):
             pos += self.len
         if pos < 0 or pos + bs.len > self.len:
             raise ValueError("Overwrite exceeds boundary of BitString.")
-        self._ensureinmemory()
-        bs._ensureinmemory()
         self._overwrite(bs, pos)
 
     def append(self, bs):
@@ -3409,7 +3415,6 @@ class BitString(Bits, collections.MutableSequence):
 
         """
         start, end = self._validate_slice(start, end)
-        self._ensureinmemory()
         if start == 0 and end == self.len:
             self._reverse()
             return
@@ -3430,7 +3435,6 @@ class BitString(Bits, collections.MutableSequence):
         start, end = self._validate_slice(start, end)
         if (end - start) % 8 != 0:
             raise ByteAlignError("Can only use reversebytes on whole-byte BitStrings.")
-        self._ensureinmemory()
         self._reversebytes(start, end)
 
     def set(self, pos):
@@ -3442,7 +3446,6 @@ class BitString(Bits, collections.MutableSequence):
         Raises IndexError if pos < -self.len or pos >= self.len.
 
         """
-        self._ensureinmemory()
         self._set(pos)
 
     def unset(self, pos):
@@ -3454,7 +3457,6 @@ class BitString(Bits, collections.MutableSequence):
         Raises IndexError if pos < -self.len or pos >= self.len.
 
         """
-        self._ensureinmemory()
         self._unset(pos)
 
     def invert(self, pos):
@@ -3524,7 +3526,6 @@ class BitString(Bits, collections.MutableSequence):
 
         """
         start, end = self._validate_slice(start, end)
-        self._ensureinmemory()
         if isinstance(fmt, (int, long)):
             if fmt < 1:
                 raise ValueError("Improper byte length {0}.".format(fmt))
