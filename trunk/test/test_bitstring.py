@@ -873,12 +873,11 @@ class Unpack(unittest.TestCase):
 class FromFile(unittest.TestCase):
 
     def testCreationFromFileOperations(self):
-        s = BitString(filename='smalltestfile')
-        s.append('0xff')
+        s = Bits(filename='smalltestfile') + '0xff'
         self.assertEqual(s.hex, '0x0123456789abcdefff')
 
-        s = BitString(filename='smalltestfile')
-        t = BitString('0xff') + s
+        s = Bits(filename='smalltestfile')
+        t = Bits('0xff') + s
         self.assertEqual(t.hex, '0xff0123456789abcdef')
 
         s = BitString(filename='smalltestfile')
@@ -935,13 +934,13 @@ class FromFile(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, BitString, filename='test.m1v', length=999999999999)
 
     def testCreationFromFileWithOffset(self):
-        a = BitString(filename='test.m1v', offset=4)
+        a = Bits(filename='test.m1v', offset=4)
         self.assertEqual(a.peek(4*8).hex, '0x00001b31')
-        b = BitString(filename='test.m1v', offset=28)
+        b = Bits(filename='test.m1v', offset=28)
         self.assertEqual(b.peek(8).hex, '0x31')
 
     def testFileSlices(self):
-        s = BitString(filename='smalltestfile')
+        s = Bits(filename='smalltestfile')
         t = s[-2::8]
         self.assertEqual(s[-2::8].hex, '0xcdef')
 
@@ -949,7 +948,7 @@ class FromFile(unittest.TestCase):
         self.assertRaises(IOError, BitString, filename='Idonotexist')
 
     def testFindInFile(self):
-        s = BitString(filename = 'test.m1v')
+        s = Bits(filename = 'test.m1v')
         self.assertTrue(s.find('0x160120'))
         self.assertEqual(s.bytepos, 4)
         s3 = s.read(3*8)
@@ -967,7 +966,7 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s.hex, '0x11')
 
     def testFileOperations(self):
-        s1 = BitString(filename='test.m1v')
+        s1 = Bits(filename='test.m1v')
         s2 = BitString(filename='test.m1v')
         self.assertEqual(s1.read(32).hex, '0x000001b3')
         self.assertEqual(s2.read(32).hex, '0x000001b3')
@@ -991,6 +990,9 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s.len, 11743020505*8)
         self.assertEqual(s[1000000000:1000000100].hex, '0xbdef7335d4545f680d669ce24')
         self.assertEqual(s[-4::8].hex, '0xbbebf7a1')
+
+    def testFileSanity(self):
+        pass
 
 class CreationErrors(unittest.TestCase):
 
