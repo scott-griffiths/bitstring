@@ -873,11 +873,12 @@ class Unpack(unittest.TestCase):
 class FromFile(unittest.TestCase):
 
     def testCreationFromFileOperations(self):
-        s = Bits(filename='smalltestfile') + '0xff'
+        s = BitString(filename='smalltestfile')
+        s.append('0xff')
         self.assertEqual(s.hex, '0x0123456789abcdefff')
 
-        s = Bits(filename='smalltestfile')
-        t = Bits('0xff') + s
+        s = BitString(filename='smalltestfile')
+        t = BitString('0xff') + s
         self.assertEqual(t.hex, '0xff0123456789abcdef')
 
         s = BitString(filename='smalltestfile')
@@ -934,13 +935,13 @@ class FromFile(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, BitString, filename='test.m1v', length=999999999999)
 
     def testCreationFromFileWithOffset(self):
-        a = Bits(filename='test.m1v', offset=4)
+        a = BitString(filename='test.m1v', offset=4)
         self.assertEqual(a.peek(4*8).hex, '0x00001b31')
-        b = Bits(filename='test.m1v', offset=28)
+        b = BitString(filename='test.m1v', offset=28)
         self.assertEqual(b.peek(8).hex, '0x31')
 
     def testFileSlices(self):
-        s = Bits(filename='smalltestfile')
+        s = BitString(filename='smalltestfile')
         t = s[-2::8]
         self.assertEqual(s[-2::8].hex, '0xcdef')
 
@@ -948,7 +949,7 @@ class FromFile(unittest.TestCase):
         self.assertRaises(IOError, BitString, filename='Idonotexist')
 
     def testFindInFile(self):
-        s = Bits(filename = 'test.m1v')
+        s = BitString(filename = 'test.m1v')
         self.assertTrue(s.find('0x160120'))
         self.assertEqual(s.bytepos, 4)
         s3 = s.read(3*8)
@@ -966,7 +967,7 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s.hex, '0x11')
 
     def testFileOperations(self):
-        s1 = Bits(filename='test.m1v')
+        s1 = BitString(filename='test.m1v')
         s2 = BitString(filename='test.m1v')
         self.assertEqual(s1.read(32).hex, '0x000001b3')
         self.assertEqual(s2.read(32).hex, '0x000001b3')
@@ -990,9 +991,6 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s.len, 11743020505*8)
         self.assertEqual(s[1000000000:1000000100].hex, '0xbdef7335d4545f680d669ce24')
         self.assertEqual(s[-4::8].hex, '0xbbebf7a1')
-
-    def testFileSanity(self):
-        pass
 
 class CreationErrors(unittest.TestCase):
 
@@ -1281,6 +1279,75 @@ class Resetting(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, s._setbin_safe, '00102')
 
 
+class Overwriting(unittest.TestCase):
+    
+    def testOverwriteBit(self):
+        s = BitString(bin='0')
+        s.overwrite(BitString(bin='1'), 0)
+        self.assertEqual(s.bin, '0b1')
+
+    def testOverwriteLimits(self):
+        s = BitString(bin='0b11111')
+        s.overwrite(BitString(bin='000'), 0)
+        self.assertEqual(s.bin, '0b00011')
+        s.overwrite('0b000', 2)
+        self.assertEqual(s.bin, '0b00000')
+
+    def testOverwriteNull(self):
+        s = BitString(hex='342563fedec')
+        s2 = BitString(s)
+        s.overwrite(BitString(bin=''), 23)
+        self.assertEqual(s.bin, s2.bin)
+
+    def testOverwritePosition(self):
+        s1 = BitString(hex='0123456')
+        s2 = BitString(hex='ff')
+        s1.bytepos = 1
+        s1.overwrite(s2)
+        self.assertEqual((s1.hex, s1.bytepos), ('0x01ff456', 2))
+        s1.overwrite('0xff', 0)
+        self.assertEqual((s1.hex, s1.bytepos), ('0xffff456', 1))
+
+    def testOverwriteWithSelf(self):
+        s = BitString('0x123')
+        s.overwrite(s)
+        self.assertEqual(s, '0x123')
+        
+class Split(unittest.TestCase):
+    
+    def testSplitByteAlignedCornerCases(self):
+        s = BitString()
+        bsl = s.split(BitString(hex='0xff'))
+        self.assertEqual(next(bsl).hex, '')
+        self.assertRaises(StopIteration, next, bsl)
+        s = BitString(hex='aabbcceeddff')
+        delimiter = BitString()
+        bsl = s.split(delimiter)
+        self.assertRaises(ValueError, next, bsl)
+        delimiter = BitString(hex='11')
+        bsl = s.split(delimiter)
+        self.assertEqual(next(bsl).hex, s.hex)
+
+    def testSplitByteAligned(self):
+        s = BitString(hex='0x1234aa1234bbcc1234ffff')
+        delimiter = BitString(hex='1234')
+        bsl = s.split(delimiter)
+        self.assertEqual([b.hex for b in bsl], ['', '0x1234aa', '0x1234bbcc', '0x1234ffff'])
+
+    def testSplitByteAlignedWithIntialBytes(self):
+        s = BitString(hex='aa471234fedc43 47112233 47 4723 472314')
+        delimiter = BitString(hex='47')
+        s.find(delimiter)
+        self.assertEqual(s.bytepos, 1)
+        bsl = s.split(delimiter, start=0)
+        self.assertEqual([b.hex for b in bsl], ['0xaa', '0x471234fedc43', '0x47112233',
+                                                  '0x47', '0x4723', '0x472314'])
+
+    def testSplitByteAlignedWithOverlappingDelimiter(self):
+        s = BitString(hex='aaffaaffaaffaaffaaff')
+        bsl = s.split(BitString(hex='aaffaa'))
+        self.assertEqual([b.hex for b in bsl], ['', '0xaaffaaff', '0xaaffaaffaaff'])
+
 class Adding(unittest.TestCase):
 
     def testAdding(self):
@@ -1321,37 +1388,6 @@ class Adding(unittest.TestCase):
         s = '0xff' + BitString('0xee')
         self.assertEqual(s.hex, '0xffee')
 
-    def testOverwriteBit(self):
-        s = BitString(bin='0')
-        s.overwrite(BitString(bin='1'), 0)
-        self.assertEqual(s.bin, '0b1')
-
-    def testOverwriteLimits(self):
-        s = BitString(bin='0b11111')
-        s.overwrite(BitString(bin='000'), 0)
-        self.assertEqual(s.bin, '0b00011')
-        s.overwrite('0b000', 2)
-        self.assertEqual(s.bin, '0b00000')
-
-    def testOverwriteNull(self):
-        s = BitString(hex='342563fedec')
-        s2 = BitString(s)
-        s.overwrite(BitString(bin=''), 23)
-        self.assertEqual(s.bin, s2.bin)
-
-    def testOverwritePosition(self):
-        s1 = BitString(hex='0123456')
-        s2 = BitString(hex='ff')
-        s1.bytepos = 1
-        s1.overwrite(s2)
-        self.assertEqual((s1.hex, s1.bytepos), ('0x01ff456', 2))
-        s1.overwrite('0xff', 0)
-        self.assertEqual((s1.hex, s1.bytepos), ('0xffff456', 1))
-
-    def testOverwriteWithSelf(self):
-        s = BitString('0x123')
-        s.overwrite(s)
-        self.assertEqual(s, '0x123')
 
     def testTruncateAsserts(self):
         s = BitString('0x001122')
@@ -1453,38 +1489,7 @@ class Adding(unittest.TestCase):
         s = BitString().join(bsl)
         self.assertEqual(s.length, 1200)
 
-    def testSplitByteAlignedCornerCases(self):
-        s = BitString()
-        bsl = s.split(BitString(hex='0xff'))
-        self.assertEqual(next(bsl).hex, '')
-        self.assertRaises(StopIteration, next, bsl)
-        s = BitString(hex='aabbcceeddff')
-        delimiter = BitString()
-        bsl = s.split(delimiter)
-        self.assertRaises(ValueError, next, bsl)
-        delimiter = BitString(hex='11')
-        bsl = s.split(delimiter)
-        self.assertEqual(next(bsl).hex, s.hex)
 
-    def testSplitByteAligned(self):
-        s = BitString(hex='0x1234aa1234bbcc1234ffff')
-        delimiter = BitString(hex='1234')
-        bsl = s.split(delimiter)
-        self.assertEqual([b.hex for b in bsl], ['', '0x1234aa', '0x1234bbcc', '0x1234ffff'])
-
-    def testSplitByteAlignedWithIntialBytes(self):
-        s = BitString(hex='aa471234fedc43 47112233 47 4723 472314')
-        delimiter = BitString(hex='47')
-        s.find(delimiter)
-        self.assertEqual(s.bytepos, 1)
-        bsl = s.split(delimiter, start=0)
-        self.assertEqual([b.hex for b in bsl], ['0xaa', '0x471234fedc43', '0x47112233',
-                                                  '0x47', '0x4723', '0x472314'])
-
-    def testSplitByteAlignedWithOverlappingDelimiter(self):
-        s = BitString(hex='aaffaaffaaffaaffaaff')
-        bsl = s.split(BitString(hex='aaffaa'))
-        self.assertEqual([b.hex for b in bsl], ['', '0xaaffaaff', '0xaaffaaffaaff'])
 
     def testPos(self):
         s = BitString(bin='1')
@@ -1551,7 +1556,6 @@ class Adding(unittest.TestCase):
         self.assertEqual(s.peek(1), True)
         self.assertEqual(s.peek(1), True)
 
-    def testPeekBits(self):
         s = BitString(bytes=b'\x1f', offset=3)
         self.assertEqual(s.len, 5)
         self.assertEqual(s.peek(5).bin, '0b11111')
@@ -1559,14 +1563,12 @@ class Adding(unittest.TestCase):
         s.pos += 1
         self.assertRaises(bitstring.ReadError, s.peek, 5)
 
-    def testPeekByte(self):
         s = BitString(hex='001122334455')
         self.assertEqual(s.peek(8).hex, '0x00')
         self.assertEqual(s.read(8).hex, '0x00')
         s.pos += 33
         self.assertRaises(bitstring.ReadError, s.peek, 8)
 
-    def testPeekBytes(self):
         s = BitString(hex='001122334455')
         self.assertEqual(s.peek(8*2).hex, '0x0011')
         self.assertEqual(s.read(8*3).hex, '0x001122')
@@ -1790,6 +1792,13 @@ class Adding(unittest.TestCase):
         self.assertEqual((~BitString('0b0')).bin, '0b1')
         self.assertEqual((~BitString('0b1')).bin, '0b0')
         self.assertTrue(~~s == s)
+        
+    def testInvertBitPosition(self):
+        s = Bits('0xefef')
+        s.pos = 8
+        t = ~s
+        self.assertEqual(s.pos, 8)
+        self.assertEqual(t.pos, 0)
 
     def testInvertSpecialMethodErrors(self):
         s = BitString()
@@ -3937,6 +3946,45 @@ class FileReadingStrategy(unittest.TestCase):
         self.assertTrue(b._filebased)
         self.assertFalse(a._mutable)
 
+class CollectionsMetaClasses(unittest.TestCase):
+    
+    def testCount(self):
+        a = Bits('0xf0f')
+        self.assertEqual(a.count(True), 8)
+        self.assertEqual(a.count(False), 4)
+        
+        b = BitString()
+        self.assertEqual(b.count(True), 0)
+        self.assertEqual(b.count(False), 0)
+        
+    def testIndex(self):
+        a = BitString('0x0010')
+        self.assertEqual(a.index(False), 0)
+        self.assertEqual(a.index(True), 11)  
+        
+    def testIter(self):
+        a = BitString('0b1100')
+        i = iter(a)
+        self.assertTrue(next(i))
+        self.assertTrue(next(i))
+        self.assertFalse(next(i))
+        self.assertFalse(next(i))
+        self.assertRaises(StopIteration, next, i)
+        
+    def testReversed(self):
+        a = Bits('0b110')
+        self.assertEqual(list(reversed(a)), [False, True, True])
+        
+    def testExtend(self):
+        pass
+    
+    def testPop(self):
+        pass
+    
+    def testRemove(self):
+        pass
+    
+        
 
 def main():
     unittest.main()
