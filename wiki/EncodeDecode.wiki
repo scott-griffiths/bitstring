@@ -87,26 +87,56 @@ OK, so a more complete example, from MPEG-2 video.
 picture_start_code = '0x00000100'
 sequence_header_code = '0x000001b3'
 ...
-def video_sequence(s):
-    d = {}
-    next_start_code(s)
-    sequence_header(s, d)
-    sequence_extension(s, d)
-    ...
+d = {}
+s = Bits(filename='somefile')
 
-def sequence_header(s, d)
+def video_sequence():
+    next_start_code()
+    sequence_header()
+    sequence_extension()
+    while(True):
+        extension_and_user_data(0)
+        while(True):
+            if nextbits(group_start_code):
+                group_of_pictures_header()
+            ...
+            if nextbits(picture_start_code) or nextbits(group_start_code):
+                break
+        ...
+        if not nextbits(sequence_end_code):
+            sequence_header()
+            sequence_extension()
+        if not nextbits(sequence_end_code):
+            break
+    s.decode(sequence_end_code)
+
+def sequence_header()
     format = [sequence_header_code,
               'uint:12=horizontal_size_value', 
               'uint:12=vertical_size_value',
               ...
-              '0b1=marker_bit',
+              'True=marker_bit',
               ...
-              'uint:1=load_intra_quantiser_matrix']
+              'bool=load_intra_quantiser_matrix']
     d.update(s.decode(format))
     if d['load_intra_quantiser_matrix']:
-        ...
+        d.update(s.decode('64*uint:8=intra_quantiser_matrix'))
+    ...
+    next_start_code()
 
+def sequence_extension():
+    format = [extension_start_code,
+              'uint:4=extension_start_code_identifier',
+              'uint:8=profile_and_level_indication',
+              'bool=progressive_sequence',
+              ...
+             ]
+    d.update(s.decode(format))
+    next_start_code()
 
+              
+
+video_sequence()
 
 
 }}}
