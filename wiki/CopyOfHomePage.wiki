@@ -29,41 +29,41 @@ See the [Examples Wiki] and the [http://python-bitstring.googlecode.com/svn/tags
 
 Creation:
 {{{
->>> a = BitString('0b00101')
->>> b = Bits(a_file_object)
->>> c = BitString('0xff, 0b101, 0o65, uint:6=22')
->>> d = pack('intle:16, hex=a, 0b1', 100, a='0x34f')
+>>> a = BitString('0b00101')    # 5 bits long
+>>> b = Bits(a_file_object)     # Treat file as array of bits.
+>>> c = BitString('0xff, 0b101, 0o65, uint:6=22')   # Many initialisers joined together
+>>> d = pack('intle:16, hex=a, 0b1', 100, a='0x34f') # Create using bit-wise pack function
 >>> e = pack('<16h', *range(16))
 }}}
 Different interpretations, slicing and concatenation:
 {{{
->>> a = BitString('0x1af')
->>> a.hex, a.bin, a.uint
+>>> a = Bits('0x1af')
+>>> a.hex, a.bin, a.uint     # Different interpretations using properties
 ('0x1af', '0b000110101111', 431)
->>> a[10:3:-1].bin
+>>> a[10:3:-1].bin           # Slice with negative step
 '0b1110101'
 >>> 3*a + 'int:20=40'
-BitString('0x1af1af1af00028')
+Bits('0x1af1af1af00028')
 }}}
 
 Reading data sequentially.
 {{{
 >>> b = BitString('0x160120f')
->>> b.read('hex:12')
+>>> b.read('hex:12')           # Read 12 bits, and interpret as hex
 '0x160'
 >>> b.pos = 0
->>> b.read('uint:12')
+>>> b.read('uint:12')          # Read those same bits, but interpret as integer
 352
->>> b.readlist('uint:12, bin:3')
+>>> b.readlist('uint:12, bin:3')  # Multiple reads
 [288, '0b111']
 }}}
 
 Searching, inserting and deleting:
 {{{
 >>> c = BitString('0b00010010010010001111')   # c.hex == '0x1248f'
->>> c.find('0x48')
+>>> c.find('0x48')    # Note that found byte wasn't byte-aligned
 True
->>> c.replace('0b001', '0xabc')
+>>> c.replace('0b001', '0xabc')  # Replace all 3-bit occurrences with 12-bits
 >>> c.insert('0b0000')
 >>> del c[4:12]
 }}}
