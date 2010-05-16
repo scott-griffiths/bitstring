@@ -65,6 +65,5 @@ Searching, inserting and deleting:
 True
 >>> c.replace('0b001', '0xabc')
 >>> c.insert('0b0000')
->>> c.delete(4, 12)
+>>> del c[4:12]
 }}}
-
