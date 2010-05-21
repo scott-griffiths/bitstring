@@ -409,6 +409,8 @@ class Shift(unittest.TestCase):
         t = s << 1
         self.assertEqual(s.bin, '0b1010')
         self.assertEqual(t.bin, '0b0100')
+        t = t << 0
+        self.assertEqual(t, '0b0100')
         t = t << 100
         self.assertEqual(t.bin, '0b0000')
 
@@ -423,6 +425,8 @@ class Shift(unittest.TestCase):
         t = s >> 1
         self.assertEqual(s.bin, '0b1010')
         self.assertEqual(t.bin, '0b0101')
+        s = s >> 0
+        self.assertEqual(s, '0b1010')
         s = s >> 100
         self.assertEqual(s.bin, '0b0000')
 
@@ -444,6 +448,8 @@ class Shift(unittest.TestCase):
         s = BitString('0xff')
         s >>= 1
         self.assertEqual(s, '0x7f')
+        s >>= 0
+        self.assertEqual(s, '0x7f')
 
     def testShiftRightInPlaceErrors(self):
         s = BitString()
@@ -463,6 +469,8 @@ class Shift(unittest.TestCase):
         self.assertEqual(s.bin, '0b00000')
         s = BitString('0xff')
         s <<= 1
+        self.assertEqual(s, '0xfe')
+        s <<= 0
         self.assertEqual(s, '0xfe')
 
     def testShiftLeftInPlaceErrors(self):
@@ -3904,6 +3912,13 @@ class BoolToken(unittest.TestCase):
         self.assertRaises(bitstring.InterpretError, a._getbool)
         self.assertRaises(bitstring.CreationError, a._setbool, 0)
         self.assertRaises(bitstring.CreationError, a._setbool, 'false')
+        
+    def testLengthWithBoolRead(self):
+        a = Bits('0xf')
+        self.assertRaises(ValueError, a.read, 'bool:0')
+        self.assertRaises(ValueError, a.read, 'bool:1')
+        self.assertRaises(ValueError, a.read, 'bool:2')
+        
 
 class ReadWithIntegers(unittest.TestCase):
 
@@ -3984,6 +3999,13 @@ class CollectionsMetaClasses(unittest.TestCase):
     def testRemove(self):
         pass
     
+class ZeroBitReads(unittest.TestCase):
+    
+    def testInteger(self):
+        a = Bits('0x123456')
+        self.assertRaises(bitstring.InterpretError, a.read, 'uint:0')
+        self.assertRaises(bitstring.InterpretError, a.read, 'float:0')
+        
         
 
 def main():

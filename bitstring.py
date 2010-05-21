@@ -240,6 +240,8 @@ def tokenparser(fmt, keys=None, token_cache={}):
             if length is None and name not in ('se', 'ue'):
                 stretchy_token = True
             if length is not None:
+                if name == 'bool':
+                    raise ValueError("You can't specify a length with bool tokens - they are always one bit.") 
                 # Try converting length to int, otherwise check it's a key.
                 try:
                     length = int(length)
@@ -362,7 +364,6 @@ class CreationError(Error, ValueError):
 
     def __init__(self, *params):
         Error.__init__(self, *params)
-
 
 
 class BaseArray(object):
@@ -1004,6 +1005,8 @@ class Bits(collections.Sequence):
             raise ValueError("Cannot shift by a negative amount.")
         if not self:
             raise ValueError("Cannot shift an empty bitstring.")
+        if n == 0:
+            return self
         s = self.__class__(length=min(n, self.len))
         s._append(self[:-n])
         return s
@@ -3212,6 +3215,8 @@ class BitString(Bits, collections.MutableSequence):
             raise ValueError("Cannot shift by a negative amount.")
         if not self:
             raise ValueError("Cannot shift an empty bitstring.")
+        if n == 0:
+            return self
         n = min(n, self.len)
         return self._ilshift(n)
 
@@ -3225,6 +3230,8 @@ class BitString(Bits, collections.MutableSequence):
             raise ValueError("Cannot shift by a negative amount.")
         if not self:
             raise ValueError("Cannot shift an empty bitstring.")
+        if n == 0:
+            return self
         n = min(n, self.len)
         return self._irshift(n)
 
