@@ -13,7 +13,9 @@ The latest versions are available for Python 2.6 and later (including Python 3).
 ----
 =News=
 
-==<font color="#4444cc">March 18th 2010:</font> <font color="green">Version 1.3.0 for Python 2.6 and 3.x released</font>==
+==<font color="#4444cc">May 24th 2010:</font> <font color="green">Version 2.0.0 beta 1 for Python 2.6 and 3.x released</font>==
+
+This is a major new release that breaks compatibility with previous versions in a number of areas, but mostly through the removal of some redundant methods. It is not a radical change from version 1.3, and new users are advised to start with version 2.0. Although it is a beta I don't expect any (or only minor) functional changes before 2.0 proper. 
 
 For details see the ReleaseNotes.
 ----
