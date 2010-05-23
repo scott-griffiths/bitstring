@@ -1006,7 +1006,7 @@ class Bits(collections.Sequence):
         if not self:
             raise ValueError("Cannot shift an empty bitstring.")
         if n == 0:
-            return self
+            return self._copy()
         s = self.__class__(length=min(n, self.len))
         s._append(self[:-n])
         return s
