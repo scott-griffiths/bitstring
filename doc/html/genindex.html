@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '1.3',
+        URL_ROOT:    '#',
+        VERSION:     '2.0.0 beta 1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="" title="General Index"
+          <a href="#" title="General Index"
              accesskey="I">index</a></li>
         <li><a href="index.html">bitstring</a> &raquo;</li> 
       </ul>
@@ -100,8 +100,9 @@
 <dt><a href="bitstring_classes.html#Bits">Bits (built-in class)</a></dt>
 <dt><a href="bitstring_classes.html#BitString">BitString (built-in class)</a></dt>
 <dt><a href="index.html#module-bitstring">bitstring (module)</a></dt>
-<dt><a href="bitstring_classes.html#BitStringError">BitStringError</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="bitstring_classes.html#bool">bool</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="bitstring_classes.html#Bits.bytealign">bytealign() (Bits method)</a></dt>
+<dt><a href="bitstring_classes.html#ByteAlignError">ByteAlignError</a></dt>
 <dt><a href="bitstring_classes.html#bytepos">bytepos</a></dt>
 <dt><a href="bitstring_classes.html#bytes">bytes</a></dt>
 <dt><a href="bitstring_classes.html#BitString.byteswap">byteswap() (BitString method)</a></dt>
@@ -111,6 +112,7 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
+<dt><a href="bitstring_classes.html#CreationError">CreationError</a></dt>
 <dt><a href="bitstring_classes.html#Bits.cut">cut() (Bits method)</a></dt></dl></td><td width="33%" valign="top"><dl>
 </dl></td></tr></table>
 
@@ -125,7 +127,8 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="bitstring_classes.html#Bits.endswith">endswith() (Bits method)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="bitstring_classes.html#Bits.endswith">endswith() (Bits method)</a></dt>
+<dt><a href="bitstring_classes.html#Error">Error</a></dt></dl></td><td width="33%" valign="top"><dl>
 </dl></td></tr></table>
 
 <h2 id="F">F</h2>
@@ -154,7 +157,8 @@
 <dt><a href="bitstring_classes.html#BitString.insert">insert() (BitString method)</a></dt>
 <dt><a href="bitstring_classes.html#int">int</a></dt>
 <dt><a href="bitstring_classes.html#intbe">intbe</a></dt>
-<dt><a href="bitstring_classes.html#intle">intle</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="bitstring_classes.html#InterpretError">InterpretError</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="bitstring_classes.html#intle">intle</a></dt>
 <dt><a href="bitstring_classes.html#intne">intne</a></dt>
 <dt><a href="bitstring_classes.html#BitString.invert">invert() (BitString method)</a></dt>
 </dl></td></tr></table>
@@ -188,13 +192,7 @@
 
 <dt><a href="functions.html#pack">pack() (built-in function)</a></dt>
 <dt><a href="bitstring_classes.html#Bits.peek">peek() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.peekbit">peekbit() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.peekbitlist">peekbitlist() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.peekbits">peekbits() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.peekbyte">peekbyte() (Bits method)</a></dt></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="bitstring_classes.html#Bits.peekbytelist">peekbytelist() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.peekbytes">peekbytes() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.peeklist">peeklist() (Bits method)</a></dt>
+<dt><a href="bitstring_classes.html#Bits.peeklist">peeklist() (Bits method)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="bitstring_classes.html#pos">pos</a></dt>
 <dt><a href="bitstring_classes.html#BitString.prepend">prepend() (BitString method)</a></dt>
 </dl></td></tr></table>
@@ -204,17 +202,12 @@
 <dl>
 
 <dt><a href="bitstring_classes.html#Bits.read">read() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.readbit">readbit() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.readbitlist">readbitlist() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.readbits">readbits() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.readbyte">readbyte() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.readbytelist">readbytelist() (Bits method)</a></dt>
-<dt><a href="bitstring_classes.html#Bits.readbytes">readbytes() (Bits method)</a></dt>
+<dt><a href="bitstring_classes.html#ReadError">ReadError</a></dt>
 <dt><a href="bitstring_classes.html#Bits.readlist">readlist() (Bits method)</a></dt>
 <dt><a href="bitstring_classes.html#BitString.replace">replace() (BitString method)</a></dt>
-<dt><a href="deprecated.html#Bits.retreatbit">retreatbit() (Bits method)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="deprecated.html#Bits.retreatbit">retreatbit() (Bits method)</a></dt>
 <dt><a href="deprecated.html#Bits.retreatbits">retreatbits() (Bits method)</a></dt>
-<dt><a href="deprecated.html#Bits.retreatbyte">retreatbyte() (Bits method)</a></dt>
+<dt><a href="deprecated.html#Bits.retreatbyte">retreatbyte() (Bits method)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="deprecated.html#Bits.retreatbytes">retreatbytes() (Bits method)</a></dt>
 <dt><a href="bitstring_classes.html#BitString.reverse">reverse() (BitString method)</a></dt>
 <dt><a href="bitstring_classes.html#BitString.reversebytes">reversebytes() (BitString method)</a></dt>
@@ -295,7 +288,7 @@
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="" title="General Index"
+          <a href="#" title="General Index"
              >index</a></li>
         <li><a href="index.html">bitstring</a> &raquo;</li> 
       </ul>

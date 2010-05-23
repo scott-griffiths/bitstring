@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '1.3',
+        URL_ROOT:    '#',
+        VERSION:     '2.0.0 beta 1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,18 +54,18 @@
 <div class="section" id="use-combined-read-and-interpretation">
 <h2>Use combined read and interpretation<a class="headerlink" href="#use-combined-read-and-interpretation" title="Permalink to this headline">¶</a></h2>
 <p>When parsing a bitstring one way to write code is in the following style:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">width</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readbits</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">uint</span>
-<span class="n">height</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readbits</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">uint</span>
-<span class="n">flags</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readbits</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">bin</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">width</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">uint</span>
+<span class="n">height</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">uint</span>
+<span class="n">flags</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">bin</span>
 </pre></div>
 </div>
-<p>This works fine, but is not very quick. The problem is that the call to <a title="Bits.readbits" class="reference external" href="bitstring_classes.html#Bits.readbits"><tt class="xref docutils literal"><span class="pre">Bits.readbits</span></tt></a> constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn&#8217;t used for anything else and so creating it is wasted effort. Instead of using <a title="Bits.readbits" class="reference external" href="bitstring_classes.html#Bits.readbits"><tt class="xref docutils literal"><span class="pre">Bits.readbits</span></tt></a> (or similar methods) it is better to use a single method that does the read and interpretation together:</p>
+<p>This works fine, but is not very quick. The problem is that the call to <a title="Bits.read" class="reference external" href="bitstring_classes.html#Bits.read"><tt class="xref docutils literal"><span class="pre">Bits.read</span></tt></a> constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn&#8217;t used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">width</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:12&#39;</span><span class="p">)</span>
 <span class="n">height</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:12&#39;</span><span class="p">)</span>
 <span class="n">flags</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;bin:4&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This is much faster, although not as fast as the combined call:</p>
+<p>This is much faster, although probably not as fast as the combined call:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">flags</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">(</span><span class="s">&#39;uint:12, uint:12, bin:4&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -73,7 +73,7 @@
 <div class="section" id="choose-between-bits-and-bitstring">
 <h2>Choose between Bits and BitString<a class="headerlink" href="#choose-between-bits-and-bitstring" title="Permalink to this headline">¶</a></h2>
 <p>If you don&#8217;t need to modify your bitstring after creation then prefer the immutable <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> over the mutable <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>. This is typically the case when parsing, or when creating directly from files.</p>
-<p>As of version 1.2.0 the speed difference between the classes is marginal, but the speed of <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> is expected to improve. There are also memory usage optimisations that can be made if objects are known to be immutable so there should be improvements in this area too.</p>
+<p>As of version 2.0 the speed difference between the classes is marginal, but the speed of <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> is expected to improve. There are also memory usage optimisations that can be made if objects are known to be immutable so there should be improvements in this area too.</p>
 <p>One anti-pattern to watch out for is using <tt class="docutils literal"><span class="pre">+=</span></tt> on a <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> object. For example, don&#8217;t do this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
@@ -96,11 +96,11 @@
 </pre></div>
 </div>
 <p>As well as <a title="BitString.set" class="reference external" href="bitstring_classes.html#BitString.set"><tt class="xref docutils literal"><span class="pre">BitString.set</span></tt></a>, <a title="BitString.unset" class="reference external" href="bitstring_classes.html#BitString.unset"><tt class="xref docutils literal"><span class="pre">BitString.unset</span></tt></a> and <a title="BitString.invert" class="reference external" href="bitstring_classes.html#BitString.invert"><tt class="xref docutils literal"><span class="pre">BitString.invert</span></tt></a> there are also checking methods <a title="Bits.allset" class="reference external" href="bitstring_classes.html#Bits.allset"><tt class="xref docutils literal"><span class="pre">Bits.allset</span></tt></a> and <a title="Bits.allunset" class="reference external" href="bitstring_classes.html#Bits.allunset"><tt class="xref docutils literal"><span class="pre">Bits.allunset</span></tt></a>. So rather than using</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;0b1&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="mi">200</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;0b1&#39;</span><span class="p">:</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="mi">200</span><span class="p">]:</span>
     <span class="n">do_something</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>it&#8217;s much better to say</p>
+<p>it&#8217;s better to say</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">allset</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">)):</span>
     <span class="n">do_something</span><span class="p">()</span>
 </pre></div>
@@ -119,7 +119,7 @@
             </a></p>
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="">Optimisation Techniques</a><ul>
+<li><a class="reference external" href="#">Optimisation Techniques</a><ul>
 <li><a class="reference external" href="#use-combined-read-and-interpretation">Use combined read and interpretation</a></li>
 <li><a class="reference external" href="#choose-between-bits-and-bitstring">Choose between Bits and BitString</a></li>
 <li><a class="reference external" href="#use-dedicated-functions-for-bit-setting-and-checking">Use dedicated functions for bit setting and checking</a></li>
