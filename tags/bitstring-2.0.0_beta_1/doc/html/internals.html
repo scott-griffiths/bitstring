@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Internals &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.0.0 beta 1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="Appendices" href="appendices.html" />
+    <link rel="prev" title="Optimisation Techniques" href="optimisation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="optimisation.html" title="Optimisation Techniques"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="appendices.html" accesskey="U">Appendices</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="internals">
+<h1>Internals<a class="headerlink" href="#internals" title="Permalink to this headline">¶</a></h1>
+<p>I am including some information on the internals of the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> class here, things that the general user shouldn’t need to know. The objects and methods described here all start with an underscore, which means that they are a private part of the implementation, not a part of the public interface and that that I reserve the right to change, rename and remove them at any time!</p>
+<p>This section isn&#8217;t complete, and may not even be accurate as I am in the process of refactoring the core, so with those disclaimers in mind...</p>
+<p>The data in a <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> can be considered to consist of three parts.</p>
+<ul class="simple">
+<li>The byte data, either contained in memory, or as part of a file.</li>
+<li>A length in bits.</li>
+<li>An offset to the data in bits.</li>
+</ul>
+<p>Storing the data in byte form is pretty essential, as anything else could be very memory inefficient. Keeping an offset to the data allows lots of optimisations to be made as it means that the byte data doesn’t need to be altered for almost all operations. An example is in order:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x01ff00&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">7</span><span class="p">:</span><span class="mi">12</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>This is about as simple as it gets, but let’s look at it in detail. First a is created by parsing the string as hexadecimal (as it starts with <tt class="docutils literal"><span class="pre">0x</span></tt>) and converting it to three data bytes <tt class="docutils literal"><span class="pre">\x01\xff\x00</span></tt>. By default the length is the bit length of the whole string, so it’s 24 in this case, and the offset is zero.</p>
+<p>Next, <tt class="docutils literal"><span class="pre">b</span></tt> is created from a slice of <tt class="docutils literal"><span class="pre">a</span></tt>. This slice doesn’t begin or end on a byte boundary, so one way of obtaining it would be to copy the data in <tt class="docutils literal"><span class="pre">a</span></tt> and start doing bit-wise shifts to get it all in the right place. This can get really very computationally expensive, so instead we utilise the <tt class="docutils literal"><span class="pre">offset</span></tt> and <tt class="docutils literal"><span class="pre">length</span></tt> parameters.</p>
+<p>The procedure is simply to copy the byte data containing the substring and set the <tt class="docutils literal"><span class="pre">offset</span></tt> and <tt class="docutils literal"><span class="pre">length</span></tt> to get the desired result. So in this example we have:</p>
+<div class="highlight-python"><pre>a : bytes = '\x01\xff\x00', offset = 0, len = 24
+b : bytes = '\x01\xff', offset = 7, len = 5</pre>
+</div>
+<p>This method also means that <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects initialised from a file don’t have to copy anything into memory - the data instead is obtained with a byte offset into the file. This brings us onto the different types of datastores used.</p>
+<p>The <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> has a <tt class="docutils literal"><span class="pre">_datastore</span></tt> member, which at present is either a <tt class="docutils literal"><span class="pre">MemArray</span></tt> class or a <tt class="docutils literal"><span class="pre">FileArray</span></tt> class. The <tt class="docutils literal"><span class="pre">MemArray</span></tt> class is really just a light wrapper around a <tt class="docutils literal"><span class="pre">bytearray</span></tt> object that contains the real byte data, so when we were talking about the data earlier I was really referring to the byte data contained in the <tt class="docutils literal"><span class="pre">bytearray</span></tt>, in the <tt class="docutils literal"><span class="pre">MemArray</span></tt>, in the <tt class="docutils literal"><span class="pre">_datastore</span></tt>, in the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> (but that seemed a bit much to give you in one go).</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="optimisation.html"
+                                  title="previous chapter">Optimisation Techniques</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="optimisation.html" title="Optimisation Techniques"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="appendices.html" >Appendices</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>

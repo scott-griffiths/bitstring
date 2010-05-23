@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Optimisation Techniques &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.0.0 beta 1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="Appendices" href="appendices.html" />
+    <link rel="next" title="Internals" href="internals.html" />
+    <link rel="prev" title="Exponential-Golomb Codes" href="exp-golomb.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="internals.html" title="Internals"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="exp-golomb.html" title="Exponential-Golomb Codes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="appendices.html" accesskey="U">Appendices</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="optimisation-techniques">
+<h1>Optimisation Techniques<a class="headerlink" href="#optimisation-techniques" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="xref docutils literal"><span class="pre">bistring</span></tt> module aims to be as fast as reasonably possible, and although there is more work to be done optimising some operations it is currently quite well optimised without resorting to C extensions.</p>
+<p>There are however some pointers you should follow to make your code efficient, so if you need things to run faster then this is the section for you.</p>
+<div class="section" id="use-combined-read-and-interpretation">
+<h2>Use combined read and interpretation<a class="headerlink" href="#use-combined-read-and-interpretation" title="Permalink to this headline">¶</a></h2>
+<p>When parsing a bitstring one way to write code is in the following style:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">width</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">uint</span>
+<span class="n">height</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">uint</span>
+<span class="n">flags</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">bin</span>
+</pre></div>
+</div>
+<p>This works fine, but is not very quick. The problem is that the call to <a title="Bits.read" class="reference external" href="bitstring_classes.html#Bits.read"><tt class="xref docutils literal"><span class="pre">Bits.read</span></tt></a> constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn&#8217;t used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">width</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:12&#39;</span><span class="p">)</span>
+<span class="n">height</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:12&#39;</span><span class="p">)</span>
+<span class="n">flags</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;bin:4&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is much faster, although probably not as fast as the combined call:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">flags</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">(</span><span class="s">&#39;uint:12, uint:12, bin:4&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="choose-between-bits-and-bitstring">
+<h2>Choose between Bits and BitString<a class="headerlink" href="#choose-between-bits-and-bitstring" title="Permalink to this headline">¶</a></h2>
+<p>If you don&#8217;t need to modify your bitstring after creation then prefer the immutable <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> over the mutable <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>. This is typically the case when parsing, or when creating directly from files.</p>
+<p>As of version 2.0 the speed difference between the classes is marginal, but the speed of <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> is expected to improve. There are also memory usage optimisations that can be made if objects are known to be immutable so there should be improvements in this area too.</p>
+<p>One anti-pattern to watch out for is using <tt class="docutils literal"><span class="pre">+=</span></tt> on a <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> object. For example, don&#8217;t do this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">+=</span> <span class="s">&#39;0xab&#39;</span>
+</pre></div>
+</div>
+<p>Now this is inefficient for a few reasons, but the one I&#8217;m highlighting is that as the immutable bitstring doesn&#8217;t have an <tt class="docutils literal"><span class="pre">__iadd__</span></tt> special method the ordinary <tt class="docutils literal"><span class="pre">__add__</span></tt> gets used instead. In other words <tt class="docutils literal"><span class="pre">s</span> <span class="pre">+=</span> <span class="pre">'0xab'</span></tt> gets converted to <tt class="docutils literal"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">s</span> <span class="pre">+</span> <span class="pre">'0xab'</span></tt>, which creates a new <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> from the old on every iteration. This isn&#8217;t what you&#8217;d want or possibly expect. If <tt class="docutils literal"><span class="pre">s</span></tt> had been a <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> then the addition would have been done in-place, and have been much more efficient.</p>
+</div>
+<div class="section" id="use-dedicated-functions-for-bit-setting-and-checking">
+<h2>Use dedicated functions for bit setting and checking<a class="headerlink" href="#use-dedicated-functions-for-bit-setting-and-checking" title="Permalink to this headline">¶</a></h2>
+<p>If you need to set or check individual bits then there are special functions for this. For example one way to set bits would be:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">501</span><span class="p">]:</span>
+    <span class="n">s</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;0b1&#39;</span>
+</pre></div>
+</div>
+<p>This creates a 1000 bit bitstring and sets three of the bits to &#8216;1&#8217;. Unfortunately the crucial line spends most of its time creating a new bitstring from the &#8216;0b1&#8217; string. It is much faster (and I mean at least an order of magnitude) to use the <a title="BitString.set" class="reference external" href="bitstring_classes.html#BitString.set"><tt class="xref docutils literal"><span class="pre">BitString.set</span></tt></a> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">([</span><span class="mi">14</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">501</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>As well as <a title="BitString.set" class="reference external" href="bitstring_classes.html#BitString.set"><tt class="xref docutils literal"><span class="pre">BitString.set</span></tt></a>, <a title="BitString.unset" class="reference external" href="bitstring_classes.html#BitString.unset"><tt class="xref docutils literal"><span class="pre">BitString.unset</span></tt></a> and <a title="BitString.invert" class="reference external" href="bitstring_classes.html#BitString.invert"><tt class="xref docutils literal"><span class="pre">BitString.invert</span></tt></a> there are also checking methods <a title="Bits.allset" class="reference external" href="bitstring_classes.html#Bits.allset"><tt class="xref docutils literal"><span class="pre">Bits.allset</span></tt></a> and <a title="Bits.allunset" class="reference external" href="bitstring_classes.html#Bits.allunset"><tt class="xref docutils literal"><span class="pre">Bits.allunset</span></tt></a>. So rather than using</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="mi">200</span><span class="p">]:</span>
+    <span class="n">do_something</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>it&#8217;s better to say</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">allset</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">)):</span>
+    <span class="n">do_something</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Optimisation Techniques</a><ul>
+<li><a class="reference external" href="#use-combined-read-and-interpretation">Use combined read and interpretation</a></li>
+<li><a class="reference external" href="#choose-between-bits-and-bitstring">Choose between Bits and BitString</a></li>
+<li><a class="reference external" href="#use-dedicated-functions-for-bit-setting-and-checking">Use dedicated functions for bit setting and checking</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="exp-golomb.html"
+                                  title="previous chapter">Exponential-Golomb Codes</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="internals.html"
+                                  title="next chapter">Internals</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="internals.html" title="Internals"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="exp-golomb.html" title="Exponential-Golomb Codes"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="appendices.html" >Appendices</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>

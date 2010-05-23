@@ -1,0 +1,331 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Reading, Parsing and Unpacking &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.0.0 beta 1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="User Manual" href="contents.html" />
+    <link rel="next" title="Miscellany" href="misc.html" />
+    <link rel="prev" title="Slicing, Dicing and Splicing" href="slicing.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="misc.html" title="Miscellany"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="slicing.html" title="Slicing, Dicing and Splicing"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" accesskey="U">User Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="reading-parsing-and-unpacking">
+<h1>Reading, Parsing and Unpacking<a class="headerlink" href="#reading-parsing-and-unpacking" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="reading-and-parsing">
+<h2>Reading and parsing<a class="headerlink" href="#reading-and-parsing" title="Permalink to this headline">¶</a></h2>
+<p>A common need is to parse a large bitstring into smaller parts. Functions for reading in the bitstring as if it were a file or stream are provided and will return new bitstrings. These new objects are top-level bitstring objects and can be interpreted using properties or could be read from themselves to form a hierarchy of reads.</p>
+<p>In order to behave like a file or stream, every bitstring has a property <a title="pos" class="reference external" href="bitstring_classes.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> which is the current position from which reads occur. <a title="pos" class="reference external" href="bitstring_classes.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> can range from zero (its value on construction) to the length of the bitstring, a position from which all reads will fail as it is past the last bit.</p>
+<p>The property <a title="bytepos" class="reference external" href="bitstring_classes.html#bytepos"><tt class="xref docutils literal"><span class="pre">bytepos</span></tt></a> is also available, and is useful if you are only dealing with byte data and don&#8217;t want to always have to divide the bit position by eight. Note that if you try to use <a title="bytepos" class="reference external" href="bitstring_classes.html#bytepos"><tt class="xref docutils literal"><span class="pre">bytepos</span></tt></a> and the bitstring isn&#8217;t byte aligned (i.e. <a title="pos" class="reference external" href="bitstring_classes.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> isn&#8217;t a multiple of 8) then a <a title="Error" class="reference external" href="bitstring_classes.html#Error"><tt class="xref docutils literal"><span class="pre">Error</span></tt></a> exception will be raised.</p>
+<div class="section" id="read-readlist">
+<h3><tt class="docutils literal"><span class="pre">read</span> <span class="pre">/</span> <span class="pre">readlist</span></tt><a class="headerlink" href="#read-readlist" title="Permalink to this headline">¶</a></h3>
+<p>For simple reading of a number of bits you can use <a title="Bits.read" class="reference external" href="bitstring_classes.html#Bits.read"><tt class="xref docutils literal"><span class="pre">Bits.read</span></tt></a> with an integer argument. The following example does some simple parsing of an MPEG-1 video stream (the stream is provided in the <tt class="docutils literal"><span class="pre">test</span></tt> directory if you downloaded the source archive).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;test/test.m1v&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">start_code</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">width</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">uint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">height</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">uint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">start_code</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+<span class="go">0x000001b3 352 288 56</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span> <span class="o">+=</span> <span class="mi">37</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flags</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">constrained_parameters_flag</span> <span class="o">=</span> <span class="n">flags</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">load_intra_quantiser_matrix</span> <span class="o">=</span> <span class="n">flags</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">flags</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+<span class="go">95 2</span>
+</pre></div>
+</div>
+<p>If you want to read multiple items in one go you can use <a title="Bits.readlist" class="reference external" href="bitstring_classes.html#Bits.readlist"><tt class="xref docutils literal"><span class="pre">Bits.readlist</span></tt></a>. This can take one or more integer parameters and return a list of bitstring objects. So for example instead of writing:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>you can equivalently use just:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">([</span><span class="mi">32</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">24</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reading-using-format-strings">
+<h3>Reading using format strings<a class="headerlink" href="#reading-using-format-strings" title="Permalink to this headline">¶</a></h3>
+<p>The <a title="Bits.read" class="reference external" href="bitstring_classes.html#Bits.read"><tt class="xref docutils literal"><span class="pre">Bits.read</span></tt></a> / <a title="Bits.readlist" class="reference external" href="bitstring_classes.html#Bits.readlist"><tt class="xref docutils literal"><span class="pre">Bits.readlist</span></tt></a> methods can also take a format string similar to that used in the auto initialiser. Only one token should be provided to <a title="Bits.read" class="reference external" href="bitstring_classes.html#Bits.read"><tt class="xref docutils literal"><span class="pre">Bits.read</span></tt></a> and a single value is returned. To read multiple tokens use <a title="Bits.readlist" class="reference external" href="bitstring_classes.html#Bits.readlist"><tt class="xref docutils literal"><span class="pre">Bits.readlist</span></tt></a>, which unsurprisingly returns a list.</p>
+<p>The format string consists of comma separated tokens that describe how to interpret the next bits in the bitstring. The tokens are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="84%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">int:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uint:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as an unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intbe:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a byte-wise big-endian signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintbe:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a byte-wise big-endian unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intle:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a byte-wise little-endian signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintle:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a byte-wise little-endian unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intne:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a byte-wise native-endian signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintne:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a byte-wise native-endian unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">float:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian floating point number (same as <tt class="docutils literal"><span class="pre">floatbe</span></tt>).</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatbe:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian floating point number (same as <tt class="docutils literal"><span class="pre">float</span></tt>).</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatle:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a little-endian floating point number.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatne:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a native-endian floating point number.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">hex:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a hexadecimal string.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">oct:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as an octal string.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">bin:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a binary string.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">bits:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a new bitstring.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">bytes:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bytes as a <tt class="docutils literal"><span class="pre">bytes</span></tt> object.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">ue</span></tt></td>
+<td>next bits as an unsigned exponential-Golomb code.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">se</span></tt></td>
+<td>next bits as a signed exponential-Golomb code.</td>
+</tr>
+</tbody>
+</table>
+<p>So in the earlier example we could have written:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">start_code</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;hex:32&#39;</span><span class="p">)</span>
+<span class="n">width</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:12&#39;</span><span class="p">)</span>
+<span class="n">height</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;uint:12&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and we also could have combined the three reads as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">start_code</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">(</span><span class="s">&#39;hex:32, 12, 12&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where here we are also taking advantage of the default <tt class="docutils literal"><span class="pre">uint</span></tt> interpretation for the second and third tokens.</p>
+<p>You are allowed to use one &#8216;stretchy&#8217; token in a <a title="Bits.readlist" class="reference external" href="bitstring_classes.html#Bits.readlist"><tt class="xref docutils literal"><span class="pre">Bits.readlist</span></tt></a>. This is a token without a length specified which will stretch to fill encompass as many bits as possible. This is often useful when you just want to assign something to &#8216;the rest&#8217; of the bitstring:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">everthing_else</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">readlist</span><span class="p">(</span><span class="s">&#39;intle:16, intle:24, bits&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example the <tt class="docutils literal"><span class="pre">bits</span></tt> token will consist of everything left after the first two tokens are read, and could be empty.</p>
+<p>It is an error to use more than one stretchy token, or to use a <tt class="docutils literal"><span class="pre">ue</span></tt> or <tt class="docutils literal"><span class="pre">se</span></tt> token after a stretchy token (the reason you can&#8217;t use exponential-Golomb codes after a stretchy token is that the codes can only be read forwards; that is you can&#8217;t ask &#8220;if this code ends here, where did it begin?&#8221; as there could be many possible answers).</p>
+</div>
+<div class="section" id="peek">
+<h3><tt class="docutils literal"><span class="pre">peek</span></tt><a class="headerlink" href="#peek" title="Permalink to this headline">¶</a></h3>
+<p>In addition to the read functions there are matching peek functions. These are identical to the read except that they do not advance the position in the bitstring to after the read elements.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x4732aa34&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;0x47&#39;</span><span class="p">:</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>          <span class="c"># t is first 2 bytes &#39;0x4732&#39;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;0x47&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="unpacking">
+<h2>Unpacking<a class="headerlink" href="#unpacking" title="Permalink to this headline">¶</a></h2>
+<p>The <a title="Bits.unpack" class="reference external" href="bitstring_classes.html#Bits.unpack"><tt class="xref docutils literal"><span class="pre">Bits.unpack</span></tt></a> method works in a very similar way to <a title="Bits.readlist" class="reference external" href="bitstring_classes.html#Bits.readlist"><tt class="xref docutils literal"><span class="pre">Bits.readlist</span></tt></a>. The major difference is that it interprets the whole bitstring from the start, and takes no account of the current <a title="pos" class="reference external" href="bitstring_classes.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a>. It&#8217;s a natural complement of the <a title="pack" class="reference external" href="functions.html#pack"><tt class="xref docutils literal"><span class="pre">pack</span></tt></a> function.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s">&#39;uint:10, hex, int:13, 0b11&#39;</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="s">&#39;3d&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">23</span><span class="p">)</span>
+<span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;uint:10, hex, int:13, bin:2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="seeking">
+<h2>Seeking<a class="headerlink" href="#seeking" title="Permalink to this headline">¶</a></h2>
+<p>The properties <a title="pos" class="reference external" href="bitstring_classes.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> and <a title="bytepos" class="reference external" href="bitstring_classes.html#bytepos"><tt class="xref docutils literal"><span class="pre">bytepos</span></tt></a> are available for getting and setting the position, which is zero on creation of the bitstring.</p>
+<p>Note that you can only use <a title="bytepos" class="reference external" href="bitstring_classes.html#bytepos"><tt class="xref docutils literal"><span class="pre">bytepos</span></tt></a> if the position is byte aligned, i.e. the bit position is a multiple of 8. Otherwise a <a title="ByteAlignError" class="reference external" href="bitstring_classes.html#ByteAlignError"><tt class="xref docutils literal"><span class="pre">ByteAlignError</span></tt></a> exception is raised.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x123456&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bytepos</span> <span class="o">+=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span>                    <span class="c"># note pos verses bytepos</span>
+<span class="go">16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">pos</span> <span class="o">+=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;bin:4&#39;</span><span class="p">))</span>   <span class="c"># the final nibble &#39;0x6&#39;</span>
+<span class="go">0b0110</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="finding-and-replacing">
+<h2>Finding and replacing<a class="headerlink" href="#finding-and-replacing" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="find-rfind">
+<h3><tt class="docutils literal"><span class="pre">find</span> <span class="pre">/</span> <span class="pre">rfind</span></tt><a class="headerlink" href="#find-rfind" title="Permalink to this headline">¶</a></h3>
+<p>To search for a sub-string use the <a title="Bits.find" class="reference external" href="bitstring_classes.html#Bits.find"><tt class="xref docutils literal"><span class="pre">Bits.find</span></tt></a> method. If the find succeeds it will set the position to the start of the next occurrence of the searched for string and return <tt class="xref docutils literal"><span class="pre">True</span></tt>, otherwise it will return <tt class="xref docutils literal"><span class="pre">False</span></tt>. By default the sub-string will be found at any bit position - to allow it to only be found on byte boundaries set <tt class="docutils literal"><span class="pre">bytealigned=True</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00123400001234&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">found</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;0x1234&#39;</span><span class="p">,</span> <span class="n">bytealigned</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">found</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">bytepos</span><span class="p">)</span>
+<span class="go">True 1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">found</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;0xff&#39;</span><span class="p">,</span> <span class="n">bytealigned</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">found</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">bytepos</span><span class="p">)</span>
+<span class="go">False 1</span>
+</pre></div>
+</div>
+<p><a title="Bits.rfind" class="reference external" href="bitstring_classes.html#Bits.rfind"><tt class="xref docutils literal"><span class="pre">Bits.rfind</span></tt></a> does much the same as <a title="Bits.find" class="reference external" href="bitstring_classes.html#Bits.find"><tt class="xref docutils literal"><span class="pre">Bits.find</span></tt></a>, except that it will find the last occurrence, rather than the first.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0f231443e8&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">found</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s">&#39;0xf&#39;</span><span class="p">)</span>           <span class="c"># Search all bit positions in reverse</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">found</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+<span class="go">True 31                              # Found within the 0x3e near the end</span>
+</pre></div>
+</div>
+<p>For all of these finding functions you can optionally specify a <tt class="docutils literal"><span class="pre">start</span></tt> and / or <tt class="docutils literal"><span class="pre">end</span></tt> to narrow the search range. Note though that because it&#8217;s searching backwards <a title="Bits.rfind" class="reference external" href="bitstring_classes.html#Bits.rfind"><tt class="xref docutils literal"><span class="pre">Bits.rfind</span></tt></a> will start at <tt class="docutils literal"><span class="pre">end</span></tt> and end at <tt class="docutils literal"><span class="pre">start</span></tt> (so you always need <tt class="docutils literal"><span class="pre">start</span></tt>  &lt;  <tt class="docutils literal"><span class="pre">end</span></tt>).</p>
+</div>
+<div class="section" id="findall">
+<h3><tt class="docutils literal"><span class="pre">findall</span></tt><a class="headerlink" href="#findall" title="Permalink to this headline">¶</a></h3>
+<p>To find all occurrences of a bitstring inside another (even overlapping ones), use <a title="Bits.findall" class="reference external" href="bitstring_classes.html#Bits.findall"><tt class="xref docutils literal"><span class="pre">Bits.findall</span></tt></a>. This returns a generator for the bit positions of the found strings.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b011101011001&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ones</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&#39;0b1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ones</span><span class="p">))</span>
+<span class="go">[1, 2, 3, 5, 7, 8, 11]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="replace">
+<h3><tt class="docutils literal"><span class="pre">replace</span></tt><a class="headerlink" href="#replace" title="Permalink to this headline">¶</a></h3>
+<p>To replace all occurrences of one <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> with another use <a title="BitString.replace" class="reference external" href="bitstring_classes.html#BitString.replace"><tt class="xref docutils literal"><span class="pre">BitString.replace</span></tt></a>. The replacements are done in-place, and the number of replacements made is returned. This methods changes the contents of the bitstring and so isn&#8217;t available for the <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> class.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b110000110110&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;0b110&#39;</span><span class="p">,</span> <span class="s">&#39;0b1111&#39;</span><span class="p">)</span>
+<span class="go">3            # The number of replacements made</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b111100011111111&#39;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Reading, Parsing and Unpacking</a><ul>
+<li><a class="reference external" href="#reading-and-parsing">Reading and parsing</a><ul>
+<li><a class="reference external" href="#read-readlist"><tt class="docutils literal"><span class="pre">read</span> <span class="pre">/</span> <span class="pre">readlist</span></tt></a></li>
+<li><a class="reference external" href="#reading-using-format-strings">Reading using format strings</a></li>
+<li><a class="reference external" href="#peek"><tt class="docutils literal"><span class="pre">peek</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#unpacking">Unpacking</a></li>
+<li><a class="reference external" href="#seeking">Seeking</a></li>
+<li><a class="reference external" href="#finding-and-replacing">Finding and replacing</a><ul>
+<li><a class="reference external" href="#find-rfind"><tt class="docutils literal"><span class="pre">find</span> <span class="pre">/</span> <span class="pre">rfind</span></tt></a></li>
+<li><a class="reference external" href="#findall"><tt class="docutils literal"><span class="pre">findall</span></tt></a></li>
+<li><a class="reference external" href="#replace"><tt class="docutils literal"><span class="pre">replace</span></tt></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="slicing.html"
+                                  title="previous chapter">Slicing, Dicing and Splicing</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="misc.html"
+                                  title="next chapter">Miscellany</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="misc.html" title="Miscellany"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="slicing.html" title="Slicing, Dicing and Splicing"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" >User Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>
