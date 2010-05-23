@@ -18,6 +18,18 @@ The third argument (the 'step') will be described shortly, but most of the time 
  >>> print(a, b)
  0x1e 0xf
 
+For single bit indices (as opposed to slices) a boolean is returned; that is ``True`` for '1' bits and ``False`` for '0' bits::
+
+    >>> a[0]
+    False
+    >>> a[4]
+    True
+    
+If you want a single bit as a new bitstring then use a one-bit slice instead::
+
+    >>> a[0:1]
+    BitString('0b0')
+
 Indexing also works for missing and negative arguments, just as it does for other containers. ::
 
  >>> a = BitString('0b00011110')

@@ -41,6 +41,8 @@ The ``auto`` parameter also accepts other types:
 * A positive integer, used to create a bitstring of that many zero bits.
 * A file object, presumably opened in read-binary mode, from which the bitstring will be formed.
 * A bool (``True`` or ``False``) which will be converted to a single ``1`` or ``0`` bit respectively.
+* A ``bytearray`` object.
+* In Python 3 only, a ``bytes`` object. Note this won't work for Python 2 as ``bytes`` is just a synonym for ``str``.
 
 
 
@@ -208,27 +210,27 @@ The ``Bits`` class
          >>> print(s.bin)
          0b010101010
 
-    .. method:: peek(format)
+    .. method:: peek(fmt)
 
-        Reads from the current bit position :attr:`pos` in the bitstring according to the *format* string or integer and returns the result.
+        Reads from the current bit position :attr:`pos` in the bitstring according to the *fmt* string or integer and returns the result.
 
         The bit position is unchanged.
 
         For information on the format string see the entry for the :meth:`Bits.read` method.
 
-    .. method:: peeklist(format, **kwargs)
+    .. method:: peeklist(fmt, **kwargs)
 
-        Reads from current bit position :attr:`pos` in the bitstring according to the *format* string(s) and returns a list of results.
+        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string(s) and returns a list of results.
 
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is not advanced to after the read items.
 
         See the entries for :meth:`Bits.read` and :meth:`Bits.readlist` for more information.
 
-    .. method:: read(format)
+    .. method:: read(fmt)
 
         Reads from current bit position :attr:`pos` in the bitstring according the the format string and returns a single result. If not enough bits are available then all bits to the end of the bitstring will be used.
 
-        *format* is a token string that describe how to interpret the next bits in the bitstring. The tokens are:
+        *fmt* is either a token string that describes how to interpret the next bits in the bitstring or an integer. If it's an integer then that number of bits will be read, and returned as a new bitstring. Otherwise the tokens are:
 
         ==============   ===============================================
         ``int:n``        ``n`` bits as a signed integer.
@@ -273,9 +275,9 @@ The ``Bits`` class
          >>> s.read('ue')
          4
 
-    .. method:: readlist(format, **kwargs)
+    .. method:: readlist(fmt, **kwargs)
 
-        Reads from current bit position :attr:`pos` in the bitstring according to the *format* string(s) and returns a list of results. If not enough bits are available then all bits to the end of the bitstring will be used.
+        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string(s)/integer(s) and returns a list of results. If not enough bits are available then all bits to the end of the bitstring will be used.
 
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is advanced to after the read items.
 
@@ -286,7 +288,7 @@ The ``Bits`` class
          >>> s = Bits('0x43fe01ff21')
          >>> s.readlist('hex:8, uint:6')
          ['0x43', 63]
-         >>> s.readlist('bin:3', 'intle:16')
+         >>> s.readlist(['bin:3', 'intle:16'])
          ['0b100', -509]
          >>> s.pos = 0
          >>> s.readlist('hex:b, uint:d', b=8, d=6)
@@ -350,13 +352,13 @@ The ``Bits`` class
          >>> f = open('newfile', 'wb')
          >>> Bits('0x1234').tofile(f)
 
-    .. method:: unpack(format, **kwargs)
+    .. method:: unpack(fmt, **kwargs)
 
-        Interprets the whole bitstring according to the *format* string(s) and returns a list of bitstring objects.
+        Interprets the whole bitstring according to the *fmt* string(s) and returns a list of bitstring objects.
         
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string.
 
-        *format* is one or more strings with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`Bits.read` for details. ::
+        *fmt* is one or more strings with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`Bits.read` for details. ::
 
          >>> s = Bits('int:4=-1, 0b1110')
          >>> i, b = s.unpack('int:4, bin')
@@ -584,13 +586,13 @@ The ``BitString`` class
         >>> s
         BitString('0xbadf00d')
 
-    .. method:: byteswap(format[, start, end, repeat=True])
+    .. method:: byteswap(fmt[, start, end, repeat=True])
     
-       Change the endianness of the :class:`BitString` in-place according to the *format*. Return the number of swaps done.
+       Change the endianness of the :class:`BitString` in-place according to *fmt*. Return the number of swaps done.
        
-       The *format* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact_format`). It gives a pattern of byte sizes to use to swap the endianness of the :class:`BitString`. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``@``) is not needed, and if present it will be ignored.
+       The *fmt* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact_format`). It gives a pattern of byte sizes to use to swap the endianness of the :class:`BitString`. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``@``) is not needed, and if present it will be ignored.
        
-       *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitString`). If *repeat* is ``True`` then the byte swapping pattern given by the *format* is repeated in its entirety as many times as possible.
+       *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitString`). If *repeat* is ``True`` then the byte swapping pattern given by the *fmt* is repeated in its entirety as many times as possible.
        
         >>> s = BitString('0x00112233445566')
         >>> s.byteswap(2)

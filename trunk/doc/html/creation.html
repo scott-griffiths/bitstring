@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '1.3',
+        URL_ROOT:    '#',
+        VERSION:     '2.0.0 beta 1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -85,7 +85,7 @@
 <span class="go">&#39;0x000001b3&#39;</span>
 </pre></div>
 </div>
-<p>The initial <tt class="docutils literal"><span class="pre">0x</span></tt> or <tt class="docutils literal"><span class="pre">0X</span></tt> is optional, as is a length parameter, which can be used to truncate bits from the end. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of <tt class="docutils literal"><span class="pre">c</span></tt> will be 32.</p>
+<p>The initial <tt class="docutils literal"><span class="pre">0x</span></tt> or <tt class="docutils literal"><span class="pre">0X</span></tt> is optional. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of <tt class="docutils literal"><span class="pre">c</span></tt> will be 32.</p>
 <p>If you include the initial <tt class="docutils literal"><span class="pre">0x</span></tt> then you can use the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser instead. As it is the first parameter in <tt class="xref docutils literal"><span class="pre">__init__</span></tt> this will work equally well:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">c</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x000001b3&#39;</span><span class="p">)</span>
 </pre></div>
@@ -93,12 +93,12 @@
 </div>
 <div class="section" id="from-a-binary-string">
 <h3>From a binary string<a class="headerlink" href="#from-a-binary-string" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bin</span><span class="o">=</span><span class="s">&#39;0011 000&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bin</span><span class="o">=</span><span class="s">&#39;0011 00&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">bin</span>
 <span class="go">&#39;0b001100&#39;</span>
 </pre></div>
 </div>
-<p>An initial <tt class="docutils literal"><span class="pre">0b</span></tt> or <tt class="docutils literal"><span class="pre">0B</span></tt> is optional. Once again a length can optionally be supplied to truncate the bitstring (here it is used to remove the final <tt class="docutils literal"><span class="pre">0</span></tt>) and whitespace will be ignored.</p>
+<p>An initial <tt class="docutils literal"><span class="pre">0b</span></tt> or <tt class="docutils literal"><span class="pre">0B</span></tt> is optional and whitespace will be ignored.</p>
 <p>As with <tt class="docutils literal"><span class="pre">hex</span></tt>, the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser will work if the binary string is prefixed by <tt class="docutils literal"><span class="pre">0b</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b001100&#39;</span><span class="p">)</span>
 </pre></div>
@@ -111,7 +111,7 @@
 <span class="go">&#39;0o34100&#39;</span>
 </pre></div>
 </div>
-<p>An initial <tt class="docutils literal"><span class="pre">0o</span></tt> or <tt class="docutils literal"><span class="pre">0O</span></tt> is optional, but <tt class="docutils literal"><span class="pre">0o</span></tt> (a zero and lower-case &#8216;o&#8217;) is preferred as it is slightly more readable. Once again a length can optionally be supplied to truncate the bitstring and whitespace will be ignored.</p>
+<p>An initial <tt class="docutils literal"><span class="pre">0o</span></tt> or <tt class="docutils literal"><span class="pre">0O</span></tt> is optional, but <tt class="docutils literal"><span class="pre">0o</span></tt> (a zero and lower-case &#8216;o&#8217;) is preferred as it is slightly more readable.</p>
 <p>As with <tt class="docutils literal"><span class="pre">hex</span></tt> and <tt class="docutils literal"><span class="pre">bin</span></tt>, the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser will work if the octal string is prefixed by <tt class="docutils literal"><span class="pre">0o</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">o</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o34100&#39;</span><span class="p">)</span>
 </pre></div>
@@ -218,8 +218,8 @@
 </div>
 <div class="section" id="the-auto-initialiser">
 <h2>The auto initialiser<a class="headerlink" href="#the-auto-initialiser" title="Permalink to this headline">¶</a></h2>
-<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> parameter is the first parameter in the <tt class="xref docutils literal"><span class="pre">__init__</span></tt> function and so the <tt class="docutils literal"><span class="pre">auto=</span></tt> can be omitted when using it. It accepts either a string, a list or tuple, another bitstring, an integer, a bool or a file object.</p>
-<p>Strings starting with <tt class="docutils literal"><span class="pre">0x</span></tt> or <tt class="docutils literal"><span class="pre">hex:</span></tt> are interpreted as hexadecimal, <tt class="docutils literal"><span class="pre">0o</span></tt> or <tt class="docutils literal"><span class="pre">oct:</span></tt> implies octal, and strings starting with <tt class="docutils literal"><span class="pre">0b</span></tt> or <tt class="docutils literal"><span class="pre">bin:</span></tt> are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, lists and tuples are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits.</p>
+<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> parameter is the first parameter in the <tt class="xref docutils literal"><span class="pre">__init__</span></tt> function and so the <tt class="docutils literal"><span class="pre">auto=</span></tt> can be omitted when using it. It accepts either a string, an iterable, another bitstring, an integer, a bool or a file object.</p>
+<p>Strings starting with <tt class="docutils literal"><span class="pre">0x</span></tt> or <tt class="docutils literal"><span class="pre">hex:</span></tt> are interpreted as hexadecimal, <tt class="docutils literal"><span class="pre">0o</span></tt> or <tt class="docutils literal"><span class="pre">oct:</span></tt> implies octal, and strings starting with <tt class="docutils literal"><span class="pre">0b</span></tt> or <tt class="docutils literal"><span class="pre">bin:</span></tt> are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, (non string) iterables are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fromhex</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x01ffc9&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frombin</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b01&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fromoct</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o7550&#39;</span><span class="p">)</span>
@@ -566,7 +566,7 @@
 <div class="section" id="hex">
 <h3>hex<a class="headerlink" href="#hex" title="Permalink to this headline">¶</a></h3>
 <p>For whole-byte bitstrings the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits. Hex values are prefixed with <tt class="docutils literal"><span class="pre">0x</span></tt>.</p>
-<p>If the bitstring does not have a length that is a multiple of four bits then a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code.</p>
+<p>If the bitstring does not have a length that is a multiple of four bits then an <a title="InterpretError" class="reference external" href="bitstring_classes.html#InterpretError"><tt class="xref docutils literal"><span class="pre">InterpretError</span></tt></a> exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">hex</span>
 <span class="go">&#39;0x123&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">hex</span>
@@ -577,7 +577,7 @@
 <div class="section" id="oct">
 <h3>oct<a class="headerlink" href="#oct" title="Permalink to this headline">¶</a></h3>
 <p>For an octal interpretation use the <a title="oct" class="reference external" href="bitstring_classes.html#oct"><tt class="xref docutils literal"><span class="pre">oct</span></tt></a> property. Octal values are prefixed with <tt class="docutils literal"><span class="pre">0o</span></tt>, which is the Python 2.6 / 3 way of doing things (rather than just starting with <tt class="docutils literal"><span class="pre">0</span></tt>).</p>
-<p>If the bitstring does not have a length that is a multiple of three then a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> exception will be raised.</p>
+<p>If the bitstring does not have a length that is a multiple of three then an <a title="InterpretError" class="reference external" href="bitstring_classes.html#InterpretError"><tt class="xref docutils literal"><span class="pre">InterpretError</span></tt></a> exception will be raised.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">oct</span>
 <span class="go">&#39;0o0443&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">oct</span>
@@ -644,7 +644,7 @@
 </div>
 <div class="section" id="ue">
 <h3>ue<a class="headerlink" href="#ue" title="Permalink to this headline">¶</a></h3>
-<p>The <a title="ue" class="reference external" href="bitstring_classes.html#ue"><tt class="xref docutils literal"><span class="pre">ue</span></tt></a> property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then a <a title="BitStringError" class="reference external" href="bitstring_classes.html#BitStringError"><tt class="xref docutils literal"><span class="pre">BitStringError</span></tt></a> is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a <tt class="docutils literal"><span class="pre">ue</span></tt> format string. See <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a> for a short explanation of this type of integer representation.</p>
+<p>The <a title="ue" class="reference external" href="bitstring_classes.html#ue"><tt class="xref docutils literal"><span class="pre">ue</span></tt></a> property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an <a title="InterpretError" class="reference external" href="bitstring_classes.html#InterpretError"><tt class="xref docutils literal"><span class="pre">InterpretError</span></tt></a> is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a <tt class="docutils literal"><span class="pre">ue</span></tt> format string. See <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a> for a short explanation of this type of integer representation.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bin</span>
 <span class="go">&#39;0b0001101&#39;</span>
@@ -659,7 +659,7 @@
 <p>The <a title="se" class="reference external" href="bitstring_classes.html#se"><tt class="xref docutils literal"><span class="pre">se</span></tt></a> property does much the same as <tt class="docutils literal"><span class="pre">ue</span></tt> and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a> for more information.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x164b&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">se</span>
-<span class="go">BitStringError: BitString is not a single exponential-Golomb code.</span>
+<span class="go">InterpretError: BitString is not a single exponential-Golomb code.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">while</span> <span class="n">s</span><span class="o">.</span><span class="n">pos</span> <span class="o">&lt;</span> <span class="n">s</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;se&#39;</span><span class="p">))</span>
 <span class="go">-5</span>
@@ -683,7 +683,7 @@
             </a></p>
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="">Creation and Interpretation</a><ul>
+<li><a class="reference external" href="#">Creation and Interpretation</a><ul>
 <li><a class="reference external" href="#the-bits-and-bitstring-classes">The Bits and BitString classes</a></li>
 <li><a class="reference external" href="#using-the-constructor">Using the constructor</a><ul>
 <li><a class="reference external" href="#from-a-hexadecimal-string">From a hexadecimal string</a></li>

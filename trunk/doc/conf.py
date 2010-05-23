@@ -213,6 +213,7 @@ titlepage = """
 {\\Large by Scott Griffiths }\\\\[3cm]
 {\\large version %s}\\\\[0.5cm]
 {\\large \\today}\\\\[1.5cm]
+{\\large Note: This is a beta release. This document may have a few rough edges!}
 \\vfill
 \\includegraphics[width=0.3\\textwidth]{python-logo.png}
 
@@ -221,7 +222,7 @@ titlepage = """
 
 \\end{center}
 \\end{titlepage}
-""" % version
+""" % release
 latex_elements = {'preamble': '\setcounter{tocdepth}{2}',
                   'fncychap': '\\usepackage[Bjarne]{fncychap}',
                   'maketitle': titlepage,

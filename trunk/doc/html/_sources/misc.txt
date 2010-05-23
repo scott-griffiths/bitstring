@@ -35,7 +35,7 @@ This simply reverses the bits of the :class:`BitString` in place. You can option
 ``reversebytes``
 ^^^^^^^^^^^^^^^^
 
-This reverses the bytes of the :class:`BitString` in place. You can optionally specify a range of bits to reverse. If the length to reverse isn't a multiple of 8 then a :exc:`BitStringError` is raised. ::
+This reverses the bytes of the :class:`BitString` in place. You can optionally specify a range of bits to reverse. If the length to reverse isn't a multiple of 8 then a :exc:`Error` is raised. ::
 
  >>> a = BitString('0x123456')
  >>> a.reversebytes()
