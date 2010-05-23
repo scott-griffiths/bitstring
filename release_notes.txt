@@ -2,7 +2,7 @@
 bitstring module version history
 --------------------------------
 
-April xxth 2010: version 2.0.0 beta 1 for Python 2.6 and 3.x released
+May 24th 2010: version 2.0.0 beta 1 for Python 2.6 and 3.x released
 
 This is a major release, with a number of backwardly incompatibile changes.
 The changes are all quite minor, although a number of methods have been
@@ -16,7 +16,7 @@ you undue pain as there is a small window in which they can be tweaked.
 I plan to release 2.0 proper about one month after this beta.
 
 The backwardly incompatibile changes are:
-
+-----------------------------------------
 * Methods removed.
 
 Twenty eight methods have been removed from the API. They all have
@@ -51,30 +51,141 @@ s.tellbyte()                ->   s.bytepos
 s.truncateend(bits)         ->   del s[-bits:]
 s.truncatestart(bits)       ->   del s[:bits]
 
+Most of these methods have been deprecated for the last few releases, but
+there are some new removals too. Any recoding needed should be quite
+straightforward, so while I apologise for the hassle, I had to take the
+opportunity to streamline and rationalise what was becoming a bit of an
+overblown API.
+
 * Exception raised on reading off end of bitstring.
+
+If a read or peek goes beyond the end of the bitstring then a ReadError
+will be raised. The previous behaviour was that the rest of the bitstring
+would be returned and no exception raised.
 
 * BitStringError renamed to Error.
 
+The base class for errors in the bitstring module is now just Error, so
+it will likely appears in your code as bitstring.Error instead of
+the rather repetitive bitstring.BitStringError.
+
 * Single bit slices and reads return a bool.
+
+A single index slice (such as s[5]) will now return a bool (i.e. True or
+False) rather than a single bit bitstring. This is partly to reflect the
+style of the bytearray type, which returns an integer for single items, but
+mostly to avoid common errors like:
+
+>>> if s[0]:
+...    do_something()
+
+While the intent of this code snippet is quite clear (i.e. do_something if
+the first bit of s is set) under the old rules s[0] would be true as long
+as s wasn't empty. That's because any one-bit bitstring is true as it's a
+non-empty container. Under the new rule s[0] is True if s starts with a '1'
+bit and False if s starts with a '0' bit.
+
+The change also affects reads and peeks, so s.peek(1) will return either
+True or False.
 
 * Length and offset disallowed for some initialisers.
 
+Previously you could create bitstring using expressions like:
+
+>>> s = Bits(hex='0xabcde', offset=4, length=13)
+
+This has now been disallowed, and the offset and length parameters may only
+be used when initialising with bytes or a file. To replace the old behaviour
+you could instead use
+
+>>> s = Bits(hex='0xabcde')[4:17]
+
 * Renamed 'format' parameter 'fmt'.
 
-* Iterables instead of *values\*format accepted for some methods.
+Methods with a 'format' parameter have had it renamed to 'fmt', to prevent
+hiding the built-in 'format'. Affects methods unpack, read, peek, readlist,
+peeklist and byteswap and the pack function. 
 
-* Zero bit reads now an error (???)
+* Iterables instead of *format accepted for some methods.
 
-* Creation from file strategy (???)
+This means that for the affected methods (unpack, readlist and peeklist) you
+will need to use an iterable to specify multiple items. This is easier to
+show than to describe, so instead of
+
+>>> a, b, c, d = s.readlist('uint:12', 'hex:4', 'bin:7')
+
+you would instead write
+
+>>> a, b, c, d = s.readlist(['uint:12', 'hex:4', 'bin:7'])
+
+Note that you could still use the single string 'uint:12, hex:4, bin:7' if
+you preferred.
+
+* New creation from file strategy
+
+Previously if you created a bitstring from a file, either by auto-initialising
+with a file object or using the filename parameter, the file would not be read
+into memory unless you tried to modify it, at which point the whole file would
+be read.
+
+The new behaviour depends on whether you create a Bits or a BitString from the
+file. If you create a Bits (which is immutable) then the file will never be
+read into memory. This allows very large files to be opened for examination
+even if they could never fit in memory.
+
+If however you create a BitString, the whole of the referenced file will be read
+to store in memory. If the file is very big this could take a long time, or fail,
+but the idea is that in saying you want the mutable BitString you are implicitly
+saying that you want to make changes and so (for now) we need to load it into
+memory.
+
+The new strategy is a bit more predictable in terms of performance than the old.
+The main point to remember is that if you want to open a file and don't plan to
+alter the bitstring then use the Bits class rather than BitString.
+
+Just to be clear, in neither case will the contents of the file ever be changed -
+if you want to output the modified BitString then use the tofile method, for
+example.
+
 
 The new features in this release are:
-
+-------------------------------------
 * read and peek methods accept integers.
+
+The read, readlist, peek and peeklist methods now accept integers as parameters
+to mean "read this many bits and return a bitstring". This has allowed a number
+of methods to be removed from this release, so for example instead of:
+
+>>> a, b, c = s.readbits(5, 6, 7)
+>>> if s.peekbit():
+...     do_something()
+
+you should write:
+
+>>> a, b, c = s.readlist([5, 6, 7])
+>>> if s.peek(1):
+...     do_something()
+
+* Auto initialise with bytearray or (for Python 3 only) bytes.
+
+So rather than writing:
+
+>>> a = Bits(bytes=some_bytearray)
+
+you can just write
+
+>>> a = Bits(some_bytearray)
+
+This also works for the bytes type, but only if you're using Python 3.
+For Python 2 it's not possible to distinguish between a bytes object and a
+str. For this reason this method should be used with some caution as it will
+make you code behave differently with the different major Python versions.
+
+>>> b = Bits(b'abcd\x23\x00') # Only Python 3! 
 
 * New exception types.
 
-As well as renaming BitStringError to just Error (so it appears in
-your code as bitstring.Error rather than bitstring.BitStringError)
+As well as renaming BitStringError to just Error 
 there are also new exceptions which use Error as a base class.
 
 These can be caught in preference to Error if you need finer control.
@@ -90,8 +201,6 @@ bitstring creation.
 
 InterpretError(Error, ValueError) - inappropriate interpretation of
 binary data.
-
-
 
 
 --------------------------------------------------------------
