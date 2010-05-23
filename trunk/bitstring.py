@@ -709,7 +709,7 @@ class Bits(collections.Sequence):
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
-                a bool, a boolean iterable or another bitstring.
+                a bool, a bytearray, a boolean iterable or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
         bytes -- raw data as a string, for example read from a binary file.
@@ -1227,7 +1227,8 @@ class Bits(collections.Sequence):
         """Set bitstring from a bitstring, file, bool, integer, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
-        # So 'str' must be checked before Iterable and bool before int.
+        # So basestring must be checked before Iterable and bool before int
+        # and bytes/bytearray before Iterable but after basestring!
         if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
@@ -1235,7 +1236,7 @@ class Bits(collections.Sequence):
                 self._setfile(s._datastore.source.name, length, s._offset + offset)
             else:
                 self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
-            return
+            return     
         if isinstance(s, file):
             self._datastore = FileArray(s, length, offset)
             if self._mutable:
@@ -1251,6 +1252,9 @@ class Bits(collections.Sequence):
         if isinstance(s, basestring):
             bs = self._converttobitstring(s)
             self._setbytes_unsafe(bs._datastore.rawbytes, bs.length, bs._offset)
+            return
+        if isinstance(s, (bytes, bytearray)):
+            self._setbytes_unsafe(s, len(s)*8, 0)
             return
         if isinstance(s, bool):
             if s:
@@ -2960,7 +2964,7 @@ class BitString(Bits, collections.MutableSequence):
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
-                a bool, a boolean iterable or another bitstring.
+                a bool, a bytearray, a boolean iterable or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
         bytes -- raw data as a string, for example read from a binary file.
