@@ -425,8 +425,9 @@ class Shift(unittest.TestCase):
         t = s >> 1
         self.assertEqual(s.bin, '0b1010')
         self.assertEqual(t.bin, '0b0101')
-        s = s >> 0
-        self.assertEqual(s, '0b1010')
+        q = s >> 0
+        self.assertEqual(q, '0b1010')
+        q.replace('0b1010', '')
         s = s >> 100
         self.assertEqual(s.bin, '0b0000')
 
