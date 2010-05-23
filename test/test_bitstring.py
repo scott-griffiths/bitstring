@@ -4007,7 +4007,40 @@ class ZeroBitReads(unittest.TestCase):
         self.assertRaises(bitstring.InterpretError, a.read, 'uint:0')
         self.assertRaises(bitstring.InterpretError, a.read, 'float:0')
         
-        
+#class EfficientBitsCopies(unittest.TestCase):
+#    
+#    def testBitsCopy(self):
+#        a = Bits('0xff')
+#        b = Bits(a)
+#        c = a[:]
+#        d = copy.copy(a)
+#        self.assertTrue(a._datastore is b._datastore)
+#        self.assertTrue(a._datastore is c._datastore)
+#        self.assertTrue(a._datastore is d._datastore)
+
+class InitialiseFromBytes(unittest.TestCase):
+    
+    def testBytesBehaviour(self):
+        a = Bits(b'uint:5=2')
+        b = Bits(b'')
+        c = Bits(bytes=b'uint:5=2')
+        if bitstring.PYTHON_VERSION == 2:
+            self.assertEqual(a, 'uint:5=2')
+            self.assertFalse(b)
+            self.assertEqual(c.bytes, b'uint:5=2')
+        else:
+            self.assertEqual(a.bytes, b'uint:5=2')
+            self.assertFalse(b)
+            self.assertEqual(c, b'uint:5=2')
+            
+    def testBytearrayBehaviour(self):
+        a = Bits(bytearray(b'uint:5=2'))
+        b = Bits(bytearray(4))
+        c = Bits(bytes=bytearray(b'uint:5=2'))
+        self.assertEqual(a.bytes, b'uint:5=2')
+        self.assertEqual(b, '0x00000000')
+        self.assertEqual(c.bytes, b'uint:5=2')
+
 
 def main():
     unittest.main()
