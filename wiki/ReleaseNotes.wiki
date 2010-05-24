@@ -105,7 +105,7 @@ Methods with a 'format' parameter have had it renamed to 'fmt', to prevent
 hiding the built-in 'format'. Affects methods unpack, read, peek, readlist,
 peeklist and byteswap and the pack function.
 
-===Iterables instead of *format accepted for some methods===
+===Iterables instead of `*format` accepted for some methods===
 
 This means that for the affected methods (unpack, readlist and peeklist) you
 will need to use an iterable to specify multiple items. This is easier to
