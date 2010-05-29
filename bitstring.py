@@ -979,7 +979,8 @@ class Bits(collections.Sequence):
         if not self:
             raise Error("Cannot invert empty bitstring.")
         s = self._copy()
-        s._invert(xrange(s.len))
+        for p in xrange(s.len):
+            s._invert(p)
         return s
 
     def __lshift__(self, n):
@@ -1404,7 +1405,8 @@ class Bits(collections.Sequence):
         # Do the 2's complement thing. Add one, set to minus number, then flip bits.
         int_ += 1
         self._setuint(-int_, length)
-        self._invert(xrange(self.len))
+        for p in xrange(self.len):
+            self._invert(p)
 
     def _readint(self, length, start):
         """Read bits and interpret as a signed int"""
@@ -1970,6 +1972,7 @@ class Bits(collections.Sequence):
 
     def _insert(self, bs, pos):
         """Insert bs at pos."""
+        assert 0 <= pos <= self.len
         if pos > self.len // 2:
             # Inserting nearer end, so cut off end.
             end = self._slice(pos, self.len)
@@ -1987,6 +1990,7 @@ class Bits(collections.Sequence):
 
     def _overwrite(self, bs, pos):
         """Overwrite with bs at pos."""
+        assert 0 <= pos < self.len
         bitposafter = pos + bs.len
         if bs is self:
             # Just overwriting with self, so do nothing.
@@ -2059,45 +2063,23 @@ class Bits(collections.Sequence):
         toreverse.reverse()
         self._datastore.setbyteslice((newoffset + start)//8, (newoffset + end)//8, toreverse)
 
-    def _bit_tweaker(self, pos, f):
-        """Examines or changes bits based on the function f.
-
-        pos -- A single bit position or iterable of bit positions.
-        f -- A function that takes a byte position and a bit sub-position.
-             If it returns True then an early exit will be made.
-
-        """
-        if not isinstance(pos, collections.Iterable):
-            pos = (pos,)
-        length = self.len
-        offset = self._offset
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError("Bit position {0} out of range.".format(p))
-            byte, bit = divmod(offset + p, 8)
-            if f(byte, bit) is True:
-                return True
-        return False
-
     def _set(self, pos):
-        """Set all the bits given by pos to 1."""
-        def f(a, b):
-            self._datastore.setbyte(a, self._datastore.getbyte(a) | (128 >> b))
-        self._bit_tweaker(pos, f)
+        """Set bit at pos to 1."""
+        assert 0 <= pos < self.len
+        byte, bit = divmod(self._offset + pos, 8)
+        self._datastore.setbyte(byte, self._datastore.getbyte(byte) | (128 >> bit))
 
     def _unset(self, pos):
-        """Set all the bits given by pos to 0."""
-        def f(a, b):
-            self._datastore.setbyte(a, self._datastore.getbyte(a) & (~(128 >> b)))
-        self._bit_tweaker(pos, f)
-
+        """Set bit at pos to 0."""
+        assert 0 <= pos < self.len
+        byte, bit = divmod(self._offset + pos, 8)
+        self._datastore.setbyte(byte, self._datastore.getbyte(byte) & (~(128 >> bit)))
+        
     def _invert(self, pos):
-        """Flip all the bits given by pos 1<->0."""
-        def f(a, b):
-            self._datastore.setbyte(a, self._datastore.getbyte(a) ^ (128 >> b))
-        self._bit_tweaker(pos, f)
+        """Flip bit at pos 1<->0."""
+        assert 0 <= pos < self.len
+        byte, bit = divmod(self._offset + pos, 8)
+        self._datastore.setbyte(byte, self._datastore.getbyte(byte) ^ (128 >> bit))
 
     def _ilshift(self, n):
         """Shift bits by n to the left in place. Return self."""
@@ -2736,11 +2718,19 @@ class Bits(collections.Sequence):
                Negative numbers are treated in the same way as slice indices.
 
         """
-        def f(a, b):
-            if not self._datastore.getbyte(a) & (128 >> b):
-                return True
-        # If early exit was made we want to return False, and vice versa.
-        return not self._bit_tweaker(pos, f)
+        if not isinstance(pos, collections.Iterable):
+            pos = (pos,)
+        length = self.len
+        offset = self._offset
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position {0} out of range.".format(p))
+            byte, bit = divmod(offset + p, 8)
+            if not self._datastore.getbyte(byte) & (128 >> bit):
+                return False
+        return True
 
     def anyset(self, pos):
         """Return True if one or many bits are all set to 1.
@@ -2749,10 +2739,19 @@ class Bits(collections.Sequence):
                Negative numbers are treated in the same way as slice indices.
 
         """
-        def f(a, b):
-            if self._datastore.getbyte(a) & (128 >> b):
+        if not isinstance(pos, collections.Iterable):
+            pos = (pos,)
+        length = self.len
+        offset = self._offset
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position {0} out of range.".format(p))
+            byte, bit = divmod(offset + p, 8)
+            if self._datastore.getbyte(byte) & (128 >> bit):
                 return True
-        return self._bit_tweaker(pos, f)
+        return False
 
     def allunset(self, pos):
         """Return True if one or many bits are all set to 0.
@@ -3041,14 +3040,6 @@ class BitString(Bits, collections.MutableSequence):
         '0xe00f'
 
         """
-        # If value is an integer then we want to set the slice to that
-        # value rather than initialise a new bitstring of that length.
-        if not isinstance(value, (int, long)):
-            try:
-                value = self._converttobitstring(value)
-            except TypeError:
-                raise TypeError("Bitstring, integer or string expected. "
-                                "Got {0}.".format(type(value)))
         try:
             # A slice
             start, step = 0, 1
@@ -3068,6 +3059,7 @@ class BitString(Bits, collections.MutableSequence):
                     self._set(key)
                     return
                 raise ValueError("Cannot set a single bit with integer {0}.".format(value))
+            value = self._converttobitstring(value)
             if value.len == 1:
                 if value.allset(0):
                     self._set(key)
@@ -3078,6 +3070,14 @@ class BitString(Bits, collections.MutableSequence):
                 self._insert(value, key)
             return
         else:
+            # If value is an integer then we want to set the slice to that
+            # value rather than initialise a new bitstring of that length.
+            if not isinstance(value, (int, long)):
+                try:
+                    value = self._converttobitstring(value)
+                except TypeError:
+                    raise TypeError("Bitstring, integer or string expected. "
+                                    "Got {0}.".format(type(value)))
             if step == 0:
                 stop = 0
             else:
@@ -3458,7 +3458,15 @@ class BitString(Bits, collections.MutableSequence):
         Raises IndexError if pos < -self.len or pos >= self.len.
 
         """
-        self._set(pos)
+        if not isinstance(pos, collections.Iterable):
+            pos = (pos,)
+        length = self.len
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position {0} out of range.".format(p))
+            self._set(p)
 
     def unset(self, pos):
         """Set one or many bits to 0.
@@ -3469,7 +3477,15 @@ class BitString(Bits, collections.MutableSequence):
         Raises IndexError if pos < -self.len or pos >= self.len.
 
         """
-        self._unset(pos)
+        if not isinstance(pos, collections.Iterable):
+            pos = (pos,)
+        length = self.len
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position {0} out of range.".format(p))
+            self._unset(p)
 
     def invert(self, pos):
         """Invert one or many bits from 0 to 1 or vice versa.
@@ -3480,7 +3496,15 @@ class BitString(Bits, collections.MutableSequence):
         Raises IndexError if pos < -self.len or pos >= self.len.
 
         """
-        self._invert(pos)
+        if not isinstance(pos, collections.Iterable):
+            pos = (pos,)
+        length = self.len
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position {0} out of range.".format(p))
+            self._invert(p)
 
     def ror(self, bits, start=None, end=None):
         """Rotate bits to the right in-place.
