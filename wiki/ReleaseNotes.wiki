@@ -76,7 +76,7 @@ style of the bytearray type, which returns an integer for single items, but
 mostly to avoid common errors like:
 {{{
 >>> if s[0]:
-... do_something()
+...     do_something()
 }}}
 While the intent of this code snippet is quite clear (i.e. do_something if
 the first bit of `s` is set) under the old rules `s[0]` would be true as long
@@ -157,13 +157,13 @@ of methods to be removed from this release, so for example instead of:
 {{{
 >>> a, b, c = s.readbits(5, 6, 7)
 >>> if s.peekbit():
-... do_something()
+...     do_something()
 }}}
 you should write:
 {{{
 >>> a, b, c = s.readlist([5, 6, 7])
 >>> if s.peek(1):
-... do_something()
+...     do_something()
 }}}
 
 ===Auto initialise with bytearray or (for Python 3 only) bytes===
@@ -199,7 +199,6 @@ the bitstring.
 
 `CreationError(Error, ValueError)` - inappropriate argument during
 bitstring creation.
-
 
 `InterpretError(Error, ValueError)` - inappropriate interpretation of
 binary data.
