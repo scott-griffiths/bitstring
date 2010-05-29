@@ -49,7 +49,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "2.0.0 beta 1"
+__version__ = "2.0.1"
 
 __author__ = "Scott Griffiths"
 
@@ -829,17 +829,18 @@ class Bits(collections.Sequence):
 
         """
         try:
-            start, step = 0, 1
-            if key.step is not None:
-                step = key.step
+            step = key.step if key.step is not None else 1
         except AttributeError:
             # single element
             if key < 0:
                 key += self.len
             if not 0 <= key < self.len:
                 raise IndexError("Slice index out of range.")
-            return self._slice(key)
+            # Single bit, return True or False
+            byte, bit = divmod(key + self._offset, 8)
+            return self._datastore.getbyte(byte) & (128 >> bit) != 0
         else:
+            start = 0
             if step != 0:
                 stop = self.len - (self.len % abs(step))
             else:
@@ -1905,8 +1906,8 @@ class Bits(collections.Sequence):
         """Used internally to get a slice, without error checking."""
         if end is None:
             # Single bit, return True or False
-            # TODO: Optimise (shouldn't be range checked)
-            return self.allset(start)
+            byte, bit = divmod(start + self._offset, 8)
+            return self._datastore.getbyte(byte) & (128 >> bit) != 0
         return self._readbits(end-start, start)
 
     def _readtoken(self, name, length):
