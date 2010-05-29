@@ -111,13 +111,13 @@ This means that for the affected methods (unpack, readlist and peeklist) you
 will need to use an iterable to specify multiple items. This is easier to
 show than to describe, so instead of
 {{{
->>> a, b, c, d = s.readlist('uint:12', 'hex:4', 'bin:7')
+>>> a, b, c = s.readlist('uint:12', 'hex:4', 'bin:7')
 }}}
 you would instead write
 {{{
->>> a, b, c, d = s.readlist(['uint:12', 'hex:4', 'bin:7'])
+>>> a, b, c = s.readlist(['uint:12', 'hex:4', 'bin:7'])
 }}}
-Note that you could still use the single string 'uint:12, hex:4, bin:7' if
+Note that you could still use the single string `uint:12, hex:4, bin:7` if
 you prefer.
 
 ===New creation from file strategy===
