@@ -40,7 +40,7 @@ from bitstring import BitString, Bits, pack
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.0.0 beta 1')
+        self.assertEqual(bitstring.__version__, '2.0.1')
 
     def testAll(self):
         exported = ['Bits', 'BitString', 'pack', 'Error', 'ReadError',
