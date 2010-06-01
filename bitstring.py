@@ -654,10 +654,8 @@ class Bits(collections.Sequence):
     
     Methods:
     
-    allset() -- Check if all specified bits are set to one.
-    allunset() -- Check if all specified bits are set to zero.
-    anyset() -- Check if any of specified bits are set to one.
-    anyunset() -- Check if all specified bits are set to zero.
+    allset() -- Check if all specified bits are set to 1 or 0.
+    anyset() -- Check if any of specified bits are set to 1 or 0.
     bytealign() -- Align to next byte boundary.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
@@ -2137,7 +2135,7 @@ class Bits(collections.Sequence):
     def _readbits(self, length, start):
         """Read some bits from the bitstring and return newly constructed bitstring."""
         if length is None:
-            return self.allset(start)
+            return self.allset(True, start)
         startbyte, newoffset = divmod(start + self._offset, 8)
         endbyte = (start + self._offset + length - 1) // 8
         bs = self.__class__(bytes=self._datastore.getbyteslice(startbyte, endbyte + 1),
@@ -2711,13 +2709,16 @@ class Bits(collections.Sequence):
         start = end - suffix.len
         return self[start:end] == suffix
 
-    def allset(self, pos):
-        """Return True if one or many bits are all set to 1.
+    def allset(self, value, pos):
+        """Return True if one or many bits are all set to value.
 
+        value -- If value is True then checks for bits set to 1, otherwise
+                 checks for bits set to 0.
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
 
         """
+        value = bool(value)
         try:
             # Single pos
             if pos < 0:
@@ -2725,7 +2726,7 @@ class Bits(collections.Sequence):
             byte, bit = divmod(self._offset + pos, 8)
             if not 0 <= pos < self.len:
                 raise IndexError("Bit position {0} out of range.".format(pos))
-            return self._datastore.getbyte(byte) & (128 >> bit) != 0
+            return bool((self._datastore.getbyte(byte) & (128 >> bit))) is value
         except TypeError:
             # pos is iterable
             length = self.len
@@ -2736,17 +2737,20 @@ class Bits(collections.Sequence):
                 if not 0 <= p < length:
                     raise IndexError("Bit position {0} out of range.".format(p))
                 byte, bit = divmod(offset + p, 8)
-                if not self._datastore.getbyte(byte) & (128 >> bit):
+                if not bool((self._datastore.getbyte(byte) & (128 >> bit))) is value:
                     return False
             return True
 
-    def anyset(self, pos):
-        """Return True if one or many bits are all set to 1.
+    def anyset(self, value, pos):
+        """Return True if any of one or many bits are set to value.
 
+        value -- If value is True then checks for bits set to 1, otherwise
+                 checks for bits set to 0.
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
 
         """
+        value = bool(value)
         try:
             # Single pos
             if pos < 0:
@@ -2754,7 +2758,7 @@ class Bits(collections.Sequence):
             byte, bit = divmod(self._offset + pos, 8)
             if not 0 <= pos < self.len:
                 raise IndexError("Bit position {0} out of range.".format(pos))
-            return self._datastore.getbyte(byte) & (128 >> bit)
+            return bool((self._datastore.getbyte(byte) & (128 >> bit))) is value
         except TypeError:
             # pos is iterable
             length = self.len
@@ -2765,29 +2769,9 @@ class Bits(collections.Sequence):
                 if not 0 <= p < length:
                     raise IndexError("Bit position {0} out of range.".format(p))
                 byte, bit = divmod(offset + p, 8)
-                if self._datastore.getbyte(byte) & (128 >> bit):
+                if bool(self._datastore.getbyte(byte) & (128 >> bit)) is value:
                     return True
             return False
-
-    def allunset(self, pos):
-        """Return True if one or many bits are all set to 0.
-
-        pos -- Either a single bit position or an iterable of bit positions.
-               Negative numbers are treated in the same way as slice indices.
-
-        """
-        # If more are set, they must all be unset.
-        return not self.anyset(pos)
-
-    def anyunset(self, pos):
-        """Return True if one or many bits are all set to 0.
-
-        pos -- Either a single bit position or an iterable of bit positions.
-               Negative numbers are treated in the same way as slice indices.
-
-        """
-        # If they're not all set, some must be unset.
-        return not self.allset(pos)
 
     # Create native-endian functions as aliases depending on the byteorder
     if byteorder == 'little':
@@ -2920,10 +2904,8 @@ class BitString(Bits, collections.MutableSequence):
     
     Methods inherited from Bits:
     
-    allset() -- Check if all specified bits are set to one.
-    allunset() -- Check if all specified bits are set to zero.
-    anyset() -- Check if any of specified bits are set to one.
-    anyunset() -- Check if all specified bits are set to zero.
+    allset() -- Check if all specified bits are set to 1 or 0.
+    anyset() -- Check if any of specified bits are set to 1 or 0.
     bytealign() -- Align to next byte boundary.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
@@ -3076,7 +3058,8 @@ class BitString(Bits, collections.MutableSequence):
                 raise ValueError("Cannot set a single bit with integer {0}.".format(value))
             value = self._converttobitstring(value)
             if value.len == 1:
-                if value.allset(0):
+                # TODO: this can't be optimal
+                if value.allset(True, 0):
                     self._set(key)
                 else:
                     self._unset(key)
