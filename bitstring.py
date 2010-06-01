@@ -2916,8 +2916,7 @@ class BitString(Bits, collections.MutableSequence):
     reversebytes(): Reverse bytes in-place.
     rol(): Rotate bits to the left.
     ror(): Rotate bits to the right.
-    set(): Set bit(s) to one.
-    unset(): Set bit(s) to zero.
+    set(): Set bit(s) to 1 or 0.
     
     Methods inherited from Bits:
     
@@ -3465,16 +3464,17 @@ class BitString(Bits, collections.MutableSequence):
             raise ByteAlignError("Can only use reversebytes on whole-byte BitStrings.")
         self._reversebytes(start, end)
 
-    def set(self, pos):
-        """Set one or many bits to 1.
+    def set(self, value, pos):
+        """Set one or many bits to 1 or 0.
 
+        value -- If True bits are set to 1, otherwise they are set to 0.
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
 
         Raises IndexError if pos < -self.len or pos >= self.len.
 
         """
-
+        f = self._set if value else self._unset
         try:
             length = self.len
             for p in pos:
@@ -3482,33 +3482,14 @@ class BitString(Bits, collections.MutableSequence):
                     p += length
                 if not 0 <= p < length:
                     raise IndexError("Bit position {0} out of range.".format(p))
-                self._set(p)
+                f(p)
         except TypeError:
             # Single pos
             if pos < 0:
                 pos += self.len
             if not 0 <= pos < length:
                 raise IndexError("Bit position {0} out of range.".format(pos))
-            self._set(pos)
-
-    def unset(self, pos):
-        """Set one or many bits to 0.
-
-        pos -- Either a single bit position or an iterable of bit positions.
-               Negative numbers are treated in the same way as slice indices.
-
-        Raises IndexError if pos < -self.len or pos >= self.len.
-
-        """
-        if not isinstance(pos, collections.Iterable):
-            pos = (pos,)
-        length = self.len
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError("Bit position {0} out of range.".format(p))
-            self._unset(p)
+            f(pos)
 
     def invert(self, pos):
         """Invert one or many bits from 0 to 1 or vice versa.
