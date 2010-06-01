@@ -3164,39 +3164,39 @@ class Adding(unittest.TestCase):
 
     def testAllSet(self):
         a = BitString('0b0111')
-        self.assertTrue(a.allset((1, 3)))
-        self.assertFalse(a.allset((0, 1, 2)))
-        self.assertTrue(a.allset(-1))
-        self.assertFalse(a.allset(0))
+        self.assertTrue(a.allset(True, (1, 3)))
+        self.assertFalse(a.allset(True, (0, 1, 2)))
+        self.assertTrue(a.allset(True, -1))
+        self.assertFalse(a.allset(True, 0))
 
     def testFileBasedAllSetUnset(self):
         a = BitString(filename='test.m1v')
-        self.assertTrue(a.allset(31))
+        self.assertTrue(a.allset(True, 31))
         a = BitString(filename='test.m1v')
-        self.assertTrue(a.allunset((0, 1, 2, 3, 4)))
+        self.assertTrue(a.allset(False, (0, 1, 2, 3, 4)))
 
     def testFileBasedAnySetUnset(self):
         a = BitString(filename='test.m1v')
-        self.assertTrue(a.anyset((31, 12)))
+        self.assertTrue(a.anyset(True, (31, 12)))
         a = BitString(filename='test.m1v')
-        self.assertTrue(a.anyunset((0, 1, 2, 3, 4)))
+        self.assertTrue(a.anyset(False, (0, 1, 2, 3, 4)))
 
     def testAnySet(self):
         a = BitString('0b10011011')
-        self.assertTrue(a.anyset((1, 2, 3, 5)))
-        self.assertFalse(a.anyset((1, 2, 5)))
-        self.assertTrue(a.anyset(-1))
-        self.assertFalse(a.anyset(1))
+        self.assertTrue(a.anyset(True, (1, 2, 3, 5)))
+        self.assertFalse(a.anyset(True, (1, 2, 5)))
+        self.assertTrue(a.anyset(True, -1))
+        self.assertFalse(a.anyset(True, 1))
 
     def testAllUnset(self):
         a = BitString('0b0010011101')
-        self.assertTrue(a.allunset((0, 1, 3, 4)))
-        self.assertFalse(a.allunset((0, 1, 2, 3, 4)))
+        self.assertTrue(a.allset(False, (0, 1, 3, 4)))
+        self.assertFalse(a.allset(False, (0, 1, 2, 3, 4)))
 
     def testAnyUnset(self):
         a = BitString('0b01001110110111111111111111111')
-        self.assertTrue(a.anyunset((4, 5, 6, 2)))
-        self.assertFalse(a.anyunset((1, 15, 20)))
+        self.assertTrue(a.anyset(False, (4, 5, 6, 2)))
+        self.assertFalse(a.anyset(False, (1, 15, 20)))
 
     def testFloatInitialisation(self):
         for f in (0.0000001, -1.0, 1.0, 0.2, -3.1415265, 1.331e32):
