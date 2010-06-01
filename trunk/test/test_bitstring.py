@@ -1774,10 +1774,10 @@ class Adding(unittest.TestCase):
     def testLargeEquals(self):
         s1 = BitString(10000000)
         s2 = BitString(10000000)
-        s1.set([0, 55, 53214, 5342111, 9999999])
-        s2.set([0, 55, 53214, 5342111, 9999999])
+        s1.set(True, [0, 55, 53214, 5342111, 9999999])
+        s2.set(True, [0, 55, 53214, 5342111, 9999999])
         self.assertEqual(s1, s2)
-        s1.set(8000000)
+        s1.set(True, 8000000)
         self.assertNotEqual(s1, s2)
 
     def testNotEquals(self):
@@ -3089,50 +3089,50 @@ class Adding(unittest.TestCase):
 
     def testSet(self):
         a = BitString(length=16)
-        a.set(0)
+        a.set(True, 0)
         self.assertEqual(a, '0b10000000 00000000')
-        a.set(15)
+        a.set(1, 15)
         self.assertEqual(a, '0b10000000 00000001')
         b = a[4:12]
-        b.set(1)
+        b.set(True, 1)
         self.assertEqual(b, '0b01000000')
-        b.set(-1)
+        b.set(True, -1)
         self.assertEqual(b, '0b01000001')
-        b.set(-8)
+        b.set(1, -8)
         self.assertEqual(b, '0b11000001')
-        self.assertRaises(IndexError, b.set, -9)
-        self.assertRaises(IndexError, b.set, 8)
+        self.assertRaises(IndexError, b.set, True, -9)
+        self.assertRaises(IndexError, b.set, True, 8)
 
     def testFileBasedSetUnset(self):
         a = BitString(filename='test.m1v')
-        a.set((0, 1, 2, 3, 4))
+        a.set(True, (0, 1, 2, 3, 4))
         self.assertEqual(a[0:4:8], '0xf80001b3')
         a = BitString(filename='test.m1v')
-        a.unset((28, 29, 30, 31))
+        a.set(False, (28, 29, 30, 31))
         self.assertTrue(a.startswith('0x000001b0'))
 
     def testSetList(self):
         a = BitString(length=18)
-        a.set(range(18))
+        a.set(True, range(18))
         self.assertEqual(a.int, -1)
-        a.unset(range(18))
+        a.set(False, range(18))
         self.assertEqual(a.int, 0)
 
     def testUnset(self):
         a = BitString(length=16, int=-1)
-        a.unset(0)
+        a.set(False, 0)
         self.assertEqual(~a, '0b10000000 00000000')
-        a.unset(15)
+        a.set(0, 15)
         self.assertEqual(~a, '0b10000000 00000001')
         b = a[4:12]
-        b.unset(1)
+        b.set(False, 1)
         self.assertEqual(~b, '0b01000000')
-        b.unset(-1)
+        b.set(False, -1)
         self.assertEqual(~b, '0b01000001')
-        b.unset(-8)
+        b.set(False, -8)
         self.assertEqual(~b, '0b11000001')
-        self.assertRaises(IndexError, b.unset, -9)
-        self.assertRaises(IndexError, b.unset, 8)
+        self.assertRaises(IndexError, b.set, False, -9)
+        self.assertRaises(IndexError, b.set, False, 8)
 
     def testInvertBits(self):
         a = BitString('0b111000')
