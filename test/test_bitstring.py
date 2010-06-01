@@ -3166,6 +3166,8 @@ class Adding(unittest.TestCase):
         a = BitString('0b0111')
         self.assertTrue(a.allset((1, 3)))
         self.assertFalse(a.allset((0, 1, 2)))
+        self.assertTrue(a.allset(-1))
+        self.assertFalse(a.allset(0))
 
     def testFileBasedAllSetUnset(self):
         a = BitString(filename='test.m1v')
@@ -3183,6 +3185,8 @@ class Adding(unittest.TestCase):
         a = BitString('0b10011011')
         self.assertTrue(a.anyset((1, 2, 3, 5)))
         self.assertFalse(a.anyset((1, 2, 5)))
+        self.assertTrue(a.anyset(-1))
+        self.assertFalse(a.anyset(1))
 
     def testAllUnset(self):
         a = BitString('0b0010011101')

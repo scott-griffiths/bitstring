@@ -2718,19 +2718,27 @@ class Bits(collections.Sequence):
                Negative numbers are treated in the same way as slice indices.
 
         """
-        if not isinstance(pos, collections.Iterable):
-            pos = (pos,)
-        length = self.len
-        offset = self._offset
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError("Bit position {0} out of range.".format(p))
-            byte, bit = divmod(offset + p, 8)
-            if not self._datastore.getbyte(byte) & (128 >> bit):
-                return False
-        return True
+        try:
+            # Single pos
+            if pos < 0:
+                pos += self.len
+            byte, bit = divmod(self._offset + pos, 8)
+            if not 0 <= pos < self.len:
+                raise IndexError("Bit position {0} out of range.".format(pos))
+            return self._datastore.getbyte(byte) & (128 >> bit) != 0
+        except TypeError:
+            # pos is iterable
+            length = self.len
+            offset = self._offset
+            for p in pos:
+                if p < 0:
+                    p += length
+                if not 0 <= p < length:
+                    raise IndexError("Bit position {0} out of range.".format(p))
+                byte, bit = divmod(offset + p, 8)
+                if not self._datastore.getbyte(byte) & (128 >> bit):
+                    return False
+            return True
 
     def anyset(self, pos):
         """Return True if one or many bits are all set to 1.
@@ -2739,19 +2747,27 @@ class Bits(collections.Sequence):
                Negative numbers are treated in the same way as slice indices.
 
         """
-        if not isinstance(pos, collections.Iterable):
-            pos = (pos,)
-        length = self.len
-        offset = self._offset
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError("Bit position {0} out of range.".format(p))
-            byte, bit = divmod(offset + p, 8)
-            if self._datastore.getbyte(byte) & (128 >> bit):
-                return True
-        return False
+        try:
+            # Single pos
+            if pos < 0:
+                pos += self.len
+            byte, bit = divmod(self._offset + pos, 8)
+            if not 0 <= pos < self.len:
+                raise IndexError("Bit position {0} out of range.".format(pos))
+            return self._datastore.getbyte(byte) & (128 >> bit)
+        except TypeError:
+            # pos is iterable
+            length = self.len
+            offset = self._offset
+            for p in pos:
+                if p < 0:
+                    p += length
+                if not 0 <= p < length:
+                    raise IndexError("Bit position {0} out of range.".format(p))
+                byte, bit = divmod(offset + p, 8)
+                if self._datastore.getbyte(byte) & (128 >> bit):
+                    return True
+            return False
 
     def allunset(self, pos):
         """Return True if one or many bits are all set to 0.
@@ -3458,15 +3474,22 @@ class BitString(Bits, collections.MutableSequence):
         Raises IndexError if pos < -self.len or pos >= self.len.
 
         """
-        if not isinstance(pos, collections.Iterable):
-            pos = (pos,)
-        length = self.len
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError("Bit position {0} out of range.".format(p))
-            self._set(p)
+
+        try:
+            length = self.len
+            for p in pos:
+                if p < 0:
+                    p += length
+                if not 0 <= p < length:
+                    raise IndexError("Bit position {0} out of range.".format(p))
+                self._set(p)
+        except TypeError:
+            # Single pos
+            if pos < 0:
+                pos += self.len
+            if not 0 <= pos < length:
+                raise IndexError("Bit position {0} out of range.".format(pos))
+            self._set(pos)
 
     def unset(self, pos):
         """Set one or many bits to 0.
