@@ -11,21 +11,13 @@ The module is pure Python at the moment, and I've got no plans to move any of it
 
 ----
 
-===When is it coming out of beta?===
-
-October 9th 2009. :-)
-
-The current version is 'production/stable'. This means that you can expect the API to remain stable for the whole of version 1. There will still be new features, but I'll try really hard not to break backwards compatibility.
-
-There will be a version 2 some time in 2010. This won't be a radical revision, but will tweak a few bits of the interface. See the 2.0 Milestone items in the Issues tab for the current candidate changes.
-
-----
-
 ===Will Python 2.4 and 2.5 continue to be supported?===
 
-The versions after 1.0 have been for Python 2.6 or later only. This has allowed a number of simplifications, including having just one code-base for Python 2.6 and 3.x.
+It's quite unlikely that any versions after 1.0 will support anything earlier than Python 2.6. The work needed to make a new release is considerable (and perhaps more importantly not a lot of fun) and as I estimate over 90% of people are using the newer Python versions I'm not convinced it is time well spent.
 
-There may be future releases for Python 2.4 and 2.5 (beyond bug fixes) but it's quite possible that there won't be. The work needed to make a new release is considerable and as I estimate over 90% of people are using the newer Python versions I'm not convinced it is time well spent.
+So if you need any features that were introduced after bitstring 1.0, or you want the many optimisations in later versions, then I'm afraid you'll have to get a newer version of Python.
+
+The versions after 1.0 have been for Python 2.6 or later only. This has allowed a number of simplifications, including having just one code-base for Python 2.6 and 3.x.
 
 ----
 
