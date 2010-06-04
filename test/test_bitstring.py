@@ -40,7 +40,7 @@ from bitstring import BitString, Bits, pack
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.0.1')
+        self.assertEqual(bitstring.__version__, '2.0.1 beta 2')
 
     def testAll(self):
         exported = ['Bits', 'BitString', 'pack', 'Error', 'ReadError',
@@ -3166,12 +3166,12 @@ class Adding(unittest.TestCase):
         a = BitString('0b0111')
         self.assertTrue(a.allset(True, (1, 3)))
         self.assertFalse(a.allset(True, (0, 1, 2)))
-        self.assertTrue(a.allset(True, -1))
-        self.assertFalse(a.allset(True, 0))
+        self.assertTrue(a.allset(True, [-1]))
+        self.assertFalse(a.allset(True, [0]))
 
     def testFileBasedAllSetUnset(self):
         a = BitString(filename='test.m1v')
-        self.assertTrue(a.allset(True, 31))
+        self.assertTrue(a.allset(True, [31]))
         a = BitString(filename='test.m1v')
         self.assertTrue(a.allset(False, (0, 1, 2, 3, 4)))
 
@@ -3185,8 +3185,8 @@ class Adding(unittest.TestCase):
         a = BitString('0b10011011')
         self.assertTrue(a.anyset(True, (1, 2, 3, 5)))
         self.assertFalse(a.anyset(True, (1, 2, 5)))
-        self.assertTrue(a.anyset(True, -1))
-        self.assertFalse(a.anyset(True, 1))
+        self.assertTrue(a.anyset(True, (-1,)))
+        self.assertFalse(a.anyset(True, (1,)))
 
     def testAllUnset(self):
         a = BitString('0b0010011101')

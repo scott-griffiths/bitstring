@@ -49,7 +49,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "2.0.1"
+__version__ = "2.0.1 beta 2"
 
 __author__ = "Scott Griffiths"
 
@@ -2135,7 +2135,7 @@ class Bits(collections.Sequence):
     def _readbits(self, length, start):
         """Read some bits from the bitstring and return newly constructed bitstring."""
         if length is None:
-            return self.allset(True, start)
+            return self[start] # TODO: Don't range check
         startbyte, newoffset = divmod(start + self._offset, 8)
         endbyte = (start + self._offset + length - 1) // 8
         bs = self.__class__(bytes=self._datastore.getbyteslice(startbyte, endbyte + 1),
@@ -2714,64 +2714,44 @@ class Bits(collections.Sequence):
 
         value -- If value is True then checks for bits set to 1, otherwise
                  checks for bits set to 0.
-        pos -- Either a single bit position or an iterable of bit positions.
-               Negative numbers are treated in the same way as slice indices.
+        pos -- An iterable of bit positions. Negative numbers are treated
+               in the same way as slice indices.
 
         """
         value = bool(value)
-        try:
-            # Single pos
-            if pos < 0:
-                pos += self.len
-            byte, bit = divmod(self._offset + pos, 8)
-            if not 0 <= pos < self.len:
-                raise IndexError("Bit position {0} out of range.".format(pos))
-            return bool((self._datastore.getbyte(byte) & (128 >> bit))) is value
-        except TypeError:
-            # pos is iterable
-            length = self.len
-            offset = self._offset
-            for p in pos:
-                if p < 0:
-                    p += length
-                if not 0 <= p < length:
-                    raise IndexError("Bit position {0} out of range.".format(p))
-                byte, bit = divmod(offset + p, 8)
-                if not bool((self._datastore.getbyte(byte) & (128 >> bit))) is value:
-                    return False
-            return True
+        length = self.len
+        offset = self._offset
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position {0} out of range.".format(p))
+            byte, bit = divmod(offset + p, 8)
+            if not bool((self._datastore.getbyte(byte) & (128 >> bit))) is value:
+                return False
+        return True
 
     def anyset(self, value, pos):
         """Return True if any of one or many bits are set to value.
 
         value -- If value is True then checks for bits set to 1, otherwise
                  checks for bits set to 0.
-        pos -- Either a single bit position or an iterable of bit positions.
-               Negative numbers are treated in the same way as slice indices.
+        pos -- An iterable of bit positions. Negative numbers are treated
+               in the same way as slice indices.
 
         """
         value = bool(value)
-        try:
-            # Single pos
-            if pos < 0:
-                pos += self.len
-            byte, bit = divmod(self._offset + pos, 8)
-            if not 0 <= pos < self.len:
-                raise IndexError("Bit position {0} out of range.".format(pos))
-            return bool((self._datastore.getbyte(byte) & (128 >> bit))) is value
-        except TypeError:
-            # pos is iterable
-            length = self.len
-            offset = self._offset
-            for p in pos:
-                if p < 0:
-                    p += length
-                if not 0 <= p < length:
-                    raise IndexError("Bit position {0} out of range.".format(p))
-                byte, bit = divmod(offset + p, 8)
-                if bool(self._datastore.getbyte(byte) & (128 >> bit)) is value:
-                    return True
-            return False
+        length = self.len
+        offset = self._offset
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position {0} out of range.".format(p))
+            byte, bit = divmod(offset + p, 8)
+            if bool(self._datastore.getbyte(byte) & (128 >> bit)) is value:
+                return True
+        return False
 
     # Create native-endian functions as aliases depending on the byteorder
     if byteorder == 'little':
@@ -3059,7 +3039,7 @@ class BitString(Bits, collections.MutableSequence):
             value = self._converttobitstring(value)
             if value.len == 1:
                 # TODO: this can't be optimal
-                if value.allset(True, 0):
+                if value[0]:
                     self._set(key)
                 else:
                     self._unset(key)
