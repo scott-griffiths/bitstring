@@ -1,6 +1,0 @@
-#summary Brief description of the bitstring module
-#labels Deprecated
-
-Below is the reference section from the [Documentation bitstring manual] as a huge image. It's recommended that you download the manual to make sure that you get the most up to date information.
-
-[http://python-bitstring.googlecode.com/svn/wiki/reference.png]
