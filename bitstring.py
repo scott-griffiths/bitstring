@@ -67,11 +67,6 @@ import binascii
 import copy
 import warnings
 import functools
-try:
-    from bitarray import bitarray
-    bitarray_available = True
-except ImportError:
-    bitarray_available = False
 
 byteorder = sys.byteorder
 
@@ -393,91 +388,6 @@ class BaseArray(object):
         raise NotImplementedError
 
 
-class BitArray(BaseArray):
-    """Uses the bitarray module to do the heavy lifting."""
-
-    def __init__(self, data, bitlength=0, offset=0):
-        if isinstance(data, bitarray):
-            self._rawarray = copy.copy(data)
-            self.offset = offset
-        else:
-            self._rawarray = bitarray()
-            self._rawarray.fromstring(bytes(data[offset // 8: (offset + bitlength + 7) // 8]))
-            self.offset = offset % 8
-        self.bitlength = bitlength
-        del self._rawarray[self.offset + self.bitlength:]
-        assert self._rawarray.length() == self.offset + self.bitlength
-
-    def __copy__(self):
-        b = BitArray(self._rawarray, self.bitlength, self.offset)
-        assert b._rawarray.length() == b.offset + b.bitlength
-        return b
-
-    def getbyte(self, pos):
-        return ord(self._rawarray[pos*8:pos*8 + 8].tostring())
-
-    def getbyteslice(self, start, end):
-        return self._rawarray[start*8:end*8].tostring()
-
-    def setbyte(self, pos, value):
-        self._rawarray[pos*8:pos*8+8] = bitarray(BYTE_TO_BITS[value])
-
-    def setbyteslice(self, start, end, value):
-        assert self._rawarray.length() == self.offset + self.bitlength
-        ba = bytearray(self._rawarray.tostring())
-        len_before = len(ba)
-        ba[start:end] = value
-        self.bitlength += 8*(len(ba) - len_before)
-        self._rawarray = bitarray()
-        self._rawarray.fromstring(bytes(ba))
-        del self._rawarray[self.offset + self.bitlength:]
-        assert self._rawarray.length() == self.offset + self.bitlength
-
-    def setoffset(self, newoffset):
-        if not self._rawarray.length() == self.offset + self.bitlength:
-            pass
-        if newoffset == self.offset:
-            return
-        if newoffset < self.offset:
-            lenb4 = self._rawarray.length()
-            del self._rawarray[0:self.offset - newoffset]
-            assert self._rawarray.length() == lenb4 - (self.offset - newoffset)
-        else:
-            lenb4 = self._rawarray.length()
-            self._rawarray[0:0] = bitarray('0'*(newoffset - self.offset))
-            lenafter = self._rawarray.length()
-            if not self._rawarray.length() == lenb4 - (self.offset - newoffset):
-                pass
-        self.offset = newoffset
-        assert self._rawarray.length() == self.offset + self.bitlength
-
-    def appendarray(self, array):
-        # TEST:
-        #self._rawarray.extend(array._rawarray)
-        #return
-        assert self._rawarray.length() == self.offset + self.bitlength
-        del self._rawarray[self.bitlength + self.offset:]
-        self._rawarray += array._rawarray[array.offset:array.offset + array.bitlength]
-        self.bitlength += array.bitlength
-        assert self._rawarray.length() == self.offset + self.bitlength
-
-    def prependarray(self, array):
-        assert self._rawarray.length() == self.offset + self.bitlength
-        array._rawarray[array.bitlength + array.offset:] = self._rawarray[self.offset:self.offset + self.bitlength]
-        self._rawarray = array._rawarray
-        self.bitlength += array.bitlength
-        self.offset = array.offset
-        assert self._rawarray.length() == self.offset + self.bitlength
-
-    @property
-    def bytelength(self):
-        return (self.bitlength + self.offset + 7) // 8
-
-    @property
-    def rawbytes(self):
-        return bytearray(self._rawarray.tostring())[self.offset // 8: (self.offset + self.bitlength + 7) // 8]
-
-
 class ByteArray(BaseArray):
     """Stores raw bytes together with a bit offset and length."""
 
@@ -586,20 +496,10 @@ class ByteArray(BaseArray):
         return self._rawarray
 
 
+# In future there could be other memory based array types,
+# for example a C-based implementation.
 MemArray = ByteArray
 
-def fast_mode(on=True):
-    """Turn on or off the use of the bitarray module."""
-    global MemArray
-    if not on:
-        # Use pure Python implementation.
-        MemArray = ByteArray
-        return
-    if bitarray_available:
-        # Use bitstring module for a bit of extra speed.
-        MemArray = BitArray
-        return
-    raise Error("Couldn't turn on fast mode - the import of the bitarray module failed.")
 
 class FileArray(BaseArray):
     """A class that mimics bytearray but gets data from a file object."""
