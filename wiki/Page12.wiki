@@ -1,7 +1,0 @@
-#summary Manual page 12
-#labels Deprecated
-<--*[Page11 Previous Page]* / *[Page13 Next Page]*-->
-----
-[http://python-bitstring.googlecode.com/svn/wiki/bitstring-manual_12.png]
-----
-<--*[Page11 Previous Page]* / *[Page13 Next Page]*-->
