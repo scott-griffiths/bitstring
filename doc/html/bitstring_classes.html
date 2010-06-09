@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '2.0.0 beta 1',
+        VERSION:     '2.0.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -154,34 +154,18 @@
 </div>
 <dl class="method">
 <dt id="Bits.allset">
-<tt class="descname">allset</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#Bits.allset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if one or many bits are all set to <tt class="docutils literal"><span class="pre">1</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
-<p><em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
-<p>See also <a title="Bits.allunset" class="reference internal" href="#Bits.allunset"><tt class="xref docutils literal"><span class="pre">Bits.allunset</span></tt></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="Bits.allunset">
-<tt class="descname">allunset</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#Bits.allunset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if one or many bits are all set to <tt class="docutils literal"><span class="pre">0</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
-<p><em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as    slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
-<p>See also <a title="Bits.allset" class="reference internal" href="#Bits.allset"><tt class="xref docutils literal"><span class="pre">Bits.allset</span></tt></a>.</p>
+<tt class="descname">allset</tt><big>(</big><em>value</em>, <em>pos</em><big>)</big><a class="headerlink" href="#Bits.allset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if all of the specified bits are all set to <em>value</em>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p>If <em>value</em> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then <tt class="docutils literal"><span class="pre">1</span></tt> bits are checked for, otherwise <tt class="docutils literal"><span class="pre">0</span></tt> bits are checked for.</p>
+<p><em>pos</em> should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="Bits.anyset">
-<tt class="descname">anyset</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#Bits.anyset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if any of one or many bits are set to <tt class="docutils literal"><span class="pre">1</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
-<p><em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
-<p>See also <a title="Bits.anyunset" class="reference internal" href="#Bits.anyunset"><tt class="xref docutils literal"><span class="pre">Bits.anyunset</span></tt></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="Bits.anyunset">
-<tt class="descname">anyunset</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#Bits.anyunset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if any of one or many bits are set to <tt class="docutils literal"><span class="pre">0</span></tt>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
-<p><em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
-<p>See also <a title="Bits.anyset" class="reference internal" href="#Bits.anyset"><tt class="xref docutils literal"><span class="pre">Bits.anyset</span></tt></a>.</p>
+<tt class="descname">anyset</tt><big>(</big><em>value</em>, <em>pos</em><big>)</big><a class="headerlink" href="#Bits.anyset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if any of the specified bits are set to <em>value</em>, otherwise returns <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
+<p>If <em>value</em> is <tt class="xref docutils literal"><span class="pre">True</span></tt> then <tt class="docutils literal"><span class="pre">1`</span> <span class="pre">bits</span> <span class="pre">are</span> <span class="pre">checked</span> <span class="pre">for,</span> <span class="pre">otherwise</span> <span class="pre">``0</span></tt> bits are checked for.</p>
+<p><em>pos</em> should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt></p>
 </dd></dl>
 
 <dl class="method">
@@ -882,27 +866,18 @@ Bits(‘0x0f’)</pre>
 
 <dl class="method">
 <dt id="BitString.set">
-<tt class="descname">set</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#BitString.set" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets one or many bits to <tt class="docutils literal"><span class="pre">1</span></tt>. <em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt>.</p>
-<p>Using <tt class="docutils literal"><span class="pre">s.set(x)</span></tt> is considerably more efficent than other equivalent methods such as <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">1</span></tt>, <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">&quot;0b1&quot;</span></tt> or <tt class="docutils literal"><span class="pre">s.overwrite('0b1',</span> <span class="pre">x)</span></tt>.</p>
-<p>See also <a title="BitString.unset" class="reference internal" href="#BitString.unset"><tt class="xref docutils literal"><span class="pre">BitString.unset</span></tt></a>.</p>
+<tt class="descname">set</tt><big>(</big><em>value</em>, <em>pos</em><big>)</big><a class="headerlink" href="#BitString.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets one or many bits to either <tt class="docutils literal"><span class="pre">1</span></tt> (if <em>value</em> is <tt class="xref docutils literal"><span class="pre">True</span></tt>) or <tt class="docutils literal"><span class="pre">0</span></tt> (if <em>value</em> isn&#8217;t <tt class="xref docutils literal"><span class="pre">True</span></tt>). <em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt>.</p>
+<p>Using <tt class="docutils literal"><span class="pre">s.set(True,</span> <span class="pre">x)</span></tt> can be more efficent than other equivalent methods such as <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">1</span></tt>, <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">&quot;0b1&quot;</span></tt> or <tt class="docutils literal"><span class="pre">s.overwrite('0b1',</span> <span class="pre">x)</span></tt>, especially if many bits are being set.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0000&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 <span class="go">0x0001</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bin</span>
 <span class="go">&#39;0b1000110101000001&#39;</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="method">
-<dt id="BitString.unset">
-<tt class="descname">unset</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#BitString.unset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets one or many bits to <tt class="docutils literal"><span class="pre">0</span></tt>. <em>pos</em> can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise <tt class="xref docutils literal"><span class="pre">IndexError</span></tt> if <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&lt;</span> <span class="pre">-s.len</span></tt> or <tt class="docutils literal"><span class="pre">pos</span> <span class="pre">&gt;</span> <span class="pre">s.len</span></tt>.</p>
-<p>Using <tt class="docutils literal"><span class="pre">s.unset(x)</span></tt> is considerably more efficent than other equivalent methods such as <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">0</span></tt>, <tt class="docutils literal"><span class="pre">s[x]</span> <span class="pre">=</span> <span class="pre">&quot;0b0&quot;</span></tt> or <tt class="docutils literal"><span class="pre">s.overwrite('0b0',</span> <span class="pre">x)</span></tt>.</p>
-<p>See also <a title="BitString.set" class="reference internal" href="#BitString.set"><tt class="xref docutils literal"><span class="pre">BitString.set</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">

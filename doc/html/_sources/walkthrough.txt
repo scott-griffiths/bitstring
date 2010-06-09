@@ -4,7 +4,7 @@ Walkthrough
 
 .. note::
 
-This section is incomplete. I plan to complete it for the 2.0.0 final release.
+ This section is incomplete. I plan to complete it for the 2.0.0 final release.
 
 A Brief Introduction
 ====================

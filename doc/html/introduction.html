@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '2.0.0 beta 1',
+        VERSION:     '2.0.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,7 +54,7 @@
 <p><a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects can be sliced, joined, reversed, inserted into, overwritten, packed, unpacked etc. with simple functions or slice notation. They can also be read from, searched in, and navigated in, similar to a file or stream.</p>
 <p>Bitstrings are designed to be as lightweight as possible and can be considered to be just a list of binary digits. They are however stored efficiently - although there are a variety of ways of creating and viewing the binary data, the bitstring itself just stores the byte data, and all views are calculated as needed, and are not stored as part of the object.</p>
 <p>The different views or interpretations on the data are accessed through properties such as <a title="hex" class="reference external" href="bitstring_classes.html#hex"><tt class="xref docutils literal"><span class="pre">hex</span></tt></a>, <a title="bin" class="reference external" href="bitstring_classes.html#bin"><tt class="xref docutils literal"><span class="pre">bin</span></tt></a> and <a title="int" class="reference external" href="bitstring_classes.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a>, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.</p>
-<p>A complete reference for the module is given in <a class="reference external" href="reference.html#reference"><em>Reference</em></a>, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual.</p>
+<p>A complete reference for the module is given in the <a class="reference external" href="reference.html#reference"><em>Reference</em></a> section, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">bitstring</span> <span class="kn">import</span> <span class="n">BitString</span>
 </pre></div>
 </div>
@@ -100,7 +100,7 @@
 </div>
 <p>or similar.</p>
 <p>If you want an earlier version, or need other files in the full package, you can download and extract the contents of the .zip provided on the project&#8217;s website.</p>
-<p>First download the latest release for either Python 2.4 / 2.5 or Python 2.6 / 3.0 / 3.1 (see the Downloads tab on the project’s homepage). Note that this manual covers only the Python 2.6 and later version. An earlier version is available for Python 2.4 / 2.5, which is available on the project&#8217;s homepage.</p>
+<p>First download the latest release for either Python 2.4 / 2.5 or Python 2.6 / 3.0 / 3.1 (see the Downloads tab on the project’s homepage). Note that this manual covers only the Python 2.6 and later version. An earlier version is available for Python 2.4 / 2.5, which can be found on the project&#8217;s homepage.</p>
 <p>If you then extract the contents of the zip file you should find:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">bitstring.py</span></tt> : The bitstring module itself.</li>
@@ -116,7 +116,7 @@
 <p>To install, run:</p>
 <div class="highlight-python"><pre>python setup.py install</pre>
 </div>
-<p>This will copy <tt class="docutils literal"><span class="pre">bitstring.py</span></tt> to your Python installation&#8217;s <tt class="docutils literal"><span class="pre">site-packages</span></tt> directory. If you prefer you can do this by hand, or just make sure that your Python program can see <tt class="docutils literal"><span class="pre">bitstring.py</span></tt>, for example by putting in the same directory as the program that will use it.</p>
+<p>You might need to add a &#8216;sudo&#8217; to the start of that command, depending on your system. This will copy <tt class="docutils literal"><span class="pre">bitstring.py</span></tt> to your Python installation&#8217;s <tt class="docutils literal"><span class="pre">site-packages</span></tt> directory. If you prefer you can do this by hand, or just make sure that your Python program can see <tt class="docutils literal"><span class="pre">bitstring.py</span></tt>, for example by putting in the same directory as the program that will use it.</p>
 <p>The module comes with comprehensive unit tests. To run them yourself use:</p>
 <div class="highlight-python"><pre>python test_bitstring.py</pre>
 </div>

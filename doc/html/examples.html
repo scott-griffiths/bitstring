@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '2.0.0 beta 1',
+        VERSION:     '2.0.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -119,6 +119,19 @@
 </pre></div>
 </div>
 </div>
+<div class="section" id="sieve-of-eratosthenes">
+<h2>Sieve of Eratosthenes<a class="headerlink" href="#sieve-of-eratosthenes" title="Permalink to this headline">¶</a></h2>
+<p>This classic (though inefficient) method of calculating prime numbers uses a bitstring to store whether each bit position represents a prime number. This takes much less memory than an ordinary array.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">prime_sieve</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mi">1000000</span><span class="p">):</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">top</span><span class="p">)</span> <span class="c"># bitstring of &#39;0&#39; bits</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">top</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="k">yield</span> <span class="n">i</span>
+            <span class="c"># i is prime, so set all its multiples to &#39;1&#39;.</span>
+            <span class="n">b</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">i</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -136,6 +149,7 @@
 <li><a class="reference external" href="#creation">Creation</a></li>
 <li><a class="reference external" href="#manipulation">Manipulation</a></li>
 <li><a class="reference external" href="#parsing">Parsing</a></li>
+<li><a class="reference external" href="#sieve-of-eratosthenes">Sieve of Eratosthenes</a></li>
 </ul>
 </li>
 </ul>
