@@ -13,7 +13,7 @@ Bitstrings are designed to be as lightweight as possible and can be considered t
 
 The different views or interpretations on the data are accessed through properties such as :attr:`hex`, :attr:`bin` and :attr:`int`, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.
 
-A complete reference for the module is given in :ref:`reference`, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual. ::
+A complete reference for the module is given in the :ref:`reference` section, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual. ::
 
  from bitstring import BitString
 
@@ -64,7 +64,7 @@ or similar.
 
 If you want an earlier version, or need other files in the full package, you can download and extract the contents of the .zip provided on the project's website.
 
-First download the latest release for either Python 2.4 / 2.5 or Python 2.6 / 3.0 / 3.1 (see the Downloads tab on the project’s homepage). Note that this manual covers only the Python 2.6 and later version. An earlier version is available for Python 2.4 / 2.5, which is available on the project's homepage.
+First download the latest release for either Python 2.4 / 2.5 or Python 2.6 / 3.0 / 3.1 (see the Downloads tab on the project’s homepage). Note that this manual covers only the Python 2.6 and later version. An earlier version is available for Python 2.4 / 2.5, which can be found on the project's homepage.
 
 If you then extract the contents of the zip file you should find:
 
@@ -82,7 +82,7 @@ To install, run::
 
  python setup.py install
 
-This will copy ``bitstring.py`` to your Python installation's ``site-packages`` directory. If you prefer you can do this by hand, or just make sure that your Python program can see ``bitstring.py``, for example by putting in the same directory as the program that will use it.
+You might need to add a 'sudo' to the start of that command, depending on your system. This will copy ``bitstring.py`` to your Python installation's ``site-packages`` directory. If you prefer you can do this by hand, or just make sure that your Python program can see ``bitstring.py``, for example by putting in the same directory as the program that will use it.
 
 The module comes with comprehensive unit tests. To run them yourself use::
  

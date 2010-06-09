@@ -104,37 +104,21 @@ The ``Bits`` class
      >>> s = Bits('uint:12=32, 0b110')
      >>> t = Bits('0o755, ue:12, int:3=-1') 
 
-    .. method:: allset(pos)
+    .. method:: allset(value, pos)
 
-       Returns ``True`` if one or many bits are all set to ``1``, otherwise returns ``False``.
+       Returns ``True`` if all of the specified bits are all set to *value*, otherwise returns ``False``.
 
-       *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
+       If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
+       
+       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
 
-       See also :meth:`Bits.allunset`.
+    .. method:: anyset(value, pos)
 
-    .. method:: allunset(pos)
+       Returns ``True`` if any of the specified bits are set to *value*, otherwise returns ``False``.
 
-       Returns ``True`` if one or many bits are all set to ``0``, otherwise returns ``False``.
+       If *value* is ``True`` then ``1` bits are checked for, otherwise ``0`` bits are checked for.
 
-       *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as    slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
-
-       See also :meth:`Bits.allset`.
-
-    .. method:: anyset(pos)
-
-       Returns ``True`` if any of one or many bits are set to ``1``, otherwise returns ``False``.
-
-       *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
-
-       See also :meth:`Bits.anyunset`.
-
-    .. method:: anyunset(pos)
-
-       Returns ``True`` if any of one or many bits are set to ``0``, otherwise returns ``False``.
-
-       *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
-
-       See also :meth:`Bits.anyset`.
+       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
 
     .. method:: bytealign()
 
@@ -709,30 +693,19 @@ The ``BitString`` class
         
         Raises :exc:`ValueError` if ``bits < 0``.
 
-    .. method:: set(pos)
+    .. method:: set(value, pos)
 
-        Sets one or many bits to ``1``. *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``.
+        Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``.
 
-        Using ``s.set(x)`` is considerably more efficent than other equivalent methods such as ``s[x] = 1``, ``s[x] = "0b1"`` or ``s.overwrite('0b1', x)``.
-
-        See also :meth:`BitString.unset`. ::
+        Using ``s.set(True, x)`` can be more efficent than other equivalent methods such as ``s[x] = 1``, ``s[x] = "0b1"`` or ``s.overwrite('0b1', x)``, especially if many bits are being set. ::
 
          >>> s = BitString('0x0000')
-         >>> s.set(-1)
+         >>> s.set(True, -1)
          >>> print(s)
          0x0001
-         >>> s.set((0, 4, 5, 7, 9))
+         >>> s.set(True, (0, 4, 5, 7, 9))
          >>> s.bin
          '0b1000110101000001'
-
-
-    .. method:: unset(pos)
-
-        Sets one or many bits to ``0``. *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``.
-
-        Using ``s.unset(x)`` is considerably more efficent than other equivalent methods such as ``s[x] = 0``, ``s[x] = "0b0"`` or ``s.overwrite('0b0', x)``.
-
-        See also :meth:`BitString.set`.
 
     .. method:: __delitem__(key)
 

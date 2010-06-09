@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '2.0.0 beta 1',
+        VERSION:     '2.0.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -90,18 +90,18 @@
     <span class="n">s</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;0b1&#39;</span>
 </pre></div>
 </div>
-<p>This creates a 1000 bit bitstring and sets three of the bits to &#8216;1&#8217;. Unfortunately the crucial line spends most of its time creating a new bitstring from the &#8216;0b1&#8217; string. It is much faster (and I mean at least an order of magnitude) to use the <a title="BitString.set" class="reference external" href="bitstring_classes.html#BitString.set"><tt class="xref docutils literal"><span class="pre">BitString.set</span></tt></a> method:</p>
+<p>This creates a 1000 bit bitstring and sets three of the bits to &#8216;1&#8217;. Unfortunately the crucial line spends most of its time creating a new bitstring from the &#8216;0b1&#8217; string. You could make it slightly quicker by using <tt class="docutils literal"><span class="pre">s[p]</span> <span class="pre">=</span> <span class="pre">True</span></tt>, but it is much faster (and I mean at least an order of magnitude) to use the <a title="BitString.set" class="reference external" href="bitstring_classes.html#BitString.set"><tt class="xref docutils literal"><span class="pre">BitString.set</span></tt></a> method:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">([</span><span class="mi">14</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">501</span><span class="p">])</span>
+<span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">501</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>As well as <a title="BitString.set" class="reference external" href="bitstring_classes.html#BitString.set"><tt class="xref docutils literal"><span class="pre">BitString.set</span></tt></a>, <a title="BitString.unset" class="reference external" href="bitstring_classes.html#BitString.unset"><tt class="xref docutils literal"><span class="pre">BitString.unset</span></tt></a> and <a title="BitString.invert" class="reference external" href="bitstring_classes.html#BitString.invert"><tt class="xref docutils literal"><span class="pre">BitString.invert</span></tt></a> there are also checking methods <a title="Bits.allset" class="reference external" href="bitstring_classes.html#Bits.allset"><tt class="xref docutils literal"><span class="pre">Bits.allset</span></tt></a> and <a title="Bits.allunset" class="reference external" href="bitstring_classes.html#Bits.allunset"><tt class="xref docutils literal"><span class="pre">Bits.allunset</span></tt></a>. So rather than using</p>
+<p>As well as <a title="BitString.set" class="reference external" href="bitstring_classes.html#BitString.set"><tt class="xref docutils literal"><span class="pre">BitString.set</span></tt></a> and <a title="BitString.invert" class="reference external" href="bitstring_classes.html#BitString.invert"><tt class="xref docutils literal"><span class="pre">BitString.invert</span></tt></a> there are also checking methods <a title="Bits.allset" class="reference external" href="bitstring_classes.html#Bits.allset"><tt class="xref docutils literal"><span class="pre">Bits.allset</span></tt></a> and <a title="Bits.anyset" class="reference external" href="bitstring_classes.html#Bits.anyset"><tt class="xref docutils literal"><span class="pre">Bits.anyset</span></tt></a>. So rather than using</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="mi">200</span><span class="p">]:</span>
     <span class="n">do_something</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>it&#8217;s better to say</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">allset</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">)):</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">allset</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">)):</span>
     <span class="n">do_something</span><span class="p">()</span>
 </pre></div>
 </div>

@@ -72,6 +72,23 @@ This example creates a class that parses a structure that is part of the H.264 v
  >>> print(sps.reserved_zero_4bits)
  0b0000
  >>> print(sps.constraint_flags)
- [0, 0, 0, 1]
+ [0, 0, 0, 1]
+ 
+Sieve of Eratosthenes
+---------------------
+
+This classic (though inefficient) method of calculating prime numbers uses a bitstring to store whether each bit position represents a prime number. This takes much less memory than an ordinary array. ::
+
+ 
+ def prime_sieve(top=1000000):
+     b = BitString(top) # bitstring of '0' bits
+     for i in xrange(2, top):
+         if not b[i]:
+             yield i
+             # i is prime, so set all its multiples to '1'.
+             b.set(True, xrange(i*i, top, i))
+                 
+
+
 
 

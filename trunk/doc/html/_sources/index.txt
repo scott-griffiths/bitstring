@@ -3,16 +3,15 @@
 .. image:: bitstring_logo.png
 .. moduleauthor:: Scott Griffiths <scott@griffiths.name>
 
-**bitstring** is a pure Python module designed to help make the creation and analysis of binary data as simple and natural as possible.
-
+**bitstring** is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
 
 Features
 --------
 
-* Supports Python 2.4 and later (including Python 3).
-* Rich API.
+* Supports Python 2.6 and later (including Python 3). Version 1.0 also supported Python 2.4 and 2.5.
+* Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Bit level slicing, joining, searching, replacing and more.
-* Create bitstrings from hex, octal, binary, files, strings, integers and floats of different endiannesses.
+* Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
 * Powerful binary packing and unpacking functions.
 * Read from and interpret bitstrings as streams of binary data.
 
