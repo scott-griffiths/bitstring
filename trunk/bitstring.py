@@ -689,8 +689,8 @@ class Bits(collections.Sequence):
         # The copy can use the same datastore as it's immutable.
         s = Bits()
         s._datastore = self._datastore
-        # TODO: should the copy keep the same bit position?
-        s._pos = self._pos
+        # Reset the bit position, don't copy it.
+        s._pos = 0
         return s
 
     def __add__(self, bs):
@@ -1215,7 +1215,7 @@ class Bits(collections.Sequence):
     def _getbytes(self):
         """Return the data as an ordinary string."""
         if self.len % 8 != 0:
-            raise InterpretError("Cannot convert to string unambiguously - "
+            raise InterpretError("Cannot interpret as bytes unambiguously - "
                                   "not multiple of 8 bits.")
         return self._readbytes(self.len, 0)
 
