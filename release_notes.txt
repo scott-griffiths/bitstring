@@ -2,8 +2,44 @@
 bitstring module version history
 --------------------------------
 
-May 24th 2010: version 2.0.0 beta 1 for Python 2.6 and 3.x released
+-------------------------------------------------------------------
+June 9th 2010: version 2.0.1 beta 2 for Python 2.6 and 3.x released
+-------------------------------------------------------------------
+There are a couple of changes from the last beta.
 
+* Methods removed.
+
+A few more methods have been combined. Essentially the set/unset methods
+have been combined in just a 'set' method, which now takes a boolean as
+its first argument:
+
+s.set([a, b])              ->   s.set(True, [a, b])
+s.unset([a, b])            ->   s.set(False, [a, b])
+s.allset([a, b])           ->   s.allset(True, [a, b])
+s.allunset([a, b])         ->   s.allset(False, [a, b])
+s.anyset([a, b])           ->   s.anyset(True, [a, b])
+s.anyunset([a, b])         ->   s.anyset(False, [a, b])
+
+* allset / anyset only accept iterables.
+
+The allset and anyset methods no longer accept a single bit position. The
+recommended way of testing a single bit is just to index it, for example
+instead of:
+
+>>> if s.allset(True, i):
+
+just use
+
+>>> if s[i]:
+
+If you really want to you can of course use an iterable with a single
+element, such as 's.anyset(False, [i])', but it's clearer just to write
+'not s[i]'.
+
+
+-------------------------------------------------------------------
+May 24th 2010: version 2.0.0 beta 1 for Python 2.6 and 3.x released
+-------------------------------------------------------------------
 This is a major release, with a number of backwardly incompatibile changes.
 The changes are all quite minor, although a number of methods have been
 removed and so some recoding may be needed.
