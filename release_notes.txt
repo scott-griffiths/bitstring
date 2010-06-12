@@ -2,9 +2,9 @@
 bitstring module version history
 --------------------------------
 
--------------------------------------------------------------------
-June 9th 2010: version 2.0.1 beta 2 for Python 2.6 and 3.x released
--------------------------------------------------------------------
+--------------------------------------------------------------------
+June 12th 2010: version 2.0.1 beta 2 for Python 2.6 and 3.x released
+--------------------------------------------------------------------
 There are a couple of changes from the last beta.
 
 * Methods removed.
