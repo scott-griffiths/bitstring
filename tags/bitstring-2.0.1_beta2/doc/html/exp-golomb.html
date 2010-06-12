@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Exponential-Golomb Codes &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.0.1 beta 2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="Appendices" href="appendices.html" />
+    <link rel="next" title="Optimisation Techniques" href="optimisation.html" />
+    <link rel="prev" title="Examples" href="examples.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="optimisation.html" title="Optimisation Techniques"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="Examples"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="appendices.html" accesskey="U">Appendices</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="exponential-golomb-codes">
+<span id="exp-golomb"></span><h1>Exponential-Golomb Codes<a class="headerlink" href="#exponential-golomb-codes" title="Permalink to this headline">¶</a></h1>
+<p>As this type of representation of integers isn&#8217;t as well known as the standard base-2 representation I thought that a short explanation of them might be welcome. This section can be safely skipped if you&#8217;re not interested.</p>
+<p>Exponential-Golomb codes represent integers using bit patterns that get longer for larger numbers. For unsigned and signed numbers (the bitstring properties <a title="ue" class="reference external" href="bitstring_classes.html#ue"><tt class="xref docutils literal"><span class="pre">ue</span></tt></a> and <a title="se" class="reference external" href="bitstring_classes.html#se"><tt class="xref docutils literal"><span class="pre">se</span></tt></a> respectively) the patterns start like this:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="37%" />
+<col width="31%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Bit pattern</th>
+<th class="head">Unsigned</th>
+<th class="head">Signed</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">1</span></tt></td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">010</span></tt></td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">011</span></tt></td>
+<td>2</td>
+<td>-1</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">00100</span></tt></td>
+<td>3</td>
+<td>2</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">00101</span></tt></td>
+<td>4</td>
+<td>-2</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">00110</span></tt></td>
+<td>5</td>
+<td>3</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">00111</span></tt></td>
+<td>6</td>
+<td>-3</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">0001000</span></tt></td>
+<td>7</td>
+<td>4</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">0001001</span></tt></td>
+<td>8</td>
+<td>-4</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">0001010</span></tt></td>
+<td>9</td>
+<td>5</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">0001011</span></tt></td>
+<td>10</td>
+<td>-5</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">0001100</span></tt></td>
+<td>11</td>
+<td>6</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">...</span></tt></td>
+<td>...</td>
+<td>...</td>
+</tr>
+</tbody>
+</table>
+<p>They consist of a sequence of n &#8216;0&#8217; bits, followed by a &#8216;1&#8217; bit, followed by n more bits. The bits after the first &#8216;1&#8217; bit count upwards as ordinary base-2 binary numbers until they run out of space and an extra &#8216;0&#8217; bit needs to get included at the start.</p>
+<p>The advantage of this method of representing integers over many other methods is that it can be quite efficient at representing small numbers without imposing a limit on the maximum number that can be represented.</p>
+<p>Exercise: Using the table above decode this sequence of unsigned Exponential Golomb codes:</p>
+<p><tt class="docutils literal"><span class="pre">001001101101101011000100100101</span></tt></p>
+<p>The answer is that it decodes to 3, 0, 0, 2, 2, 1, 0, 0, 8, 4. Note how you don’t need to know how many bits are used for each code in advance - there’s only one way to decode it. To create this bitstring you could have written something like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">()</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>and to read it back:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">while</span> <span class="n">a</span><span class="o">.</span><span class="n">pos</span> <span class="o">!=</span> <span class="n">a</span><span class="o">.</span><span class="n">len</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The notation <tt class="docutils literal"><span class="pre">ue</span></tt> and <tt class="docutils literal"><span class="pre">se</span></tt> for the exponential-Golomb code properties comes from the H.264 video standard, which uses these types of code a lot. The particular way that the signed integers are represented might be peculiar to this standard as I haven&#8217;t seen it elsewhere (and an obvious alternative is minus the one given here), but the unsigned mapping seems to be universal.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="examples.html"
+                                  title="previous chapter">Examples</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="optimisation.html"
+                                  title="next chapter">Optimisation Techniques</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="optimisation.html" title="Optimisation Techniques"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="Examples"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="appendices.html" >Appendices</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>

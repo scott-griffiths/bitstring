@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Features &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.0.1 beta 2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="#" />
+    <link rel="next" title="User Manual" href="contents.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="contents.html" title="User Manual"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <img alt="_images/bitstring_logo.png" id="module-bitstring" src="_images/bitstring_logo.png" />
+<p><strong>bitstring</strong> is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.</p>
+<div class="section" id="features">
+<h1>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li>Supports Python 2.6 and later (including Python 3). Version 1.0 also supported Python 2.4 and 2.5.</li>
+<li>Rich API - chances are that whatever you want to do there&#8217;s a simple and elegant way of doing it.</li>
+<li>Bit level slicing, joining, searching, replacing and more.</li>
+<li>Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.</li>
+<li>Powerful binary packing and unpacking functions.</li>
+<li>Read from and interpret bitstrings as streams of binary data.</li>
+</ul>
+</div>
+<div class="section" id="download">
+<h1>Download<a class="headerlink" href="#download" title="Permalink to this headline">¶</a></h1>
+<p>To download the module, as well as for defect reports, enhancement requests and Subversion repository browsing go to the project&#8217;s home on Google Code: <a class="reference external" href="http://python-bitstring.googlecode.com">http://python-bitstring.googlecode.com</a></p>
+<p>You may also be able to use just <tt class="docutils literal"><span class="pre">easy_install</span> <span class="pre">bitstring</span></tt>.</p>
+</div>
+<div class="section" id="documentation">
+<h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h1>
+<p>The manual provides an introduction to the module and details most its capabilities.</p>
+<p>The reference section has a complete list of all the classes, methods, attributes and functions of the <tt class="xref docutils literal"><span class="pre">bitstring</span></tt> module, together with short examples for many items.</p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="contents.html">User Manual</a><ul>
+<li class="toctree-l2"><a class="reference external" href="walkthrough.html">Walkthrough</a><ul>
+<li class="toctree-l3"><a class="reference external" href="walkthrough.html#a-brief-introduction">A Brief Introduction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="introduction.html">Introduction</a><ul>
+<li class="toctree-l3"><a class="reference external" href="introduction.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="creation.html">Creation and Interpretation</a><ul>
+<li class="toctree-l3"><a class="reference external" href="creation.html#the-bits-and-bitstring-classes">The Bits and BitString classes</a></li>
+<li class="toctree-l3"><a class="reference external" href="creation.html#using-the-constructor">Using the constructor</a></li>
+<li class="toctree-l3"><a class="reference external" href="creation.html#the-auto-initialiser">The auto initialiser</a></li>
+<li class="toctree-l3"><a class="reference external" href="creation.html#packing">Packing</a></li>
+<li class="toctree-l3"><a class="reference external" href="creation.html#interpreting-bitstrings">Interpreting Bitstrings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="slicing.html">Slicing, Dicing and Splicing</a><ul>
+<li class="toctree-l3"><a class="reference external" href="slicing.html#slicing">Slicing</a></li>
+<li class="toctree-l3"><a class="reference external" href="slicing.html#joining">Joining</a></li>
+<li class="toctree-l3"><a class="reference external" href="slicing.html#truncating-inserting-deleting-and-overwriting">Truncating, inserting, deleting and overwriting</a></li>
+<li class="toctree-l3"><a class="reference external" href="slicing.html#the-bitstring-as-a-list">The BitString as a list</a></li>
+<li class="toctree-l3"><a class="reference external" href="slicing.html#splitting">Splitting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="reading.html">Reading, Parsing and Unpacking</a><ul>
+<li class="toctree-l3"><a class="reference external" href="reading.html#reading-and-parsing">Reading and parsing</a></li>
+<li class="toctree-l3"><a class="reference external" href="reading.html#unpacking">Unpacking</a></li>
+<li class="toctree-l3"><a class="reference external" href="reading.html#seeking">Seeking</a></li>
+<li class="toctree-l3"><a class="reference external" href="reading.html#finding-and-replacing">Finding and replacing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="misc.html">Miscellany</a><ul>
+<li class="toctree-l3"><a class="reference external" href="misc.html#other-functions">Other Functions</a></li>
+<li class="toctree-l3"><a class="reference external" href="misc.html#special-methods">Special Methods</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="reference.html">Reference</a><ul>
+<li class="toctree-l2"><a class="reference external" href="bitstring_classes.html">Classes</a><ul>
+<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#bitstring-and-bits">BitString and Bits</a></li>
+<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#the-bits-class">The <tt class="docutils literal"><span class="pre">Bits</span></tt> class</a></li>
+<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#the-bitstring-class">The <tt class="docutils literal"><span class="pre">BitString</span></tt> class</a></li>
+<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#class-properties">Class properties</a></li>
+<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#exceptions">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="functions.html">Module functions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference external" href="examples.html">Examples</a><ul>
+<li class="toctree-l3"><a class="reference external" href="examples.html#creation">Creation</a></li>
+<li class="toctree-l3"><a class="reference external" href="examples.html#manipulation">Manipulation</a></li>
+<li class="toctree-l3"><a class="reference external" href="examples.html#parsing">Parsing</a></li>
+<li class="toctree-l3"><a class="reference external" href="examples.html#sieve-of-eratosthenes">Sieve of Eratosthenes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="exp-golomb.html">Exponential-Golomb Codes</a></li>
+<li class="toctree-l2"><a class="reference external" href="optimisation.html">Optimisation Techniques</a><ul>
+<li class="toctree-l3"><a class="reference external" href="optimisation.html#use-combined-read-and-interpretation">Use combined read and interpretation</a></li>
+<li class="toctree-l3"><a class="reference external" href="optimisation.html#choose-between-bits-and-bitstring">Choose between Bits and BitString</a></li>
+<li class="toctree-l3"><a class="reference external" href="optimisation.html#use-dedicated-functions-for-bit-setting-and-checking">Use dedicated functions for bit setting and checking</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="internals.html">Internals</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="index-and-search">
+<h1>Index and search<a class="headerlink" href="#index-and-search" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference external" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+<div class="section" id="credits">
+<h1>Credits<a class="headerlink" href="#credits" title="Permalink to this headline">¶</a></h1>
+<p>Written by Scott Griffiths &lt;<a class="reference external" href="mailto:scott&#37;&#52;&#48;griffiths&#46;name">scott<span>&#64;</span>griffiths<span>&#46;</span>name</a>&gt;. If you have any questions, suggestions or criticisms (about this module!) then please email me. Also if you use bitstring in your own project then I&#8217;d be interested to hear how it&#8217;s being used.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="#">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Features</a></li>
+<li><a class="reference external" href="#download">Download</a></li>
+<li><a class="reference external" href="#documentation">Documentation</a><ul>
+</ul>
+</li>
+<li><a class="reference external" href="#index-and-search">Index and search</a></li>
+<li><a class="reference external" href="#credits">Credits</a></li>
+</ul>
+
+            <h4>Next topic</h4>
+            <p class="topless"><a href="contents.html"
+                                  title="next chapter">User Manual</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="contents.html" title="User Manual"
+             >next</a> |</li>
+        <li><a href="#">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>

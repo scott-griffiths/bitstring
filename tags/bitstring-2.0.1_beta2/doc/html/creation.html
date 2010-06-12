@@ -1,0 +1,764 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Creation and Interpretation &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.0.1 beta 2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="User Manual" href="contents.html" />
+    <link rel="next" title="Slicing, Dicing and Splicing" href="slicing.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="slicing.html" title="Slicing, Dicing and Splicing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" accesskey="U">User Manual</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="creation-and-interpretation">
+<h1>Creation and Interpretation<a class="headerlink" href="#creation-and-interpretation" title="Permalink to this headline">¶</a></h1>
+<p>You can create bitstrings in a variety of ways. Internally they are stored as byte arrays, which means that no space is wasted, and a bitstring containing 10MB of binary data will only take up 10MB of memory.</p>
+<p>When a bitstring is created all that is stored is the byte array, the length in bits, an offset to the first used bit in the byte array plus a bit position in the bitstring, used for reading etc. This means that the actual initialiser used to create the bitstring isn&#8217;t stored itself - if you create using a hex string for example then if you ask for the hex interpretation it has to be calculated from the stored byte array.</p>
+<div class="section" id="the-bits-and-bitstring-classes">
+<h2>The Bits and BitString classes<a class="headerlink" href="#the-bits-and-bitstring-classes" title="Permalink to this headline">¶</a></h2>
+<p>The two classes provided by the bitstring module are <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> and <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>. The major difference between them is that <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects are mutable, whereas <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> objects cannot be changed after creation.</p>
+<p>Most of the exampes in this manual use the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> class rather than the <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> class, which is partly historical (the <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> class is a new addition) but also because the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> is more versatile and so probably your best choice when starting to use the module.</p>
+<p>To summarise when to use each class:</p>
+<ul class="simple">
+<li>If you need to change the contents of the bitstring then you must use <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>. Truncating, replacing, inserting, appending etc. are not available for <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> objects.</li>
+<li>If you need to use a bitstring as the key in a dictionary or as a member of a <tt class="docutils literal"><span class="pre">set</span></tt> then you must use <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a>. As <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects are mutable they do not support hashing and so cannot be used in these ways.</li>
+<li>If you don&#8217;t need the extra functionality of <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects then using <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> might be faster and more memory efficient. Currently the speed difference is quite marginal, but this is expected to improve in future releases.</li>
+</ul>
+<p>The <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> class is the base class of <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>. This means that for example <tt class="docutils literal"><span class="pre">isinstance(s,</span> <span class="pre">Bits)</span></tt> will be true if <tt class="docutils literal"><span class="pre">s</span></tt> is an instance of either class.</p>
+</div>
+<div class="section" id="using-the-constructor">
+<h2>Using the constructor<a class="headerlink" href="#using-the-constructor" title="Permalink to this headline">¶</a></h2>
+<p>When initialising a bitstring you need to specify at most one initialiser. These will be explained in full below, but briefly they are:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">auto</span></tt> : Either a specially formatted string, a list or tuple, a file object, integer, bool or another bitstring.</li>
+<li><tt class="docutils literal"><span class="pre">bytes</span></tt> : A <tt class="docutils literal"><span class="pre">bytes</span></tt> object (a <tt class="docutils literal"><span class="pre">str</span></tt> in Python 2.6), for example read from a binary file.</li>
+<li><tt class="docutils literal"><span class="pre">hex</span></tt>, <tt class="docutils literal"><span class="pre">oct</span></tt>, <tt class="docutils literal"><span class="pre">bin</span></tt>: Hexadecimal, octal or binary strings.</li>
+<li><tt class="docutils literal"><span class="pre">int</span></tt>, <tt class="docutils literal"><span class="pre">uint</span></tt>: Signed or unsigned bit-wise big-endian binary integers.</li>
+<li><tt class="docutils literal"><span class="pre">intle</span></tt>, <tt class="docutils literal"><span class="pre">uintle</span></tt>: Signed or unsigned byte-wise little-endian binary integers.</li>
+<li><tt class="docutils literal"><span class="pre">intbe</span></tt>, <tt class="docutils literal"><span class="pre">uintbe</span></tt>: Signed or unsigned byte-wise big-endian binary integers.</li>
+<li><tt class="docutils literal"><span class="pre">intne</span></tt>, <tt class="docutils literal"><span class="pre">uintne</span></tt>: Signed or unsigned byte-wise native-endian binary integers.</li>
+<li><tt class="docutils literal"><span class="pre">float</span></tt> / <tt class="docutils literal"><span class="pre">floatbe</span></tt>, <tt class="docutils literal"><span class="pre">floatle</span></tt>, <tt class="docutils literal"><span class="pre">floatne</span></tt>: Big, little and native endian floating point numbers.</li>
+<li><tt class="docutils literal"><span class="pre">se</span></tt>, <tt class="docutils literal"><span class="pre">ue</span></tt> : Signed or unsigned exponential-Golomb coded integers.</li>
+<li><tt class="docutils literal"><span class="pre">filename</span></tt> : Directly from a file, without reading into memory.</li>
+</ul>
+<div class="section" id="from-a-hexadecimal-string">
+<h3>From a hexadecimal string<a class="headerlink" href="#from-a-hexadecimal-string" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">hex</span><span class="o">=</span><span class="s">&#39;0x000001b3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0x000001b3&#39;</span>
+</pre></div>
+</div>
+<p>The initial <tt class="docutils literal"><span class="pre">0x</span></tt> or <tt class="docutils literal"><span class="pre">0X</span></tt> is optional. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of <tt class="docutils literal"><span class="pre">c</span></tt> will be 32.</p>
+<p>If you include the initial <tt class="docutils literal"><span class="pre">0x</span></tt> then you can use the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser instead. As it is the first parameter in <tt class="xref docutils literal"><span class="pre">__init__</span></tt> this will work equally well:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x000001b3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-a-binary-string">
+<h3>From a binary string<a class="headerlink" href="#from-a-binary-string" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bin</span><span class="o">=</span><span class="s">&#39;0011 00&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b001100&#39;</span>
+</pre></div>
+</div>
+<p>An initial <tt class="docutils literal"><span class="pre">0b</span></tt> or <tt class="docutils literal"><span class="pre">0B</span></tt> is optional and whitespace will be ignored.</p>
+<p>As with <tt class="docutils literal"><span class="pre">hex</span></tt>, the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser will work if the binary string is prefixed by <tt class="docutils literal"><span class="pre">0b</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b001100&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-an-octal-string">
+<h3>From an octal string<a class="headerlink" href="#from-an-octal-string" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">o</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">oct</span><span class="o">=</span><span class="s">&#39;34100&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">o</span><span class="o">.</span><span class="n">oct</span>
+<span class="go">&#39;0o34100&#39;</span>
+</pre></div>
+</div>
+<p>An initial <tt class="docutils literal"><span class="pre">0o</span></tt> or <tt class="docutils literal"><span class="pre">0O</span></tt> is optional, but <tt class="docutils literal"><span class="pre">0o</span></tt> (a zero and lower-case &#8216;o&#8217;) is preferred as it is slightly more readable.</p>
+<p>As with <tt class="docutils literal"><span class="pre">hex</span></tt> and <tt class="docutils literal"><span class="pre">bin</span></tt>, the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser will work if the octal string is prefixed by <tt class="docutils literal"><span class="pre">0o</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">o</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o34100&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-an-integer">
+<h3>From an integer<a class="headerlink" href="#from-an-integer" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">uint</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b000000101101&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b1111111&#39;</span>
+</pre></div>
+</div>
+<p>For initialisation with signed and unsigned binary integers (<tt class="docutils literal"><span class="pre">int</span></tt> and <tt class="docutils literal"><span class="pre">uint</span></tt> respectively) the <tt class="docutils literal"><span class="pre">length</span></tt> parameter is mandatory, and must be large enough to contain the integer. So for example if <tt class="docutils literal"><span class="pre">length</span></tt> is 8 then <tt class="docutils literal"><span class="pre">uint</span></tt> can be in the range 0 to 255, while <tt class="docutils literal"><span class="pre">int</span></tt> can range from -128 to 127. Two&#8217;s complement is used to represent negative numbers.</p>
+<p>The auto initialise can be used by giving a colon and the length in bits immediately after the <tt class="docutils literal"><span class="pre">int</span></tt> or <tt class="docutils literal"><span class="pre">uint</span></tt> token, followed by an equals sign then the value:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;uint:12=45&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;int:7=-1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The plain <tt class="docutils literal"><span class="pre">int</span></tt> and <tt class="docutils literal"><span class="pre">uint</span></tt> initialisers are bit-wise big-endian. That is to say that the most significant bit comes first and the least significant bit comes last, so the unsigned number one will have a <tt class="docutils literal"><span class="pre">1</span></tt> as its final bit with all other bits set to <tt class="docutils literal"><span class="pre">0</span></tt>. These can be any number of bits long. For whole-byte bitstring objects there are more options available with different endiannesses.</p>
+</div>
+<div class="section" id="big-and-little-endian-integers">
+<h3>Big and little-endian integers<a class="headerlink" href="#big-and-little-endian-integers" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">big_endian</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">uintbe</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">little_endian</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">uintle</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">native_endian</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">uintne</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There are unsigned and signed versions of three additional &#8216;endian&#8217; types. The unsigned versions are used above to create three bitstrings.</p>
+<p>The first of these, <tt class="docutils literal"><span class="pre">big_endian</span></tt>, is equivalent to just using the plain bit-wise big-endian <tt class="docutils literal"><span class="pre">uint</span></tt> initialiser, except that all <tt class="docutils literal"><span class="pre">intbe</span></tt> or <tt class="docutils literal"><span class="pre">uintbe</span></tt> interpretations must be of whole-byte bitstrings, otherwise a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
+<p>The second, <tt class="docutils literal"><span class="pre">little_endian</span></tt>, is interpreted as least significant byte first, i.e. it is a byte reversal of <tt class="docutils literal"><span class="pre">big_endian</span></tt>. So we have:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">big_endian</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0x0001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">little_endian</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0x0100&#39;</span>
+</pre></div>
+</div>
+<p>Finally we have <tt class="docutils literal"><span class="pre">native_endian</span></tt>, which will equal either <tt class="docutils literal"><span class="pre">big_endian</span></tt> or <tt class="docutils literal"><span class="pre">little_endian</span></tt>, depending on whether you are running on a big or little-endian machine (if you really need to check then use <tt class="docutils literal"><span class="pre">import</span> <span class="pre">sys;</span> <span class="pre">sys.byteorder</span></tt>).</p>
+</div>
+<div class="section" id="from-a-floating-point-number">
+<h3>From a floating point number<a class="headerlink" href="#from-a-floating-point-number" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f1</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">float</span><span class="o">=</span><span class="mf">10.3</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;float:64=5.4e31&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Floating point numbers can be used for initialisation provided that the bitstring is 32 or 64 bits long. Standard Python floating point numbers are 64 bits long, so if you use 32 bits then some accuracy could be lost.</p>
+<p>Note that the exact bits used to represent the floating point number could be platform dependent. Most PCs will conform to the IEEE 754 standard, and presently other floating point representations are not supported (although they should work on a single platform - it just might get confusing if you try to interpret a generated bitstring on another platform).</p>
+<p>Similar to the situation with integers there are big and little endian versions. The plain <tt class="docutils literal"><span class="pre">float</span></tt> is big endian and so <tt class="docutils literal"><span class="pre">floatbe</span></tt> is just an alias.</p>
+<p>As with other initialisers you can also auto initialise, as demonstrated with the second example below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">little_endian</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">floatle</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">native_endian</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;floatne:32=-6.3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="exponential-golomb-codes">
+<h3>Exponential-Golomb codes<a class="headerlink" href="#exponential-golomb-codes" title="Permalink to this headline">¶</a></h3>
+<p>Initialisation with integers represented by exponential-Golomb codes is also possible. <tt class="docutils literal"><span class="pre">ue</span></tt> is an unsigned code while <tt class="docutils literal"><span class="pre">se</span></tt> is a signed code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">se</span><span class="o">=-</span><span class="mi">402</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b0001101&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b0000000001100100101&#39;</span>
+</pre></div>
+</div>
+<p>For these initialisers the length of the bitstring is fixed by the value it is initialised with, so the length parameter must not be supplied and it is an error to do so. If you don&#8217;t know what exponential-Golomb codes are then you are in good company, but they are quite interesting, so I’ve included a section on them (see <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a>).</p>
+<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser may also be used by giving an equals sign and the value immediately after a <tt class="docutils literal"><span class="pre">ue</span></tt> or <tt class="docutils literal"><span class="pre">se</span></tt> token:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;ue=12&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;se=-402&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You may wonder why you would bother with <tt class="docutils literal"><span class="pre">auto</span></tt> in this case as the syntax is slightly longer. Hopefully all will become clear in the next section.</p>
+</div>
+<div class="section" id="from-raw-data">
+<h3>From raw data<a class="headerlink" href="#from-raw-data" title="Permalink to this headline">¶</a></h3>
+<p>For most initialisers you can use the length and offset parameters to specify the length in bits and an offset at the start to be ignored. This is particularly useful when initialising from raw data or from a file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\x00\x01\x02\xff</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;somefile&quot;</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">length</span></tt> parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the bitstring. The <tt class="docutils literal"><span class="pre">offset</span></tt> parameter is also optional and is used to truncate bits at the start of the data.</p>
+</div>
+<div class="section" id="from-a-file">
+<h3>From a file<a class="headerlink" href="#from-a-file" title="Permalink to this headline">¶</a></h3>
+<p>Using the <tt class="docutils literal"><span class="pre">filename</span></tt> initialiser allows a file to be analysed without the need to read it all into memory. The way to create a file-based bitstring is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">p</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&quot;my2GBfile&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will open the file in binary read-only mode. The file will only be read as and when other operations require it, and the contents of the file will not be changed by any operations. If only a portion of the file is needed then the <tt class="docutils literal"><span class="pre">offset</span></tt> and <tt class="docutils literal"><span class="pre">length</span></tt> parameters (specified in bits) can be used.</p>
+<p>Something to watch out for are operations that could cause a copy of large parts of the object to be made in memory, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">p2</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">8</span><span class="p">:]</span>
+<span class="n">p</span> <span class="o">+=</span> <span class="s">&#39;0x00&#39;</span>
+</pre></div>
+</div>
+<p>will create two new memory-based bitstrings with about the same size as the whole of the file&#8217;s data. This is probably not what is wanted as the reason for using the filename initialiser is likely to be because you don&#8217;t want the whole file in memory.</p>
+<p>It&#8217;s also possible to use the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser for file objects. It&#8217;s as simple as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;my2GBfile&#39;</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="the-auto-initialiser">
+<h2>The auto initialiser<a class="headerlink" href="#the-auto-initialiser" title="Permalink to this headline">¶</a></h2>
+<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> parameter is the first parameter in the <tt class="xref docutils literal"><span class="pre">__init__</span></tt> function and so the <tt class="docutils literal"><span class="pre">auto=</span></tt> can be omitted when using it. It accepts either a string, an iterable, another bitstring, an integer, a bool or a file object.</p>
+<p>Strings starting with <tt class="docutils literal"><span class="pre">0x</span></tt> or <tt class="docutils literal"><span class="pre">hex:</span></tt> are interpreted as hexadecimal, <tt class="docutils literal"><span class="pre">0o</span></tt> or <tt class="docutils literal"><span class="pre">oct:</span></tt> implies octal, and strings starting with <tt class="docutils literal"><span class="pre">0b</span></tt> or <tt class="docutils literal"><span class="pre">bin:</span></tt> are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, (non string) iterables are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fromhex</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x01ffc9&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frombin</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b01&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fromoct</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o7550&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fromint</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;int:32=10&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fromfloat</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;float:64=0.2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acopy</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">fromoct</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fromlist</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">([</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;somefile&#39;</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fromfile</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zeroed</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frombool</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It can also be used to convert between the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> and <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> classes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">immutable</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="s">&#39;0xabc&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mutable</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">immutable</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mutable</span> <span class="o">+=</span> <span class="s">&#39;0xdef&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">immutable</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="n">mutable</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As always the bitstring doesn&#8217;t know how it was created; initialising with octal or hex might be more convenient or natural for a particular example but it is exactly equivalent to initialising with the corresponding binary string.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fromoct</span><span class="o">.</span><span class="n">oct</span>
+<span class="go">&#39;0o7550&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fromoct</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0xf68&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fromoct</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b111101101000&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fromoct</span><span class="o">.</span><span class="n">uint</span>
+<span class="go">3994</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fromoct</span><span class="o">.</span><span class="n">int</span>
+<span class="go">-152</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0o7777&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;0xfff&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;0b1111&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frombin</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;0b0&#39;</span> <span class="o">==</span> <span class="n">fromlist</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Note how in the final examples above only one half of the <tt class="docutils literal"><span class="pre">==</span></tt> needs to be a bitstring, the other half gets <tt class="docutils literal"><span class="pre">auto</span></tt> initialised before the comparison is made. This is in common with many other functions and operators.</p>
+<p>You can also chain together string initialisers with commas, which causes the individual bitstrings to be concatenated.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x12, 0b1, uint:5=2, ue=5, se=-1, se=4&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;uint:5=2, ue=5&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s">&#39;0o332, 0b11, int:23=300&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Again, note how the format used in the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser can be used in many other places where a bitstring is needed.</p>
+</div>
+<div class="section" id="packing">
+<h2>Packing<a class="headerlink" href="#packing" title="Permalink to this headline">¶</a></h2>
+<p>Another method of creating <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects is to use the <a title="pack" class="reference external" href="functions.html#pack"><tt class="xref docutils literal"><span class="pre">pack</span></tt></a> function. This takes a format specifier which is a string with comma separated tokens, and a number of items to pack according to it. It&#8217;s signature is <tt class="docutils literal"><span class="pre">bitstring.pack(format,</span> <span class="pre">*values,</span> <span class="pre">**kwargs)</span></tt>.</p>
+<p>For example using just the <tt class="docutils literal"><span class="pre">*values</span></tt> arguments we can say:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;hex:32, uint:12, uint:12&#39;</span><span class="p">,</span> <span class="s">&#39;0x000001b3&#39;</span><span class="p">,</span> <span class="mi">352</span><span class="p">,</span> <span class="mi">288</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>which is equivalent to initialising as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x0000001b3, uint:12=352, uint:12=288&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The advantage of the pack function is if you want to write more general code for creation.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;uint:8, 0b110, int:6, bin, bits&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+
+<span class="n">s1</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s">&#39;0b00000&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="n">s2</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="mi">101</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&#39;0b11011&#39;</span><span class="p">,</span> <span class="n">s1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note how you can use some tokens without sizes (such as <tt class="docutils literal"><span class="pre">bin</span></tt> and <tt class="docutils literal"><span class="pre">bits</span></tt> in the above example), and use values of any length to fill them. If the size had been specified then a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> would be raised if the parameter given was the wrong length. Note also how bitstring literals can be used (the <tt class="docutils literal"><span class="pre">0b110</span></tt> in the bitstring returned by <tt class="docutils literal"><span class="pre">foo</span></tt>) and these don&#8217;t consume any of the items in <tt class="docutils literal"><span class="pre">*values</span></tt>.</p>
+<p>You can also include keyword, value pairs (or an equivalent dictionary) as the final parameter(s). The values are then packed according to the positions of the keywords in the format string. This is most easily explained with some examples. Firstly the format string needs to contain parameter names:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">format</span> <span class="o">=</span> <span class="s">&#39;hex:32=start_code, uint:12=width, uint:12=height&#39;</span>
+</pre></div>
+</div>
+<p>Then we can make a dictionary with these parameters as keys and pass it to pack:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;start_code&#39;</span><span class="p">:</span> <span class="s">&#39;0x000001b3&#39;</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">:</span> <span class="mi">352</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">:</span> <span class="mi">288</span><span class="p">}</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">format</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Another method is to pass the same information as keywords at the end of pack&#8217;s parameter list:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">format</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">352</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">288</span><span class="p">,</span> <span class="n">start_code</span><span class="o">=</span><span class="s">&#39;0x000001b3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The tokens in the format string that you must provide values for are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">int:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uint:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as an unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intbe:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian whole byte signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintbe:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian whole byte unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intle:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a little-endian whole byte signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintle:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a little-endian whole byte unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intne:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a native-endian whole byte signed integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintne:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a native-endian whole byte unsigned integer.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">float:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian floating point number (same as <tt class="docutils literal"><span class="pre">floatbe</span></tt>).</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatbe:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a big-endian floating point number (same as <tt class="docutils literal"><span class="pre">float</span></tt>).</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatle:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a little-endian floating point number.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatne:n</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">n</span></tt> bits as a native-endian floating point number.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">hex[:n]</span></tt></td>
+<td>[<tt class="docutils literal"><span class="pre">n</span></tt> bits as] a hexadecimal string.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">oct[:n]</span></tt></td>
+<td>[<tt class="docutils literal"><span class="pre">n</span></tt> bits as] an octal string.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">bin[:n]</span></tt></td>
+<td>[<tt class="docutils literal"><span class="pre">n</span></tt> bits as] a binary string.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">bits[:n]</span></tt></td>
+<td>[<tt class="docutils literal"><span class="pre">n</span></tt> bits as] a new bitstring.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">ue</span></tt></td>
+<td>an unsigned integer as an exponential-Golomb code.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">se</span></tt></td>
+<td>a signed integer as an exponential-Golomb code.</td>
+</tr>
+</tbody>
+</table>
+<p>and you can also include constant bitstring tokens constructed from any of the following:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="80%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">0b...</span></tt></td>
+<td>binary literal.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">0o...</span></tt></td>
+<td>octal literal.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">0x...</span></tt></td>
+<td>hexadecimal literal.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">int:n=m</span></tt></td>
+<td>signed integer <tt class="docutils literal"><span class="pre">m</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uint:n=m</span></tt></td>
+<td>unsigned integer <tt class="docutils literal"><span class="pre">m</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intbe:n=m</span></tt></td>
+<td>big-endian whole byte signed integer <tt class="docutils literal"><span class="pre">m</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintbe:n=m</span></tt></td>
+<td>big-endian whole byte unsigned integer <tt class="docutils literal"><span class="pre">m</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intle:n=m</span></tt></td>
+<td>little-endian whole byte signed integer <tt class="docutils literal"><span class="pre">m</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintle:n=m</span></tt></td>
+<td>little-endian whole byte unsigned integer <tt class="docutils literal"><span class="pre">m</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">intne:n=m</span></tt></td>
+<td>native-endian whole byte signed integer <tt class="docutils literal"><span class="pre">m</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">uintne:n=m</span></tt></td>
+<td>native-endian whole byte unsigned integer <tt class="docutils literal"><span class="pre">m</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">float:n=f</span></tt></td>
+<td>big-endian floating point number <tt class="docutils literal"><span class="pre">f</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatbe:n=f</span></tt></td>
+<td>big-endian floating point number <tt class="docutils literal"><span class="pre">f</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatle:n=f</span></tt></td>
+<td>little-endian floating point number <tt class="docutils literal"><span class="pre">f</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">floatne:n=f</span></tt></td>
+<td>native-endian floating point number <tt class="docutils literal"><span class="pre">f</span></tt> in <tt class="docutils literal"><span class="pre">n</span></tt> bits.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">ue=m</span></tt></td>
+<td>exponential-Golomb code for unsigned integer <tt class="docutils literal"><span class="pre">m</span></tt>.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">se=m</span></tt></td>
+<td>exponential-Golomb code for signed integer <tt class="docutils literal"><span class="pre">m</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+<p>You can also use a keyword for the length specifier in the token, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;int:n=-1&#39;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And finally it is also possible just to use a keyword as a token:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;hello, world&#39;</span><span class="p">,</span> <span class="n">world</span><span class="o">=</span><span class="s">&#39;0x123&#39;</span><span class="p">,</span> <span class="n">hello</span><span class="o">=</span><span class="s">&#39;0b110&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As you would expect, there is also an <a title="Bits.unpack" class="reference external" href="bitstring_classes.html#Bits.unpack"><tt class="xref docutils literal"><span class="pre">Bits.unpack</span></tt></a> function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;ue, oct:3, hex:8, uint:14&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&#39;0o7&#39;</span><span class="p">,</span> <span class="s">&#39;0xff&#39;</span><span class="p">,</span> <span class="mi">90</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;ue, oct:3, hex:8, uint:14&#39;</span><span class="p">)</span>
+<span class="go">[3, &#39;0o7&#39;, &#39;0xff&#39;, 90]</span>
+</pre></div>
+</div>
+<div class="section" id="compact-format-strings">
+<span id="compact-format"></span><h3>Compact format strings<a class="headerlink" href="#compact-format-strings" title="Permalink to this headline">¶</a></h3>
+<p>Another option when using <a title="pack" class="reference external" href="functions.html#pack"><tt class="xref docutils literal"><span class="pre">pack</span></tt></a>, as well as other methods such as <a title="Bits.read" class="reference external" href="bitstring_classes.html#Bits.read"><tt class="xref docutils literal"><span class="pre">Bits.read</span></tt></a> and <a title="BitString.byteswap" class="reference external" href="bitstring_classes.html#BitString.byteswap"><tt class="xref docutils literal"><span class="pre">BitString.byteswap</span></tt></a>, is to use a format specifier similar to those used in the <tt class="xref docutils literal"><span class="pre">struct</span></tt> and <tt class="xref docutils literal"><span class="pre">array</span></tt> modules. These consist of a character to give the endianness, followed by more single characters to give the format.</p>
+<p>The endianness character must start the format string and unlike in the struct module it is not optional (except when used with <a title="BitString.byteswap" class="reference external" href="bitstring_classes.html#BitString.byteswap"><tt class="xref docutils literal"><span class="pre">BitString.byteswap</span></tt></a>):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="72%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">&gt;</span></tt></td>
+<td>Big-endian</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">&lt;</span></tt></td>
+<td>Little-endian</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">&#64;</span></tt></td>
+<td>Native-endian</td>
+</tr>
+</tbody>
+</table>
+<p>For &#8216;network&#8217; endianness use <tt class="docutils literal"><span class="pre">&gt;</span></tt> as network and big-endian are equivalent. This is followed by at least one of these format characters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">b</span></tt></td>
+<td>8 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">B</span></tt></td>
+<td>8 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">h</span></tt></td>
+<td>16 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">H</span></tt></td>
+<td>16 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">l</span></tt></td>
+<td>32 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">L</span></tt></td>
+<td>32 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">q</span></tt></td>
+<td>64 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">Q</span></tt></td>
+<td>64 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">f</span></tt></td>
+<td>32 bit floating point number</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">d</span></tt></td>
+<td>64 bit floating point number</td>
+</tr>
+</tbody>
+</table>
+<p>The exact type is determined by combining the endianness character with the format character, but rather than give an exhaustive list a single example should explain:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="68%" />
+<col width="21%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">&gt;h</span></tt></td>
+<td>Big-endian 16 bit signed integer</td>
+<td><tt class="docutils literal"><span class="pre">intbe:16</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">&lt;h</span></tt></td>
+<td>Little-endian 16 bit signed integer</td>
+<td><tt class="docutils literal"><span class="pre">intle:16</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">&#64;h</span></tt></td>
+<td>Native-endian 16 bit signed integer</td>
+<td><tt class="docutils literal"><span class="pre">intne:16</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian <tt class="docutils literal"><span class="pre">&#64;h</span></tt> will equal the big-endian <tt class="docutils literal"><span class="pre">&gt;h</span></tt> on big-endian systems, and equal the little-endian <tt class="docutils literal"><span class="pre">&lt;h</span></tt> on little-endian systems. For the single byte codes <tt class="docutils literal"><span class="pre">b</span></tt> and <tt class="docutils literal"><span class="pre">B</span></tt> the endianness doesn&#8217;t make any difference, but you still need to specify one so that the format string can be parsed correctly.</p>
+<p>An example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;&gt;qqqq&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>is equivalent to</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;intbe:64, intbe:64, intbe:64, intbe:64&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Just as in the struct module you can also give a multiplicative factor before the format character, so the previous example could be written even more concisely as</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;&gt;4q&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can of course combine these format strings with other initialisers, even mixing endiannesses (although I&#8217;m not sure why you&#8217;d want to):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;&gt;6h3b, 0b1, &lt;9L&#39;</span><span class="p">,</span> <span class="o">*</span><span class="nb">range</span><span class="p">(</span><span class="mi">18</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This rather contrived example takes the numbers 0 to 17 and packs the first 6 as signed big-endian 2-byte integers, the next 3 as single bytes, then inserts a single 1 bit, before packing the remaining 9 as little-endian 4-byte unsigned integers.</p>
+</div>
+</div>
+<div class="section" id="interpreting-bitstrings">
+<h2>Interpreting Bitstrings<a class="headerlink" href="#interpreting-bitstrings" title="Permalink to this headline">¶</a></h2>
+<p>Bitstrings don&#8217;t know or care how they were created; they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.</p>
+<p>Several Python properties are used to create interpretations for the bitstring. These properties call private functions which will calculate and return the appropriate interpretation. These don’t change the bitstring in any way and it remains just a collection of bits. If you use the property again then the calculation will be repeated.</p>
+<p>Note that these properties can potentially be very expensive in terms of both computation and memory requirements. For example if you have initialised a bitstring from a 10 GB file object and ask for its binary string representation then that string will be around 80 GB in size!</p>
+<p>For the properties described below we will use these:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="s">&#39;0x123&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Bits</span><span class="p">(</span><span class="s">&#39;0b111&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="bin">
+<h3>bin<a class="headerlink" href="#bin" title="Permalink to this headline">¶</a></h3>
+<p>The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The <a title="bin" class="reference external" href="bitstring_classes.html#bin"><tt class="xref docutils literal"><span class="pre">bin</span></tt></a> property returns a string of the binary representation of the bitstring prefixed with <tt class="docutils literal"><span class="pre">0b</span></tt>. All bitstrings can use this property and it is used to test equality between bitstrings.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b000100100011&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b111&#39;</span>
+</pre></div>
+</div>
+<p>Note that the initial zeros are significant; for bitstrings the zeros are just as important as the ones!</p>
+</div>
+<div class="section" id="hex">
+<h3>hex<a class="headerlink" href="#hex" title="Permalink to this headline">¶</a></h3>
+<p>For whole-byte bitstrings the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits. Hex values are prefixed with <tt class="docutils literal"><span class="pre">0x</span></tt>.</p>
+<p>If the bitstring does not have a length that is a multiple of four bits then an <a title="InterpretError" class="reference external" href="bitstring_classes.html#InterpretError"><tt class="xref docutils literal"><span class="pre">InterpretError</span></tt></a> exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0x123&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">ValueError: Cannot convert to hex unambiguously - not multiple of 4 bits.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="oct">
+<h3>oct<a class="headerlink" href="#oct" title="Permalink to this headline">¶</a></h3>
+<p>For an octal interpretation use the <a title="oct" class="reference external" href="bitstring_classes.html#oct"><tt class="xref docutils literal"><span class="pre">oct</span></tt></a> property. Octal values are prefixed with <tt class="docutils literal"><span class="pre">0o</span></tt>, which is the Python 2.6 / 3 way of doing things (rather than just starting with <tt class="docutils literal"><span class="pre">0</span></tt>).</p>
+<p>If the bitstring does not have a length that is a multiple of three then an <a title="InterpretError" class="reference external" href="bitstring_classes.html#InterpretError"><tt class="xref docutils literal"><span class="pre">InterpretError</span></tt></a> exception will be raised.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">oct</span>
+<span class="go">&#39;0o0443&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">oct</span>
+<span class="go">&#39;0o7&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="s">&#39;0b0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">oct</span>
+<span class="go">ValueError: Cannot convert to octal unambiguously - not multiple of 3 bits.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="uint-uintbe-uintle-uintne">
+<h3>uint / uintbe / uintle / uintne<a class="headerlink" href="#uint-uintbe-uintle-uintne" title="Permalink to this headline">¶</a></h3>
+<p>To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the <a title="uint" class="reference external" href="bitstring_classes.html#uint"><tt class="xref docutils literal"><span class="pre">uint</span></tt></a> property.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">uint</span>
+<span class="go">283</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">uint</span>
+<span class="go">7</span>
+</pre></div>
+</div>
+<p>For byte-wise big-endian, little-endian and native-endian interpretations use <a title="uintbe" class="reference external" href="bitstring_classes.html#uintbe"><tt class="xref docutils literal"><span class="pre">uintbe</span></tt></a>, <a title="uintle" class="reference external" href="bitstring_classes.html#uintle"><tt class="xref docutils literal"><span class="pre">uintle</span></tt></a> and <a title="uintne" class="reference external" href="bitstring_classes.html#uintne"><tt class="xref docutils literal"><span class="pre">uintne</span></tt></a> respectively. These will raise a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> if the bitstring is not a whole number of bytes long.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x000001&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">uint</span>     <span class="c"># bit-wise big-endian</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">uintbe</span>   <span class="c"># byte-wise big-endian</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">uintle</span>   <span class="c"># byte-wise little-endian</span>
+<span class="go">65536</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">uintne</span>   <span class="c"># byte-wise native-endian (will be 1 on a big-endian platform!)</span>
+<span class="go">65536</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="int-intbe-intle-intne">
+<h3>int / intbe / intle / intne<a class="headerlink" href="#int-intbe-intle-intne" title="Permalink to this headline">¶</a></h3>
+<p>For a two&#8217;s complement interpretation as a base-2 signed integer use the <a title="int" class="reference external" href="bitstring_classes.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> property. If the first bit of the bitstring is zero then the <a title="int" class="reference external" href="bitstring_classes.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> and <a title="uint" class="reference external" href="bitstring_classes.html#uint"><tt class="xref docutils literal"><span class="pre">uint</span></tt></a> interpretations will be equal, otherwise the <a title="int" class="reference external" href="bitstring_classes.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a> will represent a negative number.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">int</span>
+<span class="go">283</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">int</span>
+<span class="go">-1</span>
+</pre></div>
+</div>
+<p>For byte-wise big, little and native endian signed integer interpretations use <a title="intbe" class="reference external" href="bitstring_classes.html#intbe"><tt class="xref docutils literal"><span class="pre">intbe</span></tt></a>, <a title="intle" class="reference external" href="bitstring_classes.html#intle"><tt class="xref docutils literal"><span class="pre">intle</span></tt></a> and <a title="intne" class="reference external" href="bitstring_classes.html#intne"><tt class="xref docutils literal"><span class="pre">intne</span></tt></a> respectively. These work in the same manner as their unsigned counterparts described above.</p>
+</div>
+<div class="section" id="float-floatbe-floatle-floatne">
+<h3>float / floatbe / floatle / floatne<a class="headerlink" href="#float-floatbe-floatle-floatne" title="Permalink to this headline">¶</a></h3>
+<p>For a floating point interpretation use the <a title="float" class="reference external" href="bitstring_classes.html#float"><tt class="xref docutils literal"><span class="pre">float</span></tt></a> property. This uses your machine&#8217;s underlying floating point representation and will only work if the bitstring is 32 or 64 bits long.</p>
+<p>Different endiannesses are provided via <a title="floatle" class="reference external" href="bitstring_classes.html#floatle"><tt class="xref docutils literal"><span class="pre">floatle</span></tt></a> and <a title="floatne" class="reference external" href="bitstring_classes.html#floatne"><tt class="xref docutils literal"><span class="pre">floatne</span></tt></a>. Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian <a title="float" class="reference external" href="bitstring_classes.html#float"><tt class="xref docutils literal"><span class="pre">float</span></tt></a> and the byte-wise big-endian <a title="floatbe" class="reference external" href="bitstring_classes.html#floatbe"><tt class="xref docutils literal"><span class="pre">floatbe</span></tt></a>.</p>
+<p>Note also that standard floating point numbers in Python are stored in 64 bits, so use this size if you wish to avoid rounding errors.</p>
+</div>
+<div class="section" id="bytes">
+<h3>bytes<a class="headerlink" href="#bytes" title="Permalink to this headline">¶</a></h3>
+<p>A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the <a title="bytes" class="reference external" href="bitstring_classes.html#bytes"><tt class="xref docutils literal"><span class="pre">bytes</span></tt></a> interpretation, which returns a <tt class="docutils literal"><span class="pre">bytes</span></tt> object (which is equivalent to an ordinary <tt class="docutils literal"><span class="pre">str</span></tt> in Python 2.6).</p>
+<p>If the length of the bitstring isn&#8217;t a multiple of eight then a <tt class="xref docutils literal"><span class="pre">ValueError</span></tt> will be raised. This is because there isn&#8217;t an unequivocal representation as <tt class="docutils literal"><span class="pre">bytes</span></tt>. You may prefer to use the method <tt class="xref docutils literal"><span class="pre">tobytes</span></tt> as this will be pad with between one and seven zero bits up to a byte boundary if neccessary.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">open</span><span class="p">(</span><span class="s">&#39;somefile&#39;</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">open</span><span class="p">(</span><span class="s">&#39;anotherfile&#39;</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">((</span><span class="s">&#39;0x0&#39;</span><span class="o">+</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">bytes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;somefile&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0x1230&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a2</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;anotherfile&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a2</span><span class="o">.</span><span class="n">hex</span>
+<span class="go">&#39;0x0123&#39;</span>
+</pre></div>
+</div>
+<p>Note that the <tt class="xref docutils literal"><span class="pre">tobytes</span></tt> method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the <a title="bytes" class="reference external" href="bitstring_classes.html#bytes"><tt class="xref docutils literal"><span class="pre">bytes</span></tt></a> property.</p>
+</div>
+<div class="section" id="ue">
+<h3>ue<a class="headerlink" href="#ue" title="Permalink to this headline">¶</a></h3>
+<p>The <a title="ue" class="reference external" href="bitstring_classes.html#ue"><tt class="xref docutils literal"><span class="pre">ue</span></tt></a> property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an <a title="InterpretError" class="reference external" href="bitstring_classes.html#InterpretError"><tt class="xref docutils literal"><span class="pre">InterpretError</span></tt></a> is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a <tt class="docutils literal"><span class="pre">ue</span></tt> format string. See <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a> for a short explanation of this type of integer representation.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">bin</span>
+<span class="go">&#39;0b0001101&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BitString</span><span class="p">(</span><span class="n">ue</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;ue, ue&#39;</span><span class="p">))</span>
+<span class="go">[12, 3]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="se">
+<h3>se<a class="headerlink" href="#se" title="Permalink to this headline">¶</a></h3>
+<p>The <a title="se" class="reference external" href="bitstring_classes.html#se"><tt class="xref docutils literal"><span class="pre">se</span></tt></a> property does much the same as <tt class="docutils literal"><span class="pre">ue</span></tt> and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see <a class="reference external" href="exp-golomb.html#exp-golomb"><em>Exponential-Golomb Codes</em></a> for more information.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x164b&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">se</span>
+<span class="go">InterpretError: BitString is not a single exponential-Golomb code.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">while</span> <span class="n">s</span><span class="o">.</span><span class="n">pos</span> <span class="o">&lt;</span> <span class="n">s</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;se&#39;</span><span class="p">))</span>
+<span class="go">-5</span>
+<span class="go">2</span>
+<span class="go">0</span>
+<span class="go">-1</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Creation and Interpretation</a><ul>
+<li><a class="reference external" href="#the-bits-and-bitstring-classes">The Bits and BitString classes</a></li>
+<li><a class="reference external" href="#using-the-constructor">Using the constructor</a><ul>
+<li><a class="reference external" href="#from-a-hexadecimal-string">From a hexadecimal string</a></li>
+<li><a class="reference external" href="#from-a-binary-string">From a binary string</a></li>
+<li><a class="reference external" href="#from-an-octal-string">From an octal string</a></li>
+<li><a class="reference external" href="#from-an-integer">From an integer</a></li>
+<li><a class="reference external" href="#big-and-little-endian-integers">Big and little-endian integers</a></li>
+<li><a class="reference external" href="#from-a-floating-point-number">From a floating point number</a></li>
+<li><a class="reference external" href="#exponential-golomb-codes">Exponential-Golomb codes</a></li>
+<li><a class="reference external" href="#from-raw-data">From raw data</a></li>
+<li><a class="reference external" href="#from-a-file">From a file</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#the-auto-initialiser">The auto initialiser</a></li>
+<li><a class="reference external" href="#packing">Packing</a><ul>
+<li><a class="reference external" href="#compact-format-strings">Compact format strings</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#interpreting-bitstrings">Interpreting Bitstrings</a><ul>
+<li><a class="reference external" href="#bin">bin</a></li>
+<li><a class="reference external" href="#hex">hex</a></li>
+<li><a class="reference external" href="#oct">oct</a></li>
+<li><a class="reference external" href="#uint-uintbe-uintle-uintne">uint / uintbe / uintle / uintne</a></li>
+<li><a class="reference external" href="#int-intbe-intle-intne">int / intbe / intle / intne</a></li>
+<li><a class="reference external" href="#float-floatbe-floatle-floatne">float / floatbe / floatle / floatne</a></li>
+<li><a class="reference external" href="#bytes">bytes</a></li>
+<li><a class="reference external" href="#ue">ue</a></li>
+<li><a class="reference external" href="#se">se</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="introduction.html"
+                                  title="previous chapter">Introduction</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="slicing.html"
+                                  title="next chapter">Slicing, Dicing and Splicing</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="slicing.html" title="Slicing, Dicing and Splicing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="contents.html" >User Manual</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>
