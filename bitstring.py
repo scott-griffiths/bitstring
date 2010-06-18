@@ -1385,7 +1385,7 @@ class Bits(collections.Sequence):
         else:
             data = self[start:start + length]
             assert data.len % 8 == 0
-            data.reversebytes()
+            data._reversebytes(0, self.len)
             for b in bytearray(data.bytes):
                 val <<= 8
                 val += b
@@ -2769,18 +2769,17 @@ class BitString(Bits, collections.MutableSequence):
     
     Mutating methods:
     
-    append(): Append a bitstring.
-    byteswap(): Change byte endianness in-place.
-    insert(): Insert a bitstring.
-    invert(): Flip bit(s) between one and zero.
-    overwrite(): Overwrite a section with a new bitstring.
-    prepend(): Prepend a bitstring.
-    replace(): Replace occurences of one bitstring with another.
-    reverse(): Reverse bits in-place.
-    reversebytes(): Reverse bytes in-place.
-    rol(): Rotate bits to the left.
-    ror(): Rotate bits to the right.
-    set(): Set bit(s) to 1 or 0.
+    append() -- Append a bitstring.
+    byteswap() -- Change byte endianness in-place.
+    insert() -- Insert a bitstring.
+    invert() -- Flip bit(s) between one and zero.
+    overwrite() -- Overwrite a section with a new bitstring.
+    prepend() -- Prepend a bitstring.
+    replace() -- Replace occurences of one bitstring with another.
+    reverse() -- Reverse bits in-place.
+    rol() -- Rotate bits to the left.
+    ror() -- Rotate bits to the right.
+    set() -- Set bit(s) to 1 or 0.
     
     Methods inherited from Bits:
     
@@ -2868,7 +2867,7 @@ class BitString(Bits, collections.MutableSequence):
         length -- length of the bitstring in bits, if needed and appropriate.
                   It must be supplied for all integer and float initialisers.
         offset -- bit offset to the data. These offset bits are
-                  ignored and this is mainly intended for use when
+                  ignored and this is intended for use when
                   initialising using 'bytes' or 'filename'.
                   
         """
@@ -3312,21 +3311,6 @@ class BitString(Bits, collections.MutableSequence):
         s._reverse()
         self[start:end] = s
 
-    def reversebytes(self, start=None, end=None):
-        """Reverse bytes in-place.
-
-        start -- Position of first bit to reverse. Defaults to 0.
-        end -- One past the position of the last bit to reverse.
-               Defaults to self.len.
-
-        Raises ByteAlignError if end - start is not a multiple of 8.
-
-        """
-        start, end = self._validate_slice(start, end)
-        if (end - start) % 8 != 0:
-            raise ByteAlignError("Can only use reversebytes on whole-byte BitStrings.")
-        self._reversebytes(start, end)
-
     def set(self, value, pos):
         """Set one or many bits to 1 or 0.
 
@@ -3417,11 +3401,12 @@ class BitString(Bits, collections.MutableSequence):
         del self[start:start + bits]
         self.insert(lhs, end - bits)
 
-    def byteswap(self, fmt, start=None, end=None, repeat=True):
+    def byteswap(self, fmt=None, start=None, end=None, repeat=True):
         """Change the endianness in-place. Return number of repeats of fmt done.
 
         fmt -- A compact structure string, an integer number of bytes or
-               an iterable of integers.
+               an iterable of integers. Defaults to 0, which byte reverses the
+               whole BitString.
         start -- Start bit position, defaults to 0.
         end -- End bit position, defaults to self.len.
         repeat -- If True (the default) the byte swapping pattern is repeated
@@ -3429,8 +3414,11 @@ class BitString(Bits, collections.MutableSequence):
 
         """
         start, end = self._validate_slice(start, end)
-        if isinstance(fmt, (int, long)):
-            if fmt < 1:
+        if fmt is None or fmt == 0:
+            # reverse all of the whole bytes.
+            bytesizes = [(end - start) // 8]
+        elif isinstance(fmt, (int, long)):
+            if fmt < 0:
                 raise ValueError("Improper byte length {0}.".format(fmt))
             bytesizes = [fmt]
         elif isinstance(fmt, basestring):
@@ -3449,13 +3437,15 @@ class BitString(Bits, collections.MutableSequence):
         elif isinstance(fmt, collections.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
-                if not isinstance(bytesize, (int, long)) or bytesize < 1:
+                if not isinstance(bytesize, (int, long)) or bytesize < 0:
                     raise ValueError("Improper byte length {0}.".format(bytesize))
         else:
             raise ValueError("Format must be an integer, string or iterable.")
 
         repeats = 0
         totalbitsize = 8*sum(bytesizes)
+        if not totalbitsize:
+            return 0
         if repeat:
             # Try to repeat up to the end of the bitstring.
             finalbit = end
