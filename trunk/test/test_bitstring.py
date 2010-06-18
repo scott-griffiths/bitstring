@@ -2801,33 +2801,36 @@ class Adding(unittest.TestCase):
 
     def testReverseBytes(self):
         a = BitString('0x123456')
-        a.reversebytes()
+        a.byteswap()
         self.assertEqual(a, '0x563412')
-        self.assertRaises(bitstring.ByteAlignError, (a + '0b1').reversebytes)
+        b = a + '0b1'
+        b.byteswap()
+        self.assertEqual('0x123456, 0b1', b)
         a = BitString('0x54')
-        a.reversebytes()
+        a.byteswap()
         self.assertEqual(a, '0x54')
         a = BitString()
-        a.reversebytes()
+        a.byteswap()
         self.assertFalse(a)
 
     def testReverseBytes2(self):
         a = BitString()
-        a.reversebytes()
+        a.byteswap()
         self.assertFalse(a)
         a = BitString('0x00112233')
-        a.reversebytes(0, 16)
+        a.byteswap(0, 0, 16)
         self.assertEqual(a, '0x11002233')
-        a.reversebytes(4, 28)
+        a.byteswap(0, 4, 28)
         self.assertEqual(a, '0x12302103')
-        self.assertRaises(bitstring.ByteAlignError, a.reversebytes, 0, 11)
-        self.assertRaises(ValueError, a.reversebytes, 10, 2)
-        self.assertRaises(ValueError, a.reversebytes, -4, 4)
-        self.assertRaises(ValueError, a.reversebytes, 24, 48)
-        a.reversebytes(24)
-        self.assertEqual(a, '0x12302103')
-        a.reversebytes(11, 11)
-        self.assertEqual(a, '0x12302103')
+        a.byteswap(start=0, end=18)
+        self.assertEqual(a, '0x30122103')
+        self.assertRaises(ValueError, a.byteswap, 0, 10, 2)
+        self.assertRaises(ValueError, a.byteswap, 0, -4, 4)
+        self.assertRaises(ValueError, a.byteswap, 0, 24, 48)
+        a.byteswap(0, 24)
+        self.assertEqual(a, '0x30122103')
+        a.byteswap(0, 11, 11)
+        self.assertEqual(a, '0x30122103')
 
     def testCapitalsInPack(self):
         a = pack('A', A='0b1')
@@ -3614,7 +3617,7 @@ class Bugs(unittest.TestCase):
         self.assertEqual(t, '0x778899abc7bf')
 
         # reversebytes
-        t.reversebytes(-40, -16)
+        t.byteswap(0, -40, -16)
         self.assertEqual(t, '0x77ab9988c7bf')
 
         # overwrite
@@ -3749,7 +3752,7 @@ class Bugs(unittest.TestCase):
     def testByteSwapErrors(self):
         s = BitString('0x0011223344556677')
         self.assertRaises(ValueError, s.byteswap, 'z')
-        self.assertRaises(ValueError, s.byteswap, 0)
+        self.assertRaises(ValueError, s.byteswap, -1)
         self.assertRaises(ValueError, s.byteswap, [-1])
         self.assertRaises(ValueError, s.byteswap, [1, 'e'])
         self.assertRaises(ValueError, s.byteswap, '!h')
