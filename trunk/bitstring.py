@@ -49,7 +49,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "2.0.1 beta 2"
+__version__ = "2.0.2"
 
 __author__ = "Scott Griffiths"
 
@@ -364,6 +364,8 @@ class CreationError(Error, ValueError):
 class BaseArray(object):
     """Array types should implement the methods given here."""
 
+    __slots__ = ()
+
     def __init__(self, data, bitlength=0, offset=0):
         raise NotImplementedError
 
@@ -390,6 +392,8 @@ class BaseArray(object):
 
 class ByteArray(BaseArray):
     """Stores raw bytes together with a bit offset and length."""
+
+    __slots__ = ('offset', '_rawarray', 'bitlength')
 
     def __init__(self, data, bitlength=0, offset=0):
         self._rawarray = bytearray(data[offset // 8:(offset + bitlength + 7) // 8])
@@ -504,6 +508,8 @@ MemArray = ByteArray
 class FileArray(BaseArray):
     """A class that mimics bytearray but gets data from a file object."""
 
+    __slots__ = ('source', 'bytelength', 'bitlength', 'byteoffset', 'offset')
+
     def __init__(self, source, bitlength, offset):
         # byteoffset - bytes to ignore at start of file
         # bitoffset - bits (0-7) to ignore after the byteoffset
@@ -546,7 +552,7 @@ class FileArray(BaseArray):
         return bytearray(self.getbyteslice(0, self.bytelength))
 
 
-class Bits(collections.Sequence):
+class Bits(object):
     
     """A container holding an immutable sequence of bits.
     
@@ -603,6 +609,8 @@ class Bits(collections.Sequence):
     uintne -- Interpret as a native-endian unsigned integer.
     
     """
+    
+    __slots__ = ('_mutable', '_filebased', '_pos', '_datastore')
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
         """Either specify an 'auto' initialiser:
@@ -2760,7 +2768,7 @@ class Bits(collections.Sequence):
                       """)
 
 
-class BitString(Bits, collections.MutableSequence):
+class BitString(Bits):
     
     """A container holding a mutable sequence of bits.
 
@@ -2833,6 +2841,8 @@ class BitString(Bits, collections.MutableSequence):
     uintne -- Interpret as a native-endian unsigned integer.
     
     """
+
+    __slots__ = ()
 
     # As BitString objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
