@@ -40,7 +40,7 @@ from bitstring import BitString, Bits, pack
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.0.1 beta 2')
+        self.assertEqual(bitstring.__version__, '2.0.2')
 
     def testAll(self):
         exported = ['Bits', 'BitString', 'pack', 'Error', 'ReadError',
@@ -53,6 +53,16 @@ class ModuleData(unittest.TestCase):
             a = BitString(uint=i, length=8)
             b = d[i]
             self.assertEqual(a.bin[2:][::-1], BitString(bytes=b).bin[2:])
+
+class MemoryUsage(unittest.TestCase):
+
+    def testBaselineMemory(self):
+        try:
+            import pympler.asizeof.asizeof as size
+        except ImportError:
+            return
+        # These values might be platform dependent, so don't fret too much.
+        self.assertEqual(size(Bits('0xff')), 448)
 
 class Creation(unittest.TestCase):
 
@@ -3683,15 +3693,6 @@ class Bugs(unittest.TestCase):
         s.replace('0x00', '', start=-24)
         self.assertEqual(s, '0x001212fe')
 
-    def testAbc(self):
-        a = Bits()
-        b = BitString()
-        self.assertTrue(isinstance(a, collections.Sequence))
-        self.assertFalse(isinstance(a, collections.MutableSequence))
-        self.assertTrue(isinstance(b, collections.MutableSequence))
-
-    # TODO: write tests for all the ABC methods like count and extend that have been added.
-
     def testRotateStartAndEnd(self):
         a = BitString('0b110100001')
         a.rol(1, 3, 6)
@@ -3979,33 +3980,6 @@ class CollectionsMetaClasses(unittest.TestCase):
         b = BitString()
         self.assertEqual(b.count(True), 0)
         self.assertEqual(b.count(False), 0)
-        
-    def testIndex(self):
-        a = BitString('0x0010')
-        self.assertEqual(a.index(False), 0)
-        self.assertEqual(a.index(True), 11)  
-        
-    def testIter(self):
-        a = BitString('0b1100')
-        i = iter(a)
-        self.assertTrue(next(i))
-        self.assertTrue(next(i))
-        self.assertFalse(next(i))
-        self.assertFalse(next(i))
-        self.assertRaises(StopIteration, next, i)
-        
-    def testReversed(self):
-        a = Bits('0b110')
-        self.assertEqual(list(reversed(a)), [False, True, True])
-        
-    def testExtend(self):
-        pass
-    
-    def testPop(self):
-        pass
-    
-    def testRemove(self):
-        pass
     
 class ZeroBitReads(unittest.TestCase):
     
