@@ -295,10 +295,10 @@ def expand_brackets(s):
 
 
 # This byte to bitstring lookup really speeds things up.
-BYTE_TO_BITS = tuple('{0:08b}'.format(i) for i in range(256))
+BYTE_TO_BITS = tuple('{0:08b}'.format(i) for i in xrange(256))
 
 # And this convers a single octal digit to 3 bits.
-OCT_TO_BITS = tuple('{0:03b}'.format(i) for i in range(8))
+OCT_TO_BITS = tuple('{0:03b}'.format(i) for i in xrange(8))
 
 # This creates a dictionary for every possible byte with the value being
 # the key with its bits reversed.
@@ -320,10 +320,11 @@ REVERSED = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
            b"\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
 
 if PYTHON_VERSION == 2:
-    BYTE_REVERSAL_DICT = dict(zip(range(256), REVERSED))
+    BYTE_REVERSAL_DICT = dict(zip(xrange(256), REVERSED))
 else:
-    BYTE_REVERSAL_DICT = dict(zip(range(256), [bytes([x]) for x in REVERSED]))
+    BYTE_REVERSAL_DICT = dict(zip(xrange(256), [bytes([x]) for x in REVERSED]))
 
+BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
 
 class Error(Exception):
     """Base class for errors in the bitstring module."""
@@ -2660,6 +2661,33 @@ class Bits(object):
             if bool(self._datastore.getbyte(byte) & (128 >> bit)) is value:
                 return True
         return False
+    
+    def count(self, value):
+        """Return count of total number of either zero or one bits.
+        
+        value -- If True then bits set to 1 are counted, otherwise bits set
+                 to 0 are counted.
+                 
+        >>> Bits('0xef').count(1)
+        7
+        
+        """
+        if not self.len:
+            return 0
+        
+        count = bin(self._getuint()).count('1')
+        return count if value else self.len - count
+        
+        # count the number of 1s (from which it's easy to work out the 0s).
+        # Don't count the final byte yet.
+        count = sum(BIT_COUNT[self._datastore.getbyte(i)] for i in xrange(self._datastore.bytelength - 1))
+        # adjust for bits at start that aren't part of the bitstring
+        if self._offset:
+            count -= BIT_COUNT[self._datastore.getbyte(0) >> (8 - self._offset)]
+        # and count the last 1 - 8 bits at the end.
+        endbits = self._datastore.bytelength*8 - (self._offset + self.len)
+        count += BIT_COUNT[self._datastore.getbyte(self._datastore.bytelength - 1) >> endbits]
+        return count if value else self.len - count
 
     # Create native-endian functions as aliases depending on the byteorder
     if byteorder == 'little':

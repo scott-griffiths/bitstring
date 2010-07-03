@@ -3970,7 +3970,7 @@ class FileReadingStrategy(unittest.TestCase):
         self.assertTrue(b._filebased)
         self.assertFalse(a._mutable)
 
-class CollectionsMetaClasses(unittest.TestCase):
+class Count(unittest.TestCase):
     
     def testCount(self):
         a = Bits('0xf0f')
@@ -3980,6 +3980,14 @@ class CollectionsMetaClasses(unittest.TestCase):
         b = BitString()
         self.assertEqual(b.count(True), 0)
         self.assertEqual(b.count(False), 0)
+    
+    
+    def testCountWithOffsetData(self):
+        a = Bits('0xff00ff')
+        b = a[1:-1]
+        self.assertEqual(b.count(1), 14)
+        self.assertEqual(b.count(0), 8)
+        
     
 class ZeroBitReads(unittest.TestCase):
     
