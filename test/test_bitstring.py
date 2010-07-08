@@ -3043,7 +3043,7 @@ class Adding(unittest.TestCase):
         except AttributeError:
             pass
         try:
-            a.bytes = 'hello'
+            a.bytes = b'hello'
             self.assertTrue(False)
         except AttributeError:
             pass
