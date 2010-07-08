@@ -35,7 +35,7 @@ import bitstring
 import copy
 import os
 import collections
-from bitstring import BitString, Bits, pack
+from bitstring import BitString, Bits, pack, One, Zero
 
 class ModuleData(unittest.TestCase):
 
@@ -1066,7 +1066,7 @@ class Empty(unittest.TestCase):
 
     def testNonEmptyBitString(self):
         s = BitString(bin='0')
-        self.assertFalse(not s)
+        self.assertFalse(not s.len)
 
 class Position(unittest.TestCase):
 
@@ -1138,7 +1138,7 @@ class Append(unittest.TestCase):
 
     def testAppend(self):
         s1 = BitString('0b00000')
-        s1.append(BitString(True))
+        s1.append(BitString(bool=True))
         self.assertEqual(s1.bin, '0b000001')
         self.assertEqual((BitString('0x0102') + BitString('0x0304')).hex, '0x01020304')
 
@@ -2162,7 +2162,7 @@ class Adding(unittest.TestCase):
         a = BitString('0b001010')
         b = BitString()
         for bit in a:
-            b.append(bit)
+            b.append(Bits(bool=bit))
         self.assertEqual(a, b)
 
     def testDelitem(self):
@@ -2492,8 +2492,8 @@ class Adding(unittest.TestCase):
         s = BitString('0b1101, 0o721, 0x2234567')
         a, b, c, d = s.peeklist([2, 1, 1, 9])
         self.assertEqual(a, '0b11')
-        self.assertEqual(b, False)
-        self.assertEqual(c, True)
+        self.assertEqual(bool(b), False)
+        self.assertEqual(bool(c), True)
         self.assertEqual(d, '0o721')
         self.assertEqual(s.pos, 0)
         a, b = s.peeklist([4, 9])
@@ -2858,7 +2858,7 @@ class Adding(unittest.TestCase):
 
     def testEfficientOverwrite(self):
         a = BitString(1000000000)
-        a.overwrite(True, 123456)
+        a.overwrite(One, 123456)
         self.assertEqual(a[123456], True)
         a.overwrite('0xff', 1)
         self.assertEqual(a[0:4:8], '0x7f800000')
@@ -3524,15 +3524,17 @@ class Adding(unittest.TestCase):
         self.assertEqual(c2, '0x00a')
 
     def testAutoFromBool(self):
+        
         a = Bits() + True + False + True
-        self.assertEqual(a, '0b101')
-        b = Bits(False)
-        self.assertEqual(b, '0b0')
-        c = Bits(True)
-        self.assertEqual(c, '0b1')
-        self.assertEqual(b, False)
-        self.assertEqual(c, True)
-        self.assertEqual(b & True, False)
+        self.assertEqual(a, '0b00')
+    #    self.assertEqual(a, '0b101')
+    #    b = Bits(False)
+    #    self.assertEqual(b, '0b0')
+    #    c = Bits(True)
+    #    self.assertEqual(c, '0b1')
+    #    self.assertEqual(b, False)
+    #    self.assertEqual(c, True)
+    #    self.assertEqual(b & True, False)
 
 
 
@@ -3881,11 +3883,11 @@ class PeekWithDict(unittest.TestCase):
 class BoolToken(unittest.TestCase):
 
     def testInterpretation(self):
-        a = Bits(True)
+        a = Bits('0b1')
         self.assertEqual(a.bool, True)
         self.assertEqual(a.read('bool'), True)
         self.assertEqual(a.unpack('bool')[0], True)
-        b = Bits(False)
+        b = Bits('0b0')
         self.assertEqual(b.bool, False)
         self.assertEqual(b.peek('bool'), False)
         self.assertEqual(b.unpack('bool')[0], False)
@@ -3981,12 +3983,11 @@ class Count(unittest.TestCase):
         self.assertEqual(b.count(True), 0)
         self.assertEqual(b.count(False), 0)
     
-    
     def testCountWithOffsetData(self):
-        a = Bits('0xff00ff')
+        a = Bits('0xff0120ff')
         b = a[1:-1]
-        self.assertEqual(b.count(1), 14)
-        self.assertEqual(b.count(0), 8)
+        self.assertEqual(b.count(1), 16)
+        self.assertEqual(b.count(0), 14)
         
     
 class ZeroBitReads(unittest.TestCase):

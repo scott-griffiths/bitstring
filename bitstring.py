@@ -616,7 +616,7 @@ class Bits(object):
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
-                a bool, a bytearray, a boolean iterable or another bitstring.
+                a bytearray, a boolean iterable or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
         bytes -- raw data as a string, for example read from a binary file.
@@ -637,6 +637,7 @@ class Bits(object):
         floatne -- a native-endian floating point number.
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
+        bool -- a boolean (True or False).
         filename -- a file which will be opened in binary read-only mode.
 
         Other keyword arguments:
@@ -883,7 +884,7 @@ class Bits(object):
         Raises Error if the bitstring is empty.
 
         """
-        if not self:
+        if not self.len:
             raise Error("Cannot invert empty bitstring.")
         s = self._copy()
         for p in xrange(s.len):
@@ -898,7 +899,7 @@ class Bits(object):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if not self:
+        if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
         s = self[n:]
         s._append(Bits(length=min(n, self.len)))
@@ -912,7 +913,7 @@ class Bits(object):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if not self:
+        if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
         if n == 0:
             return self._copy()
@@ -1058,6 +1059,10 @@ class Bits(object):
                 h = h ^ g
         return h % 1442968193
 
+    def __nonzero__(self):
+        """Return True if any bits are set to 1, otherwise return False."""
+        return self.len and self.uint
+
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
         assert self.len >= 0
@@ -1115,9 +1120,9 @@ class Bits(object):
             b = cls(bytes=value)
         elif name == 'bool':
             if value is True or value == 'True':
-                b = cls(True)
+                b = cls(bool=True)
             elif value is False or value == 'False':
-                b = cls(False)
+                b = cls(bool=False)
             else:
                 raise CreationError("bool token can only be 'True' or 'False'.")
         else:
@@ -1136,7 +1141,7 @@ class Bits(object):
         """Set bitstring from a bitstring, file, bool, integer, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
-        # So basestring must be checked before Iterable and bool before int
+        # So basestring must be checked before Iterable
         # and bytes/bytearray before Iterable but after basestring!
         if isinstance(s, Bits):
             if length is None:
@@ -1164,12 +1169,6 @@ class Bits(object):
             return
         if isinstance(s, (bytes, bytearray)):
             self._setbytes_unsafe(s, len(s)*8, 0)
-            return
-        if isinstance(s, bool):
-            if s:
-                self._setbytes_unsafe(b'\x80', 1, 0)
-            else:
-                self._setbytes_unsafe(b'\x00', 1, 0)
             return
         if isinstance(s, (int, long)):
             # Initialise with s zero bits.
@@ -1532,7 +1531,7 @@ class Bits(object):
 
         """
         oldpos = self._pos
-        foundone = self.find(True, self._pos)
+        foundone = self.find(One, self._pos)
         if not foundone:
             self._pos = self.len
             raise ReadError("Read off end of bitstring trying to read code.")
@@ -2290,7 +2289,7 @@ class Bits(object):
 
         """
         bs = self._converttobitstring(bs)
-        if not bs:
+        if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
         # If everything's byte aligned (and whole-byte) use the quick algorithm.
@@ -2402,7 +2401,7 @@ class Bits(object):
         """
         bs = self._converttobitstring(bs)
         start, end = self._validate_slice(start, end)
-        if not bs:
+        if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         # Search chunks starting near the end and then moving back
         # until we find bs.
@@ -2478,7 +2477,7 @@ class Bits(object):
 
         """
         delimiter = self._converttobitstring(delimiter)
-        if not delimiter:
+        if not delimiter.len:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
         if count is not None and count < 0:
@@ -2878,7 +2877,7 @@ class BitString(Bits):
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
-                a bool, a bytearray, a boolean iterable or another bitstring.
+                a bytearray, a boolean iterable or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
         bytes -- raw data as a string, for example read from a binary file.
@@ -2899,6 +2898,7 @@ class BitString(Bits):
         floatne -- a native-endian floating point number.
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
+        bool -- a boolean (True or False).
         filename -- a file which will be opened in binary read-only mode.
 
         Other keyword arguments:
@@ -3133,7 +3133,7 @@ class BitString(Bits):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if not self:
+        if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
         if n == 0:
             return self
@@ -3148,7 +3148,7 @@ class BitString(Bits):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if not self:
+        if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
         if n == 0:
             return self
@@ -3225,7 +3225,7 @@ class BitString(Bits):
         """
         old = self._converttobitstring(old)
         new = self._converttobitstring(new)
-        if not old:
+        if not old.len:
             raise ValueError("Empty BitString cannot be replaced.")
         start, end = self._validate_slice(start, end)
         newpos = self._pos
@@ -3276,7 +3276,7 @@ class BitString(Bits):
 
         """
         bs = self._converttobitstring(bs)
-        if not bs:
+        if not bs.len:
             return self
         if bs is self:
             bs = self.__copy__()
@@ -3300,7 +3300,7 @@ class BitString(Bits):
 
         """
         bs = self._converttobitstring(bs)
-        if not bs:
+        if not bs.len:
             return self
         if pos is None:
             pos = self._pos
@@ -3683,7 +3683,11 @@ init_without_length_or_offset = {'bin': Bits._setbin_safe,
                                  'oct': Bits._setoct,
                                  'ue':  Bits._setue,
                                  'se':  Bits._setse,
+                                 'bool':Bits._setbool,
                                  }
+
+One = Bits(bytes=b'\x80', length=1)
+Zero = Bits(bytes=b'\x00', length=1)
 
 if __name__=='__main__':
     print("Running bitstring module unit tests:")
