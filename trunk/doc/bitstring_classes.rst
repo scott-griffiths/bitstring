@@ -95,7 +95,7 @@ The ``Bits`` class
      >>> s3 = Bits(bin='0b001000110100')
      >>> s4 = Bits(int=-1740, length=12)
      >>> s5 = Bits(uint=2356, length=12)
-     >>> s6 = Bits(bytes='\x93@', length=12)
+     >>> s6 = Bits(bytes=b'\x93@', length=12)
      >>> s1 == s2 == s3 == s4 == s5 == s6
      True
 
@@ -111,6 +111,10 @@ The ``Bits`` class
        If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
        
        *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
+       
+           >>> s = Bits('int:15=-1')
+           >>> s.allset(True, [3, 4, 12, 13])
+           True
 
     .. method:: anyset(value, pos)
 
@@ -119,6 +123,10 @@ The ``Bits`` class
        If *value* is ``True`` then ``1` bits are checked for, otherwise ``0`` bits are checked for.
 
        *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
+
+           >>> s = Bits('0b11011100')
+           >>> s.anyset(False, range(6))
+           >>> True
 
     .. method:: bytealign()
 
@@ -200,7 +208,13 @@ The ``Bits`` class
 
         The bit position is unchanged.
 
-        For information on the format string see the entry for the :meth:`Bits.read` method.
+        For information on the format string see the entry for the :meth:`Bits.read` method. ::
+        
+            >>> s = Bits('0x123456')
+            >>> s.peek(16)
+            Bits('0x1234')
+            >>> s.peek('hex:8')
+            '0x12'
 
     .. method:: peeklist(fmt, **kwargs)
 
@@ -236,28 +250,28 @@ The ``Bits`` class
         ``se``           next bits as a signed exp-Golomb.
         ``bits:n``       ``n`` bits as a new bitstring.
         ``bytes:n``      ``n`` bytes as ``bytes`` object.
-        ``bool``         next bit as a boolean.
+        ``bool``         next bit as a boolean (True or False).
         ==============   ===============================================
 
         For example::
 
-         >>> s = Bits('0x23ef55302')
-         >>> s.read('hex12')
-         '0x23e'
-         >>> s.read('bin:4')
-         '0b1111'
-         >>> s.read('uint:5')
-         10
-         >>> s.read('bits:4')
-         Bits('0xa')
+            >>> s = Bits('0x23ef55302')
+            >>> s.read('hex12')
+            '0x23e'
+            >>> s.read('bin:4')
+            '0b1111'
+            >>> s.read('uint:5')
+            10
+            >>> s.read('bits:4')
+            Bits('0xa')
 
         The :meth:`Bits.read` method is useful for reading exponential-Golomb codes. ::
 
-         >>> s = Bits('se=-9, ue=4')
-         >>> s.read('se')
-         -9
-         >>> s.read('ue')
-         4
+            >>> s = Bits('se=-9, ue=4')
+            >>> s.read('se')
+            -9
+            >>> s.read('ue')
+            4
 
     .. method:: readlist(fmt, **kwargs)
 
@@ -269,14 +283,14 @@ The ``Bits`` class
 
         For multiple items you can separate using commas or given multiple parameters::
 
-         >>> s = Bits('0x43fe01ff21')
-         >>> s.readlist('hex:8, uint:6')
-         ['0x43', 63]
-         >>> s.readlist(['bin:3', 'intle:16'])
-         ['0b100', -509]
-         >>> s.pos = 0
-         >>> s.readlist('hex:b, uint:d', b=8, d=6)
-         ['0x43', 63]
+            >>> s = Bits('0x43fe01ff21')
+            >>> s.readlist('hex:8, uint:6')
+            ['0x43', 63]
+            >>> s.readlist(['bin:3', 'intle:16'])
+            ['0b100', -509]
+            >>> s.pos = 0
+            >>> s.readlist('hex:b, uint:d', b=8, d=6)
+            ['0x43', 63]
 
     .. method:: rfind(bs[, start, end, bytealigned=False])
 
@@ -286,15 +300,15 @@ The ``Bits`` class
 
         Note that as it's a reverse search it will start at *end* and finish at *start*. ::
 
-         >>> s = Bits('0o031544')
-         >>> s.rfind('0b100')
-         True
-         >>> s.pos
-         15
-         >>> s.rfind('0b100', end=17)
-         True
-         >>> s.pos
-         12
+            >>> s = Bits('0o031544')
+            >>> s.rfind('0b100')
+            True
+            >>> s.pos
+            15
+            >>> s.rfind('0b100', end=17)
+            True
+            >>> s.pos
+            12
 
     .. method:: split(delimiter[, start, end, count, bytealigned=False])
 
@@ -304,9 +318,9 @@ The ``Bits`` class
 
         If *bytealigned* is ``True`` then the delimiter will only be found if it starts at a byte aligned position. ::
 
-         >>> s = Bits('0x42423')
-         >>> [bs.bin for bs in s.split('0x4')]
-         ['', '0b01000', '0b01001000', '0b0100011']
+            >>> s = Bits('0x42423')
+            >>> [bs.bin for bs in s.split('0x4')]
+            ['', '0b01000', '0b01001000', '0b0100011']
 
     .. method:: startswith(bs[, start, end])
 
@@ -322,10 +336,10 @@ The ``Bits`` class
 
         The :meth:`Bits.tobytes` method can also be used to output your bitstring to a file - just open a file in binary write mode and write the function's output. ::
 
-         >>> s = Bits(bytes='hello')
-         >>> s += '0b01'
-         >>> s.tobytes()
-         'hello@'
+            >>> s = Bits(bytes=b'hello')
+            >>> s += '0b01'
+            >>> s.tobytes()
+            b'hello@'
 
     .. method:: tofile(f)
 
@@ -570,11 +584,11 @@ The ``BitString`` class
         >>> s
         BitString('0xbadf00d')
 
-    .. method:: byteswap(fmt[, start, end, repeat=True])
+    .. method:: byteswap([fmt, start, end, repeat=True])
     
        Change the endianness of the :class:`BitString` in-place according to *fmt*. Return the number of swaps done.
        
-       The *fmt* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact_format`). It gives a pattern of byte sizes to use to swap the endianness of the :class:`BitString`. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``@``) is not needed, and if present it will be ignored.
+       The *fmt* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact_format`). It defaults to 0, which means reverse as many bytes as possible. The *fmt* gives a pattern of byte sizes to use to swap the endianness of the :class:`BitString`. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``@``) is not needed, and if present it will be ignored.
        
        *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitString`). If *repeat* is ``True`` then the byte swapping pattern given by the *fmt* is repeated in its entirety as many times as possible.
        
@@ -591,6 +605,13 @@ The ``BitString`` class
         1
         >>> s
         BitString('0x11006655443322')
+        
+       It can also be used to simple the endianness of the whole :class:`BitString`. ::
+
+         >>> s = BitString('uintle:32=1234')
+         >>> s.byteswap()
+         >>> print(s.uintbe)
+         1234
         
     .. method:: insert(bs[, pos])
 
@@ -658,19 +679,6 @@ The ``BitString`` class
          >>> a.reversebits()
          >>> a.bin
          '0b11101'
-
-    .. method:: reversebytes([start, end])
-
-        Reverses bytes in the :class:`BitString` in-place.
-
-        *start* and *end* give the range and default to ``0`` and :attr:`len` respectively. Note that *start* and *end* are specified in bits so if ``end - start`` is not a multiple of 8 then a :exc:`Error` is raised.
-
-        Can be used to change the endianness of the :class:`BitString`. ::
-
-         >>> s = BitString('uintle:32=1234')
-         >>> s.reversebytes()
-         >>> print(s.uintbe)
-         1234
 
     .. method:: rol(bits[, start, end])
 
@@ -939,9 +947,11 @@ Exceptions
 
 .. exception:: Error(Exception)
 
-Base class for all module exceptions where built-in exception classes are not appropriate.
+Base class for all module exceptions.
 
 .. exception:: InterpretError(Error, ValueError)
+
+Inappropriate interpretation of binary data. For example using the 'bytes' property on a bitstring that isn't a whole number of bytes long.
 
 .. exception:: ByteAlignError(Error)
 
