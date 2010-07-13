@@ -375,34 +375,34 @@ class Rfind(unittest.TestCase):
     def testRfind(self):
         a = BitString('0b001001001')
         b = a.rfind('0b001')
-        self.assertEqual(b, True)
+        self.assertEqual(b, (6,))
         self.assertEqual(a.pos, 6)
         big = BitString(length=100000) + '0x12' + BitString(length=10000)
         found = big.rfind('0x12', bytealigned=True)
-        self.assertTrue(found)
+        self.assertEqual(found, (100000,))
         self.assertEqual(big.pos, 100000)
 
     def testRfindByteAligned(self):
         a = BitString('0x8888')
         b = a.rfind('0b1', bytealigned=True)
-        self.assertEqual(b, True)
+        self.assertEqual(b, (8,))
         self.assertEqual(a.pos, 8)
 
     def testRfindStartbit(self):
         a = BitString('0x0000ffffff')
         b = a.rfind('0x0000', start=1, bytealigned=True)
-        self.assertEqual(b, False)
+        self.assertEqual(b, ())
         self.assertEqual(a.pos, 0)
         b = a.rfind('0x00', start=1, bytealigned=True)
-        self.assertEqual(b, True)
+        self.assertEqual(b, (8,))
         self.assertEqual(a.pos, 8)
 
     def testRfindEndbit(self):
         a = BitString('0x000fff')
         b = a.rfind('0b011', bytealigned=False, start=0, end=14)
-        self.assertEqual(b, True)
+        self.assertEqual(bool(b), True)
         b = a.rfind('0b011', False, 0, 13)
-        self.assertEqual(b, False)
+        self.assertEqual(b, ())
 
     def testRfindErrors(self):
         a = BitString('0x43234234')
@@ -1986,42 +1986,45 @@ class Adding(unittest.TestCase):
     def testFindStartbitNotByteAligned(self):
         a = BitString('0b0010000100')
         found = a.find('0b1', start=4)
-        self.assertEqual((found, a.bitpos), (True, 7))
+        self.assertEqual((found, a.bitpos), ((7,), 7))
         found = a.find('0b1', start=2)
-        self.assertEqual((found, a.bitpos), (True, 2))
+        self.assertEqual((found, a.bitpos), ((2,), 2))
         found = a.find('0b1', bytealigned=False, start=8)
-        self.assertEqual((found, a.bitpos), (False, 2))
+        self.assertEqual((found, a.bitpos), ((), 2))
 
     def testFindEndbitNotByteAligned(self):
         a = BitString('0b0010010000')
         found = a.find('0b1', bytealigned=False, end=2)
-        self.assertEqual((found, a.bitpos), (False, 0))
+        self.assertEqual((found, a.bitpos), ((), 0))
         found = a.find('0b1', end=3)
-        self.assertEqual((found, a.bitpos), (True, 2))
+        self.assertEqual((found, a.bitpos), ((2,), 2))
         found = a.find('0b1', bytealigned=False, start=3, end=5)
-        self.assertEqual((found, a.bitpos), (False, 2))
+        self.assertEqual((found, a.bitpos), ((), 2))
         found = a.find('0b1', start=3, end=6)
-        self.assertEqual((found, a.bitpos), (True, 5))
+        self.assertEqual((found[0], a.bitpos), (5, 5))
 
     def testFindStartbitByteAligned(self):
         a = BitString('0xff001122ff0011ff')
         a.pos = 40
         found = a.find('0x22', start=23, bytealigned=True)
-        self.assertEqual((found, a.bytepos), (True, 3))
+        self.assertEqual((found, a.bytepos), ((24,), 3))
         a.bytepos = 4
         found = a.find('0x22', start=24, bytealigned=True)
-        self.assertEqual((found, a.bytepos), (True, 3))
+        self.assertEqual((found, a.bytepos), ((24,), 3))
         found = a.find('0x22', start=25, bytealigned=True)
-        self.assertEqual((found, a.pos), (False, 24))
+        self.assertEqual((found, a.pos), ((), 24))
         found = a.find('0b111', start=40, bytealigned=True)
-        self.assertEqual((found, a.pos), (True, 56))
+        self.assertEqual((found, a.pos), ((56,), 56))
 
     def testFindEndbitByteAligned(self):
         a = BitString('0xff001122ff0011ff')
         found = a.find('0x22', end=31, bytealigned=True)
-        self.assertEqual((found, a.pos), (False, 0))
+        self.assertFalse(found)
+        self.assertEqual(a.pos, 0)
         found = a.find('0x22', end=32, bytealigned=True)
-        self.assertEqual((found, a.pos), (True, 24))
+        self.assertTrue(found)
+        self.assertEqual(a.pos, 24)
+        self.assertEqual(found[0], 24)
 
     def testFindStartEndbitErrors(self):
         a = BitString('0b00100')

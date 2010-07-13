@@ -2283,8 +2283,12 @@ class Bits(object):
         return return_values
 
     def find(self, bs, start=None, end=None, bytealigned=False):
-        """Seek to start of next occurence of bs. Return True if string is found.
-
+        """Find first occurence of substring bs.
+        
+        Returns a single item tuple with the bit position if found, or an
+        empty tuple if not found. The bit position (pos property) will
+        also be set to the start of the substring if it is found.
+        
         bs -- The bitstring to find.
         start -- The bit position to start the search. Defaults to 0.
         end -- The bit position one past the last bit to search.
@@ -2294,6 +2298,9 @@ class Bits(object):
 
         Raises ValueError if bs is empty, if start < 0, if end > self.len or
         if end < start.
+        
+        >>> Bits('0xc3e').find('0b1111')
+        (6,)
 
         """
         bs = self._converttobitstring(bs)
@@ -2324,9 +2331,9 @@ class Bits(object):
                 p += increment
             if not found:
                 self._pos = oldpos
-                return False
-            self.bytepos = p
-            return True
+                return ()
+            self._pos = p*8
+            return (p*8,)
         else:
             oldpos = self._pos
             targetbin = bs._getbin()[2:]
@@ -2352,9 +2359,9 @@ class Bits(object):
                 p += increment
             if not found:
                 self._pos = oldpos
-                return False
+                return ()
             self._pos = p
-            return True
+            return (p,)
 
     def findall(self, bs, start=None, end=None, count=None, bytealigned=False):
         """Find all occurences of bs. Return generator of bit positions.
@@ -2392,9 +2399,11 @@ class Bits(object):
         return
 
     def rfind(self, bs, start=None, end=None, bytealigned=False):
-        """Seek backwards to start of previous occurence of bs.
-
-        Return True if string is found.
+        """Find final occurence of substring bs.
+        
+        Returns a single item tuple with the bit position if found, or an
+        empty tuple if not found. The bit position (pos property) will
+        also be set to the start of the substring if it is found.
 
         bs -- The bitstring to find.
         start -- The bit position to end the reverse search. Defaults to 0.
@@ -2421,11 +2430,11 @@ class Bits(object):
                                       bytealigned=bytealigned))
             if not found:
                 if pos == start:
-                    return False
+                    return ()
                 pos = max(start, pos - increment)
                 continue
             self._pos = found[-1]
-            return True
+            return (found[-1],)
 
     def bytealign(self):
         """Align to next byte and return number of skipped bits.
