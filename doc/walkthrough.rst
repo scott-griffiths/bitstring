@@ -2,10 +2,6 @@
 Walkthrough
 ***********
 
-.. note::
-
- This section is incomplete. I plan to complete it for the 2.0.0 final release.
-
 A Brief Introduction
 ====================
 
@@ -16,7 +12,7 @@ Only a few of the module's features will be covered in this walkthrough; the :re
 Prerequisites
 -------------
 
-* Python 2.4 or later. Preferably 2.6 or 3.1.
+* Python 2.6 or 3.x. (If you're using Python 2.4 or 2.5 then you can use bitstring version 1.0, but that isn't covered here.)
 * An installed bitstring module.
 * A rudimentory knowledge of binary concepts.
 * A little free time.
@@ -69,9 +65,15 @@ There are a few things to note here:
 Great - let's try some more::
 
  >>> b.hex
- ValueError: Cannot convert to hex unambiguously - not multiple of 4 bits.
+ bitstring.InterpretError: Cannot convert to hex unambiguously - not multiple of 4 bits.
  
-Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are other similar restrictions on other interpretations (octal must be mulitple of 3 bits, bytes a multiple of  8 bits etc.)
+Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are similar restrictions on other interpretations (octal must be a mulitple of 3 bits, bytes a multiple of 8 bits etc.)
+
+Slicing
+-------
+
+A :class:`BitString` can be treated just like a list of bits. You can slice it, delete sections, insert new bits and more using standard index notation::
+
 
 Modifying bitstrings
 --------------------
@@ -85,6 +87,9 @@ A :class:`BitString` can be treated just like a list of bits. You can slice it, 
  0b1111111100
 
 The slicing works just as it does for other containers, so the deletion above removes the final six bits.
+
+If you ask for a single item, rather than a slice, a boolean is returned. Naturally enough ``1`` bits are``True`` whereas ``0` bits are ``False``.
+
 
 To join together bitstrings you can use a variety of methods, including :meth:`BitString.append`, :meth:`BitString.prepend`, :meth:`BitString.insert`, and plain ``+`` or ``+=`` operations::
 
@@ -100,8 +105,40 @@ Note how we are just using ordinary strings to specify the new bitstrings we are
 
  The length in bits of bitstrings specified with strings depends on the number of characters, including leading zeros. So each hex character is four bits, each octal character three bits and each binary character one bit.
 
+Worked examples
+===============
 
+Below are a few examples of using the bitstring module, as I always find that a good example can help more than a lengthy reference manual.
 
+Hamming distance
+----------------
 
+The Hamming distance between two bitstrings is the number of bit positions in which the two bitstrings differ. So for example the distance between 0b00110 and 0b01100 is 2 as the second and fourth bits are different.
+
+Write a function that calculates the Hamming weight of two bitstrings. ::
+
+    def hamming_weight(a, b):
+        return (a^b).count(True)
+
+Er, that's it. The ``^`` is a bit-wise exclusive or, which means that the bits in ``a^b`` are only set if they differ in ``a`` and ``b``. The :meth:`Bits.count` method just counts the number of 1 (or True) bits.
+
+Sieve of Eratosthenes
+---------------------
+
+The sieve of Eratosthenes is an ancient (and very inefficient) method of finding prime numbers. The algorithm starts with the number 2 (which is prime) and marks all of its multiples as not prime, it then continues with the next unmarked integer (which will also be prime) and marks all of its multiples as not prime.
+
+So to print all primes under a million you could write::
+
+    from bitstring import BitString
+    # create a BitString with a million zero bits.
+    # The bits will be set to indicate that the bit position isn't prime.
+    has_factors = BitString(1000000)
+    for i in xrange(2, 1000000):
+        if not has_factors[i]:
+            print(i)
+            # Set all multiples of our prime to 1.
+            has_factors.set(True, xrange(i*2, 1000000, i))
+
+I'll leave optimising the algorithm as an exercise for the reader, but it illustrates both bit checking and setting. One reason you might want to use a bitstring for this purpose (instead of a plain list for example) is that the million bits only take up a million bits in memory, whereas for a list of integers it would be much more. Try asking for a billion elements in a list - unless you've got some really nice hardware it will fail, whereas a billion element bitstring only takes 125MB.
 
 

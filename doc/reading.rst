@@ -5,7 +5,7 @@ Reading, Parsing and Unpacking
 Reading and parsing
 ---------------------
 
-A common need is to parse a large bitstring into smaller parts. Functions for reading in the bitstring as if it were a file or stream are provided and will return new bitstrings. These new objects are top-level bitstring objects and can be interpreted using properties or could be read from themselves to form a hierarchy of reads.
+A common need is to parse a large bitstring into smaller parts. Functions for reading in the bitstring as if it were a file or stream are provided. These new objects are top-level bitstring objects and can be interpreted using properties or could be read from themselves to form a hierarchy of reads.
 
 In order to behave like a file or stream, every bitstring has a property :attr:`pos` which is the current position from which reads occur. :attr:`pos` can range from zero (its value on construction) to the length of the bitstring, a position from which all reads will fail as it is past the last bit.
 
@@ -67,6 +67,7 @@ The format string consists of comma separated tokens that describe how to interp
 ``bytes:n``     ``n`` bytes as a ``bytes`` object.
 ``ue``          next bits as an unsigned exponential-Golomb code.
 ``se``          next bits as a signed exponential-Golomb code.
+``bool``        next bits as a boolean (True or False).
 ==============  ===================================================================
 
 So in the earlier example we could have written::
@@ -94,7 +95,7 @@ It is an error to use more than one stretchy token, or to use a ``ue`` or ``se``
 
 In addition to the read functions there are matching peek functions. These are identical to the read except that they do not advance the position in the bitstring to after the read elements. ::
 
- s = BitString('0x4732aa34')
+ s = Bits('0x4732aa34')
  if s.peek(8) == '0x47':
      t = s.read(16)          # t is first 2 bytes '0x4732'
  else:
