@@ -430,6 +430,7 @@ class ByteArray(BaseArray):
                 # We need to shift everything left
                 shiftleft = self.offset - newoffset
                 # First deal with everything except for the final byte
+                # TODO: Replace xrange (could fail with 32-bit Python 2.x).
                 for x in xrange(self.bytelength - 1):
                     data[x] = ((data[x] << shiftleft) & 255) + \
                                          (data[x + 1] >> (8 - shiftleft))
@@ -450,6 +451,7 @@ class ByteArray(BaseArray):
                 b = self.offset + self.bitlength + 7
                 if (b + shiftright) // 8 > b // 8:
                     self._rawarray.append(0)
+                # TODO: Replace xrange (could fail with 32-bit Python 2.x).
                 for x in xrange(self.bytelength - 1, 0, -1):
                     data[x] = ((data[x-1] << (8 - shiftright)) & 255) + \
                                          (data[x] >> shiftright)
@@ -782,6 +784,7 @@ class Bits(object):
                     return self._slice(start, stop)
                 else:
                     # Negative step, so reverse the BitString in chunks of step.
+                    # TODO: Replace xrange (could fail with 32-bit Python 2.x).
                     bsl = [self._slice(x, x - step) for x in xrange(start, stop, -step)]
                     bsl.reverse()
                     return self.__class__().join(bsl)
@@ -887,8 +890,10 @@ class Bits(object):
         if not self.len:
             raise Error("Cannot invert empty bitstring.")
         s = self._copy()
-        for p in xrange(s.len):
-            s._invert(p)
+        set = s._datastore.setbyte
+        get = s._datastore.getbyte
+        for p in xrange(s._datastore.bytelength):
+            set(p, 256 + ~get(p))
         return s
 
     def __lshift__(self, n):
@@ -2696,6 +2701,7 @@ class Bits(object):
         
         # count the number of 1s (from which it's easy to work out the 0s).
         # Don't count the final byte yet.
+        # TODO: Replace xrange (could fail with 32-bit Python 2.x).
         count = sum(BIT_COUNT[self._datastore.getbyte(i)] for i in xrange(self._datastore.bytelength - 1))
         # adjust for bits at start that aren't part of the bitstring
         if self._offset:
