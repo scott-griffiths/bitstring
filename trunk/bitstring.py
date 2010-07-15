@@ -890,10 +890,7 @@ class Bits(object):
         if not self.len:
             raise Error("Cannot invert empty bitstring.")
         s = self._copy()
-        set = s._datastore.setbyte
-        get = s._datastore.getbyte
-        for p in xrange(s._datastore.bytelength):
-            set(p, 256 + ~get(p))
+        s._invert_all()
         return s
 
     def __lshift__(self, n):
@@ -1324,8 +1321,7 @@ class Bits(object):
         # Do the 2's complement thing. Add one, set to minus number, then flip bits.
         int_ += 1
         self._setuint(-int_, length)
-        for p in xrange(self.len):
-            self._invert(p)
+        self._invert_all()
 
     def _readint(self, length, start):
         """Read bits and interpret as a signed int"""
@@ -2000,6 +1996,13 @@ class Bits(object):
         byte, bit = divmod(self._offset + pos, 8)
         self._datastore.setbyte(byte, self._datastore.getbyte(byte) ^ (128 >> bit))
 
+    def _invert_all(self):
+        """Invert every bit."""
+        set = self._datastore.setbyte
+        get = self._datastore.getbyte
+        for p in xrange(self._datastore.bytelength):
+            set(p, 256 + ~get(p))
+            
     def _ilshift(self, n):
         """Shift bits by n to the left in place. Return self."""
         assert 0 < n <= self.len
