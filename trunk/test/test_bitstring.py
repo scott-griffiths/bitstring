@@ -3103,6 +3103,8 @@ class Adding(unittest.TestCase):
         a.pos = 0
         self.assertEqual(a.read(4).uint, 10)
 
+class Set(unittest.TestCase):
+
     def testSet(self):
         a = BitString(length=16)
         a.set(True, 0)
@@ -3149,11 +3151,30 @@ class Adding(unittest.TestCase):
         self.assertEqual(~b, '0b11000001')
         self.assertRaises(IndexError, b.set, False, -9)
         self.assertRaises(IndexError, b.set, False, 8)
+        
+    def testSetWholeBitString(self):
+        a = BitString(14)
+        a.set(1)
+        self.assertTrue(a.all(1))
+        a.set(0)
+        self.assertTrue(a.all(0))
+
+class Invert(unittest.TestCase):
 
     def testInvertBits(self):
         a = BitString('0b111000')
         a.invert(range(a.len))
         self.assertEqual(a, '0b000111')
+        a.invert([0, 1, -1])
+        self.assertEqual(a, '0b110110')
+        
+    def testInvertWholeBitString(self):
+        a = BitString('0b11011')
+        a.invert()
+        self.assertEqual(a, '0b00100')
+        
+        
+#######################
 
     def testIor(self):
         a = BitString('0b1101001')
