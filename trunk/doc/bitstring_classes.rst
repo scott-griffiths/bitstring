@@ -40,7 +40,6 @@ The ``auto`` parameter also accepts other types:
 * A list or tuple, whose elements will be evaluated as booleans (imagine calling ``bool()`` on each item) and the bits set to ``1`` for ``True`` items and ``0`` for ``False`` items.
 * A positive integer, used to create a bitstring of that many zero bits.
 * A file object, presumably opened in read-binary mode, from which the bitstring will be formed.
-* A bool (``True`` or ``False``) which will be converted to a single ``1`` or ``0`` bit respectively.
 * A ``bytearray`` object.
 * In Python 3 only, a ``bytes`` object. Note this won't work for Python 2 as ``bytes`` is just a synonym for ``str``.
 
@@ -82,51 +81,55 @@ The ``Bits`` class
 
 .. class:: Bits([auto, length, offset, **kwargs])
 
-    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``float``, ``floatbe``, ``floatle``, ``floatne`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitString`.
 
-    ``offset`` is optional for most initialisers, but only really useful for ``bytes`` and ``filename``. It gives a number of bits to ignore at the start of the bitstring.
+    ``offset`` is available when using the ``bytes`` or ``filename`` initialisers. It gives a number of bits to ignore at the start of the bitstring.
 
     Specifying ``length`` is mandatory when using the various integer initialisers. It must be large enough that a bitstring can contain the integer in ``length`` bits. It must also be specified for the float initialisers (the only valid values are 32 and 64). It is optional for the ``bytes`` and ``filename`` initialisers and can be used to truncate data from the end of the input value. ::
 
-     >>> s1 = Bits(hex='0x934')
-     >>> s2 = Bits(oct='0o4464')
-     >>> s3 = Bits(bin='0b001000110100')
-     >>> s4 = Bits(int=-1740, length=12)
-     >>> s5 = Bits(uint=2356, length=12)
-     >>> s6 = Bits(bytes=b'\x93@', length=12)
-     >>> s1 == s2 == s3 == s4 == s5 == s6
-     True
+           >>> s1 = Bits(hex='0x934')
+           >>> s2 = Bits(oct='0o4464')
+           >>> s3 = Bits(bin='0b001000110100')
+           >>> s4 = Bits(int=-1740, length=12)
+           >>> s5 = Bits(uint=2356, length=12)
+           >>> s6 = Bits(bytes=b'\x93@', length=12)
+           >>> s1 == s2 == s3 == s4 == s5 == s6
+           True
 
     For information on the use of the ``auto`` initialiser see the introduction to this section. ::
 
-     >>> s = Bits('uint:12=32, 0b110')
-     >>> t = Bits('0o755, ue:12, int:3=-1') 
+        >>> s = Bits('uint:12=32, 0b110')
+        >>> t = Bits('0o755, ue:12, int:3=-1') 
 
-    .. method:: allset(value, pos)
+    .. method:: all(value[, pos])
 
        Returns ``True`` if all of the specified bits are all set to *value*, otherwise returns ``False``.
 
        If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
        
-       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
+       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. It defaults to the whole bitstring.
        
            >>> s = Bits('int:15=-1')
-           >>> s.allset(True, [3, 4, 12, 13])
+           >>> s.all(True, [3, 4, 12, 13])
+           True
+           >>> s.all(1)
            True
 
-    .. method:: anyset(value, pos)
+    .. method:: any(value[, pos])
 
        Returns ``True`` if any of the specified bits are set to *value*, otherwise returns ``False``.
 
        If *value* is ``True`` then ``1` bits are checked for, otherwise ``0`` bits are checked for.
 
-       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``
+       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. It defaults to the whole bitstring.
 
            >>> s = Bits('0b11011100')
-           >>> s.anyset(False, range(6))
-           >>> True
+           >>> s.any(False, range(6))
+           True
+           >>> s.any(1)
+           True
 
     .. method:: bytealign()
 
@@ -134,12 +137,26 @@ The ``Bits`` class
 
        If the current position is already byte aligned then it is unchanged. ::
 
-         >>> s = Bits('0xabcdef')
-         >>> s.pos += 3
-         >>> s.bytealign()
-         5
-         >>> s.pos
-         8
+            >>> s = Bits('0xabcdef')
+            >>> s.pos += 3
+            >>> s.bytealign()
+            5
+            >>> s.pos
+            8
+
+    .. method:: count(value)
+        
+        Returns the number of bits set to *value*.
+        
+        *value* can be ``True`` or ``False`` or anything that can be cast to a bool, so you could equally use ``1`` or ``0``.
+        
+            >>> s = BitString(1000000)
+            >>> s.set(1, [4, 44, 444444])
+            >>> s.count(1)
+            3
+            >>> s.count(False)
+            999997
+    
 
     .. method:: cut(bits[, start, end, count])
 
@@ -147,11 +164,11 @@ The ``Bits`` class
 
         At most *count* items are returned and the range is given by the slice *[start:end]*, which defaults to the whole bitstring. ::
 
-         >>> s = BitString('0x1234')
-         >>> for nibble in s.cut(4):
-         ...     s.prepend(nibble)
-         >>> print(s)
-         0x43211234
+            >>> s = BitString('0x1234')
+            >>> for nibble in s.cut(4):
+            ...     s.prepend(nibble)
+            >>> print(s)
+            0x43211234
 
 
     .. method:: endswith(bs[, start, end])
@@ -160,23 +177,25 @@ The ``Bits`` class
 
         A slice can be given using the *start* and *end* bit positions and defaults to the whole bitstring. ::
 
-         >>> s = Bits('0x35e22')
-         >>> s.endswith('0b10, 0x22')
-         True
-         >>> s.endswith('0x22', start=13)
-         False
+            >>> s = Bits('0x35e22')
+            >>> s.endswith('0b10, 0x22')
+            True
+            >>> s.endswith('0x22', start=13)
+            False
 
     .. method:: find(bs[, start, end, bytealigned=False])
 
-        Searches for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns ``True`` if found, otherwise it returns ``False``.
+        Searches for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
+        
+        The reason for returning the bit position in a tuple is so that it evaluates as True even if the bit position is zero. This allows constructs such as ``if s.find('0xb3'):`` to work as expected.
 
         If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). *start* and *end* give the search range and default to the whole bitstring. ::
 
-         >>> s = Bits('0x0023122')
-         >>> s.find('0b000100', bytealigned=True)
-         True
-         >>> s.pos
-         16
+            >>> s = Bits('0x0023122')
+            >>> s.find('0b000100', bytealigned=True)
+            (16,)
+            >>> s.pos
+            16
 
     .. method:: findall(bs[, start, end, count, bytealigned=False])
 
@@ -186,21 +205,21 @@ The ``Bits`` class
 
         The *count* paramater limits the number of items that will be found - the default is to find all occurences. ::
 
-         >>> s = Bits('0xab220101')*5
-         >>> list(s.findall('0x22', bytealigned=True))
-         [8, 40, 72, 104, 136]
+            >>> s = Bits('0xab220101')*5
+            >>> list(s.findall('0x22', bytealigned=True))
+            [8, 40, 72, 104, 136]
 
     .. method:: join(sequence)
 
         Returns the concatenation of the bitstrings in the iterable *sequence* joined with ``self`` as a separator. ::
 
-         >>> s = Bits().join(['0x0001ee', 'uint:24=13', '0b0111'])
-         >>> print(s)
-         0x0001ee00000d7
+            >>> s = Bits().join(['0x0001ee', 'uint:24=13', '0b0111'])
+            >>> print(s)
+            0x0001ee00000d7
          
-         >>> s = Bits('0b1').join(['0b0']*5)
-         >>> print(s.bin)
-         0b010101010
+            >>> s = Bits('0b1').join(['0b0']*5)
+            >>> print(s.bin)
+            0b010101010
 
     .. method:: peek(fmt)
 
@@ -293,8 +312,10 @@ The ``Bits`` class
             ['0x43', 63]
 
     .. method:: rfind(bs[, start, end, bytealigned=False])
-
-        Searches backwards for *bs* in the current bitstring and returns ``True`` if found, otherwise returns ``False``.
+    
+        Searches backwards for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
+        
+        The reason for returning the bit position in a tuple is so that it evaluates as True even if the bit position is zero. This allows constructs such as ``if s.rfind('0xb3'):`` to work as expected.
 
         If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions. *start* and *end* give the search range and default to ``0`` and :attr:`len` respectively.
 
@@ -302,11 +323,11 @@ The ``Bits`` class
 
             >>> s = Bits('0o031544')
             >>> s.rfind('0b100')
-            True
+            (15,)
             >>> s.pos
             15
             >>> s.rfind('0b100', end=17)
-            True
+            (12,)
             >>> s.pos
             12
 
@@ -347,8 +368,8 @@ The ``Bits`` class
 
         The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned. ::
 
-         >>> f = open('newfile', 'wb')
-         >>> Bits('0x1234').tofile(f)
+            >>> f = open('newfile', 'wb')
+            >>> Bits('0x1234').tofile(f)
 
     .. method:: unpack(fmt, **kwargs)
 
@@ -358,8 +379,8 @@ The ``Bits`` class
 
         *fmt* is one or more strings with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`Bits.read` for details. ::
 
-         >>> s = Bits('int:4=-1, 0b1110')
-         >>> i, b = s.unpack('int:4, bin')
+            >>> s = Bits('int:4=-1, 0b1110')
+            >>> i, b = s.unpack('int:4, bin')
 
         If a token doesn't supply a length (as with ``bin`` above) then it will try to consume the rest of the bitstring. Only one such token is allowed.
     
@@ -370,8 +391,8 @@ The ``Bits`` class
 
         Concatenate two bitstring objects and return the result. Either bitstring can be 'auto' initialised. ::
 
-         s = Bits(ue=132) + '0xff'
-         s2 = '0b101' + s 
+            s = Bits(ue=132) + '0xff'
+            s2 = '0b101' + s 
 
     .. method:: __and__(bs)
     .. method:: __rand__(bs)
@@ -380,8 +401,23 @@ The ``Bits`` class
 
         Returns the bit-wise AND between two bitstrings, which must have the same length otherwise a :exc:`ValueError` is raised. ::
 
-         >>> print(Bits('0x33') & '0x0f')
-         0x03
+            >>> print(Bits('0x33') & '0x0f')
+            0x03
+            
+    .. method:: __bool__()
+    
+        ``if s:``
+        
+        Returns ``True`` if at least one bit is set to 1, otherwise returns ``False``.
+        
+        This special method is used in Python 3 only; for Python 2 the equivalent is called ``__nonzero__``, but the details are exactly the same. ::
+        
+            >>> bool(Bits())
+            False
+            >>> bool(Bits('0b0000010000'))
+            True
+            >>> bool(Bits('0b0000000000'))
+            False
 
     .. method:: __contains__(bs)
 
@@ -391,10 +427,10 @@ The ``Bits`` class
 
         Equivalent to using :meth:`Bits.find`, except that :attr:`pos` will not be changed so you don't know where it was found. ::
 
-         >>> '0b11' in Bits('0x06')
-         True
-         >>> '0b111' in Bits('0x06')
-         False
+            >>> '0b11' in Bits('0x06')
+            True
+            >>> '0b111' in Bits('0x06')
+            False
 
     .. method:: __copy__()
 
@@ -402,13 +438,13 @@ The ``Bits`` class
 
         This allows the :mod:`copy` module to correctly copy bitstrings. Other equivalent methods are to initialise a new bitstring with the old one or to take a complete slice. ::
 
-         >>> import copy
-         >>> s = Bits('0o775')
-         >>> s_copy1 = copy.copy(s)
-         >>> s_copy2 = Bits(s)
-         >>> s_copy3 = s[:]
-         >>> s == s_copy1 == s_copy2 == s_copy3
-         True
+            >>> import copy
+            >>> s = Bits('0o775')
+            >>> s_copy1 = copy.copy(s)
+            >>> s_copy2 = Bits(s)
+            >>> s_copy3 = s[:]
+            >>> s == s_copy1 == s_copy2 == s_copy3
+            True
 
     .. method:: __eq__(bs)
 
@@ -416,12 +452,12 @@ The ``Bits`` class
 
         Compares two bitstring objects for equality, returning ``True`` if they have the same binary representation, otherwise returning ``False``. ::
 
-         >>> Bits('0o7777') == '0xfff'
-         True
-         >>> a = Bits(uint=13, length=8)
-         >>> b = Bits(uint=13, length=10)
-         >>> a == b
-         False
+            >>> Bits('0o7777') == '0xfff'
+            True
+            >>> a = Bits(uint=13, length=8)
+            >>> b = Bits(uint=13, length=10)
+            >>> a == b
+            False
 
     .. method:: __getitem__(key)
 
@@ -431,18 +467,18 @@ The ``Bits`` class
 
         The usual slice behaviour applies except that the step parameter gives a multiplicative factor for ``start`` and ``end`` (i.e. the bits 'stepped over' are included in the slice). ::
 
-         >>> s = Bits('0x0123456')
-         >>> s[0:4]
-         Bits('0x1')
-         >>> s[0:3:8]
-         Bits('0x012345')
+            >>> s = Bits('0x0123456')
+            >>> s[0:4]
+            Bits('0x1')
+            >>> s[0:3:8]
+            Bits('0x012345')
          
         If a single element is asked for then either ``True`` or ``False`` will be returned. ::
         
-         >>> s[0]
-         False
-         >>> s[-1]
-         True
+            >>> s[0]
+            False
+            >>> s[-1]
+            True
 
     .. method:: __hash__()
     
@@ -460,11 +496,11 @@ The ``Bits`` class
 
         If the bitstring is empty then an :exc:`Error` will be raised. ::
 
-         >>> s = Bits(‘0b1110010’)
-         >>> print(~s)
-         0b0001101
-         >>> print(~s & s)
-         0b0000000
+            >>> s = Bits(‘0b1110010’)
+            >>> print(~s)
+            0b0001101
+            >>> print(~s & s)
+            0b0000000
 
     .. method:: __len__()
 
@@ -474,13 +510,13 @@ The ``Bits`` class
 
         It's recommended that you use the :attr:`len` property rather than the :func:`len` function because of the function's behaviour for large bitstring objects, although calling the special function directly will always work. ::
 
-         >>> s = Bits(filename='11GB.mkv')
-         >>> s.len
-         93944160032
-         >>> len(s)
-         OverflowError: long int too large to convert to int
-         >>> s.__len__()
-         93944160032
+            >>> s = Bits(filename='11GB.mkv')
+            >>> s.len
+            93944160032
+            >>> len(s)
+            OverflowError: long int too large to convert to int
+            >>> s.__len__()
+            93944160032
 
     .. method:: __lshift__(n)
 
@@ -488,9 +524,9 @@ The ``Bits`` class
 
         Returns the bitstring with its bits shifted *n* places to the left. The *n* right-most bits will become zeros. ::
 
-         >>> s = Bits('0xff') 
-         >>> s << 4
-         Bits('0xf0')
+            >>> s = Bits('0xff') 
+            >>> s << 4
+            Bits('0xf0')
 
     .. method:: __mul__(n)
     .. method:: __rmul__(n)
@@ -499,16 +535,20 @@ The ``Bits`` class
 
         Return bitstring consisting of *n* concatenations of another. ::
 
-         >>> a = Bits('0x34')
-         >>> b = a*5
-         >>> print(b)
-         0x3434343434
+            >>> a = Bits('0x34')
+            >>> b = a*5
+            >>> print(b)
+            0x3434343434
 
     .. method:: __ne__(bs)
 
         ``s1 != s2``
 
         Compares two bitstring objects for inequality, returning ``False`` if they have the same binary representation, otherwise returning ``True``. 
+
+    .. method:: __nonzero__()
+    
+        See :meth:`Bits.__bool__`.
 
     .. method:: __or__(bs)
     .. method:: __ror__(bs)
@@ -517,8 +557,8 @@ The ``Bits`` class
 
         Returns the bit-wise OR between two bitstring, which must have the same length otherwise a :exc:`ValueError` is raised. ::
 
-         >>> print(Bits('0x33') | '0x0f')
-         0x3f
+            >>> print(Bits('0x33') | '0x0f')
+            0x3f
 
     .. method:: __repr__()
 
@@ -528,8 +568,8 @@ The ``Bits`` class
 
         If the result is too long then it will be truncated with ``...`` and the length of the whole will be given. ::
 
-         >>> Bits(‘0b11100011’)
-         Bits(‘0xe3’)
+            >>> Bits(‘0b11100011’)
+            Bits(‘0xe3’)
 
     .. method:: __rshift__(n)
 
@@ -537,9 +577,9 @@ The ``Bits`` class
 
         Returns the bitstring with its bits shifted *n* places to the right. The *n* left-most bits will become zeros. ::
 
-         >>> s = Bits(‘0xff’)
-         >>> s >> 4
-         Bits(‘0x0f’)
+            >>> s = Bits(‘0xff’)
+            >>> s >> 4
+            Bits(‘0x0f’)
 
     .. method:: __str__()
 
@@ -549,11 +589,11 @@ The ``Bits`` class
 
         If the bitstring is a multiple of 4 bits long then hex will be used, otherwise either binary or a mix of hex and binary will be used. Very long strings will be truncated with ``...``. ::
 
-         >>> s = Bits('0b1')*7
-         >>> print(s)
-         0b1111111 
-         >>> print(s + '0b1')
-         0xff
+            >>> s = Bits('0b1')*7
+            >>> print(s)
+            0b1111111 
+            >>> print(s + '0b1')
+            0xff
 
     .. method:: __xor__(bs)
     .. method:: __rxor__(bs)
@@ -562,8 +602,8 @@ The ``Bits`` class
 
         Returns the bit-wise XOR between two bitstrings, which must have the same length otherwise a :exc:`ValueError` is raised. ::
 
-         >>> print(Bits('0x33') ^ '0x0f')
-         0x3c
+            >>> print(Bits('0x33') ^ '0x0f')
+            0x3c
 
 
 The ``BitString`` class
@@ -579,10 +619,10 @@ The ``BitString`` class
 
        Join a :class:`BitString` to the end of the current :class:`BitString`. ::
 
-        >>> s = BitString('0xbad')
-        >>> s.append('0xf00d')
-        >>> s
-        BitString('0xbadf00d')
+           >>> s = BitString('0xbad')
+           >>> s.append('0xf00d')
+           >>> s
+           BitString('0xbadf00d')
 
     .. method:: byteswap([fmt, start, end, repeat=True])
     
@@ -592,26 +632,26 @@ The ``BitString`` class
        
        *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitString`). If *repeat* is ``True`` then the byte swapping pattern given by the *fmt* is repeated in its entirety as many times as possible.
        
-        >>> s = BitString('0x00112233445566')
-        >>> s.byteswap(2)
-        3
-        >>> s
-        BitString('0x11003322554466')
-        >>> s.byteswap('h')
-        3
-        >>> s
-        BitString('0x00112233445566')
-        >>> s.byteswap([2, 5])
-        1
-        >>> s
-        BitString('0x11006655443322')
+           >>> s = BitString('0x00112233445566')
+           >>> s.byteswap(2)
+           3
+           >>> s
+           BitString('0x11003322554466')
+           >>> s.byteswap('h')
+           3
+           >>> s
+           BitString('0x00112233445566')
+           >>> s.byteswap([2, 5])
+           1
+           >>> s
+           BitString('0x11006655443322')
         
        It can also be used to simple the endianness of the whole :class:`BitString`. ::
 
-         >>> s = BitString('uintle:32=1234')
-         >>> s.byteswap()
-         >>> print(s.uintbe)
-         1234
+           >>> s = BitString('uintle:32=1234')
+           >>> s.byteswap()
+           >>> print(s.uintbe)
+           1234
         
     .. method:: insert(bs[, pos])
 
@@ -619,17 +659,30 @@ The ``BitString`` class
 
         The default for *pos* is the current position. ::
 
-         >>> s = BitString('0xccee')
-         >>> s.insert('0xd', 8)
-         >>> s
-         BitString('0xccdee')
-         >>> s.insert('0x00')
-         >>> s
-         BitString('0xccd00ee')
+            >>> s = BitString('0xccee')
+            >>> s.insert('0xd', 8)
+            >>> s
+            BitString('0xccdee')
+            >>> s.insert('0x00')
+            >>> s
+            BitString('0xccd00ee')
 
-    .. method:: invert(pos)
+    .. method:: invert([pos])
     
-        Inverts one or many bits from ``1`` to ``0`` or vice versa. *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``.
+        Inverts one or many bits from ``1`` to ``0`` or vice versa.
+        
+        *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. The default is to invert the entire :class:`BitString`. ::
+        
+            >>> s = BitString('0b111001')
+            >>> s.invert(0)
+            >>> s.bin
+            '0b011001'
+            >>> s.invert([-2, -1])
+            >>> s.bin
+            '0b011010'
+            >>> s.invert()
+            >>> s.bin
+            '0b100101'
 
     .. method:: overwrite(bs[, pos])
 
@@ -637,21 +690,21 @@ The ``BitString`` class
 
         The default for *pos* is the current position. ::
 
-         >>> s = BitString(length=10)
-         >>> s.overwrite('0b111', 3)
-         >>> s
-         BitString('0b0001110000')
-         >>> s.pos
-         6
+            >>> s = BitString(length=10)
+            >>> s.overwrite('0b111', 3)
+            >>> s
+            BitString('0b0001110000')
+            >>> s.pos
+            6
 
     .. method:: prepend(bs)
 
         Inserts *bs* at the beginning of the current :class:`BitString`. ::
 
-         >>> s = BitString('0b0')
-         >>> s.prepend('0xf')
-         >>> s
-         BitString('0b11110')
+            >>> s = BitString('0b0')
+            >>> s.prepend('0xf')
+            >>> s
+            BitString('0b11110')
 
     .. method:: replace(old, new[, start, end, count, bytealigned=False])
 
@@ -659,15 +712,15 @@ The ``BitString`` class
 
         If *bytealigned* is ``True`` then replacements will only be made on byte boundaries. *start* and *end* give the search range and default to ``0`` and :attr:`len` respectively. If *count* is specified then no more than this many replacements will be made. ::
 
-         >>> s = BitString('0b0011001')
-         >>> s.replace('0b1', '0xf')
-         3
-         >>> print(s.bin)
-         0b0011111111001111
-         >>> s.replace('0b1', '', count=6)
-         6
-         >>> print(s.bin)
-         0b0011001111
+            >>> s = BitString('0b0011001')
+            >>> s.replace('0b1', '0xf')
+            3
+            >>> print(s.bin)
+            0b0011111111001111
+            >>> s.replace('0b1', '', count=6)
+            6
+            >>> print(s.bin)
+            0b0011001111
 
     .. method:: reverse([start, end])
 
@@ -675,10 +728,10 @@ The ``BitString`` class
 
         *start* and *end* give the range and default to ``0`` and :attr:`len` respectively. ::
 
-         >>> a = BitString('0b10111')
-         >>> a.reversebits()
-         >>> a.bin
-         '0b11101'
+            >>> a = BitString('0b10111')
+            >>> a.reversebits()
+            >>> a.bin
+            '0b11101'
 
     .. method:: rol(bits[, start, end])
 
@@ -688,10 +741,10 @@ The ``BitString`` class
         
         Raises :exc:`ValueError` if ``bits < 0``. ::
 
-         >>> s = BitString('0b01000001')
-         >>> s.rol(2)
-         >>> s.bin
-         '0b00000101'
+            >>> s = BitString('0b01000001')
+            >>> s.rol(2)
+            >>> s.bin
+            '0b00000101'
 
     .. method:: ror(bits[, start, end])
 
@@ -701,19 +754,22 @@ The ``BitString`` class
         
         Raises :exc:`ValueError` if ``bits < 0``.
 
-    .. method:: set(value, pos)
+    .. method:: set(value[, pos])
 
-        Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``.
+        Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. The default is to set every bit in the :class:`BitString`.
 
         Using ``s.set(True, x)`` can be more efficent than other equivalent methods such as ``s[x] = 1``, ``s[x] = "0b1"`` or ``s.overwrite('0b1', x)``, especially if many bits are being set. ::
 
-         >>> s = BitString('0x0000')
-         >>> s.set(True, -1)
-         >>> print(s)
-         0x0001
-         >>> s.set(True, (0, 4, 5, 7, 9))
-         >>> s.bin
-         '0b1000110101000001'
+            >>> s = BitString('0x0000')
+            >>> s.set(True, -1)
+            >>> print(s)
+            0x0001
+            >>> s.set(1, (0, 4, 5, 7, 9))
+            >>> s.bin
+            '0b1000110101000001'
+            >>> s.set(0)
+            >>> s.bin
+            '0b0000000000000000'
 
     .. method:: __delitem__(key)
 
@@ -731,12 +787,12 @@ The ``BitString`` class
         
         Note that for :class:`BitString` objects this will be an in-place change, whereas for :class:`Bits` objects using ``+=`` will not call this method - instead a new object will be created (it is equivalent to a copy and an :meth:`Bits.__add__`). ::
 
-         >>> s = BitString(ue=423)
-         >>> s += BitString(ue=12)
-         >>> s.read('ue')
-         423
-         >>> s.read('ue')
-         12
+            >>> s = BitString(ue=423)
+            >>> s += BitString(ue=12)
+            >>> s.read('ue')
+            423
+            >>> s.read('ue')
+            12
          
     .. method:: __setitem__(key, value)
 
@@ -744,22 +800,22 @@ The ``BitString`` class
 
         Replaces the slice specified with a new value. ::
 
-         >>> s = BitString('0x00112233')
-         >>> s[1:2:8] = '0xfff'
-         >>> print(s)
-         0x00fff2233
-         >>> s[-12:] = '0xc'
-         >>> print(s)
-         0x00fff2c
+            >>> s = BitString('0x00112233')
+            >>> s[1:2:8] = '0xfff'
+            >>> print(s)
+            0x00fff2233
+            >>> s[-12:] = '0xc'
+            >>> print(s)
+            0x00fff2c
 
 
 
 Class properties
 ----------------
 
-Bitstrings use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions.
+Bitstrings use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions. For the mutable :class:`BitString` objects the properties are all read and write (with the exception of the :attr:`length`), whereas for immutable :class:`Bits` objects the only write enabled properties are for the position in the bitstring (:attr:`pos`/:attr:`bitpos` and :attr:`bytepos`).
 
-The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc. are not stored as part of the object, but are calculated as needed. Note that these are only available as 'getters' for :class:`Bits` objects, but can also be 'setters' for the mutable :class:`BitString` objects.
+The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc. are not stored as part of the object, but are calculated as needed.
 
 .. attribute:: bin
 
@@ -792,13 +848,13 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
     When used as a getter the bitstring must be a whole number of byte long or a :exc:`ValueError` will be raised.
 
     An alternative is to use the :meth:`tobytes` method, which will pad with between zero and seven ``0`` bits to make it byte aligned if needed. ::
-
-     >>> s = BitString(bytes='\x12\xff\x30')
-     >>> s.bytes
-     '\x12\xff0'
-     >>> s.hex = '0x12345678'
-     >>> s.bytes
-     '\x124Vx'
+   
+        >>> s = BitString(bytes=b'\x12\xff\x30')
+        >>> s.bytes
+        b'\x12\xff0'
+        >>> s.hex = '0x12345678'
+        >>> s.bytes
+        b'\x124Vx'
 
 .. attribute:: hex
 
@@ -806,12 +862,12 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     When used as a getter the value will be preceded by ``0x``, which is optional when setting the value of a :class:`BitString`. If the bitstring is not a multiple of four bits long then getting its hex value will raise a :exc:`InterpretError`. ::
 
-     >>> s = BitString(bin='1111 0000')
-     >>> s.hex
-     '0xf0'
-     >>> s.hex = 'abcdef'
-     >>> s.hex
-     '0xabcdef'
+        >>> s = BitString(bin='1111 0000')
+        >>> s.hex
+        '0xf0'  
+        >>> s.hex = 'abcdef'
+        >>> s.hex
+        '0xabcdef'
 
 .. attribute:: int
 
@@ -819,11 +875,11 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     When used on a :class:`BitString` as a setter the value must fit into the current length of the :class:`BitString`, else a :exc:`ValueError` will be raised. ::
 
-     >>> s = BitString('0xf3')
-     >>> s.int
-     -13
-     >>> s.int = 1232
-     ValueError: int 1232 is too large for a BitString of length 8.
+        >>> s = BitString('0xf3')
+        >>> s.int
+        -13
+        >>> s.int = 1232
+        ValueError: int 1232 is too large for a BitString of length 8.
 
 .. attribute:: intbe
 
@@ -881,12 +937,12 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     When used as a getter the value will be preceded by ``0o``, which is optional when setting the value of a :class:`BitString`. If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`ValueError`. ::
 
-     >>> s = BitString('0b111101101')
-     >>> s.oct
-     '0o755'
-     >>> s.oct = '01234567'
-     >>> s.oct
-     '0o01234567'
+        >>> s = BitString('0b111101101')
+        >>> s.oct
+        '0o755'
+        >>> s.oct = '01234567'
+        >>> s.oct
+        '0o01234567'
 
 .. attribute:: pos
 .. attribute:: bitpos
@@ -895,8 +951,8 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     The :attr:`pos` and :attr:`bitpos` properties are exactly equivalent - you can use whichever you prefer. ::
 
-     if s.pos < 100:
-         s.pos += 10 
+        if s.pos < 100:
+            s.pos += 10 
 
 .. attribute:: se
 
@@ -904,12 +960,12 @@ The different interpretations such as :attr:`bin`, :attr:`hex`, :attr:`uint` etc
 
     The property is set from an signed integer, and when used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code. ::
 
-     >>> s = BitString(se=-40)
-     >>> s.bin
-     0b0000001010001
-     >>> s += '0b1'
-     >>> s.se
-     Error: BitString is not a single exponential-Golomb code.
+        >>> s = BitString(se=-40)
+        >>> s.bin
+        0b0000001010001
+        >>> s += '0b1'
+        >>> s.se
+        Error: BitString is not a single exponential-Golomb code.
 
 .. attribute:: ue
 
@@ -947,15 +1003,21 @@ Exceptions
 
 .. exception:: Error(Exception)
 
-Base class for all module exceptions.
+    Base class for all module exceptions.
 
 .. exception:: InterpretError(Error, ValueError)
 
-Inappropriate interpretation of binary data. For example using the 'bytes' property on a bitstring that isn't a whole number of bytes long.
+    Inappropriate interpretation of binary data. For example using the 'bytes' property on a bitstring that isn't a whole number of bytes long.
 
 .. exception:: ByteAlignError(Error)
 
+    Whole-byte position or length needed.
+
 .. exception:: CreationError(Error, ValueError)
 
+    Inappropriate argument during bitstring creation.
+
 .. exception:: ReadError(Error, IndexError)
+
+    Reading or peeking past the end of a bitstring.
 
