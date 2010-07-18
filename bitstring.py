@@ -3379,17 +3379,20 @@ class BitString(Bits):
         s._reverse()
         self[start:end] = s
 
-    def set(self, value, pos):
+    def set(self, value, pos=None):
         """Set one or many bits to 1 or 0.
 
         value -- If True bits are set to 1, otherwise they are set to 0.
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
+               Defaults to the entire BitString.
 
         Raises IndexError if pos < -self.len or pos >= self.len.
 
         """
         f = self._set if value else self._unset
+        if pos is None:
+            pos = xrange(self.len)
         try:
             length = self.len
             for p in pos:
@@ -3406,7 +3409,7 @@ class BitString(Bits):
                 raise IndexError("Bit position {0} out of range.".format(pos))
             f(pos)
 
-    def invert(self, pos):
+    def invert(self, pos=None):
         """Invert one or many bits from 0 to 1 or vice versa.
 
         pos -- Either a single bit position or an iterable of bit positions.
@@ -3415,6 +3418,9 @@ class BitString(Bits):
         Raises IndexError if pos < -self.len or pos >= self.len.
 
         """
+        if pos is None:
+            self._invert_all()
+            return
         if not isinstance(pos, collections.Iterable):
             pos = (pos,)
         length = self.len
