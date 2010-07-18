@@ -69,33 +69,32 @@ Great - let's try some more::
  
 Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are similar restrictions on other interpretations (octal must be a mulitple of 3 bits, bytes a multiple of 8 bits etc.)
 
-Slicing
--------
-
-A :class:`BitString` can be treated just like a list of bits. You can slice it, delete sections, insert new bits and more using standard index notation::
-
 
 Modifying bitstrings
 --------------------
 
 A :class:`BitString` can be treated just like a list of bits. You can slice it, delete sections, insert new bits and more using standard index notation::
 
- >>> print(a[3:9])
- 0b111110
- >>> del a[-6:]
- >>> print(a)
- 0b1111111100
+    >>> print(a[3:9])
+    0b111110
+    >>> del a[-6:]
+    >>> print(a)
+    0b1111111100
 
 The slicing works just as it does for other containers, so the deletion above removes the final six bits.
 
-If you ask for a single item, rather than a slice, a boolean is returned. Naturally enough ``1`` bits are``True`` whereas ``0` bits are ``False``.
+If you ask for a single item, rather than a slice, a boolean is returned. Naturally enough ``1`` bits are ``True`` whereas ``0`` bits are ``False``. ::
 
+    >>> a[0]
+    True
+    >>> a[-1]
+    False
 
 To join together bitstrings you can use a variety of methods, including :meth:`BitString.append`, :meth:`BitString.prepend`, :meth:`BitString.insert`, and plain ``+`` or ``+=`` operations::
 
- >>> a.prepend('0b01')
- >>> a.append('0o7')
- >>> a += '0x06'
+    >>> a.prepend('0b01')
+    >>> a.append('0o7')
+    >>> a += '0x06'
  
 Here we first put two bits at the start of ``a``, then three bits on the end (a single octal digit) and finally another byte (two hex digits) on the end.
 
@@ -104,6 +103,22 @@ Note how we are just using ordinary strings to specify the new bitstrings we are
 .. note::
 
  The length in bits of bitstrings specified with strings depends on the number of characters, including leading zeros. So each hex character is four bits, each octal character three bits and each binary character one bit.
+
+Finding and Replacing
+---------------------
+
+A :meth:`Bits.find` is provided to search for bit patterns within a bitstring. You can choose whether to search only on byte boundaries or at any bit position::
+
+    >>> a = Bits('0xa9f')
+    >>> a.find('0x4f')
+    (3,)
+    
+Here we have found the ``0x4f`` byte in our bitstring, though it wasn't obvious from the hexadecimal as it was at bit position 3. To see this clearer consider this equality::
+
+    >>> a == '0b101, 0x4f, 0b1'
+    True
+    
+in which we've broken the bitstring into three parts to show the found byte. This also illustrates using commas to join bitstring sections
 
 Worked examples
 ===============

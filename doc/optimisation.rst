@@ -55,14 +55,14 @@ This creates a 1000 bit bitstring and sets three of the bits to '1'. Unfortunate
  s = BitString(1000)
  s.set(True, [14, 34, 501])
  
-As well as :meth:`BitString.set` and :meth:`BitString.invert` there are also checking methods :meth:`Bits.allset` and :meth:`Bits.anyset`. So rather than using ::
+As well as :meth:`BitString.set` and :meth:`BitString.invert` there are also checking methods :meth:`Bits.all` and :meth:`Bits.any`. So rather than using ::
 
  if s[100] and s[200]:
      do_something()
      
 it's better to say ::
 
- if s.allset(True, (100, 200)):
+ if s.all(True, (100, 200)):
      do_something()
      
 

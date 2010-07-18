@@ -78,7 +78,7 @@ If you then extract the contents of the zip file you should find:
 * ``doc/bitstring_manual.pdf`` : This manual as a PDF.
 * ``doc/html`` : This manual as HTML.
 
-To install, run::
+If you downloaded the source and want to install, run::
 
  python setup.py install
 
@@ -88,5 +88,5 @@ The module comes with comprehensive unit tests. To run them yourself use::
  
  python test_bitstring.py
 
-which should run all the tests (over 300) and say OK. If tests fail then either your version of Python isn't supported (there's one version of bitstring for Python 2.4 and 2.5 and a separate version for Python 2.6, 3.0 and 3.1) or something unexpected has happened - in which case please tell me about it.
+which should run all the tests (over 300) and say OK. If tests fail then either your version of Python isn't supported (you need Python 2.6, 2.7, 3.0 or 3.1, though earlier versions supported 2.4 and 2.5) or something unexpected has happened - in which case please tell me about it.
 
