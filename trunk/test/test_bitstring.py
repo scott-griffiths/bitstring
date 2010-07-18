@@ -3178,41 +3178,65 @@ class Adding(unittest.TestCase):
         a ^= '0b11111100000010'
         self.assertEqual(a, '0b00110000110001')
 
-    def testAllSet(self):
+class AllAndAny(unittest.TestCase):
+
+    def testAll(self):
         a = BitString('0b0111')
-        self.assertTrue(a.allset(True, (1, 3)))
-        self.assertFalse(a.allset(True, (0, 1, 2)))
-        self.assertTrue(a.allset(True, [-1]))
-        self.assertFalse(a.allset(True, [0]))
+        self.assertTrue(a.all(True, (1, 3)))
+        self.assertFalse(a.all(True, (0, 1, 2)))
+        self.assertTrue(a.all(True, [-1]))
+        self.assertFalse(a.all(True, [0]))
 
-    def testFileBasedAllSetUnset(self):
+    def testFileBasedAll(self):
         a = BitString(filename='test.m1v')
-        self.assertTrue(a.allset(True, [31]))
+        self.assertTrue(a.all(True, [31]))
         a = BitString(filename='test.m1v')
-        self.assertTrue(a.allset(False, (0, 1, 2, 3, 4)))
+        self.assertTrue(a.all(False, (0, 1, 2, 3, 4)))
 
-    def testFileBasedAnySetUnset(self):
+    def testFileBasedAny(self):
         a = BitString(filename='test.m1v')
-        self.assertTrue(a.anyset(True, (31, 12)))
+        self.assertTrue(a.any(True, (31, 12)))
         a = BitString(filename='test.m1v')
-        self.assertTrue(a.anyset(False, (0, 1, 2, 3, 4)))
+        self.assertTrue(a.any(False, (0, 1, 2, 3, 4)))
 
-    def testAnySet(self):
+    def testAny(self):
         a = BitString('0b10011011')
-        self.assertTrue(a.anyset(True, (1, 2, 3, 5)))
-        self.assertFalse(a.anyset(True, (1, 2, 5)))
-        self.assertTrue(a.anyset(True, (-1,)))
-        self.assertFalse(a.anyset(True, (1,)))
+        self.assertTrue(a.any(True, (1, 2, 3, 5)))
+        self.assertFalse(a.any(True, (1, 2, 5)))
+        self.assertTrue(a.any(True, (-1,)))
+        self.assertFalse(a.any(True, (1,)))
 
-    def testAllUnset(self):
+    def testAllFalse(self):
         a = BitString('0b0010011101')
-        self.assertTrue(a.allset(False, (0, 1, 3, 4)))
-        self.assertFalse(a.allset(False, (0, 1, 2, 3, 4)))
+        self.assertTrue(a.all(False, (0, 1, 3, 4)))
+        self.assertFalse(a.all(False, (0, 1, 2, 3, 4)))
 
-    def testAnyUnset(self):
+    def testAnyFalse(self):
         a = BitString('0b01001110110111111111111111111')
-        self.assertTrue(a.anyset(False, (4, 5, 6, 2)))
-        self.assertFalse(a.anyset(False, (1, 15, 20)))
+        self.assertTrue(a.any(False, (4, 5, 6, 2)))
+        self.assertFalse(a.any(False, (1, 15, 20)))
+        
+    def testAnyEmptyBitstring(self):
+        a = Bits()
+        self.assertFalse(a.any(True))
+        self.assertFalse(a.any(False))
+        
+    def testAllEmptyBitString(self):
+        a = Bits()
+        self.assertTrue(a.all(True))
+        self.assertTrue(a.all(False))
+        
+    def testAnyWholeBitstring(self):
+        a = Bits('0xfff')
+        self.assertTrue(a.any(True))
+        self.assertFalse(a.any(False))
+        
+    def testAllWholeBitstring(self):
+        a = Bits('0xfff')
+        self.assertTrue(a.all(True))
+        self.assertFalse(a.all(False))
+
+###################
 
     def testFloatInitialisation(self):
         for f in (0.0000001, -1.0, 1.0, 0.2, -3.1415265, 1.331e32):
@@ -4034,6 +4058,24 @@ class InitialiseFromBytes(unittest.TestCase):
         self.assertEqual(b, '0x00000000')
         self.assertEqual(c.bytes, b'uint:5=2')
 
+class LargeBitStringsWith32bitPython(unittest.TestCase):
+    
+    def testInvert(self):
+        a = BitString(2**31 + 3)
+        a.invert(2**31 + 1)
+        self.assertEqual(a[2**31 + 1], True)
+        
+    def testInvert2(self):
+        pass
+        #a = Bits(2**32)
+        #b = ~a
+        
+    
+    def testCount(self):
+        pass
+        #a = Bits(filename='11GB.mkv')
+        #b = a.count(1)
+    
 
 def main():
     unittest.main()

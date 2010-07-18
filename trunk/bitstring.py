@@ -563,8 +563,8 @@ class Bits(object):
     
     Methods:
     
-    allset() -- Check if all specified bits are set to 1 or 0.
-    anyset() -- Check if any of specified bits are set to 1 or 0.
+    all() -- Check if all specified bits are set to 1 or 0.
+    any() -- Check if any of specified bits are set to 1 or 0.
     bytealign() -- Align to next byte boundary.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
@@ -2642,18 +2642,20 @@ class Bits(object):
         start = end - suffix.len
         return self[start:end] == suffix
 
-    def allset(self, value, pos):
+    def all(self, value, pos=None):
         """Return True if one or many bits are all set to value.
 
         value -- If value is True then checks for bits set to 1, otherwise
                  checks for bits set to 0.
-        pos -- An iterable of bit positions. Negative numbers are treated
-               in the same way as slice indices.
+        pos -- An iterable of bit positions. Negative numbers are treated in
+               the same way as slice indices. Defaults to the whole bitstring.
 
         """
         value = bool(value)
         length = self.len
         offset = self._offset
+        if pos is None:
+            pos = xrange(self.len)
         for p in pos:
             if p < 0:
                 p += length
@@ -2664,18 +2666,20 @@ class Bits(object):
                 return False
         return True
 
-    def anyset(self, value, pos):
+    def any(self, value, pos=None):
         """Return True if any of one or many bits are set to value.
 
         value -- If value is True then checks for bits set to 1, otherwise
                  checks for bits set to 0.
-        pos -- An iterable of bit positions. Negative numbers are treated
-               in the same way as slice indices.
+        pos -- An iterable of bit positions. Negative numbers are treated in
+               the same way as slice indices. Defaults to the whole bitstring.
 
         """
         value = bool(value)
         length = self.len
         offset = self._offset
+        if pos is None:
+            pos = xrange(self.len)
         for p in pos:
             if p < 0:
                 p += length
@@ -2844,8 +2848,8 @@ class BitString(Bits):
     
     Methods inherited from Bits:
     
-    allset() -- Check if all specified bits are set to 1 or 0.
-    anyset() -- Check if any of specified bits are set to 1 or 0.
+    all() -- Check if all specified bits are set to 1 or 0.
+    any() -- Check if any of specified bits are set to 1 or 0.
     bytealign() -- Align to next byte boundary.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
