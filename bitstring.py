@@ -1798,7 +1798,7 @@ class Bits(object):
                 try:
                     _, tokens = tokenparser(bs)
                 except ValueError as e:
-                    raise CreationError(e.args)
+                    raise CreationError(*e.args)
                 for token in tokens:
                     b._append(BitString._init_with_token(*token))
                 b._datastore.setoffset(offset)
@@ -3641,7 +3641,7 @@ def pack(fmt, *values, **kwargs):
     try:
         _, tokens = tokenparser(fmt, tuple(sorted(kwargs.keys())))
     except ValueError as e:
-        raise CreationError(e.args)
+        raise CreationError(*e.args)
     value_iter = iter(values)
     s = BitString()
     try:
