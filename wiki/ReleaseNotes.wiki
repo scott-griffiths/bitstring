@@ -90,11 +90,11 @@ element, such as `s.any(False, [i])`, but it's clearer just to write
 
 ===Exception raised on reading off end of bitstring===
 
-If a read or peek goes beyond the end of the bitstring then a ReadError
+If a read or peek goes beyond the end of the bitstring then a `ReadError`
 will be raised. The previous behaviour was that the rest of the bitstring
 would be returned and no exception raised.
 
-===BitStringError renamed to Error===
+===!BitStringError renamed to Error===
 
 The base class for errors in the bitstring module is now just `Error`, so
 it will likely appears in your code as `bitstring.Error` instead of
@@ -185,10 +185,10 @@ prevent bigger problems in the future.
 
 There are a few alternatives for creating a single bit bitstring. My favourite
 it to use a list with a single item:
-
+{{{
 Bits(False)            ->   Bits([0])
 Bits(True)             ->   Bits([1])
-
+}}}
 ===New creation from file strategy===
 
 Previously if you created a bitstring from a file, either by auto-initialising
