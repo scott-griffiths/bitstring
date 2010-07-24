@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,14 +12,15 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '2.0.1 beta 2',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '2.0.2',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bitstring documentation" href="#" />
     <link rel="next" title="User Manual" href="contents.html" /> 
@@ -41,7 +44,7 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <img alt="_images/bitstring_logo.png" id="module-bitstring" src="_images/bitstring_logo.png" />
+  <img alt="_images/bitstring_logo.png" src="_images/bitstring_logo.png" />
 <p><strong>bitstring</strong> is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.</p>
 <div class="section" id="features">
 <h1>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h1>
@@ -62,88 +65,96 @@
 <div class="section" id="documentation">
 <h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h1>
 <p>The manual provides an introduction to the module and details most its capabilities.</p>
-<p>The reference section has a complete list of all the classes, methods, attributes and functions of the <tt class="xref docutils literal"><span class="pre">bitstring</span></tt> module, together with short examples for many items.</p>
+<p>The reference section has a complete list of all the classes, methods, attributes and functions of the <a class="reference internal" href="bitstring_classes.html#module-bitstring"><tt class="xref py py-mod docutils literal"><span class="pre">bitstring</span></tt></a> module, together with short examples for many items.</p>
+<div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference external" href="contents.html">User Manual</a><ul>
-<li class="toctree-l2"><a class="reference external" href="walkthrough.html">Walkthrough</a><ul>
-<li class="toctree-l3"><a class="reference external" href="walkthrough.html#a-brief-introduction">A Brief Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contents.html">User Manual</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="walkthrough.html">Walkthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="walkthrough.html#a-brief-introduction">A Brief Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="walkthrough.html#worked-examples">Worked examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="introduction.html">Introduction</a><ul>
-<li class="toctree-l3"><a class="reference external" href="introduction.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#getting-started">Getting Started</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="creation.html">Creation and Interpretation</a><ul>
-<li class="toctree-l3"><a class="reference external" href="creation.html#the-bits-and-bitstring-classes">The Bits and BitString classes</a></li>
-<li class="toctree-l3"><a class="reference external" href="creation.html#using-the-constructor">Using the constructor</a></li>
-<li class="toctree-l3"><a class="reference external" href="creation.html#the-auto-initialiser">The auto initialiser</a></li>
-<li class="toctree-l3"><a class="reference external" href="creation.html#packing">Packing</a></li>
-<li class="toctree-l3"><a class="reference external" href="creation.html#interpreting-bitstrings">Interpreting Bitstrings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creation.html">Creation and Interpretation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="creation.html#the-bits-and-bitstring-classes">The Bits and BitString classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creation.html#using-the-constructor">Using the constructor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creation.html#the-auto-initialiser">The auto initialiser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creation.html#packing">Packing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creation.html#interpreting-bitstrings">Interpreting Bitstrings</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="slicing.html">Slicing, Dicing and Splicing</a><ul>
-<li class="toctree-l3"><a class="reference external" href="slicing.html#slicing">Slicing</a></li>
-<li class="toctree-l3"><a class="reference external" href="slicing.html#joining">Joining</a></li>
-<li class="toctree-l3"><a class="reference external" href="slicing.html#truncating-inserting-deleting-and-overwriting">Truncating, inserting, deleting and overwriting</a></li>
-<li class="toctree-l3"><a class="reference external" href="slicing.html#the-bitstring-as-a-list">The BitString as a list</a></li>
-<li class="toctree-l3"><a class="reference external" href="slicing.html#splitting">Splitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="slicing.html">Slicing, Dicing and Splicing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="slicing.html#slicing">Slicing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slicing.html#joining">Joining</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slicing.html#truncating-inserting-deleting-and-overwriting">Truncating, inserting, deleting and overwriting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slicing.html#the-bitstring-as-a-list">The BitString as a list</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slicing.html#splitting">Splitting</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="reading.html">Reading, Parsing and Unpacking</a><ul>
-<li class="toctree-l3"><a class="reference external" href="reading.html#reading-and-parsing">Reading and parsing</a></li>
-<li class="toctree-l3"><a class="reference external" href="reading.html#unpacking">Unpacking</a></li>
-<li class="toctree-l3"><a class="reference external" href="reading.html#seeking">Seeking</a></li>
-<li class="toctree-l3"><a class="reference external" href="reading.html#finding-and-replacing">Finding and replacing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reading.html">Reading, Parsing and Unpacking</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reading.html#reading-and-parsing">Reading and parsing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reading.html#unpacking">Unpacking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reading.html#seeking">Seeking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reading.html#finding-and-replacing">Finding and replacing</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="misc.html">Miscellany</a><ul>
-<li class="toctree-l3"><a class="reference external" href="misc.html#other-functions">Other Functions</a></li>
-<li class="toctree-l3"><a class="reference external" href="misc.html#special-methods">Special Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="misc.html">Miscellany</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#other-functions">Other Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#special-methods">Special Methods</a></li>
 </ul>
 </li>
-</ul>
-</li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference external" href="reference.html">Reference</a><ul>
-<li class="toctree-l2"><a class="reference external" href="bitstring_classes.html">Classes</a><ul>
-<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#bitstring-and-bits">BitString and Bits</a></li>
-<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#the-bits-class">The <tt class="docutils literal"><span class="pre">Bits</span></tt> class</a></li>
-<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#the-bitstring-class">The <tt class="docutils literal"><span class="pre">BitString</span></tt> class</a></li>
-<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#class-properties">Class properties</a></li>
-<li class="toctree-l3"><a class="reference external" href="bitstring_classes.html#exceptions">Exceptions</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference external" href="functions.html">Module functions</a></li>
-</ul>
-</li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference external" href="appendices.html">Appendices</a><ul>
-<li class="toctree-l2"><a class="reference external" href="examples.html">Examples</a><ul>
-<li class="toctree-l3"><a class="reference external" href="examples.html#creation">Creation</a></li>
-<li class="toctree-l3"><a class="reference external" href="examples.html#manipulation">Manipulation</a></li>
-<li class="toctree-l3"><a class="reference external" href="examples.html#parsing">Parsing</a></li>
-<li class="toctree-l3"><a class="reference external" href="examples.html#sieve-of-eratosthenes">Sieve of Eratosthenes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference external" href="exp-golomb.html">Exponential-Golomb Codes</a></li>
-<li class="toctree-l2"><a class="reference external" href="optimisation.html">Optimisation Techniques</a><ul>
-<li class="toctree-l3"><a class="reference external" href="optimisation.html#use-combined-read-and-interpretation">Use combined read and interpretation</a></li>
-<li class="toctree-l3"><a class="reference external" href="optimisation.html#choose-between-bits-and-bitstring">Choose between Bits and BitString</a></li>
-<li class="toctree-l3"><a class="reference external" href="optimisation.html#use-dedicated-functions-for-bit-setting-and-checking">Use dedicated functions for bit setting and checking</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference external" href="internals.html">Internals</a></li>
 </ul>
 </li>
 </ul>
 </div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bitstring_classes.html">The bitstring module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bitstring_classes.html#the-auto-initialiser">The auto initialiser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bitstring_classes.html#compact-format-strings">Compact format strings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bitstring_classes.html#class-properties">Class properties</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bits.html">The Bits class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bitstring.html">The BitString class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html#exceptions">Exceptions</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html">Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples.html#creation">Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples.html#manipulation">Manipulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples.html#parsing">Parsing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples.html#sieve-of-eratosthenes">Sieve of Eratosthenes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="exp-golomb.html">Exponential-Golomb Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimisation.html">Optimisation Techniques</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.html#use-combined-read-and-interpretation">Use combined read and interpretation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.html#choose-between-bits-and-bitstring">Choose between Bits and BitString</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimisation.html#use-dedicated-functions-for-bit-setting-and-checking">Use dedicated functions for bit setting and checking</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="internals.html">Internals</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="index-and-search">
 <h1>Index and search<a class="headerlink" href="#index-and-search" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
-<li><a class="reference external" href="search.html"><em>Search Page</em></a></li>
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
 </ul>
 </div>
 <div class="section" id="credits">
@@ -160,33 +171,33 @@
             <p class="logo"><a href="#">
               <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
             </a></p>
-            <h3><a href="#">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Features</a></li>
-<li><a class="reference external" href="#download">Download</a></li>
-<li><a class="reference external" href="#documentation">Documentation</a><ul>
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Features</a></li>
+<li><a class="reference internal" href="#download">Download</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a><ul>
 </ul>
 </li>
-<li><a class="reference external" href="#index-and-search">Index and search</a></li>
-<li><a class="reference external" href="#credits">Credits</a></li>
+<li><a class="reference internal" href="#index-and-search">Index and search</a></li>
+<li><a class="reference internal" href="#credits">Credits</a></li>
 </ul>
 
-            <h4>Next topic</h4>
-            <p class="topless"><a href="contents.html"
-                                  title="next chapter">User Manual</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="contents.html"
+                        title="next chapter">User Manual</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -204,7 +215,7 @@
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2010, Scott Griffiths.
+        &copy; Copyright 2010, Scott Griffiths.
     </div>
   </body>
 </html>

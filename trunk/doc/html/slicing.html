@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,14 +12,15 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '2.0.1 beta 2',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '2.0.2',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bitstring documentation" href="index.html" />
     <link rel="up" title="User Manual" href="contents.html" />
@@ -110,7 +113,7 @@
 </div>
 <div class="section" id="joining">
 <h2>Joining<a class="headerlink" href="#joining" title="Permalink to this headline">¶</a></h2>
-<p>To join together a couple of bitstring objects use the <tt class="docutils literal"><span class="pre">+</span></tt> or <tt class="docutils literal"><span class="pre">+=</span></tt> operators, or the <a title="BitString.append" class="reference external" href="bitstring_classes.html#BitString.append"><tt class="xref docutils literal"><span class="pre">BitString.append</span></tt></a> and <a title="BitString.prepend" class="reference external" href="bitstring_classes.html#BitString.prepend"><tt class="xref docutils literal"><span class="pre">BitString.prepend</span></tt></a> methods.</p>
+<p>To join together a couple of bitstring objects use the <tt class="docutils literal"><span class="pre">+</span></tt> or <tt class="docutils literal"><span class="pre">+=</span></tt> operators, or the <a class="reference internal" href="bitstring.html#bitstring.BitString.append" title="bitstring.BitString.append"><tt class="xref py py-meth docutils literal"><span class="pre">BitString.append</span></tt></a> and <a class="reference internal" href="bitstring.html#bitstring.BitString.prepend" title="bitstring.BitString.prepend"><tt class="xref py py-meth docutils literal"><span class="pre">BitString.prepend</span></tt></a> methods.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># Six ways of creating the same BitString:</span>
 <span class="n">a1</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">bin</span><span class="o">=</span><span class="s">&#39;000&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">BitString</span><span class="p">(</span><span class="nb">hex</span><span class="o">=</span><span class="s">&#39;f&#39;</span><span class="p">)</span>
 <span class="n">a2</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b000&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0xf&#39;</span><span class="p">)</span>
@@ -123,8 +126,8 @@
 <span class="n">a6</span> <span class="o">+=</span> <span class="s">&#39;0xf&#39;</span>
 </pre></div>
 </div>
-<p>Note that the final three methods all modify a bitstring, and so will only work with <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects, not the immutable <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> objects.</p>
-<p>If you want to join a large number of bitstrings then the method <a title="Bits.join" class="reference external" href="bitstring_classes.html#Bits.join"><tt class="xref docutils literal"><span class="pre">Bits.join</span></tt></a> can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don&#8217;t want a separator then it can be called on an empty bitstring.</p>
+<p>Note that the final three methods all modify a bitstring, and so will only work with <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> objects, not the immutable <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> objects.</p>
+<p>If you want to join a large number of bitstrings then the method <a class="reference internal" href="bits.html#bitstring.Bits.join" title="bitstring.Bits.join"><tt class="xref py py-meth docutils literal"><span class="pre">join</span></tt></a> can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don&#8217;t want a separator then it can be called on an empty bitstring.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">bslist</span> <span class="o">=</span> <span class="p">[</span><span class="n">BitString</span><span class="p">(</span><span class="n">uint</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1000</span><span class="p">)]</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0b1111&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bslist</span><span class="p">)</span>
 </pre></div>
@@ -132,7 +135,7 @@
 </div>
 <div class="section" id="truncating-inserting-deleting-and-overwriting">
 <h2>Truncating, inserting, deleting and overwriting<a class="headerlink" href="#truncating-inserting-deleting-and-overwriting" title="Permalink to this headline">¶</a></h2>
-<p>The functions in this section all modify the bitstring that they operate on and so are not available for <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> objects.</p>
+<p>The functions in this section all modify the bitstring that they operate on and so are not available for <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> objects.</p>
 <div class="section" id="deleting-and-truncating">
 <h3>Deleting and truncating<a class="headerlink" href="#deleting-and-truncating" title="Permalink to this headline">¶</a></h3>
 <p>To delete bits just use <tt class="docutils literal"><span class="pre">del</span></tt> as you would with any other container:</p>
@@ -157,7 +160,7 @@
 </div>
 <div class="section" id="insert">
 <h3><tt class="docutils literal"><span class="pre">insert</span></tt><a class="headerlink" href="#insert" title="Permalink to this headline">¶</a></h3>
-<p>As you might expect, <a title="BitString.insert" class="reference external" href="bitstring_classes.html#BitString.insert"><tt class="xref docutils literal"><span class="pre">BitString.insert</span></tt></a> takes one <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> and inserts it into another. A bit position can be specified, but if not present then the current <a title="pos" class="reference external" href="bitstring_classes.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> is used.</p>
+<p>As you might expect, <a class="reference internal" href="bitstring.html#bitstring.BitString.insert" title="bitstring.BitString.insert"><tt class="xref py py-meth docutils literal"><span class="pre">insert</span></tt></a> takes one <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> and inserts it into another. A bit position can be specified, but if not present then the current <a class="reference internal" href="bits.html#bitstring.Bits.pos" title="bitstring.Bits.pos"><tt class="xref py py-attr docutils literal"><span class="pre">pos</span></tt></a> is used.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00112233&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s">&#39;0xffff&#39;</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">hex</span>
@@ -167,7 +170,7 @@
 </div>
 <div class="section" id="overwrite">
 <h3><tt class="docutils literal"><span class="pre">overwrite</span></tt><a class="headerlink" href="#overwrite" title="Permalink to this headline">¶</a></h3>
-<p><a title="BitString.overwrite" class="reference external" href="bitstring_classes.html#BitString.overwrite"><tt class="xref docutils literal"><span class="pre">BitString.overwrite</span></tt></a> does much the same as <a title="BitString.insert" class="reference external" href="bitstring_classes.html#BitString.insert"><tt class="xref docutils literal"><span class="pre">BitString.insert</span></tt></a>, but predictably the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> object&#8217;s data is overwritten by the new data.</p>
+<p><a class="reference internal" href="bitstring.html#bitstring.BitString.overwrite" title="bitstring.BitString.overwrite"><tt class="xref py py-meth docutils literal"><span class="pre">BitString.overwrite</span></tt></a> does much the same as <a class="reference internal" href="bitstring.html#bitstring.BitString.insert" title="bitstring.BitString.insert"><tt class="xref py py-meth docutils literal"><span class="pre">insert</span></tt></a>, but predictably the <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> object&#8217;s data is overwritten by the new data.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x00112233&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="mi">4</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">overwrite</span><span class="p">(</span><span class="s">&#39;0b1111&#39;</span><span class="p">)</span>         <span class="c"># Uses current pos as default</span>
@@ -210,7 +213,7 @@
 <h2>Splitting<a class="headerlink" href="#splitting" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="split">
 <h3><tt class="docutils literal"><span class="pre">split</span></tt><a class="headerlink" href="#split" title="Permalink to this headline">¶</a></h3>
-<p>Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The <a title="Bits.split" class="reference external" href="bitstring_classes.html#Bits.split"><tt class="xref docutils literal"><span class="pre">Bits.split</span></tt></a> method returns a generator for the sections.</p>
+<p>Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The <a class="reference internal" href="bits.html#bitstring.Bits.split" title="bitstring.Bits.split"><tt class="xref py py-meth docutils literal"><span class="pre">split</span></tt></a> method returns a generator for the sections.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x4700004711472222&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;0x47&#39;</span><span class="p">,</span> <span class="n">bytealigned</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
@@ -224,7 +227,7 @@
 </div>
 <div class="section" id="cut">
 <h3><tt class="docutils literal"><span class="pre">cut</span></tt><a class="headerlink" href="#cut" title="Permalink to this headline">¶</a></h3>
-<p>If you just want to split into equal parts then use the <a title="Bits.cut" class="reference external" href="bitstring_classes.html#Bits.cut"><tt class="xref docutils literal"><span class="pre">Bits.cut</span></tt></a> method. This takes a number of bits as its first argument and returns a generator for chunks of that size.</p>
+<p>If you just want to split into equal parts then use the <a class="reference internal" href="bits.html#bitstring.Bits.cut" title="bitstring.Bits.cut"><tt class="xref py py-meth docutils literal"><span class="pre">cut</span></tt></a> method. This takes a number of bits as its first argument and returns a generator for chunks of that size.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">BitString</span><span class="p">(</span><span class="s">&#39;0x47001243&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">byte</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">byte</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
@@ -247,49 +250,49 @@
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
             </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Slicing, Dicing and Splicing</a><ul>
-<li><a class="reference external" href="#slicing">Slicing</a><ul>
-<li><a class="reference external" href="#stepping-in-slices">Stepping in slices</a></li>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Slicing, Dicing and Splicing</a><ul>
+<li><a class="reference internal" href="#slicing">Slicing</a><ul>
+<li><a class="reference internal" href="#stepping-in-slices">Stepping in slices</a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#joining">Joining</a></li>
-<li><a class="reference external" href="#truncating-inserting-deleting-and-overwriting">Truncating, inserting, deleting and overwriting</a><ul>
-<li><a class="reference external" href="#deleting-and-truncating">Deleting and truncating</a></li>
-<li><a class="reference external" href="#insert"><tt class="docutils literal"><span class="pre">insert</span></tt></a></li>
-<li><a class="reference external" href="#overwrite"><tt class="docutils literal"><span class="pre">overwrite</span></tt></a></li>
+<li><a class="reference internal" href="#joining">Joining</a></li>
+<li><a class="reference internal" href="#truncating-inserting-deleting-and-overwriting">Truncating, inserting, deleting and overwriting</a><ul>
+<li><a class="reference internal" href="#deleting-and-truncating">Deleting and truncating</a></li>
+<li><a class="reference internal" href="#insert"><tt class="docutils literal"><span class="pre">insert</span></tt></a></li>
+<li><a class="reference internal" href="#overwrite"><tt class="docutils literal"><span class="pre">overwrite</span></tt></a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#the-bitstring-as-a-list">The BitString as a list</a></li>
-<li><a class="reference external" href="#splitting">Splitting</a><ul>
-<li><a class="reference external" href="#split"><tt class="docutils literal"><span class="pre">split</span></tt></a></li>
-<li><a class="reference external" href="#cut"><tt class="docutils literal"><span class="pre">cut</span></tt></a></li>
+<li><a class="reference internal" href="#the-bitstring-as-a-list">The BitString as a list</a></li>
+<li><a class="reference internal" href="#splitting">Splitting</a><ul>
+<li><a class="reference internal" href="#split"><tt class="docutils literal"><span class="pre">split</span></tt></a></li>
+<li><a class="reference internal" href="#cut"><tt class="docutils literal"><span class="pre">cut</span></tt></a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="creation.html"
-                                  title="previous chapter">Creation and Interpretation</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="reading.html"
-                                  title="next chapter">Reading, Parsing and Unpacking</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="creation.html"
+                        title="previous chapter">Creation and Interpretation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="reading.html"
+                        title="next chapter">Reading, Parsing and Unpacking</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -311,7 +314,7 @@
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2010, Scott Griffiths.
+        &copy; Copyright 2010, Scott Griffiths.
     </div>
   </body>
 </html>

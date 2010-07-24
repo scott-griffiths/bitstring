@@ -1,17 +1,18 @@
+.. currentmodule:: bitstring
 
-Module functions
-----------------
+Functions
+---------
 
 .. function:: pack(format[, *values, **kwargs])
 
    Packs the values and keyword arguments according to the *format* string and returns a new :class:`BitString`.
    
    :param format: string with comma separated tokens
-   :param values: extra values used to contruct the :class:`BitString`
+   :param values: extra values used to construct the :class:`BitString`
    :param kwargs: a dictionary of token replacements
-   :rtype: :class:`BitString`
+   :rtype: BitString
 
-The format string consists of comma separated tokens of the form ``name:length=value``. See the entry for :meth:`Bits.read` for more details.
+The format string consists of comma separated tokens of the form ``name:length=value``. See the entry for :meth:`~Bits.read` for more details.
 
 The tokens can be 'literals', like ``0xef``, ``0b110``, ``uint:8=55``, etc. which just represent a set sequence of bits.
 
@@ -36,3 +37,28 @@ Tokens starting with an endianness identifier (``<``, ``>`` or ``@``) implies a 
 And of course you can combine the different methods in a single pack.
 
 A :exc:`ValueError` will be raised if the ``*values`` are not all used up by the format string, and if a value provided doesn't match the length specified by a token.
+
+
+Exceptions
+----------
+
+.. exception:: Error(Exception)
+
+    Base class for all module exceptions.
+
+.. exception:: InterpretError(Error, ValueError)
+
+    Inappropriate interpretation of binary data. For example using the 'bytes' property on a bitstring that isn't a whole number of bytes long.
+
+.. exception:: ByteAlignError(Error)
+
+    Whole-byte position or length needed.
+
+.. exception:: CreationError(Error, ValueError)
+
+    Inappropriate argument during bitstring creation.
+
+.. exception:: ReadError(Error, IndexError)
+
+    Reading or peeking past the end of a bitstring.
+
