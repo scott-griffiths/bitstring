@@ -1,0 +1,198 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The bitstring module &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '2.0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" />
+    <link rel="up" title="Reference" href="reference.html" />
+    <link rel="next" title="The Bits class" href="bits.html" />
+    <link rel="prev" title="Reference" href="reference.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="bits.html" title="The Bits class"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="reference.html" title="Reference"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="reference.html" accesskey="U">Reference</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-bitstring"></span><div class="section" id="the-bitstring-module">
+<h1>The bitstring module<a class="headerlink" href="#the-bitstring-module" title="Permalink to this headline">¶</a></h1>
+<p>The bitstring module provides two classes, <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> and <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a>. These share many methods as <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> is the base class for <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a>. The distinction between them is that <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> represents an immutable sequence of bits whereas <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> objects support many methods that modify their contents.</p>
+<p>If you need to change the contents of a bitstring after creation then you must use the <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> class. If you need to use bitstrings as keys in a dictionary or members of a set then you must use the <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> class (<a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> are hashable). Otherwise you can use whichever you prefer, but note that <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> objects can potentially be more efficent than <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> objects. In this section the generic term &#8216;bitstring&#8217; means either a <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> or a <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> object.</p>
+<p>Note that the bit position within the bitstring (the position from which reads occur) can change without affecting the equality operation. This means that the <a class="reference internal" href="bits.html#bitstring.Bits.pos" title="bitstring.Bits.pos"><tt class="xref py py-attr docutils literal"><span class="pre">pos</span></tt></a> and <a class="reference internal" href="bits.html#bitstring.Bits.bytepos" title="bitstring.Bits.bytepos"><tt class="xref py py-attr docutils literal"><span class="pre">bytepos</span></tt></a> properties can change even for a <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> object.</p>
+<p>The public methods, special methods and properties of both classes are detailed in this section.</p>
+<div class="section" id="the-auto-initialiser">
+<span id="auto-init"></span><h2>The auto initialiser<a class="headerlink" href="#the-auto-initialiser" title="Permalink to this headline">¶</a></h2>
+<p>Note that in places where a bitstring can be used as a parameter, any other valid input to the <tt class="docutils literal"><span class="pre">auto</span></tt> initialiser can also be used. This means that the parameter can also be a format string which consists of tokens:</p>
+<ul class="simple">
+<li>Starting with <tt class="docutils literal"><span class="pre">hex=</span></tt>, or simply starting with <tt class="docutils literal"><span class="pre">0x</span></tt> implies hexadecimal. e.g. <tt class="docutils literal"><span class="pre">0x013ff</span></tt>, <tt class="docutils literal"><span class="pre">hex=013ff</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">oct=</span></tt>, or simply starting with <tt class="docutils literal"><span class="pre">0o</span></tt> implies octal. e.g. <tt class="docutils literal"><span class="pre">0o755</span></tt>, <tt class="docutils literal"><span class="pre">oct=755</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">bin=</span></tt>, or simply starting with <tt class="docutils literal"><span class="pre">0b</span></tt> implies binary. e.g. <tt class="docutils literal"><span class="pre">0b0011010</span></tt>, <tt class="docutils literal"><span class="pre">bin=0011010</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">int:</span></tt> or <tt class="docutils literal"><span class="pre">uint:</span></tt> followed by a length in bits and <tt class="docutils literal"><span class="pre">=</span></tt> gives base-2 integers. e.g. <tt class="docutils literal"><span class="pre">uint:8=255</span></tt>, <tt class="docutils literal"><span class="pre">int:4=-7</span></tt></li>
+<li>To get big, little and native-endian whole-byte integers append <tt class="docutils literal"><span class="pre">be</span></tt>, <tt class="docutils literal"><span class="pre">le</span></tt> or <tt class="docutils literal"><span class="pre">ne</span></tt> respectively to the <tt class="docutils literal"><span class="pre">uint</span></tt> or <tt class="docutils literal"><span class="pre">int</span></tt> identifier. e.g. <tt class="docutils literal"><span class="pre">uintle:32=1</span></tt>, <tt class="docutils literal"><span class="pre">intne:16=-23</span></tt></li>
+<li>For floating point numbers use <tt class="docutils literal"><span class="pre">float:</span></tt> followed by the length in bits and <tt class="docutils literal"><span class="pre">=</span></tt> and the number. The default is big-endian, but you can also append <tt class="docutils literal"><span class="pre">be</span></tt>, <tt class="docutils literal"><span class="pre">le</span></tt> or <tt class="docutils literal"><span class="pre">ne</span></tt> as with integers. e.g. <tt class="docutils literal"><span class="pre">float:64=0.2</span></tt>, <tt class="docutils literal"><span class="pre">floatle:32=-0.3e12</span></tt></li>
+<li>Starting with <tt class="docutils literal"><span class="pre">ue=</span></tt> or <tt class="docutils literal"><span class="pre">se=</span></tt> implies an exponential-Golomb coded integer. e.g. <tt class="docutils literal"><span class="pre">ue=12</span></tt>, <tt class="docutils literal"><span class="pre">se=-4</span></tt></li>
+</ul>
+<p>Multiples tokens can be joined by separating them with commas, so for example <tt class="docutils literal"><span class="pre">se=4,</span> <span class="pre">0b1,</span> <span class="pre">se=-1</span></tt> represents the concatenation of three elements.</p>
+<p>Parentheses and multiplicative factors can also be used, for example <tt class="docutils literal"><span class="pre">2*(0b10,</span> <span class="pre">0xf)</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">0b10,</span> <span class="pre">0xf,</span> <span class="pre">0b10,</span> <span class="pre">0xf</span></tt>. The multiplying factor must come before the thing it is being used to repeat.</p>
+<p>The <tt class="docutils literal"><span class="pre">auto</span></tt> parameter also accepts other types:</p>
+<ul class="simple">
+<li>A list or tuple, whose elements will be evaluated as booleans (imagine calling <tt class="docutils literal"><span class="pre">bool()</span></tt> on each item) and the bits set to <tt class="docutils literal"><span class="pre">1</span></tt> for <tt class="xref docutils literal"><span class="pre">True</span></tt> items and <tt class="docutils literal"><span class="pre">0</span></tt> for <tt class="xref docutils literal"><span class="pre">False</span></tt> items.</li>
+<li>A positive integer, used to create a bitstring of that many zero bits.</li>
+<li>A file object, presumably opened in read-binary mode, from which the bitstring will be formed.</li>
+<li>A <tt class="docutils literal"><span class="pre">bytearray</span></tt> object.</li>
+<li>In Python 3 only, a <tt class="docutils literal"><span class="pre">bytes</span></tt> object. Note this won&#8217;t work for Python 2 as <tt class="docutils literal"><span class="pre">bytes</span></tt> is just a synonym for <tt class="docutils literal"><span class="pre">str</span></tt>.</li>
+</ul>
+</div>
+<div class="section" id="compact-format-strings">
+<h2>Compact format strings<a class="headerlink" href="#compact-format-strings" title="Permalink to this headline">¶</a></h2>
+<p>For the <a class="reference internal" href="bits.html#bitstring.Bits.read" title="bitstring.Bits.read"><tt class="xref py py-meth docutils literal"><span class="pre">read</span></tt></a>, <a class="reference internal" href="bits.html#bitstring.Bits.unpack" title="bitstring.Bits.unpack"><tt class="xref py py-meth docutils literal"><span class="pre">unpack</span></tt></a>, <a class="reference internal" href="bits.html#bitstring.Bits.peek" title="bitstring.Bits.peek"><tt class="xref py py-meth docutils literal"><span class="pre">peek</span></tt></a> methods and <a class="reference internal" href="functions.html#bitstring.pack" title="bitstring.pack"><tt class="xref py py-func docutils literal"><span class="pre">pack</span></tt></a> function you can use compact format strings similar to those used in the <tt class="xref py py-mod docutils literal"><span class="pre">struct</span></tt> and <tt class="xref py py-mod docutils literal"><span class="pre">array</span></tt> modules. These start with an endian identifier: <tt class="docutils literal"><span class="pre">&gt;</span></tt> for big-endian, <tt class="docutils literal"><span class="pre">&lt;</span></tt> for little-endian or <tt class="docutils literal"><span class="pre">&#64;</span></tt> for native-endian. This must be followed by at least one of these codes:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Code</th>
+<th class="head">Interpretation</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">b</span></tt></td>
+<td>8 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">B</span></tt></td>
+<td>8 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">h</span></tt></td>
+<td>16 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">H</span></tt></td>
+<td>16 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">l</span></tt></td>
+<td>32 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">L</span></tt></td>
+<td>32 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">q</span></tt></td>
+<td>64 bit signed integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">Q</span></tt></td>
+<td>64 bit unsigned integer</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">f</span></tt></td>
+<td>32 bit floating point number</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">d</span></tt></td>
+<td>64 bit floating point number</td>
+</tr>
+</tbody>
+</table>
+<p>For more detail see <a class="reference internal" href="creation.html#compact-format"><em>Compact format strings</em></a>.</p>
+</div>
+<div class="section" id="class-properties">
+<h2>Class properties<a class="headerlink" href="#class-properties" title="Permalink to this headline">¶</a></h2>
+<p>Bitstrings use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions. For the mutable <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> objects the properties are all read and write (with the exception of the <a class="reference internal" href="bits.html#bitstring.Bits.length" title="bitstring.Bits.length"><tt class="xref py py-attr docutils literal"><span class="pre">length</span></tt></a>), whereas for immutable <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> objects the only write enabled properties are for the position in the bitstring (<a class="reference internal" href="bits.html#bitstring.Bits.pos" title="bitstring.Bits.pos"><tt class="xref py py-attr docutils literal"><span class="pre">pos</span></tt></a>/<a class="reference internal" href="bits.html#bitstring.Bits.bitpos" title="bitstring.Bits.bitpos"><tt class="xref py py-attr docutils literal"><span class="pre">bitpos</span></tt></a> and <a class="reference internal" href="bits.html#bitstring.Bits.bytepos" title="bitstring.Bits.bytepos"><tt class="xref py py-attr docutils literal"><span class="pre">bytepos</span></tt></a>).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The bitstring module</a><ul>
+<li><a class="reference internal" href="#the-auto-initialiser">The auto initialiser</a></li>
+<li><a class="reference internal" href="#compact-format-strings">Compact format strings</a></li>
+<li><a class="reference internal" href="#class-properties">Class properties</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="reference.html"
+                        title="previous chapter">Reference</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="bits.html"
+                        title="next chapter">The Bits class</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="bits.html" title="The Bits class"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="reference.html" title="Reference"
+             >previous</a> |</li>
+        <li><a href="index.html">bitstring</a> &raquo;</li>
+          <li><a href="reference.html" >Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>

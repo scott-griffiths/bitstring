@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Deprecated methods &mdash; bitstring documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bitstring documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="deprecated-methods">
+<h1>Deprecated methods<a class="headerlink" href="#deprecated-methods" title="Permalink to this headline">¶</a></h1>
+<p>These methods were all present in the 1.0 release, but have now been deprecated to simplify the API as they have trivial alternatives and offer no extra functionality.</p>
+<p>It is likely that they will be removed in version 2.0 so their use is discouraged.</p>
+<dl class="method">
+<dt id="Bits.advancebit">
+<tt class="descclassname">Bits.</tt><tt class="descname">advancebit</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.advancebit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advances position by 1 bit.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">+=</span> <span class="pre">1</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.advancebits">
+<tt class="descclassname">Bits.</tt><tt class="descname">advancebits</tt><big>(</big><em>bits</em><big>)</big><a class="headerlink" href="#Bits.advancebits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advances position by <tt class="docutils literal"><span class="pre">bits</span></tt> bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">+=</span> <span class="pre">bits</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.advancebyte">
+<tt class="descclassname">Bits.</tt><tt class="descname">advancebyte</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.advancebyte" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advances position by 8 bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">+=</span> <span class="pre">8</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.advancebytes">
+<tt class="descclassname">Bits.</tt><tt class="descname">advancebytes</tt><big>(</big><em>bytes</em><big>)</big><a class="headerlink" href="#Bits.advancebytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advances position by <tt class="docutils literal"><span class="pre">8*bytes</span></tt> bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">+=</span> <span class="pre">8*bytes</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="BitString.delete">
+<tt class="descclassname">BitString.</tt><tt class="descname">delete</tt><big>(</big><em>bits</em><span class="optional">[</span>, <em>pos</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#BitString.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> at position <tt class="docutils literal"><span class="pre">pos</span></tt>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[pos:pos+bits]</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.retreatbit">
+<tt class="descclassname">Bits.</tt><tt class="descname">retreatbit</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.retreatbit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retreats position by 1 bit.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">-=</span> <span class="pre">1</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.retreatbits">
+<tt class="descclassname">Bits.</tt><tt class="descname">retreatbits</tt><big>(</big><em>bits</em><big>)</big><a class="headerlink" href="#Bits.retreatbits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retreats position by <tt class="docutils literal"><span class="pre">bits</span></tt> bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">-=</span> <span class="pre">bits</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.retreatbyte">
+<tt class="descclassname">Bits.</tt><tt class="descname">retreatbyte</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.retreatbyte" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retreats position by 8 bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">-=</span> <span class="pre">8</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.retreatbytes">
+<tt class="descclassname">Bits.</tt><tt class="descname">retreatbytes</tt><big>(</big><em>bytes</em><big>)</big><a class="headerlink" href="#Bits.retreatbytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retreats position by <tt class="docutils literal"><span class="pre">bytes*8</span></tt> bits.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">-=</span> <span class="pre">8*bytes</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.seek">
+<tt class="descclassname">Bits.</tt><tt class="descname">seek</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#Bits.seek" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the current position to <tt class="docutils literal"><span class="pre">pos</span></tt>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">=</span> <span class="pre">pos</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.seekbyte">
+<tt class="descclassname">Bits.</tt><tt class="descname">seekbyte</tt><big>(</big><em>bytepos</em><big>)</big><a class="headerlink" href="#Bits.seekbyte" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the current position to <tt class="docutils literal"><span class="pre">bytepos</span></tt>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">s.bytepos</span> <span class="pre">=</span> <span class="pre">bytepos</span></tt>, or <tt class="docutils literal"><span class="pre">s.pos</span> <span class="pre">=</span> <span class="pre">bytepos*8</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.slice">
+<tt class="descclassname">Bits.</tt><tt class="descname">slice</tt><big>(</big><span class="optional">[</span><em>start</em>, <em>end</em>, <em>step</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Bits.slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> slice <tt class="docutils literal"><span class="pre">s[start*step</span> <span class="pre">:</span> <span class="pre">end*step]</span></tt>.</p>
+<p>It&#8217;s use is equivalent to using the slice notation <tt class="docutils literal"><span class="pre">s[start:end:step]</span></tt>; see <a title="Bits.__getitem__" class="reference external" href="bitstring_classes.html#Bits.__getitem__"><tt class="xref docutils literal"><span class="pre">__getitem__</span></tt></a> for examples.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.tell">
+<tt class="descclassname">Bits.</tt><tt class="descname">tell</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.tell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current bit position.</p>
+<p>Equivalent to using the <a title="pos" class="reference external" href="bitstring_classes.html#pos"><tt class="xref docutils literal"><span class="pre">pos</span></tt></a> property as a getter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Bits.tellbyte">
+<tt class="descclassname">Bits.</tt><tt class="descname">tellbyte</tt><big>(</big><big>)</big><a class="headerlink" href="#Bits.tellbyte" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current byte position.</p>
+<p>Equivalent to using the <a title="bytepos" class="reference external" href="bitstring_classes.html#bytepos"><tt class="xref docutils literal"><span class="pre">bytepos</span></tt></a> property as a getter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="BitString.truncateend">
+<tt class="descclassname">BitString.</tt><tt class="descname">truncateend</tt><big>(</big><em>bits</em><big>)</big><a class="headerlink" href="#BitString.truncateend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the last <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the end of the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[-bits:]</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="BitString.truncatestart">
+<tt class="descclassname">BitString.</tt><tt class="descname">truncatestart</tt><big>(</big><em>bits</em><big>)</big><a class="headerlink" href="#BitString.truncatestart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the first <tt class="docutils literal"><span class="pre">bits</span></tt> bits from the start of the <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a>.</p>
+<p>Equivalent to <tt class="docutils literal"><span class="pre">del</span> <span class="pre">s[:bits]</span></tt>.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
+            </a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">bitstring</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Scott Griffiths.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+include bitstring.py
+include test/test_bitstring.py
+include test/test.m1v
+include test/smalltestfile
+include release_notes.txt
+prune doc
+include doc/bitstring_manual.pdf
+recursive-include doc/html *
