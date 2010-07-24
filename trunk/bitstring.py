@@ -3331,7 +3331,7 @@ class BitString(Bits):
         """
         bs = self._converttobitstring(bs)
         if not bs.len:
-            return self
+            return
         if pos is None:
             pos = self._pos
         if pos < 0:
