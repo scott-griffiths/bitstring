@@ -1,3 +1,4 @@
+.. currentmodule:: bitstring
 
 Optimisation Techniques
 =======================
