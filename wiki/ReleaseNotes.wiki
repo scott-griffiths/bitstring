@@ -1,111 +1,109 @@
 #summary Release Notes
------------------------------------
-==May 24th 2010: version 2.0.0 beta 1 for Python 2.6 and 3.x released==
 
-There are a couple of changes from the last beta.
+==July 25th 2010: version 2.0.2 released==
+--------------------------------------
+This is a major release, with a number of backwardly incompatible changes.
+The main change is the removal of many methods, all of which have simple
+alternatives. Other changes are quite minor but may need some recoding.
+
+There are a few new features, most of which have been made to help the
+stream-lining of the API. As always there are performance improvements and
+some API changes were made purely with future performance in mind.
+
+==The backwardly incompatible changes are:==
 
 ===Methods removed===
 
-A few more methods have been combined. Essentially the set/unset methods
-have been combined in just a 'set' method, which now takes a boolean as
-its first argument:
+About half of the class methods have been removed from the API. They all have
+simple alternatives, so what remains is more powerful and easier to remember.
+The removed methods are listed here on the left, with their equivalent
+replacements on the right:
 {{{
-s.set([a, b])              ->   s.set(True, [a, b])
-s.unset([a, b])            ->   s.set(False, [a, b])
-s.allset([a, b])           ->   s.allset(True, [a, b])
-s.allunset([a, b])         ->   s.allset(False, [a, b])
-s.anyset([a, b])           ->   s.anyset(True, [a, b])
-s.anyunset([a, b])         ->   s.anyset(False, [a, b])
+s.advancebit()              ->   s.pos += 1
+s.advancebits(bits)         ->   s.pos += bits
+s.advancebyte()             ->   s.pos += 8
+s.advancebytes(bytes)       ->   s.pos += 8*bytes
+s.allunset([a, b])          ->   s.all(False, [a, b])
+s.anyunset([a, b])          ->   s.any(False, [a, b])
+s.delete(bits, pos)         ->   del s[pos:pos+bits]
+s.peekbit()                 ->   s.peek(1)
+s.peekbitlist(a, b)         ->   s.peeklist([a, b])
+s.peekbits(bits)            ->   s.peek(bits)
+s.peekbyte()                ->   s.peek(8)
+s.peekbytelist(a, b)        ->   s.peeklist([8*a, 8*b])
+s.peekbytes(bytes)          ->   s.peek(8*bytes)
+s.readbit()                 ->   s.read(1)
+s.readbitlist(a, b)         ->   s.readlist([a, b])
+s.readbits(bits)            ->   s.read(bits)
+s.readbyte()                ->   s.read(8)
+s.readbytelist(a, b)        ->   s.readlist([8*a, 8*b])
+s.readbytes(bytes)          ->   s.read(8*bytes)
+s.retreatbit()              ->   s.pos -= 1
+s.retreatbits(bits)         ->   s.pos -= bits
+s.retreatbyte()             ->   s.pos -= 8
+s.retreatbytes(bytes)       ->   s.pos -= 8*bytes
+s.reversebytes(start, end)  ->   s.byteswap(0, start, end)
+s.seek(pos)                 ->   s.pos = pos
+s.seekbyte(bytepos)         ->   s.bytepos = bytepos
+s.slice(start, end, step)   ->   s[start:end:step]
+s.tell()                    ->   s.pos
+s.tellbyte()                ->   s.bytepos
+s.truncateend(bits)         ->   del s[-bits:]
+s.truncatestart(bits)       ->   del s[:bits]
+s.unset([a, b])             ->   s.set(False, [a, b])
 }}}
-===allset / anyset only accept iterables===
 
-The allset and anyset methods no longer accept a single bit position. The
-recommended way of testing a single bit is just to index it, for example
-instead of:
+Many of these methods have been deprecated for the last few releases, but
+there are some new removals too. Any recoding needed should be quite
+straightforward, so while I apologise for the hassle, I had to take the
+opportunity to streamline and rationalise what was becoming a bit of an
+overblown API.
+
+===set / unset methods combined===
+
+The set/unset methods have been combined in a single method, which now
+takes a boolean as its first argument:
 {{{
->>> if s.allset(True, i):
+s.set([a, b])               ->   s.set(1, [a, b])
+s.unset([a, b])             ->   s.set(0, [a, b])
+s.allset([a, b])            ->   s.all(1, [a, b])
+s.allunset([a, b])          ->   s.all(0, [a, b])
+s.anyset([a, b])            ->   s.any(1, [a, b])
+s.anyunset([a, b])          ->   s.any(0, [a, b])
+}}}
+
+===all / any only accept iterables===
+
+The all and any methods (previously called allset, allunset, anyset and
+anyunset) no longer accept a single bit position. The recommended way of
+testing a single bit is just to index it, for example instead of:
+{{{
+>>> if s.all(True, i):
 }}}
 just use
 {{{
 >>> if s[i]:
 }}}
 If you really want to you can of course use an iterable with a single
-element, such as `s.anyset(False, [i])`, but it's clearer just to write
+element, such as `s.any(False, [i])`, but it's clearer just to write
 `not s[i]`.
-
-
------------------------------------
-==May 24th 2010: version 2.0.0 beta 1 for Python 2.6 and 3.x released==
-
-This is a major release, with a number of backwardly incompatible changes.
-The changes are all quite minor, although a number of methods have been
-removed and so some recoding may be needed.
-
-The release is labeled a beta, just in case the changes raise any problems
-that need to be fixed. I am not expecting any more changes however so you are
-encouraged to use this release, and please tell me if the changes cause
-you undue pain as there is a small window in which they can be tweaked.
-
-I plan to release 2.0 proper about one month after this beta.
-
-==The backwardly incompatible changes are:==
-
-===Methods removed===
-
-Twenty eight methods have been removed from the API. They all have
-simple alternatives:
-{{{
-s.advancebit() -> s.pos += 1
-s.advancebits(bits) -> s.pos += bits
-s.advancebyte() -> s.pos += 8
-s.advancebytes(bytes) -> s.pos += 8*bytes
-s.delete(bits, pos) -> del s[pos:pos+bits]
-s.peekbit() -> s.peek(1)
-s.peekbitlist(a, b) -> s.peeklist([a, b])
-s.peekbits(bits) -> s.peek(bits)
-s.peekbyte() -> s.peek(8)
-s.peekbytelist(a, b) -> s.peeklist([8*a, 8*b])
-s.peekbytes(bytes) -> s.peek(8*bytes)
-s.readbit() -> s.read(1)
-s.readbitlist(a, b) -> s.readlist([a, b])
-s.readbits(bits) -> s.read(bits)
-s.readbyte() -> s.read(8)
-s.readbytelist(a, b) -> s.readlist([8*a, 8*b])
-s.readbytes(bytes) -> s.read(8*bytes)
-s.retreatbit() -> s.pos -= 1
-s.retreatbits(bits) -> s.pos -= bits
-s.retreatbyte() -> s.pos -= 8
-s.retreatbytes(bytes) -> s.pos -= 8*bytes
-s.seek(pos) -> s.pos = pos
-s.seekbyte(bytepos) -> s.bytepos = bytepos
-s.slice(start, end, step) -> s[start:end:step]
-s.tell() -> s.pos
-s.tellbyte() -> s.bytepos
-s.truncateend(bits) -> del s[-bits:]
-s.truncatestart(bits) -> del s[:bits]
-}}}
-Most of these methods have been deprecated for the last few releases, but
-there are some new removals too. Any recoding needed should be quite
-straightforward, so while I apologise for the hassle, I had to take the
-opportunity to streamline and rationalise what was becoming a bit of an
-overblown API.
 
 ===Exception raised on reading off end of bitstring===
 
-If a read or peek goes beyond the end of the bitstring then a `ReadError`
+If a read or peek goes beyond the end of the bitstring then a ReadError
 will be raised. The previous behaviour was that the rest of the bitstring
 would be returned and no exception raised.
 
-===!BitStringError renamed to Error===
+===BitStringError renamed to Error===
 
-The base class for errors in the bitstring module is now just Error, so
+The base class for errors in the bitstring module is now just `Error`, so
 it will likely appears in your code as `bitstring.Error` instead of
 the rather repetitive `bitstring.BitStringError`.
 
 ===Single bit slices and reads return a bool===
 
-A single index slice (such as `s[5]`) will now return a bool (i.e. `True` or
-`False`) rather than a single bit bitstring. This is partly to reflect the
+A single index slice (such as `s[5]`) will now return a bool (i.e. True or
+False) rather than a single bit bitstring. This is partly to reflect the
 style of the bytearray type, which returns an integer for single items, but
 mostly to avoid common errors like:
 {{{
@@ -113,14 +111,31 @@ mostly to avoid common errors like:
 ...     do_something()
 }}}
 While the intent of this code snippet is quite clear (i.e. do_something if
-the first bit of `s` is set) under the old rules `s[0]` would be true as long
-as `s` wasn't empty. That's because any one-bit bitstring is true as it's a
+the first bit of s is set) under the old rules `s[0]` would be true as long
+as `s` wasn't empty. That's because any one-bit bitstring was true as it was a
 non-empty container. Under the new rule `s[0]` is `True` if `s` starts with a '1'
 bit and `False` if `s` starts with a '0' bit.
 
-The change also affects reads and peeks, so `s.peek(1)` will return either
-`True` or `False`.
+The change does not affect reads and peeks, so `s.peek(1)` will still return
+a single bit bitstring, which leads on to the next item...
 
+===Empty bitstrings or bitstrings with only zero bits are considered False===
+
+Previously a bitstring was False if it had no elements, otherwise it was True.
+This is standard behaviour for containers, but wasn't very useful for a container
+of just 0s and 1s. The new behaviour means that the bitstring is False if it
+has no 1 bits. This means that code like this:
+{{{
+>>> if s.peek(1):
+...     do_something()
+}}}
+should work as you'd expect. It also means that `Bits(1000)`, `Bits(0x00)` and
+`Bits('uint:12=0')` are all also False. If you need to check for the emptiness of
+a bitstring then instead check the `len` property:
+{{{
+if s                ->   if s.len
+if not s            ->   if not s.len
+}}}
 ===Length and offset disallowed for some initialisers===
 
 Previously you could create bitstring using expressions like:
@@ -133,26 +148,46 @@ you could instead use
 {{{
 >>> s = Bits(hex='0xabcde')[4:17]
 }}}
+
 ===Renamed 'format' parameter 'fmt'===
 
 Methods with a 'format' parameter have had it renamed to 'fmt', to prevent
 hiding the built-in 'format'. Affects methods unpack, read, peek, readlist,
-peeklist and byteswap and the pack function.
+peeklist and byteswap and the pack function. 
 
-===Iterables instead of `*format` accepted for some methods===
+===Iterables instead of `*`format accepted for some methods==
 
 This means that for the affected methods (unpack, readlist and peeklist) you
 will need to use an iterable to specify multiple items. This is easier to
 show than to describe, so instead of
 {{{
->>> a, b, c = s.readlist('uint:12', 'hex:4', 'bin:7')
+>>> a, b, c, d = s.readlist('uint:12', 'hex:4', 'bin:7')
 }}}
 you would instead write
 {{{
->>> a, b, c = s.readlist(['uint:12', 'hex:4', 'bin:7'])
+>>> a, b, c, d = s.readlist(['uint:12', 'hex:4', 'bin:7'])
 }}}
 Note that you could still use the single string `'uint:12, hex:4, bin:7'` if
-you prefer.
+you preferred.
+
+===Bool auto-initialisation removed===
+
+You can no longer use `True` and `False` to initialise single bit bitstrings.
+The reasoning behind this is that as bool is a subclass of int, it really is
+bad practice to have `Bits(False)` be different to `Bits(0)` and to have `Bits(True)`
+different to `Bits(1)`.
+
+If you have used bool auto-initialisation then you will have to be careful to
+replace it as the bools will now be interpreted as ints, so `Bits(False)` will
+be empty (a bitstring of length 0), and `Bits(True)` will be a single zero bit
+(a bitstring of length 1). Sorry for the confusion, but I think this will
+prevent bigger problems in the future.
+
+There are a few alternatives for creating a single bit bitstring. My favourite
+it to use a list with a single item:
+
+Bits(False)            ->   Bits([0])
+Bits(True)             ->   Bits([1])
 
 ===New creation from file strategy===
 
@@ -162,7 +197,7 @@ into memory unless you tried to modify it, at which point the whole file would
 be read.
 
 The new behaviour depends on whether you create a Bits or a !BitString from the
-file. If you create a Bits (which is immutable) then the file will never be
+file. If you create a !Bits (which is immutable) then the file will never be
 read into memory. This allows very large files to be opened for examination
 even if they could never fit in memory.
 
@@ -174,14 +209,43 @@ memory.
 
 The new strategy is a bit more predictable in terms of performance than the old.
 The main point to remember is that if you want to open a file and don't plan to
-alter the bitstring then use the Bits class rather than !BitString.
+alter the bitstring then use the !Bits class rather than !BitString.
 
 Just to be clear, in neither case will the contents of the file ever be changed -
 if you want to output the modified !BitString then use the tofile method, for
 example.
 
+===find and rfind return a tuple instead of a bool===
+
+If a find is unsuccessful then an empty tuple is returned (which is False in a
+boolean sense) otherwise a single item tuple with the bit position is returned
+(which is True in a boolean sense). You shouldn't need to recode unless you
+explicitly compared the result of a find to True or False, for example this
+snippet doesn't need to be altered:
+{{{
+>>> if s.find('0x23'):
+...     print(s.bitpos)
+}}}
+but you could now instead use
+{{{
+>>> found = s.find('0x23')
+>>> if found:
+...     print(found[0])
+}}}
+The reason for returning the bit position in a tuple is so that finding at
+position zero can still be True - it's the tuple `(0,)` - whereas not found can
+be False - the empty tuple `()`.
 
 ==The new features in this release are:==
+
+===New count method===
+
+This method just counts the number of 1 or 0 bits in the bitstring.
+{{{
+>>> s = Bits('0x31fff4')
+>>> s.count(1)
+16
+}}}
 
 ===read and peek methods accept integers===
 
@@ -200,6 +264,14 @@ you should write:
 ...     do_something()
 }}}
 
+===byteswap used to reverse all bytes===
+
+The byteswap method now allows a format specifier of 0 (the default) to signify
+that all of the whole bytes should be reversed. This means that calling just
+`byteswap()` is almost equivalent to the now removed `bytereverse()` method (a small
+difference is that byteswap won't raise an exception if the bitstring isn't a
+whole number of bytes long).
+
 ===Auto initialise with bytearray or (for Python 3 only) bytes===
 
 So rather than writing:
@@ -215,15 +287,28 @@ For Python 2 it's not possible to distinguish between a bytes object and a
 str. For this reason this method should be used with some caution as it will
 make you code behave differently with the different major Python versions.
 {{{
->>> b = Bits(b'abcd\x23\x00') # Only Python 3!
+>>> b = Bits(b'abcd\x23\x00') # Only Python 3! 
+}}}
+
+===set, invert, all and any default to whole bitstring===
+
+This means that you can for example write:
+{{{
+>>> a = BitString(100)       # 100 zero bits
+>>> a.set(1)                 # set all bits to 1
+>>> a.all(1)                 # are all bits set to 1?
+True
+>>> a.any(0)                 # are any set to 0?
+False
+>>> a.invert()               # invert every bit
 }}}
 
 ===New exception types===
 
-As well as renaming !BitStringError to just Error
-there are also new exceptions which use Error as a base class.
+As well as renaming `BitStringError` to just `Error` 
+there are also new exceptions which use `Error` as a base class.
 
-These can be caught in preference to Error if you need finer control.
+These can be caught in preference to `Error` if you need finer control.
 The new exceptions sometimes also derive from built-in exceptions:
 
 `ByteAlignError(Error)` - whole byte position or length needed.
@@ -236,6 +321,8 @@ bitstring creation.
 
 `InterpretError(Error, ValueError)` - inappropriate interpretation of
 binary data.
+
+
 
 -----
 ==March 18th 2010: version 1.3.0 for Python 2.6 and 3.x released==
