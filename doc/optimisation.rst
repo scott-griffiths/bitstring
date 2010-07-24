@@ -51,12 +51,12 @@ If you need to set or check individual bits then there are special functions for
  for p in [14, 34, 501]:
      s[p] = '0b1'
      
-This creates a 1000 bit bitstring and sets three of the bits to '1'. Unfortunately the crucial line spends most of its time creating a new bitstring from the '0b1' string. You could make it slightly quicker by using ``s[p] = True``, but it is much faster (and I mean at least an order of magnitude) to use the :meth:`BitString.set` method::
+This creates a 1000 bit bitstring and sets three of the bits to '1'. Unfortunately the crucial line spends most of its time creating a new bitstring from the '0b1' string. You could make it slightly quicker by using ``s[p] = True``, but it is much faster (and I mean at least an order of magnitude) to use the :meth:`~BitString.set` method::
 
  s = BitString(1000)
  s.set(True, [14, 34, 501])
  
-As well as :meth:`BitString.set` and :meth:`BitString.invert` there are also checking methods :meth:`Bits.all` and :meth:`Bits.any`. So rather than using ::
+As well as :meth:`~BitString.set` and :meth:`~BitString.invert` there are also checking methods :meth:`~Bits.all` and :meth:`~Bits.any`. So rather than using ::
 
  if s[100] and s[200]:
      do_something()

@@ -130,7 +130,7 @@ Here we have found the ``0x4f`` byte in our bitstring, though it wasn't obvious 
     >>> a == '0b101, 0x4f, 0b1'
     True
     
-in which we've broken the bitstring into three parts to show the found byte. This also illustrates using commas to join bitstring sections
+in which we've broken the bitstring into three parts to show the found byte. This also illustrates using commas to join bitstring sections.
 
 Worked examples
 ===============
@@ -147,7 +147,12 @@ Write a function that calculates the Hamming weight of two bitstrings. ::
     def hamming_weight(a, b):
         return (a^b).count(True)
 
-Er, that's it. The :meth:`^<Bits.__xor__>` is a bit-wise exclusive or, which means that the bits in ``a^b`` are only set if they differ in ``a`` and ``b``. The :meth:`~Bits.count` method just counts the number of 1 (or True) bits.
+Er, that's it. The :meth:`^<Bits.__xor__>` is a bit-wise exclusive or, which means that the bits in ``a^b`` are only set if they differ in ``a`` and ``b``. The :meth:`~Bits.count` method just counts the number of 1 (or True) bits. ::
+
+    >>> a = Bits('0b00110')
+    >>> hamming_weight(a, '0b01100')
+    2
+
 
 Sieve of Eratosthenes
 ---------------------

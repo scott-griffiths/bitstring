@@ -10,6 +10,8 @@ Reference
    :maxdepth: 3
    
    bitstring_classes
+   bits
+   bitstring
    functions
 
 

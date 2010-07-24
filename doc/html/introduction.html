@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,14 +12,15 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '2.0.1 beta 2',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '2.0.2',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bitstring documentation" href="index.html" />
     <link rel="up" title="User Manual" href="contents.html" />
@@ -49,12 +52,12 @@
             
   <div class="section" id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>While it is not difficult to manipulate binary data in Python, for example using the <tt class="xref docutils literal"><span class="pre">struct</span></tt> and <tt class="xref docutils literal"><span class="pre">array</span></tt> modules, it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing only with whole-byte data.</p>
-<p>The bitstring module provides two classes, <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> and <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a>, instances of which can be constructed from integers, floats, hex, octal, binary, strings or files, but they all just represent a string of binary digits. The <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> class differs from <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> in that it is immutable and so does not support methods that would modify it after creation. I shall use the general term &#8216;bitstring&#8217; when referring to either the <a title="Bits" class="reference external" href="bitstring_classes.html#Bits"><tt class="xref docutils literal"><span class="pre">Bits</span></tt></a> or <a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> class, and use the class names for parts that apply to only one or the other.</p>
-<p><a title="BitString" class="reference external" href="bitstring_classes.html#BitString"><tt class="xref docutils literal"><span class="pre">BitString</span></tt></a> objects can be sliced, joined, reversed, inserted into, overwritten, packed, unpacked etc. with simple functions or slice notation. They can also be read from, searched in, and navigated in, similar to a file or stream.</p>
+<p>While it is not difficult to manipulate binary data in Python, for example using the <tt class="xref py py-mod docutils literal"><span class="pre">struct</span></tt> and <tt class="xref py py-mod docutils literal"><span class="pre">array</span></tt> modules, it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing only with whole-byte data.</p>
+<p>The bitstring module provides two classes, <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> and <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a>, instances of which can be constructed from integers, floats, hex, octal, binary, strings or files, but they all just represent a string of binary digits. The <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> class differs from <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> in that it is immutable and so does not support methods that would modify it after creation. I shall use the general term &#8216;bitstring&#8217; when referring to either the <a class="reference internal" href="bits.html#bitstring.Bits" title="bitstring.Bits"><tt class="xref py py-class docutils literal"><span class="pre">Bits</span></tt></a> or <a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> class, and use the class names for parts that apply to only one or the other.</p>
+<p><a class="reference internal" href="bitstring.html#bitstring.BitString" title="bitstring.BitString"><tt class="xref py py-class docutils literal"><span class="pre">BitString</span></tt></a> objects can be sliced, joined, reversed, inserted into, overwritten, packed, unpacked etc. with simple functions or slice notation. They can also be read from, searched in, and navigated in, similar to a file or stream.</p>
 <p>Bitstrings are designed to be as lightweight as possible and can be considered to be just a list of binary digits. They are however stored efficiently - although there are a variety of ways of creating and viewing the binary data, the bitstring itself just stores the byte data, and all views are calculated as needed, and are not stored as part of the object.</p>
-<p>The different views or interpretations on the data are accessed through properties such as <a title="hex" class="reference external" href="bitstring_classes.html#hex"><tt class="xref docutils literal"><span class="pre">hex</span></tt></a>, <a title="bin" class="reference external" href="bitstring_classes.html#bin"><tt class="xref docutils literal"><span class="pre">bin</span></tt></a> and <a title="int" class="reference external" href="bitstring_classes.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a>, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.</p>
-<p>A complete reference for the module is given in the <a class="reference external" href="reference.html#reference"><em>Reference</em></a> section, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual.</p>
+<p>The different views or interpretations on the data are accessed through properties such as <a class="reference internal" href="bits.html#bitstring.Bits.hex" title="bitstring.Bits.hex"><tt class="xref py py-attr docutils literal"><span class="pre">hex</span></tt></a>, <a class="reference internal" href="bits.html#bitstring.Bits.bin" title="bitstring.Bits.bin"><tt class="xref py py-attr docutils literal"><span class="pre">bin</span></tt></a> and <a class="reference internal" href="bits.html#bitstring.Bits.int" title="bitstring.Bits.int"><tt class="xref py py-attr docutils literal"><span class="pre">int</span></tt></a>, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.</p>
+<p>A complete reference for the module is given in the <a class="reference internal" href="reference.html#reference"><em>Reference</em></a> section, while the rest of this manual acts more like a tutorial or guided tour. Below are just a few examples to whet your appetite; everything here will be covered in greater detail in the rest of this manual.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">bitstring</span> <span class="kn">import</span> <span class="n">BitString</span>
 </pre></div>
 </div>
@@ -95,7 +98,7 @@
 </div>
 <div class="section" id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
-<p>The easiest way to install <a title="" class="reference external" href="index.html#module-bitstring"><tt class="xref docutils literal"><span class="pre">bitstring</span></tt></a> is to use <tt class="docutils literal"><span class="pre">easy_install</span></tt> via:</p>
+<p>The easiest way to install <a class="reference internal" href="bitstring_classes.html#module-bitstring"><tt class="xref py py-mod docutils literal"><span class="pre">bitstring</span></tt></a> is to use <tt class="docutils literal"><span class="pre">easy_install</span></tt> via:</p>
 <div class="highlight-python"><pre>sudo easy_install bitstring</pre>
 </div>
 <p>or similar.</p>
@@ -113,14 +116,14 @@
 <li><tt class="docutils literal"><span class="pre">doc/bitstring_manual.pdf</span></tt> : This manual as a PDF.</li>
 <li><tt class="docutils literal"><span class="pre">doc/html</span></tt> : This manual as HTML.</li>
 </ul>
-<p>To install, run:</p>
+<p>If you downloaded the source and want to install, run:</p>
 <div class="highlight-python"><pre>python setup.py install</pre>
 </div>
 <p>You might need to add a &#8216;sudo&#8217; to the start of that command, depending on your system. This will copy <tt class="docutils literal"><span class="pre">bitstring.py</span></tt> to your Python installation&#8217;s <tt class="docutils literal"><span class="pre">site-packages</span></tt> directory. If you prefer you can do this by hand, or just make sure that your Python program can see <tt class="docutils literal"><span class="pre">bitstring.py</span></tt>, for example by putting in the same directory as the program that will use it.</p>
 <p>The module comes with comprehensive unit tests. To run them yourself use:</p>
 <div class="highlight-python"><pre>python test_bitstring.py</pre>
 </div>
-<p>which should run all the tests (over 300) and say OK. If tests fail then either your version of Python isn&#8217;t supported (there&#8217;s one version of bitstring for Python 2.4 and 2.5 and a separate version for Python 2.6, 3.0 and 3.1) or something unexpected has happened - in which case please tell me about it.</p>
+<p>which should run all the tests (over 300) and say OK. If tests fail then either your version of Python isn&#8217;t supported (you need Python 2.6, 2.7, 3.0 or 3.1, though earlier versions supported 2.4 and 2.5) or something unexpected has happened - in which case please tell me about it.</p>
 </div>
 </div>
 
@@ -133,33 +136,33 @@
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/bitstring_logo_small.png" alt="Logo"/>
             </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Introduction</a><ul>
-<li><a class="reference external" href="#getting-started">Getting Started</a></li>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Introduction</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="walkthrough.html"
-                                  title="previous chapter">Walkthrough</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="creation.html"
-                                  title="next chapter">Creation and Interpretation</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="walkthrough.html"
+                        title="previous chapter">Walkthrough</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="creation.html"
+                        title="next chapter">Creation and Interpretation</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -181,7 +184,7 @@
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2010, Scott Griffiths.
+        &copy; Copyright 2010, Scott Griffiths.
     </div>
   </body>
 </html>
