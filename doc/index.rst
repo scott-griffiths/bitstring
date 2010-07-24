@@ -1,7 +1,6 @@
 
-.. module:: bitstring
+.. currentmodule:: bitstring
 .. image:: bitstring_logo.png
-.. moduleauthor:: Scott Griffiths <scott@griffiths.name>
 
 **bitstring** is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
 

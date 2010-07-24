@@ -1,3 +1,4 @@
+.. currentmodule:: bitstring
 
 Miscellany
 ==========
@@ -8,7 +9,7 @@ Other Functions
 ``bytealign``
 ^^^^^^^^^^^^^
 
-:meth:`Bits.bytealign` advances between zero and seven bits to make the :attr:`pos` a multiple of eight. It returns the number of bits advanced. ::
+:meth:`~Bits.bytealign` advances between zero and seven bits to make the :attr:`~Bits.pos` a multiple of eight. It returns the number of bits advanced. ::
 
  >>> a = BitString('0x11223344')
  >>> a.pos = 1
@@ -32,23 +33,10 @@ This simply reverses the bits of the :class:`BitString` in place. You can option
  >>> a.bin
  '0b110100000'
 
-``reversebytes``
-^^^^^^^^^^^^^^^^
-
-This reverses the bytes of the :class:`BitString` in place. You can optionally specify a range of bits to reverse. If the length to reverse isn't a multiple of 8 then a :exc:`Error` is raised. ::
-
- >>> a = BitString('0x123456')
- >>> a.reversebytes()
- >>> a.hex
- '0x563412'
- >>> a.reversebytes(0, 16)
- >>> a.hex
- '0x345612'
-
 ``tobytes``
 ^^^^^^^^^^^
 
-Returns the byte data contained in the bitstring as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.6). This differs from using the plain :meth:`bytes` property in that if the bitstring isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
+Returns the byte data contained in the bitstring as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.6). This differs from using the plain :attr:`~Bits.bytes` property in that if the bitstring isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
 
  >>> BitString('0b1').tobytes()
  '\x80'
@@ -61,7 +49,7 @@ Writes the byte data contained in the bitstring to a file. The file should have 
  >>> f = open('newfile', 'wb')
  >>> BitString('0xffee3241fed').tofile(f)
 
-In exactly the same manner as with :meth:`Bits.tobytes`, up to seven zero bits will be appended to make the file a whole number of bytes long.
+In exactly the same manner as with :meth:`~Bits.tobytes`, up to seven zero bits will be appended to make the file a whole number of bytes long.
 
 ``startswith / endswith``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -77,7 +65,7 @@ These act like the same named functions on strings, that is they return ``True``
 ``ror / rol``
 ^^^^^^^^^^^^^
 
-To rotate the bits in a :class:`BitString` use :meth:`BitString.ror` and :meth:`BitString.rol` for right and left rotations respectively. The changes are done in-place. ::
+To rotate the bits in a :class:`BitString` use :meth:`~BitString.ror` and :meth:`~BitString.rol` for right and left rotations respectively. The changes are done in-place. ::
 
  >>> s = BitString('0x00001')
  >>> s.rol(6)
@@ -87,14 +75,14 @@ To rotate the bits in a :class:`BitString` use :meth:`BitString.ror` and :meth:`
 Special Methods
 ---------------
 
-A few of the special methods have already been covered, for example :meth:`Bits.__add__` and :meth:`BitString.__iadd__` (the ``+`` and ``+=`` operators) and :meth:`Bits.__getitem__` and :meth:`BitString.__setitem__` (reading and setting slices via ``[]``). Here are the rest:
+A few of the special methods have already been covered, for example :meth:`~Bits.__add__` and :meth:`~BitString.__iadd__` (the ``+`` and ``+=`` operators) and :meth:`~Bits.__getitem__` and :meth:`~BitString.__setitem__` (reading and setting slices via ``[]``). Here are some more:
 
 ``__len__``
 ^^^^^^^^^^^^^^^
 
 This implements the :func:`len` function and returns the length of the bitstring in bits.
 
-It's recommended that you use the :attr:`len` property instead of the function as a limitation of Python means that the function will raise an :exc:`OverflowError` if the bitstring has more than ``sys.maxsize`` elements (that's typically 256MB of data).
+It's recommended that you use the :attr:`~Bits.len` property instead of the function as a limitation of Python means that the function will raise an :exc:`OverflowError` if the bitstring has more than ``sys.maxsize`` elements (that's typically 256MB of data with 32-bit Python).
 
 There's not much more to say really, except to emphasise that it is always in bits and never bytes. ::
 
@@ -104,7 +92,7 @@ There's not much more to say really, except to emphasise that it is always in bi
 ``__str__ / __repr__``
 ^^^^^^^^^^^^^^^^^^^^^^
 
-These get called when you try to print a bitstring. As bitstrings have no preferred interpretation the form printed might not be what you want - if not then use the :attr:`hex`, :attr:`bin`, :attr:`int` etc. properties. The main use here is in interactive sessions when you just want a quick look at the bitstring. The :meth:`Bits.__repr__` tries to give a code fragment which if evaluated would give an equal bitstring.
+These get called when you try to print a bitstring. As bitstrings have no preferred interpretation the form printed might not be what you want - if not then use the :attr:`~Bits.hex`, :attr:`~Bits.bin`, :attr:`~Bits.int` etc. properties. The main use here is in interactive sessions when you just want a quick look at the bitstring. The :meth:`~Bits.__repr__` tries to give a code fragment which if evaluated would give an equal bitstring.
 
 The form used for the bitstring is generally the one which gives it the shortest representation. If the resulting string is too long then it will be truncated with ``...`` - this prevents very long bitstrings from tying up your interactive session while they print themselves. ::
 
@@ -170,14 +158,14 @@ Multiplication of a bitstring by an integer means the same as it does for ordina
 This allows the bitstring to be copied via the :mod:`copy` module. ::
 
  >>> import copy
- >>> a = BitString('0x4223fbddec2231')
+ >>> a = Bits('0x4223fbddec2231')
  >>> b = copy.copy(a)
  >>> b == a
  True
  >>> b is a
  False
 
-It's not terribly exciting, and isn't the only method of making a copy. Using ``b  =  BitString(a)`` is another option, but ``b  =  a[:]`` may be more familiar to some.
+It's not terribly exciting, and isn't the only method of making a copy. Using ``b = Bits(a)`` is another option, but ``b = a[:]`` may be more familiar to some.
 
 ``__and__ / __or__ / __xor__ / __iand__ / __ior__ / __ixor__``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,3 +1,5 @@
+.. currentmodule:: bitstring
+
 ***********
 Walkthrough
 ***********
@@ -12,7 +14,7 @@ Only a few of the module's features will be covered in this walkthrough; the :re
 Prerequisites
 -------------
 
-* Python 2.6 or 3.x. (If you're using Python 2.4 or 2.5 then you can use bitstring version 1.0, but that isn't covered here.)
+* Python 2.6, 2.7 or 3.x. (If you're using Python 2.4 or 2.5 then you can use bitstring version 1.0, but that isn't covered here.)
 * An installed bitstring module.
 * A rudimentory knowledge of binary concepts.
 * A little free time.
@@ -24,14 +26,16 @@ Getting started
 
 ::
 
- >>> from bitstring import Bits, BitString  
+    >>> from bitstring import Bits, BitString  
   
-First things first, we're going to be typing 'bitstring' a lot, so importing directly saves us a lot of ``bitstring.BitString`` nonsense. We can now create a couple of bitstrings::
+First things first, we're going to be typing 'bitstring' a lot, so importing directly saves us a lot of ``bitstring.BitString`` nonsense. The classes we have imported are :class:`Bits` which can be considered as an immutable container for our binary data and :class:`BitString` which is a mutable container. We'll mostly be using :class:`BitString`, as there are more things you can do if you're allowed to change the contents after creation but as we'll see there are some occasions when you really want the unchanging :class:`Bits`.
 
- >>> a = BitString('0xff01')
- >>> b = BitString('0b110')
+We can now create a couple of bitstrings::
+
+    >>> a = BitString('0xff01')
+    >>> b = BitString('0b110')
  
-The first of these we made from the hexadecimal string '0xff01' - the ``0x`` prefix makes it hexadecimal just as ``0b`` means binary and ``0o`` means octal. Each hex digit represents four bits, so we have a bitstring of length 16 bits.
+The first of these we made from the hexadecimal string ``0xff01`` - the ``0x`` prefix makes it hexadecimal just as ``0b`` means binary and ``0o`` means octal. Each hex digit represents four bits, so we have a bitstring of length 16 bits.
 
 The second was created from a binary string. In this case it is just three bits long. Don't worry about it not being a whole number of bytes long, that's all been taken care of internally.
 
@@ -41,34 +45,42 @@ The second was created from a binary string. In this case it is just three bits 
 
 There are lots of things we can do with our new bitstrings, the simplest of which is just to print them::
 
- >>> print(a)
- 0xff01
- >>> print(b)
- 0b110
+    >>> print(a)
+    0xff01
+    >>> print(b)
+    0b110
  
 Now you would be forgiven for thinking that the strings that we used to create the two bitstrings had just been stored to be given back when printed, but that's not the case. Every bitstring should be considered just as a sequence of bits. As we'll see there are lots of ways to create and manipulate them, but they have no memory of how they were created. When they are printed they just pick the simplest hex or binary representation of themselves. If you prefer you can pick the representation that you want::
 
- >>> a.bin
- '0b1111111100000001'
- >>> b.oct
- '0o6'
- >>> b.int
- -2
- >>> a.bytes
- '\xff\x01'
+    >>> a.bin
+    '0b1111111100000001'
+    >>> b.oct
+    '0o6'
+    >>> b.int
+    -2
+    >>> a.bytes
+    '\xff\x01'
  
 There are a few things to note here:
 
-* To get the different interpretations of the binary data we use properties such as ``bin``, ``hex``, ``oct``, ``int`` and ``bytes``. You can probably guess what these all mean, but you don't need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.
-* The ``bytes`` property returns a ``bytes`` object. This is slightly different in Python 2 to Python 3 - in Python 3 you would get ``b'\xff\x01'`` returned instead.
+* To get the different interpretations of the binary data we use properties such as :attr:`~Bits.bin`, :attr:`~Bits.hex`, :attr:`~Bits.oct`, :attr:`~Bits.int` and :attr:`~Bits.bytes`. You can probably guess what these all mean, but you don't need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.
+* The :attr:`~Bits.bytes` property returns a ``bytes`` object. This is slightly different in Python 2 to Python 3 - in Python 3 you would get ``b'\xff\x01'`` returned instead.
 
 Great - let's try some more::
 
- >>> b.hex
- bitstring.InterpretError: Cannot convert to hex unambiguously - not multiple of 4 bits.
+    >>> b.hex
+    bitstring.InterpretError: Cannot convert to hex unambiguously - not multiple of 4 bits.
  
 Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are similar restrictions on other interpretations (octal must be a mulitple of 3 bits, bytes a multiple of 8 bits etc.)
 
+An exception is raised rather than trying to guess the best hex representation as there are a multitude of ways to convert to hex. I occasionally get asked why it doesn't just do the 'obvious' conversion, which is invariably what that person expects from his own field of work. This could be truncating bits at the start or end, or padding at the start or end with either zeros or ones. Rather than try to guess what is meant we just raise an exception - if you want a particular behaviour then write it explicitly::
+
+   >>> (b + [0]).hex
+   '0xc'
+   >>> ([0] + b).hex
+   '0x6'
+
+Here we've added a zero bit first to the end and then to the start. Don't worry too much about how it all works, but just to give you a taster the zero bit ``[0]`` could also have been written as ``Bits([0])``, ``BitString([0])``, ``Bits('0b0')``, ``Bits(bin='0')``, ``'0b0'`` or just ``1`` (this final method isn't a typo, it means construct a bitstring of length one, with all the bits initialised to zero - it does look a bit confusing though which is why I prefer [0] and [1] to represent single bits). Take a look at :ref:`auto_init` for more details.
 
 Modifying bitstrings
 --------------------
@@ -90,7 +102,7 @@ If you ask for a single item, rather than a slice, a boolean is returned. Natura
     >>> a[-1]
     False
 
-To join together bitstrings you can use a variety of methods, including :meth:`BitString.append`, :meth:`BitString.prepend`, :meth:`BitString.insert`, and plain ``+`` or ``+=`` operations::
+To join together bitstrings you can use a variety of methods, including :meth:`~BitString.append`, :meth:`~BitString.prepend`, :meth:`~BitString.insert`, and plain :meth:`+<Bits.__add__>` or :meth:`+=<BitString.__iadd__>` operations::
 
     >>> a.prepend('0b01')
     >>> a.append('0o7')
@@ -107,7 +119,7 @@ Note how we are just using ordinary strings to specify the new bitstrings we are
 Finding and Replacing
 ---------------------
 
-A :meth:`Bits.find` is provided to search for bit patterns within a bitstring. You can choose whether to search only on byte boundaries or at any bit position::
+A :meth:`~Bits.find` is provided to search for bit patterns within a bitstring. You can choose whether to search only on byte boundaries or at any bit position::
 
     >>> a = Bits('0xa9f')
     >>> a.find('0x4f')
@@ -135,7 +147,7 @@ Write a function that calculates the Hamming weight of two bitstrings. ::
     def hamming_weight(a, b):
         return (a^b).count(True)
 
-Er, that's it. The ``^`` is a bit-wise exclusive or, which means that the bits in ``a^b`` are only set if they differ in ``a`` and ``b``. The :meth:`Bits.count` method just counts the number of 1 (or True) bits.
+Er, that's it. The :meth:`^<Bits.__xor__>` is a bit-wise exclusive or, which means that the bits in ``a^b`` are only set if they differ in ``a`` and ``b``. The :meth:`~Bits.count` method just counts the number of 1 (or True) bits.
 
 Sieve of Eratosthenes
 ---------------------
