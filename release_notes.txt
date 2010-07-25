@@ -1,11 +1,17 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+--------------------------------------
+July 26th 2010: version 2.0.3 released
+--------------------------------------
+* Bug fix: Using peek and read for a single bit now returns a new bitstring
+           as was intended, rather than the old behaviour of returning a bool.
+* Removed HTML docs from source archive - better to use the online version.
 
 --------------------------------------
 July 25th 2010: version 2.0.2 released
 --------------------------------------
-This is a major release, with a number of backwardly incompatibile changes.
+This is a major release, with a number of backwardly incompatible changes.
 The main change is the removal of many methods, all of which have simple
 alternatives. Other changes are quite minor but may need some recoding.
 
@@ -13,7 +19,7 @@ There are a few new features, most of which have been made to help the
 stream-lining of the API. As always there are performance improvements and
 some API changes were made purely with future performance in mind.
 
-The backwardly incompatibile changes are:
+The backwardly incompatible changes are:
 -----------------------------------------
 * Methods removed.
 
@@ -178,7 +184,7 @@ bad practice to have Bits(False) be different to Bits(0) and to have Bits(True)
 different to Bits(1).
 
 If you have used bool auto-initialisation then you will have to be careful to
-remplace it as the bools will now be interpreted as ints, so Bits(False) will
+replace it as the bools will now be interpreted as ints, so Bits(False) will
 be empty (a bitstring of length 0), and Bits(True) will be a single zero bit
 (a bitstring of length 1). Sorry for the confusion, but I think this will
 prevent bigger problems in the future.
