@@ -17,6 +17,14 @@ licence.
 This version supports Python 2.6 and later (including Python 3).
 For Python 2.4 and 2.5 you should instead download version 1.0.
 
+Documentation
+-------------
+The manual for the bitstring module is available here
+<http://packages.python.org/bitstring>. It contains a walk-through of all
+the features and a complete reference section.
+
+It is also available as a PDF as part of the source download.
+
 Installation
 ------------
 If you have downloaded and unzipped the package then you need to run the
@@ -29,19 +37,12 @@ need to run this with root privileges on Unix-like systems.
 
 Alternatively just copy the ``bitstring.py`` file to where you want it!
 
-If you haven't downloaded the package then you can just try::
+If you haven't yet downloaded the package then you can just try::
 
      easy_install bitstring
 
 If you're using Windows then there is an installer available from the
 downloads tab on the project's homepage.
-
-Documentation
--------------
-The manual for the bitstring module is available as HTML and as a PDF. It
-contains a walk-through of all the features and a complete reference section.
-It is part of the source package and it can also be viewed on the project's
-homepage.
 
 Simple Examples
 ---------------
@@ -87,9 +88,9 @@ Unit Tests
 ----------
 To run the unit tests::
 
-     python test_bitstring.py
+     python bitstring.py
 
-The unit tests should all pass for Python 2.6, 3.0 and 3.1.
+The unit tests should all pass for Python 2.6 and later.
 
 ----
 
