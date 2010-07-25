@@ -91,14 +91,14 @@ BitString('0xab')
 }}}
 Using a bitstring as a source for other bitstrings
 {{{
->>> s = BitString('0x00112233445566778899aabbccddeeff')
->>> print(s.readbit())           
+>>> s = Bits('0x00112233445566778899aabbccddeeff')
+>>> print(s.read(1))           
 0b0
 >>> s.pos += 7            # Move on 7 bits to byte align.
->>> print(s.readbytes(3))       
+>>> print(s.read(24))       
 0x112233
 >>> s.find('0x99aa', bytealigned=True)
-True
->>> print(s.readbytes(5))      
+(72,)
+>>> print(s.read(40))      
 0x99aabbccdd
 }}}
