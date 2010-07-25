@@ -5,6 +5,6 @@
 
 _A Python module to help you manage your bits_
 
-The bitstring manual is now available online: *[http://python-bitstring.googlecode.com/svn/trunk/doc/html/index.html Read the manual online]*.
+The bitstring manual is now available online: *[http://packages.python.org/bitstring Read the manual online]*.
 
 If you prefer, it is also available as a PDF: *[http://python-bitstring.googlecode.com/svn/trunk/doc/bitstring_manual.pdf Download the bitstring manual (PDF)]*
