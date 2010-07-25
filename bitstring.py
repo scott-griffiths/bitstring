@@ -49,7 +49,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 
 __author__ = "Scott Griffiths"
 
@@ -2138,13 +2138,6 @@ class Bits(object):
 
         """
         if isinstance(fmt, (int, long)):
-            if fmt == 1:
-                try:
-                    bs = self._readbits(None, self._pos)
-                    self._pos += 1
-                    return bs
-                except IndexError:
-                    raise ReadError("Cannot read off the end of the bitstring.")
             if fmt < 0:
                 raise ValueError("Cannot read negative amount.")
             if fmt > self.len - self._pos:

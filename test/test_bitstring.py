@@ -40,7 +40,7 @@ from bitstring import BitString, Bits, pack, One, Zero
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.0.2')
+        self.assertEqual(bitstring.__version__, '2.0.3')
 
     def testAll(self):
         exported = ['Bits', 'BitString', 'pack', 'Error', 'ReadError',
@@ -252,7 +252,7 @@ class Reading(unittest.TestCase):
         s = BitString(bytes=b'\x4d\x55')
         self.assertEqual(s.read(4).hex, '0x4')
         self.assertEqual(s.read(8).hex, '0xd5')
-        self.assertEqual(s.read(1), False)
+        self.assertEqual(s.read(1), [0])
         self.assertEqual(s.read(3).bin, '0b101')
         self.assertFalse(s.read(0))
 
@@ -1569,11 +1569,11 @@ class Adding(unittest.TestCase):
 
     def testPeekBit(self):
         s = BitString(bin='01')
-        self.assertEqual(s.peek(1), False)
-        self.assertEqual(s.peek(1), False)
-        self.assertEqual(s.read(1), False)
-        self.assertEqual(s.peek(1), True)
-        self.assertEqual(s.peek(1), True)
+        self.assertEqual(s.peek(1), [0])
+        self.assertEqual(s.peek(1), [0])
+        self.assertEqual(s.read(1), [0])
+        self.assertEqual(s.peek(1), [1])
+        self.assertEqual(s.peek(1), [1])
 
         s = BitString(bytes=b'\x1f', offset=3)
         self.assertEqual(s.len, 5)
@@ -2558,24 +2558,24 @@ class Adding(unittest.TestCase):
         self.assertEqual(b, '0x222222')
         os.remove('temp_bitstring_unit_testing_file')
 
-    def testToFileWithLargerFile(self):
-        a = BitString(length=16000000)
-        a[1] = '0b1'
-        a[-2] = '0b1'
-        f = open('temp_bitstring_unit_testing_file' ,'wb')
-        a.tofile(f)
-        f.close()
-        b = BitString(filename='temp_bitstring_unit_testing_file')
-        self.assertEqual(b.len, 16000000)
-        self.assertEqual(b[1], True)
-
-        f = open('temp_bitstring_unit_testing_file' ,'wb')
-        a[1:].tofile(f)
-        f.close()
-        b = BitString(filename='temp_bitstring_unit_testing_file')
-        self.assertEqual(b.len, 16000000)
-        self.assertEqual(b[0], True)
-        os.remove('temp_bitstring_unit_testing_file')
+    #def testToFileWithLargerFile(self):
+    #    a = BitString(length=16000000)
+    #    a[1] = '0b1'
+    #    a[-2] = '0b1'
+    #    f = open('temp_bitstring_unit_testing_file' ,'wb')
+    #    a.tofile(f)
+    #    f.close()
+    #    b = BitString(filename='temp_bitstring_unit_testing_file')
+    #    self.assertEqual(b.len, 16000000)
+    #    self.assertEqual(b[1], True)
+    #
+    #    f = open('temp_bitstring_unit_testing_file' ,'wb')
+    #    a[1:].tofile(f)
+    #    f.close()
+    #    b = BitString(filename='temp_bitstring_unit_testing_file')
+    #    self.assertEqual(b.len, 16000000)
+    #    self.assertEqual(b[0], True)
+    #    os.remove('temp_bitstring_unit_testing_file')
 
     def testTokenParser(self):
         tp = bitstring.tokenparser
@@ -3989,6 +3989,10 @@ class ReadWithIntegers(unittest.TestCase):
         b = a.peek(8)
         self.assertEqual(b.hex, '0xee')
         self.assertEqual(a.pos, 8)
+        b = a.peek(1)
+        self.assertEqual(b, '0b1')
+        b = a.read(1)
+        self.assertEqual(b, '0b1')
 
     def testReadIntList(self):
         a = Bits('0xab, 0b110')
@@ -4079,24 +4083,17 @@ class InitialiseFromBytes(unittest.TestCase):
         self.assertEqual(b, '0x00000000')
         self.assertEqual(c.bytes, b'uint:5=2')
 
-class LargeBitStringsWith32bitPython(unittest.TestCase):
+class CoverageCompletionTests(unittest.TestCase):
+
+    def testUeReadError(self):
+        s = Bits('0b000000001')
+        self.assertRaises(bitstring.ReadError, s.read, 'ue')
     
-    def testInvert(self):
-        a = BitString(2**31 + 3)
-        a.invert(2**31 + 1)
-        self.assertEqual(a[2**31 + 1], True)
+    def testOverwriteWithSelf(self):
+        s = BitString('0b1101')
+        s.overwrite(s)
+        self.assertEqual(s, '0b1101')
         
-    def testInvert2(self):
-        pass
-        #a = Bits(2**32)
-        #b = ~a
-        
-    
-    def testCount(self):
-        pass
-        #a = Bits(filename='11GB.mkv')
-        #b = a.count(1)
-    
 
 def main():
     unittest.main()
