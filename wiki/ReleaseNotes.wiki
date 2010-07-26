@@ -190,7 +190,7 @@ be empty (a bitstring of length 0), and `Bits(True)` will be a single zero bit
 prevent bigger problems in the future.
 
 There are a few alternatives for creating a single bit bitstring. My favourite
-it to use a list with a single item:
+is to use a list with a single item:
 {{{
 Bits(False)            ->   Bits([0])
 Bits(True)             ->   Bits([1])
