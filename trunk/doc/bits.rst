@@ -330,7 +330,7 @@ The Bits class
 
         Property representing the underlying byte data that contains the bitstring.
 
-        When used as a getter the bitstring must be a whole number of byte long or a :exc:`ValueError` will be raised.
+        When used as a getter the bitstring must be a whole number of byte long or a :exc:`InterpretError` will be raised.
 
         An alternative is to use the :meth:`tobytes` method, which will pad with between zero and seven ``0`` bits to make it byte aligned if needed. ::
        
@@ -342,7 +342,7 @@ The Bits class
 
         Property representing the hexadecimal value of the bitstring.
 
-        When used as a getter the value will be preceded by ``0x``. If the bitstring is not a multiple of four bits long then getting its hex value will raise a :exc:`InterpretError`. ::
+        When used as a getter the value will be preceded by ``0x``. If the bitstring is not a multiple of four bits long then getting its hex value will raise an :exc:`InterpretError`. ::
 
             >>> s = Bits(bin='1111 0000')
             >>> s.hex
@@ -356,7 +356,7 @@ The Bits class
 
         Property for the byte-wise big-endian signed two's complement integer representation of the bitstring.
 
-        Only valid for whole-byte bitstrings, in which case it is equal to ``s.int``, otherwise a :exc:`ValueError` is raised.
+        Only valid for whole-byte bitstrings, in which case it is equal to ``s.int``, otherwise an :exc:`InterpretError` is raised.
 
 
     .. attribute:: intle
@@ -377,7 +377,7 @@ The Bits class
 
         Property for the floating point representation of the bitstring.
 
-        The bitstring must be either 32 or 64 bits long to support the floating point interpretations, otherwise a :exc:`ValueError` will be raised.
+        The bitstring must be either 32 or 64 bits long to support the floating point interpretations, otherwise an :exc:`InterpretError` will be raised.
 
         If the underlying floating point methods on your machine are not IEEE 754 compliant then using the float interpretations is undefined (this is unlikely unless you're on some very unusual hardware).
 
@@ -402,7 +402,7 @@ The Bits class
 
         Property for the octal representation of the bitstring.
 
-        When used as a getter the value will be preceded by ``0o``. If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`ValueError`. ::
+        When used as a getter the value will be preceded by ``0o``. If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`InterpretError`. ::
 
             >>> s = BitString('0b111101101')
             >>> s.oct

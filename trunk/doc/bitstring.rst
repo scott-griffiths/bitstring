@@ -40,7 +40,7 @@ The BitString class
            >>> s
            BitString('0x11006655443322')
         
-       It can also be used to simple the endianness of the whole :class:`BitString`. ::
+       It can also be used to swap the endianness of the whole :class:`BitString`. ::
 
            >>> s = BitString('uintle:32=1234')
            >>> s.byteswap()
@@ -123,7 +123,7 @@ The BitString class
         *start* and *end* give the range and default to ``0`` and :attr:`~Bits.len` respectively. ::
 
             >>> a = BitString('0b10111')
-            >>> a.reversebits()
+            >>> a.reverse()
             >>> a.bin
             '0b11101'
 
