@@ -3649,6 +3649,13 @@ class Bugs(unittest.TestCase):
         #s = pack('fluffy*uint:8', *range(3), fluffy=3)
         #a, b, c = s.readlist('2*uint:8, 1*uint:8, 0*uint:8')
         #self.assertEqual((a, b, c), (0, 1, 2))
+        
+    def testMultiplicativeFactorsUnpacking(self):
+        s = Bits('0b10111')
+        a, b, c, d = s.unpack('3*bool, bin')
+        self.assertEqual((a, b, c), (True, False, True))
+        self.assertEqual(d, '0b11')
+        
 
     def testPackingDefaultIntWithKeyword(self):
         s = pack('12', 100)

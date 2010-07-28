@@ -232,11 +232,13 @@ def tokenparser(fmt, keys=None, token_cache={}):
                 length = m2.group('len')
                 if m2.group('value'):
                     value = m2.group('value')
+            if name == 'bool':
+                if length is not None:
+                    raise ValueError("You can't specify a length with bool tokens - they are always one bit.")
+                length = 1
             if length is None and name not in ('se', 'ue'):
                 stretchy_token = True
             if length is not None:
-                if name == 'bool':
-                    raise ValueError("You can't specify a length with bool tokens - they are always one bit.") 
                 # Try converting length to int, otherwise check it's a key.
                 try:
                     length = int(length)
@@ -2177,16 +2179,15 @@ class Bits(object):
         >>> i, bs1, bs2 = s.readlist(['uint:12', 10, 10])
 
         """
-        # Not very optimal this, but replace integers with 'bits' tokens
-        # TODO: optimise.
-        for i, f in enumerate(fmt):
-            if isinstance(f, (int, long)):
-                fmt[i] = "bits:{0}".format(f)
-
         tokens = []
         stretchy_token = None
         if isinstance(fmt, basestring):
             fmt = [fmt]
+        # Not very optimal this, but replace integers with 'bits' tokens
+        # TODO: optimise
+        for i, f in enumerate(fmt):
+            if isinstance(f, (int, long)):
+                fmt[i] = "bits:{0}".format(f)
         for f_item in fmt:
             stretchy, tkns = tokenparser(f_item, tuple(sorted(kwargs.keys())))
             if stretchy:
