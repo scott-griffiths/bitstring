@@ -67,6 +67,10 @@ import binascii
 import copy
 import warnings
 import functools
+from bitstore import FileArray, ByteArray
+# In future there could be other memory based array types,
+# for example a C-based implementation.
+MemArray = ByteArray
 
 byteorder = sys.byteorder
 
@@ -364,198 +368,6 @@ class CreationError(Error, ValueError):
         Error.__init__(self, *params)
 
 
-class BaseArray(object):
-    """Array types should implement the methods given here."""
-
-    __slots__ = ()
-
-    def __init__(self, data, bitlength=0, offset=0):
-        raise NotImplementedError
-
-    def getbyte(self, pos):
-        """Return the integer value of the byte stored at pos."""
-        raise NotImplementedError
-
-    def getbyteslice(self, start, end):
-        """Return a byte slice"""
-        raise NotImplementedError
-
-    def __copy__(self):
-        raise NotImplementedError
-
-    def setoffset(self, newoffset):
-        raise NotImplementedError
-
-    def appendarray(self, array):
-        raise NotImplementedError
-
-    def prependarray(self, array):
-        raise NotImplementedError
-
-
-class ByteArray(BaseArray):
-    """Stores raw bytes together with a bit offset and length."""
-
-    __slots__ = ('offset', '_rawarray', 'bitlength')
-
-    def __init__(self, data, bitlength=0, offset=0):
-        self._rawarray = bytearray(data[offset // 8:(offset + bitlength + 7) // 8])
-        self.offset = offset % 8
-        self.bitlength = bitlength
-        assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray), "bitlength:{0}, offset:{1}, bytelength:{2}".format(self.bitlength, self.offset, len(self._rawarray))
-
-    def __copy__(self):
-        return ByteArray(self._rawarray, self.bitlength, self.offset)
-
-    def getbyte(self, pos):
-        return self._rawarray[pos]
-
-    def getbyteslice(self, start, end):
-        c = self._rawarray[start:end]
-        # We convert to bytes because struct.unpack can't handle a bytearray (in Python 2.6 only).
-        # Probably a struct module bug. We could return a buffer object here though, but I don't
-        # think that it would be faster.
-        return bytes(c)
-
-    def setbyte(self, pos, value):
-        self._rawarray[pos] = value
-
-    def setbyteslice(self, start, end, value):
-        self._rawarray[start:end] = value
-
-    def setoffset(self, newoffset):
-        """Realign BitString with new offset to first bit."""
-        if newoffset != self.offset:
-            assert 0 <= newoffset < 8
-            data = self._rawarray
-            if newoffset < self.offset:
-                # We need to shift everything left
-                shiftleft = self.offset - newoffset
-                # First deal with everything except for the final byte
-                # TODO: Replace xrange (could fail with 32-bit Python 2.x).
-                for x in xrange(self.bytelength - 1):
-                    data[x] = ((data[x] << shiftleft) & 255) + \
-                                         (data[x + 1] >> (8 - shiftleft))
-                # if we've shifted all of the data in the last byte then we need
-                # to truncate by 1
-                bits_in_last_byte = (self.offset + self.bitlength) % 8
-                if bits_in_last_byte == 0:
-                    bits_in_last_byte = 8
-                if bits_in_last_byte <= shiftleft:
-                    # Remove the last byte
-                    data.pop()
-                # otherwise just shift the last byte
-                else:
-                    data[-1] = (data[-1] << shiftleft) & 255
-            else: # offset > self._offset
-                shiftright = newoffset - self.offset
-                # Give some overflow room for the last byte
-                b = self.offset + self.bitlength + 7
-                if (b + shiftright) // 8 > b // 8:
-                    self._rawarray.append(0)
-                # TODO: Replace xrange (could fail with 32-bit Python 2.x).
-                for x in xrange(self.bytelength - 1, 0, -1):
-                    data[x] = ((data[x-1] << (8 - shiftright)) & 255) + \
-                                         (data[x] >> shiftright)
-                data[0] >>= shiftright
-            self.offset = newoffset
-
-    def appendarray(self, array):
-        """Join another array on to the end of this one."""
-        # TODO: The copy here and in prepend array is needed in case array is self
-        # or if array is a FileArray. The logic needs looking at to see when it can
-        # be skipped.
-        array = copy.copy(array)
-        # Set new array offset to the number of bits in the final byte of current array.
-        array.setoffset((self.offset + self.bitlength) % 8)
-        if array.offset != 0:
-            # first do the byte with the join.
-            joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
-            self._rawarray.append(joinval)
-            self._rawarray.extend(array._rawarray[1:])
-        else:
-            self._rawarray.extend(array._rawarray)
-        self.bitlength += array.bitlength
-
-    def prependarray(self, array):
-        """Join another array on to the start of this one."""
-        # Set the offset of copy of array so that it's final byte
-        # ends in a position that matches the offset of self,
-        # then join self on to the end of it.
-        array = copy.copy(array)
-        array.setoffset((self.offset - array.bitlength) % 8)
-        assert (array.offset + array.bitlength) % 8 == self.offset
-        if self.offset != 0:
-            # first do the byte with the join.
-            array.setbyte(-1, (array.getbyte(-1) & (255 ^ (255 >> self.offset)) | \
-                                   (self._rawarray[0] & (255 >> self.offset))))
-            array._rawarray.extend(self._rawarray[1 : self.bytelength])
-        else:
-            array._rawarray.extend(self._rawarray[0 : self.bytelength])
-        self._rawarray = array._rawarray
-        self.offset = array.offset
-        self.bitlength += array.bitlength
-
-    @property
-    def bytelength(self):
-        return len(self._rawarray)
-
-    @property
-    def rawbytes(self):
-        return self._rawarray
-
-
-# In future there could be other memory based array types,
-# for example a C-based implementation.
-MemArray = ByteArray
-
-
-class FileArray(BaseArray):
-    """A class that mimics bytearray but gets data from a file object."""
-
-    __slots__ = ('source', 'bytelength', 'bitlength', 'byteoffset', 'offset')
-
-    def __init__(self, source, bitlength, offset):
-        # byteoffset - bytes to ignore at start of file
-        # bitoffset - bits (0-7) to ignore after the byteoffset
-        byteoffset, bitoffset = divmod(offset, 8)
-        filelength = os.path.getsize(source.name)
-        self.source = source
-        if bitlength is None:
-            self.bytelength = filelength - byteoffset
-            bitlength = self.bytelength*8 - bitoffset
-        else:
-            self.bytelength = (bitlength + bitoffset + 7) // 8
-        if self.bytelength > filelength - byteoffset:
-            raise CreationError("File is not long enough for specified "
-                                "bitstring length and offset.")
-        self.byteoffset = byteoffset
-        self.bitlength = bitlength
-        self.offset = bitoffset
-
-    def __copy__(self):
-        # Asking for a copy of a FileArray gets you a MemArray. After all,
-        # why would you want a copy if you didn't want to modify it?
-        return MemArray(self.rawbytes, self.bitlength, self.offset)
-
-    def getbyte(self, pos):
-        if pos < 0:
-            pos += self.bytelength
-        pos += self.byteoffset
-        self.source.seek(pos, os.SEEK_SET)
-        return ord(self.source.read(1))
-
-    def getbyteslice(self, start, end):
-        if start < end:
-            self.source.seek(start + self.byteoffset, os.SEEK_SET)
-            return self.source.read(end - start)
-        else:
-            return b''
-
-    @property
-    def rawbytes(self):
-        return bytearray(self.getbyteslice(0, self.bytelength))
-
 
 class Bits(object):
     
@@ -749,8 +561,7 @@ class Bits(object):
             if not 0 <= key < self.len:
                 raise IndexError("Slice index out of range.")
             # Single bit, return True or False
-            byte, bit = divmod(key + self._offset, 8)
-            return self._datastore.getbyte(byte) & (128 >> bit) != 0
+            return self._datastore.getbit(key)
         else:
             start = 0
             if step != 0:
@@ -1825,9 +1636,8 @@ class Bits(object):
         """Used internally to get a slice, without error checking."""
         if end is None:
             # Single bit, return True or False
-            byte, bit = divmod(start + self._offset, 8)
-            return self._datastore.getbyte(byte) & (128 >> bit) != 0
-        return self._readbits(end-start, start)
+            return self._datastore.getbit(start)
+        return self._readbits(end - start, start)
 
     def _readtoken(self, name, length):
         """Reads a token from the bitstring and returns the result."""
@@ -1983,20 +1793,17 @@ class Bits(object):
     def _set(self, pos):
         """Set bit at pos to 1."""
         assert 0 <= pos < self.len
-        byte, bit = divmod(self._offset + pos, 8)
-        self._datastore.setbyte(byte, self._datastore.getbyte(byte) | (128 >> bit))
+        self._datastore.setbit(pos)
 
     def _unset(self, pos):
         """Set bit at pos to 0."""
         assert 0 <= pos < self.len
-        byte, bit = divmod(self._offset + pos, 8)
-        self._datastore.setbyte(byte, self._datastore.getbyte(byte) & (~(128 >> bit)))
+        self._datastore.unsetbit(pos)
         
     def _invert(self, pos):
         """Flip bit at pos 1<->0."""
         assert 0 <= pos < self.len
-        byte, bit = divmod(self._offset + pos, 8)
-        self._datastore.setbyte(byte, self._datastore.getbyte(byte) ^ (128 >> bit))
+        self._datastore.invertbit(pos)
 
     def _invert_all(self):
         """Invert every bit."""
@@ -2647,7 +2454,6 @@ class Bits(object):
         """
         value = bool(value)
         length = self.len
-        offset = self._offset
         if pos is None:
             pos = xrange(self.len)
         for p in pos:
@@ -2655,8 +2461,7 @@ class Bits(object):
                 p += length
             if not 0 <= p < length:
                 raise IndexError("Bit position {0} out of range.".format(p))
-            byte, bit = divmod(offset + p, 8)
-            if not bool((self._datastore.getbyte(byte) & (128 >> bit))) is value:
+            if not self._datastore.getbit(p) is value:
                 return False
         return True
 
@@ -2671,7 +2476,6 @@ class Bits(object):
         """
         value = bool(value)
         length = self.len
-        offset = self._offset
         if pos is None:
             pos = xrange(self.len)
         for p in pos:
@@ -2679,8 +2483,7 @@ class Bits(object):
                 p += length
             if not 0 <= p < length:
                 raise IndexError("Bit position {0} out of range.".format(p))
-            byte, bit = divmod(offset + p, 8)
-            if bool(self._datastore.getbyte(byte) & (128 >> bit)) is value:
+            if self._datastore.getbit(p) is value:
                 return True
         return False
     
