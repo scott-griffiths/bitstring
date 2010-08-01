@@ -999,7 +999,16 @@ class FromFile(unittest.TestCase):
             self.assertTrue(False)
         except ValueError:
             pass
-
+    
+    def testFileBitGetting(self):
+        s = Bits(filename='smalltestfile', offset=16, length=8) # 0x45
+        b = s[1]
+        self.assertTrue(b)
+        b = s.any(0, [-1, -2, -3])
+        self.assertTrue(b)        
+        b = s.all(0, [0, 1, 2])
+        self.assertFalse(b)
+        
     def testVeryLargeFiles(self):
         # This uses an 11GB file which isn't distributed for obvious reasons
         # and so this test won't work for anyone except me!
