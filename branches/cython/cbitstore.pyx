@@ -1,9 +1,50 @@
-#!/usr/bin/env python
+# cython: profile=True
+
 
 import copy
 import os
+from array import array
+
+cdef extern from "stdlib.h":
+    ctypedef unsigned long size_t
+    void free(void *ptr)
+    void *malloc(size_t size)
+    void *realloc(void *ptr, size_t size)
+    
+cdef extern from "string.h":
+    void *memcpy(void *dst, void *src, size_t n)
 
 
+cdef class F:
+    cpdef public int offset, bitlen, bytelen
+    cpdef public char *_rawarray
+    
+    def __cinit__(self, data, int bitlen=0, int offset=0):
+        self.bitlen = bitlen
+        self.offset = offset % 8
+        self.bytelen = (offset + bitlen + 7 ) // 8 - offset // 8
+        self._rawarray = <char*>malloc(self.bytelen)
+        
+    def __dealloc__(self):
+        free(self._rawarray)
+        
+    def __init__(self, data, int bitlen=0, int offset=0):
+        d = data[offset // 8:(offset + bitlen + 7) // 8]
+        cdef char *dp = d
+        memcpy(self._rawarray, dp, self.bytelen)
+        
+    def getbyte(self, int pos):
+        return self._rawarray[pos]
+        
+    def getbit(self, int pos):
+        assert 0 <= pos < self.bitlen
+        cdef int byte, bit
+        byte, bit = divmod(self.offset + pos, 8)
+        return bool(self._rawarray[byte] & (128 >> bit))
+        
+    def getbyteslice(self, int start, int end):
+        return bytes(self._rawarray[start:end])
+        
 cdef class ByteArray:
     """Stores raw bytes together with a bit offset and length."""
 
@@ -97,7 +138,7 @@ cdef class ByteArray:
 
     def appendarray(self, ByteArray array):
         """Join another array on to the end of this one."""
-        cdef int joinval
+        cdef int joinval, popval
         # TODO: The copy here and in prepend array is needed in case array is self
         # or if array is a FileArray. The logic needs looking at to see when it can
         # be skipped.
@@ -106,7 +147,8 @@ cdef class ByteArray:
         array.setoffset((self.offset + self.bitlength) % 8)
         if array.offset != 0:
             # first do the byte with the join.
-            joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
+            popval = self._rawarray.pop()
+            joinval = (popval & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
             self._rawarray.append(joinval)
             self._rawarray.extend(array._rawarray[1:])
         else:

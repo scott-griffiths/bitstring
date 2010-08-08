@@ -12,7 +12,8 @@ if sys.version_info[:2] < (2, 6):
                     'For Python 2.4 / 2.5 please use bitstring version 1.0 instead.')
 
 ext_modules = [Extension("cbitstore", ["cbitstore.pyx"]),
-               Extension("cbits", ["cbits.pyx"])]
+               Extension("cbits", ["cbits.pyx"]),
+               Extension("cbitstring", ["cbitstring.pyx"])]
 
 setup(name='bitstring',
       version='2.0.3',

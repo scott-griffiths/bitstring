@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# cython: profile=True
 
 import os
 import struct
@@ -366,9 +366,6 @@ cdef class cBits:
     uintne -- Interpret as a native-endian unsigned integer.
     
     """
-    cdef public int _mutable, _filebased, _pos
-    cdef public object _datastore
-    #__slots__ = ('_mutable', '_filebased', '_pos', '_datastore')
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
         """Either specify an 'auto' initialiser:
@@ -450,16 +447,6 @@ cdef class cBits:
         self._setauto(auto, length, offset)
         return
 
-    #def __copy__(self):
-    #    """Return a new copy of the Bits for the copy module."""
-    #    # Note that if you want a new copy (different ID), use _copy instead.
-    #    # The copy can use the same datastore as it's immutable.
-    #    s = cBits()
-    #    s._datastore = self._datastore
-    #    # Reset the bit position, don't copy it.
-    #    s._pos = 0
-    #    return s
-
     def __add__(self, bs):
         """Concatenate bitstrings and return new bitstring.
 
@@ -478,15 +465,6 @@ cdef class cBits:
         s._append(bs)
         s._pos = 0
         return s
-        
-    def __radd__(self, bs):
-        """Append current bitstring to bs and return new bitstring.
-
-        bs -- the string for the 'auto' initialiser that will be appended to.
-
-        """
-        bs = self._converttobitstring(bs)
-        return bs.__add__(self)
 
     def __getitem__(self, key):
         """Return a new bitstring representing a slice of the current bitstring.
@@ -500,20 +478,23 @@ cdef class cBits:
         '0x1122'
 
         """
+        cdef long start, stop, step, i, length
+        length = self.len
         try:
             step = key.step if key.step is not None else 1
         except AttributeError:
             # single element
-            if key < 0:
-                key += self.len
-            if not 0 <= key < self.len:
+            i = key
+            if i < 0:
+                i += length
+            if not 0 <= i < length:
                 raise IndexError("Slice index out of range.")
             # Single bit, return True or False
-            return self._datastore.getbit(key)
+            return self._datastore.getbit(i)
         else:
             start = 0
             if step != 0:
-                stop = self.len - (self.len % abs(step))
+                stop = length - (length % abs(step))
             else:
                 stop = 0
             if key.start is not None:
@@ -523,9 +504,9 @@ cdef class cBits:
             if key.stop is not None:
                 stop = key.stop * abs(step)
                 if key.stop < 0:
-                    stop += self.len - (self.len % abs(step))
+                    stop += length - (length % abs(step))
             start = max(start, 0)
-            stop = min(stop, self.len - self.len % abs(step))
+            stop = min(stop, length - length % abs(step))
             # Adjust start and stop if we're stepping backwards
             if step < 0:
                 # This compensates for negative indices being inclusive of the
@@ -534,7 +515,6 @@ cdef class cBits:
                     start += step
                 if key.stop is not None and key.stop < 0:
                     stop += step
-
                 if key.start is None:
                     start = self.len - (self.len % abs(step)) + step
                 if key.stop is None:
@@ -646,7 +626,7 @@ cdef class cBits:
         False
 
         """
-        return not self.__eq__(bs)
+        return not self._eq(bs)
 
     def __invert__(self):
         """Return bitstring with every bit inverted.
