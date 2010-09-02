@@ -36,6 +36,7 @@ import copy
 import os
 import collections
 from bitstring import BitString, Bits, pack, One, Zero
+from bitstore import ByteArray, offsetcopy
 
 class ModuleData(unittest.TestCase):
 
@@ -1138,9 +1139,9 @@ class Offset(unittest.TestCase):
         s1 = BitString(bytes=b'\xf1\x02\x04')
         s2 = BitString(bytes=b'\xf1\x02\x04', length=23)
         for i in [1,2,3,4,5,6,7,6,5,4,3,2,1,0,7,3,5,1,4]:
-            s1._datastore.setoffset(i)
+            s1._datastore = offsetcopy(s1._datastore, i)
             self.assertEqual(s1.hex, '0xf10204')
-            s2._datastore.setoffset(i)
+            s2._datastore = offsetcopy(s2._datastore, i)
             self.assertEqual(s2.bin, '0b11110001000000100000010')
 
 class Append(unittest.TestCase):
@@ -1176,7 +1177,7 @@ class ByteAlign(unittest.TestCase):
 
     def testByteAlignWithOffset(self):
         s = BitString(hex='0112233')
-        s._datastore.setoffset(3)
+        s._datastore = offsetcopy(s._datastore, 3)
         bitstoalign = s.bytealign()
         self.assertEqual(bitstoalign, 0)
         self.assertEqual(s.read(5).bin, '0b00001')
@@ -1779,8 +1780,6 @@ class Adding(unittest.TestCase):
     def testEquals(self):
         s1 = BitString('0b01010101')
         s2 = BitString('0b01010101')
-        self.assertTrue(s1 == s2)
-        s2._datastore.setoffset(4)
         self.assertTrue(s1 == s2)
         s3 = BitString()
         s4 = BitString()
@@ -4098,6 +4097,22 @@ class InitialiseFromBytes(unittest.TestCase):
         self.assertEqual(a.bytes, b'uint:5=2')
         self.assertEqual(b, '0x00000000')
         self.assertEqual(c.bytes, b'uint:5=2')
+        
+
+class OffsetCopy(unittest.TestCase):
+    
+    def testStraightCopy(self):
+        s = ByteArray(bytearray([10, 5, 1]), 24, 0)
+        t = offsetcopy(s, 0)
+        self.assertEqual(t._rawarray, bytearray([10, 5, 1]))
+    
+    def testOffsetIncrease(self):
+        s = ByteArray(bytearray([1, 1, 1]), 24, 0)
+        t = offsetcopy(s, 4)
+        self.assertEqual(t.bitlength, 24)
+        self.assertEqual(t.offset, 4)
+        self.assertEqual(t._rawarray, bytearray([0, 16, 16, 16]))
+    
 
 class CoverageCompletionTests(unittest.TestCase):
 
