@@ -35,6 +35,13 @@ class BaseArray(object):
     def prependarray(self, array):
         raise NotImplementedError
 
+# Need to just take a reference to the data that is passed in - don't copy it.
+# Then need to make sure what's passed in isn't unneccesarily large!
+# The offset can then be > 8 (no need to % it).
+# Might need to add a byteoffset / bitoffset pair.
+# Then change getbit, getbyte etc.
+# Then a bytearrayview can be created as just a ByteArray - using same underlying bytes.
+
 
 class ByteArray(BaseArray):
     """Stores raw bytes together with a bit offset and length."""
@@ -42,8 +49,9 @@ class ByteArray(BaseArray):
     __slots__ = ('offset', '_rawarray', 'bitlength')
 
     def __init__(self, data, bitlength=0, offset=0):
-        self._rawarray = bytearray(data[offset // 8:(offset + bitlength + 7) // 8])
-        self.offset = offset % 8
+        assert isinstance(data, bytearray)
+        self._rawarray = copy.copy(data)
+        self.offset = offset
         self.bitlength = bitlength
         assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray), "bitlength:{0}, offset:{1}, bytelength:{2}".format(self.bitlength, self.offset, len(self._rawarray))
 
@@ -60,10 +68,7 @@ class ByteArray(BaseArray):
 
     def getbyteslice(self, start, end):
         c = self._rawarray[start:end]
-        # We convert to bytes because struct.unpack can't handle a bytearray (in Python 2.6 only).
-        # Probably a struct module bug. We could return a buffer object here though, but I don't
-        # think that it would be faster.
-        return bytes(c)
+        return c
 
     def setbit(self, pos):
         assert 0 <= pos < self.bitlength
@@ -86,51 +91,12 @@ class ByteArray(BaseArray):
     def setbyteslice(self, start, end, value):
         self._rawarray[start:end] = value
 
-    def setoffset(self, newoffset):
-        """Realign BitString with new offset to first bit."""
-        if newoffset != self.offset:
-            assert 0 <= newoffset < 8
-            data = self._rawarray
-            if newoffset < self.offset:
-                # We need to shift everything left
-                shiftleft = self.offset - newoffset
-                # First deal with everything except for the final byte
-                # TODO: Replace xrange (could fail with 32-bit Python 2.x).
-                for x in xrange(self.bytelength - 1):
-                    data[x] = ((data[x] << shiftleft) & 255) + \
-                                         (data[x + 1] >> (8 - shiftleft))
-                # if we've shifted all of the data in the last byte then we need
-                # to truncate by 1
-                bits_in_last_byte = (self.offset + self.bitlength) % 8
-                if bits_in_last_byte == 0:
-                    bits_in_last_byte = 8
-                if bits_in_last_byte <= shiftleft:
-                    # Remove the last byte
-                    data.pop()
-                # otherwise just shift the last byte
-                else:
-                    data[-1] = (data[-1] << shiftleft) & 255
-            else: # offset > self._offset
-                shiftright = newoffset - self.offset
-                # Give some overflow room for the last byte
-                b = self.offset + self.bitlength + 7
-                if (b + shiftright) // 8 > b // 8:
-                    self._rawarray.append(0)
-                # TODO: Replace xrange (could fail with 32-bit Python 2.x).
-                for x in xrange(self.bytelength - 1, 0, -1):
-                    data[x] = ((data[x-1] << (8 - shiftright)) & 255) + \
-                                         (data[x] >> shiftright)
-                data[0] >>= shiftright
-            self.offset = newoffset
-
     def appendarray(self, array):
         """Join another array on to the end of this one."""
-        # TODO: The copy here and in prepend array is needed in case array is self
-        # or if array is a FileArray. The logic needs looking at to see when it can
-        # be skipped.
-        array = copy.copy(array)
+        if array.bitlength == 0:
+            return
         # Set new array offset to the number of bits in the final byte of current array.
-        array.setoffset((self.offset + self.bitlength) % 8)
+        array = offsetcopy(array, (self.offset + self.bitlength) % 8)
         if array.offset != 0:
             # first do the byte with the join.
             joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
@@ -142,11 +108,12 @@ class ByteArray(BaseArray):
 
     def prependarray(self, array):
         """Join another array on to the start of this one."""
+        if array.bitlength == 0:
+            return
         # Set the offset of copy of array so that it's final byte
         # ends in a position that matches the offset of self,
         # then join self on to the end of it.
-        array = copy.copy(array)
-        array.setoffset((self.offset - array.bitlength) % 8)
+        array = offsetcopy(array, (self.offset - array.bitlength) % 8)
         assert (array.offset + array.bitlength) % 8 == self.offset
         if self.offset != 0:
             # first do the byte with the join.
@@ -214,11 +181,48 @@ class FileArray(BaseArray):
     def getbyteslice(self, start, end):
         if start < end:
             self.source.seek(start + self.byteoffset, os.SEEK_SET)
-            return self.source.read(end - start)
+            return bytearray(self.source.read(end - start))
         else:
-            return b''
+            return bytearray()
 
     @property
     def rawbytes(self):
         return bytearray(self.getbyteslice(0, self.bytelength))
         
+        
+def offsetcopy(s, newoffset):
+    """Return a copy of s with the newoffset. Is allowed to return s
+    as an optimisation if newoffset==s.offset and s is immutable."""
+    if newoffset == s.offset or s.bitlength == 0:
+        return copy.copy(s)
+    else:
+        assert 0 <= newoffset < 8
+        newdata = []
+        if newoffset < s.offset:
+            # We need to shift everything left
+            shiftleft = s.offset - newoffset
+            # First deal with everything except for the final byte
+            for x in xrange(s.bytelength - 1):
+                newdata.append(((s.getbyte(x) << shiftleft) & 0xff) + \
+                                     (s.getbyte(x + 1) >> (8 - shiftleft)))
+            bits_in_last_byte = (s.offset + s.bitlength) % 8
+            if bits_in_last_byte == 0:
+                bits_in_last_byte = 8
+            if bits_in_last_byte > shiftleft:
+                newdata.append((s.getbyte(s.bytelength - 1) << shiftleft) & 0xff)
+        else: # newoffset > s._offset
+            shiftright = newoffset - s.offset
+            newdata.append(s.getbyte(0) >> shiftright)
+            for x in xrange(1, s.bytelength):
+                newdata.append(((s.getbyte(x-1) << (8 - shiftright)) & 0xff) + \
+                                     (s.getbyte(x) >> shiftright))
+            bits_in_last_byte = (s.offset + s.bitlength) % 8
+            if bits_in_last_byte == 0:
+                bits_in_last_byte = 8
+            if bits_in_last_byte + shiftright > 8:
+                newdata.append((s.getbyte(s.bytelength - 1) << (8 - shiftright)) & 0xff)
+        new_s = ByteArray(bytearray(newdata), s.bitlength, newoffset)
+        assert new_s.offset == newoffset
+        assert (new_s.offset + new_s.bitlength + 7) // 8 == new_s.bytelength
+        return new_s
+    
