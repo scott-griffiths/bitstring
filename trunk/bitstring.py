@@ -1044,7 +1044,7 @@ class Bits(object):
         assert length % 8 == 0
         assert start + length <= self.len
         if (start + self._offset) % 8 == 0:
-            return self._datastore.getbyteslice(start + self._offset // 8, (start + self._offset + length) // 8)
+            return bytes(self._datastore.getbyteslice(start + self._offset // 8, (start + self._offset + length) // 8))
         # TODO: don't call __getitem__ here!
         return self[start:start + length].tobytes()
 
@@ -1487,7 +1487,7 @@ class Bits(object):
         # Use lookup table to convert each byte to string of 8 bits.
         startbyte, startoffset = divmod(start + self._offset, 8)
         endbyte = (start + self._offset + length - 1) // 8
-        
+        # TODO: Which method is faster?
         f = self._datastore.getbyte
         c = [BYTE_TO_BITS[f(x)] for x in xrange(startbyte, endbyte + 1)]
         #assert len(c) <= length // 8 + 2
