@@ -63,7 +63,7 @@ class MemoryUsage(unittest.TestCase):
         except ImportError:
             return
         # These values might be platform dependent, so don't fret too much.
-        self.assertEqual(size(Bits('0xff')), 448)
+        self.assertEqual(size(Bits('0xff')), 392)
 
 class Creation(unittest.TestCase):
 

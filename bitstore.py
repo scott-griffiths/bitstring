@@ -164,6 +164,11 @@ class FileArray(BaseArray):
         # why would you want a copy if you didn't want to modify it?
         return ByteArray(self.rawbytes, self.bitlength, self.offset)
 
+    def __getitem__(self, pos):
+        # This is to allow offsetcopy to index like it does the
+        # _rawarray of the ByteArray
+        return self.getbyte(pos)
+        
     def getbyte(self, pos):
         if pos < 0:
             pos += self.bytelength
@@ -198,7 +203,10 @@ def offsetcopy(s, newoffset):
     else:
         assert 0 <= newoffset < 8
         newdata = []
-        d = s._rawarray
+        try:
+            d = s._rawarray
+        except AttributeError:
+            d = s
         if newoffset < s.offset:
             # We need to shift everything left
             shiftleft = s.offset - newoffset
