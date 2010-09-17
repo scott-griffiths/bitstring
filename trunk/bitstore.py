@@ -50,7 +50,7 @@ class ByteArray(BaseArray):
 
     def __init__(self, data, bitlength=0, offset=0):
         assert isinstance(data, bytearray)
-        self._rawarray = copy.copy(data)
+        self._rawarray = data[:]
         self.offset = offset
         self.bitlength = bitlength
         assert (self.bitlength + self.offset + 7) // 8 == len(self._rawarray), "bitlength:{0}, offset:{1}, bytelength:{2}".format(self.bitlength, self.offset, len(self._rawarray))
@@ -198,29 +198,30 @@ def offsetcopy(s, newoffset):
     else:
         assert 0 <= newoffset < 8
         newdata = []
+        d = s._rawarray
         if newoffset < s.offset:
             # We need to shift everything left
             shiftleft = s.offset - newoffset
             # First deal with everything except for the final byte
-            for x in xrange(s.bytelength - 1):
-                newdata.append(((s.getbyte(x) << shiftleft) & 0xff) + \
-                                     (s.getbyte(x + 1) >> (8 - shiftleft)))
+            for x in range(s.bytelength - 1):
+                newdata.append(((d[x] << shiftleft) & 0xff) + \
+                                     (d[x + 1] >> (8 - shiftleft)))
             bits_in_last_byte = (s.offset + s.bitlength) % 8
             if bits_in_last_byte == 0:
                 bits_in_last_byte = 8
             if bits_in_last_byte > shiftleft:
-                newdata.append((s.getbyte(s.bytelength - 1) << shiftleft) & 0xff)
+                newdata.append((d[-1] << shiftleft) & 0xff)
         else: # newoffset > s._offset
             shiftright = newoffset - s.offset
             newdata.append(s.getbyte(0) >> shiftright)
-            for x in xrange(1, s.bytelength):
-                newdata.append(((s.getbyte(x-1) << (8 - shiftright)) & 0xff) + \
-                                     (s.getbyte(x) >> shiftright))
+            for x in range(1, s.bytelength):
+                newdata.append(((d[x-1] << (8 - shiftright)) & 0xff) + \
+                                     (d[x] >> shiftright))
             bits_in_last_byte = (s.offset + s.bitlength) % 8
             if bits_in_last_byte == 0:
                 bits_in_last_byte = 8
             if bits_in_last_byte + shiftright > 8:
-                newdata.append((s.getbyte(s.bytelength - 1) << (8 - shiftright)) & 0xff)
+                newdata.append((d[-1] << (8 - shiftright)) & 0xff)
         new_s = ByteArray(bytearray(newdata), s.bitlength, newoffset)
         assert new_s.offset == newoffset
         assert (new_s.offset + new_s.bitlength + 7) // 8 == new_s.bytelength
