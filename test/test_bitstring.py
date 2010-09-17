@@ -41,7 +41,7 @@ from bitstore import ByteArray, offsetcopy
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.0.3')
+        self.assertEqual(bitstring.__version__, '2.0.4')
 
     def testAll(self):
         exported = ['Bits', 'BitString', 'pack', 'Error', 'ReadError',
@@ -897,7 +897,7 @@ class FromFile(unittest.TestCase):
         s.append('0xff')
         self.assertEqual(s.hex, '0x0123456789abcdefff')
 
-        s = BitString(filename='smalltestfile')
+        s = Bits(filename='smalltestfile')
         t = BitString('0xff') + s
         self.assertEqual(t.hex, '0xff0123456789abcdef')
 
@@ -945,6 +945,7 @@ class FromFile(unittest.TestCase):
         s.bitpos = 0
         self.assertEqual(s.read('ue'), 144)
         self.assertEqual(s.bytes, b'\x01\x23\x45\x67\x89\xab\xcd\xef')
+        self.assertEqual(s.tobytes(), b'\x01\x23\x45\x67\x89\xab\xcd\xef')
 
     def testCreationFromFileWithLength(self):
         s = Bits(filename='test.m1v', length = 32)
@@ -4020,24 +4021,16 @@ class FileReadingStrategy(unittest.TestCase):
     def testBitStringIsAlwaysRead(self):
         a = BitString(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore, bitstring.MemArray))
-        self.assertFalse(a._filebased)
-        self.assertTrue(a._mutable)
         f = open('smalltestfile', 'rb')
         b = BitString(f)
         self.assertTrue(isinstance(b._datastore, bitstring.MemArray))
-        self.assertFalse(b._filebased)
-        self.assertTrue(a._mutable)
 
     def testBitsIsNeverRead(self):
         a = Bits(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore, bitstring.FileArray))
-        self.assertTrue(a._filebased)
-        self.assertFalse(a._mutable)
         f = open('smalltestfile', 'rb')
         b = Bits(f)
         self.assertTrue(isinstance(b._datastore, bitstring.FileArray))
-        self.assertTrue(b._filebased)
-        self.assertFalse(a._mutable)
 
 class Count(unittest.TestCase):
     
