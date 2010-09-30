@@ -1888,7 +1888,7 @@ class Adding(unittest.TestCase):
 
     def testFileAndMemEquivalence(self):
         a = Bits(filename='smalltestfile')
-        b = Bits(filename='smalltestfile')[:]
+        b = BitString(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore, bitstring.FileArray))
         self.assertTrue(isinstance(b._datastore, bitstring.MemArray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))

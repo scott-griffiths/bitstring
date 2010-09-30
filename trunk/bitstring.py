@@ -682,22 +682,7 @@ class Bits(object):
             bs = self._converttobitstring(bs)
         except TypeError:
             return False
-        if self.len != bs.len:
-            return False
-        # TODO: There's still a lot we can do to make this faster. We should be
-        # looking at the raw data so that we don't change offsets unless we
-        # really have to. (Define an __eq__ for ByteArray objects).
-        # Check in chunks so that we can exit early if possible.
-        chunk_size = (1 << 21)
-        if self.len <= chunk_size:
-            return self.tobytes() == bs.tobytes()
-        for s_chunk, bs_chunk in zip(self.cut(chunk_size), bs.cut(chunk_size)):
-            if s_chunk.tobytes() != bs_chunk.tobytes():
-                return False
-        final_bits = self.len % chunk_size
-        if self[-final_bits:].tobytes() != bs[-final_bits:].tobytes():
-            return False
-        return True
+        return bitstore.equal(self._datastore, bs._datastore)
 
     def __ne__(self, bs):
         """Return False if two bitstrings have the same binary representation.
@@ -900,12 +885,12 @@ class Bits(object):
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
         assert self.len >= 0
-        assert 0 <= self._offset < 8, "offset={0}".format(self._offset)
+        assert 0 <= self._offset, "offset={0}".format(self._offset)
         if self.len == 0:
             assert self._pos == 0, "len=0, pos={0}".format(self._pos)
         else:
             assert 0 <= self._pos <= self.len, "len={0}, pos={1}".format(self.len, self._pos)
-        assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength
+        assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset
         return True
 
     @classmethod
@@ -1036,7 +1021,7 @@ class Bits(object):
     
     def _setbytes_unsafe(self, data, length, offset):
         """Unchecked version of _setbytes_safe."""
-        self._datastore = MemArray(data, length, offset)
+        self._datastore = MemArray(data[:], length, offset)
         assert self._assertsanity()
 
     def _readbytes(self, length, start):
@@ -1485,13 +1470,13 @@ class Bits(object):
         if length == 0:
             return ''
         # Use lookup table to convert each byte to string of 8 bits.
-        startbyte, startoffset = divmod(start + self._offset, 8)
-        endbyte = (start + self._offset + length - 1) // 8
+        startbyte, startoffset = divmod(start + (self._offset % 8), 8)
+        endbyte = (start + (self._offset % 8) + length - 1) // 8
         # TODO: Which method is faster?
-        f = self._datastore.getbyte
-        c = [BYTE_TO_BITS[f(x)] for x in xrange(startbyte, endbyte + 1)]
+#        f = self._datastore.getbyte
+#        c = [BYTE_TO_BITS[f(x)] for x in xrange(startbyte, endbyte + 1)]
         #assert len(c) <= length // 8 + 2
-        #c = [BYTE_TO_BITS[x] for x in self._datastore.getbyteslice(startbyte, endbyte + 1)]
+        c = [BYTE_TO_BITS[x] for x in self._datastore.getbyteslice(startbyte, endbyte + 1)]
         return '0b' + ''.join(c)[startoffset:startoffset + length]
 
     def _getbin(self):
@@ -1648,12 +1633,11 @@ class Bits(object):
                                 self.len, self._offset)
         return s_copy
 
-    def _slice(self, start, end=None):
+    def _slice(self, start, end):
         """Used internally to get a slice, without error checking."""
-        if end is None:
-            # Single bit, return True or False
-            return self._datastore.getbit(start)
-        return self._readbits(end - start, start)
+        b = Bits()
+        b._datastore = bitstore.slice(self._datastore, end - start, start)
+        return b
 
     def _readtoken(self, name, length):
         """Reads a token from the bitstring and returns the result."""
@@ -1877,14 +1861,7 @@ class Bits(object):
 
     def _readbits(self, length, start):
         """Read some bits from the bitstring and return newly constructed bitstring."""
-        if length is None:
-            return self[start] # TODO: Don't range check
-        offset = self._offset
-        startbyte, newoffset = divmod(start + offset, 8)
-        endbyte = (start + offset + length - 1) // 8
-        bs = self.__class__(bytes=self._datastore.getbyteslice(startbyte, endbyte + 1),
-                            length=length, offset=newoffset)
-        return bs
+        return self._slice(start, start + length)
 
     def _validate_slice(self, start, end):
         """Validate start and end and return them as positive bit positions."""
@@ -1963,7 +1940,7 @@ class Bits(object):
             if fmt > self.len - self._pos:
                 raise ReadError("Cannot read {0} bits, only {1} available.",
                                 fmt, self.len - self._pos)
-            bs = self._readbits(fmt, self._pos)
+            bs = self._slice(self._pos, self._pos + fmt)
             self._pos += fmt
             return bs
         p = self._pos
@@ -3023,6 +3000,15 @@ class BitString(Bits):
         if newoffset == 8:
             newoffset = 0
         self._setbytes_unsafe(bytearray().join(n), self.length, newoffset)
+
+    def _slice(self, start, end):
+        """Used internally to get a slice, without error checking."""
+        offset = self._offset
+        startbyte, newoffset = divmod(start + offset, 8)
+        endbyte = (end + offset - 1) // 8
+        bs = BitString(bytes=self._datastore.getbyteslice(startbyte, endbyte + 1),
+                            length=end - start, offset=newoffset)
+        return bs
 
     def replace(self, old, new, start=None, end=None, count=None,
                 bytealigned=False):
