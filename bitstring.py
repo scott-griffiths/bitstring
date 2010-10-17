@@ -69,10 +69,8 @@ import functools
 import binascii
 import bitstore
 import numbers
-from bitstore import FileArray, ByteArray
-# In future there could be other memory based array types,
-# for example a C-based implementation.
-MemArray = ByteArray
+from bitstore import FileArray
+from bitstore import ByteArray as MemArray
 
 byteorder = sys.byteorder
 
@@ -1031,6 +1029,9 @@ class Bits(object):
         if (start + self._offset) % 8 == 0:
             return bytes(self._datastore.getbyteslice(start + self._offset // 8, (start + self._offset + length) // 8))
         # TODO: don't call __getitem__ here!
+#        b = MemArray(self._datastore.rawbytes, length, start + self._offset)
+#        b = bitstore.offsetcopy(b, 0)
+#        return b.getbyteslice(0, length // 8)
         return self[start:start + length].tobytes()
 
     def _getbytes(self):

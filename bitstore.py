@@ -36,16 +36,15 @@ class BaseArray(object):
         raise NotImplementedError
 
 
-class ByteArray(BaseArray):
+class ConstByteArray(BaseArray):
     """Stores raw bytes together with a bit offset and length."""
 
-    __slots__ = ('offset', '_rawarray', 'bitlength', 'byteoffset')
+    __slots__ = ('offset', '_rawarray', 'bitlength')
 
     def __init__(self, data, bitlength=0, offset=0):
         assert isinstance(data, bytearray)
         self._rawarray = data
         self.offset = offset
-        self.byteoffset = self.offset // 8
         self.bitlength = bitlength
 
     def __copy__(self):
@@ -63,6 +62,29 @@ class ByteArray(BaseArray):
         c = self._rawarray[start + self.byteoffset:end + self.byteoffset]
         return c
 
+    @property
+    def bytelength(self):
+        if self.bitlength == 0:
+            return 0
+        sb = self.offset // 8
+        eb = (self.offset + self.bitlength - 1) // 8
+        if eb == -1:
+            return 1 # ? Empty bitstring still has one byte of data?
+        return eb - sb + 1
+    
+    @property
+    def byteoffset(self):
+        return self.offset // 8
+
+    @property
+    def rawbytes(self):
+        return self._rawarray
+
+
+class ByteArray(ConstByteArray):
+    
+    __slots__ = ()
+    
     def setbit(self, pos):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
@@ -118,21 +140,7 @@ class ByteArray(BaseArray):
         self._rawarray = array._rawarray
         self.offset = array.offset
         self.bitlength += array.bitlength
-
-    @property
-    def bytelength(self):
-        if self.bitlength == 0:
-            return 0
-        sb = self.offset // 8
-        eb = (self.offset + self.bitlength - 1) // 8
-        if eb == -1:
-            return 1 # ? Empty bitstring still has one byte of data?
-        return eb - sb + 1
-
-    @property
-    def rawbytes(self):
-        return self._rawarray
-
+    
 
 class FileArray(BaseArray):
     """A class that mimics bytearray but gets data from a file object."""
@@ -212,7 +220,6 @@ def offsetcopy(s, newoffset):
             d = s._rawarray
         except AttributeError:
             d = s
-        byteoffset, newoffset = divmod(newoffset, 8)
         if newoffset == s.offset % 8:
             new_s = ByteArray(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
             return new_s
