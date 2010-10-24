@@ -35,21 +35,21 @@ import bitstring
 import copy
 import os
 import collections
-from bitstring import BitString, Bits, pack, One, Zero
-from bitstore import ByteArray, offsetcopy
+from bitstring import BitString, Bits, pack
+from bitstring.bitstore import ByteArray, offsetcopy
 
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.0.4')
+        self.assertEqual(bitstring.bitstring.__version__, '2.0.4')
 
     def testAll(self):
         exported = ['Bits', 'BitString', 'pack', 'Error', 'ReadError',
                     'InterpretError', 'ByteAlignError', 'CreationError']
-        self.assertEqual(set(bitstring.__all__), set(exported))
+        self.assertEqual(set(bitstring.bitstring.__all__), set(exported))
 
     def testReverseDict(self):
-        d = bitstring.BYTE_REVERSAL_DICT
+        d = bitstring.bitstring.BYTE_REVERSAL_DICT
         for i in range(256):
             a = BitString(uint=i, length=8)
             b = d[i]
@@ -1889,14 +1889,14 @@ class Adding(unittest.TestCase):
     def testFileAndMemEquivalence(self):
         a = Bits(filename='smalltestfile')
         b = BitString(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore, bitstring.FileArray))
-        self.assertTrue(isinstance(b._datastore, bitstring.MemArray))
+        self.assertTrue(isinstance(a._datastore, bitstring.bitstore.FileArray))
+        self.assertTrue(isinstance(b._datastore, bitstring.bitstring.MemArray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
         self.assertEqual(a._datastore.getbyteslice(1, 5), bytearray(b._datastore.getbyteslice(1, 5)))
 
     def testByte2Bits(self):
         for i in range(256):
-            s = BitString(bin=bitstring.BYTE_TO_BITS[i])
+            s = BitString(bin=bitstring.bitstring.BYTE_TO_BITS[i])
             self.assertEqual(i, s.uint)
             self.assertEqual(s.length, 8)
 
@@ -2140,7 +2140,7 @@ class Adding(unittest.TestCase):
         self.assertFalse('0xfeed' in a)
 
     def testRepr(self):
-        max = bitstring.MAX_CHARS
+        max = bitstring.bitstring.MAX_CHARS
         bls = ['', '0b1', '0o5', '0x43412424f41', '0b00101001010101']
         for bs in bls:
             a = BitString(bs)
@@ -2167,7 +2167,7 @@ class Adding(unittest.TestCase):
         s = BitString(hex='0x00')
         self.assertEqual(s.hex, s.__str__())
         s = BitString(filename='test.m1v')
-        self.assertEqual(s[0:bitstring.MAX_CHARS*4].hex+'...', s.__str__())
+        self.assertEqual(s[0:bitstring.bitstring.MAX_CHARS*4].hex+'...', s.__str__())
         self.assertEqual(BitString().__str__(), '')
 
     def testIter(self):
@@ -2587,7 +2587,7 @@ class Adding(unittest.TestCase):
     #    os.remove('temp_bitstring_unit_testing_file')
 
     def testTokenParser(self):
-        tp = bitstring.tokenparser
+        tp = bitstring.bitstring.tokenparser
         self.assertEqual(tp('hex'), (True, [('hex', None, None)]))
         self.assertEqual(tp('hex=14'), (True, [('hex', None, '14')]))
         self.assertEqual(tp('se'), (False, [('se', None, None)]))
@@ -2870,7 +2870,7 @@ class Adding(unittest.TestCase):
 
     def testEfficientOverwrite(self):
         a = BitString(1000000000)
-        a.overwrite(One, 123456)
+        a.overwrite([1], 123456)
         self.assertEqual(a[123456], True)
         a.overwrite('0xff', 1)
         self.assertEqual(a[0:4:8], '0x7f800000')
@@ -3100,7 +3100,7 @@ class Adding(unittest.TestCase):
         self.assertTrue(isinstance(s.bytes, bytes))
 
     def testPython3stuff(self):
-        if bitstring.PYTHON_VERSION == 3:
+        if bitstring.bitstring.PYTHON_VERSION == 3:
             pass
 
     def testReadFromBits(self):
@@ -3832,7 +3832,7 @@ class Bugs(unittest.TestCase):
         self.assertEqual(swaps, 2)
 
     def testBracketExpander(self):
-        be = bitstring.expand_brackets
+        be = bitstring.bitstring.expand_brackets
         self.assertEqual(be('hello'), 'hello')
         self.assertEqual(be('(hello)'), 'hello')
         self.assertEqual(be('1*(hello)'), 'hello')
@@ -3852,14 +3852,14 @@ class Bugs(unittest.TestCase):
         self.assertEqual(a, b)
 
     def testPackCodeDicts(self):
-        self.assertEqual(sorted(bitstring.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.REPLACEMENTS_LE.keys()))
-        self.assertEqual(sorted(bitstring.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.PACK_CODE_SIZE.keys()))
-        for key in bitstring.PACK_CODE_SIZE:
-            be = pack(bitstring.REPLACEMENTS_BE[key], 0)
-            le = pack(bitstring.REPLACEMENTS_LE[key], 0)
-            self.assertEqual(be.len, bitstring.PACK_CODE_SIZE[key]*8)
+        self.assertEqual(sorted(bitstring.bitstring.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.bitstring.REPLACEMENTS_LE.keys()))
+        self.assertEqual(sorted(bitstring.bitstring.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.bitstring.PACK_CODE_SIZE.keys()))
+        for key in bitstring.bitstring.PACK_CODE_SIZE:
+            be = pack(bitstring.bitstring.REPLACEMENTS_BE[key], 0)
+            le = pack(bitstring.bitstring.REPLACEMENTS_LE[key], 0)
+            self.assertEqual(be.len, bitstring.bitstring.PACK_CODE_SIZE[key]*8)
             self.assertEqual(le.len, be.len)
 
     # These tests don't compile for Python 3, so they're commented out to save me stress.
@@ -4020,17 +4020,17 @@ class FileReadingStrategy(unittest.TestCase):
 
     def testBitStringIsAlwaysRead(self):
         a = BitString(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore, bitstring.MemArray))
+        self.assertTrue(isinstance(a._datastore, bitstring.bitstring.MemArray))
         f = open('smalltestfile', 'rb')
         b = BitString(f)
-        self.assertTrue(isinstance(b._datastore, bitstring.MemArray))
+        self.assertTrue(isinstance(b._datastore, bitstring.bitstring.MemArray))
 
     def testBitsIsNeverRead(self):
         a = Bits(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore, bitstring.FileArray))
+        self.assertTrue(isinstance(a._datastore, bitstring.bitstore.FileArray))
         f = open('smalltestfile', 'rb')
         b = Bits(f)
-        self.assertTrue(isinstance(b._datastore, bitstring.FileArray))
+        self.assertTrue(isinstance(b._datastore, bitstring.bitstore.FileArray))
 
 class Count(unittest.TestCase):
     
@@ -4074,7 +4074,7 @@ class InitialiseFromBytes(unittest.TestCase):
         a = Bits(b'uint:5=2')
         b = Bits(b'')
         c = Bits(bytes=b'uint:5=2')
-        if bitstring.PYTHON_VERSION == 2:
+        if bitstring.bitstring.PYTHON_VERSION == 2:
             self.assertEqual(a, 'uint:5=2')
             self.assertFalse(b)
             self.assertEqual(c.bytes, b'uint:5=2')

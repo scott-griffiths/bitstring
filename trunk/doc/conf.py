@@ -91,27 +91,32 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'default'
+html_theme = 'haiku'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 main_colour = "#ffbbbb"
 html_theme_options = {
-"rightsidebar": "true",
-"stickysidebar": "true",
-#"bodyfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
-"headfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
-"sidebarbgcolor": "#f0f0ff",
-"footerbgcolor": "#771111",
-"relbarbgcolor": "#993333",
-"sidebartextcolor": "#000000",
-"sidebarlinkcolor": "#330000",
-"codebgcolor": "#fffff0",
-"headtextcolor": "#000080",
-"headbgcolor": "#f0f0ff",
-"bgcolor": "#ffffff",
+    "full_logo": "false",
+    "linkcolor": "#000066",
+    "visitedlinkcolor": "#444499",
+    "hoverlinkcolor": "#cc0000",
 }
+#"rightsidebar": "true",
+#"stickysidebar": "true",
+##"bodyfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
+#"headfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
+#"sidebarbgcolor": "#f0f0ff",
+#"footerbgcolor": "#771111",
+#"relbarbgcolor": "#993333",
+#"sidebartextcolor": "#000000",
+#"sidebarlinkcolor": "#330000",
+#"codebgcolor": "#fffff0",
+#"headtextcolor": "#000080",
+#"headbgcolor": "#f0f0ff",
+#"bgcolor": "#ffffff",
+#}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -125,7 +130,7 @@ html_short_title = 'bitstring'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = 'bitstring_logo_small.png'
+html_logo = 'rope.jpg' #'bitstring_logo_small.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
