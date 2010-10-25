@@ -36,20 +36,20 @@ import copy
 import os
 import collections
 from bitstring import BitString, Bits, pack
-from bitstring.bitstore import ByteArray, offsetcopy
+from bitstring.bitstore import MemArray, offsetcopy
 
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.bitstring.__version__, '2.0.4')
+        self.assertEqual(bitstring.__version__, '2.0.4')
 
     def testAll(self):
         exported = ['Bits', 'BitString', 'pack', 'Error', 'ReadError',
                     'InterpretError', 'ByteAlignError', 'CreationError']
-        self.assertEqual(set(bitstring.bitstring.__all__), set(exported))
+        self.assertEqual(set(bitstring.__all__), set(exported))
 
     def testReverseDict(self):
-        d = bitstring.bitstring.BYTE_REVERSAL_DICT
+        d = bitstring.bits.BYTE_REVERSAL_DICT
         for i in range(256):
             a = BitString(uint=i, length=8)
             b = d[i]
@@ -1896,7 +1896,7 @@ class Adding(unittest.TestCase):
 
     def testByte2Bits(self):
         for i in range(256):
-            s = BitString(bin=bitstring.bitstring.BYTE_TO_BITS[i])
+            s = BitString(bin=bitstring.bits.BYTE_TO_BITS[i])
             self.assertEqual(i, s.uint)
             self.assertEqual(s.length, 8)
 
@@ -2140,7 +2140,7 @@ class Adding(unittest.TestCase):
         self.assertFalse('0xfeed' in a)
 
     def testRepr(self):
-        max = bitstring.bitstring.MAX_CHARS
+        max = bitstring.bits.MAX_CHARS
         bls = ['', '0b1', '0o5', '0x43412424f41', '0b00101001010101']
         for bs in bls:
             a = BitString(bs)
@@ -2167,7 +2167,7 @@ class Adding(unittest.TestCase):
         s = BitString(hex='0x00')
         self.assertEqual(s.hex, s.__str__())
         s = BitString(filename='test.m1v')
-        self.assertEqual(s[0:bitstring.bitstring.MAX_CHARS*4].hex+'...', s.__str__())
+        self.assertEqual(s[0:bitstring.bits.MAX_CHARS*4].hex+'...', s.__str__())
         self.assertEqual(BitString().__str__(), '')
 
     def testIter(self):
@@ -2587,7 +2587,7 @@ class Adding(unittest.TestCase):
     #    os.remove('temp_bitstring_unit_testing_file')
 
     def testTokenParser(self):
-        tp = bitstring.bitstring.tokenparser
+        tp = bitstring.bits.tokenparser
         self.assertEqual(tp('hex'), (True, [('hex', None, None)]))
         self.assertEqual(tp('hex=14'), (True, [('hex', None, '14')]))
         self.assertEqual(tp('se'), (False, [('se', None, None)]))
@@ -3100,7 +3100,7 @@ class Adding(unittest.TestCase):
         self.assertTrue(isinstance(s.bytes, bytes))
 
     def testPython3stuff(self):
-        if bitstring.bitstring.PYTHON_VERSION == 3:
+        if bitstring.bits.PYTHON_VERSION == 3:
             pass
 
     def testReadFromBits(self):
@@ -3832,7 +3832,7 @@ class Bugs(unittest.TestCase):
         self.assertEqual(swaps, 2)
 
     def testBracketExpander(self):
-        be = bitstring.bitstring.expand_brackets
+        be = bitstring.bits.expand_brackets
         self.assertEqual(be('hello'), 'hello')
         self.assertEqual(be('(hello)'), 'hello')
         self.assertEqual(be('1*(hello)'), 'hello')
@@ -3852,14 +3852,14 @@ class Bugs(unittest.TestCase):
         self.assertEqual(a, b)
 
     def testPackCodeDicts(self):
-        self.assertEqual(sorted(bitstring.bitstring.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.bitstring.REPLACEMENTS_LE.keys()))
-        self.assertEqual(sorted(bitstring.bitstring.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.bitstring.PACK_CODE_SIZE.keys()))
-        for key in bitstring.bitstring.PACK_CODE_SIZE:
-            be = pack(bitstring.bitstring.REPLACEMENTS_BE[key], 0)
-            le = pack(bitstring.bitstring.REPLACEMENTS_LE[key], 0)
-            self.assertEqual(be.len, bitstring.bitstring.PACK_CODE_SIZE[key]*8)
+        self.assertEqual(sorted(bitstring.bits.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.bits.REPLACEMENTS_LE.keys()))
+        self.assertEqual(sorted(bitstring.bits.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.bits.PACK_CODE_SIZE.keys()))
+        for key in bitstring.bits.PACK_CODE_SIZE:
+            be = pack(bitstring.bits.REPLACEMENTS_BE[key], 0)
+            le = pack(bitstring.bits.REPLACEMENTS_LE[key], 0)
+            self.assertEqual(be.len, bitstring.bits.PACK_CODE_SIZE[key]*8)
             self.assertEqual(le.len, be.len)
 
     # These tests don't compile for Python 3, so they're commented out to save me stress.
@@ -4074,7 +4074,7 @@ class InitialiseFromBytes(unittest.TestCase):
         a = Bits(b'uint:5=2')
         b = Bits(b'')
         c = Bits(bytes=b'uint:5=2')
-        if bitstring.bitstring.PYTHON_VERSION == 2:
+        if bitstring.bits.PYTHON_VERSION == 2:
             self.assertEqual(a, 'uint:5=2')
             self.assertFalse(b)
             self.assertEqual(c.bytes, b'uint:5=2')
@@ -4095,12 +4095,12 @@ class InitialiseFromBytes(unittest.TestCase):
 class OffsetCopy(unittest.TestCase):
     
     def testStraightCopy(self):
-        s = ByteArray(bytearray([10, 5, 1]), 24, 0)
+        s = MemArray(bytearray([10, 5, 1]), 24, 0)
         t = offsetcopy(s, 0)
         self.assertEqual(t._rawarray, bytearray([10, 5, 1]))
     
     def testOffsetIncrease(self):
-        s = ByteArray(bytearray([1, 1, 1]), 24, 0)
+        s = MemArray(bytearray([1, 1, 1]), 24, 0)
         t = offsetcopy(s, 4)
         self.assertEqual(t.bitlength, 24)
         self.assertEqual(t.offset, 4)
