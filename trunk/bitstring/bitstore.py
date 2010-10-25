@@ -3,6 +3,8 @@
 import copy
 import os
 
+__all__ = ['MemArray', 'FileArray', 'slice', 'offsetcopy', 'equal']
+
 class BaseArray(object):
     """Array types should implement the methods given here."""
 
@@ -36,7 +38,7 @@ class BaseArray(object):
         raise NotImplementedError
 
 
-class ConstByteArray(BaseArray):
+class ConstMemArray(BaseArray):
     """Stores raw bytes together with a bit offset and length."""
 
     __slots__ = ('offset', '_rawarray', 'bitlength')
@@ -48,7 +50,7 @@ class ConstByteArray(BaseArray):
         self.bitlength = bitlength
 
     def __copy__(self):
-        return ByteArray(self._rawarray[:], self.bitlength, self.offset)
+        return MemArray(self._rawarray[:], self.bitlength, self.offset)
 
     def getbit(self, pos):
         assert 0 <= pos < self.bitlength
@@ -81,7 +83,7 @@ class ConstByteArray(BaseArray):
         return self._rawarray
 
 
-class ByteArray(ConstByteArray):
+class MemArray(ConstMemArray):
     
     __slots__ = ()
     
@@ -204,7 +206,7 @@ class FileArray(BaseArray):
 def slice(ba, bitlength, offset):
     """Return a new ByteArray created as a slice of ba."""
     try:
-        return ByteArray(ba._rawarray, bitlength, ba.offset + offset)
+        return MemArray(ba._rawarray, bitlength, ba.offset + offset)
     except AttributeError:
         return FileArray(ba.source, bitlength, 8*ba.byteoffset + ba.offset + offset)
         
@@ -221,7 +223,7 @@ def offsetcopy(s, newoffset):
         except AttributeError:
             d = s
         if newoffset == s.offset % 8:
-            new_s = ByteArray(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
+            new_s = MemArray(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
             return new_s
         assert newoffset != s.offset % 8
         if newoffset < s.offset % 8:
@@ -247,7 +249,7 @@ def offsetcopy(s, newoffset):
                 bits_in_last_byte = 8
             if bits_in_last_byte + shiftright > 8:
                 newdata.append((d[s.byteoffset + s.bytelength - 1] << (8 - shiftright)) & 0xff)
-        new_s = ByteArray(bytearray(newdata), s.bitlength, newoffset)
+        new_s = MemArray(bytearray(newdata), s.bitlength, newoffset)
         assert new_s.offset == newoffset
         return new_s
     
