@@ -11,8 +11,6 @@ from bits import *
 from errors import *
 from bitstore import FileArray, MemArray
 
-__all__ = ['BitString', 'pack']
-
 
 class BitString(Bits):
     

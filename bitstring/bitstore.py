@@ -3,8 +3,6 @@
 import copy
 import os
 
-__all__ = ['MemArray', 'FileArray', 'slice', 'offsetcopy', 'equal']
-
 class BaseArray(object):
     """Array types should implement the methods given here."""
 
