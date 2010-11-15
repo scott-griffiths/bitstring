@@ -1,0 +1,21 @@
+#summary Bitstreams and class reorganisation
+#labels Phase-Design
+
+= Introduction =
+
+The Bits / !BitString classes could be considered to be too complex. In particular the 'stream' facilities (i.e. those methods which use the bit position) are often unneeded. When comparing objects the position isn't used, which complicates things. And of course it increases the memory footprint of every instance.
+
+Suggest a reorganisation of classes to introduce classes without bit positions.
+
+-----
+
+New basic types:
+
+  * `Bits` : Immutable bits. No bit position
+  * `BitArray` : Mutable bits. No bit position
+  * `ConstBitStream` : Immutable bitstream.
+  * `BitStream` : Mutable bitstream.
+
+So the current `Bits` becomes `ConstBitStream` (or a better name if I can think of one), and `BitString` becomes `BitStream`. And so we lose the `BitString` class altogether.
+
+The `BitArray` name is probably the best choice. It then matches the in-built `bytes` and `bytearray` types. There is a bit of a clash with the bitarray module, but their class is `bitarray.bitarray` and mine is `bitstring.BitArray` so it's not too bad.
