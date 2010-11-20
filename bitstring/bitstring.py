@@ -8,7 +8,7 @@ import numbers
 import collections
 import re
 from bits import *
-from errors import *
+from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
 from bitstore import FileArray, MemArray
 
 
