@@ -154,7 +154,6 @@ class FileArray(BaseArray):
         # bitoffset - bits (0-7) to ignore after the byteoffset
         byteoffset, bitoffset = divmod(offset, 8)
         filelength = os.path.getsize(source.name)
-        self.source = source
         if bitlength is None:
             self.bytelength = filelength - byteoffset
             bitlength = self.bytelength*8 - bitoffset
@@ -166,42 +165,31 @@ class FileArray(BaseArray):
         self.byteoffset = byteoffset
         self.bitlength = bitlength
         self.offset = bitoffset
-        self.map = mmap.mmap(self.source.fileno(), 0, access=mmap.ACCESS_READ)
+        self.source = source
+        self.map = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
 
     def __copy__(self):
         # Asking for a copy of a FileArray gets you a MemArray. After all,
         # why would you want a copy if you didn't want to modify it?
         return ByteArray(self.rawbytes, self.bitlength, self.offset)
-
-    def __getitem__(self, pos):
-        # This is to allow offsetcopy to index like it does the
-        # _rawarray of the ByteArray
-        return self.getbyte(pos + self.byteoffset)
         
     def getbyte(self, pos):
-        if pos < 0:
-            pos += self.bytelength
-        pos += self.byteoffset
-        self.source.seek(pos, os.SEEK_SET)
-        return ord(self.source.read(1))
+        return ord(self.map[pos + self.byteoffset])
 
     def getbit(self, pos):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
-        byte += self.byteoffset
-        self.source.seek(byte, os.SEEK_SET)
-        return bool(ord(self.source.read(1)) & (128 >> bit))
+        return bool(ord(self.map[byte + self.byteoffset]) & (128 >> bit))
 
     def getbyteslice(self, start, end):
         if start < end:
-            self.source.seek(start + self.byteoffset, os.SEEK_SET)
-            return bytearray(self.source.read(end - start))
+            return bytearray(self.map[start + self.byteoffset: end + self.byteoffset])
         else:
             return bytearray()
+        
+    # This is to allow offsetcopy to index like it does the _rawarray of the ByteArray      
+    __getitem__ = getbyte
 
-    @property
-    def rawbytes(self):
-        return bytearray(self.getbyteslice(0, self.bytelength))
         
 def slice(ba, bitlength, offset):
     """Return a new ByteArray created as a slice of ba."""
