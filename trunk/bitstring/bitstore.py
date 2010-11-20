@@ -2,6 +2,8 @@
 
 import copy
 import os
+import mmap
+from errors import CreationError
 
 class BaseArray(object):
     """Array types should implement the methods given here."""
@@ -145,7 +147,7 @@ class MemArray(ConstMemArray):
 class FileArray(BaseArray):
     """A class that mimics bytearray but gets data from a file object."""
 
-    __slots__ = ('source', 'bytelength', 'bitlength', 'byteoffset', 'offset')
+    __slots__ = ('source', 'bytelength', 'bitlength', 'byteoffset', 'offset', 'map')
 
     def __init__(self, source, bitlength, offset):
         # byteoffset - bytes to ignore at start of file
@@ -159,12 +161,12 @@ class FileArray(BaseArray):
         else:
             self.bytelength = (bitlength + bitoffset + 7) // 8
         if self.bytelength > filelength - byteoffset:
-            from bitstring import CreationError
             raise CreationError("File is not long enough for specified "
                                 "bitstring length and offset.")
         self.byteoffset = byteoffset
         self.bitlength = bitlength
         self.offset = bitoffset
+        self.map = mmap.mmap(self.source.fileno(), 0, access=mmap.ACCESS_READ)
 
     def __copy__(self):
         # Asking for a copy of a FileArray gets you a MemArray. After all,
