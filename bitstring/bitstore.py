@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""
+This modules is used by the Bits and BitString classes and does not form
+part of the public interface. Please do not use this module directly as
+it is largely undocumented and could change without warning.
+"""
 
 import copy
 import os
