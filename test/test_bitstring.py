@@ -35,7 +35,7 @@ import bitstring
 import copy
 import os
 import collections
-from bitstring import BitString, Bits, pack
+from bitstring import BitString, Bits, ConstBitArray, pack
 from bitstring.bitstore import MemArray, offsetcopy
 
 class ModuleData(unittest.TestCase):
@@ -63,7 +63,9 @@ class MemoryUsage(unittest.TestCase):
         except ImportError:
             return
         # These values might be platform dependent, so don't fret too much.
-        self.assertEqual(size(Bits('0xff')), 392)
+        self.assertEqual(size(Bits([0])), 400)
+        self.assertEqual(size(ConstBitArray([0])), 112)
+        self.assertEqual(size(BitString([0])), 400)
 
 class Creation(unittest.TestCase):
 

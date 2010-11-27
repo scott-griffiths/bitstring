@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 import re
 import binascii
@@ -327,7 +328,7 @@ class ConstBitArray(object):
     
     """
     
-    __slots__ = ('_pos', '_datastore')
+    __slots__ = ('_datastore')
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
         """Either specify an 'auto' initialiser:
@@ -371,7 +372,6 @@ class ConstBitArray(object):
             raise CreationError("bitstring length cannot be negative.")
         if offset is not None and offset < 0:
             raise CreationError("offset must be >= 0.")
-        self._pos = 0
         if auto is not None:
             self._initialise_from_auto(auto, length, offset)
             return
@@ -784,10 +784,6 @@ class ConstBitArray(object):
         """Check internal self consistency as a debugging aid."""
         assert self.len >= 0
         assert 0 <= self._offset, "offset={0}".format(self._offset)
-        if self.len == 0:
-            assert self._pos == 0, "len=0, pos={0}".format(self._pos)
-        else:
-            assert 0 <= self._pos <= self.len, "len={0}, pos={1}".format(self.len, self._pos)
         assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset
         return True
 
@@ -1460,28 +1456,6 @@ class ConstBitArray(object):
 
         """
         return self._readhex(self.len, 0)
-
-    def _setbytepos(self, bytepos):
-        """Move to absolute byte-aligned position in stream."""
-        self._setbitpos(bytepos*8)
-
-    def _getbytepos(self):
-        """Return the current position in the stream in bytes. Must be byte aligned."""
-        if self._pos % 8 != 0:
-            raise ByteAlignError("Not byte aligned in _getbytepos().")
-        return self._pos // 8
-
-    def _setbitpos(self, pos):
-        """Move to absolute postion bit in bitstream."""
-        if pos < 0:
-            raise ValueError("Bit position cannot be negative.")
-        if pos > self.len:
-            raise ValueError("Cannot seek past the end of the data.")
-        self._pos = pos
-
-    def _getbitpos(self):
-        """Return the current position in the stream in bits."""
-        return self._pos
 
     def _getoffset(self):
         return self._datastore.offset
@@ -2363,15 +2337,7 @@ class ConstBitArray(object):
     se     = property(_getse,
                       doc="""The bitstring as a signed exponential-Golomb code. Read only.
                       """)
-    pos    = property(_getbitpos, _setbitpos,
-                      doc="""The position in the bitstring in bits. Read and write.
-                      """)
-    bitpos = property(_getbitpos, _setbitpos,
-                      doc="""The position in the bitstring in bits. Read and write.
-                      """)
-    bytepos= property(_getbytepos, _setbytepos,
-                      doc="""The position in the bitstring in bytes. Read and write.
-                      """)
+
 
 # Dictionary that maps token names to the function that reads them.
 name_to_read = {'uint':    ConstBitArray._readuint,
