@@ -8,6 +8,7 @@ import numbers
 import collections
 import re
 from bits import *
+import bitarray
 from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
 from bitstore import FileArray, MemArray
 
@@ -406,7 +407,7 @@ class BitString(Bits):
     def _reverse(self):
         """Reverse all bits in-place."""
         # Reverse the contents of each byte
-        n = [bits.BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
+        n = [bitarray.BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
         # Then reverse the order of the bytes
         n.reverse()
         # The new offset is the number of bits that were unused at the end.
@@ -688,18 +689,18 @@ class BitString(Bits):
                 raise ValueError("Improper byte length {0}.".format(fmt))
             bytesizes = [fmt]
         elif isinstance(fmt, basestring):
-            m = bits.STRUCT_PACK_RE.match(fmt)
+            m = bitarray.STRUCT_PACK_RE.match(fmt)
             if not m:
                 raise ValueError("Cannot parse format string {0}.".format(fmt))
             # Split the format string into a list of 'q', '4h' etc.
-            formatlist = re.findall(bits.STRUCT_SPLIT_RE, m.group('fmt'))
+            formatlist = re.findall(bitarray.STRUCT_SPLIT_RE, m.group('fmt'))
             # Now deal with multiplicative factors, 4h -> hhhh etc.
             bytesizes = []
             for f in formatlist:
                 if len(f) == 1:
-                    bytesizes.append(bits.PACK_CODE_SIZE[f])
+                    bytesizes.append(bitarray.PACK_CODE_SIZE[f])
                 else:
-                    bytesizes.extend([bits.PACK_CODE_SIZE[f[-1]]]*int(f[:-1]))
+                    bytesizes.extend([bitarray.PACK_CODE_SIZE[f[-1]]]*int(f[:-1]))
         elif isinstance(fmt, collections.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
