@@ -128,6 +128,7 @@ class BitString(Bits):
                   
         """
         self._initialise(auto, length, offset, **kwargs)
+        self._pos = 0
         # For mutable BitStrings we always read in files to memory:
         if isinstance(self._datastore, FileArray):
             self._ensureinmemory()
