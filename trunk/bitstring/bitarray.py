@@ -1870,10 +1870,7 @@ class ConstBitArray(object):
         if bytealigned and len(bs) % 8 == 0 and self._datastore.offset == 0:
             # Extract data bytes from bitstring to be found.
             d = bs.bytes
-            oldpos = self._pos
-            self._pos = start
-            self.bytealign()
-            bytepos = self._pos // 8
+            bytepos = (start + 7) // 8
             found = False
             p = bytepos
             finalpos = end // 8
@@ -1889,12 +1886,9 @@ class ConstBitArray(object):
                     break
                 p += increment
             if not found:
-                self._pos = oldpos
                 return ()
-            self._pos = p*8
             return (p*8,)
         else:
-            oldpos = self._pos
             targetbin = bs._getbin()[2:]
             found = False
             p = start
@@ -1917,9 +1911,7 @@ class ConstBitArray(object):
                         continue
                 p += increment
             if not found:
-                self._pos = oldpos
                 return ()
-            self._pos = p
             return (p,)
 
     def findall(self, bs, start=None, end=None, count=None, bytealigned=False):
