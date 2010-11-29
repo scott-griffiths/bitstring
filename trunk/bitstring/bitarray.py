@@ -268,6 +268,7 @@ if PYTHON_VERSION == 2:
 else:
     BYTE_REVERSAL_DICT = dict(zip(xrange(256), [bytes([x]) for x in REVERSED]))
 
+# A dictionary of number of 1 bits contained in binary representation of any byte
 BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
 
 
@@ -280,16 +281,11 @@ class ConstBitArray(object):
     
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
-    bytealign() -- Align to next byte boundary.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurences of a sub-bitstring in the current bitstring.
     join() -- Join bitstrings together using current bitstring.
-    peek() -- Peek at and interpret next bits as a single item.
-    peeklist() -- Peek at and interpret next bits as a list of items.
-    read() -- Read and interpret next bits as a single item.
-    readlist() -- Read and interpret next bits as a list of items.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
@@ -408,13 +404,12 @@ class ConstBitArray(object):
         return
 
     def __copy__(self):
-        """Return a new copy of the Bits for the copy module."""
+        """Return a new copy of the ConstBitArray for the copy module."""
         # Note that if you want a new copy (different ID), use _copy instead.
         # The copy can use the same datastore as it's immutable.
         s = ConstBitArray()
         s._datastore = self._datastore
-        # Reset the bit position, don't copy it.
-        s._pos = 0
+
         return s
 
     def __lt__(self, other):
@@ -438,7 +433,6 @@ class ConstBitArray(object):
         bs = self._converttobitstring(bs)
         s = self._copy()
         s._append(bs)
-        s._pos = 0
         return s
 
     def __radd__(self, bs):
@@ -741,10 +735,9 @@ class ConstBitArray(object):
         bs -- The bitstring to search for.
 
         """
-        oldpos = self._pos
-        found = self.find(bs, bytealigned=False)
-        self._pos = oldpos
-        return found
+        # Don't want to use a find which changes pos.
+        found = ConstBitArray.find(self, bs, bytealigned=False)
+        return bool(found)
 
     def __hash__(self):
         """Return an integer hash of the current Bits object."""
@@ -1936,15 +1929,18 @@ class ConstBitArray(object):
         bs = self._converttobitstring(bs)
         start, end = self._validate_slice(start, end)
         c = 0
-        while self.find(bs, start, end, bytealigned):
+        while True:
+            p = self.find(bs, start, end, bytealigned)
+            if not p:
+                break
             if count is not None and c >= count:
                 return
             c += 1
-            yield self._pos
+            yield p[0]
             if bytealigned:
-                start = self._pos + 8
+                start = p[0] + 8
             else:
-                start = self._pos + 1
+                start = p[0] + 1
             if start >= end:
                 break
         return
@@ -1984,7 +1980,6 @@ class ConstBitArray(object):
                     return ()
                 pos = max(start, pos - increment)
                 continue
-            self._pos = found[-1]
             return (found[-1],)
 
     def cut(self, bits, start=None, end=None, count=None):
@@ -2038,33 +2033,28 @@ class ConstBitArray(object):
         start, end = self._validate_slice(start, end)
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
-        oldpos = self._pos
-        self._pos = start
         if count == 0:
             return
         found = self.find(delimiter, start, end, bytealigned)
         if not found:
             # Initial bits are the whole bitstring being searched
-            self._pos = oldpos
             yield self._slice(start, end)
             return
         # yield the bytes before the first occurence of the delimiter, even if empty
-        yield self[start:self._pos]
-        startpos = self._pos
+        yield self[start:found[0]]
+        startpos = pos = found[0]
         c = 1
         while count is None or c < count:
-            self._pos += delimiter.len
-            found = self.find(delimiter, self._pos, end, bytealigned)
+            pos += delimiter.len
+            found = self.find(delimiter, pos, end, bytealigned)
             if not found:
                 # No more occurences, so return the rest of the bitstring
-                self._pos = oldpos
                 yield self[startpos:end]
                 return
             c += 1
-            yield self[startpos:self._pos]
-            startpos = self._pos
+            yield self[startpos:found[0]]
+            startpos = pos = found[0]
         # Have generated count BitStrings, so time to quit.
-        self._pos = oldpos
         return
 
     def join(self, sequence):
