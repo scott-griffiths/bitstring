@@ -2105,6 +2105,7 @@ class Adding(unittest.TestCase):
         a = BitString('0b1001001001001001001')
         p = a.findall('0b1001', bytealigned=False)
         self.assertEqual(list(p), [0, 3, 6, 9, 12, 15])
+        self.assertEqual(a.pos, 15)
 
     def testFindAllGenerator(self):
         a = BitString('0xff1234512345ff1234ff12ff')
@@ -2125,6 +2126,7 @@ class Adding(unittest.TestCase):
     def testContains(self):
         a = BitString('0b1') + '0x0001dead0001'
         self.assertTrue('0xdead' in a)
+        self.assertEqual(a.pos, 0)
         self.assertFalse('0xfeed' in a)
 
     def testRepr(self):
