@@ -1224,34 +1224,30 @@ class ConstBitArray(object):
                                                        length=leadingzeros).bin[2:]
         self._setbin_unsafe(binstring)
 
-    def _readue(self):
+    def _readue(self, pos):
         """Return interpretation of next bits as unsigned exponential-Golomb code.
-
-        Advances position to after the read code.
 
         Raises ReadError if the end of the bitstring is encountered while
         reading the code.
 
         """
-        oldpos = self._pos
+        oldpos = pos
         try:
-            while not self[self._pos]:
-                self._pos += 1
+            while not self[pos]:
+                pos += 1
         except IndexError:
-            self._pos = oldpos
             raise ReadError("Read off end of bitstring trying to read code.")
-        leadingzeros = self._pos - oldpos
+        leadingzeros = pos - oldpos
         codenum = (1 << leadingzeros) - 1
         if leadingzeros > 0:
-            if self._pos + leadingzeros + 1 > self.len:
-                self._pos = oldpos
+            if pos + leadingzeros + 1 > self.len:
                 raise ReadError("Read off end of bitstring trying to read code.")
-            codenum += self._readuint(leadingzeros, self._pos + 1)
-            self._pos += leadingzeros + 1
+            codenum += self._readuint(leadingzeros, pos + 1)
+            pos += leadingzeros + 1
         else:
             assert codenum == 0
-            self._pos += 1
-        return codenum
+            pos += 1
+        return codenum, pos
 
     def _getue(self):
         """Return data as unsigned exponential-Golomb code.
@@ -1262,7 +1258,7 @@ class ConstBitArray(object):
         oldpos = self._pos
         self._pos = 0
         try:
-            value = self._readue()
+            value, self._pos = self._readue(self._pos)
             if self._pos != self.len:
                 raise Error
         except Error:
@@ -1288,7 +1284,7 @@ class ConstBitArray(object):
         oldpos = self._pos
         self._pos = 0
         try:
-            value = self._readse()
+            value, self._pos = self._readse(self._pos)
             if value is None or self._pos != self.len:
                 raise ReadError
         except ReadError:
@@ -1297,7 +1293,7 @@ class ConstBitArray(object):
         self._pos = oldpos
         return value
 
-    def _readse(self):
+    def _readse(self, pos):
         """Return interpretation of next bits as a signed exponential-Golomb code.
 
         Advances position to after the read code.
@@ -1306,12 +1302,12 @@ class ConstBitArray(object):
         reading the code.
 
         """
-        codenum = self._readue()
+        codenum, pos = self._readue(pos)
         m = (codenum + 1) // 2
         if codenum % 2 == 0:
-            return -m
+            return -m, pos
         else:
-            return m
+            return m, pos
 
     def _setbool(self, value):
         # We deliberately don't want to have implicit conversions to bool here.
@@ -1329,10 +1325,8 @@ class ConstBitArray(object):
             raise InterpretError(msg, self.length)
         return self[0]
 
-    def _readbool(self):
-        b = self[self._pos]
-        self._pos += 1
-        return b
+    def _readbool(self, pos):
+        return self[pos], pos + 1
 
     def _setbin_safe(self, binstring):
         """Reset the bitstring to the value given in binstring."""
@@ -1507,20 +1501,19 @@ class ConstBitArray(object):
         b._datastore = bitstore.slice(self._datastore, end - start, start)
         return b
 
-    def _readtoken(self, name, length):
+    def _readtoken(self, name, pos, length):
         """Reads a token from the bitstring and returns the result."""
-        if length is not None and int(length) > self.length - self._pos:
+        if length is not None and int(length) > self.length - pos:
             raise ReadError("Reading off the end of the data.")
         try:
-            val = name_to_read[name](self, length, self._pos)
-            self._pos += length
-            return val
+            val = name_to_read[name](self, length, pos)
+            pos += length
+            return val, pos
         except KeyError:
             raise ValueError("Can't parse token {0}:{1}".format(name, length))
         except TypeError:
-            # This is for the 'ue' and 'se' tokens. They will advance the pos.
-            val = name_to_read[name](self)
-            return val
+            # This is for the 'ue', 'se' and 'bool' tokens. They will also return the new pos.
+            return name_to_read[name](self, pos)
 
     def _append(self, bs):
         """Append a bitstring to the current bitstring."""
@@ -1763,13 +1756,9 @@ class ConstBitArray(object):
         See the docstring for 'read' for token examples.
 
         """
-        bitposbefore = self._pos
-        self._pos = 0
-        return_values = self._readlist(fmt, **kwargs)
-        self._pos = bitposbefore
-        return return_values
+        return self._readlist(fmt, 0, **kwargs)[0]
 
-    def _readlist(self, fmt, **kwargs):
+    def _readlist(self, fmt, pos, **kwargs):
         tokens = []
         stretchy_token = None
         if isinstance(fmt, basestring):
@@ -1793,10 +1782,12 @@ class ConstBitArray(object):
                     length = kwargs[length]
                 if name in kwargs and length is None:
                     # Using default 'uint' - the name is really the length.
-                    lst.append(self._readtoken('uint', kwargs[name]))
+                    value, pos = self._readtoken('uint', pos, kwargs[name])
+                    lst.append(value)
                     continue
-                lst.append(self._readtoken(name, length))
-            return lst
+                value, pos = self._readtoken(name, pos, length)
+                lst.append(value)
+            return lst, pos
         stretchy_token = False
         bits_after_stretchy_token = 0
         for token in tokens:
@@ -1817,7 +1808,7 @@ class ConstBitArray(object):
                     raise Error("It's not possible to have more than "
                                 "one 'filler' token.")
                 stretchy_token = token
-        bits_left = self.len - self._pos
+        bits_left = self.len - pos
         return_values = []
         for token in tokens:
             name, length, _ = token
@@ -1831,8 +1822,9 @@ class ConstBitArray(object):
                 length = kwargs[name]
             if length is not None:
                 bits_left -= length
-            return_values.append(self._readtoken(name, length))
-        return return_values
+            value, pos = self._readtoken(name, pos, length)
+            return_values.append(value)
+        return return_values, pos
 
     def find(self, bs, start=None, end=None, bytealigned=False):
         """Find first occurence of substring bs.
