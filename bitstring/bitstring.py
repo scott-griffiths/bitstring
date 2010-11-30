@@ -14,14 +14,14 @@ from bitstore import FileArray, MemArray
 
 
 class BitString(Bits):
-    
+
     """A container holding a mutable sequence of bits.
 
     Subclass of the immutable Bits class. Inherits all of its methods (except
     __hash__) and adds mutating methods.
-    
+
     Mutating methods:
-    
+
     append() -- Append a bitstring.
     byteswap() -- Change byte endianness in-place.
     insert() -- Insert a bitstring.
@@ -33,9 +33,9 @@ class BitString(Bits):
     rol() -- Rotate bits to the left.
     ror() -- Rotate bits to the right.
     set() -- Set bit(s) to 1 or 0.
-    
+
     Methods inherited from Bits:
-    
+
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
     bytealign() -- Align to next byte boundary.
@@ -54,12 +54,12 @@ class BitString(Bits):
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
-    
+
     Special methods:
 
     Mutating operators are available: [], <<=, >>=, *=, &=, |= and ^=
     in addition to the inherited [], ==, !=, +, *, ~, <<, >>, &, | and ^.
-    
+
     Properties:
 
     bin -- The bitstring as a binary string.
@@ -84,7 +84,7 @@ class BitString(Bits):
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
     uintne -- Interpret as a native-endian unsigned integer.
-    
+
     """
 
     __slots__ = ()
@@ -125,7 +125,7 @@ class BitString(Bits):
         offset -- bit offset to the data. These offset bits are
                   ignored and this is intended for use when
                   initialising using 'bytes' or 'filename'.
-                  
+
         """
         self._initialise(auto, length, offset, **kwargs)
         self._pos = 0
@@ -300,6 +300,7 @@ class BitString(Bits):
             if not 0 <= key < self.len:
                 raise IndexError("Slice index out of range.")
             self._delete(1, key)
+            self._pos = key
             return
         else:
             if step == 0:
@@ -340,6 +341,7 @@ class BitString(Bits):
             start = max(start, 0)
             start = min(start, stop)
             self._delete(stop - start, start)
+            self._pos = start
             return
 
 
@@ -552,6 +554,7 @@ class BitString(Bits):
         """
         bs = self._converttobitstring(bs)
         self._prepend(bs)
+        self._pos += bs.len
 
     def reverse(self, start=None, end=None):
         """Reverse bits in-place.
@@ -797,7 +800,7 @@ class BitString(Bits):
                       doc="""The BitString as a ordinary string. Read and write.
                       """)
 
-    
+
 def pack(fmt, *values, **kwargs):
     """Pack the values according to the format string and return a new BitString.
 

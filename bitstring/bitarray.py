@@ -274,11 +274,11 @@ BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
 
 class ConstBitArray(object):
     """A container holding an immutable sequence of bits.
-    
+
     For a mutable container use the BitString class instead.
-    
+
     Methods:
-    
+
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
@@ -292,11 +292,11 @@ class ConstBitArray(object):
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
-    
+
     Special methods:
 
     Also available are the operators [], ==, !=, +, *, ~, <<, >>, &, |, ^.
-    
+
     Properties:
 
     bin -- The bitstring as a binary string.
@@ -321,9 +321,9 @@ class ConstBitArray(object):
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
     uintne -- Interpret as a native-endian unsigned integer.
-    
+
     """
-    
+
     __slots__ = ('_datastore')
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
@@ -414,13 +414,13 @@ class ConstBitArray(object):
 
     def __lt__(self, other):
         raise TypeError("unorderable type: {0}".format(type(self).__name__))
-    
+
     def __gt__(self, other):
         raise TypeError("unorderable type: {0}".format(type(self).__name__))
-    
+
     def __le__(self, other):
         raise TypeError("unorderable type: {0}".format(type(self).__name__))
-    
+
     def __ge__(self, other):
         raise TypeError("unorderable type: {0}".format(type(self).__name__))
 
@@ -765,14 +765,14 @@ class ConstBitArray(object):
     def __nonzero__(self):
         """Return True if any bits are set to 1, otherwise return False."""
         return self.len and self.uint
-    
+
     # ...whereas this does the equivalent for Python 3.x
     def __bool__(self):
         """Return True if any bits are set to 1, otherwise return False."""
         if not self.len:
             return False
         return (self.uint != 0)
-    
+
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
         assert self.len >= 0
@@ -841,7 +841,6 @@ class ConstBitArray(object):
     def _clear(self):
         """Reset the bitstring to an empty state."""
         self._datastore = MemArray(bytearray())
-        self._pos = 0
 
     def _setauto(self, s, length, offset):
         """Set bitstring from a bitstring, file, bool, integer, iterable or string."""
@@ -856,7 +855,7 @@ class ConstBitArray(object):
                 self._setfile(s._datastore.source.name, length, s._offset + offset)
             else:
                 self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
-            return     
+            return
         if isinstance(s, file):
             self._datastore = FileArray(s, length, offset)
             return
@@ -905,7 +904,7 @@ class ConstBitArray(object):
                 self._datastore = MemArray(bytearray())
             else:
                 self._datastore = MemArray(data, length, offset)
-    
+
     def _setbytes_unsafe(self, data, length, offset):
         """Unchecked version of _setbytes_safe."""
         self._datastore = MemArray(data[:], length, offset)
@@ -1255,16 +1254,12 @@ class ConstBitArray(object):
         Raises InterpretError if bitstring is not a single exponential-Golomb code.
 
         """
-        oldpos = self._pos
-        self._pos = 0
         try:
-            value, self._pos = self._readue(self._pos)
-            if self._pos != self.len:
-                raise Error
-        except Error:
-            self._pos = oldpos
+            value, newpos = self._readue(0)
+            if value is None or newpos != self.len:
+                raise ReadError
+        except ReadError:
             raise InterpretError("Bitstring is not a single exponential-Golomb code.")
-        self._pos = oldpos
         return value
 
     def _setse(self, i):
@@ -1281,16 +1276,12 @@ class ConstBitArray(object):
         Raises InterpretError if bitstring is not a single exponential-Golomb code.
 
         """
-        oldpos = self._pos
-        self._pos = 0
         try:
-            value, self._pos = self._readse(self._pos)
-            if value is None or self._pos != self.len:
+            value, newpos = self._readse(0)
+            if value is None or newpos != self.len:
                 raise ReadError
         except ReadError:
-            self._pos = oldpos
             raise InterpretError("Bitstring is not a single exponential-Golomb code.")
-        self._pos = oldpos
         return value
 
     def _readse(self, pos):
@@ -1334,7 +1325,7 @@ class ConstBitArray(object):
         # remove any 0b if present
         binstring = binstring.replace('0b', '')
         self._setbin_unsafe(binstring)
-        
+
     def _setbin_unsafe(self, binstring):
         """Same as _setbin_safe, but input isn't sanity checked. binstring mustn't start with '0b'."""
         length = len(binstring)
@@ -1489,8 +1480,6 @@ class ConstBitArray(object):
     def _copy(self):
         """Create and return a new copy of the Bits (always in memory)."""
         s_copy = self.__class__()
-        # The copy doesn't keep the same bit position.
-        s_copy._pos = 0
         s_copy._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength),
                                 self.len, self._offset)
         return s_copy
@@ -1522,7 +1511,6 @@ class ConstBitArray(object):
     def _prepend(self, bs):
         """Prepend a bitstring to the current bitstring."""
         self._datastore.prependarray(bs._datastore)
-        self._pos += bs.len
 
     def _truncatestart(self, bits):
         """Truncate bits from the start of the bitstring."""
@@ -1622,13 +1610,11 @@ class ConstBitArray(object):
             end = self._slice(pos + bits, self.len)
             assert self.len - pos > 0
             self._truncateend(self.len - pos)
-            self._pos = self.len
             self._append(end)
             return
         # More bits after the cut point than before it.
         start = self._slice(0, pos)
         self._truncatestart(pos + bits)
-        self._pos = 0
         self._prepend(start)
         return
 
@@ -1654,7 +1640,7 @@ class ConstBitArray(object):
         """Set bit at pos to 0."""
         assert 0 <= pos < self.len
         self._datastore.unsetbit(pos)
-        
+
     def _invert(self, pos):
         """Flip bit at pos 1<->0."""
         assert 0 <= pos < self.len
@@ -1666,7 +1652,7 @@ class ConstBitArray(object):
         get = self._datastore.getbyte
         for p in xrange(self._datastore.bytelength):
             set(p, 256 + ~get(p))
-            
+
     def _ilshift(self, n):
         """Shift bits by n to the left in place. Return self."""
         assert 0 < n <= self.len
@@ -1678,7 +1664,7 @@ class ConstBitArray(object):
         """Shift bits by n to the right in place. Return self."""
         assert 0 < n <= self.len
         self._prepend(ConstBitArray(n))
-        self._truncateend(n)       
+        self._truncateend(n)
         return self
 
     def _imul(self, n):
@@ -1828,11 +1814,11 @@ class ConstBitArray(object):
 
     def find(self, bs, start=None, end=None, bytealigned=False):
         """Find first occurence of substring bs.
-        
+
         Returns a single item tuple with the bit position if found, or an
         empty tuple if not found. The bit position (pos property) will
         also be set to the start of the substring if it is found.
-        
+
         bs -- The bitstring to find.
         start -- The bit position to start the search. Defaults to 0.
         end -- The bit position one past the last bit to search.
@@ -1842,7 +1828,7 @@ class ConstBitArray(object):
 
         Raises ValueError if bs is empty, if start < 0, if end > self.len or
         if end < start.
-        
+
         >>> Bits('0xc3e').find('0b1111')
         (6,)
 
@@ -1939,7 +1925,7 @@ class ConstBitArray(object):
 
     def rfind(self, bs, start=None, end=None, bytealigned=False):
         """Find final occurence of substring bs.
-        
+
         Returns a single item tuple with the bit position if found, or an
         empty tuple if not found. The bit position (pos property) will
         also be set to the start of the substring if it is found.
@@ -2186,23 +2172,23 @@ class ConstBitArray(object):
             if self._datastore.getbit(p) is value:
                 return True
         return False
-    
+
     def count(self, value):
         """Return count of total number of either zero or one bits.
-        
+
         value -- If True then bits set to 1 are counted, otherwise bits set
                  to 0 are counted.
-                 
+
         >>> Bits('0xef').count(1)
         7
-        
+
         """
         if not self.len:
             return 0
-        
+
         count = bin(self._getuint()).count('1')
         return count if value else self.len - count
-        
+
         # count the number of 1s (from which it's easy to work out the 0s).
         # Don't count the final byte yet.
         # TODO: Replace xrange (could fail with 32-bit Python 2.x).
