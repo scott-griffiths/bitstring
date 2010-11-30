@@ -123,7 +123,7 @@ class Creation(unittest.TestCase):
         s.uint = 255
         self.assertEqual(s.uint, 255)
         self.assertRaises(bitstring.CreationError, s._setuint, 256)
-        
+
     #def testCreationFromIntWithoutLength(self):
     #    s = Bits(uint=5)
     #    self.assertEqual(s, '0b101')
@@ -133,7 +133,7 @@ class Creation(unittest.TestCase):
     #    self.assertEqual(s, [1])
     #    s = Bits(int=-2)
     #    self.assertEqual(s, '0b10')
-        
+
 
     def testCreationFromUintWithOffset(self):
         self.assertRaises(bitstring.Error, BitString, uint=12, length=8, offset=1)
@@ -989,16 +989,16 @@ class FromFile(unittest.TestCase):
             self.assertTrue(False)
         except ValueError:
             pass
-    
+
     def testFileBitGetting(self):
         s = Bits(filename='smalltestfile', offset=16, length=8) # 0x45
         b = s[1]
         self.assertTrue(b)
         b = s.any(0, [-1, -2, -3])
-        self.assertTrue(b)        
+        self.assertTrue(b)
         b = s.all(0, [0, 1, 2])
         self.assertFalse(b)
-        
+
     def testVeryLargeFiles(self):
         # This uses an 11GB file which isn't distributed for obvious reasons
         # and so this test won't work for anyone except me!
@@ -1298,7 +1298,7 @@ class Resetting(unittest.TestCase):
 
 
 class Overwriting(unittest.TestCase):
-    
+
     def testOverwriteBit(self):
         s = BitString(bin='0')
         s.overwrite(BitString(bin='1'), 0)
@@ -1330,9 +1330,9 @@ class Overwriting(unittest.TestCase):
         s = BitString('0x123')
         s.overwrite(s)
         self.assertEqual(s, '0x123')
-        
+
 class Split(unittest.TestCase):
-    
+
     def testSplitByteAlignedCornerCases(self):
         s = BitString()
         bsl = s.split(BitString(hex='0xff'))
@@ -1437,6 +1437,9 @@ class Adding(unittest.TestCase):
         s = BitString(bin='000111100000')
         del s[4:8]
         self.assertEqual(s.bin, '0b00010000')
+        self.assertEqual(s.pos, 4)
+        del s[3]
+        self.assertEqual(s.pos, 3)
 
     def testDeleteBytes(self):
         s = BitString('0x00112233')
@@ -1808,7 +1811,7 @@ class Adding(unittest.TestCase):
         self.assertEqual((~BitString('0b0')).bin, '0b1')
         self.assertEqual((~BitString('0b1')).bin, '0b0')
         self.assertTrue(~~s == s)
-        
+
     def testInvertBitPosition(self):
         s = Bits('0xefef')
         s.pos = 8
@@ -3150,7 +3153,7 @@ class Set(unittest.TestCase):
         self.assertEqual(~b, '0b11000001')
         self.assertRaises(IndexError, b.set, False, -9)
         self.assertRaises(IndexError, b.set, False, 8)
-        
+
     def testSetWholeBitString(self):
         a = BitString(14)
         a.set(1)
@@ -3166,13 +3169,13 @@ class Invert(unittest.TestCase):
         self.assertEqual(a, '0b000111')
         a.invert([0, 1, -1])
         self.assertEqual(a, '0b110110')
-        
+
     def testInvertWholeBitString(self):
         a = BitString('0b11011')
         a.invert()
         self.assertEqual(a, '0b00100')
-        
-        
+
+
 #######################
 
     def testIor(self):
@@ -3235,22 +3238,22 @@ class AllAndAny(unittest.TestCase):
         a = BitString('0b01001110110111111111111111111')
         self.assertTrue(a.any(False, (4, 5, 6, 2)))
         self.assertFalse(a.any(False, (1, 15, 20)))
-        
+
     def testAnyEmptyBitstring(self):
         a = Bits()
         self.assertFalse(a.any(True))
         self.assertFalse(a.any(False))
-        
+
     def testAllEmptyBitString(self):
         a = Bits()
         self.assertTrue(a.all(True))
         self.assertTrue(a.all(False))
-        
+
     def testAnyWholeBitstring(self):
         a = Bits('0xfff')
         self.assertTrue(a.any(True))
         self.assertFalse(a.any(False))
-        
+
     def testAllWholeBitstring(self):
         a = Bits('0xfff')
         self.assertTrue(a.all(True))
@@ -3571,7 +3574,7 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(c2, '0x00a')
 
     def testAutoFromBool(self):
-        
+
         a = Bits() + True + False + True
         self.assertEqual(a, '0b00')
     #    self.assertEqual(a, '0b101')
@@ -3613,7 +3616,6 @@ class Bugs(unittest.TestCase):
         self.assertFalse(u)
         self.assertFalse(v)
 
-
     def testMultiplicativeFactorsCreation(self):
         s = BitString('1*0b1')
         self.assertEqual(s, '0b1')
@@ -3648,13 +3650,13 @@ class Bugs(unittest.TestCase):
         #s = pack('fluffy*uint:8', *range(3), fluffy=3)
         #a, b, c = s.readlist('2*uint:8, 1*uint:8, 0*uint:8')
         #self.assertEqual((a, b, c), (0, 1, 2))
-        
+
     def testMultiplicativeFactorsUnpacking(self):
         s = Bits('0b10111')
         a, b, c, d = s.unpack('3*bool, bin')
         self.assertEqual((a, b, c), (True, False, True))
         self.assertEqual(d, '0b11')
-        
+
 
     def testPackingDefaultIntWithKeyword(self):
         s = pack('12', 100)
@@ -3977,13 +3979,13 @@ class BoolToken(unittest.TestCase):
         self.assertRaises(bitstring.InterpretError, a._getbool)
         self.assertRaises(bitstring.CreationError, a._setbool, 0)
         self.assertRaises(bitstring.CreationError, a._setbool, 'false')
-        
+
     def testLengthWithBoolRead(self):
         a = Bits('0xf')
         self.assertRaises(ValueError, a.read, 'bool:0')
         self.assertRaises(ValueError, a.read, 'bool:1')
         self.assertRaises(ValueError, a.read, 'bool:2')
-        
+
 
 class ReadWithIntegers(unittest.TestCase):
 
@@ -4023,32 +4025,32 @@ class FileReadingStrategy(unittest.TestCase):
         self.assertTrue(isinstance(b._datastore, bitstring.bitstore.FileArray))
 
 class Count(unittest.TestCase):
-    
+
     def testCount(self):
         a = Bits('0xf0f')
         self.assertEqual(a.count(True), 8)
         self.assertEqual(a.count(False), 4)
-        
+
         b = BitString()
         self.assertEqual(b.count(True), 0)
         self.assertEqual(b.count(False), 0)
-    
+
     def testCountWithOffsetData(self):
         a = Bits('0xff0120ff')
         b = a[1:-1]
         self.assertEqual(b.count(1), 16)
         self.assertEqual(b.count(0), 14)
-        
-    
+
+
 class ZeroBitReads(unittest.TestCase):
-    
+
     def testInteger(self):
         a = Bits('0x123456')
         self.assertRaises(bitstring.InterpretError, a.read, 'uint:0')
         self.assertRaises(bitstring.InterpretError, a.read, 'float:0')
-        
+
 #class EfficientBitsCopies(unittest.TestCase):
-#    
+#
 #    def testBitsCopy(self):
 #        a = Bits('0xff')
 #        b = Bits(a)
@@ -4059,7 +4061,7 @@ class ZeroBitReads(unittest.TestCase):
 #        self.assertTrue(a._datastore is d._datastore)
 
 class InitialiseFromBytes(unittest.TestCase):
-    
+
     def testBytesBehaviour(self):
         a = Bits(b'uint:5=2')
         b = Bits(b'')
@@ -4072,7 +4074,7 @@ class InitialiseFromBytes(unittest.TestCase):
             self.assertEqual(a.bytes, b'uint:5=2')
             self.assertFalse(b)
             self.assertEqual(c, b'uint:5=2')
-            
+
     def testBytearrayBehaviour(self):
         a = Bits(bytearray(b'uint:5=2'))
         b = Bits(bytearray(4))
@@ -4080,34 +4082,34 @@ class InitialiseFromBytes(unittest.TestCase):
         self.assertEqual(a.bytes, b'uint:5=2')
         self.assertEqual(b, '0x00000000')
         self.assertEqual(c.bytes, b'uint:5=2')
-        
+
 
 class OffsetCopy(unittest.TestCase):
-    
+
     def testStraightCopy(self):
         s = MemArray(bytearray([10, 5, 1]), 24, 0)
         t = offsetcopy(s, 0)
         self.assertEqual(t._rawarray, bytearray([10, 5, 1]))
-    
+
     def testOffsetIncrease(self):
         s = MemArray(bytearray([1, 1, 1]), 24, 0)
         t = offsetcopy(s, 4)
         self.assertEqual(t.bitlength, 24)
         self.assertEqual(t.offset, 4)
         self.assertEqual(t._rawarray, bytearray([0, 16, 16, 16]))
-    
+
 
 class CoverageCompletionTests(unittest.TestCase):
 
     def testUeReadError(self):
         s = Bits('0b000000001')
         self.assertRaises(bitstring.ReadError, s.read, 'ue')
-    
+
     def testOverwriteWithSelf(self):
         s = BitString('0b1101')
         s.overwrite(s)
         self.assertEqual(s, '0b1101')
-        
+
 
 def main():
     unittest.main()
