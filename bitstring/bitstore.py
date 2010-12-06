@@ -10,52 +10,46 @@ import os
 import mmap
 from errors import CreationError
 
-class BaseArray(object):
-    """Array types should implement the methods given here."""
 
-    __slots__ = ()
+class MmapByteArray(object):
+    """Looks like a bytearray, but from an mmap."""
 
-    def __init__(self, data, bitlength=0, offset=0):
-        raise NotImplementedError
+    def __init__(self, source):
+        self.source = source
+        self.filelength = os.path.getsize(source.name)
+        #self.bytelength =  filelength if bytelength is None else bytelength
+        # We don't store the offset, just use it for this check
+        #if self.bytelength > filelength - offset:
+        #    raise CreationError("File is not long enough for specified "
+        #                        "bitstring length and offset.")
+        self.map = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
 
-    def getbit(self, pos):
-        """Return the bit at pos (True or False)."""
-        raise NotImplementedError
+    def __getitem__(self, key):
+        try:
+            start = key.start
+            return bytearray(self.map.__getitem__(key))
+        except AttributeError:
+            return ord(self.map[key])
 
-    def getbyte(self, pos):
-        """Return the integer value of the byte stored at pos."""
-        raise NotImplementedError
+    def __len__(self):
+        return self.filelength
 
-    def getbyteslice(self, start, end):
-        """Return a byte slice"""
-        raise NotImplementedError
-
-    def __copy__(self):
-        raise NotImplementedError
-
-    def setoffset(self, newoffset):
-        raise NotImplementedError
-
-    def appendarray(self, array):
-        raise NotImplementedError
-
-    def prependarray(self, array):
-        raise NotImplementedError
-
-
-class ConstMemArray(BaseArray):
+class ConstByteArray(object):
     """Stores raw bytes together with a bit offset and length."""
 
     __slots__ = ('offset', '_rawarray', 'bitlength')
 
-    def __init__(self, data, bitlength=0, offset=0):
-        assert isinstance(data, bytearray)
+    def __init__(self, data, bitlength=None, offset=None):
         self._rawarray = data
+        if offset is None:
+            offset = 0
+        if bitlength is None:
+            bitlength = 8*len(data) - offset
         self.offset = offset
         self.bitlength = bitlength
 
     def __copy__(self):
-        return MemArray(self._rawarray[:], self.bitlength, self.offset)
+        return ByteArray(self._rawarray[:], self.bitlength, self.offset)
 
     def getbit(self, pos):
         assert 0 <= pos < self.bitlength
@@ -78,7 +72,7 @@ class ConstMemArray(BaseArray):
         if eb == -1:
             return 1 # ? Empty bitstring still has one byte of data?
         return eb - sb + 1
-    
+
     @property
     def byteoffset(self):
         return self.offset // 8
@@ -88,10 +82,10 @@ class ConstMemArray(BaseArray):
         return self._rawarray
 
 
-class MemArray(ConstMemArray):
-    
+class ByteArray(ConstByteArray):
+
     __slots__ = ()
-    
+
     def setbit(self, pos):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
@@ -101,7 +95,7 @@ class MemArray(ConstMemArray):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
         self._rawarray[byte] &= ~(128 >> bit)
-        
+
     def invertbit(self, pos):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
@@ -147,62 +141,62 @@ class MemArray(ConstMemArray):
         self._rawarray = array._rawarray
         self.offset = array.offset
         self.bitlength += array.bitlength
-    
 
-class FileArray(BaseArray):
-    """A class that mimics bytearray but gets data from a file object."""
 
-    __slots__ = ('source', 'bytelength', 'bitlength', 'byteoffset', 'offset', 'map')
+#class FileArray(object):
+    #"""A class that mimics bytearray but gets data from a file object."""
 
-    def __init__(self, source, bitlength, offset):
-        # byteoffset - bytes to ignore at start of file
-        # bitoffset - bits (0-7) to ignore after the byteoffset
-        byteoffset, bitoffset = divmod(offset, 8)
-        filelength = os.path.getsize(source.name)
-        if bitlength is None:
-            self.bytelength = filelength - byteoffset
-            bitlength = self.bytelength*8 - bitoffset
-        else:
-            self.bytelength = (bitlength + bitoffset + 7) // 8
-        if self.bytelength > filelength - byteoffset:
-            raise CreationError("File is not long enough for specified "
-                                "bitstring length and offset.")
-        self.byteoffset = byteoffset
-        self.bitlength = bitlength
-        self.offset = bitoffset
-        self.source = source
-        self.map = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
+    #__slots__ = ('source', 'bytelength', 'bitlength', 'byteoffset', 'offset', 'map')
 
-    def __copy__(self):
-        # Asking for a copy of a FileArray gets you a MemArray. After all,
-        # why would you want a copy if you didn't want to modify it?
-        return ByteArray(self.rawbytes, self.bitlength, self.offset)
-        
-    def getbyte(self, pos):
-        return ord(self.map[pos + self.byteoffset])
+    #def __init__(self, source, bitlength, offset):
+        ## byteoffset - bytes to ignore at start of file
+        ## bitoffset - bits (0-7) to ignore after the byteoffset
+        #byteoffset, bitoffset = divmod(offset, 8)
+        #filelength = os.path.getsize(source.name)
+        #if bitlength is None:
+            #self.bytelength = filelength - byteoffset
+            #bitlength = self.bytelength*8 - bitoffset
+        #else:
+            #self.bytelength = (bitlength + bitoffset + 7) // 8
+        #if self.bytelength > filelength - byteoffset:
+            #raise CreationError("File is not long enough for specified "
+                                #"bitstring length and offset.")
+        #self.byteoffset = byteoffset
+        #self.bitlength = bitlength
+        #self.offset = bitoffset
+        #self.source = source
+        #self.map = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
 
-    def getbit(self, pos):
-        assert 0 <= pos < self.bitlength
-        byte, bit = divmod(self.offset + pos, 8)
-        return bool(ord(self.map[byte + self.byteoffset]) & (128 >> bit))
+    #def __copy__(self):
+        ## Asking for a copy of a FileArray gets you a ByteArray. After all,
+        ## why would you want a copy if you didn't want to modify it?
+        #return ByteArray(self.rawbytes, self.bitlength, self.offset)
 
-    def getbyteslice(self, start, end):
-        if start < end:
-            return bytearray(self.map[start + self.byteoffset: end + self.byteoffset])
-        else:
-            return bytearray()
-        
-    # This is to allow offsetcopy to index like it does the _rawarray of the ByteArray      
-    __getitem__ = getbyte
+    #def getbyte(self, pos):
+        #return ord(self.map[pos + self.byteoffset])
 
-        
+    #def getbit(self, pos):
+        #assert 0 <= pos < self.bitlength
+        #byte, bit = divmod(self.offset + pos, 8)
+        #return bool(ord(self.map[byte + self.byteoffset]) & (128 >> bit))
+
+    #def getbyteslice(self, start, end):
+        #if start < end:
+            #return bytearray(self.map[start + self.byteoffset: end + self.byteoffset])
+        #else:
+            #return bytearray()
+
+    ## This is to allow offsetcopy to index like it does the _rawarray of the ByteArray
+    #__getitem__ = getbyte
+
+
 def slice(ba, bitlength, offset):
     """Return a new ByteArray created as a slice of ba."""
     try:
-        return MemArray(ba._rawarray, bitlength, ba.offset + offset)
+        return ByteArray(ba._rawarray, bitlength, ba.offset + offset)
     except AttributeError:
         return FileArray(ba.source, bitlength, 8*ba.byteoffset + ba.offset + offset)
-        
+
 def offsetcopy(s, newoffset):
     """Return a copy of s with the newoffset."""
     assert 0 <= newoffset < 8
@@ -216,7 +210,7 @@ def offsetcopy(s, newoffset):
         except AttributeError:
             d = s
         if newoffset == s.offset % 8:
-            new_s = MemArray(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
+            new_s = ByteArray(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
             return new_s
         assert newoffset != s.offset % 8
         if newoffset < s.offset % 8:
@@ -242,13 +236,13 @@ def offsetcopy(s, newoffset):
                 bits_in_last_byte = 8
             if bits_in_last_byte + shiftright > 8:
                 newdata.append((d[s.byteoffset + s.bytelength - 1] << (8 - shiftright)) & 0xff)
-        new_s = MemArray(bytearray(newdata), s.bitlength, newoffset)
+        new_s = ByteArray(bytearray(newdata), s.bitlength, newoffset)
         assert new_s.offset == newoffset
         return new_s
-    
+
 def equal(a, b):
     """Return True if a == b."""
-    
+
     a_bitlength = a.bitlength
     b_bitlength = b.bitlength
     if a_bitlength != b_bitlength:
@@ -264,18 +258,18 @@ def equal(a, b):
     b_byteoffset = b.byteoffset
     a_bytelength = a.bytelength
     b_bytelength = b.bytelength
-    
+
     try:
         da = a._rawarray
         db = b._rawarray
     except AttributeError:
         da = a
         db = b
-        
+
     # If they are pointing to the same data, they must be equal
     if da is db and a.offset == b.offset:
         return True
-        
+
     if a_bitoff == b_bitoff:
         bits_spare_in_last_byte = 8 - (a_bitoff + a_bitlength) % 8
         if bits_spare_in_last_byte == 8:
@@ -316,7 +310,7 @@ def equal(a, b):
         b_val &= 0xffff
         b_val >>= 16 - b_bitlength
         return a_val == b_val
-    
+
     # Compare first byte of b with bits from first byte of a
     if (da[a_byteoffset] & (0xff >> a_bitoff)) >> shift != db[b_byteoffset] & (0xff >> b_bitoff):
         return False
@@ -330,7 +324,7 @@ def equal(a, b):
         a_val &= 0xff
         if a_val != b_val:
             return False
-    
+
     # Now check bits in final byte of b
     final_b_bits = (b.offset + b_bitlength) % 8
     if final_b_bits == 0:
@@ -350,6 +344,5 @@ def equal(a, b):
     a_val >>= (8 - final_a_bits)
     a_val &= 0xff >> (8 - final_b_bits)
     return a_val == b_val
-    
-    
-        
+
+

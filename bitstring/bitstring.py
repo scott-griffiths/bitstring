@@ -10,7 +10,7 @@ import re
 from bits import *
 import bitarray
 from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
-from bitstore import FileArray, MemArray
+from bitstore import ByteArray, ConstByteArray, MmapByteArray
 
 
 class BitString(Bits):
@@ -130,15 +130,15 @@ class BitString(Bits):
         self._initialise(auto, length, offset, **kwargs)
         self._pos = 0
         # For mutable BitStrings we always read in files to memory:
-        if isinstance(self._datastore, FileArray):
+        if not isinstance(self._datastore, ByteArray):
             self._ensureinmemory()
 
     def __copy__(self):
         """Return a new copy of the BitString."""
         s_copy = BitString()
         s_copy._pos = self._pos
-        if isinstance(self._datastore, FileArray):
-            # Let them both point to the same (invariant) file.
+        if not isinstance(self._datastore, ByteArray):
+            # Let them both point to the same (invariant) array.
             # If either gets modified then at that point they'll be read into memory.
             s_copy._datastore = self._datastore
         else:
