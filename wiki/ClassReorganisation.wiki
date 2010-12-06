@@ -16,6 +16,22 @@ New basic types:
   * `ConstBitStream` : Immutable bitstream.
   * `BitStream` : Mutable bitstream.
 
+The hierarchy is:
+
+{{{
+        Bits
+       /    \
+      /      \
+     /        \
+ BitArray  ConstBitStream
+     \        /
+      \      /
+       \    /
+      BitStream
+}}}
+
+so `BitArray` adds mutating methods to `Bits`, `ConstBitStream` adds reading and bit positions to `Bits`, while `BitStream` just inherits from them both and doesn't really add anything.
+
 So the current `Bits` becomes `ConstBitStream` (or a better name if I can think of one), and `BitString` becomes `BitStream`. And so we lose the `BitString` class altogether.
 
 The `BitArray` name is probably the best choice. It then matches the in-built `bytes` and `bytearray` types. There is a bit of a clash with the bitarray module, but their class is `bitarray.bitarray` and mine is `bitstring.BitArray` so it's not too bad.
