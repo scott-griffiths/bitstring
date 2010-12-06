@@ -1460,9 +1460,6 @@ class ConstBitArray(object):
         """Ensure the data is held in memory, not in a file."""
         self._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength),
                               self.len, self._offset)
-        #print self._datastore.getbyteslice(0, self._datastore.bytelength)
-        print self.len
-        print self._offset
 
     @classmethod
     def _converttobitstring(cls, bs, offset=0, cache={}):

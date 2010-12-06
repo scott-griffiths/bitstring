@@ -14,20 +14,23 @@ from errors import CreationError
 class MmapByteArray(object):
     """Looks like a bytearray, but from an mmap."""
 
+    __slots__ = ('filemap', 'filelength', 'source')
+
     def __init__(self, source):
         self.source = source
         self.filelength = os.path.getsize(source.name)
-        self.map = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
+        self.filemap = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
 
     def __getitem__(self, key):
         try:
             start = key.start
-            return bytearray(self.map.__getitem__(key))
+            return bytearray(self.filemap.__getitem__(key))
         except AttributeError:
-            return ord(self.map[key])
+            return ord(self.filemap[key])
 
     def __len__(self):
         return self.filelength
+
 
 class ConstByteArray(object):
     """Stores raw bytes together with a bit offset and length."""
