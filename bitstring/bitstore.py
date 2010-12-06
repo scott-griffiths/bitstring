@@ -17,11 +17,6 @@ class MmapByteArray(object):
     def __init__(self, source):
         self.source = source
         self.filelength = os.path.getsize(source.name)
-        #self.bytelength =  filelength if bytelength is None else bytelength
-        # We don't store the offset, just use it for this check
-        #if self.bytelength > filelength - offset:
-        #    raise CreationError("File is not long enough for specified "
-        #                        "bitstring length and offset.")
         self.map = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
 
     def __getitem__(self, key):
@@ -141,53 +136,6 @@ class ByteArray(ConstByteArray):
         self._rawarray = array._rawarray
         self.offset = array.offset
         self.bitlength += array.bitlength
-
-
-#class FileArray(object):
-    #"""A class that mimics bytearray but gets data from a file object."""
-
-    #__slots__ = ('source', 'bytelength', 'bitlength', 'byteoffset', 'offset', 'map')
-
-    #def __init__(self, source, bitlength, offset):
-        ## byteoffset - bytes to ignore at start of file
-        ## bitoffset - bits (0-7) to ignore after the byteoffset
-        #byteoffset, bitoffset = divmod(offset, 8)
-        #filelength = os.path.getsize(source.name)
-        #if bitlength is None:
-            #self.bytelength = filelength - byteoffset
-            #bitlength = self.bytelength*8 - bitoffset
-        #else:
-            #self.bytelength = (bitlength + bitoffset + 7) // 8
-        #if self.bytelength > filelength - byteoffset:
-            #raise CreationError("File is not long enough for specified "
-                                #"bitstring length and offset.")
-        #self.byteoffset = byteoffset
-        #self.bitlength = bitlength
-        #self.offset = bitoffset
-        #self.source = source
-        #self.map = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
-
-    #def __copy__(self):
-        ## Asking for a copy of a FileArray gets you a ByteArray. After all,
-        ## why would you want a copy if you didn't want to modify it?
-        #return ByteArray(self.rawbytes, self.bitlength, self.offset)
-
-    #def getbyte(self, pos):
-        #return ord(self.map[pos + self.byteoffset])
-
-    #def getbit(self, pos):
-        #assert 0 <= pos < self.bitlength
-        #byte, bit = divmod(self.offset + pos, 8)
-        #return bool(ord(self.map[byte + self.byteoffset]) & (128 >> bit))
-
-    #def getbyteslice(self, start, end):
-        #if start < end:
-            #return bytearray(self.map[start + self.byteoffset: end + self.byteoffset])
-        #else:
-            #return bytearray()
-
-    ## This is to allow offsetcopy to index like it does the _rawarray of the ByteArray
-    #__getitem__ = getbyte
 
 
 def slice(ba, bitlength, offset):
