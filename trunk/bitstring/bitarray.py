@@ -11,7 +11,8 @@ import itertools
 import sys
 import copy
 import numbers
-from bitstore import FileArray, MemArray
+import mmap
+from bitstore import ByteArray, ConstByteArray, MmapByteArray
 from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
 
 
@@ -548,14 +549,14 @@ class ConstBitArray(object):
 
         """
         length = self.len
-        if isinstance(self._datastore, FileArray):
+        if isinstance(self._datastore._rawarray, MmapByteArray):
             offsetstring = ''
             if self._datastore.byteoffset or self._offset:
                 offset = self._datastore.byteoffset * 8 + self._offset
                 offsetstring = ", offset=%d" % offset
             lengthstring = ", length=%d" % length
             return "{0}(filename='{1}'{2}{3})".format(self.__class__.__name__,
-                    self._datastore.source.name, lengthstring, offsetstring)
+                    self._datastore._rawarray.source.name, lengthstring, offsetstring)
         else:
             s = self.__str__()
             lengthstring = ''
@@ -840,7 +841,7 @@ class ConstBitArray(object):
 
     def _clear(self):
         """Reset the bitstring to an empty state."""
-        self._datastore = MemArray(bytearray())
+        self._datastore = ByteArray(bytearray())
 
     def _setauto(self, s, length, offset):
         """Set bitstring from a bitstring, file, bool, integer, iterable or string."""
@@ -851,13 +852,18 @@ class ConstBitArray(object):
         if isinstance(s, ConstBitArray):
             if length is None:
                 length = s.len - offset
-            if isinstance(s._datastore, FileArray):
-                self._setfile(s._datastore.source.name, length, s._offset + offset)
-            else:
-                self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
+            self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
             return
         if isinstance(s, file):
-            self._datastore = FileArray(s, length, offset)
+            m = MmapByteArray(s)
+            if offset is None:
+                offset = 0
+            if length is None:
+                length = os.path.getsize(s.name)*8 - offset
+            if length + offset > m.filelength*8:
+                raise CreationError("File is not long enough for specified "
+                                    "length and offset.")
+            self._datastore = ConstByteArray(m, length, offset)
             return
         if length is not None:
             raise CreationError("The length keyword isn't applicable to this initialiser.")
@@ -887,7 +893,15 @@ class ConstBitArray(object):
     def _setfile(self, filename, length, offset):
         "Use file as source of bits."
         source = open(filename, 'rb')
-        self._datastore = FileArray(source, length, offset)
+        m = MmapByteArray(source)
+        if offset is None:
+            offset = 0
+        if length is None:
+            length = os.path.getsize(source.name)*8 - offset
+        if length + offset > m.filelength*8:
+            raise CreationError("File is not long enough for specified "
+                                "length and offset.")
+        self._datastore = ConstByteArray(m, length, offset)
 
     def _setbytes_safe(self, data, length=None, offset=0):
         """Set the data from a string."""
@@ -895,19 +909,19 @@ class ConstBitArray(object):
         if length is None:
             # Use to the end of the data
             length = (len(data) - (offset // 8)) * 8 - offset
-            self._datastore = MemArray(data, length, offset)
+            self._datastore = ByteArray(data, length, offset)
         else:
             if length + offset > len(data)*8:
                 msg = "Not enough data present. Need {0} bits, have {1}."
                 raise CreationError(msg, length + offset, len(data)*8)
             if length == 0:
-                self._datastore = MemArray(bytearray())
+                self._datastore = ByteArray(bytearray())
             else:
-                self._datastore = MemArray(data, length, offset)
+                self._datastore = ByteArray(data, length, offset)
 
     def _setbytes_unsafe(self, data, length, offset):
         """Unchecked version of _setbytes_safe."""
-        self._datastore = MemArray(data[:], length, offset)
+        self._datastore = ByteArray(data[:], length, offset)
         assert self._assertsanity()
 
     def _readbytes(self, length, start):
@@ -917,7 +931,7 @@ class ConstBitArray(object):
         if (start + self._offset) % 8 == 0:
             return bytes(self._datastore.getbyteslice(start + self._offset // 8, (start + self._offset + length) // 8))
         # TODO: don't call __getitem__ here!
-#        b = MemArray(self._datastore.rawbytes, length, start + self._offset)
+#        b = ByteArray(self._datastore.rawbytes, length, start + self._offset)
 #        b = bitstore.offsetcopy(b, 0)
 #        return b.getbyteslice(0, length // 8)
         return self[start:start + length].tobytes()
@@ -1436,7 +1450,7 @@ class ConstBitArray(object):
         return self._readhex(self.len, 0)
 
     def _getoffset(self):
-        return self._datastore.offset
+        return self._datastore.offset % 8
 
     def _getlength(self):
         """Return the length of the bitstring in bits."""
@@ -1444,8 +1458,11 @@ class ConstBitArray(object):
 
     def _ensureinmemory(self):
         """Ensure the data is held in memory, not in a file."""
-        self._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength), self.len,
-                              self._offset)
+        self._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength),
+                              self.len, self._offset)
+        #print self._datastore.getbyteslice(0, self._datastore.bytelength)
+        print self.len
+        print self._offset
 
     @classmethod
     def _converttobitstring(cls, bs, offset=0, cache={}):

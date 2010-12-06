@@ -11,7 +11,7 @@ import copy
 import os
 import collections
 from bitstring import BitString, Bits, ConstBitArray, pack
-from bitstring.bitstore import MemArray, offsetcopy
+from bitstring.bitstore import ByteArray, offsetcopy
 
 class ModuleData(unittest.TestCase):
 
@@ -941,7 +941,13 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s.hex, '0x000001b3')
         s = Bits(filename='test.m1v', length = 0)
         self.assertFalse(s)
-        self.assertRaises(bitstring.CreationError, BitString, filename='test.m1v', length=999999999999)
+        self.assertRaises(bitstring.CreationError, BitString, filename='smalltestfile', length=65)
+        self.assertRaises(bitstring.CreationError, Bits, filename='smalltestfile', length=64, offset=1)
+#        self.assertRaises(bitstring.CreationError, Bits, filename='smalltestfile', offset=65)
+        f = open('smalltestfile', 'rb')
+#        self.assertRaises(bitstring.CreationError, Bits, auto=f, offset=65)
+        self.assertRaises(bitstring.CreationError, Bits, auto=f, length=65)
+        self.assertRaises(bitstring.CreationError, Bits, auto=f, offset=60, length=5)
 
     def testCreationFromFileWithOffset(self):
         a = BitString(filename='test.m1v', offset=4)
@@ -1880,8 +1886,8 @@ class Adding(unittest.TestCase):
     def testFileAndMemEquivalence(self):
         a = Bits(filename='smalltestfile')
         b = BitString(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore, bitstring.bitstore.FileArray))
-        self.assertTrue(isinstance(b._datastore, bitstring.bitstring.MemArray))
+        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.bitstore.MmapByteArray))
+        self.assertTrue(isinstance(b._datastore._rawarray, bytearray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
         self.assertEqual(a._datastore.getbyteslice(1, 5), bytearray(b._datastore.getbyteslice(1, 5)))
 
@@ -2143,7 +2149,7 @@ class Adding(unittest.TestCase):
                   Bits(filename='test.m1v', length=307),
                   Bits(filename='test.m1v', length=23, offset=23102)]:
             f2 = eval(f.__repr__())
-            self.assertEqual(f._datastore.source.name, f2._datastore.source.name)
+            self.assertEqual(f._datastore._rawarray.source.name, f2._datastore._rawarray.source.name)
             self.assertTrue(f2 == f)
         a = BitString('0b1')
         self.assertEqual(repr(a), "BitString('0b1')")
@@ -2602,6 +2608,7 @@ class Adding(unittest.TestCase):
         s = BitString(f, offset=32, length=12)
         self.assertEqual(s.uint, 352)
         t = BitString('0xf') + f
+        print(t[0:40].hex)
         self.assertTrue(t.startswith('0xf000001b3160'))
         s2 = Bits(f)
         t2 = BitString('0xc')
@@ -4012,17 +4019,17 @@ class FileReadingStrategy(unittest.TestCase):
 
     def testBitStringIsAlwaysRead(self):
         a = BitString(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore, bitstring.bitstring.MemArray))
+        self.assertTrue(isinstance(a._datastore, bitstring.bitstring.ByteArray))
         f = open('smalltestfile', 'rb')
         b = BitString(f)
-        self.assertTrue(isinstance(b._datastore, bitstring.bitstring.MemArray))
+        self.assertTrue(isinstance(b._datastore, bitstring.bitstring.ByteArray))
 
     def testBitsIsNeverRead(self):
         a = Bits(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore, bitstring.bitstore.FileArray))
+        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.bitstore.MmapByteArray))
         f = open('smalltestfile', 'rb')
         b = Bits(f)
-        self.assertTrue(isinstance(b._datastore, bitstring.bitstore.FileArray))
+        self.assertTrue(isinstance(b._datastore._rawarray, bitstring.bitstore.MmapByteArray))
 
 class Count(unittest.TestCase):
 
@@ -4087,12 +4094,12 @@ class InitialiseFromBytes(unittest.TestCase):
 class OffsetCopy(unittest.TestCase):
 
     def testStraightCopy(self):
-        s = MemArray(bytearray([10, 5, 1]), 24, 0)
+        s = ByteArray(bytearray([10, 5, 1]), 24, 0)
         t = offsetcopy(s, 0)
         self.assertEqual(t._rawarray, bytearray([10, 5, 1]))
 
     def testOffsetIncrease(self):
-        s = MemArray(bytearray([1, 1, 1]), 24, 0)
+        s = ByteArray(bytearray([1, 1, 1]), 24, 0)
         t = offsetcopy(s, 4)
         self.assertEqual(t.bitlength, 24)
         self.assertEqual(t.offset, 4)
