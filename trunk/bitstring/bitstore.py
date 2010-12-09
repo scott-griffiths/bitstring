@@ -154,15 +154,12 @@ def offsetcopy(s, newoffset):
     if s.bitlength == 0:
         return copy.copy(s)
     else:
+        if newoffset == s.offset % 8:
+            return ByteArray(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
+
         assert 0 <= newoffset < 8
         newdata = []
-        try:
-            d = s._rawarray
-        except AttributeError:
-            d = s
-        if newoffset == s.offset % 8:
-            new_s = ByteArray(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
-            return new_s
+        d = s._rawarray
         assert newoffset != s.offset % 8
         if newoffset < s.offset % 8:
             # We need to shift everything left
@@ -210,12 +207,8 @@ def equal(a, b):
     a_bytelength = a.bytelength
     b_bytelength = b.bytelength
 
-    try:
-        da = a._rawarray
-        db = b._rawarray
-    except AttributeError:
-        da = a
-        db = b
+    da = a._rawarray
+    db = b._rawarray
 
     # If they are pointing to the same data, they must be equal
     if da is db and a.offset == b.offset:
