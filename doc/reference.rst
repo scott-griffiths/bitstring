@@ -8,10 +8,13 @@ Reference
 
 .. toctree::
    :maxdepth: 3
-   
+
+   quick_ref
    bitstring_classes
-   bits
-   bitstring
+   constbitarray
+   bitarray
+   constbitstream
+   bitstream
    functions
 
 
