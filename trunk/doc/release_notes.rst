@@ -4,14 +4,18 @@
 Release Notes
 *************
 
-July 26th 2010: version 2.0.3 released
--------------------------------------------------------
+Full Version History
+====================
 
-  * **Bug fix**: Using peek and read for a single bit now returns a new bitstring as was intended, rather than the old behaviour of returning a bool.
-  * Removed HTML docs from source archive - better to use the online version.
+
+July 26th 2010: version 2.0.3 released
+--------------------------------------
+
+  1. **Bug fix**: Using peek and read for a single bit now returns a new bitstring as was intended, rather than the old behaviour of returning a bool.
+  2. Removed HTML docs from source archive - better to use the online version.
 
 July 25th 2010: version 2.0.2 released
--------------------------------------------------------
+--------------------------------------
 
 This is a major release, with a number of backwardly incompatible changes.
 The main change is the removal of many methods, all of which have simple
@@ -339,13 +343,13 @@ there are also new exceptions which use ``Error`` as a base class.
 These can be caught in preference to ``Error`` if you need finer control.
 The new exceptions sometimes also derive from built-in exceptions:
 
- * ``ByteAlignError(Error)`` - whole byte position or length needed.
+ 3. ``ByteAlignError(Error)`` - whole byte position or length needed.
 
- * ``ReadError(Error, IndexError)`` - reading or peeking off the end of the bitstring.
+ 4. ``ReadError(Error, IndexError)`` - reading or peeking off the end of the bitstring.
 
- * ``CreationError(Error, ValueError)`` - inappropriate argument during bitstring creation.
+ 5. ``CreationError(Error, ValueError)`` - inappropriate argument during bitstring creation.
 
- * ``InterpretError(Error, ValueError)`` - inappropriate interpretation of binary data.
+ 6. ``InterpretError(Error, ValueError)`` - inappropriate interpretation of binary data.
 
 
 March 18th 2010: version 1.3.0 for Python 2.6 and 3.x released
@@ -441,7 +445,7 @@ Bug fixed in replace method
 
 
 January 19th 2010: version 1.2.0 for Python 2.6 and 3.x released
-================================================================
+----------------------------------------------------------------
 
 
 New 'Bits' class
