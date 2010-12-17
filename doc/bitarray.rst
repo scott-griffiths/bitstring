@@ -80,7 +80,7 @@ The BitArray class
 
     .. method:: overwrite(bs[, pos])
 
-        Replaces the contents of the current :class:`BitArray` with *bs* at *pos*. After overwriting :attr:`~Bits.pos` will be immediately after the overwritten section.
+        Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
 
         The default for *pos* is the current position. ::
 
@@ -104,7 +104,7 @@ The BitArray class
 
         Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 
-        If *bytealigned* is ``True`` then replacements will only be made on byte boundaries. *start* and *end* give the search range and default to ``0`` and :attr:`~Bits.len` respectively. If *count* is specified then no more than this many replacements will be made. ::
+        If *bytealigned* is ``True`` then replacements will only be made on byte boundaries. *start* and *end* give the search range and default to ``0`` and :attr:`~ConstBitArray.len` respectively. If *count* is specified then no more than this many replacements will be made. ::
 
             >>> s = BitArray('0b0011001')
             >>> s.replace('0b1', '0xf')
@@ -120,7 +120,7 @@ The BitArray class
 
         Reverses bits in the :class:`BitArray` in-place.
 
-        *start* and *end* give the range and default to ``0`` and :attr:`~Bits.len` respectively. ::
+        *start* and *end* give the range and default to ``0`` and :attr:`~ConstBitArray.len` respectively. ::
 
             >>> a = BitArray('0b10111')
             >>> a.reverse()
@@ -131,7 +131,7 @@ The BitArray class
 
         Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the left.
 
-        *start* and *end* define the slice to use and default to ``0`` and :attr:`~Bits.len` respectively.
+        *start* and *end* define the slice to use and default to ``0`` and :attr:`~ConstBitArray.len` respectively.
         
         Raises :exc:`ValueError` if ``bits < 0``. ::
 
@@ -144,7 +144,7 @@ The BitArray class
 
         Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the right.
 
-        *start* and *end* define the slice to use and default to ``0`` and :attr:`~Bits.len` respectively.
+        *start* and *end* define the slice to use and default to ``0`` and :attr:`~ConstBitArray.len` respectively.
         
         Raises :exc:`ValueError` if ``bits < 0``.
 
@@ -169,23 +169,23 @@ The BitArray class
 
     .. attribute:: bin
 
-        Writable version of :attr:`Bits.bin`.
+        Writable version of :attr:`ConstBitArray.bin`.
          
     .. attribute:: bool
 
-       Writable version of :attr:`Bits.bool`.
+       Writable version of :attr:`ConstBitArray.bool`.
 
     .. attribute:: bytes
 
-        Writable version of :attr:`Bits.bytes`.
+        Writable version of :attr:`ConstBitArray.bytes`.
 
     .. attribute:: hex
 
-        Writable version of :attr:`Bits.hex`.
+        Writable version of :attr:`ConstBitArray.hex`.
 
     .. attribute:: int
 
-        Writable version of :attr:`Bits.int`.
+        Writable version of :attr:`ConstBitArray.int`.
                 
         When used  as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
 
@@ -197,80 +197,76 @@ The BitArray class
         
     .. attribute:: intbe
 
-        Writable version of :attr:`Bits.intbe`.
+        Writable version of :attr:`ConstBitArray.intbe`.
         
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.        
 
     .. attribute:: intle
 
-        Writable version of :attr:`Bits.intle`.
+        Writable version of :attr:`ConstBitArray.intle`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
         
     .. attribute:: intne
 
-        Writable version of :attr:`Bits.intne`.
+        Writable version of :attr:`ConstBitArray.intne`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
         
     .. attribute:: float
     .. attribute:: floatbe
 
-        Writable version of :attr:`Bits.float`.
+        Writable version of :attr:`ConstBitArray.float`.
 
     .. attribute:: floatle
 
-        Writable version of :attr:`Bits.floatle`.
+        Writable version of :attr:`ConstBitArray.floatle`.
 
     .. attribute:: floatne
 
-        Writable version of :attr:`Bits.floatne`.
+        Writable version of :attr:`ConstBitArray.floatne`.
 
     .. attribute:: oct
 
-        Writable version of :attr:`Bits.oct`.
+        Writable version of :attr:`ConstBitArray.oct`.
 
     .. attribute:: se
 
-        Writable version of :attr:`Bits.se`.
+        Writable version of :attr:`ConstBitArray.se`.
 
     .. attribute:: ue
 
-        Writable version of :attr:`Bits.ue`.
+        Writable version of :attr:`ConstBitArray.ue`.
 
     .. attribute:: uint
 
-        Writable version of :attr:`Bits.uint`.
+        Writable version of :attr:`ConstBitArray.uint`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
     .. attribute:: uintbe
 
-        Writable version of :attr:`Bits.uintbe`.
+        Writable version of :attr:`ConstBitArray.uintbe`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
     .. attribute:: uintle
 
-        Writable version of :attr:`Bits.uintle`.
+        Writable version of :attr:`ConstBitArray.uintle`.
         
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
     .. attribute:: uintne
 
-        Writable version of :attr:`Bits.uintle`.
+        Writable version of :attr:`ConstBitArray.uintle`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
-
-
 
     .. method:: __delitem__(key)
 
         ``del s[start:end:step]``
 
         Deletes the slice specified.
-
-        After deletion :attr:`~Bits.pos` will be at the deleted slice's position.
         
     .. method:: __iadd__(bs)
 
@@ -278,7 +274,7 @@ The BitArray class
 
         Appends *bs* to the current bitstring.
         
-        Note that for :class:`BitArray` objects this will be an in-place change, whereas for :class:`Bits` objects using ``+=`` will not call this method - instead a new object will be created (it is equivalent to a copy and an :meth:`Bits.__add__`). ::
+        Note that for :class:`BitArray` objects this will be an in-place change, whereas for :class:`ConstBitArray` objects using ``+=`` will not call this method - instead a new object will be created (it is equivalent to a copy and an :meth:`ConstBitArray.__add__`). ::
 
             >>> s = BitArray(ue=423)
             >>> s += BitArray(ue=12)

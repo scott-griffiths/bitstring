@@ -5,13 +5,14 @@
 User Manual
 ###########
 
-.. toctree:: 
+.. toctree::
    :maxdepth: 2
-   
+
    walkthrough
    introduction
    creation
    slicing
    reading
    misc
+   release_notes
 

@@ -14,7 +14,7 @@ Slicing takes three arguments: the first position you want, one past the last po
 
 The third argument (the 'step') will be described shortly, but most of the time you'll probably just need the bit-wise slice, where for example ``a[10:12]`` will return a 2-bit bitstring of the 10th and 11th bits in ``a``, and ``a[32]`` will return just the 32nd bit. ::
 
- >>> a = BitString('0b00011110')
+ >>> a = BitArray('0b00011110')
  >>> b = a[3:7]
  >>> print(a, b)
  0x1e 0xf
@@ -29,11 +29,11 @@ For single bit indices (as opposed to slices) a boolean is returned; that is ``T
 If you want a single bit as a new bitstring then use a one-bit slice instead::
 
     >>> a[0:1]
-    BitString('0b0')
+    BitArray('0b0')
 
 Indexing also works for missing and negative arguments, just as it does for other containers. ::
 
- >>> a = BitString('0b00011110')
+ >>> a = BitArray('0b00011110')
  >>> print(a[:5])         # first 5 bits
  0b00011            
  >>> print(a[3:])         # everything except first 3 bits
@@ -54,7 +54,7 @@ For example this makes it more convenient if you want to give slices in terms of
 
 When using a step, the bitstring is effectively truncated to a multiple of the step, so ``s[::8]`` is equal to ``s`` if ``s`` is an integer number of bytes, otherwise it is truncated by up to 7 bits. This means that, for example, the final seven complete 16-bit words could be written as ``s[-7::16]``. ::
 
- >>> a = BitString('0x470000125e')
+ >>> a = BitArray('0x470000125e')
  >>> print(a[0:4:8])                  # The first four bytes
  0x47000012
  >>> print(a[-3::4])                  # The final three nibbles
@@ -64,54 +64,54 @@ Negative slices are also allowed, and should do what you'd expect. So for exampl
 
  >>> print(a[:-5:-4])                 # Final five nibbles reversed
  0xe5210                                 
- >>> print(a[::-8])                   # The whole BitString byte reversed
+ >>> print(a[::-8])                   # The whole BitArray byte reversed
  0x5e12000047
 
 Joining
 -------
 
-To join together a couple of bitstring objects use the ``+`` or ``+=`` operators, or the :meth:`BitString.append` and :meth:`BitString.prepend` methods. ::
+To join together a couple of bitstring objects use the ``+`` or ``+=`` operators, or the :meth:`~BitArray.append` and :meth:`~BitArray.prepend` methods. ::
 
- # Six ways of creating the same BitString:
- a1 = BitString(bin='000') + BitString(hex='f')
- a2 = BitString('0b000') + BitString('0xf')
- a3 = BitString('0b000') + '0xf'
- a4 = BitString('0b000')
+ # Six ways of creating the same BitArray:
+ a1 = BitArray(bin='000') + BitArray(hex='f')
+ a2 = BitArray('0b000') + BitArray('0xf')
+ a3 = BitArray('0b000') + '0xf'
+ a4 = BitArray('0b000')
  a4.append('0xf')
- a5 = BitString('0xf')
+ a5 = BitArray('0xf')
  a5.prepend('0b000')
- a6 = BitString('0b000')
+ a6 = BitArray('0b000')
  a6 += '0xf'
 
-Note that the final three methods all modify a bitstring, and so will only work with :class:`BitString` objects, not the immutable :class:`Bits` objects.
+Note that the final three methods all modify a bitstring, and so will only work with :class:`BitArray` objects, not the immutable :class:`ConstBitArray` objects.
 
-If you want to join a large number of bitstrings then the method :meth:`~Bits.join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don't want a separator then it can be called on an empty bitstring. ::
+If you want to join a large number of bitstrings then the method :meth:`~ConstBitArray.join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don't want a separator then it can be called on an empty bitstring. ::
 
- bslist = [BitString(uint=n, length=12) for n in xrange(1000)]
- s = BitString('0b1111').join(bslist)
+ bslist = [BitArray(uint=n, length=12) for n in xrange(1000)]
+ s = BitArray('0b1111').join(bslist)
 
 Truncating, inserting, deleting and overwriting
 -----------------------------------------------
 
-The functions in this section all modify the bitstring that they operate on and so are not available for :class:`Bits` objects.
+The functions in this section all modify the bitstring that they operate on and so are not available for :class:`ConstBitArray` objects.
 
 Deleting and truncating
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 To delete bits just use ``del`` as you would with any other container::
 
- >>> a = BitString('0b00011000')
+ >>> a = BitArray('0b00011000')
  >>> del a[3:5]                # remove 2 bits at pos 3
  >>> a.bin
  ‘0b000000’
- >>> b = BitString('0x112233445566')
+ >>> b = BitArray('0x112233445566')
  >>> del b[24:40]
  >>> b.hex
  '0x11223366'
 
 You can of course use this to truncate the start or end bits just as easily::
 
- >>> a = BitString('0x001122')
+ >>> a = BitArray('0x001122')
  >>> del a[-8:]   # remove last 8 bits
  >>> del a[:8]    # remove first 8 bits
  >>> a == '0x11'
@@ -121,9 +121,9 @@ You can of course use this to truncate the start or end bits just as easily::
 ``insert``
 ^^^^^^^^^^
 
-As you might expect, :meth:`~BitString.insert` takes one :class:`BitString` and inserts it into another. A bit position can be specified, but if not present then the current :attr:`~Bits.pos` is used. ::
+As you might expect, :meth:`~BitArray.insert` takes one :class:`BitArray` and inserts it into another. A bit position must be specified for :class:`BitArray` and :class:`ConstBitArray`, but for BitStreams if not present then the current :attr:`~ConstBitStream.pos` is used. ::
 
- >>> a = BitString('0x00112233')
+ >>> a = BitArray('0x00112233')
  >>> a.insert('0xffff', 16)
  >>> a.hex
  '0x0011ffff2233'
@@ -131,16 +131,16 @@ As you might expect, :meth:`~BitString.insert` takes one :class:`BitString` and 
 ``overwrite``
 ^^^^^^^^^^^^^
 
-:meth:`BitString.overwrite` does much the same as :meth:`~BitString.insert`, but predictably the :class:`BitString` object's data is overwritten by the new data. ::
+:meth:`~BitArray.overwrite` does much the same as :meth:`~BitArray.insert`, but predictably the :class:`BitArray` object's data is overwritten by the new data. ::
 
- >>> a = BitString('0x00112233')
+ >>> a = BitArray('0x00112233')
  >>> a.pos = 4
  >>> a.overwrite('0b1111')         # Uses current pos as default
  >>> a.hex
  '0x0f112233'
 
 
-The BitString as a list
+The bitstring as a list
 -----------------------
 
 If you treat a bitstring object as a list whose elements are all either '1' or '0' then you won't go far wrong. The table below gives some of the equivalent ways of using methods and the standard slice notation.
@@ -160,9 +160,9 @@ Splitting
 ``split``
 ^^^^^^^^^
 
-Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The :meth:`~Bits.split` method returns a generator for the sections. ::
+Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The :meth:`~ConstBitArray.split` method returns a generator for the sections. ::
 
- >>> a = BitString('0x4700004711472222')
+ >>> a = BitArray('0x4700004711472222')
  >>> for s in a.split('0x47', bytealigned=True):
  ...     print(s.hex)
  
@@ -175,9 +175,9 @@ Note that the first item returned is always the bitstring before the first occur
 ``cut``
 ^^^^^^^
 
-If you just want to split into equal parts then use the :meth:`~Bits.cut` method. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
+If you just want to split into equal parts then use the :meth:`~ConstBitArray.cut` method. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
 
- >>> a = BitString('0x47001243')
+ >>> a = BitArray('0x47001243')
  >>> for byte in a.cut(8):
  ...     print(byte.hex)
  0x47

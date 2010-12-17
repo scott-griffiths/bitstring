@@ -56,7 +56,7 @@ This example creates a class that parses a structure that is part of the H.264 v
          if self.profile_idc in [100, 110, 122, 244, 44, 83, 86]:
              self.chroma_format_idc = s.read('ue')
              if self.chroma_format_idc == 3:
-                 self.separate_colour_plane_flag == s.read('uint:1')
+                 self.separate_colour_plane_flag = s.read('uint:1')
              self.bit_depth_luma_minus8 = s.read('ue')
              self.bit_depth_chroma_minus8 = s.read('ue')
              # etc.
