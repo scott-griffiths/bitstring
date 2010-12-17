@@ -86,7 +86,7 @@ The ConstBitArray class
 
         A slice can be given using the *start* and *end* bit positions and defaults to the whole bitstring. ::
 
-            >>> s = Bits('0x35e22')
+            >>> s = ConstBitArray('0x35e22')
             >>> s.endswith('0b10, 0x22')
             True
             >>> s.endswith('0x22', start=13)
@@ -100,7 +100,7 @@ The ConstBitArray class
 
         If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). *start* and *end* give the search range and default to the whole bitstring. ::
 
-            >>> s = Bits('0x0023122')
+            >>> s = ConstBitArray('0x0023122')
             >>> s.find('0b000100', bytealigned=True)
             (16,)
             >>> s.pos
@@ -114,7 +114,7 @@ The ConstBitArray class
 
         The *count* paramater limits the number of items that will be found - the default is to find all occurences. ::
 
-            >>> s = Bits('0xab220101')*5
+            >>> s = ConstBitArray('0xab220101')*5
             >>> list(s.findall('0x22', bytealigned=True))
             [8, 40, 72, 104, 136]
 
@@ -122,11 +122,11 @@ The ConstBitArray class
 
         Returns the concatenation of the bitstrings in the iterable *sequence* joined with ``self`` as a separator. ::
 
-            >>> s = Bits().join(['0x0001ee', 'uint:24=13', '0b0111'])
+            >>> s = ConstBitArray().join(['0x0001ee', 'uint:24=13', '0b0111'])
             >>> print(s)
             0x0001ee00000d7
          
-            >>> s = Bits('0b1').join(['0b0']*5)
+            >>> s = ConstBitArray('0b1').join(['0b0']*5)
             >>> print(s.bin)
             0b010101010
 
@@ -140,7 +140,7 @@ The ConstBitArray class
 
         Note that as it's a reverse search it will start at *end* and finish at *start*. ::
 
-            >>> s = Bits('0o031544')
+            >>> s = ConstBitArray('0o031544')
             >>> s.rfind('0b100')
             (15,)
             >>> s.pos
@@ -158,7 +158,7 @@ The ConstBitArray class
 
         If *bytealigned* is ``True`` then the delimiter will only be found if it starts at a byte aligned position. ::
 
-            >>> s = Bits('0x42423')
+            >>> s = ConstBitArray('0x42423')
             >>> [bs.bin for bs in s.split('0x4')]
             ['', '0b01000', '0b01001000', '0b0100011']
 
@@ -176,7 +176,7 @@ The ConstBitArray class
 
         This method can also be used to output your bitstring to a file - just open a file in binary write mode and write the function's output. ::
 
-            >>> s = Bits(bytes=b'hello')
+            >>> s = ConstBitArray(bytes=b'hello')
             >>> s += '0b01'
             >>> s.tobytes()
             b'hello@'
@@ -188,7 +188,7 @@ The ConstBitArray class
         The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned. ::
 
             >>> f = open('newfile', 'wb')
-            >>> Bits('0x1234').tofile(f)
+            >>> ConstBitArray('0x1234').tofile(f)
 
     .. method:: unpack(fmt, **kwargs)
 
@@ -198,7 +198,7 @@ The ConstBitArray class
 
         *fmt* is one or more strings with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`read` for details. ::
 
-            >>> s = Bits('int:4=-1, 0b1110')
+            >>> s = ConstBitArray('int:4=-1, 0b1110')
             >>> i, b = s.unpack('int:4, bin')
 
         If a token doesn't supply a length (as with ``bin`` above) then it will try to consume the rest of the bitstring. Only one such token is allowed.
@@ -223,7 +223,7 @@ The ConstBitArray class
 
         An alternative is to use the :meth:`tobytes` method, which will pad with between zero and seven ``0`` bits to make it byte aligned if needed. ::
        
-            >>> s = Bits('0x12345678')
+            >>> s = ConstBitArray('0x12345678')
             >>> s.bytes
             b'\x124Vx'
 
@@ -233,7 +233,7 @@ The ConstBitArray class
 
         When used as a getter the value will be preceded by ``0x``. If the bitstring is not a multiple of four bits long then getting its hex value will raise an :exc:`InterpretError`. ::
 
-            >>> s = Bits(bin='1111 0000')
+            >>> s = ConstBitArray(bin='1111 0000')
             >>> s.hex
             '0xf0'  
 
@@ -343,7 +343,7 @@ The ConstBitArray class
 
         Concatenate two bitstring objects and return the result. Either bitstring can be 'auto' initialised. ::
 
-            s = Bits(ue=132) + '0xff'
+            s = ConstBitArray(ue=132) + '0xff'
             s2 = '0b101' + s 
 
     .. method:: __and__(bs)
@@ -353,7 +353,7 @@ The ConstBitArray class
 
         Returns the bit-wise AND between two bitstrings, which must have the same length otherwise a :exc:`ValueError` is raised. ::
 
-            >>> print(Bits('0x33') & '0x0f')
+            >>> print(ConstBitArray('0x33') & '0x0f')
             0x03
             
     .. method:: __bool__()
@@ -364,11 +364,11 @@ The ConstBitArray class
         
         This special method is used in Python 3 only; for Python 2 the equivalent is called ``__nonzero__``, but the details are exactly the same. ::
         
-            >>> bool(Bits())
+            >>> bool(ConstBitArray())
             False
-            >>> bool(Bits('0b0000010000'))
+            >>> bool(ConstBitArray('0b0000010000'))
             True
-            >>> bool(Bits('0b0000000000'))
+            >>> bool(ConstBitArray('0b0000000000'))
             False
 
     .. method:: __contains__(bs)
@@ -377,11 +377,11 @@ The ConstBitArray class
 
         Returns ``True`` if *bs* can be found in the bitstring, otherwise returns ``False``.
 
-        Similar to using :meth:`Bits.find`, except that you are only told if it is found, and not where it was found. ::
+        Similar to using :meth:`ConstBitArray.find`, except that you are only told if it is found, and not where it was found. ::
 
-            >>> '0b11' in Bits('0x06')
+            >>> '0b11' in ConstBitArray('0x06')
             True
-            >>> '0b111' in Bits('0x06')
+            >>> '0b111' in ConstBitArray('0x06')
             False
 
     .. method:: __copy__()
@@ -391,9 +391,9 @@ The ConstBitArray class
         This allows the :mod:`copy` module to correctly copy bitstrings. Other equivalent methods are to initialise a new bitstring with the old one or to take a complete slice. ::
 
             >>> import copy
-            >>> s = Bits('0o775')
+            >>> s = ConstBitArray('0o775')
             >>> s_copy1 = copy.copy(s)
-            >>> s_copy2 = Bits(s)
+            >>> s_copy2 = ConstBitArray(s)
             >>> s_copy3 = s[:]
             >>> s == s_copy1 == s_copy2 == s_copy3
             True
@@ -404,10 +404,10 @@ The ConstBitArray class
 
         Compares two bitstring objects for equality, returning ``True`` if they have the same binary representation, otherwise returning ``False``. ::
 
-            >>> Bits('0o7777') == '0xfff'
+            >>> ConstBitArray('0o7777') == '0xfff'
             True
-            >>> a = Bits(uint=13, length=8)
-            >>> b = Bits(uint=13, length=10)
+            >>> a = ConstBitArray(uint=13, length=8)
+            >>> b = ConstBitArray(uint=13, length=10)
             >>> a == b
             False
 
@@ -419,11 +419,11 @@ The ConstBitArray class
 
         The usual slice behaviour applies except that the step parameter gives a multiplicative factor for ``start`` and ``end`` (i.e. the bits 'stepped over' are included in the slice). ::
 
-            >>> s = Bits('0x0123456')
+            >>> s = ConstBitArray('0x0123456')
             >>> s[0:4]
-            Bits('0x1')
+            ConstBitArray('0x1')
             >>> s[0:3:8]
-            Bits('0x012345')
+            ConstBitArray('0x012345')
          
         If a single element is asked for then either ``True`` or ``False`` will be returned. ::
         
@@ -436,9 +436,9 @@ The ConstBitArray class
     
         ``hash(s)``
         
-        Returns an integer hash of the :class:`Bits`.
+        Returns an integer hash of the :class:`ConstBitArray`.
         
-        This method is not available for the :class:`BitString` class, as only immutable objects should be hashed. You typically won't need to call it directly, instead it is used for dictionary keys and in sets.
+        This method is not available for the :class:`BitArray` or :class:`BitStream` classes, as only immutable objects should be hashed. You typically won't need to call it directly, instead it is used for dictionary keys and in sets.
          
     .. method:: __invert__()
 
@@ -448,7 +448,7 @@ The ConstBitArray class
 
         If the bitstring is empty then an :exc:`Error` will be raised. ::
 
-            >>> s = Bits(‘0b1110010’)
+            >>> s = ConstBitStream(‘0b1110010’)
             >>> print(~s)
             0b0001101
             >>> print(~s & s)
@@ -462,7 +462,7 @@ The ConstBitArray class
 
         It's recommended that you use the :attr:`len` property rather than the :func:`len` function because of the function's behaviour for large bitstring objects, although calling the special function directly will always work. ::
 
-            >>> s = Bits(filename='11GB.mkv')
+            >>> s = ConstBitArray(filename='11GB.mkv')
             >>> s.len
             93944160032
             >>> len(s)
@@ -476,9 +476,9 @@ The ConstBitArray class
 
         Returns the bitstring with its bits shifted *n* places to the left. The *n* right-most bits will become zeros. ::
 
-            >>> s = Bits('0xff') 
+            >>> s = ConstBitArray('0xff') 
             >>> s << 4
-            Bits('0xf0')
+            ConstBitArray('0xf0')
 
     .. method:: __mul__(n)
     .. method:: __rmul__(n)
@@ -487,7 +487,7 @@ The ConstBitArray class
 
         Return bitstring consisting of *n* concatenations of another. ::
 
-            >>> a = Bits('0x34')
+            >>> a = ConstBitArray('0x34')
             >>> b = a*5
             >>> print(b)
             0x3434343434
@@ -509,7 +509,7 @@ The ConstBitArray class
 
         Returns the bit-wise OR between two bitstring, which must have the same length otherwise a :exc:`ValueError` is raised. ::
 
-            >>> print(Bits('0x33') | '0x0f')
+            >>> print(ConstBitArray('0x33') | '0x0f')
             0x3f
 
     .. method:: __repr__()
@@ -520,8 +520,8 @@ The ConstBitArray class
 
         If the result is too long then it will be truncated with ``...`` and the length of the whole will be given. ::
 
-            >>> Bits(‘0b11100011’)
-            Bits(‘0xe3’)
+            >>> ConstBitArray(‘0b11100011’)
+            ConstBitArray(‘0xe3’)
 
     .. method:: __rshift__(n)
 
@@ -529,9 +529,9 @@ The ConstBitArray class
 
         Returns the bitstring with its bits shifted *n* places to the right. The *n* left-most bits will become zeros. ::
 
-            >>> s = Bits(‘0xff’)
+            >>> s = ConstBitArray(‘0xff’)
             >>> s >> 4
-            Bits(‘0x0f’)
+            ConstBitArray(‘0x0f’)
 
     .. method:: __str__()
 
@@ -541,7 +541,7 @@ The ConstBitArray class
 
         If the bitstring is a multiple of 4 bits long then hex will be used, otherwise either binary or a mix of hex and binary will be used. Very long strings will be truncated with ``...``. ::
 
-            >>> s = Bits('0b1')*7
+            >>> s = ConstBitArray('0b1')*7
             >>> print(s)
             0b1111111 
             >>> print(s + '0b1')
@@ -554,6 +554,6 @@ The ConstBitArray class
 
         Returns the bit-wise XOR between two bitstrings, which must have the same length otherwise a :exc:`ValueError` is raised. ::
 
-            >>> print(Bits('0x33') ^ '0x0f')
+            >>> print(ConstBitArray('0x33') ^ '0x0f')
             0x3c
 

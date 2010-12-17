@@ -1,6 +1,7 @@
 
 .. currentmodule:: bitstring
 
+
 **bitstring** is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
 
 Features
@@ -12,17 +13,6 @@ Features
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
 * Powerful binary packing and unpacking functions.
 * Read from and interpret bitstrings as streams of binary data.
-
-Index and search
-----------------
-
-* :ref:`genindex`
-* :ref:`search`
-
-Credits
--------
-
-Written by Scott Griffiths <scott@griffiths.name>. If you have any questions, suggestions or criticisms (about this module!) then please email me. Also if you use bitstring in your own project then I'd be interested to hear how it's being used.
 
 Download
 --------
@@ -41,21 +31,29 @@ The reference section has a complete list of all the classes, methods, attribute
 
 .. toctree::
    :maxdepth: 3
-   
+
    contents
 
 .. toctree::
    :maxdepth: 3
-   
+
    reference
 
 .. toctree::
    :maxdepth: 3
-   
+
    appendices
 
+Index and search
+----------------
 
+* :ref:`genindex`
+* :ref:`search`
 
+Credits
+-------
+
+Written by Scott Griffiths <scott@griffiths.name>. If you have any questions, suggestions or criticisms (about this module!) then please email me. Also if you use bitstring in your own project then I'd be interested to hear how it's being used.
 
 
 
