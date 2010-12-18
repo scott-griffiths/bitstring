@@ -13,7 +13,7 @@ from errors import ByteAlignError, CreationError, Error, InterpretError, ReadErr
 from bitstore import ByteArray, ConstByteArray, MmapByteArray
 
 
-class BitString(Bits, bitarray.BitArray):
+class BitStream(ConstBitStream, bitarray.BitArray):
 
     """A container holding a mutable sequence of bits.
 
@@ -214,5 +214,5 @@ def pack(fmt, *values, **kwargs):
         return s
     raise CreationError("Too many parameters present to pack according to the format.")
 
-# Create an alias for forward compatibility
-BitStream = BitString
+# Create an alias for backward compatibility
+BitString = BitStream
