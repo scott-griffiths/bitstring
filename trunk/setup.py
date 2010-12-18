@@ -10,14 +10,14 @@ if sys.version_info[:2] < (2, 6):
                     'For Python 2.4 / 2.5 please use bitstring version 1.0 instead.')
 
 setup(name='bitstring',
-      version='2.0.3',
+      version='2.1.0',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
       url='http://python-bitstring.googlecode.com',
       download_url='http://python-bitstring.googlecode.com',
       license='The MIT License: http://www.opensource.org/licenses/mit-license.php',
-      py_modules=['bitstring'],
+      py_modules=['bitstring', 'bits', 'bitarray', 'errors', 'bitstore'],
       platforms='all',
       classifiers = [
         'Development Status :: 5 - Production/Stable',
