@@ -16,10 +16,11 @@ from bitstring.bitstore import ByteArray, offsetcopy
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.0.4')
+        self.assertEqual(bitstring.__version__, '2.1.0')
 
     def testAll(self):
-        exported = ['Bits', 'BitString', 'pack', 'Error', 'ReadError',
+        exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
+                    'Bits', 'BitString', 'pack', 'Error', 'ReadError',
                     'InterpretError', 'ByteAlignError', 'CreationError']
         self.assertEqual(set(bitstring.__all__), set(exported))
 
