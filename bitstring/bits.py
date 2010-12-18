@@ -5,7 +5,7 @@ from bitarray import ConstBitArray, tokenparser
 from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
 
 
-class Bits(ConstBitArray):
+class ConstBitStream(ConstBitArray):
     """A container holding an immutable sequence of bits with a bit position.
 
     For a mutable container use the BitString class instead.
@@ -270,8 +270,8 @@ class Bits(ConstBitArray):
                       doc="""The position in the bitstring in bytes. Read and write.
                       """)
 
-# Alias for forward compatibility
-ConstBitStream = Bits
+# Alias for backward compatibility
+Bits = ConstBitStream
 
 
 One = Bits(bytes=b'\x80', length=1)
