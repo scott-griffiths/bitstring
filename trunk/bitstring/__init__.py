@@ -5,8 +5,10 @@ interpretation of data.
 
 Classes:
 
-Bits -- An immutable container for binary data.
-BitString -- A mutable container for binary data.
+ConstBitArray -- An immutable container for binary data.
+BitArray -- A mutable container for binary data.
+ConstBitStream -- An immutable container with streaming methods.
+BitStream -- A mutable container with streaming methods.
 
 Functions:
 
@@ -51,10 +53,16 @@ __version__ = "2.1.0"
 
 __author__ = "Scott Griffiths"
 
-__all__ = ['Bits', 'BitString', 'BitStream', 'ConstBitArray', 'ConstBitStream', 'BitArray', 'pack', 'Error', 'ReadError', 'InterpretError', 'ByteAlignError', 'CreationError']
+__all__ = ['Bits', 'BitString', 'BitStream', 'ConstBitArray', 'ConstBitStream',
+           'BitArray', 'pack', 'Error', 'ReadError', 'InterpretError',
+           'ByteAlignError', 'CreationError']
 
-from constbitstream import Bits, ConstBitStream
-from bitstream import BitString, BitStream, pack
+from constbitstream import ConstBitStream
+from bitstream import BitStream, pack
 from bitarray import BitArray
 from constbitarray import ConstBitArray
 from errors import Error, ByteAlignError, ReadError, InterpretError, CreationError
+
+# Aliases for backward compatibility
+Bits = ConstBitStream
+BitString = BitStream

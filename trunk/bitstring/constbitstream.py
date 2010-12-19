@@ -98,10 +98,10 @@ class ConstBitStream(ConstBitArray):
         self._pos = 0
 
     def __copy__(self):
-        """Return a new copy of the Bits for the copy module."""
+        """Return a new copy of the ConstBitStream for the copy module."""
         # Note that if you want a new copy (different ID), use _copy instead.
         # The copy can use the same datastore as it's immutable.
-        s = Bits()
+        s = ConstBitStream()
         s._datastore = self._datastore
         # Reset the bit position, don't copy it.
         s._pos = 0
@@ -269,6 +269,3 @@ class ConstBitStream(ConstBitArray):
     bytepos= property(_getbytepos, _setbytepos,
                       doc="""The position in the bitstring in bytes. Read and write.
                       """)
-
-# Alias for backward compatibility
-Bits = ConstBitStream
