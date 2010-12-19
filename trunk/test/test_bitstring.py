@@ -2587,7 +2587,7 @@ class Adding(unittest.TestCase):
     #    os.remove('temp_bitstring_unit_testing_file')
 
     def testTokenParser(self):
-        tp = bitstring.bits.tokenparser
+        tp = bitstring.constbitstream.tokenparser
         self.assertEqual(tp('hex'), (True, [('hex', None, None)]))
         self.assertEqual(tp('hex=14'), (True, [('hex', None, '14')]))
         self.assertEqual(tp('se'), (False, [('se', None, None)]))
@@ -4020,10 +4020,10 @@ class FileReadingStrategy(unittest.TestCase):
 
     def testBitStreamIsAlwaysRead(self):
         a = BitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore, bitstring.bitstring.ByteArray))
+        self.assertTrue(isinstance(a._datastore, bitstring.bitstream.ByteArray))
         f = open('smalltestfile', 'rb')
         b = BitStream(f)
-        self.assertTrue(isinstance(b._datastore, bitstring.bitstring.ByteArray))
+        self.assertTrue(isinstance(b._datastore, bitstring.bitstream.ByteArray))
 
     def testBitsIsNeverRead(self):
         a = ConstBitStream(filename='smalltestfile')

@@ -272,7 +272,3 @@ class ConstBitStream(ConstBitArray):
 
 # Alias for backward compatibility
 Bits = ConstBitStream
-
-
-One = Bits(bytes=b'\x80', length=1)
-Zero = Bits(bytes=b'\x00', length=1)
