@@ -88,7 +88,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
 
     __slots__ = ()
 
-    # As BitString objects are mutable, we shouldn't allow them to be hashed.
+    # As BitStream objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
@@ -128,13 +128,13 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
         """
         self._initialise(auto, length, offset, **kwargs)
         self._pos = 0
-        # For mutable BitStrings we always read in files to memory:
+        # For mutable BitStreams we always read in files to memory:
         if not isinstance(self._datastore, ByteArray):
             self._ensureinmemory()
 
     def __copy__(self):
-        """Return a new copy of the BitString."""
-        s_copy = BitString()
+        """Return a new copy of the BitStream."""
+        s_copy = BitStream()
         s_copy._pos = self._pos
         if not isinstance(self._datastore, ByteArray):
             # Let them both point to the same (invariant) array.
@@ -184,7 +184,7 @@ def pack(fmt, *values, **kwargs):
     except ValueError as e:
         raise CreationError(*e.args)
     value_iter = iter(values)
-    s = BitString()
+    s = BitStream()
     try:
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.
@@ -202,7 +202,7 @@ def pack(fmt, *values, **kwargs):
             if value is None:
                 # Take the next value from the ones provided
                 value = next(value_iter)
-            s._append(BitString._init_with_token(name, length, value))
+            s._append(BitStream._init_with_token(name, length, value))
     except StopIteration:
         raise CreationError("Not enough parameters present to pack according to the "
                             "format. {0} values are needed.", len(tokens))
@@ -213,5 +213,3 @@ def pack(fmt, *values, **kwargs):
         return s
     raise CreationError("Too many parameters present to pack according to the format.")
 
-# Create an alias for backward compatibility
-BitString = BitStream
