@@ -1,42 +1,15 @@
 #!/usr/bin/env python
-import sys
+
 import re
-import binascii
-import bitstore
-import os
-import struct
-import operator
 import collections
-import itertools
-import sys
 import copy
 import numbers
-import mmap
 import constbitarray
-from constbitarray import ConstBitArray
-from bitstore import ByteArray, ConstByteArray, MmapByteArray
-from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
+from errors import Error
 
+cba = constbitarray.ConstBitArray
 
-byteorder = sys.byteorder
-
-_ = b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
-
-# For 2.6 / 3.x coexistence
-# Yes this is very very hacky.
-PYTHON_VERSION = sys.version_info[0]
-assert PYTHON_VERSION in [2, 3]
-if PYTHON_VERSION == 2:
-    from future_builtins import zip
-    LEADING_OCT_CHARS = 1 # e.g. 0755
-else:
-    from io import IOBase
-    xrange = range
-    file = IOBase
-    LEADING_OCT_CHARS = 2 # e.g. 0o755
-
-
-class BitArray(ConstBitArray):
+class BitArray(constbitarray.ConstBitArray):
 
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
@@ -669,69 +642,69 @@ class BitArray(ConstBitArray):
         return repeats
 
 
-    int    = property(ConstBitArray._getint, ConstBitArray._setint,
+    int    = property(cba._getint, cba._setint,
                       doc="""The BitString as a two's complement signed int. Read and write.
                       """)
-    uint   = property(ConstBitArray._getuint, ConstBitArray._setuint,
+    uint   = property(cba._getuint, cba._setuint,
                       doc="""The BitString as a two's complement unsigned int. Read and write.
                       """)
-    float  = property(ConstBitArray._getfloat, ConstBitArray._setfloat,
+    float  = property(cba._getfloat, cba._setfloat,
                       doc="""The BitString as a floating point number. Read and write.
                       """)
-    intbe  = property(ConstBitArray._getintbe, ConstBitArray._setintbe,
+    intbe  = property(cba._getintbe, cba._setintbe,
                       doc="""The BitString as a two's complement big-endian signed int. Read and write.
                       """)
-    uintbe = property(ConstBitArray._getuintbe, ConstBitArray._setuintbe,
+    uintbe = property(cba._getuintbe, cba._setuintbe,
                       doc="""The BitString as a two's complement big-endian unsigned int. Read and write.
                       """)
-    floatbe= property(ConstBitArray._getfloat, ConstBitArray._setfloat,
+    floatbe= property(cba._getfloat, cba._setfloat,
                       doc="""The BitString as a big-endian floating point number. Read and write.
                       """)
-    intle  = property(ConstBitArray._getintle, ConstBitArray._setintle,
+    intle  = property(cba._getintle, cba._setintle,
                       doc="""The BitString as a two's complement little-endian signed int. Read and write.
                       """)
-    uintle = property(ConstBitArray._getuintle, ConstBitArray._setuintle,
+    uintle = property(cba._getuintle, cba._setuintle,
                       doc="""The BitString as a two's complement little-endian unsigned int. Read and write.
                       """)
-    floatle= property(ConstBitArray._getfloatle, ConstBitArray._setfloatle,
+    floatle= property(cba._getfloatle, cba._setfloatle,
                       doc="""The BitString as a little-endian floating point number. Read and write.
                       """)
-    intne  = property(ConstBitArray._getintne, ConstBitArray._setintne,
+    intne  = property(cba._getintne, cba._setintne,
                       doc="""The BitString as a two's complement native-endian signed int. Read and write.
                       """)
-    uintne = property(ConstBitArray._getuintne, ConstBitArray._setuintne,
+    uintne = property(cba._getuintne, cba._setuintne,
                       doc="""The BitString as a two's complement native-endian unsigned int. Read and write.
                       """)
-    floatne= property(ConstBitArray._getfloatne, ConstBitArray._setfloatne,
+    floatne= property(cba._getfloatne, cba._setfloatne,
                       doc="""The BitString as a native-endian floating point number. Read and write.
                       """)
-    ue     = property(ConstBitArray._getue, ConstBitArray._setue,
+    ue     = property(cba._getue, cba._setue,
                       doc="""The BitString as an unsigned exponential-Golomb code. Read and write.
                       """)
-    se     = property(ConstBitArray._getse, ConstBitArray._setse,
+    se     = property(cba._getse, cba._setse,
                       doc="""The BitString as a signed exponential-Golomb code. Read and write.
                       """)
-    hex    = property(ConstBitArray._gethex, ConstBitArray._sethex,
+    hex    = property(cba._gethex, cba._sethex,
                       doc="""The BitString as a hexadecimal string. Read and write.
 
                       When read will be prefixed with '0x' and including any leading zeros.
 
                       """)
-    bin    = property(ConstBitArray._getbin, ConstBitArray._setbin_safe,
+    bin    = property(cba._getbin, cba._setbin_safe,
                       doc="""The BitString as a binary string. Read and write.
 
                       When read will be prefixed with '0b' and including any leading zeros.
 
                       """)
-    oct    = property(ConstBitArray._getoct, ConstBitArray._setoct,
+    oct    = property(cba._getoct, cba._setoct,
                       doc="""The BitString as an octal string. Read and write.
 
                       When read will be prefixed with '0o' and including any leading zeros.
 
                       """)
-    bool   = property(ConstBitArray._getbool, ConstBitArray._setbool,
+    bool   = property(cba._getbool, cba._setbool,
                       doc="""The BitString as a bool (True or False). Read and write."""
                       )
-    bytes  = property(ConstBitArray._getbytes, ConstBitArray._setbytes_safe,
+    bytes  = property(cba._getbytes, cba._setbytes_safe,
                       doc="""The BitString as a ordinary string. Read and write.
                       """)

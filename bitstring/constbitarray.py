@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import sys
 import re
 import binascii
@@ -8,17 +9,14 @@ import struct
 import operator
 import collections
 import itertools
-import sys
 import copy
 import numbers
 import mmap
 from bitstore import ByteArray, ConstByteArray, MmapByteArray
-from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
+from errors import CreationError, Error, InterpretError, ReadError
 
 
 byteorder = sys.byteorder
-
-_ = b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
@@ -276,7 +274,7 @@ BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
 class ConstBitArray(object):
     """A container holding an immutable sequence of bits.
 
-    For a mutable container use the BitString class instead.
+    For a mutable container use the BitArray class instead.
 
     Methods:
 
@@ -302,7 +300,6 @@ class ConstBitArray(object):
 
     bin -- The bitstring as a binary string.
     bool -- For single bit bitstrings, interpret as True or False.
-    bytepos -- The current byte position in the bitstring.
     bytes -- The bitstring as a bytes object.
     float -- Interpret as a floating point number.
     floatbe -- Interpret as a big-endian floating point number.
@@ -315,7 +312,6 @@ class ConstBitArray(object):
     intne -- Interpret as a native-endian signed integer.
     len -- Length of the bitstring in bits.
     oct -- The bitstring as an octal string.
-    pos -- The current bit position in the bitstring.
     se -- Interpret as a signed exponential-Golomb code.
     ue -- Interpret as an unsigned exponential-Golomb code.
     uint -- Interpret as a two's complement unsigned integer.
@@ -454,9 +450,9 @@ class ConstBitArray(object):
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
 
-        >>> print Bits('0b00110')[1:4]
+        >>> print BitArray('0b00110')[1:4]
         '0b011'
-        >>> print Bits('0x00112233')[1:3:8]
+        >>> print BitArray('0x00112233')[1:3:8]
         '0x1122'
 
         """
@@ -570,7 +566,7 @@ class ConstBitArray(object):
     def __eq__(self, bs):
         """Return True if two bitstrings have the same binary representation.
 
-        >>> Bits('0b1110') == '0xe'
+        >>> BitArray('0b1110') == '0xe'
         True
 
         """
@@ -583,7 +579,7 @@ class ConstBitArray(object):
     def __ne__(self, bs):
         """Return False if two bitstrings have the same binary representation.
 
-        >>> Bits('0b111') == '0x7'
+        >>> BitArray('0b111') == '0x7'
         False
 
         """
@@ -744,11 +740,11 @@ class ConstBitArray(object):
         return bool(found)
 
     def __hash__(self):
-        """Return an integer hash of the current Bits object."""
-        # We can't in general hash the whole Bits (it could take hours!)
+        """Return an integer hash of the object."""
+        # We can't in general hash the whole bitstring (it could take hours!)
         # So instead take some bits from the start and end.
         if self.len <= 160:
-            # Use the whole Bits.
+            # Use the whole bitstring.
             shorter = self
         else:
             # Take 10 bytes from start and end
