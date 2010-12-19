@@ -53,7 +53,7 @@ __author__ = "Scott Griffiths"
 
 __all__ = ['Bits', 'BitString', 'BitStream', 'ConstBitArray', 'ConstBitStream', 'BitArray', 'pack', 'Error', 'ReadError', 'InterpretError', 'ByteAlignError', 'CreationError']
 
-from bits import Bits, ConstBitStream
-from bitstring import BitString, BitStream, pack
+from constbitstream import Bits, ConstBitStream
+from bitstream import BitString, BitStream, pack
 from bitarray import ConstBitArray, BitArray
 from errors import Error, ByteAlignError, ReadError, InterpretError, CreationError

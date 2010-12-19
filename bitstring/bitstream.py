@@ -3,17 +3,16 @@
 from __future__ import print_function
 
 import copy
-import bits
+import constbitstream
 import numbers
 import collections
 import re
-from bits import *
 import bitarray
 from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
 from bitstore import ByteArray, ConstByteArray, MmapByteArray
 
 
-class BitStream(ConstBitStream, bitarray.BitArray):
+class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
 
     """A container holding a mutable sequence of bits.
 
@@ -181,7 +180,7 @@ def pack(fmt, *values, **kwargs):
 
     """
     try:
-        _, tokens = bits.tokenparser(fmt, tuple(sorted(kwargs.keys())))
+        _, tokens = constbitstream.tokenparser(fmt, tuple(sorted(kwargs.keys())))
     except ValueError as e:
         raise CreationError(*e.args)
     value_iter = iter(values)
