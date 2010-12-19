@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import numbers
 from bitstore import ByteArray
-from bitarray import ConstBitArray, tokenparser
+from constbitarray import ConstBitArray, tokenparser
 from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
 
 
