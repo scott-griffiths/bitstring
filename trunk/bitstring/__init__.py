@@ -63,6 +63,8 @@ from bitarray import BitArray
 from constbitarray import ConstBitArray
 from errors import Error, ByteAlignError, ReadError, InterpretError, CreationError
 
+b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
+
 # Aliases for backward compatibility
 Bits = ConstBitStream
 BitString = BitStream

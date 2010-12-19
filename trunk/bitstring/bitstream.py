@@ -4,13 +4,9 @@ from __future__ import print_function
 
 import copy
 import constbitstream
-import numbers
-import collections
-import re
 import bitarray
-from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
-from bitstore import ByteArray, ConstByteArray, MmapByteArray
-
+from errors import CreationError
+from bitstore import ByteArray
 
 class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
 
@@ -146,10 +142,10 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
 
 
 def pack(fmt, *values, **kwargs):
-    """Pack the values according to the format string and return a new BitString.
+    """Pack the values according to the format string and return a new BitStream.
 
     fmt -- A string with comma separated tokens describing how to create the
-           next bits in the BitString.
+           next bits in the BitStream.
     values -- Zero or more values to pack according to the format.
     kwargs -- A dictionary or keyword-value pairs - the keywords used in the
               format string will be replaced with their given value.

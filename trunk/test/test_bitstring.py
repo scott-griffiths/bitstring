@@ -3101,7 +3101,7 @@ class Adding(unittest.TestCase):
         self.assertTrue(isinstance(s.bytes, bytes))
 
     def testPython3stuff(self):
-        if bitstring.bitarray.PYTHON_VERSION == 3:
+        if bitstring.constbitarray.PYTHON_VERSION == 3:
             pass
 
     def testReadFromBits(self):
@@ -4074,7 +4074,7 @@ class InitialiseFromBytes(unittest.TestCase):
         a = ConstBitStream(b'uint:5=2')
         b = ConstBitStream(b'')
         c = ConstBitStream(bytes=b'uint:5=2')
-        if bitstring.bitarray.PYTHON_VERSION == 2:
+        if bitstring.constbitarray.PYTHON_VERSION == 2:
             self.assertEqual(a, 'uint:5=2')
             self.assertFalse(b)
             self.assertEqual(c.bytes, b'uint:5=2')

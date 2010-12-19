@@ -1,14 +1,15 @@
 #!/usr/bin/env python
+
 import numbers
 from bitstore import ByteArray
 from constbitarray import ConstBitArray, tokenparser
-from errors import ByteAlignError, CreationError, Error, InterpretError, ReadError
+from errors import ByteAlignError, ReadError
 
 
 class ConstBitStream(ConstBitArray):
     """A container holding an immutable sequence of bits with a bit position.
 
-    For a mutable container use the BitString class instead.
+    For a mutable container use the BitStream class instead.
 
     Methods inherited from ConstBitArray:
 
