@@ -2609,7 +2609,6 @@ class Adding(unittest.TestCase):
         s = BitStream(f, offset=32, length=12)
         self.assertEqual(s.uint, 352)
         t = BitStream('0xf') + f
-        print(t[0:40].hex)
         self.assertTrue(t.startswith('0xf000001b3160'))
         s2 = ConstBitStream(f)
         t2 = BitStream('0xc')
