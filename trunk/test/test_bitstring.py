@@ -24,3 +24,15 @@ class ModuleData(unittest.TestCase):
             b = d[i]
             self.assertEqual(a.bin[2:][::-1], ConstBitArray(bytes=b).bin[2:])
 
+
+class MemoryUsage(unittest.TestCase):
+
+    def testBaselineMemory(self):
+        try:
+            import pympler.asizeof.asizeof as size
+        except ImportError:
+            return
+        # These values might be platform dependent, so don't fret too much.
+        self.assertEqual(size(ConstBitStream([0])), 400)
+        self.assertEqual(size(ConstBitArray([0])), 112)
+        self.assertEqual(size(BitStream([0])), 400)
