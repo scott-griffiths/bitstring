@@ -5,6 +5,7 @@ import collections
 import copy
 import numbers
 import constbitarray
+from bitstore import ByteArray
 from errors import Error
 
 cba = constbitarray.ConstBitArray
