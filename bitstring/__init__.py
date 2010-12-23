@@ -57,7 +57,6 @@ __all__ = ['Bits', 'BitString', 'BitStream', 'ConstBitArray', 'ConstBitStream',
            'BitArray', 'pack', 'Error', 'ReadError', 'InterpretError',
            'ByteAlignError', 'CreationError']
 
-import constbitstream
 from constbitstream import ConstBitStream
 from bitstream import BitStream, pack
 from bitarray import BitArray
