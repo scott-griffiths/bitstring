@@ -1536,7 +1536,7 @@ class ConstBitArray(object):
             self._clear()
             return
         bytepos, offset = divmod(self._offset + bits, 8)
-        self._pos = max(0, self._pos - bits)
+        #self._pos = max(0, self._pos - bits)
         self._setbytes_unsafe(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits, offset)
         assert self._assertsanity()
 
@@ -1550,7 +1550,7 @@ class ConstBitArray(object):
             return
         newlength_in_bytes = (self._offset + self.len - bits + 7) // 8
         # Ensure that the position is still valid
-        self._pos = max(0, min(self._pos, self.len - bits))
+        #self._pos = max(0, min(self._pos, self.len - bits))
         self._setbytes_unsafe(self._datastore.getbyteslice(0, newlength_in_bytes), self.len - bits,
                        self._offset)
         assert self._assertsanity()

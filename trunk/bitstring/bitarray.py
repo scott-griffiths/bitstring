@@ -191,8 +191,6 @@ class BitArray(constbitarray.ConstBitArray):
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
 
-        After deletion pos will be moved to the deleted slice's position.
-
         >>> a = BitString('0x001122')
         >>> del a[1:2:8]
         >>> print a
@@ -210,7 +208,6 @@ class BitArray(constbitarray.ConstBitArray):
             if not 0 <= key < self.len:
                 raise IndexError("Slice index out of range.")
             self._delete(1, key)
-            self._pos = key
             return
         else:
             if step == 0:
@@ -251,7 +248,6 @@ class BitArray(constbitarray.ConstBitArray):
             start = max(start, 0)
             start = min(start, stop)
             self._delete(stop - start, start)
-            self._pos = start
             return
 
 
@@ -400,14 +396,12 @@ class BitArray(constbitarray.ConstBitArray):
         assert self._assertsanity()
         return len(lengths) - 1
 
-    def insert(self, bs, pos=None):
-        """Insert bs at current position, or pos if supplied.
+    def insert(self, bs, pos):
+        """Insert bs at bit position pos.
 
         bs -- The BitString to insert.
         pos -- The bit position to insert the BitString
-               Defaults to self.pos.
 
-        After insertion self.pos will be immediately after the inserted bits.
         Raises ValueError if pos < 0 or pos > self.len.
 
         """
@@ -416,8 +410,6 @@ class BitArray(constbitarray.ConstBitArray):
             return self
         if bs is self:
             bs = self.__copy__()
-        if pos is None:
-            pos = self._pos
         if pos < 0:
             pos += self.len
         if not 0 <= pos <= self.len:
@@ -447,9 +439,9 @@ class BitArray(constbitarray.ConstBitArray):
         self._overwrite(bs, pos)
 
     def append(self, bs):
-        """Append a BitString to the current BitString.
+        """Append a bitstring to the current bitstring.
 
-        bs -- The BitString to append.
+        bs -- The bitstring to append.
 
         """
         # The offset is a hint to make bs easily appendable.
@@ -457,14 +449,13 @@ class BitArray(constbitarray.ConstBitArray):
         self._append(bs)
 
     def prepend(self, bs):
-        """Prepend a BitString to the current BitString.
+        """Prepend a bitstring to the current bitstring.
 
-        bs -- The BitString to prepend.
+        bs -- The bitstring to prepend.
 
         """
         bs = self._converttobitstring(bs)
         self._prepend(bs)
-        self._pos += bs.len
 
     def reverse(self, start=None, end=None):
         """Reverse bits in-place.

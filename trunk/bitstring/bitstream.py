@@ -139,6 +139,38 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
         else:
             s_copy._datastore = copy.copy(self._datastore)
         return s_copy
+    
+    def prepend(self, bs):
+        bs = self._converttobitstring(bs)
+        self._prepend(bs)
+        self._pos += bs.len
+        
+    prepend.__doc__ = bitarray.BitArray.prepend.__doc__
+
+    def insert(self, bs, pos=None):
+        """Insert bs at current position, or pos if supplied.
+
+        bs -- The BitString to insert.
+        pos -- The bit position to insert the BitString
+               Defaults to self.pos.
+
+        After insertion self.pos will be immediately after the inserted bits.
+        Raises ValueError if pos < 0 or pos > self.len.
+
+        """
+        bs = self._converttobitstring(bs)
+        if not bs.len:
+            return self
+        if bs is self:
+            bs = self.__copy__()
+        if pos is None:
+            pos = self._pos
+        if pos < 0:
+            pos += self.len
+        if not 0 <= pos <= self.len:
+            raise ValueError("Invalid insert position.")
+        self._insert(bs, pos)
+        
 
 
 def pack(fmt, *values, **kwargs):
