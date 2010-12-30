@@ -1,10 +1,13 @@
 #!/usr/bin/env python
+"""
+Module-level unit tests.
+"""
 
 import unittest
 import sys
 sys.path.insert(0, '..')
 import bitstring
-from bitstring import ConstBitArray
+
 
 class ModuleData(unittest.TestCase):
 
@@ -20,9 +23,9 @@ class ModuleData(unittest.TestCase):
     def testReverseDict(self):
         d = bitstring.constbitarray.BYTE_REVERSAL_DICT
         for i in range(256):
-            a = ConstBitArray(uint=i, length=8)
+            a = bitstring.ConstBitArray(uint=i, length=8)
             b = d[i]
-            self.assertEqual(a.bin[2:][::-1], ConstBitArray(bytes=b).bin[2:])
+            self.assertEqual(a.bin[2:][::-1], bitstring.ConstBitArray(bytes=b).bin[2:])
 
 
 class MemoryUsage(unittest.TestCase):

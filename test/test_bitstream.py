@@ -1258,18 +1258,15 @@ class Adding(unittest.TestCase):
         s = BitStream(bin='000111100000')
         del s[4:8]
         self.assertEqual(s.bin, '0b00010000')
-        self.assertEqual(s.pos, 4)
-        del s[3]
-        self.assertEqual(s.pos, 3)
 
     def testDeleteBytes(self):
         s = BitStream('0x00112233')
         del s[8:8]
         self.assertEqual(s.hex, '0x00112233')
-        self.assertEqual(s.pos, 8)
+        self.assertEqual(s.pos, 0)
         del s[8:16]
         self.assertEqual(s.hex, '0x002233')
-        self.assertEqual(s.bytepos, 1)
+        self.assertEqual(s.bytepos, 0)
         del s[:3:8]
         self.assertFalse(s)
         self.assertEqual(s.pos, 0)
