@@ -86,6 +86,8 @@ class NoPosAttribute(unittest.TestCase):
     def testSetItem(self):
         s = BitArray('0b000100')
         s[4:5] = '0xf'
-        self.assertEqual(s, '0b000111100')
+        self.assertEqual(s, '0b000111110')
+        s[0:1] = [1]
+        self.assertEqual(s, '0b100111110')
 
 

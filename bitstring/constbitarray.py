@@ -1604,7 +1604,6 @@ class ConstBitArray(object):
             mask = (1 << (8 - bitsleft)) - 1
             self._datastore.setbyte(lastbytepos, self._datastore.getbyte(lastbytepos) & mask)
             self._datastore.setbyte(lastbytepos, self._datastore.getbyte(lastbytepos) | (d.getbyte(d.bytelength - 1) & ~mask))
-        self._pos = bitposafter
         assert self._assertsanity()
 
     def _delete(self, bits, pos):
@@ -2028,7 +2027,8 @@ class ConstBitArray(object):
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
             return
-        found = self.find(delimiter, start, end, bytealigned)
+        # Use the base class find as we don't want to ever alter _pos.
+        found = ConstBitArray.find(self, delimiter, start, end, bytealigned)
         if not found:
             # Initial bits are the whole bitstring being searched
             yield self._slice(start, end)
@@ -2039,7 +2039,7 @@ class ConstBitArray(object):
         c = 1
         while count is None or c < count:
             pos += delimiter.len
-            found = self.find(delimiter, pos, end, bytealigned)
+            found = ConstBitArray.find(self, delimiter, pos, end, bytealigned)
             if not found:
                 # No more occurences, so return the rest of the bitstring
                 yield self[startpos:end]

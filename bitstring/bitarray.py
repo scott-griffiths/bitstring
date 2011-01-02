@@ -166,13 +166,10 @@ class BitArray(constbitarray.ConstBitArray):
             if (stop - start) == value.len:
                 if value.len == 0:
                     return
-                # This is an overwrite, so we retain the pos
-                bitposafter = self._pos
                 if step >= 0:
                     self._overwrite(value, start)
                 else:
                     self._overwrite(value.__getitem__(slice(None, None, step)), start)
-                self._pos = bitposafter
             else:
                 # TODO: A delete then insert is wasteful - it could do unneeded shifts.
                 # Could be either overwrite + insert or overwrite + delete.
@@ -360,7 +357,6 @@ class BitArray(constbitarray.ConstBitArray):
         if not old.len:
             raise ValueError("Empty BitString cannot be replaced.")
         start, end = self._validate_slice(start, end)
-        newpos = self._pos
         # Adjust count for use in split()
         if count is not None:
             count += 1
@@ -368,7 +364,6 @@ class BitArray(constbitarray.ConstBitArray):
         lengths = [s.len for s in sections]
         if len(lengths) == 1:
             # Didn't find anything to replace.
-            self._pos = newpos
             return 0 # no replacements done
         if new is self:
             # Prevent self assignment woes
@@ -380,23 +375,28 @@ class BitArray(constbitarray.ConstBitArray):
         # We have all the positions that need replacements. We do them
         # in reverse order so that they won't move around as we replace.
         positions.reverse()
-        for p in positions:
-            self[p:p + old.len] = new
-        if old.len != new.len:
-            # Need to calculate new pos
-            diff = new.len - old.len
+        try:
+            # Need to calculate new pos, if this is a bitstream
+            newpos = self._pos
             for p in positions:
-                if p >= newpos:
-                    continue
-                if p + old.len <= newpos:
-                    newpos += diff
-                else:
-                    newpos = p
-        self._pos = newpos
+                self[p:p + old.len] = new
+            if old.len != new.len:
+                diff = new.len - old.len
+                for p in positions:
+                    if p >= newpos:
+                        continue
+                    if p + old.len <= newpos:
+                        newpos += diff
+                    else:
+                        newpos = p
+            self._pos = newpos
+        except AttributeError:
+            for p in positions:
+                self[p:p + old.len] = new
         assert self._assertsanity()
         return len(lengths) - 1
 
-    def insert(self, bs, pos):
+    def insert(self, bs, pos=None):
         """Insert bs at bit position pos.
 
         bs -- The BitString to insert.
@@ -410,20 +410,23 @@ class BitArray(constbitarray.ConstBitArray):
             return self
         if bs is self:
             bs = self.__copy__()
+        if pos is None:
+            try:
+                pos = self._pos
+            except AttributeError:
+                raise TypeError("insert require a bit position for this type.")
         if pos < 0:
             pos += self.len
         if not 0 <= pos <= self.len:
             raise ValueError("Invalid insert position.")
-        self._insert(bs, pos)
+        self._insert(bs, pos)        
 
     def overwrite(self, bs, pos=None):
-        """Overwrite with bs at current position, or pos if given.
+        """Overwrite with bs at bit position pos.
 
         bs -- The BitString to overwrite with.
         pos -- The bit position to begin overwriting from.
-               Defaults to self.pos.
 
-        After overwriting self.pos will be immediately after the new bits.
         Raises ValueError if pos < 0 or pos + bs.len > self.len
 
         """
@@ -431,12 +434,19 @@ class BitArray(constbitarray.ConstBitArray):
         if not bs.len:
             return
         if pos is None:
-            pos = self._pos
+            try:
+                pos = self._pos
+            except AttributeError:
+                raise TypeError("overwrite require a bit position for this type.")
         if pos < 0:
             pos += self.len
         if pos < 0 or pos + bs.len > self.len:
             raise ValueError("Overwrite exceeds boundary of BitString.")
         self._overwrite(bs, pos)
+        try:
+            self._pos = pos + bs.len
+        except AttributeError:
+            pass
 
     def append(self, bs):
         """Append a bitstring to the current bitstring.

@@ -1172,6 +1172,7 @@ class Split(unittest.TestCase):
         delimiter = BitStream(hex='1234')
         bsl = s.split(delimiter)
         self.assertEqual([b.hex for b in bsl], ['', '0x1234aa', '0x1234bbcc', '0x1234ffff'])
+        self.assertEqual(s.pos, 0)
 
     def testSplitByteAlignedWithIntialBytes(self):
         s = BitStream(hex='aa471234fedc43 47112233 47 4723 472314')
@@ -1181,6 +1182,7 @@ class Split(unittest.TestCase):
         bsl = s.split(delimiter, start=0)
         self.assertEqual([b.hex for b in bsl], ['0xaa', '0x471234fedc43', '0x47112233',
                                                   '0x47', '0x4723', '0x472314'])
+        self.assertEqual(s.bytepos, 1)
 
     def testSplitByteAlignedWithOverlappingDelimiter(self):
         s = BitStream(hex='aaffaaffaaffaaffaaff')
@@ -2688,6 +2690,7 @@ class Adding(unittest.TestCase):
         b = BitStream('0xffff')
         b.overwrite('0x0000')
         self.assertEqual(b, '0x0000')
+        self.assertEqual(b.pos, 16)
         c = BitStream(length=1000)
         c.overwrite('0xaaaaaaaaaaaa', 81)
         self.assertEqual(c[81:81+6*8], '0xaaaaaaaaaaaa')
