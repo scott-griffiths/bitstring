@@ -378,7 +378,7 @@ The ConstBitArray class
         Returns ``True`` if *bs* can be found in the bitstring, otherwise returns ``False``.
 
         Similar to using :meth:`ConstBitArray.find`, except that you are only told if it is found, and not where it was found. ::
-
+v
             >>> '0b11' in ConstBitArray('0x06')
             True
             >>> '0b111' in ConstBitArray('0x06')

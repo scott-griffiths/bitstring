@@ -49,7 +49,7 @@ The BitArray class
         
     .. method:: insert(bs[, pos])
 
-        Inserts *bs* at *pos*. After insertion the property :attr:`~Bits.pos` will be immediately after the inserted bitstring.
+        Inserts *bs* at *pos*. TODO: After insertion the property :attr:`~Bits.pos` will be immediately after the inserted bitstring.
 
         The default for *pos* is the current position. ::
 
@@ -82,7 +82,7 @@ The BitArray class
 
         Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
 
-        The default for *pos* is the current position. ::
+        TODO: The default for *pos* is the current position. ::
 
             >>> s = BitArray(length=10)
             >>> s.overwrite('0b111', 3)
