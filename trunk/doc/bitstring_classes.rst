@@ -5,11 +5,11 @@
 The bitstring module
 --------------------
 
-The bitstring module provides two classes, :class:`BitString` and :class:`Bits`. These share many methods as :class:`Bits` is the base class for :class:`BitString`. The distinction between them is that :class:`Bits` represents an immutable sequence of bits whereas :class:`BitString` objects support many methods that modify their contents.
+The bitstring module provides four classes, :class:`BitStream`, :class:`BitArray`, :class:`ConstBitStream` and :class:`ConstBitArray`. The distinction between them is that :class:`BitStream` has addition methods to treat the bits as a file or stream, and the 'Const' classes lack methods that would modify their contents (they are immutable).
 
-If you need to change the contents of a bitstring after creation then you must use the :class:`BitString` class. If you need to use bitstrings as keys in a dictionary or members of a set then you must use the :class:`Bits` class (:class:`Bits` are hashable). Otherwise you can use whichever you prefer, but note that :class:`Bits` objects can potentially be more efficent than :class:`BitString` objects. In this section the generic term 'bitstring' means either a :class:`Bits` or a :class:`BitString` object.
+If you need to change the contents of a bitstring after creation then you must use either the :class:`BitArray` or :class:`BitStream` classes. If you need to use bitstrings as keys in a dictionary or members of a set then you must use either a :class:`ConstBitArray` or a :class:`ConstBitStream`. In this section the generic term 'bitstring' is used to refer to an object of any of these classes.
 
-Note that the bit position within the bitstring (the position from which reads occur) can change without affecting the equality operation. This means that the :attr:`~Bits.pos` and :attr:`~Bits.bytepos` properties can change even for a :class:`Bits` object.
+Note that for the bitstream classes the bit position within the bitstream (the position from which reads occur) can change without affecting the equality operation. This means that the :attr:`~ConstBitStream.pos` and :attr:`~ConstBitStream.bytepos` properties can change even for a :class:`ConstBitStream` object.
 
 The public methods, special methods and properties of both classes are detailed in this section.
 
@@ -51,7 +51,7 @@ The ``auto`` parameter also accepts other types:
 Compact format strings
 ^^^^^^^^^^^^^^^^^^^^^^
 
-For the :meth:`~Bits.read`, :meth:`~Bits.unpack`, :meth:`~Bits.peek` methods and :func:`pack` function you can use compact format strings similar to those used in the :mod:`struct` and :mod:`array` modules. These start with an endian identifier: ``>`` for big-endian, ``<`` for little-endian or ``@`` for native-endian. This must be followed by at least one of these codes:
+For the :meth:`~ConstBitStream.read`, :meth:`~ConstBitArray.unpack`, :meth:`~ConstBitStream.peek` methods and :func:`pack` function you can use compact format strings similar to those used in the :mod:`struct` and :mod:`array` modules. These start with an endian identifier: ``>`` for big-endian, ``<`` for little-endian or ``@`` for native-endian. This must be followed by at least one of these codes:
 
 +------+------------------------------------+
 |Code  |      Interpretation                |
@@ -83,6 +83,6 @@ For more detail see :ref:`compact_format`.
 Class properties
 ^^^^^^^^^^^^^^^^
 
-Bitstrings use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions. For the mutable :class:`BitString` objects the properties are all read and write (with the exception of the :attr:`~Bits.length`), whereas for immutable :class:`Bits` objects the only write enabled properties are for the position in the bitstring (:attr:`~Bits.pos`/:attr:`~Bits.bitpos` and :attr:`~Bits.bytepos`).
+Bitstrings use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions. For the mutable :class:`BitStream` and :class:`BitArray` objects the properties are all read and write (with the exception of the :attr:`~Bits.length`), whereas for immutable objects the only write enabled properties are for the position in the bitstream (:attr:`~ConstBitStream.pos`/:attr:`~ConstBitStream.bitpos` and :attr:`~ConstBitStream.bytepos`).
 
 
