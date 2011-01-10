@@ -5,7 +5,7 @@ The BitArray class
 
 .. class:: BitArray([auto, length, offset, **kwargs])
 
-    The :class:`ConstBitArray` class is the base class for :class:`BitArray` and so (with the exception of :meth:`ConstBitArray.__hash__`) all of its methods are also available for :class:`BitArray` objects. The initialiser is also the same as for :class:`ConstBitArray` and so won't be repeated here.
+    The :class:`ConstBitArray` class is the base class for :class:`BitArray` and so (with the exception of :meth:`~ConstBitArray.__hash__`) all of its methods are also available for :class:`BitArray` objects. The initialiser is also the same as for :class:`ConstBitArray` and so won't be repeated here.
 
     A :class:`BitArray` is a mutable :class:`ConstBitArray`, and so the one thing all of the methods listed here have in common is that  they can modify the contents of the bitstring.
 
@@ -274,7 +274,7 @@ The BitArray class
 
         Appends *bs* to the current bitstring.
         
-        Note that for :class:`BitArray` objects this will be an in-place change, whereas for :class:`ConstBitArray` objects using ``+=`` will not call this method - instead a new object will be created (it is equivalent to a copy and an :meth:`ConstBitArray.__add__`). ::
+        Note that for :class:`BitArray` objects this will be an in-place change, whereas for :class:`ConstBitArray` objects using ``+=`` will not call this method - instead a new object will be created (it is equivalent to a copy and an :meth:`~ConstBitArray.__add__`). ::
 
             >>> s = BitArray(ue=423)
             >>> s += BitArray(ue=12)
