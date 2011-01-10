@@ -11,6 +11,7 @@ User Manual
    walkthrough
    introduction
    creation
+   packing
    interpretation
    slicing
    reading
