@@ -3,9 +3,12 @@
 ******************
 Quick Reference
 ******************
+This section lists the bitstring module's classes together with all their methods and attributes. The next section goes into full detail with examples.
 
-``class ConstBitArray(object)``
--------------------------------
+ConstBitArray
+-------------
+
+``ConstBitArray(object)``
 
 A ``ConstBitArray`` is the most basic class. It is immutable, so once created its value cannot change. It is a base class for all the other classes in the `bitstring` module.
 
@@ -29,7 +32,7 @@ Methods
 Special methods
 ^^^^^^^^^^^^^^^
 
-    Also available are the operators ``[]``, ``==``, ``!=``, ``+``, ``*``, ``~``, ``<<``, ``>>``, ``&``, ``|``, ``^``.
+    Also available are the operators ``[]``, ``==``, ``!=``, ``+``, ``*``, ``~``, ``<<``, ``>>``, ``&``, ``|`` and ``^``.
 
 Properties
 ^^^^^^^^^^
@@ -55,8 +58,11 @@ Properties
  *   :attr:`~ConstBitArray.uintle` -- Interpret as a little-endian unsigned integer.
  *   :attr:`~ConstBitArray.uintne` -- Interpret as a native-endian unsigned integer.
 
-``class BitArray(ConstBitArray)``
----------------------------------
+BitArray
+--------
+
+``BitArray(ConstBitArray)``
+
 
 This class adds mutating methods to `ConstBitArray`.
 
@@ -86,8 +92,10 @@ Attributes
     The same as ``ConstBitArray``, except that they are all writable as well as readable.
 
 
-``class ConstBitStream(ConstBitArray)``
----------------------------------------
+ConstBitStream
+--------------
+
+``ConstBitStream(ConstBitArray)``
 
 This class, previously known as just ``Bits`` (which is an alias for backward-compatibility), adds a bit position and methods to read and navigate in the bitstream.
 
@@ -107,8 +115,10 @@ Additional attributes
  *   :attr:`~ConstBitStream.pos` -- The current bit position in the bitstring.
 
 
-``class BitStream(BitArray, ConstBitStream)``
----------------------------------------------
+BitStream
+---------
+
+``BitStream(BitArray, ConstBitStream)``
 
 This class, also known as ``BitString`` contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
 

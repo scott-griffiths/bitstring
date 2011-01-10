@@ -55,6 +55,11 @@ Credits
 
 Written by Scott Griffiths <scott@griffiths.name>. If you have any questions, suggestions or criticisms (about this module!) then please email me. Also if you use bitstring in your own project then I'd be interested to hear how it's being used.
 
+Developed with the help of
+
+.. image:: wingware-logo-180x58.png
+
+
 
 
 
