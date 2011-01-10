@@ -11,6 +11,7 @@ User Manual
    walkthrough
    introduction
    creation
+   interpretation
    slicing
    reading
    misc

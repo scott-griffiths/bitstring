@@ -86,7 +86,7 @@ The ConstBitStream class
             >>> s.read('bits:4')
             ConstBitStream('0xa')
 
-        The :meth:`ConstBitStream.read` method is useful for reading exponential-Golomb codes. ::
+        The :meth:`~ConstBitStream.read` method is useful for reading exponential-Golomb codes. ::
 
             >>> s = ConstBitStream('se=-9, ue=4')
             >>> s.read('se')
