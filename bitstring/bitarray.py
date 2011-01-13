@@ -4,9 +4,9 @@ import re
 import collections
 import copy
 import numbers
-import constbitarray
-from bitstore import ByteArray
-from errors import Error
+import bitstring.constbitarray as constbitarray
+from bitstring.bitstore import ByteArray
+from bitstring.errors import Error
 
 cba = constbitarray.ConstBitArray
 

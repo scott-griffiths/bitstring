@@ -3,10 +3,10 @@
 from __future__ import print_function
 
 import copy
-import constbitstream
-import bitarray
-from errors import CreationError
-from bitstore import ByteArray
+import bitstring.constbitstream as constbitstream
+import bitstring.bitarray as bitarray
+from bitstring.errors import CreationError
+from bitstring.bitstore import ByteArray
 
 class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
 

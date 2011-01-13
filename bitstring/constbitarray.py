@@ -3,7 +3,7 @@
 import sys
 import re
 import binascii
-import bitstore
+import bitstring.bitstore as bitstore
 import os
 import struct
 import operator
@@ -12,8 +12,8 @@ import itertools
 import copy
 import numbers
 import mmap
-from bitstore import ByteArray, ConstByteArray, MmapByteArray
-from errors import CreationError, Error, InterpretError, ReadError
+from bitstring.bitstore import ByteArray, ConstByteArray, MmapByteArray
+from bitstring.errors import CreationError, Error, InterpretError, ReadError
 
 
 byteorder = sys.byteorder
@@ -29,6 +29,7 @@ else:
     from io import IOBase
     xrange = range
     file = IOBase
+    basestring = str
     LEADING_OCT_CHARS = 2 # e.g. 0o755
 
 # Maximum number of digits to use in __str__ and __repr__.
