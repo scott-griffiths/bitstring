@@ -8,7 +8,7 @@ it is largely undocumented and could change without warning.
 import copy
 import os
 import mmap
-from errors import CreationError
+from bitstring.errors import CreationError
 
 
 class MmapByteArray(object):

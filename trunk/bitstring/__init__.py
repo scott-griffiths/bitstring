@@ -57,11 +57,11 @@ __all__ = ['Bits', 'BitString', 'BitStream', 'ConstBitArray', 'ConstBitStream',
            'BitArray', 'pack', 'Error', 'ReadError', 'InterpretError',
            'ByteAlignError', 'CreationError']
 
-from constbitstream import ConstBitStream
-from bitstream import BitStream, pack
-from bitarray import BitArray
-from constbitarray import ConstBitArray
-from errors import Error, ByteAlignError, ReadError, InterpretError, CreationError
+from bitstring.constbitstream import ConstBitStream
+from bitstring.bitstream import BitStream, pack
+from bitstring.bitarray import BitArray
+from bitstring.constbitarray import ConstBitArray
+from bitstring.errors import Error, ByteAlignError, ReadError, InterpretError, CreationError
 
 b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
 

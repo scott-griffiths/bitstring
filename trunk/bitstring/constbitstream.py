@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import numbers
-from bitstore import ByteArray
-from constbitarray import ConstBitArray, tokenparser
-from errors import ByteAlignError, ReadError
+from bitstring.bitstore import ByteArray
+from bitstring.constbitarray import ConstBitArray, tokenparser
+from bitstring.errors import ByteAlignError, ReadError
 
 
 class ConstBitStream(ConstBitArray):
