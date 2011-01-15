@@ -53,10 +53,6 @@ __version__ = "2.1.0"
 
 __author__ = "Scott Griffiths"
 
-__all__ = ['Bits', 'BitString', 'BitStream', 'ConstBitArray', 'ConstBitStream',
-           'BitArray', 'pack', 'Error', 'ReadError', 'InterpretError',
-           'ByteAlignError', 'CreationError']
-
 from bitstring.constbitstream import ConstBitStream
 from bitstring.bitstream import BitStream, pack
 from bitstring.bitarray import BitArray
