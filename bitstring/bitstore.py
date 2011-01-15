@@ -26,7 +26,11 @@ class MmapByteArray(object):
             start = key.start
             return bytearray(self.filemap.__getitem__(key))
         except AttributeError:
-            return ord(self.filemap[key])
+            try:
+                return ord(self.filemap[key])
+            except TypeError:
+                # for Python 3
+                return self.filemap[key]
 
     def __len__(self):
         return self.filelength

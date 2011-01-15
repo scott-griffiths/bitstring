@@ -26,9 +26,8 @@ if PYTHON_VERSION == 2:
     from future_builtins import zip
     LEADING_OCT_CHARS = 1 # e.g. 0755
 else:
-    from io import IOBase
+    from io import IOBase as file
     xrange = range
-    file = IOBase
     basestring = str
     LEADING_OCT_CHARS = 2 # e.g. 0o755
 
