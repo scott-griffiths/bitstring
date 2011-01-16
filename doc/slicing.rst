@@ -133,7 +133,7 @@ As you might expect, :meth:`~BitArray.insert` takes one :class:`BitArray` and in
 
 :meth:`~BitArray.overwrite` does much the same as :meth:`~BitArray.insert`, but predictably the :class:`BitArray` object's data is overwritten by the new data. ::
 
- >>> a = BitArray('0x00112233')
+ >>> a = BitStream('0x00112233')
  >>> a.pos = 4
  >>> a.overwrite('0b1111')         # Uses current pos as default
  >>> a.hex

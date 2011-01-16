@@ -10,4 +10,3 @@ Gathered together here are a few odds and ends that didn't fit well into either 
    examples
    exp-golomb
    optimisation
-   internals

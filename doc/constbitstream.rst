@@ -39,7 +39,7 @@ The ConstBitStream class
 
     .. method:: peeklist(fmt, **kwargs)
 
-        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string(s) and returns a list of results.
+        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results.
 
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is not advanced to after the read items.
 
@@ -96,7 +96,7 @@ The ConstBitStream class
 
     .. method:: readlist(fmt, **kwargs)
 
-        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string(s)/integer(s) and returns a list of results. If not enough bits are available then all bits to the end of the bitstring will be used.
+        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results. If not enough bits are available then all bits to the end of the bitstring will be used.
 
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is advanced to after the read items.
 

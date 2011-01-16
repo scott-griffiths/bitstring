@@ -9,5 +9,3 @@ The BitStream class
 
     A :class:`BitStream` is a mutable container of bits with methods and properties that allow it to be parsed as a stream of bits. There are no additional methods of properties in this class - see its base classes (:class:`ConstBitArray`, :class:`BitArray` and :class:`ConstBitStream`) for details.
 
-[TODO: Add some examples of things only a BitStream can do]
-
