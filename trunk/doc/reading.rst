@@ -32,7 +32,7 @@ For simple reading of a number of bits you can use :meth:`~ConstBitStream.read` 
     >>> print(s.pos, flags.pos)
     95 2
 
-If you want to read multiple items in one go you can use :meth:`~ConstBitStream.readlist`. This can take one or more integer parameters and return a list of bitstring objects. So for example instead of writing::
+If you want to read multiple items in one go you can use :meth:`~ConstBitStream.readlist`. This can take an iterable of bit lengths and return a list of bitstring objects. So for example instead of writing::
 
     a = s.read(32)
     b = s.read(8)

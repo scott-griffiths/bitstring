@@ -36,7 +36,7 @@ Exercise: Using the table above decode this sequence of unsigned Exponential Gol
 
 The answer is that it decodes to 3, 0, 0, 2, 2, 1, 0, 0, 8, 4. Note how you don’t need to know how many bits are used for each code in advance - there’s only one way to decode it. To create this bitstring you could have written something like::
 
- a = BitString().join([BitString(ue=i) for i in [3,0,0,2,2,1,0,0,8,4]])
+ a = BitStream().join([BitArray(ue=i) for i in [3,0,0,2,2,1,0,0,8,4]])
 
 and to read it back::
 

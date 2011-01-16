@@ -10,7 +10,7 @@ Functions
    :param format: string with comma separated tokens
    :param values: extra values used to construct the :class:`BitString`
    :param kwargs: a dictionary of token replacements
-   :rtype: BitString
+   :rtype: BitArray
 
 The format string consists of comma separated tokens of the form ``name:length=value``. See the entry for :meth:`~ConstBitStream.read` for more details.
 

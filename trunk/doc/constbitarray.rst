@@ -192,11 +192,11 @@ The ConstBitArray class
 
     .. method:: unpack(fmt, **kwargs)
 
-        Interprets the whole bitstring according to the *fmt* string(s) and returns a list of bitstring objects.
+        Interprets the whole bitstring according to the *fmt* string or iterable and returns a list of bitstring objects.
         
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string.
 
-        *fmt* is one or more strings with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`read` for details. ::
+        *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`read` for details. ::
 
             >>> s = ConstBitArray('int:4=-1, 0b1110')
             >>> i, b = s.unpack('int:4, bin')
