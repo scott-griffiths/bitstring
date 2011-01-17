@@ -1,6 +1,61 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+-----------------------------------------
+January 23rd 2011: version 2.1.0 released
+-----------------------------------------
+
+New class hierarchy introduced with simpler classes
+---------------------------------------------------
+Previously there were just two classes, the immutable Bits which was the base
+class for the mutable BitString class. Both of these classes have the concept
+of a bit position, from which reads etc. take place so that the bitstring could
+be treated as if it were a file or stream.
+
+Two simpler classes have now been added which are purely bit containers and 
+don't have a bit position. These are called ConstBitArray and BitArray. As you
+can guess the former is an immutable version of the latter.
+
+The other classes have also been renamed to better reflect their capabilities.
+Instead of BitString you can use BitStream, and instead of Bits you can use
+ConstBitStream. The old names are kept as aliases for backward compatibility.
+
+The classes hierarchy is:
+
+        ConstBitArray
+           /    \
+          /      \
+    BitArray   ConstBitStream (formerly Bits)
+          \      /
+           \    /
+          BitStream (formerly BitString)
+
+
+Other changes
+-------------
+A lot of internal reorganisation has taken place since the previous version,
+most of which won't be noticed by the end user. Some things you might see are:
+
+* New package structure. Previous versions have been a single file for the
+  module and another for the unit tests. The module is now split into many
+  more files so it can't be used just by copying bitstring.py any more.
+* To run the unit tests there is now a script called runtests.py in the test
+  directory.
+* File based bitstring are now implemented in terms of an mmap. This should
+  be just an implementation detail, but unfortunately for 32-bit versions of
+  Python this creates a limit of 4GB on the files that can be used. The work
+  around is either to get a 64-bit Python, or just stick with version 2.0.
+* The ConstBitArray and ConstBitStream classes no longer copy byte data when
+  a slice or a read takes place, they just take a reference. This is mostly
+  a very nice optimisation, but there are occassions where it could have an
+  adverse effect. For example if a very large bitstring is created, a small
+  slice taken and the original deleted. The byte data from the large
+  bitstring would still be retained in memory.
+* Optimisations. Once again this version should be faster than the last.
+  The module is still pure Python but some of the reorganisation was to make
+  it more feasible to put some of the code into Cython or similar, so
+  hopefully more speed will be on the way.
+
 --------------------------------------
 July 26th 2010: version 2.0.3 released
 --------------------------------------

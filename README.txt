@@ -35,11 +35,14 @@ If you have downloaded and unzipped the package then you need to run the
 This should put ``bitstring.py`` in your ``site-packages`` directory. You may
 need to run this with root privileges on Unix-like systems.
 
-Alternatively just copy the ``bitstring.py`` file to where you want it!
 
 If you haven't yet downloaded the package then you can just try::
 
      easy_install bitstring
+
+or ::
+
+     pip install bitstring     
 
 If you're using Windows then there is an installer available from the
 downloads tab on the project's homepage.
@@ -48,26 +51,26 @@ Simple Examples
 ---------------
 Creation::
 
-     >>> a = BitString(bin='00101')
-     >>> b = BitString(a_file_object)
-     >>> c = BitString('0xff, 0b101, 0o65, uint:6=22')
+     >>> a = BitArray(bin='00101')
+     >>> b = ConstBitArray(a_file_object)
+     >>> c = BitArray('0xff, 0b101, 0o65, uint:6=22')
      >>> d = pack('intle:16, hex=a, 0b1', 100, a='0x34f')
      >>> e = pack('<16h', *range(16))
 
 Different interpretations, slicing and concatenation::
 
-     >>> a = BitString('0x1af')
+     >>> a = BitArray('0x1af')
      >>> a.hex, a.bin, a.uint
      ('0x1af', '0b000110101111', 431)
      >>> a[10:3:-1].bin
      '0b1110101'
      >>> 3*a + '0b100'
-     BitString('0o0657056705674')
+     BitArray('0o0657056705674')
 
 Reading data sequentially::
 
-     >>> b = BitString('0x160120f')
-     >>> b.readbits(12).hex
+     >>> b = BitStream('0x160120f')
+     >>> b.read(12).hex
      '0x160'
      >>> b.pos = 0
      >>> b.read('uint:12')
@@ -77,7 +80,7 @@ Reading data sequentially::
 
 Searching, inserting and deleting::
 
-     >>> c = BitString('0b00010010010010001111')   # c.hex == '0x1248f'
+     >>> c = BitArray('0b00010010010010001111')   # c.hex == '0x1248f'
      >>> c.find('0x48')
      (8,)
      >>> c.replace('0b001', '0xabc')
@@ -86,16 +89,16 @@ Searching, inserting and deleting::
 
 Unit Tests
 ----------
-To run the unit tests::
+There is a script to run the unit tests in the test/ directory::
 
-     python bitstring.py
+     python runtests.py
 
 The unit tests should all pass for Python 2.6 and later.
 
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2010 Scott Griffiths
+Copyright (c) 2011 Scott Griffiths
 
 For more information see the project's homepage on Google Code:
 <http://python-bitstring.googlecode.com>
