@@ -5,12 +5,12 @@ Functions
 
 .. function:: pack(format[, *values, **kwargs])
 
-   Packs the values and keyword arguments according to the *format* string and returns a new :class:`BitArray`.
+   Packs the values and keyword arguments according to the *format* string and returns a new :class:`BitStream`.
    
    :param format: string with comma separated tokens
-   :param values: extra values used to construct the :class:`BitString`
+   :param values: extra values used to construct the :class:`BitStream`
    :param kwargs: a dictionary of token replacements
-   :rtype: BitArray
+   :rtype: BitStream
 
 The format string consists of comma separated tokens of the form ``name:length=value``. See the entry for :meth:`~ConstBitStream.read` for more details.
 

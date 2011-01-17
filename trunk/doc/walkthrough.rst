@@ -41,7 +41,7 @@ The second was created from a binary string. In this case it is just three bits 
 
 .. note::
 
- Be sure to remember the quotes around the hex and binary strings. If you forget them you would just have an ordinary Python integer, which would instead create a bitstring of that many '0' bits. For example ``0xff01`` is the same as the base-10 number 65281, so ``BitString(0xff01)`` would consist of 65281 zero bits! 
+ Be sure to remember the quotes around the hex and binary strings. If you forget them you would just have an ordinary Python integer, which would instead create a bitstring of that many '0' bits. For example ``0xff01`` is the same as the base-10 number 65281, so ``BitArray(0xff01)`` would consist of 65281 zero bits! 
 
 There are lots of things we can do with our new bitstrings, the simplest of which is just to print them::
 
@@ -132,6 +132,104 @@ Here we have found the ``0x4f`` byte in our bitstring, though it wasn't obvious 
     
 in which we've broken the bitstring into three parts to show the found byte. This also illustrates using commas to join bitstring sections.
 
+
+Constructing a bitstring
+------------------------
+
+Let's say you have a specification for a binary file type (or maybe a packet specification etc.) and you want to create a bitstring quickly and easily in Python. For this example I'm going to use a header from the MPEG-2 video standard. Here's how the header is described in the standard:
+
+==================================== =============== ============
+sequence_header()                    No. of bits     Mnemonic
+==================================== =============== ============
+sequence_header_code                 32              bslbf
+horizontal_size_value                12              uimsbf
+vertical_size_value                  12              uimsbf
+aspect_ratio_information             4               uimsbf
+frame_rate_code                      4               uimsbf
+bit_rate_value                       18              uimsbf
+marker_bit                           1               bslbf
+vbv_buffer_size_value                10              uimsbf
+constrained_parameters_flag          1               bslbf
+load_intra_quantiser_matrix          1               uimsbf
+if (load_intra_quantiser_matrix)
+{ intra_quantiser_matrix[64] }       8*64            uimsbf
+load_non_intra_quantiser_matrix      1               uimsbf
+if (load_non_intra_quantiser_matrix)
+{ non_intra_quantiser_matrix[64] }   8*64            uimsbf
+next_start_code()
+==================================== =============== ============
+
+The mnemonics mean things like uimsbf = 'Unsigned integer, most significant bit first'.
+
+So to create a sequence_header for your particular stream with width of 352 and height of 288 you could start like this::
+
+    s = BitArray()
+    s.append('0x000001b3')  # the sequence_header_code
+    s.append('uint:12=352') # 12 bit unsigned integer
+    s.append('uint:12=288')
+    ...
+
+which is fine, but if you wanted to be a bit more concise you could just write ::
+
+    s = BitArray('0x000001b3, uint:12=352, uint:12=288')
+
+This is better, but it might not be a good idea to have the width and height hard-wired in like that. We can make it more flexible by using a format string and the :func:`pack` function::
+
+    width, height = 352, 288
+    s = bitstring.pack('0x000001b3, 2*uint:12', width, height)
+
+where we have also used ``2*uint:12`` as shorthand for ``uint:12, uint:12``.
+
+The :func:`pack` function can also take a dictionary as a parameter which can replace the tokens in the format string. For example::
+
+    fmt = 'sequence_header_code,
+           uint:12=horizontal_size_value,
+           uint:12=vertical_size_value,
+           uint:4=aspect_ratio_information,
+           ...
+           '
+    d = {'sequence_header_code': '0x000001b3',
+         'horizontal_size_value': 352,
+         'vertical_size_value': 288,
+         'aspect_ratio_information': 1,
+         ...
+        }
+
+    s = bitstring.pack(fmt, **d)
+    
+Parsing bitstreams
+------------------
+
+You might have noticed that :func:`pack` returned a :class:`BitStream` rather than a :class:`BitArray`. This isn't a problem as the :class:`BitStream` class just adds a few stream-like qualities to :class:`BitArray` which we'll take a quick look at here.
+
+First, let's look at the stream we've just created::
+
+    >>> s
+    BitStream('0x000001b31601201')
+
+The stream-ness of this object is via its bit position, and various reading and peeking methods. First let's try a read or two, and see how this affects the bit position::
+
+    >>> s.pos
+    0
+    >>> s.read(24)
+    BitStream('0x000001')
+    >>> s.pos
+    24
+    >>> s.read('hex:8')
+    '0xb3'
+    >>> s.pos
+    32
+
+First we read 24 bits, which returned a new :class:`BitStream` object, then we used a format string to read 8 bits interpreted as a hexadecimal string. We know that the next two sets of 12 bits were created from integers, so to read them back we can say
+
+    >>> s.readlist('2*uint:12')
+    [352, 288]
+
+If you don't want to use a bitstream then you can always use :meth:`~ConstBitArray.unpack`. This takes much the same form as :meth:`~ConstBitStream.readlist` except it just unpacks from the start of the bitstring. For example::
+
+    >>> s.unpack('bytes:4, 2*uint:12, uint:4')
+    ['\x00\x00\x01\xb3', 352, 288, 1]
+
 Worked examples
 ===============
 
@@ -172,5 +270,3 @@ So to print all primes under a million you could write::
             has_factors.set(True, xrange(i*2, 1000000, i))
 
 I'll leave optimising the algorithm as an exercise for the reader, but it illustrates both bit checking and setting. One reason you might want to use a bitstring for this purpose (instead of a plain list for example) is that the million bits only take up a million bits in memory, whereas for a list of integers it would be much more. Try asking for a billion elements in a list - unless you've got some really nice hardware it will fail, whereas a billion element bitstring only takes 125MB.
-
-
