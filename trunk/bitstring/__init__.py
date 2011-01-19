@@ -10,9 +10,18 @@ BitArray -- A mutable container for binary data.
 ConstBitStream -- An immutable container with streaming methods.
 BitStream -- A mutable container with streaming methods.
 
+                  ConstBitArray (base class)
+                     /    \
+ + mutating methods /      \ + streaming methods
+                   /        \
+              BitArray   ConstBitStream
+                   \        /
+                    \      /
+                    BitStream 
+
 Functions:
 
-pack -- Create BitString from a format string.
+pack -- Create a BitStream from a format string.
 
 Exceptions:
 
