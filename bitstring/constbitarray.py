@@ -18,18 +18,41 @@ from bitstring.errors import CreationError, Error, InterpretError, ReadError
 
 byteorder = sys.byteorder
 
+# This creates a dictionary for every possible byte with the value being
+# the key with its bits reversed.
+REVERSED = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
+           b"\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8" \
+           b"\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4" \
+           b"\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc" \
+           b"\x02\x82\x42\xc2\x22\xa2\x62\xe2\x12\x92\x52\xd2\x32\xb2\x72\xf2" \
+           b"\x0a\x8a\x4a\xca\x2a\xaa\x6a\xea\x1a\x9a\x5a\xda\x3a\xba\x7a\xfa" \
+           b"\x06\x86\x46\xc6\x26\xa6\x66\xe6\x16\x96\x56\xd6\x36\xb6\x76\xf6" \
+           b"\x0e\x8e\x4e\xce\x2e\xae\x6e\xee\x1e\x9e\x5e\xde\x3e\xbe\x7e\xfe" \
+           b"\x01\x81\x41\xc1\x21\xa1\x61\xe1\x11\x91\x51\xd1\x31\xb1\x71\xf1" \
+           b"\x09\x89\x49\xc9\x29\xa9\x69\xe9\x19\x99\x59\xd9\x39\xb9\x79\xf9" \
+           b"\x05\x85\x45\xc5\x25\xa5\x65\xe5\x15\x95\x55\xd5\x35\xb5\x75\xf5" \
+           b"\x0d\x8d\x4d\xcd\x2d\xad\x6d\xed\x1d\x9d\x5d\xdd\x3d\xbd\x7d\xfd" \
+           b"\x03\x83\x43\xc3\x23\xa3\x63\xe3\x13\x93\x53\xd3\x33\xb3\x73\xf3" \
+           b"\x0b\x8b\x4b\xcb\x2b\xab\x6b\xeb\x1b\x9b\x5b\xdb\x3b\xbb\x7b\xfb" \
+           b"\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7" \
+           b"\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
+
+try:
+    BYTE_REVERSAL_DICT = dict(zip(xrange(256), REVERSED))
+except NameError:
+    BYTE_REVERSAL_DICT = dict(zip(range(256), [bytes([x]) for x in REVERSED]))    
+
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
-PYTHON_VERSION = sys.version_info[0]
-assert PYTHON_VERSION in [2, 3]
-if PYTHON_VERSION == 2:
-    from future_builtins import zip
-    LEADING_OCT_CHARS = 1 # e.g. 0755
-else:
+try:
+    xrange
+except NameError:
     from io import IOBase as file
     xrange = range
     basestring = str
-    LEADING_OCT_CHARS = 2 # e.g. 0o755
+    
+# Python 2.x octals start with '0', in Python 3 it's '0o'
+LEADING_OCT_CHARS = len(oct(1)) - 1
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS = 250
@@ -242,30 +265,6 @@ BYTE_TO_BITS = tuple('{0:08b}'.format(i) for i in xrange(256))
 
 # And this convers a single octal digit to 3 bits.
 OCT_TO_BITS = tuple('{0:03b}'.format(i) for i in xrange(8))
-
-# This creates a dictionary for every possible byte with the value being
-# the key with its bits reversed.
-REVERSED = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
-           b"\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8" \
-           b"\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4" \
-           b"\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc" \
-           b"\x02\x82\x42\xc2\x22\xa2\x62\xe2\x12\x92\x52\xd2\x32\xb2\x72\xf2" \
-           b"\x0a\x8a\x4a\xca\x2a\xaa\x6a\xea\x1a\x9a\x5a\xda\x3a\xba\x7a\xfa" \
-           b"\x06\x86\x46\xc6\x26\xa6\x66\xe6\x16\x96\x56\xd6\x36\xb6\x76\xf6" \
-           b"\x0e\x8e\x4e\xce\x2e\xae\x6e\xee\x1e\x9e\x5e\xde\x3e\xbe\x7e\xfe" \
-           b"\x01\x81\x41\xc1\x21\xa1\x61\xe1\x11\x91\x51\xd1\x31\xb1\x71\xf1" \
-           b"\x09\x89\x49\xc9\x29\xa9\x69\xe9\x19\x99\x59\xd9\x39\xb9\x79\xf9" \
-           b"\x05\x85\x45\xc5\x25\xa5\x65\xe5\x15\x95\x55\xd5\x35\xb5\x75\xf5" \
-           b"\x0d\x8d\x4d\xcd\x2d\xad\x6d\xed\x1d\x9d\x5d\xdd\x3d\xbd\x7d\xfd" \
-           b"\x03\x83\x43\xc3\x23\xa3\x63\xe3\x13\x93\x53\xd3\x33\xb3\x73\xf3" \
-           b"\x0b\x8b\x4b\xcb\x2b\xab\x6b\xeb\x1b\x9b\x5b\xdb\x3b\xbb\x7b\xfb" \
-           b"\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7" \
-           b"\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
-
-if PYTHON_VERSION == 2:
-    BYTE_REVERSAL_DICT = dict(zip(xrange(256), REVERSED))
-else:
-    BYTE_REVERSAL_DICT = dict(zip(xrange(256), [bytes([x]) for x in REVERSED]))
 
 # A dictionary of number of 1 bits contained in binary representation of any byte
 BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
@@ -706,7 +705,7 @@ class ConstBitArray(object):
     def __xor__(self, bs):
         """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
 
-        bs -- The bitsntring to '^' with.
+        bs -- The bitstring to '^' with.
 
         Raises ValueError if the two bitstrings have differing lengths.
 
@@ -751,9 +750,10 @@ class ConstBitArray(object):
             shorter = self[:80] + self[-80:]
         h = 0
         for byte in shorter.tobytes():
-            if PYTHON_VERSION == 2:
+            try:
                 h = (h << 4) + ord(byte)
-            else:
+            except TypeError:
+                # Python 3
                 h = (h << 4) + byte
             g = h & 0xf0000000
             if g & (1 << 31):
@@ -1843,7 +1843,7 @@ class ConstBitArray(object):
         Raises ValueError if bs is empty, if start < 0, if end > self.len or
         if end < start.
 
-        >>> Bits('0xc3e').find('0b1111')
+        >>> BitArray('0xc3e').find('0b1111')
         (6,)
 
         """
@@ -2194,7 +2194,7 @@ class ConstBitArray(object):
         value -- If True then bits set to 1 are counted, otherwise bits set
                  to 0 are counted.
 
-        >>> Bits('0xef').count(1)
+        >>> ConstBitArray('0xef').count(1)
         7
 
         """
