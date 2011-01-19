@@ -4,7 +4,6 @@ import re
 import collections
 import copy
 import numbers
-import sys
 import bitstring.constbitarray as constbitarray
 from bitstring.bitstore import ByteArray
 from bitstring.errors import Error
@@ -12,7 +11,9 @@ from bitstring.errors import Error
 cba = constbitarray.ConstBitArray
 
 # Hack for Python 3
-if sys.version_info[0] == 3:
+try:
+    xrange
+except NameError:
     xrange = range
     basestring = str
 
