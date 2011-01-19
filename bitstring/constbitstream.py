@@ -8,7 +8,7 @@ from bitstring.errors import ByteAlignError, ReadError
 
 class ConstBitStream(ConstBitArray):
     
-    """A container or streamholding an immutable sequence of bits.
+    """A container or stream holding an immutable sequence of bits.
 
     For a mutable container use the BitStream class instead.
 
