@@ -19,6 +19,78 @@ except NameError:
 
 class BitArray(constbitarray.ConstBitArray):
 
+    """A container holding a mutable sequence of bits.
+
+    Subclass of the immutable ConstBitArray class. Inherits all of its
+    methods (except __hash__) and adds mutating methods.
+
+    Mutating methods:
+
+    append() -- Append a bitstring.
+    byteswap() -- Change byte endianness in-place.
+    insert() -- Insert a bitstring.
+    invert() -- Flip bit(s) between one and zero.
+    overwrite() -- Overwrite a section with a new bitstring.
+    prepend() -- Prepend a bitstring.
+    replace() -- Replace occurences of one bitstring with another.
+    reverse() -- Reverse bits in-place.
+    rol() -- Rotate bits to the left.
+    ror() -- Rotate bits to the right.
+    set() -- Set bit(s) to 1 or 0.
+
+    Methods inherited from ConstBitArray:
+
+    all() -- Check if all specified bits are set to 1 or 0.
+    any() -- Check if any of specified bits are set to 1 or 0.
+    bytealign() -- Align to next byte boundary.
+    cut() -- Create generator of constant sized chunks.
+    endswith() -- Return whether the bitstring ends with a sub-string.
+    find() -- Find a sub-bitstring in the current bitstring.
+    findall() -- Find all occurences of a sub-bitstring in the current bitstring.
+    join() -- Join bitstrings together using current bitstring.
+    peek() -- Peek at and interpret next bits as a single item.
+    peeklist() -- Peek at and interpret next bits as a list of items.
+    read() -- Read and interpret next bits as a single item.
+    readlist() -- Read and interpret next bits as a list of items.
+    rfind() -- Seek backwards to find a sub-bitstring.
+    split() -- Create generator of chunks split by a delimiter.
+    startswith() -- Return whether the bitstring starts with a sub-bitstring.
+    tobytes() -- Return bitstring as bytes, padding if needed.
+    tofile() -- Write bitstring to file, padding if needed.
+    unpack() -- Interpret bits using format string.
+
+    Special methods:
+
+    Mutating operators are available: [], <<=, >>=, *=, &=, |= and ^=
+    in addition to the inherited [], ==, !=, +, *, ~, <<, >>, &, | and ^.
+
+    Properties:
+
+    bin -- The bitstring as a binary string.
+    bool -- For single bit bitstrings, interpret as True or False.
+    bytepos -- The current byte position in the bitstring.
+    bytes -- The bitstring as a bytes object.
+    float -- Interpret as a floating point number.
+    floatbe -- Interpret as a big-endian floating point number.
+    floatle -- Interpret as a little-endian floating point number.
+    floatne -- Interpret as a native-endian floating point number.
+    hex -- The bitstring as a hexadecimal string.
+    int -- Interpret as a two's complement signed integer.
+    intbe -- Interpret as a big-endian signed integer.
+    intle -- Interpret as a little-endian signed integer.
+    intne -- Interpret as a native-endian signed integer.
+    len -- Length of the bitstring in bits.
+    oct -- The bitstring as an octal string.
+    pos -- The current bit position in the bitstring.
+    se -- Interpret as a signed exponential-Golomb code.
+    ue -- Interpret as an unsigned exponential-Golomb code.
+    uint -- Interpret as a two's complement unsigned integer.
+    uintbe -- Interpret as a big-endian unsigned integer.
+    uintle -- Interpret as a little-endian unsigned integer.
+    uintne -- Interpret as a native-endian unsigned integer.
+
+    """
+
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
 

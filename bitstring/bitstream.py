@@ -10,40 +10,37 @@ from bitstring.bitstore import ByteArray
 
 class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
 
-    """A container holding a mutable sequence of bits.
+    """A container or stream holding a mutable sequence of bits
 
-    Subclass of the immutable Bits class. Inherits all of its methods (except
-    __hash__) and adds mutating methods.
+    Subclass of the ConstBitStream and BitArray classes. Inherits all of
+    their methods.
 
-    Mutating methods:
-
-    append() -- Append a bitstring.
-    byteswap() -- Change byte endianness in-place.
-    insert() -- Insert a bitstring.
-    invert() -- Flip bit(s) between one and zero.
-    overwrite() -- Overwrite a section with a new bitstring.
-    prepend() -- Prepend a bitstring.
-    replace() -- Replace occurences of one bitstring with another.
-    reverse() -- Reverse bits in-place.
-    rol() -- Rotate bits to the left.
-    ror() -- Rotate bits to the right.
-    set() -- Set bit(s) to 1 or 0.
-
-    Methods inherited from Bits:
+    Methods:
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
+    append() -- Append a bitstring.
     bytealign() -- Align to next byte boundary.
+    byteswap() -- Change byte endianness in-place.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurences of a sub-bitstring in the current bitstring.
+    insert() -- Insert a bitstring.
+    invert() -- Flip bit(s) between one and zero.
     join() -- Join bitstrings together using current bitstring.
+    overwrite() -- Overwrite a section with a new bitstring.
     peek() -- Peek at and interpret next bits as a single item.
     peeklist() -- Peek at and interpret next bits as a list of items.
+    prepend() -- Prepend a bitstring.
     read() -- Read and interpret next bits as a single item.
     readlist() -- Read and interpret next bits as a list of items.
+    replace() -- Replace occurences of one bitstring with another.
+    reverse() -- Reverse bits in-place.
     rfind() -- Seek backwards to find a sub-bitstring.
+    rol() -- Rotate bits to the left.
+    ror() -- Rotate bits to the right.
+    set() -- Set bit(s) to 1 or 0.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
     tobytes() -- Return bitstring as bytes, padding if needed.
@@ -53,7 +50,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     Special methods:
 
     Mutating operators are available: [], <<=, >>=, *=, &=, |= and ^=
-    in addition to the inherited [], ==, !=, +, *, ~, <<, >>, &, | and ^.
+    in addition to [], ==, !=, +, *, ~, <<, >>, &, | and ^.
 
     Properties:
 
