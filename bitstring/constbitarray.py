@@ -2200,10 +2200,6 @@ class ConstBitArray(object):
         """
         if not self.len:
             return 0
-
-        count = bin(self._getuint()).count('1')
-        return count if value else self.len - count
-
         # count the number of 1s (from which it's easy to work out the 0s).
         # Don't count the final byte yet.
         # TODO: Replace xrange (could fail with 32-bit Python 2.x).
