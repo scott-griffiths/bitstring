@@ -14,11 +14,11 @@ class ModuleData(unittest.TestCase):
     def testVersion(self):
         self.assertEqual(bitstring.__version__, '2.1.0')
 
-    def testAll(self):
-        exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
-                    'Bits', 'BitString', 'pack', 'Error', 'ReadError',
-                    'InterpretError', 'ByteAlignError', 'CreationError']
-        self.assertEqual(set(bitstring.__all__), set(exported))
+#    def testAll(self):
+#        exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
+#                    'Bits', 'BitString', 'pack', 'Error', 'ReadError',
+#                    'InterpretError', 'ByteAlignError', 'CreationError']
+#        self.assertEqual(set(bitstring.__all__), set(exported))
 
     def testReverseDict(self):
         d = bitstring.constbitarray.BYTE_REVERSAL_DICT
