@@ -279,6 +279,7 @@ class ConstBitArray(object):
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
+    count() -- Count the number of bits set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
@@ -501,7 +502,7 @@ class ConstBitArray(object):
                 if step >= 0:
                     return self._slice(start, stop)
                 else:
-                    # Negative step, so reverse the BitString in chunks of step.
+                    # Negative step, so reverse the bitstring in chunks of step.
                     # TODO: Replace xrange (could fail with 32-bit Python 2.x).
                     bsl = [self._slice(x, x - step) for x in xrange(start, stop, -step)]
                     bsl.reverse()
@@ -712,7 +713,7 @@ class ConstBitArray(object):
         """
         bs = self._converttobitstring(bs)
         if self.len != bs.len:
-            raise ValueError("BitStrings must have the same length "
+            raise ValueError("Bitstrings must have the same length "
                              "for ^ operator.")
         s = self._copy()
         s._ixor(bs)
@@ -1493,7 +1494,7 @@ class ConstBitArray(object):
         return cls(bs)
 
     def _copy(self):
-        """Create and return a new copy of the Bits (always in memory)."""
+        """Create and return a new copy of the ConstBitArray (always in memory)."""
         s_copy = self.__class__()
         s_copy._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength),
                                 self.len, self._offset)
@@ -1697,7 +1698,7 @@ class ConstBitArray(object):
 
     def _inplace_logical_helper(self, bs, f):
         """Helper function containing most of the __ior__, __iand__, __ixor__ code."""
-        # Give the two BitStrings the same offset
+        # Give the two bitstrings the same offset
         if bs._offset != self._offset:
             if self._offset == 0:
                 bs._datastore = bitstore.offsetcopy(bs._datastore, 0)
@@ -2047,7 +2048,7 @@ class ConstBitArray(object):
             c += 1
             yield self[startpos:found[0]]
             startpos = pos = found[0]
-        # Have generated count BitStrings, so time to quit.
+        # Have generated count bitstrings, so time to quit.
         return
 
     def join(self, sequence):

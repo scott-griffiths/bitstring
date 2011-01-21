@@ -47,11 +47,11 @@ The BitArray class
            >>> print(s.uintbe)
            1234
         
-    .. method:: insert(bs[, pos])
+    .. method:: insert(bs, pos)
 
-        Inserts *bs* at *pos*. TODO: After insertion the property :attr:`~Bits.pos` will be immediately after the inserted bitstring.
+        Inserts *bs* at *pos*.
 
-        The default for *pos* is the current position. ::
+        When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~Bits.pos` will be immediately after the inserted bitstring. ::
 
             >>> s = BitArray('0xccee')
             >>> s.insert('0xd', 8)
@@ -78,11 +78,11 @@ The BitArray class
             >>> s.bin
             '0b100101'
 
-    .. method:: overwrite(bs[, pos])
+    .. method:: overwrite(bs, pos)
 
         Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
 
-        TODO: The default for *pos* is the current position. ::
+        When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~Bits.pos` will be immediately after the overwritten bitstring. ::
 
             >>> s = BitArray(length=10)
             >>> s.overwrite('0b111', 3)

@@ -139,7 +139,7 @@ Finding and replacing
 
 To search for a sub-string use the :meth:`~ConstBitArray.find` method. If the find succeeds it will set the position to the start of the next occurrence of the searched for string and return a tuple containing that position, otherwise it will return an empty tuple. By default the sub-string will be found at any bit position - to allow it to only be found on byte boundaries set ``bytealigned=True``.
 
-    >>> s = BitArray('0x00123400001234')
+    >>> s = ConstBitStream('0x00123400001234')
     >>> found = s.find('0x1234', bytealigned=True)
     >>> print(found, s.bytepos)
     (8,) 1
@@ -164,7 +164,7 @@ For all of these finding functions you can optionally specify a ``start`` and / 
 To find all occurrences of a bitstring inside another (even overlapping ones), use :meth:`~ConstBitArray.findall`. This returns a generator for the bit positions of the found strings. ::
 
     >>> r = BitArray('0b011101011001')
-    >>> ones = r.findall('0b1')
+    >>> ones = r.findall([1])
     >>> print(list(ones))
     [1, 2, 3, 5, 7, 8, 11]
 
