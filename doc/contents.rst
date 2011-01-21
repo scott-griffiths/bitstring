@@ -16,5 +16,4 @@ User Manual
    slicing
    reading
    misc
-   release_notes
 

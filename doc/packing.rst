@@ -3,7 +3,7 @@
 Packing
 -------
 
-Another method of creating :class:`BitArray` objects is to use the :func:`pack` function. This takes a format specifier which is a string with comma separated tokens, and a number of items to pack according to it. It's signature is ``bitstring.pack(format, *values, **kwargs)``.
+Another method of creating :class:`BitStream` objects is to use the :func:`pack` function. This takes a format specifier which is a string with comma separated tokens, and a number of items to pack according to it. It's signature is ``bitstring.pack(format, *values, **kwargs)``.
 
 For example using just the ``*values`` arguments we can say::
 
@@ -11,7 +11,7 @@ For example using just the ``*values`` arguments we can say::
 
 which is equivalent to initialising as::
 
-    s = BitArray('0x0000001b3, uint:12=352, uint:12=288')
+    s = BitStream('0x0000001b3, uint:12=352, uint:12=288')
 
 The advantage of the pack function is if you want to write more general code for creation. ::
 

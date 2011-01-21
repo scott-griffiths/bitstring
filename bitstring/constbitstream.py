@@ -16,6 +16,7 @@ class ConstBitStream(ConstBitArray):
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
+    count() -- Count the number of bits set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.

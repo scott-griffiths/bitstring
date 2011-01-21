@@ -22,6 +22,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     append() -- Append a bitstring.
     bytealign() -- Align to next byte boundary.
     byteswap() -- Change byte endianness in-place.
+    count() -- Count the number of bits set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
@@ -170,7 +171,7 @@ def pack(fmt, *values, **kwargs):
                     'bin:1'     : single bit binary string
                     'ue'        : next bits as unsigned exp-Golomb code
                     'se'        : next bits as signed exp-Golomb code
-                    'bits:5'    : 5 bits as a BitString object
+                    'bits:5'    : 5 bits as a bitstring object
                     'bytes:10'  : 10 bytes as a bytes object
                     'bool'      : 1 bit as a bool
 

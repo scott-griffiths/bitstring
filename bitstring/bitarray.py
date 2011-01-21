@@ -42,16 +42,12 @@ class BitArray(constbitarray.ConstBitArray):
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
-    bytealign() -- Align to next byte boundary.
+    count() -- Count the number of bits set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurences of a sub-bitstring in the current bitstring.
     join() -- Join bitstrings together using current bitstring.
-    peek() -- Peek at and interpret next bits as a single item.
-    peeklist() -- Peek at and interpret next bits as a list of items.
-    read() -- Read and interpret next bits as a single item.
-    readlist() -- Read and interpret next bits as a list of items.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
@@ -135,9 +131,9 @@ class BitArray(constbitarray.ConstBitArray):
             self._ensureinmemory()
 
     def __iadd__(self, bs):
-        """Append bs to current BitString. Return self.
+        """Append bs to current bitstring. Return self.
 
-        bs -- the BitString to append.
+        bs -- the bitstring to append.
 
         """
         self.append(bs)
@@ -149,10 +145,10 @@ class BitArray(constbitarray.ConstBitArray):
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
 
-        If the length of the BitString is changed then pos will be moved
+        If the length of the bitstring is changed then pos will be moved
         to after the inserted section, otherwise it will remain unchanged.
 
-        >>> s = BitString('0xff')
+        >>> s = BitArray('0xff')
         >>> s[0:1:4] = '0xe'
         >>> print s
         '0xef'
@@ -267,7 +263,7 @@ class BitArray(constbitarray.ConstBitArray):
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
 
-        >>> a = BitString('0x001122')
+        >>> a = BitArray('0x001122')
         >>> del a[1:2:8]
         >>> print a
         0x0022
@@ -371,21 +367,21 @@ class BitArray(constbitarray.ConstBitArray):
     def __ior__(self, bs):
         bs = self._converttobitstring(bs)
         if self.len != bs.len:
-            raise ValueError("BitStrings must have the same length "
+            raise ValueError("Bitstrings must have the same length "
                              "for |= operator.")
         return self._ior(bs)
 
     def __iand__(self, bs):
         bs = self._converttobitstring(bs)
         if self.len != bs.len:
-            raise ValueError("BitStrings must have the same length "
+            raise ValueError("Bitstrings must have the same length "
                              "for &= operator.")
         return self._iand(bs)
 
     def __ixor__(self, bs):
         bs = self._converttobitstring(bs)
         if self.len != bs.len:
-            raise ValueError("BitStrings must have the same length "
+            raise ValueError("Bitstrings must have the same length "
                              "for ^= operator.")
         return self._ixor(bs)
 
@@ -416,8 +412,8 @@ class BitArray(constbitarray.ConstBitArray):
 
         Returns number of replacements made.
 
-        old -- The BitString to replace.
-        new -- The replacement BitString.
+        old -- The bitstring to replace.
+        new -- The replacement bitstring.
         start -- Any occurences that start before this will not be replaced.
                  Defaults to 0.
         end -- Any occurences that finish after this will not be replaced.
@@ -434,7 +430,7 @@ class BitArray(constbitarray.ConstBitArray):
         old = self._converttobitstring(old)
         new = self._converttobitstring(new)
         if not old.len:
-            raise ValueError("Empty BitString cannot be replaced.")
+            raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
         # Adjust count for use in split()
         if count is not None:
@@ -478,8 +474,8 @@ class BitArray(constbitarray.ConstBitArray):
     def insert(self, bs, pos=None):
         """Insert bs at bit position pos.
 
-        bs -- The BitString to insert.
-        pos -- The bit position to insert the BitString
+        bs -- The bitstring to insert.
+        pos -- The bit position to insert at.
 
         Raises ValueError if pos < 0 or pos > self.len.
 
@@ -503,7 +499,7 @@ class BitArray(constbitarray.ConstBitArray):
     def overwrite(self, bs, pos=None):
         """Overwrite with bs at bit position pos.
 
-        bs -- The BitString to overwrite with.
+        bs -- The bitstring to overwrite with.
         pos -- The bit position to begin overwriting from.
 
         Raises ValueError if pos < 0 or pos + bs.len > self.len
@@ -520,7 +516,7 @@ class BitArray(constbitarray.ConstBitArray):
         if pos < 0:
             pos += self.len
         if pos < 0 or pos + bs.len > self.len:
-            raise ValueError("Overwrite exceeds boundary of BitString.")
+            raise ValueError("Overwrite exceeds boundary of bitstring.")
         self._overwrite(bs, pos)
         try:
             self._pos = pos + bs.len
@@ -553,7 +549,7 @@ class BitArray(constbitarray.ConstBitArray):
         end -- One past the position of the last bit to reverse.
                Defaults to self.len.
 
-        Using on an empty BitString will have no effect.
+        Using on an empty bitstring will have no effect.
 
         Raises ValueError if start < 0, end > self.len or end < start.
 
@@ -572,7 +568,7 @@ class BitArray(constbitarray.ConstBitArray):
         value -- If True bits are set to 1, otherwise they are set to 0.
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
-               Defaults to the entire BitString.
+               Defaults to the entire bitstring.
 
         Raises IndexError if pos < -self.len or pos >= self.len.
 
@@ -629,7 +625,7 @@ class BitArray(constbitarray.ConstBitArray):
 
         """
         if self.len == 0:
-            raise Error("Cannot rotate an empty BitString.")
+            raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate right by negative amount.")
         start, end = self._validate_slice(start, end)
@@ -651,7 +647,7 @@ class BitArray(constbitarray.ConstBitArray):
 
         """
         if self.len == 0:
-            raise Error("Cannot rotate an empty BitString.")
+            raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate left by negative amount.")
         start, end = self._validate_slice(start, end)
@@ -667,7 +663,7 @@ class BitArray(constbitarray.ConstBitArray):
 
         fmt -- A compact structure string, an integer number of bytes or
                an iterable of integers. Defaults to 0, which byte reverses the
-               whole BitString.
+               whole bitstring.
         start -- Start bit position, defaults to 0.
         end -- End bit position, defaults to self.len.
         repeat -- If True (the default) the byte swapping pattern is repeated
@@ -724,68 +720,68 @@ class BitArray(constbitarray.ConstBitArray):
 
 
     int    = property(cba._getint, cba._setint,
-                      doc="""The BitString as a two's complement signed int. Read and write.
+                      doc="""The bitstring as a two's complement signed int. Read and write.
                       """)
     uint   = property(cba._getuint, cba._setuint,
-                      doc="""The BitString as a two's complement unsigned int. Read and write.
+                      doc="""The bitstring as a two's complement unsigned int. Read and write.
                       """)
     float  = property(cba._getfloat, cba._setfloat,
-                      doc="""The BitString as a floating point number. Read and write.
+                      doc="""The bitstring as a floating point number. Read and write.
                       """)
     intbe  = property(cba._getintbe, cba._setintbe,
-                      doc="""The BitString as a two's complement big-endian signed int. Read and write.
+                      doc="""The bitstring as a two's complement big-endian signed int. Read and write.
                       """)
     uintbe = property(cba._getuintbe, cba._setuintbe,
-                      doc="""The BitString as a two's complement big-endian unsigned int. Read and write.
+                      doc="""The bitstring as a two's complement big-endian unsigned int. Read and write.
                       """)
     floatbe= property(cba._getfloat, cba._setfloat,
-                      doc="""The BitString as a big-endian floating point number. Read and write.
+                      doc="""The bitstring as a big-endian floating point number. Read and write.
                       """)
     intle  = property(cba._getintle, cba._setintle,
-                      doc="""The BitString as a two's complement little-endian signed int. Read and write.
+                      doc="""The bitstring as a two's complement little-endian signed int. Read and write.
                       """)
     uintle = property(cba._getuintle, cba._setuintle,
-                      doc="""The BitString as a two's complement little-endian unsigned int. Read and write.
+                      doc="""The bitstring as a two's complement little-endian unsigned int. Read and write.
                       """)
     floatle= property(cba._getfloatle, cba._setfloatle,
-                      doc="""The BitString as a little-endian floating point number. Read and write.
+                      doc="""The bitstring as a little-endian floating point number. Read and write.
                       """)
     intne  = property(cba._getintne, cba._setintne,
-                      doc="""The BitString as a two's complement native-endian signed int. Read and write.
+                      doc="""The bitstring as a two's complement native-endian signed int. Read and write.
                       """)
     uintne = property(cba._getuintne, cba._setuintne,
-                      doc="""The BitString as a two's complement native-endian unsigned int. Read and write.
+                      doc="""The bitstring as a two's complement native-endian unsigned int. Read and write.
                       """)
     floatne= property(cba._getfloatne, cba._setfloatne,
-                      doc="""The BitString as a native-endian floating point number. Read and write.
+                      doc="""The bitstring as a native-endian floating point number. Read and write.
                       """)
     ue     = property(cba._getue, cba._setue,
-                      doc="""The BitString as an unsigned exponential-Golomb code. Read and write.
+                      doc="""The bitstring as an unsigned exponential-Golomb code. Read and write.
                       """)
     se     = property(cba._getse, cba._setse,
-                      doc="""The BitString as a signed exponential-Golomb code. Read and write.
+                      doc="""The bitstring as a signed exponential-Golomb code. Read and write.
                       """)
     hex    = property(cba._gethex, cba._sethex,
-                      doc="""The BitString as a hexadecimal string. Read and write.
+                      doc="""The bitstring as a hexadecimal string. Read and write.
 
                       When read will be prefixed with '0x' and including any leading zeros.
 
                       """)
     bin    = property(cba._getbin, cba._setbin_safe,
-                      doc="""The BitString as a binary string. Read and write.
+                      doc="""The bitstring as a binary string. Read and write.
 
                       When read will be prefixed with '0b' and including any leading zeros.
 
                       """)
     oct    = property(cba._getoct, cba._setoct,
-                      doc="""The BitString as an octal string. Read and write.
+                      doc="""The bitstring as an octal string. Read and write.
 
                       When read will be prefixed with '0o' and including any leading zeros.
 
                       """)
     bool   = property(cba._getbool, cba._setbool,
-                      doc="""The BitString as a bool (True or False). Read and write."""
+                      doc="""The bitstring as a bool (True or False). Read and write."""
                       )
     bytes  = property(cba._getbytes, cba._setbytes_safe,
-                      doc="""The BitString as a ordinary string. Read and write.
+                      doc="""The bitstring as a ordinary string. Read and write.
                       """)

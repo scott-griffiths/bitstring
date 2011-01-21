@@ -17,8 +17,9 @@ Methods
 
  *   :meth:`~ConstBitArray.all` -- Check if all specified bits are set to 1 or 0.
  *   :meth:`~ConstBitArray.any` -- Check if any of specified bits are set to 1 or 0.
+ *   :meht:`~ConstBitArray.count` -- Count the number of bits set to 1 or 0.
  *   :meth:`~ConstBitArray.cut` -- Create generator of constant sized chunks.
- *   :meth:`~ConstBitArray.endswith` -- Return whether the bitstring ends with a sub-string.
+ *   :meth:`~ConstBitArray.endswith` -- Return whether the bitstring ends with a sub-bitstring.
  *   :meth:`~ConstBitArray.find` -- Find a sub-bitstring in the current bitstring.
  *   :meth:`~ConstBitArray.findall` -- Find all occurences of a sub-bitstring in the current bitstring.
  *   :meth:`~ConstBitArray.join` -- Join bitstrings together using current bitstring.
@@ -89,7 +90,7 @@ Additional special methods
 Attributes
 ^^^^^^^^^^
 
-    The same as ``ConstBitArray``, except that they are all writable as well as readable.
+    The same as ``ConstBitArray``, except that they are all (with the exception of ``len``) writable as well as readable.
 
 
 ConstBitStream
@@ -120,6 +121,6 @@ BitStream
 
 ``BitStream(BitArray, ConstBitStream)``
 
-This class, also known as ``BitString`` contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
+This class, also known as ``BitString``, contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
 
 
