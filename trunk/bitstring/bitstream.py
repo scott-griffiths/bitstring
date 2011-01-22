@@ -82,6 +82,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
 
     __slots__ = ()
 
+
     # As BitStream objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
 
@@ -137,12 +138,12 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
         else:
             s_copy._datastore = copy.copy(self._datastore)
         return s_copy
-    
+
     def prepend(self, bs):
         bs = self._converttobitstring(bs)
         self._prepend(bs)
         self._pos += bs.len
-        
+
     prepend.__doc__ = bitarray.BitArray.prepend.__doc__
 
 

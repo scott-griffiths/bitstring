@@ -7,7 +7,7 @@ from bitstring.errors import ByteAlignError, ReadError
 
 
 class ConstBitStream(ConstBitArray):
-    
+
     """A container or stream holding an immutable sequence of bits.
 
     For a mutable container use the BitStream class instead.
@@ -68,7 +68,7 @@ class ConstBitStream(ConstBitArray):
 
     """
 
-    __slots__ = ('_datastore', '_pos')
+    __slots__ = ('_pos')
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
         self._initialise(auto, length, offset, **kwargs)

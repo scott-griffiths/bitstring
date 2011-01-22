@@ -87,6 +87,8 @@ class BitArray(constbitarray.ConstBitArray):
 
     """
 
+    __slots__ = ()
+
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
 
@@ -494,7 +496,7 @@ class BitArray(constbitarray.ConstBitArray):
             pos += self.len
         if not 0 <= pos <= self.len:
             raise ValueError("Invalid insert position.")
-        self._insert(bs, pos)        
+        self._insert(bs, pos)
 
     def overwrite(self, bs, pos=None):
         """Overwrite with bs at bit position pos.
