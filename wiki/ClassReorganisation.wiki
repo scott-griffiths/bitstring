@@ -1,6 +1,8 @@
 #summary Bitstreams and class reorganisation
 #labels Phase-Design,Deprecated
 
+Note: This was implemented in version 2.1.
+
 = Introduction =
 
 The Bits / !BitString classes could be considered to be too complex. In particular the 'stream' facilities (i.e. those methods which use the bit position) are often unneeded. When comparing objects the position isn't used, which complicates things. And of course it increases the memory footprint of every instance.
