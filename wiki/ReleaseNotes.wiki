@@ -1,4 +1,5 @@
 #summary Release Notes
+#labels Deprecated
 
 ==July 26th 2010: version 2.0.3 released==
 --------------------------------------
