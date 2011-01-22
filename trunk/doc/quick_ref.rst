@@ -17,7 +17,7 @@ Methods
 
  *   :meth:`~ConstBitArray.all` -- Check if all specified bits are set to 1 or 0.
  *   :meth:`~ConstBitArray.any` -- Check if any of specified bits are set to 1 or 0.
- *   :meht:`~ConstBitArray.count` -- Count the number of bits set to 1 or 0.
+ *   :meth:`~ConstBitArray.count` -- Count the number of bits set to 1 or 0.
  *   :meth:`~ConstBitArray.cut` -- Create generator of constant sized chunks.
  *   :meth:`~ConstBitArray.endswith` -- Return whether the bitstring ends with a sub-bitstring.
  *   :meth:`~ConstBitArray.find` -- Find a sub-bitstring in the current bitstring.
