@@ -36,6 +36,7 @@ class MemoryUsage(unittest.TestCase):
         except ImportError:
             return
         # These values might be platform dependent, so don't fret too much.
-        self.assertEqual(size(ConstBitStream([0])), 400)
-        self.assertEqual(size(ConstBitArray([0])), 112)
-        self.assertEqual(size(BitStream([0])), 400)
+        self.assertEqual(size(bitstring.ConstBitStream([0])), 120)
+        self.assertEqual(size(bitstring.ConstBitArray([0])), 112)
+        self.assertEqual(size(bitstring.BitStream([0])), 120)
+        self.assertEqual(size(bitstring.BitArray([0])), 112)

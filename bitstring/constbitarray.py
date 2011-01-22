@@ -40,7 +40,7 @@ REVERSED = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
 try:
     BYTE_REVERSAL_DICT = dict(zip(xrange(256), REVERSED))
 except NameError:
-    BYTE_REVERSAL_DICT = dict(zip(range(256), [bytes([x]) for x in REVERSED]))    
+    BYTE_REVERSAL_DICT = dict(zip(range(256), [bytes([x]) for x in REVERSED]))
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
@@ -50,7 +50,7 @@ except NameError:
     from io import IOBase as file
     xrange = range
     basestring = str
-    
+
 # Python 2.x octals start with '0', in Python 3 it's '0o'
 LEADING_OCT_CHARS = len(oct(1)) - 1
 
@@ -1571,7 +1571,10 @@ class ConstBitArray(object):
             self._truncatestart(pos)
             self._prepend(bs)
             self._prepend(start)
-        self._pos = pos + bs.len
+        try:
+            self._pos = pos + bs.len
+        except AttributeError:
+            pass
         assert self._assertsanity()
 
     def _overwrite(self, bs, pos):
