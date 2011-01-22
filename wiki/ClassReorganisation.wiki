@@ -1,5 +1,5 @@
 #summary Bitstreams and class reorganisation
-#labels Phase-Design
+#labels Phase-Design,Deprecated
 
 = Introduction =
 
