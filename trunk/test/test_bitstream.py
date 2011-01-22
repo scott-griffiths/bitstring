@@ -3928,10 +3928,3 @@ class CoverageCompletionTests(unittest.TestCase):
         s.overwrite(s)
         self.assertEqual(s, '0b1101')
 
-
-def main():
-    unittest.main()
-
-
-if __name__ == '__main__':
-    main()
