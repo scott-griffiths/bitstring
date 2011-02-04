@@ -929,7 +929,7 @@ class ConstBitArray(object):
         assert length % 8 == 0
         assert start + length <= self.len
         if (start + self._offset) % 8 == 0:
-            return bytes(self._datastore.getbyteslice(start + self._offset // 8, (start + self._offset + length) // 8))
+            return bytes(self._datastore.getbyteslice((start + self._offset) // 8, (start + self._offset + length) // 8))
         # TODO: don't call __getitem__ here!
 #        b = ByteArray(self._datastore.rawbytes, length, start + self._offset)
 #        b = bitstore.offsetcopy(b, 0)

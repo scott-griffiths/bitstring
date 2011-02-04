@@ -3229,6 +3229,14 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(z, 3)
         s = pack('bytes:4', b'abcd')
         self.assertEqual(s.bytes, b'abcd')
+        
+    def testBytesTokenMoreThoroughly(self):
+        a = BitStream('0x0123456789abcdef')
+        a.pos += 16
+        self.assertEqual(a.read('bytes:1'), b'\x45')
+        self.assertEqual(a.read('bytes:3'), b'\x67\x89\xab')
+        x, y, z = a.unpack('bits:28, bytes, bits:12')
+        self.assertEqual(y, b'\x78\x9a\xbc')
 
     def testDedicatedReadFunctions(self):
         a = BitStream('0b11, uint:43=98798798172, 0b11111')
