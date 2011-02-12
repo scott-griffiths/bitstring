@@ -358,12 +358,9 @@ class ConstBitArray(object):
                   initialising using 'bytes' or 'filename'.
 
         """
-        self._initialise(auto, length, offset, 0, **kwargs)
+        self._initialise(auto, length, offset, **kwargs)
 
-    def _initialise(self, auto, length, offset, bitoffest=0, **kwargs):
-        """Note: offset is number of bits in the data to ignore
-        bitoffset is the offset to give the resultant bitarray
-        """
+    def _initialise(self, auto, length, offset, **kwargs):
         if length is not None and length < 0:
             raise CreationError("bitstring length cannot be negative.")
         if offset is not None and offset < 0:
@@ -1502,9 +1499,12 @@ class ConstBitArray(object):
 
     def _slice(self, start, end):
         """Used internally to get a slice, without error checking."""
-        b = self.__class__()
-        b._datastore = bitstore.slice(self._datastore, end - start, start)
-        return b
+        offset = self._offset
+        startbyte, newoffset = divmod(start + offset, 8)
+        endbyte = (end + offset - 1) // 8
+        bs = self.__class__(bytes=self._datastore.getbyteslice(startbyte, endbyte + 1),
+                            length=end - start, offset=newoffset)
+        return bs
 
     def _readtoken(self, name, pos, length):
         """Reads a token from the bitstring and returns the result."""
