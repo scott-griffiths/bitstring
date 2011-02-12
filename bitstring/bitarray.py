@@ -399,15 +399,6 @@ class BitArray(constbitarray.ConstBitArray):
             newoffset = 0
         self._setbytes_unsafe(bytearray().join(n), self.length, newoffset)
 
-    def _slice(self, start, end):
-        """Used internally to get a slice, without error checking."""
-        offset = self._offset
-        startbyte, newoffset = divmod(start + offset, 8)
-        endbyte = (end + offset - 1) // 8
-        bs = self.__class__(bytes=self._datastore.getbyteslice(startbyte, endbyte + 1),
-                            length=end - start, offset=newoffset)
-        return bs
-
     def replace(self, old, new, start=None, end=None, count=None,
                 bytealigned=False):
         """Replace all occurrences of old with new in place.

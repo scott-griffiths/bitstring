@@ -154,3 +154,11 @@ class Initialisation(unittest.TestCase):
         a = CBA('0b0010011')
         b = list(a.findall([1]))
         self.assertEqual(b, [2, 5, 6])
+        
+class Cut(unittest.TestCase):
+    
+    def testCut(self):
+        s = CBA(30)
+        for t in s.cut(3):
+            self.assertEqual(t, [0]*3)
+

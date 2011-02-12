@@ -7,6 +7,7 @@ import test_constbitarray
 import test_constbitstream
 import test_bitstream
 
+
 for module in [test_bitstring, test_constbitarray, test_constbitstream,
                test_bitarray, test_bitstream]:
     print("Running {0}".format(module.__name__))

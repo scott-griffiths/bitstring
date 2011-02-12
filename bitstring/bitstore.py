@@ -49,7 +49,8 @@ class ConstByteArray(object):
             bitlength = 8*len(data) - offset
         self.offset = offset
         self.bitlength = bitlength
-
+        
+# TODO: It should be possible to remove this method...
     def __copy__(self):
         return ByteArray(self._rawarray[:], self.bitlength, self.offset)
 
