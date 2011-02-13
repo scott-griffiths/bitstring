@@ -958,26 +958,20 @@ class ConstBitArray(object):
             raise CreationError(msg, uint, length)
         if uint < 0:
             raise CreationError("uint cannot be initialsed by a negative number.")
-        blist = []
-        mask = 0xffff
-        while uint:
-            # Pack lowest bytes as little endian (as it will be reversed shortly)
-            x = bytearray(struct.pack('>H', uint & mask))
-            blist.append(x)
-            uint >>= 16
-        blist.reverse()
-        # Now add or remove bytes as needed to get the right length.
-        extrabytes = ((length + 7) // 8) - len(blist)*2
+        
+        s = hex(uint)[2:]
+        s = s.rstrip('L')
+        if len(s) & 1:
+            s = '0' + s
+        data = binascii.unhexlify(s)
+        # Now add bytes as needed to get the right length.
+        extrabytes = ((length + 7) // 8) - len(data)
         if extrabytes > 0:
-            data = bytearray(extrabytes) + bytearray().join(blist)
-        elif extrabytes < 0:
-            data = bytearray().join(blist)[-extrabytes:]
-        else:
-            data = bytearray().join(blist)
+            data = b'\x00'*extrabytes + data
         offset = 8 - (length % 8)
         if offset == 8:
             offset = 0
-        self._setbytes_unsafe(data, length, offset)
+        self._setbytes_unsafe(bytearray(data), length, offset)
 
     def _readuint(self, length, start):
         """Read bits and interpret as an unsigned int."""
@@ -987,20 +981,16 @@ class ConstBitArray(object):
         offset = self._offset
         startbyte = (start + offset) // 8
         endbyte = (start + offset + length - 1) // 8
-        val = 0
-        chunksize = 4 # for 'L' format
-        while startbyte + chunksize <= endbyte + 1:
-            val <<= 8 * chunksize
-            val += struct.unpack('>L', bytes(self._datastore.getbyteslice(startbyte, startbyte + chunksize)))[0]
-            startbyte += chunksize
-        for b in xrange(startbyte, endbyte + 1):
-            val <<= 8
-            val += self._datastore.getbyte(b)
+        
+        b = binascii.hexlify(bytes(self._datastore.getbyteslice(startbyte, endbyte + 1)))
+        if not b:
+            return 0
+        i = int(b, 16)
         final_bits = 8 - ((start + offset + length) % 8)
         if final_bits != 8:
-            val >>= final_bits
-        val &= (1 << length) - 1
-        return val
+            i >>= final_bits
+        i &= (1 << length) - 1
+        return i
 
     def _getuint(self):
         """Return data as an unsigned int."""
