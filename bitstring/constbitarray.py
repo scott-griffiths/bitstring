@@ -1873,25 +1873,22 @@ class ConstBitArray(object):
             p = start
             # We grab overlapping chunks of the binary representation and
             # do an ordinary string search within that.
-            increment = max(1024, bs.len*10)
+            increment = max(4096, bs.len*10)
             buffersize = increment + bs.len
             while p < end:
-                buf = self[p:min(p+buffersize, end)]._getbin()[2:]
+                buf = self._readbin(min(buffersize, end - p), p)[2:]
                 pos = buf.find(targetbin)
                 if pos != -1:
                     # if bytealigned then we only accept byte aligned positions.
                     if not bytealigned or (p + pos) % 8 == 0:
-                        found = True
-                        p += pos
-                        break
+                        return (p + pos,)
                     if bytealigned:
                         # Advance to just beyond the non-byte-aligned match and try again...
                         p += pos + 1
                         continue
                 p += increment
-            if not found:
-                return ()
-            return (p,)
+            # Not found, return empty tuple
+            return ()
 
     def findall(self, bs, start=None, end=None, count=None, bytealigned=False):
         """Find all occurences of bs. Return generator of bit positions.
