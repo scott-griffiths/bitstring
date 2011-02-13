@@ -12,7 +12,7 @@ import bitstring
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.1.0')
+        self.assertEqual(bitstring.__version__, '2.1.1')
 
 #    def testAll(self):
 #        exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
