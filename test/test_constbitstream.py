@@ -16,3 +16,18 @@ class All(unittest.TestCase):
         height = s.read(12).uint
         self.assertEqual((width, height), (352, 288))
 
+
+class InterleavedExpGolomb(unittest.TestCase):    
+
+    def testReading(self):
+        s = CBS(uie=333)
+        a = s.read('uie')
+        self.assertEqual(a, 333)
+        s = CBS('uie=12, sie=-9, sie=9, uie=1000000')
+        u = s.unpack('uie, 2*sie, uie')
+        self.assertEqual(u, [12, -9, 9, 1000000])
+        
+    def testReadingErrors(self):
+        s = CBS(10)
+        self.assertRaises(bitstring.ReadError, s.read, 'uie')
+        self.assertRaises(bitstring.ReadError, s.read, 'sie')
