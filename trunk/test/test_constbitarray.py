@@ -162,3 +162,29 @@ class Cut(unittest.TestCase):
         for t in s.cut(3):
             self.assertEqual(t, [0]*3)
 
+class InterleavedExpGolomb(unittest.TestCase):
+    
+    def testCreation(self):
+        s1 = CBA(uie=0)
+        s2 = CBA(uie=1)
+        self.assertEqual(s1, [1])
+        self.assertEqual(s2, [0, 0, 1])
+        s1 = CBA(sie=0)
+        s2 = CBA(sie=-1)
+        s3 = CBA(sie=1)
+        self.assertEqual(s1, [1])
+        self.assertEqual(s2, [0, 0, 1, 1])
+        self.assertEqual(s3, [0, 0, 1, 0])
+        
+    def testInterpretation(self):
+        for x in range(101):
+            self.assertEqual(CBA(uie=x).uie, x)
+        for x in range(-100, 100):
+            self.assertEqual(CBA(sie=x).sie, x)
+            
+    def testErrors(self):
+        s = CBA([0,0])
+        self.assertRaises(bitstring.InterpretError, s._getsie)
+        self.assertRaises(bitstring.InterpretError, s._getuie)
+        self.assertRaises(ValueError, CBA, 'uie=-10')
+    

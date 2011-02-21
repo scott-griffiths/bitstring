@@ -62,7 +62,7 @@ def tidy_input_string(s):
     s = ''.join(s.split()).lower()
     return s
 
-INIT_NAMES = ('uint', 'int', 'ue', 'se', 'hex', 'oct', 'bin', 'bits',
+INIT_NAMES = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
               'float', 'floatbe', 'floatle', 'floatne', 'bytes', 'bool')
 
@@ -200,7 +200,7 @@ def tokenparser(fmt, keys=None, token_cache={}):
                 if length is not None:
                     raise ValueError("You can't specify a length with bool tokens - they are always one bit.")
                 length = 1
-            if length is None and name not in ('se', 'ue'):
+            if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 stretchy_token = True
             if length is not None:
                 # Try converting length to int, otherwise check it's a key.
@@ -314,6 +314,8 @@ class ConstBitArray(object):
     oct -- The bitstring as an octal string.
     se -- Interpret as a signed exponential-Golomb code.
     ue -- Interpret as an unsigned exponential-Golomb code.
+    sie -- Interpret as a signed interleaved exponential-Golomb code.
+    uie -- Interpret as an unsigned interleaved exponential-Golomb code.
     uint -- Interpret as a two's complement unsigned integer.
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
@@ -347,6 +349,8 @@ class ConstBitArray(object):
         floatne -- a native-endian floating point number.
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
+        sie -- a signed interleaved exponential-Golomb code.
+        uie -- an unsigned interleaved exponential-Golomb code.
         bool -- a boolean (True or False).
         filename -- a file which will be opened in binary read-only mode.
 
@@ -794,6 +798,10 @@ class ConstBitArray(object):
             b = cls(se=int(value))
         elif name == 'ue':
             b = cls(ue=int(value))
+        elif name == 'sie':
+            b = cls(sie=int(value))
+        elif name == 'uie':
+            b = cls(uie=int(value))
         elif name == 'uint':
             b = cls(uint=int(value), length=token_length)
         elif name == 'int':
@@ -1301,6 +1309,117 @@ class ConstBitArray(object):
         else:
             return m, pos
 
+    def _setuie(self, i):
+        """Initialise bitstring with unsigned interleaved exponential-Golomb code for integer i.
+
+        Raises CreationError if i < 0.
+
+        """
+        if i < 0:
+            raise CreationError("Cannot use negative initialiser for unsigned "
+                                "interleaved exponential-Golomb.")
+        tmp = i + 1
+        r   = []
+        
+        while tmp:
+            r.append(tmp & 1)
+            tmp >>= 1
+
+        r.reverse()
+        r = r[1:]
+
+        binstring = ""
+        for bit in r:
+            binstring += "%02d" % (bit)
+
+        binstring += "1"
+        self._setbin_unsafe(binstring)
+
+    def _readuie(self, pos):
+        """Return interpretation of next bits as unsigned interleaved exponential-Golomb code.
+
+        Raises ReadError if the end of the bitstring is encountered while
+        reading the code.
+
+        """
+        try:
+            codenum = 1
+            while not self[pos]:
+                pos += 1
+                codenum <<= 1
+                codenum += 1 if self[pos] else 0
+                pos += 1
+            pos += 1
+        except IndexError:
+            raise ReadError("Read off end of bitstring trying to read code.")
+
+        codenum -= 1
+        
+        return codenum, pos
+
+    def _getuie(self):
+        """Return data as unsigned interleaved exponential-Golomb code.
+
+        Raises InterpretError if bitstring is not a single exponential-Golomb code.
+
+        """
+        try:
+            value, newpos = self._readuie(0)
+            if value is None or newpos != self.len:
+                raise ReadError
+        except ReadError:
+            raise InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
+        return value
+
+    def _setsie(self, i):
+        """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
+
+        if i == 0:
+            self._setuie(i)
+        else:
+            if i > 0:
+                self._setuie(i)
+                self._append(ConstBitArray('0b0'))
+            else:
+                self._setuie(-i)
+                self._append(ConstBitArray('0b1'))
+
+    def _getsie(self):
+        """Return data as signed interleaved exponential-Golomb code.
+
+        Raises InterpretError if bitstring is not a single exponential-Golomb code.
+
+        """
+        try:
+            value, newpos = self._readsie(0)
+            if value is None or newpos != self.len:
+                raise ReadError
+        except ReadError:
+            raise InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
+        return value
+
+    def _readsie(self, pos):
+        """Return interpretation of next bits as a signed interleaved exponential-Golomb code.
+
+        Advances position to after the read code.
+
+        Raises ReadError if the end of the bitstring is encountered while
+        reading the code.
+
+        """
+        codenum, pos = self._readuie(pos)
+        if codenum == 0:
+            return 0, pos
+        
+        try:
+            if self[pos]:
+                return -codenum, pos + 1
+            else:
+                return  codenum, pos + 1
+        except IndexError:
+            raise ReadError("Read off end of bitstring trying to read code.")
+
+
     def _setbool(self, value):
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
@@ -1792,12 +1911,12 @@ class ConstBitArray(object):
                 # Default 'uint'.
                 length = kwargs[name]
             if stretchy_token:
-                if name in ('se', 'ue'):
+                if name in ('se', 'ue', 'sie', 'uie'):
                     raise Error("It's not possible to parse a variable"
                                 "length token after a 'filler' token.")
                 else:
                     bits_after_stretchy_token += length
-            if length is None and name not in ('se', 'ue'):
+            if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 if stretchy_token:
                     raise Error("It's not possible to have more than "
                                 "one 'filler' token.")
@@ -2299,6 +2418,12 @@ class ConstBitArray(object):
     se     = property(_getse,
                       doc="""The bitstring as a signed exponential-Golomb code. Read only.
                       """)
+    uie    = property(_getuie,
+                      doc="""The bitstring as an unsigned interleaved exponential-Golomb code. Read only.
+                      """)
+    sie    = property(_getsie,
+                      doc="""The bitstring as a signed interleaved exponential-Golomb code. Read only.
+                      """)
 
 
 # Dictionary that maps token names to the function that reads them.
@@ -2321,6 +2446,8 @@ name_to_read = {'uint':    ConstBitArray._readuint,
                 'bytes':   ConstBitArray._readbytes,
                 'ue':      ConstBitArray._readue,
                 'se':      ConstBitArray._readse,
+                'uie':     ConstBitArray._readuie,
+                'sie':     ConstBitArray._readsie,
                 'bool':    ConstBitArray._readbool,
                 }
 
@@ -2348,6 +2475,8 @@ init_without_length_or_offset = {'bin': ConstBitArray._setbin_safe,
                                  'oct': ConstBitArray._setoct,
                                  'ue':  ConstBitArray._setue,
                                  'se':  ConstBitArray._setse,
+                                 'uie': ConstBitArray._setuie,
+                                 'sie': ConstBitArray._setsie,
                                  'bool':ConstBitArray._setbool,
                                  }
 
