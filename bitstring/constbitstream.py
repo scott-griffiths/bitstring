@@ -61,6 +61,8 @@ class ConstBitStream(ConstBitArray):
     pos -- The current bit position in the bitstring.
     se -- Interpret as a signed exponential-Golomb code.
     ue -- Interpret as an unsigned exponential-Golomb code.
+    sie -- Interpret as a signed interleaved exponential-Golomb code.
+    uie -- Interpret as an unsigned interleaved exponential-Golomb code.
     uint -- Interpret as a two's complement unsigned integer.
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
@@ -154,6 +156,8 @@ class ConstBitStream(ConstBitArray):
                         'bin:1'     : single bit binary string
                         'ue'        : next bits as unsigned exp-Golomb code
                         'se'        : next bits as signed exp-Golomb code
+                        'uie'       : next bits as unsigned interleaved exp-Golomb code
+                        'sie'       : next bits as signed interleaved exp-Golomb code
                         'bits:5'    : 5 bits as a bitstring
                         'bytes:10'  : 10 bytes as a bytes object
                         'bool'      : 1 bit as a bool
