@@ -30,4 +30,6 @@ class InterleavedExpGolomb(unittest.TestCase):
     def testReadingErrors(self):
         s = CBS(10)
         self.assertRaises(bitstring.ReadError, s.read, 'uie')
+        self.assertEqual(s.pos, 0)
         self.assertRaises(bitstring.ReadError, s.read, 'sie')
+        self.assertEqual(s.pos, 0)

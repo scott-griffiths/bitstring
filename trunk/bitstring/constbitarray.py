@@ -1318,23 +1318,8 @@ class ConstBitArray(object):
         if i < 0:
             raise CreationError("Cannot use negative initialiser for unsigned "
                                 "interleaved exponential-Golomb.")
-        tmp = i + 1
-        r   = []
+        self._setbin_unsafe('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
         
-        while tmp:
-            r.append(tmp & 1)
-            tmp >>= 1
-
-        r.reverse()
-        r = r[1:]
-
-        binstring = ""
-        for bit in r:
-            binstring += "%02d" % (bit)
-
-        binstring += "1"
-        self._setbin_unsafe(binstring)
-
     def _readuie(self, pos):
         """Return interpretation of next bits as unsigned interleaved exponential-Golomb code.
 
@@ -1347,14 +1332,12 @@ class ConstBitArray(object):
             while not self[pos]:
                 pos += 1
                 codenum <<= 1
-                codenum += 1 if self[pos] else 0
+                codenum += self[pos]
                 pos += 1
             pos += 1
         except IndexError:
             raise ReadError("Read off end of bitstring trying to read code.")
-
         codenum -= 1
-        
         return codenum, pos
 
     def _getuie(self):
@@ -1373,16 +1356,11 @@ class ConstBitArray(object):
 
     def _setsie(self, i):
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
-
         if i == 0:
-            self._setuie(i)
+            self._setbin_unsafe('1')
         else:
-            if i > 0:
-                self._setuie(i)
-                self._append(ConstBitArray('0b0'))
-            else:
-                self._setuie(-i)
-                self._append(ConstBitArray('0b1'))
+            self._setuie(abs(i))
+            self._append(ConstBitArray([i < 0]))
 
     def _getsie(self):
         """Return data as signed interleaved exponential-Golomb code.
@@ -1410,15 +1388,13 @@ class ConstBitArray(object):
         codenum, pos = self._readuie(pos)
         if codenum == 0:
             return 0, pos
-        
         try:
             if self[pos]:
                 return -codenum, pos + 1
             else:
-                return  codenum, pos + 1
+                return codenum, pos + 1
         except IndexError:
             raise ReadError("Read off end of bitstring trying to read code.")
-
 
     def _setbool(self, value):
         # We deliberately don't want to have implicit conversions to bool here.
