@@ -90,4 +90,12 @@ class NoPosAttribute(unittest.TestCase):
         s[0:1] = [1]
         self.assertEqual(s, '0b100111110')
 
-
+class Bugs(unittest.TestCase):
+    
+    def testAddingNonsense(self):
+        a = BitArray([0])
+        a += '0' # a uint of length 0 - so nothing gets added.
+        self.assertEqual(a, [0])
+        self.assertRaises(ValueError, a.__iadd__, '3')
+        self.assertRaises(ValueError, a.__iadd__, 'se')
+        self.assertRaises(ValueError, a.__iadd__, 'float:32')
