@@ -1,6 +1,16 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+------------------------------------------
+February 23rd 2011: version 2.1.1 released
+------------------------------------------
+This is a release to fix a couple of bugs that were introduced in 2.1.0.
+
+* Bug fix: Reading using the 'bytes' token had been broken (Issue 102).
+* Fixed problem using some methods on ConstBitArrays.
+* Better exception handling for tokens missing values.
+* Some performance improvements.
+
 -----------------------------------------
 January 23rd 2011: version 2.1.0 released
 -----------------------------------------
