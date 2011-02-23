@@ -967,9 +967,10 @@ class ConstBitArray(object):
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with a "
                                 "uint initialiser.")
-        if uint >= (1 << length):
-            msg = "uint {0} is too large for a bitstring of length {1}."
-            raise CreationError(msg, uint, length)
+        if uint >= (1 << length):            
+            msg = "{0} is too large an unsigned integer for a bitstring of length {1}. "\
+                "The allowed range is [0, {2}]."
+            raise CreationError(msg, uint, length, (1 << length) - 1)
         if uint < 0:
             raise CreationError("uint cannot be initialsed by a negative number.")
         
@@ -1018,7 +1019,9 @@ class ConstBitArray(object):
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with an int initialiser.")
         if int_ >=  (1 << (length - 1)) or int_ < -(1 << (length - 1)):
-            raise CreationError("int {0} is too large for a bitstring of length {1}.", int_, length)
+            raise CreationError("{0} is too large a signed integer for a bitstring of length {1}. "
+                                "The allowed range is [{2}, {3}].", int_, length, -(1 << (length - 1)),
+                                (1 << (length - 1)) - 1)
         if int_ >= 0:
             self._setuint(int_, length)
             return
