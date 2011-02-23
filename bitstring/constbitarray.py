@@ -788,6 +788,12 @@ class ConstBitArray(object):
             token_length = int(token_length)
         if token_length == 0:
             return cls()
+        if value is None:
+            if token_length is None:
+                error = "Token has no value ({0}=???).".format(name)
+            else:
+                error = "Token has no value ({0}:{1}=???).".format(name, token_length)
+            raise ValueError(error)
         if name in ('0x', '0X', 'hex'):
             b = cls(hex=value)
         elif name in ('0b', '0B', 'bin'):
@@ -1567,7 +1573,7 @@ class ConstBitArray(object):
                     for token in tokens[1:]:
                         b._append(ConstBitArray._init_with_token(*token))
                 assert b._assertsanity()
-                assert b._offset == offset
+                assert b.len == 0 or b._offset == offset
                 cache[(bs, offset)] = b
                 return b
         except TypeError:
