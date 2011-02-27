@@ -130,7 +130,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     def __copy__(self):
         """Return a new copy of the BitStream."""
         s_copy = BitStream()
-        s_copy._pos = self._pos
+        s_copy._pos = 0
         if not isinstance(self._datastore, ByteArray):
             # Let them both point to the same (invariant) array.
             # If either gets modified then at that point they'll be read into memory.

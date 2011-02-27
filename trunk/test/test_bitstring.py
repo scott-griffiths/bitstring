@@ -7,6 +7,7 @@ import unittest
 import sys
 sys.path.insert(0, '..')
 import bitstring
+import copy
 
 
 class ModuleData(unittest.TestCase):
@@ -36,7 +37,44 @@ class MemoryUsage(unittest.TestCase):
         except ImportError:
             return
         # These values might be platform dependent, so don't fret too much.
-        self.assertEqual(size(bitstring.ConstBitStream([0])), 120)
-        self.assertEqual(size(bitstring.ConstBitArray([0])), 112)
-        self.assertEqual(size(bitstring.BitStream([0])), 120)
-        self.assertEqual(size(bitstring.BitArray([0])), 112)
+        self.assertEqual(size(bitstring.ConstBitStream([0])), 64)
+        self.assertEqual(size(bitstring.ConstBitArray([0])), 64)
+        self.assertEqual(size(bitstring.BitStream([0])), 64)
+        self.assertEqual(size(bitstring.BitArray([0])), 64)
+        from bitstring.bitstore import ByteArray
+        self.assertEqual(size(ByteArray(bytearray())), 100)
+        
+class Copy(unittest.TestCase):
+    
+    def testConstBitArrayCopy(self):
+        import copy
+        cba = bitstring.ConstBitArray(100)
+        cba_copy = copy.copy(cba)
+        self.assertTrue(cba is cba_copy)        
+        
+    def testBitArrayCopy(self):
+        ba = bitstring.BitArray(100)
+        ba_copy = copy.copy(ba)
+        self.assertFalse(ba is ba_copy)
+        self.assertFalse(ba._datastore is ba_copy._datastore)
+        self.assertTrue(ba == ba_copy)
+                
+    def testConstBitStreamCopy(self):
+        cbs = bitstring.ConstBitStream(100)
+        cbs.pos = 50
+        cbs_copy = copy.copy(cbs)
+        self.assertEqual(cbs_copy.pos, 0)
+        self.assertTrue(cbs._datastore is cbs_copy._datastore)
+        self.assertTrue(cbs == cbs_copy)        
+        
+    def testBitStreamCopy(self):
+        bs = bitstring.BitStream(100)
+        bs.pos = 50
+        bs_copy = copy.copy(bs)
+        self.assertEqual(bs_copy.pos, 0)
+        self.assertFalse(bs._datastore is bs_copy._datastore)
+        self.assertTrue(bs == bs_copy)
+        
+        
+        
+        

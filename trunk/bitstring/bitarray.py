@@ -140,6 +140,17 @@ class BitArray(constbitarray.ConstBitArray):
         """
         self.append(bs)
         return self
+    
+    def __copy__(self):
+        """Return a new copy of the BitArray."""
+        s_copy = BitArray()
+        if not isinstance(self._datastore, ByteArray):
+            # Let them both point to the same (invariant) array.
+            # If either gets modified then at that point they'll be read into memory.
+            s_copy._datastore = self._datastore
+        else:
+            s_copy._datastore = copy.copy(self._datastore)
+        return s_copy
 
     def __setitem__(self, key, value):
         """Set item or range to new value.

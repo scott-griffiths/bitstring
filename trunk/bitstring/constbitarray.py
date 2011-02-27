@@ -132,7 +132,7 @@ def tokenparser(fmt, keys=None, token_cache={}):
     """Divide the format string into tokens and parse them.
 
     Return stretchy token and list of [initialiser, length, value]
-    initialiser is one of: hex, oct, bin, uint, int, se, ue, 0x, 0o, 0b
+    initialiser is one of: hex, oct, bin, uint, int, se, ue, 0x, 0o, 0b etc.
     length is None if not known, as is value.
 
     If the token is in the keyword dictionary (keys) then it counts as a
@@ -407,11 +407,8 @@ class ConstBitArray(object):
     def __copy__(self):
         """Return a new copy of the ConstBitArray for the copy module."""
         # Note that if you want a new copy (different ID), use _copy instead.
-        # The copy can use the same datastore as it's immutable.
-        s = ConstBitArray()
-        s._datastore = self._datastore
-
-        return s
+        # The copy can return self as it's immutable.
+        return self
 
     def __lt__(self, other):
         raise TypeError("unorderable type: {0}".format(type(self).__name__))
