@@ -154,6 +154,7 @@ class Initialisation(unittest.TestCase):
         a = CBA('0b0010011')
         b = list(a.findall([1]))
         self.assertEqual(b, [2, 5, 6])
+
         
 class Cut(unittest.TestCase):
     
@@ -162,8 +163,9 @@ class Cut(unittest.TestCase):
         for t in s.cut(3):
             self.assertEqual(t, [0]*3)
 
-class InterleavedExpGolomb(unittest.TestCase):
-    
+            
+class InterleavedExpGolomb(unittest.TestCase):    
+
     def testCreation(self):
         s1 = CBA(uie=0)
         s2 = CBA(uie=1)
