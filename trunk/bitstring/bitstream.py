@@ -49,7 +49,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
 
     Special methods:
 
-    Mutating operators are available: [], <<=, >>=, *=, &=, |= and ^=
+    Mutating operators are available: [], <<=, >>=, +=, *=, &=, |= and ^=
     in addition to [], ==, !=, +, *, ~, <<, >>, &, | and ^.
 
     Properties:
@@ -72,6 +72,8 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     pos -- The current bit position in the bitstring.
     se -- Interpret as a signed exponential-Golomb code.
     ue -- Interpret as an unsigned exponential-Golomb code.
+    sie -- Interpret as a signed interleaved exponential-Golomb code.
+    uie -- Interpret as an unsigned interleaved exponential-Golomb code.
     uint -- Interpret as a two's complement unsigned integer.
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
@@ -109,6 +111,8 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
         floatne -- a native-endian floating point number.
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
+        sie -- a signed interleaved exponential-Golomb code.
+        uie -- an unsigned interleaved exponential-Golomb code.
         bool -- a boolean (True or False).
         filename -- a file which will be opened in binary read-only mode.
 
