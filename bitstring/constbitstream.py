@@ -73,6 +73,43 @@ class ConstBitStream(ConstBitArray):
     __slots__ = ('_pos')
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
+        """Either specify an 'auto' initialiser:
+        auto -- a string of comma separated tokens, an integer, a file object,
+                a bytearray, a boolean iterable or another bitstring.
+
+        Or initialise via **kwargs with one (and only one) of:
+        bytes -- raw data as a string, for example read from a binary file.
+        bin -- binary string representation, e.g. '0b001010'.
+        hex -- hexadecimal string representation, e.g. '0x2ef'
+        oct -- octal string representation, e.g. '0o777'.
+        uint -- an unsigned integer.
+        int -- a signed integer.
+        float -- a floating point number.
+        uintbe -- an unsigned big-endian whole byte integer.
+        intbe -- a signed big-endian whole byte integer.
+        floatbe - a big-endian floating point number.
+        uintle -- an unsigned little-endian whole byte integer.
+        intle -- a signed little-endian whole byte integer.
+        floatle -- a little-endian floating point number.
+        uintne -- an unsigned native-endian whole byte integer.
+        intne -- a signed native-endian whole byte integer.
+        floatne -- a native-endian floating point number.
+        se -- a signed exponential-Golomb code.
+        ue -- an unsigned exponential-Golomb code.
+        sie -- a signed interleaved exponential-Golomb code.
+        uie -- an unsigned interleaved exponential-Golomb code.
+        bool -- a boolean (True or False).
+        filename -- a file which will be opened in binary read-only mode.
+
+        Other keyword arguments:
+        length -- length of the bitstring in bits, if needed and appropriate.
+                  It must be supplied for all integer and float initialisers.
+        offset -- bit offset to the data. These offset bits are
+                  ignored and this is intended for use when
+                  initialising using 'bytes' or 'filename'.
+
+        """
+
         self._initialise(auto, length, offset, **kwargs)
         self._pos = 0
 
