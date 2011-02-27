@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-import copy
 import bitstring.constbitstream as constbitstream
 import bitstring.bitarray as bitarray
 from bitstring.errors import CreationError
@@ -136,7 +135,9 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
             # If either gets modified then at that point they'll be read into memory.
             s_copy._datastore = self._datastore
         else:
-            s_copy._datastore = copy.copy(self._datastore)
+            s_copy._datastore = ByteArray(self._datastore._rawarray[:],
+                                          self._datastore.bitlength,
+                                          self._datastore.offset)
         return s_copy
 
     def prepend(self, bs):
