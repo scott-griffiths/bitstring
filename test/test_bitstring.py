@@ -75,6 +75,21 @@ class Copy(unittest.TestCase):
         self.assertFalse(bs._datastore is bs_copy._datastore)
         self.assertTrue(bs == bs_copy)
         
+class Interning(unittest.TestCase):
+    
+    def testCBA(self):
+        a = bitstring.ConstBitArray('0xf')
+        b = bitstring.ConstBitArray('0xf')
+        self.assertTrue(a is b)
+        c = bitstring.ConstBitArray('0b1111')
+        self.assertFalse(a is c)
+        
+    def testCBS(self):
+        a = bitstring.ConstBitStream('0b11000')
+        b = bitstring.ConstBitStream('0b11000')
+        self.assertFalse(a is b)
+        self.assertTrue(a._datastore is b._datastore)
+        
         
         
         

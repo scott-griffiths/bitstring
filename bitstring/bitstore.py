@@ -71,6 +71,9 @@ class ConstByteArray(object):
         if eb == -1:
             return 1 # ? Empty bitstring still has one byte of data?
         return eb - sb + 1
+    
+    def __copy__(self):
+	return ByteArray(self._rawarray[:], self.bitlength, self.offset)
 
     @property
     def byteoffset(self):
