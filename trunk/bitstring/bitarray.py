@@ -131,10 +131,15 @@ class BitArray(constbitarray.ConstBitArray):
                   initialising using 'bytes' or 'filename'.
 
         """
-        self._initialise(auto, length, offset, **kwargs)
         # For mutable BitArrays we always read in files to memory:
         if not isinstance(self._datastore, ByteArray):
             self._ensureinmemory()
+
+    def __new__(cls, auto=None, length=None, offset=None, **kwargs):
+        x = object.__new__(BitArray)
+        y = constbitarray.ConstBitArray.__new__(BitArray, auto, length, offset, **kwargs)
+        x._datastore = copy.copy(y._datastore)
+        return x
 
     def __iadd__(self, bs):
         """Append bs to current bitstring. Return self.

@@ -109,9 +109,12 @@ class ConstBitStream(ConstBitArray):
                   initialising using 'bytes' or 'filename'.
 
         """
-
-        self._initialise(auto, length, offset, **kwargs)
         self._pos = 0
+        
+    def __new__(cls, auto=None, length=None, offset=None, **kwargs):
+        x = object.__new__(ConstBitStream)
+        x._initialise(auto, length, offset, **kwargs)
+        return x
 
     def _setbytepos(self, bytepos):
         """Move to absolute byte-aligned position in stream."""

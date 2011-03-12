@@ -124,11 +124,15 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
                   initialising using 'bytes' or 'filename'.
 
         """
-        self._initialise(auto, length, offset, **kwargs)
         self._pos = 0
         # For mutable BitStreams we always read in files to memory:
         if not isinstance(self._datastore, ByteArray):
             self._ensureinmemory()
+            
+    def __new__(cls, auto=None, length=None, offset=None, **kwargs):
+        x = object.__new__(BitStream)
+        x._initialise(auto, length, offset, **kwargs)
+        return x
 
     def __copy__(self):
         """Return a new copy of the BitStream."""

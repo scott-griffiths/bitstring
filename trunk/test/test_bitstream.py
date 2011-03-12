@@ -2197,8 +2197,6 @@ class Adding(unittest.TestCase):
         c = a + b
         self.assertEqual(c.bitpos, 0)
 
-
-
     def testIntelligentRead1(self):
         a = BitStream(uint=123, length=23)
         u = a.read('uint:23')

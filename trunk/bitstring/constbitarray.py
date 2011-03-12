@@ -362,7 +362,34 @@ class ConstBitArray(object):
                   initialising using 'bytes' or 'filename'.
 
         """
-        self._initialise(auto, length, offset, **kwargs)
+        pass
+        
+    def __new__(cls, auto=None, length=None, offset=None, _cache={}, **kwargs):
+        # For instances auto-initialised below a certain length we intern the
+        # instance for re-use. 
+        try:
+            if isinstance(auto, basestring):
+                try:
+                    return _cache[auto]
+                except KeyError:
+                    x = object.__new__(ConstBitArray)
+                    try:
+                        _, tokens = tokenparser(auto)
+                    except ValueError as e:
+                        raise CreationError(*e.args)
+                    x._datastore = bitstore.ByteArray(bytearray(), 0, 0)
+                    if tokens:
+                        x._append(ConstBitArray._init_with_token(*tokens[0]))
+                        for token in tokens[1:]:
+                            x._append(ConstBitArray._init_with_token(*token))
+                    assert x._assertsanity()
+                    _cache[auto] = x
+                    return x
+        except TypeError:
+                pass
+        x = object.__new__(ConstBitArray)
+        x._initialise(auto, length, offset, **kwargs)
+        return x
 
     def _initialise(self, auto, length, offset, **kwargs):
         if length is not None and length < 0:
@@ -428,7 +455,7 @@ class ConstBitArray(object):
         bs -- the bitstring to append.
 
         """
-        bs = self._converttobitstring(bs)
+        bs = ConstBitArray(bs)
         s = self._copy()
         s._append(bs)
         return s
@@ -569,7 +596,7 @@ class ConstBitArray(object):
 
         """
         try:
-            bs = self._converttobitstring(bs)
+            bs = ConstBitArray(bs)
         except TypeError:
             return False
         return bitstore.equal(self._datastore, bs._datastore)
@@ -1555,9 +1582,11 @@ class ConstBitArray(object):
 
         offset gives the suggested bit offset of first significant
         bit, to optimise append etc.
-        """
+
+        """        
         if isinstance(bs, ConstBitArray):
             return bs
+        #return cls(bs)
         try:
             return cache[(bs, offset)]
         except KeyError:
@@ -1574,7 +1603,7 @@ class ConstBitArray(object):
                         b._append(ConstBitArray._init_with_token(*token))
                 assert b._assertsanity()
                 assert b.len == 0 or b._offset == offset
-                cache[(bs, offset)] = b
+                #cache[(bs, offset)] = b
                 return b
         except TypeError:
             # Unhashable type
@@ -2461,4 +2490,5 @@ init_without_length_or_offset = {'bin': ConstBitArray._setbin_safe,
                                  'sie': ConstBitArray._setsie,
                                  'bool':ConstBitArray._setbool,
                                  }
+
 
