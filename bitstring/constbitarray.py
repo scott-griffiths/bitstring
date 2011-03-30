@@ -576,8 +576,7 @@ class ConstBitArray(object):
         if isinstance(self._datastore._rawarray, MmapByteArray):
             offsetstring = ''
             if self._datastore.byteoffset or self._offset:
-                offset = self._datastore.byteoffset * 8 + self._offset
-                offsetstring = ", offset=%d" % offset
+                offsetstring = ", offset=%d" % self._offset
             lengthstring = ", length=%d" % length
             return "{0}(filename='{1}'{2}{3})".format(self.__class__.__name__,
                     self._datastore._rawarray.source.name, lengthstring, offsetstring)
@@ -684,7 +683,7 @@ class ConstBitArray(object):
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
-        bs = self._converttobitstring(bs)
+        bs = ConstBitArray(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for & operator.")
@@ -710,7 +709,7 @@ class ConstBitArray(object):
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
-        bs = self._converttobitstring(bs)
+        bs = ConstBitArray(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for | operator.")
@@ -736,7 +735,7 @@ class ConstBitArray(object):
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
-        bs = self._converttobitstring(bs)
+        bs = ConstBitArray(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for ^ operator.")
@@ -890,11 +889,11 @@ class ConstBitArray(object):
             self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
             return
         if isinstance(s, file):
-            m = MmapByteArray(s)
             if offset is None:
                 offset = 0
+            m = MmapByteArray(s, offset)
             if length is None:
-                length = os.path.getsize(s.name)*8 - offset
+                length = m.filelength*8 - offset
             if length + offset > m.filelength*8:
                 raise CreationError("File is not long enough for specified "
                                     "length and offset.")
@@ -906,7 +905,8 @@ class ConstBitArray(object):
             raise CreationError("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, basestring):
             bs = self._converttobitstring(s)
-            self._setbytes_unsafe(bs._datastore.rawbytes, bs.length, bs._offset)
+            assert bs._offset == 0
+            self._setbytes_unsafe(bs._datastore.rawbytes, bs.length, 0)
             return
         if isinstance(s, (bytes, bytearray)):
             self._setbytes_unsafe(bytearray(s), len(s)*8, 0)
@@ -928,9 +928,9 @@ class ConstBitArray(object):
     def _setfile(self, filename, length, offset):
         "Use file as source of bits."
         source = open(filename, 'rb')
-        m = MmapByteArray(source)
         if offset is None:
             offset = 0
+        m = MmapByteArray(source, offset)
         if length is None:
             length = os.path.getsize(source.name)*8 - offset
         if length + offset > m.filelength*8:
@@ -1565,7 +1565,7 @@ class ConstBitArray(object):
         return self._readhex(self.len, 0)
 
     def _getoffset(self):
-        return self._datastore.offset % 8
+        return self._datastore.offset
 
     def _getlength(self):
         """Return the length of the bitstring in bits."""
@@ -1821,18 +1821,20 @@ class ConstBitArray(object):
 
     def _inplace_logical_helper(self, bs, f):
         """Helper function containing most of the __ior__, __iand__, __ixor__ code."""
-        # Give the two bitstrings the same offset
-        if bs._offset != self._offset:
-            if self._offset == 0:
+        # Give the two bitstrings the same offset (modulo 8)
+        self_byteoffset, self_bitoffset = divmod(self._offset, 8)
+        bs_byteoffset, bs_bitoffset = divmod(bs._offset, 8)
+        if bs_bitoffset != self_bitoffset:
+            if self_bitoffset == 0:
                 bs._datastore = bitstore.offsetcopy(bs._datastore, 0)
             else:
-                self._datastore = bitstore.offsetcopy(self._datastore, bs._offset)
-        assert self._offset == bs._offset
-        a = self._datastore
-        b = bs._datastore
-        assert a.bytelength == b.bytelength
-        for i in xrange(a.bytelength):
-            a.setbyte(i, f(a.getbyte(i), b.getbyte(i)))
+                self._datastore = bitstore.offsetcopy(self._datastore, bs_bitoffset)
+        a = self._datastore.rawbytes
+        b = bs._datastore.rawbytes
+        #assert a.bytelength == b.bytelength
+        for i in xrange(len(a)):
+            a[i] = f(a[i + self_byteoffset], b[i + bs_byteoffset])
+            #a.setbyte(i, f(a.getbyte(i), b.getbyte(i)))
         return self
 
     def _ior(self, bs):
@@ -1971,7 +1973,7 @@ class ConstBitArray(object):
         (6,)
 
         """
-        bs = self._converttobitstring(bs)
+        bs = ConstBitArray(bs)
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
@@ -2039,7 +2041,7 @@ class ConstBitArray(object):
         """
         if count is not None and count < 0:
             raise ValueError("In findall, count must be >= 0.")
-        bs = self._converttobitstring(bs)
+        bs = ConstBitArray(bs)
         start, end = self._validate_slice(start, end)
         c = 0
         while True:
@@ -2076,7 +2078,7 @@ class ConstBitArray(object):
         if end < start.
 
         """
-        bs = self._converttobitstring(bs)
+        bs = ConstBitArray(bs)
         start, end = self._validate_slice(start, end)
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
@@ -2140,7 +2142,7 @@ class ConstBitArray(object):
         Raises ValueError if the delimiter is empty.
 
         """
-        delimiter = self._converttobitstring(delimiter)
+        delimiter = ConstBitArray(delimiter)
         if not delimiter.len:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
@@ -2180,11 +2182,11 @@ class ConstBitArray(object):
         s = self.__class__()
         i = iter(sequence)
         try:
-            s._append(self._converttobitstring(next(i)))
+            s._append(ConstBitArray(next(i)))
             while(True):
                 n = next(i)
                 s._append(self)
-                s._append(self._converttobitstring(n))
+                s._append(ConstBitArray(n))
         except StopIteration:
             pass
         return s
@@ -2243,7 +2245,7 @@ class ConstBitArray(object):
         end -- The bit position to end at. Defaults to self.len.
 
         """
-        prefix = self._converttobitstring(prefix)
+        prefix = ConstBitArray(prefix)
         start, end = self._validate_slice(start, end)
         if end < start + prefix.len:
             return False
@@ -2258,7 +2260,7 @@ class ConstBitArray(object):
         end -- The bit position to end at. Defaults to self.len.
 
         """
-        suffix = self._converttobitstring(suffix)
+        suffix = ConstBitArray(suffix)
         start, end = self._validate_slice(start, end)
         if start + suffix.len > end:
             return False

@@ -2417,16 +2417,16 @@ class Adding(unittest.TestCase):
 
     def testAutoFromFileObject(self):
         f = open('test.m1v', 'rb')
-        s = BitStream(f, offset=32, length=12)
+        s = ConstBitStream(f, offset=32, length=12)
         self.assertEqual(s.uint, 352)
-        t = BitStream('0xf') + f
+        t = ConstBitStream('0xf') + f
         self.assertTrue(t.startswith('0xf000001b3160'))
         s2 = ConstBitStream(f)
         t2 = BitStream('0xc')
         t2.prepend(s2)
         self.assertTrue(t2.startswith('0x000001b3'))
         self.assertTrue(t2.endswith('0xc'))
-        u = BitStream(bytes=open('test.m1v', 'rb').read())
+        u = ConstBitStream(bytes=open('test.m1v', 'rb').read())
         self.assertEqual(u, f)
         f.close()
 

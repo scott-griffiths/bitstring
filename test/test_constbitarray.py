@@ -190,3 +190,30 @@ class InterleavedExpGolomb(unittest.TestCase):
         self.assertRaises(bitstring.InterpretError, s._getuie)
         self.assertRaises(ValueError, CBA, 'uie=-10')
     
+class FileBased(unittest.TestCase):
+    
+    def setUp(self):
+        self.a = CBA(filename='smalltestfile')
+        self.b = CBA(filename='smalltestfile', offset=16)
+        self.c = CBA(filename='smalltestfile', offset=20, length=16)
+    
+    def testCreationWithOffset(self):
+        self.assertEqual(self.a, '0x0123456789abcdef')
+        self.assertEqual(self.b, '0x456789abcdef')
+        self.assertEqual(self.c, '0x5678')
+        
+    def testBitOperators(self):
+        x = self.b[4:20]
+        self.assertEqual(x, '0x5678')
+        self.assertEqual(x & self.c, self.c.hex)
+        self.assertEqual(self.c ^ self.b[4:20], 16)
+        self.assertEqual(self.a[7:20] | self.c[3:], self.c[3:])
+        
+    def testAddition(self):
+        x = self.a[20:24] + self.c[-4:] + self.c[8:12]
+        self.assertEqual(x, '0x587')
+        x.prepend(self.b)
+        self.assertEqual(x, '0x456789abcdef587')
+        del x[12:24]
+        self.assertEqual(x, '0x456abcdef587')
+        
