@@ -20,3 +20,4 @@ proj.file-list = [loc('bitstring/bitarray.py'),
                   loc('test/test_constbitstream.py')]
 proj.file-type = 'shared'
 testing.auto-test-file-specs = ('test_bitstring.py',)
+testing.test-framework = {loc('bitstring/__init__.py'): ':internal unittest'}

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This module defines classes that simplify bit-wise creation, manipulation and
+This package defines classes that simplify bit-wise creation, manipulation and
 interpretation of data.
 
 Classes:

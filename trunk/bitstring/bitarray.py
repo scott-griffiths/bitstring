@@ -198,7 +198,7 @@ class BitArray(constbitarray.ConstBitArray):
                     self._set(key)
                     return
                 raise ValueError("Cannot set a single bit with integer {0}.".format(value))
-            value = self._converttobitstring(value)
+            value = constbitarray.ConstBitArray(value)
             if value.len == 1:
                 # TODO: this can't be optimal
                 if value[0]:
@@ -214,7 +214,7 @@ class BitArray(constbitarray.ConstBitArray):
             # value rather than initialise a new bitstring of that length.
             if not isinstance(value, numbers.Integral):
                 try:
-                    value = self._converttobitstring(value)
+                    value = constbitarray.ConstBitArray(value)
                 except TypeError:
                     raise TypeError("Bitstring, integer or string expected. "
                                     "Got {0}.".format(type(value)))
@@ -387,21 +387,21 @@ class BitArray(constbitarray.ConstBitArray):
         return self._imul(n)
 
     def __ior__(self, bs):
-        bs = self._converttobitstring(bs)
+        bs = constbitarray.ConstBitArray(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for |= operator.")
         return self._ior(bs)
 
     def __iand__(self, bs):
-        bs = self._converttobitstring(bs)
+        bs = constbitarray.ConstBitArray(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for &= operator.")
         return self._iand(bs)
 
     def __ixor__(self, bs):
-        bs = self._converttobitstring(bs)
+        bs = constbitarray.ConstBitArray(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for ^= operator.")
@@ -440,8 +440,8 @@ class BitArray(constbitarray.ConstBitArray):
         out of range.
 
         """
-        old = self._converttobitstring(old)
-        new = self._converttobitstring(new)
+        old = constbitarray.ConstBitArray(old)
+        new = constbitarray.ConstBitArray(new)
         if not old.len:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
@@ -493,7 +493,7 @@ class BitArray(constbitarray.ConstBitArray):
         Raises ValueError if pos < 0 or pos > self.len.
 
         """
-        bs = self._converttobitstring(bs)
+        bs = constbitarray.ConstBitArray(bs)
         if not bs.len:
             return self
         if bs is self:
@@ -518,7 +518,7 @@ class BitArray(constbitarray.ConstBitArray):
         Raises ValueError if pos < 0 or pos + bs.len > self.len
 
         """
-        bs = self._converttobitstring(bs)
+        bs = constbitarray.ConstBitArray(bs)
         if not bs.len:
             return
         if pos is None:
@@ -552,7 +552,7 @@ class BitArray(constbitarray.ConstBitArray):
         bs -- The bitstring to prepend.
 
         """
-        bs = self._converttobitstring(bs)
+        bs = constbitarray.ConstBitArray(bs)
         self._prepend(bs)
 
     def reverse(self, start=None, end=None):

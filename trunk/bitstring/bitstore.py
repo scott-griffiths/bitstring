@@ -14,16 +14,21 @@ from bitstring.errors import CreationError
 class MmapByteArray(object):
     """Looks like a bytearray, but from an mmap."""
 
-    __slots__ = ('filemap', 'filelength', 'source')
+    __slots__ = ('filemap', 'filelength', 'source', 'byteoffset')
 
-    def __init__(self, source):
+    def __init__(self, source, bitoffset):
         self.source = source
-        self.filelength = os.path.getsize(source.name)
+        source.seek(0, os.SEEK_END)
+        self.filelength = source.tell()
         self.filemap = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
+        self.byteoffset = bitoffset // 8
 
     def __getitem__(self, key):
         try:
             start = key.start
+            stop = key.stop
+            # TODO: This needs fixing...
+#            s = slice(start + self.byteoffset, stop + self.byteoffset)
             return bytearray(self.filemap.__getitem__(key))
         except AttributeError:
             try:
@@ -56,10 +61,12 @@ class ConstByteArray(object):
         return bool(self._rawarray[byte] & (128 >> bit))
 
     def getbyte(self, pos):
-        return self._rawarray[pos + self.byteoffset]
+        """Direct access to byte data."""
+        return self._rawarray[pos]
 
     def getbyteslice(self, start, end):
-        c = self._rawarray[start + self.byteoffset:end + self.byteoffset]
+        """Direct access to byte data."""
+        c = self._rawarray[start:end]
         return c
 
     @property
@@ -71,9 +78,9 @@ class ConstByteArray(object):
         if eb == -1:
             return 1 # ? Empty bitstring still has one byte of data?
         return eb - sb + 1
-    
+
     def __copy__(self):
-	return ByteArray(self._rawarray[:], self.bitlength, self.offset)
+        return ByteArray(self._rawarray[:], self.bitlength, self.offset)
 
     @property
     def byteoffset(self):
@@ -136,21 +143,13 @@ class ByteArray(ConstByteArray):
         if self.offset != 0:
             # first do the byte with the join.
             array.setbyte(-1, (array.getbyte(-1) & (255 ^ (255 >> self.offset)) | \
-                                   (self._rawarray[0] & (255 >> self.offset))))
+                               (self._rawarray[0] & (255 >> self.offset))))
             array._rawarray.extend(self._rawarray[1 : self.bytelength])
         else:
             array._rawarray.extend(self._rawarray[0 : self.bytelength])
         self._rawarray = array._rawarray
         self.offset = array.offset
         self.bitlength += array.bitlength
-
-
-def slice(ba, bitlength, offset):
-    """Return a new ByteArray created as a slice of ba."""
-    try:
-        return ByteArray(ba._rawarray, bitlength, ba.offset + offset)
-    except AttributeError:
-        return FileArray(ba.source, bitlength, 8*ba.byteoffset + ba.offset + offset)
 
 def offsetcopy(s, newoffset):
     """Return a copy of s with the newoffset."""
@@ -160,7 +159,6 @@ def offsetcopy(s, newoffset):
     else:
         if newoffset == s.offset % 8:
             return ByteArray(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
-
         assert 0 <= newoffset < 8
         newdata = []
         d = s._rawarray
@@ -171,7 +169,7 @@ def offsetcopy(s, newoffset):
             # First deal with everything except for the final byte
             for x in range(s.byteoffset, s.byteoffset + s.bytelength - 1):
                 newdata.append(((d[x] << shiftleft) & 0xff) + \
-                                     (d[x + 1] >> (8 - shiftleft)))
+                               (d[x + 1] >> (8 - shiftleft)))
             bits_in_last_byte = (s.offset + s.bitlength) % 8
             if bits_in_last_byte == 0:
                 bits_in_last_byte = 8
@@ -182,7 +180,7 @@ def offsetcopy(s, newoffset):
             newdata.append(s.getbyte(0) >> shiftright)
             for x in range(1, s.bytelength):
                 newdata.append(((d[x-1] << (8 - shiftright)) & 0xff) + \
-                                     (d[x] >> shiftright))
+                               (d[x] >> shiftright))
             bits_in_last_byte = (s.offset + s.bitlength) % 8
             if bits_in_last_byte == 0:
                 bits_in_last_byte = 8
@@ -194,23 +192,26 @@ def offsetcopy(s, newoffset):
 
 def equal(a, b):
     """Return True if a == b."""
-
+    # We want to return False for inequality as soon as possible, which
+    # means we get lots of special cases.
+    # First the easy one - compare lengths:
     a_bitlength = a.bitlength
     b_bitlength = b.bitlength
     if a_bitlength != b_bitlength:
         return False
     if a_bitlength == 0:
+        assert b_bitlength == 0
         return True
     # Make 'a' the one with the smaller offset
     if (a.offset % 8) > (b.offset % 8):
         a, b = b, a
+    # and create some aliases
     a_bitoff = a.offset % 8
     b_bitoff = b.offset % 8
     a_byteoffset = a.byteoffset
     b_byteoffset = b.byteoffset
     a_bytelength = a.bytelength
     b_bytelength = b.bytelength
-
     da = a._rawarray
     db = b._rawarray
 
@@ -236,10 +237,10 @@ def equal(a, b):
             if da[x] != db[b_a_offset + x]:
                 return False
         # and finally the last byte
-        if da[a_byteoffset + a_bytelength - 1] >> bits_spare_in_last_byte != db[b_byteoffset + b_bytelength - 1] >> bits_spare_in_last_byte:
-            return False
-        return True
+        return (da[a_byteoffset + a_bytelength - 1] >> bits_spare_in_last_byte == 
+                db[b_byteoffset + b_bytelength - 1] >> bits_spare_in_last_byte)
 
+    assert a_bitoff != b_bitoff
     # This is how much we need to shift a to the right to compare with b:
     shift = b_bitoff - a_bitoff
     # Special case for b only one byte long
@@ -252,9 +253,7 @@ def equal(a, b):
     if a_bytelength == 1:
         assert b_bytelength == 2
         a_val = ((da[a_byteoffset] << a_bitoff) & 0xff) >> (8 - a_bitlength)
-        b_val = db[b_byteoffset] << 8
-        b_val += db[b_byteoffset + 1]
-        b_val <<= b_bitoff
+        b_val = ((db[b_byteoffset] << 8) + db[b_byteoffset + 1]) << b_bitoff
         b_val &= 0xffff
         b_val >>= 16 - b_bitlength
         return a_val == b_val
@@ -266,9 +265,7 @@ def equal(a, b):
     for x in range(1, b_bytelength - 1):
         # Construct byte from 2 bytes in a to compare to byte in b
         b_val = db[b_byteoffset + x]
-        a_val = da[a_byteoffset + x - 1] << 8
-        a_val += da[a_byteoffset + x]
-        a_val >>= shift
+        a_val = ((da[a_byteoffset + x - 1] << 8) + da[a_byteoffset + x]) >> shift
         a_val &= 0xff
         if a_val != b_val:
             return False
@@ -292,5 +289,4 @@ def equal(a, b):
     a_val >>= (8 - final_a_bits)
     a_val &= 0xff >> (8 - final_b_bits)
     return a_val == b_val
-
 
