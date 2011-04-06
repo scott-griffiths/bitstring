@@ -860,9 +860,9 @@ class ConstBitArray(object):
         elif name == 'bytes':
             b = cls(bytes=value)
         elif name == 'bool':
-            if value is True or value == 'True':
+            if value in (1, 'True', '1'):
                 b = cls(bool=True)
-            elif value is False or value == 'False':
+            elif value in (0, 'False', '0'):
                 b = cls(bool=False)
             else:
                 raise CreationError("bool token can only be 'True' or 'False'.")
@@ -1432,9 +1432,9 @@ class ConstBitArray(object):
     def _setbool(self, value):
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
-        if value is True or value == 'True':
+        if value in (1, 'True'):
             self._setbytes_unsafe(bytearray(b'\x80'), 1, 0)
-        elif value is False or value == 'False':
+        elif value in (0, 'False'):
             self._setbytes_unsafe(bytearray(b'\x00'), 1, 0)
         else:
             raise CreationError('Cannot initialise boolean with {0}.', value)
