@@ -3790,17 +3790,20 @@ class BoolToken(unittest.TestCase):
         self.assertEqual(a.bool, False)
         a.bool = 'True'
         self.assertEqual(a.bool, True)
+        a.bool = 0
+        self.assertEqual(a.bool, False)
+        a.bool = 1
+        self.assertEqual(a.bool, True)
 
     def testErrors(self):
         self.assertRaises(bitstring.CreationError, pack, 'bool', 'hello')
         self.assertRaises(bitstring.CreationError, pack, 'bool=true')
         self.assertRaises(bitstring.CreationError, pack, 'True')
-        self.assertRaises(bitstring.CreationError, pack, 'bool', 0)
+        self.assertRaises(bitstring.CreationError, pack, 'bool', 2)
         a = BitStream('0b11')
         self.assertRaises(bitstring.InterpretError, a._getbool)
         b = BitStream()
         self.assertRaises(bitstring.InterpretError, a._getbool)
-        self.assertRaises(bitstring.CreationError, a._setbool, 0)
         self.assertRaises(bitstring.CreationError, a._setbool, 'false')
 
     def testLengthWithBoolRead(self):

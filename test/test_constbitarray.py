@@ -121,6 +121,14 @@ class Creation(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, CBA, ue=1, length=12)
         s = CBA(bin='10')
         self.assertRaises(bitstring.InterpretError, s._getue)
+        
+    def testCreationFromBool(self):
+        a = CBA('bool=1')
+        self.assertEqual(a, 'bool=1')
+        b = CBA('bool=0')
+        self.assertEqual(b, [0])
+        c = bitstring.pack('2*bool', 0, 1)
+        self.assertEqual(c, '0b01')
 
 
 class Initialisation(unittest.TestCase):
@@ -216,4 +224,5 @@ class FileBased(unittest.TestCase):
         self.assertEqual(x, '0x456789abcdef587')
         del x[12:24]
         self.assertEqual(x, '0x456abcdef587')
+        
         
