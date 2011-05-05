@@ -8,10 +8,7 @@ import os
 import struct
 import operator
 import collections
-import itertools
-import copy
 import numbers
-import mmap
 from bitstring.bitstore import ByteArray, ConstByteArray, MmapByteArray
 from bitstring.errors import CreationError, Error, InterpretError, ReadError
 
@@ -111,7 +108,7 @@ def structparser(token):
             return [token]
         # Split the format string into a list of 'q', '4h' etc.
         formatlist = re.findall(STRUCT_SPLIT_RE, m.group('fmt'))
-        # Now deal with mulitplicative factors, 4h -> hhhh etc.
+        # Now deal with mulitiplicative factors, 4h -> hhhh etc.
         fmt = ''.join([f[-1]*int(f[:-1]) if len(f) != 1 else
                           f for f in formatlist])
         if endian == '@':
@@ -145,7 +142,7 @@ def tokenparser(fmt, keys=None, token_cache={}):
         return token_cache[(fmt, keys)]
     except KeyError:
         token_key = (fmt, keys)
-    # Very inefficent expanding of brackets.
+    # Very inefficient expanding of brackets.
     fmt = expand_brackets(fmt)
     # Split tokens by ',' and remove whitespace
     # The meta_tokens can either be ordinary single tokens or multiple
@@ -263,7 +260,7 @@ def expand_brackets(s):
 # This byte to bitstring lookup really speeds things up.
 BYTE_TO_BITS = tuple('{0:08b}'.format(i) for i in xrange(256))
 
-# And this convers a single octal digit to 3 bits.
+# And this converts a single octal digit to 3 bits.
 OCT_TO_BITS = tuple('{0:03b}'.format(i) for i in xrange(8))
 
 # A dictionary of number of 1 bits contained in binary representation of any byte
@@ -377,11 +374,11 @@ class ConstBitArray(object):
                         _, tokens = tokenparser(auto)
                     except ValueError as e:
                         raise CreationError(*e.args)
-                    x._datastore = bitstore.ByteArray(bytearray(), 0, 0)
+                    x._datastore = bitstore.ConstByteArray(bytearray(), 0, 0)
                     if tokens:
-                        x._append(ConstBitArray._init_with_token(*tokens[0]))
+                        x._datastore._appendarray(ConstBitArray._init_with_token(*tokens[0])._datastore)
                         for token in tokens[1:]:
-                            x._append(ConstBitArray._init_with_token(*token))
+                            x._datastore._appendarray(ConstBitArray._init_with_token(*token)._datastore)
                     assert x._assertsanity()
                     _cache[auto] = x
                     return x
@@ -796,7 +793,7 @@ class ConstBitArray(object):
         """Return True if any bits are set to 1, otherwise return False."""
         if not self.len:
             return False
-        return (self.uint != 0)
+        return self.uint != 0
 
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
@@ -1700,7 +1697,6 @@ class ConstBitArray(object):
     def _overwrite(self, bs, pos):
         """Overwrite with bs at pos."""
         assert 0 <= pos < self.len
-        bitposafter = pos + bs.len
         if bs is self:
             # Just overwriting with self, so do nothing.
             assert pos == 0
@@ -2001,7 +1997,6 @@ class ConstBitArray(object):
             return (p*8,)
         else:
             targetbin = bs._getbin()[2:]
-            found = False
             p = start
             # We grab overlapping chunks of the binary representation and
             # do an ordinary string search within that.
@@ -2087,7 +2082,7 @@ class ConstBitArray(object):
         increment = max(8192, bs.len*80)
         buffersize = min(increment + bs.len, end - start)
         pos = max(start, end - buffersize)
-        while(True):
+        while True:
             found = list(self.findall(bs, start=pos, end=pos + buffersize,
                                       bytealigned=bytealigned))
             if not found:
@@ -2156,7 +2151,7 @@ class ConstBitArray(object):
             # Initial bits are the whole bitstring being searched
             yield self._slice(start, end)
             return
-        # yield the bytes before the first occurence of the delimiter, even if empty
+        # yield the bytes before the first occurrence of the delimiter, even if empty
         yield self[start:found[0]]
         startpos = pos = found[0]
         c = 1
@@ -2164,7 +2159,7 @@ class ConstBitArray(object):
             pos += delimiter.len
             found = ConstBitArray.find(self, delimiter, pos, end, bytealigned)
             if not found:
-                # No more occurences, so return the rest of the bitstring
+                # No more occurrences, so return the rest of the bitstring
                 yield self[startpos:end]
                 return
             c += 1
@@ -2183,7 +2178,7 @@ class ConstBitArray(object):
         i = iter(sequence)
         try:
             s._append(ConstBitArray(next(i)))
-            while(True):
+            while True:
                 n = next(i)
                 s._append(self)
                 s._append(ConstBitArray(n))

@@ -8,7 +8,6 @@ it is largely undocumented and could change without warning.
 import copy
 import os
 import mmap
-from bitstring.errors import CreationError
 
 
 class MmapByteArray(object):
@@ -25,10 +24,13 @@ class MmapByteArray(object):
 
     def __getitem__(self, key):
         try:
-            start = key.start
-            stop = key.stop
+            #start = key.start
+            #stop = key.stop
             # TODO: This needs fixing...
-#            s = slice(start + self.byteoffset, stop + self.byteoffset)
+            #if start is None:
+            #    start = 0
+            #s = slice(start + self.byteoffset, stop + self.byteoffset)
+#            return bytearray(self.filemap.__getitem(s))
             return bytearray(self.filemap.__getitem__(key))
         except AttributeError:
             try:
@@ -82,6 +84,21 @@ class ConstByteArray(object):
     def __copy__(self):
         return ByteArray(self._rawarray[:], self.bitlength, self.offset)
 
+    def _appendarray(self, array):
+        """Join another array on to the end of this one."""
+        if array.bitlength == 0:
+            return
+        # Set new array offset to the number of bits in the final byte of current array.
+        array = offsetcopy(array, (self.offset + self.bitlength) % 8)
+        if array.offset != 0:
+            # first do the byte with the join.
+            joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
+            self._rawarray.append(joinval)
+            self._rawarray.extend(array._rawarray[1:])
+        else:
+            self._rawarray.extend(array._rawarray)
+        self.bitlength += array.bitlength
+
     @property
     def byteoffset(self):
         return self.offset // 8
@@ -118,18 +135,7 @@ class ByteArray(ConstByteArray):
 
     def appendarray(self, array):
         """Join another array on to the end of this one."""
-        if array.bitlength == 0:
-            return
-        # Set new array offset to the number of bits in the final byte of current array.
-        array = offsetcopy(array, (self.offset + self.bitlength) % 8)
-        if array.offset != 0:
-            # first do the byte with the join.
-            joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
-            self._rawarray.append(joinval)
-            self._rawarray.extend(array._rawarray[1:])
-        else:
-            self._rawarray.extend(array._rawarray)
-        self.bitlength += array.bitlength
+        self._appendarray(array)
 
     def prependarray(self, array):
         """Join another array on to the start of this one."""
