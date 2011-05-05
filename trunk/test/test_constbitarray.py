@@ -129,7 +129,10 @@ class Creation(unittest.TestCase):
         self.assertEqual(b, [0])
         c = bitstring.pack('2*bool', 0, 1)
         self.assertEqual(c, '0b01')
-
+        
+    def testDataStoreType(self):
+        a = CBA('0xf')
+        self.assertEqual(type(a._datastore), bitstring.bitstore.ConstByteArray)
 
 class Initialisation(unittest.TestCase):
     
@@ -220,8 +223,8 @@ class FileBased(unittest.TestCase):
     def testAddition(self):
         x = self.a[20:24] + self.c[-4:] + self.c[8:12]
         self.assertEqual(x, '0x587')
-        x.prepend(self.b)
-        self.assertEqual(x, '0x456789abcdef587')
+        x = self.b + x
+        self.assertEqual(x.hex, '0x456789abcdef587')
         del x[12:24]
         self.assertEqual(x, '0x456abcdef587')
         
