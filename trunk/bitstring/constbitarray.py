@@ -240,9 +240,9 @@ def expand_brackets(s):
                 count += 1
             if s[p] == ')':
                 count -= 1
-            if count == 0:
+            if not count:
                 break
-        if count != 0:
+        if count:
             raise ValueError("Unbalanced parenthesis in '{0}'.".format(s))
         if start == 0 or s[start-1] != '*':
             s = s[0:start] + s[start + 1:p] + s[p + 1:]
@@ -492,7 +492,7 @@ class ConstBitArray(object):
         else:
             abs_step = abs(step)
             start = 0
-            if step != 0:
+            if step:
                 stop = length - (length % abs_step)
             else:
                 stop = 0
@@ -545,7 +545,7 @@ class ConstBitArray(object):
 
         """
         length = self.len
-        if length == 0:
+        if not length:
             return ''
         if length > MAX_CHARS*4:
             # Too long for hex. Truncate...
@@ -554,7 +554,7 @@ class ConstBitArray(object):
         if length < 32 and length % 4 != 0:
             return self.bin
         # If we can use hex then do so
-        if length % 4 == 0:
+        if not length % 4:
             return self.hex
         # Otherwise first we do as much as we can in hex
         # then add on 1, 2 or 3 bits on at the end
@@ -642,7 +642,7 @@ class ConstBitArray(object):
             raise ValueError("Cannot shift by a negative amount.")
         if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
-        if n == 0:
+        if not n:
             return self._copy()
         s = self.__class__(length=min(n, self.len))
         s._append(self[:-n])
@@ -657,7 +657,7 @@ class ConstBitArray(object):
         """
         if n < 0:
             raise ValueError("Cannot multiply by a negative integer.")
-        if n == 0:
+        if not n:
             return self.__class__()
         s = self._copy()
         s._imul(n)
@@ -898,7 +898,7 @@ class ConstBitArray(object):
             return
         if length is not None:
             raise CreationError("The length keyword isn't applicable to this initialiser.")
-        if offset != 0:
+        if offset:
             raise CreationError("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, basestring):
             bs = self._converttobitstring(s)
@@ -946,7 +946,7 @@ class ConstBitArray(object):
             if length + offset > len(data)*8:
                 msg = "Not enough data present. Need {0} bits, have {1}."
                 raise CreationError(msg, length + offset, len(data)*8)
-            if length == 0:
+            if not length:
                 self._datastore = ByteArray(bytearray())
             else:
                 self._datastore = ByteArray(data, length, offset)
@@ -960,7 +960,7 @@ class ConstBitArray(object):
         """Read bytes and return them."""
         assert length % 8 == 0
         assert start + length <= self.len
-        if (start + self._offset) % 8 == 0:
+        if not (start + self._offset) % 8:
             return bytes(self._datastore.getbyteslice((start + self._offset) // 8, (start + self._offset + length) // 8))
         # TODO: don't call __getitem__ here!
 #        b = ByteArray(self._datastore.rawbytes, length, start + self._offset)
@@ -970,7 +970,7 @@ class ConstBitArray(object):
 
     def _getbytes(self):
         """Return the data as an ordinary string."""
-        if self.len % 8 != 0:
+        if self.len % 8:
             raise InterpretError("Cannot interpret as bytes unambiguously - "
                                   "not multiple of 8 bits.")
         return self._readbytes(self.len, 0)
@@ -1011,7 +1011,7 @@ class ConstBitArray(object):
 
     def _readuint(self, length, start):
         """Read bits and interpret as an unsigned int."""
-        if length == 0:
+        if not length:
             raise InterpretError("Cannot interpret a zero length bitstring "
                                  "as an integer.")
         offset = self._offset
@@ -1078,7 +1078,7 @@ class ConstBitArray(object):
 
     def _readuintbe(self, length, start):
         """Read bits and interpret as a big-endian unsigned int."""
-        if length % 8 != 0:
+        if length % 8:
             raise InterpretError("Big-endian integers must be whole-byte. "
                                  "Length = {0} bits.", length)
         return self._readuint(length, start)
@@ -1096,7 +1096,7 @@ class ConstBitArray(object):
 
     def _readintbe(self, length, start):
         """Read bits and interpret as a big-endian signed int."""
-        if length % 8 != 0:
+        if length % 8:
             raise InterpretError("Big-endian integers must be whole-byte. "
                                  "Length = {0} bits.", length)
         return self._readint(length, start)
@@ -1114,7 +1114,7 @@ class ConstBitArray(object):
 
     def _readuintle(self, length, start):
         """Read bits and interpret as a little-endian unsigned int."""
-        if length % 8 != 0:
+        if length % 8:
             raise InterpretError("Little-endian integers must be whole-byte. "
                                  "Length = {0} bits.", length)
         assert start + length <= self.len
@@ -1181,7 +1181,7 @@ class ConstBitArray(object):
 
     def _readfloat(self, length, start):
         """Read bits and interpret as a float."""
-        if (start + self._offset) % 8 == 0:
+        if not (start + self._offset) % 8:
             startbyte = (start + self._offset) // 8
             if length == 32:
                 f, = struct.unpack('>f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))
@@ -1220,7 +1220,7 @@ class ConstBitArray(object):
     def _readfloatle(self, length, start):
         """Read bits and interpret as a little-endian float."""
         startbyte, offset = divmod(start + self._offset, 8)
-        if offset == 0:
+        if not offset:
             if length == 32:
                 f, = struct.unpack('<f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))
             elif length == 64:
@@ -1249,7 +1249,7 @@ class ConstBitArray(object):
         if i < 0:
             raise CreationError("Cannot use negative initialiser for unsigned "
                                 "exponential-Golomb.")
-        if i == 0:
+        if not i:
             self._setbin_unsafe('1')
             return
         tmp = i + 1
@@ -1334,7 +1334,7 @@ class ConstBitArray(object):
         """
         codenum, pos = self._readue(pos)
         m = (codenum + 1) // 2
-        if codenum % 2 == 0:
+        if not codenum % 2:
             return -m, pos
         else:
             return m, pos
@@ -1386,7 +1386,7 @@ class ConstBitArray(object):
 
     def _setsie(self, i):
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
-        if i == 0:
+        if not i:
             self._setbin_unsafe('1')
         else:
             self._setuie(abs(i))
@@ -1416,7 +1416,7 @@ class ConstBitArray(object):
 
         """
         codenum, pos = self._readuie(pos)
-        if codenum == 0:
+        if not codenum:
             return 0, pos
         try:
             if self[pos]:
@@ -1468,7 +1468,7 @@ class ConstBitArray(object):
 
     def _readbin(self, length, start):
         """Read bits and interpret as a binary string."""
-        if length == 0:
+        if not length:
             return ''
         # Use lookup table to convert each byte to string of 8 bits.
         startbyte, startoffset = divmod(start + (self._offset % 8), 8)
@@ -1501,10 +1501,10 @@ class ConstBitArray(object):
 
     def _readoct(self, length, start):
         """Read bits and interpret as an octal string."""
-        if length % 3 != 0:
+        if length % 3:
             raise InterpretError("Cannot convert to octal unambiguously - "
                                  "not multiple of 3 bits.")
-        if length == 0:
+        if not length:
             return ''
         beginning = '0o'
         # Get main octal bit by converting from int.
@@ -1539,10 +1539,10 @@ class ConstBitArray(object):
 
     def _readhex(self, length, start):
         """Read bits and interpret as a hex string."""
-        if length % 4 != 0:
+        if length % 4:
             raise InterpretError("Cannot convert to hex unambiguously - "
                                  "not multiple of 4 bits.")
-        if length == 0:
+        if not length:
             return ''
         # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
         # TODO: Optimize: This really shouldn't call __getitem__.
@@ -1648,7 +1648,7 @@ class ConstBitArray(object):
     def _truncatestart(self, bits):
         """Truncate bits from the start of the bitstring."""
         assert 0 <= bits <= self.len
-        if bits == 0:
+        if not bits:
             return
         if bits == self.len:
             self._clear()
@@ -1661,7 +1661,7 @@ class ConstBitArray(object):
     def _truncateend(self, bits):
         """Truncate bits from the end of the bitstring."""
         assert 0 <= bits <= self.len
-        if bits == 0:
+        if not bits:
             return
         if bits == self.len:
             self._clear()
@@ -1719,7 +1719,7 @@ class ConstBitArray(object):
             self._datastore.setbyteslice(firstbytepos + 1, lastbytepos, d.getbyteslice(1, lastbytepos - firstbytepos))
             # and finally the last byte
             bitsleft = (self._offset + pos + bs.len) % 8
-            if bitsleft == 0:
+            if not bitsleft:
                 bitsleft = 8
             mask = (1 << (8 - bitsleft)) - 1
             self._datastore.setbyte(lastbytepos, self._datastore.getbyte(lastbytepos) & mask)
@@ -1730,7 +1730,7 @@ class ConstBitArray(object):
         """Delete bits at pos."""
         assert 0 <= pos <= self.len
         assert pos + bits <= self.len
-        if pos == 0:
+        if not pos:
             # Cutting bits off at the start.
             self._truncatestart(bits)
             return
@@ -1804,7 +1804,7 @@ class ConstBitArray(object):
     def _imul(self, n):
         """Concatenate n copies of self in place. Return self."""
         assert n >= 0
-        if n == 0:
+        if not n:
             self._clear()
             return self
         m = 1
@@ -1821,7 +1821,7 @@ class ConstBitArray(object):
         self_byteoffset, self_bitoffset = divmod(self._offset, 8)
         bs_byteoffset, bs_bitoffset = divmod(bs._offset, 8)
         if bs_bitoffset != self_bitoffset:
-            if self_bitoffset == 0:
+            if not self_bitoffset:
                 bs._datastore = bitstore.offsetcopy(bs._datastore, 0)
             else:
                 self._datastore = bitstore.offsetcopy(self._datastore, bs_bitoffset)
@@ -2208,7 +2208,7 @@ class ConstBitArray(object):
         # If the bitstring is file based then we don't want to read it all
         # in to memory.
         chunksize = 1024*1024 # 1 MB chunks
-        if self._offset == 0:
+        if not self._offset:
             a = 0
             bytelen = self._datastore.bytelength
             p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
@@ -2219,7 +2219,7 @@ class ConstBitArray(object):
             f.write(p)
             # Now the final byte, ensuring that unused bits at end are set to 0.
             bits_in_final_byte = self.len % 8
-            if bits_in_final_byte == 0:
+            if not bits_in_final_byte:
                 bits_in_final_byte = 8
             f.write(self[-bits_in_final_byte:].tobytes())
         else:

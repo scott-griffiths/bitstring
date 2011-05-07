@@ -121,7 +121,7 @@ class ConstBitStream(ConstBitArray):
 
     def _getbytepos(self):
         """Return the current position in the stream in bytes. Must be byte aligned."""
-        if self._pos % 8 != 0:
+        if self._pos % 8:
             raise ByteAlignError("Not byte aligned in _getbytepos().")
         return self._pos // 8
 

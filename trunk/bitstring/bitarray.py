@@ -17,6 +17,7 @@ except NameError:
     xrange = range
     basestring = str
 
+#noinspection PyArgumentList
 class BitArray(constbitarray.ConstBitArray):
 
     """A container holding a mutable sequence of bits.
@@ -191,7 +192,7 @@ class BitArray(constbitarray.ConstBitArray):
             if not 0 <= key < self.len:
                 raise IndexError("Slice index out of range.")
             if isinstance(value, numbers.Integral):
-                if value == 0:
+                if not value:
                     self._unset(key)
                     return
                 if value in (1, -1):
@@ -218,7 +219,7 @@ class BitArray(constbitarray.ConstBitArray):
                 except TypeError:
                     raise TypeError("Bitstring, integer or string expected. "
                                     "Got {0}.".format(type(value)))
-            if step == 0:
+            if not step:
                 stop = 0
             else:
                 # default stop needs to be a multiple of step
@@ -261,7 +262,7 @@ class BitArray(constbitarray.ConstBitArray):
             start = max(start, 0)
             start = min(start, stop)
             if (stop - start) == value.len:
-                if value.len == 0:
+                if not value.len:
                     return
                 if step >= 0:
                     self._overwrite(value, start)
@@ -304,7 +305,7 @@ class BitArray(constbitarray.ConstBitArray):
             self._delete(1, key)
             return
         else:
-            if step == 0:
+            if not step:
                 stop = 0
             else:
                 # default stop needs to be a multiple of step
@@ -355,7 +356,7 @@ class BitArray(constbitarray.ConstBitArray):
             raise ValueError("Cannot shift by a negative amount.")
         if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
-        if n == 0:
+        if not n:
             return self
         n = min(n, self.len)
         return self._ilshift(n)
@@ -370,7 +371,7 @@ class BitArray(constbitarray.ConstBitArray):
             raise ValueError("Cannot shift by a negative amount.")
         if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
-        if n == 0:
+        if not n:
             return self
         n = min(n, self.len)
         return self._irshift(n)
@@ -637,13 +638,13 @@ class BitArray(constbitarray.ConstBitArray):
         Raises ValueError if bits < 0.
 
         """
-        if self.len == 0:
+        if not self.len:
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate right by negative amount.")
         start, end = self._validate_slice(start, end)
         bits %= (end - start)
-        if bits == 0:
+        if not bits:
             return
         rhs = self[end - bits:end]
         del self[end - bits:end]
@@ -659,13 +660,13 @@ class BitArray(constbitarray.ConstBitArray):
         Raises ValueError if bits < 0.
 
         """
-        if self.len == 0:
+        if not self.len:
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate left by negative amount.")
         start, end = self._validate_slice(start, end)
         bits %= (end - start)
-        if bits == 0:
+        if not bits:
             return
         lhs = self[start:start + bits]
         del self[start:start + bits]

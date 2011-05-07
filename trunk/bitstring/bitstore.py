@@ -73,7 +73,7 @@ class ConstByteArray(object):
 
     @property
     def bytelength(self):
-        if self.bitlength == 0:
+        if not self.bitlength:
             return 0
         sb = self.offset // 8
         eb = (self.offset + self.bitlength - 1) // 8
@@ -86,11 +86,11 @@ class ConstByteArray(object):
 
     def _appendarray(self, array):
         """Join another array on to the end of this one."""
-        if array.bitlength == 0:
+        if not array.bitlength:
             return
         # Set new array offset to the number of bits in the final byte of current array.
         array = offsetcopy(array, (self.offset + self.bitlength) % 8)
-        if array.offset != 0:
+        if array.offset:
             # first do the byte with the join.
             joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
             self._rawarray.append(joinval)
@@ -139,14 +139,14 @@ class ByteArray(ConstByteArray):
 
     def prependarray(self, array):
         """Join another array on to the start of this one."""
-        if array.bitlength == 0:
+        if not array.bitlength:
             return
         # Set the offset of copy of array so that it's final byte
         # ends in a position that matches the offset of self,
         # then join self on to the end of it.
         array = offsetcopy(array, (self.offset - array.bitlength) % 8)
         assert (array.offset + array.bitlength) % 8 == self.offset
-        if self.offset != 0:
+        if self.offset:
             # first do the byte with the join.
             array.setbyte(-1, (array.getbyte(-1) & (255 ^ (255 >> self.offset)) | \
                                (self._rawarray[0] & (255 >> self.offset))))
@@ -160,7 +160,7 @@ class ByteArray(ConstByteArray):
 def offsetcopy(s, newoffset):
     """Return a copy of s with the newoffset."""
     assert 0 <= newoffset < 8
-    if s.bitlength == 0:
+    if not s.bitlength:
         return copy.copy(s)
     else:
         if newoffset == s.offset % 8:
@@ -177,7 +177,7 @@ def offsetcopy(s, newoffset):
                 newdata.append(((d[x] << shiftleft) & 0xff) + \
                                (d[x + 1] >> (8 - shiftleft)))
             bits_in_last_byte = (s.offset + s.bitlength) % 8
-            if bits_in_last_byte == 0:
+            if not bits_in_last_byte:
                 bits_in_last_byte = 8
             if bits_in_last_byte > shiftleft:
                 newdata.append((d[s.byteoffset + s.bytelength - 1] << shiftleft) & 0xff)
@@ -188,7 +188,7 @@ def offsetcopy(s, newoffset):
                 newdata.append(((d[x-1] << (8 - shiftright)) & 0xff) + \
                                (d[x] >> shiftright))
             bits_in_last_byte = (s.offset + s.bitlength) % 8
-            if bits_in_last_byte == 0:
+            if not bits_in_last_byte:
                 bits_in_last_byte = 8
             if bits_in_last_byte + shiftright > 8:
                 newdata.append((d[s.byteoffset + s.bytelength - 1] << (8 - shiftright)) & 0xff)
@@ -205,7 +205,7 @@ def equal(a, b):
     b_bitlength = b.bitlength
     if a_bitlength != b_bitlength:
         return False
-    if a_bitlength == 0:
+    if not a_bitlength:
         assert b_bitlength == 0
         return True
     # Make 'a' the one with the smaller offset
@@ -278,11 +278,11 @@ def equal(a, b):
 
     # Now check bits in final byte of b
     final_b_bits = (b.offset + b_bitlength) % 8
-    if final_b_bits == 0:
+    if not final_b_bits:
         final_b_bits = 8
     b_val = db[b_byteoffset + b_bytelength - 1] >> (8 - final_b_bits)
     final_a_bits = (a.offset + a_bitlength) % 8
-    if final_a_bits == 0:
+    if not final_a_bits:
         final_a_bits = 8
     if b.bytelength > a_bytelength:
         assert b_bytelength == a_bytelength + 1
