@@ -1,6 +1,10 @@
 #summary Release Notes
 #labels Deprecated
 
+=*For up-to-date release notes see [http://packages.python.org/bitstring/release_notes.html the new documentation]*=
+
+----
+
 ==July 26th 2010: version 2.0.3 released==
 --------------------------------------
   * *Bug fix*: Using peek and read for a single bit now returns a new bitstring as was intended, rather than the old behaviour of returning a bool.
