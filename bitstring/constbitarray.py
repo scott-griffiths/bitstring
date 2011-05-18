@@ -280,7 +280,7 @@ class ConstBitArray(object):
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
-    findall() -- Find all occurences of a sub-bitstring in the current bitstring.
+    findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     join() -- Join bitstrings together using current bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.

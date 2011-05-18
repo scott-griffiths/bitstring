@@ -33,7 +33,7 @@ class BitArray(constbitarray.ConstBitArray):
     invert() -- Flip bit(s) between one and zero.
     overwrite() -- Overwrite a section with a new bitstring.
     prepend() -- Prepend a bitstring.
-    replace() -- Replace occurences of one bitstring with another.
+    replace() -- Replace occurrences of one bitstring with another.
     reverse() -- Reverse bits in-place.
     rol() -- Rotate bits to the left.
     ror() -- Rotate bits to the right.
@@ -47,7 +47,7 @@ class BitArray(constbitarray.ConstBitArray):
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
-    findall() -- Find all occurences of a sub-bitstring in the current bitstring.
+    findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     join() -- Join bitstrings together using current bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
