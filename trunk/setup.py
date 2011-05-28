@@ -10,7 +10,7 @@ if sys.version_info[:2] < (2, 6):
                     'For Python 2.4 / 2.5 please use bitstring version 1.0 instead.')
 
 setup(name='bitstring',
-      version='2.1.1',
+      version='2.2.0',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
