@@ -235,13 +235,15 @@ def expand_brackets(s):
         if start == -1:
             break
         count = 1 # Number of hanging open brackets
-        for p in xrange(start + 1, len(s)):
+        p = start + 1
+        while p < len(s):
             if s[p] == '(':
                 count += 1
             if s[p] == ')':
                 count -= 1
             if not count:
                 break
+            p += 1
         if count:
             raise ValueError("Unbalanced parenthesis in '{0}'.".format(s))
         if start == 0 or s[start-1] != '*':
@@ -374,7 +376,7 @@ class ConstBitArray(object):
                         _, tokens = tokenparser(auto)
                     except ValueError as e:
                         raise CreationError(*e.args)
-                    x._datastore = bitstore.ConstByteArray(bytearray(), 0, 0)
+                    x._datastore = bitstore.ConstByteArray(bytearray(0), 0, 0)
                     if tokens:
                         x._datastore._appendarray(ConstBitArray._init_with_token(*tokens[0])._datastore)
                         for token in tokens[1:]:
@@ -402,7 +404,7 @@ class ConstBitArray(object):
                 data = bytearray((length + 7) // 8)
                 self._setbytes_unsafe(data, length, 0)
                 return
-            self._setbytes_unsafe(bytearray(), 0, 0)
+            self._setbytes_unsafe(bytearray(0), 0, 0)
             return
         k, v = kwargs.popitem()
         try:
@@ -573,7 +575,7 @@ class ConstBitArray(object):
         if isinstance(self._datastore._rawarray, MmapByteArray):
             offsetstring = ''
             if self._datastore.byteoffset or self._offset:
-                offsetstring = ", offset=%d" % self._offset
+                offsetstring = ", offset=%d" % (self._datastore._rawarray.byteoffset*8 + self._offset)
             lengthstring = ", length=%d" % length
             return "{0}(filename='{1}'{2}{3})".format(self.__class__.__name__,
                     self._datastore._rawarray.source.name, lengthstring, offsetstring)
@@ -872,7 +874,7 @@ class ConstBitArray(object):
 
     def _clear(self):
         """Reset the bitstring to an empty state."""
-        self._datastore = ByteArray(bytearray())
+        self._datastore = ByteArray(bytearray(0))
 
     def _setauto(self, s, length, offset):
         """Set bitstring from a bitstring, file, bool, integer, iterable or string."""
@@ -888,10 +890,12 @@ class ConstBitArray(object):
         if isinstance(s, file):
             if offset is None:
                 offset = 0
-            m = MmapByteArray(s, offset)
             if length is None:
-                length = m.filelength*8 - offset
-            if length + offset > m.filelength*8:
+                length = os.path.getsize(s.name)*8 - offset
+            byteoffset, offset = divmod(offset, 8)
+            bytelength = (length + byteoffset*8 + offset + 7) // 8 - byteoffset
+            m = MmapByteArray(s, bytelength, byteoffset)
+            if length + byteoffset*8 + offset > m.filelength*8:
                 raise CreationError("File is not long enough for specified "
                                     "length and offset.")
             self._datastore = ConstByteArray(m, length, offset)
@@ -927,10 +931,12 @@ class ConstBitArray(object):
         source = open(filename, 'rb')
         if offset is None:
             offset = 0
-        m = MmapByteArray(source, offset)
         if length is None:
             length = os.path.getsize(source.name)*8 - offset
-        if length + offset > m.filelength*8:
+        byteoffset, offset = divmod(offset, 8)
+        bytelength = (length + byteoffset*8 + offset + 7) // 8 - byteoffset
+        m = MmapByteArray(source, bytelength, byteoffset)
+        if length + byteoffset*8 + offset > m.filelength*8:
             raise CreationError("File is not long enough for specified "
                                 "length and offset.")
         self._datastore = ConstByteArray(m, length, offset)
@@ -947,7 +953,7 @@ class ConstBitArray(object):
                 msg = "Not enough data present. Need {0} bits, have {1}."
                 raise CreationError(msg, length + offset, len(data)*8)
             if not length:
-                self._datastore = ByteArray(bytearray())
+                self._datastore = ByteArray(bytearray(0))
             else:
                 self._datastore = ByteArray(data, length, offset)
 
@@ -963,9 +969,6 @@ class ConstBitArray(object):
         if not (start + self._offset) % 8:
             return bytes(self._datastore.getbyteslice((start + self._offset) // 8, (start + self._offset + length) // 8))
         # TODO: don't call __getitem__ here!
-#        b = ByteArray(self._datastore.rawbytes, length, start + self._offset)
-#        b = bitstore.offsetcopy(b, 0)
-#        return b.getbyteslice(0, length // 8)
         return self[start:start + length].tobytes()
 
     def _getbytes(self):
@@ -1949,7 +1952,7 @@ class ConstBitArray(object):
         return return_values, pos
 
     def find(self, bs, start=None, end=None, bytealigned=False):
-        """Find first occurence of substring bs.
+        """Find first occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
         empty tuple if not found. The bit position (pos property) will
@@ -2018,20 +2021,20 @@ class ConstBitArray(object):
             return ()
 
     def findall(self, bs, start=None, end=None, count=None, bytealigned=False):
-        """Find all occurences of bs. Return generator of bit positions.
+        """Find all occurrences of bs. Return generator of bit positions.
 
         bs -- The bitstring to find.
         start -- The bit position to start the search. Defaults to 0.
         end -- The bit position one past the last bit to search.
                Defaults to self.len.
-        count -- The maximum number of occurences to find.
+        count -- The maximum number of occurrences to find.
         bytealigned -- If True the bitstring will only be found on
                        byte boundaries.
 
         Raises ValueError if bs is empty, if start < 0, if end > self.len or
         if end < start.
 
-        Note that all occurences of bs are found, even if they overlap.
+        Note that all occurrences of bs are found, even if they overlap.
 
         """
         if count is not None and count < 0:
@@ -2056,7 +2059,7 @@ class ConstBitArray(object):
         return
 
     def rfind(self, bs, start=None, end=None, bytealigned=False):
-        """Find final occurence of substring bs.
+        """Find final occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
         empty tuple if not found. The bit position (pos property) will

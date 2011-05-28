@@ -13,7 +13,7 @@ import copy
 class ModuleData(unittest.TestCase):
 
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.1.1')
+        self.assertEqual(bitstring.__version__, '2.2.0')
 
 #    def testAll(self):
 #        exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
@@ -88,7 +88,7 @@ class Interning(unittest.TestCase):
         a = bitstring.ConstBitStream('0b11000')
         b = bitstring.ConstBitStream('0b11000')
         self.assertFalse(a is b)
-        self.assertTrue(a._datastore is b._datastore)
+#        self.assertTrue(a._datastore is b._datastore)
         
         
         

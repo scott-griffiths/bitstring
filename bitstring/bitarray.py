@@ -428,12 +428,12 @@ class BitArray(constbitarray.ConstBitArray):
 
         old -- The bitstring to replace.
         new -- The replacement bitstring.
-        start -- Any occurences that start before this will not be replaced.
+        start -- Any occurrences that start before this will not be replaced.
                  Defaults to 0.
-        end -- Any occurences that finish after this will not be replaced.
+        end -- Any occurrences that finish after this will not be replaced.
                Defaults to self.len.
         count -- The maximum number of replacements to make. Defaults to
-                 replace all occurences.
+                 replace all occurrences.
         bytealigned -- If True replacements will only be made on byte
                        boundaries.
 

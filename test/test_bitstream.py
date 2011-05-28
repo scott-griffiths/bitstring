@@ -1960,7 +1960,7 @@ class Adding(unittest.TestCase):
             b = eval(a.__repr__())
             self.assertTrue(a == b)
         for f in [ConstBitStream(filename='test.m1v'),
-                  ConstBitStream(filename='test.m1v', length=307),
+                  ConstBitStream(filename='test.m1v', length=17),
                   ConstBitStream(filename='test.m1v', length=23, offset=23102)]:
             f2 = eval(f.__repr__())
             self.assertEqual(f._datastore._rawarray.source.name, f2._datastore._rawarray.source.name)

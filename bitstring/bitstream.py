@@ -25,7 +25,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
-    findall() -- Find all occurences of a sub-bitstring in the current bitstring.
+    findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     insert() -- Insert a bitstring.
     invert() -- Flip bit(s) between one and zero.
     join() -- Join bitstrings together using current bitstring.
@@ -35,7 +35,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     prepend() -- Prepend a bitstring.
     read() -- Read and interpret next bits as a single item.
     readlist() -- Read and interpret next bits as a list of items.
-    replace() -- Replace occurences of one bitstring with another.
+    replace() -- Replace occurrences of one bitstring with another.
     reverse() -- Reverse bits in-place.
     rfind() -- Seek backwards to find a sub-bitstring.
     rol() -- Rotate bits to the left.
