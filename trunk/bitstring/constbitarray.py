@@ -527,7 +527,6 @@ class ConstBitArray(object):
                     return self._slice(start, stop)
                 else:
                     # Negative step, so reverse the bitstring in chunks of step.
-                    # TODO: Replace xrange (could fail with 32-bit Python 2.x).
                     bsl = [self._slice(x, x - step) for x in xrange(start, stop, -step)]
                     bsl.reverse()
                     return self.__class__().join(bsl)
@@ -1002,7 +1001,10 @@ class ConstBitArray(object):
         s = s.rstrip('L')
         if len(s) & 1:
             s = '0' + s
-        data = binascii.unhexlify(s)
+        try:
+            data = binascii.unhexlify(s)
+        except TypeError:
+            data = binascii.unhexlify(bytes(s, 'utf-8'))
         # Now add bytes as needed to get the right length.
         extrabytes = ((length + 7) // 8) - len(data)
         if extrabytes > 0:
@@ -1476,10 +1478,6 @@ class ConstBitArray(object):
         # Use lookup table to convert each byte to string of 8 bits.
         startbyte, startoffset = divmod(start + (self._offset % 8), 8)
         endbyte = (start + (self._offset % 8) + length - 1) // 8
-        # TODO: Which method is faster?
-#        f = self._datastore.getbyte
-#        c = [BYTE_TO_BITS[f(x)] for x in xrange(startbyte, endbyte + 1)]
-        #assert len(c) <= length // 8 + 2
         c = [BYTE_TO_BITS[x] for x in self._datastore.getbyteslice(startbyte, endbyte + 1)]
         return '0b' + ''.join(c)[startoffset:startoffset + length]
 
@@ -1586,7 +1584,6 @@ class ConstBitArray(object):
         """        
         if isinstance(bs, ConstBitArray):
             return bs
-        #return cls(bs)
         try:
             return cache[(bs, offset)]
         except KeyError:
@@ -1603,7 +1600,7 @@ class ConstBitArray(object):
                         b._append(ConstBitArray._init_with_token(*token))
                 assert b._assertsanity()
                 assert b.len == 0 or b._offset == offset
-                #cache[(bs, offset)] = b
+                cache[(bs, offset)] = b
                 return b
         except TypeError:
             # Unhashable type
@@ -2323,7 +2320,6 @@ class ConstBitArray(object):
             return 0
         # count the number of 1s (from which it's easy to work out the 0s).
         # Don't count the final byte yet.
-        # TODO: Replace xrange (could fail with 32-bit Python 2.x).
         count = sum(BIT_COUNT[self._datastore.getbyte(i)] for i in xrange(self._datastore.bytelength - 1))
         # adjust for bits at start that aren't part of the bitstring
         if self._offset:

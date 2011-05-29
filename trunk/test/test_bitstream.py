@@ -726,7 +726,7 @@ class FromFile(unittest.TestCase):
 
         s = BitStream(filename='smalltestfile')
         s.reverse()
-        self.assertEquals(s.hex, '0xf7b3d591e6a2c480')
+        self.assertEqual(s.hex, '0xf7b3d591e6a2c480')
 
         s = BitStream(filename='smalltestfile')
         del s[-60:]
@@ -1220,10 +1220,10 @@ class Adding(unittest.TestCase):
         s = BitStream('0x00')
         t = BitStream('0x11')
         s += t
-        self.assertEquals(s.hex, '0x0011')
-        self.assertEquals(t.hex, '0x11')
+        self.assertEqual(s.hex, '0x0011')
+        self.assertEqual(t.hex, '0x11')
         s += s
-        self.assertEquals(s.hex, '0x00110011')
+        self.assertEqual(s.hex, '0x00110011')
 
     def testRadd(self):
         s = '0xff' + BitStream('0xee')
@@ -1541,9 +1541,9 @@ class Adding(unittest.TestCase):
     def testPrepend(self):
         s = BitStream('0b000')
         s.prepend('0b11')
-        self.assertEquals(s.bin, '0b11000')
+        self.assertEqual(s.bin, '0b11000')
         s.prepend(s)
-        self.assertEquals(s.bin, '0b1100011000')
+        self.assertEqual(s.bin, '0b1100011000')
         s.prepend('')
         self.assertEqual(s.bin, '0b1100011000')
 
@@ -1734,7 +1734,7 @@ class Adding(unittest.TestCase):
         self.assertRaises(ValueError, a.__or__, '0b0000')
         self.assertRaises(ValueError, b.__or__, a + '0b1')
         a = '0xff00' | BitStream('0x00f0')
-        self.assertEquals(a.hex, '0xfff0')
+        self.assertEqual(a.hex, '0xfff0')
 
     def testBitwiseXor(self):
         a = BitStream('0b111001001')
@@ -2294,7 +2294,7 @@ class Adding(unittest.TestCase):
     def testIntelligentPeek(self):
         a = BitStream('0b01, 0x43, 0o4, uint:23=2, se=5, ue=3')
         b, c, e = a.peeklist('bin:2, hex:8, oct:3')
-        self.assertEquals((b, c, e), ('0b01', '0x43', '0o4'))
+        self.assertEqual((b, c, e), ('0b01', '0x43', '0o4'))
         self.assertEqual(a.pos, 0)
         a.pos = 13
         f, g, h = a.peeklist('uint:23, se, ue')
@@ -2412,34 +2412,33 @@ class Adding(unittest.TestCase):
         self.assertEqual(tp('123'), (False, [('uint', 123, None)]))
         self.assertRaises(ValueError, tp, 'hex12')
         self.assertEqual(tp('hex12', ('hex12',)), (False, [('hex12', None, None)]))
-
         self.assertEqual(tp('2*bits:6'), (False, [('bits', 6, None), ('bits', 6, None)]))
 
     def testAutoFromFileObject(self):
-        f = open('test.m1v', 'rb')
-        s = ConstBitStream(f, offset=32, length=12)
-        self.assertEqual(s.uint, 352)
-        t = ConstBitStream('0xf') + f
-        self.assertTrue(t.startswith('0xf000001b3160'))
-        s2 = ConstBitStream(f)
-        t2 = BitStream('0xc')
-        t2.prepend(s2)
-        self.assertTrue(t2.startswith('0x000001b3'))
-        self.assertTrue(t2.endswith('0xc'))
-        u = ConstBitStream(bytes=open('test.m1v', 'rb').read())
-        self.assertEqual(u, f)
-        f.close()
+        with open('test.m1v', 'rb') as f:
+            s = ConstBitStream(f, offset=32, length=12)
+            self.assertEqual(s.uint, 352)
+            t = ConstBitStream('0xf') + f
+            self.assertTrue(t.startswith('0xf000001b3160'))
+            s2 = ConstBitStream(f)
+            t2 = BitStream('0xc')
+            t2.prepend(s2)
+            self.assertTrue(t2.startswith('0x000001b3'))
+            self.assertTrue(t2.endswith('0xc'))
+            with open('test.m1v', 'rb') as b:
+                u = ConstBitStream(bytes=b.read())
+                self.assertEqual(u, f)
 
     def testFileBasedCopy(self):
-        f = open('smalltestfile', 'rb')
-        s = BitStream(f)
-        t = BitStream(s)
-        s.prepend('0b1')
-        self.assertEqual(s[1:], t)
-        s = BitStream(f)
-        t = copy.copy(s)
-        t.append('0b1')
-        self.assertEqual(s, t[:-1])
+        with open('smalltestfile', 'rb') as f:
+            s = BitStream(f)
+            t = BitStream(s)
+            s.prepend('0b1')
+            self.assertEqual(s[1:], t)
+            s = BitStream(f)
+            t = copy.copy(s)
+            t.append('0b1')
+            self.assertEqual(s, t[:-1])
 
     def testBigEndianSynonyms(self):
         s = BitStream('0x12318276ef')

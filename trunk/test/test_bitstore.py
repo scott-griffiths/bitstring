@@ -11,6 +11,9 @@ class Mmap(unittest.TestCase):
     def setUp(self):
         self.f = open('smalltestfile', 'rb')
 
+    def tearDown(self):
+        self.f.close()
+
     def testByteArrayEquivalence(self):
         a = bitstore.MmapByteArray(self.f)
         self.assertEqual(a.bytelength, 8)
