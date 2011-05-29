@@ -5,16 +5,16 @@ Unit tests for the bitarray module.
 
 import unittest
 import sys
+
 sys.path.insert(0, '..')
 import bitstring
 from bitstring import BitArray
 
 class All(unittest.TestCase):
-
     def testCreationFromUint(self):
-        s = BitArray(uint = 15, length=6)
+        s = BitArray(uint=15, length=6)
         self.assertEqual(s.bin, '0b001111')
-        s = BitArray(uint = 0, length=1)
+        s = BitArray(uint=0, length=1)
         self.assertEqual(s.bin, '0b0')
         s.uint = 1
         self.assertEqual(s.uint, 1)
@@ -38,8 +38,8 @@ class All(unittest.TestCase):
         s = BitArray('0o123')
         self.assertEqual(s.oct, '0o123')
 
-class NoPosAttribute(unittest.TestCase):
 
+class NoPosAttribute(unittest.TestCase):
     def testReplace(self):
         s = BitArray('0b01')
         s.replace('0b1', '0b11')
@@ -90,8 +90,8 @@ class NoPosAttribute(unittest.TestCase):
         s[0:1] = [1]
         self.assertEqual(s, '0b100111110')
 
+
 class Bugs(unittest.TestCase):
-    
     def testAddingNonsense(self):
         a = BitArray([0])
         a += '0' # a uint of length 0 - so nothing gets added.

@@ -9,7 +9,6 @@ import bitstring
 from bitstring import ConstBitArray as CBA
 
 class Creation(unittest.TestCase):
-
     def testCreationFromData(self):
         s = CBA(bytes=b'\xa0\xff')
         self.assertEqual((s.len, s.hex), (16, '0xa0ff'))
@@ -123,7 +122,7 @@ class Creation(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, CBA, ue=1, length=12)
         s = CBA(bin='10')
         self.assertRaises(bitstring.InterpretError, s._getue)
-        
+
     def testCreationFromBool(self):
         a = CBA('bool=1')
         self.assertEqual(a, 'bool=1')
@@ -131,17 +130,17 @@ class Creation(unittest.TestCase):
         self.assertEqual(b, [0])
         c = bitstring.pack('2*bool', 0, 1)
         self.assertEqual(c, '0b01')
-        
+
     def testDataStoreType(self):
         a = CBA('0xf')
         self.assertEqual(type(a._datastore), bitstring.bitstore.ConstByteArray)
 
+
 class Initialisation(unittest.TestCase):
-    
     def testEmptyInit(self):
         a = CBA()
         self.assertEqual(a, '')
-        
+
     def testNoPos(self):
         a = CBA('0xabcdef')
         try:
@@ -150,35 +149,33 @@ class Initialisation(unittest.TestCase):
             pass
         else:
             assert False
-            
+
     def testFind(self):
         a = CBA('0xabcd')
         r = a.find('0xbc')
         self.assertEqual(r[0], 4)
         r = a.find('0x23462346246', bytealigned=True)
         self.assertFalse(r)
-        
+
     def testRfind(self):
         a = CBA('0b11101010010010')
         b = a.rfind('0b010')
         self.assertEqual(b[0], 11)
-        
+
     def testFindAll(self):
         a = CBA('0b0010011')
         b = list(a.findall([1]))
         self.assertEqual(b, [2, 5, 6])
 
-        
+
 class Cut(unittest.TestCase):
-    
     def testCut(self):
         s = CBA(30)
         for t in s.cut(3):
-            self.assertEqual(t, [0]*3)
+            self.assertEqual(t, [0] * 3)
 
-            
-class InterleavedExpGolomb(unittest.TestCase):    
 
+class InterleavedExpGolomb(unittest.TestCase):
     def testCreation(self):
         s1 = CBA(uie=0)
         s2 = CBA(uie=1)
@@ -190,39 +187,39 @@ class InterleavedExpGolomb(unittest.TestCase):
         self.assertEqual(s1, [1])
         self.assertEqual(s2, [0, 0, 1, 1])
         self.assertEqual(s3, [0, 0, 1, 0])
-        
+
     def testInterpretation(self):
         for x in range(101):
             self.assertEqual(CBA(uie=x).uie, x)
         for x in range(-100, 100):
             self.assertEqual(CBA(sie=x).sie, x)
-            
+
     def testErrors(self):
-        s = CBA([0,0])
+        s = CBA([0, 0])
         self.assertRaises(bitstring.InterpretError, s._getsie)
         self.assertRaises(bitstring.InterpretError, s._getuie)
         self.assertRaises(ValueError, CBA, 'uie=-10')
-    
+
+
 class FileBased(unittest.TestCase):
-    
     def setUp(self):
         self.a = CBA(filename='smalltestfile')
         self.b = CBA(filename='smalltestfile', offset=16)
         self.c = CBA(filename='smalltestfile', offset=20, length=16)
         self.d = CBA(filename='smalltestfile', offset=20, length=4)
-    
+
     def testCreationWithOffset(self):
         self.assertEqual(self.a, '0x0123456789abcdef')
         self.assertEqual(self.b, '0x456789abcdef')
         self.assertEqual(self.c, '0x5678')
-        
+
     def testBitOperators(self):
         x = self.b[4:20]
         self.assertEqual(x, '0x5678')
         self.assertEqual(x & self.c, self.c.hex)
         self.assertEqual(self.c ^ self.b[4:20], 16)
         self.assertEqual(self.a[23:36] | self.c[3:], self.c[3:])
-        
+
     def testAddition(self):
         h = self.d + '0x1'
         x = self.a[20:24] + self.c[-4:] + self.c[8:12]

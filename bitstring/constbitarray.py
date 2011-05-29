@@ -17,21 +17,21 @@ byteorder = sys.byteorder
 
 # This creates a dictionary for every possible byte with the value being
 # the key with its bits reversed.
-REVERSED = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0" \
-           b"\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8" \
-           b"\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4" \
-           b"\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc" \
-           b"\x02\x82\x42\xc2\x22\xa2\x62\xe2\x12\x92\x52\xd2\x32\xb2\x72\xf2" \
-           b"\x0a\x8a\x4a\xca\x2a\xaa\x6a\xea\x1a\x9a\x5a\xda\x3a\xba\x7a\xfa" \
-           b"\x06\x86\x46\xc6\x26\xa6\x66\xe6\x16\x96\x56\xd6\x36\xb6\x76\xf6" \
-           b"\x0e\x8e\x4e\xce\x2e\xae\x6e\xee\x1e\x9e\x5e\xde\x3e\xbe\x7e\xfe" \
-           b"\x01\x81\x41\xc1\x21\xa1\x61\xe1\x11\x91\x51\xd1\x31\xb1\x71\xf1" \
-           b"\x09\x89\x49\xc9\x29\xa9\x69\xe9\x19\x99\x59\xd9\x39\xb9\x79\xf9" \
-           b"\x05\x85\x45\xc5\x25\xa5\x65\xe5\x15\x95\x55\xd5\x35\xb5\x75\xf5" \
-           b"\x0d\x8d\x4d\xcd\x2d\xad\x6d\xed\x1d\x9d\x5d\xdd\x3d\xbd\x7d\xfd" \
-           b"\x03\x83\x43\xc3\x23\xa3\x63\xe3\x13\x93\x53\xd3\x33\xb3\x73\xf3" \
-           b"\x0b\x8b\x4b\xcb\x2b\xab\x6b\xeb\x1b\x9b\x5b\xdb\x3b\xbb\x7b\xfb" \
-           b"\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7" \
+REVERSED = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0"\
+           b"\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8"\
+           b"\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4"\
+           b"\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc"\
+           b"\x02\x82\x42\xc2\x22\xa2\x62\xe2\x12\x92\x52\xd2\x32\xb2\x72\xf2"\
+           b"\x0a\x8a\x4a\xca\x2a\xaa\x6a\xea\x1a\x9a\x5a\xda\x3a\xba\x7a\xfa"\
+           b"\x06\x86\x46\xc6\x26\xa6\x66\xe6\x16\x96\x56\xd6\x36\xb6\x76\xf6"\
+           b"\x0e\x8e\x4e\xce\x2e\xae\x6e\xee\x1e\x9e\x5e\xde\x3e\xbe\x7e\xfe"\
+           b"\x01\x81\x41\xc1\x21\xa1\x61\xe1\x11\x91\x51\xd1\x31\xb1\x71\xf1"\
+           b"\x09\x89\x49\xc9\x29\xa9\x69\xe9\x19\x99\x59\xd9\x39\xb9\x79\xf9"\
+           b"\x05\x85\x45\xc5\x25\xa5\x65\xe5\x15\x95\x55\xd5\x35\xb5\x75\xf5"\
+           b"\x0d\x8d\x4d\xcd\x2d\xad\x6d\xed\x1d\x9d\x5d\xdd\x3d\xbd\x7d\xfd"\
+           b"\x03\x83\x43\xc3\x23\xa3\x63\xe3\x13\x93\x53\xd3\x33\xb3\x73\xf3"\
+           b"\x0b\x8b\x4b\xcb\x2b\xab\x6b\xeb\x1b\x9b\x5b\xdb\x3b\xbb\x7b\xfb"\
+           b"\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7"\
            b"\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
 
 try:
@@ -81,16 +81,16 @@ STRUCT_SPLIT_RE = re.compile(r'\d*[bBhHlLqQfd]')
 
 # These replicate the struct.pack codes
 # Big-endian
-REPLACEMENTS_BE = {'b': 'intbe:8',    'B': 'uintbe:8',
-                   'h': 'intbe:16',   'H': 'uintbe:16',
-                   'l': 'intbe:32',   'L': 'uintbe:32',
-                   'q': 'intbe:64',   'Q': 'uintbe:64',
+REPLACEMENTS_BE = {'b': 'intbe:8', 'B': 'uintbe:8',
+                   'h': 'intbe:16', 'H': 'uintbe:16',
+                   'l': 'intbe:32', 'L': 'uintbe:32',
+                   'q': 'intbe:64', 'Q': 'uintbe:64',
                    'f': 'floatbe:32', 'd': 'floatbe:64'}
 # Little-endian
-REPLACEMENTS_LE = {'b': 'intle:8',    'B': 'uintle:8',
-                   'h': 'intle:16',   'H': 'uintle:16',
-                   'l': 'intle:32',   'L': 'uintle:32',
-                   'q': 'intle:64',   'Q': 'uintle:64',
+REPLACEMENTS_LE = {'b': 'intle:8', 'B': 'uintle:8',
+                   'h': 'intle:16', 'H': 'uintle:16',
+                   'l': 'intle:32', 'L': 'uintle:32',
+                   'q': 'intle:64', 'Q': 'uintle:64',
                    'f': 'floatle:32', 'd': 'floatle:64'}
 
 # Size in bytes of all the pack codes.
@@ -109,8 +109,8 @@ def structparser(token):
         # Split the format string into a list of 'q', '4h' etc.
         formatlist = re.findall(STRUCT_SPLIT_RE, m.group('fmt'))
         # Now deal with mulitiplicative factors, 4h -> hhhh etc.
-        fmt = ''.join([f[-1]*int(f[:-1]) if len(f) != 1 else
-                          f for f in formatlist])
+        fmt = ''.join([f[-1] * int(f[:-1]) if len(f) != 1 else
+                       f for f in formatlist])
         if endian == '@':
             # Native endianness
             if byteorder == 'little':
@@ -124,6 +124,7 @@ def structparser(token):
             assert endian == '>'
             tokens = [REPLACEMENTS_BE[c] for c in fmt]
     return tokens
+
 
 def tokenparser(fmt, keys=None, token_cache={}):
     """Divide the format string into tokens and parse them.
@@ -219,7 +220,7 @@ def tokenparser(fmt, keys=None, token_cache={}):
         # The only way to do this would be to return the factor in some fashion
         # (we can't use the key's value here as it would mean that we couldn't
         # sensibly continue to cache the function's results. (TODO).
-        return_values.extend(ret_vals*factor)
+        return_values.extend(ret_vals * factor)
     return_values = [tuple(x) for x in return_values]
     token_cache[token_key] = stretchy_token, return_values
     return stretchy_token, return_values
@@ -246,14 +247,14 @@ def expand_brackets(s):
             p += 1
         if count:
             raise ValueError("Unbalanced parenthesis in '{0}'.".format(s))
-        if start == 0 or s[start-1] != '*':
+        if start == 0 or s[start - 1] != '*':
             s = s[0:start] + s[start + 1:p] + s[p + 1:]
         else:
             m = BRACKET_RE.search(s)
             if m:
                 factor = int(m.group('factor'))
                 matchstart = m.start('factor')
-                s = s[0:matchstart] + (factor - 1)*(s[start + 1:p] + ',') + s[start + 1:p] + s[p + 1:]
+                s = s[0:matchstart] + (factor - 1) * (s[start + 1:p] + ',') + s[start + 1:p] + s[p + 1:]
             else:
                 raise ValueError("Failed to parse '{0}'.".format(s))
     return s
@@ -267,7 +268,6 @@ OCT_TO_BITS = tuple('{0:03b}'.format(i) for i in xrange(8))
 
 # A dictionary of number of 1 bits contained in binary representation of any byte
 BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
-
 
 class ConstBitArray(object):
     """A container holding an immutable sequence of bits.
@@ -362,7 +362,7 @@ class ConstBitArray(object):
 
         """
         pass
-        
+
     def __new__(cls, auto=None, length=None, offset=None, _cache={}, **kwargs):
         # For instances auto-initialised with a string we intern the
         # instance for re-use. 
@@ -546,9 +546,9 @@ class ConstBitArray(object):
         length = self.len
         if not length:
             return ''
-        if length > MAX_CHARS*4:
+        if length > MAX_CHARS * 4:
             # Too long for hex. Truncate...
-            return ''.join((self._readhex(MAX_CHARS*4, 0), '...'))
+            return ''.join((self._readhex(MAX_CHARS * 4, 0), '...'))
         # If it's quite short and we can't do hex then use bin
         if length < 32 and length % 4 != 0:
             return self.bin
@@ -572,7 +572,7 @@ class ConstBitArray(object):
         if isinstance(self._datastore._rawarray, MmapByteArray):
             offsetstring = ''
             if self._datastore.byteoffset or self._offset:
-                offsetstring = ", offset=%d" % (self._datastore._rawarray.byteoffset*8 + self._offset)
+                offsetstring = ", offset=%d" % (self._datastore._rawarray.byteoffset * 8 + self._offset)
             lengthstring = ", length=%d" % length
             return "{0}(filename='{1}'{2}{3})".format(self.__class__.__name__,
                     self._datastore._rawarray.source.name, lengthstring, offsetstring)
@@ -888,11 +888,11 @@ class ConstBitArray(object):
             if offset is None:
                 offset = 0
             if length is None:
-                length = os.path.getsize(s.name)*8 - offset
+                length = os.path.getsize(s.name) * 8 - offset
             byteoffset, offset = divmod(offset, 8)
-            bytelength = (length + byteoffset*8 + offset + 7) // 8 - byteoffset
+            bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
             m = MmapByteArray(s, bytelength, byteoffset)
-            if length + byteoffset*8 + offset > m.filelength*8:
+            if length + byteoffset * 8 + offset > m.filelength * 8:
                 raise CreationError("File is not long enough for specified "
                                     "length and offset.")
             self._datastore = ConstByteArray(m, length, offset)
@@ -907,7 +907,7 @@ class ConstBitArray(object):
             self._setbytes_unsafe(bs._datastore.rawbytes, bs.length, 0)
             return
         if isinstance(s, (bytes, bytearray)):
-            self._setbytes_unsafe(bytearray(s), len(s)*8, 0)
+            self._setbytes_unsafe(bytearray(s), len(s) * 8, 0)
             return
         if isinstance(s, numbers.Integral):
             # Initialise with s zero bits.
@@ -929,11 +929,11 @@ class ConstBitArray(object):
         if offset is None:
             offset = 0
         if length is None:
-            length = os.path.getsize(source.name)*8 - offset
+            length = os.path.getsize(source.name) * 8 - offset
         byteoffset, offset = divmod(offset, 8)
-        bytelength = (length + byteoffset*8 + offset + 7) // 8 - byteoffset
+        bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
         m = MmapByteArray(source, bytelength, byteoffset)
-        if length + byteoffset*8 + offset > m.filelength*8:
+        if length + byteoffset * 8 + offset > m.filelength * 8:
             raise CreationError("File is not long enough for specified "
                                 "length and offset.")
         self._datastore = ConstByteArray(m, length, offset)
@@ -946,9 +946,9 @@ class ConstBitArray(object):
             length = (len(data) - (offset // 8)) * 8 - offset
             self._datastore = ByteArray(data, length, offset)
         else:
-            if length + offset > len(data)*8:
+            if length + offset > len(data) * 8:
                 msg = "Not enough data present. Need {0} bits, have {1}."
-                raise CreationError(msg, length + offset, len(data)*8)
+                raise CreationError(msg, length + offset, len(data) * 8)
             if not length:
                 self._datastore = ByteArray(bytearray(0))
             else:
@@ -964,7 +964,8 @@ class ConstBitArray(object):
         assert length % 8 == 0
         assert start + length <= self.len
         if not (start + self._offset) % 8:
-            return bytes(self._datastore.getbyteslice((start + self._offset) // 8, (start + self._offset + length) // 8))
+            return bytes(self._datastore.getbyteslice((start + self._offset) // 8,
+                                                      (start + self._offset + length) // 8))
         # TODO: don't call __getitem__ here!
         return self[start:start + length].tobytes()
 
@@ -972,7 +973,7 @@ class ConstBitArray(object):
         """Return the data as an ordinary string."""
         if self.len % 8:
             raise InterpretError("Cannot interpret as bytes unambiguously - "
-                                  "not multiple of 8 bits.")
+                                 "not multiple of 8 bits.")
         return self._readbytes(self.len, 0)
 
     def _setuint(self, uint, length=None):
@@ -988,9 +989,9 @@ class ConstBitArray(object):
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with a "
                                 "uint initialiser.")
-        if uint >= (1 << length):            
+        if uint >= (1 << length):
             msg = "{0} is too large an unsigned integer for a bitstring of length {1}. "\
-                "The allowed range is [0, {2}]."
+                  "The allowed range is [0, {2}]."
             raise CreationError(msg, uint, length, (1 << length) - 1)
         if uint < 0:
             raise CreationError("uint cannot be initialsed by a negative number.")
@@ -1006,7 +1007,7 @@ class ConstBitArray(object):
         # Now add bytes as needed to get the right length.
         extrabytes = ((length + 7) // 8) - len(data)
         if extrabytes > 0:
-            data = b'\x00'*extrabytes + data
+            data = b'\x00' * extrabytes + data
         offset = 8 - (length % 8)
         if offset == 8:
             offset = 0
@@ -1020,7 +1021,7 @@ class ConstBitArray(object):
         offset = self._offset
         startbyte = (start + offset) // 8
         endbyte = (start + offset + length - 1) // 8
-        
+
         b = binascii.hexlify(bytes(self._datastore.getbyteslice(startbyte, endbyte + 1)))
         if not b:
             return 0
@@ -1042,7 +1043,7 @@ class ConstBitArray(object):
             length = self.len
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with an int initialiser.")
-        if int_ >=  (1 << (length - 1)) or int_ < -(1 << (length - 1)):
+        if int_ >= (1 << (length - 1)) or int_ < -(1 << (length - 1)):
             raise CreationError("{0} is too large a signed integer for a bitstring of length {1}. "
                                 "The allowed range is [{2}, {3}].", int_, length, -(1 << (length - 1)),
                                 (1 << (length - 1)) - 1)
@@ -1261,8 +1262,8 @@ class ConstBitArray(object):
             tmp >>= 1
             leadingzeros += 1
         remainingpart = i + 1 - (1 << leadingzeros)
-        binstring = '0'*leadingzeros + '1' + ConstBitArray(uint=remainingpart,
-                                                       length=leadingzeros).bin[2:]
+        binstring = '0' * leadingzeros + '1' + ConstBitArray(uint=remainingpart,
+                                                             length=leadingzeros).bin[2:]
         self._setbin_unsafe(binstring)
 
     def _readue(self, pos):
@@ -1307,9 +1308,9 @@ class ConstBitArray(object):
     def _setse(self, i):
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
         if i > 0:
-            u = (i*2) - 1
+            u = (i * 2) - 1
         else:
-            u = -2*i
+            u = -2 * i
         self._setue(u)
 
     def _getse(self):
@@ -1352,7 +1353,7 @@ class ConstBitArray(object):
             raise CreationError("Cannot use negative initialiser for unsigned "
                                 "interleaved exponential-Golomb.")
         self._setbin_unsafe('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
-        
+
     def _readuie(self, pos):
         """Return interpretation of next bits as unsigned interleaved exponential-Golomb code.
 
@@ -1460,7 +1461,7 @@ class ConstBitArray(object):
         length = len(binstring)
         # pad with zeros up to byte boundary if needed
         boundary = ((length + 7) // 8) * 8
-        padded_binstring = binstring + '0'*(boundary - length) \
+        padded_binstring = binstring + '0' * (boundary - length)\
                            if len(binstring) < boundary else binstring
         try:
             bytelist = [int(padded_binstring[x:x + 8], 2)
@@ -1511,7 +1512,7 @@ class ConstBitArray(object):
         end = oct(self._readuint(length, start))[LEADING_OCT_CHARS:]
         if end.endswith('L'):
             end = end[:-1]
-        middle = '0'*(length // 3 - len(end))
+        middle = '0' * (length // 3 - len(end))
         return ''.join((beginning, middle, end))
 
     def _getoct(self):
@@ -1534,7 +1535,7 @@ class ConstBitArray(object):
                 data = bytearray.fromhex(unicode(hexstring))
         except ValueError:
             raise CreationError("Invalid symbol in hex initialiser.")
-        self._setbytes_unsafe(data, length*4, 0)
+        self._setbytes_unsafe(data, length * 4, 0)
 
     def _readhex(self, length, start):
         """Read bits and interpret as a hex string."""
@@ -1545,7 +1546,7 @@ class ConstBitArray(object):
             return ''
         # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
         # TODO: Optimize: This really shouldn't call __getitem__.
-        s = str(binascii.hexlify(self[start:start+length].tobytes()).decode('utf-8'))
+        s = str(binascii.hexlify(self[start:start + length].tobytes()).decode('utf-8'))
         if (length // 4) % 2:
             # We've got one nibble too many, so cut it off.
             return '0x' + s[:-1]
@@ -1579,7 +1580,7 @@ class ConstBitArray(object):
         offset gives the suggested bit offset of first significant
         bit, to optimise append etc.
 
-        """        
+        """
         if isinstance(bs, ConstBitArray):
             return bs
         try:
@@ -1653,7 +1654,8 @@ class ConstBitArray(object):
             return
         bytepos, offset = divmod(self._offset + bits, 8)
         #self._pos = max(0, self._pos - bits)
-        self._setbytes_unsafe(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits, offset)
+        self._setbytes_unsafe(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits,
+                              offset)
         assert self._assertsanity()
 
     def _truncateend(self, bits):
@@ -1668,7 +1670,7 @@ class ConstBitArray(object):
         # Ensure that the position is still valid
         #self._pos = max(0, min(self._pos, self.len - bits))
         self._setbytes_unsafe(self._datastore.getbyteslice(0, newlength_in_bytes), self.len - bits,
-                       self._offset)
+                              self._offset)
         assert self._assertsanity()
 
     def _insert(self, bs, pos):
@@ -1721,7 +1723,8 @@ class ConstBitArray(object):
                 bitsleft = 8
             mask = (1 << (8 - bitsleft)) - 1
             self._datastore.setbyte(lastbytepos, self._datastore.getbyte(lastbytepos) & mask)
-            self._datastore.setbyte(lastbytepos, self._datastore.getbyte(lastbytepos) | (d.getbyte(d.bytelength - 1) & ~mask))
+            self._datastore.setbyte(lastbytepos,
+                                    self._datastore.getbyte(lastbytepos) | (d.getbyte(d.bytelength - 1) & ~mask))
         assert self._assertsanity()
 
     def _delete(self, bits, pos):
@@ -1759,9 +1762,9 @@ class ConstBitArray(object):
             newoffset = 0
         self._datastore = bitstore.offsetcopy(self._datastore, newoffset)
         # Now just reverse the byte data
-        toreverse = bytearray(self._datastore.getbyteslice((newoffset + start)//8, (newoffset + end)//8))
+        toreverse = bytearray(self._datastore.getbyteslice((newoffset + start) // 8, (newoffset + end) // 8))
         toreverse.reverse()
-        self._datastore.setbyteslice((newoffset + start)//8, (newoffset + end)//8, toreverse)
+        self._datastore.setbyteslice((newoffset + start) // 8, (newoffset + end) // 8, toreverse)
 
     def _set(self, pos):
         """Set bit at pos to 1."""
@@ -1807,10 +1810,10 @@ class ConstBitArray(object):
             return self
         m = 1
         old_len = self.len
-        while m*2 < n:
+        while m * 2 < n:
             self._append(self)
             m *= 2
-        self._append(self[0:(n-m)*old_len])
+        self._append(self[0:(n - m) * old_len])
         return self
 
     def _inplace_logical_helper(self, bs, f):
@@ -1979,7 +1982,7 @@ class ConstBitArray(object):
             found = False
             p = bytepos
             finalpos = end // 8
-            increment = max(1024, len(d)*10)
+            increment = max(1024, len(d) * 10)
             buffersize = increment + len(d)
             while p < finalpos:
                 # Read in file or from memory in overlapping chunks and search the chunks.
@@ -1992,13 +1995,13 @@ class ConstBitArray(object):
                 p += increment
             if not found:
                 return ()
-            return (p*8,)
+            return (p * 8,)
         else:
             targetbin = bs._getbin()[2:]
             p = start
             # We grab overlapping chunks of the binary representation and
             # do an ordinary string search within that.
-            increment = max(4096, bs.len*10)
+            increment = max(4096, bs.len * 10)
             buffersize = increment + bs.len
             while p < end:
                 buf = self._readbin(min(buffersize, end - p), p)[2:]
@@ -2077,7 +2080,7 @@ class ConstBitArray(object):
             raise ValueError("Cannot find an empty bitstring.")
         # Search chunks starting near the end and then moving back
         # until we find bs.
-        increment = max(8192, bs.len*80)
+        increment = max(8192, bs.len * 80)
         buffersize = min(increment + bs.len, end - start)
         pos = max(start, end - buffersize)
         while True:
@@ -2205,7 +2208,7 @@ class ConstBitArray(object):
         """
         # If the bitstring is file based then we don't want to read it all
         # in to memory.
-        chunksize = 1024*1024 # 1 MB chunks
+        chunksize = 1024 * 1024 # 1 MB chunks
         if not self._offset:
             a = 0
             bytelen = self._datastore.bytelength
@@ -2223,11 +2226,11 @@ class ConstBitArray(object):
         else:
             # Really quite inefficient...
             a = 0
-            p = self[a:a + chunksize*8]
-            while p.len == chunksize*8:
+            p = self[a:a + chunksize * 8]
+            while p.len == chunksize * 8:
                 f.write(p.bytes)
-                a += chunksize*8
-                p = self[a:a + chunksize*8]
+                a += chunksize * 8
+                p = self[a:a + chunksize * 8]
             f.write(p.tobytes())
 
     def startswith(self, prefix, start=None, end=None):
@@ -2323,7 +2326,7 @@ class ConstBitArray(object):
         if self._offset:
             count -= BIT_COUNT[self._datastore.getbyte(0) >> (8 - self._offset)]
         # and count the last 1 - 8 bits at the end.
-        endbits = self._datastore.bytelength*8 - (self._offset + self.len)
+        endbits = self._datastore.bytelength * 8 - (self._offset + self.len)
         count += BIT_COUNT[self._datastore.getbyte(self._datastore.bytelength - 1) >> endbits]
         return count if value else self.len - count
 
@@ -2351,138 +2354,138 @@ class ConstBitArray(object):
 
     _offset = property(_getoffset)
 
-    len    = property(_getlength,
-                      doc="""The length of the bitstring in bits. Read only.
+    len = property(_getlength,
+                   doc="""The length of the bitstring in bits. Read only.
                       """)
     length = property(_getlength,
                       doc="""The length of the bitstring in bits. Read only.
                       """)
-    bool   = property(_getbool,
-                      doc="""The bitstring as a bool (True or False)."""
-                      )
-    hex    = property(_gethex,
-                      doc="""The bitstring as a hexadecimal string. Read only.
+    bool = property(_getbool,
+                    doc="""The bitstring as a bool (True or False)."""
+    )
+    hex = property(_gethex,
+                   doc="""The bitstring as a hexadecimal string. Read only.
 
                       Will be prefixed with '0x' and including any leading zeros.
 
                       """)
-    bin    = property(_getbin,
-                      doc="""The bitstring as a binary string. Read only.
+    bin = property(_getbin,
+                   doc="""The bitstring as a binary string. Read only.
 
                       Will be prefixed with '0b' and including any leading zeros.
 
                       """)
-    oct    = property(_getoct,
-                      doc="""The bitstring as an octal string. Read only.
+    oct = property(_getoct,
+                   doc="""The bitstring as an octal string. Read only.
 
                       Will be prefixed with '0o' and including any leading zeros.
 
                       """)
-    bytes  = property(_getbytes,
-                      doc="""The bitstring as a bytes object. Read only.
+    bytes = property(_getbytes,
+                     doc="""The bitstring as a bytes object. Read only.
                       """)
-    int    = property(_getint,
-                      doc="""The bitstring as a two's complement signed int. Read only.
+    int = property(_getint,
+                   doc="""The bitstring as a two's complement signed int. Read only.
                       """)
-    uint   = property(_getuint,
-                      doc="""The bitstring as a two's complement unsigned int. Read only.
+    uint = property(_getuint,
+                    doc="""The bitstring as a two's complement unsigned int. Read only.
                       """)
-    float  = property(_getfloat,
-                      doc="""The bitstring as a floating point number. Read only.
+    float = property(_getfloat,
+                     doc="""The bitstring as a floating point number. Read only.
                       """)
-    intbe  = property(_getintbe,
-                      doc="""The bitstring as a two's complement big-endian signed int. Read only.
+    intbe = property(_getintbe,
+                     doc="""The bitstring as a two's complement big-endian signed int. Read only.
                       """)
     uintbe = property(_getuintbe,
                       doc="""The bitstring as a two's complement big-endian unsigned int. Read only.
                       """)
-    floatbe= property(_getfloat,
-                      doc="""The bitstring as a big-endian floating point number. Read only.
+    floatbe = property(_getfloat,
+                       doc="""The bitstring as a big-endian floating point number. Read only.
                       """)
-    intle  = property(_getintle,
-                      doc="""The bitstring as a two's complement little-endian signed int. Read only.
+    intle = property(_getintle,
+                     doc="""The bitstring as a two's complement little-endian signed int. Read only.
                       """)
     uintle = property(_getuintle,
                       doc="""The bitstring as a two's complement little-endian unsigned int. Read only.
                       """)
-    floatle= property(_getfloatle,
-                      doc="""The bitstring as a little-endian floating point number. Read only.
+    floatle = property(_getfloatle,
+                       doc="""The bitstring as a little-endian floating point number. Read only.
                       """)
-    intne  = property(_getintne,
-                      doc="""The bitstring as a two's complement native-endian signed int. Read only.
+    intne = property(_getintne,
+                     doc="""The bitstring as a two's complement native-endian signed int. Read only.
                       """)
     uintne = property(_getuintne,
                       doc="""The bitstring as a two's complement native-endian unsigned int. Read only.
                       """)
-    floatne= property(_getfloatne,
-                      doc="""The bitstring as a native-endian floating point number. Read only.
+    floatne = property(_getfloatne,
+                       doc="""The bitstring as a native-endian floating point number. Read only.
                       """)
-    ue     = property(_getue,
-                      doc="""The bitstring as an unsigned exponential-Golomb code. Read only.
+    ue = property(_getue,
+                  doc="""The bitstring as an unsigned exponential-Golomb code. Read only.
                       """)
-    se     = property(_getse,
-                      doc="""The bitstring as a signed exponential-Golomb code. Read only.
+    se = property(_getse,
+                  doc="""The bitstring as a signed exponential-Golomb code. Read only.
                       """)
-    uie    = property(_getuie,
-                      doc="""The bitstring as an unsigned interleaved exponential-Golomb code. Read only.
+    uie = property(_getuie,
+                   doc="""The bitstring as an unsigned interleaved exponential-Golomb code. Read only.
                       """)
-    sie    = property(_getsie,
-                      doc="""The bitstring as a signed interleaved exponential-Golomb code. Read only.
+    sie = property(_getsie,
+                   doc="""The bitstring as a signed interleaved exponential-Golomb code. Read only.
                       """)
 
 
 # Dictionary that maps token names to the function that reads them.
-name_to_read = {'uint':    ConstBitArray._readuint,
-                'uintle':  ConstBitArray._readuintle,
-                'uintbe':  ConstBitArray._readuintbe,
-                'uintne':  ConstBitArray._readuintne,
-                'int':     ConstBitArray._readint,
-                'intle':   ConstBitArray._readintle,
-                'intbe':   ConstBitArray._readintbe,
-                'intne':   ConstBitArray._readintne,
-                'float':   ConstBitArray._readfloat,
+name_to_read = {'uint': ConstBitArray._readuint,
+                'uintle': ConstBitArray._readuintle,
+                'uintbe': ConstBitArray._readuintbe,
+                'uintne': ConstBitArray._readuintne,
+                'int': ConstBitArray._readint,
+                'intle': ConstBitArray._readintle,
+                'intbe': ConstBitArray._readintbe,
+                'intne': ConstBitArray._readintne,
+                'float': ConstBitArray._readfloat,
                 'floatbe': ConstBitArray._readfloat, # floatbe is a synonym for float
                 'floatle': ConstBitArray._readfloatle,
                 'floatne': ConstBitArray._readfloatne,
-                'hex':     ConstBitArray._readhex,
-                'oct':     ConstBitArray._readoct,
-                'bin':     ConstBitArray._readbin,
-                'bits':    ConstBitArray._readbits,
-                'bytes':   ConstBitArray._readbytes,
-                'ue':      ConstBitArray._readue,
-                'se':      ConstBitArray._readse,
-                'uie':     ConstBitArray._readuie,
-                'sie':     ConstBitArray._readsie,
-                'bool':    ConstBitArray._readbool,
+                'hex': ConstBitArray._readhex,
+                'oct': ConstBitArray._readoct,
+                'bin': ConstBitArray._readbin,
+                'bits': ConstBitArray._readbits,
+                'bytes': ConstBitArray._readbytes,
+                'ue': ConstBitArray._readue,
+                'se': ConstBitArray._readse,
+                'uie': ConstBitArray._readuie,
+                'sie': ConstBitArray._readsie,
+                'bool': ConstBitArray._readbool,
                 }
 
 # Dictionaries for mapping init keywords with init functions.
-init_with_length_and_offset = {'bytes':    ConstBitArray._setbytes_safe,
+init_with_length_and_offset = {'bytes': ConstBitArray._setbytes_safe,
                                'filename': ConstBitArray._setfile,
-                              }
+                               }
 
-init_with_length_only = {'uint':    ConstBitArray._setuint,
-                         'int':     ConstBitArray._setint,
-                         'float':   ConstBitArray._setfloat,
-                         'uintbe':  ConstBitArray._setuintbe,
-                         'intbe':   ConstBitArray._setintbe,
+init_with_length_only = {'uint': ConstBitArray._setuint,
+                         'int': ConstBitArray._setint,
+                         'float': ConstBitArray._setfloat,
+                         'uintbe': ConstBitArray._setuintbe,
+                         'intbe': ConstBitArray._setintbe,
                          'floatbe': ConstBitArray._setfloat,
-                         'uintle':  ConstBitArray._setuintle,
-                         'intle':   ConstBitArray._setintle,
+                         'uintle': ConstBitArray._setuintle,
+                         'intle': ConstBitArray._setintle,
                          'floatle': ConstBitArray._setfloatle,
-                         'uintne':  ConstBitArray._setuintne,
-                         'intne':   ConstBitArray._setintne,
+                         'uintne': ConstBitArray._setuintne,
+                         'intne': ConstBitArray._setintne,
                          'floatne': ConstBitArray._setfloatne,
                          }
 
 init_without_length_or_offset = {'bin': ConstBitArray._setbin_safe,
                                  'hex': ConstBitArray._sethex,
                                  'oct': ConstBitArray._setoct,
-                                 'ue':  ConstBitArray._setue,
-                                 'se':  ConstBitArray._setse,
+                                 'ue': ConstBitArray._setue,
+                                 'se': ConstBitArray._setse,
                                  'uie': ConstBitArray._setuie,
                                  'sie': ConstBitArray._setsie,
-                                 'bool':ConstBitArray._setbool,
+                                 'bool': ConstBitArray._setbool,
                                  }
 
 
