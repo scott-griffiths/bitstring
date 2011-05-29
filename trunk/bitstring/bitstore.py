@@ -64,7 +64,7 @@ class ConstByteArray(object):
         if offset is None:
             offset = 0
         if bitlength is None:
-            bitlength = 8*len(data) - offset
+            bitlength = 8 * len(data) - offset
         self.offset = offset
         self.bitlength = bitlength
 
@@ -103,7 +103,8 @@ class ConstByteArray(object):
         array = offsetcopy(array, (self.offset + self.bitlength) % 8)
         if array.offset:
             # first do the byte with the join.
-            joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) | (array.getbyte(0) & (255 >> array.offset)))
+            joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) |
+                       (array.getbyte(0) & (255 >> array.offset)))
             self._rawarray.append(joinval)
             self._rawarray.extend(array._rawarray[1:])
         else:
@@ -120,7 +121,6 @@ class ConstByteArray(object):
 
 
 class ByteArray(ConstByteArray):
-
     __slots__ = ()
 
     def setbit(self, pos):
@@ -159,14 +159,15 @@ class ByteArray(ConstByteArray):
         assert (array.offset + array.bitlength) % 8 == self.offset
         if self.offset:
             # first do the byte with the join.
-            array.setbyte(-1, (array.getbyte(-1) & (255 ^ (255 >> self.offset)) | \
+            array.setbyte(-1, (array.getbyte(-1) & (255 ^ (255 >> self.offset)) |\
                                (self._rawarray[0] & (255 >> self.offset))))
-            array._rawarray.extend(self._rawarray[1 : self.bytelength])
+            array._rawarray.extend(self._rawarray[1: self.bytelength])
         else:
-            array._rawarray.extend(self._rawarray[0 : self.bytelength])
+            array._rawarray.extend(self._rawarray[0: self.bytelength])
         self._rawarray = array._rawarray
         self.offset = array.offset
         self.bitlength += array.bitlength
+
 
 def offsetcopy(s, newoffset):
     """Return a copy of s with the newoffset."""
@@ -185,7 +186,7 @@ def offsetcopy(s, newoffset):
             shiftleft = s.offset % 8 - newoffset
             # First deal with everything except for the final byte
             for x in range(s.byteoffset, s.byteoffset + s.bytelength - 1):
-                newdata.append(((d[x] << shiftleft) & 0xff) + \
+                newdata.append(((d[x] << shiftleft) & 0xff) +\
                                (d[x + 1] >> (8 - shiftleft)))
             bits_in_last_byte = (s.offset + s.bitlength) % 8
             if not bits_in_last_byte:
@@ -196,7 +197,7 @@ def offsetcopy(s, newoffset):
             shiftright = newoffset - s.offset % 8
             newdata.append(s.getbyte(0) >> shiftright)
             for x in range(1, s.bytelength):
-                newdata.append(((d[x-1] << (8 - shiftright)) & 0xff) + \
+                newdata.append(((d[x - 1] << (8 - shiftright)) & 0xff) +\
                                (d[x] >> shiftright))
             bits_in_last_byte = (s.offset + s.bitlength) % 8
             if not bits_in_last_byte:
@@ -206,6 +207,7 @@ def offsetcopy(s, newoffset):
         new_s = ByteArray(bytearray(newdata), s.bitlength, newoffset)
         assert new_s.offset == newoffset
         return new_s
+
 
 def equal(a, b):
     """Return True if a == b."""
@@ -254,7 +256,7 @@ def equal(a, b):
             if da[x] != db[b_a_offset + x]:
                 return False
         # and finally the last byte
-        return (da[a_byteoffset + a_bytelength - 1] >> bits_spare_in_last_byte == 
+        return (da[a_byteoffset + a_bytelength - 1] >> bits_spare_in_last_byte ==
                 db[b_byteoffset + b_bytelength - 1] >> bits_spare_in_last_byte)
 
     assert a_bitoff != b_bitoff

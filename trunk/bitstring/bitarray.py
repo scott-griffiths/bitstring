@@ -19,7 +19,6 @@ except NameError:
 
 #noinspection PyArgumentList
 class BitArray(constbitarray.ConstBitArray):
-
     """A container holding a mutable sequence of bits.
 
     Subclass of the immutable ConstBitArray class. Inherits all of its
@@ -150,7 +149,7 @@ class BitArray(constbitarray.ConstBitArray):
         """
         self.append(bs)
         return self
-    
+
     def __copy__(self):
         """Return a new copy of the BitArray."""
         s_copy = BitArray()
@@ -704,7 +703,7 @@ class BitArray(constbitarray.ConstBitArray):
                 if len(f) == 1:
                     bytesizes.append(constbitarray.PACK_CODE_SIZE[f])
                 else:
-                    bytesizes.extend([constbitarray.PACK_CODE_SIZE[f[-1]]]*int(f[:-1]))
+                    bytesizes.extend([constbitarray.PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
         elif isinstance(fmt, collections.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
@@ -714,7 +713,7 @@ class BitArray(constbitarray.ConstBitArray):
             raise ValueError("Format must be an integer, string or iterable.")
 
         repeats = 0
-        totalbitsize = 8*sum(bytesizes)
+        totalbitsize = 8 * sum(bytesizes)
         if not totalbitsize:
             return 0
         if repeat:
@@ -726,76 +725,76 @@ class BitArray(constbitarray.ConstBitArray):
         for patternend in xrange(start + totalbitsize, finalbit + 1, totalbitsize):
             bytestart = patternend - totalbitsize
             for bytesize in bytesizes:
-                byteend = bytestart + bytesize*8
+                byteend = bytestart + bytesize * 8
                 self._reversebytes(bytestart, byteend)
-                bytestart += bytesize*8
+                bytestart += bytesize * 8
             repeats += 1
         return repeats
 
 
-    int    = property(cba._getint, cba._setint,
-                      doc="""The bitstring as a two's complement signed int. Read and write.
+    int = property(cba._getint, cba._setint,
+                   doc="""The bitstring as a two's complement signed int. Read and write.
                       """)
-    uint   = property(cba._getuint, cba._setuint,
-                      doc="""The bitstring as a two's complement unsigned int. Read and write.
+    uint = property(cba._getuint, cba._setuint,
+                    doc="""The bitstring as a two's complement unsigned int. Read and write.
                       """)
-    float  = property(cba._getfloat, cba._setfloat,
-                      doc="""The bitstring as a floating point number. Read and write.
+    float = property(cba._getfloat, cba._setfloat,
+                     doc="""The bitstring as a floating point number. Read and write.
                       """)
-    intbe  = property(cba._getintbe, cba._setintbe,
-                      doc="""The bitstring as a two's complement big-endian signed int. Read and write.
+    intbe = property(cba._getintbe, cba._setintbe,
+                     doc="""The bitstring as a two's complement big-endian signed int. Read and write.
                       """)
     uintbe = property(cba._getuintbe, cba._setuintbe,
                       doc="""The bitstring as a two's complement big-endian unsigned int. Read and write.
                       """)
-    floatbe= property(cba._getfloat, cba._setfloat,
-                      doc="""The bitstring as a big-endian floating point number. Read and write.
+    floatbe = property(cba._getfloat, cba._setfloat,
+                       doc="""The bitstring as a big-endian floating point number. Read and write.
                       """)
-    intle  = property(cba._getintle, cba._setintle,
-                      doc="""The bitstring as a two's complement little-endian signed int. Read and write.
+    intle = property(cba._getintle, cba._setintle,
+                     doc="""The bitstring as a two's complement little-endian signed int. Read and write.
                       """)
     uintle = property(cba._getuintle, cba._setuintle,
                       doc="""The bitstring as a two's complement little-endian unsigned int. Read and write.
                       """)
-    floatle= property(cba._getfloatle, cba._setfloatle,
-                      doc="""The bitstring as a little-endian floating point number. Read and write.
+    floatle = property(cba._getfloatle, cba._setfloatle,
+                       doc="""The bitstring as a little-endian floating point number. Read and write.
                       """)
-    intne  = property(cba._getintne, cba._setintne,
-                      doc="""The bitstring as a two's complement native-endian signed int. Read and write.
+    intne = property(cba._getintne, cba._setintne,
+                     doc="""The bitstring as a two's complement native-endian signed int. Read and write.
                       """)
     uintne = property(cba._getuintne, cba._setuintne,
                       doc="""The bitstring as a two's complement native-endian unsigned int. Read and write.
                       """)
-    floatne= property(cba._getfloatne, cba._setfloatne,
-                      doc="""The bitstring as a native-endian floating point number. Read and write.
+    floatne = property(cba._getfloatne, cba._setfloatne,
+                       doc="""The bitstring as a native-endian floating point number. Read and write.
                       """)
-    ue     = property(cba._getue, cba._setue,
-                      doc="""The bitstring as an unsigned exponential-Golomb code. Read and write.
+    ue = property(cba._getue, cba._setue,
+                  doc="""The bitstring as an unsigned exponential-Golomb code. Read and write.
                       """)
-    se     = property(cba._getse, cba._setse,
-                      doc="""The bitstring as a signed exponential-Golomb code. Read and write.
+    se = property(cba._getse, cba._setse,
+                  doc="""The bitstring as a signed exponential-Golomb code. Read and write.
                       """)
-    hex    = property(cba._gethex, cba._sethex,
-                      doc="""The bitstring as a hexadecimal string. Read and write.
+    hex = property(cba._gethex, cba._sethex,
+                   doc="""The bitstring as a hexadecimal string. Read and write.
 
                       When read will be prefixed with '0x' and including any leading zeros.
 
                       """)
-    bin    = property(cba._getbin, cba._setbin_safe,
-                      doc="""The bitstring as a binary string. Read and write.
+    bin = property(cba._getbin, cba._setbin_safe,
+                   doc="""The bitstring as a binary string. Read and write.
 
                       When read will be prefixed with '0b' and including any leading zeros.
 
                       """)
-    oct    = property(cba._getoct, cba._setoct,
-                      doc="""The bitstring as an octal string. Read and write.
+    oct = property(cba._getoct, cba._setoct,
+                   doc="""The bitstring as an octal string. Read and write.
 
                       When read will be prefixed with '0o' and including any leading zeros.
 
                       """)
-    bool   = property(cba._getbool, cba._setbool,
-                      doc="""The bitstring as a bool (True or False). Read and write."""
-                      )
-    bytes  = property(cba._getbytes, cba._setbytes_safe,
-                      doc="""The bitstring as a ordinary string. Read and write.
+    bool = property(cba._getbool, cba._setbool,
+                    doc="""The bitstring as a bool (True or False). Read and write."""
+    )
+    bytes = property(cba._getbytes, cba._setbytes_safe,
+                     doc="""The bitstring as a ordinary string. Read and write.
                       """)

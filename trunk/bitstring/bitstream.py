@@ -8,7 +8,6 @@ from bitstring.errors import CreationError
 from bitstring.bitstore import ByteArray
 
 class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
-
     """A container or stream holding a mutable sequence of bits
 
     Subclass of the ConstBitStream and BitArray classes. Inherits all of
@@ -127,7 +126,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
         # For mutable BitStreams we always read in files to memory:
         if not isinstance(self._datastore, ByteArray):
             self._ensureinmemory()
-            
+
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
         x = object.__new__(BitStream)
         x._initialise(auto, length, offset, **kwargs)

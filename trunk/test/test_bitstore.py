@@ -7,7 +7,6 @@ import bitstring.bitstore as bitstore
 
 
 class Mmap(unittest.TestCase):
-
     def setUp(self):
         self.f = open('smalltestfile', 'rb')
 

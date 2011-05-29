@@ -6,7 +6,6 @@ from bitstring.errors import ByteAlignError, ReadError
 
 
 class ConstBitStream(ConstBitArray):
-
     """A container or stream holding an immutable sequence of bits.
 
     For a mutable container use the BitStream class instead.
@@ -109,7 +108,7 @@ class ConstBitStream(ConstBitArray):
 
         """
         self._pos = 0
-        
+
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
         x = object.__new__(ConstBitStream)
         x._initialise(auto, length, offset, **kwargs)
@@ -117,7 +116,7 @@ class ConstBitStream(ConstBitArray):
 
     def _setbytepos(self, bytepos):
         """Move to absolute byte-aligned position in stream."""
-        self._setbitpos(bytepos*8)
+        self._setbitpos(bytepos * 8)
 
     def _getbytepos(self):
         """Return the current position in the stream in bytes. Must be byte aligned."""
@@ -306,12 +305,12 @@ class ConstBitStream(ConstBitArray):
         assert self._assertsanity()
         return skipped
 
-    pos    = property(_getbitpos, _setbitpos,
-                      doc="""The position in the bitstring in bits. Read and write.
+    pos = property(_getbitpos, _setbitpos,
+                   doc="""The position in the bitstring in bits. Read and write.
                       """)
     bitpos = property(_getbitpos, _setbitpos,
                       doc="""The position in the bitstring in bits. Read and write.
                       """)
-    bytepos= property(_getbytepos, _setbytepos,
-                      doc="""The position in the bitstring in bytes. Read and write.
+    bytepos = property(_getbytepos, _setbytepos,
+                       doc="""The position in the bitstring in bytes. Read and write.
                       """)
