@@ -364,7 +364,7 @@ class ConstBitArray(object):
         pass
         
     def __new__(cls, auto=None, length=None, offset=None, _cache={}, **kwargs):
-        # For instances auto-initialised below a certain length we intern the
+        # For instances auto-initialised with a string we intern the
         # instance for re-use. 
         try:
             if isinstance(auto, basestring):
@@ -377,15 +377,13 @@ class ConstBitArray(object):
                     except ValueError as e:
                         raise CreationError(*e.args)
                     x._datastore = bitstore.ConstByteArray(bytearray(0), 0, 0)
-                    if tokens:
-                        x._datastore._appendarray(ConstBitArray._init_with_token(*tokens[0])._datastore)
-                        for token in tokens[1:]:
-                            x._datastore._appendarray(ConstBitArray._init_with_token(*token)._datastore)
+                    for token in tokens:
+                        x._datastore._appendarray(ConstBitArray._init_with_token(*token)._datastore)
                     assert x._assertsanity()
                     _cache[auto] = x
                     return x
         except TypeError:
-                pass
+            pass
         x = object.__new__(ConstBitArray)
         x._initialise(auto, length, offset, **kwargs)
         return x
@@ -996,15 +994,15 @@ class ConstBitArray(object):
             raise CreationError(msg, uint, length, (1 << length) - 1)
         if uint < 0:
             raise CreationError("uint cannot be initialsed by a negative number.")
-        
         s = hex(uint)[2:]
         s = s.rstrip('L')
         if len(s) & 1:
             s = '0' + s
         try:
+            data = bytes.fromhex(s)
+        except AttributeError:
+            # the Python 2.x way
             data = binascii.unhexlify(s)
-        except TypeError:
-            data = binascii.unhexlify(bytes(s, 'utf-8'))
         # Now add bytes as needed to get the right length.
         extrabytes = ((length + 7) // 8) - len(data)
         if extrabytes > 0:
