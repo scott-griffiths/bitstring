@@ -138,7 +138,7 @@ class BitArray(constbitarray.ConstBitArray):
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
         x = object.__new__(BitArray)
         y = constbitarray.ConstBitArray.__new__(BitArray, auto, length, offset, **kwargs)
-        x._datastore = copy.copy(y._datastore)
+        x._datastore = y._datastore
         return x
 
     def __iadd__(self, bs):
