@@ -915,7 +915,7 @@ class ConstBitArray(object):
                 msg = "Can't create bitstring of negative length {0}."
                 raise CreationError(msg, s)
             data = bytearray((s + 7) // 8)
-            self._setbytes_unsafe(data, s, 0)
+            self._datastore = ByteArray(data, s, 0)
             return
         if isinstance(s, collections.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
