@@ -4,6 +4,7 @@ import re
 import collections
 import copy
 import numbers
+import bitstring
 import bitstring.constbitarray as constbitarray
 from bitstring.bitstore import ByteArray
 from bitstring.errors import Error
@@ -420,7 +421,7 @@ class BitArray(constbitarray.ConstBitArray):
         self._setbytes_unsafe(bytearray().join(n), self.length, newoffset)
 
     def replace(self, old, new, start=None, end=None, count=None,
-                bytealigned=False):
+                bytealigned=None):
         """Replace all occurrences of old with new in place.
 
         Returns number of replacements made.
@@ -445,6 +446,8 @@ class BitArray(constbitarray.ConstBitArray):
         if not old.len:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
+        if bytealigned is None:
+            bytealigned = bitstring.bytealigned
         # Adjust count for use in split()
         if count is not None:
             count += 1

@@ -9,6 +9,7 @@ import struct
 import operator
 import collections
 import numbers
+import bitstring
 from bitstring.bitstore import ByteArray, ConstByteArray, MmapByteArray
 from bitstring.errors import CreationError, Error, InterpretError, ReadError
 
@@ -1949,7 +1950,7 @@ class ConstBitArray(object):
             return_values.append(value)
         return return_values, pos
 
-    def find(self, bs, start=None, end=None, bytealigned=False):
+    def find(self, bs, start=None, end=None, bytealigned=None):
         """Find first occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -1974,6 +1975,8 @@ class ConstBitArray(object):
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
+        if bytealigned is None:
+            bytealigned = bitstring.bytealigned
         # If everything's byte aligned (and whole-byte) use the quick algorithm.
         if bytealigned and len(bs) % 8 == 0 and self._datastore.offset == 0:
             # Extract data bytes from bitstring to be found.
@@ -2018,7 +2021,7 @@ class ConstBitArray(object):
             # Not found, return empty tuple
             return ()
 
-    def findall(self, bs, start=None, end=None, count=None, bytealigned=False):
+    def findall(self, bs, start=None, end=None, count=None, bytealigned=None):
         """Find all occurrences of bs. Return generator of bit positions.
 
         bs -- The bitstring to find.
@@ -2039,6 +2042,8 @@ class ConstBitArray(object):
             raise ValueError("In findall, count must be >= 0.")
         bs = ConstBitArray(bs)
         start, end = self._validate_slice(start, end)
+        if bytealigned is None:
+            bytealigned = bitstring.bytealigned
         c = 0
         while True:
             p = self.find(bs, start, end, bytealigned)
@@ -2056,7 +2061,7 @@ class ConstBitArray(object):
                 break
         return
 
-    def rfind(self, bs, start=None, end=None, bytealigned=False):
+    def rfind(self, bs, start=None, end=None, bytealigned=None):
         """Find final occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -2076,6 +2081,8 @@ class ConstBitArray(object):
         """
         bs = ConstBitArray(bs)
         start, end = self._validate_slice(start, end)
+        if bytealigned is None:
+            bytealigned = bitstring.bytealigned
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         # Search chunks starting near the end and then moving back
@@ -2121,7 +2128,7 @@ class ConstBitArray(object):
         return
 
     def split(self, delimiter, start=None, end=None, count=None,
-              bytealigned=False):
+              bytealigned=None):
         """Return bitstring generator by splittling using a delimiter.
 
         The first item returned is the initial bitstring before the delimiter,
@@ -2142,6 +2149,8 @@ class ConstBitArray(object):
         if not delimiter.len:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
+        if bytealigned is None:
+            bytealigned = bitstring.bytealigned
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
