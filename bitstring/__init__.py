@@ -62,6 +62,10 @@ __version__ = "2.2.0"
 
 __author__ = "Scott Griffiths"
 
+_defaultbytealigned = False
+bytealigned = _defaultbytealigned
+"""Determines whether a number of methods default to working only on byte boundaries."""
+
 from bitstring.constbitstream import ConstBitStream
 from bitstring.bitstream import BitStream, pack
 from bitstring.bitarray import BitArray
@@ -73,3 +77,7 @@ b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). F
 # Aliases for backward compatibility
 Bits = ConstBitStream
 BitString = BitStream
+
+__all__ = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
+           'Bits', 'BitString', 'pack', 'Error', 'ReadError',
+           'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned']
