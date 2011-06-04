@@ -102,8 +102,8 @@ class Bugs(unittest.TestCase):
 
 
 class ByteAligned(unittest.TestCase):
-    def testDefault(self):
-        self.assertFalse(bitstring._defaultbytealigned)
+    def testDefault(self, defaultbytealigned=bitstring.bytealigned):
+        self.assertFalse(defaultbytealigned)
 
     def testChangingIt(self):
         bitstring.bytealigned = True

@@ -2,9 +2,9 @@
 
 from __future__ import print_function
 
+import bitstring
 import bitstring.constbitstream as constbitstream
 import bitstring.bitarray as bitarray
-from bitstring.errors import CreationError
 from bitstring.bitstore import ByteArray
 
 class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
@@ -192,7 +192,7 @@ def pack(fmt, *values, **kwargs):
     try:
         _, tokens = constbitstream.tokenparser(fmt, tuple(sorted(kwargs.keys())))
     except ValueError as e:
-        raise CreationError(*e.args)
+        raise bitstring.CreationError(*e.args)
     value_iter = iter(values)
     s = BitStream()
     try:
@@ -214,12 +214,12 @@ def pack(fmt, *values, **kwargs):
                 value = next(value_iter)
             s._append(BitStream._init_with_token(name, length, value))
     except StopIteration:
-        raise CreationError("Not enough parameters present to pack according to the "
+        raise bitstring.CreationError("Not enough parameters present to pack according to the "
                             "format. {0} values are needed.", len(tokens))
     try:
         next(value_iter)
     except StopIteration:
         # Good, we've used up all the *values.
         return s
-    raise CreationError("Too many parameters present to pack according to the format.")
+    raise bitstring.CreationError("Too many parameters present to pack according to the format.")
 

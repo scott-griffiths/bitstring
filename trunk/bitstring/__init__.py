@@ -17,6 +17,7 @@ BitStream -- A mutable container with streaming methods.
               BitArray   ConstBitStream
                    \        /
                     \      /
+                     \    /
                     BitStream
 
 Functions:
@@ -62,17 +63,56 @@ __version__ = "2.2.0"
 
 __author__ = "Scott Griffiths"
 
-_defaultbytealigned = False
-bytealigned = _defaultbytealigned
+bytealigned = False
 """Determines whether a number of methods default to working only on byte boundaries."""
+
+class Error(Exception):
+    """Base class for errors in the bitstring module."""
+
+    def __init__(self, *params):
+        self.msg = params[0] if params else ''
+        self.params = params[1:]
+
+    def __str__(self):
+        if self.params:
+            return self.msg.format(*self.params)
+        return self.msg
+
+
+class ReadError(Error, IndexError):
+    """Reading or peeking past the end of a bitstring."""
+
+    def __init__(self, *params):
+        Error.__init__(self, *params)
+
+
+class InterpretError(Error, ValueError):
+    """Inappropriate interpretation of binary data."""
+
+    def __init__(self, *params):
+        Error.__init__(self, *params)
+
+
+class ByteAlignError(Error):
+    """Whole-byte position or length needed."""
+
+    def __init__(self, *params):
+        Error.__init__(self, *params)
+
+
+class CreationError(Error, ValueError):
+    """Inappropriate argument during bitstring creation."""
+
+    def __init__(self, *params):
+        Error.__init__(self, *params)
 
 from bitstring.constbitstream import ConstBitStream
 from bitstring.bitstream import BitStream, pack
 from bitstring.bitarray import BitArray
 from bitstring.constbitarray import ConstBitArray
-from bitstring.errors import Error, ByteAlignError, ReadError, InterpretError, CreationError
 
-b"Python 2.6 or later is needed (otherwise this line generates a SyntaxError). For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
+
+b"Python 2.6 or later is needed. For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
 
 # Aliases for backward compatibility
 Bits = ConstBitStream
