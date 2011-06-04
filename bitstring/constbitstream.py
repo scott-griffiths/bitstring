@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import numbers
+import bitstring
 from bitstring.constbitarray import ConstBitArray, tokenparser
-from bitstring.errors import ByteAlignError, ReadError
 
 
 class ConstBitStream(ConstBitArray):
@@ -121,7 +121,7 @@ class ConstBitStream(ConstBitArray):
     def _getbytepos(self):
         """Return the current position in the stream in bytes. Must be byte aligned."""
         if self._pos % 8:
-            raise ByteAlignError("Not byte aligned in _getbytepos().")
+            raise bitstring.ByteAlignError("Not byte aligned in _getbytepos().")
         return self._pos // 8
 
     def _setbitpos(self, pos):
@@ -212,7 +212,7 @@ class ConstBitStream(ConstBitArray):
             if fmt < 0:
                 raise ValueError("Cannot read negative amount.")
             if fmt > self.len - self._pos:
-                raise ReadError("Cannot read {0} bits, only {1} available.",
+                raise bitstring.ReadError("Cannot read {0} bits, only {1} available.",
                                 fmt, self.len - self._pos)
             bs = self._slice(self._pos, self._pos + fmt)
             self._pos += fmt
@@ -269,7 +269,7 @@ class ConstBitStream(ConstBitArray):
         oldpos = self._pos
         p = self.find(bs, self._pos, bytealigned=bytealigned)
         if not p:
-            raise ReadError("Substring not found")
+            raise bitstring.ReadError("Substring not found")
         self._pos += bs.len
         return self._slice(oldpos, self._pos)
 

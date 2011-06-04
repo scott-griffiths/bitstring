@@ -7,7 +7,6 @@ import numbers
 import bitstring
 import bitstring.constbitarray as constbitarray
 from bitstring.bitstore import ByteArray
-from bitstring.errors import Error
 
 cba = constbitarray.ConstBitArray
 
@@ -641,7 +640,7 @@ class BitArray(constbitarray.ConstBitArray):
 
         """
         if not self.len:
-            raise Error("Cannot rotate an empty bitstring.")
+            raise bitstring.Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate right by negative amount.")
         start, end = self._validate_slice(start, end)
@@ -663,7 +662,7 @@ class BitArray(constbitarray.ConstBitArray):
 
         """
         if not self.len:
-            raise Error("Cannot rotate an empty bitstring.")
+            raise bitstring.Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate left by negative amount.")
         start, end = self._validate_slice(start, end)

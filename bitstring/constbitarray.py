@@ -11,7 +11,6 @@ import collections
 import numbers
 import bitstring
 from bitstring.bitstore import ByteArray, ConstByteArray, MmapByteArray
-from bitstring.errors import CreationError, Error, InterpretError, ReadError
 
 
 byteorder = sys.byteorder
@@ -206,11 +205,11 @@ def tokenparser(fmt, keys=None, token_cache={}):
                 try:
                     length = int(length)
                     if length < 0:
-                        raise Error
+                        raise bitstring.Error
                     # For the 'bytes' token convert length to bits.
                     if name == 'bytes':
                         length *= 8
-                except Error:
+                except bitstring.Error:
                     raise ValueError("Can't read a token with a negative length.")
                 except ValueError:
                     if not keys or length not in keys:
@@ -376,7 +375,7 @@ class ConstBitArray(object):
                     try:
                         _, tokens = tokenparser(auto)
                     except ValueError as e:
-                        raise CreationError(*e.args)
+                        raise bitstring.CreationError(*e.args)
                     x._datastore = bitstore.ConstByteArray(bytearray(0), 0, 0)
                     for token in tokens:
                         x._datastore._appendarray(ConstBitArray._init_with_token(*token)._datastore)
@@ -391,9 +390,9 @@ class ConstBitArray(object):
 
     def _initialise(self, auto, length, offset, **kwargs):
         if length is not None and length < 0:
-            raise CreationError("bitstring length cannot be negative.")
+            raise bitstring.CreationError("bitstring length cannot be negative.")
         if offset is not None and offset < 0:
-            raise CreationError("offset must be >= 0.")
+            raise bitstring.CreationError("offset must be >= 0.")
         if auto is not None:
             self._initialise_from_auto(auto, length, offset)
             return
@@ -409,19 +408,19 @@ class ConstBitArray(object):
         try:
             init_without_length_or_offset[k](self, v)
             if length is not None or offset is not None:
-                raise CreationError("Cannot use length or offset with this initialiser.")
+                raise bitstring.CreationError("Cannot use length or offset with this initialiser.")
         except KeyError:
             try:
                 init_with_length_only[k](self, v, length)
                 if offset is not None:
-                    raise CreationError("Cannot use offset with this initialiser.")
+                    raise bitstring.CreationError("Cannot use offset with this initialiser.")
             except KeyError:
                 if offset is None:
                     offset = 0
                 try:
                     init_with_length_and_offset[k](self, v, length, offset)
                 except KeyError:
-                    raise CreationError("Unrecognised keyword '{0}' used to initialise.", k)
+                    raise bitstring.CreationError("Unrecognised keyword '{0}' used to initialise.", k)
 
     def _initialise_from_auto(self, auto, length, offset):
         if offset is None:
@@ -613,7 +612,7 @@ class ConstBitArray(object):
 
         """
         if not self.len:
-            raise Error("Cannot invert empty bitstring.")
+            raise bitstring.Error("Cannot invert empty bitstring.")
         s = self._copy()
         s._invert_all()
         return s
@@ -862,12 +861,12 @@ class ConstBitArray(object):
             elif value in (0, 'False', '0'):
                 b = cls(bool=False)
             else:
-                raise CreationError("bool token can only be 'True' or 'False'.")
+                raise bitstring.CreationError("bool token can only be 'True' or 'False'.")
         else:
-            raise CreationError("Can't parse token name {0}.", name)
+            raise bitstring.CreationError("Can't parse token name {0}.", name)
         if token_length is not None and b.len != token_length:
             msg = "Token with length {0} packed with value of length {1} ({2}:{3}={4})."
-            raise CreationError(msg, token_length, b.len, name, token_length, value)
+            raise bitstring.CreationError(msg, token_length, b.len, name, token_length, value)
         return b
 
     def _clear(self):
@@ -894,14 +893,14 @@ class ConstBitArray(object):
             bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
             m = MmapByteArray(s, bytelength, byteoffset)
             if length + byteoffset * 8 + offset > m.filelength * 8:
-                raise CreationError("File is not long enough for specified "
+                raise bitstring.CreationError("File is not long enough for specified "
                                     "length and offset.")
             self._datastore = ConstByteArray(m, length, offset)
             return
         if length is not None:
-            raise CreationError("The length keyword isn't applicable to this initialiser.")
+            raise bitstring.CreationError("The length keyword isn't applicable to this initialiser.")
         if offset:
-            raise CreationError("The offset keyword isn't applicable to this initialiser.")
+            raise bitstring.CreationError("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, basestring):
             bs = self._converttobitstring(s)
             assert bs._offset == 0
@@ -914,7 +913,7 @@ class ConstBitArray(object):
             # Initialise with s zero bits.
             if s < 0:
                 msg = "Can't create bitstring of negative length {0}."
-                raise CreationError(msg, s)
+                raise bitstring.CreationError(msg, s)
             data = bytearray((s + 7) // 8)
             self._datastore = ByteArray(data, s, 0)
             return
@@ -935,7 +934,7 @@ class ConstBitArray(object):
         bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
         m = MmapByteArray(source, bytelength, byteoffset)
         if length + byteoffset * 8 + offset > m.filelength * 8:
-            raise CreationError("File is not long enough for specified "
+            raise bitstring.CreationError("File is not long enough for specified "
                                 "length and offset.")
         self._datastore = ConstByteArray(m, length, offset)
 
@@ -949,7 +948,7 @@ class ConstBitArray(object):
         else:
             if length + offset > len(data) * 8:
                 msg = "Not enough data present. Need {0} bits, have {1}."
-                raise CreationError(msg, length + offset, len(data) * 8)
+                raise bitstring.CreationError(msg, length + offset, len(data) * 8)
             if not length:
                 self._datastore = ByteArray(bytearray(0))
             else:
@@ -973,7 +972,7 @@ class ConstBitArray(object):
     def _getbytes(self):
         """Return the data as an ordinary string."""
         if self.len % 8:
-            raise InterpretError("Cannot interpret as bytes unambiguously - "
+            raise bitstring.InterpretError("Cannot interpret as bytes unambiguously - "
                                  "not multiple of 8 bits.")
         return self._readbytes(self.len, 0)
 
@@ -988,14 +987,14 @@ class ConstBitArray(object):
             pass
         # TODO: All this checking code should be hoisted out of here!
         if length is None or length == 0:
-            raise CreationError("A non-zero length must be specified with a "
+            raise bitstring.CreationError("A non-zero length must be specified with a "
                                 "uint initialiser.")
         if uint >= (1 << length):
             msg = "{0} is too large an unsigned integer for a bitstring of length {1}. "\
                   "The allowed range is [0, {2}]."
-            raise CreationError(msg, uint, length, (1 << length) - 1)
+            raise bitstring.CreationError(msg, uint, length, (1 << length) - 1)
         if uint < 0:
-            raise CreationError("uint cannot be initialsed by a negative number.")
+            raise bitstring.CreationError("uint cannot be initialsed by a negative number.")
         s = hex(uint)[2:]
         s = s.rstrip('L')
         if len(s) & 1:
@@ -1017,7 +1016,7 @@ class ConstBitArray(object):
     def _readuint(self, length, start):
         """Read bits and interpret as an unsigned int."""
         if not length:
-            raise InterpretError("Cannot interpret a zero length bitstring "
+            raise bitstring.InterpretError("Cannot interpret a zero length bitstring "
                                  "as an integer.")
         offset = self._offset
         startbyte = (start + offset) // 8
@@ -1043,9 +1042,9 @@ class ConstBitArray(object):
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
-            raise CreationError("A non-zero length must be specified with an int initialiser.")
+            raise bitstring.CreationError("A non-zero length must be specified with an int initialiser.")
         if int_ >= (1 << (length - 1)) or int_ < -(1 << (length - 1)):
-            raise CreationError("{0} is too large a signed integer for a bitstring of length {1}. "
+            raise bitstring.CreationError("{0} is too large a signed integer for a bitstring of length {1}. "
                                 "The allowed range is [{2}, {3}].", int_, length, -(1 << (length - 1)),
                                 (1 << (length - 1)) - 1)
         if int_ >= 0:
@@ -1077,14 +1076,14 @@ class ConstBitArray(object):
     def _setuintbe(self, uintbe, length=None):
         """Set the bitstring to a big-endian unsigned int interpretation."""
         if length is not None and length % 8 != 0:
-            raise CreationError("Big-endian integers must be whole-byte. "
+            raise bitstring.CreationError("Big-endian integers must be whole-byte. "
                                 "Length = {0} bits.", length)
         self._setuint(uintbe, length)
 
     def _readuintbe(self, length, start):
         """Read bits and interpret as a big-endian unsigned int."""
         if length % 8:
-            raise InterpretError("Big-endian integers must be whole-byte. "
+            raise bitstring.InterpretError("Big-endian integers must be whole-byte. "
                                  "Length = {0} bits.", length)
         return self._readuint(length, start)
 
@@ -1095,14 +1094,14 @@ class ConstBitArray(object):
     def _setintbe(self, intbe, length=None):
         """Set bitstring to a big-endian signed int interpretation."""
         if length is not None and length % 8 != 0:
-            raise CreationError("Big-endian integers must be whole-byte. "
+            raise bitstring.CreationError("Big-endian integers must be whole-byte. "
                                 "Length = {0} bits.", length)
         self._setint(intbe, length)
 
     def _readintbe(self, length, start):
         """Read bits and interpret as a big-endian signed int."""
         if length % 8:
-            raise InterpretError("Big-endian integers must be whole-byte. "
+            raise bitstring.InterpretError("Big-endian integers must be whole-byte. "
                                  "Length = {0} bits.", length)
         return self._readint(length, start)
 
@@ -1112,7 +1111,7 @@ class ConstBitArray(object):
 
     def _setuintle(self, uintle, length=None):
         if length is not None and length % 8 != 0:
-            raise CreationError("Little-endian integers must be whole-byte. "
+            raise bitstring.CreationError("Little-endian integers must be whole-byte. "
                                 "Length = {0} bits.", length)
         self._setuint(uintle, length)
         self._reversebytes(0, self.len)
@@ -1120,7 +1119,7 @@ class ConstBitArray(object):
     def _readuintle(self, length, start):
         """Read bits and interpret as a little-endian unsigned int."""
         if length % 8:
-            raise InterpretError("Little-endian integers must be whole-byte. "
+            raise bitstring.InterpretError("Little-endian integers must be whole-byte. "
                                  "Length = {0} bits.", length)
         assert start + length <= self.len
         absolute_pos = start + self._offset
@@ -1150,7 +1149,7 @@ class ConstBitArray(object):
 
     def _setintle(self, intle, length=None):
         if length is not None and length % 8 != 0:
-            raise CreationError("Little-endian integers must be whole-byte. "
+            raise bitstring.CreationError("Little-endian integers must be whole-byte. "
                                 "Length = {0} bits.", length)
         self._setint(intle, length)
         self._reversebytes(0, self.len)
@@ -1173,14 +1172,14 @@ class ConstBitArray(object):
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
-            raise CreationError("A non-zero length must be specified with a "
+            raise bitstring.CreationError("A non-zero length must be specified with a "
                                 "float initialiser.")
         if length == 32:
             b = struct.pack('>f', f)
         elif length == 64:
             b = struct.pack('>d', f)
         else:
-            raise CreationError("floats can only be 32 or 64 bits long, "
+            raise bitstring.CreationError("floats can only be 32 or 64 bits long, "
                                 "not {0} bits", length)
         self._setbytes_unsafe(bytearray(b), length, 0)
 
@@ -1200,7 +1199,7 @@ class ConstBitArray(object):
         try:
             return f
         except NameError:
-            raise InterpretError("floats can only be 32 or 64 bits long, not {0} bits", length)
+            raise bitstring.InterpretError("floats can only be 32 or 64 bits long, not {0} bits", length)
 
     def _getfloat(self):
         """Interpret the whole bitstring as a float."""
@@ -1211,14 +1210,14 @@ class ConstBitArray(object):
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
-            raise CreationError("A non-zero length must be specified with a "
+            raise bitstring.CreationError("A non-zero length must be specified with a "
                                 "float initialiser.")
         if length == 32:
             b = struct.pack('<f', f)
         elif length == 64:
             b = struct.pack('<d', f)
         else:
-            raise CreationError("floats can only be 32 or 64 bits long, "
+            raise bitstring.CreationError("floats can only be 32 or 64 bits long, "
                                 "not {0} bits", length)
         self._setbytes_unsafe(bytearray(b), length, 0)
 
@@ -1238,7 +1237,7 @@ class ConstBitArray(object):
         try:
             return f
         except NameError:
-            raise InterpretError("floats can only be 32 or 64 bits long, "
+            raise bitstring.InterpretError("floats can only be 32 or 64 bits long, "
                                  "not {0} bits", length)
 
     def _getfloatle(self):
@@ -1252,7 +1251,7 @@ class ConstBitArray(object):
 
         """
         if i < 0:
-            raise CreationError("Cannot use negative initialiser for unsigned "
+            raise bitstring.CreationError("Cannot use negative initialiser for unsigned "
                                 "exponential-Golomb.")
         if not i:
             self._setbin_unsafe('1')
@@ -1279,12 +1278,12 @@ class ConstBitArray(object):
             while not self[pos]:
                 pos += 1
         except IndexError:
-            raise ReadError("Read off end of bitstring trying to read code.")
+            raise bitstring.ReadError("Read off end of bitstring trying to read code.")
         leadingzeros = pos - oldpos
         codenum = (1 << leadingzeros) - 1
         if leadingzeros > 0:
             if pos + leadingzeros + 1 > self.len:
-                raise ReadError("Read off end of bitstring trying to read code.")
+                raise bitstring.ReadError("Read off end of bitstring trying to read code.")
             codenum += self._readuint(leadingzeros, pos + 1)
             pos += leadingzeros + 1
         else:
@@ -1301,9 +1300,9 @@ class ConstBitArray(object):
         try:
             value, newpos = self._readue(0)
             if value is None or newpos != self.len:
-                raise ReadError
-        except ReadError:
-            raise InterpretError("Bitstring is not a single exponential-Golomb code.")
+                raise bitstring.ReadError
+        except bitstring.ReadError:
+            raise bitstring.InterpretError("Bitstring is not a single exponential-Golomb code.")
         return value
 
     def _setse(self, i):
@@ -1323,9 +1322,9 @@ class ConstBitArray(object):
         try:
             value, newpos = self._readse(0)
             if value is None or newpos != self.len:
-                raise ReadError
-        except ReadError:
-            raise InterpretError("Bitstring is not a single exponential-Golomb code.")
+                raise bitstring.ReadError
+        except bitstring.ReadError:
+            raise bitstring.InterpretError("Bitstring is not a single exponential-Golomb code.")
         return value
 
     def _readse(self, pos):
@@ -1351,7 +1350,7 @@ class ConstBitArray(object):
 
         """
         if i < 0:
-            raise CreationError("Cannot use negative initialiser for unsigned "
+            raise bitstring.CreationError("Cannot use negative initialiser for unsigned "
                                 "interleaved exponential-Golomb.")
         self._setbin_unsafe('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
 
@@ -1371,7 +1370,7 @@ class ConstBitArray(object):
                 pos += 1
             pos += 1
         except IndexError:
-            raise ReadError("Read off end of bitstring trying to read code.")
+            raise bitstring.ReadError("Read off end of bitstring trying to read code.")
         codenum -= 1
         return codenum, pos
 
@@ -1384,9 +1383,9 @@ class ConstBitArray(object):
         try:
             value, newpos = self._readuie(0)
             if value is None or newpos != self.len:
-                raise ReadError
-        except ReadError:
-            raise InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
+                raise bitstring.ReadError
+        except bitstring.ReadError:
+            raise bitstring.InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
         return value
 
     def _setsie(self, i):
@@ -1406,9 +1405,9 @@ class ConstBitArray(object):
         try:
             value, newpos = self._readsie(0)
             if value is None or newpos != self.len:
-                raise ReadError
-        except ReadError:
-            raise InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
+                raise bitstring.ReadError
+        except bitstring.ReadError:
+            raise bitstring.InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
         return value
 
     def _readsie(self, pos):
@@ -1429,7 +1428,7 @@ class ConstBitArray(object):
             else:
                 return codenum, pos + 1
         except IndexError:
-            raise ReadError("Read off end of bitstring trying to read code.")
+            raise bitstring.ReadError("Read off end of bitstring trying to read code.")
 
     def _setbool(self, value):
         # We deliberately don't want to have implicit conversions to bool here.
@@ -1439,12 +1438,12 @@ class ConstBitArray(object):
         elif value in (0, 'False'):
             self._setbytes_unsafe(bytearray(b'\x00'), 1, 0)
         else:
-            raise CreationError('Cannot initialise boolean with {0}.', value)
+            raise bitstring.CreationError('Cannot initialise boolean with {0}.', value)
 
     def _getbool(self):
         if self.length != 1:
             msg = "For a bool interpretation a bitstring must be 1 bit long, not {0} bits."
-            raise InterpretError(msg, self.length)
+            raise bitstring.InterpretError(msg, self.length)
         return self[0]
 
     def _readbool(self, pos):
@@ -1468,7 +1467,7 @@ class ConstBitArray(object):
             bytelist = [int(padded_binstring[x:x + 8], 2)
                         for x in xrange(0, len(padded_binstring), 8)]
         except ValueError:
-            raise CreationError("Invalid character in bin initialiser {0}.", binstring)
+            raise bitstring.CreationError("Invalid character in bin initialiser {0}.", binstring)
         self._setbytes_unsafe(bytearray(bytelist), length, 0)
 
     def _readbin(self, length, start):
@@ -1497,13 +1496,13 @@ class ConstBitArray(object):
                     raise ValueError
                 binlist.append(OCT_TO_BITS[int(i)])
             except ValueError:
-                raise CreationError("Invalid symbol '{0}' in oct initialiser.", i)
+                raise bitstring.CreationError("Invalid symbol '{0}' in oct initialiser.", i)
         self._setbin_unsafe(''.join(binlist))
 
     def _readoct(self, length, start):
         """Read bits and interpret as an octal string."""
         if length % 3:
-            raise InterpretError("Cannot convert to octal unambiguously - "
+            raise bitstring.InterpretError("Cannot convert to octal unambiguously - "
                                  "not multiple of 3 bits.")
         if not length:
             return ''
@@ -1535,13 +1534,13 @@ class ConstBitArray(object):
                 # Python 2.6 needs a unicode string (a bug). 2.7 and 3.x work fine.
                 data = bytearray.fromhex(unicode(hexstring))
         except ValueError:
-            raise CreationError("Invalid symbol in hex initialiser.")
+            raise bitstring.CreationError("Invalid symbol in hex initialiser.")
         self._setbytes_unsafe(data, length * 4, 0)
 
     def _readhex(self, length, start):
         """Read bits and interpret as a hex string."""
         if length % 4:
-            raise InterpretError("Cannot convert to hex unambiguously - "
+            raise bitstring.InterpretError("Cannot convert to hex unambiguously - "
                                  "not multiple of 4 bits.")
         if not length:
             return ''
@@ -1592,7 +1591,7 @@ class ConstBitArray(object):
                 try:
                     _, tokens = tokenparser(bs)
                 except ValueError as e:
-                    raise CreationError(*e.args)
+                    raise bitstring.CreationError(*e.args)
                 if tokens:
                     b._append(ConstBitArray._init_with_token(*tokens[0]))
                     b._datastore = bitstore.offsetcopy(b._datastore, offset)
@@ -1626,7 +1625,7 @@ class ConstBitArray(object):
     def _readtoken(self, name, pos, length):
         """Reads a token from the bitstring and returns the result."""
         if length is not None and int(length) > self.length - pos:
-            raise ReadError("Reading off the end of the data.")
+            raise bitstring.ReadError("Reading off the end of the data.")
         try:
             val = name_to_read[name](self, length, pos)
             pos += length
@@ -1923,13 +1922,13 @@ class ConstBitArray(object):
                 length = kwargs[name]
             if stretchy_token:
                 if name in ('se', 'ue', 'sie', 'uie'):
-                    raise Error("It's not possible to parse a variable"
+                    raise bitstring.Error("It's not possible to parse a variable"
                                 "length token after a 'filler' token.")
                 else:
                     bits_after_stretchy_token += length
             if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 if stretchy_token:
-                    raise Error("It's not possible to have more than "
+                    raise bitstring.Error("It's not possible to have more than "
                                 "one 'filler' token.")
                 stretchy_token = token
         bits_left = self.len - pos
