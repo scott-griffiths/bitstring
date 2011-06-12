@@ -43,4 +43,46 @@ and to read it back::
  while a.pos != a.len:
      print(a.read('ue'))
 
-The notation ``ue`` and ``se`` for the exponential-Golomb code properties comes from the H.264 video standard, which uses these types of code a lot. The particular way that the signed integers are represented might be peculiar to this standard as I haven't seen it elsewhere (and an obvious alternative is minus the one given here), but the unsigned mapping seems to be universal.
+The notation ``ue`` and ``se`` for the exponential-Golomb code properties comes from the H.264 video standard, which uses these types of code a lot. There are other ways to map the bitstrings to integers:
+
+Interleaved exponential-Golomb codes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This type of code is used in the Dirac video standard, and is represented by the attributes :attr:`uie` and :attr:`sie`. For the interleaved codes the pattern is very similar to before for the unsigned case:
+
+=============  ===========
+Bit pattern    Unsigned
+=============  ===========
+``1``          0
+``001``        1
+``011``        2
+``00001``      3
+``00011``      4
+``01001``      5
+``01011``      6
+``0000001``    7
+``0000011``    8
+``0001001``    9
+``...``        ...
+=============  ===========
+
+For the signed code it looks a little different:
+
+=============  ===========
+Bit pattern    Signed
+=============  ===========
+``1``          0
+``0010``       1
+``0011``       -1
+``0110``       2
+``0111``       -2
+``000010``     3
+``000011``     -3
+``000110``     4
+``000111``     -4
+``010010``     5
+``010011``     -5
+``...``        ...
+=============  ===========
+
+I'm sure you can work out the pattern yourself from here!

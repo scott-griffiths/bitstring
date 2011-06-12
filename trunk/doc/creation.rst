@@ -43,6 +43,7 @@ When initialising a bitstring you need to specify at most one initialiser. These
 * ``intne``, ``uintne``: Signed or unsigned byte-wise native-endian binary integers.
 * ``float`` / ``floatbe``, ``floatle``, ``floatne``: Big, little and native endian floating point numbers.
 * ``se``, ``ue`` : Signed or unsigned exponential-Golomb coded integers.
+* ``sie``, ``uie`` : Signed or unsigned interleaved exponential-Golomb coded integers.
 * ``bool`` : A boolean (i.e. True or False).
 * ``filename`` : Directly from a file, without reading into memory.
 
@@ -145,7 +146,7 @@ As with other initialisers you can also auto initialise, as demonstrated with th
 Exponential-Golomb codes
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Initialisation with integers represented by exponential-Golomb codes is also possible. ``ue`` is an unsigned code while ``se`` is a signed code::
+Initialisation with integers represented by exponential-Golomb codes is also possible. ``ue`` is an unsigned code while ``se`` is a signed code. Interleaved exponential-Golomb codes are also supported via ``uie`` and ``sie``::
 
     >>> g = BitArray(ue=12)
     >>> h = BitArray(se=-402)

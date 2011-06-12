@@ -5,7 +5,7 @@ The ConstBitArray class
 
 .. class:: ConstBitArray([auto, length, offset, **kwargs])
 
-    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`ConstBitArray` class is precisely the same as for :class:`BitArray`, :class:`BitStream` and :class:`ConstBitStream`.
 
@@ -316,6 +316,18 @@ The ConstBitArray class
     .. attribute:: ue
 
         Property for the unsigned exponential-Golomb code representation of the bitstring.
+
+        When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
+
+    .. attribute:: sie
+
+        Property for the signed interleaved exponential-Golomb code representation of the bitstring.
+
+        When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
+
+    .. attribute:: uie
+
+        Property for the unsigned interleaved exponential-Golomb code representation of the bitstring.
 
         When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
 
