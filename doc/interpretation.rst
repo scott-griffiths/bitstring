@@ -142,3 +142,8 @@ The :attr:`~ConstBitArray.se` property does much the same as ``ue`` and the prov
     -1
  
 
+
+uie / sie
+^^^^^^^^^
+
+A slightly different type, interleaved exponential-Golomb codes are also supported. The principles are the same as with ``ue`` and ``se`` - see :ref:`exp-golomb` for detail of the differences.

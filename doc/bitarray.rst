@@ -236,6 +236,14 @@ The BitArray class
 
     .. attribute:: ue
 
+        Writable version of :attr:`ConstBitArray.uie`.
+
+    .. attribute:: sie
+
+        Writable version of :attr:`ConstBitArray.sie`.
+
+    .. attribute:: uie
+
         Writable version of :attr:`ConstBitArray.ue`.
 
     .. attribute:: uint

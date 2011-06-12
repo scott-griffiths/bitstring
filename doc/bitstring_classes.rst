@@ -32,7 +32,7 @@ Note that in places where a bitstring can be used as a parameter, any other vali
 
 * For floating point numbers use ``float:`` followed by the length in bits and ``=`` and the number. The default is big-endian, but you can also append ``be``, ``le`` or ``ne`` as with integers. e.g. ``float:64=0.2``, ``floatle:32=-0.3e12``
 
-* Starting with ``ue=`` or ``se=`` implies an exponential-Golomb coded integer. e.g. ``ue=12``, ``se=-4``
+* Starting with ``ue=``, ``uie=``, ``se=`` or ``sie=`` implies an exponential-Golomb coded integer. e.g. ``ue=12``, ``sie=-4``
 
 Multiples tokens can be joined by separating them with commas, so for example ``se=4, 0b1, se=-1`` represents the concatenation of three elements.
 

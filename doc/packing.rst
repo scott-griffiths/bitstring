@@ -56,9 +56,10 @@ The tokens in the format string that you must provide values for are:
 ``bin[:n]``         [``n`` bits as] a binary string.
 ``bits[:n]``        [``n`` bits as] a new bitstring.
 ``bool``            single bit as a boolean (True or False).
-
 ``ue``              an unsigned integer as an exponential-Golomb code.
 ``se``              a signed integer as an exponential-Golomb code.
+``uie``             an unsigned integer as an interleaved exponential-Golomb code.
+``sie``             a signed integer as an interleaved exponential-Golomb code.
 =============       ================================================================
 
 and you can also include constant bitstring tokens constructed from any of the following:
@@ -81,6 +82,8 @@ and you can also include constant bitstring tokens constructed from any of the f
 ``floatne:n=f``      native-endian floating point number ``f`` in ``n`` bits.
 ``ue=m``             exponential-Golomb code for unsigned integer ``m``.
 ``se=m``             exponential-Golomb code for signed integer ``m``.
+``uie=m``            interleaved exponential-Golomb code for unsigned integer ``m``.
+``sie=m``            interleaved exponential-Golomb code for signed integer ``m``.
 ``bool=b``           a single bit, either True or False.
 ================     ===============================================================
 

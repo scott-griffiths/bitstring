@@ -69,6 +69,8 @@ The format string consists of comma separated tokens that describe how to interp
 ``bytes:n``     ``n`` bytes as a ``bytes`` object.
 ``ue``          next bits as an unsigned exponential-Golomb code.
 ``se``          next bits as a signed exponential-Golomb code.
+``uie``         next bits as an interleaved unsigned exponential-Golomb code.
+``sie``         next bits as an interleaved signed exponential-Golomb code.
 ``bool``        next bits as a boolean (True or False).
 ==============  ===================================================================
 
@@ -90,7 +92,7 @@ You are allowed to use one 'stretchy' token in a :meth:`~ConstBitStream.readlist
 
 In this example the ``bits`` token will consist of everything left after the first two tokens are read, and could be empty.
 
-It is an error to use more than one stretchy token, or to use a ``ue`` or ``se`` token after a stretchy token (the reason you can't use exponential-Golomb codes after a stretchy token is that the codes can only be read forwards; that is you can't ask "if this code ends here, where did it begin?" as there could be many possible answers).
+It is an error to use more than one stretchy token, or to use a ``ue``, ``se``, ``uie`` or ``se`` token after a stretchy token (the reason you can't use exponential-Golomb codes after a stretchy token is that the codes can only be read forwards; that is you can't ask "if this code ends here, where did it begin?" as there could be many possible answers).
 
 Peeking
 ^^^^^^^^
@@ -178,3 +180,20 @@ To replace all occurrences of one :class:`BitArray` with another use :meth:`~Bit
     3            # The number of replacements made
     >>> s.bin
     '0b111100011111111'
+
+Working with byte aligned data
+------------------------------
+
+The emphasis with the bitstring module is always towards not worrying if things are a whole number of bytes long or are aligned on byte boundaries. Internally the module has to worry about this quite a lot, but the user shouldn't have to care. To this end methods such as :meth:`~ConstBitArray.find`, :meth:`~ConstBitArray.findall`, :meth:`ConstBitArray.split` and :meth:`~BitArray.replace` by default aren't concerned with looking for things only on byte boundaries and provide a parameter ``bytealigned`` which can be set to ``True`` to change this behaviour.
+
+This works fine, but it's not uncommon to be working only with whole-byte data and all the ``bytealigned=True`` can get a bit repetitive. To solve this it is possible to change the default throughout the module by setting ``bitstring.bytealigned``. For example::
+
+    >>> s = BitArray('0xabbb')
+    >>> s.find('0xbb')                   # look for the byte 0xbb
+    (4,)                                 # found, but not on byte boundary
+    >>> s.find('0xbb', bytealigned=True) # try again...
+    (8,)                                 # not found on any byte boundaries
+    >>> bitstring.bytealigned = True     # change the default behaviour
+    >>> s.find('0xbb')
+    (8,)                                 # now only finds byte aligned
+

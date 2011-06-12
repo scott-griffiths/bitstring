@@ -54,6 +54,8 @@ Properties
  *   :attr:`~ConstBitArray.oct` -- The bitstring as an octal string.
  *   :attr:`~ConstBitArray.se` -- Interpret as a signed exponential-Golomb code.
  *   :attr:`~ConstBitArray.ue` -- Interpret as an unsigned exponential-Golomb code.
+ *   :attr:`~ConstBitArray.sie` -- Interpret as a signed interleaved exponential-Golomb code.
+ *   :attr:`~ConstBitArray.uie` -- Interpret as an unsigned interleaved exponential-Golomb code.
  *   :attr:`~ConstBitArray.uint` -- Interpret as a two's complement unsigned integer.
  *   :attr:`~ConstBitArray.uintbe` -- Interpret as a big-endian unsigned integer.
  *   :attr:`~ConstBitArray.uintle` -- Interpret as a little-endian unsigned integer.
