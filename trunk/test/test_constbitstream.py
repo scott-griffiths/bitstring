@@ -55,9 +55,9 @@ class ReadTo(unittest.TestCase):
         self.assertRaises(ValueError, a.readto, 4)
 
     def testReadingLines(self):
-        s = "This is a test\nof reading lines\nof text\n"
+        s = b"This is a test\nof reading lines\nof text\n"
         b = CBS(bytes=s)
-        n = bitstring.ConstBitArray(bytes='\n')
+        n = bitstring.ConstBitArray(bytes=b'\n')
         self.assertEqual(b.readto(n).bytes, b'This is a test\n')
         self.assertEqual(b.readto(n).bytes, b'of reading lines\n')
         self.assertEqual(b.readto(n).bytes, b'of text\n')
