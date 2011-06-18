@@ -100,7 +100,7 @@ The BitArray class
             >>> s
             BitArray('0b11110')
 
-    .. method:: replace(old, new[, start, end, count, bytealigned=False])
+    .. method:: replace(old, new[, start, end, count, bytealigned])
 
         Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 

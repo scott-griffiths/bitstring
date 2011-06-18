@@ -92,7 +92,7 @@ The ConstBitArray class
             >>> s.endswith('0x22', start=13)
             False
 
-    .. method:: find(bs[, start, end, bytealigned=False])
+    .. method:: find(bs[, start, end, bytealigned])
 
         Searches for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
@@ -103,10 +103,8 @@ The ConstBitArray class
             >>> s = ConstBitArray('0x0023122')
             >>> s.find('0b000100', bytealigned=True)
             (16,)
-            >>> s.pos
-            16
 
-    .. method:: findall(bs[, start, end, count, bytealigned=False])
+    .. method:: findall(bs[, start, end, count, bytealigned])
 
         Searches for all occurrences of *bs* (even overlapping ones) and returns a generator of their bit positions.
 
@@ -130,7 +128,7 @@ The ConstBitArray class
             >>> print(s.bin)
             0b010101010
 
-    .. method:: rfind(bs[, start, end, bytealigned=False])
+    .. method:: rfind(bs[, start, end, bytealigned])
     
         Searches backwards for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
@@ -143,14 +141,10 @@ The ConstBitArray class
             >>> s = ConstBitArray('0o031544')
             >>> s.rfind('0b100')
             (15,)
-            >>> s.pos
-            15
             >>> s.rfind('0b100', end=17)
             (12,)
-            >>> s.pos
-            12
 
-    .. method:: split(delimiter[, start, end, count, bytealigned=False])
+    .. method:: split(delimiter[, start, end, count, bytealigned])
 
         Splits the bitstring into sections that start with *delimiter*. Returns a generator for bitstring objects.
 

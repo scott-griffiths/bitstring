@@ -1,6 +1,57 @@
 --------------------------------
 bitstring module version history
 --------------------------------
+
+--------------------------------------
+June 18th 2011: version 2.2.0 released
+--------------------------------------
+This is a minor upgrade with a couple of new features.
+
+New interleaved exponential-Golomb interpretations
+--------------------------------------------------
+
+New bit interpretations for interleaved exponential-Golomb (as used in the
+Dirac video codec) are supplied via 'uie' and 'sie':
+
+    >>> s = BitArray(uie=41)
+    >>> s.uie
+    41
+    >>> s.bin
+    '0b00010001001'
+
+These are pretty similar to the non-interleaved versions - see the manual
+for more details. Credit goes to Paul Sargent for the patch.
+
+New package-level bytealigned variable
+--------------------------------------
+
+A number of methods take a 'bytealigned' parameter to indicate that they
+should only work on byte boundaries (e.g. find, replace, split). Previously
+this parameter defaulted to 'False'. Instead it now defaults to
+'bitstring.bytealigned', which itself defaults to 'False', but can be changed
+to modify the default behaviour of the methods. For example:
+
+    >>> a = BitArray('0x00 ff 0f ff')
+    >>> a.find('0x0f')
+    (4,)    # found first not on a byte boundary
+    >>> a.find('0x0f', bytealigned=True)
+    (16,)   # forced looking only on byte boundaries
+    >>> bitstring.bytealigned = True  # Change default behaviour
+    >>> a.find('0x0f')
+    (16,)
+    >>> a.find('0x0f', bytealigned=False)
+    (4,)
+
+If you're only working with bytes then this can help avoid some errors and
+save some typing!
+
+Other changes
+-------------
+
+* Fix for Python 3.2, correcting for a change to the binascii module.
+* Fix for bool initialisation from 0 or 1.
+* Efficiency improvements, including interning strategy.
+
 ------------------------------------------
 February 23rd 2011: version 2.1.1 released
 ------------------------------------------

@@ -184,7 +184,7 @@ To replace all occurrences of one :class:`BitArray` with another use :meth:`~Bit
 Working with byte aligned data
 ------------------------------
 
-The emphasis with the bitstring module is always towards not worrying if things are a whole number of bytes long or are aligned on byte boundaries. Internally the module has to worry about this quite a lot, but the user shouldn't have to care. To this end methods such as :meth:`~ConstBitArray.find`, :meth:`~ConstBitArray.findall`, :meth:`ConstBitArray.split` and :meth:`~BitArray.replace` by default aren't concerned with looking for things only on byte boundaries and provide a parameter ``bytealigned`` which can be set to ``True`` to change this behaviour.
+The emphasis with the bitstring module is always towards not worrying if things are a whole number of bytes long or are aligned on byte boundaries. Internally the module has to worry about this quite a lot, but the user shouldn't have to care. To this end methods such as :meth:`~ConstBitArray.find`, :meth:`~ConstBitArray.findall`, :meth:`~ConstBitArray.split` and :meth:`~BitArray.replace` by default aren't concerned with looking for things only on byte boundaries and provide a parameter ``bytealigned`` which can be set to ``True`` to change this behaviour.
 
 This works fine, but it's not uncommon to be working only with whole-byte data and all the ``bytealigned=True`` can get a bit repetitive. To solve this it is possible to change the default throughout the module by setting ``bitstring.bytealigned``. For example::
 

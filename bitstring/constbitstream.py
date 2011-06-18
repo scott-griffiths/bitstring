@@ -157,7 +157,7 @@ class ConstBitStream(ConstBitArray):
 
     __add__.__doc__ = ConstBitArray.__add__.__doc__
 
-    def find(self, bs, start=None, end=None, bytealigned=False):
+    def find(self, bs, start=None, end=None, bytealigned=None):
         t = ConstBitArray.find(self, bs, start, end, bytealigned)
         if t:
             self._pos = t[0]
@@ -165,7 +165,7 @@ class ConstBitStream(ConstBitArray):
 
     find.__doc__ = ConstBitArray.find.__doc__
 
-    def rfind(self, bs, start=None, end=None, bytealigned=False):
+    def rfind(self, bs, start=None, end=None, bytealigned=None):
         t = ConstBitArray.rfind(self, bs, start, end, bytealigned)
         if t:
             self._pos = t[0]
@@ -252,26 +252,27 @@ class ConstBitStream(ConstBitArray):
         value, self._pos = self._readlist(fmt, self._pos, **kwargs)
         return value
 
-    def readto(self, bs, bytealigned=False):
-        """Read up to and including next occurrence of bs and return result.
-
-        bs -- The bitstring to find. An integer is not permitted.
-        bytealigned -- If True the bitstring will only be
-                       found on byte boundaries.
-
-        Raises ValueError if bs is empty.
-        Raises ReadError if bs is not found.
-
-        """
-        if isinstance(bs, numbers.Integral):
-            raise ValueError("Integers cannot be searched for")
-        bs = ConstBitArray(bs)
-        oldpos = self._pos
-        p = self.find(bs, self._pos, bytealigned=bytealigned)
-        if not p:
-            raise bitstring.ReadError("Substring not found")
-        self._pos += bs.len
-        return self._slice(oldpos, self._pos)
+    # This method works, I just decided not to include it yet.
+#    def readto(self, bs, bytealigned=None):
+#        """Read up to and including next occurrence of bs and return result.
+#
+#        bs -- The bitstring to find. An integer is not permitted.
+#        bytealigned -- If True the bitstring will only be
+#                       found on byte boundaries.
+#
+#        Raises ValueError if bs is empty.
+#        Raises ReadError if bs is not found.
+#
+#        """
+#        if isinstance(bs, numbers.Integral):
+#            raise ValueError("Integers cannot be searched for")
+#        bs = ConstBitArray(bs)
+#        oldpos = self._pos
+#        p = self.find(bs, self._pos, bytealigned=bytealigned)
+#        if not p:
+#            raise bitstring.ReadError("Substring not found")
+#        self._pos += bs.len
+#        return self._slice(oldpos, self._pos)
 
     def peek(self, fmt):
         """Interpret next bits according to format string and return result.
