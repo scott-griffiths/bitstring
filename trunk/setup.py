@@ -2,8 +2,7 @@
 from distutils.core import setup
 import sys
 
-kwds = {}
-kwds['long_description'] = open('README.txt').read()
+kwds = {'long_description': open('README.txt').read()}
 
 if sys.version_info[:2] < (2, 6):
     raise Exception('This version of bitstring needs Python 2.6 or later. '
