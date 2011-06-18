@@ -32,8 +32,7 @@ If you have downloaded and unzipped the package then you need to run the
 
      python setup.py install
 
-This should put ``bitstring.py`` in your ``site-packages`` directory. You may
-need to run this with root privileges on Unix-like systems.
+You may need to run this with root privileges on Unix-like systems.
 
 
 If you haven't yet downloaded the package then you can just try::
@@ -89,11 +88,8 @@ Searching, inserting and deleting::
 
 Unit Tests
 ----------
-There is a script to run the unit tests in the test/ directory::
 
-     python runtests.py
-
-The unit tests should all pass for Python 2.6 and later.
+The 400+ unit tests should all pass for Python 2.6 and later.
 
 ----
 
