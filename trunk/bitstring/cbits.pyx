@@ -851,11 +851,11 @@ class ConstBitArray(object):
             raise bitstring.CreationError(msg, token_length, b.len, name, token_length, value)
         return b
 
-    def _clear(self):
+    cdef _clear(self):
         """Reset the bitstring to an empty state."""
         self._datastore = ByteArray(bytearray(0))
 
-    def _setauto(self, s, length, offset):
+    cdef _setauto(self, s, length, offset):
         """Set bitstring from a bitstring, file, bool, integer, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
