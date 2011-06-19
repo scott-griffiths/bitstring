@@ -152,7 +152,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
         self._prepend(bs)
         self._pos += bs.len
 
-    prepend.__doc__ = bitarray.BitArray.prepend.__doc__
+# TODO:    prepend.__doc__ = bitarray.BitArray.prepend.__doc__
 
 
 def pack(fmt, *values, **kwargs):

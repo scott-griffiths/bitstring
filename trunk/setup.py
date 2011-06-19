@@ -10,8 +10,12 @@ if sys.version_info[:2] < (2, 6):
     raise Exception('This version of bitstring needs Python 2.6 or later. '
                     'For Python 2.4 / 2.5 please use bitstring version 1.0 instead.')
 
-ext_modules = [Extension('bitstring.cbitstore', ["bitstring/cbitstore.pyx"], define_macros=[('PYREX_WITHOUT_ASSERTIONS', None)]),
-               Extension('bitstring.cbits', ["bitstring/cbits.pyx"], define_macros=[('PYREX_WITHOUT_ASSERTIONS', None)])]
+no_assert = [('PYREX_WITHOUT_ASSERTIONS', None)]
+ext_modules = [Extension('bitstring.cbitstore', ["bitstring/cbitstore.pyx"], define_macros=no_assert),
+               Extension('bitstring.cbits', ["bitstring/cbits.pyx"], define_macros=no_assert),
+               Extension('bitstring.bitarray', ["bitstring/bitarray.pyx"], define_macros=no_assert),
+               Extension('bitstring.bitstream', ["bitstring/bitstream.pyx"], define_macros=no_assert),
+               Extension('bitstring.constbitstream', ["bitstring/constbitstream.pyx"], define_macros=no_assert)]
 
 setup(name='bitstring',
       version='2.2.0',
