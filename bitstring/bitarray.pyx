@@ -17,7 +17,6 @@ except NameError:
     xrange = range
     basestring = str
 
-#noinspection PyArgumentList
 class BitArray(bits.ConstBitArray):
     """A container holding a mutable sequence of bits.
 
@@ -648,7 +647,7 @@ class BitArray(bits.ConstBitArray):
         if not bits:
             return
         rhs = self[end - bits:end]
-        del self[end - bits:end]
+        self.__delitem__(slice(end - bits, end))
         self.insert(rhs, start)
 
     def rol(self, bits, start=None, end=None):
@@ -670,7 +669,7 @@ class BitArray(bits.ConstBitArray):
         if not bits:
             return
         lhs = self[start:start + bits]
-        del self[start:start + bits]
+        self.__delitem__(slice(start, start + bits))
         self.insert(lhs, end - bits)
 
     def byteswap(self, fmt=None, start=None, end=None, repeat=True):
