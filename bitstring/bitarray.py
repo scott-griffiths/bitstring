@@ -5,10 +5,10 @@ import collections
 import copy
 import numbers
 import bitstring
-import bitstring.constbitarray as constbitarray
-from bitstring.bitstore import ByteArray
+import bitstring.bits as bits
+from bitstring.cbitstore import ByteArray
 
-cba = constbitarray.ConstBitArray
+cba = bits.ConstBitArray
 
 # Hack for Python 3
 try:
@@ -18,7 +18,7 @@ except NameError:
     basestring = str
 
 #noinspection PyArgumentList
-class BitArray(constbitarray.ConstBitArray):
+class BitArray(bits.ConstBitArray):
     """A container holding a mutable sequence of bits.
 
     Subclass of the immutable ConstBitArray class. Inherits all of its
@@ -137,7 +137,7 @@ class BitArray(constbitarray.ConstBitArray):
 
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
         x = object.__new__(BitArray)
-        y = constbitarray.ConstBitArray.__new__(BitArray, auto, length, offset, **kwargs)
+        y = bits.ConstBitArray.__new__(BitArray, auto, length, offset, **kwargs)
         x._datastore = y._datastore
         return x
 
@@ -198,7 +198,7 @@ class BitArray(constbitarray.ConstBitArray):
                     self._set(key)
                     return
                 raise ValueError("Cannot set a single bit with integer {0}.".format(value))
-            value = constbitarray.ConstBitArray(value)
+            value = bits.ConstBitArray(value)
             if value.len == 1:
                 # TODO: this can't be optimal
                 if value[0]:
@@ -214,7 +214,7 @@ class BitArray(constbitarray.ConstBitArray):
             # value rather than initialise a new bitstring of that length.
             if not isinstance(value, numbers.Integral):
                 try:
-                    value = constbitarray.ConstBitArray(value)
+                    value = bits.ConstBitArray(value)
                 except TypeError:
                     raise TypeError("Bitstring, integer or string expected. "
                                     "Got {0}.".format(type(value)))
@@ -387,21 +387,21 @@ class BitArray(constbitarray.ConstBitArray):
         return self._imul(n)
 
     def __ior__(self, bs):
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.ConstBitArray(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for |= operator.")
         return self._ior(bs)
 
     def __iand__(self, bs):
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.ConstBitArray(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for &= operator.")
         return self._iand(bs)
 
     def __ixor__(self, bs):
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.ConstBitArray(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for ^= operator.")
@@ -410,7 +410,7 @@ class BitArray(constbitarray.ConstBitArray):
     def _reverse(self):
         """Reverse all bits in-place."""
         # Reverse the contents of each byte
-        n = [constbitarray.BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
+        n = [bits.BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
         # Then reverse the order of the bytes
         n.reverse()
         # The new offset is the number of bits that were unused at the end.
@@ -440,8 +440,8 @@ class BitArray(constbitarray.ConstBitArray):
         out of range.
 
         """
-        old = constbitarray.ConstBitArray(old)
-        new = constbitarray.ConstBitArray(new)
+        old = bits.ConstBitArray(old)
+        new = bits.ConstBitArray(new)
         if not old.len:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
@@ -495,7 +495,7 @@ class BitArray(constbitarray.ConstBitArray):
         Raises ValueError if pos < 0 or pos > self.len.
 
         """
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.ConstBitArray(bs)
         if not bs.len:
             return self
         if bs is self:
@@ -520,7 +520,7 @@ class BitArray(constbitarray.ConstBitArray):
         Raises ValueError if pos < 0 or pos + bs.len > self.len
 
         """
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.ConstBitArray(bs)
         if not bs.len:
             return
         if pos is None:
@@ -554,7 +554,7 @@ class BitArray(constbitarray.ConstBitArray):
         bs -- The bitstring to prepend.
 
         """
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.ConstBitArray(bs)
         self._prepend(bs)
 
     def reverse(self, start=None, end=None):
@@ -694,18 +694,18 @@ class BitArray(constbitarray.ConstBitArray):
                 raise ValueError("Improper byte length {0}.".format(fmt))
             bytesizes = [fmt]
         elif isinstance(fmt, basestring):
-            m = constbitarray.STRUCT_PACK_RE.match(fmt)
+            m = bits.STRUCT_PACK_RE.match(fmt)
             if not m:
                 raise ValueError("Cannot parse format string {0}.".format(fmt))
             # Split the format string into a list of 'q', '4h' etc.
-            formatlist = re.findall(constbitarray.STRUCT_SPLIT_RE, m.group('fmt'))
+            formatlist = re.findall(bits.STRUCT_SPLIT_RE, m.group('fmt'))
             # Now deal with multiplicative factors, 4h -> hhhh etc.
             bytesizes = []
             for f in formatlist:
                 if len(f) == 1:
-                    bytesizes.append(constbitarray.PACK_CODE_SIZE[f])
+                    bytesizes.append(bits.PACK_CODE_SIZE[f])
                 else:
-                    bytesizes.extend([constbitarray.PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
+                    bytesizes.extend([bits.PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
         elif isinstance(fmt, collections.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:

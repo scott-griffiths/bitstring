@@ -2,7 +2,7 @@
 
 import numbers
 import bitstring
-from bitstring.constbitarray import ConstBitArray, tokenparser
+from bitstring.bits import ConstBitArray, tokenparser
 
 
 class ConstBitStream(ConstBitArray):

@@ -133,7 +133,7 @@ class Creation(unittest.TestCase):
 
     def testDataStoreType(self):
         a = CBA('0xf')
-        self.assertEqual(type(a._datastore), bitstring.bitstore.ConstByteArray)
+        self.assertEqual(type(a._datastore), bitstring.cbitstore.ConstByteArray)
 
 
 class Initialisation(unittest.TestCase):
