@@ -109,7 +109,7 @@ class CreationError(Error, ValueError):
 from bitstring.constbitstream import ConstBitStream
 from bitstring.bitstream import BitStream, pack
 from bitstring.bitarray import BitArray
-from bitstring.constbitarray import ConstBitArray
+from bitstring.bits import ConstBitArray
 
 
 b"Python 2.6 or later is needed. For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."

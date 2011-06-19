@@ -5,7 +5,7 @@ from __future__ import print_function
 import bitstring
 import bitstring.constbitstream as constbitstream
 import bitstring.bitarray as bitarray
-from bitstring.bitstore import ByteArray
+from bitstring.cbitstore import ByteArray
 
 class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     """A container or stream holding a mutable sequence of bits
