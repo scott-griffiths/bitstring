@@ -28,19 +28,27 @@ The manual provides an introduction to the module and details most its capabilit
 
 The reference section has a complete list of all the classes, methods, attributes and functions of the :mod:`bitstring` module, together with short examples for many items.
 
+Some good starting points in the documentation are
+
+* :ref:`walkthrough`
+* :ref:`creation`
+* :ref:`reading`
+* :ref:`quick_reference`
+* :ref:`reference`
+
 
 .. toctree::
-   :maxdepth: 3
+   :hidden:
 
    contents
 
 .. toctree::
-   :maxdepth: 3
+   :hidden:
 
    reference
 
 .. toctree::
-   :maxdepth: 3
+   :hidden:
 
    appendices
 

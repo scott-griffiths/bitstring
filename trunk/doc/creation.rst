@@ -1,5 +1,7 @@
 .. currentmodule:: bitstring
 
+.. _creation:
+
 Creation
 ========
 

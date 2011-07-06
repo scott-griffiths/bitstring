@@ -79,9 +79,9 @@ If you downloaded the source and want to install, run::
 
 You might need to add a 'sudo' to the start of that command, depending on your system. This will copy the source files to your Python installation's ``site-packages`` directory.
 
-The module comes with comprehensive unit tests. To run them yourself use::
+The module comes with comprehensive unit tests. To run them yourself use your favourite unit test running method, mine is::
  
-    python test_bitstring.py
+    nosetests -w test
 
-which should run all the tests (over 300) and say OK. If tests fail then either your version of Python isn't supported (you need Python 2.6, 2.7, 3.0 or 3.1, though earlier versions supported 2.4 and 2.5) or something unexpected has happened - in which case please tell me about it.
+which should run all the tests (over 400) and say OK. If tests fail then either your version of Python isn't supported (you need Python 2.6, 2.7 or 3.x, though earlier versions supported 2.4 and 2.5) or something unexpected has happened - in which case please tell me about it.
 
