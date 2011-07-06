@@ -1,5 +1,7 @@
 .. currentmodule:: bitstring
 
+.. _walkthrough:
+
 ***********
 Walkthrough
 ***********

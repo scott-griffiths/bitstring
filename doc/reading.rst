@@ -1,5 +1,7 @@
 .. currentmodule:: bitstring
 
+.. _reading:
+
 ******************************
 Reading, Parsing and Unpacking
 ******************************

@@ -1,5 +1,7 @@
 .. currentmodule:: bitstring
 
+.. _quick_reference:
+
 ******************
 Quick Reference
 ******************

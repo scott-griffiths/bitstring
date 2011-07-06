@@ -22,7 +22,7 @@ sys.path.append(os.path.abspath('../'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinxjp.themecore']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -91,32 +91,14 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'default'
+html_theme = 'bizstyle'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 main_colour = "#ffbbbb"
 html_theme_options = {
-#    "full_logo": "false",
-#    "headingcolor": "#000080",
-    "linkcolor": "#000066",
-    "visitedlinkcolor": "#600080",
-#    "hoverlinkcolor": "#cc0000",
 #    "rightsidebar": "true",
-    "stickysidebar": "true",
-#    "collapsiblesidebar" : "true",
-    "bodyfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
-    "headfont": "'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', 'sans-serif'",
-    "sidebarbgcolor": "#f0f0ff",
-    "footerbgcolor": "#771111",
-    "relbarbgcolor": "#993333",
-    "sidebartextcolor": "#000000",
-    "sidebarlinkcolor": "#330000",
-    "codebgcolor": "#fffff0",
-    "headtextcolor": "#000080",
-    "headbgcolor": "#f0f0ff",
-    "bgcolor": "#ffffff",
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
