@@ -1691,14 +1691,14 @@ class Adding(unittest.TestCase):
     def testFileAndMemEquivalence(self):
         a = ConstBitStream(filename='smalltestfile')
         b = BitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.cbitstore.MmapByteArray))
+        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.bitstore.MmapByteArray))
         self.assertTrue(isinstance(b._datastore._rawarray, bytearray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
         self.assertEqual(a._datastore.getbyteslice(1, 5), bytearray(b._datastore.getbyteslice(1, 5)))
 
     def testByte2Bits(self):
         for i in range(256):
-            s = BitStream(bin=bitstring.bits.BYTE_TO_BITS[i])
+            s = BitStream(bin=bitstring.constbitarray.BYTE_TO_BITS[i])
             self.assertEqual(i, s.uint)
             self.assertEqual(s.length, 8)
 
@@ -1944,7 +1944,7 @@ class Adding(unittest.TestCase):
         self.assertFalse('0xfeed' in a)
 
     def testRepr(self):
-        max = bitstring.bits.MAX_CHARS
+        max = bitstring.constbitarray.MAX_CHARS
         bls = ['', '0b1', '0o5', '0x43412424f41', '0b00101001010101']
         for bs in bls:
             a = BitStream(bs)
@@ -1971,7 +1971,7 @@ class Adding(unittest.TestCase):
         s = BitStream(hex='0x00')
         self.assertEqual(s.hex, s.__str__())
         s = BitStream(filename='test.m1v')
-        self.assertEqual(s[0:bitstring.bits.MAX_CHARS * 4].hex + '...', s.__str__())
+        self.assertEqual(s[0:bitstring.constbitarray.MAX_CHARS * 4].hex + '...', s.__str__())
         self.assertEqual(BitStream().__str__(), '')
 
     def testIter(self):
@@ -3634,7 +3634,7 @@ class Bugs(unittest.TestCase):
         self.assertEqual(swaps, 2)
 
     def testBracketExpander(self):
-        be = bitstring.bits.expand_brackets
+        be = bitstring.constbitarray.expand_brackets
         self.assertEqual(be('hello'), 'hello')
         self.assertEqual(be('(hello)'), 'hello')
         self.assertEqual(be('1*(hello)'), 'hello')
@@ -3654,14 +3654,14 @@ class Bugs(unittest.TestCase):
         self.assertEqual(a, b)
 
     def testPackCodeDicts(self):
-        self.assertEqual(sorted(bitstring.bits.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.bits.REPLACEMENTS_LE.keys()))
-        self.assertEqual(sorted(bitstring.bits.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.bits.PACK_CODE_SIZE.keys()))
-        for key in bitstring.bits.PACK_CODE_SIZE:
-            be = pack(bitstring.bits.REPLACEMENTS_BE[key], 0)
-            le = pack(bitstring.bits.REPLACEMENTS_LE[key], 0)
-            self.assertEqual(be.len, bitstring.bits.PACK_CODE_SIZE[key] * 8)
+        self.assertEqual(sorted(bitstring.constbitarray.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.constbitarray.REPLACEMENTS_LE.keys()))
+        self.assertEqual(sorted(bitstring.constbitarray.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.constbitarray.PACK_CODE_SIZE.keys()))
+        for key in bitstring.constbitarray.PACK_CODE_SIZE:
+            be = pack(bitstring.constbitarray.REPLACEMENTS_BE[key], 0)
+            le = pack(bitstring.constbitarray.REPLACEMENTS_LE[key], 0)
+            self.assertEqual(be.len, bitstring.constbitarray.PACK_CODE_SIZE[key] * 8)
             self.assertEqual(le.len, be.len)
 
             # These tests don't compile for Python 3, so they're commented out to save me stress.
@@ -3829,10 +3829,10 @@ class FileReadingStrategy(unittest.TestCase):
 
     def testBitsIsNeverRead(self):
         a = ConstBitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.cbitstore.MmapByteArray))
+        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.bitstore.MmapByteArray))
         f = open('smalltestfile', 'rb')
         b = ConstBitStream(f)
-        self.assertTrue(isinstance(b._datastore._rawarray, bitstring.cbitstore.MmapByteArray))
+        self.assertTrue(isinstance(b._datastore._rawarray, bitstring.bitstore.MmapByteArray))
 
 
 class Count(unittest.TestCase):

@@ -3,23 +3,41 @@
 import sys
 import re
 import binascii
-import bitstring.cbitstore as bitstore
+import bitstring.bitstore as bitstore
 import os
 import struct
 import operator
 import collections
 import numbers
 import bitstring
-from bitstring.cbitstore import ByteArray, ConstByteArray, MmapByteArray
+from bitstring.bitstore import ByteArray, ConstByteArray, MmapByteArray
 
 
 byteorder = sys.byteorder
 
 # This creates a dictionary for every possible byte with the value being
 # the key with its bits reversed.
-BYTE_REVERSAL_DICT = dict()
-for i in range(256):
-    BYTE_REVERSAL_DICT[i] = chr(int("{0:08b}".format(i)[::-1], 2))
+REVERSED = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0"\
+           b"\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8"\
+           b"\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4"\
+           b"\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc"\
+           b"\x02\x82\x42\xc2\x22\xa2\x62\xe2\x12\x92\x52\xd2\x32\xb2\x72\xf2"\
+           b"\x0a\x8a\x4a\xca\x2a\xaa\x6a\xea\x1a\x9a\x5a\xda\x3a\xba\x7a\xfa"\
+           b"\x06\x86\x46\xc6\x26\xa6\x66\xe6\x16\x96\x56\xd6\x36\xb6\x76\xf6"\
+           b"\x0e\x8e\x4e\xce\x2e\xae\x6e\xee\x1e\x9e\x5e\xde\x3e\xbe\x7e\xfe"\
+           b"\x01\x81\x41\xc1\x21\xa1\x61\xe1\x11\x91\x51\xd1\x31\xb1\x71\xf1"\
+           b"\x09\x89\x49\xc9\x29\xa9\x69\xe9\x19\x99\x59\xd9\x39\xb9\x79\xf9"\
+           b"\x05\x85\x45\xc5\x25\xa5\x65\xe5\x15\x95\x55\xd5\x35\xb5\x75\xf5"\
+           b"\x0d\x8d\x4d\xcd\x2d\xad\x6d\xed\x1d\x9d\x5d\xdd\x3d\xbd\x7d\xfd"\
+           b"\x03\x83\x43\xc3\x23\xa3\x63\xe3\x13\x93\x53\xd3\x33\xb3\x73\xf3"\
+           b"\x0b\x8b\x4b\xcb\x2b\xab\x6b\xeb\x1b\x9b\x5b\xdb\x3b\xbb\x7b\xfb"\
+           b"\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7"\
+           b"\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
+
+try:
+    BYTE_REVERSAL_DICT = dict(zip(xrange(256), REVERSED))
+except NameError:
+    BYTE_REVERSAL_DICT = dict(zip(range(256), [bytes([x]) for x in REVERSED]))
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
@@ -130,7 +148,7 @@ def tokenparser(fmt, keys=None, token_cache={}):
     # Split tokens by ',' and remove whitespace
     # The meta_tokens can either be ordinary single tokens or multiple
     # struct-format token strings.
-    meta_tokens = [''.join(f.split()) for f in fmt.split(',')]
+    meta_tokens = (''.join(f.split()) for f in fmt.split(','))
     return_values = []
     stretchy_token = False
     for meta_token in meta_tokens:
@@ -243,10 +261,10 @@ def expand_brackets(s):
 
 
 # This byte to bitstring lookup really speeds things up.
-BYTE_TO_BITS = tuple(['{0:08b}'.format(i) for i in xrange(256)])
+BYTE_TO_BITS = tuple('{0:08b}'.format(i) for i in xrange(256))
 
 # And this converts a single octal digit to 3 bits.
-OCT_TO_BITS = tuple(['{0:03b}'.format(i) for i in xrange(8)])
+OCT_TO_BITS = tuple('{0:03b}'.format(i) for i in xrange(8))
 
 # A dictionary of number of 1 bits contained in binary representation of any byte
 BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
@@ -347,7 +365,7 @@ class ConstBitArray(object):
 
     def __new__(cls, auto=None, length=None, offset=None, _cache={}, **kwargs):
         # For instances auto-initialised with a string we intern the
-        # instance for re-use.
+        # instance for re-use. 
         try:
             if isinstance(auto, basestring):
                 try:
@@ -851,11 +869,11 @@ class ConstBitArray(object):
             raise bitstring.CreationError(msg, token_length, b.len, name, token_length, value)
         return b
 
-    cdef _clear(self):
+    def _clear(self):
         """Reset the bitstring to an empty state."""
         self._datastore = ByteArray(bytearray(0))
 
-    cdef _setauto(self, s, length, offset):
+    def _setauto(self, s, length, offset):
         """Set bitstring from a bitstring, file, bool, integer, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
@@ -901,7 +919,7 @@ class ConstBitArray(object):
             return
         if isinstance(s, collections.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
-            self._setbin_unsafe(''.join([str(int(bool(x))) for x in s]))
+            self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
             return
         raise TypeError("Cannot initialise bitstring from {0}.".format(type(s)))
 
@@ -1170,15 +1188,18 @@ class ConstBitArray(object):
         if not (start + self._offset) % 8:
             startbyte = (start + self._offset) // 8
             if length == 32:
-                return struct.unpack('>f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))[0]
+                f, = struct.unpack('>f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))
             elif length == 64:
-                return struct.unpack('>d', bytes(self._datastore.getbyteslice(startbyte, startbyte + 8)))[0]
+                f, = struct.unpack('>d', bytes(self._datastore.getbyteslice(startbyte, startbyte + 8)))
         else:
             if length == 32:
-                return struct.unpack('>f', self._readbytes(32, start))[0]
+                f, = struct.unpack('>f', self._readbytes(32, start))
             elif length == 64:
-                return struct.unpack('>d', self._readbytes(64, start))[0]
-        raise bitstring.InterpretError("floats can only be 32 or 64 bits long, not {0} bits", length)
+                f, = struct.unpack('>d', self._readbytes(64, start))
+        try:
+            return f
+        except NameError:
+            raise bitstring.InterpretError("floats can only be 32 or 64 bits long, not {0} bits", length)
 
     def _getfloat(self):
         """Interpret the whole bitstring as a float."""
@@ -1205,16 +1226,19 @@ class ConstBitArray(object):
         startbyte, offset = divmod(start + self._offset, 8)
         if not offset:
             if length == 32:
-                return struct.unpack('<f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))[0]
+                f, = struct.unpack('<f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))
             elif length == 64:
-                return struct.unpack('<d', bytes(self._datastore.getbyteslice(startbyte, startbyte + 8)))[0]
+                f, = struct.unpack('<d', bytes(self._datastore.getbyteslice(startbyte, startbyte + 8)))
         else:
             if length == 32:
-                return struct.unpack('<f', self._readbytes(32, start))[0]
+                f, = struct.unpack('<f', self._readbytes(32, start))
             elif length == 64:
-                return struct.unpack('<d', self._readbytes(64, start))[0]
-        raise bitstring.InterpretError("floats can only be 32 or 64 bits long, "
-                                       "not {0} bits", length)
+                f, = struct.unpack('<d', self._readbytes(64, start))
+        try:
+            return f
+        except NameError:
+            raise bitstring.InterpretError("floats can only be 32 or 64 bits long, "
+                                 "not {0} bits", length)
 
     def _getfloatle(self):
         """Interpret the whole bitstring as a little-endian float."""
@@ -1871,7 +1895,7 @@ class ConstBitArray(object):
             stretchy, tkns = tokenparser(f_item, tuple(sorted(kwargs.keys())))
             if stretchy:
                 if stretchy_token:
-                    raise bitstring.Error("It's not possible to have more than one 'filler' token.")
+                    raise Error("It's not possible to have more than one 'filler' token.")
                 stretchy_token = stretchy
             tokens.extend(tkns)
         if not stretchy_token:
@@ -1996,6 +2020,46 @@ class ConstBitArray(object):
             # Not found, return empty tuple
             return ()
 
+    def findall(self, bs, start=None, end=None, count=None, bytealigned=None):
+        """Find all occurrences of bs. Return generator of bit positions.
+
+        bs -- The bitstring to find.
+        start -- The bit position to start the search. Defaults to 0.
+        end -- The bit position one past the last bit to search.
+               Defaults to self.len.
+        count -- The maximum number of occurrences to find.
+        bytealigned -- If True the bitstring will only be found on
+                       byte boundaries.
+
+        Raises ValueError if bs is empty, if start < 0, if end > self.len or
+        if end < start.
+
+        Note that all occurrences of bs are found, even if they overlap.
+
+        """
+        if count is not None and count < 0:
+            raise ValueError("In findall, count must be >= 0.")
+        bs = ConstBitArray(bs)
+        start, end = self._validate_slice(start, end)
+        if bytealigned is None:
+            bytealigned = bitstring.bytealigned
+        c = 0
+        while True:
+            p = self.find(bs, start, end, bytealigned)
+            if not p:
+                break
+            if count is not None and c >= count:
+                return
+            c += 1
+            yield p[0]
+            if bytealigned:
+                start = p[0] + 8
+            else:
+                start = p[0] + 1
+            if start >= end:
+                break
+        return
+
     def rfind(self, bs, start=None, end=None, bytealigned=None):
         """Find final occurrence of substring bs.
 
@@ -2034,6 +2098,84 @@ class ConstBitArray(object):
                 pos = max(start, pos - increment)
                 continue
             return (found[-1],)
+
+    def cut(self, bits, start=None, end=None, count=None):
+        """Return bitstring generator by cutting into bits sized chunks.
+
+        bits -- The size in bits of the bitstring chunks to generate.
+        start -- The bit position to start the first cut. Defaults to 0.
+        end -- The bit position one past the last bit to use in the cut.
+               Defaults to self.len.
+        count -- If specified then at most count items are generated.
+                 Default is to cut as many times as possible.
+
+        """
+        start, end = self._validate_slice(start, end)
+        if count is not None and count < 0:
+            raise ValueError("Cannot cut - count must be >= 0.")
+        if bits <= 0:
+            raise ValueError("Cannot cut - bits must be >= 0.")
+        c = 0
+        while count is None or c < count:
+            c += 1
+            nextchunk = self._slice(start, min(start + bits, end))
+            if nextchunk.len != bits:
+                return
+            assert nextchunk._assertsanity()
+            yield nextchunk
+            start += bits
+        return
+
+    def split(self, delimiter, start=None, end=None, count=None,
+              bytealigned=None):
+        """Return bitstring generator by splittling using a delimiter.
+
+        The first item returned is the initial bitstring before the delimiter,
+        which may be an empty bitstring.
+
+        delimiter -- The bitstring used as the divider.
+        start -- The bit position to start the split. Defaults to 0.
+        end -- The bit position one past the last bit to use in the split.
+               Defaults to self.len.
+        count -- If specified then at most count items are generated.
+                 Default is to split as many times as possible.
+        bytealigned -- If True splits will only occur on byte boundaries.
+
+        Raises ValueError if the delimiter is empty.
+
+        """
+        delimiter = ConstBitArray(delimiter)
+        if not delimiter.len:
+            raise ValueError("split delimiter cannot be empty.")
+        start, end = self._validate_slice(start, end)
+        if bytealigned is None:
+            bytealigned = bitstring.bytealigned
+        if count is not None and count < 0:
+            raise ValueError("Cannot split - count must be >= 0.")
+        if count == 0:
+            return
+        # Use the base class find as we don't want to ever alter _pos.
+        found = ConstBitArray.find(self, delimiter, start, end, bytealigned)
+        if not found:
+            # Initial bits are the whole bitstring being searched
+            yield self._slice(start, end)
+            return
+        # yield the bytes before the first occurrence of the delimiter, even if empty
+        yield self[start:found[0]]
+        startpos = pos = found[0]
+        c = 1
+        while count is None or c < count:
+            pos += delimiter.len
+            found = ConstBitArray.find(self, delimiter, pos, end, bytealigned)
+            if not found:
+                # No more occurrences, so return the rest of the bitstring
+                yield self[startpos:end]
+                return
+            c += 1
+            yield self[startpos:found[0]]
+            startpos = pos = found[0]
+        # Have generated count bitstrings, so time to quit.
+        return
 
     def join(self, sequence):
         """Return concatenation of bitstrings joined by self.

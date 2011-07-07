@@ -5,7 +5,7 @@ from __future__ import print_function
 import bitstring
 import bitstring.constbitstream as constbitstream
 import bitstring.bitarray as bitarray
-from bitstring.cbitstore import ByteArray
+from bitstring.bitstore import ByteArray
 
 class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     """A container or stream holding a mutable sequence of bits
@@ -152,7 +152,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
         self._prepend(bs)
         self._pos += bs.len
 
-# TODO:    prepend.__doc__ = bitarray.BitArray.prepend.__doc__
+    prepend.__doc__ = bitarray.BitArray.prepend.__doc__
 
 
 def pack(fmt, *values, **kwargs):
