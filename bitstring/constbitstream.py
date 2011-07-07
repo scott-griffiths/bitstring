@@ -2,7 +2,7 @@
 
 import numbers
 import bitstring
-from bitstring.bits import ConstBitArray, tokenparser
+from bitstring.constbitarray import ConstBitArray, tokenparser
 
 
 class ConstBitStream(ConstBitArray):
@@ -155,7 +155,7 @@ class ConstBitStream(ConstBitArray):
         s._pos = 0
         return s
 
-# TODO:    __add__.__doc__ = ConstBitArray.__add__.__doc__
+    __add__.__doc__ = ConstBitArray.__add__.__doc__
 
     def find(self, bs, start=None, end=None, bytealigned=None):
         t = ConstBitArray.find(self, bs, start, end, bytealigned)
@@ -163,7 +163,7 @@ class ConstBitStream(ConstBitArray):
             self._pos = t[0]
         return t
 
-#TODO:    find.__doc__ = ConstBitArray.find.__doc__
+    find.__doc__ = ConstBitArray.find.__doc__
 
     def rfind(self, bs, start=None, end=None, bytealigned=None):
         t = ConstBitArray.rfind(self, bs, start, end, bytealigned)
@@ -171,7 +171,7 @@ class ConstBitStream(ConstBitArray):
             self._pos = t[0]
         return t
 
-# TODO:    rfind.__doc__ = ConstBitArray.rfind.__doc__
+    rfind.__doc__ = ConstBitArray.rfind.__doc__
 
     def read(self, fmt):
         """Interpret next bits according to the format string and return result.
