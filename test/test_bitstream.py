@@ -654,6 +654,10 @@ class Pack(unittest.TestCase):
     def testPackDefualtUintErrors(self):
         self.assertRaises(bitstring.CreationError, BitStream, '5=-1')
 
+    def testPackingLongKeywordBitstring(self):
+        s = pack('bits=b', b=BitStream(128000))
+        self.assertEqual(s, BitStream(128000))
+
 
 class Unpack(unittest.TestCase):
     def testUnpack1(self):
