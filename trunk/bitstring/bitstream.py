@@ -199,7 +199,7 @@ def pack(fmt, *values, **kwargs):
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.
             if value in kwargs:
-                value = str(kwargs[value])
+                value = kwargs[value]
             # If the length is in the kwd dictionary then use that too.
             if length in kwargs:
                 length = kwargs[length]
