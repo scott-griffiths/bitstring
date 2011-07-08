@@ -39,8 +39,8 @@ class MemoryUsage(unittest.TestCase):
         self.assertEqual(size(bitstring.ConstBitArray([0])), 64)
         self.assertEqual(size(bitstring.BitStream([0])), 64)
         self.assertEqual(size(bitstring.BitArray([0])), 64)
-        from bitstring.bitstore import ByteArray
-        self.assertEqual(size(ByteArray(bytearray())), 100)
+        from bitstring.bitstore import ByteStore
+        self.assertEqual(size(ByteStore(bytearray())), 100)
 
 
 class Copy(unittest.TestCase):

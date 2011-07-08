@@ -5,7 +5,7 @@ from __future__ import print_function
 import bitstring
 import bitstring.constbitstream as constbitstream
 import bitstring.bitarray as bitarray
-from bitstring.bitstore import ByteArray
+from bitstring.bitstore import ByteStore
 
 class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     """A container or stream holding a mutable sequence of bits
@@ -124,7 +124,7 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
         """
         self._pos = 0
         # For mutable BitStreams we always read in files to memory:
-        if not isinstance(self._datastore, ByteArray):
+        if not isinstance(self._datastore, ByteStore):
             self._ensureinmemory()
 
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
@@ -136,12 +136,12 @@ class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
         """Return a new copy of the BitStream."""
         s_copy = BitStream()
         s_copy._pos = 0
-        if not isinstance(self._datastore, ByteArray):
+        if not isinstance(self._datastore, ByteStore):
             # Let them both point to the same (invariant) array.
             # If either gets modified then at that point they'll be read into memory.
             s_copy._datastore = self._datastore
         else:
-            s_copy._datastore = ByteArray(self._datastore._rawarray[:],
+            s_copy._datastore = ByteStore(self._datastore._rawarray[:],
                                           self._datastore.bitlength,
                                           self._datastore.offset)
         return s_copy

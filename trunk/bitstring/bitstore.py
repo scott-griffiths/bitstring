@@ -10,50 +10,7 @@ import os
 import mmap
 
 
-class MmapByteArray(object):
-    """Looks like a bytearray, but from an mmap."""
-
-    __slots__ = ('filemap', 'filelength', 'source', 'byteoffset', 'bytelength')
-
-    def __init__(self, source, bytelength=None, byteoffset=None):
-        self.source = source
-        source.seek(0, os.SEEK_END)
-        self.filelength = source.tell()
-        if byteoffset is None:
-            byteoffset = 0
-        if bytelength is None:
-            bytelength = self.filelength - byteoffset
-        self.byteoffset = byteoffset
-        self.bytelength = bytelength
-        self.filemap = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
-
-    def __getitem__(self, key):
-        try:
-            start = key.start
-            stop = key.stop
-        except AttributeError:
-            try:
-                assert 0 <= key < self.bytelength
-                return ord(self.filemap[key + self.byteoffset])
-            except TypeError:
-                # for Python 3
-                return self.filemap[key + self.byteoffset]
-        else:
-            if start is None:
-                start = 0
-            if stop is None:
-                stop = self.bytelength
-            assert key.step is None
-            assert 0 <= start < self.bytelength
-            assert 0 <= stop <= self.bytelength
-            s = slice(start + self.byteoffset, stop + self.byteoffset)
-            return bytearray(self.filemap.__getitem__(s))
-
-    def __len__(self):
-        return self.bytelength
-
-
-class ConstByteArray(object):
+class ConstByteStore(object):
     """Stores raw bytes together with a bit offset and length."""
 
     __slots__ = ('offset', '_rawarray', 'bitlength')
@@ -93,23 +50,23 @@ class ConstByteArray(object):
         return eb - sb + 1
 
     def __copy__(self):
-        return ByteArray(self._rawarray[:], self.bitlength, self.offset)
+        return ByteStore(self._rawarray[:], self.bitlength, self.offset)
 
-    def _appendarray(self, array):
-        """Join another array on to the end of this one."""
-        if not array.bitlength:
+    def _appendstore(self, store):
+        """Join another store on to the end of this one."""
+        if not store.bitlength:
             return
         # Set new array offset to the number of bits in the final byte of current array.
-        array = offsetcopy(array, (self.offset + self.bitlength) % 8)
-        if array.offset:
+        store = offsetcopy(store, (self.offset + self.bitlength) % 8)
+        if store.offset:
             # first do the byte with the join.
-            joinval = (self._rawarray.pop() & (255 ^ (255 >> array.offset)) |
-                       (array.getbyte(0) & (255 >> array.offset)))
+            joinval = (self._rawarray.pop() & (255 ^ (255 >> store.offset)) |
+                       (store.getbyte(0) & (255 >> store.offset)))
             self._rawarray.append(joinval)
-            self._rawarray.extend(array._rawarray[1:])
+            self._rawarray.extend(store._rawarray[1:])
         else:
-            self._rawarray.extend(array._rawarray)
-        self.bitlength += array.bitlength
+            self._rawarray.extend(store._rawarray)
+        self.bitlength += store.bitlength
 
     @property
     def byteoffset(self):
@@ -120,7 +77,7 @@ class ConstByteArray(object):
         return self._rawarray
 
 
-class ByteArray(ConstByteArray):
+class ByteStore(ConstByteStore):
     __slots__ = ()
 
     def setbit(self, pos):
@@ -144,29 +101,29 @@ class ByteArray(ConstByteArray):
     def setbyteslice(self, start, end, value):
         self._rawarray[start + self.byteoffset:end + self.byteoffset] = value
 
-    def appendarray(self, array):
-        """Join another array on to the end of this one."""
-        self._appendarray(array)
+    def appendstore(self, store):
+        """Join another store on to the end of this one."""
+        self._appendstore(store)
 
-    def prependarray(self, array):
-        """Join another array on to the start of this one."""
-        if not array.bitlength:
+    def prependstore(self, store):
+        """Join another store on to the start of this one."""
+        if not store.bitlength:
             return
-        # Set the offset of copy of array so that it's final byte
+        # Set the offset of copy of store so that it's final byte
         # ends in a position that matches the offset of self,
         # then join self on to the end of it.
-        array = offsetcopy(array, (self.offset - array.bitlength) % 8)
-        assert (array.offset + array.bitlength) % 8 == self.offset
+        store = offsetcopy(store, (self.offset - store.bitlength) % 8)
+        assert (store.offset + store.bitlength) % 8 == self.offset
         if self.offset:
             # first do the byte with the join.
-            array.setbyte(-1, (array.getbyte(-1) & (255 ^ (255 >> self.offset)) |\
+            store.setbyte(-1, (store.getbyte(-1) & (255 ^ (255 >> self.offset)) |\
                                (self._rawarray[0] & (255 >> self.offset))))
-            array._rawarray.extend(self._rawarray[1: self.bytelength])
+            store._rawarray.extend(self._rawarray[1: self.bytelength])
         else:
-            array._rawarray.extend(self._rawarray[0: self.bytelength])
-        self._rawarray = array._rawarray
-        self.offset = array.offset
-        self.bitlength += array.bitlength
+            store._rawarray.extend(self._rawarray[0: self.bytelength])
+        self._rawarray = store._rawarray
+        self.offset = store.offset
+        self.bitlength += store.bitlength
 
 
 def offsetcopy(s, newoffset):
@@ -176,7 +133,7 @@ def offsetcopy(s, newoffset):
         return copy.copy(s)
     else:
         if newoffset == s.offset % 8:
-            return ByteArray(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
+            return ByteStore(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
         assert 0 <= newoffset < 8
         newdata = []
         d = s._rawarray
@@ -204,7 +161,7 @@ def offsetcopy(s, newoffset):
                 bits_in_last_byte = 8
             if bits_in_last_byte + shiftright > 8:
                 newdata.append((d[s.byteoffset + s.bytelength - 1] << (8 - shiftright)) & 0xff)
-        new_s = ByteArray(bytearray(newdata), s.bitlength, newoffset)
+        new_s = ByteStore(bytearray(newdata), s.bitlength, newoffset)
         assert new_s.offset == newoffset
         return new_s
 

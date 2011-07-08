@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+from exceptions import AttributeError, TypeError
 
 import sys
 import re
 import binascii
+import mmap
 import bitstring.bitstore as bitstore
 import os
 import struct
@@ -10,7 +12,7 @@ import operator
 import collections
 import numbers
 import bitstring
-from bitstring.bitstore import ByteArray, ConstByteArray, MmapByteArray
+from bitstring.bitstore import ByteStore, ConstByteStore
 
 
 byteorder = sys.byteorder
@@ -376,9 +378,9 @@ class ConstBitArray(object):
                         _, tokens = tokenparser(auto)
                     except ValueError as e:
                         raise bitstring.CreationError(*e.args)
-                    x._datastore = bitstore.ConstByteArray(bytearray(0), 0, 0)
+                    x._datastore = bitstore.ConstByteStore(bytearray(0), 0, 0)
                     for token in tokens:
-                        x._datastore._appendarray(ConstBitArray._init_with_token(*token)._datastore)
+                        x._datastore._appendstore(ConstBitArray._init_with_token(*token)._datastore)
                     assert x._assertsanity()
                     _cache[auto] = x
                     return x
@@ -871,7 +873,7 @@ class ConstBitArray(object):
 
     def _clear(self):
         """Reset the bitstring to an empty state."""
-        self._datastore = ByteArray(bytearray(0))
+        self._datastore = ByteStore(bytearray(0))
 
     def _setauto(self, s, length, offset):
         """Set bitstring from a bitstring, file, bool, integer, iterable or string."""
@@ -895,7 +897,7 @@ class ConstBitArray(object):
             if length + byteoffset * 8 + offset > m.filelength * 8:
                 raise bitstring.CreationError("File is not long enough for specified "
                                     "length and offset.")
-            self._datastore = ConstByteArray(m, length, offset)
+            self._datastore = ConstByteStore(m, length, offset)
             return
         if length is not None:
             raise bitstring.CreationError("The length keyword isn't applicable to this initialiser.")
@@ -915,7 +917,7 @@ class ConstBitArray(object):
                 msg = "Can't create bitstring of negative length {0}."
                 raise bitstring.CreationError(msg, s)
             data = bytearray((s + 7) // 8)
-            self._datastore = ByteArray(data, s, 0)
+            self._datastore = ByteStore(data, s, 0)
             return
         if isinstance(s, collections.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
@@ -936,7 +938,7 @@ class ConstBitArray(object):
         if length + byteoffset * 8 + offset > m.filelength * 8:
             raise bitstring.CreationError("File is not long enough for specified "
                                 "length and offset.")
-        self._datastore = ConstByteArray(m, length, offset)
+        self._datastore = ConstByteStore(m, length, offset)
 
     def _setbytes_safe(self, data, length=None, offset=0):
         """Set the data from a string."""
@@ -944,19 +946,19 @@ class ConstBitArray(object):
         if length is None:
             # Use to the end of the data
             length = (len(data) - (offset // 8)) * 8 - offset
-            self._datastore = ByteArray(data, length, offset)
+            self._datastore = ByteStore(data, length, offset)
         else:
             if length + offset > len(data) * 8:
                 msg = "Not enough data present. Need {0} bits, have {1}."
                 raise bitstring.CreationError(msg, length + offset, len(data) * 8)
             if not length:
-                self._datastore = ByteArray(bytearray(0))
+                self._datastore = ByteStore(bytearray(0))
             else:
-                self._datastore = ByteArray(data, length, offset)
+                self._datastore = ByteStore(data, length, offset)
 
     def _setbytes_unsafe(self, data, length, offset):
         """Unchecked version of _setbytes_safe."""
-        self._datastore = ByteArray(data[:], length, offset)
+        self._datastore = ByteStore(data[:], length, offset)
         assert self._assertsanity()
 
     def _readbytes(self, length, start):
@@ -1638,11 +1640,11 @@ class ConstBitArray(object):
 
     def _append(self, bs):
         """Append a bitstring to the current bitstring."""
-        self._datastore.appendarray(bs._datastore)
+        self._datastore.appendstore(bs._datastore)
 
     def _prepend(self, bs):
         """Prepend a bitstring to the current bitstring."""
-        self._datastore.prependarray(bs._datastore)
+        self._datastore.prependstore(bs._datastore)
 
     def _truncatestart(self, bits):
         """Truncate bits from the start of the bitstring."""
@@ -2496,4 +2498,44 @@ init_without_length_or_offset = {'bin': ConstBitArray._setbin_safe,
                                  'bool': ConstBitArray._setbool,
                                  }
 
+class MmapByteArray(object):
+    """Looks like a bytearray, but from an mmap."""
 
+    __slots__ = ('filemap', 'filelength', 'source', 'byteoffset', 'bytelength')
+
+    def __init__(self, source, bytelength=None, byteoffset=None):
+        self.source = source
+        source.seek(0, os.SEEK_END)
+        self.filelength = source.tell()
+        if byteoffset is None:
+            byteoffset = 0
+        if bytelength is None:
+            bytelength = self.filelength - byteoffset
+        self.byteoffset = byteoffset
+        self.bytelength = bytelength
+        self.filemap = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
+
+    def __getitem__(self, key):
+        try:
+            start = key.start
+            stop = key.stop
+        except AttributeError:
+            try:
+                assert 0 <= key < self.bytelength
+                return ord(self.filemap[key + self.byteoffset])
+            except TypeError:
+                # for Python 3
+                return self.filemap[key + self.byteoffset]
+        else:
+            if start is None:
+                start = 0
+            if stop is None:
+                stop = self.bytelength
+            assert key.step is None
+            assert 0 <= start < self.bytelength
+            assert 0 <= stop <= self.bytelength
+            s = slice(start + self.byteoffset, stop + self.byteoffset)
+            return bytearray(self.filemap.__getitem__(s))
+
+    def __len__(self):
+        return self.bytelength
