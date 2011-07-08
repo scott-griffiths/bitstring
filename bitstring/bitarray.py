@@ -6,7 +6,7 @@ import copy
 import numbers
 import bitstring
 import bitstring.constbitarray as constbitarray
-from bitstring.bitstore import ByteArray
+from bitstring.bitstore import ByteStore
 
 cba = constbitarray.ConstBitArray
 
@@ -132,7 +132,7 @@ class BitArray(constbitarray.ConstBitArray):
 
         """
         # For mutable BitArrays we always read in files to memory:
-        if not isinstance(self._datastore, ByteArray):
+        if not isinstance(self._datastore, ByteStore):
             self._ensureinmemory()
 
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
@@ -153,7 +153,7 @@ class BitArray(constbitarray.ConstBitArray):
     def __copy__(self):
         """Return a new copy of the BitArray."""
         s_copy = BitArray()
-        if not isinstance(self._datastore, ByteArray):
+        if not isinstance(self._datastore, ByteStore):
             # Let them both point to the same (invariant) array.
             # If either gets modified then at that point they'll be read into memory.
             s_copy._datastore = self._datastore

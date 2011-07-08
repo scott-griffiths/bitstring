@@ -8,7 +8,7 @@ import copy
 import os
 import collections
 from bitstring import BitStream, ConstBitStream, ConstBitArray, pack
-from bitstring.bitstore import ByteArray, offsetcopy
+from bitstring.bitstore import ByteStore, offsetcopy
 
 
 class FlexibleInitialisation(unittest.TestCase):
@@ -1695,7 +1695,7 @@ class Adding(unittest.TestCase):
     def testFileAndMemEquivalence(self):
         a = ConstBitStream(filename='smalltestfile')
         b = BitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.bitstore.MmapByteArray))
+        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.constbitarray.MmapByteArray))
         self.assertTrue(isinstance(b._datastore._rawarray, bytearray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
         self.assertEqual(a._datastore.getbyteslice(1, 5), bytearray(b._datastore.getbyteslice(1, 5)))
@@ -3826,17 +3826,17 @@ class ReadWithIntegers(unittest.TestCase):
 class FileReadingStrategy(unittest.TestCase):
     def testBitStreamIsAlwaysRead(self):
         a = BitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore, bitstring.bitstream.ByteArray))
+        self.assertTrue(isinstance(a._datastore, bitstring.bitstream.ByteStore))
         f = open('smalltestfile', 'rb')
         b = BitStream(f)
-        self.assertTrue(isinstance(b._datastore, bitstring.bitstream.ByteArray))
+        self.assertTrue(isinstance(b._datastore, bitstring.bitstream.ByteStore))
 
     def testBitsIsNeverRead(self):
         a = ConstBitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.bitstore.MmapByteArray))
+        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.constbitarray.MmapByteArray))
         f = open('smalltestfile', 'rb')
         b = ConstBitStream(f)
-        self.assertTrue(isinstance(b._datastore._rawarray, bitstring.bitstore.MmapByteArray))
+        self.assertTrue(isinstance(b._datastore._rawarray, bitstring.constbitarray.MmapByteArray))
 
 
 class Count(unittest.TestCase):
@@ -3899,12 +3899,12 @@ class InitialiseFromBytes(unittest.TestCase):
 
 class OffsetCopy(unittest.TestCase):
     def testStraightCopy(self):
-        s = ByteArray(bytearray([10, 5, 1]), 24, 0)
+        s = ByteStore(bytearray([10, 5, 1]), 24, 0)
         t = offsetcopy(s, 0)
         self.assertEqual(t._rawarray, bytearray([10, 5, 1]))
 
     def testOffsetIncrease(self):
-        s = ByteArray(bytearray([1, 1, 1]), 24, 0)
+        s = ByteStore(bytearray([1, 1, 1]), 24, 0)
         t = offsetcopy(s, 4)
         self.assertEqual(t.bitlength, 24)
         self.assertEqual(t.offset, 4)
