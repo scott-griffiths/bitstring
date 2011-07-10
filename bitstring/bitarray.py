@@ -5,10 +5,10 @@ import collections
 import copy
 import numbers
 import bitstring
-import bitstring.constbitarray as constbitarray
+import bitstring.bits as bits
+from bits import Bits
 from bitstring.bitstore import ByteStore
 
-cba = constbitarray.ConstBitArray
 
 # Hack for Python 3
 try:
@@ -17,11 +17,11 @@ except NameError:
     xrange = range
     basestring = str
 
-#noinspection PyArgumentList
-class BitArray(constbitarray.ConstBitArray):
+
+class BitArray(Bits):
     """A container holding a mutable sequence of bits.
 
-    Subclass of the immutable ConstBitArray class. Inherits all of its
+    Subclass of the immutable Bits class. Inherits all of its
     methods (except __hash__) and adds mutating methods.
 
     Mutating methods:
@@ -38,7 +38,7 @@ class BitArray(constbitarray.ConstBitArray):
     ror() -- Rotate bits to the right.
     set() -- Set bit(s) to 1 or 0.
 
-    Methods inherited from ConstBitArray:
+    Methods inherited from Bits:
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
@@ -137,7 +137,7 @@ class BitArray(constbitarray.ConstBitArray):
 
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
         x = object.__new__(BitArray)
-        y = constbitarray.ConstBitArray.__new__(BitArray, auto, length, offset, **kwargs)
+        y = bits.Bits.__new__(BitArray, auto, length, offset, **kwargs)
         x._datastore = y._datastore
         return x
 
@@ -198,7 +198,7 @@ class BitArray(constbitarray.ConstBitArray):
                     self._set(key)
                     return
                 raise ValueError("Cannot set a single bit with integer {0}.".format(value))
-            value = constbitarray.ConstBitArray(value)
+            value = bits.Bits(value)
             if value.len == 1:
                 # TODO: this can't be optimal
                 if value[0]:
@@ -214,7 +214,7 @@ class BitArray(constbitarray.ConstBitArray):
             # value rather than initialise a new bitstring of that length.
             if not isinstance(value, numbers.Integral):
                 try:
-                    value = constbitarray.ConstBitArray(value)
+                    value = bits.Bits(value)
                 except TypeError:
                     raise TypeError("Bitstring, integer or string expected. "
                                     "Got {0}.".format(type(value)))
@@ -387,21 +387,21 @@ class BitArray(constbitarray.ConstBitArray):
         return self._imul(n)
 
     def __ior__(self, bs):
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for |= operator.")
         return self._ior(bs)
 
     def __iand__(self, bs):
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for &= operator.")
         return self._iand(bs)
 
     def __ixor__(self, bs):
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for ^= operator.")
@@ -410,7 +410,7 @@ class BitArray(constbitarray.ConstBitArray):
     def _reverse(self):
         """Reverse all bits in-place."""
         # Reverse the contents of each byte
-        n = [constbitarray.BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
+        n = [bits.BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
         # Then reverse the order of the bytes
         n.reverse()
         # The new offset is the number of bits that were unused at the end.
@@ -440,8 +440,8 @@ class BitArray(constbitarray.ConstBitArray):
         out of range.
 
         """
-        old = constbitarray.ConstBitArray(old)
-        new = constbitarray.ConstBitArray(new)
+        old = bits.Bits(old)
+        new = bits.Bits(new)
         if not old.len:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
@@ -495,7 +495,7 @@ class BitArray(constbitarray.ConstBitArray):
         Raises ValueError if pos < 0 or pos > self.len.
 
         """
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.Bits(bs)
         if not bs.len:
             return self
         if bs is self:
@@ -520,7 +520,7 @@ class BitArray(constbitarray.ConstBitArray):
         Raises ValueError if pos < 0 or pos + bs.len > self.len
 
         """
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.Bits(bs)
         if not bs.len:
             return
         if pos is None:
@@ -554,7 +554,7 @@ class BitArray(constbitarray.ConstBitArray):
         bs -- The bitstring to prepend.
 
         """
-        bs = constbitarray.ConstBitArray(bs)
+        bs = bits.Bits(bs)
         self._prepend(bs)
 
     def reverse(self, start=None, end=None):
@@ -694,18 +694,18 @@ class BitArray(constbitarray.ConstBitArray):
                 raise ValueError("Improper byte length {0}.".format(fmt))
             bytesizes = [fmt]
         elif isinstance(fmt, basestring):
-            m = constbitarray.STRUCT_PACK_RE.match(fmt)
+            m = bits.STRUCT_PACK_RE.match(fmt)
             if not m:
                 raise ValueError("Cannot parse format string {0}.".format(fmt))
             # Split the format string into a list of 'q', '4h' etc.
-            formatlist = re.findall(constbitarray.STRUCT_SPLIT_RE, m.group('fmt'))
+            formatlist = re.findall(bits.STRUCT_SPLIT_RE, m.group('fmt'))
             # Now deal with multiplicative factors, 4h -> hhhh etc.
             bytesizes = []
             for f in formatlist:
                 if len(f) == 1:
-                    bytesizes.append(constbitarray.PACK_CODE_SIZE[f])
+                    bytesizes.append(bits.PACK_CODE_SIZE[f])
                 else:
-                    bytesizes.extend([constbitarray.PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
+                    bytesizes.extend([bits.PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
         elif isinstance(fmt, collections.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
@@ -734,69 +734,69 @@ class BitArray(constbitarray.ConstBitArray):
         return repeats
 
 
-    int = property(cba._getint, cba._setint,
+    int = property(Bits._getint, Bits._setint,
                    doc="""The bitstring as a two's complement signed int. Read and write.
                       """)
-    uint = property(cba._getuint, cba._setuint,
+    uint = property(Bits._getuint, Bits._setuint,
                     doc="""The bitstring as a two's complement unsigned int. Read and write.
                       """)
-    float = property(cba._getfloat, cba._setfloat,
+    float = property(Bits._getfloat, Bits._setfloat,
                      doc="""The bitstring as a floating point number. Read and write.
                       """)
-    intbe = property(cba._getintbe, cba._setintbe,
+    intbe = property(Bits._getintbe, Bits._setintbe,
                      doc="""The bitstring as a two's complement big-endian signed int. Read and write.
                       """)
-    uintbe = property(cba._getuintbe, cba._setuintbe,
+    uintbe = property(Bits._getuintbe, Bits._setuintbe,
                       doc="""The bitstring as a two's complement big-endian unsigned int. Read and write.
                       """)
-    floatbe = property(cba._getfloat, cba._setfloat,
+    floatbe = property(Bits._getfloat, Bits._setfloat,
                        doc="""The bitstring as a big-endian floating point number. Read and write.
                       """)
-    intle = property(cba._getintle, cba._setintle,
+    intle = property(Bits._getintle, Bits._setintle,
                      doc="""The bitstring as a two's complement little-endian signed int. Read and write.
                       """)
-    uintle = property(cba._getuintle, cba._setuintle,
+    uintle = property(Bits._getuintle, Bits._setuintle,
                       doc="""The bitstring as a two's complement little-endian unsigned int. Read and write.
                       """)
-    floatle = property(cba._getfloatle, cba._setfloatle,
+    floatle = property(Bits._getfloatle, Bits._setfloatle,
                        doc="""The bitstring as a little-endian floating point number. Read and write.
                       """)
-    intne = property(cba._getintne, cba._setintne,
+    intne = property(Bits._getintne, Bits._setintne,
                      doc="""The bitstring as a two's complement native-endian signed int. Read and write.
                       """)
-    uintne = property(cba._getuintne, cba._setuintne,
+    uintne = property(Bits._getuintne, Bits._setuintne,
                       doc="""The bitstring as a two's complement native-endian unsigned int. Read and write.
                       """)
-    floatne = property(cba._getfloatne, cba._setfloatne,
+    floatne = property(Bits._getfloatne, Bits._setfloatne,
                        doc="""The bitstring as a native-endian floating point number. Read and write.
                       """)
-    ue = property(cba._getue, cba._setue,
+    ue = property(Bits._getue, Bits._setue,
                   doc="""The bitstring as an unsigned exponential-Golomb code. Read and write.
                       """)
-    se = property(cba._getse, cba._setse,
+    se = property(Bits._getse, Bits._setse,
                   doc="""The bitstring as a signed exponential-Golomb code. Read and write.
                       """)
-    hex = property(cba._gethex, cba._sethex,
+    hex = property(Bits._gethex, Bits._sethex,
                    doc="""The bitstring as a hexadecimal string. Read and write.
 
                       When read will be prefixed with '0x' and including any leading zeros.
 
                       """)
-    bin = property(cba._getbin, cba._setbin_safe,
+    bin = property(Bits._getbin, Bits._setbin_safe,
                    doc="""The bitstring as a binary string. Read and write.
 
                       When read will be prefixed with '0b' and including any leading zeros.
 
                       """)
-    oct = property(cba._getoct, cba._setoct,
+    oct = property(Bits._getoct, Bits._setoct,
                    doc="""The bitstring as an octal string. Read and write.
 
                       When read will be prefixed with '0o' and including any leading zeros.
 
                       """)
-    bool = property(cba._getbool, cba._setbool,
+    bool = property(Bits._getbool, Bits._setbool,
                     doc="""The bitstring as a bool (True or False). Read and write."""
     )
-    bytes = property(cba._getbytes, cba._setbytes_safe,
+    bytes = property(Bits._getbytes, Bits._setbytes_safe,
                      doc="""The bitstring as a ordinary string. Read and write.
                       """)

@@ -57,7 +57,7 @@ class InterleavedExpGolomb(unittest.TestCase):
 #    def testReadingLines(self):
 #        s = b"This is a test\nof reading lines\nof text\n"
 #        b = CBS(bytes=s)
-#        n = bitstring.ConstBitArray(bytes=b'\n')
+#        n = bitstring.Bits(bytes=b'\n')
 #        self.assertEqual(b.readto(n).bytes, b'This is a test\n')
 #        self.assertEqual(b.readto(n).bytes, b'of reading lines\n')
 #        self.assertEqual(b.readto(n).bytes, b'of text\n')

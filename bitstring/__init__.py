@@ -5,12 +5,12 @@ interpretation of data.
 
 Classes:
 
-ConstBitArray -- An immutable container for binary data.
+Bits -- An immutable container for binary data.
 BitArray -- A mutable container for binary data.
 ConstBitStream -- An immutable container with streaming methods.
 BitStream -- A mutable container with streaming methods.
 
-                  ConstBitArray (base class)
+                      Bits (base class)
                      /    \ 
  + mutating methods /      \ + streaming methods
                    /        \ 
@@ -59,7 +59,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "2.2.0"
+__version__ = "3.0.0"
 
 __author__ = "Scott Griffiths"
 
@@ -109,13 +109,13 @@ class CreationError(Error, ValueError):
 from bitstring.constbitstream import ConstBitStream
 from bitstring.bitstream import BitStream, pack
 from bitstring.bitarray import BitArray
-from bitstring.constbitarray import ConstBitArray
+from bitstring.bits import Bits
 
 
 b"Python 2.6 or later is needed. For Python 2.4 and 2.5 you can download an earlier version of the bitstring module."
 
 # Aliases for backward compatibility
-Bits = ConstBitStream
+ConstBitArray = Bits
 BitString = BitStream
 
 __all__ = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
