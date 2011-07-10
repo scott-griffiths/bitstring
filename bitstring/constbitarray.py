@@ -19,27 +19,9 @@ byteorder = sys.byteorder
 
 # This creates a dictionary for every possible byte with the value being
 # the key with its bits reversed.
-REVERSED = b"\x00\x80\x40\xc0\x20\xa0\x60\xe0\x10\x90\x50\xd0\x30\xb0\x70\xf0"\
-           b"\x08\x88\x48\xc8\x28\xa8\x68\xe8\x18\x98\x58\xd8\x38\xb8\x78\xf8"\
-           b"\x04\x84\x44\xc4\x24\xa4\x64\xe4\x14\x94\x54\xd4\x34\xb4\x74\xf4"\
-           b"\x0c\x8c\x4c\xcc\x2c\xac\x6c\xec\x1c\x9c\x5c\xdc\x3c\xbc\x7c\xfc"\
-           b"\x02\x82\x42\xc2\x22\xa2\x62\xe2\x12\x92\x52\xd2\x32\xb2\x72\xf2"\
-           b"\x0a\x8a\x4a\xca\x2a\xaa\x6a\xea\x1a\x9a\x5a\xda\x3a\xba\x7a\xfa"\
-           b"\x06\x86\x46\xc6\x26\xa6\x66\xe6\x16\x96\x56\xd6\x36\xb6\x76\xf6"\
-           b"\x0e\x8e\x4e\xce\x2e\xae\x6e\xee\x1e\x9e\x5e\xde\x3e\xbe\x7e\xfe"\
-           b"\x01\x81\x41\xc1\x21\xa1\x61\xe1\x11\x91\x51\xd1\x31\xb1\x71\xf1"\
-           b"\x09\x89\x49\xc9\x29\xa9\x69\xe9\x19\x99\x59\xd9\x39\xb9\x79\xf9"\
-           b"\x05\x85\x45\xc5\x25\xa5\x65\xe5\x15\x95\x55\xd5\x35\xb5\x75\xf5"\
-           b"\x0d\x8d\x4d\xcd\x2d\xad\x6d\xed\x1d\x9d\x5d\xdd\x3d\xbd\x7d\xfd"\
-           b"\x03\x83\x43\xc3\x23\xa3\x63\xe3\x13\x93\x53\xd3\x33\xb3\x73\xf3"\
-           b"\x0b\x8b\x4b\xcb\x2b\xab\x6b\xeb\x1b\x9b\x5b\xdb\x3b\xbb\x7b\xfb"\
-           b"\x07\x87\x47\xc7\x27\xa7\x67\xe7\x17\x97\x57\xd7\x37\xb7\x77\xf7"\
-           b"\x0f\x8f\x4f\xcf\x2f\xaf\x6f\xef\x1f\x9f\x5f\xdf\x3f\xbf\x7f\xff"
-
-try:
-    BYTE_REVERSAL_DICT = dict(zip(xrange(256), REVERSED))
-except NameError:
-    BYTE_REVERSAL_DICT = dict(zip(range(256), [bytes([x]) for x in REVERSED]))
+BYTE_REVERSAL_DICT = dict()
+for i in range(256):
+    BYTE_REVERSAL_DICT[i] = chr(int("{0:08b}".format(i)[::-1], 2))
 
 # For 2.6 / 3.x coexistence
 # Yes this is very very hacky.
@@ -263,10 +245,10 @@ def expand_brackets(s):
 
 
 # This byte to bitstring lookup really speeds things up.
-BYTE_TO_BITS = tuple('{0:08b}'.format(i) for i in xrange(256))
+BYTE_TO_BITS = ['{0:08b}'.format(i) for i in xrange(256)]
 
 # And this converts a single octal digit to 3 bits.
-OCT_TO_BITS = tuple('{0:03b}'.format(i) for i in xrange(8))
+OCT_TO_BITS = ['{0:03b}'.format(i) for i in xrange(8)]
 
 # A dictionary of number of 1 bits contained in binary representation of any byte
 BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
@@ -550,18 +532,18 @@ class ConstBitArray(object):
             return ''
         if length > MAX_CHARS * 4:
             # Too long for hex. Truncate...
-            return ''.join((self._readhex(MAX_CHARS * 4, 0), '...'))
+            return ''.join(('0x', self._readhex(MAX_CHARS * 4, 0), '...'))
         # If it's quite short and we can't do hex then use bin
         if length < 32 and length % 4 != 0:
-            return self.bin
+            return '0b' + self.bin
         # If we can use hex then do so
         if not length % 4:
-            return self.hex
+            return '0x' + self.hex
         # Otherwise first we do as much as we can in hex
         # then add on 1, 2 or 3 bits on at the end
         bits_at_end = length % 4
-        return ''.join((self._readhex(length - bits_at_end, 0),
-                        ', ',
+        return ''.join('0x', (self._readhex(length - bits_at_end, 0),
+                        ', ', '0b',
                         self._readbin(bits_at_end, length - bits_at_end)))
 
     def __repr__(self):
@@ -1265,7 +1247,7 @@ class ConstBitArray(object):
             leadingzeros += 1
         remainingpart = i + 1 - (1 << leadingzeros)
         binstring = '0' * leadingzeros + '1' + ConstBitArray(uint=remainingpart,
-                                                             length=leadingzeros).bin[2:]
+                                                             length=leadingzeros).bin
         self._setbin_unsafe(binstring)
 
     def _readue(self, pos):
@@ -1479,8 +1461,9 @@ class ConstBitArray(object):
         # Use lookup table to convert each byte to string of 8 bits.
         startbyte, startoffset = divmod(start + (self._offset % 8), 8)
         endbyte = (start + (self._offset % 8) + length - 1) // 8
+        #c = ''.join(BYTE_TO_BITS[x] for x in self._datastore.getbyteslice(startbyte, endbyte + 1))
         c = [BYTE_TO_BITS[x] for x in self._datastore.getbyteslice(startbyte, endbyte + 1)]
-        return '0b' + ''.join(c)[startoffset:startoffset + length]
+        return ''.join(c)[startoffset:startoffset + length]
 
     def _getbin(self):
         """Return interpretation as a binary string."""
@@ -1508,14 +1491,13 @@ class ConstBitArray(object):
                                  "not multiple of 3 bits.")
         if not length:
             return ''
-        beginning = '0o'
         # Get main octal bit by converting from int.
         # Strip starting 0 or 0o depending on Python version.
         end = oct(self._readuint(length, start))[LEADING_OCT_CHARS:]
         if end.endswith('L'):
             end = end[:-1]
         middle = '0' * (length // 3 - len(end))
-        return ''.join((beginning, middle, end))
+        return middle + end
 
     def _getoct(self):
         """Return interpretation as an octal string."""
@@ -1551,9 +1533,9 @@ class ConstBitArray(object):
         s = str(binascii.hexlify(self[start:start + length].tobytes()).decode('utf-8'))
         if (length // 4) % 2:
             # We've got one nibble too many, so cut it off.
-            return '0x' + s[:-1]
+            return s[:-1]
         else:
-            return '0x' + s
+            return s
 
     def _gethex(self):
         """Return the hexadecimal representation as a string prefixed with '0x'.
@@ -1833,7 +1815,6 @@ class ConstBitArray(object):
         #assert a.bytelength == b.bytelength
         for i in xrange(len(a)):
             a[i] = f(a[i + self_byteoffset], b[i + bs_byteoffset])
-            #a.setbyte(i, f(a.getbyte(i), b.getbyte(i)))
         return self
 
     def _ior(self, bs):
@@ -2001,14 +1982,14 @@ class ConstBitArray(object):
                 return ()
             return (p * 8,)
         else:
-            targetbin = bs._getbin()[2:]
+            targetbin = bs._getbin()
             p = start
             # We grab overlapping chunks of the binary representation and
             # do an ordinary string search within that.
             increment = max(4096, bs.len * 10)
             buffersize = increment + bs.len
             while p < end:
-                buf = self._readbin(min(buffersize, end - p), p)[2:]
+                buf = self._readbin(min(buffersize, end - p), p)
                 pos = buf.find(targetbin)
                 if pos != -1:
                     # if bytealigned then we only accept byte aligned positions.

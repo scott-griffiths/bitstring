@@ -25,7 +25,7 @@ class ModuleData(unittest.TestCase):
         for i in range(256):
             a = bitstring.ConstBitArray(uint=i, length=8)
             b = d[i]
-            self.assertEqual(a.bin[2:][::-1], bitstring.ConstBitArray(bytes=b).bin[2:])
+            self.assertEqual(a.bin[::-1], bitstring.ConstBitArray(bytes=b).bin)
 
 
 class MemoryUsage(unittest.TestCase):
