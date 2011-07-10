@@ -12,24 +12,24 @@ from bitstring import ConstBitArray as CBA
 class Creation(unittest.TestCase):
     def testCreationFromData(self):
         s = CBA(bytes=b'\xa0\xff')
-        self.assertEqual((s.len, s.hex), (16, '0xa0ff'))
+        self.assertEqual((s.len, s.hex), (16, 'a0ff'))
 
     def testCreationFromDataWithOffset(self):
         s1 = CBA(bytes=b'\x0b\x1c\x2f', offset=0, length=20)
         s2 = CBA(bytes=b'\xa0\xb1\xC2', offset=4)
-        self.assertEqual((s2.len, s2.hex), (20, '0x0b1c2'))
-        self.assertEqual((s1.len, s1.hex), (20, '0x0b1c2'))
+        self.assertEqual((s2.len, s2.hex), (20, '0b1c2'))
+        self.assertEqual((s1.len, s1.hex), (20, '0b1c2'))
         self.assertTrue(s1 == s2)
 
     def testCreationFromHex(self):
         s = CBA(hex='0xA0ff')
-        self.assertEqual((s.len, s.hex), (16, '0xa0ff'))
+        self.assertEqual((s.len, s.hex), (16, 'a0ff'))
         s = CBA(hex='0x0x0X')
         self.assertEqual((s.length, s.hex), (0, ''))
 
     def testCreationFromHexWithWhitespace(self):
         s = CBA(hex='  \n0 X a  4e       \r3  \n')
-        self.assertEqual(s.hex, '0xa4e3')
+        self.assertEqual(s.hex, 'a4e3')
 
 
     def testCreationFromHexErrors(self):
@@ -40,15 +40,15 @@ class Creation(unittest.TestCase):
 
     def testCreationFromBin(self):
         s = CBA(bin='1010000011111111')
-        self.assertEqual((s.length, s.hex), (16, '0xa0ff'))
+        self.assertEqual((s.length, s.hex), (16, 'a0ff'))
         s = CBA(bin='00')[:1]
-        self.assertEqual(s.bin, '0b0')
+        self.assertEqual(s.bin, '0')
         s = CBA(bin=' 0000 \n 0001\r ')
-        self.assertEqual(s.bin, '0b00000001')
+        self.assertEqual(s.bin, '00000001')
 
     def testCreationFromBinWithWhitespace(self):
         s = CBA(bin='  \r\r\n0   B    00   1 1 \t0 ')
-        self.assertEqual(s.bin, '0b00110')
+        self.assertEqual(s.bin, '00110')
 
     def testCreationFromOctErrors(self):
         s = CBA('0b00011')
@@ -78,11 +78,11 @@ class Creation(unittest.TestCase):
 
     def testCreationFromInt(self):
         s = CBA(int=0, length=4)
-        self.assertEqual(s.bin, '0b0000')
+        self.assertEqual(s.bin, '0000')
         s = CBA(int=1, length=2)
-        self.assertEqual(s.bin, '0b01')
+        self.assertEqual(s.bin, '01')
         s = CBA(int=-1, length=11)
-        self.assertEqual(s.bin, '0b11111111111')
+        self.assertEqual(s.bin, '11111111111')
         s = CBA(int=12, length=7)
         self.assertEqual(s.int, 12)
         s = CBA(int=-243, length=108)
@@ -217,7 +217,7 @@ class FileBased(unittest.TestCase):
     def testBitOperators(self):
         x = self.b[4:20]
         self.assertEqual(x, '0x5678')
-        self.assertEqual(x & self.c, self.c.hex)
+        self.assertEqual((x & self.c).hex, self.c.hex)
         self.assertEqual(self.c ^ self.b[4:20], 16)
         self.assertEqual(self.a[23:36] | self.c[3:], self.c[3:])
 
@@ -226,7 +226,7 @@ class FileBased(unittest.TestCase):
         x = self.a[20:24] + self.c[-4:] + self.c[8:12]
         self.assertEqual(x, '0x587')
         x = self.b + x
-        self.assertEqual(x.hex, '0x456789abcdef587')
+        self.assertEqual(x.hex, '456789abcdef587')
         x = BitArray(x)
         del x[12:24]
         self.assertEqual(x, '0x456abcdef587')

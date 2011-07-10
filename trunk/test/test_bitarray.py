@@ -13,9 +13,9 @@ from bitstring import BitArray
 class All(unittest.TestCase):
     def testCreationFromUint(self):
         s = BitArray(uint=15, length=6)
-        self.assertEqual(s.bin, '0b001111')
+        self.assertEqual(s.bin, '001111')
         s = BitArray(uint=0, length=1)
-        self.assertEqual(s.bin, '0b0')
+        self.assertEqual(s.bin, '0')
         s.uint = 1
         self.assertEqual(s.uint, 1)
         s = BitArray(length=8)
@@ -28,15 +28,15 @@ class All(unittest.TestCase):
 
     def testCreationFromOct(self):
         s = BitArray(oct='7')
-        self.assertEqual(s.oct, '0o7')
-        self.assertEqual(s.bin, '0b111')
+        self.assertEqual(s.oct, '7')
+        self.assertEqual(s.bin, '111')
         s.append('0o1')
-        self.assertEqual(s.bin, '0b111001')
+        self.assertEqual(s.bin, '111001')
         s.oct = '12345670'
         self.assertEqual(s.length, 24)
-        self.assertEqual(s.bin, '0b001010011100101110111000')
+        self.assertEqual(s.bin, '001010011100101110111000')
         s = BitArray('0o123')
-        self.assertEqual(s.oct, '0o123')
+        self.assertEqual(s.oct, '123')
 
 
 class NoPosAttribute(unittest.TestCase):
