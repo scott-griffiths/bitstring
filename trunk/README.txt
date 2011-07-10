@@ -51,7 +51,7 @@ Simple Examples
 Creation::
 
      >>> a = BitArray(bin='00101')
-     >>> b = ConstBitArray(a_file_object)
+     >>> b = Bits(a_file_object)
      >>> c = BitArray('0xff, 0b101, 0o65, uint:6=22')
      >>> d = pack('intle:16, hex=a, 0b1', 100, a='0x34f')
      >>> e = pack('<16h', *range(16))

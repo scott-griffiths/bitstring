@@ -253,7 +253,7 @@ OCT_TO_BITS = ['{0:03b}'.format(i) for i in xrange(8)]
 # A dictionary of number of 1 bits contained in binary representation of any byte
 BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
 
-class ConstBitArray(object):
+class Bits(object):
     """A container holding an immutable sequence of bits.
 
     For a mutable container use the BitArray class instead.
@@ -355,20 +355,20 @@ class ConstBitArray(object):
                 try:
                     return _cache[auto]
                 except KeyError:
-                    x = object.__new__(ConstBitArray)
+                    x = object.__new__(Bits)
                     try:
                         _, tokens = tokenparser(auto)
                     except ValueError as e:
                         raise bitstring.CreationError(*e.args)
                     x._datastore = bitstore.ConstByteStore(bytearray(0), 0, 0)
                     for token in tokens:
-                        x._datastore._appendstore(ConstBitArray._init_with_token(*token)._datastore)
+                        x._datastore._appendstore(Bits._init_with_token(*token)._datastore)
                     assert x._assertsanity()
                     _cache[auto] = x
                     return x
         except TypeError:
             pass
-        x = object.__new__(ConstBitArray)
+        x = object.__new__(Bits)
         x._initialise(auto, length, offset, **kwargs)
         return x
 
@@ -413,7 +413,7 @@ class ConstBitArray(object):
         return
 
     def __copy__(self):
-        """Return a new copy of the ConstBitArray for the copy module."""
+        """Return a new copy of the Bits for the copy module."""
         # Note that if you want a new copy (different ID), use _copy instead.
         # The copy can return self as it's immutable.
         return self
@@ -436,7 +436,7 @@ class ConstBitArray(object):
         bs -- the bitstring to append.
 
         """
-        bs = ConstBitArray(bs)
+        bs = Bits(bs)
         s = self._copy()
         s._append(bs)
         return s
@@ -575,7 +575,7 @@ class ConstBitArray(object):
 
         """
         try:
-            bs = ConstBitArray(bs)
+            bs = Bits(bs)
         except TypeError:
             return False
         return bitstore.equal(self._datastore, bs._datastore)
@@ -612,7 +612,7 @@ class ConstBitArray(object):
         if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
         s = self[n:]
-        s._append(ConstBitArray(length=min(n, self.len)))
+        s._append(Bits(length=min(n, self.len)))
         return s
 
     def __rshift__(self, n):
@@ -663,7 +663,7 @@ class ConstBitArray(object):
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
-        bs = ConstBitArray(bs)
+        bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for & operator.")
@@ -689,7 +689,7 @@ class ConstBitArray(object):
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
-        bs = ConstBitArray(bs)
+        bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for | operator.")
@@ -715,7 +715,7 @@ class ConstBitArray(object):
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
-        bs = ConstBitArray(bs)
+        bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for ^ operator.")
@@ -740,7 +740,7 @@ class ConstBitArray(object):
 
         """
         # Don't want to use a find which changes pos.
-        found = ConstBitArray.find(self, bs, bytealigned=False)
+        found = Bits.find(self, bs, bytealigned=False)
         return bool(found)
 
     def __hash__(self):
@@ -863,7 +863,7 @@ class ConstBitArray(object):
         # in the correct order, as some types are also other allowed types.
         # So basestring must be checked before Iterable
         # and bytes/bytearray before Iterable but after basestring!
-        if isinstance(s, ConstBitArray):
+        if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
             self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
@@ -1246,7 +1246,7 @@ class ConstBitArray(object):
             tmp >>= 1
             leadingzeros += 1
         remainingpart = i + 1 - (1 << leadingzeros)
-        binstring = '0' * leadingzeros + '1' + ConstBitArray(uint=remainingpart,
+        binstring = '0' * leadingzeros + '1' + Bits(uint=remainingpart,
                                                              length=leadingzeros).bin
         self._setbin_unsafe(binstring)
 
@@ -1378,7 +1378,7 @@ class ConstBitArray(object):
             self._setbin_unsafe('1')
         else:
             self._setuie(abs(i))
-            self._append(ConstBitArray([i < 0]))
+            self._append(Bits([i < 0]))
 
     def _getsie(self):
         """Return data as signed interleaved exponential-Golomb code.
@@ -1531,11 +1531,8 @@ class ConstBitArray(object):
         # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
         # TODO: Optimize: This really shouldn't call __getitem__.
         s = str(binascii.hexlify(self[start:start + length].tobytes()).decode('utf-8'))
-        if (length // 4) % 2:
-            # We've got one nibble too many, so cut it off.
-            return s[:-1]
-        else:
-            return s
+        # If there's one nibble too many then cut it off
+        return s[:-1] if (length // 4) % 2 else s
 
     def _gethex(self):
         """Return the hexadecimal representation as a string prefixed with '0x'.
@@ -1565,7 +1562,7 @@ class ConstBitArray(object):
         bit, to optimise append etc.
 
         """
-        if isinstance(bs, ConstBitArray):
+        if isinstance(bs, Bits):
             return bs
         try:
             return cache[(bs, offset)]
@@ -1577,10 +1574,10 @@ class ConstBitArray(object):
                 except ValueError as e:
                     raise bitstring.CreationError(*e.args)
                 if tokens:
-                    b._append(ConstBitArray._init_with_token(*tokens[0]))
+                    b._append(Bits._init_with_token(*tokens[0]))
                     b._datastore = bitstore.offsetcopy(b._datastore, offset)
                     for token in tokens[1:]:
-                        b._append(ConstBitArray._init_with_token(*token))
+                        b._append(Bits._init_with_token(*token))
                 assert b._assertsanity()
                 assert b.len == 0 or b._offset == offset
                 cache[(bs, offset)] = b
@@ -1591,7 +1588,7 @@ class ConstBitArray(object):
         return cls(bs)
 
     def _copy(self):
-        """Create and return a new copy of the ConstBitArray (always in memory)."""
+        """Create and return a new copy of the Bits (always in memory)."""
         s_copy = self.__class__()
         s_copy._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength),
                                 self.len, self._offset)
@@ -1775,14 +1772,14 @@ class ConstBitArray(object):
     def _ilshift(self, n):
         """Shift bits by n to the left in place. Return self."""
         assert 0 < n <= self.len
-        self._append(ConstBitArray(n))
+        self._append(Bits(n))
         self._truncatestart(n)
         return self
 
     def _irshift(self, n):
         """Shift bits by n to the right in place. Return self."""
         assert 0 < n <= self.len
-        self._prepend(ConstBitArray(n))
+        self._prepend(Bits(n))
         self._truncateend(n)
         return self
 
@@ -1953,7 +1950,7 @@ class ConstBitArray(object):
         (6,)
 
         """
-        bs = ConstBitArray(bs)
+        bs = Bits(bs)
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
@@ -2022,7 +2019,7 @@ class ConstBitArray(object):
         """
         if count is not None and count < 0:
             raise ValueError("In findall, count must be >= 0.")
-        bs = ConstBitArray(bs)
+        bs = Bits(bs)
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
             bytealigned = bitstring.bytealigned
@@ -2061,7 +2058,7 @@ class ConstBitArray(object):
         if end < start.
 
         """
-        bs = ConstBitArray(bs)
+        bs = Bits(bs)
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
             bytealigned = bitstring.bytealigned
@@ -2127,7 +2124,7 @@ class ConstBitArray(object):
         Raises ValueError if the delimiter is empty.
 
         """
-        delimiter = ConstBitArray(delimiter)
+        delimiter = Bits(delimiter)
         if not delimiter.len:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
@@ -2138,7 +2135,7 @@ class ConstBitArray(object):
         if count == 0:
             return
         # Use the base class find as we don't want to ever alter _pos.
-        found = ConstBitArray.find(self, delimiter, start, end, bytealigned)
+        found = Bits.find(self, delimiter, start, end, bytealigned)
         if not found:
             # Initial bits are the whole bitstring being searched
             yield self._slice(start, end)
@@ -2149,7 +2146,7 @@ class ConstBitArray(object):
         c = 1
         while count is None or c < count:
             pos += delimiter.len
-            found = ConstBitArray.find(self, delimiter, pos, end, bytealigned)
+            found = Bits.find(self, delimiter, pos, end, bytealigned)
             if not found:
                 # No more occurrences, so return the rest of the bitstring
                 yield self[startpos:end]
@@ -2169,11 +2166,11 @@ class ConstBitArray(object):
         s = self.__class__()
         i = iter(sequence)
         try:
-            s._append(ConstBitArray(next(i)))
+            s._append(Bits(next(i)))
             while True:
                 n = next(i)
                 s._append(self)
-                s._append(ConstBitArray(n))
+                s._append(Bits(n))
         except StopIteration:
             pass
         return s
@@ -2232,7 +2229,7 @@ class ConstBitArray(object):
         end -- The bit position to end at. Defaults to self.len.
 
         """
-        prefix = ConstBitArray(prefix)
+        prefix = Bits(prefix)
         start, end = self._validate_slice(start, end)
         if end < start + prefix.len:
             return False
@@ -2247,7 +2244,7 @@ class ConstBitArray(object):
         end -- The bit position to end at. Defaults to self.len.
 
         """
-        suffix = ConstBitArray(suffix)
+        suffix = Bits(suffix)
         start, end = self._validate_slice(start, end)
         if start + suffix.len > end:
             return False
@@ -2304,7 +2301,7 @@ class ConstBitArray(object):
         value -- If True then bits set to 1 are counted, otherwise bits set
                  to 0 are counted.
 
-        >>> ConstBitArray('0xef').count(1)
+        >>> Bits('0xef').count(1)
         7
 
         """
@@ -2426,57 +2423,57 @@ class ConstBitArray(object):
 
 
 # Dictionary that maps token names to the function that reads them.
-name_to_read = {'uint': ConstBitArray._readuint,
-                'uintle': ConstBitArray._readuintle,
-                'uintbe': ConstBitArray._readuintbe,
-                'uintne': ConstBitArray._readuintne,
-                'int': ConstBitArray._readint,
-                'intle': ConstBitArray._readintle,
-                'intbe': ConstBitArray._readintbe,
-                'intne': ConstBitArray._readintne,
-                'float': ConstBitArray._readfloat,
-                'floatbe': ConstBitArray._readfloat, # floatbe is a synonym for float
-                'floatle': ConstBitArray._readfloatle,
-                'floatne': ConstBitArray._readfloatne,
-                'hex': ConstBitArray._readhex,
-                'oct': ConstBitArray._readoct,
-                'bin': ConstBitArray._readbin,
-                'bits': ConstBitArray._readbits,
-                'bytes': ConstBitArray._readbytes,
-                'ue': ConstBitArray._readue,
-                'se': ConstBitArray._readse,
-                'uie': ConstBitArray._readuie,
-                'sie': ConstBitArray._readsie,
-                'bool': ConstBitArray._readbool,
+name_to_read = {'uint': Bits._readuint,
+                'uintle': Bits._readuintle,
+                'uintbe': Bits._readuintbe,
+                'uintne': Bits._readuintne,
+                'int': Bits._readint,
+                'intle': Bits._readintle,
+                'intbe': Bits._readintbe,
+                'intne': Bits._readintne,
+                'float': Bits._readfloat,
+                'floatbe': Bits._readfloat, # floatbe is a synonym for float
+                'floatle': Bits._readfloatle,
+                'floatne': Bits._readfloatne,
+                'hex': Bits._readhex,
+                'oct': Bits._readoct,
+                'bin': Bits._readbin,
+                'bits': Bits._readbits,
+                'bytes': Bits._readbytes,
+                'ue': Bits._readue,
+                'se': Bits._readse,
+                'uie': Bits._readuie,
+                'sie': Bits._readsie,
+                'bool': Bits._readbool,
                 }
 
 # Dictionaries for mapping init keywords with init functions.
-init_with_length_and_offset = {'bytes': ConstBitArray._setbytes_safe,
-                               'filename': ConstBitArray._setfile,
+init_with_length_and_offset = {'bytes': Bits._setbytes_safe,
+                               'filename': Bits._setfile,
                                }
 
-init_with_length_only = {'uint': ConstBitArray._setuint,
-                         'int': ConstBitArray._setint,
-                         'float': ConstBitArray._setfloat,
-                         'uintbe': ConstBitArray._setuintbe,
-                         'intbe': ConstBitArray._setintbe,
-                         'floatbe': ConstBitArray._setfloat,
-                         'uintle': ConstBitArray._setuintle,
-                         'intle': ConstBitArray._setintle,
-                         'floatle': ConstBitArray._setfloatle,
-                         'uintne': ConstBitArray._setuintne,
-                         'intne': ConstBitArray._setintne,
-                         'floatne': ConstBitArray._setfloatne,
+init_with_length_only = {'uint': Bits._setuint,
+                         'int': Bits._setint,
+                         'float': Bits._setfloat,
+                         'uintbe': Bits._setuintbe,
+                         'intbe': Bits._setintbe,
+                         'floatbe': Bits._setfloat,
+                         'uintle': Bits._setuintle,
+                         'intle': Bits._setintle,
+                         'floatle': Bits._setfloatle,
+                         'uintne': Bits._setuintne,
+                         'intne': Bits._setintne,
+                         'floatne': Bits._setfloatne,
                          }
 
-init_without_length_or_offset = {'bin': ConstBitArray._setbin_safe,
-                                 'hex': ConstBitArray._sethex,
-                                 'oct': ConstBitArray._setoct,
-                                 'ue': ConstBitArray._setue,
-                                 'se': ConstBitArray._setse,
-                                 'uie': ConstBitArray._setuie,
-                                 'sie': ConstBitArray._setsie,
-                                 'bool': ConstBitArray._setbool,
+init_without_length_or_offset = {'bin': Bits._setbin_safe,
+                                 'hex': Bits._sethex,
+                                 'oct': Bits._setoct,
+                                 'ue': Bits._setue,
+                                 'se': Bits._setse,
+                                 'uie': Bits._setuie,
+                                 'sie': Bits._setsie,
+                                 'bool': Bits._setbool,
                                  }
 
 class MmapByteArray(object):

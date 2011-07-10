@@ -2,15 +2,15 @@
 
 import numbers
 import bitstring
-from bitstring.constbitarray import ConstBitArray, tokenparser
+from bitstring.bits import Bits, tokenparser
 
 
-class ConstBitStream(ConstBitArray):
+class ConstBitStream(Bits):
     """A container or stream holding an immutable sequence of bits.
 
     For a mutable container use the BitStream class instead.
 
-    Methods inherited from ConstBitArray:
+    Methods inherited from Bits:
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
@@ -137,7 +137,7 @@ class ConstBitStream(ConstBitArray):
         return self._pos
 
     def _clear(self):
-        ConstBitArray._clear(self)
+        Bits._clear(self)
         self._pos = 0
 
     def __copy__(self):
@@ -151,27 +151,27 @@ class ConstBitStream(ConstBitArray):
         return s
 
     def __add__(self, bs):
-        s = ConstBitArray.__add__(self, bs)
+        s = Bits.__add__(self, bs)
         s._pos = 0
         return s
 
-    __add__.__doc__ = ConstBitArray.__add__.__doc__
+    __add__.__doc__ = Bits.__add__.__doc__
 
     def find(self, bs, start=None, end=None, bytealigned=None):
-        t = ConstBitArray.find(self, bs, start, end, bytealigned)
+        t = Bits.find(self, bs, start, end, bytealigned)
         if t:
             self._pos = t[0]
         return t
 
-    find.__doc__ = ConstBitArray.find.__doc__
+    find.__doc__ = Bits.find.__doc__
 
     def rfind(self, bs, start=None, end=None, bytealigned=None):
-        t = ConstBitArray.rfind(self, bs, start, end, bytealigned)
+        t = Bits.rfind(self, bs, start, end, bytealigned)
         if t:
             self._pos = t[0]
         return t
 
-    rfind.__doc__ = ConstBitArray.rfind.__doc__
+    rfind.__doc__ = Bits.rfind.__doc__
 
     def read(self, fmt):
         """Interpret next bits according to the format string and return result.
@@ -266,7 +266,7 @@ class ConstBitStream(ConstBitArray):
 #        """
 #        if isinstance(bs, numbers.Integral):
 #            raise ValueError("Integers cannot be searched for")
-#        bs = ConstBitArray(bs)
+#        bs = Bits(bs)
 #        oldpos = self._pos
 #        p = self.find(bs, self._pos, bytealigned=bytealigned)
 #        if not p:

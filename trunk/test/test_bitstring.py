@@ -12,7 +12,7 @@ import copy
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '2.2.0')
+        self.assertEqual(bitstring.__version__, '3.0.0')
 
     def testAll(self):
         exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
@@ -21,11 +21,15 @@ class ModuleData(unittest.TestCase):
         self.assertEqual(set(bitstring.__all__), set(exported))
 
     def testReverseDict(self):
-        d = bitstring.constbitarray.BYTE_REVERSAL_DICT
+        d = bitstring.bits.BYTE_REVERSAL_DICT
         for i in range(256):
-            a = bitstring.ConstBitArray(uint=i, length=8)
+            a = bitstring.Bits(uint=i, length=8)
             b = d[i]
-            self.assertEqual(a.bin[::-1], bitstring.ConstBitArray(bytes=b).bin)
+            self.assertEqual(a.bin[::-1], bitstring.Bits(bytes=b).bin)
+
+    def testAliases(self):
+        self.assertTrue(bitstring.Bits is bitstring.ConstBitArray)
+        self.assertTrue(bitstring.BitStream is bitstring.BitString)
 
 
 class MemoryUsage(unittest.TestCase):
@@ -36,7 +40,7 @@ class MemoryUsage(unittest.TestCase):
             return
         # These values might be platform dependent, so don't fret too much.
         self.assertEqual(size(bitstring.ConstBitStream([0])), 64)
-        self.assertEqual(size(bitstring.ConstBitArray([0])), 64)
+        self.assertEqual(size(bitstring.Bits([0])), 64)
         self.assertEqual(size(bitstring.BitStream([0])), 64)
         self.assertEqual(size(bitstring.BitArray([0])), 64)
         from bitstring.bitstore import ByteStore
@@ -46,7 +50,7 @@ class MemoryUsage(unittest.TestCase):
 class Copy(unittest.TestCase):
     def testConstBitArrayCopy(self):
         import copy
-        cba = bitstring.ConstBitArray(100)
+        cba = bitstring.Bits(100)
         cba_copy = copy.copy(cba)
         self.assertTrue(cba is cba_copy)
 
@@ -75,11 +79,11 @@ class Copy(unittest.TestCase):
 
 
 class Interning(unittest.TestCase):
-    def testCBA(self):
-        a = bitstring.ConstBitArray('0xf')
-        b = bitstring.ConstBitArray('0xf')
+    def testBits(self):
+        a = bitstring.Bits('0xf')
+        b = bitstring.Bits('0xf')
         self.assertTrue(a is b)
-        c = bitstring.ConstBitArray('0b1111')
+        c = bitstring.Bits('0b1111')
         self.assertFalse(a is c)
 
     def testCBS(self):
