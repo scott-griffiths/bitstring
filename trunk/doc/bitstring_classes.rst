@@ -5,9 +5,9 @@
 The bitstring module
 --------------------
 
-The bitstring module provides four classes, :class:`BitStream`, :class:`BitArray`, :class:`ConstBitStream` and :class:`ConstBitArray`. The distinction between them is that :class:`BitStream` has addition methods to treat the bits as a file or stream, and the 'Const' classes lack methods that would modify their contents (they are immutable).
+The bitstring module provides four classes, :class:`Bits`, :class:`BitArray`, :class:`ConstBitStream` and :class:`BitStream`. :class:`Bits` is the simplest, and represents an immutable sequence of bits, while :class:`BitArray` adds various methods that modify the contents (these classes are intended to loosely mirror ``bytes`` and ``bytearray`` in Python 3). The 'Stream' classes have additional methods to treat the bits as a file or stream.
 
-If you need to change the contents of a bitstring after creation then you must use either the :class:`BitArray` or :class:`BitStream` classes. If you need to use bitstrings as keys in a dictionary or members of a set then you must use either a :class:`ConstBitArray` or a :class:`ConstBitStream`. In this section the generic term 'bitstring' is used to refer to an object of any of these classes.
+If you need to change the contents of a bitstring after creation then you must use either the :class:`BitArray` or :class:`BitStream` classes. If you need to use bitstrings as keys in a dictionary or members of a set then you must use either a :class:`Bits` or a :class:`ConstBitStream`. In this section the generic term 'bitstring' is used to refer to an object of any of these classes.
 
 Note that for the bitstream classes the bit position within the bitstream (the position from which reads occur) can change without affecting the equality operation. This means that the :attr:`~ConstBitStream.pos` and :attr:`~ConstBitStream.bytepos` properties can change even for a :class:`ConstBitStream` object.
 
@@ -51,7 +51,7 @@ The ``auto`` parameter also accepts other types:
 Compact format strings
 ^^^^^^^^^^^^^^^^^^^^^^
 
-For the :meth:`~ConstBitStream.read`, :meth:`~ConstBitArray.unpack`, :meth:`~ConstBitStream.peek` methods and :func:`pack` function you can use compact format strings similar to those used in the :mod:`struct` and :mod:`array` modules. These start with an endian identifier: ``>`` for big-endian, ``<`` for little-endian or ``@`` for native-endian. This must be followed by at least one of these codes:
+For the :meth:`~ConstBitStream.read`, :meth:`~Bits.unpack`, :meth:`~ConstBitStream.peek` methods and :func:`pack` function you can use compact format strings similar to those used in the :mod:`struct` and :mod:`array` modules. These start with an endian identifier: ``>`` for big-endian, ``<`` for little-endian or ``@`` for native-endian. This must be followed by at least one of these codes:
 
 +------+------------------------------------+
 |Code  |      Interpretation                |

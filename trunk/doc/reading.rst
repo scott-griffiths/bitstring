@@ -86,7 +86,7 @@ and we also could have combined the three reads as::
 
     start_code, width, height = s.readlist('hex:32, 12, 12')
 
-where here we are also taking advantage of the default :attr:`~ConstBitArray.uint` interpretation for the second and third tokens.
+where here we are also taking advantage of the default :attr:`~Bits.uint` interpretation for the second and third tokens.
 
 You are allowed to use one 'stretchy' token in a :meth:`~ConstBitStream.readlist`. This is a token without a length specified which will stretch to fill encompass as many bits as possible. This is often useful when you just want to assign something to 'the rest' of the bitstring::
 
@@ -111,7 +111,7 @@ In addition to the read methods there are matching peek methods. These are ident
 Unpacking
 ---------
 
-The :meth:`~ConstBitArray.unpack` method works in a very similar way to :meth:`~ConstBitStream.readlist`. The major difference is that it interprets the whole bitstring from the start, and takes no account of the current :attr:`~ConstBitStream.pos`. It's a natural complement of the :func:`pack` function. ::
+The :meth:`~Bits.unpack` method works in a very similar way to :meth:`~ConstBitStream.readlist`. The major difference is that it interprets the whole bitstring from the start, and takes no account of the current :attr:`~ConstBitStream.pos`. It's a natural complement of the :func:`pack` function. ::
 
     s = pack('uint:10, hex, int:13, 0b11', 130, '3d', -23)
     a, b, c, d = s.unpack('uint:10, hex, int:13, bin:2')
@@ -141,7 +141,7 @@ Finding and replacing
 ``find / rfind``
 ^^^^^^^^^^^^^^^^
 
-To search for a sub-string use the :meth:`~ConstBitArray.find` method. If the find succeeds it will set the position to the start of the next occurrence of the searched for string and return a tuple containing that position, otherwise it will return an empty tuple. By default the sub-string will be found at any bit position - to allow it to only be found on byte boundaries set ``bytealigned=True``.
+To search for a sub-string use the :meth:`~Bits.find` method. If the find succeeds it will set the position to the start of the next occurrence of the searched for string and return a tuple containing that position, otherwise it will return an empty tuple. By default the sub-string will be found at any bit position - to allow it to only be found on byte boundaries set ``bytealigned=True``.
 
     >>> s = ConstBitStream('0x00123400001234')
     >>> found = s.find('0x1234', bytealigned=True)
@@ -153,19 +153,19 @@ To search for a sub-string use the :meth:`~ConstBitArray.find` method. If the fi
 
 The reason for returning the bit position in a tuple is so that the return value is ``True`` in a boolean sense if the sub-string is found, and ``False`` if it is not (if just the bit position were returned there would be a problem with finding at position 0). The effect is that you can use ``if s.find(...):`` and have it behave as you'd expect.
 
-:meth:`~ConstBitArray.rfind` does much the same as :meth:`~ConstBitArray.find`, except that it will find the last occurrence, rather than the first. ::
+:meth:`~Bits.rfind` does much the same as :meth:`~Bits.find`, except that it will find the last occurrence, rather than the first. ::
 
     >>> t = BitArray('0x0f231443e8')
     >>> found = t.rfind('0xf')           # Search all bit positions in reverse
     >>> print(found)
     (31,)                                # Found within the 0x3e near the end
 
-For all of these finding functions you can optionally specify a ``start`` and / or ``end`` to narrow the search range. Note though that because it's searching backwards :meth:`~ConstBitArray.rfind` will start at ``end`` and end at ``start`` (so you always need ``start``  <  ``end``).
+For all of these finding functions you can optionally specify a ``start`` and / or ``end`` to narrow the search range. Note though that because it's searching backwards :meth:`~Bits.rfind` will start at ``end`` and end at ``start`` (so you always need ``start``  <  ``end``).
 
 ``findall``
 ^^^^^^^^^^^
 
-To find all occurrences of a bitstring inside another (even overlapping ones), use :meth:`~ConstBitArray.findall`. This returns a generator for the bit positions of the found strings. ::
+To find all occurrences of a bitstring inside another (even overlapping ones), use :meth:`~Bits.findall`. This returns a generator for the bit positions of the found strings. ::
 
     >>> r = BitArray('0b011101011001')
     >>> ones = r.findall([1])
@@ -175,7 +175,7 @@ To find all occurrences of a bitstring inside another (even overlapping ones), u
 ``replace``
 ^^^^^^^^^^^
 
-To replace all occurrences of one :class:`BitArray` with another use :meth:`~BitArray.replace`. The replacements are done in-place, and the number of replacements made is returned. This methods changes the contents of the bitstring and so isn't available for the :class:`ConstBitArray` or :class:`ConstBitStream` classes. ::
+To replace all occurrences of one :class:`BitArray` with another use :meth:`~BitArray.replace`. The replacements are done in-place, and the number of replacements made is returned. This methods changes the contents of the bitstring and so isn't available for the :class:`Bits` or :class:`ConstBitStream` classes. ::
 
     >>> s = BitArray('0b110000110110')
     >>> s.replace('0b110', '0b1111')
@@ -186,7 +186,7 @@ To replace all occurrences of one :class:`BitArray` with another use :meth:`~Bit
 Working with byte aligned data
 ------------------------------
 
-The emphasis with the bitstring module is always towards not worrying if things are a whole number of bytes long or are aligned on byte boundaries. Internally the module has to worry about this quite a lot, but the user shouldn't have to care. To this end methods such as :meth:`~ConstBitArray.find`, :meth:`~ConstBitArray.findall`, :meth:`~ConstBitArray.split` and :meth:`~BitArray.replace` by default aren't concerned with looking for things only on byte boundaries and provide a parameter ``bytealigned`` which can be set to ``True`` to change this behaviour.
+The emphasis with the bitstring module is always towards not worrying if things are a whole number of bytes long or are aligned on byte boundaries. Internally the module has to worry about this quite a lot, but the user shouldn't have to care. To this end methods such as :meth:`~Bits.find`, :meth:`~Bits.findall`, :meth:`~Bits.split` and :meth:`~BitArray.replace` by default aren't concerned with looking for things only on byte boundaries and provide a parameter ``bytealigned`` which can be set to ``True`` to change this behaviour.
 
 This works fine, but it's not uncommon to be working only with whole-byte data and all the ``bytealigned=True`` can get a bit repetitive. To solve this it is possible to change the default throughout the module by setting ``bitstring.bytealigned``. For example::
 

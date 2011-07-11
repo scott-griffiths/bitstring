@@ -36,7 +36,7 @@ This simply reverses the bits of the :class:`BitArray` in place. You can optiona
 ``tobytes``
 ^^^^^^^^^^^
 
-Returns the byte data contained in the bitstring as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.6). This differs from using the plain :attr:`~ConstBitArray.bytes` property in that if the bitstring isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
+Returns the byte data contained in the bitstring as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.6). This differs from using the plain :attr:`~Bits.bytes` property in that if the bitstring isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
 
  >>> BitArray('0b1').tobytes()
  '\x80'
@@ -49,7 +49,7 @@ Writes the byte data contained in the bitstring to a file. The file should have 
  >>> f = open('newfile', 'wb')
  >>> BitArray('0xffee3241fed').tofile(f)
 
-In exactly the same manner as with :meth:`~ConstBitArray.tobytes`, up to seven zero bits will be appended to make the file a whole number of bytes long.
+In exactly the same manner as with :meth:`~Bits.tobytes`, up to seven zero bits will be appended to make the file a whole number of bytes long.
 
 ``startswith / endswith``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -75,14 +75,14 @@ To rotate the bits in a :class:`BitArray` use :meth:`~BitArray.ror` and :meth:`~
 Special Methods
 ---------------
 
-A few of the special methods have already been covered, for example :meth:`~ConstBitArray.__add__` and :meth:`~BitArray.__iadd__` (the ``+`` and ``+=`` operators) and :meth:`~ConstBitArray.__getitem__` and :meth:`~BitArray.__setitem__` (reading and setting slices via ``[]``). Here are some more:
+A few of the special methods have already been covered, for example :meth:`~Bits.__add__` and :meth:`~BitArray.__iadd__` (the ``+`` and ``+=`` operators) and :meth:`~Bits.__getitem__` and :meth:`~BitArray.__setitem__` (reading and setting slices via ``[]``). Here are some more:
 
 ``__len__``
 ^^^^^^^^^^^^^^^
 
 This implements the :func:`len` function and returns the length of the bitstring in bits.
 
-It's recommended that you use the :attr:`~ConstBitArray.len` property instead of the function as a limitation of Python means that the function will raise an :exc:`OverflowError` if the bitstring has more than ``sys.maxsize`` elements (that's typically 256MB of data with 32-bit Python).
+It's recommended that you use the :attr:`~Bits.len` property instead of the function as a limitation of Python means that the function will raise an :exc:`OverflowError` if the bitstring has more than ``sys.maxsize`` elements (that's typically 256MB of data with 32-bit Python).
 
 There's not much more to say really, except to emphasise that it is always in bits and never bytes. ::
 
@@ -92,7 +92,7 @@ There's not much more to say really, except to emphasise that it is always in bi
 ``__str__ / __repr__``
 ^^^^^^^^^^^^^^^^^^^^^^
 
-These get called when you try to print a bitstring. As bitstrings have no preferred interpretation the form printed might not be what you want - if not then use the :attr:`~ConstBitArray.hex`, :attr:`~ConstBitArray.bin`, :attr:`~ConstBitArray.int` etc. properties. The main use here is in interactive sessions when you just want a quick look at the bitstring. The :meth:`~ConstBitArray.__repr__` tries to give a code fragment which if evaluated would give an equal bitstring.
+These get called when you try to print a bitstring. As bitstrings have no preferred interpretation the form printed might not be what you want - if not then use the :attr:`~Bits.hex`, :attr:`~Bits.bin`, :attr:`~Bits.int` etc. properties. The main use here is in interactive sessions when you just want a quick look at the bitstring. The :meth:`~Bits.__repr__` tries to give a code fragment which if evaluated would give an equal bitstring.
 
 The form used for the bitstring is generally the one which gives it the shortest representation. If the resulting string is too long then it will be truncated with ``...`` - this prevents very long bitstrings from tying up your interactive session while they print themselves. ::
 
@@ -158,7 +158,7 @@ Multiplication of a bitstring by an integer means the same as it does for ordina
 This allows the bitstring to be copied via the :mod:`copy` module. ::
 
  >>> import copy
- >>> a = ConstBitArray('0x4223fbddec2231')
+ >>> a = Bits('0x4223fbddec2231')
  >>> b = copy.copy(a)
  >>> b == a
  True

@@ -65,8 +65,8 @@ Now you would be forgiven for thinking that the strings that we used to create t
  
 There are a few things to note here:
 
-* To get the different interpretations of the binary data we use properties such as :attr:`~ConstBitArray.bin`, :attr:`~ConstBitArray.hex`, :attr:`~ConstBitArray.oct`, :attr:`~ConstBitArray.int` and :attr:`~ConstBitArray.bytes`. You can probably guess what these all mean, but you don't need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.
-* The :attr:`~ConstBitArray.bytes` property returns a ``bytes`` object. This is slightly different in Python 2 to Python 3 - in Python 3 you would get ``b'\xff\x01'`` returned instead.
+* To get the different interpretations of the binary data we use properties such as :attr:`~Bits.bin`, :attr:`~Bits.hex`, :attr:`~Bits.oct`, :attr:`~Bits.int` and :attr:`~Bits.bytes`. You can probably guess what these all mean, but you don't need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.
+* The :attr:`~Bits.bytes` property returns a ``bytes`` object. This is slightly different in Python 2 to Python 3 - in Python 3 you would get ``b'\xff\x01'`` returned instead.
 
 Great - let's try some more::
 
@@ -104,7 +104,7 @@ If you ask for a single item, rather than a slice, a boolean is returned. Natura
     >>> a[-1]
     False
 
-To join together bitstrings you can use a variety of methods, including :meth:`~BitArray.append`, :meth:`~BitArray.prepend`, :meth:`~BitArray.insert`, and plain :meth:`+<ConstBitArray.__add__>` or :meth:`+=<BitArray.__iadd__>` operations::
+To join together bitstrings you can use a variety of methods, including :meth:`~BitArray.append`, :meth:`~BitArray.prepend`, :meth:`~BitArray.insert`, and plain :meth:`+<Bits.__add__>` or :meth:`+=<BitArray.__iadd__>` operations::
 
     >>> a.prepend('0b01')
     >>> a.append('0o7')
@@ -121,7 +121,7 @@ Note how we are just using ordinary strings to specify the new bitstrings we are
 Finding and Replacing
 ---------------------
 
-A :meth:`~ConstBitArray.find` is provided to search for bit patterns within a bitstring. You can choose whether to search only on byte boundaries or at any bit position::
+A :meth:`~Bits.find` is provided to search for bit patterns within a bitstring. You can choose whether to search only on byte boundaries or at any bit position::
 
     >>> a = BitArray('0xa9f')
     >>> a.find('0x4f')
@@ -227,7 +227,7 @@ First we read 24 bits, which returned a new :class:`BitStream` object, then we u
     >>> s.readlist('2*uint:12')
     [352, 288]
 
-If you don't want to use a bitstream then you can always use :meth:`~ConstBitArray.unpack`. This takes much the same form as :meth:`~ConstBitStream.readlist` except it just unpacks from the start of the bitstring. For example::
+If you don't want to use a bitstream then you can always use :meth:`~Bits.unpack`. This takes much the same form as :meth:`~ConstBitStream.readlist` except it just unpacks from the start of the bitstring. For example::
 
     >>> s.unpack('bytes:4, 2*uint:12, uint:4')
     ['\x00\x00\x01\xb3', 352, 288, 1]
@@ -247,7 +247,7 @@ Write a function that calculates the Hamming weight of two bitstrings. ::
     def hamming_weight(a, b):
         return (a^b).count(True)
 
-Er, that's it. The :meth:`^<ConstBitArray.__xor__>` is a bit-wise exclusive or, which means that the bits in ``a^b`` are only set if they differ in ``a`` and ``b``. The :meth:`~ConstBitArray.count` method just counts the number of 1 (or True) bits. ::
+Er, that's it. The :meth:`^<Bits.__xor__>` is a bit-wise exclusive or, which means that the bits in ``a^b`` are only set if they differ in ``a`` and ``b``. The :meth:`~Bits.count` method just counts the number of 1 (or True) bits. ::
 
     >>> a = Bits('0b00110')
     >>> hamming_weight(a, '0b01100')

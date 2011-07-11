@@ -95,7 +95,7 @@ And finally it is also possible just to use a keyword as a token::
 
     s = bitstring.pack('hello, world', world='0x123', hello='0b110')
 
-As you would expect, there is also an :meth:`~ConstBitArray.unpack` function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is::
+As you would expect, there is also an :meth:`~Bits.unpack` function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is::
 
     >>> s = bitstring.pack('ue, oct:3, hex:8, uint:14', 3, '0o7', '0xff', 90)
     >>> s.unpack('ue, oct:3, hex:8, uint:14')

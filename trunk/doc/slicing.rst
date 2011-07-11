@@ -83,9 +83,9 @@ To join together a couple of bitstring objects use the ``+`` or ``+=`` operators
  a6 = BitArray('0b000')
  a6 += '0xf'
 
-Note that the final three methods all modify a bitstring, and so will only work with :class:`BitArray` objects, not the immutable :class:`ConstBitArray` objects.
+Note that the final three methods all modify a bitstring, and so will only work with :class:`BitArray` objects, not the immutable :class:`Bits` objects.
 
-If you want to join a large number of bitstrings then the method :meth:`~ConstBitArray.join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don't want a separator then it can be called on an empty bitstring. ::
+If you want to join a large number of bitstrings then the method :meth:`~Bits.join` can be used to improve efficiency and readability. It works like the ordinary string join function in that it uses the bitstring that it is called on as a separator when joining the list of bitstring objects it is given. If you don't want a separator then it can be called on an empty bitstring. ::
 
  bslist = [BitArray(uint=n, length=12) for n in xrange(1000)]
  s = BitArray('0b1111').join(bslist)
@@ -93,7 +93,7 @@ If you want to join a large number of bitstrings then the method :meth:`~ConstBi
 Truncating, inserting, deleting and overwriting
 -----------------------------------------------
 
-The functions in this section all modify the bitstring that they operate on and so are not available for :class:`ConstBitArray` objects.
+The functions in this section all modify the bitstring that they operate on and so are not available for :class:`Bits` objects.
 
 Deleting and truncating
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,7 +121,7 @@ You can of course use this to truncate the start or end bits just as easily::
 ``insert``
 ^^^^^^^^^^
 
-As you might expect, :meth:`~BitArray.insert` takes one :class:`BitArray` and inserts it into another. A bit position must be specified for :class:`BitArray` and :class:`ConstBitArray`, but for BitStreams if not present then the current :attr:`~ConstBitStream.pos` is used. ::
+As you might expect, :meth:`~BitArray.insert` takes one :class:`BitArray` and inserts it into another. A bit position must be specified for :class:`BitArray` and :class:`Bits`, but for BitStreams if not present then the current :attr:`~ConstBitStream.pos` is used. ::
 
  >>> a = BitArray('0x00112233')
  >>> a.insert('0xffff', 16)
@@ -160,7 +160,7 @@ Splitting
 ``split``
 ^^^^^^^^^
 
-Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The :meth:`~ConstBitArray.split` method returns a generator for the sections. ::
+Sometimes it can be very useful to use a delimiter to split a bitstring into sections. The :meth:`~Bits.split` method returns a generator for the sections. ::
 
  >>> a = BitArray('0x4700004711472222')
  >>> for s in a.split('0x47', bytealigned=True):
@@ -175,7 +175,7 @@ Note that the first item returned is always the bitstring before the first occur
 ``cut``
 ^^^^^^^
 
-If you just want to split into equal parts then use the :meth:`~ConstBitArray.cut` method. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
+If you just want to split into equal parts then use the :meth:`~Bits.cut` method. This takes a number of bits as its first argument and returns a generator for chunks of that size. ::
 
  >>> a = BitArray('0x47001243')
  >>> for byte in a.cut(8):

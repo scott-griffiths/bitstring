@@ -18,7 +18,7 @@ For the properties described below we will use these::
 bin
 ^^^
 
-The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The :attr:`~ConstBitArray.bin` property returns a string of the binary representation of the bitstring prefixed with ``0b``. All bitstrings can use this property and it is used to test equality between bitstrings. ::
+The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The :attr:`~Bits.bin` property returns a string of the binary representation of the bitstring prefixed with ``0b``. All bitstrings can use this property and it is used to test equality between bitstrings. ::
 
     >>> a.bin
     '0b000100100011'
@@ -42,7 +42,7 @@ If the bitstring does not have a length that is a multiple of four bits then an 
 oct
 ^^^
 
-For an octal interpretation use the :attr:`~ConstBitArray.oct` property. Octal values are prefixed with ``0o``, which is the Python 2.6 and later way of doing things (rather than just starting with ``0``).
+For an octal interpretation use the :attr:`~Bits.oct` property. Octal values are prefixed with ``0o``, which is the Python 2.6 and later way of doing things (rather than just starting with ``0``).
 
 If the bitstring does not have a length that is a multiple of three then an :exc:`InterpretError` exception will be raised. ::
 
@@ -56,14 +56,14 @@ If the bitstring does not have a length that is a multiple of three then an :exc
 uint / uintbe / uintle / uintne
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the :attr:`~ConstBitArray.uint` property.
+To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the :attr:`~Bits.uint` property.
 
     >>> a.uint
     283
     >>> b.uint
     7
 
-For byte-wise big-endian, little-endian and native-endian interpretations use :attr:`~ConstBitArray.uintbe`, :attr:`~ConstBitArray.uintle` and :attr:`~ConstBitArray.uintne` respectively. These will raise a :exc:`ValueError` if the bitstring is not a whole number of bytes long. ::
+For byte-wise big-endian, little-endian and native-endian interpretations use :attr:`~Bits.uintbe`, :attr:`~Bits.uintle` and :attr:`~Bits.uintne` respectively. These will raise a :exc:`ValueError` if the bitstring is not a whole number of bytes long. ::
 
     >>> s = BitArray('0x000001')
     >>> s.uint     # bit-wise big-endian 
@@ -78,30 +78,30 @@ For byte-wise big-endian, little-endian and native-endian interpretations use :a
 int / intbe / intle / intne
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For a two's complement interpretation as a base-2 signed integer use the :attr:`~ConstBitArray.int` property. If the first bit of the bitstring is zero then the :attr:`~ConstBitArray.int` and :attr:`~ConstBitArray.uint` interpretations will be equal, otherwise the :attr:`~ConstBitArray.int` will represent a negative number. ::
+For a two's complement interpretation as a base-2 signed integer use the :attr:`~Bits.int` property. If the first bit of the bitstring is zero then the :attr:`~Bits.int` and :attr:`~Bits.uint` interpretations will be equal, otherwise the :attr:`~Bits.int` will represent a negative number. ::
 
     >>> a.int
     283
     >>> b.int
     -1
 
-For byte-wise big, little and native endian signed integer interpretations use :attr:`~ConstBitArray.intbe`, :attr:`~ConstBitArray.intle` and :attr:`~ConstBitArray.intne` respectively. These work in the same manner as their unsigned counterparts described above.
+For byte-wise big, little and native endian signed integer interpretations use :attr:`~Bits.intbe`, :attr:`~Bits.intle` and :attr:`~Bits.intne` respectively. These work in the same manner as their unsigned counterparts described above.
 
 float / floatbe / floatle / floatne
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For a floating point interpretation use the :attr:`~ConstBitArray.float` property. This uses your machine's underlying floating point representation and will only work if the bitstring is 32 or 64 bits long.
+For a floating point interpretation use the :attr:`~Bits.float` property. This uses your machine's underlying floating point representation and will only work if the bitstring is 32 or 64 bits long.
 
-Different endiannesses are provided via :attr:`~ConstBitArray.floatle` and :attr:`~ConstBitArray.floatne`. Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian :attr:`~ConstBitArray.float` and the byte-wise big-endian :attr:`~ConstBitArray.floatbe`.
+Different endiannesses are provided via :attr:`~Bits.floatle` and :attr:`~Bits.floatne`. Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian :attr:`~Bits.float` and the byte-wise big-endian :attr:`~Bits.floatbe`.
 
 Note also that standard floating point numbers in Python are stored in 64 bits, so use this size if you wish to avoid rounding errors.
 
 bytes
 ^^^^^
 
-A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the :attr:`~ConstBitArray.bytes` interpretation, which returns a ``bytes`` object (which is equivalent to an ordinary ``str`` in Python 2.6/2.7).
+A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the :attr:`~Bits.bytes` interpretation, which returns a ``bytes`` object (which is equivalent to an ordinary ``str`` in Python 2.6/2.7).
 
-If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`~ConstBitArray.tobytes` as this will be pad with between one and seven zero bits up to a byte boundary if neccessary. ::
+If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`~Bits.tobytes` as this will be pad with between one and seven zero bits up to a byte boundary if neccessary. ::
 
     >>> open('somefile', 'wb').write(a.tobytes())
     >>> open('anotherfile', 'wb').write(('0x0'+a).bytes)
@@ -112,12 +112,12 @@ If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError
     >>> a2.hex
     '0x0123'
 
-Note that the :meth:`~ConstBitArray.tobytes` method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the :attr:`~ConstBitArray.bytes` property.
+Note that the :meth:`~Bits.tobytes` method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the :attr:`~Bits.bytes` property.
 
 ue
 ^^
 
-The :attr:`~ConstBitArray.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
+The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
 
     >>> s = BitArray(ue=12)
     >>> s.bin
@@ -129,7 +129,7 @@ The :attr:`~ConstBitArray.ue` property interprets the bitstring as a single unsi
 se
 ^^
 
-The :attr:`~ConstBitArray.se` property does much the same as ``ue`` and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see :ref:`exp-golomb` for more information. ::
+The :attr:`~Bits.se` property does much the same as ``ue`` and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see :ref:`exp-golomb` for more information. ::
 
     >>> s = BitArray('0x164b')
     >>> s.se
