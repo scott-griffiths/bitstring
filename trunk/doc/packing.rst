@@ -99,7 +99,7 @@ As you would expect, there is also an :meth:`~Bits.unpack` function that takes a
 
     >>> s = bitstring.pack('ue, oct:3, hex:8, uint:14', 3, '0o7', '0xff', 90)
     >>> s.unpack('ue, oct:3, hex:8, uint:14')
-    [3, '0o7', '0xff', 90]
+    [3, '7', 'ff', 90]
 
 .. _compact_format:
 

@@ -126,7 +126,7 @@ The Bits class
          
             >>> s = Bits('0b1').join(['0b0']*5)
             >>> print(s.bin)
-            0b010101010
+            010101010
 
     .. method:: rfind(bs[, start, end, bytealigned])
     
@@ -154,7 +154,7 @@ The Bits class
 
             >>> s = Bits('0x42423')
             >>> [bs.bin for bs in s.split('0x4')]
-            ['', '0b01000', '0b01001000', '0b0100011']
+            ['', '01000', '01001000', '0100011']
 
     .. method:: startswith(bs[, start, end])
 
@@ -200,8 +200,6 @@ The Bits class
     .. attribute:: bin
 
         Property for the representation of the bitstring as a binary string.
-
-        When used as a getter, the value will be preceded by ``0b``.
          
     .. attribute:: bool
 
@@ -225,11 +223,11 @@ The Bits class
 
         Property representing the hexadecimal value of the bitstring.
 
-        When used as a getter the value will be preceded by ``0x``. If the bitstring is not a multiple of four bits long then getting its hex value will raise an :exc:`InterpretError`. ::
+        If the bitstring is not a multiple of four bits long then getting its hex value will raise an :exc:`InterpretError`. ::
 
             >>> s = Bits(bin='1111 0000')
             >>> s.hex
-            '0xf0'  
+            'f0'
 
     .. attribute:: int
 
@@ -285,14 +283,14 @@ The Bits class
 
         Property for the octal representation of the bitstring.
 
-        When used as a getter the value will be preceded by ``0o``. If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`InterpretError`. ::
+        If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`InterpretError`. ::
 
             >>> s = BitString('0b111101101')
             >>> s.oct
-            '0o755'
+            '755'
             >>> s.oct = '01234567'
             >>> s.oct
-            '0o01234567'
+            '01234567'
 
     .. attribute:: se
 
@@ -302,7 +300,7 @@ The Bits class
 
             >>> s = BitString(se=-40)
             >>> s.bin
-            0b0000001010001
+            0000001010001
             >>> s += '0b1'
             >>> s.se
             Error: BitString is not a single exponential-Golomb code.

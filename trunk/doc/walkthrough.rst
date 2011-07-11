@@ -55,9 +55,9 @@ There are lots of things we can do with our new bitstrings, the simplest of whic
 Now you would be forgiven for thinking that the strings that we used to create the two bitstrings had just been stored to be given back when printed, but that's not the case. Every bitstring should be considered just as a sequence of bits. As we'll see there are lots of ways to create and manipulate them, but they have no memory of how they were created. When they are printed they just pick the simplest hex or binary representation of themselves. If you prefer you can pick the representation that you want::
 
     >>> a.bin
-    '0b1111111100000001'
+    '1111111100000001'
     >>> b.oct
-    '0o6'
+    '6'
     >>> b.int
     -2
     >>> a.bytes
@@ -78,9 +78,9 @@ Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex
 An exception is raised rather than trying to guess the best hex representation as there are a multitude of ways to convert to hex. I occasionally get asked why it doesn't just do the 'obvious' conversion, which is invariably what that person expects from his own field of work. This could be truncating bits at the start or end, or padding at the start or end with either zeros or ones. Rather than try to guess what is meant we just raise an exception - if you want a particular behaviour then write it explicitly::
 
    >>> (b + [0]).hex
-   '0xc'
+   'c'
    >>> ([0] + b).hex
-   '0x6'
+   '6'
 
 Here we've added a zero bit first to the end and then to the start. Don't worry too much about how it all works, but just to give you a taster the zero bit ``[0]`` could also have been written as ``BitArray([0])``, ``BitArray([0])``, ``BitArray('0b0')``, ``BitArray(bin='0')``, ``'0b0'`` or just ``1`` (this final method isn't a typo, it means construct a bitstring of length one, with all the bits initialised to zero - it does look a bit confusing though which is why I prefer [0] and [1] to represent single bits). Take a look at :ref:`auto_init` for more details.
 
@@ -218,7 +218,7 @@ The stream-ness of this object is via its bit position, and various reading and 
     >>> s.pos
     24
     >>> s.read('hex:8')
-    '0xb3'
+    'b3'
     >>> s.pos
     32
 

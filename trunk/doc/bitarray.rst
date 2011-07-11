@@ -110,11 +110,11 @@ The BitArray class
             >>> s.replace('0b1', '0xf')
             3
             >>> print(s.bin)
-            0b0011111111001111
+            0011111111001111
             >>> s.replace('0b1', '', count=6)
             6
             >>> print(s.bin)
-            0b0011001111
+            0011001111
 
     .. method:: reverse([start, end])
 
@@ -125,7 +125,7 @@ The BitArray class
             >>> a = BitArray('0b10111')
             >>> a.reverse()
             >>> a.bin
-            '0b11101'
+            '11101'
 
     .. method:: rol(bits[, start, end])
 
@@ -138,7 +138,7 @@ The BitArray class
             >>> s = BitArray('0b01000001')
             >>> s.rol(2)
             >>> s.bin
-            '0b00000101'
+            '00000101'
 
     .. method:: ror(bits[, start, end])
 
@@ -160,10 +160,10 @@ The BitArray class
             0x0001
             >>> s.set(1, (0, 4, 5, 7, 9))
             >>> s.bin
-            '0b1000110101000001'
+            '1000110101000001'
             >>> s.set(0)
             >>> s.bin
-            '0b0000000000000000'
+            '0000000000000000'
 
 
 
@@ -312,7 +312,7 @@ The BitArray class
             >>> s = BitArray('0xbad')
             >>> s *= 3
             >>> s.hex
-            '0xbadbadbad'
+            'badbadbad'
         
     .. method:: __ior__(bs)
     

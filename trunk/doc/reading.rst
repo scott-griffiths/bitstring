@@ -26,7 +26,7 @@ For simple reading of a number of bits you can use :meth:`~ConstBitStream.read` 
     >>> width = s.read(12).uint
     >>> height = s.read(12).uint
     >>> print(start_code, width, height, s.pos)
-    0x000001b3 352 288 56
+    000001b3 352 288 56
     >>> s.pos += 37
     >>> flags = s.read(2)
     >>> constrained_parameters_flag = flags.read(1)
@@ -133,7 +133,7 @@ For example::
     16
     >>> s.pos += 4
     >>> print(s.read('bin:4'))   # the final nibble '0x6'
-    0b0110
+    0110
 
 Finding and replacing
 ---------------------
@@ -181,7 +181,7 @@ To replace all occurrences of one :class:`BitArray` with another use :meth:`~Bit
     >>> s.replace('0b110', '0b1111')
     3            # The number of replacements made
     >>> s.bin
-    '0b111100011111111'
+    '111100011111111'
 
 Working with byte aligned data
 ------------------------------

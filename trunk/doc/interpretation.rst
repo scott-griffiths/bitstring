@@ -18,38 +18,38 @@ For the properties described below we will use these::
 bin
 ^^^
 
-The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The :attr:`~Bits.bin` property returns a string of the binary representation of the bitstring prefixed with ``0b``. All bitstrings can use this property and it is used to test equality between bitstrings. ::
+The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The :attr:`~Bits.bin` property returns a string of the binary representation of the bitstring. All bitstrings can use this property and it is used to test equality between bitstrings. ::
 
     >>> a.bin
-    '0b000100100011'
+    '000100100011'
     >>> b.bin
-    '0b111'
+    '111'
 
 Note that the initial zeros are significant; for bitstrings the zeros are just as important as the ones!
 
 hex
 ^^^
 
-For whole-byte bitstrings the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits. Hex values are prefixed with ``0x``.
+For whole-byte bitstrings the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits.
 
 If the bitstring does not have a length that is a multiple of four bits then an :exc:`InterpretError` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code. ::
 
     >>> a.hex
-    '0x123'
+    '123'
     >>> b.hex
     ValueError: Cannot convert to hex unambiguously - not multiple of 4 bits.
 
 oct
 ^^^
 
-For an octal interpretation use the :attr:`~Bits.oct` property. Octal values are prefixed with ``0o``, which is the Python 2.6 and later way of doing things (rather than just starting with ``0``).
+For an octal interpretation use the :attr:`~Bits.oct` property.
 
 If the bitstring does not have a length that is a multiple of three then an :exc:`InterpretError` exception will be raised. ::
 
     >>> a.oct
-    '0o0443'
+    '0443'
     >>> b.oct
-    '0o7'
+    '7'
     >>> (b + '0b0').oct
     ValueError: Cannot convert to octal unambiguously - not multiple of 3 bits.
 
@@ -107,10 +107,10 @@ If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError
     >>> open('anotherfile', 'wb').write(('0x0'+a).bytes)
     >>> a1 = BitArray(filename='somefile')
     >>> a1.hex
-    '0x1230'
+    '1230'
     >>> a2 = BitArray(filename='anotherfile')
     >>> a2.hex
-    '0x0123'
+    '0123'
 
 Note that the :meth:`~Bits.tobytes` method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the :attr:`~Bits.bytes` property.
 
@@ -121,7 +121,7 @@ The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned expo
 
     >>> s = BitArray(ue=12)
     >>> s.bin
-    '0b0001101'
+    '0001101'
     >>> s.append(BitArray(ue=3))
     >>> print(s.readlist('2*ue'))
     [12, 3]
