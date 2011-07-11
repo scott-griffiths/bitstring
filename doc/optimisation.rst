@@ -29,19 +29,19 @@ This is much faster, although probably not as fast as the combined call::
 Choose the simplest class you can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you don't need to modify your bitstring after creation then prefer the immutable :class:`ConstBitArray` over the mutable :class:`BitArray`. This is typically the case when parsing, or when creating directly from files.
+If you don't need to modify your bitstring after creation then prefer the immutable :class:`Bits` over the mutable :class:`BitArray`. This is typically the case when parsing, or when creating directly from files.
 
 The speed difference between the classes is noticable, and there are also memory usage optimisations that are made if objects are known to be immutable.
 
 You should also prefer :class:`ConstBitStream` to :class:`BitStream` if you won't need to modify any bits.
 
-One anti-pattern to watch out for is using ``+=`` on a :class:`ConstBitArray` object. For example, don't do this::
+One anti-pattern to watch out for is using ``+=`` on a :class:`Bits` object. For example, don't do this::
 
- s = ConstBitArray()
+ s = Bits()
  for i in range(1000):
      s += '0xab'
     
-Now this is inefficient for a few reasons, but the one I'm highlighting is that as the immutable bitstring doesn't have an ``__iadd__`` special method the ordinary ``__add__`` gets used instead. In other words ``s += '0xab'`` gets converted to ``s = s + '0xab'``, which creates a new :class:`ConstBitArray` from the old on every iteration. This isn't what you'd want or possibly expect. If ``s`` had been a :class:`BitArray` then the addition would have been done in-place, and have been much more efficient.
+Now this is inefficient for a few reasons, but the one I'm highlighting is that as the immutable bitstring doesn't have an ``__iadd__`` special method the ordinary ``__add__`` gets used instead. In other words ``s += '0xab'`` gets converted to ``s = s + '0xab'``, which creates a new :class:`Bits` from the old on every iteration. This isn't what you'd want or possibly expect. If ``s`` had been a :class:`BitArray` then the addition would have been done in-place, and have been much more efficient.
 
 
 Use dedicated functions for bit setting and checking
@@ -58,7 +58,7 @@ This creates a 1000 bit bitstring and sets three of the bits to '1'. Unfortunate
  s = BitArray(1000)
  s.set(True, [14, 34, 501])
  
-As well as :meth:`~BitArray.set` and :meth:`~BitArray.invert` there are also checking methods :meth:`~ConstBitArray.all` and :meth:`~ConstBitArray.any`. So rather than using ::
+As well as :meth:`~BitArray.set` and :meth:`~BitArray.invert` there are also checking methods :meth:`~Bits.all` and :meth:`~Bits.any`. So rather than using ::
 
  if s[100] and s[200]:
      do_something()

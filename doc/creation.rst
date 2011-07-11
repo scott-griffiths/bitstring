@@ -10,14 +10,14 @@ You can create bitstrings in a variety of ways. Internally they are stored as by
 The bitstring classes
 ---------------------
 
-Four classes are provided by the bitstring module: :class:`BitStream` and :class:`BitArray` together with their immutable versions :class:`ConstBitStream` and :class:`ConstBitArray`:
+Four classes are provided by the bitstring module: :class:`BitStream` and :class:`BitArray` together with their immutable versions :class:`ConstBitStream` and :class:`Bits`:
 
- * :class:`ConstBitArray` ``(object)``: This is the most basic class. It is immutable and so its contents can't be changed after creation.
- * :class:`BitArray` ``(ConstBitArray)``: This adds mutating methods to its base class.
- * :class:`ConstBitStream` ``(ConstBitArray)``: This adds methods and properties to allow the bits to be treated as a stream of bits, with a bit position and reading/parsing methods.
+ * :class:`Bits` ``(object)``: This is the most basic class. It is immutable and so its contents can't be changed after creation.
+ * :class:`BitArray` ``(Bits)``: This adds mutating methods to its base class.
+ * :class:`ConstBitStream` ``(Bits)``: This adds methods and properties to allow the bits to be treated as a stream of bits, with a bit position and reading/parsing methods.
  * :class:`BitStream` ``(BitArray, ConstBitStream)``: This is the most versative class, having both the bitstream methods and the mutating methods.
 
-Before verion 2.1 ``BitStream`` was known as ``BitString`` and ``ConstBitStream`` was known as ``Bits``. These old names are still available for backward compatibility but the use of ``Bits`` in particular is discouraged as I plan to rename ``ConstBitArray`` to ``Bits`` in version 3.
+Before verion 3.0 ``Bits`` was known as ``ConstBitArray``. The old name is still available for backward compatibility.
 
 The term 'bitstring' is used in this manual to refer generically to any of these classes.
 
@@ -26,10 +26,10 @@ Most of the exampes in this manual use the :class:`BitArray` class, with :class:
 To summarise when to use each class:
 
 * If you need to change the contents of the bitstring then you must use :class:`BitArray` or :class:`BitStream`. Truncating, replacing, inserting, appending etc. are not available for the const classes.
-* If you need to use a bitstring as the key in a dictionary or as a member of a ``set`` then you must use :class:`ConstBitArray` or a :class:`ConstBitStream`. As :class:`BitArray` and :class:`BitStream` objects are mutable they do not support hashing and so cannot be used in these ways.
-* If you are creating directly from a file then a :class:`BitArray` or :class:`BitStream` will read the file into memory whereas a :class:`ConstBitArray` or :class:`ConstBitStream` will not, so using the const classes allows extremely large files to be examined.
-* If you don't need the extra functionality of a particular class then the simpler ones might be faster and more memory efficient. The fastest and most memory efficient class is :class:`ConstBitArray`.
-The :class:`ConstBitArray` class is the base class of the other three class. This means that ``isinstance(s, ConstBitArray)`` will be true if ``s`` is an instance of any of the four classes.
+* If you need to use a bitstring as the key in a dictionary or as a member of a ``set`` then you must use :class:`Bits` or a :class:`ConstBitStream`. As :class:`BitArray` and :class:`BitStream` objects are mutable they do not support hashing and so cannot be used in these ways.
+* If you are creating directly from a file then a :class:`BitArray` or :class:`BitStream` will read the file into memory whereas a :class:`Bits` or :class:`ConstBitStream` will not, so using the const classes allows extremely large files to be examined.
+* If you don't need the extra functionality of a particular class then the simpler ones might be faster and more memory efficient. The fastest and most memory efficient class is :class:`Bits`.
+The :class:`Bits` class is the base class of the other three class. This means that ``isinstance(s, Bits)`` will be true if ``s`` is an instance of any of the four classes.
 
 
 Using the constructor
@@ -58,7 +58,7 @@ From a hexadecimal string
 
 The initial ``0x`` or ``0X`` is optional. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of ``c`` will be 32.
 
-If you include the initial ``0x`` then you can use the ``auto`` initialiser instead. As it is the first parameter in :class:`__init__<ConstBitArray>` this will work equally well::
+If you include the initial ``0x`` then you can use the ``auto`` initialiser instead. As it is the first parameter in :class:`__init__<Bits>` this will work equally well::
 
     c = BitArray('0x000001b3')
 
@@ -190,21 +190,21 @@ From a file
 
 Using the ``filename`` initialiser allows a file to be analysed without the need to read it all into memory. The way to create a file-based bitstring is::
 
-    p = ConstBitArray(filename="my2GBfile")
+    p = Bits(filename="my2GBfile")
 
 This will open the file in binary read-only mode. The file will only be read as and when other operations require it, and the contents of the file will not be changed by any operations. If only a portion of the file is needed then the ``offset`` and ``length`` parameters (specified in bits) can be used.
 
-Note that we created a :class:`ConstBitArray` here rather than a :class:`BitArray`, as they have quite different behaviour in this case. The immutable :class:`ConstBitArray` will never read the file into memory (except as needed by other operations), whereas if we had created a :class:`BitArray` then the whole of the file would immediately have been read into memory. This is because in creating a :class:`BitArray` you are implicitly saying that you want to modify it, and so it needs to be in memory.
+Note that we created a :class:`Bits` here rather than a :class:`BitArray`, as they have quite different behaviour in this case. The immutable :class:`Bits` will never read the file into memory (except as needed by other operations), whereas if we had created a :class:`BitArray` then the whole of the file would immediately have been read into memory. This is because in creating a :class:`BitArray` you are implicitly saying that you want to modify it, and so it needs to be in memory.
 
 It's also possible to use the ``auto`` initialiser for file objects. It's as simple as::
 
     f = open('my2GBfile', 'rb')
-    p = ConstBitArray(f)
+    p = Bits(f)
 
 
 The auto initialiser
 --------------------
-The ``auto`` parameter is the first parameter in the :class:`__init__<ConstBitArray>` function and so the ``auto=`` can be omitted when using it. It accepts either a string, an iterable, another bitstring, an integer, a bytearray or a file object.
+The ``auto`` parameter is the first parameter in the :class:`__init__<Bits>` function and so the ``auto=`` can be omitted when using it. It accepts either a string, an iterable, another bitstring, an integer, a bytearray or a file object.
 
 Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, (non string) iterables are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
 
@@ -220,12 +220,12 @@ Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` 
     >>> zeroed = BitArray(1000)
     >>> frombytes = BitArray(bytearray(b'xyz'))
  
-It can also be used to convert between the :class:`BitArray` and :class:`ConstBitArray` classes::
+It can also be used to convert between the :class:`BitArray` and :class:`Bits` classes::
 
-    >>> immutable = ConstBitArray('0xabc')
+    >>> immutable = Bits('0xabc')
     >>> mutable = BitArray(immutable)
     >>> mutable += '0xdef'
-    >>> immutable = ConstBitArray(mutable)
+    >>> immutable = Bits(mutable)
 
 As always the bitstring doesn't know how it was created; initialising with octal or hex might be more convenient or natural for a particular example but it is exactly equivalent to initialising with the corresponding binary string. ::
 

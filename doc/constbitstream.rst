@@ -5,9 +5,9 @@ The ConstBitStream class
 
 .. class:: ConstBitStream([auto, length, offset, **kwargs])
 
-    The :class:`ConstBitArray` class is the base class for :class:`ConstBitStream` and so all of its methods are also available for :class:`ConstBitStream` objects. The initialiser is also the same as for :class:`ConstBitArray` and so won't be repeated here.
+    The :class:`Bits` class is the base class for :class:`ConstBitStream` and so all of its methods are also available for :class:`ConstBitStream` objects. The initialiser is also the same as for :class:`Bits` and so won't be repeated here.
 
-    A :class:`ConstBitStream` is a :class:`ConstBitArray` with added methods and properties that allow it to be parsed as a stream of bits.
+    A :class:`ConstBitStream` is a :class:`Bits` with added methods and properties that allow it to be parsed as a stream of bits.
 
 
     .. method:: bytealign()
