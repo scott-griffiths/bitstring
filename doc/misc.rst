@@ -28,10 +28,10 @@ This simply reverses the bits of the :class:`BitArray` in place. You can optiona
  >>> a = BitArray('0b000001101')
  >>> a.reverse()
  >>> a.bin
- '0b101100000'
+ '101100000'
  >>> a.reverse(0, 4)
  >>> a.bin
- '0b110100000'
+ '110100000'
 
 ``tobytes``
 ^^^^^^^^^^^
@@ -70,7 +70,7 @@ To rotate the bits in a :class:`BitArray` use :meth:`~BitArray.ror` and :meth:`~
  >>> s = BitArray('0x00001')
  >>> s.rol(6)
  >>> s.hex
- '0x00040'
+ '00040'
 
 Special Methods
 ---------------
@@ -105,7 +105,7 @@ The form used for the bitstring is generally the one which gives it the shortest
  >>> print(a)
  0xff
  >>> print(a.bin)
- 0b11111111
+ 11111111
 
 ``__eq__ / __ne__``
 ^^^^^^^^^^^^^^^^^^^
@@ -150,7 +150,7 @@ Multiplication of a bitstring by an integer means the same as it does for ordina
 
  >>> a = BitArray('0b10')*8
  >>> print(a.bin)
- 0b1010101010101010
+ 1010101010101010
 
 ``__copy__``
 ^^^^^^^^^^^^
@@ -175,11 +175,11 @@ Bit-wise AND, OR and XOR are provided for bitstring objects of equal length only
  >>> a = BitArray('0b00001111')
  >>> b = BitArray('0b01010101')
  >>> print((a&b).bin)
- 0b00000101
+ 00000101
  >>> print((a|b).bin)
- 0b01011111
+ 01011111
  >>> print((a^b).bin)
- 0b01010000
+ 01010000
  >>> b &= '0x1f'
  >>> print(b.bin)
- 0b00010101
+ 00010101

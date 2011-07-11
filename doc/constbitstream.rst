@@ -35,7 +35,7 @@ The ConstBitStream class
             >>> s.peek(16)
             ConstBitStream('0x1234')
             >>> s.peek('hex:8')
-            '0x12'
+            '12'
 
     .. method:: peeklist(fmt, **kwargs)
 
@@ -80,9 +80,9 @@ The ConstBitStream class
 
             >>> s = ConstBitStream('0x23ef55302')
             >>> s.read('hex:12')
-            '0x23e'
+            '23e'
             >>> s.read('bin:4')
-            '0b1111'
+            '1111'
             >>> s.read('uint:5')
             10
             >>> s.read('bits:4')
@@ -108,12 +108,12 @@ The ConstBitStream class
 
             >>> s = ConstBitStream('0x43fe01ff21')
             >>> s.readlist('hex:8, uint:6')
-            ['0x43', 63]
+            ['43', 63]
             >>> s.readlist(['bin:3', 'intle:16'])
-            ['0b100', -509]
+            ['100', -509]
             >>> s.pos = 0
             >>> s.readlist('hex:b, uint:d', b=8, d=6)
-            ['0x43', 63]
+            ['43', 63]
 
 
     .. attribute:: bytepos

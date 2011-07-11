@@ -47,7 +47,7 @@ Easily construct new bitstrings::
 Interpret the bitstring however you want::
 
     >>> print(e.hex)
-    '0x9249cdcd'
+    '9249cdcd'
     >>> print(e.int)
     -1840656947
     >>> print(e.uint)

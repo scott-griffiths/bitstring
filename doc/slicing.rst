@@ -103,11 +103,11 @@ To delete bits just use ``del`` as you would with any other container::
  >>> a = BitArray('0b00011000')
  >>> del a[3:5]                # remove 2 bits at pos 3
  >>> a.bin
- ‘0b000000’
+ ‘000000’
  >>> b = BitArray('0x112233445566')
  >>> del b[24:40]
  >>> b.hex
- '0x11223366'
+ '11223366'
 
 You can of course use this to truncate the start or end bits just as easily::
 
@@ -126,7 +126,7 @@ As you might expect, :meth:`~BitArray.insert` takes one :class:`BitArray` and in
  >>> a = BitArray('0x00112233')
  >>> a.insert('0xffff', 16)
  >>> a.hex
- '0x0011ffff2233'
+ '0011ffff2233'
 
 ``overwrite``
 ^^^^^^^^^^^^^
@@ -137,7 +137,7 @@ As you might expect, :meth:`~BitArray.insert` takes one :class:`BitArray` and in
  >>> a.pos = 4
  >>> a.overwrite('0b1111')         # Uses current pos as default
  >>> a.hex
- '0x0f112233'
+ '0f112233'
 
 
 The bitstring as a list
@@ -166,9 +166,9 @@ Sometimes it can be very useful to use a delimiter to split a bitstring into sec
  >>> for s in a.split('0x47', bytealigned=True):
  ...     print(s.hex)
  
- 0x470000
- 0x4711
- 0x472222
+ 470000
+ 4711
+ 472222
 
 Note that the first item returned is always the bitstring before the first occurrence of the delimiter, even if it is empty.
 
@@ -180,7 +180,7 @@ If you just want to split into equal parts then use the :meth:`~Bits.cut` method
  >>> a = BitArray('0x47001243')
  >>> for byte in a.cut(8):
  ...     print(byte.hex)
- 0x47
- 0x00
- 0x12
- 0x43 
+ 47
+ 00
+ 12
+ 43

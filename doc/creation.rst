@@ -54,7 +54,7 @@ From a hexadecimal string
 
     >>> c = BitArray(hex='0x000001b3')
     >>> c.hex
-    '0x000001b3'
+    '000001b3'
 
 The initial ``0x`` or ``0X`` is optional. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of ``c`` will be 32.
 
@@ -67,7 +67,7 @@ From a binary string
 
     >>> d = BitArray(bin='0011 00')
     >>> d.bin
-    '0b001100'
+    '001100'
 
 An initial ``0b`` or ``0B`` is optional and whitespace will be ignored.
 
@@ -80,7 +80,7 @@ From an octal string
 
     >>> o = BitArray(oct='34100')
     >>> o.oct
-    '0o34100'
+    '34100'
 
 An initial ``0o`` or ``0O`` is optional, but ``0o`` (a zero and lower-case 'o') is preferred as it is slightly more readable. 
 
@@ -95,9 +95,9 @@ From an integer
     >>> e = BitArray(uint=45, length=12)
     >>> f = BitArray(int=-1, length=7)
     >>> e.bin
-    '0b000000101101'
+    '000000101101'
     >>> f.bin
-    '0b1111111'
+    '1111111'
 
 For initialisation with signed and unsigned binary integers (``int`` and ``uint`` respectively) the ``length`` parameter is mandatory, and must be large enough to contain the integer. So for example if ``length`` is 8 then ``uint`` can be in the range 0 to 255, while ``int`` can range from -128 to 127. Two's complement is used to represent negative numbers.
 
@@ -122,9 +122,9 @@ The first of these, ``big_endian``, is equivalent to just using the plain bit-wi
 The second, ``little_endian``, is interpreted as least significant byte first, i.e. it is a byte reversal of ``big_endian``. So we have::
 
     >>> big_endian.hex
-    '0x0001'
+    '0001'
     >>> little_endian.hex
-    '0x0100'
+    '0100'
 
 Finally we have ``native_endian``, which will equal either ``big_endian`` or ``little_endian``, depending on whether you are running on a big or little-endian machine (if you really need to check then use ``import sys; sys.byteorder``).
 
@@ -153,9 +153,9 @@ Initialisation with integers represented by exponential-Golomb codes is also pos
     >>> g = BitArray(ue=12)
     >>> h = BitArray(se=-402)
     >>> g.bin
-    '0b0001101'
+    '0001101'
     >>> h.bin
-    '0b0000000001100100101'
+    '0000000001100100101'
 
 For these initialisers the length of the bitstring is fixed by the value it is initialised with, so the length parameter must not be supplied and it is an error to do so. If you don't know what exponential-Golomb codes are then you are in good company, but they are quite interesting, so I’ve included a section on them (see :ref:`exp-golomb`).
 
@@ -230,11 +230,11 @@ It can also be used to convert between the :class:`BitArray` and :class:`Bits` c
 As always the bitstring doesn't know how it was created; initialising with octal or hex might be more convenient or natural for a particular example but it is exactly equivalent to initialising with the corresponding binary string. ::
 
     >>> fromoct.oct
-    '0o7550'
+    '7550'
     >>> fromoct.hex
-    '0xf68'
+    'f68'
     >>> fromoct.bin
-    '0b111101101000'
+    '111101101000'
     >>> fromoct.uint
     3994
     >>> fromoct.int
