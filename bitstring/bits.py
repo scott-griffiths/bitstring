@@ -1461,7 +1461,6 @@ class Bits(object):
         # Use lookup table to convert each byte to string of 8 bits.
         startbyte, startoffset = divmod(start + (self._offset % 8), 8)
         endbyte = (start + (self._offset % 8) + length - 1) // 8
-        #c = ''.join(BYTE_TO_BITS[x] for x in self._datastore.getbyteslice(startbyte, endbyte + 1))
         c = [BYTE_TO_BITS[x] for x in self._datastore.getbyteslice(startbyte, endbyte + 1)]
         return ''.join(c)[startoffset:startoffset + length]
 
@@ -1596,11 +1595,13 @@ class Bits(object):
 
     def _slice(self, start, end):
         """Used internally to get a slice, without error checking."""
+        if end == start:
+            return self.__class__()
         offset = self._offset
         startbyte, newoffset = divmod(start + offset, 8)
         endbyte = (end + offset - 1) // 8
-        bs = self.__class__(bytes=self._datastore.getbyteslice(startbyte, endbyte + 1),
-                            length=end - start, offset=newoffset)
+        bs = self.__class__()
+        bs._setbytes_unsafe(self._datastore.getbyteslice(startbyte, endbyte + 1), end - start, newoffset)
         return bs
 
     def _readtoken(self, name, pos, length):
