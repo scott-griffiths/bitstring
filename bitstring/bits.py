@@ -23,7 +23,7 @@ BYTE_REVERSAL_DICT = dict()
 for i in range(256):
     BYTE_REVERSAL_DICT[i] = chr(int("{0:08b}".format(i)[::-1], 2))
 
-# For 2.6 / 3.x coexistence
+# For Python 2.x/ 3.x coexistence
 # Yes this is very very hacky.
 try:
     xrange
@@ -47,8 +47,7 @@ INIT_NAMES = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bit
               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
               'float', 'floatbe', 'floatle', 'floatne', 'bytes', 'bool')
 
-INIT_NAMES_ORED = '|'.join(INIT_NAMES)
-TOKEN_RE = re.compile(r'(?P<name>' + INIT_NAMES_ORED +
+TOKEN_RE = re.compile(r'(?P<name>' + '|'.join(INIT_NAMES) +
                       r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
 DEFAULT_UINT = re.compile(r'(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
@@ -785,6 +784,9 @@ class Bits(object):
         assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset
         return True
 
+    _tokenname_to_initialiser = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct', '0o': 'oct',
+                                 '0O': 'oct', 'bin': 'bin', '0b': 'bin', '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes'}
+
     @classmethod
     def _init_with_token(cls, name, token_length, value):
         if token_length is not None:
@@ -797,57 +799,24 @@ class Bits(object):
             else:
                 error = "Token has no value ({0}:{1}=???).".format(name, token_length)
             raise ValueError(error)
-        if name in ('0x', '0X', 'hex'):
-            b = cls(hex=value)
-        elif name in ('0b', '0B', 'bin'):
-            b = cls(bin=value)
-        elif name in ('0o', '0O', 'oct'):
-            b = cls(oct=value)
-        elif name == 'se':
-            b = cls(se=int(value))
-        elif name == 'ue':
-            b = cls(ue=int(value))
-        elif name == 'sie':
-            b = cls(sie=int(value))
-        elif name == 'uie':
-            b = cls(uie=int(value))
-        elif name == 'uint':
-            b = cls(uint=int(value), length=token_length)
-        elif name == 'int':
-            b = cls(int=int(value), length=token_length)
-        elif name == 'uintbe':
-            b = cls(uintbe=int(value), length=token_length)
-        elif name == 'intbe':
-            b = cls(intbe=int(value), length=token_length)
-        elif name == 'uintle':
-            b = cls(uintle=int(value), length=token_length)
-        elif name == 'intle':
-            b = cls(intle=int(value), length=token_length)
-        elif name == 'uintne':
-            b = cls(uintne=int(value), length=token_length)
-        elif name == 'intne':
-            b = cls(intne=int(value), length=token_length)
-        elif name == 'float':
-            b = cls(float=float(value), length=token_length)
-        elif name == 'floatbe':
-            b = cls(floatbe=float(value), length=token_length)
-        elif name == 'floatle':
-            b = cls(floatle=float(value), length=token_length)
-        elif name == 'floatne':
-            b = cls(floatne=float(value), length=token_length)
-        elif name == 'bits':
-            b = cls(value)
-        elif name == 'bytes':
-            b = cls(bytes=value)
-        elif name == 'bool':
-            if value in (1, 'True', '1'):
-                b = cls(bool=True)
-            elif value in (0, 'False', '0'):
-                b = cls(bool=False)
+        try:
+            b = cls(**{cls._tokenname_to_initialiser[name]: value})
+        except KeyError:
+            if name in ('se', 'ue', 'sie', 'uie'):
+                b = cls(**{name: int(value)})
+            elif name in ('uint', 'int', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne'):
+                b = cls(**{name: int(value), 'length': token_length})
+            elif name in ('float', 'floatbe', 'floatle', 'floatne'):
+                b = cls(**{name: float(value), 'length': token_length})
+            elif name == 'bool':
+                if value in (1, 'True', '1'):
+                    b = cls(bool=True)
+                elif value in (0, 'False', '0'):
+                    b = cls(bool=False)
+                else:
+                    raise bitstring.CreationError("bool token can only be 'True' or 'False'.")
             else:
-                raise bitstring.CreationError("bool token can only be 'True' or 'False'.")
-        else:
-            raise bitstring.CreationError("Can't parse token name {0}.", name)
+                raise bitstring.CreationError("Can't parse token name {0}.", name)
         if token_length is not None and b.len != token_length:
             msg = "Token with length {0} packed with value of length {1} ({2}:{3}={4})."
             raise bitstring.CreationError(msg, token_length, b.len, name, token_length, value)
@@ -1849,8 +1818,9 @@ class Bits(object):
     def unpack(self, fmt, **kwargs):
         """Interpret the whole bitstring using fmt and return list.
 
-        fmt - One or more strings with comma separated tokens describing
-              how to interpret the bits in the bitstring.
+        fmt -- A single string or a list of strings with comma separated tokens
+               describing how to interpret the bits in the bitstring. Items
+               can also be integers, for reading new bitstring of the given length.
         kwargs -- A dictionary or keyword-value pairs - the keywords used in the
                   format string will be replaced with their given value.
 

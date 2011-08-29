@@ -6,8 +6,6 @@ it is largely undocumented and could change without warning.
 """
 
 import copy
-import os
-import mmap
 
 
 class ConstByteStore(object):
@@ -45,8 +43,6 @@ class ConstByteStore(object):
             return 0
         sb = self.offset // 8
         eb = (self.offset + self.bitlength - 1) // 8
-        if eb == -1:
-            return 1 # ? Empty bitstring still has one byte of data?
         return eb - sb + 1
 
     def __copy__(self):
@@ -134,7 +130,6 @@ def offsetcopy(s, newoffset):
     else:
         if newoffset == s.offset % 8:
             return ByteStore(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
-        assert 0 <= newoffset < 8
         newdata = []
         d = s._rawarray
         assert newoffset != s.offset % 8
