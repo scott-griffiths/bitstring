@@ -291,63 +291,6 @@ class Shift(unittest.TestCase):
         self.assertRaises(ValueError, s.__ilshift__, -1)
 
 
-class SliceAssignment(unittest.TestCase):
-    def testSliceAssignmentSingleBit(self):
-        a = BitStream('0b000')
-        a[2] = '0b1'
-        self.assertEqual(a.bin, '001')
-        self.assertEqual(a.bitpos, 0)
-        a[0] = BitStream(bin='1')
-        self.assertEqual(a.bin, '101')
-        a[-1] = '0b0'
-        self.assertEqual(a.bin, '100')
-        a[-3] = '0b0'
-        self.assertEqual(a.bin, '000')
-
-    def testSliceAssignmentSingleBitErrors(self):
-        a = BitStream('0b000')
-        self.assertRaises(IndexError, a.__setitem__, -4, '0b1')
-        self.assertRaises(IndexError, a.__setitem__, 3, '0b1')
-        self.assertRaises(TypeError, a.__setitem__, 1, 1.3)
-
-    def testSliceAssignmentMulipleBits(self):
-        a = BitStream('0b0')
-        a[0] = '0b110'
-        self.assertEqual(a.bin, '110')
-        self.assertEqual(a.bitpos, 3)
-        a[0] = '0b000'
-        self.assertEqual(a.bin, '00010')
-        a[0:3] = '0b111'
-        self.assertEqual(a.bin, '11110')
-        self.assertEqual(a.bitpos, 3)
-        a[-2:] = '0b011'
-        self.assertEqual(a.bin, '111011')
-        a[:] = '0x12345'
-        self.assertEqual(a.hex, '12345')
-        a[:] = ''
-        self.assertFalse(a)
-
-    def testSliceAssignmentBitPos(self):
-        a = BitStream('int:64=-1')
-        a.pos = 64
-        a[0:8] = ''
-        self.assertEqual(a.pos, 0)
-        a.pos = 52
-        a[48:56] = '0x0000'
-        self.assertEqual(a.pos, 64)
-        a[10:10] = '0x0'
-        self.assertEqual(a.pos, 14)
-        a[56:68] = '0x000'
-        self.assertEqual(a.pos, 14)
-
-    def testSliceAssignmentMultipleBitsErrors(self):
-        a = BitStream()
-        self.assertRaises(IndexError, a.__setitem__, 0, '0b00')
-        a += '0b1'
-        a[0:2] = '0b11'
-        self.assertEqual(a, '0b11')
-
-
 class Replace(unittest.TestCase):
     def testReplace1(self):
         a = BitStream('0b1')
@@ -452,21 +395,6 @@ class Replace(unittest.TestCase):
 
 
 class SliceAssignmentWithStep(unittest.TestCase):
-    def testDelSliceStep(self):
-        a = BitStream('0x000ff00')
-        del a[3:5:4]
-        self.assertEqual(a, '0x00000')
-        del a[10:200:0]
-        self.assertEqual(a, '0x00000')
-
-    def testDelSliceNegativeStep(self):
-        a = BitStream('0x1234567')
-        del a[3:1:-4]
-        self.assertEqual(a, '0x12567')
-        self.assertRaises(ValueError, a.__delitem__, slice(0, 4, -1))
-        self.assertEqual(a, '0x12567')
-        del a[100:80:-1]
-        self.assertEqual(a, '0x12567')
 
     def testSetSliceStep(self):
         a = BitStream()
@@ -525,6 +453,19 @@ class SliceAssignmentWithStep(unittest.TestCase):
         self.assertEqual(a.bytepos, 1)
         a[8:0] = '0x00000'
         self.assertTrue(a.startswith('0xff00000adead'))
+
+    def testSliceAssignmentBitPos(self):
+        a = BitStream('int:64=-1')
+        a.pos = 64
+        a[0:8] = ''
+        self.assertEqual(a.pos, 0)
+        a.pos = 52
+        a[48:56] = '0x0000'
+        self.assertEqual(a.pos, 64)
+        a[10:10] = '0x0'
+        self.assertEqual(a.pos, 14)
+        a[56:68] = '0x000'
+        self.assertEqual(a.pos, 14)
 
 
 class Pack(unittest.TestCase):
@@ -657,6 +598,12 @@ class Pack(unittest.TestCase):
     def testPackingLongKeywordBitstring(self):
         s = pack('bits=b', b=BitStream(128000))
         self.assertEqual(s, BitStream(128000))
+
+    def testPackingWithListFormat(self):
+        f = ['bin', 'hex', 'uint:10']
+        a = pack(','.join(f), '00', '234', 100)
+        b = pack(f, '00', '234', 100)
+        self.assertEqual(a, b)
 
 
 class Unpack(unittest.TestCase):
