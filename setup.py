@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Distutils import build_ext
 import sys
 
 kwds = {'long_description': open('README.txt').read()}
@@ -7,6 +9,9 @@ kwds = {'long_description': open('README.txt').read()}
 if sys.version_info[:2] < (2, 6):
     raise Exception('This version of bitstring needs Python 2.6 or later. '
                     'For Python 2.4 / 2.5 please use bitstring version 1.0 instead.')
+
+macros = [('PYREX_WITHOUT_ASSERTIONS', None)]
+ext_modules = [Extension('bitstring.bitstore', ["bitstring/bitstore.pxd"], define_macros=macros)]
 
 setup(name='bitstring',
       version='3.0.0',
@@ -16,6 +21,8 @@ setup(name='bitstring',
       url='http://python-bitstring.googlecode.com',
       download_url='http://python-bitstring.googlecode.com',
       license='The MIT License: http://www.opensource.org/licenses/mit-license.php',
+      cmdclass = {'build_ext': build_ext},
+      ext_modules = ext_modules,
       packages=['bitstring'],
       platforms='all',
       classifiers = [
