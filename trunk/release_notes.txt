@@ -2,6 +2,43 @@
 bitstring module version history
 --------------------------------
 
+--
+September xx 2011: version 3.0.0 released
+--
+This is a major release which breaks backward compatibility in a few places.
+
+Backwardly incompatible changes
+===============================
+
+Hex, oct and bin properties don't have leading 0x, 0o and 0b
+------------------------------------------------------------
+
+ConstBitArray renamed to Bits
+-----------------------------
+
+Previously Bits was an alias for ConstBitStream (for backward compatibility).
+This has now changed so that Bits and BitArray loosely correspond to the
+built-in types bytes and bytearray.
+
+If you were using streaming/reading methods on a Bits object then you will
+have to change it to a ConstBitStream.
+
+The ConstBitArray name is kept as an alias for Bits.
+
+Stepping in slices has conventional meaning
+-------------------------------------------
+
+
+New features
+============
+
+New readto method
+-----------------
+
+pack function accepts an iterable as its format
+-----------------------------------------------
+
+
 --------------------------------------
 June 18th 2011: version 2.2.0 released
 --------------------------------------

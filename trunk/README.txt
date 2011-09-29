@@ -60,9 +60,9 @@ Different interpretations, slicing and concatenation::
 
      >>> a = BitArray('0x1af')
      >>> a.hex, a.bin, a.uint
-     ('0x1af', '0b000110101111', 431)
+     ('1af', '000110101111', 431)
      >>> a[10:3:-1].bin
-     '0b1110101'
+     '1110101'
      >>> 3*a + '0b100'
      BitArray('0o0657056705674')
 
@@ -70,12 +70,12 @@ Reading data sequentially::
 
      >>> b = BitStream('0x160120f')
      >>> b.read(12).hex
-     '0x160'
+     '160'
      >>> b.pos = 0
      >>> b.read('uint:12')
      352
      >>> b.readlist('uint:12, bin:3')
-     [288, '0b111']
+     [288, '111']
 
 Searching, inserting and deleting::
 
