@@ -1,7 +1,7 @@
 #summary Documentation for the bitstring module
 #labels Featured
 
-[http://python-bitstring.googlecode.com/svn/wiki/bitstring.png]
+[http://python-bitstring.googlecode.com/svn/wiki/bitstring_new.png]
 
 _A Python module to help you manage your bits_
 
