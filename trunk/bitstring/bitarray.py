@@ -6,7 +6,7 @@ import copy
 import numbers
 import bitstring
 import bitstring.bits as bits
-from bits import Bits
+from bitstring.bits import Bits
 from bitstring.bitstore import ByteStore
 
 
@@ -210,10 +210,20 @@ class BitArray(Bits):
                 self._insert(value, key)
             return
         else:
+            if abs(step) != 1:
+                # convert to binary string and use string slicing
+                # TODO: Horribly inefficent
+                temp = list(self._getbin())
+                v = list(bits.Bits(value)._getbin())
+                temp.__setitem__(key, v)
+                self._setbin_unsafe(''.join(temp))
+                return
+
             # If value is an integer then we want to set the slice to that
             # value rather than initialise a new bitstring of that length.
             if not isinstance(value, numbers.Integral):
                 try:
+                    # TODO: Better way than calling constructor here?
                     value = bits.Bits(value)
                 except TypeError:
                     raise TypeError("Bitstring, integer or string expected. "
@@ -304,30 +314,30 @@ class BitArray(Bits):
             self._delete(1, key)
             return
         else:
-            if not step:
-                stop = 0
-            else:
-                # default stop needs to be a multiple of step
-                stop = self.len
-                if key.stop is not None:
-                    stop -= self.len % abs(step)
+            if abs(step) != 1:
+                # convert to binary string and use string slicing
+                # TODO: Horribly inefficent
+                temp = list(self._getbin())
+                temp.__delitem__(key)
+                self._setbin_unsafe(''.join(temp))
+                return
+            stop = key.stop
             if key.start is not None:
-                start = key.start * abs(step)
-                if key.start < 0:
-                    start += stop
+                start = key.start
+                if key.start < 0 and stop is None:
+                    start += self.len
                 if start < 0:
                     start = 0
-            if key.stop is not None:
-                stop = key.stop * abs(step)
-                if key.stop < 0:
-                    stop += self.len - (self.len % abs(step))
+            if stop is None:
+                stop = self.len
             # Adjust start and stop if we're stepping backwards
-            if step < 0:
+            assert step in (1, -1)
+            if step == -1:
                 if key.start is None:
-                    start = self.len + step
+                    start = self.len - 1
                 if key.stop is None:
-                    stop = step
-                start, stop = stop - step, start - step
+                    stop = -1
+                start, stop = stop + 1, start + 1
             if start > stop:
                 if step == 1:
                     # The standard behaviour for lists is to just insert at the
@@ -406,18 +416,6 @@ class BitArray(Bits):
             raise ValueError("Bitstrings must have the same length "
                              "for ^= operator.")
         return self._ixor(bs)
-
-    def _reverse(self):
-        """Reverse all bits in-place."""
-        # Reverse the contents of each byte
-        n = [bits.BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
-        # Then reverse the order of the bytes
-        n.reverse()
-        # The new offset is the number of bits that were unused at the end.
-        newoffset = 8 - (self._offset + self.len) % 8
-        if newoffset == 8:
-            newoffset = 0
-        self._setbytes_unsafe(bytearray().join(n), self.length, newoffset)
 
     def replace(self, old, new, start=None, end=None, count=None,
                 bytealigned=None):

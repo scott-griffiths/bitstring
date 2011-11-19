@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from exceptions import AttributeError, TypeError
 
 import sys
 import re
@@ -20,14 +19,16 @@ byteorder = sys.byteorder
 # This creates a dictionary for every possible byte with the value being
 # the key with its bits reversed.
 BYTE_REVERSAL_DICT = dict()
-for i in range(256):
-    BYTE_REVERSAL_DICT[i] = chr(int("{0:08b}".format(i)[::-1], 2))
 
 # For Python 2.x/ 3.x coexistence
 # Yes this is very very hacky.
 try:
     xrange
+    for i in range(256):
+        BYTE_REVERSAL_DICT[i] = chr(int("{0:08b}".format(i)[::-1], 2))
 except NameError:
+    for i in range(256):
+        BYTE_REVERSAL_DICT[i] = bytes([int("{0:08b}".format(i)[::-1], 2)])
     from io import IOBase as file
     xrange = range
     basestring = str
@@ -473,44 +474,42 @@ class Bits(object):
             # Single bit, return True or False
             return self._datastore.getbit(key)
         else:
-            abs_step = abs(step)
-            start = 0
-            if step:
-                stop = length - (length % abs_step)
-            else:
-                stop = 0
+            if abs(step) != 1:
+                # convert to binary string and use string slicing
+                bs = self.__class__()
+                bs._setbin_unsafe(self._getbin().__getitem__(key))
+                return bs
+            start, stop = 0, length
             if key.start is not None:
-                start = key.start * abs_step
+                start = key.start
                 if key.start < 0:
                     start += stop
             if key.stop is not None:
-                stop = key.stop * abs_step
+                stop = key.stop
                 if key.stop < 0:
-                    stop += length - (length % abs_step)
+                    stop += length
             start = max(start, 0)
-            stop = min(stop, length - length % abs_step)
+            stop = min(stop, length)
             # Adjust start and stop if we're stepping backwards
-            if step < 0:
+            if step == -1:
                 # This compensates for negative indices being inclusive of the
                 # final index rather than the first.
                 if key.start is not None and key.start < 0:
-                    start += step
+                    start -= 1
                 if key.stop is not None and key.stop < 0:
-                    stop += step
-
+                    stop -= 1
                 if key.start is None:
-                    start = length - (length % abs_step) + step
+                    start = length - 1
                 if key.stop is None:
-                    stop = step
-                start, stop = stop - step, start - step
+                    stop = -1
+                start, stop = stop + 1, start + 1
             if start < stop:
-                if step >= 0:
+                if step == 1:
                     return self._slice(start, stop)
                 else:
-                    # Negative step, so reverse the bitstring in chunks of step.
-                    bsl = [self._slice(x, x - step) for x in xrange(start, stop, -step)]
-                    bsl.reverse()
-                    return self.__class__().join(bsl)
+                    s = self._slice(start, stop)
+                    s._reverse()
+                    return s
             else:
                 return self.__class__()
 
@@ -877,7 +876,7 @@ class Bits(object):
         raise TypeError("Cannot initialise bitstring from {0}.".format(type(s)))
 
     def _setfile(self, filename, length, offset):
-        "Use file as source of bits."
+        """Use file as source of bits."""
         source = open(filename, 'rb')
         if offset is None:
             offset = 0
@@ -970,7 +969,7 @@ class Bits(object):
         """Read bits and interpret as an unsigned int."""
         if not length:
             raise bitstring.InterpretError("Cannot interpret a zero length bitstring "
-                                 "as an integer.")
+                                           "as an integer.")
         offset = self._offset
         startbyte = (start + offset) // 8
         endbyte = (start + offset + length - 1) // 8
@@ -1493,11 +1492,12 @@ class Bits(object):
         """Read bits and interpret as a hex string."""
         if length % 4:
             raise bitstring.InterpretError("Cannot convert to hex unambiguously - "
-                                 "not multiple of 4 bits.")
+                                           "not multiple of 4 bits.")
         if not length:
             return ''
         # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
         # TODO: Optimize: This really shouldn't call __getitem__.
+        # TODO: Is utf-8 really what we mean here?
         s = str(binascii.hexlify(self[start:start + length].tobytes()).decode('utf-8'))
         # If there's one nibble too many then cut it off
         return s[:-1] if (length // 4) % 2 else s
@@ -1594,6 +1594,18 @@ class Bits(object):
     def _prepend(self, bs):
         """Prepend a bitstring to the current bitstring."""
         self._datastore.prependstore(bs._datastore)
+
+    def _reverse(self):
+        """Reverse all bits in-place."""
+        # Reverse the contents of each byte
+        n = [BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
+        # Then reverse the order of the bytes
+        n.reverse()
+        # The new offset is the number of bits that were unused at the end.
+        newoffset = 8 - (self._offset + self.len) % 8
+        if newoffset == 8:
+            newoffset = 0
+        self._setbytes_unsafe(bytearray().join(n), self.length, newoffset)
 
     def _truncatestart(self, bits):
         """Truncate bits from the start of the bitstring."""

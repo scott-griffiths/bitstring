@@ -137,4 +137,87 @@ class ByteAligned(unittest.TestCase):
         self.assertEqual(s, ['0x00', '0xff0ff'])
         a.replace('0xff', '')
         self.assertEqual(a, '0x000ff')
+
+
+class SliceAssignment(unittest.TestCase):
+
+    def testSliceAssignmentSingleBit(self):
+        a = BitArray('0b000')
+        a[2] = '0b1'
+        self.assertEqual(a.bin, '001')
+        a[0] = BitArray(bin='1')
+        self.assertEqual(a.bin, '101')
+        a[-1] = '0b0'
+        self.assertEqual(a.bin, '100')
+        a[-3] = '0b0'
+        self.assertEqual(a.bin, '000')
+
+    def testSliceAssignmentSingleBitErrors(self):
+        a = BitArray('0b000')
+        self.assertRaises(IndexError, a.__setitem__, -4, '0b1')
+        self.assertRaises(IndexError, a.__setitem__, 3, '0b1')
+        self.assertRaises(TypeError, a.__setitem__, 1, 1.3)
+
+    def testSliceAssignmentMulipleBits(self):
+        a = BitArray('0b0')
+        a[0] = '0b110'
+        self.assertEqual(a.bin, '110')
+        a[0] = '0b000'
+        self.assertEqual(a.bin, '00010')
+        a[0:3] = '0b111'
+        self.assertEqual(a.bin, '11110')
+        a[-2:] = '0b011'
+        self.assertEqual(a.bin, '111011')
+        a[:] = '0x12345'
+        self.assertEqual(a.hex, '12345')
+        a[:] = ''
+        self.assertFalse(a)
+
+    def testSliceAssignmentMultipleBitsErrors(self):
+        a = BitArray()
+        self.assertRaises(IndexError, a.__setitem__, 0, '0b00')
+        a += '0b1'
+        a[0:2] = '0b11'
+        self.assertEqual(a, '0b11')
+
+    def testDelSliceStep(self):
+        a = BitArray(bin='100111101001001110110100101')
+        del a[::2]
+        self.assertEqual(a.bin, '0110010101100')
+        del a[3:9:3]
+        self.assertEqual(a.bin, '01101101100')
+        del a[2:7:1]
+        self.assertEqual(a.bin, '011100')
+        del a[::99]
+        self.assertEqual(a.bin, '11100')
+        del a[::1]
+        self.assertEqual(a.bin, '')
+
+    def testDelSliceNegativeStep(self):
+        a= BitArray('0b0001011101101100100110000001')
+        del a[5:23:-3]
+        self.assertEqual(a.bin, '0001011101101100100110000001')
+        del a[25:3:-3]
+        self.assertEqual(a.bin, '00011101010000100001')
+        del a[:6:-7]
+        self.assertEqual(a.bin, '000111010100010000')
+        del a[15::-2]
+        self.assertEqual(a.bin, '0010000000')
+        del a[::-1]
+        self.assertEqual(a.bin, '')
+
+    def testSetSliceStep(self):
+        a = BitArray(bin='0000000000')
+        a[::2] = '0b11111'
+        self.assertEqual(a.bin, '1010101010')
+        a[4:9:3] = [0, 0]
+        self.assertEqual(a.bin, '1010001010')
+
+    def testSetSliceErrors(self):
+        a = BitArray(8)
+        try:
+            a[::3] = [1]
+            self.assertTrue(false)
+        except ValueError:
+            pass
         

@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 import bitstring
 import bitstring.constbitstream as constbitstream
 import bitstring.bitarray as bitarray
 from bitstring.bitstore import ByteStore
+
+# Hack for Python 3
+try:
+    xrange
+except NameError:
+    xrange = range
+    basestring = str
 
 class BitStream(constbitstream.ConstBitStream, bitarray.BitArray):
     """A container or stream holding a mutable sequence of bits
@@ -178,8 +183,8 @@ def pack(fmt, *values, **kwargs):
                     'hex:80'    : 80 bits as a hex string
                     'oct:9'     : 9 bits as an octal string
                     'bin:1'     : single bit binary string
-                    'ue'        : next bits as unsigned exp-Golomb code
-                    'se'        : next bits as signed exp-Golomb code
+                    'ue' / 'uie': next bits as unsigned exp-Golomb code
+                    'se' / 'sie': next bits as signed exp-Golomb code
                     'bits:5'    : 5 bits as a bitstring object
                     'bytes:10'  : 10 bytes as a bytes object
                     'bool'      : 1 bit as a bool
