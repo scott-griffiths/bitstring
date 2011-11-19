@@ -263,3 +263,4 @@ class Mmap(unittest.TestCase):
         self.assertEqual(len(a), 3)
         self.assertEqual(a[0], 0x67)
         self.assertEqual(a[:], bytearray([0x67, 0x89, 0xab]))
+
