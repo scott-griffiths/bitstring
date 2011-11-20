@@ -70,11 +70,6 @@ Written by Scott Griffiths <scott@griffiths.name>. If you have any questions, su
 
 ----
 
-Developed with the help of
-
-.. image:: wingware-logo-180x58.png
-
-
 
 
 
