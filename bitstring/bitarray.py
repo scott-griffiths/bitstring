@@ -774,6 +774,12 @@ class BitArray(Bits):
     se = property(Bits._getse, Bits._setse,
                   doc="""The bitstring as a signed exponential-Golomb code. Read and write.
                       """)
+    uie = property(Bits._getuie, Bits._setuie,
+                  doc="""The bitstring as an unsigned interleaved exponential-Golomb code. Read and write.
+                      """)
+    sie = property(Bits._getsie, Bits._setsie,
+                  doc="""The bitstring as a signed interleaved exponential-Golomb code. Read and write.
+                      """)
     hex = property(Bits._gethex, Bits._sethex,
                    doc="""The bitstring as a hexadecimal string. Read and write.
 
@@ -793,8 +799,8 @@ class BitArray(Bits):
 
                       """)
     bool = property(Bits._getbool, Bits._setbool,
-                    doc="""The bitstring as a bool (True or False). Read and write."""
-    )
+                    doc="""The bitstring as a bool (True or False). Read and write.
+                    """)
     bytes = property(Bits._getbytes, Bits._setbytes_safe,
                      doc="""The bitstring as a ordinary string. Read and write.
                       """)

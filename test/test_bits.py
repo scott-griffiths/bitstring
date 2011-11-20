@@ -188,6 +188,13 @@ class InterleavedExpGolomb(unittest.TestCase):
         self.assertEqual(s2, [0, 0, 1, 1])
         self.assertEqual(s3, [0, 0, 1, 0])
 
+    def testCreationFromProperty(self):
+        s = BitArray()
+        s.uie = 45
+        self.assertEqual(s.uie, 45)
+        s.sie = -45
+        self.assertEqual(s.sie, -45)
+
     def testInterpretation(self):
         for x in range(101):
             self.assertEqual(Bits(uie=x).uie, x)
