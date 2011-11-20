@@ -197,7 +197,7 @@ titlepage = """
 \\begin{titlepage}
 \\begin{center}
 \\vspace*{2cm}
-\\includegraphics[width=0.52\\textwidth]{bitstring_logo.png}
+\\includegraphics[width=0.60\\textwidth]{bitstring_logo.png}
 
 \\emph{A Python module to help you manage your bits}\\\\[3cm]
 {\\large by Scott Griffiths }\\\\[3cm]
