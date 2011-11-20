@@ -36,6 +36,11 @@ Some good starting points in the documentation are
 * :ref:`quick_reference`
 * :ref:`reference`
 
+The manual is also available as a PDF:
+
+* `Latest manual (PDF) <http://python-bitstring.googlecode.com/svn/trunk/doc/bitstring_manual.pdf>`_
+* `Manual for version 2 (PDF) <http://python-bitstring.googlecode.com/svn/tags/bitstring-2.2.0/doc/bitstring_manual.pdf>`_
+* `Manual for version 1.0 (PDF) <http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.2/bitstring_manual.pdf>`_
 
 .. toctree::
    :hidden:
