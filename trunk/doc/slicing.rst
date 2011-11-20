@@ -48,24 +48,19 @@ Indexing also works for missing and negative arguments, just as it does for othe
 Stepping in slices
 ^^^^^^^^^^^^^^^^^^
 
-The step parameter (also known as the stride) can be used in slices. Its use is rather non-standard as it effectively gives a multiplicative factor to apply to the start and stop parameters, rather than skipping over bits.
+The step parameter (also known as the stride) can be used in slices and has the same meaning as in the built-in containers:
 
-For example this makes it more convenient if you want to give slices in terms of bytes instead of bits. Instead of writing ``s[a*8:b*8]`` you can use ``s[a:b:8]``.
+    >>> s = BitArray(16)
+    >>> s[::2] = [1]*8
+    >>> s.bin
+    '1010101010101010'
+    >>> del s[8::2]
+    >>> s.bin
+    '101010100000'
+    >>> s[::3].bin
+    '1010'
 
-When using a step, the bitstring is effectively truncated to a multiple of the step, so ``s[::8]`` is equal to ``s`` if ``s`` is an integer number of bytes, otherwise it is truncated by up to 7 bits. This means that, for example, the final seven complete 16-bit words could be written as ``s[-7::16]``. ::
-
- >>> a = BitArray('0x470000125e')
- >>> print(a[0:4:8])                  # The first four bytes
- 0x47000012
- >>> print(a[-3::4])                  # The final three nibbles
- 0x25e
-
-Negative slices are also allowed, and should do what you'd expect. So for example ``s[::-1]`` returns a bit-reversed copy of ``s`` (which is similar to using ``s.reverse()``, which does the same operation on ``s`` in-place). As another example, to get the first 10 bytes in reverse byte order you could use ``s_bytereversed  =  s[0:10:-8]``. ::
-
- >>> print(a[:-5:-4])                 # Final five nibbles reversed
- 0xe5210                                 
- >>> print(a[::-8])                   # The whole BitArray byte reversed
- 0x5e12000047
+Negative slices are also allowed, and should do what you'd expect. So for example ``s[::-1]`` returns a bit-reversed copy of ``s`` (which is similar to using ``s.reverse()``, which does the same operation on ``s`` in-place).
 
 Joining
 -------

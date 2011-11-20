@@ -2,9 +2,9 @@
 bitstring module version history
 --------------------------------
 
---
-November xx 2011: version 3.0.0 released
---
+------------------------------------------
+November 21st 2011: version 3.0.0 released
+------------------------------------------
 This is a major release which breaks backward compatibility in a few places.
 
 Backwardly incompatible changes
@@ -65,8 +65,27 @@ New features
 New readto method
 -----------------
 
+This method is a mix between a find and a read - it searches for a bitstring
+and then reads up to and including it. For example:
+
+    >>> s = ConstBitStream('0x47000102034704050647')
+    >>> s.readto('0x47', bytealigned=True)
+    BitStream('0x47')
+    >>> s.readto('0x47', bytealigned=True)
+    BitStream('0x0001020347')
+    >>> s.readto('0x47', bytealigned=True)
+    BitStream('0x04050647')
+
 pack function accepts an iterable as its format
 -----------------------------------------------
+
+Previously only a string was accepted as the format in the pack function.
+This was an oversight as it broke the symmetry between pack and unpack.
+Now you can use formats like this:
+
+    fmt = ['hex:8', 'bin:3']
+    a = pack(fmt, '47', '001')
+    a.unpack(fmt)
 
 
 --------------------------------------

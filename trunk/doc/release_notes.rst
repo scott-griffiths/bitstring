@@ -8,6 +8,92 @@ Release Notes
 Full Version History
 ====================
 
+November 21st 2011: version 3.0.0 released
+------------------------------------------
+This is a major release which breaks backward compatibility in a few places.
+
+Backwardly incompatible changes
+-------------------------------
+
+Hex, oct and bin properties don't have leading 0x, 0o and 0b
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you ask for the hex, octal or binary representations of a bitstring then
+they will no longer be prefixed with ``0x``, ``0o`` or ``0b``. This was done as it
+was noticed that the first thing a lot of user code does after getting these
+representations was to cut off the first two characters before further
+processing. ::
+
+    >>> a = BitArray('0x123')
+    >>> a.hex, a.oct, a.bin
+    ('123', '0443', '000100100011')
+
+Previously this would have returned ``('0x123', '0o0443', '0b000100100011')``
+
+This change might require some recoding, but it should all be simplifications.
+
+ConstBitArray renamed to Bits
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Previously Bits was an alias for ConstBitStream (for backward compatibility).
+This has now changed so that Bits and BitArray loosely correspond to the
+built-in types bytes and bytearray.
+
+If you were using streaming/reading methods on a Bits object then you will
+have to change it to a ConstBitStream.
+
+The ConstBitArray name is kept as an alias for Bits.
+
+Stepping in slices has conventional meaning
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The step parameter in ``__getitem__``, ``__setitem__`` and ``__delitem__`` used to act
+as a multiplier for the start and stop parameters. No one seemed to use it
+though and so it has now reverted to the convential meaning for containers.
+
+If you are using step then recoding is simple: ``s[a:b:c]`` becomes ``s[a*c:b*c]``.
+
+Some examples of the new usage::
+
+    >>> s = BitArray('0x0000')
+    s[::4] = [1, 1, 1, 1]
+    >>> s.hex
+    '8888'
+    >>> del s[8::2]
+    >>> s.hex
+    '880'
+
+
+New features
+------------
+
+New readto method
+^^^^^^^^^^^^^^^^^
+
+This method is a mix between a find and a read - it searches for a bitstring
+and then reads up to and including it. For example::
+
+    >>> s = ConstBitStream('0x47000102034704050647')
+    >>> s.readto('0x47', bytealigned=True)
+    BitStream('0x47')
+    >>> s.readto('0x47', bytealigned=True)
+    BitStream('0x0001020347')
+    >>> s.readto('0x47', bytealigned=True)
+    BitStream('0x04050647')
+
+pack function accepts an iterable as its format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Previously only a string was accepted as the format in the pack function.
+This was an oversight as it broke the symmetry between pack and unpack.
+Now you can use formats like this::
+
+    fmt = ['hex:8', 'bin:3']
+    a = pack(fmt, '47', '001')
+    a.unpack(fmt)
+
+
+
 June 18th 2011: version 2.2.0 released
 --------------------------------------
 This is a minor upgrade with a couple of new features.
