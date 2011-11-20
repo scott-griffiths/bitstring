@@ -252,27 +252,26 @@ class ConstBitStream(Bits):
         value, self._pos = self._readlist(fmt, self._pos, **kwargs)
         return value
 
-    # This method works, I just decided not to include it yet.
-#    def readto(self, bs, bytealigned=None):
-#        """Read up to and including next occurrence of bs and return result.
-#
-#        bs -- The bitstring to find. An integer is not permitted.
-#        bytealigned -- If True the bitstring will only be
-#                       found on byte boundaries.
-#
-#        Raises ValueError if bs is empty.
-#        Raises ReadError if bs is not found.
-#
-#        """
-#        if isinstance(bs, numbers.Integral):
-#            raise ValueError("Integers cannot be searched for")
-#        bs = Bits(bs)
-#        oldpos = self._pos
-#        p = self.find(bs, self._pos, bytealigned=bytealigned)
-#        if not p:
-#            raise bitstring.ReadError("Substring not found")
-#        self._pos += bs.len
-#        return self._slice(oldpos, self._pos)
+    def readto(self, bs, bytealigned=None):
+        """Read up to and including next occurrence of bs and return result.
+
+        bs -- The bitstring to find. An integer is not permitted.
+        bytealigned -- If True the bitstring will only be
+                       found on byte boundaries.
+
+        Raises ValueError if bs is empty.
+        Raises ReadError if bs is not found.
+
+        """
+        if isinstance(bs, numbers.Integral):
+            raise ValueError("Integers cannot be searched for")
+        bs = Bits(bs)
+        oldpos = self._pos
+        p = self.find(bs, self._pos, bytealigned=bytealigned)
+        if not p:
+            raise bitstring.ReadError("Substring not found")
+        self._pos += bs.len
+        return self._slice(oldpos, self._pos)
 
     def peek(self, fmt):
         """Interpret next bits according to format string and return result.

@@ -112,6 +112,7 @@ Additional methods
  *   :meth:`~ConstBitStream.peeklist` -- Peek at and interpret next bits as a list of items.
  *   :meth:`~ConstBitStream.read` -- Read and interpret next bits as a single item.
  *   :meth:`~ConstBitStream.readlist` -- Read and interpret next bits as a list of items.
+ *   :meth:`~ConstBitStream.readto` -- Read up to and including next occurrence of a bitstring.
 
 Additional attributes
 ^^^^^^^^^^^^^^^^^^^^^

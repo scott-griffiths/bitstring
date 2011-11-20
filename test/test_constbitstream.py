@@ -32,34 +32,34 @@ class InterleavedExpGolomb(unittest.TestCase):
         self.assertRaises(bitstring.ReadError, s.read, 'sie')
         self.assertEqual(s.pos, 0)
 
-#
-#class ReadTo(unittest.TestCase):
-#    def testByteAligned(self):
-#        a = CBS('0xaabb00aa00bb')
-#        b = a.readto('0x00', bytealigned=True)
-#        self.assertEqual(b, '0xaabb00')
-#        self.assertEqual(a.bytepos, 3)
-#        b = a.readto('0xaa', bytealigned=True)
-#        self.assertEqual(b, '0xaa')
-#        self.assertRaises(bitstring.ReadError, a.readto, '0xcc', bytealigned=True)
-#
-#    def testNotAligned(self):
-#        a = CBS('0b00111001001010011011')
-#        a.pos = 1
-#        self.assertEqual(a.readto('0b00'), '0b011100')
-#        self.assertEqual(a.readto('0b110'), '0b10010100110')
-#        self.assertRaises(ValueError, a.readto, '')
-#
-#    def testDisallowIntegers(self):
-#        a = CBS('0x0f')
-#        self.assertRaises(ValueError, a.readto, 4)
-#
-#    def testReadingLines(self):
-#        s = b"This is a test\nof reading lines\nof text\n"
-#        b = CBS(bytes=s)
-#        n = bitstring.Bits(bytes=b'\n')
-#        self.assertEqual(b.readto(n).bytes, b'This is a test\n')
-#        self.assertEqual(b.readto(n).bytes, b'of reading lines\n')
-#        self.assertEqual(b.readto(n).bytes, b'of text\n')
-#
+
+class ReadTo(unittest.TestCase):
+    def testByteAligned(self):
+        a = CBS('0xaabb00aa00bb')
+        b = a.readto('0x00', bytealigned=True)
+        self.assertEqual(b, '0xaabb00')
+        self.assertEqual(a.bytepos, 3)
+        b = a.readto('0xaa', bytealigned=True)
+        self.assertEqual(b, '0xaa')
+        self.assertRaises(bitstring.ReadError, a.readto, '0xcc', bytealigned=True)
+
+    def testNotAligned(self):
+        a = CBS('0b00111001001010011011')
+        a.pos = 1
+        self.assertEqual(a.readto('0b00'), '0b011100')
+        self.assertEqual(a.readto('0b110'), '0b10010100110')
+        self.assertRaises(ValueError, a.readto, '')
+
+    def testDisallowIntegers(self):
+        a = CBS('0x0f')
+        self.assertRaises(ValueError, a.readto, 4)
+
+    def testReadingLines(self):
+        s = b"This is a test\nof reading lines\nof text\n"
+        b = CBS(bytes=s)
+        n = bitstring.Bits(bytes=b'\n')
+        self.assertEqual(b.readto(n).bytes, b'This is a test\n')
+        self.assertEqual(b.readto(n).bytes, b'of reading lines\n')
+        self.assertEqual(b.readto(n).bytes, b'of text\n')
+
 
