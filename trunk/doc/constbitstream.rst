@@ -47,7 +47,7 @@ The ConstBitStream class
 
     .. method:: read(fmt)
 
-        Reads from current bit position :attr:`pos` in the bitstring according the the format string and returns a single result. If not enough bits are available then all bits to the end of the bitstring will be used.
+        Reads from current bit position :attr:`pos` in the bitstring according the the format string and returns a single result. If not enough bits are available then a :exc:`ReadError` is raised.
 
         *fmt* is either a token string that describes how to interpret the next bits in the bitstring or an integer. If it's an integer then that number of bits will be read, and returned as a new bitstring. Otherwise the tokens are:
 
@@ -98,7 +98,7 @@ The ConstBitStream class
 
     .. method:: readlist(fmt, **kwargs)
 
-        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results. If not enough bits are available then all bits to the end of the bitstring will be used.
+        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results. If not enough bits are available then a :exc:`ReadError` is raised.
 
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is advanced to after the read items.
 
@@ -116,6 +116,21 @@ The ConstBitStream class
             ['43', 63]
 
 
+    .. method:: readto(bs, bytealigned)
+
+        Reads up to and including the next occurrence of the bitstring *bs* and returns the results. If *bytealigned* is `True` it will look for the bitstring starting only at whole-byte positions.
+
+        Raises a :exc:`ReadError` if *bs* is not found, and :exc:`ValueError` if *bs* is empty.
+
+            >>> s = ConstBitStream('0x47000102034704050647')
+            >>> s.readto('0x47', bytealigned=True)
+            BitStream('0x47')
+            >>> s.readto('0x47', bytealigned=True)
+            BitStream('0x0001020347')
+            >>> s.readto('0x47', bytealigned=True)
+            BitStream('0x04050647')
+
+
     .. attribute:: bytepos
 
         Property for setting and getting the current byte position in the bitstring.
@@ -131,4 +146,5 @@ The ConstBitStream class
 
             if s.pos < 100:
                 s.pos += 10 
+
 

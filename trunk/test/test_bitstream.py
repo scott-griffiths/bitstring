@@ -1971,24 +1971,6 @@ class Adding(unittest.TestCase):
         self.assertEqual(a[:-24], '0x0011223344')
         self.assertEqual(a[-1000:-24], '0x0011223344')
 
-    def testSliceNegativeStep(self):
-        a = BitStream('0o 01 23 45 6')
-        self.assertEqual(a[::-3sie], '0o6543210')
-#        self.assertFalse(a[1:3:-6])
-#        self.assertEqual(a[2:0:-6], '0o4523')
-#        self.assertEqual(a[2::-6], '0o452301')
-#        b = a[::-1]
-#        a.reverse()
-#        self.assertEqual(b, a)
-#        b = BitStream('0x01020408') + '0b11'
-#        self.assertEqual(b[::-8], '0x08040201')
-#        self.assertEqual(b[::-4], '0x80402010')
-#        self.assertEqual(b[::-2], '0b11' + BitStream('0x20108040'))
-#        self.assertEqual(b[::-33], b[:33])
-#        self.assertEqual(b[::-34], b)
-#        self.assertFalse(b[::-35])
-#        self.assertEqual(b[-1:-3:-8], '0x0402')
-
     def testInsertionOrderAndBitpos(self):
         b = BitStream()
         b[0:0] = '0b0'
