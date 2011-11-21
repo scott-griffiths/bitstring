@@ -540,7 +540,7 @@ class Bits(object):
         # Otherwise first we do as much as we can in hex
         # then add on 1, 2 or 3 bits on at the end
         bits_at_end = length % 4
-        return ''.join('0x', (self._readhex(length - bits_at_end, 0),
+        return ''.join(('0x', self._readhex(length - bits_at_end, 0),
                         ', ', '0b',
                         self._readbin(bits_at_end, length - bits_at_end)))
 

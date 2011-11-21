@@ -1910,6 +1910,10 @@ class Adding(unittest.TestCase):
         s = BitStream(filename='test.m1v')
         self.assertEqual('0x' + s[0:bitstring.bits.MAX_CHARS * 4].hex + '...', s.__str__())
         self.assertEqual(BitStream().__str__(), '')
+        s = BitStream('0b11010')
+        self.assertEqual('0b' + s.bin, s.__str__())
+        s = BitStream('0x12345678901234567890,0b1')
+        self.assertEqual('0x12345678901234567890, 0b1', s.__str__())
 
     def testIter(self):
         a = BitStream('0b001010')
