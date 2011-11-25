@@ -2296,9 +2296,8 @@ class Bits(object):
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
-        # TODO
-#        if bytealigned is None:
-#            bytealigned = bitstring.bytealigned
+        if bytealigned is None:
+            bytealigned = globals()['bytealigned']
         # If everything's byte aligned (and whole-byte) use the quick algorithm.
         if bytealigned and len(bs) % 8 == 0 and self._datastore.offset == 0:
             # Extract data bytes from bitstring to be found.
@@ -2364,9 +2363,8 @@ class Bits(object):
             raise ValueError("In findall, count must be >= 0.")
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
-# TODO:
-#        if bytealigned is None:
-#            bytealigned = bitstring.bytealigned
+        if bytealigned is None:
+            bytealigned = globals()['bytealigned']
         c = 0
         while True:
             p = self.find(bs, start, end, bytealigned)
@@ -2404,9 +2402,8 @@ class Bits(object):
         """
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
-        # TODO
-#        if bytealigned is None:
-#            bytealigned = bitstring.bytealigned
+        if bytealigned is None:
+            bytealigned = globals()['bytealigned']
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         # Search chunks starting near the end and then moving back
@@ -2473,9 +2470,8 @@ class Bits(object):
         if not delimiter.len:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
-        # TODO
-#        if bytealigned is None:
-#            bytealigned = bitstring.bytealigned
+        if bytealigned is None:
+            bytealigned = globals()['bytealigned']
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
@@ -3292,9 +3288,8 @@ class BitArray(Bits):
         if not old.len:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
-        # TODO
-#        if bytealigned is None:
-#            bytealigned = bitstring.bytealigned
+        if bytealigned is None:
+            bytealigned = globals()['bytealigned']
         # Adjust count for use in split()
         if count is not None:
             count += 1
@@ -3794,27 +3789,63 @@ class ConstBitStream(Bits):
         return s
 
     def __add__(self, bs):
+        """Concatenate bitstrings and return new bitstring.
+
+        bs -- the bitstring to append.
+
+        """
         s = Bits.__add__(self, bs)
         s._pos = 0
         return s
 
-    __add__.__doc__ = Bits.__add__.__doc__
-
     def find(self, bs, start=None, end=None, bytealigned=None):
+        """Find first occurrence of substring bs.
+
+        Returns a single item tuple with the bit position if found, or an
+        empty tuple if not found. The bit position (pos property) will
+        also be set to the start of the substring if it is found.
+
+        bs -- The bitstring to find.
+        start -- The bit position to start the search. Defaults to 0.
+        end -- The bit position one past the last bit to search.
+               Defaults to self.len.
+        bytealigned -- If True the bitstring will only be
+                       found on byte boundaries.
+
+        Raises ValueError if bs is empty, if start < 0, if end > self.len or
+        if end < start.
+
+        >>> BitArray('0xc3e').find('0b1111')
+        (6,)
+
+        """
         t = Bits.find(self, bs, start, end, bytealigned)
         if t:
             self._pos = t[0]
         return t
 
-    find.__doc__ = Bits.find.__doc__
-
     def rfind(self, bs, start=None, end=None, bytealigned=None):
+        """Find final occurrence of substring bs.
+
+        Returns a single item tuple with the bit position if found, or an
+        empty tuple if not found. The bit position (pos property) will
+        also be set to the start of the substring if it is found.
+
+        bs -- The bitstring to find.
+        start -- The bit position to end the reverse search. Defaults to 0.
+        end -- The bit position one past the first bit to reverse search.
+               Defaults to self.len.
+        bytealigned -- If True the bitstring will only be found on byte
+                       boundaries.
+
+        Raises ValueError if bs is empty, if start < 0, if end > self.len or
+        if end < start.
+
+        """
         t = Bits.rfind(self, bs, start, end, bytealigned)
         if t:
             self._pos = t[0]
         return t
-
-    rfind.__doc__ = Bits.rfind.__doc__
 
     def read(self, fmt):
         """Interpret next bits according to the format string and return result.
@@ -4123,12 +4154,14 @@ class BitStream(ConstBitStream, BitArray):
         return s_copy
 
     def prepend(self, bs):
-        # Docstring follows. This method is needed to get the bit position right.
+        """Prepend a bitstring to the current bitstring.
+
+        bs -- The bitstring to prepend.
+
+        """
         bs = self._converttobitstring(bs)
         self._prepend(bs)
         self._pos += bs.len
-
-    prepend.__doc__ = BitArray.prepend.__doc__
 
 
 def pack(fmt, *values, **kwargs):
