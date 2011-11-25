@@ -11,7 +11,7 @@ if sys.version_info[:2] < (2, 6):
                     'For Python 2.4 / 2.5 please use bitstring version 1.0 instead.')
 
 macros = [('PYREX_WITHOUT_ASSERTIONS', None)]
-ext_modules = [Extension('bitstring', ["bitstring.pyx"], define_macros=macros)]
+ext_modules = [Extension('bitstring', ["bitstring.py"], define_macros=macros)]
 
 setup(name='bitstring',
       version='3.1.0',
