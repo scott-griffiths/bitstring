@@ -8,7 +8,7 @@ import copy
 import os
 import collections
 from bitstring import BitStream, ConstBitStream, pack
-from bitstring.bitstore import ByteStore, offsetcopy
+from bitstring import ByteStore, offsetcopy
 
 
 class FlexibleInitialisation(unittest.TestCase):
@@ -1628,14 +1628,14 @@ class Adding(unittest.TestCase):
     def testFileAndMemEquivalence(self):
         a = ConstBitStream(filename='smalltestfile')
         b = BitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.bits.MmapByteArray))
+        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
         self.assertTrue(isinstance(b._datastore._rawarray, bytearray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
         self.assertEqual(a._datastore.getbyteslice(1, 5), bytearray(b._datastore.getbyteslice(1, 5)))
 
     def testByte2Bits(self):
         for i in range(256):
-            s = BitStream(bin=bitstring.bits.BYTE_TO_BITS[i])
+            s = BitStream(bin=bitstring.BYTE_TO_BITS[i])
             self.assertEqual(i, s.uint)
             self.assertEqual(s.length, 8)
 
@@ -1881,7 +1881,7 @@ class Adding(unittest.TestCase):
         self.assertFalse('0xfeed' in a)
 
     def testRepr(self):
-        max = bitstring.bits.MAX_CHARS
+        max = bitstring.MAX_CHARS
         bls = ['', '0b1', '0o5', '0x43412424f41', '0b00101001010101']
         for bs in bls:
             a = BitStream(bs)
@@ -1908,7 +1908,7 @@ class Adding(unittest.TestCase):
         s = BitStream(hex='0x00')
         self.assertEqual('0x' + s.hex, s.__str__())
         s = BitStream(filename='test.m1v')
-        self.assertEqual('0x' + s[0:bitstring.bits.MAX_CHARS * 4].hex + '...', s.__str__())
+        self.assertEqual('0x' + s[0:bitstring.MAX_CHARS * 4].hex + '...', s.__str__())
         self.assertEqual(BitStream().__str__(), '')
         s = BitStream('0b11010')
         self.assertEqual('0b' + s.bin, s.__str__())
@@ -2305,7 +2305,7 @@ class Adding(unittest.TestCase):
     #    os.remove('temp_bitstring_unit_testing_file')
 
     def testTokenParser(self):
-        tp = bitstring.constbitstream.tokenparser
+        tp = bitstring.tokenparser
         self.assertEqual(tp('hex'), (True, [('hex', None, None)]))
         self.assertEqual(tp('hex=14'), (True, [('hex', None, '14')]))
         self.assertEqual(tp('se'), (False, [('se', None, None)]))
@@ -3553,7 +3553,7 @@ class Bugs(unittest.TestCase):
         self.assertEqual(swaps, 2)
 
     def testBracketExpander(self):
-        be = bitstring.bits.expand_brackets
+        be = bitstring.expand_brackets
         self.assertEqual(be('hello'), 'hello')
         self.assertEqual(be('(hello)'), 'hello')
         self.assertEqual(be('1*(hello)'), 'hello')
@@ -3573,14 +3573,14 @@ class Bugs(unittest.TestCase):
         self.assertEqual(a, b)
 
     def testPackCodeDicts(self):
-        self.assertEqual(sorted(bitstring.bits.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.bits.REPLACEMENTS_LE.keys()))
-        self.assertEqual(sorted(bitstring.bits.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.bits.PACK_CODE_SIZE.keys()))
-        for key in bitstring.bits.PACK_CODE_SIZE:
-            be = pack(bitstring.bits.REPLACEMENTS_BE[key], 0)
-            le = pack(bitstring.bits.REPLACEMENTS_LE[key], 0)
-            self.assertEqual(be.len, bitstring.bits.PACK_CODE_SIZE[key] * 8)
+        self.assertEqual(sorted(bitstring.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.REPLACEMENTS_LE.keys()))
+        self.assertEqual(sorted(bitstring.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.PACK_CODE_SIZE.keys()))
+        for key in bitstring.PACK_CODE_SIZE:
+            be = pack(bitstring.REPLACEMENTS_BE[key], 0)
+            le = pack(bitstring.REPLACEMENTS_LE[key], 0)
+            self.assertEqual(be.len, bitstring.PACK_CODE_SIZE[key] * 8)
             self.assertEqual(le.len, be.len)
 
             # These tests don't compile for Python 3, so they're commented out to save me stress.
@@ -3741,17 +3741,17 @@ class ReadWithIntegers(unittest.TestCase):
 class FileReadingStrategy(unittest.TestCase):
     def testBitStreamIsAlwaysRead(self):
         a = BitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore, bitstring.bitstream.ByteStore))
+        self.assertTrue(isinstance(a._datastore, bitstring.ByteStore))
         f = open('smalltestfile', 'rb')
         b = BitStream(f)
-        self.assertTrue(isinstance(b._datastore, bitstring.bitstream.ByteStore))
+        self.assertTrue(isinstance(b._datastore, bitstring.ByteStore))
 
     def testBitsIsNeverRead(self):
         a = ConstBitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.bits.MmapByteArray))
+        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
         f = open('smalltestfile', 'rb')
         b = ConstBitStream(f)
-        self.assertTrue(isinstance(b._datastore._rawarray, bitstring.bits.MmapByteArray))
+        self.assertTrue(isinstance(b._datastore._rawarray, bitstring.MmapByteArray))
 
 
 class Count(unittest.TestCase):

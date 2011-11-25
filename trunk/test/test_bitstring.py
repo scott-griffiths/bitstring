@@ -12,7 +12,7 @@ import copy
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '3.0.1')
+        self.assertEqual(bitstring.__version__, '3.1.0')
 
     def testAll(self):
         exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
@@ -21,7 +21,7 @@ class ModuleData(unittest.TestCase):
         self.assertEqual(set(bitstring.__all__), set(exported))
 
     def testReverseDict(self):
-        d = bitstring.bits.BYTE_REVERSAL_DICT
+        d = bitstring.BYTE_REVERSAL_DICT
         for i in range(256):
             a = bitstring.Bits(uint=i, length=8)
             b = d[i]
