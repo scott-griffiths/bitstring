@@ -782,22 +782,13 @@ class BitArray(Bits):
                       """)
     hex = property(Bits._gethex, Bits._sethex,
                    doc="""The bitstring as a hexadecimal string. Read and write.
-
-                      When read will be prefixed with '0x' and including any leading zeros.
-
-                      """)
+                       """)
     bin = property(Bits._getbin, Bits._setbin_safe,
                    doc="""The bitstring as a binary string. Read and write.
-
-                      When read will be prefixed with '0b' and including any leading zeros.
-
-                      """)
+                       """)
     oct = property(Bits._getoct, Bits._setoct,
                    doc="""The bitstring as an octal string. Read and write.
-
-                      When read will be prefixed with '0o' and including any leading zeros.
-
-                      """)
+                       """)
     bool = property(Bits._getbool, Bits._setbool,
                     doc="""The bitstring as a bool (True or False). Read and write.
                     """)
