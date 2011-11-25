@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, '..')
 import bitstring
-from bitstring.bits import MmapByteArray
+from bitstring import MmapByteArray
 from bitstring import Bits, BitArray
 
 class Creation(unittest.TestCase):
@@ -133,7 +133,7 @@ class Creation(unittest.TestCase):
 
     def testDataStoreType(self):
         a = Bits('0xf')
-        self.assertEqual(type(a._datastore), bitstring.bitstore.ConstByteStore)
+        self.assertEqual(type(a._datastore), bitstring.ConstByteStore)
 
 
 class Initialisation(unittest.TestCase):

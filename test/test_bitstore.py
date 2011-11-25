@@ -3,19 +3,18 @@
 import unittest
 import sys
 sys.path.insert(0, '..')
-import bitstring.bitstore as bitstore
-from bitstring.bitstore import ByteStore, ConstByteStore
+from bitstring import ByteStore, ConstByteStore, equal, offsetcopy
 
 
 class OffsetCopy(unittest.TestCase):
     def testStraightCopy(self):
         s = ByteStore(bytearray([10, 5, 1]), 24, 0)
-        t = bitstore.offsetcopy(s, 0)
+        t = offsetcopy(s, 0)
         self.assertEqual(t._rawarray, bytearray([10, 5, 1]))
 
     def testOffsetIncrease(self):
         s = ByteStore(bytearray([1, 1, 1]), 24, 0)
-        t = bitstore.offsetcopy(s, 4)
+        t = offsetcopy(s, 4)
         self.assertEqual(t.bitlength, 24)
         self.assertEqual(t.offset, 4)
         self.assertEqual(t._rawarray, bytearray([0, 16, 16, 16]))
@@ -27,12 +26,12 @@ class Equals(unittest.TestCase):
         s = ByteStore(bytearray([128]), 3, 0)
         t = ByteStore(bytearray([64]), 3, 1)
         u = ByteStore(bytearray([32]), 3, 2)
-        self.assertTrue(bitstore.equal(s, t))
-        self.assertTrue(bitstore.equal(s, u))
-        self.assertTrue(bitstore.equal(u, t))
+        self.assertTrue(equal(s, t))
+        self.assertTrue(equal(s, u))
+        self.assertTrue(equal(u, t))
 
     def testOneSingleByte(self):
         s = ByteStore(bytearray([1, 0]), 2, 7)
         t = ByteStore(bytearray([64]), 2, 1)
-        self.assertTrue(bitstore.equal(s, t))
-        self.assertTrue(bitstore.equal(t, s))
+        self.assertTrue(equal(s, t))
+        self.assertTrue(equal(t, s))
