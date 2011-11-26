@@ -47,7 +47,7 @@ Python properties are used to give different interpretations of the binary data.
 >>> print(h.hex)
 000001b3
 >>> print(b.oct)
-0o117
+117
 >>> print(h.bin)
 00000000000000000000000110110011
 >>> print(ui.uint)
