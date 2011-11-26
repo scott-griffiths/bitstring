@@ -45,15 +45,15 @@ You can also combine the different methods to join sections together:
 Python properties are used to give different interpretations of the binary data. These properties are calculated only when you ask for them, they're not stored as part of the object.
 {{{
 >>> print(h.hex)
-0x000001b3
+000001b3
 >>> print(b.oct)
 0o117
 >>> print(h.bin)
-0b00000000000000000000000110110011
+00000000000000000000000110110011
 >>> print(ui.uint)
 15
 >>> print(ui.bin)  # (note the leading zeros because we gave it a length of 6)
-0b001111 
+001111 
 }}}
 
 ===Manipulating bitstrings===
