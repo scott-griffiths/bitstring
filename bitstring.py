@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# cython: profile=True
 """
 This package defines classes that simplify bit-wise creation, manipulation and
 interpretation of data.
@@ -63,6 +64,7 @@ __version__ = "3.1.0"
 
 __author__ = "Scott Griffiths"
 
+import cython
 import numbers
 import copy
 import sys
@@ -122,7 +124,10 @@ class CreationError(Error, ValueError):
 
 
 class ConstByteStore(object):
-    """Stores raw bytes together with a bit offset and length."""
+    """Stores raw bytes together with a bit offset and length.
+
+    Used internally - not part of public interface.
+    """
 
     __slots__ = ('offset', '_rawarray', 'bitlength')
 
@@ -187,6 +192,10 @@ class ConstByteStore(object):
 
 
 class ByteStore(ConstByteStore):
+    """Adding mutating methods to ConstByteStore
+
+    Used internally - not part of public interface.
+    """
     __slots__ = ()
 
     def setbit(self, pos):
@@ -236,7 +245,10 @@ class ByteStore(ConstByteStore):
 
 
 def offsetcopy(s, newoffset):
-    """Return a copy of s with the newoffset."""
+    """Return a copy of a ByteStore with the newoffset.
+
+    Not part of public interface.
+    """
     assert 0 <= newoffset < 8
     if not s.bitlength:
         return copy.copy(s)
@@ -275,7 +287,10 @@ def offsetcopy(s, newoffset):
 
 
 def equal(a, b):
-    """Return True if a == b."""
+    """Return True if ByteStores a == b.
+
+    Not part of public interface.
+    """
     # We want to return False for inequality as soon as possible, which
     # means we get lots of special cases.
     # First the easy one - compare lengths:
@@ -375,6 +390,52 @@ def equal(a, b):
     return a_val == b_val
 
 
+class MmapByteArray(object):
+    """Looks like a bytearray, but from an mmap.
+
+    Not part of public interface.
+    """
+
+    __slots__ = ('filemap', 'filelength', 'source', 'byteoffset', 'bytelength')
+
+    def __init__(self, source, bytelength=None, byteoffset=None):
+        self.source = source
+        source.seek(0, os.SEEK_END)
+        self.filelength = source.tell()
+        if byteoffset is None:
+            byteoffset = 0
+        if bytelength is None:
+            bytelength = self.filelength - byteoffset
+        self.byteoffset = byteoffset
+        self.bytelength = bytelength
+        self.filemap = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
+
+    def __getitem__(self, key):
+        try:
+            start = key.start
+            stop = key.stop
+        except AttributeError:
+            try:
+                assert 0 <= key < self.bytelength
+                return ord(self.filemap[key + self.byteoffset])
+            except TypeError:
+                # for Python 3
+                return self.filemap[key + self.byteoffset]
+        else:
+            if start is None:
+                start = 0
+            if stop is None:
+                stop = self.bytelength
+            assert key.step is None
+            assert 0 <= start < self.bytelength
+            assert 0 <= stop <= self.bytelength
+            s = slice(start + self.byteoffset, stop + self.byteoffset)
+            return bytearray(self.filemap.__getitem__(s))
+
+    def __len__(self):
+        return self.bytelength
+
+
 # This creates a dictionary for every possible byte with the value being
 # the key with its bits reversed.
 BYTE_REVERSAL_DICT = dict()
@@ -467,7 +528,6 @@ def structparser(token):
             assert endian == '>'
             tokens = [REPLACEMENTS_BE[c] for c in fmt]
     return tokens
-
 
 def tokenparser(fmt, keys=None, token_cache={}):
     """Divide the format string into tokens and parse them.
@@ -611,6 +671,7 @@ OCT_TO_BITS = ['{0:03b}'.format(i) for i in xrange(8)]
 
 # A dictionary of number of 1 bits contained in binary representation of any byte
 BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
+
 
 class Bits(object):
     """A container holding an immutable sequence of bits.
@@ -2817,50 +2878,6 @@ init_without_length_or_offset = {'bin': Bits._setbin_safe,
                                  'sie': Bits._setsie,
                                  'bool': Bits._setbool,
                                  }
-
-class MmapByteArray(object):
-    """Looks like a bytearray, but from an mmap."""
-
-    __slots__ = ('filemap', 'filelength', 'source', 'byteoffset', 'bytelength')
-
-    def __init__(self, source, bytelength=None, byteoffset=None):
-        self.source = source
-        source.seek(0, os.SEEK_END)
-        self.filelength = source.tell()
-        if byteoffset is None:
-            byteoffset = 0
-        if bytelength is None:
-            bytelength = self.filelength - byteoffset
-        self.byteoffset = byteoffset
-        self.bytelength = bytelength
-        self.filemap = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
-
-    def __getitem__(self, key):
-        try:
-            start = key.start
-            stop = key.stop
-        except AttributeError:
-            try:
-                assert 0 <= key < self.bytelength
-                return ord(self.filemap[key + self.byteoffset])
-            except TypeError:
-                # for Python 3
-                return self.filemap[key + self.byteoffset]
-        else:
-            if start is None:
-                start = 0
-            if stop is None:
-                stop = self.bytelength
-            assert key.step is None
-            assert 0 <= start < self.bytelength
-            assert 0 <= stop <= self.bytelength
-            s = slice(start + self.byteoffset, stop + self.byteoffset)
-            return bytearray(self.filemap.__getitem__(s))
-
-    def __len__(self):
-        return self.bytelength
-
-
 
 
 class BitArray(Bits):
