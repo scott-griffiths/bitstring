@@ -64,7 +64,6 @@ __version__ = "3.1.0"
 
 __author__ = "Scott Griffiths"
 
-import cython
 import numbers
 import copy
 import sys
@@ -786,6 +785,8 @@ class Bits(object):
                     assert x._assertsanity()
                     _cache[auto] = x
                     return x
+            if isinstance(auto, Bits):
+                return auto
         except TypeError:
             pass
         x = object.__new__(Bits)
@@ -1180,8 +1181,8 @@ class Bits(object):
                 h = (h << 4) + byte
             g = h & 0xf0000000
             if g & (1 << 31):
-                h = h ^ (g >> 24)
-                h = h ^ g
+                h ^= (g >> 24)
+                h ^= g
         return h % 1442968193
 
     # This is only used in Python 2.x...
@@ -1203,8 +1204,9 @@ class Bits(object):
         assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset
         return True
 
-    _tokenname_to_initialiser = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct', '0o': 'oct',
-                                 '0O': 'oct', 'bin': 'bin', '0b': 'bin', '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes'}
+    _tokenname_to_initialiser = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct',
+                                 '0o': 'oct', '0O': 'oct', 'bin': 'bin', '0b': 'bin',
+                                 '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes'}
 
     @classmethod
     def _init_with_token(cls, name, token_length, value):
@@ -2308,11 +2310,12 @@ class Bits(object):
                     raise Error("It's not possible to parse a variable"
                                 "length token after a 'filler' token.")
                 else:
+                    if length is None:
+                        raise Error("It's not possible to have more than "
+                                    "one 'filler' token.")
                     bits_after_stretchy_token += length
             if length is None and name not in ('se', 'ue', 'sie', 'uie'):
-                if stretchy_token:
-                    raise Error("It's not possible to have more than "
-                                "one 'filler' token.")
+                assert not stretchy_token
                 stretchy_token = token
         bits_left = self.len - pos
         return_values = []

@@ -1530,12 +1530,12 @@ class Adding(unittest.TestCase):
         self.assertTrue(s5 == s6)
 
     def testLargeEquals(self):
-        s1 = BitStream(10000000)
-        s2 = BitStream(10000000)
-        s1.set(True, [0, 55, 53214, 5342111, 9999999])
-        s2.set(True, [0, 55, 53214, 5342111, 9999999])
+        s1 = BitStream(1000000)
+        s2 = BitStream(1000000)
+        s1.set(True, [0, 55, 53214, 534211, 999999])
+        s2.set(True, [0, 55, 53214, 534211, 999999])
         self.assertEqual(s1, s2)
-        s1.set(True, 8000000)
+        s1.set(True, 800000)
         self.assertNotEqual(s1, s2)
 
     def testNotEquals(self):
@@ -1948,16 +1948,6 @@ class Adding(unittest.TestCase):
         self.assertEqual(a.tobytes(), b'\xf8')
         self.assertRaises(ValueError, a._getbytes)
 
-        #def testLargeOffsets(self):
-        #a = BitStream('0xffffffff', offset=32)
-        #self.assertFalse(a)
-        #b = BitStream(bytes=b'\xff\xff\xff\xfd', offset=30, length=1)
-        #self.assertEqual(b, '0b0')
-        #o = BitStream(oct='123456707', offset=24)
-        #self.assertEqual(o, '0o7')
-        #d = BitStream(bytes=b'\x00\x00\x00\x00\x0f', offset=33, length=5)
-        #self.assertEqual(d, '0b00011')
-
     def testNewOffsetErrors(self):
         self.assertRaises(bitstring.CreationError, BitStream, hex='ff', offset=-1)
         self.assertRaises(bitstring.CreationError, BitStream, '0xffffffff', offset=33)
@@ -1999,6 +1989,8 @@ class Adding(unittest.TestCase):
         a.overwrite('0xa', 4)
         self.assertEqual(a, '0xaa')
         self.assertEqual(a.bitpos, 8)
+        a.overwrite(a, 0)
+        self.assertEqual(a, '0xaa')
 
     def testInitSliceWithInt(self):
         a = BitStream(length=8)
@@ -2197,6 +2189,8 @@ class Adding(unittest.TestCase):
         s = BitStream('0xabcdef')
         self.assertRaises(bitstring.Error, s.readlist, 'bits, se')
         self.assertRaises(bitstring.Error, s.readlist, 'hex:4, bits, ue, bin:4')
+        s.pos = 0
+        self.assertRaises(bitstring.Error, s.readlist, 'bin, bin')
 
     def testIntelligentPeek(self):
         a = BitStream('0b01, 0x43, 0o4, uint:23=2, se=5, ue=3')
@@ -2333,7 +2327,7 @@ class Adding(unittest.TestCase):
             self.assertTrue(t2.startswith('0x000001b3'))
             self.assertTrue(t2.endswith('0xc'))
             with open('test.m1v', 'rb') as b:
-                u = ConstBitStream(bytes=b.read())
+                u = BitStream(bytes=b.read())
                 self.assertEqual(u, f)
 
     def testFileBasedCopy(self):
@@ -2982,6 +2976,13 @@ class AllAndAny(unittest.TestCase):
         self.assertTrue(a.all(True))
         self.assertFalse(a.all(False))
 
+    def testErrors(self):
+        a = BitStream('0xf')
+        self.assertRaises(IndexError, a.all, True, [5])
+        self.assertRaises(IndexError, a.all, True, [-5])
+        self.assertRaises(IndexError, a.any, True, [5])
+        self.assertRaises(IndexError, a.any, True, [-5])
+
     ###################
 
     def testFloatInitialisation(self):
@@ -3053,6 +3054,10 @@ class AllAndAny(unittest.TestCase):
         a = BitStream('0b11, floatle:64=12, 0xfffff')
         a.pos = 2
         self.assertEqual(a.read('floatle:64'), 12.0)
+        b = BitStream(floatle=20, length=32)
+        b.floatle = 10.0
+        b = [0] + b
+        self.assertEqual(b[1:].floatle, 10.0)
 
     def testFloatErrors(self):
         a = BitStream('0x3')
@@ -3060,6 +3065,9 @@ class AllAndAny(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, a._setfloat, -0.2)
         for l in (8, 10, 12, 16, 30, 128, 200):
             self.assertRaises(ValueError, BitStream, float=1.0, length=l)
+        self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=0)
+        self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=1)
+        self.assertRaises(bitstring.InterpretError, a.read, 'floatle:2')
 
     def testReadErrorChangesPos(self):
         a = BitStream('0x123123')
