@@ -2918,6 +2918,12 @@ class Invert(unittest.TestCase):
         a ^= '0b11111100000010'
         self.assertEqual(a, '0b00110000110001')
 
+    def testLogicalInplaceErrors(self):
+        a = BitStream(4)
+        self.assertRaises(ValueError, a.__ior__, '0b111')
+        self.assertRaises(ValueError, a.__iand__, '0b111')
+        self.assertRaises(ValueError, a.__ixor__, '0b111')
+
 
 class AllAndAny(unittest.TestCase):
     def testAll(self):

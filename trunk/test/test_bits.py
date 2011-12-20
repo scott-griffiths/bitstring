@@ -271,3 +271,14 @@ class Mmap(unittest.TestCase):
         self.assertEqual(a[0], 0x67)
         self.assertEqual(a[:], bytearray([0x67, 0x89, 0xab]))
 
+
+class Comparisons(unittest.TestCase):
+    def testUnorderable(self):
+        a = Bits(5)
+        b = Bits(5)
+        self.assertRaises(TypeError, a.__lt__, b)
+        self.assertRaises(TypeError, a.__gt__, b)
+        self.assertRaises(TypeError, a.__le__, b)
+        self.assertRaises(TypeError, a.__ge__, b)
+
+
