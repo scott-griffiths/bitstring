@@ -194,7 +194,7 @@ class SliceAssignment(unittest.TestCase):
         self.assertEqual(a.bin, '')
 
     def testDelSliceNegativeStep(self):
-        a= BitArray('0b0001011101101100100110000001')
+        a = BitArray('0b0001011101101100100110000001')
         del a[5:23:-3]
         self.assertEqual(a.bin, '0001011101101100100110000001')
         del a[25:3:-3]
@@ -206,18 +206,57 @@ class SliceAssignment(unittest.TestCase):
         del a[::-1]
         self.assertEqual(a.bin, '')
 
+    def testDelSliceErrors(self):
+        a = BitArray(10)
+        del a[5:3]
+        self.assertEqual(a, 10)
+        del a[3:5:-1]
+        self.assertEqual(a, 10)
+
+    def testDelSingleElement(self):
+        a = BitArray('0b0010011')
+        del a[-1]
+        self.assertEqual(a.bin, '001001')
+        del a[2]
+        self.assertEqual(a.bin, '00001')
+        try:
+            del a[5]
+            self.assertTrue(False)
+        except IndexError:
+            pass
+
     def testSetSliceStep(self):
         a = BitArray(bin='0000000000')
         a[::2] = '0b11111'
         self.assertEqual(a.bin, '1010101010')
         a[4:9:3] = [0, 0]
         self.assertEqual(a.bin, '1010001010')
+        a[7:3:-1] = [1, 1, 1, 0]
+        self.assertEqual(a.bin, '1010011110')
+        a[7:1:-2] = [0, 0, 1]
+        self.assertEqual(a.bin, '1011001010')
+        a[::-5] = [1, 1]
+        self.assertEqual(a.bin, '1011101011')
+        a[::-1] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+        self.assertEqual(a.bin, '1000000000')
 
     def testSetSliceErrors(self):
         a = BitArray(8)
         try:
             a[::3] = [1]
-            self.assertTrue(false)
+            self.assertTrue(False)
         except ValueError:
             pass
+        class A(object): pass
+        try:
+            a[1:2] = A()
+            self.assertTrue(False)
+        except TypeError:
+            pass
+        try:
+            a[1:4:-1] = [1, 2]
+            self.assertTrue(False)
+        except ValueError:
+            pass
+
         
