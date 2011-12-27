@@ -858,8 +858,12 @@ class Bits(object):
 
         """
         bs = Bits(bs)
-        s = self._copy()
-        s._append(bs)
+        if bs.len <= self.len:
+            s = self._copy()
+            s._append(bs)
+        else:
+            s = self.__class__(bs)
+            s._prepend(self)
         return s
 
     def __radd__(self, bs):
