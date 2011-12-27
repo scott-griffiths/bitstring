@@ -1528,6 +1528,9 @@ class Adding(unittest.TestCase):
         s5 = BitStream(bytes=b'\xff', offset=2, length=3)
         s6 = BitStream('0b111')
         self.assertTrue(s5 == s6)
+        class A(object):
+            pass
+        self.assertFalse(s5 == A())
 
     def testLargeEquals(self):
         s1 = BitStream(1000000)
@@ -1892,7 +1895,7 @@ class Adding(unittest.TestCase):
                   ConstBitStream(filename='test.m1v', length=23, offset=23102)]:
             f2 = eval(f.__repr__())
             self.assertEqual(f._datastore._rawarray.source.name, f2._datastore._rawarray.source.name)
-            self.assertTrue(f2 == f)
+            self.assertTrue(f2.tobytes() == f.tobytes())
         a = BitStream('0b1')
         self.assertEqual(repr(a), "BitStream('0b1')")
         a += '0b11'
@@ -2328,7 +2331,8 @@ class Adding(unittest.TestCase):
             self.assertTrue(t2.endswith('0xc'))
             with open('test.m1v', 'rb') as b:
                 u = BitStream(bytes=b.read())
-                self.assertEqual(u, f)
+                # TODO: u == s2 is much slower than u.bytes == s2.bytes
+                self.assertEqual(u.bytes, s2.bytes)
 
     def testFileBasedCopy(self):
         with open('smalltestfile', 'rb') as f:
