@@ -581,10 +581,11 @@ def tokenparser(fmt, keys=None, token_cache={}):
                 continue
             # Match everything else:
             m1 = TOKEN_RE.match(token)
-            # and if you don't specify a 'name' then the default is 'uint':
-            m2 = DEFAULT_UINT.match(token)
-            if not (m1 or m2):
-                raise ValueError("Don't understand token '{0}'.".format(token))
+            if not m1:
+                # and if you don't specify a 'name' then the default is 'uint':
+                m2 = DEFAULT_UINT.match(token)
+                if not m2:
+                    raise ValueError("Don't understand token '{0}'.".format(token))
             if m1:
                 name = m1.group('name')
                 length = m1.group('len')
@@ -899,7 +900,7 @@ class Bits(object):
             # Single bit, return True or False
             return self._datastore.getbit(key)
         else:
-            if abs(step) != 1:
+            if step != 1:
                 # convert to binary string and use string slicing
                 bs = self.__class__()
                 bs._setbin_unsafe(self._getbin().__getitem__(key))
@@ -915,26 +916,8 @@ class Bits(object):
                     stop += length
             start = max(start, 0)
             stop = min(stop, length)
-            # Adjust start and stop if we're stepping backwards
-            if step == -1:
-                # This compensates for negative indices being inclusive of the
-                # final index rather than the first.
-                if key.start is not None and key.start < 0:
-                    start -= 1
-                if key.stop is not None and key.stop < 0:
-                    stop -= 1
-                if key.start is None:
-                    start = length - 1
-                if key.stop is None:
-                    stop = -1
-                start, stop = stop + 1, start + 1
             if start < stop:
-                if step == 1:
-                    return self._slice(start, stop)
-                else:
-                    s = self._slice(start, stop)
-                    s._reverse()
-                    return s
+                return self._slice(start, stop)
             else:
                 return self.__class__()
 
@@ -3183,7 +3166,7 @@ class BitArray(Bits):
             self._delete(1, key)
             return
         else:
-            if abs(step) != 1:
+            if step != 1:
                 # convert to binary string and use string slicing
                 # TODO: Horribly inefficent
                 temp = list(self._getbin())
@@ -3199,24 +3182,8 @@ class BitArray(Bits):
                     start = 0
             if stop is None:
                 stop = self.len
-            # Adjust start and stop if we're stepping backwards
-            assert step in (1, -1)
-            if step == -1:
-                if key.start is None:
-                    start = self.len - 1
-                if key.stop is None:
-                    stop = -1
-                start, stop = stop + 1, start + 1
             if start > stop:
-                if step == 1:
-                    # The standard behaviour for lists is to just insert at the
-                    # start position if stop < start and step == 1.
-                    stop = start
-                else:
-                    # We have a step which takes us in the wrong direction,
-                    # and will never get from start to stop.
-                    raise ValueError("Attempt to delete badly defined "
-                                     "extended slice.")
+                return
             stop = min(stop, self.len)
             start = max(start, 0)
             start = min(start, stop)
@@ -3489,6 +3456,7 @@ class BitArray(Bits):
         if not isinstance(pos, collections.Iterable):
             pos = (pos,)
         length = self.len
+
         for p in pos:
             if p < 0:
                 p += length
@@ -3579,7 +3547,7 @@ class BitArray(Bits):
                 if not isinstance(bytesize, numbers.Integral) or bytesize < 0:
                     raise ValueError("Improper byte length {0}.".format(bytesize))
         else:
-            raise ValueError("Format must be an integer, string or iterable.")
+            raise TypeError("Format must be an integer, string or iterable.")
 
         repeats = 0
         totalbitsize = 8 * sum(bytesizes)
