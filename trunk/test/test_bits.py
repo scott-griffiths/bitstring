@@ -30,7 +30,6 @@ class Creation(unittest.TestCase):
         s = Bits(hex='  \n0 X a  4e       \r3  \n')
         self.assertEqual(s.hex, 'a4e3')
 
-
     def testCreationFromHexErrors(self):
         self.assertRaises(bitstring.CreationError, Bits, hex='0xx0')
         self.assertRaises(bitstring.CreationError, Bits, hex='0xX0')
@@ -53,17 +52,6 @@ class Creation(unittest.TestCase):
         s = Bits('0b00011')
         self.assertRaises(bitstring.InterpretError, s._getoct)
         self.assertRaises(bitstring.CreationError, s._setoct, '8')
-
-    #def testCreationFromIntWithoutLength(self):
-    #    s = ConstBitStream(uint=5)
-    #    self.assertEqual(s, '0b101')
-    #    s = ConstBitStream(uint=0)
-    #    self.assertEqual(s, [0])
-    #    s = ConstBitStream(int=-1)
-    #    self.assertEqual(s, [1])
-    #    s = ConstBitStream(int=-2)
-    #    self.assertEqual(s, '0b10')
-
 
     def testCreationFromUintWithOffset(self):
         self.assertRaises(bitstring.Error, Bits, uint=12, length=8, offset=1)
@@ -130,6 +118,9 @@ class Creation(unittest.TestCase):
         self.assertEqual(b, [0])
         c = bitstring.pack('2*bool', 0, 1)
         self.assertEqual(c, '0b01')
+
+    def testCreationKeywordError(self):
+        self.assertRaises(bitstring.CreationError, Bits, squirrel=5)
 
     def testDataStoreType(self):
         a = Bits('0xf')

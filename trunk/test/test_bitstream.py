@@ -1585,6 +1585,7 @@ class Adding(unittest.TestCase):
         del s[-8:]
         self.assertEqual(t.hex, 'abcdef')
 
+class Multiplication(unittest.TestCase):
 
     def testMultiplication(self):
         a = BitStream('0xff')
@@ -1642,6 +1643,8 @@ class Adding(unittest.TestCase):
             self.assertEqual(i, s.uint)
             self.assertEqual(s.length, 8)
 
+class BitWise(unittest.TestCase):
+
     def testBitwiseAnd(self):
         a = BitStream('0b01101')
         b = BitStream('0b00110')
@@ -1677,6 +1680,8 @@ class Adding(unittest.TestCase):
         a = '0o707' ^ BitStream('0o777')
         self.assertEqual(a.oct, '070')
 
+class Split(unittest.TestCase):
+
     def testSplit(self):
         a = BitStream('0b0 010100111 010100 0101 010')
         a.pos = 20
@@ -1698,12 +1703,6 @@ class Adding(unittest.TestCase):
         a = BitStream('0b0')
         b = a.split('', False)
         self.assertRaises(ValueError, next, b)
-
-    def testPositionInSlice(self):
-        a = BitStream('0x00ffff00')
-        a.bytepos = 2
-        b = a[8:24]
-        self.assertEqual(b.bytepos, 0)
 
     def testSliceWithOffset(self):
         a = BitStream(bytes=b'\x00\xff\x00', offset=7)
@@ -1728,6 +1727,54 @@ class Adding(unittest.TestCase):
             self.assertEqual(a, b)
         b = s.split('0b11', count=-1)
         self.assertRaises(ValueError, next, b)
+
+    def testSplitStartbit(self):
+        a = BitStream('0b0010101001000000001111')
+        bsl = a.split('0b001', bytealigned=False, start=1)
+        self.assertEqual([x.bin for x in bsl], ['010101', '001000000', '001111'])
+        b = a.split('0b001', start=-100)
+        self.assertRaises(ValueError, next, b)
+        b = a.split('0b001', start=23)
+        self.assertRaises(ValueError, next, b)
+        b = a.split('0b1', start=10, end=9)
+        self.assertRaises(ValueError, next, b)
+
+    def testSplitStartbitByteAligned(self):
+        a = BitStream('0x00ffffee')
+        bsl = list(a.split('0b111', start=9, bytealigned=True))
+        self.assertEqual([x.bin for x in bsl], ['1111111', '11111111', '11101110'])
+
+    def testSplitEndbit(self):
+        a = BitStream('0b000010001001011')
+        bsl = list(a.split('0b1', bytealigned=False, end=14))
+        self.assertEqual([x.bin for x in bsl], ['0000', '1000', '100', '10', '1'])
+        self.assertEqual(list(a[4:12].split('0b0', False)), list(a.split('0b0', start=4, end=12)))
+        # Shouldn't raise ValueError
+        bsl = list(a.split('0xffee', end=15))
+        # Whereas this one will when we call next()
+        bsl = a.split('0xffee', end=16)
+        self.assertRaises(ValueError, next, bsl)
+
+    def testSplitEndbitByteAligned(self):
+        a = BitStream('0xff00ff')[:22]
+        bsl = list(a.split('0b 0000 0000 111', end=19))
+        self.assertEqual([x.bin for x in bsl], ['11111111', '00000000111'])
+        bsl = list(a.split('0b 0000 0000 111', end=18))
+        self.assertEqual([x.bin for x in bsl], ['111111110000000011'])
+
+    def testSplitMaxSplit(self):
+        a = BitStream('0b1' * 20)
+        for i in range(10):
+            bsl = list(a.split('0b1', count=i))
+            self.assertEqual(len(bsl), i)
+
+    #######################
+
+    def testPositionInSlice(self):
+        a = BitStream('0x00ffff00')
+        a.bytepos = 2
+        b = a[8:24]
+        self.assertEqual(b.bytepos, 0)
 
     def testFindByteAlignedWithBits(self):
         a = BitStream('0x00112233445566778899')
@@ -1785,46 +1832,6 @@ class Adding(unittest.TestCase):
         b = BitStream('0x0011223344')
         self.assertRaises(ValueError, a.find, '0x22', bytealigned=True, start=-100)
         self.assertRaises(ValueError, a.find, '0x22', end=41, bytealigned=True)
-
-    def testSplitStartbit(self):
-        a = BitStream('0b0010101001000000001111')
-        bsl = a.split('0b001', bytealigned=False, start=1)
-        self.assertEqual([x.bin for x in bsl], ['010101', '001000000', '001111'])
-        b = a.split('0b001', start=-100)
-        self.assertRaises(ValueError, next, b)
-        b = a.split('0b001', start=23)
-        self.assertRaises(ValueError, next, b)
-        b = a.split('0b1', start=10, end=9)
-        self.assertRaises(ValueError, next, b)
-
-    def testSplitStartbitByteAligned(self):
-        a = BitStream('0x00ffffee')
-        bsl = list(a.split('0b111', start=9, bytealigned=True))
-        self.assertEqual([x.bin for x in bsl], ['1111111', '11111111', '11101110'])
-
-    def testSplitEndbit(self):
-        a = BitStream('0b000010001001011')
-        bsl = list(a.split('0b1', bytealigned=False, end=14))
-        self.assertEqual([x.bin for x in bsl], ['0000', '1000', '100', '10', '1'])
-        self.assertEqual(list(a[4:12].split('0b0', False)), list(a.split('0b0', start=4, end=12)))
-        # Shouldn't raise ValueError
-        bsl = list(a.split('0xffee', end=15))
-        # Whereas this one will when we call next()
-        bsl = a.split('0xffee', end=16)
-        self.assertRaises(ValueError, next, bsl)
-
-    def testSplitEndbitByteAligned(self):
-        a = BitStream('0xff00ff')[:22]
-        bsl = list(a.split('0b 0000 0000 111', end=19))
-        self.assertEqual([x.bin for x in bsl], ['11111111', '00000000111'])
-        bsl = list(a.split('0b 0000 0000 111', end=18))
-        self.assertEqual([x.bin for x in bsl], ['111111110000000011'])
-
-    def testSplitMaxSplit(self):
-        a = BitStream('0b1' * 20)
-        for i in range(10):
-            bsl = list(a.split('0b1', count=i))
-            self.assertEqual(len(bsl), i)
 
     def testPrependAndAppendAgain(self):
         c = BitStream('0x1122334455667788')
@@ -1967,6 +1974,16 @@ class Adding(unittest.TestCase):
         self.assertEqual(a[-8:], '0x77')
         self.assertEqual(a[:-24], '0x0011223344')
         self.assertEqual(a[-1000:-24], '0x0011223344')
+
+    def testInterestingSliceStep(self):
+        a = BitStream('0b0011000111')
+        self.assertEqual(a[7:3:-1], '0b1000')
+        self.assertEqual(a[9:2:-1], '0b1110001')
+        self.assertEqual(a[8:2:-2], '0b100')
+        self.assertEqual(a[100:-20:-3], '0b1010')
+        self.assertEqual(a[100:-20:-1], '0b1110001100')
+        self.assertEqual(a[10:2:-1], '0b1110001')
+        self.assertEqual(a[100:2:-1], '0b1110001')
 
     def testInsertionOrderAndBitpos(self):
         b = BitStream()
@@ -2896,6 +2913,19 @@ class Invert(unittest.TestCase):
         a.invert()
         self.assertEqual(a, '0b00100')
 
+    def testInvertSingleBit(self):
+        a = BitStream('0b000001')
+        a.invert(0)
+        self.assertEqual(a.bin, '100001')
+        a.invert(-1)
+        self.assertEqual(a.bin, '100000')
+
+    def testInvertErrors(self):
+        a = BitStream(10)
+        self.assertRaises(IndexError, a.invert, 10)
+        self.assertRaises(IndexError, a.invert, -11)
+        self.assertRaises(IndexError, a.invert, [1, 2, 10])
+
 
     #######################
 
@@ -3563,6 +3593,7 @@ class Bugs(unittest.TestCase):
         self.assertRaises(ValueError, s.byteswap, [1, 'e'])
         self.assertRaises(ValueError, s.byteswap, '!h')
         self.assertRaises(ValueError, s.byteswap, 2, start=-1000)
+        self.assertRaises(TypeError, s.byteswap, 5.4)
 
     def testByteSwapFromFile(self):
         s = BitStream(filename='smalltestfile')
