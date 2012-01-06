@@ -1310,7 +1310,7 @@ class Bits(object):
             if length + offset > len(data) * 8:
                 msg = "Not enough data present. Need {0} bits, have {1}."
                 raise CreationError(msg, length + offset, len(data) * 8)
-            if not length:
+            if length == 0:
                 self._datastore = ByteStore(bytearray(0))
             else:
                 self._datastore = ByteStore(data, length, offset)
@@ -1321,7 +1321,7 @@ class Bits(object):
         assert self._assertsanity()
 
     def _readbytes(self, length, start):
-        """Read bytes and return them."""
+        """Read bytes and return them. Note that length is in bits."""
         assert length % 8 == 0
         assert start + length <= self.len
         if not (start + self._offset) % 8:
@@ -1384,8 +1384,7 @@ class Bits(object):
         endbyte = (start + offset + length - 1) // 8
 
         b = binascii.hexlify(bytes(self._datastore.getbyteslice(startbyte, endbyte + 1)))
-        if not b:
-            return 0
+        assert b
         i = int(b, 16)
         final_bits = 8 - ((start + offset + length) % 8)
         if final_bits != 8:
@@ -3062,7 +3061,7 @@ class BitArray(Bits):
                 self._insert(value, key)
             return
         else:
-            if abs(step) != 1:
+            if step != 1:
                 # convert to binary string and use string slicing
                 # TODO: Horribly inefficent
                 temp = list(self._getbin())
@@ -3080,40 +3079,21 @@ class BitArray(Bits):
                 except TypeError:
                     raise TypeError("Bitstring, integer or string expected. "
                                     "Got {0}.".format(type(value)))
-            if not step:
-                stop = 0
-            else:
-                # default stop needs to be a multiple of step
-                stop = self.len
-                if key.stop is not None:
-                    stop -= (self.len % abs(step))
             if key.start is not None:
-                start = key.start * abs(step)
+                start = key.start
                 if key.start < 0:
-                    start += stop
+                    start += self.len
                 if start < 0:
                     start = 0
+            stop = self.len
             if key.stop is not None:
-                stop = key.stop * abs(step)
+                stop = key.stop
                 if key.stop < 0:
-                    stop += self.len - (self.len % abs(step))
-            # Adjust start and stop if we're stepping backwards
-            if step < 0:
-                if key.start is None:
-                    start = self.len + step
-                if key.stop is None:
-                    stop = step
-                start, stop = stop - step, start - step
+                    stop += self.len
             if start > stop:
-                if step == 1:
-                    # The standard behaviour for lists is to just insert at the
-                    # start position if stop < start and step == 1.
-                    stop = start
-                else:
-                    # We have a step which takes us in the wrong direction,
-                    # and will never get from start to stop.
-                    raise ValueError("Attempt to assign to badly defined "
-                                     "extended slice.")
+                # The standard behaviour for lists is to just insert at the
+                # start position if stop < start and step == 1.
+                stop = start
             if isinstance(value, numbers.Integral):
                 if value >= 0:
                     value = self.__class__(uint=value, length=stop - start)
@@ -3128,7 +3108,7 @@ class BitArray(Bits):
                 if step >= 0:
                     self._overwrite(value, start)
                 else:
-                    self._overwrite(value.__getitem__(slice(None, None, step)), start)
+                    self._overwrite(value.__getitem__(slice(None, None, 1)), start)
             else:
                 # TODO: A delete then insert is wasteful - it could do unneeded shifts.
                 # Could be either overwrite + insert or overwrite + delete.
@@ -3136,7 +3116,7 @@ class BitArray(Bits):
                 if step >= 0:
                     self._insert(value, start)
                 else:
-                    self._insert(value.__getitem__(slice(None, None, step)), start)
+                    self._insert(value.__getitem__(slice(None, None, 1)), start)
                 # pos is now after the inserted piece.
             return
 
@@ -4228,6 +4208,7 @@ def pack(fmt, *values, **kwargs):
         # Good, we've used up all the *values.
         return s
     raise CreationError("Too many parameters present to pack according to the format.")
+
 
 # Aliases for backward compatibility
 ConstBitArray = Bits
