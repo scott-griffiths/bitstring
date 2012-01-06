@@ -16,6 +16,7 @@ class FlexibleInitialisation(unittest.TestCase):
         a = BitStream('uint:8=12')
         c = BitStream(' uint : 8 =  12')
         self.assertTrue(a == c == BitStream(uint=12, length=8))
+        self.assertEqual(a.uint, 12)
         a = BitStream('     int:2=  -1')
         b = BitStream('int :2   = -1')
         c = BitStream(' int:  2  =-1  ')
@@ -1535,8 +1536,8 @@ class Adding(unittest.TestCase):
     def testLargeEquals(self):
         s1 = BitStream(1000000)
         s2 = BitStream(1000000)
-        s1.set(True, [0, 55, 53214, 534211, 999999])
-        s2.set(True, [0, 55, 53214, 534211, 999999])
+        s1.set(True, [-1, 55, 53214, 534211, 999999])
+        s2.set(True, [-1, 55, 53214, 534211, 999999])
         self.assertEqual(s1, s2)
         s1.set(True, 800000)
         self.assertNotEqual(s1, s2)
@@ -2861,6 +2862,14 @@ class Set(unittest.TestCase):
         self.assertRaises(IndexError, b.set, True, -9)
         self.assertRaises(IndexError, b.set, True, 8)
 
+    def testSetNegativeIndex(self):
+        a = BitStream(10)
+        a.set(1, -1)
+        self.assertEqual(a.bin, '0000000001')
+        a.set(1, [-1, -10])
+        self.assertEqual(a.bin, '1000000001')
+        self.assertRaises(IndexError, a.set, 1, [-11])
+
     def testFileBasedSetUnset(self):
         a = BitStream(filename='test.m1v')
         a.set(True, (0, 1, 2, 3, 4))
@@ -3099,6 +3108,14 @@ class AllAndAny(unittest.TestCase):
         b = [0] + b
         self.assertEqual(b[1:].floatle, 10.0)
 
+    def testNonAlignedFloatReading(self):
+        s = BitStream('0b1, float:32 = 10.0')
+        x, y = s.readlist('1, float:32')
+        self.assertEqual(y, 10.0)
+        s[1:] = 'floatle:32=20.0'
+        x, y = s.unpack('1, floatle:32')
+        self.assertEqual(y, 20.0)
+
     def testFloatErrors(self):
         a = BitStream('0x3')
         self.assertRaises(bitstring.InterpretError, a._getfloat)
@@ -3107,6 +3124,7 @@ class AllAndAny(unittest.TestCase):
             self.assertRaises(ValueError, BitStream, float=1.0, length=l)
         self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=0)
         self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=1)
+        self.assertRaises(bitstring.CreationError, BitStream, float=2)
         self.assertRaises(bitstring.InterpretError, a.read, 'floatle:2')
 
     def testReadErrorChangesPos(self):

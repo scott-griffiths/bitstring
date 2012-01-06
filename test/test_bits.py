@@ -9,9 +9,14 @@ from bitstring import MmapByteArray
 from bitstring import Bits, BitArray
 
 class Creation(unittest.TestCase):
-    def testCreationFromData(self):
+    def testCreationFromBytes(self):
         s = Bits(bytes=b'\xa0\xff')
         self.assertEqual((s.len, s.hex), (16, 'a0ff'))
+        s = Bits(bytes=b'abc', length=0)
+        self.assertEqual(s, '')
+
+    def testCreationFromBytesErrors(self):
+        self.assertRaises(bitstring.CreationError, Bits, bytes=b'abc', length=25)
 
     def testCreationFromDataWithOffset(self):
         s1 = Bits(bytes=b'\x0b\x1c\x2f', offset=0, length=20)
@@ -193,9 +198,10 @@ class InterleavedExpGolomb(unittest.TestCase):
             self.assertEqual(Bits(sie=x).sie, x)
 
     def testErrors(self):
-        s = Bits([0, 0])
-        self.assertRaises(bitstring.InterpretError, s._getsie)
-        self.assertRaises(bitstring.InterpretError, s._getuie)
+        for f in ['sie=100, 0b1001', '0b00', 'uie=100, 0b1001']:
+            s = Bits(f)
+            self.assertRaises(bitstring.InterpretError, s._getsie)
+            self.assertRaises(bitstring.InterpretError, s._getuie)
         self.assertRaises(ValueError, Bits, 'uie=-10')
 
 
