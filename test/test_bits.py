@@ -40,6 +40,9 @@ class Creation(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, Bits, hex='0xX0')
         self.assertRaises(bitstring.CreationError, Bits, hex='0Xx0')
         self.assertRaises(bitstring.CreationError, Bits, hex='-2e')
+        s = Bits('0x2', length=2, offset=1)
+        self.assertRaises(bitstring.CreationError, Bits, '0x2', length=2)
+        self.assertRaises(bitstring.CreationError, Bits, '0x3', offset=1)
 
     def testCreationFromBin(self):
         s = Bits(bin='1010000011111111')
@@ -279,3 +282,13 @@ class Comparisons(unittest.TestCase):
         self.assertRaises(TypeError, a.__ge__, b)
 
 
+class Subclassing(unittest.TestCase):
+
+    def testIsInstance(self):
+        class SubBits(bitstring.Bits): pass
+        a = SubBits()
+        self.assertTrue(isinstance(a, SubBits))
+
+    def testClassName(self):
+        class SubBits(bitstring.Bits): pass
+        self.assertEqual(SubBits().__class__, SubBits)
