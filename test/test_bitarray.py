@@ -259,4 +259,14 @@ class SliceAssignment(unittest.TestCase):
         except ValueError:
             pass
 
-        
+
+class Subclassing(unittest.TestCase):
+
+    def testIsInstance(self):
+        class SubBits(BitArray): pass
+        a = SubBits()
+        self.assertTrue(isinstance(a, SubBits))
+
+    def testClassType(self):
+        class SubBits(BitArray): pass
+        self.assertEqual(SubBits().__class__, SubBits)
