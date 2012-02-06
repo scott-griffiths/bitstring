@@ -14,7 +14,7 @@ macros = [('PYREX_WITHOUT_ASSERTIONS', None)]
 ext_modules = [Extension('bitstring', ["bitstring.py"], define_macros=macros)]
 
 setup(name='bitstring',
-      version='3.1.0',
+      version='3.0.2',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
