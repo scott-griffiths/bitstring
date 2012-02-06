@@ -3889,3 +3889,14 @@ class CoverageCompletionTests(unittest.TestCase):
         s.overwrite(s)
         self.assertEqual(s, '0b1101')
 
+
+class Subclassing(unittest.TestCase):
+
+    def testIsInstance(self):
+        class SubBits(BitStream): pass
+        a = SubBits()
+        self.assertTrue(isinstance(a, SubBits))
+
+    def testClassType(self):
+        class SubBits(BitStream): pass
+        self.assertEqual(SubBits().__class__, SubBits)

@@ -63,3 +63,13 @@ class ReadTo(unittest.TestCase):
         self.assertEqual(b.readto(n).bytes, b'of text\n')
 
 
+class Subclassing(unittest.TestCase):
+
+    def testIsInstance(self):
+        class SubBits(CBS): pass
+        a = SubBits()
+        self.assertTrue(isinstance(a, SubBits))
+
+    def testClassType(self):
+        class SubBits(CBS): pass
+        self.assertEqual(SubBits().__class__, SubBits)

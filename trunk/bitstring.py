@@ -39,7 +39,7 @@ http://python-bitstring.googlecode.com
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2011 Scott Griffiths (scott@griffiths.name)
+Copyright (c) 2006-2012 Scott Griffiths (scott@griffiths.name)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -794,7 +794,7 @@ class Bits(object):
                 return auto
         except TypeError:
             pass
-        x = object.__new__(Bits)
+        x = super(Bits, cls).__new__(cls)
         x._initialise(auto, length, offset, **kwargs)
         return x
 
@@ -2983,7 +2983,7 @@ class BitArray(Bits):
             self._ensureinmemory()
 
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
-        x = object.__new__(BitArray)
+        x = super(BitArray, cls).__new__(cls)
         y = Bits.__new__(BitArray, auto, length, offset, **kwargs)
         x._datastore = y._datastore
         return x
@@ -3716,7 +3716,7 @@ class ConstBitStream(Bits):
         self._pos = 0
 
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
-        x = object.__new__(ConstBitStream)
+        x = super(ConstBitStream, cls).__new__(cls)
         x._initialise(auto, length, offset, **kwargs)
         return x
 
@@ -4103,7 +4103,7 @@ class BitStream(ConstBitStream, BitArray):
             self._ensureinmemory()
 
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
-        x = object.__new__(BitStream)
+        x = super(BitStream, cls).__new__(cls)
         x._initialise(auto, length, offset, **kwargs)
         return x
 

@@ -289,6 +289,6 @@ class Subclassing(unittest.TestCase):
         a = SubBits()
         self.assertTrue(isinstance(a, SubBits))
 
-    def testClassName(self):
+    def testClassType(self):
         class SubBits(bitstring.Bits): pass
         self.assertEqual(SubBits().__class__, SubBits)
