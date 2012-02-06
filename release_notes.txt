@@ -2,6 +2,24 @@
 bitstring module version history
 --------------------------------
 
+-----------------------------------------
+February 7th 2012: version 3.0.2 released
+-----------------------------------------
+This is a minor update that fixes a few bugs.
+
+* Fix for subclasses of bitstring classes behaving strangely (Issue 121).
+* Fix for excessive memory usage in rare cases (Issue 120).
+* Fixes for slicing edge cases.
+
+There has also been a reorganisation of the code to return it to a single
+'bitstring.py' file rather than the package that has been used for the past
+several releases. This change shouldn't affect users directly.
+
+------------------------------------------
+November 21st 2011: version 3.0.1 released
+------------------------------------------
+This release fixed a small but very visible bug in bitstring printing.
+
 ------------------------------------------
 November 21st 2011: version 3.0.0 released
 ------------------------------------------
