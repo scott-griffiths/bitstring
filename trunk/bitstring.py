@@ -80,6 +80,11 @@ byteorder = sys.byteorder
 bytealigned = False
 """Determines whether a number of methods default to working only on byte boundaries."""
 
+# Maximum number of digits to use in __str__ and __repr__.
+MAX_CHARS = 250
+
+# Maximum size of caches used for speed optimisations.
+CACHE_SIZE = 1000
 
 class Error(Exception):
     """Base class for errors in the bitstring module."""
@@ -455,9 +460,6 @@ except NameError:
 # Python 2.x octals start with '0', in Python 3 it's '0o'
 LEADING_OCT_CHARS = len(oct(1)) - 1
 
-# Maximum number of digits to use in __str__ and __repr__.
-MAX_CHARS = 250
-
 def tidy_input_string(s):
     """Return string made lowercase and with all whitespace removed."""
     s = ''.join(s.split()).lower()
@@ -625,7 +627,8 @@ def tokenparser(fmt, keys=None, token_cache={}):
         # sensibly continue to cache the function's results. (TODO).
         return_values.extend(ret_vals * factor)
     return_values = [tuple(x) for x in return_values]
-    token_cache[token_key] = stretchy_token, return_values
+    if len(token_cache) < CACHE_SIZE:
+        token_cache[token_key] = stretchy_token, return_values
     return stretchy_token, return_values
 
 # Looks for first number*(
@@ -784,7 +787,8 @@ class Bits(object):
                     for token in tokens:
                         x._datastore._appendstore(Bits._init_with_token(*token)._datastore)
                     assert x._assertsanity()
-                    _cache[auto] = x
+                    if len(_cache) < CACHE_SIZE:
+                        _cache[auto] = x
                     return x
             if isinstance(auto, Bits):
                 return auto
@@ -1956,7 +1960,8 @@ class Bits(object):
                         b._append(Bits._init_with_token(*token))
                 assert b._assertsanity()
                 assert b.len == 0 or b._offset == offset
-                cache[(bs, offset)] = b
+                if len(cache) < CACHE_SIZE:
+                    cache[(bs, offset)] = b
                 return b
         except TypeError:
             # Unhashable type
@@ -2741,26 +2746,17 @@ class Bits(object):
                       doc="""The length of the bitstring in bits. Read only.
                       """)
     bool = property(_getbool,
-                    doc="""The bitstring as a bool (True or False)."""
-    )
+                    doc="""The bitstring as a bool (True or False). Read only.
+                    """)
     hex = property(_gethex,
                    doc="""The bitstring as a hexadecimal string. Read only.
-
-                      Will be prefixed with '0x' and including any leading zeros.
-
-                      """)
+                   """)
     bin = property(_getbin,
                    doc="""The bitstring as a binary string. Read only.
-
-                      Will be prefixed with '0b' and including any leading zeros.
-
-                      """)
+                   """)
     oct = property(_getoct,
                    doc="""The bitstring as an octal string. Read only.
-
-                      Will be prefixed with '0o' and including any leading zeros.
-
-                      """)
+                   """)
     bytes = property(_getbytes,
                      doc="""The bitstring as a bytes object. Read only.
                       """)
