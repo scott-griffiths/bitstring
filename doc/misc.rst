@@ -179,7 +179,7 @@ Bit-wise AND, OR and XOR are provided for bitstring objects of equal length only
  >>> print((a|b).bin)
  01011111
  >>> print((a^b).bin)
- 01010000
+ 01011010
  >>> b &= '0x1f'
  >>> print(b.bin)
  00010101
