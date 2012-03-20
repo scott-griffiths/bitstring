@@ -266,7 +266,7 @@ The BitArray class
 
     .. attribute:: uintne
 
-        Writable version of :attr:`Bits.uintle`.
+        Writable version of :attr:`Bits.uintne`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
