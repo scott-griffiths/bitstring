@@ -24,7 +24,7 @@ If you want to initialise from an ordinary Python string (read from a binary fil
 }}}
 or you can initialise with a filename - the file will only read as necessary if you use a 'Const' class:
 {{{
->>> f = ConstBitArray(filename='ABigFile.ext')
+>>> f = Bits(filename='ABigFile.ext')
 }}}
 With integers the length of the bitstring in bits needs to be supplied. It must be long enough to contain the integer.
 {{{
