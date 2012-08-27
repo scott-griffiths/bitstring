@@ -292,3 +292,11 @@ class Subclassing(unittest.TestCase):
     def testClassType(self):
         class SubBits(bitstring.Bits): pass
         self.assertEqual(SubBits().__class__, SubBits)
+
+
+class LongBoolConversion(unittest.TestCase):
+
+    def testLongBool(self):
+        a = Bits(1000)
+        b = bool(a)
+        self.assertTrue(b is False)

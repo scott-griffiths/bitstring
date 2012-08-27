@@ -1179,14 +1179,10 @@ class Bits(object):
     # This is only used in Python 2.x...
     def __nonzero__(self):
         """Return True if any bits are set to 1, otherwise return False."""
-        return self.len and self.uint
+        return self.any(True)
 
-    # ...whereas this does the equivalent for Python 3.x
-    def __bool__(self):
-        """Return True if any bits are set to 1, otherwise return False."""
-        if not self.len:
-            return False
-        return self.uint != 0
+    # ...whereas this is used in Python 3.x
+    __bool__ = __nonzero__
 
     def _assertsanity(self):
         """Check internal self consistency as a debugging aid."""
