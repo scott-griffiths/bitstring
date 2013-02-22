@@ -51,15 +51,15 @@ The BitArray class
 
         Inserts *bs* at *pos*.
 
-        When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~Bits.pos` will be immediately after the inserted bitstring. ::
+        When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~ConstBitStream.pos` will be immediately after the inserted bitstring. ::
 
-            >>> s = BitArray('0xccee')
+            >>> s = BitStream('0xccee')
             >>> s.insert('0xd', 8)
             >>> s
-            BitArray('0xccdee')
+            BitStream('0xccdee')
             >>> s.insert('0x00')
             >>> s
-            BitArray('0xccd00ee')
+            BitStream('0xccd00ee')
 
     .. method:: invert([pos])
     
@@ -82,7 +82,7 @@ The BitArray class
 
         Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
 
-        When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~Bits.pos` will be immediately after the overwritten bitstring. ::
+        When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~ConstBitStream.pos` will be immediately after the overwritten bitstring. ::
 
             >>> s = BitArray(length=10)
             >>> s.overwrite('0b111', 3)
@@ -338,11 +338,11 @@ The BitArray class
 
         Replaces the slice specified with a new value. ::
 
-            >>> s = BitArray('0x00112233')
-            >>> s[1:2:8] = '0xfff'
+            >>> s = BitArray('0x00000000')
+            >>> s[::8] = '0xf'
             >>> print(s)
-            0x00fff2233
-            >>> s[-12:] = '0xc'
+            0x80808080
+            >>> s[-12:] = '0xf'
             >>> print(s)
-            0x00fff2c
+            0x80808f
 
