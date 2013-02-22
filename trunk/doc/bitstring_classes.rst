@@ -83,6 +83,6 @@ For more detail see :ref:`compact_format`.
 Class properties
 ^^^^^^^^^^^^^^^^
 
-Bitstrings use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions. For the mutable :class:`BitStream` and :class:`BitArray` objects the properties are all read and write (with the exception of the :attr:`~Bits.length`), whereas for immutable objects the only write enabled properties are for the position in the bitstream (:attr:`~ConstBitStream.pos`/:attr:`~ConstBitStream.bitpos` and :attr:`~ConstBitStream.bytepos`).
+Bitstrings use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions. For the mutable :class:`BitStream` and :class:`BitArray` objects the properties are all read and write (with the exception of the :attr:`~Bits.len`), whereas for immutable objects the only write enabled properties are for the position in the bitstream (:attr:`~ConstBitStream.pos`/:attr:`~ConstBitStream.bitpos` and :attr:`~ConstBitStream.bytepos`).
 
 

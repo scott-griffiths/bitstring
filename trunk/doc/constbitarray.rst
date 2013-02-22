@@ -421,13 +421,13 @@ The Bits class
 
         Returns a slice of the bitstring.
 
-        The usual slice behaviour applies except that the step parameter gives a multiplicative factor for ``start`` and ``end`` (i.e. the bits 'stepped over' are included in the slice). ::
+        The usual slice behaviour applies. ::
 
             >>> s = Bits('0x0123456')
-            >>> s[0:4]
+            >>> s[4:8]
             Bits('0x1')
-            >>> s[0:3:8]
-            Bits('0x012345')
+            >>> s[1::8] # 1st, 9th, 17th and 25th bits
+            Bits('0x3')
          
         If a single element is asked for then either ``True`` or ``False`` will be returned. ::
         
