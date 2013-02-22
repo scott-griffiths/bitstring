@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, '..')
 import bitstring
 from bitstring import MmapByteArray
-from bitstring import Bits, BitArray
+from bitstring import Bits, BitArray, ConstByteStore, ByteStore
 
 class Creation(unittest.TestCase):
     def testCreationFromBytes(self):
@@ -300,3 +300,37 @@ class LongBoolConversion(unittest.TestCase):
         a = Bits(1000)
         b = bool(a)
         self.assertTrue(b is False)
+
+
+# Some basic tests for the private ByteStore classes
+
+class ConstByteStoreCreation(unittest.TestCase):
+
+    def testProperties(self):
+        a = ConstByteStore(bytearray(b'abc'))
+        self.assertEqual(a.bytelength, 3)
+        self.assertEqual(a.offset, 0)
+        self.assertEqual(a.bitlength, 24)
+        self.assertEqual(a._rawarray, b'abc')
+
+    def testGetBit(self):
+        a = ConstByteStore(bytearray([0x0f]))
+        self.assertEqual(a.getbit(0), False)
+        self.assertEqual(a.getbit(3), False)
+        self.assertEqual(a.getbit(4), True)
+        self.assertEqual(a.getbit(7), True)
+
+        b = ConstByteStore(bytearray([0x0f]), 7, 1)
+        self.assertEqual(b.getbit(2), False)
+        self.assertEqual(b.getbit(3), True)
+
+    def testGetByte(self):
+        a = ConstByteStore(bytearray(b'abcde'), 1, 13)
+        self.assertEqual(a.getbyte(0), 97)
+        self.assertEqual(a.getbyte(1), 98)
+        self.assertEqual(a.getbyte(4), 101)
+
+class PadToken(unittest.TestCase):
+
+    def test(self):
+        a = Bits(10)

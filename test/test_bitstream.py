@@ -3900,3 +3900,36 @@ class Subclassing(unittest.TestCase):
     def testClassType(self):
         class SubBits(BitStream): pass
         self.assertEqual(SubBits().__class__, SubBits)
+
+
+class BytesProblems(unittest.TestCase):
+
+    def testOffsetButNoLength(self):
+        b = BitStream(bytes=b'\x00\xaa', offset=8)
+        self.assertEqual(b.hex, 'aa')
+        b = BitStream(bytes=b'\x00\xaa', offset=4)
+        self.assertEqual(b.hex, '0aa')
+
+    def testInvert(self):
+        b = BitStream(bytes=b'\x00\xaa', offset=8, length=8)
+        self.assertEqual(b.hex, 'aa')
+        b.invert()
+        self.assertEqual(b.hex, '55')
+
+    def testPrepend(self):
+        b = BitStream(bytes=b'\xaa\xbb', offset=8, length=4)
+        self.assertEqual(b.hex, 'b')
+        b.prepend('0xe')
+        self.assertEqual(b.hex, 'eb')
+        b = BitStream(bytes=b'\x00\xaa', offset=8, length=8)
+        b.prepend('0xee')
+        self.assertEqual(b.hex, 'eeaa')
+
+    def testByteSwap(self):
+        b = BitStream(bytes=b'\x01\x02\x03\x04', offset=8)
+        b.byteswap()
+        self.assertEqual(b, '0x040302')
+
+    def testBinProperty(self):
+        b = BitStream(bytes=b'\x00\xaa', offset=8, length=4)
+        self.assertEqual(b.bin, '1010')
