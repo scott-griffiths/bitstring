@@ -218,10 +218,10 @@ class ByteStore(ConstByteStore):
         self._rawarray[byte] ^= (128 >> bit)
 
     def setbyte(self, pos, value):
-        self._rawarray[pos + self.byteoffset] = value
+        self._rawarray[pos] = value
 
     def setbyteslice(self, start, end, value):
-        self._rawarray[start + self.byteoffset:end + self.byteoffset] = value
+        self._rawarray[start:end] = value
 
     def appendstore(self, store):
         """Join another store on to the end of this one."""
@@ -235,14 +235,14 @@ class ByteStore(ConstByteStore):
         # ends in a position that matches the offset of self,
         # then join self on to the end of it.
         store = offsetcopy(store, (self.offset - store.bitlength) % 8)
-        assert (store.offset + store.bitlength) % 8 == self.offset
-        if self.offset:
+        assert (store.offset + store.bitlength) % 8 == self.offset % 8
+        if self.offset % 8:
             # first do the byte with the join.
             store.setbyte(-1, (store.getbyte(-1) & (255 ^ (255 >> self.offset)) |\
-                               (self._rawarray[0] & (255 >> self.offset))))
-            store._rawarray.extend(self._rawarray[1: self.bytelength])
+                               (self._rawarray[self.byteoffset] & (255 >> self.offset))))
+            store._rawarray.extend(self._rawarray[self.byteoffset + 1: self.byteoffset + self.bytelength])
         else:
-            store._rawarray.extend(self._rawarray[0: self.bytelength])
+            store._rawarray.extend(self._rawarray[self.byteoffset: self.byteoffset + self.bytelength])
         self._rawarray = store._rawarray
         self.offset = store.offset
         self.bitlength += store.bitlength
@@ -258,7 +258,7 @@ def offsetcopy(s, newoffset):
         return copy.copy(s)
     else:
         if newoffset == s.offset % 8:
-            return ByteStore(s.getbyteslice(0, s.bytelength), s.bitlength, newoffset)
+            return ByteStore(s.getbyteslice(s.byteoffset, s.byteoffset + s.bytelength), s.bitlength, newoffset)
         newdata = []
         d = s._rawarray
         assert newoffset != s.offset % 8
@@ -277,7 +277,7 @@ def offsetcopy(s, newoffset):
         else: # newoffset > s._offset % 8
             shiftright = newoffset - s.offset % 8
             newdata.append(s.getbyte(0) >> shiftright)
-            for x in range(1, s.bytelength):
+            for x in range(s.byteoffset + 1, s.byteoffset + s.bytelength):
                 newdata.append(((d[x - 1] << (8 - shiftright)) & 0xff) +\
                                (d[x] >> shiftright))
             bits_in_last_byte = (s.offset + s.bitlength) % 8
@@ -501,6 +501,10 @@ REPLACEMENTS_LE = {'b': 'intle:8', 'B': 'uintle:8',
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
                   'q': 8, 'Q': 8, 'f': 4, 'd': 8}
+
+_tokenname_to_initialiser = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct',
+                             '0o': 'oct', '0O': 'oct', 'bin': 'bin', '0b': 'bin',
+                             '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes'}
 
 def structparser(token):
     """Parse struct-like format string token into sub-token list."""
@@ -1191,10 +1195,6 @@ class Bits(object):
         assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset
         return True
 
-    _tokenname_to_initialiser = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct',
-                                 '0o': 'oct', '0O': 'oct', 'bin': 'bin', '0b': 'bin',
-                                 '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes'}
-
     @classmethod
     def _init_with_token(cls, name, token_length, value):
         if token_length is not None:
@@ -1208,7 +1208,7 @@ class Bits(object):
                 error = "Token has no value ({0}:{1}=???).".format(name, token_length)
             raise ValueError(error)
         try:
-            b = cls(**{cls._tokenname_to_initialiser[name]: value})
+            b = cls(**{_tokenname_to_initialiser[name]: value})
         except KeyError:
             if name in ('se', 'ue', 'sie', 'uie'):
                 b = cls(**{name: int(value)})
@@ -1304,7 +1304,7 @@ class Bits(object):
         data = bytearray(data)
         if length is None:
             # Use to the end of the data
-            length = (len(data) - (offset // 8)) * 8 - offset
+            length = len(data)*8 - offset
             self._datastore = ByteStore(data, length, offset)
         else:
             if length + offset > len(data) * 8:
@@ -1835,8 +1835,8 @@ class Bits(object):
         if not length:
             return ''
         # Use lookup table to convert each byte to string of 8 bits.
-        startbyte, startoffset = divmod(start + (self._offset % 8), 8)
-        endbyte = (start + (self._offset % 8) + length - 1) // 8
+        startbyte, startoffset = divmod(start + self._offset, 8)
+        endbyte = (start + self._offset + length - 1) // 8
         c = [BYTE_TO_BITS[x] for x in self._datastore.getbyteslice(startbyte, endbyte + 1)]
         return ''.join(c)[startoffset:startoffset + length]
 
@@ -2157,7 +2157,7 @@ class Bits(object):
         """Invert every bit."""
         set = self._datastore.setbyte
         get = self._datastore.getbyte
-        for p in xrange(self._datastore.bytelength):
+        for p in xrange(self._datastore.byteoffset, self._datastore.byteoffset + self._datastore.bytelength):
             set(p, 256 + ~get(p))
 
     def _ilshift(self, n):
