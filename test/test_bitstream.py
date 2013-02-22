@@ -3712,6 +3712,16 @@ class ReadWithDict(unittest.TestCase):
         self.assertEqual((x, y), (1, '0'))
         self.assertEqual(s.pos, 12)
 
+    def testBytesKeywordProblem(self):
+        s = BitStream('0x01')
+        x, = s.unpack('bytes:a', a=1)
+        self.assertEqual(x, b'\x01')
+
+        s = BitStream('0x000ff00a')
+        x, y, z = s.unpack('12, bytes:x, bits', x=2)
+        self.assertEqual((x, y, z), (0, b'\xff\x00', '0xa'))
+
+
 
 class PeekWithDict(unittest.TestCase):
     def testLengthKeywords(self):

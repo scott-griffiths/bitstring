@@ -2280,6 +2280,8 @@ class Bits(object):
                     value, pos = self._readtoken('uint', pos, kwargs[name])
                     lst.append(value)
                     continue
+                if name == 'bytes':
+                    length *= 8
                 value, pos = self._readtoken(name, pos, length)
                 lst.append(value)
             return lst, pos
@@ -2289,6 +2291,8 @@ class Bits(object):
             name, length, _ = token
             if length in kwargs:
                 length = kwargs[length]
+                if name == 'bytes':
+                    length *= 8
             if name in kwargs and length is None:
                 # Default 'uint'.
                 length = kwargs[name]
@@ -2313,6 +2317,8 @@ class Bits(object):
                 length = max(bits_left - bits_after_stretchy_token, 0)
             if length in kwargs:
                 length = kwargs[length]
+                if name == 'bytes':
+                    length *= 8
             if name in kwargs and length is None:
                 # Default 'uint'
                 length = kwargs[name]
