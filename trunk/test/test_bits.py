@@ -330,7 +330,30 @@ class ConstByteStoreCreation(unittest.TestCase):
         self.assertEqual(a.getbyte(1), 98)
         self.assertEqual(a.getbyte(4), 101)
 
+
 class PadToken(unittest.TestCase):
 
-    def test(self):
-        a = Bits(10)
+    def testCreation(self):
+        a = Bits('pad:10')
+        self.assertEqual(a, Bits(10))
+        b = Bits('pad:0')
+        self.assertEqual(b, Bits())
+        c = Bits('0b11, pad:1, 0b111')
+        self.assertEqual(c, Bits('0b110111'))
+
+    def testPack(self):
+        s = bitstring.pack('0b11, pad:3=5, 0b1')
+        self.assertEqual(s.bin, '110001')
+        d = bitstring.pack('pad:c', c=12)
+        self.assertEqual(d, Bits(12))
+        e = bitstring.pack('0xf, uint:12, pad:1, bin, pad:4, 0b10', 0, '111')
+        self.assertEqual(e.bin, '11110000000000000111000010')
+
+    def testUnpack(self):
+        s = Bits('0b111000111')
+        x, y = s.unpack('3, pad:3, 3')
+        self.assertEqual((x, y), (7, 7))
+        x, y = s.unpack('2, pad:2, bin')
+        self.assertEqual((x, y), (3, '00111'))
+        x = s.unpack('pad:1, pad:2, pad:3')
+        self.assertEqual(x, [])

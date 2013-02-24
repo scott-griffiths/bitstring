@@ -39,7 +39,7 @@ http://python-bitstring.googlecode.com
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2012 Scott Griffiths (scott@griffiths.name)
+Copyright (c) 2006-2013 Scott Griffiths (scott@griffiths.name)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.0.2"
+__version__ = "3.1.0"
 
 __author__ = "Scott Griffiths"
 
@@ -467,7 +467,7 @@ def tidy_input_string(s):
 
 INIT_NAMES = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
-              'float', 'floatbe', 'floatle', 'floatne', 'bytes', 'bool')
+              'float', 'floatbe', 'floatle', 'floatne', 'bytes', 'bool', 'pad')
 
 TOKEN_RE = re.compile(r'(?P<name>' + '|'.join(INIT_NAMES) +
                       r')((:(?P<len>[^=]+)))?(=(?P<value>.*))?$', re.IGNORECASE)
@@ -504,7 +504,7 @@ PACK_CODE_SIZE = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
 
 _tokenname_to_initialiser = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct',
                              '0o': 'oct', '0O': 'oct', 'bin': 'bin', '0b': 'bin',
-                             '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes'}
+                             '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes', 'pad': 'pad'}
 
 def structparser(token):
     """Parse struct-like format string token into sub-token list."""
@@ -1201,6 +1201,10 @@ class Bits(object):
             token_length = int(token_length)
         if token_length == 0:
             return cls()
+        # For pad token just return the length in zero bits
+        if name == 'pad':
+            return cls(token_length)
+
         if value is None:
             if token_length is None:
                 error = "Token has no value ({0}=???).".format(name)
@@ -1991,6 +1995,9 @@ class Bits(object):
             pos += length
             return val, pos
         except KeyError:
+            if name == 'pad':
+                pos += length
+                return None, pos
             raise ValueError("Can't parse token {0}:{1}".format(name, length))
         except TypeError:
             # This is for the 'ue', 'se' and 'bool' tokens. They will also return the new pos.
@@ -2283,7 +2290,8 @@ class Bits(object):
                 if name == 'bytes':
                     length *= 8
                 value, pos = self._readtoken(name, pos, length)
-                lst.append(value)
+                if value is not None: # Don't append pad tokens
+                    lst.append(value)
             return lst, pos
         stretchy_token = False
         bits_after_stretchy_token = 0
@@ -2325,7 +2333,8 @@ class Bits(object):
             if length is not None:
                 bits_left -= length
             value, pos = self._readtoken(name, pos, length)
-            return_values.append(value)
+            if value is not None:
+                return_values.append(value)
         return return_values, pos
 
     def find(self, bs, start=None, end=None, bytealigned=None):
@@ -3843,6 +3852,7 @@ class ConstBitStream(Bits):
                         'bits:5'    : 5 bits as a bitstring
                         'bytes:10'  : 10 bytes as a bytes object
                         'bool'      : 1 bit as a bool
+                        'pad:3'     : 3 bits of padding to ignore - returns None
 
         fmt may also be an integer, which will be treated like the 'bits' token.
 
@@ -3887,7 +3897,8 @@ class ConstBitStream(Bits):
         Raises ReadError is not enough bits are available.
         Raises ValueError if the format is not understood.
 
-        See the docstring for 'read' for token examples.
+        See the docstring for 'read' for token examples. 'pad' tokens are skipped
+        and not added to the returned list.
 
         >>> h, b1, b2 = s.readlist('hex:20, bin:5, bin:3')
         >>> i, bs1, bs2 = s.readlist(['uint:12', 10, 10])
@@ -4162,6 +4173,7 @@ def pack(fmt, *values, **kwargs):
                     'bits:5'    : 5 bits as a bitstring object
                     'bytes:10'  : 10 bytes as a bytes object
                     'bool'      : 1 bit as a bool
+                    'pad:3'     : 3 zero bits as padding
 
     >>> s = pack('uint:12, bits', 100, '0xffe')
     >>> t = pack(['bits', 'bin:3'], s, '111')
@@ -4193,7 +4205,7 @@ def pack(fmt, *values, **kwargs):
                 continue
             if length is not None:
                 length = int(length)
-            if value is None:
+            if value is None and name != 'pad':
                 # Take the next value from the ones provided
                 value = next(value_iter)
             s._append(BitStream._init_with_token(name, length, value))

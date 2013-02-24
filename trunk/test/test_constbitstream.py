@@ -73,3 +73,32 @@ class Subclassing(unittest.TestCase):
     def testClassType(self):
         class SubBits(CBS): pass
         self.assertEqual(SubBits().__class__, SubBits)
+
+
+class PadToken(unittest.TestCase):
+
+    def testRead(self):
+        s = CBS('0b100011110001')
+        a = s.read('pad:1')
+        self.assertEqual(a, None)
+        self.assertEqual(s.pos, 1)
+        a = s.read(3)
+        self.assertEqual(a, CBS('0b000'))
+        a = s.read('pad:0')
+        self.assertEqual(a, None)
+        self.assertEqual(s.pos, 4)
+
+    def testReadList(self):
+        s = CBS('0b10001111001')
+        t = s.readlist('pad:1, uint:3, pad:4, uint:3')
+        self.assertEqual(t, [0, 1])
+        s.pos = 0
+        t = s.readlist('pad:1, pad:5')
+        self.assertEqual(t, [])
+        self.assertEqual(s.pos, 6)
+        s.pos = 0
+        t = s.readlist('pad:1, bin, pad:4, uint:3')
+        self.assertEqual(t, ['000', 1])
+        s.pos = 0
+        t = s.readlist('pad, bin:3, pad:4, uint:3')
+        self.assertEqual(t, ['000', 1])
