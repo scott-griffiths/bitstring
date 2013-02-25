@@ -8,6 +8,36 @@ Release Notes
 Full Version History
 ====================
 
+February 26th 2013: version 3.1.0 released
+------------------------------------------
+This is a minor release with a couple of new features and some bug fixes.
+
+New 'pad' token
+^^^^^^^^^^^^^^^
+
+This token can be used in reads and when packing/unpacking to indicate that
+you don't care about the contents of these bits. Any padding bits will just
+be skipped over when reading/unpacking or zero-filled when packing. ::
+
+    >>> a, b = s.readlist('pad:5, uint:3, pad:1, uint:3')
+
+Here only two items are returned in the list - the padding bits are ignored.
+
+New clear and copy convenience methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These methods have been introduced in Python 3.3 for lists and bytearrays,
+as more obvious ways of clearing and copying, and we mirror that change here.
+
+``t = s.copy()`` is equivalent to ``t = s[:]``, and ``s.clear()`` is equivalent to ``del s[:]``.
+
+
+Other changes
+^^^^^^^^^^^^^
+
+* Some bug fixes.
+
+
 November 21st 2011: version 3.0.0 released
 ------------------------------------------
 This is a major release which breaks backward compatibility in a few places.

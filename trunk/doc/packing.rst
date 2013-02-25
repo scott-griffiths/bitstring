@@ -85,6 +85,7 @@ and you can also include constant bitstring tokens constructed from any of the f
 ``uie=m``            interleaved exponential-Golomb code for unsigned integer ``m``.
 ``sie=m``            interleaved exponential-Golomb code for signed integer ``m``.
 ``bool=b``           a single bit, either True or False.
+``pad:n``            ``n`` zero bits (for use as padding).
 ================     ===============================================================
 
 You can also use a keyword for the length specifier in the token, for example::

@@ -46,7 +46,19 @@ The BitArray class
            >>> s.byteswap()
            >>> print(s.uintbe)
            1234
-        
+
+    .. method:: clear()
+
+        Removes all bits from the bitstring.
+
+        ``s.clear()`` is equivalent to ``del s[:]`` and simply makes the bitstring empty.
+
+    .. method:: copy()
+
+        Returns a copy of the bitstring.
+
+        ``s.copy()`` is equivalent to the shallow copy ``s[:]`` and creates a new copy of the bitstring in memory.
+
     .. method:: insert(bs, pos)
 
         Inserts *bs* at *pos*.

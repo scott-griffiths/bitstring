@@ -270,3 +270,22 @@ class Subclassing(unittest.TestCase):
     def testClassType(self):
         class SubBits(BitArray): pass
         self.assertEqual(SubBits().__class__, SubBits)
+
+
+class Clear(unittest.TestCase):
+
+    def testClear(self):
+        s = BitArray('0xfff')
+        s.clear()
+        self.assertEqual(s.len, 0)
+
+
+class Copy(unittest.TestCase):
+
+    def testCopyMethod(self):
+        s = BitArray(9)
+        t = s.copy()
+        self.assertEqual(s, t)
+        t[0] = True
+        self.assertEqual(t.bin, '100000000')
+        self.assertEqual(s.bin, '000000000')
