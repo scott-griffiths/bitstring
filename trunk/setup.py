@@ -14,7 +14,7 @@ if sys.version_info[:2] < (2, 6):
 #ext_modules = [Extension('bitstring', ["bitstring.py"], define_macros=macros)]
 
 setup(name='bitstring',
-      version='3.0.2',
+      version='3.1.0',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
@@ -36,6 +36,7 @@ setup(name='bitstring',
         'Programming Language :: Python :: 3.0',
         'Programming Language :: Python :: 3.1',
         'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
         'Topic :: Software Development :: Libraries :: Python Modules',
       ],
       **kwds
