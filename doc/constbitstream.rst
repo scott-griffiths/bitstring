@@ -74,6 +74,7 @@ The ConstBitStream class
         ``bits:n``       ``n`` bits as a new bitstring.
         ``bytes:n``      ``n`` bytes as ``bytes`` object.
         ``bool``         next bit as a boolean (True or False).
+        ``pad:n``        next ``n`` bits will be skipped.
         ==============   =================================================
 
         For example::
@@ -95,6 +96,9 @@ The ConstBitStream class
             -9
             >>> s.read('ue')
             4
+
+        The ``pad`` token is not very useful when used in :meth:`~ConstBitStream.read` as it just skips a number of bits and returns ``None``. However when used within :meth:`~ConstBitStream.readlist` or :meth:`~Bits.unpack` it allows unimportant part of the bitstring to be simply ignored.
+
 
     .. method:: readlist(fmt, **kwargs)
 

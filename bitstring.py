@@ -3177,7 +3177,6 @@ class BitArray(Bits):
             self._delete(stop - start, start)
             return
 
-
     def __ilshift__(self, n):
         """Shift bits by n to the left in place. Return self.
 
@@ -3555,6 +3554,13 @@ class BitArray(Bits):
             repeats += 1
         return repeats
 
+    def clear(self):
+        """Remove all bits, reset to zero length."""
+        self._clear()
+
+    def copy(self):
+        """Return a copy of the bitstring."""
+        return self._copy()
 
     int = property(Bits._getint, Bits._setint,
                    doc="""The bitstring as a two's complement signed int. Read and write.

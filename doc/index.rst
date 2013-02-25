@@ -28,13 +28,13 @@ The manual provides an introduction to the module and details most its capabilit
 
 The reference section has a complete list of all the classes, methods, attributes and functions of the :mod:`bitstring` module, together with short examples for many items.
 
-Some good starting points in the documentation are
+.. toctree::
+    :maxdepth: 2
 
-* :ref:`walkthrough`
-* :ref:`creation`
-* :ref:`reading`
-* :ref:`quick_reference`
-* :ref:`reference`
+    contents
+    reference
+    appendices
+
 
 The manual is also available as a PDF:
 
@@ -42,20 +42,6 @@ The manual is also available as a PDF:
 * `Manual for version 2 (PDF) <http://python-bitstring.googlecode.com/svn/tags/bitstring-2.2.0/doc/bitstring_manual.pdf>`_
 * `Manual for version 1.0 (PDF) <http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.2/bitstring_manual.pdf>`_
 
-.. toctree::
-   :hidden:
-
-   contents
-
-.. toctree::
-   :hidden:
-
-   reference
-
-.. toctree::
-   :hidden:
-
-   appendices
 
 Index and search
 ----------------
@@ -68,7 +54,6 @@ Credits
 
 Written by Scott Griffiths <scott@griffiths.name>. If you have any questions, suggestions or criticisms (about this module!) then please email me. Also if you use bitstring in your own project then I'd be interested to hear how it's being used.
 
-----
 
 
 

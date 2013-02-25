@@ -76,6 +76,8 @@ Additional methods
 
  *   :meth:`~BitArray.append` -- Append a bitstring.
  *   :meth:`~BitArray.byteswap` -- Change byte endianness in-place.
+ *   :meth:`~BitArray.clear` -- Remove all bits from the bitstring.
+ *   :meth:`~BitArray.copy` -- Return a copy of the bitstring.
  *   :meth:`~BitArray.insert` -- Insert a bitstring.
  *   :meth:`~BitArray.invert` -- Flip bit(s) between one and zero.
  *   :meth:`~BitArray.overwrite` -- Overwrite a section with a new bitstring.

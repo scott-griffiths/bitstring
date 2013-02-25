@@ -74,6 +74,7 @@ The format string consists of comma separated tokens that describe how to interp
 ``uie``         next bits as an interleaved unsigned exponential-Golomb code.
 ``sie``         next bits as an interleaved signed exponential-Golomb code.
 ``bool``        next bits as a boolean (True or False).
+``pad:n``       next ``n`` bits will be ignored (padding).
 ==============  ===================================================================
 
 So in the earlier example we could have written::
@@ -95,6 +96,10 @@ You are allowed to use one 'stretchy' token in a :meth:`~ConstBitStream.readlist
 In this example the ``bits`` token will consist of everything left after the first two tokens are read, and could be empty.
 
 It is an error to use more than one stretchy token, or to use a ``ue``, ``se``, ``uie`` or ``se`` token after a stretchy token (the reason you can't use exponential-Golomb codes after a stretchy token is that the codes can only be read forwards; that is you can't ask "if this code ends here, where did it begin?" as there could be many possible answers).
+
+The ``pad`` token is a special case in that it just causes bits to be skipped over without anything being returned. This can be useful for example if parts of a binary format are uninteresting::
+
+    a, b = s.readlist('pad:12, uint:4, pad:4, uint:8')
 
 Peeking
 ^^^^^^^^
