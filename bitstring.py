@@ -670,10 +670,7 @@ def expand_brackets(s):
     return s
 
 
-# This byte to bitstring lookup really speeds things up.
-BYTE_TO_BITS = ['{0:08b}'.format(i) for i in xrange(256)]
-
-# And this converts a single octal digit to 3 bits.
+# This converts a single octal digit to 3 bits.
 OCT_TO_BITS = ['{0:03b}'.format(i) for i in xrange(8)]
 
 # A dictionary of number of 1 bits contained in binary representation of any byte
@@ -1838,11 +1835,18 @@ class Bits(object):
         """Read bits and interpret as a binary string."""
         if not length:
             return ''
-        # Use lookup table to convert each byte to string of 8 bits.
+        # Get the byte slice containing our bit slice
         startbyte, startoffset = divmod(start + self._offset, 8)
         endbyte = (start + self._offset + length - 1) // 8
-        c = [BYTE_TO_BITS[x] for x in self._datastore.getbyteslice(startbyte, endbyte + 1)]
-        return ''.join(c)[startoffset:startoffset + length]
+        b = self._datastore.getbyteslice(startbyte, endbyte + 1)
+        # Convert to a string of '0' and '1's (via a hex string an and int!)
+        try:
+            c = "{:0{}b}".format(int(binascii.hexlify(b), 16), 8*len(b))
+        except TypeError:
+            # Hack to get Python 2.6 working
+            c = "{0:0{1}b}".format(int(binascii.hexlify(str(b)), 16), 8*len(b))
+        # Finally chop off any extra bits.
+        return c[startoffset:startoffset + length]
 
     def _getbin(self):
         """Return interpretation as a binary string."""
