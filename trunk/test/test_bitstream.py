@@ -1638,11 +1638,6 @@ class Multiplication(unittest.TestCase):
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
         self.assertEqual(a._datastore.getbyteslice(1, 5), bytearray(b._datastore.getbyteslice(1, 5)))
 
-    def testByte2Bits(self):
-        for i in range(256):
-            s = BitStream(bin=bitstring.BYTE_TO_BITS[i])
-            self.assertEqual(i, s.uint)
-            self.assertEqual(s.length, 8)
 
 class BitWise(unittest.TestCase):
 
