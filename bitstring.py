@@ -3131,7 +3131,6 @@ class BitArray(Bits):
                 # pos is now after the inserted piece.
             return
 
-
     def __delitem__(self, key):
         """Delete item or range.
 
@@ -3473,7 +3472,7 @@ class BitArray(Bits):
         if not bits:
             return
         rhs = self[end - bits:end]
-        del self[end - bits:end]
+        self._delete(bits, end - bits)
         self.insert(rhs, start)
 
     def rol(self, bits, start=None, end=None):
@@ -3495,7 +3494,7 @@ class BitArray(Bits):
         if not bits:
             return
         lhs = self[start:start + bits]
-        del self[start:start + bits]
+        self._delete(bits, start)
         self.insert(lhs, end - bits)
 
     def byteswap(self, fmt=None, start=None, end=None, repeat=True):
@@ -4003,7 +4002,7 @@ class ConstBitStream(Bits):
 
 
 
-    
+
 
 class BitStream(ConstBitStream, BitArray):
     """A container or stream holding a mutable sequence of bits
