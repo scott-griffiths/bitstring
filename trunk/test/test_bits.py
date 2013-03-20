@@ -357,3 +357,22 @@ class PadToken(unittest.TestCase):
         self.assertEqual((x, y), (3, '00111'))
         x = s.unpack('pad:1, pad:2, pad:3')
         self.assertEqual(x, [])
+
+
+class ModifiedByAddingBug(unittest.TestCase):
+
+    def testAdding(self):
+        a = Bits('0b0')
+        b = Bits('0b11')
+        c = a + b
+        self.assertEqual(c, '0b011')
+        self.assertEqual(a, '0b0')
+        self.assertEqual(b, '0b11')
+
+    def testAdding2(self):
+        a = Bits(100)
+        b = Bits(101)
+        c = a + b
+        self.assertEqual(a, 100)
+        self.assertEqual(b, 101)
+        self.assertEqual(c, 201)
