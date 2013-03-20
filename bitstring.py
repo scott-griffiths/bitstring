@@ -186,6 +186,26 @@ class ConstByteStore(object):
             self._rawarray.extend(store._rawarray)
         self.bitlength += store.bitlength
 
+    def _prependstore(self, store):
+        """Join another store on to the start of this one."""
+        if not store.bitlength:
+            return
+            # Set the offset of copy of store so that it's final byte
+        # ends in a position that matches the offset of self,
+        # then join self on to the end of it.
+        store = offsetcopy(store, (self.offset - store.bitlength) % 8)
+        assert (store.offset + store.bitlength) % 8 == self.offset % 8
+        if self.offset % 8:
+            # first do the byte with the join.
+            store.setbyte(-1, (store.getbyte(-1) & (255 ^ (255 >> self.offset)) | \
+                               (self._rawarray[self.byteoffset] & (255 >> self.offset))))
+            store._rawarray.extend(self._rawarray[self.byteoffset + 1: self.byteoffset + self.bytelength])
+        else:
+            store._rawarray.extend(self._rawarray[self.byteoffset: self.byteoffset + self.bytelength])
+        self._rawarray = store._rawarray
+        self.offset = store.offset
+        self.bitlength += store.bitlength
+
     @property
     def byteoffset(self):
         return self.offset // 8
@@ -222,30 +242,6 @@ class ByteStore(ConstByteStore):
 
     def setbyteslice(self, start, end, value):
         self._rawarray[start:end] = value
-
-    def appendstore(self, store):
-        """Join another store on to the end of this one."""
-        self._appendstore(store)
-
-    def prependstore(self, store):
-        """Join another store on to the start of this one."""
-        if not store.bitlength:
-            return
-        # Set the offset of copy of store so that it's final byte
-        # ends in a position that matches the offset of self,
-        # then join self on to the end of it.
-        store = offsetcopy(store, (self.offset - store.bitlength) % 8)
-        assert (store.offset + store.bitlength) % 8 == self.offset % 8
-        if self.offset % 8:
-            # first do the byte with the join.
-            store.setbyte(-1, (store.getbyte(-1) & (255 ^ (255 >> self.offset)) |\
-                               (self._rawarray[self.byteoffset] & (255 >> self.offset))))
-            store._rawarray.extend(self._rawarray[self.byteoffset + 1: self.byteoffset + self.bytelength])
-        else:
-            store._rawarray.extend(self._rawarray[self.byteoffset: self.byteoffset + self.bytelength])
-        self._rawarray = store._rawarray
-        self.offset = store.offset
-        self.bitlength += store.bitlength
 
 
 def offsetcopy(s, newoffset):
@@ -868,7 +864,8 @@ class Bits(object):
             s = self._copy()
             s._append(bs)
         else:
-            s = self.__class__(bs)
+            s = bs._copy()
+            s = self.__class__(s)
             s._prepend(self)
         return s
 
@@ -2009,11 +2006,11 @@ class Bits(object):
 
     def _append(self, bs):
         """Append a bitstring to the current bitstring."""
-        self._datastore.appendstore(bs._datastore)
+        self._datastore._appendstore(bs._datastore)
 
     def _prepend(self, bs):
         """Prepend a bitstring to the current bitstring."""
-        self._datastore.prependstore(bs._datastore)
+        self._datastore._prependstore(bs._datastore)
 
     def _reverse(self):
         """Reverse all bits in-place."""

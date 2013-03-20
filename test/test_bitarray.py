@@ -289,3 +289,14 @@ class Copy(unittest.TestCase):
         t[0] = True
         self.assertEqual(t.bin, '100000000')
         self.assertEqual(s.bin, '000000000')
+
+
+class ModifiedByAddingBug(unittest.TestCase):
+
+    def testAdding(self):
+        a = BitArray('0b0')
+        b = BitArray('0b11')
+        c = a + b
+        self.assertEqual(c, '0b011')
+        self.assertEqual(a, '0b0')
+        self.assertEqual(b, '0b11')
