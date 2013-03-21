@@ -43,8 +43,6 @@ or ::
 
      pip install bitstring     
 
-If you're using Windows then there is an installer available from the
-downloads tab on the project's homepage.
 
 Simple Examples
 ---------------
