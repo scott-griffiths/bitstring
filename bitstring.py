@@ -2577,8 +2577,9 @@ class Bits(object):
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
             return
+        reg_ex = re.compile(delimiter._getbin())
         # Use the base class find as we don't want to ever alter _pos.
-        found = Bits._find(self, delimiter, None, start, end, bytealigned)
+        found = Bits._find(self, None, reg_ex, start, end, bytealigned)
         if not found:
             # Initial bits are the whole bitstring being searched
             yield self._slice(start, end)
@@ -2589,7 +2590,7 @@ class Bits(object):
         c = 1
         while count is None or c < count:
             pos += delimiter.len
-            found = Bits._find(self, delimiter, None, pos, end, bytealigned)
+            found = Bits._find(self, None, reg_ex, pos, end, bytealigned)
             if not found:
                 # No more occurrences, so return the rest of the bitstring
                 yield self[startpos:end]
