@@ -2346,62 +2346,65 @@ class Bits(object):
                 return_values.append(value)
         return return_values, pos
 
-    def _find(self, bs, reg_ex, start, end, bytealigned):
-        """Find first occurrence of either a bitstring or a compiled
-         regular expression. Note that this doesn't support arbitrary
-         regexes, in particular they must match a known length."""
-        assert (bs is None and reg_ex is not None) or \
-               (reg_ex is None and bs is not None)
-        # If everything's byte aligned (and whole-byte) use the quick algorithm.
-        if bytealigned and bs is not None and len(bs) % 8 == 0 and self._datastore.offset == 0:
-            # Extract data bytes from bitstring to be found.
-            d = bs.bytes
-            bytepos = (start + 7) // 8
-            found = False
-            p = bytepos
-            finalpos = end // 8
-            increment = max(1024, len(d) * 10)
-            buffersize = increment + len(d)
-            while p < finalpos:
-                # Read in file or from memory in overlapping chunks and search the chunks.
-                buf = bytearray(self._datastore.getbyteslice(p, min(p + buffersize, finalpos)))
-                pos = buf.find(d)
-                if pos != -1:
-                    found = True
-                    p += pos
-                    break
-                p += increment
-            if not found:
-                return ()
-            return (p * 8,)
-        else:
-            if bs is not None:
-                reg_ex = re.compile(bs._getbin())
-            p = start
-            length = len(reg_ex.pattern)
-            # We grab overlapping chunks of the binary representation and
-            # do an ordinary string search within that.
-            increment = max(4096, length * 10)
-            buffersize = increment + length
-            while p < end:
-                buf = self._readbin(min(buffersize, end - p), p)
-                # Test using regular expressions...
-                m = reg_ex.search(buf)
-                if m:
-                    pos = m.start()
-                # pos = buf.find(targetbin)
-                # if pos != -1:
-                    # if bytealigned then we only accept byte aligned positions.
-                    if not bytealigned or (p + pos) % 8 == 0:
-                        return (p + pos,)
-                    if bytealigned:
-                        # Advance to just beyond the non-byte-aligned match and try again...
-                        p += pos + 1
-                        continue
-                p += increment
-                # Not found, return empty tuple
-            return ()
+    def _findbytes(self, bytes_, start, end, bytealigned):
+        """Quicker version of find when everything's whole byte
+        and byte aligned.
 
+        """
+        assert self._datastore.offset == 0
+        assert bytealigned is True
+        # Extract data bytes from bitstring to be found.
+        bytepos = (start + 7) // 8
+        found = False
+        p = bytepos
+        finalpos = end // 8
+        increment = max(1024, len(bytes_) * 10)
+        buffersize = increment + len(bytes_)
+        while p < finalpos:
+            # Read in file or from memory in overlapping chunks and search the chunks.
+            buf = bytearray(self._datastore.getbyteslice(p, min(p + buffersize, finalpos)))
+            pos = buf.find(bytes_)
+            if pos != -1:
+                found = True
+                p += pos
+                break
+            p += increment
+        if not found:
+            return ()
+        return (p * 8,)
+
+
+    def _findregex(self, reg_ex, start, end, bytealigned):
+        """Find first occurrence of a compiled regular expression.
+
+        Note that this doesn't support arbitrary regexes, in particular they
+        must match a known length.
+
+        """
+        p = start
+        length = len(reg_ex.pattern)
+        # We grab overlapping chunks of the binary representation and
+        # do an ordinary string search within that.
+        increment = max(4096, length * 10)
+        buffersize = increment + length
+        while p < end:
+            buf = self._readbin(min(buffersize, end - p), p)
+            # Test using regular expressions...
+            m = reg_ex.search(buf)
+            if m:
+                pos = m.start()
+            # pos = buf.find(targetbin)
+            # if pos != -1:
+                # if bytealigned then we only accept byte aligned positions.
+                if not bytealigned or (p + pos) % 8 == 0:
+                    return (p + pos,)
+                if bytealigned:
+                    # Advance to just beyond the non-byte-aligned match and try again...
+                    p += pos + 1
+                    continue
+            p += increment
+            # Not found, return empty tuple
+        return ()
 
     def find(self, bs, start=None, end=None, bytealigned=None):
         """Find first occurrence of substring bs.
@@ -2430,7 +2433,10 @@ class Bits(object):
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
             bytealigned = globals()['bytealigned']
-        p = self._find(bs, None, start, end, bytealigned)
+        if bytealigned and not bs.len % 8 and not self._datastore.offset:
+            p = self._findbytes(bs.bytes, start, end, bytealigned)
+        else:
+            p = self._findregex(re.compile(bs._getbin()), start, end, bytealigned)
         # If called from a class that has a pos, set it
         try:
             self._pos = p[0]
@@ -2462,9 +2468,16 @@ class Bits(object):
         if bytealigned is None:
             bytealigned = globals()['bytealigned']
         c = 0
-        reg_ex = re.compile(bs._getbin())
+        if bytealigned and not bs.len % 8 and not self._datastore.offset:
+            # Use the quick find method
+            f = self._findbytes
+            x = bs._getbytes()
+        else:
+            f = self._findregex
+            x = re.compile(bs._getbin())
         while True:
-            p = self._find(None, reg_ex, start, end, bytealigned)
+
+            p = f(x, start, end, bytealigned)
             if not p:
                 break
             if count is not None and c >= count:
@@ -2577,9 +2590,14 @@ class Bits(object):
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
             return
-        reg_ex = re.compile(delimiter._getbin())
-        # Use the base class find as we don't want to ever alter _pos.
-        found = Bits._find(self, None, reg_ex, start, end, bytealigned)
+        if bytealigned and not delimiter.len % 8 and not self._datastore.offset:
+            # Use the quick find method
+            f = self._findbytes
+            x = delimiter._getbytes()
+        else:
+            f = self._findregex
+            x = re.compile(delimiter._getbin())
+        found = f(x, start, end, bytealigned)
         if not found:
             # Initial bits are the whole bitstring being searched
             yield self._slice(start, end)
@@ -2590,7 +2608,7 @@ class Bits(object):
         c = 1
         while count is None or c < count:
             pos += delimiter.len
-            found = Bits._find(self, None, reg_ex, pos, end, bytealigned)
+            found = f(x, pos, end, bytealigned)
             if not found:
                 # No more occurrences, so return the rest of the bitstring
                 yield self[startpos:end]
