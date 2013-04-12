@@ -102,3 +102,20 @@ class PadToken(unittest.TestCase):
         s.pos = 0
         t = s.readlist('pad, bin:3, pad:4, uint:3')
         self.assertEqual(t, ['000', 1])
+
+class ReadingBytes(unittest.TestCase):
+
+    def testUnpackingBytes(self):
+        s = CBS(80)
+        t = s.unpack('bytes:1')
+        self.assertEqual(t[0], '\x00')
+        a, b, c = s.unpack('bytes:1, bytes, bytes:2')
+        self.assertEqual(a, '\x00')
+        self.assertEqual(b, '\x00'*7)
+        self.assertEqual(c, '\x00'*2)
+
+    def testUnpackingBytesWithKeywords(self):
+        s = CBS('0x55'*10)
+        t = s.unpack('pad:a, bytes:b, bytes, pad:a', a=4, b=6)
+        self.assertEqual(t, ['\x55'*6, '\x55'*3])
+

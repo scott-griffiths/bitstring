@@ -1998,7 +1998,8 @@ class Bits(object):
     def _readtoken(self, name, pos, length):
         """Reads a token from the bitstring and returns the result."""
         if length is not None and int(length) > self.length - pos:
-            raise ReadError("Reading off the end of the data.")
+            raise ReadError("Reading off the end of the data. "
+                            "Tried to read {0} bits when only {1} available.".format(int(length), self.length - pos))
         try:
             val = name_to_read[name](self, length, pos)
             pos += length
@@ -2291,13 +2292,13 @@ class Bits(object):
             for name, length, _ in tokens:
                 if length in kwargs:
                     length = kwargs[length]
+                    if name == 'bytes':
+                        length *= 8
                 if name in kwargs and length is None:
                     # Using default 'uint' - the name is really the length.
                     value, pos = self._readtoken('uint', pos, kwargs[name])
                     lst.append(value)
                     continue
-                if name == 'bytes':
-                    length *= 8
                 value, pos = self._readtoken(name, pos, length)
                 if value is not None: # Don't append pad tokens
                     lst.append(value)
