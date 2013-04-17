@@ -60,7 +60,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.1.1"
+__version__ = "3.1.2"
 
 __author__ = "Scott Griffiths"
 
@@ -1019,8 +1019,9 @@ class Bits(object):
             raise ValueError("Cannot shift by a negative amount.")
         if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
-        s = self[n:]
-        s._append(Bits(length=min(n, self.len)))
+        n = min(n, self.len)
+        s = self._slice(n, self.len)
+        s._append(Bits(n))
         return s
 
     def __rshift__(self, n):
@@ -1333,8 +1334,7 @@ class Bits(object):
         if not (start + self._offset) % 8:
             return bytes(self._datastore.getbyteslice((start + self._offset) // 8,
                                                       (start + self._offset + length) // 8))
-        # TODO: don't call __getitem__ here!
-        return self[start:start + length].tobytes()
+        return self._slice(start, start + length).tobytes()
 
     def _getbytes(self):
         """Return the data as an ordinary string."""
@@ -1502,7 +1502,7 @@ class Bits(object):
                 val <<= 8
                 val += self._datastore.getbyte(b)
         else:
-            data = self[start:start + length]
+            data = self._slice(start, start + length)
             assert data.len % 8 == 0
             data._reversebytes(0, self.len)
             for b in bytearray(data.bytes):
@@ -1917,9 +1917,8 @@ class Bits(object):
         if not length:
             return ''
         # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
-        # TODO: Optimize: This really shouldn't call __getitem__.
         # TODO: Is utf-8 really what we mean here?
-        s = str(binascii.hexlify(self[start:start + length].tobytes()).decode('utf-8'))
+        s = str(binascii.hexlify(self._slice(start, start + length).tobytes()).decode('utf-8'))
         # If there's one nibble too many then cut it off
         return s[:-1] if (length // 4) % 2 else s
 
@@ -2604,7 +2603,7 @@ class Bits(object):
             yield self._slice(start, end)
             return
         # yield the bytes before the first occurrence of the delimiter, even if empty
-        yield self[start:found[0]]
+        yield self._slice(start, found[0])
         startpos = pos = found[0]
         c = 1
         while count is None or c < count:
@@ -2612,10 +2611,10 @@ class Bits(object):
             found = f(x, pos, end, bytealigned)
             if not found:
                 # No more occurrences, so return the rest of the bitstring
-                yield self[startpos:end]
+                yield self._slice(startpos, end)
                 return
             c += 1
-            yield self[startpos:found[0]]
+            yield self._slice(startpos, found[0])
             startpos = pos = found[0]
         # Have generated count bitstrings, so time to quit.
         return
@@ -2677,12 +2676,13 @@ class Bits(object):
         else:
             # Really quite inefficient...
             a = 0
-            p = self[a:a + chunksize * 8]
-            while p.len == chunksize * 8:
-                f.write(p.bytes)
+            b = a + chunksize * 8
+            while b <= self.len:
+                f.write(self._slice(a, b)._getbytes())
                 a += chunksize * 8
-                p = self[a:a + chunksize * 8]
-            f.write(p.tobytes())
+                b += chunksize * 8
+            if a != self.len:
+                f.write(self._slice(a, self.len).tobytes())
 
     def startswith(self, prefix, start=None, end=None):
         """Return whether the current bitstring starts with prefix.
@@ -2697,7 +2697,7 @@ class Bits(object):
         if end < start + prefix.len:
             return False
         end = start + prefix.len
-        return self[start:end] == prefix
+        return self._slice(start, end) == prefix
 
     def endswith(self, suffix, start=None, end=None):
         """Return whether the current bitstring ends with suffix.
@@ -2712,7 +2712,7 @@ class Bits(object):
         if start + suffix.len > end:
             return False
         start = end - suffix.len
-        return self[start:end] == suffix
+        return self._slice(start, end) == suffix
 
     def all(self, value, pos=None):
         """Return True if one or many bits are all set to value.
@@ -3447,7 +3447,7 @@ class BitArray(Bits):
         if start == 0 and end == self.len:
             self._reverse()
             return
-        s = self[start:end]
+        s = self._slice(start, end)
         s._reverse()
         self[start:end] = s
 
@@ -3522,9 +3522,9 @@ class BitArray(Bits):
         bits %= (end - start)
         if not bits:
             return
-        rhs = self[end - bits:end]
+        rhs = self._slice(end - bits, end)
         self._delete(bits, end - bits)
-        self.insert(rhs, start)
+        self._insert(rhs, start)
 
     def rol(self, bits, start=None, end=None):
         """Rotate bits to the left in-place.
@@ -3544,9 +3544,9 @@ class BitArray(Bits):
         bits %= (end - start)
         if not bits:
             return
-        lhs = self[start:start + bits]
+        lhs = self._slice(start, start + bits)
         self._delete(bits, start)
-        self.insert(lhs, end - bits)
+        self._insert(lhs, end - bits)
 
     def byteswap(self, fmt=None, start=None, end=None, repeat=True):
         """Change the endianness in-place. Return number of repeats of fmt done.
