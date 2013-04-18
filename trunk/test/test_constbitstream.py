@@ -108,14 +108,14 @@ class ReadingBytes(unittest.TestCase):
     def testUnpackingBytes(self):
         s = CBS(80)
         t = s.unpack('bytes:1')
-        self.assertEqual(t[0], '\x00')
+        self.assertEqual(t[0], b'\x00')
         a, b, c = s.unpack('bytes:1, bytes, bytes:2')
-        self.assertEqual(a, '\x00')
-        self.assertEqual(b, '\x00'*7)
-        self.assertEqual(c, '\x00'*2)
+        self.assertEqual(a, b'\x00')
+        self.assertEqual(b, b'\x00'*7)
+        self.assertEqual(c, b'\x00'*2)
 
     def testUnpackingBytesWithKeywords(self):
         s = CBS('0x55'*10)
         t = s.unpack('pad:a, bytes:b, bytes, pad:a', a=4, b=6)
-        self.assertEqual(t, ['\x55'*6, '\x55'*3])
+        self.assertEqual(t, [b'\x55'*6, b'\x55'*3])
 

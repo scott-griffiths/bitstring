@@ -2001,12 +2001,10 @@ class Bits(object):
                             "Tried to read {0} bits when only {1} available.".format(int(length), self.length - pos))
         try:
             val = name_to_read[name](self, length, pos)
-            pos += length
-            return val, pos
+            return val, pos + length
         except KeyError:
             if name == 'pad':
-                pos += length
-                return None, pos
+                return None, pos + length
             raise ValueError("Can't parse token {0}:{1}".format(name, length))
         except TypeError:
             # This is for the 'ue', 'se' and 'bool' tokens. They will also return the new pos.
@@ -2041,7 +2039,6 @@ class Bits(object):
             self._clear()
             return
         bytepos, offset = divmod(self._offset + bits, 8)
-        #self._pos = max(0, self._pos - bits)
         self._setbytes_unsafe(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits,
                               offset)
         assert self._assertsanity()
@@ -2055,8 +2052,6 @@ class Bits(object):
             self._clear()
             return
         newlength_in_bytes = (self._offset + self.len - bits + 7) // 8
-        # Ensure that the position is still valid
-        #self._pos = max(0, min(self._pos, self.len - bits))
         self._setbytes_unsafe(self._datastore.getbyteslice(0, newlength_in_bytes), self.len - bits,
                               self._offset)
         assert self._assertsanity()
@@ -2216,7 +2211,6 @@ class Bits(object):
                 self._datastore = offsetcopy(self._datastore, bs_bitoffset)
         a = self._datastore.rawbytes
         b = bs._datastore.rawbytes
-        #assert a.bytelength == b.bytelength
         for i in xrange(len(a)):
             a[i] = f(a[i + self_byteoffset], b[i + bs_byteoffset])
         return self
@@ -2372,7 +2366,6 @@ class Bits(object):
         if not found:
             return ()
         return (p * 8,)
-
 
     def _findregex(self, reg_ex, start, end, bytealigned):
         """Find first occurrence of a compiled regular expression.
