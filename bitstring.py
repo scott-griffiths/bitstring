@@ -255,7 +255,7 @@ def offsetcopy(s, newoffset):
     else:
         if newoffset == s.offset % 8:
             return ByteStore(s.getbyteslice(s.byteoffset, s.byteoffset + s.bytelength), s.bitlength, newoffset)
-        newdata = []
+        newdata = bytearray()
         d = s._rawarray
         assert newoffset != s.offset % 8
         if newoffset < s.offset % 8:
@@ -281,7 +281,7 @@ def offsetcopy(s, newoffset):
                 bits_in_last_byte = 8
             if bits_in_last_byte + shiftright > 8:
                 newdata.append((d[s.byteoffset + s.bytelength - 1] << (8 - shiftright)) & 0xff)
-        new_s = ByteStore(bytearray(newdata), s.bitlength, newoffset)
+        new_s = ByteStore(newdata, s.bitlength, newoffset)
         assert new_s.offset == newoffset
         return new_s
 
@@ -4194,7 +4194,7 @@ def pack(fmt, *values, **kwargs):
     except ValueError as e:
         raise CreationError(*e.args)
     value_iter = iter(values)
-    s = BitStream()
+    s = Bits()
     try:
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.
@@ -4205,14 +4205,14 @@ def pack(fmt, *values, **kwargs):
                 length = kwargs[length]
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
-                s.append(kwargs[name])
+                s._append(Bits(kwargs[name]))
                 continue
             if length is not None:
                 length = int(length)
             if value is None and name != 'pad':
                 # Take the next value from the ones provided
                 value = next(value_iter)
-            s._append(BitStream._init_with_token(name, length, value))
+            s._append(Bits._init_with_token(name, length, value))
     except StopIteration:
         raise CreationError("Not enough parameters present to pack according to the "
                             "format. {0} values are needed.", len(tokens))
@@ -4220,7 +4220,7 @@ def pack(fmt, *values, **kwargs):
         next(value_iter)
     except StopIteration:
         # Good, we've used up all the *values.
-        return s
+        return BitStream(s)
     raise CreationError("Too many parameters present to pack according to the format.")
 
 
