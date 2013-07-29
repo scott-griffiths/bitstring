@@ -7,7 +7,23 @@ _disclaimer_: None of these questions have really been frequently asked. I'm jus
 
 ===How well optimised is the code? Are you planning to port to C?===
 
-The module is pure Python at the moment, and I've got no plans to move any of it to C. That may change in the future, but it isn't a priority right now. Attention has been paid to using the right algorithms to maximise the speed, and I have some grand plans for further algorithmic improvements in the medium term. If you have a particular case that you think is unreasonably slow then please tell me about it. 
+The module is pure Python at the moment, and I've got no plans to move it to C quite yet. 
+
+If you've worried about speed then one thing to watch out for it to make sure you use the -O option when running Python so that it strips out the debug asserts from the module. I know it's obvious but people often seem to forget it and the -O option has a significant effect for the bitstring module.
+
+To get a bit more speed you could probably compile it using Cython without too much trouble. I've found this gives a bit less than a 2x speedup (of course much more could be done by optimizing it properly in Cython). It's not officially supported but the rough instructions right now are:
+
+1) Uncomment the Cython stuff in setup.py.
+
+2) Rename bitstring.py to bitstring.pyx
+
+3) Make sure you have Cython installed! (maybe that should be the first instruction)
+
+4) Run 'python setup.py build_ext --inplace'.
+
+That works for me for version 3.1.2 and Python 2.7.
+
+If you have a particular case that you think is unreasonably slow then please tell me about it and I'll see what I can do.
 
 ----
 
