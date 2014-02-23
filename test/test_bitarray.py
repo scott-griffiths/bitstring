@@ -102,7 +102,7 @@ class Bugs(unittest.TestCase):
 
 
 class ByteAligned(unittest.TestCase):
-    def testDefault(self, defaultbytealigned=bitstring.bytealigned):
+    def testDefault(self, defaultbytealigned=bitstring.settings.bytealigned):
         self.assertFalse(defaultbytealigned)
 
     def testChangingIt(self):
@@ -111,7 +111,7 @@ class ByteAligned(unittest.TestCase):
         bitstring.bytealigned = False
 
     def testNotByteAligned(self):
-        bitstring.bytealigned = False
+        bitstring.settings.bytealigned = False
         a = BitArray('0x00 ff 0f f')
         l = list(a.findall('0xff'))
         self.assertEqual(l, [8, 20])
@@ -125,7 +125,7 @@ class ByteAligned(unittest.TestCase):
         self.assertEqual(a, '0x000')
 
     def testByteAligned(self):
-        bitstring.bytealigned = True
+        bitstring.settings.bytealigned = True
         a = BitArray('0x00 ff 0f f')
         l = list(a.findall('0xff'))
         self.assertEqual(l, [8])
