@@ -1,45 +1,11 @@
-#!/usr/bin/env python
-# cython: profile=True
 """
-This package defines classes that simplify bit-wise creation, manipulation and
-interpretation of data.
-
-Classes:
-
-Bits -- An immutable container for binary data.
-BitArray -- A mutable container for binary data.
-ConstBitStream -- An immutable container with streaming methods.
-BitStream -- A mutable container with streaming methods.
-
-                      Bits (base class)
-                     /    \
- + mutating methods /      \ + streaming methods
-                   /        \
-              BitArray   ConstBitStream
-                   \        /
-                    \      /
-                     \    /
-                    BitStream
-
-Functions:
-
-pack -- Create a BitStream from a format string.
-
-Exceptions:
-
-Error -- Module exception base class.
-CreationError -- Error during creation.
-InterpretError -- Inappropriate interpretation of binary data.
-ByteAlignError -- Whole byte position or length needed.
-ReadError -- Reading or peeking past the end of a bitstring.
-
-http://python-bitstring.googlecode.com
+The pure Python bitstring implementation
 """
 
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2013 Scott Griffiths (scott@griffiths.name)
+Copyright (c) 2006-2014 Scott Griffiths (scott@griffiths.name)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -60,8 +26,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.1.2"
-
 __author__ = "Scott Griffiths"
 
 import numbers
@@ -77,14 +41,26 @@ import collections
 
 byteorder = sys.byteorder
 
-bytealigned = False
-"""Determines whether a number of methods default to working only on byte boundaries."""
-
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS = 250
 
 # Maximum size of caches used for speed optimisations.
 CACHE_SIZE = 1000
+
+class Settings(object):
+    """Container for module-wide settings. This class is private,
+    and the instance below is used to get / set settings."""
+    def setbytealigned(self, val):
+        self._bytealigned = val
+    def getbytealigned(self):
+        return self._bytealigned
+    bytealigned = property(getbytealigned, setbytealigned)
+
+settings = Settings()
+
+"""Determines whether a number of methods default to working only on byte boundaries."""
+settings.bytealigned = False
+
 
 class Error(Exception):
     """Base class for errors in the bitstring module."""
@@ -2425,7 +2401,7 @@ class Bits(object):
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = settings._bytealigned
         if bytealigned and not bs.len % 8 and not self._datastore.offset:
             p = self._findbytes(bs.bytes, start, end, bytealigned)
         else:
@@ -2459,7 +2435,7 @@ class Bits(object):
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = settings._bytealigned
         c = 0
         if bytealigned and not bs.len % 8 and not self._datastore.offset:
             # Use the quick find method
@@ -2510,7 +2486,7 @@ class Bits(object):
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = settings._bytealigned
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         # Search chunks starting near the end and then moving back
@@ -2578,7 +2554,7 @@ class Bits(object):
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = settings._bytealigned
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
@@ -3313,7 +3289,7 @@ class BitArray(Bits):
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = settings._bytealigned
         # Adjust count for use in split()
         if count is not None:
             count += 1
