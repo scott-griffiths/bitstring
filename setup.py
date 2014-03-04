@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 from distutils.core import setup
-from distutils.extension import Extension
-try:
-    from Cython.Distutils import build_ext
-except ImportError:
-    use_cython = False
-else:
-    use_cython = True
+# from distutils.extension import Extension
+# from Cython.Distutils import build_ext
 import sys
 
 kwds = {'long_description': open('README.txt').read()}
@@ -15,15 +10,8 @@ if sys.version_info[:2] < (2, 6):
     raise Exception('This version of bitstring needs Python 2.6 or later. '
                     'For Python 2.4 / 2.5 please use bitstring version 1.0 instead.')
 
-macros = [('PYREX_WITHOUT_ASSERTIONS', None)]
-cmdclass = {}
-if use_cython:
-    print("Using Cython")
-    ext_modules = [Extension('_cbitstring', ["_cbitstring.pyx"], define_macros=macros)]
-    cmdclass.update({'build_ext': build_ext})
-else:
-    print("Not using Cython")
-    ext_modules = [Extension('_cbitstring', ['_cbitstring.c'])]
+# macros = [('PYREX_WITHOUT_ASSERTIONS', None)]
+# ext_modules = [Extension('bitstring', ["bitstring.pyx"], define_macros=macros)]
 
 setup(name='bitstring',
       version='3.1.2',
@@ -33,8 +21,8 @@ setup(name='bitstring',
       url='http://python-bitstring.googlecode.com',
       download_url='http://python-bitstring.googlecode.com',
       license='The MIT License: http://www.opensource.org/licenses/mit-license.php',
-      cmdclass = cmdclass,
-      ext_modules = ext_modules,
+      # cmdclass = {'build_ext': build_ext},
+      # ext_modules = ext_modules,
       py_modules=['bitstring'],
       platforms='all',
       classifiers = [
