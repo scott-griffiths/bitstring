@@ -39,7 +39,7 @@ http://python-bitstring.googlecode.com
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2013 Scott Griffiths (scott@griffiths.name)
+Copyright (c) 2006-2014 Scott Griffiths (scott@griffiths.name)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.1.2"
+__version__ = "3.1.3"
 
 __author__ = "Scott Griffiths"
 
@@ -195,10 +195,11 @@ class ConstByteStore(object):
         # then join self on to the end of it.
         store = offsetcopy(store, (self.offset - store.bitlength) % 8)
         assert (store.offset + store.bitlength) % 8 == self.offset % 8
-        if self.offset % 8:
+        bit_offset = self.offset % 8
+        if bit_offset:
             # first do the byte with the join.
-            store.setbyte(-1, (store.getbyte(-1) & (255 ^ (255 >> self.offset)) | \
-                               (self._rawarray[self.byteoffset] & (255 >> self.offset))))
+            store.setbyte(-1, (store.getbyte(-1) & (255 ^ (255 >> bit_offset)) | \
+                               (self._rawarray[self.byteoffset] & (255 >> bit_offset))))
             store._rawarray.extend(self._rawarray[self.byteoffset + 1: self.byteoffset + self.bytelength])
         else:
             store._rawarray.extend(self._rawarray[self.byteoffset: self.byteoffset + self.bytelength])

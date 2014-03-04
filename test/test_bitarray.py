@@ -100,6 +100,14 @@ class Bugs(unittest.TestCase):
         self.assertRaises(ValueError, a.__iadd__, 'se')
         self.assertRaises(ValueError, a.__iadd__, 'float:32')
 
+    def testPrependAfterCreationFromDataWithOffset(self):
+        s1 = BitArray(bytes=b'\x00\x00\x07\xff\xf0\x00', offset=21, length=15)
+        self.assertFalse(s1.any(0))
+        s1.prepend('0b0')
+        self.assertEqual(s1.bin, '0111111111111111')
+        s1.prepend('0b0')
+        self.assertEqual(s1.bin, '00111111111111111')
+
 
 class ByteAligned(unittest.TestCase):
     def testDefault(self, defaultbytealigned=bitstring.bytealigned):
