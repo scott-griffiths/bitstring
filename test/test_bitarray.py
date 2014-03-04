@@ -100,9 +100,17 @@ class Bugs(unittest.TestCase):
         self.assertRaises(ValueError, a.__iadd__, 'se')
         self.assertRaises(ValueError, a.__iadd__, 'float:32')
 
+    def testPrependAfterCreationFromDataWithOffset(self):
+        s1 = BitArray(bytes=b'\x00\x00\x07\xff\xf0\x00', offset=21, length=15)
+        self.assertFalse(s1.any(0))
+        s1.prepend('0b0')
+        self.assertEqual(s1.bin, '0111111111111111')
+        s1.prepend('0b0')
+        self.assertEqual(s1.bin, '00111111111111111')
+
 
 class ByteAligned(unittest.TestCase):
-    def testDefault(self, defaultbytealigned=bitstring.settings.bytealigned):
+    def testDefault(self, defaultbytealigned=bitstring.bytealigned):
         self.assertFalse(defaultbytealigned)
 
     def testChangingIt(self):
@@ -111,7 +119,7 @@ class ByteAligned(unittest.TestCase):
         bitstring.bytealigned = False
 
     def testNotByteAligned(self):
-        bitstring.settings.bytealigned = False
+        bitstring.bytealigned = False
         a = BitArray('0x00 ff 0f f')
         l = list(a.findall('0xff'))
         self.assertEqual(l, [8, 20])
@@ -125,7 +133,7 @@ class ByteAligned(unittest.TestCase):
         self.assertEqual(a, '0x000')
 
     def testByteAligned(self):
-        bitstring.settings.bytealigned = True
+        bitstring.bytealigned = True
         a = BitArray('0x00 ff 0f f')
         l = list(a.findall('0xff'))
         self.assertEqual(l, [8])
