@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 from distutils.core import setup
 from distutils.extension import Extension
+
 try:
     from Cython.Distutils import build_ext
 except ImportError:
+    from distutils.command import build_ext
     use_cython = False
 else:
     use_cython = True
@@ -18,15 +20,14 @@ if sys.version_info[:2] < (2, 6):
 macros = [('PYREX_WITHOUT_ASSERTIONS', None)]
 cmdclass = {}
 if use_cython:
-    print("Using Cython")
+    print("Compiling with Cython")
     ext_modules = [Extension('_cbitstring', ["_cbitstring.pyx"], define_macros=macros)]
     cmdclass.update({'build_ext': build_ext})
 else:
-    print("Not using Cython")
     ext_modules = [Extension('_cbitstring', ['_cbitstring.c'])]
 
 setup(name='bitstring',
-      version='3.1.2',
+      version='3.2.0',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='scott@griffiths.name',
@@ -35,7 +36,7 @@ setup(name='bitstring',
       license='The MIT License: http://www.opensource.org/licenses/mit-license.php',
       cmdclass = cmdclass,
       ext_modules = ext_modules,
-      py_modules=['bitstring'],
+      py_modules=['bitstring', '_pybitstring'],
       platforms='all',
       classifiers = [
         'Development Status :: 5 - Production/Stable',
