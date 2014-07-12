@@ -66,10 +66,11 @@ __version__ = "3.2.0"
 try:
     from _cbitstring import *
     import _cbitstring as bs
+    __pure__ = False
 except ImportError:
     from _pybitstring import *
     import _pybitstring as bs
-
+    __pure__ = True
 
 __all__ = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
            'Bits', 'BitString', 'pack', 'Error', 'ReadError',

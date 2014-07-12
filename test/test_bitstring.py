@@ -31,6 +31,9 @@ class ModuleData(unittest.TestCase):
         self.assertTrue(bitstring.Bits is bitstring.ConstBitArray)
         self.assertTrue(bitstring.BitStream is bitstring.BitString)
 
+    def testPurePython(self):
+        self.assertTrue(bitstring.__pure__)
+
 
 class MemoryUsage(unittest.TestCase):
     def testBaselineMemory(self):
@@ -91,7 +94,3 @@ class Interning(unittest.TestCase):
         b = bitstring.ConstBitStream('0b11000')
         self.assertFalse(a is b)
     #        self.assertTrue(a._datastore is b._datastore)
-        
-        
-        
-        
