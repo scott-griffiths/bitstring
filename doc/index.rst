@@ -52,7 +52,7 @@ Index and search
 Credits
 -------
 
-Written by Scott Griffiths <scott@griffiths.name>. If you have any questions, suggestions or criticisms (about this module!) then please email me. Also if you use bitstring in your own project then I'd be interested to hear how it's being used.
+Written by Scott Griffiths <dr.scottgriffiths@gmail.com>. If you have any questions, suggestions or criticisms (about this module!) then please email me. Also if you use bitstring in your own project then I'd be interested to hear how it's being used.
 
 
 

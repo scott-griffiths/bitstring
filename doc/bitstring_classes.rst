@@ -1,5 +1,5 @@
 .. module:: bitstring
-.. moduleauthor:: Scott Griffiths <scott@griffiths.name>
+.. moduleauthor:: Scott Griffiths <dr.scottgriffiths@gmail.com>
 
 
 The bitstring module

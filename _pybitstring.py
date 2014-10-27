@@ -5,7 +5,7 @@ The pure Python bitstring implementation
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2014 Scott Griffiths (scott@griffiths.name)
+Copyright (c) 2006-2014 Scott Griffiths (dr.scottgriffiths@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
