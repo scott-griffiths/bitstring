@@ -92,8 +92,8 @@ The 400+ unit tests should all pass for Python 2.6 and later.
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2014 Scott Griffiths
+Copyright (c) 2016 Scott Griffiths
 
-For more information see the project's homepage on Google Code:
-<http://python-bitstring.googlecode.com>
+For more information see the project's homepage on GitHub:
+<https://github.com/scott-griffiths/bitstring>
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# cython: profile=True
 """
 This package defines classes that simplify bit-wise creation, manipulation and
 interpretation of data.
@@ -39,7 +38,7 @@ http://python-bitstring.googlecode.com
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2014 Scott Griffiths (scott@griffiths.name)
+Copyright (c) 2006-2016 Scott Griffiths (dr.scottgriffiths@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
