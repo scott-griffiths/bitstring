@@ -82,13 +82,13 @@ The BitArray class
             >>> s = BitArray('0b111001')
             >>> s.invert(0)
             >>> s.bin
-            '0b011001'
+            '011001'
             >>> s.invert([-2, -1])
             >>> s.bin
-            '0b011010'
+            '011010'
             >>> s.invert()
             >>> s.bin
-            '0b100101'
+            '100101'
 
     .. method:: overwrite(bs, pos)
 
