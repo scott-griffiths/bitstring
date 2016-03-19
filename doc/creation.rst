@@ -38,7 +38,7 @@ Using the constructor
 When initialising a bitstring you need to specify at most one initialiser. These will be explained in full below, but briefly they are:
 
 * ``auto`` : Either a specially formatted string, a list or tuple, a file object, integer, bytearray, bytes or another bitstring.
-* ``bytes`` : A ``bytes`` object (a ``str`` in Python 2.6), for example read from a binary file.
+* ``bytes`` : A ``bytes`` object (a ``str`` in Python 2), for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
 * ``int``, ``uint``: Signed or unsigned bit-wise big-endian binary integers.
 * ``intle``, ``uintle``: Signed or unsigned byte-wise little-endian binary integers.
@@ -181,7 +181,7 @@ You can also use a ``bytearray`` object, either explicitly with a ``bytes=some_b
 
     c = BitArray(a_bytearray_object)
     
-If you are using Python 3.x you can use this trick with ``bytes`` objects too. This should be used with caution as in Python 2 it will instead be interpreted as a string (it's not possible to distinguish between ``str`` and ``bytes`` in Python 2) and so your code won't work the same between Python versions. ::
+If you are using Python 3.x you can use this trick with ``bytes`` objects too. This should be used with caution as in Python 2.7 it will instead be interpreted as a string (it's not possible to distinguish between ``str`` and ``bytes`` in Python 2) and so your code won't work the same between Python versions. ::
 
     d = BitArray(b'\x23g$5')   # Use with caution! Only works correctly in Python 3.
 

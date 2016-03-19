@@ -544,7 +544,7 @@ you can just write ::
     >>> a = Bits(some_bytearray)
 
 This also works for the bytes type, but only if you're using Python 3.
-For Python 2 it's not possible to distinguish between a bytes object and a
+For Python 2.7 it's not possible to distinguish between a bytes object and a
 str. For this reason this method should be used with some caution as it will
 make you code behave differently with the different major Python versions. ::
 

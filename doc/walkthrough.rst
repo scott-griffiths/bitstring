@@ -16,7 +16,7 @@ Only a few of the module's features will be covered in this walkthrough; the :re
 Prerequisites
 -------------
 
-* Python 2.6, 2.7 or 3.x. (If you're using Python 2.4 or 2.5 then you can use bitstring version 1.0, but that isn't covered here.)
+* Python 2.6, 2.7 or 3.x.
 * An installed bitstring module.
 * A rudimentory knowledge of binary concepts.
 * A little free time.
@@ -66,7 +66,7 @@ Now you would be forgiven for thinking that the strings that we used to create t
 There are a few things to note here:
 
 * To get the different interpretations of the binary data we use properties such as :attr:`~Bits.bin`, :attr:`~Bits.hex`, :attr:`~Bits.oct`, :attr:`~Bits.int` and :attr:`~Bits.bytes`. You can probably guess what these all mean, but you don't need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.
-* The :attr:`~Bits.bytes` property returns a ``bytes`` object. This is slightly different in Python 2 to Python 3 - in Python 3 you would get ``b'\xff\x01'`` returned instead.
+* The :attr:`~Bits.bytes` property returns a ``bytes`` object. This is slightly different in Python 2.7 to Python 3 - in Python 3 you would get ``b'\xff\x01'`` returned instead.
 
 Great - let's try some more::
 

@@ -36,7 +36,7 @@ This simply reverses the bits of the :class:`BitArray` in place. You can optiona
 ``tobytes``
 ^^^^^^^^^^^
 
-Returns the byte data contained in the bitstring as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.6). This differs from using the plain :attr:`~Bits.bytes` property in that if the bitstring isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
+Returns the byte data contained in the bitstring as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.7). This differs from using the plain :attr:`~Bits.bytes` property in that if the bitstring isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
 
  >>> BitArray('0b1').tobytes()
  '\x80'

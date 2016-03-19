@@ -164,7 +164,7 @@ The Bits class
 
     .. method:: tobytes()
 
-        Returns the bitstring as a ``bytes`` object (equivalent to a ``str`` in Python 2.6/2.7).
+        Returns the bitstring as a ``bytes`` object (equivalent to a ``str`` in Python 2.7).
 
         The returned value will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
 
@@ -366,7 +366,7 @@ The Bits class
         
         Returns ``True`` if at least one bit is set to 1, otherwise returns ``False``.
         
-        This special method is used in Python 3 only; for Python 2 the equivalent is called ``__nonzero__``, but the details are exactly the same. ::
+        This special method is used in Python 3 only; for Python 2.7 the equivalent is called ``__nonzero__``, but the details are exactly the same. ::
         
             >>> bool(Bits())
             False
