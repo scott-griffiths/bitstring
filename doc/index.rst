@@ -17,7 +17,7 @@ Features
 Download
 --------
 
-To download the module, as well as for defect reports, enhancement requests and Subversion repository browsing go to the project's home on Google Code: http://python-bitstring.googlecode.com
+To download the module, as well as for defect reports, enhancement requests and Subversion repository browsing go to the project's home on GitHub: http://scott-griffiths.github.io/bitstring/
 
 You may also be able to use just ``easy_install bitstring``.
 

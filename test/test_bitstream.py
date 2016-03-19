@@ -1952,7 +1952,8 @@ class Split(unittest.TestCase):
         a += b
         self.assertTrue(a == '0b1111100')
         self.assertEqual(a.tobytes(), b'\xf8')
-        self.assertRaises(ValueError, a._getbytes)
+        with self.assertRaises(ValueError):
+            a.bytes
 
     def testNewOffsetErrors(self):
         self.assertRaises(bitstring.CreationError, BitStream, hex='ff', offset=-1)

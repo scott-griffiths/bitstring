@@ -32,7 +32,7 @@ InterpretError -- Inappropriate interpretation of binary data.
 ByteAlignError -- Whole byte position or length needed.
 ReadError -- Reading or peeking past the end of a bitstring.
 
-http://python-bitstring.googlecode.com
+https://github.com/scott-griffiths/bitstring
 """
 
 __licence__ = """
@@ -59,7 +59,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.1.3"
+__version__ = "3.1.4"
 
 __author__ = "Scott Griffiths"
 
@@ -787,7 +787,7 @@ class Bits(object):
                     if len(_cache) < CACHE_SIZE:
                         _cache[auto] = x
                     return x
-            if isinstance(auto, Bits):
+            if type(auto) == Bits:
                 return auto
         except TypeError:
             pass
