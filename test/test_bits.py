@@ -5,6 +5,7 @@ import sys
 
 sys.path.insert(0, '..')
 import bitstring
+import array
 from bitstring import MmapByteArray
 from bitstring import Bits, BitArray, ConstByteStore, ByteStore
 
@@ -391,3 +392,32 @@ class WrongTypeBug(unittest.TestCase):
         self.assertEqual(type(a), Bits)
         b = bitstring.ConstBitStream(bitstring.BitStream())
         self.assertEqual(type(b), bitstring.ConstBitStream)
+
+
+class InitFromArray(unittest.TestCase):
+
+    def testEmptyArray(self):
+        a = array.array('B')
+        b = Bits(a)
+        self.assertEqual(b.length, 0)
+
+    def testSingleByte(self):
+        a = array.array('B', '\xff')
+        b = Bits(a)
+        self.assertEqual(b.length, 8)
+        self.assertEqual(b.hex, 'ff')
+
+    def testSignedShort(self):
+        a = array.array('h')
+        a.append(10)
+        a.append(-1)
+        b = Bits(a)
+        self.assertEqual(b.length, 32)
+        self.assertEqual(b.bytes, a.tostring())
+
+    def testDouble(self):
+        a = array.array('d', [0.0, 1.0, 2.5])
+        b = Bits(a)
+        self.assertEqual(b.length, 192)
+        c, d, e = b.unpack('3*floatne:64')
+        self.assertEqual((c, d, e), (0.0, 1.0, 2.5))
