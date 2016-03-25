@@ -37,7 +37,7 @@ Using the constructor
 ---------------------
 When initialising a bitstring you need to specify at most one initialiser. These will be explained in full below, but briefly they are:
 
-* ``auto`` : Either a specially formatted string, a list or tuple, a file object, integer, bytearray, bytes or another bitstring.
+* ``auto`` : Either a specially formatted string, a list or tuple, a file object, integer, bytearray, array, bytes or another bitstring.
 * ``bytes`` : A ``bytes`` object (a ``str`` in Python 2), for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
 * ``int``, ``uint``: Signed or unsigned bit-wise big-endian binary integers.
@@ -207,7 +207,7 @@ The auto initialiser
 --------------------
 The ``auto`` parameter is the first parameter in the :class:`__init__<Bits>` function and so the ``auto=`` can be omitted when using it. It accepts either a string, an iterable, another bitstring, an integer, a bytearray or a file object.
 
-Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, (non string) iterables are interpreted as boolean arrays and file objects acts a source of binary data. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
+Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, (non string) iterables are interpreted as boolean arrays and file objects acts a source of binary data. An ``array`` object will be converted into its constituent bytes. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
 
     >>> fromhex = BitArray('0x01ffc9')
     >>> frombin = BitArray('0b01')
@@ -220,6 +220,7 @@ Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` 
     >>> fromfile = BitArray(f)
     >>> zeroed = BitArray(1000)
     >>> frombytes = BitArray(bytearray(b'xyz'))
+    >>> fromarray = BitArray(array.array('h', [3, 17, 10]))
  
 It can also be used to convert between the :class:`BitArray` and :class:`Bits` classes::
 
