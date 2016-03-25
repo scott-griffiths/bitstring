@@ -1921,9 +1921,13 @@ class Bits(object):
                                            "not multiple of 4 bits.")
         if not length:
             return ''
-        # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
-        # TODO: Is utf-8 really what we mean here?
-        s = str(binascii.hexlify(self._slice(start, start + length).tobytes()).decode('utf-8'))
+        s = self._slice(start, start + length).tobytes()
+        try:
+            s = s.hex() # Available in Python 3.5
+        except AttributeError:
+            # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
+            # TODO: Is utf-8 really what we mean here?
+            s = str(binascii.hexlify(s).decode('utf-8'))
         # If there's one nibble too many then cut it off
         return s[:-1] if (length // 4) % 2 else s
 
