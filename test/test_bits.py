@@ -402,7 +402,7 @@ class InitFromArray(unittest.TestCase):
         self.assertEqual(b.length, 0)
 
     def testSingleByte(self):
-        a = array.array('B', '\xff')
+        a = array.array('B', b'\xff')
         b = Bits(a)
         self.assertEqual(b.length, 8)
         self.assertEqual(b.hex, 'ff')
