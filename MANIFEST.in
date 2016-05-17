@@ -4,4 +4,4 @@ include release_notes.txt
 include README.rst
 prune doc
 include doc/bitstring_manual.pdf
-
+include LICENSE
