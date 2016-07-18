@@ -20,6 +20,7 @@ setup(name='bitstring',
       license='The MIT License: http://www.opensource.org/licenses/mit-license.php',
       py_modules=['bitstring'],
       platforms='all',
+      install_requires=['configparser>=3.5'],
       classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
