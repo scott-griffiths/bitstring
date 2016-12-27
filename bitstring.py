@@ -1898,6 +1898,7 @@ class Bits(object):
 
     def _sethex(self, hexstring):
         """Reset the bitstring to have the value given in hexstring."""
+        hexstring = hexstring.strip("L")
         hexstring = tidy_input_string(hexstring)
         # remove any 0x if present
         hexstring = hexstring.replace('0x', '')
