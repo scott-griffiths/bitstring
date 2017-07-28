@@ -11,6 +11,9 @@ from bitstring import BitStream, ConstBitStream, pack
 from bitstring import ByteStore, offsetcopy
 
 
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
+
 class FlexibleInitialisation(unittest.TestCase):
     def testFlexibleInitialisation(self):
         a = BitStream('uint:8=12')
