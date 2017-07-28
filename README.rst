@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/scott-griffiths/bitstring.svg?branch=master
+    :target: https://travis-ci.org/scott-griffiths/bitstring
+
 ================
 bitstring module
 ================
