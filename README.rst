@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/scott-griffiths/bitstring.svg?branch=master
+    :target: https://travis-ci.org/scott-griffiths/bitstring
+
 ================
 bitstring module
 ================
@@ -86,7 +89,7 @@ Searching, inserting and deleting::
 Unit Tests
 ----------
 
-The 400+ unit tests should all pass for Python 2.6 and later.
+The 400+ unit tests should all pass for Python 2.7 and later.
 
 ----
 
