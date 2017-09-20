@@ -443,11 +443,10 @@ BYTE_REVERSAL_DICT = dict()
 
 # For Python 2.x/ 3.x coexistence
 # Yes this is very very hacky.
-try:
-    xrange
+if sys.version_info[0] == 2:
     for i in range(256):
         BYTE_REVERSAL_DICT[i] = chr(int("{0:08b}".format(i)[::-1], 2))
-except NameError:
+else:
     for i in range(256):
         BYTE_REVERSAL_DICT[i] = bytes([int("{0:08b}".format(i)[::-1], 2)])
     from io import IOBase as file
