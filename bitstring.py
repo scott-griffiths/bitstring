@@ -1149,16 +1149,13 @@ class Bits(object):
         bs -- The bitstring to search for.
 
         """
-        # Don't want to change pos
-        try:
+        if hasattr(self,"_pos"):
             pos = self._pos
-        except AttributeError:
-            pass
+
         found = Bits.find(self, bs, bytealigned=False)
-        try:
+
+        if hasattr(self,"_pos"):
             self._pos = pos
-        except AttributeError:
-            pass
         return bool(found)
 
     def __hash__(self):
