@@ -157,11 +157,11 @@ pre, code {
   background-color: #fff;
 
   font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
-  font-size: 14px;
+  font-size: 12px;
 
-  border-radius: 2px;
-  -moz-border-radius: 2px;
-  -webkit-border-radius: 2px;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
 }
 
 pre {
@@ -282,11 +282,11 @@ Full-Width Styles
 
 #header_wrap {
   background: #ffffff;
-  background: -moz-linear-gradient(top, #ffffff, #ababab);
-  background: -webkit-linear-gradient(top, #ffffff, #ababab);
-  background: -ms-linear-gradient(top, #ffffff, #ababab);
-  background: -o-linear-gradient(top, #ffffff, #ababab);
-  background: linear-gradient(top, #ffffff, #ababab);
+  background: -moz-linear-gradient(top, rgb(214, 238, 255), rgb(24, 122, 165));
+  background: -webkit-linear-gradient(top, rgb(214, 238, 255), rgb(24, 122, 165));
+  background: -ms-linear-gradient(top, rgb(214, 238, 255), rgb(24, 122, 165));
+  background: -o-linear-gradient(top, rgb(214, 238, 255), rgb(24, 122, 165));
+  background: linear-gradient(top, rgb(214, 238, 255), rgb(24, 122, 165));
 }
 
 #header_wrap .inner {
@@ -303,9 +303,11 @@ Full-Width Styles
 #project_tagline {
   color: #fff;
   font-size: 24px;
-  font-weight: 300;
+  font-weight: 500;
   background: none;
   text-shadow: #111 0px 0px 10px;
+  padding-left: 50px;
+  margin-top: -10px;
 }
 
 #main_content_wrap {
