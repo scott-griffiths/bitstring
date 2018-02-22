@@ -86,7 +86,7 @@ Searching, inserting and deleting::
 Unit Tests
 ----------
 
-The 400+ unit tests should all pass for Python 2.6 and later.
+The 400+ unit tests should all pass for Python 2.7 and later.
 
 ----
 
