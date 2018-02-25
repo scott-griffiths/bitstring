@@ -421,3 +421,14 @@ class InitFromArray(unittest.TestCase):
         self.assertEqual(b.length, 192)
         c, d, e = b.unpack('3*floatne:64')
         self.assertEqual((c, d, e), (0.0, 1.0, 2.5))
+
+
+class ContainsBug(unittest.TestCase):
+
+    def testContains(self):
+        a = Bits('0b1, 0x0001dead0001')
+        self.assertTrue('0xdead' in a)
+        self.assertFalse('0xfeed' in a)
+
+        self.assertTrue('0b1' in Bits('0xf'))
+        self.assertFalse('0b0' in Bits('0xf'))

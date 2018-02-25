@@ -1156,7 +1156,7 @@ class Bits(object):
         found = Bits.find(self, bs, bytealigned=False)
         try:
             self._pos = pos
-        except AttributeError:
+        except UnboundLocalError:
             pass
         return bool(found)
 
