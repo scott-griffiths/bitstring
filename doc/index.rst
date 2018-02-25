@@ -38,10 +38,7 @@ The reference section has a complete list of all the classes, methods, attribute
 
 The manual is also available as a PDF:
 
-* `Latest manual (PDF) <http://python-bitstring.googlecode.com/svn/trunk/doc/bitstring_manual.pdf>`_
-* `Manual for version 2 (PDF) <http://python-bitstring.googlecode.com/svn/tags/bitstring-2.2.0/doc/bitstring_manual.pdf>`_
-* `Manual for version 1.0 (PDF) <http://python-bitstring.googlecode.com/svn/tags/bitstring-1.0.2/bitstring_manual.pdf>`_
-
+* `Latest manual (PDF) <https://github.com/scott-griffiths/bitstring/raw/master/doc/bitstring_manual.pdf>`_
 
 Index and search
 ----------------
