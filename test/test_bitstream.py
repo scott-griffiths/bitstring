@@ -2454,26 +2454,26 @@ class Split(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, pack, '<Q', -1)
 
     def testStructTokens2(self):
-        endianness = sys.byteorder
-        sys.byteorder = 'little'
-        self.assertEqual(pack('@b', 23), BitStream('intle:8=23'))
-        self.assertEqual(pack('@B', 23), BitStream('uintle:8=23'))
-        self.assertEqual(pack('@h', 23), BitStream('intle:16=23'))
-        self.assertEqual(pack('@H', 23), BitStream('uintle:16=23'))
-        self.assertEqual(pack('@l', 23), BitStream('intle:32=23'))
-        self.assertEqual(pack('@L', 23), BitStream('uintle:32=23'))
-        self.assertEqual(pack('@q', 23), BitStream('intle:64=23'))
-        self.assertEqual(pack('@Q', 23), BitStream('uintle:64=23'))
-        sys.byteorder = 'big'
-        self.assertEqual(pack('@b', 23), BitStream('intbe:8=23'))
-        self.assertEqual(pack('@B', 23), BitStream('uintbe:8=23'))
-        self.assertEqual(pack('@h', 23), BitStream('intbe:16=23'))
-        self.assertEqual(pack('@H', 23), BitStream('uintbe:16=23'))
-        self.assertEqual(pack('@l', 23), BitStream('intbe:32=23'))
-        self.assertEqual(pack('@L', 23), BitStream('uintbe:32=23'))
-        self.assertEqual(pack('@q', 23), BitStream('intbe:64=23'))
-        self.assertEqual(pack('@Q', 23), BitStream('uintbe:64=23'))
-        sys.byteorder = endianness
+        # I couldn't find a way to test both types of native endianness
+        # on a single machine, so only one set of tests will run.
+        if sys.byteorder == 'little':
+            self.assertEqual(pack('@b', 23), BitStream('intle:8=23'))
+            self.assertEqual(pack('@B', 23), BitStream('uintle:8=23'))
+            self.assertEqual(pack('@h', 23), BitStream('intle:16=23'))
+            self.assertEqual(pack('@H', 23), BitStream('uintle:16=23'))
+            self.assertEqual(pack('@l', 23), BitStream('intle:32=23'))
+            self.assertEqual(pack('@L', 23), BitStream('uintle:32=23'))
+            self.assertEqual(pack('@q', 23), BitStream('intle:64=23'))
+            self.assertEqual(pack('@Q', 23), BitStream('uintle:64=23'))
+        else:
+            self.assertEqual(pack('@b', 23), BitStream('intbe:8=23'))
+            self.assertEqual(pack('@B', 23), BitStream('uintbe:8=23'))
+            self.assertEqual(pack('@h', 23), BitStream('intbe:16=23'))
+            self.assertEqual(pack('@H', 23), BitStream('uintbe:16=23'))
+            self.assertEqual(pack('@l', 23), BitStream('intbe:32=23'))
+            self.assertEqual(pack('@L', 23), BitStream('uintbe:32=23'))
+            self.assertEqual(pack('@q', 23), BitStream('intbe:64=23'))
+            self.assertEqual(pack('@Q', 23), BitStream('uintbe:64=23'))
 
     def testNativeEndianness(self):
         s = pack('@2L', 40, 40)
@@ -2483,7 +2483,7 @@ class Split(unittest.TestCase):
             self.assertEqual(sys.byteorder, 'big')
             self.assertEqual(s, pack('>2L', 40, 40))
 
-    def testStructTokens2(self):
+    def testStructTokens3(self):
         s = pack('>hhl', 1, 2, 3)
         a, b, c = s.unpack('>hhl')
         self.assertEqual((a, b, c), (1, 2, 3))
