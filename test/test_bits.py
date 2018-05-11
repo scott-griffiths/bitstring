@@ -421,3 +421,20 @@ class InitFromArray(unittest.TestCase):
         self.assertEqual(b.length, 192)
         c, d, e = b.unpack('3*floatne:64')
         self.assertEqual((c, d, e), (0.0, 1.0, 2.5))
+
+
+class Iteration(unittest.TestCase):
+
+    def testIterateEmptyBits(self):
+        self.assertEqual(list(Bits([])), [])
+        self.assertEqual(list(Bits([1, 0])[1:1]), [])
+
+    def testIterateNonEmptyBits(self):
+        self.assertEqual(list(Bits([1, 0])), [True, False])
+        self.assertEqual(list(Bits([1, 0, 0, 1])[1:3]), [False, False])
+
+    def testIterateLongBits(self):
+        self.assertEqual(
+            list(Bits([1, 0]) * 1024 * 1024),
+            [True, False] * 1024 * 1024
+        )
