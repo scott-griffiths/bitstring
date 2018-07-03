@@ -601,8 +601,8 @@ def tokenparser(fmt, keys=None, token_cache={}):
                 if m2.group('value'):
                     value = m2.group('value')
             if name == 'bool':
-                if length is not None:
-                    raise ValueError("You can't specify a length with bool tokens - they are always one bit.")
+                if length is not None and length != '1':
+                    raise ValueError("You can only specify one bit sized bool tokens or leave unspecified.")
                 length = 1
             if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 stretchy_token = True
