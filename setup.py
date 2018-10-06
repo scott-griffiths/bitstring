@@ -6,12 +6,11 @@ import sys
 
 kwds = {'long_description': open('README.rst').read()}
 
-if sys.version_info[:2] < (2, 6):
-    raise Exception('This version of bitstring needs Python 2.6 or later. '
-                    'For Python 2.4 / 2.5 please use bitstring version 1.0 instead.')
+if sys.version_info[:2] < (2, 7):
+    raise Exception('This version of bitstring needs Python 2.7 or later.')
 
 setup(name='bitstring',
-      version='3.1.5',
+      version='3.1.6',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='dr.scottgriffiths@gmail.com',
@@ -25,7 +24,6 @@ setup(name='bitstring',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.0',
@@ -34,6 +32,7 @@ setup(name='bitstring',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules',
       ],
       **kwds

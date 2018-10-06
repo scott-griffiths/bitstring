@@ -38,7 +38,7 @@ https://github.com/scott-griffiths/bitstring
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2016 Scott Griffiths (dr.scottgriffiths@gmail.com)
+Copyright (c) 2006-2018 Scott Griffiths (dr.scottgriffiths@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.1.5"
+__version__ = "3.1.6"
 
 __author__ = "Scott Griffiths"
 
