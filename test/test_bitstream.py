@@ -8,7 +8,8 @@ import copy
 import os
 import collections
 from bitstring import BitStream, ConstBitStream, pack
-from bitstring import ByteStore, offsetcopy
+from bitstring import offsetcopy
+
 
 class FlexibleInitialisation(unittest.TestCase):
     def testFlexibleInitialisation(self):
@@ -628,48 +629,48 @@ class Unpack(unittest.TestCase):
 
 class FromFile(unittest.TestCase):
     def testCreationFromFileOperations(self):
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         s.append('0xff')
         self.assertEqual(s.hex, '0123456789abcdefff')
 
-        s = ConstBitStream(filename='test/smalltestfile')
+        s = ConstBitStream(filename='smalltestfile')
         t = BitStream('0xff') + s
         self.assertEqual(t.hex, 'ff0123456789abcdef')
 
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         del s[:1]
         self.assertEqual((BitStream('0b0') + s).hex, '0123456789abcdef')
 
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         del s[:7 * 8]
         self.assertEqual(s.hex, 'ef')
 
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         s.insert('0xc', 4)
         self.assertEqual(s.hex, '0c123456789abcdef')
 
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         s.prepend('0xf')
         self.assertEqual(s.hex, 'f0123456789abcdef')
 
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         s.overwrite('0xaaa', 12)
         self.assertEqual(s.hex, '012aaa6789abcdef')
 
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         s.reverse()
         self.assertEqual(s.hex, 'f7b3d591e6a2c480')
 
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         del s[-60:]
         self.assertEqual(s.hex, '0')
 
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         del s[:60]
         self.assertEqual(s.hex, 'f')
 
     def testFileProperties(self):
-        s = ConstBitStream(filename='test/smalltestfile')
+        s = ConstBitStream(filename='smalltestfile')
         self.assertEqual(s.hex, '0123456789abcdef')
         self.assertEqual(s.uint, 81985529216486895)
         self.assertEqual(s.int, 81985529216486895)
@@ -683,34 +684,34 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s.tobytes(), b'\x01\x23\x45\x67\x89\xab\xcd\xef')
 
     def testCreationFromFileWithLength(self):
-        s = ConstBitStream(filename='test/test.m1v', length=32)
+        s = ConstBitStream(filename='test.m1v', length=32)
         self.assertEqual(s.length, 32)
         self.assertEqual(s.hex, '000001b3')
-        s = ConstBitStream(filename='test/test.m1v', length=0)
+        s = ConstBitStream(filename='test.m1v', length=0)
         self.assertFalse(s)
-        self.assertRaises(bitstring.CreationError, BitStream, filename='test/smalltestfile', length=65)
-        self.assertRaises(bitstring.CreationError, ConstBitStream, filename='test/smalltestfile', length=64, offset=1)
-        #        self.assertRaises(bitstring.CreationError, ConstBitStream, filename='test/smalltestfile', offset=65)
-        f = open('test/smalltestfile', 'rb')
+        self.assertRaises(bitstring.CreationError, BitStream, filename='smalltestfile', length=65)
+        self.assertRaises(bitstring.CreationError, ConstBitStream, filename='smalltestfile', length=64, offset=1)
+        #        self.assertRaises(bitstring.CreationError, ConstBitStream, filename='smalltestfile', offset=65)
+        f = open('smalltestfile', 'rb')
         #        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=65)
         self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, length=65)
         self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=60, length=5)
 
     def testCreationFromFileWithOffset(self):
-        a = BitStream(filename='test/test.m1v', offset=4)
+        a = BitStream(filename='test.m1v', offset=4)
         self.assertEqual(a.peek(4 * 8).hex, '00001b31')
-        b = BitStream(filename='test/test.m1v', offset=28)
+        b = BitStream(filename='test.m1v', offset=28)
         self.assertEqual(b.peek(8).hex, '31')
 
     def testFileSlices(self):
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         self.assertEqual(s[-16:].hex, 'cdef')
 
     def testCreataionFromFileErrors(self):
         self.assertRaises(IOError, BitStream, filename='Idonotexist')
 
     def testFindInFile(self):
-        s = BitStream(filename='test/test.m1v')
+        s = BitStream(filename='test.m1v')
         self.assertTrue(s.find('0x160120'))
         self.assertEqual(s.bytepos, 4)
         s3 = s.read(3 * 8)
@@ -721,15 +722,15 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s.bytepos, 13)
 
     def testHexFromFile(self):
-        s = BitStream(filename='test/test.m1v')
+        s = BitStream(filename='test.m1v')
         self.assertEqual(s[0:32].hex, '000001b3')
         self.assertEqual(s[-32:].hex, '000001b7')
         s.hex = '0x11'
         self.assertEqual(s.hex, '11')
 
     def testFileOperations(self):
-        s1 = BitStream(filename='test/test.m1v')
-        s2 = BitStream(filename='test/test.m1v')
+        s1 = BitStream(filename='test.m1v')
+        s2 = BitStream(filename='test.m1v')
         self.assertEqual(s1.read(32).hex, '000001b3')
         self.assertEqual(s2.read(32).hex, '000001b3')
         s1.bytepos += 4
@@ -743,7 +744,7 @@ class FromFile(unittest.TestCase):
             pass
 
     def testFileBitGetting(self):
-        s = ConstBitStream(filename='test/smalltestfile', offset=16, length=8) # 0x45
+        s = ConstBitStream(filename='smalltestfile', offset=16, length=8) # 0x45
         b = s[1]
         self.assertTrue(b)
         b = s.any(0, [-1, -2, -3])
@@ -1614,7 +1615,7 @@ class Multiplication(unittest.TestCase):
         self.assertEqual(q.bitpos, 0)
 
     def testMultiplicationWithFiles(self):
-        a = BitStream(filename='test/test.m1v')
+        a = BitStream(filename='test.m1v')
         b = a.len
         a *= 3
         self.assertEqual(a.len, 3 * b)
@@ -1630,8 +1631,8 @@ class Multiplication(unittest.TestCase):
         self.assertRaises(TypeError, a.__imul__, b)
 
     def testFileAndMemEquivalence(self):
-        a = ConstBitStream(filename='test/smalltestfile')
-        b = BitStream(filename='test/smalltestfile')
+        a = ConstBitStream(filename='smalltestfile')
+        b = BitStream(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
         self.assertTrue(isinstance(b._datastore._rawarray, bytearray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
@@ -1892,9 +1893,9 @@ class Split(unittest.TestCase):
             a = BitStream(bs)
             b = eval(a.__repr__())
             self.assertTrue(a == b)
-        for f in [ConstBitStream(filename='test/test.m1v'),
-                  ConstBitStream(filename='test/test.m1v', length=17),
-                  ConstBitStream(filename='test/test.m1v', length=23, offset=23102)]:
+        for f in [ConstBitStream(filename='test.m1v'),
+                  ConstBitStream(filename='test.m1v', length=17),
+                  ConstBitStream(filename='test.m1v', length=23, offset=23102)]:
             f2 = eval(f.__repr__())
             self.assertEqual(f._datastore._rawarray.source.name, f2._datastore._rawarray.source.name)
             self.assertTrue(f2.tobytes() == f.tobytes())
@@ -1912,7 +1913,7 @@ class Split(unittest.TestCase):
     def testPrint(self):
         s = BitStream(hex='0x00')
         self.assertEqual('0x' + s.hex, s.__str__())
-        s = BitStream(filename='test/test.m1v')
+        s = BitStream(filename='test.m1v')
         self.assertEqual('0x' + s[0:bitstring.MAX_CHARS * 4].hex + '...', s.__str__())
         self.assertEqual(BitStream().__str__(), '')
         s = BitStream('0b11010')
@@ -2332,7 +2333,7 @@ class Split(unittest.TestCase):
         self.assertEqual(tp('2*bits:6'), (False, [('bits', 6, None), ('bits', 6, None)]))
 
     def testAutoFromFileObject(self):
-        with open('test/test.m1v', 'rb') as f:
+        with open('test.m1v', 'rb') as f:
             s = ConstBitStream(f, offset=32, length=12)
             self.assertEqual(s.uint, 352)
             t = ConstBitStream('0xf') + f
@@ -2342,13 +2343,13 @@ class Split(unittest.TestCase):
             t2.prepend(s2)
             self.assertTrue(t2.startswith('0x000001b3'))
             self.assertTrue(t2.endswith('0xc'))
-            with open('test/test.m1v', 'rb') as b:
+            with open('test.m1v', 'rb') as b:
                 u = BitStream(bytes=b.read())
                 # TODO: u == s2 is much slower than u.bytes == s2.bytes
                 self.assertEqual(u.bytes, s2.bytes)
 
     def testFileBasedCopy(self):
-        with open('test/smalltestfile', 'rb') as f:
+        with open('smalltestfile', 'rb') as f:
             s = BitStream(f)
             t = BitStream(s)
             s.prepend('0b1')
@@ -2866,10 +2867,10 @@ class Set(unittest.TestCase):
         self.assertRaises(IndexError, a.set, 1, [-11])
 
     def testFileBasedSetUnset(self):
-        a = BitStream(filename='test/test.m1v')
+        a = BitStream(filename='test.m1v')
         a.set(True, (0, 1, 2, 3, 4))
         self.assertEqual(a[0:32], '0xf80001b3')
-        a = BitStream(filename='test/test.m1v')
+        a = BitStream(filename='test.m1v')
         a.set(False, (28, 29, 30, 31))
         self.assertTrue(a.startswith('0x000001b0'))
 
@@ -2947,7 +2948,7 @@ class Invert(unittest.TestCase):
         a = BitStream('0b0101010101000')
         a &= '0b1111110000000'
         self.assertEqual(a, '0b0101010000000')
-        s = BitStream(filename='test/test.m1v', offset=26, length=24)
+        s = BitStream(filename='test.m1v', offset=26, length=24)
         s &= '0xff00ff'
         self.assertEqual(s, '0xcc0004')
 
@@ -2972,15 +2973,15 @@ class AllAndAny(unittest.TestCase):
         self.assertFalse(a.all(True, [0]))
 
     def testFileBasedAll(self):
-        a = BitStream(filename='test/test.m1v')
+        a = BitStream(filename='test.m1v')
         self.assertTrue(a.all(True, [31]))
-        a = BitStream(filename='test/test.m1v')
+        a = BitStream(filename='test.m1v')
         self.assertTrue(a.all(False, (0, 1, 2, 3, 4)))
 
     def testFileBasedAny(self):
-        a = BitStream(filename='test/test.m1v')
+        a = BitStream(filename='test.m1v')
         self.assertTrue(a.any(True, (31, 12)))
-        a = BitStream(filename='test/test.m1v')
+        a = BitStream(filename='test.m1v')
         self.assertTrue(a.any(False, (0, 1, 2, 3, 4)))
 
     def testAny(self):
@@ -3165,7 +3166,7 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(a, '0b1')
 
     def testRolFromFile(self):
-        a = BitStream(filename='test/test.m1v')
+        a = BitStream(filename='test.m1v')
         l = a.len
         a.rol(1)
         self.assertTrue(a.startswith('0x000003'))
@@ -3173,7 +3174,7 @@ class AllAndAny(unittest.TestCase):
         self.assertTrue(a.endswith('0x0036e'))
 
     def testRorFromFile(self):
-        a = BitStream(filename='test/test.m1v')
+        a = BitStream(filename='test.m1v')
         l = a.len
         a.ror(1)
         self.assertTrue(a.startswith('0x800000'))
@@ -3609,7 +3610,7 @@ class Bugs(unittest.TestCase):
         self.assertRaises(TypeError, s.byteswap, 5.4)
 
     def testByteSwapFromFile(self):
-        s = BitStream(filename='test/smalltestfile')
+        s = BitStream(filename='smalltestfile')
         swaps = s.byteswap('2bh')
         self.assertEqual(s, '0x0123674589abefcd')
         self.assertEqual(swaps, 2)
@@ -3812,16 +3813,16 @@ class ReadWithIntegers(unittest.TestCase):
 
 class FileReadingStrategy(unittest.TestCase):
     def testBitStreamIsAlwaysRead(self):
-        a = BitStream(filename='test/smalltestfile')
+        a = BitStream(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore, bitstring.ByteStore))
-        f = open('test/smalltestfile', 'rb')
+        f = open('smalltestfile', 'rb')
         b = BitStream(f)
         self.assertTrue(isinstance(b._datastore, bitstring.ByteStore))
 
     def testBitsIsNeverRead(self):
-        a = ConstBitStream(filename='test/smalltestfile')
+        a = ConstBitStream(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
-        f = open('test/smalltestfile', 'rb')
+        f = open('smalltestfile', 'rb')
         b = ConstBitStream(f)
         self.assertTrue(isinstance(b._datastore._rawarray, bitstring.MmapByteArray))
 
