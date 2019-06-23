@@ -55,7 +55,7 @@ The tokens in the format string that you must provide values for are:
 ``oct[:n]``         [``n`` bits as] an octal string.
 ``bin[:n]``         [``n`` bits as] a binary string.
 ``bits[:n]``        [``n`` bits as] a new bitstring.
-``bool``            single bit as a boolean (True or False).
+``bool[:1]``        single bit as a boolean (True or False).
 ``ue``              an unsigned integer as an exponential-Golomb code.
 ``se``              a signed integer as an exponential-Golomb code.
 ``uie``             an unsigned integer as an interleaved exponential-Golomb code.

@@ -73,7 +73,7 @@ The format string consists of comma separated tokens that describe how to interp
 ``se``          next bits as a signed exponential-Golomb code.
 ``uie``         next bits as an interleaved unsigned exponential-Golomb code.
 ``sie``         next bits as an interleaved signed exponential-Golomb code.
-``bool``        next bits as a boolean (True or False).
+``bool[:1]``    next bit as a boolean (True or False).
 ``pad:n``       next ``n`` bits will be ignored (padding).
 ==============  ===================================================================
 

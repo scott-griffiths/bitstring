@@ -128,12 +128,12 @@ class Creation(unittest.TestCase):
     def testCreationFromBool(self):
         a = Bits('bool=1')
         self.assertEqual(a, 'bool=1')
-        b = Bits('bool=0')
+        b = Bits('bool:1=0')
         self.assertEqual(b, [0])
-        c = bitstring.pack('2*bool', 0, 1)
-        self.assertEqual(c, '0b01')
-        d = bitstring.pack('2*bool:1', 1, 0)
-        self.assertEqual(d, '0b10')
+        c = bitstring.pack('bool=1, 2*bool', 0, 1)
+        self.assertEqual(c, '0b101')
+        d = bitstring.pack('bool:1=1, 2*bool:1', 1, 0)
+        self.assertEqual(d, '0b110')
 
     def testCreationKeywordError(self):
         self.assertRaises(bitstring.CreationError, Bits, squirrel=5)
