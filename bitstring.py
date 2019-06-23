@@ -1852,11 +1852,7 @@ class Bits(object):
         endbyte = (start + self._offset + length - 1) // 8
         b = self._datastore.getbyteslice(startbyte, endbyte + 1)
         # Convert to a string of '0' and '1's (via a hex string an and int!)
-        try:
-            c = "{:0{}b}".format(int(binascii.hexlify(b), 16), 8*len(b))
-        except TypeError:
-            # Hack to get Python 2.6 working
-            c = "{0:0{1}b}".format(int(binascii.hexlify(str(b)), 16), 8*len(b))
+        c = "{:0{}b}".format(int(binascii.hexlify(b), 16), 8*len(b))
         # Finally chop off any extra bits.
         return c[startoffset:startoffset + length]
 
@@ -1872,11 +1868,10 @@ class Bits(object):
         binlist = []
         for i in octstring:
             try:
-                if not 0 <= int(i) < 8:
-                    raise ValueError
                 binlist.append(OCT_TO_BITS[int(i)])
-            except ValueError:
+            except (ValueError, IndexError):
                 raise CreationError("Invalid symbol '{0}' in oct initialiser.", i)
+
         self._setbin_unsafe(''.join(binlist))
 
     def _readoct(self, length, start):
@@ -1907,11 +1902,7 @@ class Bits(object):
         if length % 2:
             hexstring += '0'
         try:
-            try:
-                data = bytearray.fromhex(hexstring)
-            except TypeError:
-                # Python 2.6 needs a unicode string (a bug). 2.7 and 3.x work fine.
-                data = bytearray.fromhex(unicode(hexstring))
+            data = bytearray.fromhex(hexstring)
         except ValueError:
             raise CreationError("Invalid symbol in hex initialiser.")
         self._setbytes_unsafe(data, length * 4, 0)
