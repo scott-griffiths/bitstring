@@ -3786,7 +3786,6 @@ class BoolToken(unittest.TestCase):
     def testLengthWithBoolRead(self):
         a = ConstBitStream('0xf')
         self.assertRaises(ValueError, a.read, 'bool:0')
-        self.assertRaises(ValueError, a.read, 'bool:1')
         self.assertRaises(ValueError, a.read, 'bool:2')
 
 
