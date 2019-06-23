@@ -692,10 +692,10 @@ class FromFile(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, BitStream, filename='smalltestfile', length=65)
         self.assertRaises(bitstring.CreationError, ConstBitStream, filename='smalltestfile', length=64, offset=1)
         #        self.assertRaises(bitstring.CreationError, ConstBitStream, filename='smalltestfile', offset=65)
-        f = open('smalltestfile', 'rb')
-        #        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=65)
-        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, length=65)
-        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=60, length=5)
+        with open('smalltestfile', 'rb') as f:
+            #        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=65)
+            self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, length=65)
+            self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=60, length=5)
 
     def testCreationFromFileWithOffset(self):
         a = BitStream(filename='test.m1v', offset=4)
@@ -3116,7 +3116,7 @@ class AllAndAny(unittest.TestCase):
         a = BitStream('0x3')
         self.assertRaises(bitstring.InterpretError, a._getfloat)
         self.assertRaises(bitstring.CreationError, a._setfloat, -0.2)
-        for l in (8, 10, 12, 16, 30, 128, 200):
+        for l in (8, 10, 12, 18, 30, 128, 200):
             self.assertRaises(ValueError, BitStream, float=1.0, length=l)
         self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=0)
         self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=1)
@@ -3815,16 +3815,16 @@ class FileReadingStrategy(unittest.TestCase):
     def testBitStreamIsAlwaysRead(self):
         a = BitStream(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore, bitstring.ByteStore))
-        f = open('smalltestfile', 'rb')
-        b = BitStream(f)
-        self.assertTrue(isinstance(b._datastore, bitstring.ByteStore))
+        with open('smalltestfile', 'rb') as f:
+            b = BitStream(f)
+            self.assertTrue(isinstance(b._datastore, bitstring.ByteStore))
 
     def testBitsIsNeverRead(self):
         a = ConstBitStream(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
-        f = open('smalltestfile', 'rb')
-        b = ConstBitStream(f)
-        self.assertTrue(isinstance(b._datastore._rawarray, bitstring.MmapByteArray))
+        with open('smalltestfile', 'rb') as f:
+            b = ConstBitStream(f)
+            self.assertTrue(isinstance(b._datastore._rawarray, bitstring.MmapByteArray))
 
 
 class Count(unittest.TestCase):

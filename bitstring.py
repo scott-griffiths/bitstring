@@ -1278,7 +1278,10 @@ class Bits(object):
             self._setbytes_unsafe(bytearray(s), len(s) * 8, 0)
             return
         if isinstance(s, array.array):
-            b = s.tostring()
+            try:
+                b = s.tobytes()
+            except AttributeError:
+                b = s.tostring()  # Python 2.7
             self._setbytes_unsafe(bytearray(b), len(b) * 8, 0)
             return
         if isinstance(s, numbers.Integral):

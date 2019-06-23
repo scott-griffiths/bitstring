@@ -414,7 +414,10 @@ class InitFromArray(unittest.TestCase):
         a.append(-1)
         b = Bits(a)
         self.assertEqual(b.length, 32)
-        self.assertEqual(b.bytes, a.tostring())
+        try:
+            self.assertEqual(b.bytes, a.tobytes())
+        except AttributeError:
+            self.assertEqual(b.bytes, a.tostring())  # Python 2.7
 
     def testDouble(self):
         a = array.array('d', [0.0, 1.0, 2.5])
