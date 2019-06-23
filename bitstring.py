@@ -1297,18 +1297,18 @@ class Bits(object):
 
     def _setfile(self, filename, length, offset):
         """Use file as source of bits."""
-        source = open(filename, 'rb')
-        if offset is None:
-            offset = 0
-        if length is None:
-            length = os.path.getsize(source.name) * 8 - offset
-        byteoffset, offset = divmod(offset, 8)
-        bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
-        m = MmapByteArray(source, bytelength, byteoffset)
-        if length + byteoffset * 8 + offset > m.filelength * 8:
-            raise CreationError("File is not long enough for specified "
-                                "length and offset.")
-        self._datastore = ConstByteStore(m, length, offset)
+        with open(filename, 'rb') as source:
+            if offset is None:
+                offset = 0
+            if length is None:
+                length = os.path.getsize(source.name) * 8 - offset
+            byteoffset, offset = divmod(offset, 8)
+            bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
+            m = MmapByteArray(source, bytelength, byteoffset)
+            if length + byteoffset * 8 + offset > m.filelength * 8:
+                raise CreationError("File is not long enough for specified "
+                                    "length and offset.")
+            self._datastore = ConstByteStore(m, length, offset)
 
     def _setbytes_safe(self, data, length=None, offset=0):
         """Set the data from a string."""
