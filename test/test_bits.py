@@ -429,6 +429,23 @@ class InitFromArray(unittest.TestCase):
         self.assertEqual((c, d, e), (0.0, 1.0, 2.5))
 
 
+class Iteration(unittest.TestCase):
+
+    def testIterateEmptyBits(self):
+        self.assertEqual(list(Bits([])), [])
+        self.assertEqual(list(Bits([1, 0])[1:1]), [])
+
+    def testIterateNonEmptyBits(self):
+        self.assertEqual(list(Bits([1, 0])), [True, False])
+        self.assertEqual(list(Bits([1, 0, 0, 1])[1:3]), [False, False])
+
+    def testIterateLongBits(self):
+        self.assertEqual(
+            list(Bits([1, 0]) * 1024 * 1024),
+            [True, False] * 1024 * 1024
+        )
+
+        
 class ContainsBug(unittest.TestCase):
 
     def testContains(self):
@@ -438,3 +455,4 @@ class ContainsBug(unittest.TestCase):
 
         self.assertTrue('0b1' in Bits('0xf'))
         self.assertFalse('0b0' in Bits('0xf'))
+

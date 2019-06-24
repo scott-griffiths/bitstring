@@ -145,6 +145,21 @@ class ConstByteStore(object):
         self.offset = offset
         self.bitlength = bitlength
 
+    def __iter__(self):
+        start_byte, start_bit = divmod(self.offset, 8)
+        end_byte, end_bit = divmod(self.offset + self.bitlength, 8)
+
+        for byte_index in xrange(start_byte, end_byte):
+            byte = self._rawarray[byte_index]
+            for bit in range(start_bit, 8):
+                yield bool(byte & (128 >> bit))
+            start_bit = 0
+
+        if end_bit:
+            byte = self._rawarray[end_byte]
+            for bit in range(start_bit, end_bit):
+                yield bool(byte & (128 >> bit))
+
     def getbit(self, pos):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
@@ -834,6 +849,9 @@ class Bits(object):
             offset = 0
         self._setauto(auto, length, offset)
         return
+
+    def __iter__(self):
+        return iter(self._datastore)
 
     def __copy__(self):
         """Return a new copy of the Bits for the copy module."""
