@@ -891,17 +891,8 @@ class Bits(object):
 
         """
         length = self.len
-        try:
+        if isinstance(key, slice):
             step = key.step if key.step is not None else 1
-        except AttributeError:
-            # single element
-            if key < 0:
-                key += length
-            if not 0 <= key < length:
-                raise IndexError("Slice index out of range.")
-            # Single bit, return True or False
-            return self._datastore.getbit(key)
-        else:
             if step != 1:
                 # convert to binary string and use string slicing
                 bs = self.__class__()
@@ -922,6 +913,14 @@ class Bits(object):
                 return self._slice(start, stop)
             else:
                 return self.__class__()
+        else:
+            # single element
+            if key < 0:
+                key += length
+            if not 0 <= key < length:
+                raise IndexError("Slice index out of range.")
+            # Single bit, return True or False
+            return self._datastore.getbit(key)
 
     def __len__(self):
         """Return the length of the bitstring in bits."""
