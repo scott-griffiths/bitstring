@@ -38,7 +38,7 @@ https://github.com/scott-griffiths/bitstring
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2016 Scott Griffiths (dr.scottgriffiths@gmail.com)
+Copyright (c) 2006-2018 Scott Griffiths (dr.scottgriffiths@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.1.5"
+__version__ = "3.1.6"
 
 __author__ = "Scott Griffiths"
 
@@ -458,11 +458,10 @@ BYTE_REVERSAL_DICT = dict()
 
 # For Python 2.x/ 3.x coexistence
 # Yes this is very very hacky.
-try:
-    xrange
+if sys.version_info[0] == 2:
     for i in range(256):
         BYTE_REVERSAL_DICT[i] = chr(int("{0:08b}".format(i)[::-1], 2))
-except NameError:
+else:
     for i in range(256):
         BYTE_REVERSAL_DICT[i] = bytes([int("{0:08b}".format(i)[::-1], 2)])
     from io import IOBase as file
@@ -616,8 +615,8 @@ def tokenparser(fmt, keys=None, token_cache={}):
                 if m2.group('value'):
                     value = m2.group('value')
             if name == 'bool':
-                if length is not None:
-                    raise ValueError("You can't specify a length with bool tokens - they are always one bit.")
+                if length is not None and length != '1':
+                    raise ValueError("You can only specify one bit sized bool tokens or leave unspecified.")
                 length = 1
             if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 stretchy_token = True
@@ -910,17 +909,8 @@ class Bits(object):
 
         """
         length = self.len
-        try:
+        if isinstance(key, slice):
             step = key.step if key.step is not None else 1
-        except AttributeError:
-            # single element
-            if key < 0:
-                key += length
-            if not 0 <= key < length:
-                raise IndexError("Slice index out of range.")
-            # Single bit, return True or False
-            return self._datastore.getbit(key)
-        else:
             if step != 1:
                 # convert to binary string and use string slicing
                 bs = self.__class__()
@@ -941,6 +931,14 @@ class Bits(object):
                 return self._slice(start, stop)
             else:
                 return self.__class__()
+        else:
+            # single element
+            if key < 0:
+                key += length
+            if not 0 <= key < length:
+                raise IndexError("Slice index out of range.")
+            # Single bit, return True or False
+            return self._datastore.getbit(key)
 
     def __len__(self):
         """Return the length of the bitstring in bits."""
@@ -1175,7 +1173,7 @@ class Bits(object):
         found = Bits.find(self, bs, bytealigned=False)
         try:
             self._pos = pos
-        except AttributeError:
+        except UnboundLocalError:
             pass
         return bool(found)
 
@@ -1297,7 +1295,10 @@ class Bits(object):
             self._setbytes_unsafe(bytearray(s), len(s) * 8, 0)
             return
         if isinstance(s, array.array):
-            b = s.tostring()
+            try:
+                b = s.tobytes()
+            except AttributeError:
+                b = s.tostring()  # Python 2.7
             self._setbytes_unsafe(bytearray(b), len(b) * 8, 0)
             return
         if isinstance(s, numbers.Integral):
@@ -1316,18 +1317,18 @@ class Bits(object):
 
     def _setfile(self, filename, length, offset):
         """Use file as source of bits."""
-        source = open(filename, 'rb')
-        if offset is None:
-            offset = 0
-        if length is None:
-            length = os.path.getsize(source.name) * 8 - offset
-        byteoffset, offset = divmod(offset, 8)
-        bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
-        m = MmapByteArray(source, bytelength, byteoffset)
-        if length + byteoffset * 8 + offset > m.filelength * 8:
-            raise CreationError("File is not long enough for specified "
-                                "length and offset.")
-        self._datastore = ConstByteStore(m, length, offset)
+        with open(filename, 'rb') as source:
+            if offset is None:
+                offset = 0
+            if length is None:
+                length = os.path.getsize(source.name) * 8 - offset
+            byteoffset, offset = divmod(offset, 8)
+            bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
+            m = MmapByteArray(source, bytelength, byteoffset)
+            if length + byteoffset * 8 + offset > m.filelength * 8:
+                raise CreationError("File is not long enough for specified "
+                                    "length and offset.")
+            self._datastore = ConstByteStore(m, length, offset)
 
     def _setbytes_safe(self, data, length=None, offset=0):
         """Set the data from a string."""
@@ -1868,11 +1869,7 @@ class Bits(object):
         endbyte = (start + self._offset + length - 1) // 8
         b = self._datastore.getbyteslice(startbyte, endbyte + 1)
         # Convert to a string of '0' and '1's (via a hex string an and int!)
-        try:
-            c = "{:0{}b}".format(int(binascii.hexlify(b), 16), 8*len(b))
-        except TypeError:
-            # Hack to get Python 2.6 working
-            c = "{0:0{1}b}".format(int(binascii.hexlify(str(b)), 16), 8*len(b))
+        c = "{:0{}b}".format(int(binascii.hexlify(b), 16), 8*len(b))
         # Finally chop off any extra bits.
         return c[startoffset:startoffset + length]
 
@@ -1888,11 +1885,10 @@ class Bits(object):
         binlist = []
         for i in octstring:
             try:
-                if not 0 <= int(i) < 8:
-                    raise ValueError
                 binlist.append(OCT_TO_BITS[int(i)])
-            except ValueError:
+            except (ValueError, IndexError):
                 raise CreationError("Invalid symbol '{0}' in oct initialiser.", i)
+
         self._setbin_unsafe(''.join(binlist))
 
     def _readoct(self, length, start):
@@ -1923,11 +1919,7 @@ class Bits(object):
         if length % 2:
             hexstring += '0'
         try:
-            try:
-                data = bytearray.fromhex(hexstring)
-            except TypeError:
-                # Python 2.6 needs a unicode string (a bug). 2.7 and 3.x work fine.
-                data = bytearray.fromhex(unicode(hexstring))
+            data = bytearray.fromhex(hexstring)
         except ValueError:
             raise CreationError("Invalid symbol in hex initialiser.")
         self._setbytes_unsafe(data, length * 4, 0)

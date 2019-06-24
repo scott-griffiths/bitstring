@@ -1,6 +1,6 @@
-================
-bitstring module
-================
+
+
+.. image:: /doc/bitstring_logo.png
 
 **bitstring** is a pure Python module designed to help make
 the creation and analysis of binary data as simple and natural as possible.
@@ -86,12 +86,12 @@ Searching, inserting and deleting::
 Unit Tests
 ----------
 
-The 400+ unit tests should all pass for Python 2.6 and later.
+The 400+ unit tests should all pass for Python 2.7 and later.
 
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2016 Scott Griffiths
+Copyright (c) 2018 Scott Griffiths
 
 For more information see the project's homepage on GitHub:
 <https://github.com/scott-griffiths/bitstring>

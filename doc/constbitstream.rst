@@ -73,7 +73,7 @@ The ConstBitStream class
         ``sie``          next bits as an interleaved signed exp-Golomb.
         ``bits:n``       ``n`` bits as a new bitstring.
         ``bytes:n``      ``n`` bytes as ``bytes`` object.
-        ``bool``         next bit as a boolean (True or False).
+        ``bool[:1]``     next bit as a boolean (True or False).
         ``pad:n``        next ``n`` bits will be skipped.
         ==============   =================================================
 

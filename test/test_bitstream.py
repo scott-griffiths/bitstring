@@ -8,7 +8,7 @@ import copy
 import os
 import collections
 from bitstring import BitStream, ConstBitStream, pack
-from bitstring import ByteStore, offsetcopy
+from bitstring import offsetcopy
 
 
 class FlexibleInitialisation(unittest.TestCase):
@@ -692,10 +692,10 @@ class FromFile(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, BitStream, filename='smalltestfile', length=65)
         self.assertRaises(bitstring.CreationError, ConstBitStream, filename='smalltestfile', length=64, offset=1)
         #        self.assertRaises(bitstring.CreationError, ConstBitStream, filename='smalltestfile', offset=65)
-        f = open('smalltestfile', 'rb')
-        #        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=65)
-        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, length=65)
-        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=60, length=5)
+        with open('smalltestfile', 'rb') as f:
+            #        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=65)
+            self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, length=65)
+            self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=60, length=5)
 
     def testCreationFromFileWithOffset(self):
         a = BitStream(filename='test.m1v', offset=4)
@@ -2454,26 +2454,26 @@ class Split(unittest.TestCase):
         self.assertRaises(bitstring.CreationError, pack, '<Q', -1)
 
     def testStructTokens2(self):
-        endianness = sys.byteorder
-        sys.byteorder = 'little'
-        self.assertEqual(pack('@b', 23), BitStream('intle:8=23'))
-        self.assertEqual(pack('@B', 23), BitStream('uintle:8=23'))
-        self.assertEqual(pack('@h', 23), BitStream('intle:16=23'))
-        self.assertEqual(pack('@H', 23), BitStream('uintle:16=23'))
-        self.assertEqual(pack('@l', 23), BitStream('intle:32=23'))
-        self.assertEqual(pack('@L', 23), BitStream('uintle:32=23'))
-        self.assertEqual(pack('@q', 23), BitStream('intle:64=23'))
-        self.assertEqual(pack('@Q', 23), BitStream('uintle:64=23'))
-        sys.byteorder = 'big'
-        self.assertEqual(pack('@b', 23), BitStream('intbe:8=23'))
-        self.assertEqual(pack('@B', 23), BitStream('uintbe:8=23'))
-        self.assertEqual(pack('@h', 23), BitStream('intbe:16=23'))
-        self.assertEqual(pack('@H', 23), BitStream('uintbe:16=23'))
-        self.assertEqual(pack('@l', 23), BitStream('intbe:32=23'))
-        self.assertEqual(pack('@L', 23), BitStream('uintbe:32=23'))
-        self.assertEqual(pack('@q', 23), BitStream('intbe:64=23'))
-        self.assertEqual(pack('@Q', 23), BitStream('uintbe:64=23'))
-        sys.byteorder = endianness
+        # I couldn't find a way to test both types of native endianness
+        # on a single machine, so only one set of tests will run.
+        if sys.byteorder == 'little':
+            self.assertEqual(pack('@b', 23), BitStream('intle:8=23'))
+            self.assertEqual(pack('@B', 23), BitStream('uintle:8=23'))
+            self.assertEqual(pack('@h', 23), BitStream('intle:16=23'))
+            self.assertEqual(pack('@H', 23), BitStream('uintle:16=23'))
+            self.assertEqual(pack('@l', 23), BitStream('intle:32=23'))
+            self.assertEqual(pack('@L', 23), BitStream('uintle:32=23'))
+            self.assertEqual(pack('@q', 23), BitStream('intle:64=23'))
+            self.assertEqual(pack('@Q', 23), BitStream('uintle:64=23'))
+        else:
+            self.assertEqual(pack('@b', 23), BitStream('intbe:8=23'))
+            self.assertEqual(pack('@B', 23), BitStream('uintbe:8=23'))
+            self.assertEqual(pack('@h', 23), BitStream('intbe:16=23'))
+            self.assertEqual(pack('@H', 23), BitStream('uintbe:16=23'))
+            self.assertEqual(pack('@l', 23), BitStream('intbe:32=23'))
+            self.assertEqual(pack('@L', 23), BitStream('uintbe:32=23'))
+            self.assertEqual(pack('@q', 23), BitStream('intbe:64=23'))
+            self.assertEqual(pack('@Q', 23), BitStream('uintbe:64=23'))
 
     def testNativeEndianness(self):
         s = pack('@2L', 40, 40)
@@ -2483,7 +2483,7 @@ class Split(unittest.TestCase):
             self.assertEqual(sys.byteorder, 'big')
             self.assertEqual(s, pack('>2L', 40, 40))
 
-    def testStructTokens2(self):
+    def testStructTokens3(self):
         s = pack('>hhl', 1, 2, 3)
         a, b, c = s.unpack('>hhl')
         self.assertEqual((a, b, c), (1, 2, 3))
@@ -3116,7 +3116,7 @@ class AllAndAny(unittest.TestCase):
         a = BitStream('0x3')
         self.assertRaises(bitstring.InterpretError, a._getfloat)
         self.assertRaises(bitstring.CreationError, a._setfloat, -0.2)
-        for l in (8, 10, 12, 16, 30, 128, 200):
+        for l in (8, 10, 12, 18, 30, 128, 200):
             self.assertRaises(ValueError, BitStream, float=1.0, length=l)
         self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=0)
         self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=1)
@@ -3786,7 +3786,6 @@ class BoolToken(unittest.TestCase):
     def testLengthWithBoolRead(self):
         a = ConstBitStream('0xf')
         self.assertRaises(ValueError, a.read, 'bool:0')
-        self.assertRaises(ValueError, a.read, 'bool:1')
         self.assertRaises(ValueError, a.read, 'bool:2')
 
 
@@ -3815,16 +3814,16 @@ class FileReadingStrategy(unittest.TestCase):
     def testBitStreamIsAlwaysRead(self):
         a = BitStream(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore, bitstring.ByteStore))
-        f = open('smalltestfile', 'rb')
-        b = BitStream(f)
-        self.assertTrue(isinstance(b._datastore, bitstring.ByteStore))
+        with open('smalltestfile', 'rb') as f:
+            b = BitStream(f)
+            self.assertTrue(isinstance(b._datastore, bitstring.ByteStore))
 
     def testBitsIsNeverRead(self):
         a = ConstBitStream(filename='smalltestfile')
         self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
-        f = open('smalltestfile', 'rb')
-        b = ConstBitStream(f)
-        self.assertTrue(isinstance(b._datastore._rawarray, bitstring.MmapByteArray))
+        with open('smalltestfile', 'rb') as f:
+            b = ConstBitStream(f)
+            self.assertTrue(isinstance(b._datastore._rawarray, bitstring.MmapByteArray))
 
 
 class Count(unittest.TestCase):

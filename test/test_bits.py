@@ -7,7 +7,8 @@ sys.path.insert(0, '..')
 import bitstring
 import array
 from bitstring import MmapByteArray
-from bitstring import Bits, BitArray, ConstByteStore, ByteStore
+from bitstring import Bits, BitArray, ConstByteStore
+
 
 class Creation(unittest.TestCase):
     def testCreationFromBytes(self):
@@ -127,10 +128,12 @@ class Creation(unittest.TestCase):
     def testCreationFromBool(self):
         a = Bits('bool=1')
         self.assertEqual(a, 'bool=1')
-        b = Bits('bool=0')
+        b = Bits('bool:1=0')
         self.assertEqual(b, [0])
-        c = bitstring.pack('2*bool', 0, 1)
-        self.assertEqual(c, '0b01')
+        c = bitstring.pack('bool=1, 2*bool', 0, 1)
+        self.assertEqual(c, '0b101')
+        d = bitstring.pack('bool:1=1, 2*bool:1', 1, 0)
+        self.assertEqual(d, '0b110')
 
     def testCreationKeywordError(self):
         self.assertRaises(bitstring.CreationError, Bits, squirrel=5)
@@ -413,7 +416,10 @@ class InitFromArray(unittest.TestCase):
         a.append(-1)
         b = Bits(a)
         self.assertEqual(b.length, 32)
-        self.assertEqual(b.bytes, a.tostring())
+        try:
+            self.assertEqual(b.bytes, a.tobytes())
+        except AttributeError:
+            self.assertEqual(b.bytes, a.tostring())  # Python 2.7
 
     def testDouble(self):
         a = array.array('d', [0.0, 1.0, 2.5])
@@ -438,3 +444,15 @@ class Iteration(unittest.TestCase):
             list(Bits([1, 0]) * 1024 * 1024),
             [True, False] * 1024 * 1024
         )
+
+        
+class ContainsBug(unittest.TestCase):
+
+    def testContains(self):
+        a = Bits('0b1, 0x0001dead0001')
+        self.assertTrue('0xdead' in a)
+        self.assertFalse('0xfeed' in a)
+
+        self.assertTrue('0b1' in Bits('0xf'))
+        self.assertFalse('0b0' in Bits('0xf'))
+
