@@ -11,4 +11,4 @@ install:
   - pip install .
 
 script:
-  - py.test
+  - cd test; py.test
