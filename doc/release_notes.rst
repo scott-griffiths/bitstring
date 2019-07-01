@@ -845,7 +845,7 @@ for BitStrings of length 32 or 64 bits. ::
 'bytes' token reintroduced
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This token returns a bytes object (equivalent to a str in Python 2.6). ::
+This token returns a bytes object (equivalent to a str in Python 2.7). ::
 
     >>> s = BitString('0x010203')
     >>> s.unpack('bytes:2, bytes:1')

@@ -16,6 +16,20 @@ licence.
 
 This module works in both Python 2.7 and Python 3.
 
+Installation
+------------
+
+Probably all you need to do is::
+
+     pip install bitstring     
+
+Alternatively if you have downloaded and unzipped the package then you need to run the
+``setup.py`` script with the 'install' argument::
+
+     python setup.py install
+
+You may need to run this with root privileges on Unix-like systems.
+
 Documentation
 -------------
 The manual for the bitstring module is available here
@@ -23,24 +37,6 @@ The manual for the bitstring module is available here
 the features and a complete reference section.
 
 It is also available as a PDF as part of the source download.
-
-Installation
-------------
-If you have downloaded and unzipped the package then you need to run the
-``setup.py`` script with the 'install' argument::
-
-     python setup.py install
-
-You may need to run this with root privileges on Unix-like systems.
-
-
-If you haven't yet downloaded the package then you can just try::
-
-     easy_install bitstring
-
-or ::
-
-     pip install bitstring     
 
 
 Simple Examples
@@ -86,12 +82,15 @@ Searching, inserting and deleting::
 Unit Tests
 ----------
 
-The 400+ unit tests should all pass for Python 2.7 and later.
+The 400+ unit tests should all pass for Python 2.7 and later. To run them, from the `test` 
+directory run::
+
+     python -m unittest discover
 
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2018 Scott Griffiths
+Copyright (c) 2019 Scott Griffiths
 
 For more information see the project's homepage on GitHub:
 <https://github.com/scott-griffiths/bitstring>

@@ -16,7 +16,7 @@ Only a few of the module's features will be covered in this walkthrough; the :re
 Prerequisites
 -------------
 
-* Python 2.6, 2.7 or 3.x.
+* Python 2.7 or 3.x.
 * An installed bitstring module.
 * A rudimentory knowledge of binary concepts.
 * A little free time.

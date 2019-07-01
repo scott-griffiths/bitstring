@@ -57,9 +57,9 @@ Interpret the bitstring however you want::
 Getting Started
 ---------------
 
-The easiest way to install :mod:`bitstring` is to use ``easy_install`` via::
+The easiest way to install :mod:`bitstring` is to use ``pip`` via::
 
-   sudo easy_install bitstring
+   pip install bitstring
  
 or similar.
 
@@ -81,7 +81,7 @@ You might need to add a 'sudo' to the start of that command, depending on your s
 
 The module comes with comprehensive unit tests. To run them yourself use your favourite unit test running method, mine is::
  
-    nosetests -w test
+    python -m unittest discover
 
-which should run all the tests (over 400) and say OK. If tests fail then either your version of Python isn't supported (you need Python 2.6, 2.7 or 3.x) or something unexpected has happened - in which case please tell me about it.
+which when run in the `test` folder should run all the tests (over 400) and say OK. If tests fail then either your version of Python isn't supported (you need Python 2.7 or 3.x) or something unexpected has happened - in which case please tell me about it.
 
