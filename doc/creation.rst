@@ -15,13 +15,13 @@ Four classes are provided by the bitstring module: :class:`BitStream` and :class
  * :class:`Bits` ``(object)``: This is the most basic class. It is immutable and so its contents can't be changed after creation.
  * :class:`BitArray` ``(Bits)``: This adds mutating methods to its base class.
  * :class:`ConstBitStream` ``(Bits)``: This adds methods and properties to allow the bits to be treated as a stream of bits, with a bit position and reading/parsing methods.
- * :class:`BitStream` ``(BitArray, ConstBitStream)``: This is the most versative class, having both the bitstream methods and the mutating methods.
+ * :class:`BitStream` ``(BitArray, ConstBitStream)``: This is the most versatile class, having both the bitstream methods and the mutating methods.
 
-Before verion 3.0 ``Bits`` was known as ``ConstBitArray``. The old name is still available for backward compatibility.
+Before version 3.0 ``Bits`` was known as ``ConstBitArray``. The old name is still available for backward compatibility.
 
 The term 'bitstring' is used in this manual to refer generically to any of these classes.
 
-Most of the exampes in this manual use the :class:`BitArray` class, with :class:`BitStream` used when necessary. For most uses the non-const classes are more versatile and so probably your best choice when starting to use the module.
+Most of the examples in this manual use the :class:`BitArray` class, with :class:`BitStream` used when necessary. For most uses the non-const classes are more versatile and so probably your best choice when starting to use the module.
 
 To summarise when to use each class:
 

@@ -3,7 +3,7 @@
 Optimisation Techniques
 =======================
 
-The :mod:`bistring` module aims to be as fast as reasonably possible, and although there is more work to be done optimising some operations it is currently quite well optimised without resorting to C extensions.
+The :mod:`bitstring` module aims to be as fast as reasonably possible, and although there is more work to be done optimising some operations it is currently quite well optimised without resorting to C extensions.
 
 There are however some pointers you should follow to make your code efficient, so if you need things to run faster then this is the section for you.
 
@@ -31,7 +31,7 @@ Choose the simplest class you can
 
 If you don't need to modify your bitstring after creation then prefer the immutable :class:`Bits` over the mutable :class:`BitArray`. This is typically the case when parsing, or when creating directly from files.
 
-The speed difference between the classes is noticable, and there are also memory usage optimisations that are made if objects are known to be immutable.
+The speed difference between the classes is noticeable, and there are also memory usage optimisations that are made if objects are known to be immutable.
 
 You should also prefer :class:`ConstBitStream` to :class:`BitStream` if you won't need to modify any bits.
 
