@@ -91,7 +91,7 @@ where here we are also taking advantage of the default :attr:`~Bits.uint` interp
 
 You are allowed to use one 'stretchy' token in a :meth:`~ConstBitStream.readlist`. This is a token without a length specified which will stretch to fill encompass as many bits as possible. This is often useful when you just want to assign something to 'the rest' of the bitstring::
 
-    a, b, everthing_else = s.readlist('intle:16, intle:24, bits')
+    a, b, everything_else = s.readlist('intle:16, intle:24, bits')
 
 In this example the ``bits`` token will consist of everything left after the first two tokens are read, and could be empty.
 

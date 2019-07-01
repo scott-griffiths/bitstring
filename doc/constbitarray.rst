@@ -110,7 +110,7 @@ The Bits class
 
         If *bytealigned* is ``True`` then *bs* will only be looked for at byte aligned positions. *start* and *end* optionally define a search range and default to the whole bitstring.
 
-        The *count* paramater limits the number of items that will be found - the default is to find all occurences. ::
+        The *count* parameter limits the number of items that will be found - the default is to find all occurrences. ::
 
             >>> s = Bits('0xab220101')*5
             >>> list(s.findall('0x22', bytealigned=True))
@@ -541,7 +541,7 @@ The Bits class
 
         ``print(s)``
 
-        Used to print a representation of of the bitstring, trying to be as brief as possible.
+        Used to print a representation of the bitstring, trying to be as brief as possible.
 
         If the bitstring is a multiple of 4 bits long then hex will be used, otherwise either binary or a mix of hex and binary will be used. Very long strings will be truncated with ``...``. ::
 

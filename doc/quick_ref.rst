@@ -23,7 +23,7 @@ Methods
  *   :meth:`~Bits.cut` -- Create generator of constant sized chunks.
  *   :meth:`~Bits.endswith` -- Return whether the bitstring ends with a sub-bitstring.
  *   :meth:`~Bits.find` -- Find a sub-bitstring in the current bitstring.
- *   :meth:`~Bits.findall` -- Find all occurences of a sub-bitstring in the current bitstring.
+ *   :meth:`~Bits.findall` -- Find all occurrences of a sub-bitstring in the current bitstring.
  *   :meth:`~Bits.join` -- Join bitstrings together using current bitstring.
  *   :meth:`~Bits.rfind` -- Seek backwards to find a sub-bitstring.
  *   :meth:`~Bits.split` -- Create generator of chunks split by a delimiter.
@@ -82,7 +82,7 @@ Additional methods
  *   :meth:`~BitArray.invert` -- Flip bit(s) between one and zero.
  *   :meth:`~BitArray.overwrite` -- Overwrite a section with a new bitstring.
  *   :meth:`~BitArray.prepend` -- Prepend a bitstring.
- *   :meth:`~BitArray.replace` -- Replace occurences of one bitstring with another.
+ *   :meth:`~BitArray.replace` -- Replace occurrences of one bitstring with another.
  *   :meth:`~BitArray.reverse` -- Reverse bits in-place.
  *   :meth:`~BitArray.rol` -- Rotate bits to the left.
  *   :meth:`~BitArray.ror` -- Rotate bits to the right.

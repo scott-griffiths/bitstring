@@ -101,7 +101,7 @@ bytes
 
 A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the :attr:`~Bits.bytes` interpretation, which returns a ``bytes`` object (which is equivalent to an ordinary ``str`` in Python 2.6/2.7).
 
-If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`~Bits.tobytes` as this will be pad with between one and seven zero bits up to a byte boundary if neccessary. ::
+If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`~Bits.tobytes` as this will be pad with between one and seven zero bits up to a byte boundary if necessary. ::
 
     >>> open('somefile', 'wb').write(a.tobytes())
     >>> open('anotherfile', 'wb').write(('0x0'+a).bytes)
