@@ -47,7 +47,7 @@ The ConstBitStream class
 
     .. method:: read(fmt)
 
-        Reads from current bit position :attr:`pos` in the bitstring according the the format string and returns a single result. If not enough bits are available then a :exc:`ReadError` is raised.
+        Reads from current bit position :attr:`pos` in the bitstring according the format string and returns a single result. If not enough bits are available then a :exc:`ReadError` is raised.
 
         *fmt* is either a token string that describes how to interpret the next bits in the bitstring or an integer. If it's an integer then that number of bits will be read, and returned as a new bitstring. Otherwise the tokens are:
 

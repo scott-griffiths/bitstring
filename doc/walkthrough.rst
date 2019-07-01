@@ -18,7 +18,7 @@ Prerequisites
 
 * Python 2.6, 2.7 or 3.x.
 * An installed bitstring module.
-* A rudimentory knowledge of binary concepts.
+* A rudimentary knowledge of binary concepts.
 * A little free time.
 
 If you haven't yet downloaded and installed :mod:`bitstring` then please do so (it might be as easy as typing "``sudo easy_install bitstring``" or "``sudo pip install bitstring``" depending on your system). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.
@@ -73,7 +73,7 @@ Great - let's try some more::
     >>> b.hex
     bitstring.InterpretError: Cannot convert to hex unambiguously - not multiple of 4 bits.
  
-Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are similar restrictions on other interpretations (octal must be a mulitple of 3 bits, bytes a multiple of 8 bits etc.)
+Oh dear. The problem we have here is that ``b`` is 3 bits long, whereas each hex digit represents 4 bits. This means that there is no unambiguous way to represent it in hexadecimal. There are similar restrictions on other interpretations (octal must be a multiple of 3 bits, bytes a multiple of 8 bits etc.)
 
 An exception is raised rather than trying to guess the best hex representation as there are a multitude of ways to convert to hex. I occasionally get asked why it doesn't just do the 'obvious' conversion, which is invariably what that person expects from his own field of work. This could be truncating bits at the start or end, or padding at the start or end with either zeros or ones. Rather than try to guess what is meant we just raise an exception - if you want a particular behaviour then write it explicitly::
 
