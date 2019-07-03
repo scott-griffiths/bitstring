@@ -4250,3 +4250,44 @@ BitString = BitStream
 __all__ = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
            'Bits', 'BitString', 'pack', 'Error', 'ReadError',
            'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned']
+
+if __name__ == '__main__':
+    """Create and interpret a bitstring from command-line parameters.
+
+    Command-line parameters are concatenated and a bitstring created
+    from them. If the final parameter is either an interpretation string
+    or ends with a '.' followed by an interpretation string then that
+    interpretation of the bitstring will be used when printing it.
+
+    Typical usage might be invoking the Python module from a console
+    as a one-off calculation:
+
+    $ python -m bitstring int:16=-400
+    0xfe70
+    $ python -m bitstring float:32=0.2 bin
+    00111110010011001100110011001101
+    $ python -m bitstring 0xff 3*0b01,0b11 uint
+    65367
+    $ python -m bitstring hex=01, uint:12=352.hex
+    01160
+
+    This feature is experimental and is subject to change or removal.
+    """
+
+    # check if final parameter is an interpretation string
+    fp = sys.argv[-1]
+    if fp in name_to_read.keys():
+        # concatenate all other parameters and interpret using the final one
+        b = Bits(','.join(sys.argv[1: -1]))
+        print(b._readtoken(fp, 0, b.__len__())[0])
+    else:
+        # does final parameter end with a dot then an interpretation string?
+        interp = fp[fp.rfind('.') + 1:]
+        if interp in name_to_read.keys():
+            sys.argv[-1] = fp[:fp.rfind('.')]
+            b = Bits(','.join(sys.argv[1:]))
+            print(b._readtoken(interp, 0, b.__len__())[0])
+        else:
+            # No interpretation - just use default print
+            b = Bits(','.join(sys.argv[1:]))
+            print(b)
