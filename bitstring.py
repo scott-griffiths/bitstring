@@ -213,8 +213,9 @@ class ConstByteStore(object):
         bit_offset = self.offset % 8
         if bit_offset:
             # first do the byte with the join.
-            store.setbyte(-1, (store.getbyte(-1) & (255 ^ (255 >> bit_offset)) | \
-                               (self._rawarray[self.byteoffset] & (255 >> bit_offset))))
+            joinval = (store.getbyte(-1) & (255 ^ (255 >> bit_offset)) | 
+                               (self._rawarray[self.byteoffset] & (255 >> bit_offset)))
+            store._rawarray[-1] = joinval
             store._rawarray.extend(self._rawarray[self.byteoffset + 1: self.byteoffset + self.bytelength])
         else:
             store._rawarray.extend(self._rawarray[self.byteoffset: self.byteoffset + self.bytelength])
@@ -270,7 +271,7 @@ def offsetcopy(s, newoffset):
         return copy.copy(s)
     else:
         if newoffset == s.offset % 8:
-            return ByteStore(s.getbyteslice(s.byteoffset, s.byteoffset + s.bytelength), s.bitlength, newoffset)
+            return type(s)(s.getbyteslice(s.byteoffset, s.byteoffset + s.bytelength), s.bitlength, newoffset)
         newdata = []
         d = s._rawarray
         assert newoffset != s.offset % 8
@@ -297,7 +298,7 @@ def offsetcopy(s, newoffset):
                 bits_in_last_byte = 8
             if bits_in_last_byte + shiftright > 8:
                 newdata.append((d[s.byteoffset + s.bytelength - 1] << (8 - shiftright)) & 0xff)
-        new_s = ByteStore(bytearray(newdata), s.bitlength, newoffset)
+        new_s = type(s)(bytearray(newdata), s.bitlength, newoffset)
         assert new_s.offset == newoffset
         return new_s
 
@@ -807,6 +808,7 @@ class Bits(object):
         except TypeError:
             pass
         x = super(Bits, cls).__new__(cls)
+        x._datastore = ConstByteStore(b'')
         x._initialise(auto, length, offset, **kwargs)
         return x
 
@@ -1348,7 +1350,7 @@ class Bits(object):
 
     def _setbytes_unsafe(self, data, length, offset):
         """Unchecked version of _setbytes_safe."""
-        self._datastore = ByteStore(data[:], length, offset)
+        self._datastore = type(self._datastore)(data[:], length, offset)
         assert self._assertsanity()
 
     def _readbytes(self, length, start):
@@ -1440,14 +1442,8 @@ class Bits(object):
         if int_ >= 0:
             self._setuint(int_, length)
             return
-        # TODO: We should decide whether to just use the _setuint, or to do the bit flipping,
-        # based upon which will be quicker. If the -ive number is less than half the maximum
-        # possible then it's probably quicker to do the bit flipping...
-
         # Do the 2's complement thing. Add one, set to minus number, then flip bits.
-        int_ += 1
-        self._setuint(-int_, length)
-        self._invert_all()
+        self._setuint((-int_ - 1) ^ ((1 << length) - 1), length)
 
     def _readint(self, length, start):
         """Read bits and interpret as a signed int"""
@@ -1504,7 +1500,7 @@ class Bits(object):
             raise CreationError("Little-endian integers must be whole-byte. "
                                 "Length = {0} bits.", length)
         self._setuint(uintle, length)
-        self._reversebytes(0, self.len)
+        self._datastore._rawarray = self._datastore._rawarray[::-1]
 
     def _readuintle(self, length, start):
         """Read bits and interpret as a little-endian unsigned int."""
@@ -1542,7 +1538,7 @@ class Bits(object):
             raise CreationError("Little-endian integers must be whole-byte. "
                                 "Length = {0} bits.", length)
         self._setint(intle, length)
-        self._reversebytes(0, self.len)
+        self._datastore._rawarray = self._datastore._rawarray[::-1]
 
     def _readintle(self, length, start):
         """Read bits and interpret as a little-endian signed int."""
@@ -2185,10 +2181,8 @@ class Bits(object):
 
     def _invert_all(self):
         """Invert every bit."""
-        set = self._datastore.setbyte
-        get = self._datastore.getbyte
         for p in xrange(self._datastore.byteoffset, self._datastore.byteoffset + self._datastore.bytelength):
-            set(p, 256 + ~get(p))
+            self._datastore._rawarray[p] = 256 + ~self._datastore._rawarray[p]
 
     def _ilshift(self, n):
         """Shift bits by n to the left in place. Return self."""
@@ -3063,7 +3057,9 @@ class BitArray(Bits):
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
         x = super(BitArray, cls).__new__(cls)
         y = Bits.__new__(BitArray, auto, length, offset, **kwargs)
-        x._datastore = y._datastore
+        x._datastore = ByteStore(y._datastore._rawarray[:],
+                                          y._datastore.bitlength,
+                                          y._datastore.offset)
         return x
 
     def __iadd__(self, bs):
@@ -4135,12 +4131,15 @@ class BitStream(ConstBitStream, BitArray):
         """
         self._pos = 0
         # For mutable BitStreams we always read in files to memory:
-        if not isinstance(self._datastore, ByteStore):
+        if not isinstance(self._datastore, (ByteStore, ConstByteStore)):
             self._ensureinmemory()
 
     def __new__(cls, auto=None, length=None, offset=None, **kwargs):
         x = super(BitStream, cls).__new__(cls)
-        x._initialise(auto, length, offset, **kwargs)
+        y = ConstBitStream.__new__(BitStream, auto, length, offset, **kwargs)
+        x._datastore = ByteStore(y._datastore._rawarray[:],
+                                          y._datastore.bitlength,
+                                          y._datastore.offset)
         return x
 
     def __copy__(self):

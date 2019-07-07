@@ -456,3 +456,35 @@ class ContainsBug(unittest.TestCase):
         self.assertTrue('0b1' in Bits('0xf'))
         self.assertFalse('0b0' in Bits('0xf'))
 
+
+class ByteStoreImmutablity(unittest.TestCase):
+    
+    def testBitsDataStoreType(self):
+        a = Bits('0b1')
+        b = Bits('0b111')
+        c = a + b
+        self.assertEqual(type(a._datastore), ConstByteStore)
+        self.assertEqual(type(b._datastore), ConstByteStore)
+        self.assertEqual(type(c._datastore), ConstByteStore)
+
+    def testImmutabilityBugAppend(self):
+        a = Bits('0b111')
+        b = a + '0b000'
+        c = BitArray(b)
+        c[1] = 0
+        self.assertEqual(c.bin, '101000')
+        self.assertEqual(a.bin, '111')
+        self.assertEqual(b.bin, '111000')
+        self.assertEqual(type(b._datastore), ConstByteStore)
+
+    def testImmutabilityBugPrepend(self):
+        a = Bits('0b111')
+        b = '0b000' + a
+        c = BitArray(b)
+        c[1] = 1
+        self.assertEqual(b.bin, '000111')
+        self.assertEqual(c.bin, '010111')
+
+    def testImmutabilityBugCreation(self):
+        a = Bits()
+        self.assertEqual(type(a._datastore), ConstByteStore)

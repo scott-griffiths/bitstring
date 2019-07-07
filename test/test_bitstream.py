@@ -3849,16 +3849,6 @@ class ZeroBitReads(unittest.TestCase):
         self.assertRaises(bitstring.InterpretError, a.read, 'uint:0')
         self.assertRaises(bitstring.InterpretError, a.read, 'float:0')
 
-#class EfficientBitsCopies(unittest.TestCase):
-#
-#    def testBitsCopy(self):
-#        a = ConstBitStream('0xff')
-#        b = ConstBitStream(a)
-#        c = a[:]
-#        d = copy.copy(a)
-#        self.assertTrue(a._datastore is b._datastore)
-#        self.assertTrue(a._datastore is c._datastore)
-#        self.assertTrue(a._datastore is d._datastore)
 
 class InitialiseFromBytes(unittest.TestCase):
     def testBytesBehaviour(self):
