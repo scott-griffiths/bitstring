@@ -63,9 +63,7 @@ The easiest way to install :mod:`bitstring` is to use ``pip`` via::
  
 or similar.
 
-If you want an earlier version, or need other files in the full package, you can download and extract the contents of the .zip provided on the project's website.
-
-First download the latest release (see the Downloads tab on the project’s homepage).
+If you want an earlier version, or need other files in the full package, you can download it from the project's website.
 
 If you then extract the contents of the zip file you should find files organised in these directories
 
@@ -83,5 +81,5 @@ The module comes with comprehensive unit tests. To run them yourself use your fa
  
     python -m unittest discover
 
-which when run in the `test` folder should run all the tests (over 400) and say OK. If tests fail then either your version of Python isn't supported (you need Python 2.7 or 3.x) or something unexpected has happened - in which case please tell me about it.
+which when run in the `test` folder should run all the tests (almost 500) and say OK. If tests fail then either your version of Python isn't supported (you need Python 2.7 or 3.x) or something unexpected has happened - in which case please tell me about it.
 

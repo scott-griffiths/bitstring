@@ -3,15 +3,16 @@ bitstring module version history
 --------------------------------
 
 ---------------------------------------
-2019: version 3.1.6 released
+July 9th 2019: version 3.1.6 released
 ---------------------------------------
 A long overdue maintenace release with some fixes.
 
+* Fixed immutability bug. Bug 176. 
 * Fixed failure of `__contains__` in some circumstances. Bug 180.
+* Better handling of open files. Bug 186.
 * Better Python 2/3 check.
 * Making unit tests easier to run.
 * Allowing length of 1 to be specified for bools. (Thanks to LemonPi)
-
 
 ---------------------------------------
 May 17th 2016: version 3.1.5 released

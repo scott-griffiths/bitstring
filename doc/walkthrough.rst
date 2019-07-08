@@ -21,7 +21,7 @@ Prerequisites
 * A rudimentary knowledge of binary concepts.
 * A little free time.
 
-If you haven't yet downloaded and installed :mod:`bitstring` then please do so (it might be as easy as typing "``sudo easy_install bitstring``" or "``sudo pip install bitstring``" depending on your system). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.
+If you haven't yet downloaded and installed :mod:`bitstring` then please do so (it should be as easy as typing "``pip install bitstring``"). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.
 
 Getting started
 ---------------

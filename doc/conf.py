@@ -188,6 +188,7 @@ latex_logo = "bitstring_logo.png"
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
 latex_use_parts = True
+latex_toplevel_sectioning = 'part'
 
 # Additional stuff for the LaTeX preamble.
 latex_preamble = """
@@ -214,11 +215,11 @@ titlepage = """
 \\cleardoublepage
 """ % release
 
-latex_elements = {'preamble': '\setcounter{tocdepth}{2}',
-                  'fncychap': '\\usepackage[Bjarne]{fncychap}',
+latex_elements = {'preamble': '\setcounter{tocdepth}{2}\definecolor{VerbatimBorderColor}{rgb}{1,1,1}',
+                  'fncychap': '\\usepackage[Sonny]{fncychap}',
                   'maketitle': titlepage,
                   'papersize': 'a4paper',
-                  'pointsize': '12pt',
+                  'pointsize': '10pt',
                   }
 
 # Documents to append as an appendix to all manuals.

@@ -8,6 +8,51 @@ Release Notes
 Full Version History
 ====================
 
+July 9th 2019: version 3.1.6 released
+-------------------------------------
+A long overdue maintenace release with some fixes.
+
+* Fixed immutability bug. Bug 176. 
+* Fixed failure of `__contains__` in some circumstances. Bug 180.
+* Better handling of open files. Bug 186.
+* Better Python 2/3 check.
+* Making unit tests easier to run.
+* Allowing length of 1 to be specified for bools. (Thanks to LemonPi)
+* Documentation fixes.
+* Added experimental (and undocumented) command-line mode.
+
+May 17th 2016: version 3.1.5 released
+-------------------------------------
+
+* Support initialisation from an array.
+* Added a separate LICENSE file.
+
+March 19th 2016: version 3.1.4 released
+---------------------------------------
+This is another bug fix release.
+
+* Fix for bitstring types when created directly from other bitstring types.
+* Updating contact, website details.
+
+March 4th 2014: version 3.1.3 released
+--------------------------------------
+This is another bug fix release.
+
+* Fix for problem with prepend for bitstrings with byte offsets in their data store.
+
+April 18th 2013: version 3.1.2 released
+---------------------------------------
+This is another bug fix release.
+
+* Fix for problem where unpacking bytes would by eight times too long
+
+March 21st 2013: version 3.1.1 released
+---------------------------------------
+This is a bug fix release.
+
+* Fix for problem where concatenating bitstrings sometimes modified method's arguments
+
+
 February 26th 2013: version 3.1.0 released
 ------------------------------------------
 This is a minor release with a couple of new features and some bug fixes.
