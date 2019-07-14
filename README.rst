@@ -1,6 +1,6 @@
 
 
-.. image:: /doc/bitstring_logo_small.png
+.. image:: https://github.com/scott-griffiths/bitstring/blob/master/doc/bitstring_logo_small.png?raw=true
 
 **bitstring** is a pure Python module designed to help make
 the creation and analysis of binary data as simple and natural as possible.
@@ -36,7 +36,7 @@ The manual for the bitstring module is available here
 <https://bitstring.readthedocs.io/en/latest/?>. It contains a walk-through of all
 the features and a complete reference section.
 
-It is also available as a PDF: https://buildmedia.readthedocs.org/media/pdf/bitstring/latest/bitstring.pdf.
+It is also available as a PDF: <https://buildmedia.readthedocs.org/media/pdf/bitstring/latest/bitstring.pdf>.
 
 
 Simple Examples
