@@ -33,10 +33,10 @@ You may need to run this with root privileges on Unix-like systems.
 Documentation
 -------------
 The manual for the bitstring module is available here
-<http://packages.python.org/bitstring>. It contains a walk-through of all
+<https://bitstring.readthedocs.org>. It contains a walk-through of all
 the features and a complete reference section.
 
-It is also available as a PDF as part of the source download.
+It is also available as a PDF at <https://readthedocs.org/projects/bitstring/downloads/pdf/latest/>.
 
 
 Simple Examples
