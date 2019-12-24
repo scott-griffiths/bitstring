@@ -488,3 +488,46 @@ class ByteStoreImmutablity(unittest.TestCase):
     def testImmutabilityBugCreation(self):
         a = Bits()
         self.assertEqual(type(a._datastore), ConstByteStore)
+
+
+class Lsb0Indexing(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        bitstring.set_lsb0(True)
+
+    @classmethod
+    def tearDownClass(cls):
+        bitstring.set_lsb0(False)
+
+    def testGetSingleBit(self):
+        a = Bits('0b000001111')
+        self.assertEqual(a[0], True)
+        self.assertEqual(a[3], True)
+        self.assertEqual(a[4], False)
+        self.assertEqual(a[8], False)
+        self.assertRaises(IndexError, a.__getitem__, 9)
+        self.assertEqual(a[-1], False)
+        self.assertEqual(a[-5], False)
+        self.assertEqual(a[-6], True)
+        self.assertEqual(a[-9], True)
+        self.assertRaises(IndexError, a.__getitem__, -10)
+
+    def testSimpleSlicing(self):
+        a = Bits('0xabcdef')
+        self.assertEqual(a[0:4], '0xf')
+        self.assertEqual(a[4:8], '0xe')
+        self.assertEqual(a[:], '0xabcdef')
+        self.assertEqual(a[4:], '0xabcde')
+        self.assertEqual(a[-4:], '0xa')
+        self.assertEqual(a[-8:-4], '0xb')
+        self.assertEqual(a[:-8], '0xcdef')
+
+    def testExtendedSlicing(self):
+        a = Bits('0b100000100100100')
+        self.assertEqual(a[2::3], '0b10111')
+
+    def testAll(self):
+        a = Bits('0b000111')
+        self.assertTrue(a.all(1, [3, 4, 5]))
+

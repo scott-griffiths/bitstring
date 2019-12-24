@@ -8,6 +8,14 @@ Release Notes
 Full Version History
 ====================
 
+December 2019: version 3.1.7 released
+-------------------------------------
+Minor maintenance release.
+
+* Updated links to documentation.
+* Added explicit support for Python 3.7 and 3.8.
+* Removed outdated documentation from download.
+
 July 9th 2019: version 3.1.6 released
 -------------------------------------
 A long overdue maintenace release with some fixes.

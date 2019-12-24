@@ -90,8 +90,13 @@ class Interning(unittest.TestCase):
         a = bitstring.ConstBitStream('0b11000')
         b = bitstring.ConstBitStream('0b11000')
         self.assertFalse(a is b)
-    #        self.assertTrue(a._datastore is b._datastore)
-        
-        
+
+
+class LSB0(unittest.TestCase):
+    def testGettingAndSetting(self):
+        self.assertEqual(bitstring.lsb0, False)
+        bitstring.lsb0 = True
+        self.assertEqual(bitstring.lsb0, True)
+        bitstring.lsb0 = False
         
         

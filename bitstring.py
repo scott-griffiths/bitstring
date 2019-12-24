@@ -80,6 +80,7 @@ byteorder = sys.byteorder
 bytealigned = False
 """Determines whether a number of methods default to working only on byte boundaries."""
 
+
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS = 250
 
@@ -898,18 +899,7 @@ class Bits(object):
         bs = self._converttobitstring(bs)
         return bs.__add__(self)
 
-    def __getitem__(self, key):
-        """Return a new bitstring representing a slice of the current bitstring.
-
-        Indices are in units of the step parameter (default 1 bit).
-        Stepping is used to specify the number of bits in each item.
-
-        >>> print BitArray('0b00110')[1:4]
-        '0b011'
-        >>> print BitArray('0x00112233')[1:3:8]
-        '0x1122'
-
-        """
+    def _getitem_msb0(self, key):
         length = self.len
         if isinstance(key, slice):
             step = key.step if key.step is not None else 1
@@ -941,6 +931,59 @@ class Bits(object):
                 raise IndexError("Slice index out of range.")
             # Single bit, return True or False
             return self._datastore.getbit(key)
+
+    def _getitem_lsb0(self, key):
+        length = self.len
+        if isinstance(key, slice):
+            step = key.step if key.step is not None else 1
+            if step != 1:
+                # convert to binary string and use string slicing
+                bs = self.__class__()
+                start = length - key.start - 1 if key.start is not None else None
+                stop = length - key.stop - 1 if key.stop is not None else None
+                bs._setbin_unsafe(self._getbin().__getitem__(slice(start, stop, -step))[::-1])
+                return bs
+            start, stop = 0, length
+            if key.start is not None:
+                stop = length - key.start
+                if stop > length:
+                    stop -= length
+            if key.stop is not None:
+                start = length - key.stop
+                if start > length:
+                    start -= length
+            # start = max(start, 0)
+            # stop = min(stop, length)
+            if start < stop:
+                return self._slice(start, stop)
+            else:
+                return self.__class__()
+        else:
+            # single element
+            if key < 0:
+                key += length
+            key = length - key - 1
+            if not 0 <= key < length:
+                raise IndexError("Slice index out of range.")
+            # Single bit, return True or False
+            return self._datastore.getbit(key)
+
+    # def __getitem__(self, key):
+    #     """Return a new bitstring representing a slice of the current bitstring.
+    #
+    #     Indices are in units of the step parameter (default 1 bit).
+    #     Stepping is used to specify the number of bits in each item.
+    #
+    #     >>> print BitArray('0b00110')[1:4]
+    #     '0b011'
+    #     >>> print BitArray('0x00112233')[1:3:8]
+    #     '0x1122'
+    #
+    #     """
+    #     lsb0 =  globals()['lsb0']
+    #     if lsb0:
+    #         return self._getitem_lsb0(key)
+    #     return self._getitem_msb0(key)
 
     def __len__(self):
         """Return the length of the bitstring in bits."""
@@ -4241,6 +4284,23 @@ def pack(fmt, *values, **kwargs):
         return s
     raise CreationError("Too many parameters present to pack according to the format.")
 
+
+lsb0 = False
+
+def _switch_lsb0_methods():
+    Bits.__getitem__ = Bits._getitem_lsb0 if lsb0 else Bits._getitem_msb0
+
+def set_lsb0(v):
+    global lsb0
+    lsb0 = bool(v)
+    _switch_lsb0_methods()
+
+def set_msb0(v):
+    global lsb0
+    lsb0 = not bool(v)
+    _switch_lsb0_methods()
+
+_switch_lsb0_methods()
 
 # Aliases for backward compatibility
 ConstBitArray = Bits
