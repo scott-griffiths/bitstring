@@ -6,7 +6,12 @@ sys.path.insert(0, '..')
 import bitstring
 import copy
 import os
-import collections
+
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
+
 from bitstring import BitStream, ConstBitStream, pack
 from bitstring import offsetcopy
 
@@ -3457,7 +3462,7 @@ class Bugs(unittest.TestCase):
         self.assertEqual(s.len, 17)
 
     def testInitFromIterable(self):
-        self.assertTrue(isinstance(range(10), collections.Iterable))
+        self.assertTrue(isinstance(range(10), Iterable))
         s = ConstBitStream(range(12))
         self.assertEqual(s, '0x7ff')
 
