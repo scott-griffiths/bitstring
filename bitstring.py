@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""
+r"""
 This package defines classes that simplify bit-wise creation, manipulation and
 interpretation of data.
 
