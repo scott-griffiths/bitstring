@@ -10,6 +10,11 @@ import collections
 from bitstring import BitStream, ConstBitStream, pack
 from bitstring import offsetcopy
 
+try:
+    collectionsAbc = collections.abc
+except AttributeError:  # Python 2.7
+    collectionsAbc = collections
+
 
 class FlexibleInitialisation(unittest.TestCase):
     def testFlexibleInitialisation(self):
@@ -3457,7 +3462,7 @@ class Bugs(unittest.TestCase):
         self.assertEqual(s.len, 17)
 
     def testInitFromIterable(self):
-        self.assertTrue(isinstance(range(10), collections.Iterable))
+        self.assertTrue(isinstance(range(10), collectionsAbc.Iterable))
         s = ConstBitStream(range(12))
         self.assertEqual(s, '0x7ff')
 

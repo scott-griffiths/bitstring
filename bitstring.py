@@ -72,8 +72,13 @@ import mmap
 import os
 import struct
 import operator
-import collections
 import array
+import collections
+
+try:
+    collectionsAbc = collections.abc
+except AttributeError:  # Python 2.7
+    collectionsAbc = collections
 
 byteorder = sys.byteorder
 
@@ -1341,7 +1346,7 @@ class Bits(object):
             data = bytearray((s + 7) // 8)
             self._datastore = ByteStore(data, s, 0)
             return
-        if isinstance(s, collections.Iterable):
+        if isinstance(s, collectionsAbc.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
             return
@@ -3530,7 +3535,7 @@ class BitArray(Bits):
         if pos is None:
             self._invert_all()
             return
-        if not isinstance(pos, collections.Iterable):
+        if not isinstance(pos, collectionsAbc.Iterable):
             pos = (pos,)
         length = self.len
 
@@ -3618,7 +3623,7 @@ class BitArray(Bits):
                     bytesizes.append(PACK_CODE_SIZE[f])
                 else:
                     bytesizes.extend([PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
-        elif isinstance(fmt, collections.Iterable):
+        elif isinstance(fmt, collectionsAbc.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
                 if not isinstance(bytesize, numbers.Integral) or bytesize < 0:
