@@ -365,5 +365,7 @@ class Lsb0Setting(unittest.TestCase):
 
     def testSettingSlice(self):
         a = BitArray('0x012345678')
-        a[4:12] = '0xff'
-        self.assertEqual(a, '0x0123456ff')
+        a[4:12] = '0xfe'
+        self.assertEqual(a, '0x012345fe8')
+        a[0:4] = '0xbeef'
+        self.assertEqual(a, '0x012345febeef')

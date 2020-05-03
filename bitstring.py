@@ -2029,18 +2029,7 @@ class Bits(object):
         return s_copy
 
     def _slice_lsb0(self, start, end):
-        """Used internally to get a slice, without error checking."""
-        print(f'{start}, {end}')
-        if end == start:
-            return self.__class__()
-        start, end = self.length - end, self.length - start
-        assert start < end, "start={0}, end={1}".format(start, end)
-        offset = self._offset
-        startbyte, newoffset = divmod(start + offset, 8)
-        endbyte = (end + offset - 1) // 8
-        bs = self.__class__()
-        bs._setbytes_unsafe(self._datastore.getbyteslice(startbyte, endbyte + 1), end - start, newoffset)
-        return bs
+        return self._slice_msb0(self.length - end, self.length - start)
 
     def _slice_msb0(self, start, end):
         """Used internally to get a slice, without error checking."""
@@ -2116,7 +2105,11 @@ class Bits(object):
                               self._offset)
         assert self._assertsanity()
 
-    def _insert(self, bs, pos):
+    def _insert_lsb0(self, bs, pos):
+        """Insert bs at pos."""
+        self._insert_msb0(bs, self.len - pos)
+
+    def _insert_msb0(self, bs, pos):
         """Insert bs at pos."""
         assert 0 <= pos <= self.len
         if pos > self.len // 2:
@@ -2137,7 +2130,11 @@ class Bits(object):
             pass
         assert self._assertsanity()
 
-    def _overwrite(self, bs, pos):
+    def _overwrite_lsb0(self, bs, pos):
+        """Overwrite with bs at pos."""
+        self._overwrite_msb0(bs, self.len - pos - bs.len)
+
+    def _overwrite_msb0(self, bs, pos):
         """Overwrite with bs at pos."""
         assert 0 <= pos < self.len
         if bs is self:
@@ -2170,10 +2167,12 @@ class Bits(object):
                                     self._datastore.getbyte(lastbytepos) | (d.getbyte(d.bytelength - 1) & ~mask))
         assert self._assertsanity()
 
-    def _delete(self, bits, pos):
+    def _delete_lsb0(self, bits, pos):
         """Delete bits at pos."""
-        if _lsb0:
-            pos = self.len - pos - bits
+        self._delete_msb0(bits, self.len - pos - bits)
+
+    def _delete_msb0(self, bits, pos):
+        """Delete bits at pos."""
         assert 0 <= pos <= self.len
         assert pos + bits <= self.len, "pos={}, bits={}, len={}".format(pos, bits, self.len)
         if not pos:
@@ -3163,7 +3162,7 @@ class BitArray(Bits):
         else:
             if step != 1:
                 # convert to binary string and use string slicing
-                # TODO: Horribly inefficent
+                # TODO: Horribly inefficient
                 temp = list(self._getbin())
                 v = list(Bits(value)._getbin())
                 temp.__setitem__(key, v)
@@ -4278,22 +4277,30 @@ def _switch_lsb0_methods():
     if _lsb0:
         ConstByteStore.getbit = ConstByteStore._getbit_lsb0
         Bits._slice = Bits._slice_lsb0
+        BitArray._overwrite = BitArray._overwrite_lsb0
+        BitArray._insert = BitArray._insert_lsb0
+        BitArray._delete = BitArray._delete_lsb0
         ByteStore.setbit = ByteStore._setbit_lsb0
         ByteStore.unsetbit = ByteStore._unsetbit_lsb0
         ByteStore.invertbit = ByteStore._invertbit_lsb0
     else:
         ConstByteStore.getbit = ConstByteStore._getbit_msb0
         Bits._slice = Bits._slice_msb0
+        BitArray._overwrite = BitArray._overwrite_msb0
+        BitArray._insert = BitArray._insert_msb0
+        BitArray._delete = BitArray._delete_msb0
         ByteStore.setbit = ByteStore._setbit_msb0
         ByteStore.unsetbit = ByteStore._unsetbit_msb0
         ByteStore.invertbit = ByteStore._invertbit_msb0
 
 def set_lsb0(v):
+    """Experimental method changing the bit numbering so that the least significant bit is bit 0"""
     global _lsb0
     _lsb0 = bool(v)
     _switch_lsb0_methods()
 
 def set_msb0(v):
+    """Experimental method to reset the bit numbering so that the most significant bit is bit 0"""
     global _lsb0
     _lsb0 = not bool(v)
     _switch_lsb0_methods()
@@ -4305,8 +4312,8 @@ ConstBitArray = Bits
 BitString = BitStream
 
 __all__ = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
-           'Bits', 'BitString', 'pack', 'Error', 'ReadError',
-           'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned']
+           'Bits', 'BitString', 'pack', 'Error', 'ReadError', 'InterpretError',
+           'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
 
 if __name__ == '__main__':
     """Create and interpret a bitstring from command-line parameters.
