@@ -161,7 +161,13 @@ class ConstByteStore(object):
             for bit in range(start_bit, end_bit):
                 yield bool(byte & (128 >> bit))
 
-    def getbit(self, pos):
+    def _getbit_lsb0(self, pos):
+        assert 0 <= pos < self.bitlength
+        pos = self.bitlength - pos - 1
+        byte, bit = divmod(self.offset + pos, 8)
+        return bool(self._rawarray[byte] & (128 >> bit))
+
+    def _getbit_msb0(self, pos):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
         return bool(self._rawarray[byte] & (128 >> bit))
@@ -240,17 +246,35 @@ class ByteStore(ConstByteStore):
     """
     __slots__ = ()
 
-    def setbit(self, pos):
+    def _setbit_lsb0(self, pos):
+        assert 0 <= pos < self.bitlength
+        pos = self.bitlength - pos - 1
+        byte, bit = divmod(self.offset + pos, 8)
+        self._rawarray[byte] |= (128 >> bit)
+
+    def _setbit_msb0(self, pos):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
         self._rawarray[byte] |= (128 >> bit)
 
-    def unsetbit(self, pos):
+    def _unsetbit_lsb0(self, pos):
+        assert 0 <= pos < self.bitlength
+        pos = self.bitlength - pos - 1
+        byte, bit = divmod(self.offset + pos, 8)
+        self._rawarray[byte] &= ~(128 >> bit)
+
+    def _unsetbit_msb0(self, pos):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
         self._rawarray[byte] &= ~(128 >> bit)
 
-    def invertbit(self, pos):
+    def _invertbit_lsb0(self, pos):
+        assert 0 <= pos < self.bitlength
+        pos = self.bitlength - pos - 1
+        byte, bit = divmod(self.offset + pos, 8)
+        self._rawarray[byte] ^= (128 >> bit)
+
+    def _invertbit_msb0(self, pos):
         assert 0 <= pos < self.bitlength
         byte, bit = divmod(self.offset + pos, 8)
         self._rawarray[byte] ^= (128 >> bit)
@@ -899,14 +923,30 @@ class Bits(object):
         bs = self._converttobitstring(bs)
         return bs.__add__(self)
 
-    def _getitem_msb0(self, key):
+    def __getitem__(self, key):
+        """Return a new bitstring representing a slice of the current bitstring.
+
+        Indices are in units of the step parameter (default 1 bit).
+        Stepping is used to specify the number of bits in each item.
+
+        >>> print BitArray('0b00110')[1:4]
+        '0b011'
+        >>> print BitArray('0x00112233')[1:3:8]
+        '0x1122'
+
+        """
         length = self.len
         if isinstance(key, slice):
             step = key.step if key.step is not None else 1
             if step != 1:
                 # convert to binary string and use string slicing
                 bs = self.__class__()
-                bs._setbin_unsafe(self._getbin().__getitem__(key))
+                if _lsb0:
+                    start = length - key.start - 1 if key.start is not None else None
+                    stop = length - key.stop - 1 if key.stop is not None else None
+                    bs._setbin_unsafe(self._getbin().__getitem__(slice(start, stop, -step))[::-1])
+                else:
+                    bs._setbin_unsafe(self._getbin().__getitem__(key))
                 return bs
             start, stop = 0, length
             if key.start is not None:
@@ -931,59 +971,6 @@ class Bits(object):
                 raise IndexError("Slice index out of range.")
             # Single bit, return True or False
             return self._datastore.getbit(key)
-
-    def _getitem_lsb0(self, key):
-        length = self.len
-        if isinstance(key, slice):
-            step = key.step if key.step is not None else 1
-            if step != 1:
-                # convert to binary string and use string slicing
-                bs = self.__class__()
-                start = length - key.start - 1 if key.start is not None else None
-                stop = length - key.stop - 1 if key.stop is not None else None
-                bs._setbin_unsafe(self._getbin().__getitem__(slice(start, stop, -step))[::-1])
-                return bs
-            start, stop = 0, length
-            if key.start is not None:
-                stop = length - key.start
-                if stop > length:
-                    stop -= length
-            if key.stop is not None:
-                start = length - key.stop
-                if start > length:
-                    start -= length
-            # start = max(start, 0)
-            # stop = min(stop, length)
-            if start < stop:
-                return self._slice(start, stop)
-            else:
-                return self.__class__()
-        else:
-            # single element
-            if key < 0:
-                key += length
-            key = length - key - 1
-            if not 0 <= key < length:
-                raise IndexError("Slice index out of range.")
-            # Single bit, return True or False
-            return self._datastore.getbit(key)
-
-    # def __getitem__(self, key):
-    #     """Return a new bitstring representing a slice of the current bitstring.
-    #
-    #     Indices are in units of the step parameter (default 1 bit).
-    #     Stepping is used to specify the number of bits in each item.
-    #
-    #     >>> print BitArray('0b00110')[1:4]
-    #     '0b011'
-    #     >>> print BitArray('0x00112233')[1:3:8]
-    #     '0x1122'
-    #
-    #     """
-    #     lsb0 =  globals()['lsb0']
-    #     if lsb0:
-    #         return self._getitem_lsb0(key)
-    #     return self._getitem_msb0(key)
 
     def __len__(self):
         """Return the length of the bitstring in bits."""
@@ -1257,7 +1244,7 @@ class Bits(object):
         """Check internal self consistency as a debugging aid."""
         assert self.len >= 0
         assert 0 <= self._offset, "offset={0}".format(self._offset)
-        assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset
+        assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset, "len={0}, offset={1}, bytelength={2}, byteoffset={3}".format(self.len, self._offset, self._datastore.bytelength, self._datastore.byteoffset)
         return True
 
     @classmethod
@@ -2041,10 +2028,25 @@ class Bits(object):
                                 self.len, self._offset)
         return s_copy
 
-    def _slice(self, start, end):
+    def _slice_lsb0(self, start, end):
+        """Used internally to get a slice, without error checking."""
+        print(f'{start}, {end}')
+        if end == start:
+            return self.__class__()
+        start, end = self.length - end, self.length - start
+        assert start < end, "start={0}, end={1}".format(start, end)
+        offset = self._offset
+        startbyte, newoffset = divmod(start + offset, 8)
+        endbyte = (end + offset - 1) // 8
+        bs = self.__class__()
+        bs._setbytes_unsafe(self._datastore.getbyteslice(startbyte, endbyte + 1), end - start, newoffset)
+        return bs
+
+    def _slice_msb0(self, start, end):
         """Used internally to get a slice, without error checking."""
         if end == start:
             return self.__class__()
+        assert start < end, "start={0}, end={1}".format(start, end)
         offset = self._offset
         startbyte, newoffset = divmod(start + offset, 8)
         endbyte = (end + offset - 1) // 8
@@ -2170,8 +2172,10 @@ class Bits(object):
 
     def _delete(self, bits, pos):
         """Delete bits at pos."""
+        if _lsb0:
+            pos = self.len - pos - bits
         assert 0 <= pos <= self.len
-        assert pos + bits <= self.len
+        assert pos + bits <= self.len, "pos={}, bits={}, len={}".format(pos, bits, self.len)
         if not pos:
             # Cutting bits off at the start.
             self._truncatestart(bits)
@@ -3126,23 +3130,6 @@ class BitArray(Bits):
         return s_copy
 
     def __setitem__(self, key, value):
-        """Set item or range to new value.
-
-        Indices are in units of the step parameter (default 1 bit).
-        Stepping is used to specify the number of bits in each item.
-
-        If the length of the bitstring is changed then pos will be moved
-        to after the inserted section, otherwise it will remain unchanged.
-
-        >>> s = BitArray('0xff')
-        >>> s[0:1:4] = '0xe'
-        >>> print s
-        '0xef'
-        >>> s[4:4] = '0x00'
-        >>> print s
-        '0xe00f'
-
-        """
         try:
             # A slice
             start, step = 0, 1
@@ -4285,19 +4272,30 @@ def pack(fmt, *values, **kwargs):
     raise CreationError("Too many parameters present to pack according to the format.")
 
 
-lsb0 = False
+_lsb0 = False
 
 def _switch_lsb0_methods():
-    Bits.__getitem__ = Bits._getitem_lsb0 if lsb0 else Bits._getitem_msb0
+    if _lsb0:
+        ConstByteStore.getbit = ConstByteStore._getbit_lsb0
+        Bits._slice = Bits._slice_lsb0
+        ByteStore.setbit = ByteStore._setbit_lsb0
+        ByteStore.unsetbit = ByteStore._unsetbit_lsb0
+        ByteStore.invertbit = ByteStore._invertbit_lsb0
+    else:
+        ConstByteStore.getbit = ConstByteStore._getbit_msb0
+        Bits._slice = Bits._slice_msb0
+        ByteStore.setbit = ByteStore._setbit_msb0
+        ByteStore.unsetbit = ByteStore._unsetbit_msb0
+        ByteStore.invertbit = ByteStore._invertbit_msb0
 
 def set_lsb0(v):
-    global lsb0
-    lsb0 = bool(v)
+    global _lsb0
+    _lsb0 = bool(v)
     _switch_lsb0_methods()
 
 def set_msb0(v):
-    global lsb0
-    lsb0 = not bool(v)
+    global _lsb0
+    _lsb0 = not bool(v)
     _switch_lsb0_methods()
 
 _switch_lsb0_methods()

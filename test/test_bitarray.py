@@ -308,3 +308,62 @@ class ModifiedByAddingBug(unittest.TestCase):
         self.assertEqual(c, '0b011')
         self.assertEqual(a, '0b0')
         self.assertEqual(b, '0b11')
+
+
+class Lsb0Setting(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        bitstring.set_lsb0(True)
+
+    @classmethod
+    def tearDownClass(cls):
+        bitstring.set_lsb0(False)
+
+    def testSetSingleBit(self):
+        a = BitArray(10)
+        a[0] = True
+        self.assertEqual(a, '0b0000000001')
+        a[1] = True
+        self.assertEqual(a, '0b0000000011')
+        a[0] = False
+        self.assertEqual(a, '0b0000000010')
+        a[9] = True
+        self.assertEqual(a, '0b1000000010')
+        self.assertRaises(IndexError, a.__setitem__, 10, True)
+
+    def testSetSingleNegativeBit(self):
+        a = BitArray('0o000')
+        a[-1] = True
+        self.assertEqual(a, '0b100000000')
+        a[-2] = True
+        self.assertEqual(a, '0o600')
+        a[-9] = True
+        self.assertEqual(a, '0o601')
+        self.assertRaises(IndexError, a.__setitem__, -10, True)
+
+    def testInvertBit(self):
+        a = BitArray('0b11110000')
+        a.invert()
+        self.assertEqual(a, '0x0f')
+        a.invert(0)
+        self.assertEqual(a, '0b00001110')
+        a.invert(-1)
+        self.assertEqual(a, '0b10001110')
+
+    def testDeletingBits(self):
+        a = BitArray('0b11110')
+        del a[0]
+        self.assertEqual(a, '0xf')
+
+    def testAppendingBits(self):
+        a = BitArray('0b111')
+        a.append('0b000')
+        self.assertEqual(a.bin, '111000')
+        a += '0xabc'
+        self.assertEqual(a, '0b111000, 0xabc')
+
+    def testSettingSlice(self):
+        a = BitArray('0x012345678')
+        a[4:12] = '0xff'
+        self.assertEqual(a, '0x0123456ff')

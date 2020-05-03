@@ -90,7 +90,7 @@ directory run::
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2019 Scott Griffiths
+Copyright (c) 2008-2020 Scott Griffiths
 
 For more information see the project's homepage on GitHub:
 <https://github.com/scott-griffiths/bitstring>

@@ -441,8 +441,8 @@ class Iteration(unittest.TestCase):
 
     def testIterateLongBits(self):
         self.assertEqual(
-            list(Bits([1, 0]) * 1024 * 1024),
-            [True, False] * 1024 * 1024
+            list(Bits([1, 0]) * 1024),
+            [True, False] * 1024
         )
 
         
@@ -529,5 +529,23 @@ class Lsb0Indexing(unittest.TestCase):
 
     def testAll(self):
         a = Bits('0b000111')
-        self.assertTrue(a.all(1, [3, 4, 5]))
+        self.assertTrue(a.all(1, [0, 1, 2]))
+        self.assertTrue(a.all(0, [3, 4, 5]))
 
+    def testAny(self):
+        a = Bits('0b00000110')
+        self.assertTrue(a.any(1, [0, 1]))
+        self.assertTrue(a.any(0, [5, 6]))
+
+    def testStartswith(self):
+        a = Bits('0b0000000111')
+        self.assertTrue(a.startswith('0b111'))
+        self.assertFalse(a.startswith(1))
+        self.assertTrue(a.startswith('0b011', start=1))
+        self.assertFalse(a.startswith('0b0111', end=3))
+        self.assertTrue(a.startswith('0b0111', end=4))
+
+    def testEndsWith(self):
+        a = Bits('0x1234abcd')
+        self.assertTrue(a.endswith('0x123'))
+        self.assertFalse(a.endswith('0xabcd'))
