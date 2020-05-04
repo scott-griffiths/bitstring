@@ -59,7 +59,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.1.6"
+__version__ = "3.1.7"
 
 __author__ = "Scott Griffiths"
 
@@ -2034,6 +2034,7 @@ class Bits(object):
         return s_copy
 
     def _slice_lsb0(self, start, end):
+        """Used internally to get a slice, without error checking (LSB0)."""
         return self._slice_msb0(self.length - end, self.length - start)
 
     def _slice_msb0(self, start, end):
@@ -2084,8 +2085,8 @@ class Bits(object):
             newoffset = 0
         self._setbytes_unsafe(bytearray().join(n), self.length, newoffset)
 
-    def _truncatestart(self, bits):
-        """Truncate bits from the start of the bitstring."""
+    def _truncateleft(self, bits):
+        """Truncate bits from the LHS of the bitstring."""
         assert 0 <= bits <= self.len
         if not bits:
             return
@@ -2097,8 +2098,8 @@ class Bits(object):
                               offset)
         assert self._assertsanity()
 
-    def _truncateend(self, bits):
-        """Truncate bits from the end of the bitstring."""
+    def _truncateright(self, bits):
+        """Truncate bits from the RHS of the bitstring."""
         assert 0 <= bits <= self.len
         if not bits:
             return
@@ -2111,7 +2112,7 @@ class Bits(object):
         assert self._assertsanity()
 
     def _insert_lsb0(self, bs, pos):
-        """Insert bs at pos."""
+        """Insert bs at pos (LSB0)."""
         self._insert_msb0(bs, self.len - pos)
 
     def _insert_msb0(self, bs, pos):
@@ -2120,13 +2121,13 @@ class Bits(object):
         if pos > self.len // 2:
             # Inserting nearer end, so cut off end.
             end = self._slice(pos, self.len)
-            self._truncateend(self.len - pos)
+            self._truncateright(self.len - pos)
             self._append(bs)
             self._append(end)
         else:
             # Inserting nearer start, so cut off start.
             start = self._slice(0, pos)
-            self._truncatestart(pos)
+            self._truncateleft(pos)
             self._prepend(bs)
             self._prepend(start)
         try:
@@ -2136,7 +2137,7 @@ class Bits(object):
         assert self._assertsanity()
 
     def _overwrite_lsb0(self, bs, pos):
-        """Overwrite with bs at pos."""
+        """Overwrite with bs at pos (LSB0)."""
         self._overwrite_msb0(bs, self.len - pos - bs.len)
 
     def _overwrite_msb0(self, bs, pos):
@@ -2173,7 +2174,7 @@ class Bits(object):
         assert self._assertsanity()
 
     def _delete_lsb0(self, bits, pos):
-        """Delete bits at pos."""
+        """Delete bits at pos (LSB0)."""
         self._delete_msb0(bits, self.len - pos - bits)
 
     def _delete_msb0(self, bits, pos):
@@ -2182,23 +2183,23 @@ class Bits(object):
         assert pos + bits <= self.len, "pos={}, bits={}, len={}".format(pos, bits, self.len)
         if not pos:
             # Cutting bits off at the start.
-            self._truncatestart(bits)
+            self._truncateleft(bits)
             return
         if pos + bits == self.len:
             # Cutting bits off at the end.
-            self._truncateend(bits)
+            self._truncateright(bits)
             return
         if pos > self.len - pos - bits:
             # More bits before cut point than after it, so do bit shifting
             # on the final bits.
-            end = self._slice(pos + bits, self.len)
+            end = self._slice_msb0(pos + bits, self.len)
             assert self.len - pos > 0
-            self._truncateend(self.len - pos)
+            self._truncateright(self.len - pos)
             self._append(end)
             return
         # More bits after the cut point than before it.
-        start = self._slice(0, pos)
-        self._truncatestart(pos + bits)
+        start = self._slice_msb0(0, pos)
+        self._truncateleft(pos + bits)
         self._prepend(start)
         return
 
@@ -2239,14 +2240,14 @@ class Bits(object):
         """Shift bits by n to the left in place. Return self."""
         assert 0 < n <= self.len
         self._append(Bits(n))
-        self._truncatestart(n)
+        self._truncateleft(n)
         return self
 
     def _irshift(self, n):
         """Shift bits by n to the right in place. Return self."""
         assert 0 < n <= self.len
         self._prepend(Bits(n))
-        self._truncateend(n)
+        self._truncateright(n)
         return self
 
     def _imul(self, n):
@@ -3251,7 +3252,7 @@ class BitArray(Bits):
         else:
             if step != 1:
                 # convert to binary string and use string slicing
-                # TODO: Horribly inefficent
+                # TODO: Horribly inefficient
                 temp = list(self._getbin())
                 temp.__delitem__(key)
                 self._setbin_unsafe(''.join(temp))
@@ -3259,12 +3260,15 @@ class BitArray(Bits):
             stop = key.stop
             if key.start is not None:
                 start = key.start
-                if key.start < 0 and stop is None:
+                if key.start < 0:
                     start += self.len
                 if start < 0:
                     start = 0
-            if stop is None:
-                stop = self.len
+            stop = self.len
+            if key.stop is not None:
+                stop = key.stop
+                if key.stop < 0:
+                    stop += self.len
             if start > stop:
                 return
             stop = min(stop, self.len)
@@ -4275,7 +4279,7 @@ def pack(fmt, *values, **kwargs):
         return s
     raise CreationError("Too many parameters present to pack according to the format.")
 
-
+# Whether to label the Least Significant Bit as bit 0. Default is False. Experimental feature.
 _lsb0 = False
 
 def _switch_lsb0_methods():

@@ -73,7 +73,8 @@ class Reading(unittest.TestCase):
     def testReadBytes(self):
         s = BitStream(hex='0x112233448811')
         self.assertEqual(s.read(3 * 8).hex, '112233')
-        self.assertRaises(ValueError, s.read, -2 * 8)
+        with self.assertRaises(ValueError):
+            s.read(-16)
         s.bitpos += 1
         self.assertEqual(s.read(2 * 8).bin, '1000100100010000')
 
@@ -719,7 +720,7 @@ class FromFile(unittest.TestCase):
         s = BitStream(filename='test.m1v')
         self.assertTrue(s.find('0x160120'))
         self.assertEqual(s.bytepos, 4)
-        s3 = s.read(3 * 8)
+        s3 = s.read(24)
         self.assertEqual(s3.hex, '160120')
         s.bytepos = 0
         self.assertTrue(s._pos == 0)
@@ -772,11 +773,13 @@ class FromFile(unittest.TestCase):
 class CreationErrors(unittest.TestCase):
     def testIncorrectBinAssignment(self):
         s = BitStream()
-        self.assertRaises(bitstring.CreationError, s._setbin_safe, '0010020')
+        with self.assertRaises(bitstring.CreationError):
+            s._setbin_safe('0010020')
 
     def testIncorrectHexAssignment(self):
         s = BitStream()
-        self.assertRaises(bitstring.CreationError, s._sethex, '0xabcdefg')
+        with self.assertRaises(bitstring.CreationError):
+            s.hex= '0xabcdefg'
 
 
 class Length(unittest.TestCase):
@@ -786,14 +789,9 @@ class Length(unittest.TestCase):
     def testLength(self):
         self.assertEqual(BitStream('0x80').len, 8)
 
-    def testLengthErrors(self):
-        #TODO: Lots of new checks, for various inits which now disallow length and offset
-        pass
-        #self.assertRaises(ValueError, BitStream, bin='111', length=-1)
-        #self.assertRaises(ValueError, BitStream, bin='111', length=4)
-
     def testOffsetLengthError(self):
-        self.assertRaises(bitstring.CreationError, BitStream, hex='0xffff', offset=-1)
+        with self.assertRaises(bitstring.CreationError):
+            BitStream(hex='0xffff', offset=-1)
 
 
 class SimpleConversions(unittest.TestCase):
@@ -808,7 +806,8 @@ class SimpleConversions(unittest.TestCase):
     def testConvertToHex(self):
         self.assertEqual(BitStream(bytes=b'\x00\x12\x23\xff').hex, '001223ff')
         s = BitStream('0b11111')
-        self.assertRaises(bitstring.InterpretError, s._gethex)
+        with self.assertRaises(bitstring.InterpretError):
+            s.hex
 
 
 class Empty(unittest.TestCase):
@@ -3397,9 +3396,9 @@ class Bugs(unittest.TestCase):
         s.replace('0x23', '0xf', start=9, bytealigned=True)
         self.assertEqual(s, '0x012341f41f4')
 
-    def testTruncateStartBug(self):
+    def testTruncateleftBug(self):
         a = BitStream('0b000000111')[2:]
-        a._truncatestart(6)
+        a._truncateleft(6)
         self.assertEqual(a, '0b1')
 
     def testNullBits(self):
@@ -3471,7 +3470,8 @@ class Bugs(unittest.TestCase):
         s = BitStream('0b0111')
         s.insert('0b0', -1)
         self.assertEqual(s, '0b01101')
-        self.assertRaises(ValueError, s.insert, '0b0', -1000)
+        with self.assertRaises(ValueError):
+            s.insert('0b0', -1000)
 
         # reverse
         s.reverse(-2)
@@ -3557,7 +3557,8 @@ class Bugs(unittest.TestCase):
         self.assertEqual(a, '0b001101100')
         a.ror(3, end=4)
         self.assertEqual(a, '0b011001100')
-        self.assertRaises(ValueError, a.rol, 5, start=-4, end=-6)
+        with self.assertRaises(ValueError):
+            a.rol(5, start=-4, end=-6)
 
     def testByteSwapInt(self):
         s = pack('5*uintle:16', *range(10, 15))
@@ -3606,13 +3607,20 @@ class Bugs(unittest.TestCase):
 
     def testByteSwapErrors(self):
         s = BitStream('0x0011223344556677')
-        self.assertRaises(ValueError, s.byteswap, 'z')
-        self.assertRaises(ValueError, s.byteswap, -1)
-        self.assertRaises(ValueError, s.byteswap, [-1])
-        self.assertRaises(ValueError, s.byteswap, [1, 'e'])
-        self.assertRaises(ValueError, s.byteswap, '!h')
-        self.assertRaises(ValueError, s.byteswap, 2, start=-1000)
-        self.assertRaises(TypeError, s.byteswap, 5.4)
+        with self.assertRaises(ValueError):
+            s.byteswap('z')
+        with self.assertRaises(ValueError):
+            s.byteswap(-1)
+        with self.assertRaises(ValueError):
+            s.byteswap([-1])
+        with self.assertRaises(ValueError):
+            s.byteswap([1, 'e'])
+        with self.assertRaises(ValueError):
+            s.byteswap('!h')
+        with self.assertRaises(ValueError):
+            s.byteswap(2, start=-1000)
+        with self.assertRaises(TypeError):
+            s.byteswap(5.4)
 
     def testByteSwapFromFile(self):
         s = BitStream(filename='smalltestfile')
@@ -3702,8 +3710,10 @@ class UnpackWithDict(unittest.TestCase):
 
     def testLengthKeywordErrors(self):
         a = pack('uint:p=33', p=12)
-        self.assertRaises(ValueError, a.unpack, 'uint:p')
-        self.assertRaises(ValueError, a.unpack, 'uint:p', p='a_string')
+        with self.assertRaises(ValueError):
+            a.unpack('uint:p')
+        with self.assertRaises(ValueError):
+            a.unpack('uint:p', p='a_string')
 
 
 class ReadWithDict(unittest.TestCase):
@@ -3778,15 +3788,26 @@ class BoolToken(unittest.TestCase):
         self.assertEqual(a.bool, True)
 
     def testErrors(self):
+        with self.assertRaises(bitstring.CreationError):
+            pack('bool', 'hello')
+        with self.assertRaises(bitstring.CreationError):
+            pack('bool=true')
+        with self.assertRaises(bitstring.CreationError):
+            pack('True')
+        with self.assertRaises(bitstring.CreationError):
+            pack('bool', 2)
         self.assertRaises(bitstring.CreationError, pack, 'bool', 'hello')
         self.assertRaises(bitstring.CreationError, pack, 'bool=true')
         self.assertRaises(bitstring.CreationError, pack, 'True')
         self.assertRaises(bitstring.CreationError, pack, 'bool', 2)
         a = BitStream('0b11')
-        self.assertRaises(bitstring.InterpretError, a._getbool)
+        with self.assertRaises(bitstring.InterpretError):
+            a.bool
         b = BitStream()
-        self.assertRaises(bitstring.InterpretError, a._getbool)
-        self.assertRaises(bitstring.CreationError, a._setbool, 'false')
+        with self.assertRaises(bitstring.InterpretError):
+            b.bool
+        with self.assertRaises(bitstring.CreationError):
+            b.bool = 'false'
 
     def testLengthWithBoolRead(self):
         a = ConstBitStream('0xf')
