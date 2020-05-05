@@ -1413,7 +1413,6 @@ class Bits(object):
         except AttributeError:
             # bitstring doesn't have a _datastore as it hasn't been created!
             pass
-        # TODO: All this checking code should be hoisted out of here!
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with a "
                                 "uint initialiser.")
@@ -1964,10 +1963,9 @@ class Bits(object):
             return ''
         s = self._slice(start, start + length).tobytes()
         try:
-            s = s.hex() # Available in Python 3.5
+            s = s.hex() # Available in Python 3.5+
         except AttributeError:
             # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
-            # TODO: Is utf-8 really what we mean here?
             s = str(binascii.hexlify(s).decode('utf-8'))
         # If there's one nibble too many then cut it off
         return s[:-1] if (length // 4) % 2 else s
@@ -2333,8 +2331,7 @@ class Bits(object):
         stretchy_token = None
         if isinstance(fmt, basestring):
             fmt = [fmt]
-        # Not very optimal this, but replace integers with 'bits' tokens
-        # TODO: optimise
+        # Replace integers with 'bits' tokens
         for i, f in enumerate(fmt):
             if isinstance(f, numbers.Integral):
                 fmt[i] = "bits:{0}".format(f)
@@ -4302,13 +4299,13 @@ def _switch_lsb0_methods():
         ByteStore.unsetbit = ByteStore._unsetbit_msb0
         ByteStore.invertbit = ByteStore._invertbit_msb0
 
-def set_lsb0(v):
+def set_lsb0(v=True):
     """Experimental method changing the bit numbering so that the least significant bit is bit 0"""
     global _lsb0
     _lsb0 = bool(v)
     _switch_lsb0_methods()
 
-def set_msb0(v):
+def set_msb0(v=True):
     """Experimental method to reset the bit numbering so that the most significant bit is bit 0"""
     global _lsb0
     _lsb0 = not bool(v)

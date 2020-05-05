@@ -3,10 +3,13 @@ bitstring module version history
 --------------------------------
 
 ---------------------------------------
-January 2020: version 3.1.7 released
+May 5th 2020: version 3.1.7 released
 ---------------------------------------
 
-* Fixing a few stale links to documentation.
+* Fixing del not working correctly when stop value negative (Issue 201)
+* Removed deprecated direct import of ABC from collections module (Issue 196)
+* Tested and added explicit support for Python 3.7 and 3.8. (Issue 193)
+* Fixing a few stale links to documentation. (Issue 194)
 
 Experimental LSB0 mode
 ----------------------
@@ -14,7 +17,7 @@ This feature allows bitstring to use Least Significant Bit Zero
 (LSB0) bit numbering; that is the final bit in the bitstring will
 be bit 0, and the first bit will be bit (n-1), rather than the
 other way around. LSB0 is a more natural numbering
-system in many fields but is the opposite to Most Significant Bit
+system in many fields, but is the opposite to Most Significant Bit
 Zero (MSB0) numbering which is the natural option when thinking of
 bitstrings as standard Python containers.
 
@@ -45,7 +48,7 @@ discussions and to add any further comments.
 ---------------------------------------
 July 9th 2019: version 3.1.6 released
 ---------------------------------------
-A long overdue maintenace release with some fixes.
+A long overdue maintenance release with some fixes.
 
 * Fixed immutability bug. Bug 176. 
 * Fixed failure of `__contains__` in some circumstances. Bug 180.
