@@ -38,7 +38,7 @@ https://github.com/scott-griffiths/bitstring
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2019 Scott Griffiths (dr.scottgriffiths@gmail.com)
+Copyright (c) 2006-2020 Scott Griffiths (dr.scottgriffiths@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -92,6 +92,7 @@ MAX_CHARS = 250
 
 # Maximum size of caches used for speed optimisations.
 CACHE_SIZE = 1000
+
 
 class Error(Exception):
     """Base class for errors in the bitstring module."""
@@ -4372,16 +4373,16 @@ if __name__ == '__main__':
     fp = sys.argv[-1]
     if fp in name_to_read.keys():
         # concatenate all other parameters and interpret using the final one
-        b = Bits(','.join(sys.argv[1: -1]))
-        print(b._readtoken(fp, 0, b.__len__())[0])
+        b1 = Bits(','.join(sys.argv[1: -1]))
+        print(b1._readtoken(fp, 0, b1.__len__())[0])
     else:
         # does final parameter end with a dot then an interpretation string?
         interp = fp[fp.rfind('.') + 1:]
         if interp in name_to_read.keys():
             sys.argv[-1] = fp[:fp.rfind('.')]
-            b = Bits(','.join(sys.argv[1:]))
-            print(b._readtoken(interp, 0, b.__len__())[0])
+            b1 = Bits(','.join(sys.argv[1:]))
+            print(b1._readtoken(interp, 0, b1.__len__())[0])
         else:
             # No interpretation - just use default print
-            b = Bits(','.join(sys.argv[1:]))
-            print(b)
+            b1 = Bits(','.join(sys.argv[1:]))
+            print(b1)

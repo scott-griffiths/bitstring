@@ -82,7 +82,7 @@ Searching, inserting and deleting::
 Unit Tests
 ----------
 
-The 400+ unit tests should all pass for Python 2.7 and later. To run them, from the `test` 
+The 500+ unit tests should all pass for Python 2.7 and later. To run them, from the `test`
 directory run::
 
      python -m unittest discover
