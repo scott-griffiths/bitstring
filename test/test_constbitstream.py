@@ -4,6 +4,7 @@ import unittest
 import sys
 sys.path.insert(0, '..')
 import bitstring
+import io
 from bitstring import ConstBitStream as CBS
 
 class All(unittest.TestCase):
@@ -108,6 +109,7 @@ class PadToken(unittest.TestCase):
         t = s.readlist('pad, bin:3, pad:4, uint:3')
         self.assertEqual(t, ['000', 1])
 
+
 class ReadingBytes(unittest.TestCase):
 
     def testUnpackingBytes(self):
@@ -124,6 +126,7 @@ class ReadingBytes(unittest.TestCase):
         t = s.unpack('pad:a, bytes:b, bytes, pad:a', a=4, b=6)
         self.assertEqual(t, [b'\x55'*6, b'\x55'*3])
 
+
 class Lsb0Reading(unittest.TestCase):
 
     @classmethod
@@ -135,4 +138,28 @@ class Lsb0Reading(unittest.TestCase):
         bitstring.set_lsb0(False)
 
     def testReadingHex(self):
-        pass
+        s = CBS('0xabcdef')
+        self.assertEqual(s.read(4), '0xf')
+        self.assertEqual(s.read(4), '0xe')
+        self.assertEqual(s.pos, 8)
+
+    # TODO: Add more tests
+
+
+class BytesIOCreation(unittest.TestCase):
+
+    def testSimpleCreation(self):
+        f = io.BytesIO(b"\x12\xff\x77helloworld")
+        s = CBS(f)
+        self.assertEqual(s[0:8], '0x12')
+        self.assertEqual(s.len, 13 * 8)
+        s = CBS(f, offset=8, length=12)
+        self.assertEqual(s, '0xff7')
+
+    def testExceptions(self):
+        f = io.BytesIO(b"123456789")
+        s = CBS(f, length=9*8)
+        with self.assertRaises(bitstring.CreationError):
+            s = CBS(f, length=9*8 + 1)
+        with self.assertRaises(bitstring.CreationError):
+            s = CBS(f, length=9*8, offset=1)

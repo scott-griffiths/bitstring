@@ -73,6 +73,7 @@ import os
 import struct
 import operator
 import array
+import io
 import collections
 
 try:
@@ -487,7 +488,7 @@ class MmapByteArray(object):
 # the key with its bits reversed.
 BYTE_REVERSAL_DICT = dict()
 
-# For Python 2.x/ 3.x coexistence
+# For Python 2.7/ 3.x coexistence
 # Yes this is very very hacky.
 if sys.version_info[0] == 2:
     for i in range(256):
@@ -1306,6 +1307,20 @@ class Bits(object):
                 length = s.len - offset
             self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
             return
+
+        if isinstance(s, io.BytesIO):
+            if offset is None:
+                offset = 0
+            if length is None:
+                length = s.seek(0, 2) * 8 - offset
+            byteoffset, offset = divmod(offset, 8)
+            bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
+            if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
+                raise CreationError("BytesIO object is not long enough for specified "
+                                    "length and offset.")
+            self._datastore = ConstByteStore(bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]), length, offset)
+            return
+
         if isinstance(s, file):
             if offset is None:
                 offset = 0
@@ -1319,6 +1334,7 @@ class Bits(object):
                                     "length and offset.")
             self._datastore = ConstByteStore(m, length, offset)
             return
+
         if length is not None:
             raise CreationError("The length keyword isn't applicable to this initialiser.")
         if offset:
