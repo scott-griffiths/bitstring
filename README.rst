@@ -82,7 +82,7 @@ Searching, inserting and deleting::
 Unit Tests
 ----------
 
-The 400+ unit tests should all pass for Python 2.7 and later. To run them, from the `test` 
+The 500+ unit tests should all pass for Python 2.7 and later. To run them, from the `test`
 directory run::
 
      python -m unittest discover
@@ -90,7 +90,7 @@ directory run::
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2019 Scott Griffiths
+Copyright (c) 2008-2020 Scott Griffiths
 
 For more information see the project's homepage on GitHub:
 <https://github.com/scott-griffiths/bitstring>
