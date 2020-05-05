@@ -3,9 +3,55 @@ bitstring module version history
 --------------------------------
 
 ---------------------------------------
+May 5th 2020: version 3.1.7 released
+---------------------------------------
+This is a maintenance release with a few bug fixes plus an experimental
+feature to allow bits to be indexed in the opposite direction.
+
+* Fixing del not working correctly when stop value negative (Issue 201)
+* Removed deprecated direct import of ABC from collections module (Issue 196)
+* Tested and added explicit support for Python 3.7 and 3.8. (Issue 193)
+* Fixing a few stale links to documentation. (Issue 194)
+* Allowing initialisation with an io.BytesIO object. (Issue 189)
+
+Experimental LSB0 mode
+----------------------
+This feature allows bitstring to use Least Significant Bit Zero
+(LSB0) bit numbering; that is the final bit in the bitstring will
+be bit 0, and the first bit will be bit (n-1), rather than the
+other way around. LSB0 is a more natural numbering
+system in many fields, but is the opposite to Most Significant Bit
+Zero (MSB0) numbering which is the natural option when thinking of
+bitstrings as standard Python containers.
+
+To switch from the default MSB0, use the module level function
+
+    >>> bitstring.set_lsb0(True)
+
+Getting and setting bits should work in this release, as will some
+other methods. Many other methods are not tested yet and might not
+work as expected. This is mostly a release to get feedback before
+finalising the interface.
+
+Slicing is still done with the start bit smaller than the end bit.
+For example:
+
+    >>> s = Bits('0b000000111')
+    >>> s[0:5]
+    Bits('0b00111')
+    >>> s[0]
+    True
+
+Negative indices work as (hopefully) you'd expect, with the first stored
+bit being `s[-1]` and the final stored bit being `s[-n]`.
+
+See https://github.com/scott-griffiths/bitstring/issues/156 for
+discussions and to add any further comments.
+
+---------------------------------------
 July 9th 2019: version 3.1.6 released
 ---------------------------------------
-A long overdue maintenace release with some fixes.
+A long overdue maintenance release with some fixes.
 
 * Fixed immutability bug. Bug 176. 
 * Fixed failure of `__contains__` in some circumstances. Bug 180.

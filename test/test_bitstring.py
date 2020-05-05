@@ -12,12 +12,12 @@ import copy
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '3.1.6')
+        self.assertEqual(bitstring.__version__, '3.1.7')
 
     def testAll(self):
         exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
                     'Bits', 'BitString', 'pack', 'Error', 'ReadError',
-                    'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned']
+                    'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
         self.assertEqual(set(bitstring.__all__), set(exported))
 
     def testReverseDict(self):
@@ -90,8 +90,18 @@ class Interning(unittest.TestCase):
         a = bitstring.ConstBitStream('0b11000')
         b = bitstring.ConstBitStream('0b11000')
         self.assertFalse(a is b)
-    #        self.assertTrue(a._datastore is b._datastore)
-        
-        
+
+
+class LSB0(unittest.TestCase):
+    def testGettingAndSetting(self):
+        self.assertEqual(bitstring._lsb0, False)
+        bitstring.set_lsb0(True)
+        self.assertEqual(bitstring._lsb0, True)
+        bitstring.set_lsb0(False)
+        self.assertEqual(bitstring._lsb0, False)
+        bitstring.set_msb0(False)
+        self.assertEqual(bitstring._lsb0, True)
+        bitstring.set_msb0(True)
+        self.assertEqual(bitstring._lsb0, False)
         
         

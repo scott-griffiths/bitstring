@@ -4,6 +4,7 @@ import unittest
 import sys
 sys.path.insert(0, '..')
 import bitstring
+import io
 from bitstring import ConstBitStream as CBS
 
 class All(unittest.TestCase):
@@ -27,9 +28,11 @@ class InterleavedExpGolomb(unittest.TestCase):
 
     def testReadingErrors(self):
         s = CBS(10)
-        self.assertRaises(bitstring.ReadError, s.read, 'uie')
+        with self.assertRaises(bitstring.ReadError):
+            s.read('uie')
         self.assertEqual(s.pos, 0)
-        self.assertRaises(bitstring.ReadError, s.read, 'sie')
+        with self.assertRaises(bitstring.ReadError):
+            s.read('sie')
         self.assertEqual(s.pos, 0)
 
 
@@ -41,18 +44,21 @@ class ReadTo(unittest.TestCase):
         self.assertEqual(a.bytepos, 3)
         b = a.readto('0xaa', bytealigned=True)
         self.assertEqual(b, '0xaa')
-        self.assertRaises(bitstring.ReadError, a.readto, '0xcc', bytealigned=True)
+        with self.assertRaises(bitstring.ReadError):
+            b.readto('0xcc', bytealigned=True)
 
     def testNotAligned(self):
         a = CBS('0b00111001001010011011')
         a.pos = 1
         self.assertEqual(a.readto('0b00'), '0b011100')
         self.assertEqual(a.readto('0b110'), '0b10010100110')
-        self.assertRaises(ValueError, a.readto, '')
+        with self.assertRaises(ValueError):
+            a.readto('')
 
     def testDisallowIntegers(self):
         a = CBS('0x0f')
-        self.assertRaises(ValueError, a.readto, 4)
+        with self.assertRaises(ValueError):
+            a.readto(4)
 
     def testReadingLines(self):
         s = b"This is a test\nof reading lines\nof text\n"
@@ -103,6 +109,7 @@ class PadToken(unittest.TestCase):
         t = s.readlist('pad, bin:3, pad:4, uint:3')
         self.assertEqual(t, ['000', 1])
 
+
 class ReadingBytes(unittest.TestCase):
 
     def testUnpackingBytes(self):
@@ -119,3 +126,40 @@ class ReadingBytes(unittest.TestCase):
         t = s.unpack('pad:a, bytes:b, bytes, pad:a', a=4, b=6)
         self.assertEqual(t, [b'\x55'*6, b'\x55'*3])
 
+
+class Lsb0Reading(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        bitstring.set_lsb0(True)
+
+    @classmethod
+    def tearDownClass(cls):
+        bitstring.set_lsb0(False)
+
+    def testReadingHex(self):
+        s = CBS('0xabcdef')
+        self.assertEqual(s.read(4), '0xf')
+        self.assertEqual(s.read(4), '0xe')
+        self.assertEqual(s.pos, 8)
+
+    # TODO: Add more tests
+
+
+class BytesIOCreation(unittest.TestCase):
+
+    def testSimpleCreation(self):
+        f = io.BytesIO(b"\x12\xff\x77helloworld")
+        s = CBS(f)
+        self.assertEqual(s[0:8], '0x12')
+        self.assertEqual(s.len, 13 * 8)
+        s = CBS(f, offset=8, length=12)
+        self.assertEqual(s, '0xff7')
+
+    def testExceptions(self):
+        f = io.BytesIO(b"123456789")
+        s = CBS(f, length=9*8)
+        with self.assertRaises(bitstring.CreationError):
+            s = CBS(f, length=9*8 + 1)
+        with self.assertRaises(bitstring.CreationError):
+            s = CBS(f, length=9*8, offset=1)

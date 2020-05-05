@@ -1,6 +1,6 @@
 
 
-.. image:: https://github.com/scott-griffiths/bitstring/blob/master/doc/bitstring_logo_small.png?raw=true
+.. image:: /doc/bitstring_logo_small.png
 
 **bitstring** is a pure Python module designed to help make
 the creation and analysis of binary data as simple and natural as possible.
@@ -33,10 +33,10 @@ You may need to run this with root privileges on Unix-like systems.
 Documentation
 -------------
 The manual for the bitstring module is available here
-<https://bitstring.readthedocs.io/en/latest/?>. It contains a walk-through of all
+<https://bitstring.readthedocs.org>. It contains a walk-through of all
 the features and a complete reference section.
 
-It is also available as a PDF: <https://buildmedia.readthedocs.org/media/pdf/bitstring/latest/bitstring.pdf>.
+It is also available as a PDF at <https://readthedocs.org/projects/bitstring/downloads/pdf/latest/>.
 
 
 Simple Examples
@@ -82,7 +82,7 @@ Searching, inserting and deleting::
 Unit Tests
 ----------
 
-The 400+ unit tests should all pass for Python 2.7 and Python 3. To run them, from the `test` 
+The 400+ unit tests should all pass for Python 2.7 and later. To run them, from the `test` 
 directory run::
 
      python -m unittest discover
@@ -90,7 +90,7 @@ directory run::
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2006 - 2019 Scott Griffiths
+Copyright (c) 2019 Scott Griffiths
 
 For more information see the project's homepage on GitHub:
 <https://github.com/scott-griffiths/bitstring>

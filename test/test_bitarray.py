@@ -24,7 +24,8 @@ class All(unittest.TestCase):
         s.uint = 255
         self.assertEqual(s.uint, 255)
         self.assertEqual(s.len, 8)
-        self.assertRaises(bitstring.CreationError, s._setuint, 256)
+        with self.assertRaises(bitstring.CreationError):
+            s.uint = 256
 
     def testCreationFromOct(self):
         s = BitArray(oct='7')
@@ -57,7 +58,8 @@ class NoPosAttribute(unittest.TestCase):
 
     def testInsertParameters(self):
         s = BitArray('0b111')
-        self.assertRaises(TypeError, s.insert, '0x4')
+        with self.assertRaises(TypeError):
+            s.insert('0x4')
 
     def testOverwrite(self):
         s = BitArray('0b01110')
@@ -66,7 +68,8 @@ class NoPosAttribute(unittest.TestCase):
 
     def testOverwriteParameters(self):
         s = BitArray('0b0000')
-        self.assertRaises(TypeError, s.overwrite, '0b111')
+        with self.assertRaises(TypeError):
+            s.overwrite('0b111')
 
     def testPrepend(self):
         s = BitArray('0b0')
@@ -96,9 +99,12 @@ class Bugs(unittest.TestCase):
         a = BitArray([0])
         a += '0' # a uint of length 0 - so nothing gets added.
         self.assertEqual(a, [0])
-        self.assertRaises(ValueError, a.__iadd__, '3')
-        self.assertRaises(ValueError, a.__iadd__, 'se')
-        self.assertRaises(ValueError, a.__iadd__, 'float:32')
+        with self.assertRaises(ValueError):
+            a += '3'
+        with self.assertRaises(ValueError):
+            a += 'se'
+        with self.assertRaises(ValueError):
+            a += 'float:32'
 
     def testPrependAfterCreationFromDataWithOffset(self):
         s1 = BitArray(bytes=b'\x00\x00\x07\xff\xf0\x00', offset=21, length=15)
@@ -162,9 +168,12 @@ class SliceAssignment(unittest.TestCase):
 
     def testSliceAssignmentSingleBitErrors(self):
         a = BitArray('0b000')
-        self.assertRaises(IndexError, a.__setitem__, -4, '0b1')
-        self.assertRaises(IndexError, a.__setitem__, 3, '0b1')
-        self.assertRaises(TypeError, a.__setitem__, 1, 1.3)
+        with self.assertRaises(IndexError):
+            a[-4] = '0b1'
+        with self.assertRaises(IndexError):
+            a[3] = '0b1'
+        with self.assertRaises(TypeError):
+            a[1] = 1.3
 
     def testSliceAssignmentMulipleBits(self):
         a = BitArray('0b0')
@@ -183,7 +192,8 @@ class SliceAssignment(unittest.TestCase):
 
     def testSliceAssignmentMultipleBitsErrors(self):
         a = BitArray()
-        self.assertRaises(IndexError, a.__setitem__, 0, '0b00')
+        with self.assertRaises(IndexError):
+            a[0] = '0b00'
         a += '0b1'
         a[0:2] = '0b11'
         self.assertEqual(a, '0b11')
@@ -214,6 +224,14 @@ class SliceAssignment(unittest.TestCase):
         del a[::-1]
         self.assertEqual(a.bin, '')
 
+    def testDelSliceNegativeEnd(self):
+        a = BitArray('0b01001000100001')
+        del a[:-5]
+        self.assertEqual(a, '0b00001')
+        a = BitArray('0b01001000100001')
+        del a[-11:-5]
+        self.assertEqual(a, '0b01000001')
+
     def testDelSliceErrors(self):
         a = BitArray(10)
         del a[5:3]
@@ -227,11 +245,8 @@ class SliceAssignment(unittest.TestCase):
         self.assertEqual(a.bin, '001001')
         del a[2]
         self.assertEqual(a.bin, '00001')
-        try:
+        with self.assertRaises(IndexError):
             del a[5]
-            self.assertTrue(False)
-        except IndexError:
-            pass
 
     def testSetSliceStep(self):
         a = BitArray(bin='0000000000')
@@ -308,3 +323,155 @@ class ModifiedByAddingBug(unittest.TestCase):
         self.assertEqual(c, '0b011')
         self.assertEqual(a, '0b0')
         self.assertEqual(b, '0b11')
+
+
+class Lsb0Setting(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        bitstring.set_lsb0(True)
+
+    @classmethod
+    def tearDownClass(cls):
+        bitstring.set_lsb0(False)
+
+    def testSetSingleBit(self):
+        a = BitArray(10)
+        a[0] = True
+        self.assertEqual(a, '0b0000000001')
+        a[1] = True
+        self.assertEqual(a, '0b0000000011')
+        a[0] = False
+        self.assertEqual(a, '0b0000000010')
+        a[9] = True
+        self.assertEqual(a, '0b1000000010')
+        with self.assertRaises(IndexError):
+            a[10] = True
+
+    def testSetSingleNegativeBit(self):
+        a = BitArray('0o000')
+        a[-1] = True
+        self.assertEqual(a, '0b100000000')
+        a[-2] = True
+        self.assertEqual(a, '0o600')
+        a[-9] = True
+        self.assertEqual(a, '0o601')
+        with self.assertRaises(IndexError):
+            a[-10] = True
+
+    def testInvertBit(self):
+        a = BitArray('0b11110000')
+        a.invert()
+        self.assertEqual(a, '0x0f')
+        a.invert(0)
+        self.assertEqual(a, '0b00001110')
+        a.invert(-1)
+        self.assertEqual(a, '0b10001110')
+
+    def testDeletingBits(self):
+        a = BitArray('0b11110')
+        del a[0]
+        self.assertEqual(a, '0xf')
+
+    def testDeletingRange(self):
+        a = BitArray('0b101111000')
+        del a[0:1]
+        self.assertEqual(a, '0b10111100')
+        del a[2:6]
+        self.assertEqual(a, '0b1000')
+        a = BitArray('0xabcdef')
+        del a[:8]
+        self.assertEqual(a, '0xabcd')
+        del a[-4:]
+        self.assertEqual(a, '0xbcd')
+        del a[:-4]
+        self.assertEqual(a, '0xb')
+
+    def testAppendingBits(self):
+        a = BitArray('0b111')
+        a.append('0b000')
+        self.assertEqual(a.bin, '111000')
+        a += '0xabc'
+        self.assertEqual(a, '0b111000, 0xabc')
+
+    def testSettingSlice(self):
+        a = BitArray('0x012345678')
+        a[4:12] = '0xfe'
+        self.assertEqual(a, '0x012345fe8')
+        a[0:4] = '0xbeef'
+        self.assertEqual(a, '0x012345febeef')
+
+    def testTruncatingStart(self):
+        a = BitArray('0b1110000')
+        a = a[4:]
+        self.assertEqual(a, '0b111')
+
+    def testTruncatingEnd(self):
+        a = BitArray('0x123456')
+        a = a[:16]
+        self.assertEqual(a, '0x3456')
+
+    def testAll(self):
+        a = BitArray('0b0000101')
+        self.assertTrue(a.all(1, [0, 2]))
+        self.assertTrue(a.all(False, [-1, -2, -3, -4]))
+
+    def testAny(self):
+        a = BitArray('0b0001')
+        self.assertTrue(a.any(1, [0, 1, 2]))
+
+    def testEndswith(self):
+        a = BitArray('0xdeadbeef')
+        self.assertTrue(a.endswith('0xdead'))
+
+    def testStartswith(self):
+        a = BitArray('0xdeadbeef')
+        self.assertTrue(a.startswith('0xbeef'))
+
+    def testCut(self):
+        a = BitArray('0xff00ff1111ff2222')
+        l = list(a.cut(16))
+        self.assertEqual(l, ['0x2222', '0x11ff', '0xff11', '0xff00'])
+
+    def testFind(self):
+        pass
+    #     a = BitArray('0b10101010, 0xabcd, 0b10101010, 0x0')
+    #     p, = a.find('0b10101010', bytealigned=False)
+    #     self.assertEqual(p, 4)
+    #     p, = a.find('0b10101010', start=4, bytealigned=False)
+    #     self.assertEqual(p, 4)
+    #     p, = a.find('0b10101010', start=5, bytealigned=False)
+    #     self.assertEqual(p, 28)
+
+    def testRfind(self):
+        pass
+
+    def testFindall(self):
+        pass
+
+    def testSplit(self):
+        pass
+
+    def testByteSwap(self):
+        pass
+
+    def testInsert(self):
+        pass
+
+    def testOverwrite(self):
+        pass
+
+    def testReplace(self):
+        pass
+
+    def testReverse(self):
+        pass
+
+    def testRor(self):
+        pass
+
+    def testRol(self):
+        pass
+
+    def testSet(self):
+        pass
