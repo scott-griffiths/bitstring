@@ -5,11 +5,14 @@ bitstring module version history
 ---------------------------------------
 May 5th 2020: version 3.1.7 released
 ---------------------------------------
+This is a maintenance release with a few bug fixes plus an experimental
+feature to allow
 
 * Fixing del not working correctly when stop value negative (Issue 201)
 * Removed deprecated direct import of ABC from collections module (Issue 196)
 * Tested and added explicit support for Python 3.7 and 3.8. (Issue 193)
 * Fixing a few stale links to documentation. (Issue 194)
+* Allowing initialisation with an io.BytesIO object. (Issue 189)
 
 Experimental LSB0 mode
 ----------------------
@@ -26,9 +29,9 @@ To switch from the default MSB0, use the module level function
     >>> bitstring.set_lsb0(True)
 
 Getting and setting bits should work in this release, as will some
-other methods. Others (such as `find`) aren't yet converted, and
-neither are bit positions in the BitStream class. This is mostly
-a release to get feedback before finalising the interface.
+other methods. Many other methods are not tested yet and might not
+work as expected. This is mostly a release to get feedback before
+finalising the interface.
 
 Slicing is still done with the start bit smaller than the end bit.
 For example:

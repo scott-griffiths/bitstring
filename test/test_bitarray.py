@@ -410,3 +410,68 @@ class Lsb0Setting(unittest.TestCase):
         a = BitArray('0x123456')
         a = a[:16]
         self.assertEqual(a, '0x3456')
+
+    def testAll(self):
+        a = BitArray('0b0000101')
+        self.assertTrue(a.all(1, [0, 2]))
+        self.assertTrue(a.all(False, [-1, -2, -3, -4]))
+
+    def testAny(self):
+        a = BitArray('0b0001')
+        self.assertTrue(a.any(1, [0, 1, 2]))
+
+    def testEndswith(self):
+        a = BitArray('0xdeadbeef')
+        self.assertTrue(a.endswith('0xdead'))
+
+    def testStartswith(self):
+        a = BitArray('0xdeadbeef')
+        self.assertTrue(a.startswith('0xbeef'))
+
+    def testCut(self):
+        a = BitArray('0xff00ff1111ff2222')
+        l = list(a.cut(16))
+        self.assertEqual(l, ['0x2222', '0x11ff', '0xff11', '0xff00'])
+
+    def testFind(self):
+        pass
+    #     a = BitArray('0b10101010, 0xabcd, 0b10101010, 0x0')
+    #     p, = a.find('0b10101010', bytealigned=False)
+    #     self.assertEqual(p, 4)
+    #     p, = a.find('0b10101010', start=4, bytealigned=False)
+    #     self.assertEqual(p, 4)
+    #     p, = a.find('0b10101010', start=5, bytealigned=False)
+    #     self.assertEqual(p, 28)
+
+    def testRfind(self):
+        pass
+
+    def testFindall(self):
+        pass
+
+    def testSplit(self):
+        pass
+
+    def testByteSwap(self):
+        pass
+
+    def testInsert(self):
+        pass
+
+    def testOverwrite(self):
+        pass
+
+    def testReplace(self):
+        pass
+
+    def testReverse(self):
+        pass
+
+    def testRor(self):
+        pass
+
+    def testRol(self):
+        pass
+
+    def testSet(self):
+        pass

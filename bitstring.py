@@ -2477,7 +2477,13 @@ class Bits(object):
             # Not found, return empty tuple
         return ()
 
-    def find(self, bs, start=None, end=None, bytealigned=None):
+    def _find_lsb0(self, bs, start=None, end=None, bytealigned=None):
+        bs = Bits(bs)
+        p = self.rfind(bs, start, end, bytealigned)
+        if p:
+            return (self.len - p[0] - bs.length,)
+
+    def _find_msb0(self, bs, start=None, end=None, bytealigned=None):
         """Find first occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -4298,6 +4304,7 @@ _lsb0 = False
 def _switch_lsb0_methods():
     if _lsb0:
         ConstByteStore.getbit = ConstByteStore._getbit_lsb0
+        Bits.find = Bits._find_lsb0
         Bits._slice = Bits._slice_lsb0
         BitArray._overwrite = BitArray._overwrite_lsb0
         BitArray._insert = BitArray._insert_lsb0
@@ -4307,6 +4314,7 @@ def _switch_lsb0_methods():
         ByteStore.invertbit = ByteStore._invertbit_lsb0
     else:
         ConstByteStore.getbit = ConstByteStore._getbit_msb0
+        Bits.find = Bits._find_msb0
         Bits._slice = Bits._slice_msb0
         BitArray._overwrite = BitArray._overwrite_msb0
         BitArray._insert = BitArray._insert_msb0

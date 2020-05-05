@@ -3978,3 +3978,35 @@ class BytesProblems(unittest.TestCase):
     def testBinProperty(self):
         b = BitStream(bytes=b'\x00\xaa', offset=8, length=4)
         self.assertEqual(b.bin, '1010')
+
+
+class Lsb0Streaming(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        bitstring.set_lsb0()
+
+    @classmethod
+    def tearDownClass(cls):
+        bitstring.set_msb0()
+
+    def testSimpleBitPositions(self):
+        pass
+
+    def testBitPosAfterFind(self):
+        pass
+
+    def testBitPosAfterRfind(self):
+        pass
+
+    def testBitPosAfterFindall(self):
+        pass
+
+    def testBitPosAfterInsert(self):
+        pass
+
+    def testBitPosAfterOverwrite(self):
+        pass
+
+    def testBitPosAfterReplace(self):
+        pass
