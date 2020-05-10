@@ -95,13 +95,13 @@ class Interning(unittest.TestCase):
 class LSB0(unittest.TestCase):
     def testGettingAndSetting(self):
         self.assertEqual(bitstring._lsb0, False)
-        bitstring.set_lsb0(True)
+        bitstring.set_lsb0()
         self.assertEqual(bitstring._lsb0, True)
         bitstring.set_lsb0(False)
         self.assertEqual(bitstring._lsb0, False)
         bitstring.set_msb0(False)
         self.assertEqual(bitstring._lsb0, True)
-        bitstring.set_msb0(True)
+        bitstring.set_msb0()
         self.assertEqual(bitstring._lsb0, False)
         
         

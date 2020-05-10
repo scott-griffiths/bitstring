@@ -2829,10 +2829,10 @@ class Split(unittest.TestCase):
         c = BitStream(a)
         self.assertEqual(a, c)
         a = ConstBitStream('0b1')
-        a._append(a)
+        a._addright(a)
         self.assertEqual(a, '0b11')
         self.assertEqual(type(a), ConstBitStream)
-        a._prepend(a)
+        a._addleft(a)
         self.assertEqual(a, '0b1111')
         self.assertEqual(type(a), ConstBitStream)
 
@@ -3991,7 +3991,11 @@ class Lsb0Streaming(unittest.TestCase):
         bitstring.set_msb0()
 
     def testSimpleBitPositions(self):
-        pass
+        s = BitStream('0x0000ff')
+        self.assertEqual(s.pos, 0)
+        v = s.read('uint:8')
+        self.assertEqual(v, 255)
+        self.assertEqual(s.pos, 8)
 
     def testBitPosAfterFind(self):
         pass

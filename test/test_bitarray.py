@@ -390,9 +390,9 @@ class Lsb0Setting(unittest.TestCase):
     def testAppendingBits(self):
         a = BitArray('0b111')
         a.append('0b000')
-        self.assertEqual(a.bin, '111000')
+        self.assertEqual(a.bin, '000111')
         a += '0xabc'
-        self.assertEqual(a, '0b111000, 0xabc')
+        self.assertEqual(a, '0xabc, 0b000111')
 
     def testSettingSlice(self):
         a = BitArray('0x012345678')
@@ -434,14 +434,13 @@ class Lsb0Setting(unittest.TestCase):
         self.assertEqual(l, ['0x2222', '0x11ff', '0xff11', '0xff00'])
 
     def testFind(self):
-        pass
-    #     a = BitArray('0b10101010, 0xabcd, 0b10101010, 0x0')
-    #     p, = a.find('0b10101010', bytealigned=False)
-    #     self.assertEqual(p, 4)
-    #     p, = a.find('0b10101010', start=4, bytealigned=False)
-    #     self.assertEqual(p, 4)
-    #     p, = a.find('0b10101010', start=5, bytealigned=False)
-    #     self.assertEqual(p, 28)
+        a = BitArray('0b10101010, 0xabcd, 0b10101010, 0x0')
+        p, = a.find('0b10101010', bytealigned=False)
+        self.assertEqual(p, 4)
+        p, = a.find('0b10101010', start=4, bytealigned=False)
+        self.assertEqual(p, 4)
+        p, = a.find('0b10101010', start=5, bytealigned=False)
+        self.assertEqual(p, 28)
 
     def testRfind(self):
         pass
@@ -453,13 +452,20 @@ class Lsb0Setting(unittest.TestCase):
         pass
 
     def testByteSwap(self):
-        pass
+        a = BitArray('0xff00ff00ff00')
+        n = a.byteswap(2, end=32, repeat=True)
+        self.assertEqual(n, 2)
+        self.assertEqual(a, '0xff0000ff00ff')
 
     def testInsert(self):
-        pass
+        a = BitArray('0x0123456')
+        a.insert('0xf', 4)
+        self.assertEqual(a, '0x012345f6')
 
     def testOverwrite(self):
-        pass
+        a = BitArray('0x00000000')
+        a.overwrite('0xdead', 4)
+        self.assertEqual(a, '0x000dead0')
 
     def testReplace(self):
         pass
@@ -468,10 +474,21 @@ class Lsb0Setting(unittest.TestCase):
         pass
 
     def testRor(self):
-        pass
+        a = BitArray('0b111000')
+        a.ror(1)
+        self.assertEqual(a, '0b011100')
+        a = BitArray('0b111000')
+        a.ror(1, 2, 6)
+        self.assertEqual(a, '0b011100')
 
     def testRol(self):
         pass
 
     def testSet(self):
-        pass
+        a = BitArray(100)
+        a.set(1, [0, 2, 4])
+        self.assertTrue(a[0])
+        self.assertTrue(a.startswith('0b000010101'))
+        a = BitArray('0b111')
+        a.set(False, 0)
+        self.assertEqual(a, '0b110')
