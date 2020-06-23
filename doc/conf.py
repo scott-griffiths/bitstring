@@ -215,7 +215,7 @@ titlepage = """
 \\cleardoublepage
 """ % release
 
-latex_elements = {'preamble': '\setcounter{tocdepth}{2}\definecolor{VerbatimBorderColor}{rgb}{1,1,1}',
+latex_elements = {'preamble': '\\setcounter{tocdepth}{2}\\definecolor{VerbatimBorderColor}{rgb}{1,1,1}',
                   'fncychap': '\\usepackage[Sonny]{fncychap}',
                   'maketitle': titlepage,
                   'papersize': 'a4paper',
