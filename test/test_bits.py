@@ -581,3 +581,19 @@ class Lsb0Indexing(unittest.TestCase):
         a = Bits('0x1234abcd')
         self.assertTrue(a.endswith('0x123'))
         self.assertFalse(a.endswith('0xabcd'))
+
+
+class Lsb0Interpretations(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        bitstring.set_lsb0(True)
+
+    @classmethod
+    def tearDownClass(cls):
+        bitstring.set_lsb0(False)
+
+    def testUint(self):
+        a = Bits(bytes([1]))
+        self.assertEqual(a, '0b00000001')
+        self.assertEqual(a.uint, 1)

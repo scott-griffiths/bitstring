@@ -1463,6 +1463,7 @@ class Bits(object):
         self._setbytes_unsafe(bytearray(data), length, offset)
 
     def _readuint_lsb0(self, length, start):
+        # TODO: This needs a complete rewrite - can't delegate to _readuint_msb0
         return self._readuint_msb0(length, self.len - start - length)
 
     def _readuint_msb0(self, length, start):
@@ -2109,30 +2110,34 @@ class Bits(object):
         self._setbytes_unsafe(bytearray().join(n), self.length, newoffset)
 
     def _truncateleft(self, bits):
-        """Truncate bits from the LHS of the bitstring."""
+        """Truncate bits from the start of the bitstring."""
         assert 0 <= bits <= self.len
         if not bits:
-            return
+            return Bits()
+        truncated_bits = self._slice_msb0(0, bits)
         if bits == self.len:
             self._clear()
-            return
+            return truncated_bits
         bytepos, offset = divmod(self._offset + bits, 8)
         self._setbytes_unsafe(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits,
                               offset)
         assert self._assertsanity()
+        return truncated_bits
 
     def _truncateright(self, bits):
-        """Truncate bits from the RHS of the bitstring."""
+        """Truncate bits from the end of the bitstring."""
         assert 0 <= bits <= self.len
         if not bits:
-            return
+            return Bits()
+        truncated_bits = self._slice_lsb0(0, bits)
         if bits == self.len:
             self._clear()
-            return
+            return truncated_bits
         newlength_in_bytes = (self._offset + self.len - bits + 7) // 8
         self._setbytes_unsafe(self._datastore.getbyteslice(0, newlength_in_bytes), self.len - bits,
                               self._offset)
         assert self._assertsanity()
+        return truncated_bits
 
     def _insert_lsb0(self, bs, pos):
         """Insert bs at pos (LSB0)."""
@@ -2143,8 +2148,8 @@ class Bits(object):
         assert 0 <= pos <= self.len
         if pos > self.len // 2:
             # Inserting nearer end, so cut off end.
-            end = self._slice(pos, self.len)
-            self._truncateright(self.len - pos)
+            # end = self._slice(pos, self.len)
+            end = self._truncateright(self.len - pos)
             self._addright(bs)
             self._addright(end)
         else:
@@ -2334,6 +2339,10 @@ class Bits(object):
             raise ValueError("end must not be less than start.")
         return start, end
 
+    def _validate_slice_lsb0(self, start, end):
+        start, end = self._validate_slice(start, end)
+        return self.len - end, self.len - start
+
     def unpack(self, fmt, **kwargs):
         """Interpret the whole bitstring using fmt and return list.
 
@@ -2488,6 +2497,7 @@ class Bits(object):
 
     def _find_lsb0(self, bs, start=None, end=None, bytealigned=None):
         bs = Bits(bs)
+        start, end = self._validate_slice_lsb0(start, end)
         p = self.rfind(bs, start, end, bytealigned)
         if p:
             return (self.len - p[0] - bs.length,)
@@ -4282,6 +4292,8 @@ def _switch_lsb0_methods(lsb0):
         BitArray.append = BitArray._append_lsb0
         BitArray.prepend = BitArray._append_msb0  # An LSB0 prepend is an MSB0 append
         Bits._readuint = Bits._readuint_lsb0
+        Bits._truncatestart = Bits._truncateright
+        Bits._truncateend = Bits._truncateleft
     else:
         ConstByteStore.getbit = ConstByteStore._getbit_msb0
         Bits.find = Bits._find_msb0
@@ -4297,6 +4309,8 @@ def _switch_lsb0_methods(lsb0):
         BitArray.append = BitArray._append_msb0
         BitArray.prepend = BitArray._append_lsb0
         Bits._readuint = Bits._readuint_msb0
+        Bits._truncatestart = Bits._truncateleft
+        Bits._truncateend = Bits._truncateright
 
     global name_to_read
     name_to_read = {'uint': Bits._readuint,

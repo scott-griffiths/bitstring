@@ -440,7 +440,7 @@ class Lsb0Setting(unittest.TestCase):
         p, = a.find('0b10101010', start=4, bytealigned=False)
         self.assertEqual(p, 4)
         p, = a.find('0b10101010', start=5, bytealigned=False)
-        self.assertEqual(p, 28)
+        self.assertEqual(p, 22)
 
     def testRfind(self):
         pass

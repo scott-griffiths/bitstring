@@ -4014,3 +4014,10 @@ class Lsb0Streaming(unittest.TestCase):
 
     def testBitPosAfterReplace(self):
         pass
+
+    def testReadList(self):
+        a = BitStream('0x0123456789abcdef')
+        
+        vals = a.readlist('uint:4, uint:4, uint:24, uint:12, uint:12, uint:8')
+        self.assertEqual(vals, [15, 14, 0x89abcd, 0x567, 0x234, 1])
+
