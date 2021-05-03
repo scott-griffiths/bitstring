@@ -3414,7 +3414,7 @@ class BitArray(Bits):
             try:
                 pos = self._pos
             except AttributeError:
-                raise TypeError("insert require a bit position for this type.")
+                raise TypeError("insert needs a bit position specified when used on a BitArray.")
         if pos < 0:
             pos += self.len
         if not 0 <= pos <= self.len:
@@ -3437,7 +3437,7 @@ class BitArray(Bits):
             try:
                 pos = self._pos
             except AttributeError:
-                raise TypeError("overwrite require a bit position for this type.")
+                raise TypeError("overwrite needs a bit position specified when used on a BitArray.")
         if pos < 0:
             pos += self.len
         if pos < 0 or pos + bs.len > self.len:
@@ -3562,7 +3562,7 @@ class BitArray(Bits):
         if not self.len:
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
-            raise ValueError("Cannot rotate right by negative amount.")
+            raise ValueError("Cannot rotate by negative amount.")
         start, end = self._validate_slice_msb0(start, end)  # the _slice deals with msb0/lsb0
         bits %= (end - start)
         if not bits:
@@ -3584,8 +3584,8 @@ class BitArray(Bits):
         if not self.len:
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
-            raise ValueError("Cannot rotate left by negative amount.")
-        start, end = self._validate_slice(start, end)
+            raise ValueError("Cannot rotate by negative amount.")
+        start, end = self._validate_slice_msb0(start, end)
         bits %= (end - start)
         if not bits:
             return

@@ -480,7 +480,7 @@ class Lsb0Setting(unittest.TestCase):
         a.ror(1)
         self.assertEqual(a, '0b011100')
         a = BitArray('0b111000')
-        a.ror(1, 2, 6)
+        a.ror(1, start=2, end=6)
         self.assertEqual(a, '0b011100')
 
     def testRol(self):
