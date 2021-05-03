@@ -449,7 +449,9 @@ class Lsb0Setting(unittest.TestCase):
         pass
 
     def testSplit(self):
-        pass
+        a = BitArray('0x4700004711472222')
+        l = list(a.split('0x47', bytealigned=True))
+        self.assertEqual(l, ['', '0x472222', '0x4711', '0x470000'])
 
     def testByteSwap(self):
         a = BitArray('0xff00ff00ff00')

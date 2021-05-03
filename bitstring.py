@@ -93,6 +93,8 @@ MAX_CHARS = 250
 # Maximum size of caches used for speed optimisations.
 CACHE_SIZE = 1000
 
+_debug = False
+
 
 class Error(Exception):
     """Base class for errors in the bitstring module."""
@@ -1252,12 +1254,16 @@ class Bits(object):
     # ...whereas this is used in Python 3.x
     __bool__ = __nonzero__
 
-    def _assertsanity(self):
-        """Check internal self consistency as a debugging aid."""
-        assert self.len >= 0
-        assert 0 <= self._offset, "offset={0}".format(self._offset)
-        assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset, "len={0}, offset={1}, bytelength={2}, byteoffset={3}".format(self.len, self._offset, self._datastore.bytelength, self._datastore.byteoffset)
-        return True
+    if _debug is True:
+        def _assertsanity(self):
+            """Check internal self consistency as a debugging aid."""
+            assert self.len >= 0
+            assert 0 <= self._offset, "offset={0}".format(self._offset)
+            assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset, "len={0}, offset={1}, bytelength={2}, byteoffset={3}".format(self.len, self._offset, self._datastore.bytelength, self._datastore.byteoffset)
+            return True
+    else:
+        def _assertsanity(self):
+            return True
 
     @classmethod
     def _init_with_token(cls, name, token_length, value):
@@ -2321,7 +2327,7 @@ class Bits(object):
         """Read some bits from the bitstring and return newly constructed bitstring."""
         return self._slice(start, start + length)
 
-    def _validate_slice(self, start, end):
+    def _validate_slice_msb0(self, start, end):
         """Validate start and end and return them as positive bit positions."""
         if start is None:
             start = 0
@@ -2340,7 +2346,7 @@ class Bits(object):
         return start, end
 
     def _validate_slice_lsb0(self, start, end):
-        start, end = self._validate_slice(start, end)
+        start, end = self._validate_slice_msb0(start, end)
         return self.len - end, self.len - start
 
     def unpack(self, fmt, **kwargs):
@@ -2789,7 +2795,7 @@ class Bits(object):
 
         """
         prefix = Bits(prefix)
-        start, end = self._validate_slice(start, end)
+        start, end = self._validate_slice_msb0(start, end)  # the _slice deals with msb0/lsb0
         if end < start + prefix.len:
             return False
         end = start + prefix.len
@@ -3556,7 +3562,7 @@ class BitArray(Bits):
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate right by negative amount.")
-        start, end = self._validate_slice(start, end)
+        start, end = self._validate_slice_msb0(start, end)  # the _slice deals with msb0/lsb0
         bits %= (end - start)
         if not bits:
             return
@@ -4294,6 +4300,7 @@ def _switch_lsb0_methods(lsb0):
         Bits._readuint = Bits._readuint_lsb0
         Bits._truncatestart = Bits._truncateright
         Bits._truncateend = Bits._truncateleft
+        Bits._validate_slice = Bits._validate_slice_lsb0
     else:
         ConstByteStore.getbit = ConstByteStore._getbit_msb0
         Bits.find = Bits._find_msb0
@@ -4311,6 +4318,7 @@ def _switch_lsb0_methods(lsb0):
         Bits._readuint = Bits._readuint_msb0
         Bits._truncatestart = Bits._truncateleft
         Bits._truncateend = Bits._truncateright
+        Bits._validate_slice = Bits._validate_slice_msb0
 
     global name_to_read
     name_to_read = {'uint': Bits._readuint,
