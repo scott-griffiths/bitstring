@@ -56,8 +56,8 @@ Different interpretations, slicing and concatenation::
      ('1af', '000110101111', 431)
      >>> a[10:3:-1].bin
      '1110101'
-     >>> 3*a + '0b100'
-     BitArray('0o0657056705674')
+     >>> '0b100' + 3*a
+     BitArray('0x835e35e35, 0b111')
 
 Reading data sequentially::
 
@@ -76,7 +76,7 @@ Searching, inserting and deleting::
      >>> c.find('0x48')
      (8,)
      >>> c.replace('0b001', '0xabc')
-     >>> c.insert('0b0000')
+     >>> c.insert('0b0000', pos=3)
      >>> del c[12:16]
 
 Unit Tests
@@ -90,7 +90,7 @@ directory run::
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2008-2020 Scott Griffiths
+Copyright (c) 2006-2021 Scott Griffiths
 
 For more information see the project's homepage on GitHub:
 <https://github.com/scott-griffiths/bitstring>

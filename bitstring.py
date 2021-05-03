@@ -38,7 +38,7 @@ https://github.com/scott-griffiths/bitstring
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2020 Scott Griffiths (dr.scottgriffiths@gmail.com)
+Copyright (c) 2006-2021 Scott Griffiths (dr.scottgriffiths@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -93,6 +93,7 @@ MAX_CHARS = 250
 # Maximum size of caches used for speed optimisations.
 CACHE_SIZE = 1000
 
+# Set this to True for extra assertions for debugging.
 _debug = False
 
 
