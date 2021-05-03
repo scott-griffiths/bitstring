@@ -594,6 +594,6 @@ class Lsb0Interpretations(unittest.TestCase):
         bitstring.set_lsb0(False)
 
     def testUint(self):
-        a = Bits(bytes([1]))
+        a = Bits('0x01')
         self.assertEqual(a, '0b00000001')
         self.assertEqual(a.uint, 1)
