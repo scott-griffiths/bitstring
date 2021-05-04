@@ -59,7 +59,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.1.7"
+__version__ = "3.1.8"
 
 __author__ = "Scott Griffiths"
 
@@ -835,6 +835,10 @@ class Bits(object):
                         _, tokens = tokenparser(auto)
                     except ValueError as e:
                         raise CreationError(*e.args)
+                    if offset is not None:
+                        raise CreationError("offset should not be specified when using string initialisation.")
+                    if length is not None:
+                        raise CreationError("length should not be specified when using string initialisation.")
                     x._datastore = ConstByteStore(bytearray(0), 0, 0)
                     for token in tokens:
                         x._datastore._appendstore(Bits._init_with_token(*token)._datastore)
@@ -1024,20 +1028,25 @@ class Bits(object):
 
         """
         length = self.len
+        try:
+            pos = self._pos
+            pos_string = "" if pos == 0 else ", pos={0}".format(pos)
+        except AttributeError:
+            pos_string = ""
         if isinstance(self._datastore._rawarray, MmapByteArray):
             offsetstring = ''
             if self._datastore.byteoffset or self._offset:
                 offsetstring = ", offset=%d" % (self._datastore._rawarray.byteoffset * 8 + self._offset)
             lengthstring = ", length=%d" % length
-            return "{0}(filename='{1}'{2}{3})".format(self.__class__.__name__,
+            return "{0}(filename='{1}'{2}{3}{4})".format(self.__class__.__name__,
                                                       self._datastore._rawarray.source.name,
-                                                      lengthstring, offsetstring)
+                                                      lengthstring, offsetstring, pos_string)
         else:
             s = self.__str__()
             lengthstring = ''
             if s.endswith('...'):
                 lengthstring = " # length={0}".format(length)
-            return "{0}('{1}'){2}".format(self.__class__.__name__, s, lengthstring)
+            return "{0}('{1}'{2}){3}".format(self.__class__.__name__, s, pos_string, lengthstring)
 
     def __eq__(self, bs):
         """Return True if two bitstrings have the same binary representation.
@@ -3792,7 +3801,7 @@ class ConstBitStream(Bits):
 
     __slots__ = ('_pos')
 
-    def __init__(self, auto=None, length=None, offset=None, **kwargs):
+    def __init__(self, auto=None, length=None, offset=None, pos=0, **kwargs):
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
                 a bytearray, a boolean iterable or another bitstring.
@@ -3827,13 +3836,17 @@ class ConstBitStream(Bits):
         offset -- bit offset to the data. These offset bits are
                   ignored and this is intended for use when
                   initialising using 'bytes' or 'filename'.
+        pos -- Initial bit position, defaults to 0.
 
         """
-        self._pos = 0
+        pass
 
-    def __new__(cls, auto=None, length=None, offset=None, **kwargs):
+    def __new__(cls, auto=None, length=None, offset=None, pos=0, **kwargs):
         x = super(ConstBitStream, cls).__new__(cls)
         x._initialise(auto, length, offset, **kwargs)
+        x._pos = x._datastore.bitlength + pos if pos < 0 else pos
+        if x._pos < 0 or x._pos > x._datastore.bitlength:
+            raise CreationError("Cannot set pos to {0} when length is {1}".format(pos, x._datastore.bitlength))
         return x
 
     def _setbytepos(self, bytepos):
@@ -4126,7 +4139,7 @@ class BitStream(ConstBitStream, BitArray):
     # As BitStream objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
 
-    def __init__(self, auto=None, length=None, offset=None, **kwargs):
+    def __init__(self, auto=None, length=None, offset=None, pos=0, **kwargs):
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
                 a bytearray, a boolean iterable or another bitstring.
@@ -4161,19 +4174,20 @@ class BitStream(ConstBitStream, BitArray):
         offset -- bit offset to the data. These offset bits are
                   ignored and this is intended for use when
                   initialising using 'bytes' or 'filename'.
+        pos -- Initial bit position, defaults to 0.
 
         """
-        self._pos = 0
         # For mutable BitStreams we always read in files to memory:
         if not isinstance(self._datastore, (ByteStore, ConstByteStore)):
             self._ensureinmemory()
 
-    def __new__(cls, auto=None, length=None, offset=None, **kwargs):
+    def __new__(cls, auto=None, length=None, offset=None, pos=0, **kwargs):
         x = super(BitStream, cls).__new__(cls)
-        y = ConstBitStream.__new__(BitStream, auto, length, offset, **kwargs)
+        y = ConstBitStream.__new__(BitStream, auto, length, offset, pos, **kwargs)
         x._datastore = ByteStore(y._datastore._rawarray[:],
                                           y._datastore.bitlength,
                                           y._datastore.offset)
+        x._pos = y._pos
         return x
 
     def __copy__(self):

@@ -1930,7 +1930,9 @@ class Split(unittest.TestCase):
         a = BitStream('0b1')
         self.assertEqual(repr(a), "BitStream('0b1')")
         a += '0b11'
-        self.assertEqual(repr(a), "BitStream('0b111')")
+        a.pos = 2
+        self.assertEqual(repr(a), "BitStream('0b111', pos=2)")
+        a.pos = 0
         a += '0b1'
         self.assertEqual(repr(a), "BitStream('0xf')")
         a *= max
@@ -4021,3 +4023,13 @@ class Lsb0Streaming(unittest.TestCase):
         vals = a.readlist('uint:4, uint:4, uint:24, uint:12, uint:12, uint:8')
         self.assertEqual(vals, [15, 14, 0x89abcd, 0x567, 0x234, 1])
 
+class testRepr(unittest.TestCase):
+
+    def testWithoutPos(self):
+        a = BitStream('0x12345', pos=0)
+        self.assertEqual(repr(a), "BitStream('0x12345')")
+
+    def testWithPos(self):
+        a = BitStream('0b00111', pos=-1)
+        self.assertEqual(a.pos, 4)
+        self.assertEqual(repr(a), "BitStream('0b00111', pos=4)")

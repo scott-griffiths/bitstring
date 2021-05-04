@@ -47,11 +47,10 @@ class Creation(unittest.TestCase):
             Bits(hex='0Xx0')
         with self.assertRaises(bitstring.CreationError):
             Bits(hex='-2e')
-        # These really should fail, but it's awkward and not a big deal...
-        # with self.assertRaises(bitstring.CreationError):
-        #     Bits('0x2', length=2)
-        # with self.assertRaises(bitstring.CreationError):
-        #     Bits('0x3', offset=1)
+        with self.assertRaises(bitstring.CreationError):
+            Bits('0x2', length=2)
+        with self.assertRaises(bitstring.CreationError):
+            Bits('0x3', offset=1)
 
     def testCreationFromBin(self):
         s = Bits(bin='1010000011111111')

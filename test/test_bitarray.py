@@ -494,3 +494,10 @@ class Lsb0Setting(unittest.TestCase):
         a = BitArray('0b111')
         a.set(False, 0)
         self.assertEqual(a, '0b110')
+
+
+class Repr(unittest.TestCase):
+
+    def testStandardRepr(self):
+        a = BitArray('0o12345')
+        self.assertEqual(repr(a), "BitArray('0b001010011100101')")
