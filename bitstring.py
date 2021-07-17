@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""
+r"""
 This package defines classes that simplify bit-wise creation, manipulation and
 interpretation of data.
 
@@ -38,7 +38,7 @@ https://github.com/scott-griffiths/bitstring
 __licence__ = """
 The MIT License
 
-Copyright (c) 2006-2021 Scott Griffiths (dr.scottgriffiths@gmail.com)
+Copyright (c) 2006 Scott Griffiths (dr.scottgriffiths@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -14,7 +14,7 @@ similar to a file or stream.
 bitstring is open source software, and has been released under the MIT
 licence.
 
-This module works in both Python 2.7 and Python 3.
+This module works in both Python 2.7 and Python 3.6+.
 
 Installation
 ------------
@@ -23,12 +23,6 @@ Probably all you need to do is::
 
      pip install bitstring     
 
-Alternatively if you have downloaded and unzipped the package then you need to run the
-``setup.py`` script with the 'install' argument::
-
-     python setup.py install
-
-You may need to run this with root privileges on Unix-like systems.
 
 Documentation
 -------------
@@ -90,7 +84,7 @@ directory run::
 ----
 
 The bitstring module has been released as open source under the MIT License.
-Copyright (c) 2006-2021 Scott Griffiths
+Copyright (c) 2006 Scott Griffiths
 
 For more information see the project's homepage on GitHub:
 <https://github.com/scott-griffiths/bitstring>
