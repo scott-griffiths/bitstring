@@ -163,3 +163,38 @@ class BytesIOCreation(unittest.TestCase):
             s = CBS(f, length=9*8 + 1)
         with self.assertRaises(bitstring.CreationError):
             s = CBS(f, length=9*8, offset=1)
+
+
+class CreationWithPos(unittest.TestCase):
+
+    def testDefaultCreation(self):
+        s = CBS('0xabc')
+        self.assertEqual(s.pos, 0)
+
+    def testPositivePos(self):
+        s = CBS('0xabc', pos=0)
+        self.assertEqual(s.pos, 0)
+        s = CBS('0xabc', pos=1)
+        self.assertEqual(s.pos, 1)
+        s = CBS('0xabc', pos=12)
+        self.assertEqual(s.pos, 12)
+        with self.assertRaises(bitstring.CreationError):
+            s = CBS('0xabc', pos=13)
+
+    def testNegativePos(self):
+        s = CBS('0xabc', pos=-1)
+        self.assertEqual(s.pos, 11)
+        s = CBS('0xabc', pos=-12)
+        self.assertEqual(s.pos, 0)
+        with self.assertRaises(bitstring.CreationError):
+            s = CBS('0xabc', pos=-13)
+
+    def testStringRepresentation(self):
+        s = CBS('0b110', pos=2)
+        self.assertEqual(s.__repr__(), "ConstBitStream('0b110', pos=2)")
+
+    def testStringRepresentationFromFile(self):
+        s = CBS(filename='test.m1v', pos=2001)
+        self.assertEqual(s.__repr__(), "ConstBitStream(filename='test.m1v', length=1002400, pos=2001)")
+        s.pos = 0
+        self.assertEqual(s.__repr__(), "ConstBitStream(filename='test.m1v', length=1002400)")

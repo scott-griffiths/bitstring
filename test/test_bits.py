@@ -47,11 +47,10 @@ class Creation(unittest.TestCase):
             Bits(hex='0Xx0')
         with self.assertRaises(bitstring.CreationError):
             Bits(hex='-2e')
-        # These really should fail, but it's awkward and not a big deal...
-        # with self.assertRaises(bitstring.CreationError):
-        #     Bits('0x2', length=2)
-        # with self.assertRaises(bitstring.CreationError):
-        #     Bits('0x3', offset=1)
+        with self.assertRaises(bitstring.CreationError):
+            Bits('0x2', length=2)
+        with self.assertRaises(bitstring.CreationError):
+            Bits('0x3', offset=1)
 
     def testCreationFromBin(self):
         s = Bits(bin='1010000011111111')
@@ -581,3 +580,19 @@ class Lsb0Indexing(unittest.TestCase):
         a = Bits('0x1234abcd')
         self.assertTrue(a.endswith('0x123'))
         self.assertFalse(a.endswith('0xabcd'))
+
+
+class Lsb0Interpretations(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        bitstring.set_lsb0(True)
+
+    @classmethod
+    def tearDownClass(cls):
+        bitstring.set_lsb0(False)
+
+    def testUint(self):
+        a = Bits('0x01')
+        self.assertEqual(a, '0b00000001')
+        self.assertEqual(a.uint, 1)

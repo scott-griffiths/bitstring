@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import setuptools
 from distutils.core import setup
 import sys
 
@@ -10,7 +11,7 @@ if sys.version_info[:2] < (2, 7):
     raise Exception('This version of bitstring needs Python 2.7 or later.')
 
 setup(name='bitstring',
-      version='3.1.7',
+      version='3.1.8',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='dr.scottgriffiths@gmail.com',

@@ -1930,7 +1930,9 @@ class Split(unittest.TestCase):
         a = BitStream('0b1')
         self.assertEqual(repr(a), "BitStream('0b1')")
         a += '0b11'
-        self.assertEqual(repr(a), "BitStream('0b111')")
+        a.pos = 2
+        self.assertEqual(repr(a), "BitStream('0b111', pos=2)")
+        a.pos = 0
         a += '0b1'
         self.assertEqual(repr(a), "BitStream('0xf')")
         a *= max
@@ -2829,10 +2831,10 @@ class Split(unittest.TestCase):
         c = BitStream(a)
         self.assertEqual(a, c)
         a = ConstBitStream('0b1')
-        a._append(a)
+        a._addright(a)
         self.assertEqual(a, '0b11')
         self.assertEqual(type(a), ConstBitStream)
-        a._prepend(a)
+        a._addleft(a)
         self.assertEqual(a, '0b1111')
         self.assertEqual(type(a), ConstBitStream)
 
@@ -3991,7 +3993,11 @@ class Lsb0Streaming(unittest.TestCase):
         bitstring.set_msb0()
 
     def testSimpleBitPositions(self):
-        pass
+        s = BitStream('0x0000ff')
+        self.assertEqual(s.pos, 0)
+        v = s.read('uint:8')
+        self.assertEqual(v, 255)
+        self.assertEqual(s.pos, 8)
 
     def testBitPosAfterFind(self):
         pass
@@ -4010,3 +4016,20 @@ class Lsb0Streaming(unittest.TestCase):
 
     def testBitPosAfterReplace(self):
         pass
+
+    def testReadList(self):
+        a = BitStream('0x0123456789abcdef')
+        
+        vals = a.readlist('uint:4, uint:4, uint:24, uint:12, uint:12, uint:8')
+        self.assertEqual(vals, [15, 14, 0x89abcd, 0x567, 0x234, 1])
+
+class testRepr(unittest.TestCase):
+
+    def testWithoutPos(self):
+        a = BitStream('0x12345', pos=0)
+        self.assertEqual(repr(a), "BitStream('0x12345')")
+
+    def testWithPos(self):
+        a = BitStream('0b00111', pos=-1)
+        self.assertEqual(a.pos, 4)
+        self.assertEqual(repr(a), "BitStream('0b00111', pos=4)")

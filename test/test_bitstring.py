@@ -12,7 +12,7 @@ import copy
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '3.1.7')
+        self.assertEqual(bitstring.__version__, '3.1.8')
 
     def testAll(self):
         exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
@@ -95,13 +95,13 @@ class Interning(unittest.TestCase):
 class LSB0(unittest.TestCase):
     def testGettingAndSetting(self):
         self.assertEqual(bitstring._lsb0, False)
-        bitstring.set_lsb0(True)
+        bitstring.set_lsb0()
         self.assertEqual(bitstring._lsb0, True)
         bitstring.set_lsb0(False)
         self.assertEqual(bitstring._lsb0, False)
         bitstring.set_msb0(False)
         self.assertEqual(bitstring._lsb0, True)
-        bitstring.set_msb0(True)
+        bitstring.set_msb0()
         self.assertEqual(bitstring._lsb0, False)
         
         

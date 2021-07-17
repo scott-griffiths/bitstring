@@ -5,7 +5,7 @@
 Creation
 ========
 
-You can create bitstrings in a variety of ways. Internally they are stored as byte arrays, which means that no space is wasted, and a bitstring containing 10MB of binary data will only take up 10MB of memory.
+You can create bitstrings in a variety of ways. Internally they are stored as byte arrays, which means that no space is wasted, and a bitstring containing 10MiB of binary data will only take up 10MiB of memory.
 
 The bitstring classes
 ---------------------
@@ -27,7 +27,7 @@ To summarise when to use each class:
 
 * If you need to change the contents of the bitstring then you must use :class:`BitArray` or :class:`BitStream`. Truncating, replacing, inserting, appending etc. are not available for the const classes.
 * If you need to use a bitstring as the key in a dictionary or as a member of a ``set`` then you must use :class:`Bits` or a :class:`ConstBitStream`. As :class:`BitArray` and :class:`BitStream` objects are mutable they do not support hashing and so cannot be used in these ways.
-* If you are creating directly from a file then a :class:`BitArray` or :class:`BitStream` will read the file into memory whereas a :class:`Bits` or :class:`ConstBitStream` will not, so using the const classes allows extremely large files to be examined.
+* If you are creating directly from a file then a :class:`BitArray` or :class:`BitStream` will read the whole file into memory whereas a :class:`Bits` or :class:`ConstBitStream` will not, so using the const classes allows extremely large files to be examined.
 * If you don't need the extra functionality of a particular class then the simpler ones might be faster and more memory efficient. The fastest and most memory efficient class is :class:`Bits`.
 
 The :class:`Bits` class is the base class of the other three class. This means that ``isinstance(s, Bits)`` will be true if ``s`` is an instance of any of the four classes.
@@ -38,7 +38,7 @@ Using the constructor
 When initialising a bitstring you need to specify at most one initialiser. These will be explained in full below, but briefly they are:
 
 * ``auto`` : Either a specially formatted string, a list or tuple, a file object, integer, bytearray, array, bytes or another bitstring.
-* ``bytes`` : A ``bytes`` object (a ``str`` in Python 2), for example read from a binary file.
+* ``bytes`` : A ``bytes`` object (a ``str`` in Python 2.7), for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
 * ``int``, ``uint``: Signed or unsigned bit-wise big-endian binary integers.
 * ``intle``, ``uintle``: Signed or unsigned byte-wise little-endian binary integers.

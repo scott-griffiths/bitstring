@@ -16,7 +16,7 @@ Only a few of the module's features will be covered in this walkthrough; the :re
 Prerequisites
 -------------
 
-* Python 2.7 or 3.x.
+* Python 2.7 or 3.6 or later.
 * An installed bitstring module.
 * A rudimentary knowledge of binary concepts.
 * A little free time.
@@ -61,12 +61,12 @@ Now you would be forgiven for thinking that the strings that we used to create t
     >>> b.int
     -2
     >>> a.bytes
-    '\xff\x01'
+    b'\xff\x01'
  
 There are a few things to note here:
 
 * To get the different interpretations of the binary data we use properties such as :attr:`~Bits.bin`, :attr:`~Bits.hex`, :attr:`~Bits.oct`, :attr:`~Bits.int` and :attr:`~Bits.bytes`. You can probably guess what these all mean, but you don't need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.
-* The :attr:`~Bits.bytes` property returns a ``bytes`` object. This is slightly different in Python 2.7 to Python 3 - in Python 3 you would get ``b'\xff\x01'`` returned instead.
+* The :attr:`~Bits.bytes` property returns a ``bytes`` object. This is slightly different in Python 2.7 to Python 3 - in Python 2.7 you would get ``'\xff\x01'`` returned instead.
 
 Great - let's try some more::
 
@@ -265,10 +265,10 @@ So to print all primes under a million you could write::
     # create a BitArray with a million zero bits.
     # The bits will be set to indicate that the bit position isn't prime.
     has_factors = BitArray(1000000)
-    for i in xrange(2, 1000000):
+    for i in range(2, 1000000):
         if not has_factors[i]:
             print(i)
             # Set all multiples of our prime to 1.
-            has_factors.set(True, xrange(i*2, 1000000, i))
+            has_factors.set(True, range(i*2, 1000000, i))
 
 I'll leave optimising the algorithm as an exercise for the reader, but it illustrates both bit checking and setting. One reason you might want to use a bitstring for this purpose (instead of a plain list for example) is that the million bits only take up a million bits in memory, whereas for a list of integers it would be much more. Try asking for a billion elements in a list - unless you've got some really nice hardware it will fail, whereas a billion element bitstring only takes 125MB.
