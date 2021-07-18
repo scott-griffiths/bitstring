@@ -45,8 +45,7 @@ The ``auto`` parameter also accepts other types:
 * A file object, presumably opened in read-binary mode, from which the bitstring will be formed.
 * A ``bytearray`` object.
 * An ``array`` object. This is used after being converted to it's constituent byte data via its ``tostring`` method.
-* In Python 3 only, a ``bytes`` object. Note this won't work for Python 2.7 as ``bytes`` is just a synonym for ``str``.
-
+* A ``bytes`` object.
 
 
 Compact format strings

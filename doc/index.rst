@@ -7,7 +7,7 @@
 Features
 --------
 
-* Supports Python 2.7 and Python 3.6 and later.
+* Supports Python 3.6 and later.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Bit level slicing, joining, searching, replacing and more.
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.

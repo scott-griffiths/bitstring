@@ -59,7 +59,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "3.1.8"
+__version__ = "4.0.0"
 
 __author__ = "Scott Griffiths"
 
@@ -76,10 +76,6 @@ import array
 import io
 import collections
 
-try:
-    collectionsAbc = collections.abc
-except AttributeError:  # Python 2.7
-    collectionsAbc = collections
 
 byteorder = sys.byteorder
 
@@ -160,7 +156,7 @@ class ConstByteStore(object):
         start_byte, start_bit = divmod(self.offset, 8)
         end_byte, end_bit = divmod(self.offset + self.bitlength, 8)
 
-        for byte_index in xrange(start_byte, end_byte):
+        for byte_index in range(start_byte, end_byte):
             byte = self._rawarray[byte_index]
             for bit in range(start_bit, 8):
                 yield bool(byte & (128 >> bit))
@@ -490,20 +486,8 @@ class MmapByteArray(object):
 # the key with its bits reversed.
 BYTE_REVERSAL_DICT = dict()
 
-# For Python 2.7/ 3.x coexistence
-# Yes this is very very hacky.
-if sys.version_info[0] == 2:
-    for i in range(256):
-        BYTE_REVERSAL_DICT[i] = chr(int("{0:08b}".format(i)[::-1], 2))
-else:
-    for i in range(256):
-        BYTE_REVERSAL_DICT[i] = bytes([int("{0:08b}".format(i)[::-1], 2)])
-    from io import IOBase as file
-    xrange = range
-    basestring = str
-
-# Python 2.x octals start with '0', in Python 3 it's '0o'
-LEADING_OCT_CHARS = len(oct(1)) - 1
+for i in range(256):
+    BYTE_REVERSAL_DICT[i] = bytes([int("{0:08b}".format(i)[::-1], 2)])
 
 
 def tidy_input_string(s):
@@ -722,10 +706,10 @@ def expand_brackets(s):
 
 
 # This converts a single octal digit to 3 bits.
-OCT_TO_BITS = ['{0:03b}'.format(i) for i in xrange(8)]
+OCT_TO_BITS = ['{0:03b}'.format(i) for i in range(8)]
 
 # A dictionary of number of 1 bits contained in binary representation of any byte
-BIT_COUNT = dict(zip(xrange(256), [bin(i).count('1') for i in xrange(256)]))
+BIT_COUNT = dict(zip(range(256), [bin(i).count('1') for i in range(256)]))
 
 
 class Bits(object):
@@ -826,7 +810,7 @@ class Bits(object):
         # For instances auto-initialised with a string we intern the
         # instance for re-use.
         try:
-            if isinstance(auto, basestring):
+            if isinstance(auto, str):
                 try:
                     return _cache[auto]
                 except KeyError:
@@ -1256,13 +1240,9 @@ class Bits(object):
                 h ^= g
         return h % 1442968193
 
-    # This is only used in Python 2.x...
-    def __nonzero__(self):
+    def __bool__(self):
         """Return True if any bits are set to 1, otherwise return False."""
         return self.any(True)
-
-    # ...whereas this is used in Python 3.x
-    __bool__ = __nonzero__
 
     if _debug is True:
         def _assertsanity(self):
@@ -1322,8 +1302,8 @@ class Bits(object):
         """Set bitstring from a bitstring, file, bool, integer, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
-        # So basestring must be checked before Iterable
-        # and bytes/bytearray before Iterable but after basestring!
+        # So str must be checked before Iterable
+        # and bytes/bytearray before Iterable but after str!
         if isinstance(s, Bits):
             if length is None:
                 length = s.len - offset
@@ -1343,7 +1323,7 @@ class Bits(object):
             self._datastore = ConstByteStore(bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]), length, offset)
             return
 
-        if isinstance(s, file):
+        if isinstance(s, io.IOBase):
             if offset is None:
                 offset = 0
             if length is None:
@@ -1361,7 +1341,7 @@ class Bits(object):
             raise CreationError("The length keyword isn't applicable to this initialiser.")
         if offset:
             raise CreationError("The offset keyword isn't applicable to this initialiser.")
-        if isinstance(s, basestring):
+        if isinstance(s, str):
             bs = self._converttobitstring(s)
             assert bs._offset == 0
             self._setbytes_unsafe(bs._datastore.rawbytes, bs.length, 0)
@@ -1370,10 +1350,7 @@ class Bits(object):
             self._setbytes_unsafe(bytearray(s), len(s) * 8, 0)
             return
         if isinstance(s, array.array):
-            try:
-                b = s.tobytes()
-            except AttributeError:
-                b = s.tostring()  # Python 2.7
+            b = s.tobytes()
             self._setbytes_unsafe(bytearray(b), len(b) * 8, 0)
             return
         if isinstance(s, numbers.Integral):
@@ -1384,7 +1361,7 @@ class Bits(object):
             data = bytearray((s + 7) // 8)
             self._datastore = ByteStore(data, s, 0)
             return
-        if isinstance(s, collectionsAbc.Iterable):
+        if isinstance(s, collections.abc.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
             return
@@ -1464,11 +1441,7 @@ class Bits(object):
         s = s.rstrip('L')
         if len(s) & 1:
             s = '0' + s
-        try:
-            data = bytes.fromhex(s)
-        except AttributeError:
-            # the Python 2.x way
-            data = binascii.unhexlify(s)
+        data = bytes.fromhex(s)
         # Now add bytes as needed to get the right length.
         extrabytes = ((length + 7) // 8) - len(data)
         if extrabytes > 0:
@@ -1594,7 +1567,7 @@ class Bits(object):
                 val <<= 8 * chunksize
                 val += struct.unpack('<L', bytes(self._datastore.getbyteslice(endbyte + 1 - chunksize, endbyte + 1)))[0]
                 endbyte -= chunksize
-            for b in xrange(endbyte, startbyte - 1, -1):
+            for b in range(endbyte, startbyte - 1, -1):
                 val <<= 8
                 val += self._datastore.getbyte(b)
         else:
@@ -1927,7 +1900,7 @@ class Bits(object):
                            if len(binstring) < boundary else binstring
         try:
             bytelist = [int(padded_binstring[x:x + 8], 2)
-                        for x in xrange(0, len(padded_binstring), 8)]
+                        for x in range(0, len(padded_binstring), 8)]
         except ValueError:
             raise CreationError("Invalid character in bin initialiser {0}.", binstring)
         self._setbytes_unsafe(bytearray(bytelist), length, 0)
@@ -1971,8 +1944,8 @@ class Bits(object):
         if not length:
             return ''
         # Get main octal bit by converting from int.
-        # Strip starting 0 or 0o depending on Python version.
-        end = oct(self._readuint(length, start))[LEADING_OCT_CHARS:]
+        # Strip starting '0o'.
+        end = oct(self._readuint(length, start))[2:]
         if end.endswith('L'):
             end = end[:-1]
         middle = '0' * (length // 3 - len(end))
@@ -2004,11 +1977,7 @@ class Bits(object):
         if not length:
             return ''
         s = self._slice(start, start + length).tobytes()
-        try:
-            s = s.hex() # Available in Python 3.5+
-        except AttributeError:
-            # This monstrosity is the only thing I could get to work for both 2.6 and 3.1.
-            s = str(binascii.hexlify(s).decode('utf-8'))
+        s = s.hex()
         # If there's one nibble too many then cut it off
         return s[:-1] if (length // 4) % 2 else s
 
@@ -2045,7 +2014,7 @@ class Bits(object):
         try:
             return cache[(bs, offset)]
         except KeyError:
-            if isinstance(bs, basestring):
+            if isinstance(bs, str):
                 b = cls()
                 try:
                     _, tokens = tokenparser(bs)
@@ -2277,7 +2246,7 @@ class Bits(object):
 
     def _invert_all(self):
         """Invert every bit."""
-        for p in xrange(self._datastore.byteoffset, self._datastore.byteoffset + self._datastore.bytelength):
+        for p in range(self._datastore.byteoffset, self._datastore.byteoffset + self._datastore.bytelength):
             self._datastore._rawarray[p] = 256 + ~self._datastore._rawarray[p]
 
     def _ilshift(self, n):
@@ -2320,7 +2289,7 @@ class Bits(object):
                 self._datastore = offsetcopy(self._datastore, bs_bitoffset)
         a = self._datastore.rawbytes
         b = bs._datastore.rawbytes
-        for i in xrange(len(a)):
+        for i in range(len(a)):
             a[i] = f(a[i + self_byteoffset], b[i + bs_byteoffset])
         return self
 
@@ -2379,7 +2348,7 @@ class Bits(object):
     def _readlist(self, fmt, pos, **kwargs):
         tokens = []
         stretchy_token = None
-        if isinstance(fmt, basestring):
+        if isinstance(fmt, str):
             fmt = [fmt]
         # Replace integers with 'bits' tokens
         for i, f in enumerate(fmt):
@@ -2838,7 +2807,7 @@ class Bits(object):
         value = bool(value)
         length = self.len
         if pos is None:
-            pos = xrange(self.len)
+            pos = range(self.len)
         for p in pos:
             if p < 0:
                 p += length
@@ -2860,7 +2829,7 @@ class Bits(object):
         value = bool(value)
         length = self.len
         if pos is None:
-            pos = xrange(self.len)
+            pos = range(self.len)
         for p in pos:
             if p < 0:
                 p += length
@@ -2884,7 +2853,7 @@ class Bits(object):
             return 0
         # count the number of 1s (from which it's easy to work out the 0s).
         # Don't count the final byte yet.
-        count = sum(BIT_COUNT[self._datastore.getbyte(i)] for i in xrange(self._datastore.bytelength - 1))
+        count = sum(BIT_COUNT[self._datastore.getbyte(i)] for i in range(self._datastore.bytelength - 1))
         # adjust for bits at start that aren't part of the bitstring
         if self._offset:
             count -= BIT_COUNT[self._datastore.getbyte(0) >> (8 - self._offset)]
@@ -3518,7 +3487,7 @@ class BitArray(Bits):
         """
         f = self._set if value else self._unset
         if pos is None:
-            pos = xrange(self.len)
+            pos = range(self.len)
         try:
             length = self.len
             for p in pos:
@@ -3547,7 +3516,7 @@ class BitArray(Bits):
         if pos is None:
             self._invert_all()
             return
-        if not isinstance(pos, collectionsAbc.Iterable):
+        if not isinstance(pos, collections.abc.Iterable):
             pos = (pos,)
         length = self.len
 
@@ -3622,7 +3591,7 @@ class BitArray(Bits):
             if fmt < 0:
                 raise ValueError("Improper byte length {0}.".format(fmt))
             bytesizes = [fmt]
-        elif isinstance(fmt, basestring):
+        elif isinstance(fmt, str):
             m = STRUCT_PACK_RE.match(fmt)
             if not m:
                 raise ValueError("Cannot parse format string {0}.".format(fmt))
@@ -3635,7 +3604,7 @@ class BitArray(Bits):
                     bytesizes.append(PACK_CODE_SIZE[f])
                 else:
                     bytesizes.extend([PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
-        elif isinstance(fmt, collectionsAbc.Iterable):
+        elif isinstance(fmt, collections.abc.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
                 if not isinstance(bytesize, numbers.Integral) or bytesize < 0:
@@ -3653,7 +3622,7 @@ class BitArray(Bits):
         else:
             # Just try one (set of) byteswap(s).
             finalbit = start + totalbitsize
-        for patternend in xrange(start + totalbitsize, finalbit + 1, totalbitsize):
+        for patternend in range(start + totalbitsize, finalbit + 1, totalbitsize):
             bytestart = patternend - totalbitsize
             for bytesize in bytesizes:
                 byteend = bytestart + bytesize * 8
@@ -4251,7 +4220,7 @@ def pack(fmt, *values, **kwargs):
 
     """
     tokens = []
-    if isinstance(fmt, basestring):
+    if isinstance(fmt, str):
         fmt = [fmt]
     try:
         for f_item in fmt:
@@ -4405,13 +4374,8 @@ init_without_length_or_offset = {'bin': Bits._setbin_safe,
                                  'bool': Bits._setbool,
                                  }
 
-
-# Aliases for backward compatibility
-ConstBitArray = Bits
-BitString = BitStream
-
-__all__ = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
-           'Bits', 'BitString', 'pack', 'Error', 'ReadError', 'InterpretError',
+__all__ = ['ConstBitStream', 'BitStream', 'BitArray',
+           'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
            'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
 
 if __name__ == '__main__':

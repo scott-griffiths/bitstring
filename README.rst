@@ -14,7 +14,8 @@ similar to a file or stream.
 bitstring is open source software, and has been released under the MIT
 licence.
 
-This module works in both Python 2.7 and Python 3.6+.
+bitstring version 4 onwards only supports Python 3.6 and later. Use
+bitstring version 3 if you're using Python 2.7 or 3.5 or earlier.
 
 Installation
 ------------
@@ -76,7 +77,7 @@ Searching, inserting and deleting::
 Unit Tests
 ----------
 
-The 500+ unit tests should all pass for Python 2.7 and later. To run them, from the `test`
+The 500+ unit tests should all pass. To run them, from the `test`
 directory run::
 
      python -m unittest discover

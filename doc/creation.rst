@@ -17,8 +17,6 @@ Four classes are provided by the bitstring module: :class:`BitStream` and :class
  * :class:`ConstBitStream` ``(Bits)``: This adds methods and properties to allow the bits to be treated as a stream of bits, with a bit position and reading/parsing methods.
  * :class:`BitStream` ``(BitArray, ConstBitStream)``: This is the most versatile class, having both the bitstream methods and the mutating methods.
 
-Before version 3.0 ``Bits`` was known as ``ConstBitArray``. The old name is still available for backward compatibility.
-
 The term 'bitstring' is used in this manual to refer generically to any of these classes.
 
 Most of the examples in this manual use the :class:`BitArray` class, with :class:`BitStream` used when necessary. For most uses the non-const classes are more versatile and so probably your best choice when starting to use the module.
@@ -38,7 +36,7 @@ Using the constructor
 When initialising a bitstring you need to specify at most one initialiser. These will be explained in full below, but briefly they are:
 
 * ``auto`` : Either a specially formatted string, a list or tuple, a file object, integer, bytearray, array, bytes or another bitstring.
-* ``bytes`` : A ``bytes`` object (a ``str`` in Python 2.7), for example read from a binary file.
+* ``bytes`` : A ``bytes`` object, for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
 * ``int``, ``uint``: Signed or unsigned bit-wise big-endian binary integers.
 * ``intle``, ``uintle``: Signed or unsigned byte-wise little-endian binary integers.
@@ -177,13 +175,10 @@ Using the length and offset parameters to specify the length in bits and an offs
 
 The ``length`` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the bitstring. The ``offset`` parameter is also optional and is used to truncate bits at the start of the data.
 
-You can also use a ``bytearray`` object, either explicitly with a ``bytes=some_bytearray`` keyword or via the ``auto`` initialiser::
+You can also use a ``bytearray`` or a ``bytes`` object, either explicitly with a ``bytes=some_bytearray`` keyword or via the ``auto`` initialiser::
 
     c = BitArray(a_bytearray_object)
-    
-If you are using Python 3.x you can use this trick with ``bytes`` objects too. This should be used with caution as in Python 2.7 it will instead be interpreted as a string (it's not possible to distinguish between ``str`` and ``bytes`` in Python 2) and so your code won't work the same between Python versions. ::
-
-    d = BitArray(b'\x23g$5')   # Use with caution! Only works correctly in Python 3.
+    d = BitArray(b'\x23g$5')
 
 
 From a file

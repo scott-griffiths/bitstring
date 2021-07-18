@@ -81,5 +81,5 @@ The module comes with comprehensive unit tests. To run them yourself use your fa
  
     python -m unittest discover
 
-which when run in the `test` folder should run all the tests (over 500) and say OK. If tests fail then either your version of Python isn't supported (you need Python 2.7 or 3.6+) or something unexpected has happened - in which case please tell me about it.
+which when run in the `test` folder should run all the tests (over 500) and say OK. If tests fail then either your version of Python isn't supported (you need Python 3.6+ for bitstring 4.0 or later but bitstring 3.x supports Python 2.7 too) or something unexpected has happened - in which case please tell me about it.
 

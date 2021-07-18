@@ -12,11 +12,11 @@ import copy
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '3.1.8')
+        self.assertEqual(bitstring.__version__, '4.0.0')
 
     def testAll(self):
-        exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
-                    'Bits', 'BitString', 'pack', 'Error', 'ReadError',
+        exported = ['ConstBitStream', 'BitStream', 'BitArray',
+                    'Bits', 'pack', 'Error', 'ReadError',
                     'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
         self.assertEqual(set(bitstring.__all__), set(exported))
 
@@ -26,10 +26,6 @@ class ModuleData(unittest.TestCase):
             a = bitstring.Bits(uint=i, length=8)
             b = d[i]
             self.assertEqual(a.bin[::-1], bitstring.Bits(bytes=b).bin)
-
-    def testAliases(self):
-        self.assertTrue(bitstring.Bits is bitstring.ConstBitArray)
-        self.assertTrue(bitstring.BitStream is bitstring.BitString)
 
 
 class MemoryUsage(unittest.TestCase):
