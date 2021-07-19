@@ -4293,11 +4293,12 @@ def pack(fmt, *values, **kwargs):
 # Whether to label the Least Significant Bit as bit 0. Default is False. Experimental feature.
 _lsb0 = False
 
+# Dictionary that maps token names to the function that reads them. Is set in next function.
+name_to_read = {}
 
 def _switch_lsb0_methods(lsb0):
     global _lsb0
     _lsb0 = lsb0
-    # TODO: can't we just use a,b = b,a here, if we know it's changing?
     if lsb0:
         ConstByteStore.getbit = ConstByteStore._getbit_lsb0
         Bits.find = Bits._find_lsb0
@@ -4370,11 +4371,10 @@ def set_msb0(v=True):
     """Experimental method to reset the bit numbering so that the most significant bit is bit 0"""
     set_lsb0(not v)
 
+
+# Initialise the default behaviour
 set_msb0()
 
-
-# Dictionary that maps token names to the function that reads them.
-name_to_read = {}
 
 # Dictionaries for mapping init keywords with init functions.
 init_with_length_and_offset = {'bytes': Bits._setbytes_safe,
