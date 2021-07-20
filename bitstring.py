@@ -1459,7 +1459,7 @@ class Bits(object):
                   "The allowed range is [0, {2}]."
             raise CreationError(msg, uint, length, (1 << length) - 1)
         if uint < 0:
-            raise CreationError("uint cannot be initialsed by a negative number.")
+            raise CreationError("uint cannot be initialised by a negative number.")
         s = hex(uint)[2:]
         s = s.rstrip('L')
         if len(s) & 1:
@@ -3465,25 +3465,6 @@ class BitArray(Bits):
     def _append_lsb0(self, bs):
         bs = Bits(bs)
         self._addleft(bs)
-
-    # def append(self, bs):
-    #     """Append a bitstring to the current bitstring.
-    #
-    #     bs -- The bitstring to append.
-    #
-    #     """
-    #     # The offset is a hint to make bs easily appendable.
-    #     bs = self._converttobitstring(bs, offset=(self.len + self._offset) % 8)
-    #     self._addright(bs)
-    #
-    # def prepend(self, bs):
-    #     """Prepend a bitstring to the current bitstring.
-    #
-    #     bs -- The bitstring to prepend.
-    #
-    #     """
-    #     bs = Bits(bs)
-    #     self._addleft(bs)
 
     def reverse(self, start=None, end=None):
         """Reverse bits in-place.
