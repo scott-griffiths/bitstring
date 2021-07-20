@@ -1252,7 +1252,8 @@ class Bits(object):
             assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset, "len={0}, offset={1}, bytelength={2}, byteoffset={3}".format(self.len, self._offset, self._datastore.bytelength, self._datastore.byteoffset)
             return True
     else:
-        def _assertsanity(self):
+        @staticmethod
+        def _assertsanity():
             return True
 
     @classmethod
@@ -1436,7 +1437,7 @@ class Bits(object):
                   "The allowed range is [0, {2}]."
             raise CreationError(msg, uint, length, (1 << length) - 1)
         if uint < 0:
-            raise CreationError("uint cannot be initialsed by a negative number.")
+            raise CreationError("uint cannot be initialised by a negative number.")
         s = hex(uint)[2:]
         s = s.rstrip('L')
         if len(s) & 1:
@@ -2480,14 +2481,7 @@ class Bits(object):
             # Not found, return empty tuple
         return ()
 
-    def _find_lsb0(self, bs, start=None, end=None, bytealigned=None):
-        bs = Bits(bs)
-        start, end = self._validate_slice_lsb0(start, end)
-        p = self.rfind(bs, start, end, bytealigned)
-        if p:
-            return (self.len - p[0] - bs.length,)
-
-    def _find_msb0(self, bs, start=None, end=None, bytealigned=None):
+    def find(self, bs, start=None, end=None, bytealigned=None):
         """Find first occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -2508,6 +2502,16 @@ class Bits(object):
         (6,)
 
         """
+        return self._find(bs, start, end, bytealigned)
+
+    def _find_lsb0(self, bs, start=None, end=None, bytealigned=None):
+        bs = Bits(bs)
+        start, end = self._validate_slice_lsb0(start, end)
+        p = self.rfind(bs, start, end, bytealigned)
+        if p:
+            return (self.len - p[0] - bs.length,)
+
+    def _find_msb0(self, bs, start=None, end=None, bytealigned=None):
         bs = Bits(bs)
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
@@ -2739,7 +2743,7 @@ class Bits(object):
         """
         # If the bitstring is file based then we don't want to read it all
         # in to memory.
-        chunksize = 1024 * 1024 # 1 MB chunks
+        chunksize = 1024 * 1024  # 1 MiB chunks
         if not self._offset:
             a = 0
             bytelen = self._datastore.bytelength
@@ -3091,7 +3095,7 @@ class BitArray(Bits):
         bs -- the bitstring to append.
 
         """
-        self.append(bs)
+        self._append(bs)
         return self
 
     def __copy__(self):
@@ -3342,7 +3346,7 @@ class BitArray(Bits):
         lengths = [s.len for s in sections]
         if len(lengths) == 1:
             # Didn't find anything to replace.
-            return 0 # no replacements done
+            return 0  # no replacements done
         if new is self:
             # Prevent self assignment woes
             new = copy.copy(self)
@@ -3426,6 +3430,22 @@ class BitArray(Bits):
         except AttributeError:
             pass
 
+    def append(self, bs):
+        """Append a bitstring to the current bitstring.
+
+        bs -- The bitstring to append.
+
+        """
+        self._append(bs)
+
+    def prepend(self, bs):
+        """Prepend a bitstring to the current bitstring.
+
+        bs -- The bitstring to prepend.
+
+        """
+        self._prepend(bs)
+
     def _append_msb0(self, bs):
         # The offset is a hint to make bs easily appendable.
         bs = self._converttobitstring(bs, offset=(self.len + self._offset) % 8)
@@ -3434,25 +3454,6 @@ class BitArray(Bits):
     def _append_lsb0(self, bs):
         bs = Bits(bs)
         self._addleft(bs)
-
-    # def append(self, bs):
-    #     """Append a bitstring to the current bitstring.
-    #
-    #     bs -- The bitstring to append.
-    #
-    #     """
-    #     # The offset is a hint to make bs easily appendable.
-    #     bs = self._converttobitstring(bs, offset=(self.len + self._offset) % 8)
-    #     self._addright(bs)
-    #
-    # def prepend(self, bs):
-    #     """Prepend a bitstring to the current bitstring.
-    #
-    #     bs -- The bitstring to prepend.
-    #
-    #     """
-    #     bs = Bits(bs)
-    #     self._addleft(bs)
 
     def reverse(self, start=None, end=None):
         """Reverse bits in-place.
@@ -3527,7 +3528,7 @@ class BitArray(Bits):
                 raise IndexError("Bit position {0} out of range.".format(p))
             self._invert(p)
 
-    def _ror(self, bits, start=None, end=None):
+    def ror(self, bits, start=None, end=None):
         """Rotate bits to the right in-place.
 
         bits -- The number of bits to rotate by.
@@ -3541,6 +3542,9 @@ class BitArray(Bits):
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")
+        self._ror(bits, start, end)
+
+    def _ror_msb0(self, bits, start=None, end=None):
         start, end = self._validate_slice_msb0(start, end)  # the _slice deals with msb0/lsb0
         bits %= (end - start)
         if not bits:
@@ -3549,7 +3553,7 @@ class BitArray(Bits):
         self._delete(bits, end - bits)
         self._insert(rhs, start)
 
-    def _rol(self, bits, start=None, end=None):
+    def rol(self, bits, start=None, end=None):
         """Rotate bits to the left in-place.
 
         bits -- The number of bits to rotate by.
@@ -3563,6 +3567,9 @@ class BitArray(Bits):
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")
+        self._rol(bits, start, end)
+
+    def _rol_msb0(self, bits, start=None, end=None):
         start, end = self._validate_slice_msb0(start, end)
         bits %= (end - start)
         if not bits:
@@ -3768,7 +3775,7 @@ class ConstBitStream(Bits):
 
     """
 
-    __slots__ = ('_pos')
+    __slots__ = ('_pos',)
 
     def __init__(self, auto=None, length=None, offset=None, pos=0, **kwargs):
         """Either specify an 'auto' initialiser:
@@ -4240,7 +4247,7 @@ def pack(fmt, *values, **kwargs):
                 length = kwargs[length]
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
-                s.append(kwargs[name])
+                s._append(kwargs[name])
                 continue
             if length is not None:
                 length = int(length)
@@ -4262,43 +4269,45 @@ def pack(fmt, *values, **kwargs):
 # Whether to label the Least Significant Bit as bit 0. Default is False. Experimental feature.
 _lsb0 = False
 
+# Dictionary that maps token names to the function that reads them. Is set in next function.
+name_to_read = {}
+
 
 def _switch_lsb0_methods(lsb0):
     global _lsb0
     _lsb0 = lsb0
-    # TODO: can't we just use a,b = b,a here, if we know it's changing?
     if lsb0:
         ConstByteStore.getbit = ConstByteStore._getbit_lsb0
-        Bits.find = Bits._find_lsb0
+        Bits._find = Bits._find_lsb0
         Bits._slice = Bits._slice_lsb0
         BitArray._overwrite = BitArray._overwrite_lsb0
         BitArray._insert = BitArray._insert_lsb0
         BitArray._delete = BitArray._delete_lsb0
-        BitArray.ror = BitArray._rol
-        BitArray.rol = BitArray._ror
+        BitArray._ror = BitArray._rol_msb0
+        BitArray._rol = BitArray._ror_msb0
         ByteStore.setbit = ByteStore._setbit_lsb0
         ByteStore.unsetbit = ByteStore._unsetbit_lsb0
         ByteStore.invertbit = ByteStore._invertbit_lsb0
-        BitArray.append = BitArray._append_lsb0
-        BitArray.prepend = BitArray._append_msb0  # An LSB0 prepend is an MSB0 append
+        BitArray._append = BitArray._append_lsb0
+        BitArray._prepend = BitArray._append_msb0  # An LSB0 prepend is an MSB0 append
         Bits._readuint = Bits._readuint_lsb0
         Bits._truncatestart = Bits._truncateright
         Bits._truncateend = Bits._truncateleft
         Bits._validate_slice = Bits._validate_slice_lsb0
     else:
         ConstByteStore.getbit = ConstByteStore._getbit_msb0
-        Bits.find = Bits._find_msb0
+        Bits._find = Bits._find_msb0
         Bits._slice = Bits._slice_msb0
         BitArray._overwrite = BitArray._overwrite_msb0
         BitArray._insert = BitArray._insert_msb0
         BitArray._delete = BitArray._delete_msb0
-        BitArray.ror = BitArray._ror
-        BitArray.rol = BitArray._rol
+        BitArray._ror = BitArray._ror_msb0
+        BitArray._rol = BitArray._rol_msb0
         ByteStore.setbit = ByteStore._setbit_msb0
         ByteStore.unsetbit = ByteStore._unsetbit_msb0
         ByteStore.invertbit = ByteStore._invertbit_msb0
-        BitArray.append = BitArray._append_msb0
-        BitArray.prepend = BitArray._append_lsb0
+        BitArray._append = BitArray._append_msb0
+        BitArray._prepend = BitArray._append_lsb0
         Bits._readuint = Bits._readuint_msb0
         Bits._truncatestart = Bits._truncateleft
         Bits._truncateend = Bits._truncateright
@@ -4339,11 +4348,10 @@ def set_msb0(v=True):
     """Experimental method to reset the bit numbering so that the most significant bit is bit 0"""
     set_lsb0(not v)
 
+
+# Initialise the default behaviour
 set_msb0()
 
-
-# Dictionary that maps token names to the function that reads them.
-name_to_read = {}
 
 # Dictionaries for mapping init keywords with init functions.
 init_with_length_and_offset = {'bytes': Bits._setbytes_safe,
@@ -4378,32 +4386,33 @@ __all__ = ['ConstBitStream', 'BitStream', 'BitArray',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
            'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
 
-if __name__ == '__main__':
-    """Create and interpret a bitstring from command-line parameters.
 
-    Command-line parameters are concatenated and a bitstring created
-    from them. If the final parameter is either an interpretation string
-    or ends with a '.' followed by an interpretation string then that
-    interpretation of the bitstring will be used when printing it.
-
-    Typical usage might be invoking the Python module from a console
-    as a one-off calculation:
-
-    $ python -m bitstring int:16=-400
-    0xfe70
-    $ python -m bitstring float:32=0.2 bin
-    00111110010011001100110011001101
-    $ python -m bitstring 0xff 3*0b01,0b11 uint
-    65367
-    $ python -m bitstring hex=01, uint:12=352.hex
-    01160
-
-    This feature is experimental and is subject to change or removal.
-    """
-
+def main():
     # check if final parameter is an interpretation string
     fp = sys.argv[-1]
-    if fp in name_to_read.keys():
+    if fp == '--help' or len(sys.argv) == 1:
+        print("""Create and interpret a bitstring from command-line parameters.
+
+Command-line parameters are concatenated and a bitstring created
+from them. If the final parameter is either an interpretation string
+or ends with a '.' followed by an interpretation string then that
+interpretation of the bitstring will be used when printing it.
+
+Typical usage might be invoking the Python module from a console
+as a one-off calculation:
+
+$ python -m bitstring int:16=-400
+0xfe70
+$ python -m bitstring float:32=0.2 bin
+00111110010011001100110011001101
+$ python -m bitstring 0xff 3*0b01,0b11 uint
+65367
+$ python -m bitstring hex=01, uint:12=352.hex
+01160
+
+This feature is experimental and is subject to change or removal.
+        """)
+    elif fp in name_to_read.keys():
         # concatenate all other parameters and interpret using the final one
         b1 = Bits(','.join(sys.argv[1: -1]))
         print(b1._readtoken(fp, 0, b1.__len__())[0])
@@ -4418,3 +4427,7 @@ if __name__ == '__main__':
             # No interpretation - just use default print
             b1 = Bits(','.join(sys.argv[1:]))
             print(b1)
+
+
+if __name__ == '__main__':
+    main()
