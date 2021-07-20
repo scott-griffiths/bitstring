@@ -2512,14 +2512,7 @@ class Bits(object):
             # Not found, return empty tuple
         return ()
 
-    def _find_lsb0(self, bs, start=None, end=None, bytealigned=None):
-        bs = Bits(bs)
-        start, end = self._validate_slice_lsb0(start, end)
-        p = self.rfind(bs, start, end, bytealigned)
-        if p:
-            return (self.len - p[0] - bs.length,)
-
-    def _find_msb0(self, bs, start=None, end=None, bytealigned=None):
+    def find(self, bs, start=None, end=None, bytealigned=None):
         """Find first occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -2540,6 +2533,16 @@ class Bits(object):
         (6,)
 
         """
+        return self._find(bs, start, end, bytealigned)
+
+    def _find_lsb0(self, bs, start=None, end=None, bytealigned=None):
+        bs = Bits(bs)
+        start, end = self._validate_slice_lsb0(start, end)
+        p = self.rfind(bs, start, end, bytealigned)
+        if p:
+            return (self.len - p[0] - bs.length,)
+
+    def _find_msb0(self, bs, start=None, end=None, bytealigned=None):
         bs = Bits(bs)
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
@@ -4306,7 +4309,7 @@ def _switch_lsb0_methods(lsb0):
     _lsb0 = lsb0
     if lsb0:
         ConstByteStore.getbit = ConstByteStore._getbit_lsb0
-        Bits.find = Bits._find_lsb0
+        Bits._find = Bits._find_lsb0
         Bits._slice = Bits._slice_lsb0
         BitArray._overwrite = BitArray._overwrite_lsb0
         BitArray._insert = BitArray._insert_lsb0
@@ -4324,7 +4327,7 @@ def _switch_lsb0_methods(lsb0):
         Bits._validate_slice = Bits._validate_slice_lsb0
     else:
         ConstByteStore.getbit = ConstByteStore._getbit_msb0
-        Bits.find = Bits._find_msb0
+        Bits._find = Bits._find_msb0
         Bits._slice = Bits._slice_msb0
         BitArray._overwrite = BitArray._overwrite_msb0
         BitArray._insert = BitArray._insert_msb0
