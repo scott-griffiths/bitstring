@@ -1272,7 +1272,8 @@ class Bits(object):
             assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset, "len={0}, offset={1}, bytelength={2}, byteoffset={3}".format(self.len, self._offset, self._datastore.bytelength, self._datastore.byteoffset)
             return True
     else:
-        def _assertsanity(self):
+        @staticmethod
+        def _assertsanity():
             return True
 
     @classmethod
@@ -2770,7 +2771,7 @@ class Bits(object):
         """
         # If the bitstring is file based then we don't want to read it all
         # in to memory.
-        chunksize = 1024 * 1024 # 1 MB chunks
+        chunksize = 1024 * 1024  # 1 MiB chunks
         if not self._offset:
             a = 0
             bytelen = self._datastore.bytelength
@@ -3122,7 +3123,7 @@ class BitArray(Bits):
         bs -- the bitstring to append.
 
         """
-        self.append(bs)
+        self._append(bs)
         return self
 
     def __copy__(self):
@@ -3373,7 +3374,7 @@ class BitArray(Bits):
         lengths = [s.len for s in sections]
         if len(lengths) == 1:
             # Didn't find anything to replace.
-            return 0 # no replacements done
+            return 0  # no replacements done
         if new is self:
             # Prevent self assignment woes
             new = copy.copy(self)
@@ -3457,6 +3458,22 @@ class BitArray(Bits):
         except AttributeError:
             pass
 
+    def append(self, bs):
+        """Append a bitstring to the current bitstring.
+
+        bs -- The bitstring to append.
+
+        """
+        self._append(bs)
+
+    def prepend(self, bs):
+        """Prepend a bitstring to the current bitstring.
+
+        bs -- The bitstring to prepend.
+
+        """
+        self._prepend(bs)
+
     def _append_msb0(self, bs):
         # The offset is a hint to make bs easily appendable.
         bs = self._converttobitstring(bs, offset=(self.len + self._offset) % 8)
@@ -3539,7 +3556,7 @@ class BitArray(Bits):
                 raise IndexError("Bit position {0} out of range.".format(p))
             self._invert(p)
 
-    def _ror(self, bits, start=None, end=None):
+    def ror(self, bits, start=None, end=None):
         """Rotate bits to the right in-place.
 
         bits -- The number of bits to rotate by.
@@ -3553,6 +3570,9 @@ class BitArray(Bits):
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")
+        self._ror(bits, start, end)
+
+    def _ror_msb0(self, bits, start=None, end=None):
         start, end = self._validate_slice_msb0(start, end)  # the _slice deals with msb0/lsb0
         bits %= (end - start)
         if not bits:
@@ -3561,7 +3581,7 @@ class BitArray(Bits):
         self._delete(bits, end - bits)
         self._insert(rhs, start)
 
-    def _rol(self, bits, start=None, end=None):
+    def rol(self, bits, start=None, end=None):
         """Rotate bits to the left in-place.
 
         bits -- The number of bits to rotate by.
@@ -3575,6 +3595,9 @@ class BitArray(Bits):
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")
+        self._rol(bits, start, end)
+
+    def _rol_msb0(self, bits, start=None, end=None):
         start, end = self._validate_slice_msb0(start, end)
         bits %= (end - start)
         if not bits:
@@ -3780,7 +3803,7 @@ class ConstBitStream(Bits):
 
     """
 
-    __slots__ = ('_pos')
+    __slots__ = ('_pos',)
 
     def __init__(self, auto=None, length=None, offset=None, pos=0, **kwargs):
         """Either specify an 'auto' initialiser:
@@ -4252,7 +4275,7 @@ def pack(fmt, *values, **kwargs):
                 length = kwargs[length]
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
-                s.append(kwargs[name])
+                s._append(kwargs[name])
                 continue
             if length is not None:
                 length = int(length)
@@ -4277,6 +4300,7 @@ _lsb0 = False
 # Dictionary that maps token names to the function that reads them. Is set in next function.
 name_to_read = {}
 
+
 def _switch_lsb0_methods(lsb0):
     global _lsb0
     _lsb0 = lsb0
@@ -4287,13 +4311,13 @@ def _switch_lsb0_methods(lsb0):
         BitArray._overwrite = BitArray._overwrite_lsb0
         BitArray._insert = BitArray._insert_lsb0
         BitArray._delete = BitArray._delete_lsb0
-        BitArray.ror = BitArray._rol
-        BitArray.rol = BitArray._ror
+        BitArray._ror = BitArray._rol_msb0
+        BitArray._rol = BitArray._ror_msb0
         ByteStore.setbit = ByteStore._setbit_lsb0
         ByteStore.unsetbit = ByteStore._unsetbit_lsb0
         ByteStore.invertbit = ByteStore._invertbit_lsb0
-        BitArray.append = BitArray._append_lsb0
-        BitArray.prepend = BitArray._append_msb0  # An LSB0 prepend is an MSB0 append
+        BitArray._append = BitArray._append_lsb0
+        BitArray._prepend = BitArray._append_msb0  # An LSB0 prepend is an MSB0 append
         Bits._readuint = Bits._readuint_lsb0
         Bits._truncatestart = Bits._truncateright
         Bits._truncateend = Bits._truncateleft
@@ -4305,13 +4329,13 @@ def _switch_lsb0_methods(lsb0):
         BitArray._overwrite = BitArray._overwrite_msb0
         BitArray._insert = BitArray._insert_msb0
         BitArray._delete = BitArray._delete_msb0
-        BitArray.ror = BitArray._ror
-        BitArray.rol = BitArray._rol
+        BitArray._ror = BitArray._ror_msb0
+        BitArray._rol = BitArray._rol_msb0
         ByteStore.setbit = ByteStore._setbit_msb0
         ByteStore.unsetbit = ByteStore._unsetbit_msb0
         ByteStore.invertbit = ByteStore._invertbit_msb0
-        BitArray.append = BitArray._append_msb0
-        BitArray.prepend = BitArray._append_lsb0
+        BitArray._append = BitArray._append_msb0
+        BitArray._prepend = BitArray._append_lsb0
         Bits._readuint = Bits._readuint_msb0
         Bits._truncatestart = Bits._truncateleft
         Bits._truncateend = Bits._truncateright
