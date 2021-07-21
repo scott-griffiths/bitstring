@@ -65,6 +65,7 @@ __author__ = "Scott Griffiths"
 
 import numbers
 import copy
+import pathlib
 import sys
 import re
 import binascii
@@ -75,6 +76,7 @@ import operator
 import array
 import io
 import collections
+import typing
 
 
 byteorder = sys.byteorder
@@ -156,10 +158,24 @@ class ConstByteStore(object):
         start_byte, start_bit = divmod(self.offset, 8)
         end_byte, end_bit = divmod(self.offset + self.bitlength, 8)
 
-        for byte_index in range(start_byte, end_byte):
-            byte = self._rawarray[byte_index]
+        try:
+            byte = self._rawarray[start_byte]
+        except IndexError:
+            return  # Empty
+        if start_byte != end_byte:
             for bit in range(start_bit, 8):
                 yield bool(byte & (128 >> bit))
+            start_bit = 0
+        else:
+            for bit in range(start_bit, end_bit):
+                yield bool(byte & (128 >> bit))
+            return
+
+        for byte in self._rawarray[start_byte + 1: end_byte]:
+            reversed_int = INT8_REVERSAL_DICT[byte]
+            for _ in range(0, 8):
+                yield reversed_int & 1
+                reversed_int >>= 1
             start_bit = 0
 
         if end_bit:
@@ -482,12 +498,13 @@ class MmapByteArray(object):
         return self.bytelength
 
 
-# This creates a dictionary for every possible byte with the value being
-# the key with its bits reversed.
+# Creates dictionaries to quickly reverse single bytes
 BYTE_REVERSAL_DICT = dict()
+INT8_REVERSAL_DICT = dict()
 
-for i in range(256):
-    BYTE_REVERSAL_DICT[i] = bytes([int("{0:08b}".format(i)[::-1], 2)])
+for i in range(0x100):
+    INT8_REVERSAL_DICT[i] = int("{0:08b}".format(i)[::-1], 2)
+    BYTE_REVERSAL_DICT[i] = bytes([INT8_REVERSAL_DICT[i]])
 
 
 def tidy_input_string(s):
@@ -900,7 +917,7 @@ class Bits(object):
     def __ge__(self, other):
         raise TypeError("unorderable type: {0}".format(type(self).__name__))
 
-    def __add__(self, bs):
+    def __add__(self, bs: int) -> int:
         """Concatenate bitstrings and return new bitstring.
 
         bs -- the bitstring to append.
@@ -1217,6 +1234,7 @@ class Bits(object):
             pass
         return bool(found)
 
+    # TODO: There must be a more standard way of doing this.
     def __hash__(self):
         """Return an integer hash of the object."""
         # We can't in general hash the whole bitstring (it could take hours!)
@@ -1370,7 +1388,7 @@ class Bits(object):
 
     def _setfile(self, filename, length, offset):
         """Use file as source of bits."""
-        with open(filename, 'rb') as source:
+        with open(pathlib.Path(filename), 'rb') as source:
             if offset is None:
                 offset = 0
             if length is None:
@@ -1438,15 +1456,8 @@ class Bits(object):
             raise CreationError(msg, uint, length, (1 << length) - 1)
         if uint < 0:
             raise CreationError("uint cannot be initialised by a negative number.")
-        s = hex(uint)[2:]
-        s = s.rstrip('L')
-        if len(s) & 1:
-            s = '0' + s
-        data = bytes.fromhex(s)
-        # Now add bytes as needed to get the right length.
-        extrabytes = ((length + 7) // 8) - len(data)
-        if extrabytes > 0:
-            data = b'\x00' * extrabytes + data
+        data = int.to_bytes(uint, (length + 7) // 8, 'big')
+
         offset = 8 - (length % 8)
         if offset == 8:
             offset = 0
@@ -1465,9 +1476,7 @@ class Bits(object):
         startbyte = (start + offset) // 8
         endbyte = (start + offset + length - 1) // 8
 
-        b = binascii.hexlify(bytes(self._datastore.getbyteslice(startbyte, endbyte + 1)))
-        assert b
-        i = int(b, 16)
+        i = int.from_bytes(self._datastore.getbyteslice(startbyte, endbyte + 1), 'big')
         final_bits = 8 - ((start + offset + length) % 8)
         if final_bits != 8:
             i >>= final_bits
@@ -1912,10 +1921,11 @@ class Bits(object):
             return ''
         # Get the byte slice containing our bit slice
         startbyte, startoffset = divmod(start + self._offset, 8)
-        endbyte = (start + self._offset + length - 1) // 8
+        endbyte, endbit = divmod(start + self._offset + length - 1, 8)
         b = self._datastore.getbyteslice(startbyte, endbyte + 1)
-        # Convert to a string of '0' and '1's (via a hex string an and int!)
-        c = "{:0{}b}".format(int(binascii.hexlify(b), 16), 8*len(b))
+        # Convert to a string of '0' and '1's
+        integer = int.from_bytes(b, 'big')
+        c = "{:0{}b}".format(integer, 8*len(b))
         # Finally chop off any extra bits.
         return c[startoffset:startoffset + length]
 
@@ -1934,7 +1944,6 @@ class Bits(object):
                 binlist.append(OCT_TO_BITS[int(i)])
             except (ValueError, IndexError):
                 raise CreationError("Invalid symbol '{0}' in oct initialiser.", i)
-
         self._setbin_unsafe(''.join(binlist))
 
     def _readoct(self, length, start):
@@ -1973,8 +1982,7 @@ class Bits(object):
     def _readhex(self, length, start):
         """Read bits and interpret as a hex string."""
         if length % 4:
-            raise InterpretError("Cannot convert to hex unambiguously - "
-                                           "not multiple of 4 bits.")
+            raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
         if not length:
             return ''
         s = self._slice(start, start + length).tobytes()
@@ -2329,7 +2337,7 @@ class Bits(object):
         start, end = self._validate_slice_msb0(start, end)
         return self.len - end, self.len - start
 
-    def unpack(self, fmt, **kwargs):
+    def unpack(self, fmt, **kwargs) -> list:
         """Interpret the whole bitstring using fmt and return list.
 
         fmt -- A single string or a list of strings with comma separated tokens
@@ -2529,7 +2537,7 @@ class Bits(object):
             pass
         return p
 
-    def findall(self, bs, start=None, end=None, count=None, bytealigned=None):
+    def findall(self, bs, start=None, end=None, count=None, bytealigned=None) -> typing.Generator[int, None, None]:
         """Find all occurrences of bs. Return generator of bit positions.
 
         bs -- The bitstring to find.
@@ -2581,7 +2589,7 @@ class Bits(object):
                 break
         return
 
-    def rfind(self, bs, start=None, end=None, bytealigned=None):
+    def rfind(self, bs, start=None, end=None, bytealigned=None) -> typing.Tuple[int]:
         """Find final occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -2620,7 +2628,7 @@ class Bits(object):
                 continue
             return (found[-1],)
 
-    def cut(self, bits, start=None, end=None, count=None):
+    def cut(self, bits, start=None, end=None, count=None) -> typing.Generator['Bits', None, None]:
         """Return bitstring generator by cutting into bits sized chunks.
 
         bits -- The size in bits of the bitstring chunks to generate.
@@ -2648,8 +2656,8 @@ class Bits(object):
         return
 
     def split(self, delimiter, start=None, end=None, count=None,
-              bytealigned=None):
-        """Return bitstring generator by splittling using a delimiter.
+              bytealigned=None) -> typing.Generator['Bits', None, None]:
+        """Return bitstring generator by splitting using a delimiter.
 
         The first item returned is the initial bitstring before the delimiter,
         which may be an empty bitstring.
@@ -2704,7 +2712,7 @@ class Bits(object):
         # Have generated count bitstrings, so time to quit.
         return
 
-    def join(self, sequence):
+    def join(self, sequence) -> 'Bits':
         """Return concatenation of bitstrings joined by self.
 
         sequence -- A sequence of bitstrings.
@@ -2722,7 +2730,7 @@ class Bits(object):
             pass
         return s
 
-    def tobytes(self):
+    def tobytes(self) -> bytes:
         """Return the bitstring as bytes, padding with zero bits if needed.
 
         Up to seven zero bits will be added at the end to byte align.
@@ -2735,7 +2743,7 @@ class Bits(object):
             d[-1] &= (0xff << unusedbits)
         return bytes(d)
 
-    def tofile(self, f):
+    def tofile(self, f) -> None:
         """Write the bitstring to a file object, padding with zero bits if needed.
 
         Up to seven zero bits will be added at the end to byte align.
@@ -2769,7 +2777,7 @@ class Bits(object):
             if a != self.len:
                 f.write(self._slice(a, self.len).tobytes())
 
-    def startswith(self, prefix, start=None, end=None):
+    def startswith(self, prefix, start=None, end=None) -> bool:
         """Return whether the current bitstring starts with prefix.
 
         prefix -- The bitstring to search for.
@@ -2784,7 +2792,7 @@ class Bits(object):
         end = start + prefix.len
         return self._slice(start, end) == prefix
 
-    def endswith(self, suffix, start=None, end=None):
+    def endswith(self, suffix, start=None, end=None) -> bool:
         """Return whether the current bitstring ends with suffix.
 
         suffix -- The bitstring to search for.
@@ -2799,7 +2807,7 @@ class Bits(object):
         start = end - suffix.len
         return self._slice(start, end) == suffix
 
-    def all(self, value, pos=None):
+    def all(self, value, pos=None) -> bool:
         """Return True if one or many bits are all set to value.
 
         value -- If value is True then checks for bits set to 1, otherwise
@@ -2821,7 +2829,7 @@ class Bits(object):
                 return False
         return True
 
-    def any(self, value, pos=None):
+    def any(self, value, pos=None) -> bool:
         """Return True if any of one or many bits are set to value.
 
         value -- If value is True then checks for bits set to 1, otherwise
@@ -2843,7 +2851,7 @@ class Bits(object):
                 return True
         return False
 
-    def count(self, value):
+    def count(self, value) -> int:
         """Return count of total number of either zero or one bits.
 
         value -- If True then bits set to 1 are counted, otherwise bits set
@@ -2959,9 +2967,6 @@ class Bits(object):
     sie = property(_getsie,
                    doc="""The bitstring as a signed interleaved exponential-Golomb code. Read only.
                       """)
-
-
-
 
 
 class BitArray(Bits):
@@ -3312,7 +3317,7 @@ class BitArray(Bits):
         return self._ixor(bs)
 
     def replace(self, old, new, start=None, end=None, count=None,
-                bytealigned=None):
+                bytealigned=None) -> int:
         """Replace all occurrences of old with new in place.
 
         Returns number of replacements made.
@@ -3378,7 +3383,7 @@ class BitArray(Bits):
         assert self._assertsanity()
         return len(lengths) - 1
 
-    def insert(self, bs, pos=None):
+    def insert(self, bs, pos=None) -> 'BitArray':
         """Insert bs at bit position pos.
 
         bs -- The bitstring to insert.
@@ -3403,7 +3408,7 @@ class BitArray(Bits):
             raise ValueError("Invalid insert position.")
         self._insert(bs, pos)
 
-    def overwrite(self, bs, pos=None):
+    def overwrite(self, bs, pos=None) -> None:
         """Overwrite with bs at bit position pos.
 
         bs -- The bitstring to overwrite with.
