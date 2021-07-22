@@ -2,13 +2,22 @@
 bitstring module version history
 --------------------------------
 
+---
+version 4.0.0
+
+* Minimum supported Python version is now Python 3.6. 
+* Removed ConstBitArray and BitString class aliases. Use Bits and BitStream instead.
+* Return type hints added.
+
+---
+
 ---------------------------------------
-July 18th 2021: version 3.1.8 released
+July 20th 2021: version 3.1.9 released
 ---------------------------------------
 Another maintenance release.
 
 * Fixed a couple of outdated results in the readme (Issue 214).
-* Some mode documentation tidying.
+* Some more documentation tidying.
 * Turned off some debug code by default.
 * Fixed a couple of failing tests in different Python versions.
 * Fix for consistent pos initialisation semantics for different types.
