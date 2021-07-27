@@ -10,14 +10,14 @@ class OffsetCopy(unittest.TestCase):
     def testStraightCopy(self):
         s = ByteStore(bytearray([10, 5, 1]), 24, 0)
         t = offsetcopy(s, 0)
-        self.assertEqual(t._rawarray, bytearray([10, 5, 1]))
+        self.assertEqual(t.rawarray, bytearray([10, 5, 1]))
 
     def testOffsetIncrease(self):
         s = ByteStore(bytearray([1, 1, 1]), 24, 0)
         t = offsetcopy(s, 4)
         self.assertEqual(t.bitlength, 24)
         self.assertEqual(t.offset, 4)
-        self.assertEqual(t._rawarray, bytearray([0, 16, 16, 16]))
+        self.assertEqual(t.rawarray, bytearray([0, 16, 16, 16]))
 
 
 class Equals(unittest.TestCase):

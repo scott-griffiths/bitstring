@@ -1027,7 +1027,8 @@ class Insert(unittest.TestCase):
         self.assertRaises(ValueError, s1.insert, '0b1', 1000)
 
     def testInsertNull(self):
-        s = BitStream(hex='0x123').insert(BitStream(), 3)
+        s = BitStream(hex='0x123')
+        s.insert(BitStream(), 3)
         self.assertEqual(s.hex, '123')
 
     def testInsertBits(self):
@@ -1656,8 +1657,8 @@ class Multiplication(unittest.TestCase):
     def testFileAndMemEquivalence(self):
         a = ConstBitStream(filename='smalltestfile')
         b = BitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
-        self.assertTrue(isinstance(b._datastore._rawarray, bytearray))
+        self.assertTrue(isinstance(a._datastore.rawarray, bitstring.MmapByteArray))
+        self.assertTrue(isinstance(b._datastore.rawarray, bytearray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
         self.assertEqual(a._datastore.getbyteslice(1, 5), bytearray(b._datastore.getbyteslice(1, 5)))
 
@@ -1920,7 +1921,7 @@ class Split(unittest.TestCase):
                   ConstBitStream(filename='test.m1v', length=17),
                   ConstBitStream(filename='test.m1v', length=23, offset=23102)]:
             f2 = eval(f.__repr__())
-            self.assertEqual(f._datastore._rawarray.source.name, f2._datastore._rawarray.source.name)
+            self.assertEqual(f._datastore.rawarray.source.name, f2._datastore.rawarray.source.name)
             self.assertTrue(f2.tobytes() == f.tobytes())
         a = BitStream('0b1')
         self.assertEqual(repr(a), "BitStream('0b1')")
@@ -3867,10 +3868,10 @@ class FileReadingStrategy(unittest.TestCase):
 
     def testBitsIsNeverRead(self):
         a = ConstBitStream(filename='smalltestfile')
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
+        self.assertTrue(isinstance(a._datastore.rawarray, bitstring.MmapByteArray))
         with open('smalltestfile', 'rb') as f:
             b = ConstBitStream(f)
-            self.assertTrue(isinstance(b._datastore._rawarray, bitstring.MmapByteArray))
+            self.assertTrue(isinstance(b._datastore.rawarray, bitstring.MmapByteArray))
 
 
 class Count(unittest.TestCase):

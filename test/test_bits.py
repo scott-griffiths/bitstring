@@ -348,7 +348,7 @@ class ConstByteStoreCreation(unittest.TestCase):
         self.assertEqual(a.bytelength, 3)
         self.assertEqual(a.offset, 0)
         self.assertEqual(a.bitlength, 24)
-        self.assertEqual(a._rawarray, b'abc')
+        self.assertEqual(a.rawarray, b'abc')
 
     def testGetBit(self):
         a = ConstByteStore(bytearray([0x0f]))
