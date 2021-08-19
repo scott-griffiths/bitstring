@@ -7,6 +7,7 @@ import bitstring
 import io
 from bitstring import ConstBitStream as CBS
 
+
 class All(unittest.TestCase):
     def testFromFile(self):
         s = CBS(filename='test.m1v')
@@ -72,12 +73,14 @@ class ReadTo(unittest.TestCase):
 class Subclassing(unittest.TestCase):
 
     def testIsInstance(self):
-        class SubBits(CBS): pass
+        class SubBits(CBS):
+            pass
         a = SubBits()
         self.assertTrue(isinstance(a, SubBits))
 
     def testClassType(self):
-        class SubBits(CBS): pass
+        class SubBits(CBS):
+            pass
         self.assertEqual(SubBits().__class__, SubBits)
 
 
@@ -158,11 +161,11 @@ class BytesIOCreation(unittest.TestCase):
 
     def testExceptions(self):
         f = io.BytesIO(b"123456789")
-        s = CBS(f, length=9*8)
+        _ = CBS(f, length=9*8)
         with self.assertRaises(bitstring.CreationError):
-            s = CBS(f, length=9*8 + 1)
+            _ = CBS(f, length=9*8 + 1)
         with self.assertRaises(bitstring.CreationError):
-            s = CBS(f, length=9*8, offset=1)
+            _ = CBS(f, length=9*8, offset=1)
 
 
 class CreationWithPos(unittest.TestCase):
@@ -179,7 +182,7 @@ class CreationWithPos(unittest.TestCase):
         s = CBS('0xabc', pos=12)
         self.assertEqual(s.pos, 12)
         with self.assertRaises(bitstring.CreationError):
-            s = CBS('0xabc', pos=13)
+            _ = CBS('0xabc', pos=13)
 
     def testNegativePos(self):
         s = CBS('0xabc', pos=-1)
@@ -187,7 +190,7 @@ class CreationWithPos(unittest.TestCase):
         s = CBS('0xabc', pos=-12)
         self.assertEqual(s.pos, 0)
         with self.assertRaises(bitstring.CreationError):
-            s = CBS('0xabc', pos=-13)
+            _ = CBS('0xabc', pos=-13)
 
     def testStringRepresentation(self):
         s = CBS('0b110', pos=2)

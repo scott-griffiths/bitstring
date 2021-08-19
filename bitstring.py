@@ -242,7 +242,7 @@ class ConstByteStore(object):
         if bit_offset:
             # first do the byte with the join.
             joinval = (store.getbyte(-1) & (255 ^ (255 >> bit_offset)) | 
-                      (self.rawarray[self.byteoffset] & (255 >> bit_offset)))
+                       (self.rawarray[self.byteoffset] & (255 >> bit_offset)))
             store.rawarray[-1] = joinval
             store.rawarray.extend(self.rawarray[self.byteoffset + 1: self.byteoffset + self.bytelength])
         else:
@@ -501,15 +501,14 @@ class MmapByteArray(object):
 BYTE_REVERSAL_DICT = dict()
 INT8_REVERSAL_DICT = dict()
 
-for i in range(0x100):
-    INT8_REVERSAL_DICT[i] = int("{0:08b}".format(i)[::-1], 2)
-    BYTE_REVERSAL_DICT[i] = bytes([INT8_REVERSAL_DICT[i]])
+for i_ in range(0x100):
+    INT8_REVERSAL_DICT[i_] = int("{0:08b}".format(i_)[::-1], 2)
+    BYTE_REVERSAL_DICT[i_] = bytes([INT8_REVERSAL_DICT[i_]])
 
 
 def tidy_input_string(s):
     """Return string made lowercase and with all whitespace removed."""
-    s = ''.join(s.split()).lower()
-    return s
+    return ''.join(s.split()).lower()
 
 
 INIT_NAMES = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
@@ -1901,8 +1900,7 @@ class Bits(object):
         length = len(binstring)
         # pad with zeros up to byte boundary if needed
         boundary = ((length + 7) // 8) * 8
-        padded_binstring = binstring + '0' * (boundary - length)\
-                           if len(binstring) < boundary else binstring
+        padded_binstring = binstring + '0' * (boundary - length) if len(binstring) < boundary else binstring
         try:
             bytelist = [int(padded_binstring[x:x + 8], 2)
                         for x in range(0, len(padded_binstring), 8)]
@@ -2378,7 +2376,7 @@ class Bits(object):
                     lst.append(value)
                     continue
                 value, pos = self._readtoken(name, pos, length)
-                if value is not None: # Don't append pad tokens
+                if value is not None:  # Don't append pad tokens
                     lst.append(value)
             return lst, pos
         stretchy_token = False
@@ -3085,8 +3083,8 @@ class BitArray(Bits):
         x = super(BitArray, cls).__new__(cls)
         y = Bits.__new__(BitArray, auto, length, offset, **kwargs)
         x._datastore = ByteStore(y._datastore.rawarray[:],
-                                          y._datastore.bitlength,
-                                          y._datastore.offset)
+                                 y._datastore.bitlength,
+                                 y._datastore.offset)
         return x
 
     def __iadd__(self, bs) -> 'BitArray':
@@ -3689,10 +3687,10 @@ class BitArray(Bits):
                   doc="""The bitstring as a signed exponential-Golomb code. Read and write.
                       """)
     uie = property(Bits._getuie, Bits._setuie,
-                  doc="""The bitstring as an unsigned interleaved exponential-Golomb code. Read and write.
+                   doc="""The bitstring as an unsigned interleaved exponential-Golomb code. Read and write.
                       """)
     sie = property(Bits._getsie, Bits._setsie,
-                  doc="""The bitstring as a signed interleaved exponential-Golomb code. Read and write.
+                   doc="""The bitstring as a signed interleaved exponential-Golomb code. Read and write.
                       """)
     hex = property(Bits._gethex, Bits._sethex,
                    doc="""The bitstring as a hexadecimal string. Read and write.
@@ -3709,7 +3707,6 @@ class BitArray(Bits):
     bytes = property(Bits._getbytes, Bits._setbytes_safe,
                      doc="""The bitstring as a ordinary string. Read and write.
                       """)
-
 
 
 class ConstBitStream(Bits):
@@ -4161,8 +4158,8 @@ class BitStream(ConstBitStream, BitArray):
         x = super(BitStream, cls).__new__(cls)
         y = ConstBitStream.__new__(BitStream, auto, length, offset, pos, **kwargs)
         x._datastore = ByteStore(y._datastore.rawarray[:],
-                                          y._datastore.bitlength,
-                                          y._datastore.offset)
+                                 y._datastore.bitlength,
+                                 y._datastore.offset)
         x._pos = y._pos
         return x
 

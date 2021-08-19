@@ -67,9 +67,9 @@ class Creation(unittest.TestCase):
     def testCreationFromOctErrors(self):
         s = Bits('0b00011')
         with self.assertRaises(bitstring.InterpretError):
-            s.oct
+            _ = s.oct
         with self.assertRaises(bitstring.CreationError):
-            Bits('oct=8')
+            _ = Bits('oct=8')
 
     def testCreationFromUintWithOffset(self):
         with self.assertRaises(bitstring.CreationError):
@@ -102,7 +102,7 @@ class Creation(unittest.TestCase):
             for value in range(-17, 17):
                 s = Bits(int=value, length=length)
                 self.assertEqual((s.int, s.length), (value, length))
-        s = Bits(int=10, length=8)
+        _ = Bits(int=10, length=8)
 
     def testCreationFromIntErrors(self):
         with self.assertRaises(bitstring.CreationError):
@@ -128,7 +128,7 @@ class Creation(unittest.TestCase):
             Bits(se=-5, length=33)
         s = Bits(bin='001000')
         with self.assertRaises(bitstring.InterpretError):
-            s.se
+            _ = s.se
 
     def testCreationFromUe(self):
         [self.assertEqual(Bits(ue=i).ue, i) for i in range(0, 20)]
@@ -144,7 +144,7 @@ class Creation(unittest.TestCase):
             Bits(ue=1, length=12)
         s = Bits(bin='10')
         with self.assertRaises(bitstring.InterpretError):
-            s.ue
+            _ = s.ue
 
     def testCreationFromBool(self):
         a = Bits('bool=1')
@@ -172,12 +172,8 @@ class Initialisation(unittest.TestCase):
 
     def testNoPos(self):
         a = Bits('0xabcdef')
-        try:
-            a.pos
-        except AttributeError:
-            pass
-        else:
-            assert False
+        with self.assertRaises(AttributeError):
+            _ = a.pos
 
     def testFind(self):
         a = Bits('0xabcd')
@@ -234,9 +230,9 @@ class InterleavedExpGolomb(unittest.TestCase):
         for f in ['sie=100, 0b1001', '0b00', 'uie=100, 0b1001']:
             s = Bits(f)
             with self.assertRaises(bitstring.InterpretError):
-                s.sie
+                _ = s.sie
             with self.assertRaises(bitstring.InterpretError):
-                s.uie
+                _ = s.uie
         with self.assertRaises(ValueError):
             Bits(uie=-10)
 
@@ -261,7 +257,7 @@ class FileBased(unittest.TestCase):
         self.assertEqual(self.a[23:36] | self.c[3:], self.c[3:])
 
     def testAddition(self):
-        h = self.d + '0x1'
+        _ = self.d + '0x1'
         x = self.a[20:24] + self.c[-4:] + self.c[8:12]
         self.assertEqual(x, '0x587')
         x = self.b + x
@@ -270,6 +266,7 @@ class FileBased(unittest.TestCase):
         del x[12:24]
         self.assertEqual(x, '0x456abcdef587')
         
+
 class Mmap(unittest.TestCase):
     def setUp(self):
         self.f = open('smalltestfile', 'rb')
@@ -310,24 +307,26 @@ class Comparisons(unittest.TestCase):
         a = Bits(5)
         b = Bits(5)
         with self.assertRaises(TypeError):
-            a <  b
+            _ = a < b
         with self.assertRaises(TypeError):
-            a >  b
+            _ = a > b
         with self.assertRaises(TypeError):
-            a <=  b
+            _ = a <= b
         with self.assertRaises(TypeError):
-            a >=  b
+            _ = a >= b
 
 
 class Subclassing(unittest.TestCase):
 
     def testIsInstance(self):
-        class SubBits(bitstring.Bits): pass
+        class SubBits(bitstring.Bits):
+            pass
         a = SubBits()
         self.assertTrue(isinstance(a, SubBits))
 
     def testClassType(self):
-        class SubBits(bitstring.Bits): pass
+        class SubBits(bitstring.Bits):
+            pass
         self.assertEqual(SubBits().__class__, SubBits)
 
 
@@ -533,13 +532,13 @@ class Lsb0Indexing(unittest.TestCase):
         self.assertEqual(a[4], False)
         self.assertEqual(a[8], False)
         with self.assertRaises(IndexError):
-            a[9]
+            _ = a[9]
         self.assertEqual(a[-1], False)
         self.assertEqual(a[-5], False)
         self.assertEqual(a[-6], True)
         self.assertEqual(a[-9], True)
         with self.assertRaises(IndexError):
-            a[-10]
+            _ = a[-10]
 
     def testSimpleSlicing(self):
         a = Bits('0xabcdef')

@@ -3,7 +3,7 @@
 import unittest
 import sys
 sys.path.insert(0, '..')
-from bitstring import ByteStore, ConstByteStore, equal, offsetcopy
+from bitstring import ByteStore, equal, offsetcopy
 
 
 class OffsetCopy(unittest.TestCase):

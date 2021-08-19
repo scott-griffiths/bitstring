@@ -28,21 +28,6 @@ class ModuleData(unittest.TestCase):
             self.assertEqual(a.bin[::-1], bitstring.Bits(bytes=b).bin)
 
 
-class MemoryUsage(unittest.TestCase):
-    def testBaselineMemory(self):
-        try:
-            import pympler.asizeof.asizeof as size
-        except ImportError:
-            return
-        # These values might be platform dependent, so don't fret too much.
-        self.assertEqual(size(bitstring.ConstBitStream([0])), 64)
-        self.assertEqual(size(bitstring.Bits([0])), 64)
-        self.assertEqual(size(bitstring.BitStream([0])), 64)
-        self.assertEqual(size(bitstring.BitArray([0])), 64)
-        from bitstring.bitstore import ByteStore
-        self.assertEqual(size(ByteStore(bytearray())), 100)
-
-
 class Copy(unittest.TestCase):
     def testConstBitArrayCopy(self):
         import copy
@@ -99,5 +84,3 @@ class LSB0(unittest.TestCase):
         self.assertEqual(bitstring._lsb0, True)
         bitstring.set_msb0()
         self.assertEqual(bitstring._lsb0, False)
-        
-        

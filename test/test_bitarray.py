@@ -10,6 +10,7 @@ sys.path.insert(0, '..')
 import bitstring
 from bitstring import BitArray
 
+
 class All(unittest.TestCase):
     def testCreationFromUint(self):
         s = BitArray(uint=15, length=6)
@@ -97,7 +98,7 @@ class NoPosAttribute(unittest.TestCase):
 class Bugs(unittest.TestCase):
     def testAddingNonsense(self):
         a = BitArray([0])
-        a += '0' # a uint of length 0 - so nothing gets added.
+        a += '0'  # a uint of length 0 - so nothing gets added.
         self.assertEqual(a, [0])
         with self.assertRaises(ValueError):
             a += '3'
@@ -265,33 +266,28 @@ class SliceAssignment(unittest.TestCase):
 
     def testSetSliceErrors(self):
         a = BitArray(8)
-        try:
+        with self.assertRaises(ValueError):
             a[::3] = [1]
-            self.assertTrue(False)
-        except ValueError:
+
+        class A(object):
             pass
-        class A(object): pass
-        try:
+        with self.assertRaises(TypeError):
             a[1:2] = A()
-            self.assertTrue(False)
-        except TypeError:
-            pass
-        try:
+        with self.assertRaises(ValueError):
             a[1:4:-1] = [1, 2]
-            self.assertTrue(False)
-        except ValueError:
-            pass
 
 
 class Subclassing(unittest.TestCase):
 
     def testIsInstance(self):
-        class SubBits(BitArray): pass
+        class SubBits(BitArray):
+            pass
         a = SubBits()
         self.assertTrue(isinstance(a, SubBits))
 
     def testClassType(self):
-        class SubBits(BitArray): pass
+        class SubBits(BitArray):
+            pass
         self.assertEqual(SubBits().__class__, SubBits)
 
 
