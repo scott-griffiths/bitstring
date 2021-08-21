@@ -76,6 +76,7 @@ import array
 import io
 import collections
 from typing import Generator, Tuple, Union, List
+from contextlib import suppress
 
 
 byteorder = sys.byteorder
@@ -135,7 +136,7 @@ class CreationError(Error, ValueError):
         Error.__init__(self, *params)
 
 
-class ConstByteStore(object):
+class ConstByteStore():
     """Stores raw bytes together with a bit offset and length.
 
     Used internally - not part of public interface.
@@ -171,7 +172,7 @@ class ConstByteStore(object):
             return
 
         for byte in self.rawarray[start_byte + 1: end_byte]:
-            reversed_int = INT8_REVERSAL_DICT[byte]
+            reversed_int = Bits._int8ReversalDict[byte]
             for _ in range(0, 8):
                 yield reversed_int & 1
                 reversed_int >>= 1
@@ -451,7 +452,7 @@ def equal(a, b):
     return a_val == b_val
 
 
-class MmapByteArray(object):
+class MmapByteArray():
     """Looks like a bytearray, but from an mmap.
 
     Not part of public interface.
@@ -495,15 +496,6 @@ class MmapByteArray(object):
 
     def __len__(self):
         return self.bytelength
-
-
-# Creates dictionaries to quickly reverse single bytes
-BYTE_REVERSAL_DICT = dict()
-INT8_REVERSAL_DICT = dict()
-
-for i_ in range(0x100):
-    INT8_REVERSAL_DICT[i_] = int("{0:08b}".format(i_)[::-1], 2)
-    BYTE_REVERSAL_DICT[i_] = bytes([INT8_REVERSAL_DICT[i_]])
 
 
 def tidy_input_string(s):
@@ -640,17 +632,16 @@ def tokenparser(fmt, keys=None, token_cache={}):
                 m2 = DEFAULT_UINT.match(token)
                 if not m2:
                     raise ValueError("Don't understand token '{0}'.".format(token))
+                name = 'uint'
+                length = m2.group('len')
+                if m2.group('value'):
+                    value = m2.group('value')
             if m1:
                 name = m1.group('name')
                 length = m1.group('len')
                 if m1.group('value'):
                     value = m1.group('value')
-            else:
-                assert m2
-                name = 'uint'
-                length = m2.group('len')
-                if m2.group('value'):
-                    value = m2.group('value')
+
             if name == 'bool':
                 if length is not None and length != '1':
                     raise ValueError("You can only specify one bit sized bool tokens or leave unspecified.")
@@ -684,10 +675,6 @@ def tokenparser(fmt, keys=None, token_cache={}):
     return stretchy_token, return_values
 
 
-# Looks for first number*(
-BRACKET_RE = re.compile(r'(?P<factor>\d+)\*\(')
-
-
 def expand_brackets(s):
     """Remove whitespace and expand all brackets."""
     s = ''.join(s.split())
@@ -710,7 +697,9 @@ def expand_brackets(s):
         if start == 0 or s[start - 1] != '*':
             s = s[0:start] + s[start + 1:p] + s[p + 1:]
         else:
-            m = BRACKET_RE.search(s)
+            # Looks for first number*(
+            bracket_re = re.compile(r'(?P<factor>\d+)\*\(')
+            m = bracket_re.search(s)
             if m:
                 factor = int(m.group('factor'))
                 matchstart = m.start('factor')
@@ -720,14 +709,7 @@ def expand_brackets(s):
     return s
 
 
-# This converts a single octal digit to 3 bits.
-OCT_TO_BITS = ['{0:03b}'.format(i) for i in range(8)]
-
-# A dictionary of number of 1 bits contained in binary representation of any byte
-BIT_COUNT = dict(zip(range(256), [bin(i).count('1') for i in range(256)]))
-
-
-class Bits(object):
+class Bits():
     """A container holding an immutable sequence of bits.
 
     For a mutable container use the BitArray class instead.
@@ -781,6 +763,15 @@ class Bits(object):
     """
 
     __slots__ = '_datastore'
+    # This converts a single octal digit to 3 bits.
+    _octToBits = ['{0:03b}'.format(i) for i in range(8)]
+
+    # A dictionary of number of 1 bits contained in binary representation of any byte
+    _bitCount = dict(zip(range(256), [bin(i).count('1') for i in range(256)]))
+
+    # Creates dictionaries to quickly reverse single bytes
+    _int8ReversalDict = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
+    _byteReversalDict = {i: bytes([int("{0:08b}".format(i)[::-1], 2)]) for i in range(0x100)}
 
     def __init__(self, auto=None, length=None, offset=None, **kwargs):
         """Either specify an 'auto' initialiser:
@@ -824,7 +815,7 @@ class Bits(object):
     def __new__(cls, auto=None, length=None, offset=None, _cache={}, **kwargs):
         # For instances auto-initialised with a string we intern the
         # instance for re-use.
-        try:
+        with suppress(TypeError):
             if isinstance(auto, str):
                 try:
                     return _cache[auto]
@@ -847,8 +838,6 @@ class Bits(object):
                     return x
             if type(auto) == Bits:
                 return auto
-        except TypeError:
-            pass
         x = super(Bits, cls).__new__(cls)
         x._datastore = ConstByteStore(b'')
         x._initialise(auto, length, offset, **kwargs)
@@ -871,20 +860,43 @@ class Bits(object):
             self._setbytes_unsafe(bytearray(0), 0, 0)
             return
         k, v = kwargs.popitem()
+
         try:
-            init_without_length_or_offset[k](self, v)
+            # Initialise without length or offset
+            {'bin': Bits._setbin_safe,
+             'hex': Bits._sethex,
+             'oct': Bits._setoct,
+             'ue': Bits._setue,
+             'se': Bits._setse,
+             'uie': Bits._setuie,
+             'sie': Bits._setsie,
+             'bool': Bits._setbool}[k](self, v)
             if length is not None or offset is not None:
                 raise CreationError("Cannot use length or offset with this initialiser.")
         except KeyError:
             try:
-                init_with_length_only[k](self, v, length)
+                # Initialise with length only
+                {'uint': Bits._setuint,
+                 'int': Bits._setint,
+                 'float': Bits._setfloat,
+                 'uintbe': Bits._setuintbe,
+                 'intbe': Bits._setintbe,
+                 'floatbe': Bits._setfloat,
+                 'uintle': Bits._setuintle,
+                 'intle': Bits._setintle,
+                 'floatle': Bits._setfloatle,
+                 'uintne': Bits._setuintne,
+                 'intne': Bits._setintne,
+                 'floatne': Bits._setfloatne}[k](self, v, length)
                 if offset is not None:
                     raise CreationError("Cannot use offset with this initialiser.")
             except KeyError:
                 if offset is None:
                     offset = 0
                 try:
-                    init_with_length_and_offset[k](self, v, length, offset)
+                    # Initialise with both length and offset
+                    {'bytes': Bits._setbytes_safe,
+                     'filename': Bits._setfile}[k](self, v, length, offset)
                 except KeyError:
                     raise CreationError("Unrecognised keyword '{0}' used to initialise.", k)
 
@@ -1221,15 +1233,11 @@ class Bits(object):
 
         """
         # Don't want to change pos
-        try:
+        with suppress(AttributeError):
             pos = self._pos
-        except AttributeError:
-            pass
         found = Bits.find(self, bs, bytealigned=False)
-        try:
+        with suppress(UnboundLocalError):
             self._pos = pos
-        except UnboundLocalError:
-            pass
         return bool(found)
 
     # TODO: There must be a more standard way of doing this.
@@ -1434,13 +1442,10 @@ class Bits(object):
 
     def _setuint(self, uint, length=None):
         """Reset the bitstring to have given unsigned int interpretation."""
-        try:
+        with suppress(AttributeError):  # bitstring will only have a _datastore if it's been created
             if length is None:
                 # Use the whole length. Deliberately not using .len here.
                 length = self._datastore.bitlength
-        except AttributeError:
-            # bitstring doesn't have a _datastore as it hasn't been created!
-            pass
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with a "
                                 "uint initialiser.")
@@ -1934,7 +1939,7 @@ class Bits(object):
         binlist = []
         for i in octstring:
             try:
-                binlist.append(OCT_TO_BITS[int(i)])
+                binlist.append(Bits._octToBits[int(i)])
             except (ValueError, IndexError):
                 raise CreationError("Invalid symbol '{0}' in oct initialiser.", i)
         self._setbin_unsafe(''.join(binlist))
@@ -2066,7 +2071,7 @@ class Bits(object):
             raise ReadError("Reading off the end of the data. "
                             "Tried to read {0} bits when only {1} available.".format(int(length), self.length - pos))
         try:
-            val = name_to_read[name](self, length, pos)
+            val = _name_to_read[name](self, length, pos)
             return val, pos + length
         except KeyError:
             if name == 'pad':
@@ -2074,7 +2079,7 @@ class Bits(object):
             raise ValueError("Can't parse token {0}:{1}".format(name, length))
         except TypeError:
             # This is for the 'ue', 'se' and 'bool' tokens. They will also return the new pos.
-            return name_to_read[name](self, pos)
+            return _name_to_read[name](self, pos)
 
     def _addright(self, bs):
         """Add a bitstring to the RHS of the current bitstring."""
@@ -2087,7 +2092,7 @@ class Bits(object):
     def _reverse(self):
         """Reverse all bits in-place."""
         # Reverse the contents of each byte
-        n = [BYTE_REVERSAL_DICT[b] for b in self._datastore.rawbytes]
+        n = [Bits._byteReversalDict[b] for b in self._datastore.rawbytes]
         # Then reverse the order of the bytes
         n.reverse()
         # The new offset is the number of bits that were unused at the end.
@@ -2145,10 +2150,8 @@ class Bits(object):
             self._truncateleft(pos)
             self._addleft(bs)
             self._addleft(start)
-        try:
+        with suppress(AttributeError):
             self._pos = pos + bs.len
-        except AttributeError:
-            pass
         assert self._assertsanity()
 
     def _overwrite_lsb0(self, bs, pos):
@@ -2524,10 +2527,8 @@ class Bits(object):
         else:
             p = self._findregex(re.compile(bs._getbin()), start, end, bytealigned)
         # If called from a class that has a pos, set it
-        try:
+        with suppress((AttributeError, IndexError)):
             self._pos = p[0]
-        except (AttributeError, IndexError):
-            pass
         return p
 
     def findall(self, bs, start=None, end=None, count=None, bytealigned=None) -> Generator[int, None, None]:
@@ -2569,10 +2570,8 @@ class Bits(object):
             if count is not None and c >= count:
                 return
             c += 1
-            try:
+            with suppress(AttributeError):
                 self._pos = p[0]
-            except AttributeError:
-                pass
             yield p[0]
             if bytealigned:
                 start = p[0] + 8
@@ -2858,13 +2857,13 @@ class Bits(object):
             return 0
         # count the number of 1s (from which it's easy to work out the 0s).
         # Don't count the final byte yet.
-        count = sum(BIT_COUNT[self._datastore.getbyte(i)] for i in range(self._datastore.bytelength - 1))
+        count = sum(Bits._bitCount[self._datastore.getbyte(i)] for i in range(self._datastore.bytelength - 1))
         # adjust for bits at start that aren't part of the bitstring
         if self._offset:
-            count -= BIT_COUNT[self._datastore.getbyte(0) >> (8 - self._offset)]
+            count -= Bits._bitCount[self._datastore.getbyte(0) >> (8 - self._offset)]
         # and count the last 1 - 8 bits at the end.
         endbits = self._datastore.bytelength * 8 - (self._offset + self.len)
-        count += BIT_COUNT[self._datastore.getbyte(self._datastore.bytelength - 1) >> endbits]
+        count += Bits._bitCount[self._datastore.getbyte(self._datastore.bytelength - 1) >> endbits]
         return count if value else self.len - count
 
     # Create native-endian functions as aliases depending on the byteorder
@@ -3423,10 +3422,8 @@ class BitArray(Bits):
         if pos < 0 or pos + bs.len > self.len:
             raise ValueError("Overwrite exceeds boundary of bitstring.")
         self._overwrite(bs, pos)
-        try:
+        with suppress(AttributeError):
             self._pos = pos + bs.len
-        except AttributeError:
-            pass
 
     def append(self, bs) -> None:
         """Append a bitstring to the current bitstring.
@@ -4266,9 +4263,6 @@ def pack(fmt, *values, **kwargs) -> 'BitStream':
 # Whether to label the Least Significant Bit as bit 0. Default is False. Experimental feature.
 _lsb0 = False
 
-# Dictionary that maps token names to the function that reads them. Is set in next function.
-name_to_read = {}
-
 
 def _switch_lsb0_methods(lsb0):
     global _lsb0
@@ -4310,8 +4304,9 @@ def _switch_lsb0_methods(lsb0):
         Bits._truncateend = Bits._truncateright
         Bits._validate_slice = Bits._validate_slice_msb0
 
-    global name_to_read
-    name_to_read = {'uint': Bits._readuint,
+    # Dictionary that maps token names to the function that reads them
+    global _name_to_read
+    _name_to_read = {'uint': Bits._readuint,
                     'uintle': Bits._readuintle,
                     'uintbe': Bits._readuintbe,
                     'uintne': Bits._readuintne,
@@ -4350,35 +4345,6 @@ def set_msb0(v=True) -> None:
 set_msb0()
 
 
-# Dictionaries for mapping init keywords with init functions.
-init_with_length_and_offset = {'bytes': Bits._setbytes_safe,
-                               'filename': Bits._setfile,
-                               }
-
-init_with_length_only = {'uint': Bits._setuint,
-                         'int': Bits._setint,
-                         'float': Bits._setfloat,
-                         'uintbe': Bits._setuintbe,
-                         'intbe': Bits._setintbe,
-                         'floatbe': Bits._setfloat,
-                         'uintle': Bits._setuintle,
-                         'intle': Bits._setintle,
-                         'floatle': Bits._setfloatle,
-                         'uintne': Bits._setuintne,
-                         'intne': Bits._setintne,
-                         'floatne': Bits._setfloatne,
-                         }
-
-init_without_length_or_offset = {'bin': Bits._setbin_safe,
-                                 'hex': Bits._sethex,
-                                 'oct': Bits._setoct,
-                                 'ue': Bits._setue,
-                                 'se': Bits._setse,
-                                 'uie': Bits._setuie,
-                                 'sie': Bits._setsie,
-                                 'bool': Bits._setbool,
-                                 }
-
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
            'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
@@ -4409,14 +4375,14 @@ $ python -m bitstring hex=01, uint:12=352.hex
 
 This feature is experimental and is subject to change or removal.
         """)
-    elif fp in name_to_read.keys():
+    elif fp in _name_to_read.keys():
         # concatenate all other parameters and interpret using the final one
         b1 = Bits(','.join(sys.argv[1: -1]))
         print(b1._readtoken(fp, 0, b1.__len__())[0])
     else:
         # does final parameter end with a dot then an interpretation string?
         interp = fp[fp.rfind('.') + 1:]
-        if interp in name_to_read.keys():
+        if interp in _name_to_read.keys():
             sys.argv[-1] = fp[:fp.rfind('.')]
             b1 = Bits(','.join(sys.argv[1:]))
             print(b1._readtoken(interp, 0, b1.__len__())[0])

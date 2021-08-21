@@ -762,11 +762,8 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s1.read(8).hex, '02')
         self.assertEqual(s2.read(5 * 8).hex, '1601208302')
         s1.pos = s1.len
-        try:
+        with self.assertRaises(ValueError):
             s1.pos += 1
-            self.assertTrue(False)
-        except ValueError:
-            pass
 
     def testFileBitGetting(self):
         s = ConstBitStream(filename='smalltestfile', offset=16, length=8)  # 0x45
@@ -1370,11 +1367,8 @@ class Adding(unittest.TestCase):
         s.pos += 1
         self.assertEqual(s.bitpos, 7)
         s.bitpos += 1
-        try:
+        with self.assertRaises(ValueError):
             s.pos += 1
-            self.assertTrue(False)
-        except ValueError:
-            pass
 
     def testAdvanceByte(self):
         s = BitStream(hex='0x010203')
@@ -1383,30 +1377,21 @@ class Adding(unittest.TestCase):
         s.bytepos += 1
         self.assertEqual(s.bytepos, 2)
         s.bytepos += 1
-        try:
+        with self.assertRaises(ValueError):
             s.bytepos += 1
-            self.assertTrue(False)
-        except ValueError:
-            pass
 
     def testRetreatBit(self):
         s = BitStream(hex='0xff')
-        try:
+        with self.assertRaises(ValueError):
             s.pos -= 1
-            self.assertTrue(False)
-        except ValueError:
-            pass
         s.pos = 5
         s.pos -= 1
         self.assertEqual(s.pos, 4)
 
     def testRetreatByte(self):
         s = BitStream(hex='0x010203')
-        try:
+        with self.assertRaises(ValueError):
             s.bytepos -= 1
-            self.assertTrue(False)
-        except ValueError:
-            pass
         s.bytepos = 3
         s.bytepos -= 1
         self.assertEqual(s.bytepos, 2)
@@ -2704,76 +2689,34 @@ class Split2(unittest.TestCase):
 
     def testConstBitStreamProperties(self):
         a = ConstBitStream('0x123123')
-        try:
+        with self.assertRaises(AttributeError):
             a.hex = '0x234'
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.oct = '0o234'
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.bin = '0b101'
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.ue = 3453
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.se = -123
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.int = 432
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.uint = 4412
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.intle = 123
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.uintle = 4412
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.intbe = 123
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.uintbe = 4412
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.intne = 123
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.uintne = 4412
-            self.assertTrue(False)
-        except AttributeError:
-            pass
-        try:
+        with self.assertRaises(AttributeError):
             a.bytes = b'hello'
-            self.assertTrue(False)
-        except AttributeError:
-            pass
 
     def testConstBitStreamMisc(self):
         a = ConstBitStream('0xf')
@@ -3105,11 +3048,8 @@ class AllAndAny(unittest.TestCase):
 
     def testReadErrorChangesPos(self):
         a = BitStream('0x123123')
-        try:
+        with self.assertRaises(ValueError):
             a.read('10, 5')
-        except ValueError:
-            pass
-        self.assertEqual(a.pos, 0)
 
     def testRor(self):
         a = BitStream('0b11001')

@@ -128,8 +128,8 @@ class ByteAligned(unittest.TestCase):
     def testNotByteAligned(self):
         bitstring.bytealigned = False
         a = BitArray('0x00 ff 0f f')
-        l = list(a.findall('0xff'))
-        self.assertEqual(l, [8, 20])
+        li = list(a.findall('0xff'))
+        self.assertEqual(li, [8, 20])
         p = a.find('0x0f')[0]
         self.assertEqual(p, 4)
         p = a.rfind('0xff')[0]
@@ -142,8 +142,8 @@ class ByteAligned(unittest.TestCase):
     def testByteAligned(self):
         bitstring.bytealigned = True
         a = BitArray('0x00 ff 0f f')
-        l = list(a.findall('0xff'))
-        self.assertEqual(l, [8])
+        li = list(a.findall('0xff'))
+        self.assertEqual(li, [8])
         p = a.find('0x0f')[0]
         self.assertEqual(p, 16)
         p = a.rfind('0xff')[0]
@@ -426,8 +426,8 @@ class Lsb0Setting(unittest.TestCase):
 
     def testCut(self):
         a = BitArray('0xff00ff1111ff2222')
-        l = list(a.cut(16))
-        self.assertEqual(l, ['0x2222', '0x11ff', '0xff11', '0xff00'])
+        li = list(a.cut(16))
+        self.assertEqual(li, ['0x2222', '0x11ff', '0xff11', '0xff00'])
 
     def testFind(self):
         a = BitArray('0b10101010, 0xabcd, 0b10101010, 0x0')
@@ -446,8 +446,8 @@ class Lsb0Setting(unittest.TestCase):
 
     def testSplit(self):
         a = BitArray('0x4700004711472222')
-        l = list(a.split('0x47', bytealigned=True))
-        self.assertEqual(l, ['', '0x472222', '0x4711', '0x470000'])
+        li = list(a.split('0x47', bytealigned=True))
+        self.assertEqual(li, ['', '0x472222', '0x4711', '0x470000'])
 
     def testByteSwap(self):
         a = BitArray('0xff00ff00ff00')

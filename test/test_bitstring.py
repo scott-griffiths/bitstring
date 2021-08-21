@@ -21,7 +21,7 @@ class ModuleData(unittest.TestCase):
         self.assertEqual(set(bitstring.__all__), set(exported))
 
     def testReverseDict(self):
-        d = bitstring.BYTE_REVERSAL_DICT
+        d = bitstring.Bits._byteReversalDict
         for i in range(256):
             a = bitstring.Bits(uint=i, length=8)
             b = d[i]
