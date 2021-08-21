@@ -563,26 +563,40 @@ class Pack(unittest.TestCase):
 
     def testPackWithLengthRestriction(self):
         _ = pack('bin:3', '0b000')
-        self.assertRaises(bitstring.CreationError, pack, 'bin:3', '0b0011')
-        self.assertRaises(bitstring.CreationError, pack, 'bin:3', '0b11')
-        self.assertRaises(bitstring.CreationError, pack, 'bin:3=0b0011')
-        self.assertRaises(bitstring.CreationError, pack, 'bin:3=0b11')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bin:3', '0b0011')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bin:3', '0b11')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bin:3=0b0011')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bin:3=0b11')
 
         _ = pack('hex:4', '0xf')
-        self.assertRaises(bitstring.CreationError, pack, 'hex:4', '0b111')
-        self.assertRaises(bitstring.CreationError, pack, 'hex:4', '0b11111')
-        self.assertRaises(bitstring.CreationError, pack, 'hex:8=0xf')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('hex:4', '0b111')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('hex:4', '0b11111')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('hex:8=0xf')
 
         _ = pack('oct:6', '0o77')
-        self.assertRaises(bitstring.CreationError, pack, 'oct:6', '0o1')
-        self.assertRaises(bitstring.CreationError, pack, 'oct:6', '0o111')
-        self.assertRaises(bitstring.CreationError, pack, 'oct:3', '0b1')
-        self.assertRaises(bitstring.CreationError, pack, 'oct:3=hello', hello='0o12')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('oct:6', '0o1')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('oct:6', '0o111')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('oct:3', '0b1')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('oct:3=hello', hello='0o12')
 
         _ = pack('bits:3', BitStream('0b111'))
-        self.assertRaises(bitstring.CreationError, pack, 'bits:3', BitStream('0b11'))
-        self.assertRaises(bitstring.CreationError, pack, 'bits:3', BitStream('0b1111'))
-        self.assertRaises(bitstring.CreationError, pack, 'bits:12=b', b=BitStream('0b11'))
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bits:3', BitStream('0b11'))
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bits:3', BitStream('0b1111'))
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bits:12=b', b=BitStream('0b11'))
 
     def testPackNull(self):
         s = pack('')
@@ -606,7 +620,8 @@ class Pack(unittest.TestCase):
         self.assertEqual(t, 'uint:100=5')
 
     def testPackDefualtUintErrors(self):
-        self.assertRaises(bitstring.CreationError, BitStream, '5=-1')
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream('5=-1')
 
     def testPackingLongKeywordBitstring(self):
         s = pack('bits=b', b=BitStream(128000))
@@ -714,13 +729,19 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s.hex, '000001b3')
         s = ConstBitStream(filename='test.m1v', length=0)
         self.assertFalse(s)
-        self.assertRaises(bitstring.CreationError, BitStream, filename='smalltestfile', length=65)
-        self.assertRaises(bitstring.CreationError, ConstBitStream, filename='smalltestfile', length=64, offset=1)
-        #        self.assertRaises(bitstring.CreationError, ConstBitStream, filename='smalltestfile', offset=65)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(filename='smalltestfile', length=65)
+        with self.assertRaises(bitstring.CreationError):
+            _ = ConstBitStream(filename='smalltestfile', length=64, offset=1)
+        with self.assertRaises(bitstring.CreationError):
+            _ = ConstBitStream(filename='smalltestfile', offset=65)
         with open('smalltestfile', 'rb') as f:
-            #        self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=65)
-            self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, length=65)
-            self.assertRaises(bitstring.CreationError, ConstBitStream, auto=f, offset=60, length=5)
+            with self.assertRaises(bitstring.CreationError):
+                _ = ConstBitStream(f, offset=65)
+            with self.assertRaises(bitstring.CreationError):
+                _ = ConstBitStream(f, length=65)
+            with self.assertRaises(bitstring.CreationError):
+                _ = ConstBitStream(f, offset=60, length=5)
 
     def testCreationFromFileWithOffset(self):
         a = BitStream(filename='test.m1v', offset=4)
@@ -733,7 +754,8 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s[-16:].hex, 'cdef')
 
     def testCreataionFromFileErrors(self):
-        self.assertRaises(IOError, BitStream, filename='Idonotexist')
+        with self.assertRaises(IOError):
+            _ = BitStream(filename='Idonotexist')
 
     def testFindInFile(self):
         s = BitStream(filename='test.m1v')
@@ -829,11 +851,14 @@ class SimpleConversions(unittest.TestCase):
 class Empty(unittest.TestCase):
     def testEmptyBitstring(self):
         s = BitStream()
-        self.assertRaises(bitstring.ReadError, s.read, 1)
+        with self.assertRaises(bitstring.ReadError):
+            s.read(1)
         self.assertEqual(s.bin, '')
         self.assertEqual(s.hex, '')
-        self.assertRaises(bitstring.InterpretError, s._getint)
-        self.assertRaises(bitstring.InterpretError, s._getuint)
+        with self.assertRaises(bitstring.InterpretError):
+            _ = s.int
+        with self.assertRaises(bitstring.InterpretError):
+            _ = s.uint
         self.assertFalse(s)
 
     def testNonEmptyBitStream(self):
@@ -848,13 +873,15 @@ class Position(unittest.TestCase):
         s.read(5)
         self.assertEqual(s.pos, 5)
         s.pos = s.len
-        self.assertRaises(bitstring.ReadError, s.read, 1)
+        with self.assertRaises(bitstring.ReadError):
+            s.read(1)
 
     def testBytePosition(self):
         s = BitStream(bytes=b'\x00\x00\x00')
         self.assertEqual(s.bytepos, 0)
         s.read(10)
-        self.assertRaises(bitstring.ByteAlignError, s._getbytepos)
+        with self.assertRaises(bitstring.ByteAlignError):
+            _ = s.bytepos
         s.read(6)
         self.assertEqual(s.bytepos, 2)
 
@@ -862,8 +889,10 @@ class Position(unittest.TestCase):
         s = BitStream(bytes=b'\x00\x00\x00\x00\x00\x00')
         s.bitpos = 0
         self.assertEqual(s.bitpos, 0)
-        self.assertRaises(ValueError, s._setbitpos, -1)
-        self.assertRaises(ValueError, s._setbitpos, 6 * 8 + 1)
+        with self.assertRaises(ValueError):
+            s.pos = -1
+        with self.assertRaises(ValueError):
+            s.bitpos = 6 * 8 + 1
         s.bitpos = 6 * 8
         self.assertEqual(s.bitpos, 6 * 8)
 
@@ -1020,8 +1049,10 @@ class Insert(unittest.TestCase):
         s1.insert('0xee', 24)
         self.assertEqual(s1.hex, '12ff34ee56')
         self.assertEqual(s1.bitpos, 32)
-        self.assertRaises(ValueError, s1.insert, '0b1', -1000)
-        self.assertRaises(ValueError, s1.insert, '0b1', 1000)
+        with self.assertRaises(ValueError):
+            s1.insert('0b1', -1000)
+        with self.assertRaises(ValueError):
+            s1.insert('0b1', 1000)
 
     def testInsertNull(self):
         s = BitStream(hex='0x123')
@@ -1049,7 +1080,8 @@ class Resetting(unittest.TestCase):
         self.assertEqual(s.hex, '0')
         s.hex = '0x010203045'
         self.assertEqual(s.hex, '010203045')
-        self.assertRaises(bitstring.CreationError, s._sethex, '0x002g')
+        with self.assertRaises(bitstring.CreationError):
+            s.hex = '0x002g'
 
     def testSetBin(self):
         s = BitStream(bin="000101101")
@@ -1067,7 +1099,8 @@ class Resetting(unittest.TestCase):
 
     def testSetInvalidBin(self):
         s = BitStream()
-        self.assertRaises(bitstring.CreationError, s._setbin_safe, '00102')
+        with self.assertRaises(bitstring.CreationError):
+            s.bin = '00102'
 
 
 class Overwriting(unittest.TestCase):
@@ -1109,11 +1142,13 @@ class Split(unittest.TestCase):
         s = BitStream()
         bsl = s.split(BitStream(hex='0xff'))
         self.assertEqual(next(bsl).hex, '')
-        self.assertRaises(StopIteration, next, bsl)
+        with self.assertRaises(StopIteration):
+            _ = next(bsl)
         s = BitStream(hex='aabbcceeddff')
         delimiter = BitStream()
         bsl = s.split(delimiter)
-        self.assertRaises(ValueError, next, bsl)
+        with self.assertRaises(ValueError):
+            _ = next(bsl)
         delimiter = BitStream(hex='11')
         bsl = s.split(delimiter)
         self.assertEqual(next(bsl).hex, s.hex)
@@ -1191,9 +1226,12 @@ class Adding(unittest.TestCase):
 
     def testOverwriteErrors(self):
         s = BitStream(bin='11111')
-        self.assertRaises(ValueError, s.overwrite, BitStream(bin='1'), -10)
-        self.assertRaises(ValueError, s.overwrite, BitStream(bin='1'), 6)
-        self.assertRaises(ValueError, s.overwrite, BitStream(bin='11111'), 1)
+        with self.assertRaises(ValueError):
+            s.overwrite(BitStream(bin='1'), -10)
+        with self.assertRaises(ValueError):
+            s.overwrite(BitStream(bin='1'), 6)
+        with self.assertRaises(ValueError):
+            s.overwrite(BitStream(bin='11111'), 1)
 
     def testDeleteBits(self):
         s = BitStream(bin='000111100000')
@@ -1226,7 +1264,8 @@ class Adding(unittest.TestCase):
         self.assertEqual(s[1], False)
         self.assertEqual(s[2], True)
         self.assertEqual(s[3], True)
-        self.assertRaises(IndexError, s.__getitem__, 4)
+        with self.assertRaises(IndexError):
+            _ = s[4]
 
     def testGetItemWithNegativePosition(self):
         s = BitStream(bin='1011')
@@ -1234,7 +1273,8 @@ class Adding(unittest.TestCase):
         self.assertEqual(s[-2], True)
         self.assertEqual(s[-3], False)
         self.assertEqual(s[-4], True)
-        self.assertRaises(IndexError, s.__getitem__, -5)
+        with self.assertRaises(IndexError):
+            _ = s[-5]
 
     def testSlicing(self):
         s = ConstBitStream(hex='0123456789')
@@ -1347,19 +1387,22 @@ class Adding(unittest.TestCase):
         self.assertEqual(s.peek(5).bin, '11111')
         self.assertEqual(s.peek(5).bin, '11111')
         s.pos += 1
-        self.assertRaises(bitstring.ReadError, s.peek, 5)
+        with self.assertRaises(bitstring.ReadError):
+            _ = s.peek(5)
 
         s = BitStream(hex='001122334455')
         self.assertEqual(s.peek(8).hex, '00')
         self.assertEqual(s.read(8).hex, '00')
         s.pos += 33
-        self.assertRaises(bitstring.ReadError, s.peek, 8)
+        with self.assertRaises(bitstring.ReadError):
+            _ = s.peek(8)
 
         s = BitStream(hex='001122334455')
         self.assertEqual(s.peek(8 * 2).hex, '0011')
         self.assertEqual(s.read(8 * 3).hex, '001122')
         self.assertEqual(s.peek(8 * 3).hex, '334455')
-        self.assertRaises(bitstring.ReadError, s.peek, 25)
+        with self.assertRaises(bitstring.ReadError):
+            _ = s.peek(25)
 
     def testAdvanceBit(self):
         s = BitStream(hex='0xff')
@@ -1402,14 +1445,16 @@ class Adding(unittest.TestCase):
         self.assertEqual(s.hex, 'ff')
         s = BitStream('0b00011')
         self.assertEqual(s.bin, '00011')
-        self.assertRaises(bitstring.CreationError, BitStream, 'hello')
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream('hello')
         s1 = BitStream(bytes=b'\xf5', length=3, offset=5)
         s2 = BitStream(s1, length=1, offset=1)
         self.assertEqual(s2, '0b0')
         s = BitStream(bytes=b'\xff', offset=2)
         t = BitStream(s, offset=2)
         self.assertEqual(t, '0b1111')
-        self.assertRaises(TypeError, BitStream, auto=1.2)
+        with self.assertRaises(TypeError):
+            _ = BitStream(1.2)
 
     def testCreationByAuto2(self):
         s = BitStream('bin=001')
@@ -1422,13 +1467,15 @@ class Adding(unittest.TestCase):
         s = BitStream('bin:2=01')
         self.assertEqual(s, '0b01')
         for s in ['bin:1=01', 'bits:4=0b1', 'oct:3=000', 'hex:4=0x1234']:
-            self.assertRaises(bitstring.CreationError, BitStream, s)
+            with self.assertRaises(bitstring.CreationError):
+                _ = BitStream(s)
 
     def testInsertUsingAuto(self):
         s = BitStream('0xff')
         s.insert('0x00', 4)
         self.assertEqual(s.hex, 'f00f')
-        self.assertRaises(ValueError, s.insert, 'ff')
+        with self.assertRaises(ValueError):
+            s.insert('ff')
 
     def testOverwriteUsingAuto(self):
         s = BitStream('0x0110')
@@ -1436,7 +1483,8 @@ class Adding(unittest.TestCase):
         self.assertEqual(s.hex, '8110')
         s.overwrite('')
         self.assertEqual(s.hex, '8110')
-        self.assertRaises(ValueError, s.overwrite, '0bf')
+        with self.assertRaises(ValueError):
+            s.overwrite('0bf')
 
     def testFindUsingAuto(self):
         s = BitStream('0b000000010100011000')
@@ -1469,7 +1517,8 @@ class Adding(unittest.TestCase):
         sections = s.split(s)
         self.assertEqual(next(sections).hex, '')
         self.assertEqual(next(sections).hex, '1234')
-        self.assertRaises(StopIteration, next, sections)
+        with self.assertRaises(StopIteration):
+            next(sections)
 
     def testPrepend(self):
         s = BitStream('0b000')
@@ -1578,7 +1627,8 @@ class Adding(unittest.TestCase):
 
     def testInvertSpecialMethodErrors(self):
         s = BitStream()
-        self.assertRaises(bitstring.Error, s.__invert__)
+        with self.assertRaises(bitstring.Error):
+            _ = ~s
 
     def testJoinWithAuto(self):
         s = BitStream().join(['0xf', '0b00', BitStream(bin='11')])
@@ -1629,12 +1679,18 @@ class Multiplication(unittest.TestCase):
     def testMultiplicationErrors(self):
         a = BitStream('0b1')
         b = BitStream('0b0')
-        self.assertRaises(ValueError, a.__mul__, -1)
-        self.assertRaises(ValueError, a.__imul__, -1)
-        self.assertRaises(ValueError, a.__rmul__, -1)
-        self.assertRaises(TypeError, a.__mul__, 1.2)
-        self.assertRaises(TypeError, a.__rmul__, b)
-        self.assertRaises(TypeError, a.__imul__, b)
+        with self.assertRaises(ValueError):
+            _ = a * -1
+        with self.assertRaises(ValueError):
+            a *= -1
+        with self.assertRaises(ValueError):
+            _ = -1 * a
+        with self.assertRaises(TypeError):
+            _ = a * 1.2
+        with self.assertRaises(TypeError):
+            _ = b * a
+        with self.assertRaises(TypeError):
+            a *= b
 
     def testFileAndMemEquivalence(self):
         a = ConstBitStream(filename='smalltestfile')
@@ -1652,8 +1708,10 @@ class BitWise(unittest.TestCase):
         b = BitStream('0b00110')
         self.assertEqual((a & b).bin, '00100')
         self.assertEqual((a & '0b11111'), a)
-        self.assertRaises(ValueError, a.__and__, '0b1')
-        self.assertRaises(ValueError, b.__and__, '0b110111111')
+        with self.assertRaises(ValueError):
+            _ = a & '0b1'
+        with self.assertRaises(ValueError):
+            _ = b & '0b110111111'
         c = BitStream('0b0011011')
         c.pos = 4
         d = c & '0b1111000'
@@ -1667,8 +1725,10 @@ class BitWise(unittest.TestCase):
         b = BitStream('0b011100011')
         self.assertEqual((a | b).bin, '111101011')
         self.assertEqual((a | '0b000000000'), a)
-        self.assertRaises(ValueError, a.__or__, '0b0000')
-        self.assertRaises(ValueError, b.__or__, a + '0b1')
+        with self.assertRaises(ValueError):
+            _ = a | '0b0000'
+        with self.assertRaises(ValueError):
+            _ = b | (a + '0b1')
         a = '0xff00' | BitStream('0x00f0')
         self.assertEqual(a.hex, 'fff0')
 
@@ -1677,8 +1737,10 @@ class BitWise(unittest.TestCase):
         b = BitStream('0b011100011')
         self.assertEqual((a ^ b).bin, '100101010')
         self.assertEqual((a ^ '0b111100000').bin, '000101001')
-        self.assertRaises(ValueError, a.__xor__, '0b0000')
-        self.assertRaises(ValueError, b.__xor__, a + '0b1')
+        with self.assertRaises(ValueError):
+            _ = a ^ '0b0000'
+        with self.assertRaises(ValueError):
+            _ = b ^ (a + '0b1')
         a = '0o707' ^ BitStream('0o777')
         self.assertEqual(a.oct, '070')
 
@@ -1696,16 +1758,19 @@ class Split2(unittest.TestCase):
         a = BitStream('0b000000')
         bsl = a.split('0b1', False)
         self.assertEqual(next(bsl), a)
-        self.assertRaises(StopIteration, next, bsl)
+        with self.assertRaises(StopIteration):
+            next(bsl)
         b = BitStream()
         bsl = b.split('0b001', False)
         self.assertFalse(next(bsl))
-        self.assertRaises(StopIteration, next, bsl)
+        with self.assertRaises(StopIteration):
+            _ = next(bsl)
 
     def testSplitErrors(self):
         a = BitStream('0b0')
         b = a.split('', False)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
 
     def testSliceWithOffset(self):
         a = BitStream(bytes=b'\x00\xff\x00', offset=7)
@@ -1729,18 +1794,22 @@ class Split2(unittest.TestCase):
             b = list(s.split('0b11', False))[:i]
             self.assertEqual(a, b)
         b = s.split('0b11', count=-1)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
 
     def testSplitStartbit(self):
         a = BitStream('0b0010101001000000001111')
         bsl = a.split('0b001', bytealigned=False, start=1)
         self.assertEqual([x.bin for x in bsl], ['010101', '001000000', '001111'])
         b = a.split('0b001', start=-100)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
         b = a.split('0b001', start=23)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
         b = a.split('0b1', start=10, end=9)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
 
     def testSplitStartbitByteAligned(self):
         a = BitStream('0x00ffffee')
@@ -1758,7 +1827,8 @@ class Split2(unittest.TestCase):
             self.fail("ValueError raised unexpectedly")
         # Whereas this one will when we call next()
         bsl = a.split('0xffee', end=16)
-        self.assertRaises(ValueError, next, bsl)
+        with self.assertRaises(ValueError):
+            _ = next(bsl)
 
     def testSplitEndbitByteAligned(self):
         a = BitStream('0xff00ff')[:22]
@@ -1831,12 +1901,17 @@ class Split2(unittest.TestCase):
 
     def testFindStartEndbitErrors(self):
         a = BitStream('0b00100')
-        self.assertRaises(ValueError, a.find, '0b1', bytealigned=False, start=-100)
-        self.assertRaises(ValueError, a.find, '0b1', end=6)
-        self.assertRaises(ValueError, a.find, '0b1', start=4, end=3)
+        with self.assertRaises(ValueError):
+            _ = a.find('0b1', bytealigned=False, start=-100)
+        with self.assertRaises(ValueError):
+            _ = a.find('0b1', end=6)
+        with self.assertRaises(ValueError):
+            _ = a.find('0b1', start=4, end=3)
         b = BitStream('0x0011223344')
-        self.assertRaises(ValueError, b.find, '0x22', bytealigned=True, start=-100)
-        self.assertRaises(ValueError, b.find, '0x22', end=41, bytealigned=True)
+        with self.assertRaises(ValueError):
+            _ = b.find('0x22', bytealigned=True, start=-100)
+        with self.assertRaises(ValueError):
+            _ = b.find('0x22', end=41, bytealigned=True)
 
     def testPrependAndAppendAgain(self):
         c = BitStream('0x1122334455667788')
@@ -1880,14 +1955,16 @@ class Split2(unittest.TestCase):
         self.assertEqual(next(p), 6 * 8)
         self.assertEqual(next(p), 9 * 8)
         self.assertEqual(next(p), 11 * 8)
-        self.assertRaises(StopIteration, next, p)
+        with self.assertRaises(StopIteration):
+            _ = next(p)
 
     def testFindAllCount(self):
         s = BitStream('0b1') * 100
         for i in [0, 1, 23]:
             self.assertEqual(len(list(s.findall('0b1', count=i))), i)
         b = s.findall('0b1', bytealigned=True, count=-1)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
 
     def testContains(self):
         a = BitStream('0b1') + '0x0001dead0001'
@@ -1967,8 +2044,10 @@ class Split2(unittest.TestCase):
             _ = a.bytes
 
     def testNewOffsetErrors(self):
-        self.assertRaises(bitstring.CreationError, BitStream, hex='ff', offset=-1)
-        self.assertRaises(bitstring.CreationError, BitStream, '0xffffffff', offset=33)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(hex='ff', offset=-1)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream('0xffffffff', offset=33)
 
     def testSliceStep(self):
         a = BitStream('0x3')
@@ -2013,7 +2092,8 @@ class Split2(unittest.TestCase):
         a.overwrite('0xb')
         self.assertEqual(a, '0xab')
         self.assertEqual(a.bitpos, 8)
-        self.assertRaises(ValueError, a.overwrite, '0b1')
+        with self.assertRaises(ValueError):
+            a.overwrite('0b1')
         a.overwrite('0xa', 4)
         self.assertEqual(a, '0xaa')
         self.assertEqual(a.bitpos, 8)
@@ -2035,10 +2115,14 @@ class Split2(unittest.TestCase):
 
     def testInitSliceWithIntErrors(self):
         a = BitStream('0b0000')
-        self.assertRaises(ValueError, a.__setitem__, slice(0, 4), 16)
-        self.assertRaises(ValueError, a.__setitem__, slice(0, 4), -9)
-        self.assertRaises(ValueError, a.__setitem__, 0, 2)
-        self.assertRaises(ValueError, a.__setitem__, 0, -2)
+        with self.assertRaises(ValueError):
+            a[0:4] = 16
+        with self.assertRaises(ValueError):
+            a[0:4] = -9
+        with self.assertRaises(ValueError):
+            a[0] = 2
+        with self.assertRaises(ValueError):
+            a[0] = -2
 
     def testReverseWithSlice(self):
         a = BitStream('0x0012ff')
@@ -2053,9 +2137,12 @@ class Split2(unittest.TestCase):
 
     def testReverseWithSliceErrors(self):
         a = BitStream('0x123')
-        self.assertRaises(ValueError, a.reverse, -1, 4)
-        self.assertRaises(ValueError, a.reverse, 10, 9)
-        self.assertRaises(ValueError, a.reverse, 1, 10000)
+        with self.assertRaises(ValueError):
+            a.reverse(-1, 4)
+        with self.assertRaises(ValueError):
+            a.reverse(10, 9)
+        with self.assertRaises(ValueError):
+            a.reverse(1, 10000)
 
     def testInitialiseFromList(self):
         a = BitStream([])
@@ -2095,13 +2182,17 @@ class Split2(unittest.TestCase):
     def testCutErrors(self):
         a = BitStream('0b1')
         b = a.cut(1, 1, 2)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
         b = a.cut(1, -2, 1)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
         b = a.cut(0)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
         b = a.cut(1, count=-1)
-        self.assertRaises(ValueError, next, b)
+        with self.assertRaises(ValueError):
+            _ = next(b)
 
     def testCutProblem(self):
         s = BitStream('0x1234')
@@ -2184,15 +2275,18 @@ class Split2(unittest.TestCase):
         a1, a2, a3, a4 = a.readlist('bin:0, oct:0, hex:0, bits:0')
         self.assertTrue(a1 == a2 == a3 == '')
         self.assertFalse(a4)
-        self.assertRaises(ValueError, a.read, 'int:0')
-        self.assertRaises(ValueError, a.read, 'uint:0')
+        with self.assertRaises(ValueError):
+            _ = a.read('int:0')
+        with self.assertRaises(ValueError):
+            _ = a.read('uint:0')
         self.assertEqual(a.pos, 0)
 
     def testIntelligentRead8(self):
         a = BitStream('0x123456')
         for t in ['hex:1', 'oct:1', 'hex4', '-5', 'fred', 'bin:-2',
                   'uint:p', 'uint:-2', 'int:u', 'int:-3', 'ses', 'uee', '-14']:
-            self.assertRaises(ValueError, a.read, t)
+            with self.assertRaises(ValueError):
+                _ = a.read(t)
 
     def testIntelligentRead9(self):
         a = BitStream('0xff')
@@ -2215,10 +2309,13 @@ class Split2(unittest.TestCase):
 
     def testFillerReads2(self):
         s = BitStream('0xabcdef')
-        self.assertRaises(bitstring.Error, s.readlist, 'bits, se')
-        self.assertRaises(bitstring.Error, s.readlist, 'hex:4, bits, ue, bin:4')
+        with self.assertRaises(bitstring.Error):
+            s.readlist('bits, se')
+        with self.assertRaises(bitstring.Error):
+            s.readlist('hex:4, bits, ue, bin:4')
         s.pos = 0
-        self.assertRaises(bitstring.Error, s.readlist, 'bin, bin')
+        with self.assertRaises(bitstring.Error):
+            s.readlist('bin, bin')
 
     def testIntelligentPeek(self):
         a = BitStream('0b01, 0x43, 0o4, uint:23=2, se=5, ue=3')
@@ -2265,8 +2362,10 @@ class Split2(unittest.TestCase):
         self.assertEqual(b, a * 10)
 
     def testPackingWrongNumberOfThings(self):
-        self.assertRaises(bitstring.CreationError, pack, 'bin:1')
-        self.assertRaises(bitstring.CreationError, pack, '', 100)
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bin:1')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('', 100)
 
     def testPackWithVariousKeys(self):
         a = pack('uint10', uint10='0b1')
@@ -2320,7 +2419,8 @@ class Split2(unittest.TestCase):
         self.assertEqual(tp('bits:10'), (False, [('bits', 10, None)]))
         self.assertEqual(tp('123'), (False, [('uint', 123, None)]))
         self.assertEqual(tp('123'), (False, [('uint', 123, None)]))
-        self.assertRaises(ValueError, tp, 'hex12')
+        with self.assertRaises(ValueError):
+            _ = tp('hex12')
         self.assertEqual(tp('hex12', ('hex12',)), (False, [('hex12', None, None)]))
         self.assertEqual(tp('2*bits:6'), (False, [('bits', 6, None), ('bits', 6, None)]))
 
@@ -2368,15 +2468,23 @@ class Split2(unittest.TestCase):
         self.assertEqual(s.read('uintbe'), 2)
 
     def testBigEndianSynonymErrors(self):
-        self.assertRaises(bitstring.CreationError, BitStream, uintbe=100, length=15)
-        self.assertRaises(bitstring.CreationError, BitStream, intbe=100, length=15)
-        self.assertRaises(bitstring.CreationError, BitStream, 'uintbe:17=100')
-        self.assertRaises(bitstring.CreationError, BitStream, 'intbe:7=2')
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(uintbe=100, length=15)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(intbe=100, length=15)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream('uintbe:17=100')
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream('intbe:7=2')
         s = BitStream('0b1')
-        self.assertRaises(bitstring.InterpretError, s._getintbe)
-        self.assertRaises(bitstring.InterpretError, s._getuintbe)
-        self.assertRaises(ValueError, s.read, 'uintbe')
-        self.assertRaises(ValueError, s.read, 'intbe')
+        with self.assertRaises(bitstring.InterpretError):
+            _ = s.intbe
+        with self.assertRaises(bitstring.InterpretError):
+            _ = s.uintbe
+        with self.assertRaises(ValueError):
+            _ = s.read('uintbe')
+        with self.assertRaises(ValueError):
+            _ = s.read('intbe')
 
     def testLittleEndianUint(self):
         s = BitStream(uint=100, length=16)
@@ -2413,15 +2521,23 @@ class Split2(unittest.TestCase):
         self.assertEqual(s.read('intle'), 1001)
 
     def testLittleEndianErrors(self):
-        self.assertRaises(bitstring.CreationError, BitStream, 'uintle:15=10')
-        self.assertRaises(bitstring.CreationError, BitStream, 'intle:31=-999')
-        self.assertRaises(bitstring.CreationError, BitStream, uintle=100, length=15)
-        self.assertRaises(bitstring.CreationError, BitStream, intle=100, length=15)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream('uintle:15=10')
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream('intle:31=-999')
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(uintle=100, length=15)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(intle=100, length=15)
         s = BitStream('0xfff')
-        self.assertRaises(bitstring.InterpretError, s._getintle)
-        self.assertRaises(bitstring.InterpretError, s._getuintle)
-        self.assertRaises(ValueError, s.read, 'uintle')
-        self.assertRaises(ValueError, s.read, 'intle')
+        with self.assertRaises(bitstring.InterpretError):
+            _ = s.intle
+        with self.assertRaises(bitstring.InterpretError):
+            _ = s.uintle
+        with self.assertRaises(ValueError):
+            _ = s.read('uintle')
+        with self.assertRaises(ValueError):
+            _ = s.read('intle')
 
     def testStructTokens1(self):
         self.assertEqual(pack('<b', 23), BitStream('intle:8=23'))
@@ -2440,10 +2556,14 @@ class Split2(unittest.TestCase):
         self.assertEqual(pack('>L', 23), BitStream('uintbe:32=23'))
         self.assertEqual(pack('>q', 23), BitStream('intbe:64=23'))
         self.assertEqual(pack('>Q', 23), BitStream('uintbe:64=23'))
-        self.assertRaises(bitstring.CreationError, pack, '<B', -1)
-        self.assertRaises(bitstring.CreationError, pack, '<H', -1)
-        self.assertRaises(bitstring.CreationError, pack, '<L', -1)
-        self.assertRaises(bitstring.CreationError, pack, '<Q', -1)
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('<B', -1)
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('<H', -1)
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('<L', -1)
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('<Q', -1)
 
     def testStructTokens2(self):
         # I couldn't find a way to test both types of native endianness
@@ -2494,7 +2614,8 @@ class Split2(unittest.TestCase):
 
     def testStructTokensErrors(self):
         for f in ['>>q', '<>q', 'q>', '2q', 'q', '>-2q', '@a', '>int:8', '>q2']:
-            self.assertRaises(bitstring.CreationError, pack, f, 100)
+            with self.assertRaises(bitstring.CreationError):
+                _ = pack(f, 100)
 
     def testImmutableBitStreams(self):
         a = ConstBitStream('0x012345')
@@ -2545,9 +2666,12 @@ class Split2(unittest.TestCase):
         self.assertEqual(a, '0x12302103')
         a.byteswap(start=0, end=18)
         self.assertEqual(a, '0x30122103')
-        self.assertRaises(ValueError, a.byteswap, 0, 10, 2)
-        self.assertRaises(ValueError, a.byteswap, 0, -4, 4)
-        self.assertRaises(ValueError, a.byteswap, 0, 24, 48)
+        with self.assertRaises(ValueError):
+            a.byteswap(0, 10, 2)
+        with self.assertRaises(ValueError):
+            a.byteswap(0, -4, 4)
+        with self.assertRaises(ValueError):
+            a.byteswap(0, 24, 48)
         a.byteswap(0, 24)
         self.assertEqual(a, '0x30122103')
         a.byteswap(0, 11, 11)
@@ -2591,12 +2715,18 @@ class Split2(unittest.TestCase):
 
     def testPeekAndReadListErrors(self):
         a = BitStream('0x123456')
-        self.assertRaises(ValueError, a.read, 'hex:8, hex:8')
-        self.assertRaises(ValueError, a.peek, 'hex:8, hex:8')
-        self.assertRaises(TypeError, a.read, 10, 12)
-        self.assertRaises(TypeError, a.peek, 12, 14)
-        self.assertRaises(TypeError, a.read, 8, 8)
-        self.assertRaises(TypeError, a.peek, 80, 80)
+        with self.assertRaises(ValueError):
+            _ = a.read('hex:8, hex:8')
+        with self.assertRaises(ValueError):
+            _ = a.peek('hex:8, hex:8')
+        with self.assertRaises(TypeError):
+            _ = a.read(10, 12)
+        with self.assertRaises(TypeError):
+            _ = a.peek(12, 14)
+        with self.assertRaises(TypeError):
+            _ = a.read(8, 8)
+        with self.assertRaises(TypeError):
+            _ = a.peek(80, 80)
 
     def testStartswith(self):
         a = BitStream()
@@ -2642,8 +2772,10 @@ class Split2(unittest.TestCase):
 
     def testUnhashability(self):
         s = BitStream('0xf')
-        self.assertRaises(TypeError, set, [s])
-        self.assertRaises(TypeError, hash, [s])
+        with self.assertRaises(TypeError):
+            _ = set([s])
+        with self.assertRaises(TypeError):
+            _ = hash([s])
 
     def testConstBitStreamSetCreation(self):
         sl = [ConstBitStream(uint=i, length=7) for i in range(15)]
@@ -2651,7 +2783,8 @@ class Split2(unittest.TestCase):
         self.assertEqual(len(s), 15)
         s.add(ConstBitStream('0b0000011'))
         self.assertEqual(len(s), 15)
-        self.assertRaises(TypeError, s.add, BitStream('0b0000011'))
+        with self.assertRaises(TypeError):
+            s.add(BitStream('0b0000011'))
 
     def testConstBitStreamFunctions(self):
         s = ConstBitStream('0xf, 0b1')
@@ -2781,8 +2914,10 @@ class Set(unittest.TestCase):
         self.assertEqual(b, '0b01000001')
         b.set(1, -8)
         self.assertEqual(b, '0b11000001')
-        self.assertRaises(IndexError, b.set, True, -9)
-        self.assertRaises(IndexError, b.set, True, 8)
+        with self.assertRaises(IndexError):
+            b.set(True, -9)
+        with self.assertRaises(IndexError):
+            b.set(True, 8)
 
     def testSetNegativeIndex(self):
         a = BitStream(10)
@@ -2790,7 +2925,8 @@ class Set(unittest.TestCase):
         self.assertEqual(a.bin, '0000000001')
         a.set(1, [-1, -10])
         self.assertEqual(a.bin, '1000000001')
-        self.assertRaises(IndexError, a.set, 1, [-11])
+        with self.assertRaises(IndexError):
+            a.set(1, [-11])
 
     def testFileBasedSetUnset(self):
         a = BitStream(filename='test.m1v')
@@ -2820,8 +2956,10 @@ class Set(unittest.TestCase):
         self.assertEqual(~b, '0b01000001')
         b.set(False, -8)
         self.assertEqual(~b, '0b11000001')
-        self.assertRaises(IndexError, b.set, False, -9)
-        self.assertRaises(IndexError, b.set, False, 8)
+        with self.assertRaises(IndexError):
+            b.set(False, -9)
+        with self.assertRaises(IndexError):
+            b.set(False, 8)
 
     def testSetWholeBitStream(self):
         a = BitStream(14)
@@ -2853,9 +2991,12 @@ class Invert(unittest.TestCase):
 
     def testInvertErrors(self):
         a = BitStream(10)
-        self.assertRaises(IndexError, a.invert, 10)
-        self.assertRaises(IndexError, a.invert, -11)
-        self.assertRaises(IndexError, a.invert, [1, 2, 10])
+        with self.assertRaises(IndexError):
+            a.invert(10)
+        with self.assertRaises(IndexError):
+            a.invert(-11)
+        with self.assertRaises(IndexError):
+            a.invert([1, 2, 10])
 
     def testIor(self):
         a = BitStream('0b1101001')
@@ -2882,9 +3023,12 @@ class Invert(unittest.TestCase):
 
     def testLogicalInplaceErrors(self):
         a = BitStream(4)
-        self.assertRaises(ValueError, a.__ior__, '0b111')
-        self.assertRaises(ValueError, a.__iand__, '0b111')
-        self.assertRaises(ValueError, a.__ixor__, '0b111')
+        with self.assertRaises(ValueError):
+            a |= '0b111'
+        with self.assertRaises(ValueError):
+            a &= '0b111'
+        with self.assertRaises(ValueError):
+            a ^= '0b111'
 
 
 class AllAndAny(unittest.TestCase):
@@ -2946,10 +3090,14 @@ class AllAndAny(unittest.TestCase):
 
     def testErrors(self):
         a = BitStream('0xf')
-        self.assertRaises(IndexError, a.all, True, [5])
-        self.assertRaises(IndexError, a.all, True, [-5])
-        self.assertRaises(IndexError, a.any, True, [5])
-        self.assertRaises(IndexError, a.any, True, [-5])
+        with self.assertRaises(IndexError):
+            a.all(True, [5])
+        with self.assertRaises(IndexError):
+            a.all(True, [-5])
+        with self.assertRaises(IndexError):
+            a.any(True, [5])
+        with self.assertRaises(IndexError):
+            a.any(True, [-5])
 
     ###################
 
@@ -3037,14 +3185,21 @@ class AllAndAny(unittest.TestCase):
 
     def testFloatErrors(self):
         a = BitStream('0x3')
-        self.assertRaises(bitstring.InterpretError, a._getfloat)
-        self.assertRaises(bitstring.CreationError, a._setfloat, -0.2)
-        for l in (8, 10, 12, 18, 30, 128, 200):
-            self.assertRaises(ValueError, BitStream, float=1.0, length=l)
-        self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=0)
-        self.assertRaises(bitstring.CreationError, BitStream, floatle=0.3, length=1)
-        self.assertRaises(bitstring.CreationError, BitStream, float=2)
-        self.assertRaises(bitstring.InterpretError, a.read, 'floatle:2')
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.float
+        with self.assertRaises(bitstring.CreationError):
+            a.float = -0.2
+        for le in (8, 10, 12, 16, 18, 30, 128, 200):
+            with self.assertRaises(ValueError):
+                _ = BitStream(float=1.0, length=le)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(floatle=0.3, length=0)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(floatle=0.3, length=1)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(float=2)
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.read('floatle:2')
 
     def testReadErrorChangesPos(self):
         a = BitStream('0x123123')
@@ -3067,9 +3222,11 @@ class AllAndAny(unittest.TestCase):
 
     def testRorErrors(self):
         a = BitStream()
-        self.assertRaises(bitstring.Error, a.ror, 0)
+        with self.assertRaises(bitstring.Error):
+            a.ror(0)
         a += '0b001'
-        self.assertRaises(ValueError, a.ror, -1)
+        with self.assertRaises(ValueError):
+            a.ror(-1)
 
     def testRol(self):
         a = BitStream('0b11001')
@@ -3103,9 +3260,11 @@ class AllAndAny(unittest.TestCase):
 
     def testRolErrors(self):
         a = BitStream()
-        self.assertRaises(bitstring.Error, a.rol, 0)
+        with self.assertRaises(bitstring.Error):
+            a.rol(0)
         a += '0b001'
-        self.assertRaises(ValueError, a.rol, -1)
+        with self.assertRaises(ValueError):
+            a.rol(-1)
 
     def testBytesToken(self):
         a = BitStream('0x010203')
@@ -3167,7 +3326,8 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(a, '0b0')
         a = BitStream(1007)
         self.assertEqual(a, BitStream(length=1007))
-        self.assertRaises(bitstring.CreationError, BitStream, -1)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitStream(-1)
 
         a = 6 + ConstBitStream('0b1') + 3
         self.assertEqual(a, '0b0000001000')
@@ -3180,7 +3340,8 @@ class AllAndAny(unittest.TestCase):
         b = a.read('uint:24')
         self.assertEqual(b, 1)
         a.pos = 0
-        self.assertRaises(bitstring.ReadError, a.read, 'bytes:4')
+        with self.assertRaises(bitstring.ReadError):
+            _ = a.read('bytes:4')
 
     def testAddVersesInPlaceAdd(self):
         a1 = ConstBitStream('0xabc')
@@ -3290,14 +3451,6 @@ class AllAndAny(unittest.TestCase):
     def testAutoFromBool(self):
         a = ConstBitStream() + True + False + True
         self.assertEqual(a, '0b00')
-        #    self.assertEqual(a, '0b101')
-        #    b = ConstBitStream(False)
-        #    self.assertEqual(b, '0b0')
-        #    c = ConstBitStream(True)
-        #    self.assertEqual(c, '0b1')
-        #    self.assertEqual(b, False)
-        #    self.assertEqual(c, True)
-        #    self.assertEqual(b & True, False)
 
 
 class Bugs(unittest.TestCase):
@@ -3676,10 +3829,14 @@ class BoolToken(unittest.TestCase):
             pack('True')
         with self.assertRaises(bitstring.CreationError):
             pack('bool', 2)
-        self.assertRaises(bitstring.CreationError, pack, 'bool', 'hello')
-        self.assertRaises(bitstring.CreationError, pack, 'bool=true')
-        self.assertRaises(bitstring.CreationError, pack, 'True')
-        self.assertRaises(bitstring.CreationError, pack, 'bool', 2)
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bool', 'hello')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bool=true')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('True')
+        with self.assertRaises(bitstring.CreationError):
+            _ = pack('bool', 2)
         a = BitStream('0b11')
         with self.assertRaises(bitstring.InterpretError):
             _ = a.bool
@@ -3691,8 +3848,10 @@ class BoolToken(unittest.TestCase):
 
     def testLengthWithBoolRead(self):
         a = ConstBitStream('0xf')
-        self.assertRaises(ValueError, a.read, 'bool:0')
-        self.assertRaises(ValueError, a.read, 'bool:2')
+        with self.assertRaises(ValueError):
+            _ = a.read('bool:0')
+        with self.assertRaises(ValueError):
+            _ = a.read('bool:2')
 
 
 class ReadWithIntegers(unittest.TestCase):
@@ -3752,8 +3911,10 @@ class Count(unittest.TestCase):
 class ZeroBitReads(unittest.TestCase):
     def testInteger(self):
         a = ConstBitStream('0x123456')
-        self.assertRaises(bitstring.InterpretError, a.read, 'uint:0')
-        self.assertRaises(bitstring.InterpretError, a.read, 'float:0')
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.read('uint:0')
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.read('float:0')
 
 
 class InitialiseFromBytes(unittest.TestCase):
@@ -3783,7 +3944,8 @@ class InitialiseFromBytes(unittest.TestCase):
 class CoverageCompletionTests(unittest.TestCase):
     def testUeReadError(self):
         s = ConstBitStream('0b000000001')
-        self.assertRaises(bitstring.ReadError, s.read, 'ue')
+        with self.assertRaises(bitstring.ReadError):
+            _ = s.read('ue')
 
     def testOverwriteWithSelf(self):
         s = BitStream('0b1101')

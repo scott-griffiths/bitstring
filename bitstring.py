@@ -136,7 +136,7 @@ class CreationError(Error, ValueError):
         Error.__init__(self, *params)
 
 
-class ConstByteStore():
+class ConstByteStore:
     """Stores raw bytes together with a bit offset and length.
 
     Used internally - not part of public interface.
@@ -452,7 +452,7 @@ def equal(a, b):
     return a_val == b_val
 
 
-class MmapByteArray():
+class MmapByteArray:
     """Looks like a bytearray, but from an mmap.
 
     Not part of public interface.
@@ -627,20 +627,17 @@ def tokenparser(fmt, keys=None, token_cache={}):
                 continue
             # Match everything else:
             m1 = TOKEN_RE.match(token)
-            if not m1:
-                # and if you don't specify a 'name' then the default is 'uint':
+            # If you don't specify a 'name' then the default is 'uint':
+            name = m1.group('name') if m1 else 'uint'
+            if m1:
+                length = m1.group('len')
+                value = m1.group('value')
+            else:
                 m2 = DEFAULT_UINT.match(token)
                 if not m2:
                     raise ValueError("Don't understand token '{0}'.".format(token))
-                name = 'uint'
                 length = m2.group('len')
-                if m2.group('value'):
-                    value = m2.group('value')
-            if m1:
-                name = m1.group('name')
-                length = m1.group('len')
-                if m1.group('value'):
-                    value = m1.group('value')
+                value = m2.group('value')
 
             if name == 'bool':
                 if length is not None and length != '1':
@@ -709,7 +706,7 @@ def expand_brackets(s):
     return s
 
 
-class Bits():
+class Bits:
     """A container holding an immutable sequence of bits.
 
     For a mutable container use the BitArray class instead.
@@ -1050,8 +1047,8 @@ class Bits():
                 offsetstring = ", offset=%d" % (self._datastore.rawarray.byteoffset * 8 + self._offset)
             lengthstring = ", length=%d" % length
             return "{0}(filename='{1}'{2}{3}{4})".format(self.__class__.__name__,
-                                                      self._datastore.rawarray.source.name,
-                                                      lengthstring, offsetstring, pos_string)
+                                                         self._datastore.rawarray.source.name,
+                                                         lengthstring, offsetstring, pos_string)
         else:
             s = self.__str__()
             lengthstring = ''
@@ -1269,7 +1266,11 @@ class Bits():
             """Check internal self consistency as a debugging aid."""
             assert self.len >= 0
             assert 0 <= self._offset, "offset={0}".format(self._offset)
-            assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset, "len={0}, offset={1}, bytelength={2}, byteoffset={3}".format(self.len, self._offset, self._datastore.bytelength, self._datastore.byteoffset)
+            assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset,\
+                "len={0}, offset={1}, bytelength={2}, byteoffset={3}".format(self.len,
+                                                                             self._offset,
+                                                                             self._datastore.bytelength,
+                                                                             self._datastore.byteoffset)
             return True
     else:
         @staticmethod
@@ -1341,10 +1342,11 @@ class Bits():
             if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
                 raise CreationError("BytesIO object is not long enough for specified "
                                     "length and offset.")
-            self._datastore = ConstByteStore(bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]), length, offset)
+            self._datastore = ConstByteStore(bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]),
+                                             length, offset)
             return
 
-        if isinstance(s, io.IOBase):
+        if isinstance(s, io.BufferedReader):
             if offset is None:
                 offset = 0
             if length is None:
@@ -1470,7 +1472,7 @@ class Bits():
         """Read bits and interpret as an unsigned int."""
         if not length:
             raise InterpretError("Cannot interpret a zero length bitstring "
-                                           "as an integer.")
+                                 "as an integer.")
         offset = self._offset
         startbyte = (start + offset) // 8
         endbyte = (start + offset + length - 1) // 8
@@ -1571,7 +1573,7 @@ class Bits():
         val = 0
         if not offset:
             endbyte = (absolute_pos + length - 1) // 8
-            chunksize = 4 # for 'L' format
+            chunksize = 4  # for 'L' format
             while endbyte - chunksize + 1 >= startbyte:
                 val <<= 8 * chunksize
                 val += struct.unpack('<L', bytes(self._datastore.getbyteslice(endbyte + 1 - chunksize, endbyte + 1)))[0]
@@ -1706,8 +1708,7 @@ class Bits():
             tmp >>= 1
             leadingzeros += 1
         remainingpart = i + 1 - (1 << leadingzeros)
-        binstring = '0' * leadingzeros + '1' + Bits(uint=remainingpart,
-                                                             length=leadingzeros).bin
+        binstring = '0' * leadingzeros + '1' + Bits(uint=remainingpart, length=leadingzeros).bin
         self._setbin_unsafe(binstring)
 
     def _readue(self, pos):
@@ -3348,9 +3349,9 @@ class BitArray(Bits):
             # Prevent self assignment woes
             new = copy.copy(self)
         positions = [lengths[0] + start]
-        for l in lengths[1:-1]:
+        for le in lengths[1:-1]:
             # Next position is the previous one plus the length of the next section.
-            positions.append(positions[-1] + l)
+            positions.append(positions[-1] + le)
         # We have all the positions that need replacements. We do them
         # in reverse order so that they won't move around as we replace.
         positions.reverse()
@@ -3826,7 +3827,7 @@ class ConstBitStream(Bits):
     def _getbytepos(self):
         """Return the current position in the stream in bytes. Must be byte aligned."""
         if self._pos % 8:
-            raise ByteAlignError("Not byte aligned in _getbytepos().")
+            raise ByteAlignError("Not byte aligned when using bytepos property.")
         return self._pos // 8
 
     def _setbitpos(self, pos):
@@ -4307,28 +4308,28 @@ def _switch_lsb0_methods(lsb0):
     # Dictionary that maps token names to the function that reads them
     global _name_to_read
     _name_to_read = {'uint': Bits._readuint,
-                    'uintle': Bits._readuintle,
-                    'uintbe': Bits._readuintbe,
-                    'uintne': Bits._readuintne,
-                    'int': Bits._readint,
-                    'intle': Bits._readintle,
-                    'intbe': Bits._readintbe,
-                    'intne': Bits._readintne,
-                    'float': Bits._readfloat,
-                    'floatbe': Bits._readfloat,  # floatbe is a synonym for float
-                    'floatle': Bits._readfloatle,
-                    'floatne': Bits._readfloatne,
-                    'hex': Bits._readhex,
-                    'oct': Bits._readoct,
-                    'bin': Bits._readbin,
-                    'bits': Bits._readbits,
-                    'bytes': Bits._readbytes,
-                    'ue': Bits._readue,
-                    'se': Bits._readse,
-                    'uie': Bits._readuie,
-                    'sie': Bits._readsie,
-                    'bool': Bits._readbool,
-                    }
+                     'uintle': Bits._readuintle,
+                     'uintbe': Bits._readuintbe,
+                     'uintne': Bits._readuintne,
+                     'int': Bits._readint,
+                     'intle': Bits._readintle,
+                     'intbe': Bits._readintbe,
+                     'intne': Bits._readintne,
+                     'float': Bits._readfloat,
+                     'floatbe': Bits._readfloat,  # floatbe is a synonym for float
+                     'floatle': Bits._readfloatle,
+                     'floatne': Bits._readfloatne,
+                     'hex': Bits._readhex,
+                     'oct': Bits._readoct,
+                     'bin': Bits._readbin,
+                     'bits': Bits._readbits,
+                     'bytes': Bits._readbytes,
+                     'ue': Bits._readue,
+                     'se': Bits._readse,
+                     'uie': Bits._readuie,
+                     'sie': Bits._readsie,
+                     'bool': Bits._readbool,
+                     }
 
 
 def set_lsb0(v=True) -> None:
