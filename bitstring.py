@@ -754,7 +754,7 @@ class Bits:
 
     """
 
-    __slots__ = '_datastore'
+    __slots__ = ('_datastore', '_pos')
     # This converts a single octal digit to 3 bits.
     _octToBits: List[str] = ['{0:03b}'.format(i) for i in range(8)]
 
@@ -822,6 +822,7 @@ class Bits:
                     if length is not None:
                         raise CreationError("length should not be specified when using string initialisation.")
                     x._datastore = ConstByteStore(bytearray(0), 0, 0)
+                    x._pos = None
                     for token in tokens:
                         x._datastore.appendstore(Bits._init_with_token(*token)._datastore)
                     assert x._assertsanity()
@@ -1031,11 +1032,7 @@ class Bits:
 
         """
         length = self.len
-        try:
-            pos = self._pos
-            pos_string = "" if pos == 0 else ", pos={0}".format(pos)
-        except AttributeError:
-            pos_string = ""
+        pos_string = "" if self._pos in (0, None) else f", pos={self._pos}"
         if isinstance(self._datastore.rawarray, MmapByteArray):
             offsetstring = ''
             if self._datastore.byteoffset or self._offset:
@@ -1225,11 +1222,9 @@ class Bits:
 
         """
         # Don't want to change pos
-        with suppress(AttributeError):
-            pos = self._pos
+        pos = self._pos
         found = Bits.find(self, bs, bytealigned=False)
-        with suppress(UnboundLocalError):
-            self._pos = pos
+        self._pos = pos
         return bool(found)
 
     # TODO: There must be a more standard way of doing this.
@@ -2073,7 +2068,7 @@ class Bits:
                 return None, pos + length
             raise ValueError("Can't parse token {0}:{1}".format(name, length))
         except TypeError:
-            # This is for the 'ue', 'se' and 'bool' tokens. They will also return the new pos.
+            # This is for the 'ue', 'se', 'uie', 'sie' and 'bool' tokens. They will also return the new pos.
             return _name_to_read[name](self, pos)
 
     def _addright(self, bs: Bits) -> None:
@@ -2144,7 +2139,7 @@ class Bits:
             self._truncateleft(pos)
             self._addleft(bs)
             self._addleft(start)
-        with suppress(AttributeError):
+        if self._pos is not None:
             self._pos = pos + bs.len
         assert self._assertsanity()
 
@@ -2519,7 +2514,7 @@ class Bits:
         else:
             p = self._findregex(re.compile(bs._getbin()), start, end, bytealigned)
         # If called from a class that has a pos, set it
-        with suppress(AttributeError, IndexError):
+        if p and self._pos is not None:
             self._pos = p[0]
         return p
 
@@ -2562,7 +2557,7 @@ class Bits:
             if count is not None and c >= count:
                 return
             c += 1
-            with suppress(AttributeError):
+            if self._pos is not None:
                 self._pos = p[0]
             yield p[0]
             if bytealigned:
@@ -3076,6 +3071,7 @@ class BitArray(Bits):
         x._datastore = ByteStore(y._datastore.rawarray[:],
                                  y._datastore.bitlength,
                                  y._datastore.offset)
+        x._pos = None
         return x
 
     def __iadd__(self, bs: Any) -> BitArray:
@@ -3346,7 +3342,7 @@ class BitArray(Bits):
         # We have all the positions that need replacements. We do them
         # in reverse order so that they won't move around as we replace.
         positions.reverse()
-        try:
+        if self._pos is not None:
             # Need to calculate new pos, if this is a bitstream
             newpos = self._pos
             for p in positions:
@@ -3361,7 +3357,7 @@ class BitArray(Bits):
                     else:
                         newpos = p
             self._pos = newpos
-        except AttributeError:
+        else:
             for p in positions:
                 self[p:p + old.len] = new
         assert self._assertsanity()
@@ -3405,16 +3401,15 @@ class BitArray(Bits):
         if not bs.len:
             return
         if pos is None:
-            try:
-                pos = self._pos
-            except AttributeError:
+            pos = self._pos
+            if pos is None:
                 raise TypeError("overwrite needs a bit position specified when used on a BitArray.")
         if pos < 0:
             pos += self.len
         if pos < 0 or pos + bs.len > self.len:
             raise ValueError("Overwrite exceeds boundary of bitstring.")
         self._overwrite(bs, pos)
-        with suppress(AttributeError):
+        if self._pos is not None:
             self._pos = pos + bs.len
 
     def append(self, bs: Any) -> None:
@@ -3476,21 +3471,15 @@ class BitArray(Bits):
         f = self._set if value else self._unset
         if pos is None:
             pos = range(self.len)
+        if not isinstance(pos, collections.abc.Iterable):
+            pos = (pos,)
         length = self.len
-        try:
-            for p in pos:
-                if p < 0:
-                    p += length
-                if not 0 <= p < length:
-                    raise IndexError("Bit position {0} out of range.".format(p))
-                f(p)
-        except TypeError:
-            # Single pos
-            if pos < 0:
-                pos += self.len
-            if not 0 <= pos < length:
-                raise IndexError("Bit position {0} out of range.".format(pos))
-            f(pos)
+        for p in pos:
+            if p < 0:
+                p += length
+            if not 0 <= p < length:
+                raise IndexError("Bit position {0} out of range.".format(p))
+            f(p)
 
     def invert(self, pos: Union[Iterable[int], int] = None) -> None:
         """Invert one or many bits from 0 to 1 or vice versa.
@@ -3761,7 +3750,7 @@ class ConstBitStream(Bits):
 
     """
 
-    __slots__ = ('_pos',)
+    __slots__ = ()
 
     def __init__(self, auto: Any = None, length: int = None, offset: int = None, pos: int = 0, **kwargs) -> None:
         """Either specify an 'auto' initialiser:

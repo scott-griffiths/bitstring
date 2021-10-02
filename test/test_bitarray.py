@@ -64,8 +64,15 @@ class NoPosAttribute(unittest.TestCase):
 
     def testOverwrite(self):
         s = BitArray('0b01110')
+        self.assertEqual(s._pos, None)
         s.overwrite('0b000', 1)
         self.assertEqual(s, '0b00000')
+        self.assertEqual(s._pos, None)
+
+    def testOverwriteNoPos(self):
+        s = BitArray('0x01234')
+        with self.assertRaises(TypeError):
+            s.overwrite('0xf')
 
     def testOverwriteParameters(self):
         s = BitArray('0b0000')
