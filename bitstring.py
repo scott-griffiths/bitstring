@@ -2477,7 +2477,7 @@ class Bits:
             # Not found, return empty tuple
         return ()
 
-    def find(self, bs: Bits, start: int = None, end: int = None, bytealigned: bool = None) -> Union[Tuple[int], Tuple[()]]:
+    def find(self, bs: Any, start: int = None, end: int = None, bytealigned: bool = None) -> Union[Tuple[int], Tuple[()]]:
         """Find first occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -2523,7 +2523,7 @@ class Bits:
             self._pos = p[0]
         return p
 
-    def findall(self, bs: Bits, start: int = None, end: int = None, count: int = None, bytealigned: bool = None) -> Generator[int, None, None]:
+    def findall(self, bs: Any, start: int = None, end: int = None, count: int = None, bytealigned: bool = None) -> Generator[int, None, None]:
         """Find all occurrences of bs. Return generator of bit positions.
 
         bs -- The bitstring to find.
@@ -2573,7 +2573,7 @@ class Bits:
                 break
         return
 
-    def rfind(self, bs: Bits, start: int = None, end: int = None, bytealigned: bool = None) -> Union[Tuple[int], Tuple[()]]:
+    def rfind(self, bs: Any, start: int = None, end: int = None, bytealigned: bool = None) -> Union[Tuple[int], Tuple[()]]:
         """Find final occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -2791,8 +2791,8 @@ class Bits:
         start = end - suffix.len
         return self._slice(start, end) == suffix
 
-    def all(self, value: bool, pos: Iterable[int] = None) -> bool:
-        """Return True if one or many bits are all set to value.
+    def all(self, value: Any, pos: Iterable[int] = None) -> bool:
+        """Return True if one or many bits are all set to bool(value).
 
         value -- If value is True then checks for bits set to 1, otherwise
                  checks for bits set to 0.
@@ -2813,8 +2813,8 @@ class Bits:
                 return False
         return True
 
-    def any(self, value: bool, pos: Iterable[int] = None) -> bool:
-        """Return True if any of one or many bits are set to value.
+    def any(self, value: Any, pos: Iterable[int] = None) -> bool:
+        """Return True if any of one or many bits are set to bool(value).
 
         value -- If value is True then checks for bits set to 1, otherwise
                  checks for bits set to 0.
@@ -2835,10 +2835,10 @@ class Bits:
                 return True
         return False
 
-    def count(self, value: bool) -> int:
+    def count(self, value: Any) -> int:
         """Return count of total number of either zero or one bits.
 
-        value -- If True then bits set to 1 are counted, otherwise bits set
+        value -- If bool(value) is True then bits set to 1 are counted, otherwise bits set
                  to 0 are counted.
 
         >>> Bits('0xef').count(1)
@@ -3098,7 +3098,7 @@ class BitArray(Bits):
             s_copy._datastore = copy.copy(self._datastore)
         return s_copy
 
-    def __setitem__(self, key: Union[slice, int], value: int) -> None:
+    def __setitem__(self, key: Union[slice, int], value: Any) -> None:
         try:
             # A slice
             start, step = 0, 1
@@ -3462,10 +3462,10 @@ class BitArray(Bits):
         s._reverse()
         self[start:end] = s
 
-    def set(self, value: bool, pos: int = None) -> None:
+    def set(self, value: Any, pos: Union[int, Iterable[int]] = None) -> None:
         """Set one or many bits to 1 or 0.
 
-        value -- If True bits are set to 1, otherwise they are set to 0.
+        value -- If bool(value) is True bits are set to 1, otherwise they are set to 0.
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
                Defaults to the entire bitstring.
@@ -3914,7 +3914,7 @@ class ConstBitStream(Bits):
         value, self._pos = self._readtoken(name, self._pos, length)
         return value
 
-    def readlist(self, fmt: List[Union[int, str]], **kwargs) -> List[Union[int, float, str, ConstBitStream, bool, bytes, None]]:
+    def readlist(self, fmt: Union[str, List[Union[int, str]]], **kwargs) -> List[Union[int, float, str, ConstBitStream, bool, bytes, None]]:
         """Interpret next bits according to format string(s) and return list.
 
         fmt -- A single string or list of strings with comma separated tokens
@@ -3978,7 +3978,7 @@ class ConstBitStream(Bits):
         self._pos = pos_before
         return value
 
-    def peeklist(self, fmt: List[Union[int, str]], **kwargs) -> List[Union[int, float, str, ConstBitStream, bool, bytes, None]]:
+    def peeklist(self, fmt: Union[str, List[Union[int, str]]], **kwargs) -> List[Union[int, float, str, ConstBitStream, bool, bytes, None]]:
         """Interpret next bits according to format string(s) and return list.
 
         fmt -- One or more integers or strings with comma separated tokens describing
