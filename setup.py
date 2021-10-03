@@ -13,7 +13,7 @@ setup(name='bitstring',
       author_email='dr.scottgriffiths@gmail.com',
       url='https://github.com/scott-griffiths/bitstring',
       download_url='https://pypi.python.org/pypi/bitstring/',
-      license='The MIT License: http://www.opensource.org/licenses/mit-license.php',
+      license='The MIT License: https://www.opensource.org/licenses/mit-license.php',
       py_modules=['bitstring'],
       platforms='all',
       classifiers=[
@@ -29,4 +29,3 @@ setup(name='bitstring',
       ],
       **kwds
       )
-
