@@ -2396,14 +2396,14 @@ class Split2(unittest.TestCase):
         b = BitStream(filename='temp_bitstring_unit_testing_file')
         self.assertEqual(b, '0x000080')
 
-        a = BitStream('0x911111')
-        del a[:1]
-        self.assertEqual(a + '0b0', '0x222222')
+        a = BitStream('int:1000000=-1')
+        self.assertEqual(a.int, -1)
         f = open('temp_bitstring_unit_testing_file', 'wb')
         a.tofile(f)
         f.close()
         b = BitStream(filename='temp_bitstring_unit_testing_file')
-        self.assertEqual(b, '0x222222')
+        self.assertEqual(b.int, -1)
+        self.assertEqual(b.len, 1000000)
         os.remove('temp_bitstring_unit_testing_file')
 
     def testTokenParser(self):

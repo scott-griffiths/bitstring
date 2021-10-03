@@ -145,10 +145,8 @@ class ConstByteStore:
     __slots__ = ('offset', 'rawarray', 'bitlength')
 
     def __init__(self, data: Union[bytearray, bytes, MmapByteArray],
-                 bitlength: int = None, offset: int = None) -> None:
+                 bitlength: int = None, offset: int = 0) -> None:
         self.rawarray = data
-        if offset is None:
-            offset = 0
         if bitlength is None:
             bitlength = 8 * len(data) - offset
         self.offset = offset
@@ -200,8 +198,7 @@ class ConstByteStore:
 
     def getbyteslice(self, start: int, end: int) -> Union[int, bytearray]:
         """Direct access to byte data."""
-        c = self.rawarray[start:end]
-        return c
+        return self.rawarray[start:end]
 
     @property
     def bytelength(self) -> int:
@@ -2722,7 +2719,7 @@ class Bits:
             d[-1] &= (0xff << unusedbits)
         return bytes(d)
 
-    def tofile(self, f) -> None:  # TODO: Add f type hint
+    def tofile(self, f: BinaryIO) -> None:
         """Write the bitstring to a file object, padding with zero bits if needed.
 
         Up to seven zero bits will be added at the end to byte align.
@@ -2731,7 +2728,7 @@ class Bits:
         # If the bitstring is file based then we don't want to read it all
         # in to memory.
         chunksize = 1024 * 1024  # 1 MiB chunks
-        if not self._offset:
+        if self._offset == 0:
             a = 0
             bytelen = self._datastore.bytelength
             p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
