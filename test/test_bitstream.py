@@ -3287,36 +3287,36 @@ class AllAndAny(unittest.TestCase):
 
     def testDedicatedReadFunctions(self):
         a = BitStream('0b11, uint:43=98798798172, 0b11111')
-        x = a._readuint(43, 2)
+        x = a._readuint(2, 43)
         self.assertEqual(x, 98798798172)
         self.assertEqual(a.pos, 0)
-        x = a._readint(43, 2)
+        x = a._readint(2, 43)
         self.assertEqual(x, 98798798172)
         self.assertEqual(a.pos, 0)
 
         a = BitStream('0b11, uintbe:48=98798798172, 0b11111')
-        x = a._readuintbe(48, 2)
+        x = a._readuintbe(2, 48)
         self.assertEqual(x, 98798798172)
         self.assertEqual(a.pos, 0)
-        x = a._readintbe(48, 2)
+        x = a._readintbe(2, 48)
         self.assertEqual(x, 98798798172)
         self.assertEqual(a.pos, 0)
 
         a = BitStream('0b111, uintle:40=123516, 0b111')
-        self.assertEqual(a._readuintle(40, 3), 123516)
+        self.assertEqual(a._readuintle(3, 40), 123516)
         b = BitStream('0xff, uintle:800=999, 0xffff')
-        self.assertEqual(b._readuintle(800, 8), 999)
+        self.assertEqual(b._readuintle(8, 800), 999)
 
         a = BitStream('0b111, intle:48=999999999, 0b111111111111')
-        self.assertEqual(a._readintle(48, 3), 999999999)
+        self.assertEqual(a._readintle(3, 48), 999999999)
         b = BitStream('0xff, intle:200=918019283740918263512351235, 0xfffffff')
-        self.assertEqual(b._readintle(200, 8), 918019283740918263512351235)
+        self.assertEqual(b._readintle(8, 200), 918019283740918263512351235)
 
         a = BitStream('0b111, floatbe:64=-5.32, 0xffffffff')
-        self.assertEqual(a._readfloat(64, 3), -5.32)
+        self.assertEqual(a._readfloat(3, 64), -5.32)
 
         a = BitStream('0b111, floatle:64=9.9998, 0b111')
-        self.assertEqual(a._readfloatle(64, 3), 9.9998)
+        self.assertEqual(a._readfloatle(3, 64), 9.9998)
 
     def testAutoInitWithInt(self):
         a = BitStream(0)
