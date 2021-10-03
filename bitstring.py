@@ -76,8 +76,13 @@ import operator
 import array
 import io
 import collections
+import functools
 from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, Callable
 from contextlib import suppress
+
+
+# Things that can be converted to Bits when a Bits type is needed
+BitsType = Union['Bits', int, float, str, Iterable[Any], bool, BinaryIO, bytearray, bytes, array.array]
 
 byteorder: str = sys.byteorder
 
@@ -762,7 +767,7 @@ class Bits:
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
     _byteReversalDict: Dict[bytes, bytes] = {i: bytes([int("{0:08b}".format(i)[::-1], 2)]) for i in range(0x100)}
 
-    def __init__(self, auto: Any = None, length: int = None, offset: int = None, **kwargs) -> None:
+    def __init__(self, auto: BitsType = None, length: int = None, offset: int = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
                 a bytearray, a boolean iterable, an array or another bitstring.
@@ -801,7 +806,7 @@ class Bits:
         """
         pass
 
-    def __new__(cls, auto: Any = None, length: int = None, offset: int = None, _cache={}, **kwargs) -> Bits:
+    def __new__(cls, auto:Any = None, length: int = None, offset: int = None, _cache={}, **kwargs) -> Bits:
         # For instances auto-initialised with a string we intern the
         # instance for re-use.
         with suppress(TypeError):
@@ -818,7 +823,7 @@ class Bits:
                         raise CreationError("offset should not be specified when using string initialisation.")
                     if length is not None:
                         raise CreationError("length should not be specified when using string initialisation.")
-                    x._datastore = ConstByteStore(bytearray(0), 0, 0)
+                    x._datastore = ConstByteStore(bytearray(0), 0)
                     x._pos = None
                     for token in tokens:
                         x._datastore.appendstore(Bits._init_with_token(*token)._datastore)
@@ -2336,7 +2341,8 @@ class Bits:
         """
         return self._readlist(fmt, 0, **kwargs)[0]
 
-    def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs) -> Tuple[List[Union[float, int, str, None, Bits]], int]:
+    def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs)\
+            -> Tuple[List[Union[float, int, str, None, Bits]], int]:
         tokens = []
         stretchy_token = None
         if isinstance(fmt, str):
@@ -2412,13 +2418,12 @@ class Bits:
                 return_values.append(value)
         return return_values, pos
 
-    def _findbytes(self, bytes_: bytes, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _findbytes(self, bytes_: bytes, start: int, end: int) -> Union[Tuple[int], Tuple[()]]:
         """Quicker version of find when everything's whole byte
         and byte aligned.
 
         """
         assert self._datastore.offset == 0
-        assert bytealigned is True
         # Extract data bytes from bitstring to be found.
         bytepos: int = (start + 7) // 8
         found: bool = False
@@ -2507,7 +2512,7 @@ class Bits:
         if bytealigned is None:
             bytealigned = globals()['bytealigned']
         if bytealigned and not bs.len % 8 and not self._datastore.offset:
-            p = self._findbytes(bs.bytes, start, end, bytealigned)
+            p = self._findbytes(bs.bytes, start, end)
         else:
             p = self._findregex(re.compile(bs._getbin()), start, end, bytealigned)
         # If called from a class that has a pos, set it
@@ -2541,14 +2546,11 @@ class Bits:
         c = 0
         if bytealigned and not bs.len % 8 and not self._datastore.offset:
             # Use the quick find method
-            f = self._findbytes
-            x = bs._getbytes()
+            f = functools.partial(self._findbytes, bytes_=bs._getbytes())
         else:
-            f = self._findregex
-            x = re.compile(bs._getbin())
+            f = functools.partial(self._findregex, reg_ex= re.compile(bs._getbin()), bytealigned=bytealigned)
         while True:
-
-            p = f(x, start, end, bytealigned)
+            p = f(start=start, end=end)
             if not p:
                 break
             if count is not None and c >= count:
@@ -2661,12 +2663,10 @@ class Bits:
             return
         if bytealigned and not delimiter.len % 8 and not self._datastore.offset:
             # Use the quick find method
-            f = self._findbytes
-            x = delimiter._getbytes()
+            f = functools.partial(self._findbytes, bytes_=delimiter._getbytes())
         else:
-            f = self._findregex
-            x = re.compile(delimiter._getbin())
-        found = f(x, start, end, bytealigned)
+            f = functools.partial(self._findregex, reg_ex=re.compile(delimiter._getbin()), bytealigned=bytealigned)
+        found = f(start=start, end=end)
         if not found:
             # Initial bits are the whole bitstring being searched
             yield self._slice(start, end)
@@ -2677,7 +2677,7 @@ class Bits:
         c = 1
         while count is None or c < count:
             pos += delimiter.len
-            found = f(x, pos, end, bytealigned)
+            found = f(start=pos, end=end)
             if not found:
                 # No more occurrences, so return the rest of the bitstring
                 yield self._slice(startpos, end)
@@ -3021,7 +3021,7 @@ class BitArray(Bits):
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__ = None
 
-    def __init__(self, auto: Any = None, length: int = None, offset: int = None, **kwargs) -> None:
+    def __init__(self, auto: BitsType = None, length: int = None, offset: int = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
                 a bytearray, a boolean iterable or another bitstring.
@@ -3062,7 +3062,7 @@ class BitArray(Bits):
         if not isinstance(self._datastore, ByteStore):
             self._ensureinmemory()
 
-    def __new__(cls, auto: Any = None, length: int = None, offset: int = None, **kwargs) -> Bits:
+    def __new__(cls, auto: BitsType = None, length: int = None, offset: int = None, **kwargs) -> Bits:
         x = super(BitArray, cls).__new__(cls)
         y = Bits.__new__(BitArray, auto, length, offset, **kwargs)
         x._datastore = ByteStore(y._datastore.rawarray[:],
@@ -3071,7 +3071,7 @@ class BitArray(Bits):
         x._pos = None
         return x
 
-    def __iadd__(self, bs: Any) -> BitArray:
+    def __iadd__(self, bs: BitsType) -> BitArray:
         """Append bs to current bitstring. Return self.
 
         bs -- the bitstring to append.
@@ -3091,7 +3091,7 @@ class BitArray(Bits):
             s_copy._datastore = copy.copy(self._datastore)
         return s_copy
 
-    def __setitem__(self, key: Union[slice, int], value: Any) -> None:
+    def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
         try:
             # A slice
             start, step = 0, 1
@@ -3272,28 +3272,28 @@ class BitArray(Bits):
             raise ValueError("Cannot multiply by a negative integer.")
         return self._imul(n)
 
-    def __ior__(self, bs: Any) -> BitArray:
+    def __ior__(self, bs: BitsType) -> BitArray:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for |= operator.")
         return self._ior(bs)
 
-    def __iand__(self, bs: Any) -> BitArray:
+    def __iand__(self, bs: BitsType) -> BitArray:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for &= operator.")
         return self._iand(bs)
 
-    def __ixor__(self, bs: Any) -> BitArray:
+    def __ixor__(self, bs: BitsType) -> BitArray:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length "
                              "for ^= operator.")
         return self._ixor(bs)
 
-    def replace(self, old: Any, new: Any, start: int = None, end: int = None, count: int = None,
+    def replace(self, old: BitsType, new: BitsType, start: int = None, end: int = None, count: int = None,
                 bytealigned: bool = None) -> int:
         """Replace all occurrences of old with new in place.
 
@@ -3360,7 +3360,7 @@ class BitArray(Bits):
         assert self._assertsanity()
         return len(lengths) - 1
 
-    def insert(self, bs: Any, pos: int = None) -> None:
+    def insert(self, bs: BitsType, pos: int = None) -> None:
         """Insert bs at bit position pos.
 
         bs -- The bitstring to insert.
@@ -3385,7 +3385,7 @@ class BitArray(Bits):
             raise ValueError("Invalid insert position.")
         self._insert(bs, pos)
 
-    def overwrite(self, bs: Any, pos: int = None) -> None:
+    def overwrite(self, bs: BitsType, pos: int = None) -> None:
         """Overwrite with bs at bit position pos.
 
         bs -- The bitstring to overwrite with.
@@ -3409,7 +3409,7 @@ class BitArray(Bits):
         if self._pos is not None:
             self._pos = pos + bs.len
 
-    def append(self, bs: Any) -> None:
+    def append(self, bs: BitsType) -> None:
         """Append a bitstring to the current bitstring.
 
         bs -- The bitstring to append.
@@ -3417,7 +3417,7 @@ class BitArray(Bits):
         """
         self._append(bs)
 
-    def prepend(self, bs: Any) -> None:
+    def prepend(self, bs: BitsType) -> None:
         """Prepend a bitstring to the current bitstring.
 
         bs -- The bitstring to prepend.
@@ -3425,12 +3425,12 @@ class BitArray(Bits):
         """
         self._prepend(bs)
 
-    def _append_msb0(self, bs: Any) -> None:
+    def _append_msb0(self, bs: BitsType) -> None:
         # The offset is a hint to make bs easily appendable.
         bs = self._converttobitstring(bs, offset=(self.len + self._offset) % 8)
         self._addright(bs)
 
-    def _append_lsb0(self, bs: Any) -> None:
+    def _append_lsb0(self, bs: BitsType) -> None:
         bs = Bits(bs)
         self._addleft(bs)
 
@@ -3749,7 +3749,7 @@ class ConstBitStream(Bits):
 
     __slots__ = ()
 
-    def __init__(self, auto: Any = None, length: int = None, offset: int = None, pos: int = 0, **kwargs) -> None:
+    def __init__(self, auto: BitsType = None, length: int = None, offset: int = None, pos: int = 0, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
                 a bytearray, a boolean iterable or another bitstring.
@@ -3789,7 +3789,7 @@ class ConstBitStream(Bits):
         """
         pass
 
-    def __new__(cls, auto: Any = None, length: int = None, offset: int = None, pos: int = 0, **kwargs) -> Bits:
+    def __new__(cls, auto: BitsType = None, length: int = None, offset: int = None, pos: int = 0, **kwargs) -> Bits:
         x = super(ConstBitStream, cls).__new__(cls)
         x._initialise(auto, length, offset, **kwargs)
         x._pos = x._datastore.bitlength + pos if pos < 0 else pos
@@ -3833,7 +3833,7 @@ class ConstBitStream(Bits):
         s._pos = 0
         return s
 
-    def __add__(self, bs: Any) -> Bits:
+    def __add__(self, bs: BitsType) -> Bits:
         """Concatenate bitstrings and return new bitstring.
 
         bs -- the bitstring to append.
@@ -3924,7 +3924,7 @@ class ConstBitStream(Bits):
         value, self._pos = self._readlist(fmt, self._pos, **kwargs)
         return value
 
-    def readto(self, bs: Any, bytealigned: bool = None) -> ConstBitStream:
+    def readto(self, bs: BitsType, bytealigned: bool = None) -> ConstBitStream:
         """Read up to and including next occurrence of bs and return result.
 
         bs -- The bitstring to find. An integer is not permitted.
@@ -4087,7 +4087,7 @@ class BitStream(ConstBitStream, BitArray):
     # As BitStream objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
 
-    def __init__(self, auto: Any = None, length: int = None, offset: int = None, pos: int = 0, **kwargs) -> None:
+    def __init__(self, auto: BitsType = None, length: int = None, offset: int = None, pos: int = 0, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
                 a bytearray, a boolean iterable or another bitstring.
@@ -4129,7 +4129,7 @@ class BitStream(ConstBitStream, BitArray):
         if not isinstance(self._datastore, (ByteStore, ConstByteStore)):
             self._ensureinmemory()
 
-    def __new__(cls, auto: Any = None, length: int = None, offset: int = None, pos: int = 0, **kwargs) -> Bits:
+    def __new__(cls, auto: BitsType = None, length: int = None, offset: int = None, pos: int = 0, **kwargs) -> Bits:
         x = super(BitStream, cls).__new__(cls)
         y = ConstBitStream.__new__(BitStream, auto, length, offset, pos, **kwargs)
         x._datastore = ByteStore(y._datastore.rawarray[:],
@@ -4152,7 +4152,7 @@ class BitStream(ConstBitStream, BitArray):
                                           self._datastore.offset)
         return s_copy
 
-    def prepend(self, bs: Any) -> None:
+    def prepend(self, bs: BitsType) -> None:
         """Prepend a bitstring to the current bitstring.
 
         bs -- The bitstring to prepend.

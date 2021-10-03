@@ -1188,8 +1188,7 @@ class Adding(unittest.TestCase):
         self.assertEqual(s3.hex, '010203040102')
         self.assertEqual(s2[9:16].bin, '0000100')
         self.assertEqual(s1[0:9].bin, '000000010')
-        s4 = BitStream(bin='000000010') +\
-             BitStream(bin='0000100')
+        s4 = BitStream(bin='000000010') + BitStream(bin='0000100')
         self.assertEqual(s4.bin, '0000000100000100')
         s5 = s1[0:9] + s2[9:16]
         self.assertEqual(s5.bin, '0000000100000100')
