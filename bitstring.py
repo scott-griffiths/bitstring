@@ -624,12 +624,13 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
                 continue
             # Match everything else:
             m1 = TOKEN_RE.match(token)
-            # If you don't specify a 'name' then the default is 'uint':
-            name = m1.group('name') if m1 else 'uint'
             if m1:
+                name = m1.group('name')
                 length = m1.group('len')
                 value = m1.group('value')
             else:
+                # If you don't specify a 'name' then the default is 'uint':
+                name = 'uint'
                 m2 = DEFAULT_UINT.match(token)
                 if not m2:
                     raise ValueError("Don't understand token '{0}'.".format(token))
@@ -638,7 +639,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
 
             if name == 'bool':
                 if length is not None and length != '1':
-                    raise ValueError("You can only specify one bit sized bool tokens or leave unspecified.")
+                    raise ValueError(f"bool tokens can only be 1 bit long, not {length}.")
                 length = 1
             if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 stretchy_token = True
@@ -809,6 +810,29 @@ class Bits:
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, _cache={}, **kwargs) -> Bits:
+        # TODO: Is there only one copy of this?
+        cls.f = {'bin': cls._setbin_safe,
+                 'hex': cls._sethex,
+                 'oct': cls._setoct,
+                 'ue': cls._setue,
+                 'se': cls._setse,
+                 'uie': cls._setuie,
+                 'sie': cls._setsie,
+                 'bool': cls._setbool,
+                 'uint': cls._setuint,
+                 'int': cls._setint,
+                 'float': cls._setfloat,
+                 'uintbe': cls._setuintbe,
+                 'intbe': cls._setintbe,
+                 'floatbe': cls._setfloat,
+                 'uintle': cls._setuintle,
+                 'intle': cls._setintle,
+                 'floatle': cls._setfloatle,
+                 'uintne': cls._setuintne,
+                 'intne': cls._setintne,
+                 'floatne': cls._setfloatne,
+                 'bytes': cls._setbytes_safe,
+                 'filename': cls._setfile}
         # For instances auto-initialised with a string we intern the
         # instance for re-use.
         with suppress(TypeError):
@@ -858,43 +882,9 @@ class Bits:
         k, v = kwargs.popitem()
 
         try:
-            # Initialise without length or offset
-            {'bin': Bits._setbin_safe,
-             'hex': Bits._sethex,
-             'oct': Bits._setoct,
-             'ue': Bits._setue,
-             'se': Bits._setse,
-             'uie': Bits._setuie,
-             'sie': Bits._setsie,
-             'bool': Bits._setbool}[k](self, v)
-            if length is not None or offset is not None:
-                raise CreationError("Cannot use length or offset with this initialiser.")
+            self.f[k](self, v, length, offset)
         except KeyError:
-            try:
-                # Initialise with length only
-                {'uint': Bits._setuint,
-                 'int': Bits._setint,
-                 'float': Bits._setfloat,
-                 'uintbe': Bits._setuintbe,
-                 'intbe': Bits._setintbe,
-                 'floatbe': Bits._setfloat,
-                 'uintle': Bits._setuintle,
-                 'intle': Bits._setintle,
-                 'floatle': Bits._setfloatle,
-                 'uintne': Bits._setuintne,
-                 'intne': Bits._setintne,
-                 'floatne': Bits._setfloatne}[k](self, v, length)
-                if offset is not None:
-                    raise CreationError("Cannot use offset with this initialiser.")
-            except KeyError:
-                if offset is None:
-                    offset = 0
-                try:
-                    # Initialise with both length and offset
-                    {'bytes': Bits._setbytes_safe,
-                     'filename': Bits._setfile}[k](self, v, length, offset)
-                except KeyError:
-                    raise CreationError("Unrecognised keyword '{0}' used to initialise.", k)
+            raise CreationError("Unrecognised keyword '{0}' used to initialise.", k)
 
     def _initialise_from_auto(self, auto: Any, length: Optional[int], offset: Optional[int]) -> None:
         if offset is None:
@@ -1050,6 +1040,12 @@ class Bits:
             if s.endswith('...'):
                 lengthstring = " # length={0}".format(length)
             return "{0}('{1}'{2}){3}".format(self.__class__.__name__, s, pos_string, lengthstring)
+
+    # TODO: Something like this :)
+    # def __format__(self, fmt: str) -> str:
+    #     if fmt is None:
+    #         return self.__repr__()
+    #     return ', '.join(self.unpack(fmt))
 
     def __eq__(self, bs: Any) -> bool:
         """Return True if two bitstrings have the same binary representation.
@@ -1399,9 +1395,11 @@ class Bits:
             self._datastore = ConstByteStore(m, length, offset)
 
     def _setbytes_safe(self, data: Union[bytearray, bytes, MmapByteArray],
-                       length: Optional[int] = None, offset: int = 0) -> None:
+                       length: Optional[int] = None, offset: Optional[int] = None) -> None:
         """Set the data from a string."""
         data = bytearray(data)
+        if offset is None:
+            offset = 0
         if length is None:
             # Use to the end of the data
             length = len(data)*8 - offset
@@ -1436,7 +1434,7 @@ class Bits:
                                  "not multiple of 8 bits.")
         return self._readbytes(0, self.len)
 
-    def _setuint(self, uint: int, length: Optional[int] = None) -> None:
+    def _setuint(self, uint: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given unsigned int interpretation."""
         with suppress(AttributeError):  # bitstring will only have a _datastore if it's been created
             if length is None:
@@ -1445,12 +1443,14 @@ class Bits:
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with a "
                                 "uint initialiser.")
+        if _offset is not None:
+            raise CreationError("An offset can't be specified with an integer initialiser.")
         if uint >= (1 << length):
             msg = "{0} is too large an unsigned integer for a bitstring of length {1}. "\
                   "The allowed range is [0, {2}]."
             raise CreationError(msg, uint, length, (1 << length) - 1)
         if uint < 0:
-            raise CreationError("uint cannot be initialised by a negative number.")
+            raise CreationError("uint cannot be initialised with a negative number.")
         data = int.to_bytes(uint, (length + 7) // 8, 'big')
 
         offset = 8 - (length % 8)
@@ -1482,7 +1482,7 @@ class Bits:
         """Return data as an unsigned int."""
         return self._readuint(0, self.len)
 
-    def _setint(self, int_: int, length: Optional[int] = None) -> None:
+    def _setint(self, int_: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given signed int interpretation."""
         # If no length given, and we've previously been given a length, use it.
         if length is None and hasattr(self, 'len') and self.len != 0:
@@ -1513,7 +1513,7 @@ class Bits:
         """Return data as a two's complement signed int."""
         return self._readint(0, self.len)
 
-    def _setuintbe(self, uintbe: int, length: Optional[int] = None) -> None:
+    def _setuintbe(self, uintbe: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Set the bitstring to a big-endian unsigned int interpretation."""
         if length is not None and length % 8 != 0:
             raise CreationError("Big-endian integers must be whole-byte. "
@@ -1531,7 +1531,7 @@ class Bits:
         """Return data as a big-endian two's complement unsigned int."""
         return self._readuintbe(0, self.len)
 
-    def _setintbe(self, intbe: int, length: Optional[int] = None) -> None:
+    def _setintbe(self, intbe: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Set bitstring to a big-endian signed int interpretation."""
         if length is not None and length % 8 != 0:
             raise CreationError("Big-endian integers must be whole-byte. "
@@ -1549,7 +1549,7 @@ class Bits:
         """Return data as a big-endian two's complement signed int."""
         return self._readintbe(0, self.len)
 
-    def _setuintle(self, uintle: int, length: Optional[int] = None) -> None:
+    def _setuintle(self, uintle: int, length: Optional[int] = None, _offset: None = None) -> None:
         if length is not None and length % 8 != 0:
             raise CreationError("Little-endian integers must be whole-byte. "
                                 "Length = {0} bits.", length)
@@ -1587,7 +1587,7 @@ class Bits:
     def _getuintle(self) -> int:
         return self._readuintle(0, self.len)
 
-    def _setintle(self, intle: int, length: Optional[int] = None) -> None:
+    def _setintle(self, intle: int, length: Optional[int] = None, _offset: None = None) -> None:
         if length is not None and length % 8 != 0:
             raise CreationError("Little-endian integers must be whole-byte. "
                                 "Length = {0} bits.", length)
@@ -1607,7 +1607,7 @@ class Bits:
     def _getintle(self) -> int:
         return self._readintle(0, self.len)
 
-    def _setfloat(self, f: float, length: Optional[int] = None) -> None:
+    def _setfloat(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
         # If no length given, and we've previously been given a length, use it.
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
@@ -1644,7 +1644,7 @@ class Bits:
         """Interpret the whole bitstring as a float."""
         return self._readfloat(0, self.len)
 
-    def _setfloatle(self, f: float, length: Optional[int] = None) -> None:
+    def _setfloatle(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
         # If no length given, and we've previously been given a length, use it.
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
@@ -1681,12 +1681,14 @@ class Bits:
         """Interpret the whole bitstring as a little-endian float."""
         return self._readfloatle(0, self.len)
 
-    def _setue(self, i: int) -> None:
+    def _setue(self, i: int, _length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
 
         Raises CreationError if i < 0.
 
         """
+        if _length is not None or _offset is not None:
+            raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
         if i < 0:
             raise CreationError("Cannot use negative initialiser for unsigned "
                                 "exponential-Golomb.")
@@ -1741,8 +1743,10 @@ class Bits:
             raise InterpretError("Bitstring is not a single exponential-Golomb code.")
         return value
 
-    def _setse(self, i: int) -> None:
+    def _setse(self, i: int, _length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
+        if _length is not None or _offset is not None:
+            raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
         if i > 0:
             u = (i * 2) - 1
         else:
@@ -1779,7 +1783,7 @@ class Bits:
         else:
             return m, pos
 
-    def _setuie(self, i: int) -> None:
+    def _setuie(self, i: int, _length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with unsigned interleaved exponential-Golomb code for integer i.
 
         Raises CreationError if i < 0.
@@ -1824,7 +1828,7 @@ class Bits:
             raise InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
         return value
 
-    def _setsie(self, i: int) -> None:
+    def _setsie(self, i: int, _length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
         if not i:
             self._setbin_unsafe('1')
@@ -1866,7 +1870,7 @@ class Bits:
         except IndexError:
             raise ReadError("Read off end of bitstring trying to read code.")
 
-    def _setbool(self, value: Union[bool, str]) -> None:
+    def _setbool(self, value: Union[bool, str], _length: None = None, _offset: None = None) -> None:
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
         if value in (1, 'True'):
@@ -1889,14 +1893,14 @@ class Bits:
     def _readpad(_self, _pos, _length) -> None:
         return None
 
-    def _setbin_safe(self, binstring: str) -> None:
+    def _setbin_safe(self, binstring: str, _length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to the value given in binstring."""
         binstring = tidy_input_string(binstring)
         # remove any 0b if present
         binstring = binstring.replace('0b', '')
         self._setbin_unsafe(binstring)
 
-    def _setbin_unsafe(self, binstring: str) -> None:
+    def _setbin_unsafe(self, binstring: str, _length: None = None, _offset: None = None) -> None:
         """Same as _setbin_safe, but input isn't sanity checked. binstring mustn't start with '0b'."""
         length = len(binstring)
         # pad with zeros up to byte boundary if needed
@@ -1927,7 +1931,7 @@ class Bits:
         """Return interpretation as a binary string."""
         return self._readbin(0, self.len)
 
-    def _setoct(self, octstring: str) -> None:
+    def _setoct(self, octstring: str, _length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in octstring."""
         octstring = tidy_input_string(octstring)
         # remove any 0o if present
@@ -1957,7 +1961,7 @@ class Bits:
         """Return interpretation as an octal string."""
         return self._readoct(0, self.len)
 
-    def _sethex(self, hexstring: str) -> None:
+    def _sethex(self, hexstring: str, _length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in hexstring."""
         hexstring = tidy_input_string(hexstring)
         # remove any 0x if present
