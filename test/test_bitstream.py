@@ -1995,7 +1995,7 @@ class Split2(unittest.TestCase):
         a *= max_
         self.assertEqual(repr(a), "BitStream('0x" + "f" * max_ + "')")
         a += '0xf'
-        self.assertEqual(repr(a), "BitStream('0x" + "f" * max_ + "...') # length=%d" % (max_ * 4 + 4))
+        self.assertEqual(repr(a), "BitStream('0x" + "f" * max_ + "...')  # length=%d" % (max_ * 4 + 4))
 
     def testPrint(self):
         s = BitStream(hex='0x00')
