@@ -810,6 +810,7 @@ class Bits:
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, _cache={}, **kwargs) -> Bits:
+        # Mapping token names to the methods used to set them
         cls._setfunc = {'bin': cls._setbin_safe,
                         'hex': cls._sethex,
                         'oct': cls._setoct,
@@ -832,6 +833,32 @@ class Bits:
                         'floatne': cls._setfloatne,
                         'bytes': cls._setbytes_safe,
                         'filename': cls._setfile}
+
+        # Dictionary that maps token names to the function that reads them
+        cls._name_to_read = {'uint': Bits._readuint,
+                             'uintle': Bits._readuintle,
+                             'uintbe': Bits._readuintbe,
+                             'uintne': Bits._readuintne,
+                             'int': Bits._readint,
+                             'intle': Bits._readintle,
+                             'intbe': Bits._readintbe,
+                             'intne': Bits._readintne,
+                             'float': Bits._readfloat,
+                             'floatbe': Bits._readfloat,  # floatbe is a synonym for float
+                             'floatle': Bits._readfloatle,
+                             'floatne': Bits._readfloatne,
+                             'hex': Bits._readhex,
+                             'oct': Bits._readoct,
+                             'bin': Bits._readbin,
+                             'bits': Bits._readbits,
+                             'bytes': Bits._readbytes,
+                             'ue': Bits._readue,
+                             'se': Bits._readse,
+                             'uie': Bits._readuie,
+                             'sie': Bits._readsie,
+                             'bool': Bits._readbool,
+                             'pad': Bits._readpad}
+
         # For instances auto-initialised with a string we intern the
         # instance for re-use.
         with suppress(TypeError):
@@ -2039,7 +2066,7 @@ class Bits:
             raise ReadError("Reading off the end of the data. "
                             f"Tried to read {int(length)} bits when only {self.length - pos} available.")
         try:
-            val = _name_to_read[name](self, pos, length)
+            val = self._name_to_read[name](self, pos, length)
             if isinstance(val, tuple):
                 return val
             else:
@@ -4264,33 +4291,6 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
         Bits._truncateend = Bits._truncateright
         Bits._validate_slice = Bits._validate_slice_msb0
 
-    # Dictionary that maps token names to the function that reads them
-    global _name_to_read
-    _name_to_read = {'uint': Bits._readuint,
-                     'uintle': Bits._readuintle,
-                     'uintbe': Bits._readuintbe,
-                     'uintne': Bits._readuintne,
-                     'int': Bits._readint,
-                     'intle': Bits._readintle,
-                     'intbe': Bits._readintbe,
-                     'intne': Bits._readintne,
-                     'float': Bits._readfloat,
-                     'floatbe': Bits._readfloat,  # floatbe is a synonym for float
-                     'floatle': Bits._readfloatle,
-                     'floatne': Bits._readfloatne,
-                     'hex': Bits._readhex,
-                     'oct': Bits._readoct,
-                     'bin': Bits._readbin,
-                     'bits': Bits._readbits,
-                     'bytes': Bits._readbytes,
-                     'ue': Bits._readue,
-                     'se': Bits._readse,
-                     'uie': Bits._readuie,
-                     'sie': Bits._readsie,
-                     'bool': Bits._readbool,
-                     'pad': Bits._readpad,
-                     }
-
 
 def set_lsb0(v: bool = True) -> None:
     """Experimental method changing the bit numbering so that the least significant bit is bit 0"""
@@ -4314,7 +4314,7 @@ __all__ = ['ConstBitStream', 'BitStream', 'BitArray',
 def main() -> None:
     # check if final parameter is an interpretation string
     fp = sys.argv[-1]
-    if fp == '--help' or len(sys.argv) == 1:
+    if fp in ['-h', '--help'] or len(sys.argv) == 1:
         print("""Create and interpret a bitstring from command-line parameters.
 
 Command-line parameters are concatenated and a bitstring created
@@ -4333,17 +4333,15 @@ $ python -m bitstring 0xff 3*0b01,0b11 uint
 65367
 $ python -m bitstring hex=01, uint:12=352.hex
 01160
-
-This feature is experimental and is subject to change or removal.
         """)
-    elif fp in _name_to_read.keys():
+    elif fp in Bits._name_to_read.keys():
         # concatenate all other parameters and interpret using the final one
         b1 = Bits(','.join(sys.argv[1: -1]))
         print(b1._readtoken(fp, 0, b1.__len__())[0])
     else:
         # does final parameter end with a dot then an interpretation string?
         interp = fp[fp.rfind('.') + 1:]
-        if interp in _name_to_read.keys():
+        if interp in Bits._name_to_read.keys():
             sys.argv[-1] = fp[:fp.rfind('.')]
             b1 = Bits(','.join(sys.argv[1:]))
             print(b1._readtoken(interp, 0, b1.__len__())[0])
