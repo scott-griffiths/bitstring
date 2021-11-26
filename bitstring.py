@@ -766,7 +766,7 @@ class Bits:
 
     # Creates dictionaries to quickly reverse single bytes
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
-    _byteReversalDict: Dict[bytes, bytes] = {i: bytes([int("{0:08b}".format(i)[::-1], 2)]) for i in range(0x100)}
+    _byteReversalDict: Dict[int, bytes] = {i: bytes([int("{0:08b}".format(i)[::-1], 2)]) for i in range(0x100)}
 
     def __init__(self, auto: Optional[BitsType] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
@@ -1249,25 +1249,19 @@ class Bits:
         self._pos = pos
         return bool(found)
 
-    # TODO: There must be a more standard way of doing this.
     def __hash__(self) -> int:
         """Return an integer hash of the object."""
-        # We can't in general hash the whole bitstring (it could take hours!)
-        # So instead take some bits from the start and end.
-        if self.len <= 160:
+        # Only requirement is that equal bitstring should return the same hash.
+        # For equal bitstrings the bytes at the start/end will be the same and they will have the same length
+        # (need to check the length as there could be zero padding when getting the bytes). We do not check any
+        # bit position inside the bitstring as that does not feature in the __eq__ operation.
+        if self.len <= 2000:
             # Use the whole bitstring.
-            shorter = self
+            return hash((self.tobytes(), self.len))
         else:
-            # Take 10 bytes from start and end
-            shorter = self[:80] + self[-80:]
-        h = 0
-        for byte in shorter.tobytes():
-            h = (h << 4) + byte
-            g = h & 0xf0000000
-            if g & (1 << 31):
-                h ^= (g >> 24)
-                h ^= g
-        return h % 1442968193
+            # We can't in general hash the whole bitstring (it could take hours!)
+            # So instead take some bits from the start and end.
+            return hash(((self[:800] + self[-800:]).tobytes(), self.len))
 
     def __bool__(self) -> bool:
         """Return True if any bits are set to 1, otherwise return False."""
@@ -4090,9 +4084,6 @@ class BitStream(ConstBitStream, BitArray):
     """
 
     __slots__ = ()
-
-    # As BitStream objects are mutable, we shouldn't allow them to be hashed.
-    __hash__: None = None
 
     def __init__(self, auto: Optional[BitsType] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, pos: int = 0, **kwargs) -> None:

@@ -86,6 +86,7 @@ class LSB0(unittest.TestCase):
         bitstring.set_msb0()
         self.assertEqual(bitstring._lsb0, False)
 
+
 class Main(unittest.TestCase):
     def testRunningModuleDirectlyHelp(self):
         with redirect_stdout(io.StringIO()) as f:
