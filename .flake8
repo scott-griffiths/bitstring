@@ -9,6 +9,7 @@ exclude =
     build,
     dist,
     venv
-ignore = 
+ignore =
+    C901
     E203
     W503

@@ -353,7 +353,7 @@ def offsetcopy(s, newoffset):
         return new_s
 
 
-def equal(a, b):  # noqa: C901
+def equal(a, b):
     """Return True if ByteStores a == b.
 
     Not part of public interface.
@@ -665,7 +665,7 @@ def structparser(token):
     return tokens
 
 
-def tokenparser(fmt, keys=None, token_cache={}):  # noqa: C901
+def tokenparser(fmt, keys=None, token_cache={}):
     """Divide the format string into tokens and parse them.
 
     Return stretchy token and list of [initialiser, length, value]
@@ -913,9 +913,7 @@ class Bits(object):
         """
         pass
 
-    def __new__(  # noqa: C901
-        cls, auto=None, length=None, offset=None, _cache={}, **kwargs
-    ):
+    def __new__(cls, auto=None, length=None, offset=None, _cache={}, **kwargs):
         # For instances auto-initialised with a string we intern the
         # instance for re-use.
         try:
@@ -954,7 +952,7 @@ class Bits(object):
         x._initialise(auto, length, offset, **kwargs)
         return x
 
-    def _initialise(self, auto, length, offset, **kwargs):  # noqa: C901
+    def _initialise(self, auto, length, offset, **kwargs):
         if length is not None and length < 0:
             raise CreationError("bitstring length cannot be negative.")
         if offset is not None and offset < 0:
@@ -1044,7 +1042,7 @@ class Bits(object):
         bs = self._converttobitstring(bs)
         return bs.__add__(self)
 
-    def __getitem__(self, key):  # noqa: C901
+    def __getitem__(self, key):
         """Return a new bitstring representing a slice of the current bitstring.
 
         Indices are in units of the step parameter (default 1 bit).
@@ -1404,7 +1402,7 @@ class Bits(object):
             return True
 
     @classmethod
-    def _init_with_token(cls, name, token_length, value):  # noqa: C901
+    def _init_with_token(cls, name, token_length, value):
         if token_length is not None:
             token_length = int(token_length)
         if token_length == 0:
@@ -1455,7 +1453,7 @@ class Bits(object):
         """Reset the bitstring to an empty state."""
         self._datastore = ByteStore(bytearray(0))
 
-    def _setauto(self, s, length, offset):  # noqa: C901
+    def _setauto(self, s, length, offset):
         """Set bitstring from a bitstring, file, bool, integer, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
@@ -1595,7 +1593,7 @@ class Bits(object):
             )
         return self._readbytes(self.len, 0)
 
-    def _setuint(self, uint, length=None):  # noqa: C901
+    def _setuint(self, uint, length=None):
         """Reset the bitstring to have given unsigned int interpretation."""
         try:
             if length is None:
@@ -2249,7 +2247,7 @@ class Bits(object):
         )
 
     @classmethod
-    def _converttobitstring(cls, bs, offset=0, cache={}):  # noqa: C901
+    def _converttobitstring(cls, bs, offset=0, cache={}):
         """Convert bs to a bitstring and return it.
 
         offset gives the suggested bit offset of first significant
@@ -2631,7 +2629,7 @@ class Bits(object):
         """
         return self._readlist(fmt, 0, **kwargs)[0]
 
-    def _readlist(self, fmt, pos, **kwargs):  # noqa: C901
+    def _readlist(self, fmt, pos, **kwargs):
         tokens = []
         stretchy_token = None
         if isinstance(fmt, basestring):
@@ -2821,9 +2819,7 @@ class Bits(object):
             pass
         return p
 
-    def findall(  # noqa: C901
-        self, bs, start=None, end=None, count=None, bytealigned=None
-    ):
+    def findall(self, bs, start=None, end=None, count=None, bytealigned=None):
         """Find all occurrences of bs. Return generator of bit positions.
 
         bs -- The bitstring to find.
@@ -3455,7 +3451,7 @@ class BitArray(Bits):
             s_copy._datastore = copy.copy(self._datastore)
         return s_copy
 
-    def __setitem__(self, key, value):  # noqa: C901
+    def __setitem__(self, key, value):
         try:
             # A slice
             start, step = 0, 1
@@ -3548,7 +3544,7 @@ class BitArray(Bits):
                 # pos is now after the inserted piece.
             return
 
-    def __delitem__(self, key):  # noqa: C901
+    def __delitem__(self, key):
         """Delete item or range.
 
         Indices are in units of the step parameter (default 1 bit).
@@ -3658,9 +3654,7 @@ class BitArray(Bits):
             raise ValueError("Bitstrings must have the same length " "for ^= operator.")
         return self._ixor(bs)
 
-    def replace(  # noqa: C901
-        self, old, new, start=None, end=None, count=None, bytealigned=None
-    ):
+    def replace(self, old, new, start=None, end=None, count=None, bytealigned=None):
         """Replace all occurrences of old with new in place.
 
         Returns number of replacements made.
@@ -3932,7 +3926,7 @@ class BitArray(Bits):
         self._delete(bits, start)
         self._insert(lhs, end - bits)
 
-    def byteswap(self, fmt=None, start=None, end=None, repeat=True):  # noqa: C901
+    def byteswap(self, fmt=None, start=None, end=None, repeat=True):
         """Change the endianness in-place. Return number of repeats of fmt done.
 
         fmt -- A compact structure string, an integer number of bytes or
@@ -4627,7 +4621,7 @@ class BitStream(ConstBitStream, BitArray):
         self._pos += bs.len
 
 
-def pack(fmt, *values, **kwargs):  # noqa: C901
+def pack(fmt, *values, **kwargs):
     """Pack the values according to the format string and return a new BitStream.
 
     fmt -- A single string or a list of strings with comma separated tokens

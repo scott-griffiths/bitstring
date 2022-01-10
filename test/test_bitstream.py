@@ -2582,7 +2582,7 @@ class Split2(unittest.TestCase):
         for f in [">>q", "<>q", "q>", "2q", "q", ">-2q", "@a", ">int:8", ">q2"]:
             self.assertRaises(bitstring.CreationError, pack, f, 100)
 
-    def testImmutableBitStreams(self):  # noqa: C901
+    def testImmutableBitStreams(self):
         a = ConstBitStream("0x012345")
         self.assertEqual(a, "0x012345")
         b = BitStream("0xf") + a
@@ -2797,7 +2797,7 @@ class Split2(unittest.TestCase):
         b = a.read(4)
         self.assertEqual(type(b), ConstBitStream)
 
-    def testConstBitStreamProperties(self):  # noqa: C901
+    def testConstBitStreamProperties(self):
         a = ConstBitStream("0x123123")
         try:
             a.hex = "0x234"
