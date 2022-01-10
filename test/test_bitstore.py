@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 import unittest
-import sys
-sys.path.insert(0, '..')
-from bitstring import ByteStore, ConstByteStore, equal, offsetcopy
+
+from bitstring import ByteStore, equal, offsetcopy
 
 
 class OffsetCopy(unittest.TestCase):
@@ -21,7 +20,6 @@ class OffsetCopy(unittest.TestCase):
 
 
 class Equals(unittest.TestCase):
-
     def testBothSingleByte(self):
         s = ByteStore(bytearray([128]), 3, 0)
         t = ByteStore(bytearray([64]), 3, 1)

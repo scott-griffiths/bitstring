@@ -3,21 +3,34 @@
 Module-level unit tests.
 """
 
-import unittest
-import sys
-sys.path.insert(0, '..')
-import bitstring
 import copy
+import unittest
+
+import bitstring
 
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '3.1.9')
+        self.assertEqual(bitstring.__version__, "3.1.9")
 
     def testAll(self):
-        exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
-                    'Bits', 'BitString', 'pack', 'Error', 'ReadError',
-                    'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
+        exported = [
+            "ConstBitArray",
+            "ConstBitStream",
+            "BitStream",
+            "BitArray",
+            "Bits",
+            "BitString",
+            "pack",
+            "Error",
+            "ReadError",
+            "InterpretError",
+            "ByteAlignError",
+            "CreationError",
+            "bytealigned",
+            "set_lsb0",
+            "set_msb0",
+        ]
         self.assertEqual(set(bitstring.__all__), set(exported))
 
     def testReverseDict(self):
@@ -44,12 +57,14 @@ class MemoryUsage(unittest.TestCase):
         self.assertEqual(size(bitstring.BitStream([0])), 64)
         self.assertEqual(size(bitstring.BitArray([0])), 64)
         from bitstring.bitstore import ByteStore
+
         self.assertEqual(size(ByteStore(bytearray())), 100)
 
 
 class Copy(unittest.TestCase):
     def testConstBitArrayCopy(self):
         import copy
+
         cba = bitstring.Bits(100)
         cba_copy = copy.copy(cba)
         self.assertTrue(cba is cba_copy)
@@ -80,15 +95,15 @@ class Copy(unittest.TestCase):
 
 class Interning(unittest.TestCase):
     def testBits(self):
-        a = bitstring.Bits('0xf')
-        b = bitstring.Bits('0xf')
+        a = bitstring.Bits("0xf")
+        b = bitstring.Bits("0xf")
         self.assertTrue(a is b)
-        c = bitstring.Bits('0b1111')
+        c = bitstring.Bits("0b1111")
         self.assertFalse(a is c)
 
     def testCBS(self):
-        a = bitstring.ConstBitStream('0b11000')
-        b = bitstring.ConstBitStream('0b11000')
+        a = bitstring.ConstBitStream("0b11000")
+        b = bitstring.ConstBitStream("0b11000")
         self.assertFalse(a is b)
 
 
@@ -103,5 +118,3 @@ class LSB0(unittest.TestCase):
         self.assertEqual(bitstring._lsb0, True)
         bitstring.set_msb0()
         self.assertEqual(bitstring._lsb0, False)
-        
-        
