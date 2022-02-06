@@ -7,7 +7,7 @@ version 4.0.0
 
 * Minimum supported Python version is now Python 3.7.
 * Removed ConstBitArray and BitString class aliases. Use Bits and BitStream instead.
-* Return type hints added.
+* Type hints added.
 
 ---
 

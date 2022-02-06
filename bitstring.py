@@ -572,7 +572,7 @@ def structparser(token: str) -> List[str]:
     return tokens
 
 
-def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: Dict = {}):
+def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: Dict = {}) -> Tuple[bool, List[tuple]]:
     """Divide the format string into tokens and parse them.
 
     Return stretchy token and list of [initialiser, length, value]
@@ -2340,20 +2340,21 @@ class Bits:
     def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs)\
             -> Tuple[List[Union[float, int, str, None, Bits]], int]:
         tokens = []
-        stretchy_token = None
         if isinstance(fmt, str):
             fmt = [fmt]
+        keys = tuple(sorted(kwargs.keys()))
+        has_stretchy_token = False
         for f_item in fmt:
             # Replace integers with 'bits' tokens
             if isinstance(f_item, numbers.Integral):
                 f_item = f"bits:{f_item}"
-            stretchy, tkns = tokenparser(f_item, tuple(sorted(kwargs.keys())))
+            stretchy, tkns = tokenparser(f_item, keys)
             if stretchy:
-                if stretchy_token:
+                if has_stretchy_token:
                     raise Error("It's not possible to have more than one 'filler' token.")
-                stretchy_token = stretchy
+                has_stretchy_token = True
             tokens.extend(tkns)
-        if not stretchy_token:
+        if not has_stretchy_token:
             lst = []
             for name, length, _ in tokens:
                 if length in kwargs:
@@ -2369,7 +2370,7 @@ class Bits:
                 if value is not None:  # Don't append pad tokens
                     lst.append(value)
             return lst, pos
-        stretchy_token = False
+        stretchy_token: Optional[tuple] = None
         bits_after_stretchy_token = 0
         for token in tokens:
             name, length, _ = token
@@ -3059,6 +3060,7 @@ class BitArray(Bits):
 
         """
         # For mutable BitArrays we always read in files to memory:
+        super().__init__()
         if not isinstance(self._datastore, ByteStore):
             self._ensureinmemory()
 
