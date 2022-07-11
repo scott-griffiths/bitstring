@@ -130,6 +130,25 @@ class ReadingBytes(unittest.TestCase):
         self.assertEqual(t, [b'\x55'*6, b'\x55'*3])
 
 
+class ReadingBitsAsDefault(unittest.TestCase):
+
+    def testReadBits(self):
+        s = CBS('uint:31=14')
+        v = s.read(31)
+        self.assertEqual(v.uint, 14)
+        s.pos = 0
+        v = s.read('31')
+        self.assertEqual(v.uint, 14)
+
+    def testReadListBits(self):
+        s = CBS('uint:5=3, uint:3=0, uint:11=999')
+        v = s.readlist([5, 3, 11])
+        self.assertEqual([x.uint for x in v], [3, 0, 999])
+        s.pos = 0
+        v = s.readlist(['5', '3', 11])
+        self.assertEqual([x.uint for x in v], [3, 0, 999])
+
+
 class Lsb0Reading(unittest.TestCase):
 
     @classmethod

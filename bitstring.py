@@ -507,7 +507,7 @@ INIT_NAMES: Tuple[str, ...] = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', '
 
 TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>' + '|'.join(INIT_NAMES) +
                                     r')(:(?P<len>[^=]+))?(=(?P<value>.*))?$', re.IGNORECASE)
-DEFAULT_UINT: Pattern[str] = re.compile(r'(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
+DEFAULT_BITS: Pattern[str] = re.compile(r'(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
 MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'(?P<factor>.*)\*(?P<token>.+)')
 
@@ -629,9 +629,9 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
                 length = m1.group('len')
                 value = m1.group('value')
             else:
-                # If you don't specify a 'name' then the default is 'uint':
-                name = 'uint'
-                m2 = DEFAULT_UINT.match(token)
+                # If you don't specify a 'name' then the default is 'bits':
+                name = 'bits'
+                m2 = DEFAULT_BITS.match(token)
                 if not m2:
                     raise ValueError(f"Don't understand token '{token}'.")
                 length = m2.group('len')

@@ -607,13 +607,13 @@ class Pack(unittest.TestCase):
         self.assertEqual(a, 100)
         self.assertEqual(b, '100')
 
-    def testPackDefaultUint(self):
-        s = pack('10, 5', 1, 2)
+    def testPackUint(self):
+        s = pack('uint:10, uint:5', 1, 2)
         a, b = s.unpack('10, 5')
-        self.assertEqual((a, b), (1, 2))
-        s = pack('10=150, 12=qee', qee=3)
+        self.assertEqual((a.uint, b.uint), (1, 2))
+        s = pack('uint:10=150, uint:12=qee', qee=3)
         self.assertEqual(s, 'uint:10=150, uint:12=3')
-        t = BitStream('100=5')
+        t = BitStream('uint:100=5')
         self.assertEqual(t, 'uint:100=5')
 
     def testPackDefualtUintErrors(self):
@@ -2413,8 +2413,8 @@ class Split2(unittest.TestCase):
         self.assertEqual(tp('int:30=-1'), (False, [('int', 30, '-1')]))
         self.assertEqual(tp('bits:10'), (False, [('bits', 10, None)]))
         self.assertEqual(tp('bits:10'), (False, [('bits', 10, None)]))
-        self.assertEqual(tp('123'), (False, [('uint', 123, None)]))
-        self.assertEqual(tp('123'), (False, [('uint', 123, None)]))
+        self.assertEqual(tp('123'), (False, [('bits', 123, None)]))
+        self.assertEqual(tp('123'), (False, [('bits', 123, None)]))
         with self.assertRaises(ValueError):
             _ = tp('hex12')
         self.assertEqual(tp('hex12', ('hex12',)), (False, [('hex12', None, None)]))
@@ -3281,7 +3281,7 @@ class AllAndAny(unittest.TestCase):
         b = a.read('bytes:1')
         self.assertTrue(isinstance(b, bytes))
         self.assertEqual(b, b'\x01')
-        x, y, z = a.unpack('4, bytes:2, uint')
+        x, y, z = a.unpack('uint:4, bytes:2, uint')
         self.assertEqual(x, 0)
         self.assertEqual(y, b'\x10\x20')
         self.assertEqual(z, 3)
@@ -3504,7 +3504,7 @@ class Bugs(unittest.TestCase):
 
     def testMultiplicativeFactorsReading(self):
         s = BitStream('0xc') * 5
-        a, b, c, d, e = s.readlist('5*4')
+        a, b, c, d, e = s.readlist('5*uint:4')
         self.assertTrue(a == b == c == d == e == 12)
         s = ConstBitStream('2*0b101, 4*uint:7=3')
         a, b, c, d, e = s.readlist('2*bin:3, 3*uint:7')
@@ -3528,10 +3528,10 @@ class Bugs(unittest.TestCase):
         self.assertEqual(d, '11')
 
     def testPackingDefaultIntWithKeyword(self):
-        s = pack('12', 100)
-        self.assertEqual(s.unpack('12')[0], 100)
-        s = pack('oh_no_not_the_eyes=33', oh_no_not_the_eyes=17)
-        self.assertEqual(s.uint, 33)
+        s = pack('uint:12', 100)
+        self.assertEqual(s.unpack('12')[0].uint, 100)
+        s = pack('int:oh_no_not_the_eyes=33', oh_no_not_the_eyes=17)
+        self.assertEqual(s.int, 33)
         self.assertEqual(s.len, 17)
 
     def testInitFromIterable(self):
@@ -3716,9 +3716,9 @@ class Bugs(unittest.TestCase):
     def testBracketTokens(self):
         s = BitStream('3*(0x0, 0b1)')
         self.assertEqual(s, '0x0, 0b1, 0x0, 0b1, 0x0, 0b1')
-        s = pack('2*(uint:12, 3*(7, 6))', *range(3, 17))
+        s = pack('2*(uint:12, 3*(uint:7, uint:6))', *range(3, 17))
         a = s.unpack('12, 7, 6, 7, 6, 7, 6, 12, 7, 6, 7, 6, 7, 6')
-        self.assertEqual(a, list(range(3, 17)))
+        self.assertEqual([x.uint for x in a], list(range(3, 17)))
         b = s.unpack('2*(12,3*(7,6))')
         self.assertEqual(a, b)
 
@@ -3746,8 +3746,9 @@ class Bugs(unittest.TestCase):
 
 class UnpackWithDict(unittest.TestCase):
     def testLengthKeywords(self):
-        a = ConstBitStream('2*13=100, 0b111')
-        x, y, z = a.unpack('n, uint:m, bin:q', n=13, m=13, q=3)
+        a = ConstBitStream('2*int:13=100, 0b111')
+        x, y, z = a.unpack('n, '
+                           'int:m, bin:q', n=13, m=13, q=3)
         self.assertEqual(x, 100)
         self.assertEqual(y, 100)
         self.assertEqual(z, '111')
@@ -3784,7 +3785,7 @@ class ReadWithDict(unittest.TestCase):
 
         s = BitStream('0x000ff00a')
         x, y, z = s.unpack('12, bytes:x, bits', x=2)
-        self.assertEqual((x, y, z), (0, b'\xff\x00', '0xa'))
+        self.assertEqual((x.int, y, z), (0, b'\xff\x00', '0xa'))
 
 
 class PeekWithDict(unittest.TestCase):

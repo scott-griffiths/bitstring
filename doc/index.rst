@@ -7,7 +7,7 @@
 Features
 --------
 
-* Supports Python 3.6 and later.
+* Supports Python 3.7 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Bit level slicing, joining, searching, replacing and more.
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.

@@ -388,9 +388,9 @@ class PadToken(unittest.TestCase):
     def testUnpack(self):
         s = Bits('0b111000111')
         x, y = s.unpack('3, pad:3, 3')
-        self.assertEqual((x, y), (7, 7))
+        self.assertEqual((x, y.uint), ('0b111', 7))
         x, y = s.unpack('2, pad:2, bin')
-        self.assertEqual((x, y), (3, '00111'))
+        self.assertEqual((x.uint, y), (3, '00111'))
         x = s.unpack('pad:1, pad:2, pad:3')
         self.assertEqual(x, [])
 
