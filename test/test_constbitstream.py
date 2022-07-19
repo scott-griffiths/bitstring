@@ -174,7 +174,7 @@ class BytesIOCreation(unittest.TestCase):
         f = io.BytesIO(b"\x12\xff\x77helloworld")
         s = CBS(f)
         self.assertEqual(s[0:8], '0x12')
-        self.assertEqual(s.len, 13 * 8)
+        self.assertEqual(len(s), 13 * 8)
         s = CBS(f, offset=8, length=12)
         self.assertEqual(s, '0xff7')
 

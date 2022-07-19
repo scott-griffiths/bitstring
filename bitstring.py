@@ -2479,11 +2479,11 @@ class Bits:
         bs -- The bitstring to find.
         start -- The bit position to start the search. Defaults to 0.
         end -- The bit position one past the last bit to search.
-               Defaults to self.len.
+               Defaults to len(self).
         bytealigned -- If True the bitstring will only be
                        found on byte boundaries.
 
-        Raises ValueError if bs is empty, if start < 0, if end > self.len or
+        Raises ValueError if bs is empty, if start < 0, if end > len(self) or
         if end < start.
 
         >>> BitArray('0xc3e').find('0b1111')
@@ -2524,12 +2524,12 @@ class Bits:
         bs -- The bitstring to find.
         start -- The bit position to start the search. Defaults to 0.
         end -- The bit position one past the last bit to search.
-               Defaults to self.len.
+               Defaults to len(self).
         count -- The maximum number of occurrences to find.
         bytealigned -- If True the bitstring will only be found on
                        byte boundaries.
 
-        Raises ValueError if bs is empty, if start < 0, if end > self.len or
+        Raises ValueError if bs is empty, if start < 0, if end > len(self) or
         if end < start.
 
         Note that all occurrences of bs are found, even if they overlap.
@@ -2576,11 +2576,11 @@ class Bits:
         bs -- The bitstring to find.
         start -- The bit position to end the reverse search. Defaults to 0.
         end -- The bit position one past the first bit to reverse search.
-               Defaults to self.len.
+               Defaults to len(self).
         bytealigned -- If True the bitstring will only be found on byte
                        boundaries.
 
-        Raises ValueError if bs is empty, if start < 0, if end > self.len or
+        Raises ValueError if bs is empty, if start < 0, if end > len(self) or
         if end < start.
 
         """
@@ -2612,7 +2612,7 @@ class Bits:
         bits -- The size in bits of the bitstring chunks to generate.
         start -- The bit position to start the first cut. Defaults to 0.
         end -- The bit position one past the last bit to use in the cut.
-               Defaults to self.len.
+               Defaults to len(self).
         count -- If specified then at most count items are generated.
                  Default is to cut as many times as possible.
 
@@ -2643,7 +2643,7 @@ class Bits:
         delimiter -- The bitstring used as the divider.
         start -- The bit position to start the split. Defaults to 0.
         end -- The bit position one past the last bit to use in the split.
-               Defaults to self.len.
+               Defaults to len(self).
         count -- If specified then at most count items are generated.
                  Default is to split as many times as possible.
         bytealigned -- If True splits will only occur on byte boundaries.
@@ -2758,7 +2758,7 @@ class Bits:
 
         prefix -- The bitstring to search for.
         start -- The bit position to start from. Defaults to 0.
-        end -- The bit position to end at. Defaults to self.len.
+        end -- The bit position to end at. Defaults to len(self).
 
         """
         prefix = Bits(prefix)
@@ -2773,7 +2773,7 @@ class Bits:
 
         suffix -- The bitstring to search for.
         start -- The bit position to start from. Defaults to 0.
-        end -- The bit position to end at. Defaults to self.len.
+        end -- The bit position to end at. Defaults to len(self).
 
         """
         suffix = Bits(suffix)
@@ -3303,7 +3303,7 @@ class BitArray(Bits):
         start -- Any occurrences that start before this will not be replaced.
                  Defaults to 0.
         end -- Any occurrences that finish after this will not be replaced.
-               Defaults to self.len.
+               Defaults to len(self).
         count -- The maximum number of replacements to make. Defaults to
                  replace all occurrences.
         bytealigned -- If True replacements will only be made on byte
@@ -3365,7 +3365,7 @@ class BitArray(Bits):
         bs -- The bitstring to insert.
         pos -- The bit position to insert at.
 
-        Raises ValueError if pos < 0 or pos > self.len.
+        Raises ValueError if pos < 0 or pos > len(self).
 
         """
         bs = Bits(bs)
@@ -3390,7 +3390,7 @@ class BitArray(Bits):
         bs -- The bitstring to overwrite with.
         pos -- The bit position to begin overwriting from.
 
-        Raises ValueError if pos < 0 or pos + bs.len > self.len
+        Raises ValueError if pos < 0 or pos + len(bs) > len(self).
 
         """
         bs = Bits(bs)
@@ -3438,11 +3438,11 @@ class BitArray(Bits):
 
         start -- Position of first bit to reverse. Defaults to 0.
         end -- One past the position of the last bit to reverse.
-               Defaults to self.len.
+               Defaults to len(self).
 
         Using on an empty bitstring will have no effect.
 
-        Raises ValueError if start < 0, end > self.len or end < start.
+        Raises ValueError if start < 0, end > len(self) or end < start.
 
         """
         start, end = self._validate_slice(start, end)
@@ -3461,7 +3461,7 @@ class BitArray(Bits):
                Negative numbers are treated in the same way as slice indices.
                Defaults to the entire bitstring.
 
-        Raises IndexError if pos < -self.len or pos >= self.len.
+        Raises IndexError if pos < -len(self) or pos >= len(self).
 
         """
         f = self._set if value else self._unset
@@ -3483,7 +3483,7 @@ class BitArray(Bits):
         pos -- Either a single bit position or an iterable of bit positions.
                Negative numbers are treated in the same way as slice indices.
 
-        Raises IndexError if pos < -self.len or pos >= self.len.
+        Raises IndexError if pos < -len(self) or pos >= len(self).
 
         """
         if pos is None:
@@ -3505,7 +3505,7 @@ class BitArray(Bits):
 
         bits -- The number of bits to rotate by.
         start -- Start of slice to rotate. Defaults to 0.
-        end -- End of slice to rotate. Defaults to self.len.
+        end -- End of slice to rotate. Defaults to len(self).
 
         Raises ValueError if bits < 0.
 
@@ -3530,7 +3530,7 @@ class BitArray(Bits):
 
         bits -- The number of bits to rotate by.
         start -- Start of slice to rotate. Defaults to 0.
-        end -- End of slice to rotate. Defaults to self.len.
+        end -- End of slice to rotate. Defaults to len(self).
 
         Raises ValueError if bits < 0.
 
@@ -3558,7 +3558,7 @@ class BitArray(Bits):
                an iterable of integers. Defaults to 0, which byte reverses the
                whole bitstring.
         start -- Start bit position, defaults to 0.
-        end -- End bit position, defaults to self.len.
+        end -- End bit position, defaults to len(self).
         repeat -- If True (the default) the byte swapping pattern is repeated
                   as much as possible.
 

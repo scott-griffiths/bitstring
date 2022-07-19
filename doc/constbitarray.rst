@@ -33,7 +33,7 @@ The Bits class
 
        If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
        
-       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. It defaults to the whole bitstring.
+       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
        
            >>> s = Bits('int:15=-1')
            >>> s.all(True, [3, 4, 12, 13])
@@ -47,7 +47,7 @@ The Bits class
 
        If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
 
-       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. It defaults to the whole bitstring.
+       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
 
            >>> s = Bits('0b11011100')
            >>> s.any(False, range(6))
