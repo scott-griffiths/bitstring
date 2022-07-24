@@ -497,8 +497,8 @@ class MmapByteArray:
 
 
 def tidy_input_string(s: str) -> str:
-    """Return string made lowercase and with all whitespace removed."""
-    return ''.join(s.split()).lower()
+    """Return string made lowercase and with all whitespace and underscores removed."""
+    return ''.join(s.split()).lower().replace('_', '')
 
 
 INIT_NAMES: Tuple[str, ...] = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',

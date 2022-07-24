@@ -592,3 +592,27 @@ class Lsb0Interpretations(unittest.TestCase):
         a = Bits('0x01')
         self.assertEqual(a, '0b00000001')
         self.assertEqual(a.uint, 1)
+
+
+class UnderscoresInLiterals(unittest.TestCase):
+
+    def testHexCreation(self):
+        a = Bits(hex='ab_cd__ef')
+        self.assertEqual(a.hex, 'abcdef')
+        b = Bits('0x0102_0304')
+        self.assertEqual(b.uint, 0x0102_0304)
+
+    def testBinaryCreation(self):
+        a = Bits(bin='0000_0001_0010')
+        self.assertEqual(a.bin, '000000010010')
+        b = Bits('0b0011_1100_1111_0000')
+        self.assertEqual(b.bin, '0011110011110000')
+        v = 0b1010_0000
+        c = Bits(uint=0b1010_0000, length=8)
+        self.assertEqual(c.uint, v)
+
+    def testOctalCreation(self):
+        a = Bits(oct='0011_2233_4455_6677')
+        self.assertEqual(a.uint, 0o001122334455_6677)
+        b = Bits('0o123_321_123_321')
+        self.assertEqual(b.uint, 0o123_321_123321)
