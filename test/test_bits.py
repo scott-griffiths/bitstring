@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import io
 import unittest
 import sys
 
@@ -616,3 +616,41 @@ class UnderscoresInLiterals(unittest.TestCase):
         self.assertEqual(a.uint, 0o001122334455_6677)
         b = Bits('0o123_321_123_321')
         self.assertEqual(b.uint, 0o123_321_123321)
+
+
+class PrettyPrinting(unittest.TestCase):
+
+    def testSimplestCases(self):
+        a = Bits('0b101011110000')
+        s = io.StringIO()
+        a.pp(stream=s)
+        s.seek(0)
+        self.assertEqual(s.read(), ' 0: 10101111 0000\n')
+
+        s = io.StringIO()
+        a.pp('hex', stream=s)
+        s.seek(0)
+        self.assertEqual(s.read(), ' 0: af0\n')
+
+        s = io.StringIO()
+        a.pp('oct', stream=s)
+        s.seek(0)
+        self.assertEqual(s.read(), ' 0: 5360\n')
+
+    def testSeparator(self):
+        a = Bits('0x0f0f')*9
+        s = io.StringIO()
+        a.pp('hex', sep='!-!', stream=s)
+        s.seek(0)
+        self.assertEqual(s.read(), '  0: 0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f\n')
+
+    def testMultiLine(self):
+        a = Bits(100)
+        s = io.StringIO()
+        a.pp(sep=None, stream=s)
+        s.seek(0)
+        self.assertEqual(s.read(), '  0: 000000000000000000000000000000000000000000000000000000000000000000000000\n'
+                                   ' 72: 0000000000000000000000000000\n')
+
+
+

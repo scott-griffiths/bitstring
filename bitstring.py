@@ -67,6 +67,7 @@ __author__ = "Scott Griffiths"
 import numbers
 import copy
 import pathlib
+import string
 import sys
 import re
 import mmap
@@ -77,7 +78,7 @@ import array
 import io
 import collections
 import functools
-from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, Callable
+from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, TextIO, Callable
 from contextlib import suppress
 
 
@@ -2849,6 +2850,70 @@ class Bits:
         endbits = self._datastore.bytelength * 8 - (self._offset + self.len)
         count += Bits._bitCount[self._datastore.getbyte(self._datastore.bytelength - 1) >> endbits]
         return count if value else self.len - count
+
+    def pp(self, fmt: str = 'bin', width: int = 80, group_size: int = 8, sep: Optional[str] = ' ',
+           show_offset: bool = True, align_left: bool = True, stream: TextIO = sys.stdout) -> None:
+        """Pretty print the bitstring's value.
+
+        fmt -- Printed data format. One of 'bin', 'oct', 'hex' or 'bytes'. Defaults to 'bin'.
+        width -- Max width of printed lines. Defaults to 80. A single group will always be printed
+                 per line even if it exceeds the max width.
+        group_size -- Max number of consecutive characters to print.
+                      Default is 8, use 0 to not group characters.
+        sep -- A separator string to insert between groups. Defaults to a single space.
+        show_offset -- If True (the default) shows the bit offset in the first column of each line.
+        align_left -- If True (the default) the data will be aligned so that the first printed group
+                      is filled. If False the final group will be filled instead.
+        stream -- A TextIO object with a write() method. Defaults to sys.stdout.
+
+        >>> s.pp('hex', group_size=2)
+        >>> s.pp('bin', sep='_', show_offset=False)
+
+        """
+        if group_size < 0:
+            raise ValueError(f"group_size must be positive. Recieved {group_size}.")
+        if group_size == 0:
+            # Don't divide into groups.
+            group_size = width
+        if sep is None:
+            sep = ''
+        format_specs = {'bin': (self._getbin, 1),
+                        'oct': (self._getoct, 3),
+                        'hex': (self._gethex, 4),
+                        'bytes': (self._getbytes, 8)}
+        try:
+            v = format_specs[fmt][0]()
+            bits_per_character = format_specs[fmt][1]
+        except KeyError:
+            raise ValueError(f"Unrecognised print format: '{fmt}'. Must be one of {'/'.join(format_specs.keys())}.")
+
+        if fmt == 'bytes':
+            # Replace unprintable characters with '.'
+            printable = string.digits + string.ascii_letters + string.punctuation + ' '
+            v = ''.join(chr(x) if chr(x) in printable else '.' for x in v)
+
+        offset_width = 0
+        offset_sep = ': '
+        if show_offset:
+            # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
+            offset_width = len(str(len(v) * bits_per_character)) + len(offset_sep)
+        width_excluding_offset_and_final_group = width - offset_width - group_size
+        groups_per_line = 1 + width_excluding_offset_and_final_group // (group_size + len(sep))
+
+        pos = 0
+        while pos < len(v):
+            if show_offset:
+                stream.write(f'{pos * bits_per_character: >{offset_width - len(offset_sep)}}{offset_sep}')
+            for group in range(groups_per_line - 1):
+                stream.write(v[pos:pos + group_size])
+                pos += group_size
+                if pos >= len(v):
+                    break
+                stream.write(sep)
+            # Final group on each line has no separator at the end
+            stream.write(v[pos:pos + group_size])
+            pos += group_size
+            stream.write('\n')
 
     # Create native-endian functions as aliases depending on the byteorder
     if byteorder == 'little':
