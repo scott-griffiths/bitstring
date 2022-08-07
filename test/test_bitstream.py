@@ -2166,7 +2166,7 @@ class Split2(unittest.TestCase):
     def testCut(self):
         a = BitStream('0x00112233445')
         b = list(a.cut(8))
-        self.assertEqual(b, ['0x00', '0x11', '0x22', '0x33', '0x44'])
+        self.assertEqual(b, ['0x00', '0x11', '0x22', '0x33', '0x44', '0x5'])
         b = list(a.cut(4, 8, 16))
         self.assertEqual(b, ['0x1', '0x1'])
         b = list(a.cut(4, 0, 44, 4))

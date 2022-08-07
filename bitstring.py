@@ -2627,10 +2627,12 @@ class Bits:
         while count is None or c < count:
             c += 1
             nextchunk = self._slice(start, min(start + bits, end))
-            if nextchunk.len != bits:
+            if nextchunk.len == 0:
                 return
             assert nextchunk._assertsanity()
             yield nextchunk
+            if nextchunk.len != bits:
+                return
             start += bits
         return
 
@@ -2877,43 +2879,40 @@ class Bits:
             group_size = width
         if sep is None:
             sep = ''
-        format_specs = {'bin': (self._getbin, 1),
-                        'oct': (self._getoct, 3),
-                        'hex': (self._gethex, 4),
-                        'bytes': (self._getbytes, 8)}
-        try:
-            v = format_specs[fmt][0]()
-            bits_per_character = format_specs[fmt][1]
-        except KeyError:
-            raise ValueError(f"Unrecognised print format: '{fmt}'. Must be one of {'/'.join(format_specs.keys())}.")
-
-        if fmt == 'bytes':
-            # Replace unprintable characters with '.'
-            printable = string.digits + string.ascii_letters + string.punctuation + ' '
-            v = ''.join(chr(x) if chr(x) in printable else '.' for x in v)
 
         offset_width = 0
         offset_sep = ': '
         if show_offset:
             # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
-            offset_width = len(str(len(v) * bits_per_character)) + len(offset_sep)
+            offset_width = len(str(len(self))) + len(offset_sep)
         width_excluding_offset_and_final_group = width - offset_width - group_size
         groups_per_line = 1 + width_excluding_offset_and_final_group // (group_size + len(sep))
+        bits_per_character = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}[fmt]
+        max_bits_per_line = groups_per_line * group_size * bits_per_character  # Number of bits represented on each line
 
-        pos = 0
-        while pos < len(v):
+        printable = string.digits + string.ascii_letters + string.punctuation + ' '
+        def format_bits(bits, group_size, sep, fmt):
+            if fmt == 'bin':
+                raw = bits._getbin()
+            elif fmt == 'oct':
+                raw = bits._getoct()
+            elif fmt == 'hex':
+                raw = bits._gethex()
+            elif fmt == 'bytes':
+                raw = bits._getbytes()
+                # Replace unprintable characters with '.'
+                raw = ''.join(chr(x) if chr(x) in printable else '.' for x in raw)
+
+            formatted = sep.join(raw[i: i + group_size] for i in range(0, len(raw), group_size))
+            return formatted
+
+        bitpos = 0
+        for bits in self.cut(max_bits_per_line):
             if show_offset:
-                stream.write(f'{pos * bits_per_character: >{offset_width - len(offset_sep)}}{offset_sep}')
-            for group in range(groups_per_line - 1):
-                stream.write(v[pos:pos + group_size])
-                pos += group_size
-                if pos >= len(v):
-                    break
-                stream.write(sep)
-            # Final group on each line has no separator at the end
-            stream.write(v[pos:pos + group_size])
-            pos += group_size
+                stream.write(f'{bitpos: >{offset_width - len(offset_sep)}}{offset_sep}')
+            stream.write(format_bits(bits, group_size, sep, fmt))
             stream.write('\n')
+            bitpos += len(bits)
 
     # Create native-endian functions as aliases depending on the byteorder
     if byteorder == 'little':
