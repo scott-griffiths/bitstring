@@ -2853,15 +2853,15 @@ class Bits:
         count += Bits._bitCount[self._datastore.getbyte(self._datastore.bytelength - 1) >> endbits]
         return count if value else self.len - count
 
-    def pp(self, fmt: str = 'bin', width: int = 80, group_size: int = 8, sep: Optional[str] = ' ',
+    def pp(self, fmt: str = 'bin', width: int = 80, group_size: Optional[int] = None, sep: Optional[str] = ' ',
            show_offset: bool = True, align_left: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty print the bitstring's value.
 
         fmt -- Printed data format. One of 'bin', 'oct', 'hex' or 'bytes'. Defaults to 'bin'.
         width -- Max width of printed lines. Defaults to 80. A single group will always be printed
                  per line even if it exceeds the max width.
-        group_size -- Max number of consecutive characters to print.
-                      Default is 8, use 0 to not group characters.
+        group_size -- The number of bits represented in each printed group.
+                      Default is 8 for hex and bin, 12 for oct and 32 for bytes. Use 0 to not group characters.
         sep -- A separator string to insert between groups. Defaults to a single space.
         show_offset -- If True (the default) shows the bit offset in the first column of each line.
         align_left -- If True (the default) the data will be aligned so that the first printed group
@@ -2872,6 +2872,21 @@ class Bits:
         >>> s.pp('bin', sep='_', show_offset=False)
 
         """
+        formats = [f.strip() for f in fmt.split(',')]
+        if len(formats) == 1:
+            fmt1, fmt2 = formats[0], ''
+        elif len(formats) == 2:
+            fmt1, fmt2 = formats[0], formats[1]
+        else:
+            raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}. Format string was {fmt}.")
+
+        if group_size is None:
+            if fmt1 in ['bin', 'hex']:
+                group_size = 8
+            elif fmt1 == 'oct':
+                group_size = 12
+            elif fmt == 'bytes':
+                group_size = 32
         if group_size < 0:
             raise ValueError(f"group_size must be positive. Recieved {group_size}.")
         if group_size == 0:
@@ -2879,40 +2894,56 @@ class Bits:
             group_size = width
         if sep is None:
             sep = ''
+        format_sep = " / "
+
+        bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
+        group_chars1 = group_size // bpc[fmt1]
+        group_chars2 = 0 if fmt2 == '' else group_size // bpc[fmt2]
+        total_group_chars = group_chars1 + group_chars2 + len(sep) + len(sep)*bool(group_chars2)
 
         offset_width = 0
         offset_sep = ': '
         if show_offset:
             # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
             offset_width = len(str(len(self))) + len(offset_sep)
-        width_excluding_offset_and_final_group = width - offset_width - group_size
-        groups_per_line = 1 + width_excluding_offset_and_final_group // (group_size + len(sep))
-        bits_per_character = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}[fmt]
-        max_bits_per_line = groups_per_line * group_size * bits_per_character  # Number of bits represented on each line
+        width_excluding_offset_and_final_group = width - offset_width - group_chars1 - group_chars2 - len(format_sep)*bool(group_chars2)  # TODO: Should this deduct 1 or 2* len(sep) ?
+        groups_per_line = 1 + width_excluding_offset_and_final_group // total_group_chars
+        max_bits_per_line = groups_per_line * group_size  # Number of bits represented on each line
 
         printable = string.digits + string.ascii_letters + string.punctuation + ' '
-        def format_bits(bits, group_size, sep, fmt):
-            if fmt == 'bin':
-                raw = bits._getbin()
-            elif fmt == 'oct':
-                raw = bits._getoct()
-            elif fmt == 'hex':
-                raw = bits._gethex()
-            elif fmt == 'bytes':
-                raw = bits._getbytes()
+
+        def format_bits(bits_, group_size_, sep_, fmt_):
+            if fmt_ == 'bin':
+                raw = bits_._getbin()
+            elif fmt_ == 'oct':
+                raw = bits_._getoct()
+            elif fmt_ == 'hex':
+                raw = bits_._gethex()
+            elif fmt_ == 'bytes':
+                raw = bits_._getbytes()
                 # Replace unprintable characters with '.'
                 raw = ''.join(chr(x) if chr(x) in printable else '.' for x in raw)
 
-            formatted = sep.join(raw[i: i + group_size] for i in range(0, len(raw), group_size))
+            formatted = sep_.join(raw[i: i + group_size_] for i in range(0, len(raw), group_size_))
             return formatted
 
         bitpos = 0
+        first_fb_width = None
         for bits in self.cut(max_bits_per_line):
             if show_offset:
                 stream.write(f'{bitpos: >{offset_width - len(offset_sep)}}{offset_sep}')
-            stream.write(format_bits(bits, group_size, sep, fmt))
+            fb = format_bits(bits, group_chars1, sep, fmt1)
+            if first_fb_width is None:
+                first_fb_width = len(fb)
+            if len(fb) < first_fb_width:
+                fb += ' ' * (first_fb_width - len(fb))
+            stream.write(fb)
+            if fmt2 != '':
+                stream.write(format_sep)
+                stream.write(format_bits(bits, group_chars2, sep, fmt2))
             stream.write('\n')
             bitpos += len(bits)
+        return
 
     # Create native-endian functions as aliases depending on the byteorder
     if byteorder == 'little':
