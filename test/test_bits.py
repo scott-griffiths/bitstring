@@ -637,6 +637,15 @@ class PrettyPrinting(unittest.TestCase):
         s.seek(0)
         self.assertEqual(s.read(), ' 0: 5360\n')
 
+    def testSmallWidth(self):
+        a = Bits(20)
+        s = io.StringIO()
+        a.pp(stream=s, width=5)
+        s.seek(0)
+        self.assertEqual(s.read(), ' 0: 00000000\n'
+                                   ' 8: 00000000\n'
+                                   '16: 0000    \n')
+
     def testSeparator(self):
         a = Bits('0x0f0f')*9
         s = io.StringIO()
@@ -657,32 +666,32 @@ class PrettyPrinting(unittest.TestCase):
         s = io.StringIO()
         a.pp(stream=s, fmt='bin, hex')
         s.seek(0)
-        self.assertEqual(s.read(), ' 0: 11110000 11110000 / f0 f0\n')
+        self.assertEqual(s.read(), ' 0: 11110000 11110000   f0 f0\n')
         s = io.StringIO()
         a.pp(stream=s, fmt='hex, bin', group_size=12)
         s.seek(0)
-        self.assertEqual(s.read(), ' 0: f0f 0 / 111100001111 0000\n')
+        self.assertEqual(s.read(), ' 0: f0f 0   111100001111 0000\n')
 
     def testMultiLineMultiFormat(self):
         a = Bits(int=-1, length=112)
         s = io.StringIO()
         a.pp(stream=s, fmt='bin, hex', width=42)
         s.seek(0)
-        self.assertEqual(s.read(), '  0: 11111111 11111111 11111111 / ff ff ff\n'            
-                                   ' 24: 11111111 11111111 11111111 / ff ff ff\n'
-                                   ' 48: 11111111 11111111 11111111 / ff ff ff\n'
-                                   ' 72: 11111111 11111111 11111111 / ff ff ff\n'
-                                   ' 96: 11111111 11111111          / ff ff\n')
+        self.assertEqual(s.read(), '  0: 11111111 11111111 11111111   ff ff ff\n'            
+                                   ' 24: 11111111 11111111 11111111   ff ff ff\n'
+                                   ' 48: 11111111 11111111 11111111   ff ff ff\n'
+                                   ' 72: 11111111 11111111 11111111   ff ff ff\n'
+                                   ' 96: 11111111 11111111            ff ff\n')
         s = io.StringIO()
         a.pp(stream=s, fmt='bin, hex', width=41)
         s.seek(0)
-        self.assertEqual(s.read(), '  0: 11111111 11111111 / ff ff\n'            
-                                   ' 16: 11111111 11111111 / ff ff\n'
-                                   ' 32: 11111111 11111111 / ff ff\n'
-                                   ' 48: 11111111 11111111 / ff ff\n'
-                                   ' 64: 11111111 11111111 / ff ff\n'
-                                   ' 80: 11111111 11111111 / ff ff\n'
-                                   ' 96: 11111111 11111111 / ff ff\n')
+        self.assertEqual(s.read(), '  0: 11111111 11111111   ff ff\n'            
+                                   ' 16: 11111111 11111111   ff ff\n'
+                                   ' 32: 11111111 11111111   ff ff\n'
+                                   ' 48: 11111111 11111111   ff ff\n'
+                                   ' 64: 11111111 11111111   ff ff\n'
+                                   ' 80: 11111111 11111111   ff ff\n'
+                                   ' 96: 11111111 11111111   ff ff\n')
 
 
 

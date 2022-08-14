@@ -2868,25 +2868,42 @@ class Bits:
                       is filled. If False the final group will be filled instead.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
-        >>> s.pp('hex', group_size=2)
-        >>> s.pp('bin', sep='_', show_offset=False)
+        >>> s.pp('hex', group_size=16)
+        >>> s.pp('bin, hex', sep='_', show_offset=False)
 
         """
+        bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
         formats = [f.strip() for f in fmt.split(',')]
         if len(formats) == 1:
-            fmt1, fmt2 = formats[0], ''
+            fmt1, fmt2 = formats[0], None
         elif len(formats) == 2:
             fmt1, fmt2 = formats[0], formats[1]
         else:
-            raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}. Format string was {fmt}.")
+            raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}."
+                             " Format string was {fmt}.")
+        if fmt1 not in bpc.keys() or (fmt2 is not None and fmt2 not in bpc.keys()):
+            raise ValueError(f"Pretty print formats only support {'/'.join(bpc.keys())}. Recieved '{fmt}'.")
+        if len(self) % bpc[fmt1] != 0:
+            raise InterpretError(f"Cannot convert bitstring of length {len(self)} to {fmt1} - not a multiple of {bpc[fmt1]} bits long.")
+        if fmt2 is not None and len(self) % bpc[fmt2] != 0:
+            raise InterpretError(f"Cannot convert bitstring of length {len(self)} to {fmt2} - not a multiple of {bpc[fmt2]} bits long.")
 
         if group_size is None:
-            if fmt1 in ['bin', 'hex']:
-                group_size = 8
-            elif fmt1 == 'oct':
-                group_size = 12
-            elif fmt == 'bytes':
-                group_size = 32
+            if fmt2 is None:
+                if fmt1 in ['bin', 'hex']:
+                    group_size = 8
+                elif fmt1 == 'oct':
+                    group_size = 12
+                elif fmt1 == 'bytes':
+                    group_size = 32
+            else:
+                bpc1 = bpc[fmt1]
+                bpc2 = bpc[fmt2]
+                # Rule of thumb seems to work OK for all combinations.
+                group_size = 2 * bpc1 * bpc2
+                if group_size >= 24:
+                    group_size //= 2
+
         if group_size < 0:
             raise ValueError(f"group_size must be positive. Recieved {group_size}.")
         if group_size == 0:
@@ -2894,11 +2911,10 @@ class Bits:
             group_size = width
         if sep is None:
             sep = ''
-        format_sep = " / "
+        format_sep = "   "  # String to insert on each line between multiple formats
 
-        bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
         group_chars1 = group_size // bpc[fmt1]
-        group_chars2 = 0 if fmt2 == '' else group_size // bpc[fmt2]
+        group_chars2 = 0 if fmt2 is None else group_size // bpc[fmt2]
         total_group_chars = group_chars1 + group_chars2 + len(sep) + len(sep)*bool(group_chars2)
 
         offset_width = 0
@@ -2906,7 +2922,8 @@ class Bits:
         if show_offset:
             # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
             offset_width = len(str(len(self))) + len(offset_sep)
-        width_excluding_offset_and_final_group = width - offset_width - group_chars1 - group_chars2 - len(format_sep)*bool(group_chars2)  # TODO: Should this deduct 1 or 2* len(sep) ?
+        width_excluding_offset_and_final_group = width - offset_width - group_chars1 - group_chars2 - len(format_sep)*bool(group_chars2)
+        width_excluding_offset_and_final_group = max(width_excluding_offset_and_final_group, 0)
         groups_per_line = 1 + width_excluding_offset_and_final_group // total_group_chars
         max_bits_per_line = groups_per_line * group_size  # Number of bits represented on each line
 
@@ -2938,7 +2955,7 @@ class Bits:
             if len(fb) < first_fb_width:
                 fb += ' ' * (first_fb_width - len(fb))
             stream.write(fb)
-            if fmt2 != '':
+            if fmt2 is not None:
                 stream.write(format_sep)
                 stream.write(format_bits(bits, group_chars2, sep, fmt2))
             stream.write('\n')
