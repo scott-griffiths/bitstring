@@ -624,74 +624,85 @@ class PrettyPrinting(unittest.TestCase):
         a = Bits('0b101011110000')
         s = io.StringIO()
         a.pp(stream=s)
-        s.seek(0)
-        self.assertEqual(s.read(), ' 0: 10101111 0000\n')
+        self.assertEqual(s.getvalue(), ' 0: 10101111 0000\n')
 
         s = io.StringIO()
         a.pp('hex', stream=s)
-        s.seek(0)
-        self.assertEqual(s.read(), ' 0: af 0\n')
+        self.assertEqual(s.getvalue(), ' 0: af 0\n')
 
         s = io.StringIO()
         a.pp('oct', stream=s)
-        s.seek(0)
-        self.assertEqual(s.read(), ' 0: 5360\n')
+        self.assertEqual(s.getvalue(), ' 0: 5360\n')
 
     def testSmallWidth(self):
         a = Bits(20)
         s = io.StringIO()
         a.pp(stream=s, width=5)
-        s.seek(0)
-        self.assertEqual(s.read(), ' 0: 00000000\n'
-                                   ' 8: 00000000\n'
-                                   '16: 0000    \n')
+        self.assertEqual(s.getvalue(), ' 0: 00000000\n'
+                                       ' 8: 00000000\n'
+                                       '16: 0000    \n')
 
     def testSeparator(self):
         a = Bits('0x0f0f')*9
         s = io.StringIO()
         a.pp('hex', sep='!-!', stream=s, group_size=32)
-        s.seek(0)
-        self.assertEqual(s.read(), '  0: 0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f\n')
+        self.assertEqual(s.getvalue(), '  0: 0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f\n')
 
     def testMultiLine(self):
         a = Bits(100)
         s = io.StringIO()
         a.pp(sep=None, stream=s)
-        s.seek(0)
-        self.assertEqual(s.read(), '  0: 000000000000000000000000000000000000000000000000000000000000000000000000\n'
-                                   ' 72: 0000000000000000000000000000                                            \n')
+        self.assertEqual(s.getvalue(), '  0: 000000000000000000000000000000000000000000000000000000000000000000000000\n'
+                                       ' 72: 0000000000000000000000000000                                            \n')
 
     def testMultiformat(self):
         a = Bits('0b1111000011110000')
         s = io.StringIO()
         a.pp(stream=s, fmt='bin, hex')
-        s.seek(0)
-        self.assertEqual(s.read(), ' 0: 11110000 11110000   f0 f0\n')
+        self.assertEqual(s.getvalue(), ' 0: 11110000 11110000   f0 f0\n')
         s = io.StringIO()
         a.pp(stream=s, fmt='hex, bin', group_size=12)
-        s.seek(0)
-        self.assertEqual(s.read(), ' 0: f0f 0   111100001111 0000\n')
+        self.assertEqual(s.getvalue(), ' 0: f0f 0   111100001111 0000\n')
 
     def testMultiLineMultiFormat(self):
         a = Bits(int=-1, length=112)
         s = io.StringIO()
         a.pp(stream=s, fmt='bin, hex', width=42)
-        s.seek(0)
-        self.assertEqual(s.read(), '  0: 11111111 11111111 11111111   ff ff ff\n'            
-                                   ' 24: 11111111 11111111 11111111   ff ff ff\n'
-                                   ' 48: 11111111 11111111 11111111   ff ff ff\n'
-                                   ' 72: 11111111 11111111 11111111   ff ff ff\n'
-                                   ' 96: 11111111 11111111            ff ff\n')
+        self.assertEqual(s.getvalue(), '  0: 11111111 11111111 11111111   ff ff ff\n'            
+                                       ' 24: 11111111 11111111 11111111   ff ff ff\n'
+                                       ' 48: 11111111 11111111 11111111   ff ff ff\n'
+                                       ' 72: 11111111 11111111 11111111   ff ff ff\n'
+                                       ' 96: 11111111 11111111            ff ff\n')
         s = io.StringIO()
         a.pp(stream=s, fmt='bin, hex', width=41)
-        s.seek(0)
-        self.assertEqual(s.read(), '  0: 11111111 11111111   ff ff\n'            
-                                   ' 16: 11111111 11111111   ff ff\n'
-                                   ' 32: 11111111 11111111   ff ff\n'
-                                   ' 48: 11111111 11111111   ff ff\n'
-                                   ' 64: 11111111 11111111   ff ff\n'
-                                   ' 80: 11111111 11111111   ff ff\n'
-                                   ' 96: 11111111 11111111   ff ff\n')
+        self.assertEqual(s.getvalue(), '  0: 11111111 11111111   ff ff\n'            
+                                       ' 16: 11111111 11111111   ff ff\n'
+                                       ' 32: 11111111 11111111   ff ff\n'
+                                       ' 48: 11111111 11111111   ff ff\n'
+                                       ' 64: 11111111 11111111   ff ff\n'
+                                       ' 80: 11111111 11111111   ff ff\n'
+                                       ' 96: 11111111 11111111   ff ff\n')
+
+    def testGroupSizeErrors(self):
+        a = Bits(120)
+        with self.assertRaises(ValueError):
+            a.pp('hex', group_size=3)
+        with self.assertRaises(ValueError):
+            a.pp('hex, oct', group_size=4)
+        with self.assertRaises(ValueError):
+            a.pp(group_size=-1)
+
+    def testZeroGroupSize(self):
+        a = Bits(400)
+        s = io.StringIO()
+        a.pp(stream=s, group_size=0, show_offset=False)
+        expected_output = ('0' * 80 + '\n') * 5
+        self.assertEqual(s.getvalue(), expected_output)
+
+        s = io.StringIO()
+        a.pp(stream=s, group_size=0, fmt='hex', show_offset=False)
+        expected_output = ('0' * 80 + '\n') + ('0' * 20 + ' ' * 60 + '\n')
+        self.assertEqual(s.getvalue(), expected_output)
 
 
 

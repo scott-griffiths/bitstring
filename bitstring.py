@@ -2882,11 +2882,19 @@ class Bits:
             raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}."
                              " Format string was {fmt}.")
         if fmt1 not in bpc.keys() or (fmt2 is not None and fmt2 not in bpc.keys()):
-            raise ValueError(f"Pretty print formats only support {'/'.join(bpc.keys())}. Recieved '{fmt}'.")
+            raise ValueError(f"Pretty print formats only support {'/'.join(bpc.keys())}. Received '{fmt}'.")
         if len(self) % bpc[fmt1] != 0:
             raise InterpretError(f"Cannot convert bitstring of length {len(self)} to {fmt1} - not a multiple of {bpc[fmt1]} bits long.")
         if fmt2 is not None and len(self) % bpc[fmt2] != 0:
             raise InterpretError(f"Cannot convert bitstring of length {len(self)} to {fmt2} - not a multiple of {bpc[fmt2]} bits long.")
+
+        if group_size is not None:
+            if group_size < 0:
+                raise ValueError(f"group_size must be positive. Received {group_size}.")
+            if group_size % bpc[fmt1] != 0:
+                raise ValueError(f"group_size must be a multiple of {bpc[fmt1]} for {fmt1} format.")
+            if fmt2 is not None and group_size % bpc[fmt2] != 0:
+                raise ValueError(f"group_size must be a multiple of {bpc[fmt2]} for {fmt2} format.")
 
         if group_size is None:
             if fmt2 is None:
@@ -2904,32 +2912,39 @@ class Bits:
                 if group_size >= 24:
                     group_size //= 2
 
-        if group_size < 0:
-            raise ValueError(f"group_size must be positive. Recieved {group_size}.")
-        if group_size == 0:
-            # Don't divide into groups.
-            group_size = width
         if sep is None:
             sep = ''
         format_sep = "   "  # String to insert on each line between multiple formats
 
-        group_chars1 = group_size // bpc[fmt1]
-        group_chars2 = 0 if fmt2 is None else group_size // bpc[fmt2]
-        total_group_chars = group_chars1 + group_chars2 + len(sep) + len(sep)*bool(group_chars2)
 
         offset_width = 0
         offset_sep = ': '
         if show_offset:
             # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
             offset_width = len(str(len(self))) + len(offset_sep)
-        width_excluding_offset_and_final_group = width - offset_width - group_chars1 - group_chars2 - len(format_sep)*bool(group_chars2)
-        width_excluding_offset_and_final_group = max(width_excluding_offset_and_final_group, 0)
-        groups_per_line = 1 + width_excluding_offset_and_final_group // total_group_chars
-        max_bits_per_line = groups_per_line * group_size  # Number of bits represented on each line
+        if group_size > 0:
+            group_chars1 = group_size // bpc[fmt1]
+            group_chars2 = 0 if fmt2 is None else group_size // bpc[fmt2]
+            # The number of characters that get added when we add an extra group (after the first one)
+            total_group_chars = group_chars1 + group_chars2 + len(sep) + len(sep) * bool(group_chars2)
+            width_excluding_offset_and_final_group = width - offset_width - group_chars1 - group_chars2 - len(format_sep)*bool(group_chars2)
+            width_excluding_offset_and_final_group = max(width_excluding_offset_and_final_group, 0)
+            groups_per_line = 1 + width_excluding_offset_and_final_group // total_group_chars
+            max_bits_per_line = groups_per_line * group_size  # Number of bits represented on each line
+        else:
+            assert group_size == 0  # Don't divide into groups
+            group_chars1 = group_chars2 = 0
+            width_available = width - offset_width - len(format_sep)*(fmt2 is not None)
+            if fmt2 is None:
+                max_bits_per_line = width_available * bpc[fmt1]
+            else:
+                chars_per_24_bits = 24 // bpc[fmt1] + 24 // bpc[fmt2]
+                max_bits_per_line = 24 * width_available // chars_per_24_bits
 
         printable = string.digits + string.ascii_letters + string.punctuation + ' '
 
         def format_bits(bits_, group_size_, sep_, fmt_):
+            assert bpc.keys() == {'bin', 'oct', 'hex', 'bytes'}
             if fmt_ == 'bin':
                 raw = bits_._getbin()
             elif fmt_ == 'oct':
@@ -2941,6 +2956,8 @@ class Bits:
                 # Replace unprintable characters with '.'
                 raw = ''.join(chr(x) if chr(x) in printable else '.' for x in raw)
 
+            if group_size == 0:
+                return raw
             formatted = sep_.join(raw[i: i + group_size_] for i in range(0, len(raw), group_size_))
             return formatted
 
@@ -2952,7 +2969,7 @@ class Bits:
             fb = format_bits(bits, group_chars1, sep, fmt1)
             if first_fb_width is None:
                 first_fb_width = len(fb)
-            if len(fb) < first_fb_width:
+            if len(fb) < first_fb_width:  # Pad final line with spaces to align it
                 fb += ' ' * (first_fb_width - len(fb))
             stream.write(fb)
             if fmt2 is not None:
