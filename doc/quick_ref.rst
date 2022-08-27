@@ -8,7 +8,7 @@ Quick Reference
 This section lists the bitstring module's classes together with all their methods and attributes. The next section goes into full detail with examples.
 
 Bits
--------------
+----
 
 ``Bits(object)``
 

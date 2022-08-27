@@ -5,10 +5,10 @@
    :width: 400px
 
 
-*bitstring* is a pure Python module that makes the creation, manipulation
-and analysis of binary data as simple and natural as possible.
+`bitstring <http://scott-griffiths.github.io/bitstring/>`_ is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
 
-It has been maintained since 2006 and is now has `about 20 million downloads per year. <https://pypistats.org/packages/bitstring>`_
+It has been maintained since 2006 and now has about `20 million downloads per year. <https://pypistats.org/packages/bitstring>`_
+
 
 Overview
 ========
@@ -19,6 +19,8 @@ Overview
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
 * Powerful binary packing and unpacking functions.
 * Read from and interpret bitstrings as streams of binary data.
+* Open source software, released under the MIT licence.
+
 
 Installation and Download
 -------------------------
@@ -30,9 +32,9 @@ To download the module, as well as for defect reports, enhancement requests and 
 Documentation
 -------------
 
-The manual provides an introduction to the module and details most its capabilities.
+The :ref:`manual` provides an introduction to the module and details most its capabilities.
 
-The reference section has a complete list of all the classes, methods, properties and functions of the :mod:`bitstring` module, together with short examples for many items.
+The :ref:`reference` section has a complete list of all the classes, methods, properties and functions of the :mod:`bitstring` module, together with short examples for many items.
 
 .. toctree::
    :hidden:
@@ -42,7 +44,6 @@ The reference section has a complete list of all the classes, methods, propertie
 .. toctree::
     :maxdepth: 2
 
-    introduction
     manual
     reference
     appendices
@@ -53,6 +54,6 @@ Credits
 
 Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files. Maintained and expanded ever since as it became unexpectedly popular. Thanks to all those who have contributed ideas and code (and bug reports) over the years.
 
-:sub:`These docs are styled using the Piccolo theme.`
+These docs are styled using the `Piccolo theme <https://github.com/piccolo-orm/piccolo_theme>`_.
 
 

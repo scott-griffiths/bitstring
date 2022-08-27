@@ -70,7 +70,7 @@ count
         
         *value* can be ``True`` or ``False`` or anything that can be cast to a bool, so you could equally use ``1`` or ``0``.
         
-            >>> s = Bits(1000000)
+            >>> s = BitArray(1000000)
             >>> s.set(1, [4, 44, 444444])
             >>> s.count(1)
             3

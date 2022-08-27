@@ -3,6 +3,8 @@
 Functions
 ---------
 
+pack
+^^^^
 .. function:: pack(format[, *values, **kwargs])
 
    Packs the values and keyword arguments according to the *format* string and returns a new :class:`BitStream`.

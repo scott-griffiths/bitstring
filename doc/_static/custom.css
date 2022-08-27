@@ -1,7 +1,9 @@
 
 
 :root {
-  --mainNavColor: #587f9f;
+  --mainNavColor: #e26908;
+  --sidebarColor: #effcff;
+  --inlineCodeBackgroundColor: rgb(0 0 0 / 0%);
 }
 
 .highlight {
@@ -10,4 +12,17 @@
 
 div.document div.documentwrapper {
     max-width: 55rem;
+}
+
+div.document div.highlight {
+    border-radius: 0.5rem;
+    border: 1px solid rgb(0 0 0 / 6%);
+}
+
+h1, h2, h3 {
+    color: #0e84b5;
+}
+
+#toggle_sidebar {
+    display: none;
 }

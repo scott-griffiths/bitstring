@@ -20,6 +20,10 @@ There are lots of ways of creating new bitstrings. The most flexible is via the 
     start_code, width, height = s.readlist('hex:32, uint:12, uint:12')
     aspect_ratio, frame_rate = s.readlist('2*bin:4')
 
+
+
+
+
 Manipulation
 ------------
 
@@ -37,6 +41,7 @@ Manipulation
     del s[-1001:]                   # deletes final 1001 bits
     s.reverse()                     # reverses whole BitString
     s.prepend('uint:12=44')         # prepend a 12 bit integer
+
 
 Parsing
 -------
