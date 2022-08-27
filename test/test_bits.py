@@ -705,9 +705,26 @@ class PrettyPrinting(unittest.TestCase):
         self.assertEqual(s.getvalue(), expected_output)
 
         s = io.StringIO()
-        a = Bits(48)
+        a = Bits(uint=10, length=48)
         a.pp(stream=s, width=20, fmt='hex, oct', show_offset=False, bits_per_group=0)
-        expected_output = ("000000 00000000\n"
-                           "000000 00000000\n")
+        expected_output = ("000000   00000000\n"
+                           "00000a   00000012\n")
         self.assertEqual(s.getvalue(), expected_output)
+
+
+# class PrettyPrinting_LSB0(unittest.TestCase):
+#
+#     def setUp(self) -> None:
+#         bitstring.set_lsb0()
+#
+#     def tearDown(self) -> None:
+#         bitstring.set_msb0()
+#
+#     def test_lsb0(self):
+#         a = Bits(20)
+#         s = io.StringIO()
+#         a.pp(stream=s, width=5)
+#         self.assertEqual(s.getvalue(), '    0000 :16\n'
+#                                        '00000000 : 8\n'
+#                                        '00000000 : 0\n')
 

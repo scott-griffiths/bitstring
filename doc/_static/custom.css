@@ -1,0 +1,13 @@
+
+
+:root {
+  --mainNavColor: #587f9f;
+}
+
+.highlight {
+    background: #f8f8f8;
+}
+
+div.document div.documentwrapper {
+    max-width: 55rem;
+}

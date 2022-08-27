@@ -16,12 +16,12 @@ Only a few of the module's features will be covered in this walkthrough; the :re
 Prerequisites
 -------------
 
-* Python 3.6 or later.
+* Python 3.7 or later.
 * An installed bitstring module.
 * A rudimentary knowledge of binary concepts.
 * A little free time.
 
-If you haven't yet downloaded and installed :mod:`bitstring` then please do so (it should be as easy as typing "``pip install bitstring``"). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.
+If you haven't yet downloaded and installed :mod:`bitstring` then please do so (it should be as easy as typing ``pip install bitstring``). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.
 
 Getting started
 ---------------
@@ -271,4 +271,4 @@ So to print all primes under a million you could write::
             # Set all multiples of our prime to 1.
             has_factors.set(True, range(i*2, 1000000, i))
 
-I'll leave optimising the algorithm as an exercise for the reader, but it illustrates both bit checking and setting. One reason you might want to use a bitstring for this purpose (instead of a plain list for example) is that the million bits only take up a million bits in memory, whereas for a list of integers it would be much more. Try asking for a billion elements in a list - unless you've got some really nice hardware it will fail, whereas a billion element bitstring only takes 125MB.
+I'll leave optimising the algorithm as an exercise for the reader, but it illustrates both bit checking and setting. One reason you might want to use a bitstring for this purpose (instead of a plain list for example) is that the million bits only take up a million bits in memory, whereas for a list of integers it would be much more. Try asking for a billion elements in a list - unless you've got some really nice hardware it will fail, whereas a billion element bitstring only takes 125MiB.

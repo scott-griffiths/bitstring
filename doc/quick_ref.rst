@@ -93,7 +93,7 @@ Additional special methods
 
     Mutating operators are available: ``[]``, ``<<=``, ``>>=``, ``*=``, ``&=``, ``|=`` and ``^=``.
 
-Attributes
+Properties
 ^^^^^^^^^^
 
     The same as ``Bits``, except that they are all (with the exception of ``len``) writable as well as readable.
@@ -116,7 +116,7 @@ Additional methods
  *   :meth:`~ConstBitStream.readlist` -- Read and interpret next bits as a list of items.
  *   :meth:`~ConstBitStream.readto` -- Read up to and including next occurrence of a bitstring.
 
-Additional attributes
+Additional properties
 ^^^^^^^^^^^^^^^^^^^^^
 
  *   :attr:`~ConstBitStream.bytepos` -- The current byte position in the bitstring.
@@ -128,6 +128,6 @@ BitStream
 
 ``BitStream(BitArray, ConstBitStream)``
 
-This class, also known as ``BitString``, contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
+This class contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``. It is the most general of the four classes, but it is usually best to choose the simplest class for your use case.
 
 

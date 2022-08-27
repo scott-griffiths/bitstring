@@ -1,7 +1,7 @@
 .. currentmodule:: bitstring
 
 The ConstBitStream class
-------------------------
+========================
 
 .. class:: ConstBitStream([auto, length, offset, pos, **kwargs])
 
@@ -9,7 +9,11 @@ The ConstBitStream class
 
     A :class:`ConstBitStream` is a :class:`Bits` with added methods and properties that allow it to be parsed as a stream of bits.
 
+Methods
+-------
 
+bytealign
+^^^^^^^^^
     .. method:: bytealign()
 
        Aligns to the start of the next byte (so that :attr:`pos` is a multiple of 8) and returns the number of bits skipped.
@@ -23,6 +27,8 @@ The ConstBitStream class
             >>> s.pos
             8
 
+peek
+^^^^
     .. method:: peek(fmt)
 
         Reads from the current bit position :attr:`pos` in the bitstring according to the *fmt* string or integer and returns the result.
@@ -37,6 +43,8 @@ The ConstBitStream class
             >>> s.peek('hex:8')
             '12'
 
+peeklist
+^^^^^^^^
     .. method:: peeklist(fmt, **kwargs)
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results.
@@ -45,6 +53,8 @@ The ConstBitStream class
 
         See the entries for :meth:`read` and :meth:`readlist` for more information.
 
+read
+^^^^
     .. method:: read(fmt)
 
         Reads from current bit position :attr:`pos` in the bitstring according the format string and returns a single result. If not enough bits are available then a :exc:`ReadError` is raised.
@@ -99,7 +109,8 @@ The ConstBitStream class
 
         The ``pad`` token is not very useful when used in :meth:`~ConstBitStream.read` as it just skips a number of bits and returns ``None``. However when used within :meth:`~ConstBitStream.readlist` or :meth:`~Bits.unpack` it allows unimportant part of the bitstring to be simply ignored.
 
-
+readlist
+^^^^^^^^
     .. method:: readlist(fmt, **kwargs)
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results. If not enough bits are available then a :exc:`ReadError` is raised.
@@ -119,7 +130,8 @@ The ConstBitStream class
             >>> s.readlist('hex:b, uint:d', b=8, d=6)
             ['43', 63]
 
-
+readto
+^^^^^^
     .. method:: readto(bs, bytealigned)
 
         Reads up to and including the next occurrence of the bitstring *bs* and returns the results. If *bytealigned* is `True` it will look for the bitstring starting only at whole-byte positions.
@@ -134,13 +146,19 @@ The ConstBitStream class
             >>> s.readto('0x47', bytealigned=True)
             BitStream('0x04050647')
 
+Properties
+----------
 
+bytepos
+^^^^^^^
     .. attribute:: bytepos
 
         Property for setting and getting the current byte position in the bitstring.
         
         When used as a getter will raise a :exc:`ByteAlignError` if the current position in not byte aligned.
 
+pos / bitpos
+^^^^^^^^^^^^
     .. attribute:: pos
     .. attribute:: bitpos
 

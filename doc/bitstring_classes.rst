@@ -5,7 +5,7 @@
 The bitstring module
 --------------------
 
-The bitstring module provides four classes, :class:`Bits`, :class:`BitArray`, :class:`ConstBitStream` and :class:`BitStream`. :class:`Bits` is the simplest, and represents an immutable sequence of bits, while :class:`BitArray` adds various methods that modify the contents (these classes are intended to loosely mirror ``bytes`` and ``bytearray`` in Python 3). The 'Stream' classes have additional methods to treat the bits as a file or stream.
+AThe bitstring module provides four classes, :class:`Bits`, :class:`BitArray`, :class:`ConstBitStream` and :class:`BitStream`. :class:`Bits` is the simplest, and represents an immutable sequence of bits, while :class:`BitArray` adds various methods that modify the contents (these classes are intended to loosely mirror ``bytes`` and ``bytearray``). The 'Stream' classes have additional methods to treat the bits as a file or stream.
 
 If you need to change the contents of a bitstring after creation then you must use either the :class:`BitArray` or :class:`BitStream` classes. If you need to use bitstrings as keys in a dictionary or members of a set then you must use either a :class:`Bits` or a :class:`ConstBitStream`. In this section the generic term 'bitstring' is used to refer to an object of any of these classes.
 

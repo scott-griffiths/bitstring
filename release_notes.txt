@@ -5,13 +5,44 @@ bitstring module version history
 ---
 version 4.0.0
 
-* Minimum supported Python version is now Python 3.7.
-* For Python 2.7 and earier Python 3 versions use bitstring 3.1, which will only
-have bug fixes in future.
-* Removed ConstBitArray and BitString class aliases. Use Bits and BitStream instead.
-* Type hints added.
+This is a major release which drops support for Python 2.7 and has a new minimum
+requirement of Python 3.7. Around 94% of downloads satisfy this - users of
+older versions can continue to use bitstring 3.1, which will still be supported
+with fixes, but no new features.
 
----
+Other changes are minimal, with a few features added.
+
+Breaking changes:
+
+* Minimum supported Python version is now Python 3.7.
+* Removed ConstBitArray and BitString class aliases. Use Bits and BitStream instead.
+* The cut() method will now also yield the final bits of a bitstring, even if they
+  are shorter than the requested cut size.
+* Removed default uint interpretation. This wasn't being applied uniformly - default
+  is now always to return a bitstring object of the given length and not to interpret
+  it as a uint. Bug 220.
+
+New features and improvements:
+
+* Type hints added throughout the code.
+* Underscores are now allowed in strings representing number literals.
+* New pp() method that pretty-prints the bitstring in various formats - useful
+especially in interactive sessions. Thanks to Omer Barak for the suggestion
+and discussion.
+
+>>> s.pp()
+  0: 10001000 01110110 10001110 01110110 11111000 01110110 10000111 00101000
+ 64: 01110010 11111001 10000111 10011000 11110111 10011110 10000111 11111101
+128: 11111001 10001100 01111111 10111100 10111111 11011011 11101011 11111011
+192: 1100
+>>> s.pp('bin, hex')
+  0: 10001000 01110110 10001110 01110110 11111000 01110110   88 76 8e 76 f8 76
+ 48: 10000111 00101000 01110010 11111001 10000111 10011000   87 28 72 f9 87 98
+ 96: 11110111 10011110 10000111 11111101 11111001 10001100   f7 9e 87 fd f9 8c
+144: 01111111 10111100 10111111 11011011 11101011 11111011   7f bc bf db eb fb
+192: 1100
+
+
 
 ---------------------------------------
 July 20th 2021: version 3.1.9 released

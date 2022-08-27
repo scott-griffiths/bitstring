@@ -1072,7 +1072,7 @@ class Bits:
     # def __format__(self, fmt: str) -> str:
     #     if fmt is None:
     #         return self.__repr__()
-    #     return ', '.join(self.unpack(fmt))
+    #     return ', '.join(str(x) for x in self.unpack(fmt))
 
     def __eq__(self, bs: Any) -> bool:
         """Return True if two bitstrings have the same binary representation.
@@ -2854,7 +2854,7 @@ class Bits:
         return count if value else self.len - count
 
     def pp(self, fmt: str = 'bin', width: int = 80, bits_per_group: Optional[int] = None, sep: Optional[str] = ' ',
-           show_offset: bool = True, align_left: bool = True, stream: TextIO = sys.stdout) -> None:
+           show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty print the bitstring's value.
 
         fmt -- Printed data format. One of 'bin', 'oct', 'hex' or 'bytes'. Defaults to 'bin'.
@@ -2864,8 +2864,6 @@ class Bits:
                       Default is 8 for hex and bin, 12 for oct and 32 for bytes. Use 0 to not group characters.
         sep -- A separator string to insert between groups. Defaults to a single space.
         show_offset -- If True (the default) shows the bit offset in the first column of each line.
-        align_left -- If True (the default) the data will be aligned so that the first printed group
-                      is filled. If False the final group will be filled instead.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
         >>> s.pp('hex', bits_per_group=16)
@@ -2916,7 +2914,6 @@ class Bits:
             sep = ''
         format_sep = "   "  # String to insert on each line between multiple formats
 
-
         offset_width = 0
         offset_sep = ': '
         if show_offset:
@@ -2939,7 +2936,7 @@ class Bits:
                 max_bits_per_line = width_available * bpc[fmt1]
             else:
                 chars_per_24_bits = 24 // bpc[fmt1] + 24 // bpc[fmt2]
-                max_bits_per_line = 24 * width_available // chars_per_24_bits
+                max_bits_per_line = 24 * (width_available // chars_per_24_bits)
 
         printable = string.digits + string.ascii_letters + string.punctuation + ' '
 

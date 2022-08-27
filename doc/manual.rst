@@ -9,7 +9,6 @@ User Manual
    :maxdepth: 2
 
    walkthrough
-   introduction
    creation
    packing
    interpretation

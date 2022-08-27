@@ -11,7 +11,7 @@ Reference
 
    quick_ref
    bitstring_classes
-   constbitarray
+   bits
    bitarray
    constbitstream
    bitstream
