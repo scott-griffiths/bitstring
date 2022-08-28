@@ -86,8 +86,6 @@ pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  Major themes that come with
-# Sphinx are currently 'default' and 'sphinxdoc'.
 html_theme = 'piccolo_theme'
 html_theme_options = {
     "banner_text": "New major version released. Requires Python 3.7 or later - see release notes for full details.",

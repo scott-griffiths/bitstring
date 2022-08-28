@@ -58,7 +58,7 @@ The bitstring module can be called from the command line to perform simple opera
     $ python -m bitstring hex=01, uint:12=352.hex
     01160
 
-Command-line parameters are concatenated and a bitstring created from them. If the final parameter is either an interpretation string or ends with a ``.`` followed by an interpretation string then that interpretation of the bitstring will be used when printing it.
+Command-line parameters are concatenated and a bitstring created from them. If the final parameter is either an interpretation string or ends with a ``.`` followed by an interpretation string then that interpretation of the bitstring will be used when printing it. If no interpretation is given then the bitstring is just printed.
 
 
 Exceptions

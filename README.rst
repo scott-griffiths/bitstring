@@ -1,7 +1,5 @@
 
 
-.. image:: /doc/bitstring_logo_small.png
-
 **bitstring** is a pure Python module designed to help make
 the creation and analysis of binary data as simple and natural as possible.
 
@@ -14,8 +12,8 @@ similar to a file or stream.
 bitstring is open source software, and has been released under the MIT
 licence.
 
-bitstring version 4 onwards only supports Python 3.6 and later. Use
-bitstring version 3 if you're using Python 2.7 or 3.5 or earlier.
+bitstring version 4 onwards only supports Python 3.7 and later. Use
+bitstring version 3 if you're using Python 2.7 or 3.6 or earlier.
 
 Installation
 ------------
@@ -30,8 +28,6 @@ Documentation
 The manual for the bitstring module is available here
 <https://bitstring.readthedocs.org>. It contains a walk-through of all
 the features and a complete reference section.
-
-It is also available as a PDF at <https://readthedocs.org/projects/bitstring/downloads/pdf/latest/>.
 
 
 Simple Examples

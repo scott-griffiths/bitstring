@@ -7,7 +7,7 @@ from distutils.core import setup
 kwds = {'long_description': open('README.rst').read()}
 
 setup(name='bitstring',
-      version='4.0.0',
+      version='4.0.0.b1',
       description='Simple construction, analysis and modification of binary data.',
       author='Scott Griffiths',
       author_email='dr.scottgriffiths@gmail.com',
