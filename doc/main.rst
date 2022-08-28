@@ -5,7 +5,7 @@
    :width: 400px
 
 
-`bitstring <http://scott-griffiths.github.io/bitstring/>`_ is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
+`bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
 
 It has been maintained since 2006 and now has about `20 million downloads per year. <https://pypistats.org/packages/bitstring>`_
 
@@ -13,12 +13,12 @@ It has been maintained since 2006 and now has about `20 million downloads per ye
 Overview
 ========
 
-* Supports Python 3.7 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
-* Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
-* Bit level slicing, joining, searching, replacing and more.
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
 * Powerful binary packing and unpacking functions.
+* Bit level slicing, joining, searching, replacing and more.
 * Read from and interpret bitstrings as streams of binary data.
+* Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
+* Supports Python 3.7 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
 * Open source software, released under the MIT licence.
 
 
@@ -27,7 +27,7 @@ Installation and Download
 
 To install just ``pip install bitstring``.
 
-To download the module, as well as for defect reports, enhancement requests and Git repository browsing go to `the project's home on GitHub. <http://scott-griffiths.github.io/bitstring/>`_
+To download the module, as well as for defect reports, enhancement requests and Git repository browsing go to `the project's home on GitHub. <https://github.com/scott-griffiths/bitstring/>`_
 
 Documentation
 -------------

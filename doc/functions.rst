@@ -41,6 +41,26 @@ And of course you can combine the different methods in a single pack.
 A :exc:`ValueError` will be raised if the ``*values`` are not all used up by the format string, and if a value provided doesn't match the length specified by a token.
 
 
+Command line usage
+------------------
+
+The bitstring module can be called from the command line to perform simple operations. For example::
+
+    $ python -m bitstring int:16=-400
+    0xfe70
+
+    $ python -m bitstring float:32=0.2 bin
+    00111110010011001100110011001101
+
+    $ python -m bitstring 0xff "3*0b01,0b11" uint
+    65367
+
+    $ python -m bitstring hex=01, uint:12=352.hex
+    01160
+
+Command-line parameters are concatenated and a bitstring created from them. If the final parameter is either an interpretation string or ends with a ``.`` followed by an interpretation string then that interpretation of the bitstring will be used when printing it.
+
+
 Exceptions
 ----------
 

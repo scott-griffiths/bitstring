@@ -26,21 +26,32 @@ New features and improvements:
 
 * Type hints added throughout the code.
 * Underscores are now allowed in strings representing number literals.
-* New pp() method that pretty-prints the bitstring in various formats - useful
-especially in interactive sessions. Thanks to Omer Barak for the suggestion
-and discussion.
+* The experimental command-line feature is now official. Command-line
+  parameters are concatenated and a bitstring created from them. If
+  the final parameter is either an interpretation string or ends with
+  a '.' followed by an interpretation string then that interpretation
+  of the bitstring will be used when printing it.
 
->>> s.pp()
-  0: 10001000 01110110 10001110 01110110 11111000 01110110 10000111 00101000
- 64: 01110010 11111001 10000111 10011000 11110111 10011110 10000111 11111101
-128: 11111001 10001100 01111111 10111100 10111111 11011011 11101011 11111011
-192: 1100
->>> s.pp('bin, hex')
-  0: 10001000 01110110 10001110 01110110 11111000 01110110   88 76 8e 76 f8 76
- 48: 10000111 00101000 01110010 11111001 10000111 10011000   87 28 72 f9 87 98
- 96: 11110111 10011110 10000111 11111101 11111001 10001100   f7 9e 87 fd f9 8c
-144: 01111111 10111100 10111111 11011011 11101011 11111011   7f bc bf db eb fb
-192: 1100
+  $ python -m bitstring int:16=-400
+  0xfe70
+  $ python -m bitstring float:32=0.2 bin
+  00111110010011001100110011001101
+
+* New pp() method that pretty-prints the bitstring in various formats - useful
+  especially in interactive sessions. Thanks to Omer Barak for the suggestion
+  and discussion.
+
+D  >>> s.pp()
+    0: 10001000 01110110 10001110 01110110 11111000 01110110 10000111 00101000
+   64: 01110010 11111001 10000111 10011000 11110111 10011110 10000111 11111101
+  128: 11111001 10001100 01111111 10111100 10111111 11011011 11101011 11111011
+  192: 1100
+  >>> s.pp('bin, hex')
+    0: 10001000 01110110 10001110 01110110 11111000 01110110   88 76 8e 76 f8 76
+   48: 10000111 00101000 01110010 11111001 10000111 10011000   87 28 72 f9 87 98
+   96: 11110111 10011110 10000111 11111101 11111001 10001100   f7 9e 87 fd f9 8c
+  144: 01111111 10111100 10111111 11011011 11101011 11111011   7f bc bf db eb fb
+  192: 1100
 
 
 

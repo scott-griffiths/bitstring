@@ -4431,6 +4431,7 @@ __all__ = ['ConstBitStream', 'BitStream', 'BitArray',
 
 
 def main() -> None:
+    dummy = Bits()  # We need an instance to query the _name_to_read
     # check if final parameter is an interpretation string
     fp = sys.argv[-1]
     if fp in ['-h', '--help'] or len(sys.argv) == 1:
@@ -4453,14 +4454,14 @@ $ python -m bitstring 0xff 3*0b01,0b11 uint
 $ python -m bitstring hex=01, uint:12=352.hex
 01160
         """)
-    elif fp in Bits._name_to_read.keys():
+    elif fp in dummy._name_to_read.keys():
         # concatenate all other parameters and interpret using the final one
         b1 = Bits(','.join(sys.argv[1: -1]))
         print(b1._readtoken(fp, 0, b1.__len__())[0])
     else:
         # does final parameter end with a dot then an interpretation string?
         interp = fp[fp.rfind('.') + 1:]
-        if interp in Bits._name_to_read.keys():
+        if interp in dummy._name_to_read.keys():
             sys.argv[-1] = fp[:fp.rfind('.')]
             b1 = Bits(','.join(sys.argv[1:]))
             print(b1._readtoken(interp, 0, b1.__len__())[0])

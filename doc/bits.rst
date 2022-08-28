@@ -167,6 +167,12 @@ pp
             ffa-5f8-902-e2a   111111111010-010111111000-100100000010-111000101010
             f4                11110100
 
+        The available formats are ``bin`` (the default), ``oct``, ``hex`` and ``bytes``. For the ``bytes`` format unprintable characters are replaced with a full stop. The default ``bits_per_group`` is based on the format or two formats selected but can be overridden.
+
+        If the bitstring cannot be represented in a format due to it's length not being a multiple of the number of bits represented by each character then an :exc:`InterpretError` will be raised.
+
+        An output *stream* can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
+
 rfind
 ^^^^^
     .. method:: rfind(bs[, start, end, bytealigned])
