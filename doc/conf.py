@@ -33,9 +33,6 @@ source_suffix = '.rst'
 # The encoding of source files.
 #source_encoding = 'utf-8'
 
-# The master toctree document.
-master_doc = root_doc = 'contents'
-
 # General information about the project.
 project = u'bitstring'
 copyright = u'2006, Scott Griffiths'
@@ -86,13 +83,16 @@ pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme = 'default'
+html_theme = 'piccolo_theme'
 html_theme_options = {
     "banner_text": "New major version released. Requires Python 3.7 or later - see release notes for full details.",
     "banner_hiding": "permanent",
     "show_theme_credit": False,
     "globaltoc_maxdepth": 2,
 }
+
+# The master toctree document.
+master_doc = root_doc = 'contents'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
