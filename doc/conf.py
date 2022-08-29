@@ -86,7 +86,7 @@ pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme = 'piccolo_theme'
+html_theme = 'default'
 html_theme_options = {
     "banner_text": "New major version released. Requires Python 3.7 or later - see release notes for full details.",
     "banner_hiding": "permanent",
