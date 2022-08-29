@@ -1,7 +1,7 @@
 
 .. currentmodule:: bitstring
 
-.. image:: _images/bitstring_logo.png
+.. image:: bitstring_logo.png
    :width: 400px
 
 
