@@ -34,7 +34,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # The master toctree document.
-# root_doc = 'contents'
+root_doc = 'contents'
 
 # General information about the project.
 project = u'bitstring'
