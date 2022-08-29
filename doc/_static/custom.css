@@ -1,7 +1,7 @@
 
 
 :root {
-  --mainNavColor: #e26908;
+  --mainNavColor: #0260ff;
   --sidebarColor: #effcff;
   --inlineCodeBackgroundColor: rgb(0 0 0 / 0%);
 }
@@ -20,7 +20,7 @@ div.document div.highlight {
 }
 
 h1, h2, h3 {
-    color: #0e84b5;
+    color: #0260ff;
 }
 /*
 #toggle_sidebar {
