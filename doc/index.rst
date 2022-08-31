@@ -21,6 +21,22 @@ Overview
 * Supports Python 3.7 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
 * Open source software, released under the MIT licence.
 
+A short example usage
+---------------------
+
+::
+
+    >>> s = bitstring.BitArray('0x4f8e220')
+    >>> s.unpack('uint:12, hex:8, bin')
+    [1272, 'e2', '00100000']
+    >>> '0b11000' in s
+    True
+    >>> s += 'float:32=0.001'
+    >>> s.bin
+    '010011111000111000100010000000111010100000110001001001101111'
+    >>> s[-32:].float
+    0.0010000000474974513
+
 
 Installation and Download
 -------------------------

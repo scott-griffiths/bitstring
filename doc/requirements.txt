@@ -1,1 +1,1 @@
-piccolo-theme==0.11.1
+piccolo-theme==0.12.0
