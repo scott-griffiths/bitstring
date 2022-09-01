@@ -11,7 +11,9 @@ extensions = []
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-root_doc = 'contents'
+root_doc = 'index'
+
+html_show_sphinx = False
 
 html_theme = 'piccolo_theme'
 
