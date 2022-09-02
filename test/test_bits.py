@@ -728,3 +728,9 @@ class PrettyPrinting(unittest.TestCase):
 #                                        '00000000 : 8\n'
 #                                        '00000000 : 0\n')
 
+class Copy(unittest.TestCase):
+
+    def testCopyMethod(self):
+        s = Bits('0xc00dee')
+        t = s.copy()
+        self.assertEqual(s, t)

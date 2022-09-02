@@ -17,6 +17,7 @@ Methods
 
  *   :meth:`~Bits.all` -- Check if all specified bits are set to 1 or 0.
  *   :meth:`~Bits.any` -- Check if any of specified bits are set to 1 or 0.
+ *   :meth:`~Bits.copy` -- Return a copy of the bitstring.
  *   :meth:`~Bits.count` -- Count the number of bits set to 1 or 0.
  *   :meth:`~Bits.cut` -- Create generator of constant sized chunks.
  *   :meth:`~Bits.endswith` -- Return whether the bitstring ends with a sub-bitstring.
@@ -76,7 +77,6 @@ Additional methods
  *   :meth:`~BitArray.append` -- Append a bitstring.
  *   :meth:`~BitArray.byteswap` -- Change byte endianness in-place.
  *   :meth:`~BitArray.clear` -- Remove all bits from the bitstring.
- *   :meth:`~BitArray.copy` -- Return a copy of the bitstring.
  *   :meth:`~BitArray.insert` -- Insert a bitstring.
  *   :meth:`~BitArray.invert` -- Flip bit(s) between one and zero.
  *   :meth:`~BitArray.overwrite` -- Overwrite a section with a new bitstring.

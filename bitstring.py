@@ -2976,6 +2976,10 @@ class Bits:
             bitpos += len(bits)
         return
 
+    def copy(self) -> Bits:
+        """Return a copy of the bitstring."""
+        return self._copy()
+
     # Create native-endian functions as aliases depending on the byteorder
     if byteorder == 'little':
         _setfloatne = _setfloatle
@@ -3740,10 +3744,6 @@ class BitArray(Bits):
     def clear(self) -> None:
         """Remove all bits, reset to zero length."""
         self._clear()
-
-    def copy(self) -> BitArray:
-        """Return a copy of the bitstring."""
-        return self._copy()
 
     int = property(Bits._getint, Bits._setint,
                    doc="""The bitstring as a two's complement signed int. Read and write.

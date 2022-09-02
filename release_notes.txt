@@ -26,6 +26,7 @@ New features and improvements:
 
 * Type hints added throughout the code.
 * Underscores are now allowed in strings representing number literals.
+* The copy() method now works on Bits as well as BitArray objects.
 * The experimental command-line feature is now official. Command-line
   parameters are concatenated and a bitstring created from them. If
   the final parameter is either an interpretation string or ends with

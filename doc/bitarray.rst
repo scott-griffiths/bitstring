@@ -62,14 +62,6 @@ clear
 
         ``s.clear()`` is equivalent to ``del s[:]`` and simply makes the bitstring empty.
 
-copy
-^^^^
-    .. method:: BitArray.copy()
-
-        Returns a copy of the bitstring.
-
-        ``s.copy()`` is equivalent to the shallow copy ``s[:]`` and creates a new copy of the bitstring in memory.
-
 insert
 ^^^^^^
     .. method:: BitArray.insert(bs, pos)

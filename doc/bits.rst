@@ -64,6 +64,14 @@ any
            >>> s.any(1)
            True
 
+copy
+^^^^
+    .. method:: Bits.copy()
+
+        Returns a copy of the bitstring.
+
+        ``s.copy()`` is equivalent to the shallow copy ``s[:]`` and creates a new copy of the bitstring in memory.
+
 count
 ^^^^^
     .. method:: Bits.count(value)
