@@ -10,9 +10,7 @@ This section lists the bitstring module's classes together with all their method
 Bits
 ----
 
-``Bits(object)``
-
-A ``Bits`` is the most basic class. It is immutable, so once created its value cannot change. It is a base class for all the other classes in the `bitstring` module.
+``Bits`` is the most basic class. It is immutable, so once created its value cannot change. It is a base class for all the other classes in the `bitstring` module.
 
 Methods
 ^^^^^^^
@@ -25,6 +23,7 @@ Methods
  *   :meth:`~Bits.find` -- Find a sub-bitstring in the current bitstring.
  *   :meth:`~Bits.findall` -- Find all occurrences of a sub-bitstring in the current bitstring.
  *   :meth:`~Bits.join` -- Join bitstrings together using current bitstring.
+ *   :meth:`~Bits.pp` -- Pretty print the bitstring.
  *   :meth:`~Bits.rfind` -- Seek backwards to find a sub-bitstring.
  *   :meth:`~Bits.split` -- Create generator of chunks split by a delimiter.
  *   :meth:`~Bits.startswith` -- Return whether the bitstring starts with a sub-bitstring.
@@ -69,7 +68,7 @@ BitArray
 ``BitArray(Bits)``
 
 
-This class adds mutating methods to `Bits`.
+This class adds mutating methods to ``Bits``.
 
 Additional methods
 ^^^^^^^^^^^^^^^^^^
@@ -104,7 +103,7 @@ ConstBitStream
 
 ``ConstBitStream(Bits)``
 
-This class, previously known as just ``Bits`` (which is an alias for backward-compatibility), adds a bit position and methods to read and navigate in the bitstream.
+This class adds a bit position and methods to read and navigate in the bitstream.
 
 Additional methods
 ^^^^^^^^^^^^^^^^^^

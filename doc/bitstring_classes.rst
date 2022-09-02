@@ -1,6 +1,6 @@
-********************
-The bitstring module
-********************
+****************
+Bitstring Module
+****************
 
 .. module:: bitstring
 .. moduleauthor:: Scott Griffiths <dr.scottgriffiths@gmail.com>

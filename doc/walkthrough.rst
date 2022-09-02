@@ -118,7 +118,7 @@ Note how we are just using ordinary strings to specify the new bitstrings we are
 
  The length in bits of bitstrings specified with strings depends on the number of characters, including leading zeros. So each hex character is four bits, each octal character three bits and each binary character one bit.
 
-Finding and Replacing
+Finding and replacing
 ---------------------
 
 A :meth:`~Bits.find` is provided to search for bit patterns within a bitstring. You can choose whether to search only on byte boundaries or at any bit position::
@@ -233,7 +233,7 @@ If you don't want to use a bitstream then you can always use :meth:`~Bits.unpack
     ['\x00\x00\x01\xb3', 352, 288, 1]
 
 
-Worked examples
+Worked Examples
 ===============
 
 Below are a few examples of using the bitstring module, as I always find that a good example can help more than a lengthy reference manual.

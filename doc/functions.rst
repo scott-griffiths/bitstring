@@ -41,7 +41,7 @@ And of course you can combine the different methods in a single pack.
 A :exc:`ValueError` will be raised if the ``*values`` are not all used up by the format string, and if a value provided doesn't match the length specified by a token.
 
 
-Command line usage
+Command Line Usage
 ------------------
 
 The bitstring module can be called from the command line to perform simple operations. For example::

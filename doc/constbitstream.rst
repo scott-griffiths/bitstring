@@ -1,7 +1,7 @@
 .. currentmodule:: bitstring
 
-The ConstBitStream class
-========================
+ConstBitStream Class
+====================
 
 .. class:: ConstBitStream([auto, length, offset, pos, **kwargs])
 
@@ -14,7 +14,7 @@ Methods
 
 bytealign
 ^^^^^^^^^
-    .. method:: bytealign()
+    .. method:: ConstBitStream.bytealign()
 
        Aligns to the start of the next byte (so that :attr:`pos` is a multiple of 8) and returns the number of bits skipped.
 
@@ -29,7 +29,7 @@ bytealign
 
 peek
 ^^^^
-    .. method:: peek(fmt)
+    .. method:: ConstBitStream.peek(fmt)
 
         Reads from the current bit position :attr:`pos` in the bitstring according to the *fmt* string or integer and returns the result.
 
@@ -45,7 +45,7 @@ peek
 
 peeklist
 ^^^^^^^^
-    .. method:: peeklist(fmt, **kwargs)
+    .. method:: ConstBitStream.peeklist(fmt, **kwargs)
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results.
 
@@ -55,7 +55,7 @@ peeklist
 
 read
 ^^^^
-    .. method:: read(fmt)
+    .. method:: ConstBitStream.read(fmt)
 
         Reads from current bit position :attr:`pos` in the bitstring according the format string and returns a single result. If not enough bits are available then a :exc:`ReadError` is raised.
 
@@ -111,7 +111,7 @@ read
 
 readlist
 ^^^^^^^^
-    .. method:: readlist(fmt, **kwargs)
+    .. method:: ConstBitStream.readlist(fmt, **kwargs)
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results. If not enough bits are available then a :exc:`ReadError` is raised.
 
@@ -132,7 +132,7 @@ readlist
 
 readto
 ^^^^^^
-    .. method:: readto(bs, bytealigned)
+    .. method:: ConstBitStream.readto(bs, bytealigned)
 
         Reads up to and including the next occurrence of the bitstring *bs* and returns the results. If *bytealigned* is `True` it will look for the bitstring starting only at whole-byte positions.
 
@@ -151,7 +151,7 @@ Properties
 
 bytepos
 ^^^^^^^
-    .. attribute:: bytepos
+    .. attribute:: ConstBitStream.bytepos
 
         Property for setting and getting the current byte position in the bitstring.
         
@@ -159,8 +159,8 @@ bytepos
 
 pos / bitpos
 ^^^^^^^^^^^^
-    .. attribute:: pos
-    .. attribute:: bitpos
+    .. attribute:: ConstBitStream.pos
+    .. attribute:: ConstBitStream.bitpos
 
         Read and write property for setting and getting the current bit position in the bitstring. Can be set to any value from ``0`` to :attr:`len`.
 

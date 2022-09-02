@@ -5,7 +5,7 @@
 Release Notes
 *************
 
-Full Version History
+Full version history
 ====================
 
 2022: version 4.0.0 released

@@ -1,7 +1,9 @@
 .. currentmodule:: bitstring
 
-The Bits class
-==============
+Bits Class
+==========
+
+The ``Bits`` class is the simplest type in the bitstring module, and represents an immutable sequence of bits. This is the best class to use if you will not need to modify the data after creation and don't need streaming methods.
 
 .. class:: Bits([auto, length, offset, **kwargs])
 
@@ -32,7 +34,7 @@ Methods
 
 all
 ^^^
-    .. method:: all(value[, pos])
+    .. method:: Bits.all(value[, pos])
 
        Returns ``True`` if all of the specified bits are all set to *value*, otherwise returns ``False``.
 
@@ -48,7 +50,7 @@ all
 
 any
 ^^^
-    .. method:: any(value[, pos])
+    .. method:: Bits.any(value[, pos])
 
        Returns ``True`` if any of the specified bits are set to *value*, otherwise returns ``False``.
 
@@ -64,7 +66,7 @@ any
 
 count
 ^^^^^
-    .. method:: count(value)
+    .. method:: Bits.count(value)
         
         Returns the number of bits set to *value*.
         
@@ -79,7 +81,7 @@ count
 
 cut
 ^^^
-    .. method:: cut(bits[, start, end, count])
+    .. method:: Bits.cut(bits[, start, end, count])
 
         Returns a generator for slices of the bitstring of length *bits*.
 
@@ -93,7 +95,7 @@ cut
 
 endswith
 ^^^^^^^^
-    .. method:: endswith(bs[, start, end])
+    .. method:: Bits.endswith(bs[, start, end])
 
         Returns ``True`` if the bitstring ends with the sub-string *bs*, otherwise returns ``False``.
 
@@ -107,7 +109,7 @@ endswith
 
 find
 ^^^^
-    .. method:: find(bs[, start, end, bytealigned])
+    .. method:: Bits.find(bs[, start, end, bytealigned])
 
         Searches for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
@@ -121,7 +123,7 @@ find
 
 findall
 ^^^^^^^
-    .. method:: findall(bs[, start, end, count, bytealigned])
+    .. method:: Bits.findall(bs[, start, end, count, bytealigned])
 
         Searches for all occurrences of *bs* (even overlapping ones) and returns a generator of their bit positions.
 
@@ -135,7 +137,7 @@ findall
 
 join
 ^^^^
-    .. method:: join(sequence)
+    .. method:: Bits.join(sequence)
 
         Returns the concatenation of the bitstrings in the iterable *sequence* joined with ``self`` as a separator. ::
 
@@ -149,7 +151,7 @@ join
 
 pp
 ^^
-    .. method:: pp([fmt, width, bits_per_group, sep, show_offset, stream])
+    .. method:: Bits.pp([fmt, width, bits_per_group, sep, show_offset, stream])
 
         Pretty print the bitstring's value according to the *fmt*. Either one or two formats can be specified, together with options for setting the maximum display *width*, the number of bits to display in each group, and the separator to print between groups.
 
@@ -175,7 +177,7 @@ pp
 
 rfind
 ^^^^^
-    .. method:: rfind(bs[, start, end, bytealigned])
+    .. method:: Bits.rfind(bs[, start, end, bytealigned])
     
         Searches backwards for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
@@ -193,7 +195,7 @@ rfind
 
 split
 ^^^^^
-    .. method:: split(delimiter[, start, end, count, bytealigned])
+    .. method:: Bits.split(delimiter[, start, end, count, bytealigned])
 
         Splits the bitstring into sections that start with *delimiter*. Returns a generator for bitstring objects.
 
@@ -207,7 +209,7 @@ split
 
 startswith
 ^^^^^^^^^^
-    .. method:: startswith(bs[, start, end])
+    .. method:: Bits.startswith(bs[, start, end])
 
         Returns ``True`` if the bitstring starts with the sub-string *bs*, otherwise returns ``False``.
 
@@ -215,7 +217,7 @@ startswith
 
 tobytes
 ^^^^^^^
-    .. method:: tobytes()
+    .. method:: Bits.tobytes()
 
         Returns the bitstring as a ``bytes`` object.
 
@@ -230,7 +232,7 @@ tobytes
 
 tofile
 ^^^^^^
-    .. method:: tofile(f)
+    .. method:: Bits.tofile(f)
 
         Writes the bitstring to the file object *f*, which should have been opened in binary write mode.
 
@@ -241,7 +243,7 @@ tofile
 
 unpack
 ^^^^^^
-    .. method:: unpack(fmt, **kwargs)
+    .. method:: Bits.unpack(fmt, **kwargs)
 
         Interprets the whole bitstring according to the *fmt* string or iterable and returns a list of bitstring objects.
         
@@ -259,13 +261,13 @@ Properties
 
 bin
 ^^^
-    .. attribute:: bin
+    .. attribute:: Bits.bin
 
         Property for the representation of the bitstring as a binary string.
 
 bool
 ^^^^
-    .. attribute:: bool
+    .. attribute:: Bits.bool
 
        Property for representing the bitstring as a boolean (``True`` or ``False``).
        
@@ -273,21 +275,21 @@ bool
 
 bytes
 ^^^^^
-    .. attribute:: bytes
+    .. attribute:: Bits.bytes
 
         Property representing the underlying byte data that contains the bitstring.
 
         When used as a getter the bitstring must be a whole number of byte long or a :exc:`InterpretError` will be raised.
 
         An alternative is to use the :meth:`tobytes` method, which will pad with between zero and seven ``0`` bits to make it byte aligned if needed. ::
-       
+
             >>> s = Bits('0x12345678')
             >>> s.bytes
             b'\x124Vx'
 
 hex
 ^^^
-    .. attribute:: hex
+    .. attribute:: Bits.hex
 
         Property representing the hexadecimal value of the bitstring.
 
@@ -299,13 +301,13 @@ hex
 
 int
 ^^^
-    .. attribute:: int
+    .. attribute:: Bits.int
 
         Property for the signed two’s complement integer representation of the bitstring.
 
 intbe
 ^^^^^
-    .. attribute:: intbe
+    .. attribute:: Bits.intbe
 
         Property for the byte-wise big-endian signed two's complement integer representation of the bitstring.
 
@@ -313,7 +315,7 @@ intbe
 
 intle
 ^^^^^
-    .. attribute:: intle
+    .. attribute:: Bits.intle
 
         Property for the byte-wise little-endian signed two's complement integer representation of the bitstring.
 
@@ -321,7 +323,7 @@ intle
 
 intne
 ^^^^^
-    .. attribute:: intne
+    .. attribute:: Bits.intne
 
         Property for the byte-wise native-endian signed two's complement integer representation of the bitstring.
 
@@ -329,8 +331,8 @@ intne
 
 float / floatbe
 ^^^^^^^^^^^^^^^
-    .. attribute:: float
-    .. attribute:: floatbe
+    .. attribute:: Bits.float
+    .. attribute:: Bits.floatbe
 
         Property for the floating point representation of the bitstring.
 
@@ -342,20 +344,20 @@ float / floatbe
 
 floatle
 ^^^^^^^
-    .. attribute:: floatle
+    .. attribute:: Bits.floatle
 
         Property for the byte-wise little-endian floating point representation of the bitstring.
 
 floatne
 ^^^^^^^
-    .. attribute:: floatne
+    .. attribute:: Bits.floatne
 
         Property for the byte-wise native-endian floating point representation of the bitstring.
 
 len / length
 ^^^^^^^^^^^^
-    .. attribute:: len
-    .. attribute:: length
+    .. attribute:: Bits.len
+    .. attribute:: Bits.length
 
         Read-only property that give the length of the bitstring in bits (:attr:`len` and :attr:`length` are equivalent).
 
@@ -363,7 +365,7 @@ len / length
 
 oct
 ^^^
-    .. attribute:: oct
+    .. attribute:: Bits.oct
 
         Property for the octal representation of the bitstring.
 
@@ -378,7 +380,7 @@ oct
 
 se
 ^^
-    .. attribute:: se
+    .. attribute:: Bits.se
 
         Property for the signed exponential-Golomb code representation of the bitstring.
 
@@ -393,7 +395,7 @@ se
 
 ue
 ^^
-    .. attribute:: ue
+    .. attribute:: Bits.ue
 
         Property for the unsigned exponential-Golomb code representation of the bitstring.
 
@@ -401,7 +403,7 @@ ue
 
 sie
 ^^^
-    .. attribute:: sie
+    .. attribute:: Bits.sie
 
         Property for the signed interleaved exponential-Golomb code representation of the bitstring.
 
@@ -409,7 +411,7 @@ sie
 
 uie
 ^^^
-    .. attribute:: uie
+    .. attribute:: Bits.uie
 
         Property for the unsigned interleaved exponential-Golomb code representation of the bitstring.
 
@@ -417,25 +419,25 @@ uie
 
 uint
 ^^^^
-    .. attribute:: uint
+    .. attribute:: Bits.uint
 
         Property for the unsigned base-2 integer representation of the bitstring.
 
 uintbe
 ^^^^^^
-    .. attribute:: uintbe
+    .. attribute:: Bits.uintbe
 
         Property for the byte-wise big-endian unsigned base-2 integer representation of the bitstring.
 
 uintle
 ^^^^^^
-    .. attribute:: uintle
+    .. attribute:: Bits.uintle
 
         Property for the byte-wise little-endian unsigned base-2 integer representation of the bitstring.
 
 uintne
 ^^^^^^
-    .. attribute:: uintne
+    .. attribute:: Bits.uintne
 
         Property for the byte-wise native-endian unsigned base-2 integer representation of the bitstring.
 
@@ -445,8 +447,8 @@ Special Methods
 
 __add__ / __radd__
 ^^^^^^^^^^^^^^^^^^
-    .. method:: __add__(bs)
-    .. method:: __radd__(bs)
+    .. method:: Bits.__add__(bs)
+    .. method:: Bits.__radd__(bs)
 
         ``s1 + s2``
 
@@ -457,8 +459,8 @@ __add__ / __radd__
 
 __and__ / __rand__
 ^^^^^^^^^^^^^^^^^^
-    .. method:: __and__(bs)
-    .. method:: __rand__(bs)
+    .. method:: Bits.__and__(bs)
+    .. method:: Bits.__rand__(bs)
 
         ``s1 & s2``
 
@@ -469,7 +471,7 @@ __and__ / __rand__
 
 __bool__
 ^^^^^^^^
-    .. method:: __bool__()
+    .. method:: Bits.__bool__()
     
         ``if s:``
         
@@ -484,7 +486,7 @@ __bool__
 
 __contains__
 ^^^^^^^^^^^^
-    .. method:: __contains__(bs)
+    .. method:: Bits.__contains__(bs)
 
         ``bs in s``
 
@@ -499,7 +501,7 @@ __contains__
 
 __copy__
 ^^^^^^^^
-    .. method:: __copy__()
+    .. method:: Bits.__copy__()
 
         ``s2 = copy.copy(s1)``
 
@@ -515,7 +517,7 @@ __copy__
 
 __eq__
 ^^^^^^
-    .. method:: __eq__(bs)
+    .. method:: Bits.__eq__(bs)
 
         ``s1 == s2``
 
@@ -530,7 +532,7 @@ __eq__
 
 __getitem__
 ^^^^^^^^^^^
-    .. method:: __getitem__(key)
+    .. method:: Bits.__getitem__(key)
 
         ``s[start:end:step]``
 
@@ -553,7 +555,7 @@ __getitem__
 
 __hash__
 ^^^^^^^^
-    .. method:: __hash__()
+    .. method:: Bits.__hash__()
     
         ``hash(s)``
         
@@ -563,7 +565,7 @@ __hash__
 
 __invert__
 ^^^^^^^^^^
-    .. method:: __invert__()
+    .. method:: Bits.__invert__()
 
         ``~s``
 
@@ -579,7 +581,7 @@ __invert__
 
 __len__
 ^^^^^^^
-    .. method:: __len__()
+    .. method:: Bits.__len__()
 
         ``len(s)``
 
@@ -597,7 +599,7 @@ __len__
 
 __lshift__
 ^^^^^^^^^^
-    .. method:: __lshift__(n)
+    .. method:: Bits.__lshift__(n)
 
         ``s << n``
 
@@ -609,8 +611,8 @@ __lshift__
 
 __mul__ / __rmul__
 ^^^^^^^^^^^^^^^^^^
-    .. method:: __mul__(n)
-    .. method:: __rmul__(n)
+    .. method:: Bits.__mul__(n)
+    .. method:: Bits.__rmul__(n)
 
         ``s * n / n * s``
 
@@ -623,7 +625,7 @@ __mul__ / __rmul__
 
 __ne__
 ^^^^^^
-    .. method:: __ne__(bs)
+    .. method:: Bits.__ne__(bs)
 
         ``s1 != s2``
 
@@ -631,14 +633,14 @@ __ne__
 
 __nonzero__
 ^^^^^^^^^^^
-    .. method:: __nonzero__()
+    .. method:: Bits.__nonzero__()
     
         See :meth:`__bool__`.
 
 __or__ / __ror__
 ^^^^^^^^^^^^^^^^
-    .. method:: __or__(bs)
-    .. method:: __ror__(bs)
+    .. method:: Bits.__or__(bs)
+    .. method:: Bits.__ror__(bs)
 
         ``s1 | s2``
 
@@ -649,7 +651,7 @@ __or__ / __ror__
 
 __repr__
 ^^^^^^^^
-    .. method:: __repr__()
+    .. method:: Bits.__repr__()
 
         ``repr(s)``
 
@@ -662,7 +664,7 @@ __repr__
 
 __rshift__
 ^^^^^^^^^^
-    .. method:: __rshift__(n)
+    .. method:: Bits.__rshift__(n)
 
         ``s >> n``
 
@@ -674,7 +676,7 @@ __rshift__
 
 __str__
 ^^^^^^^
-    .. method:: __str__()
+    .. method:: Bits.__str__()
 
         ``print(s)``
 
@@ -690,8 +692,8 @@ __str__
 
 __xor__ / __rxor__
 ^^^^^^^^^^^^^^^^^^
-    .. method:: __xor__(bs)
-    .. method:: __rxor__(bs)
+    .. method:: Bits.__xor__(bs)
+    .. method:: Bits.__rxor__(bs)
 
         ``s1 ^ s2``
 

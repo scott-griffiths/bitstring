@@ -1,7 +1,7 @@
 .. currentmodule:: bitstring
 
-The BitArray class
-==================
+BitArray Class
+==============
 
 .. class:: BitArray([auto, length, offset, **kwargs])
 
@@ -14,7 +14,7 @@ Methods
 
 append
 ^^^^^^
-    .. method:: append(bs)
+    .. method:: BitArray.append(bs)
 
        Join a :class:`BitArray` to the end of the current :class:`BitArray`. ::
 
@@ -25,7 +25,7 @@ append
 
 byteswap
 ^^^^^^^^
-    .. method:: byteswap([fmt, start, end, repeat=True])
+    .. method:: BitArray.byteswap([fmt, start, end, repeat=True])
     
        Change the endianness of the :class:`BitArray` in-place according to *fmt*. Return the number of swaps done.
        
@@ -56,7 +56,7 @@ byteswap
 
 clear
 ^^^^^
-    .. method:: clear()
+    .. method:: BitArray.clear()
 
         Removes all bits from the bitstring.
 
@@ -64,7 +64,7 @@ clear
 
 copy
 ^^^^
-    .. method:: copy()
+    .. method:: BitArray.copy()
 
         Returns a copy of the bitstring.
 
@@ -72,7 +72,7 @@ copy
 
 insert
 ^^^^^^
-    .. method:: insert(bs, pos)
+    .. method:: BitArray.insert(bs, pos)
 
         Inserts *bs* at *pos*.
 
@@ -88,7 +88,7 @@ insert
 
 invert
 ^^^^^^
-    .. method:: invert([pos])
+    .. method:: BitArray.invert([pos])
     
         Inverts one or many bits from ``1`` to ``0`` or vice versa.
         
@@ -107,7 +107,7 @@ invert
 
 overwrite
 ^^^^^^^^^
-    .. method:: overwrite(bs, pos)
+    .. method:: BitArray.overwrite(bs, pos)
 
         Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
 
@@ -122,7 +122,7 @@ overwrite
 
 prepend
 ^^^^^^^
-    .. method:: prepend(bs)
+    .. method:: BitArray.prepend(bs)
 
         Inserts *bs* at the beginning of the current :class:`BitArray`. ::
 
@@ -133,7 +133,7 @@ prepend
 
 replace
 ^^^^^^^
-    .. method:: replace(old, new[, start, end, count, bytealigned])
+    .. method:: BitArray.replace(old, new[, start, end, count, bytealigned])
 
         Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 
@@ -151,7 +151,7 @@ replace
 
 reverse
 ^^^^^^^
-    .. method:: reverse([start, end])
+    .. method:: BitArray.reverse([start, end])
 
         Reverses bits in the :class:`BitArray` in-place.
 
@@ -164,7 +164,7 @@ reverse
 
 rol
 ^^^
-    .. method:: rol(bits[, start, end])
+    .. method:: BitArray.rol(bits[, start, end])
 
         Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the left.
 
@@ -179,7 +179,7 @@ rol
 
 ror
 ^^^
-    .. method:: ror(bits[, start, end])
+    .. method:: BitArray.ror(bits[, start, end])
 
         Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the right.
 
@@ -189,7 +189,7 @@ ror
 
 set
 ^^^
-    .. method:: set(value[, pos])
+    .. method:: BitArray.set(value[, pos])
 
         Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. The default is to set every bit in the :class:`BitArray`.
 
@@ -211,31 +211,36 @@ Properties
 
 bin
 ^^^
-    .. attribute:: bin
+    .. attribute:: BitArray.bin
+       :noindex:
 
         Writable version of :attr:`Bits.bin`.
 
 bool
 ^^^^
-    .. attribute:: bool
+    .. attribute:: BitArray.bool
+       :noindex:
 
        Writable version of :attr:`Bits.bool`.
 
 bytes
 ^^^^^
-    .. attribute:: bytes
+    .. attribute:: BitArray.bytes
+       :noindex:
 
         Writable version of :attr:`Bits.bytes`.
 
 hex
 ^^^
-    .. attribute:: hex
+    .. attribute:: BitArray.hex
+       :noindex:
 
         Writable version of :attr:`Bits.hex`.
 
 int
 ^^^
-    .. attribute:: int
+    .. attribute:: BitArray.int
+       :noindex:
 
         Writable version of :attr:`Bits.int`.
                 
@@ -249,7 +254,8 @@ int
 
 intbe
 ^^^^^
-    .. attribute:: intbe
+    .. attribute:: BitArray.intbe
+       :noindex:
 
         Writable version of :attr:`Bits.intbe`.
         
@@ -257,7 +263,8 @@ intbe
 
 intle
 ^^^^^
-    .. attribute:: intle
+    .. attribute:: BitArray.intle
+       :noindex:
 
         Writable version of :attr:`Bits.intle`.
 
@@ -265,7 +272,8 @@ intle
 
 intne
 ^^^^^
-    .. attribute:: intne
+    .. attribute:: BitArray.intne
+       :noindex:
 
         Writable version of :attr:`Bits.intne`.
 
@@ -273,56 +281,66 @@ intne
 
 float / floatbe
 ^^^^^^^^^^^^^^^
-    .. attribute:: float
-    .. attribute:: floatbe
+    .. attribute:: BitArray.float
+       :noindex:
+    .. attribute:: BitArray.floatbe
+       :noindex:
 
         Writable version of :attr:`Bits.float`.
 
 floatle
 ^^^^^^^
-    .. attribute:: floatle
+    .. attribute:: BitArray.floatle
+       :noindex:
 
         Writable version of :attr:`Bits.floatle`.
 
 floatne
 ^^^^^^^
-    .. attribute:: floatne
+    .. attribute:: BitArray.floatne
+       :noindex:
 
         Writable version of :attr:`Bits.floatne`.
 
 oct
 ^^^
-    .. attribute:: oct
+    .. attribute:: BitArray.oct
+       :noindex:
 
         Writable version of :attr:`Bits.oct`.
 
 se
 ^^
-    .. attribute:: se
+    .. attribute:: BitArray.se
+       :noindex:
 
         Writable version of :attr:`Bits.se`.
 
 ue
 ^^
-    .. attribute:: ue
+    .. attribute:: BitArray.ue
+       :noindex:
 
         Writable version of :attr:`Bits.uie`.
 
 sie
 ^^^
-    .. attribute:: sie
+    .. attribute:: BitArray.sie
+       :noindex:
 
         Writable version of :attr:`Bits.sie`.
 
 uie
 ^^^
-    .. attribute:: uie
+    .. attribute:: BitArray.uie
+       :noindex:
 
         Writable version of :attr:`Bits.ue`.
 
 uint
 ^^^^
-    .. attribute:: uint
+    .. attribute:: BitArray.uint
+       :noindex:
 
         Writable version of :attr:`Bits.uint`.
 
@@ -330,7 +348,8 @@ uint
 
 uintbe
 ^^^^^^
-    .. attribute:: uintbe
+    .. attribute:: BitArray.uintbe
+       :noindex:
 
         Writable version of :attr:`Bits.uintbe`.
 
@@ -338,7 +357,8 @@ uintbe
 
 uintle
 ^^^^^^
-    .. attribute:: uintle
+    .. attribute:: BitArray.uintle
+       :noindex:
 
         Writable version of :attr:`Bits.uintle`.
         
@@ -346,7 +366,8 @@ uintle
 
 uintne
 ^^^^^^
-    .. attribute:: uintne
+    .. attribute:: BitArray.uintne
+       :noindex:
 
         Writable version of :attr:`Bits.uintne`.
 
@@ -357,7 +378,7 @@ Special Methods
 
 __delitem__
 ^^^^^^^^^^^
-    .. method:: __delitem__(key)
+    .. method:: BitArray.__delitem__(key)
 
         ``del s[start:end:step]``
 
@@ -365,7 +386,7 @@ __delitem__
 
 __iadd__
 ^^^^^^^^
-    .. method:: __iadd__(bs)
+    .. method:: BitArray.__iadd__(bs)
 
         ``s1 += s2``
 
@@ -382,7 +403,7 @@ __iadd__
 
 __iand__
 ^^^^^^^^
-    .. method:: __iand__(bs)
+    .. method:: BitArray.__iand__(bs)
     
         ``s &= bs``
         
@@ -390,7 +411,7 @@ __iand__
 
 __ilshift__
 ^^^^^^^^^^^
-    .. method:: __ilshift__(n)
+    .. method:: BitArray.__ilshift__(n)
     
         ``s <<= n``
         
@@ -398,7 +419,7 @@ __ilshift__
 
 __imul__
 ^^^^^^^^
-    .. method:: __imul__(n)
+    .. method:: BitArray.__imul__(n)
     
         ``s *= n``
         
@@ -411,7 +432,7 @@ __imul__
 
 __ior__
 ^^^^^^^
-    .. method:: __ior__(bs)
+    .. method:: BitArray.__ior__(bs)
     
         ``s |= bs``
         
@@ -419,7 +440,7 @@ __ior__
 
 __irshift__
 ^^^^^^^^^^^
-    .. method:: __irshift__(n)
+    .. method:: BitArray.__irshift__(n)
     
         ``s >>= n``
         
@@ -427,7 +448,7 @@ __irshift__
 
 __ixor__
 ^^^^^^^^
-    .. method:: __ixor__(bs)
+    .. method:: BitArray.__ixor__(bs)
 
         ``s ^= bs``
         
@@ -435,7 +456,7 @@ __ixor__
 
 __setitem__
 ^^^^^^^^^^^
-    .. method:: __setitem__(key, value)
+    .. method:: BitArray.__setitem__(key, value)
 
         ``s1[start:end:step] = s2``
 

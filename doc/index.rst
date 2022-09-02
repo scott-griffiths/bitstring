@@ -38,7 +38,7 @@ A short example usage
     0.0010000000474974513
 
 
-Installation and Download
+Installation and download
 -------------------------
 
 To install just ``pip install bitstring``.
@@ -50,7 +50,7 @@ Documentation
 
 The :ref:`manual` provides an introduction to the module and details most its capabilities.
 
-The :ref:`reference` section has a complete list of all the classes, methods, properties and functions of the :mod:`bitstring` module, together with short examples for many items.
+The :ref:`reference` section has a complete list of all the classes, methods, properties and functions of the bitstring module, together with short examples for many items.
 
 .. toctree::
    :hidden:
