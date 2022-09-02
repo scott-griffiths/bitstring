@@ -85,7 +85,9 @@ count
             >>> s.count(1)
             3
             >>> s.count(False)
-            999997    
+            999997
+
+        Note that if the bitstring is very sparse, as in the example here, it could be quicker to find and count all the set bits with something like ``len(list(s.findall('0b1')))``. For bitstrings with more entropy the ``count`` method will be much quicker than finding.
 
 cut
 ^^^

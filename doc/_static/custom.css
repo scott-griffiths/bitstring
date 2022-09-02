@@ -14,20 +14,20 @@ div#top_nav nav {
     background: #f8f8f8;
 }
 
+div.document {
+    margin-bottom: 1rem;
+}
+
 div.document div.documentwrapper {
     max-width: 55rem;
 }
 
 div.document div.highlight {
-    border-radius: 0.5rem;
-    border: 1px solid rgb(0 0 0 / 6%);
+    border-radius: 0.0rem;
+    border-left: 3px dotted rgba(128, 128, 128, 40%);
+    background-color: var(--mainBackgroundColor);
 }
 
 h1, h2, h3 {
     color: #046ab1;
 }
-
-/*
-#toggle_sidebar {
-    display: none;
-}*/
