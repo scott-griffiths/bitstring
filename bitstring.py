@@ -714,12 +714,14 @@ class Bits:
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
+    copy() - Return a copy of the bitstring.
     count() -- Count the number of bits set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     join() -- Join bitstrings together using current bitstring.
+    pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
@@ -3085,6 +3087,7 @@ class BitArray(Bits):
 
     append() -- Append a bitstring.
     byteswap() -- Change byte endianness in-place.
+    clear() -- Remove all bits from the bitstring.
     insert() -- Insert a bitstring.
     invert() -- Flip bit(s) between one and zero.
     overwrite() -- Overwrite a section with a new bitstring.
@@ -3099,12 +3102,14 @@ class BitArray(Bits):
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
+    copy() -- Return a copy of the bitstring.
     count() -- Count the number of bits set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     join() -- Join bitstrings together using current bitstring.
+    pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
@@ -3121,7 +3126,6 @@ class BitArray(Bits):
 
     bin -- The bitstring as a binary string.
     bool -- For single bit bitstrings, interpret as True or False.
-    bytepos -- The current byte position in the bitstring.
     bytes -- The bitstring as a bytes object.
     float -- Interpret as a floating point number.
     floatbe -- Interpret as a big-endian floating point number.
@@ -3134,7 +3138,6 @@ class BitArray(Bits):
     intne -- Interpret as a native-endian signed integer.
     len -- Length of the bitstring in bits.
     oct -- The bitstring as an octal string.
-    pos -- The current bit position in the bitstring.
     se -- Interpret as a signed exponential-Golomb code.
     ue -- Interpret as an unsigned exponential-Golomb code.
     sie -- Interpret as a signed interleaved exponential-Golomb code.
@@ -3819,12 +3822,14 @@ class ConstBitStream(Bits):
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
+    copy() -- Return a copy of the bitstring.
     count() -- Count the number of bits set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     join() -- Join bitstrings together using current bitstring.
+    pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
@@ -3839,6 +3844,7 @@ class ConstBitStream(Bits):
     peeklist() -- Peek at and interpret next bits as a list of items.
     read() -- Read and interpret next bits as a single item.
     readlist() -- Read and interpret next bits as a list of items.
+    readto() -- Read up to and including next occurrence of a bitstring.
 
     Special methods:
 
@@ -4151,6 +4157,8 @@ class BitStream(ConstBitStream, BitArray):
     append() -- Append a bitstring.
     bytealign() -- Align to next byte boundary.
     byteswap() -- Change byte endianness in-place.
+    clear() -- Remove all bits from the bitstring.
+    copy() -- Return a copy of the bitstring.
     count() -- Count the number of bits set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
@@ -4162,9 +4170,11 @@ class BitStream(ConstBitStream, BitArray):
     overwrite() -- Overwrite a section with a new bitstring.
     peek() -- Peek at and interpret next bits as a single item.
     peeklist() -- Peek at and interpret next bits as a list of items.
+    pp() -- Pretty print the bitstring.
     prepend() -- Prepend a bitstring.
     read() -- Read and interpret next bits as a single item.
     readlist() -- Read and interpret next bits as a list of items.
+    readto() -- Read up to and including next occurrence of a bitstring.
     replace() -- Replace occurrences of one bitstring with another.
     reverse() -- Reverse bits in-place.
     rfind() -- Seek backwards to find a sub-bitstring.
