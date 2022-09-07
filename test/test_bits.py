@@ -6,8 +6,11 @@ import sys
 sys.path.insert(0, '..')
 import bitstring
 import array
+import os
 from bitstring import MmapByteArray
 from bitstring import Bits, BitArray, ConstByteStore
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class Creation(unittest.TestCase):
@@ -47,11 +50,10 @@ class Creation(unittest.TestCase):
             Bits(hex='0Xx0')
         with self.assertRaises(bitstring.CreationError):
             Bits(hex='-2e')
-        # These really should fail, but it's awkward and not a big deal...
-        # with self.assertRaises(bitstring.CreationError):
-        #     Bits('0x2', length=2)
-        # with self.assertRaises(bitstring.CreationError):
-        #     Bits('0x3', offset=1)
+        with self.assertRaises(bitstring.CreationError):
+            Bits('0x2', length=2)
+        with self.assertRaises(bitstring.CreationError):
+            Bits('0x3', offset=1)
 
     def testCreationFromBin(self):
         s = Bits(bin='1010000011111111')
@@ -244,10 +246,11 @@ class InterleavedExpGolomb(unittest.TestCase):
 
 class FileBased(unittest.TestCase):
     def setUp(self):
-        self.a = Bits(filename='smalltestfile')
-        self.b = Bits(filename='smalltestfile', offset=16)
-        self.c = Bits(filename='smalltestfile', offset=20, length=16)
-        self.d = Bits(filename='smalltestfile', offset=20, length=4)
+        filename = os.path.join(THIS_DIR, 'smalltestfile')
+        self.a = Bits(filename=filename)
+        self.b = Bits(filename=filename, offset=16)
+        self.c = Bits(filename=filename, offset=20, length=16)
+        self.d = Bits(filename=filename, offset=20, length=4)
 
     def testCreationWithOffset(self):
         self.assertEqual(self.a, '0x0123456789abcdef')
@@ -273,7 +276,7 @@ class FileBased(unittest.TestCase):
         
 class Mmap(unittest.TestCase):
     def setUp(self):
-        self.f = open('smalltestfile', 'rb')
+        self.f = open(os.path.join(THIS_DIR, 'smalltestfile'), 'rb')
 
     def tearDown(self):
         self.f.close()
@@ -581,3 +584,19 @@ class Lsb0Indexing(unittest.TestCase):
         a = Bits('0x1234abcd')
         self.assertTrue(a.endswith('0x123'))
         self.assertFalse(a.endswith('0xabcd'))
+
+
+class Lsb0Interpretations(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        bitstring.set_lsb0(True)
+
+    @classmethod
+    def tearDownClass(cls):
+        bitstring.set_lsb0(False)
+
+    def testUint(self):
+        a = Bits('0x01')
+        self.assertEqual(a, '0b00000001')
+        self.assertEqual(a.uint, 1)

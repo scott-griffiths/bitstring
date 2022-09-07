@@ -5,11 +5,14 @@ import sys
 sys.path.insert(0, '..')
 import bitstring
 import io
+import os
 from bitstring import ConstBitStream as CBS
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class All(unittest.TestCase):
     def testFromFile(self):
-        s = CBS(filename='test.m1v')
+        s = CBS(filename=os.path.join(THIS_DIR, 'test.m1v'))
         self.assertEqual(s[0:32].hex, '000001b3')
         self.assertEqual(s.read(8 * 4).hex, '000001b3')
         width = s.read(12).uint
@@ -163,3 +166,39 @@ class BytesIOCreation(unittest.TestCase):
             s = CBS(f, length=9*8 + 1)
         with self.assertRaises(bitstring.CreationError):
             s = CBS(f, length=9*8, offset=1)
+
+
+class CreationWithPos(unittest.TestCase):
+
+    def testDefaultCreation(self):
+        s = CBS('0xabc')
+        self.assertEqual(s.pos, 0)
+
+    def testPositivePos(self):
+        s = CBS('0xabc', pos=0)
+        self.assertEqual(s.pos, 0)
+        s = CBS('0xabc', pos=1)
+        self.assertEqual(s.pos, 1)
+        s = CBS('0xabc', pos=12)
+        self.assertEqual(s.pos, 12)
+        with self.assertRaises(bitstring.CreationError):
+            s = CBS('0xabc', pos=13)
+
+    def testNegativePos(self):
+        s = CBS('0xabc', pos=-1)
+        self.assertEqual(s.pos, 11)
+        s = CBS('0xabc', pos=-12)
+        self.assertEqual(s.pos, 0)
+        with self.assertRaises(bitstring.CreationError):
+            s = CBS('0xabc', pos=-13)
+
+    def testStringRepresentation(self):
+        s = CBS('0b110', pos=2)
+        self.assertEqual(s.__repr__(), "ConstBitStream('0b110', pos=2)")
+
+    def testStringRepresentationFromFile(self):
+        filename = os.path.join(THIS_DIR, 'test.m1v')
+        s = CBS(filename=filename, pos=2001)
+        self.assertEqual(s.__repr__(), f"ConstBitStream(filename='{filename}', length=1002400, pos=2001)")
+        s.pos = 0
+        self.assertEqual(s.__repr__(), f"ConstBitStream(filename='{filename}', length=1002400)")

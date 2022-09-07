@@ -39,7 +39,7 @@ This simply reverses the bits of the :class:`BitArray` in place. You can optiona
 Returns the byte data contained in the bitstring as a ``bytes`` object (equivalent to a ``str`` if you're using Python 2.7). This differs from using the plain :attr:`~Bits.bytes` property in that if the bitstring isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
 
  >>> BitArray('0b1').tobytes()
- '\x80'
+ b'\x80'
 
 ``tofile``
 ^^^^^^^^^^
@@ -82,7 +82,7 @@ A few of the special methods have already been covered, for example :meth:`~Bits
 
 This implements the :func:`len` function and returns the length of the bitstring in bits.
 
-It's recommended that you use the :attr:`~Bits.len` property instead of the function as a limitation of Python means that the function will raise an :exc:`OverflowError` if the bitstring has more than ``sys.maxsize`` elements (that's typically 256MB of data with 32-bit Python).
+It's recommended that you use the :attr:`~Bits.len` property instead of the function if you're using a 32-bit Python installation as the len function will raise an :exc:`OverflowError` if the bitstring has more than ``sys.maxsize`` elements (that's typically 256MiB of data with 32-bit Python).
 
 There's not much more to say really, except to emphasise that it is always in bits and never bytes. ::
 
@@ -110,7 +110,7 @@ The form used for the bitstring is generally the one which gives it the shortest
 ``__eq__ / __ne__``
 ^^^^^^^^^^^^^^^^^^^
 
-The equality of two bitstring objects is determined by their binary representations being equal. If you have a different criterion you wish to use then code it explicitly, for example ``a.int  ==  b.int`` could be true even if ``a  ==  b`` wasn't (as they could be different lengths). ::
+The equality of two bitstring objects is determined by their binary representations being equal. If you have a different criterion you wish to use then code it explicitly, for example ``a.int == b.int`` could be true even if ``a == b`` wasn't (as they could be different lengths). ::
 
  >>> BitArray('0b0010') == '0x2'
  True

@@ -3,6 +3,20 @@ bitstring module version history
 --------------------------------
 
 ---------------------------------------
+July 20th 2021: version 3.1.9 released
+---------------------------------------
+(version 3.1.8 was pulled due to serious issues)
+Another maintenance release.
+
+* Fixed a couple of outdated results in the readme (Issue 214).
+* Some more documentation tidying.
+* Turned off some debug code by default.
+* Fixed a couple of failing tests in different Python versions.
+* Fix for consistent pos initialisation semantics for different types.
+* Change to allow wheels to be uploaded to PyPI.
+* More work for LSB0 mode, but still not finished or documented (sorry).
+
+---------------------------------------
 May 5th 2020: version 3.1.7 released
 ---------------------------------------
 This is a maintenance release with a few bug fixes plus an experimental
