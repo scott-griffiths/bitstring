@@ -6,8 +6,11 @@ import sys
 sys.path.insert(0, '..')
 import bitstring
 import array
+import os
 from bitstring import MmapByteArray
 from bitstring import Bits, BitArray, ConstByteStore
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class Creation(unittest.TestCase):
@@ -239,10 +242,11 @@ class InterleavedExpGolomb(unittest.TestCase):
 
 class FileBased(unittest.TestCase):
     def setUp(self):
-        self.a = Bits(filename='smalltestfile')
-        self.b = Bits(filename='smalltestfile', offset=16)
-        self.c = Bits(filename='smalltestfile', offset=20, length=16)
-        self.d = Bits(filename='smalltestfile', offset=20, length=4)
+        filename = os.path.join(THIS_DIR, 'smalltestfile')
+        self.a = Bits(filename=filename)
+        self.b = Bits(filename=filename, offset=16)
+        self.c = Bits(filename=filename, offset=20, length=16)
+        self.d = Bits(filename=filename, offset=20, length=4)
 
     def testCreationWithOffset(self):
         self.assertEqual(self.a, '0x0123456789abcdef')
@@ -269,7 +273,7 @@ class FileBased(unittest.TestCase):
 
 class Mmap(unittest.TestCase):
     def setUp(self):
-        self.f = open('smalltestfile', 'rb')
+        self.f = open(os.path.join(THIS_DIR, 'smalltestfile'), 'rb')
 
     def tearDown(self):
         self.f.close()

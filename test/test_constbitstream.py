@@ -5,12 +5,14 @@ import sys
 sys.path.insert(0, '..')
 import bitstring
 import io
+import os
 from bitstring import ConstBitStream as CBS
 
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class All(unittest.TestCase):
     def testFromFile(self):
-        s = CBS(filename='test.m1v')
+        s = CBS(filename=os.path.join(THIS_DIR, 'test.m1v'))
         self.assertEqual(s[0:32].hex, '000001b3')
         self.assertEqual(s.read(8 * 4).hex, '000001b3')
         width = s.read(12).uint
@@ -216,7 +218,8 @@ class CreationWithPos(unittest.TestCase):
         self.assertEqual(s.__repr__(), "ConstBitStream('0b110', pos=2)")
 
     def testStringRepresentationFromFile(self):
-        s = CBS(filename='test.m1v', pos=2001)
-        self.assertEqual(s.__repr__(), "ConstBitStream(filename='test.m1v', length=1002400, pos=2001)")
+        filename = os.path.join(THIS_DIR, 'test.m1v')
+        s = CBS(filename=filename, pos=2001)
+        self.assertEqual(s.__repr__(), f"ConstBitStream(filename='{filename}', length=1002400, pos=2001)")
         s.pos = 0
-        self.assertEqual(s.__repr__(), "ConstBitStream(filename='test.m1v', length=1002400)")
+        self.assertEqual(s.__repr__(), f"ConstBitStream(filename='{filename}', length=1002400)")
