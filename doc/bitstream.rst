@@ -1,7 +1,7 @@
 .. currentmodule:: bitstring
 
-The BitStream class
--------------------
+BitStream Class
+===============
 
 .. class:: BitStream([auto, length, offset, pos, **kwargs])
 

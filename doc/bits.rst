@@ -1,7 +1,9 @@
 .. currentmodule:: bitstring
 
-The Bits class
------------------------
+Bits Class
+==========
+
+The ``Bits`` class is the simplest type in the bitstring module, and represents an immutable sequence of bits. This is the best class to use if you will not need to modify the data after creation and don't need streaming methods.
 
 .. class:: Bits([auto, length, offset, **kwargs])
 
@@ -27,13 +29,18 @@ The Bits class
         >>> s = Bits('uint:12=32, 0b110')
         >>> t = Bits('0o755, ue:12, int:3=-1')
 
-    .. method:: all(value[, pos])
+Methods
+-------
+
+all
+^^^
+    .. method:: Bits.all(value[, pos])
 
        Returns ``True`` if all of the specified bits are all set to *value*, otherwise returns ``False``.
 
        If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
        
-       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. It defaults to the whole bitstring.
+       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
        
            >>> s = Bits('int:15=-1')
            >>> s.all(True, [3, 4, 12, 13])
@@ -41,13 +48,15 @@ The Bits class
            >>> s.all(1)
            True
 
-    .. method:: any(value[, pos])
+any
+^^^
+    .. method:: Bits.any(value[, pos])
 
        Returns ``True`` if any of the specified bits are set to *value*, otherwise returns ``False``.
 
        If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
 
-       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. It defaults to the whole bitstring.
+       *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
 
            >>> s = Bits('0b11011100')
            >>> s.any(False, range(6))
@@ -55,32 +64,48 @@ The Bits class
            >>> s.any(1)
            True
 
-    .. method:: count(value)
+copy
+^^^^
+    .. method:: Bits.copy()
+
+        Returns a copy of the bitstring.
+
+        ``s.copy()`` is equivalent to the shallow copy ``s[:]`` and creates a new copy of the bitstring in memory.
+
+count
+^^^^^
+    .. method:: Bits.count(value)
         
         Returns the number of bits set to *value*.
         
         *value* can be ``True`` or ``False`` or anything that can be cast to a bool, so you could equally use ``1`` or ``0``.
         
-            >>> s = BitString(1000000)
+            >>> s = BitArray(1000000)
             >>> s.set(1, [4, 44, 444444])
             >>> s.count(1)
             3
             >>> s.count(False)
-            999997    
+            999997
 
-    .. method:: cut(bits[, start, end, count])
+        Note that if the bitstring is very sparse, as in the example here, it could be quicker to find and count all the set bits with something like ``len(list(s.findall('0b1')))``. For bitstrings with more entropy the ``count`` method will be much quicker than finding.
+
+cut
+^^^
+    .. method:: Bits.cut(bits[, start, end, count])
 
         Returns a generator for slices of the bitstring of length *bits*.
 
         At most *count* items are returned and the range is given by the slice *[start:end]*, which defaults to the whole bitstring. ::
 
-            >>> s = BitString('0x1234')
+            >>> s = BitArray('0x1234')
             >>> for nibble in s.cut(4):
             ...     s.prepend(nibble)
             >>> print(s)
             0x43211234
 
-    .. method:: endswith(bs[, start, end])
+endswith
+^^^^^^^^
+    .. method:: Bits.endswith(bs[, start, end])
 
         Returns ``True`` if the bitstring ends with the sub-string *bs*, otherwise returns ``False``.
 
@@ -92,7 +117,9 @@ The Bits class
             >>> s.endswith('0x22', start=13)
             False
 
-    .. method:: find(bs[, start, end, bytealigned])
+find
+^^^^
+    .. method:: Bits.find(bs[, start, end, bytealigned])
 
         Searches for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
@@ -104,7 +131,9 @@ The Bits class
             >>> s.find('0b000100', bytealigned=True)
             (16,)
 
-    .. method:: findall(bs[, start, end, count, bytealigned])
+findall
+^^^^^^^
+    .. method:: Bits.findall(bs[, start, end, count, bytealigned])
 
         Searches for all occurrences of *bs* (even overlapping ones) and returns a generator of their bit positions.
 
@@ -116,7 +145,9 @@ The Bits class
             >>> list(s.findall('0x22', bytealigned=True))
             [8, 40, 72, 104, 136]
 
-    .. method:: join(sequence)
+join
+^^^^
+    .. method:: Bits.join(sequence)
 
         Returns the concatenation of the bitstrings in the iterable *sequence* joined with ``self`` as a separator. ::
 
@@ -128,7 +159,35 @@ The Bits class
             >>> print(s.bin)
             010101010
 
-    .. method:: rfind(bs[, start, end, bytealigned])
+pp
+^^
+    .. method:: Bits.pp([fmt, width, bits_per_group, sep, show_offset, stream])
+
+        Pretty print the bitstring's value according to the *fmt*. Either one or two formats can be specified, together with options for setting the maximum display *width*, the number of bits to display in each group, and the separator to print between groups.
+
+            >>> s = Bits(int=-98987987293452, length=200)
+            >>> s.pp()
+              0: 11111111 11111111 11111111 11111111 11111111 11111111 11111111 11111111
+             64: 11111111 11111111 11111111 11111111 11111111 11111111 11111111 11111111
+            128: 11111111 11111111 11111111 10100101 11111000 10010000 00101110 00101010
+            192: 11110100
+
+            >>> s.pp('hex, bin', show_offset=False, sep='-', bits_per_group=12)
+            fff-fff-fff-fff   111111111111-111111111111-111111111111-111111111111
+            fff-fff-fff-fff   111111111111-111111111111-111111111111-111111111111
+            fff-fff-fff-fff   111111111111-111111111111-111111111111-111111111111
+            ffa-5f8-902-e2a   111111111010-010111111000-100100000010-111000101010
+            f4                11110100
+
+        The available formats are ``bin`` (the default), ``oct``, ``hex`` and ``bytes``. For the ``bytes`` format unprintable characters are replaced with a full stop. The default ``bits_per_group`` is based on the format or two formats selected but can be overridden.
+
+        If the bitstring cannot be represented in a format due to it's length not being a multiple of the number of bits represented by each character then an :exc:`InterpretError` will be raised.
+
+        An output *stream* can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
+
+rfind
+^^^^^
+    .. method:: Bits.rfind(bs[, start, end, bytealigned])
     
         Searches backwards for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
@@ -144,7 +203,9 @@ The Bits class
             >>> s.rfind('0b100', end=17)
             (12,)
 
-    .. method:: split(delimiter[, start, end, count, bytealigned])
+split
+^^^^^
+    .. method:: Bits.split(delimiter[, start, end, count, bytealigned])
 
         Splits the bitstring into sections that start with *delimiter*. Returns a generator for bitstring objects.
 
@@ -156,15 +217,19 @@ The Bits class
             >>> [bs.bin for bs in s.split('0x4')]
             ['', '01000', '01001000', '0100011']
 
-    .. method:: startswith(bs[, start, end])
+startswith
+^^^^^^^^^^
+    .. method:: Bits.startswith(bs[, start, end])
 
         Returns ``True`` if the bitstring starts with the sub-string *bs*, otherwise returns ``False``.
 
         A slice can be given using the *start* and *end* bit positions and defaults to the whole bitstring.
 
-    .. method:: tobytes()
+tobytes
+^^^^^^^
+    .. method:: Bits.tobytes()
 
-        Returns the bitstring as a ``bytes`` object (equivalent to a ``str`` in Python 2.7).
+        Returns the bitstring as a ``bytes`` object.
 
         The returned value will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
 
@@ -175,7 +240,9 @@ The Bits class
             >>> s.tobytes()
             b'hello@'
 
-    .. method:: tofile(f)
+tofile
+^^^^^^
+    .. method:: Bits.tofile(f)
 
         Writes the bitstring to the file object *f*, which should have been opened in binary write mode.
 
@@ -184,7 +251,9 @@ The Bits class
             >>> f = open('newfile', 'wb')
             >>> Bits('0x1234').tofile(f)
 
-    .. method:: unpack(fmt, **kwargs)
+unpack
+^^^^^^
+    .. method:: Bits.unpack(fmt, **kwargs)
 
         Interprets the whole bitstring according to the *fmt* string or iterable and returns a list of bitstring objects.
         
@@ -196,30 +265,41 @@ The Bits class
             >>> i, b = s.unpack('int:4, bin')
 
         If a token doesn't supply a length (as with ``bin`` above) then it will try to consume the rest of the bitstring. Only one such token is allowed.
-    
-    .. attribute:: bin
+
+Properties
+----------
+
+bin
+^^^
+    .. attribute:: Bits.bin
 
         Property for the representation of the bitstring as a binary string.
-         
-    .. attribute:: bool
+
+bool
+^^^^
+    .. attribute:: Bits.bool
 
        Property for representing the bitstring as a boolean (``True`` or ``False``).
        
        If the bitstring is not a single bit then the getter will raise an :exc:`InterpretError`.
 
-    .. attribute:: bytes
+bytes
+^^^^^
+    .. attribute:: Bits.bytes
 
         Property representing the underlying byte data that contains the bitstring.
 
         When used as a getter the bitstring must be a whole number of byte long or a :exc:`InterpretError` will be raised.
 
         An alternative is to use the :meth:`tobytes` method, which will pad with between zero and seven ``0`` bits to make it byte aligned if needed. ::
-       
+
             >>> s = Bits('0x12345678')
             >>> s.bytes
             b'\x124Vx'
 
-    .. attribute:: hex
+hex
+^^^
+    .. attribute:: Bits.hex
 
         Property representing the hexadecimal value of the bitstring.
 
@@ -229,32 +309,40 @@ The Bits class
             >>> s.hex
             'f0'
 
-    .. attribute:: int
+int
+^^^
+    .. attribute:: Bits.int
 
         Property for the signed two’s complement integer representation of the bitstring.
 
-    .. attribute:: intbe
+intbe
+^^^^^
+    .. attribute:: Bits.intbe
 
         Property for the byte-wise big-endian signed two's complement integer representation of the bitstring.
 
         Only valid for whole-byte bitstrings, in which case it is equal to ``s.int``, otherwise an :exc:`InterpretError` is raised.
 
-
-    .. attribute:: intle
+intle
+^^^^^
+    .. attribute:: Bits.intle
 
         Property for the byte-wise little-endian signed two's complement integer representation of the bitstring.
 
         Only valid for whole-byte bitstring, in which case it is equal to ``s[::-8].int``, i.e. the integer representation of the byte-reversed bitstring.
 
-    .. attribute:: intne
+intne
+^^^^^
+    .. attribute:: Bits.intne
 
         Property for the byte-wise native-endian signed two's complement integer representation of the bitstring.
 
         Only valid for whole-byte bitstrings, and will equal either the big-endian or the little-endian integer representation depending on the platform being used.
 
-
-    .. attribute:: float
-    .. attribute:: floatbe
+float / floatbe
+^^^^^^^^^^^^^^^
+    .. attribute:: Bits.float
+    .. attribute:: Bits.floatbe
 
         Property for the floating point representation of the bitstring.
 
@@ -264,84 +352,113 @@ The Bits class
 
         The :attr:`float` property is bit-wise big-endian, which as all floats must be whole-byte is exactly equivalent to the byte-wise big-endian :attr:`floatbe`. 
 
-    .. attribute:: floatle
+floatle
+^^^^^^^
+    .. attribute:: Bits.floatle
 
         Property for the byte-wise little-endian floating point representation of the bitstring.
 
-    .. attribute:: floatne
+floatne
+^^^^^^^
+    .. attribute:: Bits.floatne
 
         Property for the byte-wise native-endian floating point representation of the bitstring.
 
-    .. attribute:: len
-    .. attribute:: length
+len / length
+^^^^^^^^^^^^
+    .. attribute:: Bits.len
+    .. attribute:: Bits.length
 
         Read-only property that give the length of the bitstring in bits (:attr:`len` and :attr:`length` are equivalent).
 
         This is almost equivalent to using the ``len()`` built-in function, except that for large bitstrings ``len()`` may fail with an :exc:`OverflowError`, whereas the :attr:`len` property continues to work.
 
-    .. attribute:: oct
+oct
+^^^
+    .. attribute:: Bits.oct
 
         Property for the octal representation of the bitstring.
 
         If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`InterpretError`. ::
 
-            >>> s = BitString('0b111101101')
+            >>> s = Bits('0b111101101')
             >>> s.oct
             '755'
             >>> s.oct = '01234567'
             >>> s.oct
             '01234567'
 
-    .. attribute:: se
+se
+^^
+    .. attribute:: Bits.se
 
         Property for the signed exponential-Golomb code representation of the bitstring.
 
         When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code. ::
 
-            >>> s = BitString(se=-40)
+            >>> s = BitArray(se=-40)
             >>> s.bin
             0000001010001
             >>> s += '0b1'
             >>> s.se
             Error: BitString is not a single exponential-Golomb code.
 
-    .. attribute:: ue
+ue
+^^
+    .. attribute:: Bits.ue
 
         Property for the unsigned exponential-Golomb code representation of the bitstring.
 
         When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
 
-    .. attribute:: sie
+sie
+^^^
+    .. attribute:: Bits.sie
 
         Property for the signed interleaved exponential-Golomb code representation of the bitstring.
 
         When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
 
-    .. attribute:: uie
+uie
+^^^
+    .. attribute:: Bits.uie
 
         Property for the unsigned interleaved exponential-Golomb code representation of the bitstring.
 
         When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
 
-    .. attribute:: uint
+uint
+^^^^
+    .. attribute:: Bits.uint
 
         Property for the unsigned base-2 integer representation of the bitstring.
 
-    .. attribute:: uintbe
+uintbe
+^^^^^^
+    .. attribute:: Bits.uintbe
 
         Property for the byte-wise big-endian unsigned base-2 integer representation of the bitstring.
 
-    .. attribute:: uintle
+uintle
+^^^^^^
+    .. attribute:: Bits.uintle
 
         Property for the byte-wise little-endian unsigned base-2 integer representation of the bitstring.
 
-    .. attribute:: uintne
+uintne
+^^^^^^
+    .. attribute:: Bits.uintne
 
         Property for the byte-wise native-endian unsigned base-2 integer representation of the bitstring.
 
 
-    .. method:: __add__(bs)
-    .. method:: __radd__(bs)
+Special Methods
+---------------
+
+__add__ / __radd__
+^^^^^^^^^^^^^^^^^^
+    .. method:: Bits.__add__(bs)
+    .. method:: Bits.__radd__(bs)
 
         ``s1 + s2``
 
@@ -350,8 +467,10 @@ The Bits class
             s = Bits(ue=132) + '0xff'
             s2 = '0b101' + s 
 
-    .. method:: __and__(bs)
-    .. method:: __rand__(bs)
+__and__ / __rand__
+^^^^^^^^^^^^^^^^^^
+    .. method:: Bits.__and__(bs)
+    .. method:: Bits.__rand__(bs)
 
         ``s1 & s2``
 
@@ -359,15 +478,15 @@ The Bits class
 
             >>> print(Bits('0x33') & '0x0f')
             0x03
-            
-    .. method:: __bool__()
+
+__bool__
+^^^^^^^^
+    .. method:: Bits.__bool__()
     
         ``if s:``
         
         Returns ``True`` if at least one bit is set to 1, otherwise returns ``False``.
-        
-        This special method is used in Python 3 only; for Python 2.7 the equivalent is called ``__nonzero__``, but the details are exactly the same. ::
-        
+
             >>> bool(Bits())
             False
             >>> bool(Bits('0b0000010000'))
@@ -375,7 +494,9 @@ The Bits class
             >>> bool(Bits('0b0000000000'))
             False
 
-    .. method:: __contains__(bs)
+__contains__
+^^^^^^^^^^^^
+    .. method:: Bits.__contains__(bs)
 
         ``bs in s``
 
@@ -388,7 +509,9 @@ The Bits class
             >>> '0b111' in Bits('0x06')
             False
 
-    .. method:: __copy__()
+__copy__
+^^^^^^^^
+    .. method:: Bits.__copy__()
 
         ``s2 = copy.copy(s1)``
 
@@ -402,7 +525,9 @@ The Bits class
             >>> s == s_copy1 == s_copy2 == s_copy3
             True
 
-    .. method:: __eq__(bs)
+__eq__
+^^^^^^
+    .. method:: Bits.__eq__(bs)
 
         ``s1 == s2``
 
@@ -415,7 +540,9 @@ The Bits class
             >>> a == b
             False
 
-    .. method:: __getitem__(key)
+__getitem__
+^^^^^^^^^^^
+    .. method:: Bits.__getitem__(key)
 
         ``s[start:end:step]``
 
@@ -436,15 +563,19 @@ The Bits class
             >>> s[-1]
             True
 
-    .. method:: __hash__()
+__hash__
+^^^^^^^^
+    .. method:: Bits.__hash__()
     
         ``hash(s)``
         
         Returns an integer hash of the :class:`Bits`.
         
         This method is not available for the :class:`BitArray` or :class:`BitStream` classes, as only immutable objects should be hashed. You typically won't need to call it directly, instead it is used for dictionary keys and in sets.
-         
-    .. method:: __invert__()
+
+__invert__
+^^^^^^^^^^
+    .. method:: Bits.__invert__()
 
         ``~s``
 
@@ -458,7 +589,9 @@ The Bits class
             >>> print(~s & s)
             0b0000000
 
-    .. method:: __len__()
+__len__
+^^^^^^^
+    .. method:: Bits.__len__()
 
         ``len(s)``
 
@@ -474,7 +607,9 @@ The Bits class
             >>> s.__len__()
             93944160032
 
-    .. method:: __lshift__(n)
+__lshift__
+^^^^^^^^^^
+    .. method:: Bits.__lshift__(n)
 
         ``s << n``
 
@@ -484,8 +619,10 @@ The Bits class
             >>> s << 4
             Bits('0xf0')
 
-    .. method:: __mul__(n)
-    .. method:: __rmul__(n)
+__mul__ / __rmul__
+^^^^^^^^^^^^^^^^^^
+    .. method:: Bits.__mul__(n)
+    .. method:: Bits.__rmul__(n)
 
         ``s * n / n * s``
 
@@ -496,18 +633,24 @@ The Bits class
             >>> print(b)
             0x3434343434
 
-    .. method:: __ne__(bs)
+__ne__
+^^^^^^
+    .. method:: Bits.__ne__(bs)
 
         ``s1 != s2``
 
         Compares two bitstring objects for inequality, returning ``False`` if they have the same binary representation, otherwise returning ``True``. 
 
-    .. method:: __nonzero__()
+__nonzero__
+^^^^^^^^^^^
+    .. method:: Bits.__nonzero__()
     
         See :meth:`__bool__`.
 
-    .. method:: __or__(bs)
-    .. method:: __ror__(bs)
+__or__ / __ror__
+^^^^^^^^^^^^^^^^
+    .. method:: Bits.__or__(bs)
+    .. method:: Bits.__ror__(bs)
 
         ``s1 | s2``
 
@@ -516,7 +659,9 @@ The Bits class
             >>> print(Bits('0x33') | '0x0f')
             0x3f
 
-    .. method:: __repr__()
+__repr__
+^^^^^^^^
+    .. method:: Bits.__repr__()
 
         ``repr(s)``
 
@@ -527,7 +672,9 @@ The Bits class
             >>> Bits(‘0b11100011’)
             Bits(‘0xe3’)
 
-    .. method:: __rshift__(n)
+__rshift__
+^^^^^^^^^^
+    .. method:: Bits.__rshift__(n)
 
         ``s >> n``
 
@@ -537,7 +684,9 @@ The Bits class
             >>> s >> 4
             Bits(‘0x0f’)
 
-    .. method:: __str__()
+__str__
+^^^^^^^
+    .. method:: Bits.__str__()
 
         ``print(s)``
 
@@ -551,8 +700,10 @@ The Bits class
             >>> print(s + '0b1')
             0xff
 
-    .. method:: __xor__(bs)
-    .. method:: __rxor__(bs)
+__xor__ / __rxor__
+^^^^^^^^^^^^^^^^^^
+    .. method:: Bits.__xor__(bs)
+    .. method:: Bits.__rxor__(bs)
 
         ``s1 ^ s2``
 

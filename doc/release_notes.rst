@@ -5,8 +5,64 @@
 Release Notes
 *************
 
-Full Version History
+Full version history
 ====================
+
+2022: version 4.0.0 released
+----------------------------
+
+This is a major release which drops support for Python 2.7 and has a new minimum
+requirement of Python 3.7. Around 94% of downloads satisfy this - users of
+older versions can continue to use bitstring 3.1, which will still be supported
+with fixes, but no new features.
+
+Other changes are minimal, with a few features added.
+
+Breaking changes:
+
+* Minimum supported Python version is now Python 3.7.
+* Removed ConstBitArray and BitString class aliases. Use Bits and BitStream instead.
+* The cut() method will now also yield the final bits of a bitstring, even if they
+  are shorter than the requested cut size.
+* Removed default uint interpretation. This wasn't being applied uniformly - default
+  is now always to return a bitstring object of the given length and not to interpret
+  it as a uint. Bug 220.
+
+New features and improvements:
+
+* Type hints added throughout the code.
+* Underscores are now allowed in strings representing number literals.
+* The copy() method now works on Bits as well as BitArray objects.
+* The experimental command-line feature is now official. Command-line
+  parameters are concatenated and a bitstring created from them. If
+  the final parameter is either an interpretation string or ends with
+  a ``.`` followed by an interpretation string then that interpretation
+  of the bitstring will be used when printing it. ::
+
+
+      $ python -m bitstring int:16=-400
+      0xfe70
+      $ python -m bitstring float:32=0.2 bin
+      00111110010011001100110011001101
+
+* New pp() method that pretty-prints the bitstring in various formats - useful
+  especially in interactive sessions. Thanks to Omer Barak for the suggestion
+  and discussion.
+
+
+    >>> s.pp()
+      0: 10001000 01110110 10001110 01110110 11111000 01110110 10000111 00101000
+     64: 01110010 11111001 10000111 10011000 11110111 10011110 10000111 11111101
+    128: 11111001 10001100 01111111 10111100 10111111 11011011 11101011 11111011
+    192: 1100
+    >>> s.pp('bin, hex')
+      0: 10001000 01110110 10001110 01110110 11111000 01110110   88 76 8e 76 f8 76
+     48: 10000111 00101000 01110010 11111001 10000111 10011000   87 28 72 f9 87 98
+     96: 11110111 10011110 10000111 11111101 11111001 10001100   f7 9e 87 fd f9 8c
+    144: 01111111 10111100 10111111 11011011 11101011 11111011   7f bc bf db eb fb
+    192: 1100
+
+
 
 May 5th 2020: version 3.1.7 released
 -------------------------------------
@@ -633,13 +689,9 @@ you can just write ::
 
     >>> a = Bits(some_bytearray)
 
-This also works for the bytes type, but only if you're using Python 3.
-For Python 2.7 it's not possible to distinguish between a bytes object and a
-str. For this reason this method should be used with some caution as it will
-make you code behave differently with the different major Python versions. ::
+This also works for the bytes type ::
 
-
-    >>> b = Bits(b'abcd\x23\x00') # Only Python 3!
+    >>> b = Bits(b'abcd\x23\x00')
 
 
 ``set``, ``invert``, ``all`` and ``any`` default to whole bitstring

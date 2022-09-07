@@ -2,26 +2,26 @@
 
 .. _walkthrough:
 
-***********
 Walkthrough
-***********
+===========
 
-A Brief Introduction
-====================
+Introduction
+------------
 
 The aim of the :mod:`bitstring` module is make dealing with binary data in Python as easy as possible. In this section I will take you through some of the features of the module to help you get started using it.
 
-Only a few of the module's features will be covered in this walkthrough; the :ref:`manual` and :ref:`reference` provide a more thorough guide. The whole of this section can be safely skipped or skimmed over if you prefer to start with the manual. If however you'd like a gentler introduction then you might like to follow along the examples with a Python interpreter.
+Only a few of the module's features will be covered in this walkthrough; the rest of this :ref:`manual` and the :ref:`reference` provide a more thorough guide. The whole of this section can be safely skipped or skimmed over if you prefer to start with the manual. If however you'd like a gentler introduction then you might like to follow along the examples with a Python interpreter.
+
 
 Prerequisites
 -------------
 
-* Python 2.7 or 3.6 or later.
+* Python 3.7 or later.
 * An installed bitstring module.
 * A rudimentary knowledge of binary concepts.
 * A little free time.
 
-If you haven't yet downloaded and installed :mod:`bitstring` then please do so (it should be as easy as typing "``pip install bitstring``"). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.
+If you haven't yet downloaded and installed :mod:`bitstring` then please do so (it should be as easy as typing ``pip install bitstring``). I'll be going through some examples using the interactive Python interpreter, so feel free to start up a Python session and follow along.
 
 Getting started
 ---------------
@@ -66,7 +66,7 @@ Now you would be forgiven for thinking that the strings that we used to create t
 There are a few things to note here:
 
 * To get the different interpretations of the binary data we use properties such as :attr:`~Bits.bin`, :attr:`~Bits.hex`, :attr:`~Bits.oct`, :attr:`~Bits.int` and :attr:`~Bits.bytes`. You can probably guess what these all mean, but you don't need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.
-* The :attr:`~Bits.bytes` property returns a ``bytes`` object. This is slightly different in Python 2.7 to Python 3 - in Python 2.7 you would get ``'\xff\x01'`` returned instead.
+* The :attr:`~Bits.bytes` property returns a ``bytes`` object.
 
 Great - let's try some more::
 
@@ -118,7 +118,7 @@ Note how we are just using ordinary strings to specify the new bitstrings we are
 
  The length in bits of bitstrings specified with strings depends on the number of characters, including leading zeros. So each hex character is four bits, each octal character three bits and each binary character one bit.
 
-Finding and Replacing
+Finding and replacing
 ---------------------
 
 A :meth:`~Bits.find` is provided to search for bit patterns within a bitstring. You can choose whether to search only on byte boundaries or at any bit position::
@@ -232,7 +232,8 @@ If you don't want to use a bitstream then you can always use :meth:`~Bits.unpack
     >>> s.unpack('bytes:4, 2*uint:12, uint:4')
     ['\x00\x00\x01\xb3', 352, 288, 1]
 
-Worked examples
+
+Worked Examples
 ===============
 
 Below are a few examples of using the bitstring module, as I always find that a good example can help more than a lengthy reference manual.
@@ -271,4 +272,4 @@ So to print all primes under a million you could write::
             # Set all multiples of our prime to 1.
             has_factors.set(True, range(i*2, 1000000, i))
 
-I'll leave optimising the algorithm as an exercise for the reader, but it illustrates both bit checking and setting. One reason you might want to use a bitstring for this purpose (instead of a plain list for example) is that the million bits only take up a million bits in memory, whereas for a list of integers it would be much more. Try asking for a billion elements in a list - unless you've got some really nice hardware it will fail, whereas a billion element bitstring only takes 125MB.
+I'll leave optimising the algorithm as an exercise for the reader, but it illustrates both bit checking and setting. One reason you might want to use a bitstring for this purpose (instead of a plain list for example) is that the million bits only take up a million bits in memory, whereas for a list of integers it would be much more. Try asking for a billion elements in a list - unless you've got some really nice hardware it will fail, whereas a billion element bitstring only takes 125MiB.

@@ -1,58 +1,75 @@
 
 .. currentmodule:: bitstring
 
+.. image:: bitstring_logo.png
+   :width: 400px
 
-**bitstring** is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
 
-Features
---------
+`bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
 
-* Supports Python 2.7 and Python 3.6 and later.
-* Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
-* Bit level slicing, joining, searching, replacing and more.
+It has been maintained since 2006 and now has about `20 million downloads per year. <https://pypistats.org/packages/bitstring>`_
+
+
+Overview
+========
+
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
 * Powerful binary packing and unpacking functions.
+* Bit level slicing, joining, searching, replacing and more.
 * Read from and interpret bitstrings as streams of binary data.
+* Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
+* Supports Python 3.7 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
+* Open source software, released under the MIT licence.
 
-Installation and Download
+A short example usage
+---------------------
+
+::
+
+    >>> s = bitstring.BitArray('0x4f8e220')
+    >>> s.unpack('uint:12, hex:8, bin')
+    [1272, 'e2', '00100000']
+    >>> '0b11000' in s
+    True
+    >>> s += 'float:32=0.001'
+    >>> s.bin
+    '010011111000111000100010000000111010100000110001001001101111'
+    >>> s[-32:].float
+    0.0010000000474974513
+
+
+Installation and download
 -------------------------
 
 To install just ``pip install bitstring``.
 
-To download the module, as well as for defect reports, enhancement requests and Git repository browsing go to the project's home on GitHub: http://scott-griffiths.github.io/bitstring/
+To download the module, as well as for defect reports, enhancement requests and Git repository browsing go to `the project's home on GitHub. <https://github.com/scott-griffiths/bitstring/>`_
 
 Documentation
 -------------
 
-The manual provides an introduction to the module and details most its capabilities.
+The :ref:`manual` provides an introduction to the module and details most its capabilities.
 
-The reference section has a complete list of all the classes, methods, attributes and functions of the :mod:`bitstring` module, together with short examples for many items.
+The :ref:`reference` section has a complete list of all the classes, methods, properties and functions of the bitstring module, together with short examples for many items.
+
+.. toctree::
+   :hidden:
+
+   self
 
 .. toctree::
     :maxdepth: 2
 
-    contents
+    manual
     reference
     appendices
 
 
-The manual is also available as a PDF:
-
-* `Latest manual (PDF) <https://github.com/scott-griffiths/bitstring/raw/master/doc/bitstring_manual.pdf>`_
-
-Index and search
-----------------
-
-* :ref:`genindex`
-* :ref:`search`
-
 Credits
 -------
 
-Written by Scott Griffiths <dr.scottgriffiths@gmail.com>. If you have any questions, suggestions or criticisms (about this module!) then please email me. Also if you use bitstring in your own project then I'd be interested to hear how it's being used.
+Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files. Maintained and expanded ever since as it became unexpectedly popular. Thanks to all those who have contributed ideas and code (and bug reports) over the years.
 
-
-
-
+These docs are styled using the `Piccolo theme <https://github.com/piccolo-orm/piccolo_theme>`_.
 
 

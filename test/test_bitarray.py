@@ -10,6 +10,7 @@ sys.path.insert(0, '..')
 import bitstring
 from bitstring import BitArray
 
+
 class All(unittest.TestCase):
     def testCreationFromUint(self):
         s = BitArray(uint=15, length=6)
@@ -63,8 +64,15 @@ class NoPosAttribute(unittest.TestCase):
 
     def testOverwrite(self):
         s = BitArray('0b01110')
+        self.assertEqual(s._pos, None)
         s.overwrite('0b000', 1)
         self.assertEqual(s, '0b00000')
+        self.assertEqual(s._pos, None)
+
+    def testOverwriteNoPos(self):
+        s = BitArray('0x01234')
+        with self.assertRaises(TypeError):
+            s.overwrite('0xf')
 
     def testOverwriteParameters(self):
         s = BitArray('0b0000')
@@ -97,7 +105,7 @@ class NoPosAttribute(unittest.TestCase):
 class Bugs(unittest.TestCase):
     def testAddingNonsense(self):
         a = BitArray([0])
-        a += '0' # a uint of length 0 - so nothing gets added.
+        a += '0'  # a uint of length 0 - so nothing gets added.
         self.assertEqual(a, [0])
         with self.assertRaises(ValueError):
             a += '3'
@@ -127,8 +135,8 @@ class ByteAligned(unittest.TestCase):
     def testNotByteAligned(self):
         bitstring.bytealigned = False
         a = BitArray('0x00 ff 0f f')
-        l = list(a.findall('0xff'))
-        self.assertEqual(l, [8, 20])
+        li = list(a.findall('0xff'))
+        self.assertEqual(li, [8, 20])
         p = a.find('0x0f')[0]
         self.assertEqual(p, 4)
         p = a.rfind('0xff')[0]
@@ -141,8 +149,8 @@ class ByteAligned(unittest.TestCase):
     def testByteAligned(self):
         bitstring.bytealigned = True
         a = BitArray('0x00 ff 0f f')
-        l = list(a.findall('0xff'))
-        self.assertEqual(l, [8])
+        li = list(a.findall('0xff'))
+        self.assertEqual(li, [8])
         p = a.find('0x0f')[0]
         self.assertEqual(p, 16)
         p = a.rfind('0xff')[0]
@@ -265,33 +273,28 @@ class SliceAssignment(unittest.TestCase):
 
     def testSetSliceErrors(self):
         a = BitArray(8)
-        try:
+        with self.assertRaises(ValueError):
             a[::3] = [1]
-            self.assertTrue(False)
-        except ValueError:
+
+        class A(object):
             pass
-        class A(object): pass
-        try:
+        with self.assertRaises(TypeError):
             a[1:2] = A()
-            self.assertTrue(False)
-        except TypeError:
-            pass
-        try:
+        with self.assertRaises(ValueError):
             a[1:4:-1] = [1, 2]
-            self.assertTrue(False)
-        except ValueError:
-            pass
 
 
 class Subclassing(unittest.TestCase):
 
     def testIsInstance(self):
-        class SubBits(BitArray): pass
+        class SubBits(BitArray):
+            pass
         a = SubBits()
         self.assertTrue(isinstance(a, SubBits))
 
     def testClassType(self):
-        class SubBits(BitArray): pass
+        class SubBits(BitArray):
+            pass
         self.assertEqual(SubBits().__class__, SubBits)
 
 
@@ -430,8 +433,8 @@ class Lsb0Setting(unittest.TestCase):
 
     def testCut(self):
         a = BitArray('0xff00ff1111ff2222')
-        l = list(a.cut(16))
-        self.assertEqual(l, ['0x2222', '0x11ff', '0xff11', '0xff00'])
+        li = list(a.cut(16))
+        self.assertEqual(li, ['0x2222', '0x11ff', '0xff11', '0xff00'])
 
     def testFind(self):
         a = BitArray('0b10101010, 0xabcd, 0b10101010, 0x0')
@@ -450,8 +453,8 @@ class Lsb0Setting(unittest.TestCase):
 
     def testSplit(self):
         a = BitArray('0x4700004711472222')
-        l = list(a.split('0x47', bytealigned=True))
-        self.assertEqual(l, ['', '0x472222', '0x4711', '0x470000'])
+        li = list(a.split('0x47', bytealigned=True))
+        self.assertEqual(li, ['', '0x472222', '0x4711', '0x470000'])
 
     def testByteSwap(self):
         a = BitArray('0xff00ff00ff00')

@@ -8,23 +8,23 @@ Quick Reference
 This section lists the bitstring module's classes together with all their methods and attributes. The next section goes into full detail with examples.
 
 Bits
--------------
+----
 
-``Bits(object)``
-
-A ``Bits`` is the most basic class. It is immutable, so once created its value cannot change. It is a base class for all the other classes in the `bitstring` module.
+``Bits`` is the most basic class. It is immutable, so once created its value cannot change. It is a base class for all the other classes in the `bitstring` module.
 
 Methods
 ^^^^^^^
 
  *   :meth:`~Bits.all` -- Check if all specified bits are set to 1 or 0.
  *   :meth:`~Bits.any` -- Check if any of specified bits are set to 1 or 0.
+ *   :meth:`~Bits.copy` -- Return a copy of the bitstring.
  *   :meth:`~Bits.count` -- Count the number of bits set to 1 or 0.
  *   :meth:`~Bits.cut` -- Create generator of constant sized chunks.
  *   :meth:`~Bits.endswith` -- Return whether the bitstring ends with a sub-bitstring.
  *   :meth:`~Bits.find` -- Find a sub-bitstring in the current bitstring.
  *   :meth:`~Bits.findall` -- Find all occurrences of a sub-bitstring in the current bitstring.
  *   :meth:`~Bits.join` -- Join bitstrings together using current bitstring.
+ *   :meth:`~Bits.pp` -- Pretty print the bitstring.
  *   :meth:`~Bits.rfind` -- Seek backwards to find a sub-bitstring.
  *   :meth:`~Bits.split` -- Create generator of chunks split by a delimiter.
  *   :meth:`~Bits.startswith` -- Return whether the bitstring starts with a sub-bitstring.
@@ -69,7 +69,7 @@ BitArray
 ``BitArray(Bits)``
 
 
-This class adds mutating methods to `Bits`.
+This class adds mutating methods to ``Bits``.
 
 Additional methods
 ^^^^^^^^^^^^^^^^^^
@@ -77,7 +77,6 @@ Additional methods
  *   :meth:`~BitArray.append` -- Append a bitstring.
  *   :meth:`~BitArray.byteswap` -- Change byte endianness in-place.
  *   :meth:`~BitArray.clear` -- Remove all bits from the bitstring.
- *   :meth:`~BitArray.copy` -- Return a copy of the bitstring.
  *   :meth:`~BitArray.insert` -- Insert a bitstring.
  *   :meth:`~BitArray.invert` -- Flip bit(s) between one and zero.
  *   :meth:`~BitArray.overwrite` -- Overwrite a section with a new bitstring.
@@ -93,7 +92,7 @@ Additional special methods
 
     Mutating operators are available: ``[]``, ``<<=``, ``>>=``, ``*=``, ``&=``, ``|=`` and ``^=``.
 
-Attributes
+Properties
 ^^^^^^^^^^
 
     The same as ``Bits``, except that they are all (with the exception of ``len``) writable as well as readable.
@@ -104,7 +103,7 @@ ConstBitStream
 
 ``ConstBitStream(Bits)``
 
-This class, previously known as just ``Bits`` (which is an alias for backward-compatibility), adds a bit position and methods to read and navigate in the bitstream.
+This class adds a bit position and methods to read and navigate in the bitstream.
 
 Additional methods
 ^^^^^^^^^^^^^^^^^^
@@ -116,7 +115,7 @@ Additional methods
  *   :meth:`~ConstBitStream.readlist` -- Read and interpret next bits as a list of items.
  *   :meth:`~ConstBitStream.readto` -- Read up to and including next occurrence of a bitstring.
 
-Additional attributes
+Additional properties
 ^^^^^^^^^^^^^^^^^^^^^
 
  *   :attr:`~ConstBitStream.bytepos` -- The current byte position in the bitstring.
@@ -128,6 +127,6 @@ BitStream
 
 ``BitStream(BitArray, ConstBitStream)``
 
-This class, also known as ``BitString``, contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
+This class contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``. It is the most general of the four classes, but it is usually best to choose the simplest class for your use case.
 
 

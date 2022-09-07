@@ -2,8 +2,10 @@
 """
 Module-level unit tests.
 """
-
+import io
 import unittest
+from unittest import mock
+from contextlib import redirect_stdout
 import sys
 sys.path.insert(0, '..')
 import bitstring
@@ -12,44 +14,24 @@ import copy
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '3.1.9')
+        self.assertEqual(bitstring.__version__, '4.0.0')
 
     def testAll(self):
-        exported = ['ConstBitArray', 'ConstBitStream', 'BitStream', 'BitArray',
-                    'Bits', 'BitString', 'pack', 'Error', 'ReadError',
+        exported = ['ConstBitStream', 'BitStream', 'BitArray',
+                    'Bits', 'pack', 'Error', 'ReadError',
                     'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
         self.assertEqual(set(bitstring.__all__), set(exported))
 
     def testReverseDict(self):
-        d = bitstring.BYTE_REVERSAL_DICT
+        d = bitstring.Bits._byteReversalDict
         for i in range(256):
             a = bitstring.Bits(uint=i, length=8)
             b = d[i]
             self.assertEqual(a.bin[::-1], bitstring.Bits(bytes=b).bin)
 
-    def testAliases(self):
-        self.assertTrue(bitstring.Bits is bitstring.ConstBitArray)
-        self.assertTrue(bitstring.BitStream is bitstring.BitString)
-
-
-class MemoryUsage(unittest.TestCase):
-    def testBaselineMemory(self):
-        try:
-            import pympler.asizeof.asizeof as size
-        except ImportError:
-            return
-        # These values might be platform dependent, so don't fret too much.
-        self.assertEqual(size(bitstring.ConstBitStream([0])), 64)
-        self.assertEqual(size(bitstring.Bits([0])), 64)
-        self.assertEqual(size(bitstring.BitStream([0])), 64)
-        self.assertEqual(size(bitstring.BitArray([0])), 64)
-        from bitstring.bitstore import ByteStore
-        self.assertEqual(size(ByteStore(bytearray())), 100)
-
 
 class Copy(unittest.TestCase):
     def testConstBitArrayCopy(self):
-        import copy
         cba = bitstring.Bits(100)
         cba_copy = copy.copy(cba)
         self.assertTrue(cba is cba_copy)
@@ -103,5 +85,46 @@ class LSB0(unittest.TestCase):
         self.assertEqual(bitstring._lsb0, True)
         bitstring.set_msb0()
         self.assertEqual(bitstring._lsb0, False)
-        
-        
+
+
+class Main(unittest.TestCase):
+    def testRunningModuleDirectlyHelp(self):
+        with redirect_stdout(io.StringIO()) as f:
+            with mock.patch('sys.argv', ['bitstring.py', '-h']):
+                bitstring.main()
+        s = f.getvalue()
+        self.assertTrue(s.find("command-line parameters") >= 0)
+
+        with redirect_stdout(io.StringIO()) as f:
+            with mock.patch('sys.argv', ['renamed.py']):
+                bitstring.main()
+        s = f.getvalue()
+        self.assertTrue(s.find("command-line parameters") >= 0)
+
+    def testRunningModuleWithSingleParameter(self):
+        with redirect_stdout(io.StringIO()) as f:
+            with mock.patch('sys.argv', ['', 'uint:12=352']):
+                bitstring.main()
+        s = f.getvalue()
+        self.assertEqual(s, '0x160\n')
+
+    def testRunningModuleWithSingleParameterAndInterpretation(self):
+        with redirect_stdout(io.StringIO()) as f:
+            with mock.patch('sys.argv', ['ignored', 'uint:12=352', 'int']):
+                bitstring.main()
+        s = f.getvalue()
+        self.assertEqual(s, '352\n')
+
+    def testRunningModuleWithMultipleParameters(self):
+        with redirect_stdout(io.StringIO()) as f:
+            with mock.patch('sys.argv', ['b.py', 'uint:12=352', '0b101', '0o321', 'float:32=51', 'bin:1=1']):
+                bitstring.main()
+        s = f.getvalue()
+        self.assertEqual(s, '0x160ad1424c0000, 0b1\n')
+
+    def testRunningModuleWithMultipleParametersAndInterpretation(self):
+        with redirect_stdout(io.StringIO()) as f:
+            with mock.patch('sys.argv', ['b.py', 'ue=1000', '0xff.bin']):
+                bitstring.main()
+        s = f.getvalue()
+        self.assertEqual(s, '000000000111110100111111111\n')

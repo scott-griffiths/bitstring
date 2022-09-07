@@ -1,6 +1,5 @@
 .. currentmodule:: bitstring
 
-
 Interpreting Bitstrings
 -----------------------
 
@@ -9,6 +8,8 @@ Bitstrings don't know or care how they were created; they are just collections o
 Several Python properties are used to create interpretations for the bitstring. These properties call private functions which will calculate and return the appropriate interpretation. These don’t change the bitstring in any way and it remains just a collection of bits. If you use the property again then the calculation will be repeated.
 
 Note that these properties can potentially be very expensive in terms of both computation and memory requirements. For example if you have initialised a bitstring from a 10 GiB file object and ask for its binary string representation then that string will be around 80 GiB in size!
+
+If you're in an interactive session then the pretty-print method :meth:`~Bits.pp` can be useful as it will only convert the bitstring one chunk at a time for display.
 
 For the properties described below we will use these::
 
@@ -99,7 +100,7 @@ Note also that standard floating point numbers in Python are stored in 64 bits, 
 bytes
 ^^^^^
 
-A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the :attr:`~Bits.bytes` interpretation, which returns a ``bytes`` object (which is equivalent to an ordinary ``str`` in Python 2.7).
+A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the :py:attr:`~Bits.bytes` interpretation, which returns a ``bytes`` object.
 
 If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`~Bits.tobytes` as this will be pad with between one and seven zero bits up to a byte boundary if necessary. ::
 

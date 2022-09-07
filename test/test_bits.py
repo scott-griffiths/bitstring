@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import io
 import unittest
 import sys
 
@@ -67,9 +67,9 @@ class Creation(unittest.TestCase):
     def testCreationFromOctErrors(self):
         s = Bits('0b00011')
         with self.assertRaises(bitstring.InterpretError):
-            s.oct
+            _ = s.oct
         with self.assertRaises(bitstring.CreationError):
-            Bits('oct=8')
+            _ = Bits('oct=8')
 
     def testCreationFromUintWithOffset(self):
         with self.assertRaises(bitstring.CreationError):
@@ -102,7 +102,7 @@ class Creation(unittest.TestCase):
             for value in range(-17, 17):
                 s = Bits(int=value, length=length)
                 self.assertEqual((s.int, s.length), (value, length))
-        s = Bits(int=10, length=8)
+        _ = Bits(int=10, length=8)
 
     def testCreationFromIntErrors(self):
         with self.assertRaises(bitstring.CreationError):
@@ -128,7 +128,7 @@ class Creation(unittest.TestCase):
             Bits(se=-5, length=33)
         s = Bits(bin='001000')
         with self.assertRaises(bitstring.InterpretError):
-            s.se
+            _ = s.se
 
     def testCreationFromUe(self):
         [self.assertEqual(Bits(ue=i).ue, i) for i in range(0, 20)]
@@ -144,7 +144,7 @@ class Creation(unittest.TestCase):
             Bits(ue=1, length=12)
         s = Bits(bin='10')
         with self.assertRaises(bitstring.InterpretError):
-            s.ue
+            _ = s.ue
 
     def testCreationFromBool(self):
         a = Bits('bool=1')
@@ -172,12 +172,8 @@ class Initialisation(unittest.TestCase):
 
     def testNoPos(self):
         a = Bits('0xabcdef')
-        try:
-            a.pos
-        except AttributeError:
-            pass
-        else:
-            assert False
+        with self.assertRaises(AttributeError):
+            _ = a.pos
 
     def testFind(self):
         a = Bits('0xabcd')
@@ -234,9 +230,9 @@ class InterleavedExpGolomb(unittest.TestCase):
         for f in ['sie=100, 0b1001', '0b00', 'uie=100, 0b1001']:
             s = Bits(f)
             with self.assertRaises(bitstring.InterpretError):
-                s.sie
+                _ = s.sie
             with self.assertRaises(bitstring.InterpretError):
-                s.uie
+                _ = s.uie
         with self.assertRaises(ValueError):
             Bits(uie=-10)
 
@@ -261,7 +257,7 @@ class FileBased(unittest.TestCase):
         self.assertEqual(self.a[23:36] | self.c[3:], self.c[3:])
 
     def testAddition(self):
-        h = self.d + '0x1'
+        _ = self.d + '0x1'
         x = self.a[20:24] + self.c[-4:] + self.c[8:12]
         self.assertEqual(x, '0x587')
         x = self.b + x
@@ -270,6 +266,7 @@ class FileBased(unittest.TestCase):
         del x[12:24]
         self.assertEqual(x, '0x456abcdef587')
         
+
 class Mmap(unittest.TestCase):
     def setUp(self):
         self.f = open('smalltestfile', 'rb')
@@ -310,24 +307,26 @@ class Comparisons(unittest.TestCase):
         a = Bits(5)
         b = Bits(5)
         with self.assertRaises(TypeError):
-            a <  b
+            _ = a < b
         with self.assertRaises(TypeError):
-            a >  b
+            _ = a > b
         with self.assertRaises(TypeError):
-            a <=  b
+            _ = a <= b
         with self.assertRaises(TypeError):
-            a >=  b
+            _ = a >= b
 
 
 class Subclassing(unittest.TestCase):
 
     def testIsInstance(self):
-        class SubBits(bitstring.Bits): pass
+        class SubBits(bitstring.Bits):
+            pass
         a = SubBits()
         self.assertTrue(isinstance(a, SubBits))
 
     def testClassType(self):
-        class SubBits(bitstring.Bits): pass
+        class SubBits(bitstring.Bits):
+            pass
         self.assertEqual(SubBits().__class__, SubBits)
 
 
@@ -348,7 +347,7 @@ class ConstByteStoreCreation(unittest.TestCase):
         self.assertEqual(a.bytelength, 3)
         self.assertEqual(a.offset, 0)
         self.assertEqual(a.bitlength, 24)
-        self.assertEqual(a._rawarray, b'abc')
+        self.assertEqual(a.rawarray, b'abc')
 
     def testGetBit(self):
         a = ConstByteStore(bytearray([0x0f]))
@@ -389,9 +388,9 @@ class PadToken(unittest.TestCase):
     def testUnpack(self):
         s = Bits('0b111000111')
         x, y = s.unpack('3, pad:3, 3')
-        self.assertEqual((x, y), (7, 7))
+        self.assertEqual((x, y.uint), ('0b111', 7))
         x, y = s.unpack('2, pad:2, bin')
-        self.assertEqual((x, y), (3, '00111'))
+        self.assertEqual((x.uint, y), (3, '00111'))
         x = s.unpack('pad:1, pad:2, pad:3')
         self.assertEqual(x, [])
 
@@ -445,10 +444,7 @@ class InitFromArray(unittest.TestCase):
         a.append(-1)
         b = Bits(a)
         self.assertEqual(b.length, 32)
-        try:
-            self.assertEqual(b.bytes, a.tobytes())
-        except AttributeError:
-            self.assertEqual(b.bytes, a.tostring())  # Python 2.7
+        self.assertEqual(b.bytes, a.tobytes())
 
     def testDouble(self):
         a = array.array('d', [0.0, 1.0, 2.5])
@@ -536,13 +532,13 @@ class Lsb0Indexing(unittest.TestCase):
         self.assertEqual(a[4], False)
         self.assertEqual(a[8], False)
         with self.assertRaises(IndexError):
-            a[9]
+            _ = a[9]
         self.assertEqual(a[-1], False)
         self.assertEqual(a[-5], False)
         self.assertEqual(a[-6], True)
         self.assertEqual(a[-9], True)
         with self.assertRaises(IndexError):
-            a[-10]
+            _ = a[-10]
 
     def testSimpleSlicing(self):
         a = Bits('0xabcdef')
@@ -596,3 +592,145 @@ class Lsb0Interpretations(unittest.TestCase):
         a = Bits('0x01')
         self.assertEqual(a, '0b00000001')
         self.assertEqual(a.uint, 1)
+
+
+class UnderscoresInLiterals(unittest.TestCase):
+
+    def testHexCreation(self):
+        a = Bits(hex='ab_cd__ef')
+        self.assertEqual(a.hex, 'abcdef')
+        b = Bits('0x0102_0304')
+        self.assertEqual(b.uint, 0x0102_0304)
+
+    def testBinaryCreation(self):
+        a = Bits(bin='0000_0001_0010')
+        self.assertEqual(a.bin, '000000010010')
+        b = Bits('0b0011_1100_1111_0000')
+        self.assertEqual(b.bin, '0011110011110000')
+        v = 0b1010_0000
+        c = Bits(uint=0b1010_0000, length=8)
+        self.assertEqual(c.uint, v)
+
+    def testOctalCreation(self):
+        a = Bits(oct='0011_2233_4455_6677')
+        self.assertEqual(a.uint, 0o001122334455_6677)
+        b = Bits('0o123_321_123_321')
+        self.assertEqual(b.uint, 0o123_321_123321)
+
+
+class PrettyPrinting(unittest.TestCase):
+
+    def testSimplestCases(self):
+        a = Bits('0b101011110000')
+        s = io.StringIO()
+        a.pp(stream=s)
+        self.assertEqual(s.getvalue(), ' 0: 10101111 0000\n')
+
+        s = io.StringIO()
+        a.pp('hex', stream=s)
+        self.assertEqual(s.getvalue(), ' 0: af 0\n')
+
+        s = io.StringIO()
+        a.pp('oct', stream=s)
+        self.assertEqual(s.getvalue(), ' 0: 5360\n')
+
+    def testSmallWidth(self):
+        a = Bits(20)
+        s = io.StringIO()
+        a.pp(stream=s, width=5)
+        self.assertEqual(s.getvalue(), ' 0: 00000000\n'
+                                       ' 8: 00000000\n'
+                                       '16: 0000    \n')
+
+    def testSeparator(self):
+        a = Bits('0x0f0f')*9
+        s = io.StringIO()
+        a.pp('hex', sep='!-!', stream=s, bits_per_group=32)
+        self.assertEqual(s.getvalue(), '  0: 0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f\n')
+
+    def testMultiLine(self):
+        a = Bits(100)
+        s = io.StringIO()
+        a.pp(sep=None, stream=s)
+        self.assertEqual(s.getvalue(), '  0: 000000000000000000000000000000000000000000000000000000000000000000000000\n'
+                                       ' 72: 0000000000000000000000000000                                            \n')
+
+    def testMultiformat(self):
+        a = Bits('0b1111000011110000')
+        s = io.StringIO()
+        a.pp(stream=s, fmt='bin, hex')
+        self.assertEqual(s.getvalue(), ' 0: 11110000 11110000   f0 f0\n')
+        s = io.StringIO()
+        a.pp(stream=s, fmt='hex, bin', bits_per_group=12)
+        self.assertEqual(s.getvalue(), ' 0: f0f 0   111100001111 0000\n')
+
+    def testMultiLineMultiFormat(self):
+        a = Bits(int=-1, length=112)
+        s = io.StringIO()
+        a.pp(stream=s, fmt='bin, hex', width=42)
+        self.assertEqual(s.getvalue(), '  0: 11111111 11111111 11111111   ff ff ff\n'            
+                                       ' 24: 11111111 11111111 11111111   ff ff ff\n'
+                                       ' 48: 11111111 11111111 11111111   ff ff ff\n'
+                                       ' 72: 11111111 11111111 11111111   ff ff ff\n'
+                                       ' 96: 11111111 11111111            ff ff\n')
+        s = io.StringIO()
+        a.pp(stream=s, fmt='bin, hex', width=41)
+        self.assertEqual(s.getvalue(), '  0: 11111111 11111111   ff ff\n'            
+                                       ' 16: 11111111 11111111   ff ff\n'
+                                       ' 32: 11111111 11111111   ff ff\n'
+                                       ' 48: 11111111 11111111   ff ff\n'
+                                       ' 64: 11111111 11111111   ff ff\n'
+                                       ' 80: 11111111 11111111   ff ff\n'
+                                       ' 96: 11111111 11111111   ff ff\n')
+
+    def testGroupSizeErrors(self):
+        a = Bits(120)
+        with self.assertRaises(ValueError):
+            a.pp('hex', bits_per_group=3)
+        with self.assertRaises(ValueError):
+            a.pp('hex, oct', bits_per_group=4)
+        with self.assertRaises(ValueError):
+            a.pp(bits_per_group=-1)
+
+    def testZeroGroupSize(self):
+        a = Bits(400)
+        s = io.StringIO()
+        a.pp(stream=s, bits_per_group=0, show_offset=False)
+        expected_output = ('0' * 80 + '\n') * 5
+        self.assertEqual(s.getvalue(), expected_output)
+
+        s = io.StringIO()
+        a.pp(stream=s, bits_per_group=0, fmt='hex', show_offset=False)
+        expected_output = ('0' * 80 + '\n') + ('0' * 20 + ' ' * 60 + '\n')
+        self.assertEqual(s.getvalue(), expected_output)
+
+        s = io.StringIO()
+        a = Bits(uint=10, length=48)
+        a.pp(stream=s, width=20, fmt='hex, oct', show_offset=False, bits_per_group=0)
+        expected_output = ("000000   00000000\n"
+                           "00000a   00000012\n")
+        self.assertEqual(s.getvalue(), expected_output)
+
+
+# class PrettyPrinting_LSB0(unittest.TestCase):
+#
+#     def setUp(self) -> None:
+#         bitstring.set_lsb0()
+#
+#     def tearDown(self) -> None:
+#         bitstring.set_msb0()
+#
+#     def test_lsb0(self):
+#         a = Bits(20)
+#         s = io.StringIO()
+#         a.pp(stream=s, width=5)
+#         self.assertEqual(s.getvalue(), '    0000 :16\n'
+#                                        '00000000 : 8\n'
+#                                        '00000000 : 0\n')
+
+class Copy(unittest.TestCase):
+
+    def testCopyMethod(self):
+        s = Bits('0xc00dee')
+        t = s.copy()
+        self.assertEqual(s, t)

@@ -144,8 +144,8 @@ If you treat a bitstring object as a list whose elements are all either '1' or '
 Using functions              Using slices
 ===========================  ======================================
 ``s.insert(bs, pos)``        ``s[pos:pos] = bs``
-``s.overwrite(bs, pos)``     ``s[pos:pos + bs.len] = bs``
-``s.append(bs)``             ``s[s.len:s.len] = bs``
+``s.overwrite(bs, pos)``     ``s[pos:pos + len(bs)] = bs``
+``s.append(bs)``             ``s[len(s):len(s)] = bs``
 ``s.prepend(bs)``            ``s[0:0] = bs``
 ===========================  ======================================
 

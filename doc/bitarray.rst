@@ -1,7 +1,7 @@
 .. currentmodule:: bitstring
 
-The BitArray class
-------------------
+BitArray Class
+==============
 
 .. class:: BitArray([auto, length, offset, **kwargs])
 
@@ -9,7 +9,12 @@ The BitArray class
 
     A :class:`BitArray` is a mutable :class:`Bits`, and so the one thing all of the methods listed here have in common is that  they can modify the contents of the bitstring.
 
-    .. method:: append(bs)
+Methods
+-------
+
+append
+^^^^^^
+    .. method:: BitArray.append(bs)
 
        Join a :class:`BitArray` to the end of the current :class:`BitArray`. ::
 
@@ -18,7 +23,9 @@ The BitArray class
            >>> s
            BitArray('0xbadf00d')
 
-    .. method:: byteswap([fmt, start, end, repeat=True])
+byteswap
+^^^^^^^^
+    .. method:: BitArray.byteswap([fmt, start, end, repeat=True])
     
        Change the endianness of the :class:`BitArray` in-place according to *fmt*. Return the number of swaps done.
        
@@ -47,19 +54,17 @@ The BitArray class
            >>> print(s.uintbe)
            1234
 
-    .. method:: clear()
+clear
+^^^^^
+    .. method:: BitArray.clear()
 
         Removes all bits from the bitstring.
 
         ``s.clear()`` is equivalent to ``del s[:]`` and simply makes the bitstring empty.
 
-    .. method:: copy()
-
-        Returns a copy of the bitstring.
-
-        ``s.copy()`` is equivalent to the shallow copy ``s[:]`` and creates a new copy of the bitstring in memory.
-
-    .. method:: insert(bs, pos)
+insert
+^^^^^^
+    .. method:: BitArray.insert(bs, pos)
 
         Inserts *bs* at *pos*.
 
@@ -73,11 +78,13 @@ The BitArray class
             >>> s
             BitStream('0xccd00ee')
 
-    .. method:: invert([pos])
+invert
+^^^^^^
+    .. method:: BitArray.invert([pos])
     
         Inverts one or many bits from ``1`` to ``0`` or vice versa.
         
-        *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. The default is to invert the entire :class:`BitArray`. ::
+        *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. The default is to invert the entire :class:`BitArray`. ::
         
             >>> s = BitArray('0b111001')
             >>> s.invert(0)
@@ -90,7 +97,9 @@ The BitArray class
             >>> s.bin
             '100101'
 
-    .. method:: overwrite(bs, pos)
+overwrite
+^^^^^^^^^
+    .. method:: BitArray.overwrite(bs, pos)
 
         Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
 
@@ -103,7 +112,9 @@ The BitArray class
             >>> s.pos
             6
 
-    .. method:: prepend(bs)
+prepend
+^^^^^^^
+    .. method:: BitArray.prepend(bs)
 
         Inserts *bs* at the beginning of the current :class:`BitArray`. ::
 
@@ -112,7 +123,9 @@ The BitArray class
             >>> s
             BitArray('0b11110')
 
-    .. method:: replace(old, new[, start, end, count, bytealigned])
+replace
+^^^^^^^
+    .. method:: BitArray.replace(old, new[, start, end, count, bytealigned])
 
         Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 
@@ -128,7 +141,9 @@ The BitArray class
             >>> print(s.bin)
             0011001111
 
-    .. method:: reverse([start, end])
+reverse
+^^^^^^^
+    .. method:: BitArray.reverse([start, end])
 
         Reverses bits in the :class:`BitArray` in-place.
 
@@ -139,7 +154,9 @@ The BitArray class
             >>> a.bin
             '11101'
 
-    .. method:: rol(bits[, start, end])
+rol
+^^^
+    .. method:: BitArray.rol(bits[, start, end])
 
         Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the left.
 
@@ -152,7 +169,9 @@ The BitArray class
             >>> s.bin
             '00000101'
 
-    .. method:: ror(bits[, start, end])
+ror
+^^^
+    .. method:: BitArray.ror(bits[, start, end])
 
         Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the right.
 
@@ -160,9 +179,11 @@ The BitArray class
         
         Raises :exc:`ValueError` if ``bits < 0``.
 
-    .. method:: set(value[, pos])
+set
+^^^
+    .. method:: BitArray.set(value[, pos])
 
-        Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -s.len`` or ``pos > s.len``. The default is to set every bit in the :class:`BitArray`.
+        Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. The default is to set every bit in the :class:`BitArray`.
 
         Using ``s.set(True, x)`` can be more efficient than other equivalent methods such as ``s[x] = 1``, ``s[x] = "0b1"`` or ``s.overwrite('0b1', x)``, especially if many bits are being set. ::
 
@@ -177,25 +198,41 @@ The BitArray class
             >>> s.bin
             '0000000000000000'
 
+Properties
+----------
 
-
-    .. attribute:: bin
+bin
+^^^
+    .. attribute:: BitArray.bin
+       :noindex:
 
         Writable version of :attr:`Bits.bin`.
-         
-    .. attribute:: bool
+
+bool
+^^^^
+    .. attribute:: BitArray.bool
+       :noindex:
 
        Writable version of :attr:`Bits.bool`.
 
-    .. attribute:: bytes
+bytes
+^^^^^
+    .. attribute:: BitArray.bytes
+       :noindex:
 
         Writable version of :attr:`Bits.bytes`.
 
-    .. attribute:: hex
+hex
+^^^
+    .. attribute:: BitArray.hex
+       :noindex:
 
         Writable version of :attr:`Bits.hex`.
 
-    .. attribute:: int
+int
+^^^
+    .. attribute:: BitArray.int
+       :noindex:
 
         Writable version of :attr:`Bits.int`.
                 
@@ -206,89 +243,142 @@ The BitArray class
             -13
             >>> s.int = 1232
             ValueError: int 1232 is too large for a BitArray of length 8.
-        
-    .. attribute:: intbe
+
+intbe
+^^^^^
+    .. attribute:: BitArray.intbe
+       :noindex:
 
         Writable version of :attr:`Bits.intbe`.
         
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.        
 
-    .. attribute:: intle
+intle
+^^^^^
+    .. attribute:: BitArray.intle
+       :noindex:
 
         Writable version of :attr:`Bits.intle`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
-        
-    .. attribute:: intne
+
+intne
+^^^^^
+    .. attribute:: BitArray.intne
+       :noindex:
 
         Writable version of :attr:`Bits.intne`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
-        
-    .. attribute:: float
-    .. attribute:: floatbe
+
+float / floatbe
+^^^^^^^^^^^^^^^
+    .. attribute:: BitArray.float
+       :noindex:
+    .. attribute:: BitArray.floatbe
+       :noindex:
 
         Writable version of :attr:`Bits.float`.
 
-    .. attribute:: floatle
+floatle
+^^^^^^^
+    .. attribute:: BitArray.floatle
+       :noindex:
 
         Writable version of :attr:`Bits.floatle`.
 
-    .. attribute:: floatne
+floatne
+^^^^^^^
+    .. attribute:: BitArray.floatne
+       :noindex:
 
         Writable version of :attr:`Bits.floatne`.
 
-    .. attribute:: oct
+oct
+^^^
+    .. attribute:: BitArray.oct
+       :noindex:
 
         Writable version of :attr:`Bits.oct`.
 
-    .. attribute:: se
+se
+^^
+    .. attribute:: BitArray.se
+       :noindex:
 
         Writable version of :attr:`Bits.se`.
 
-    .. attribute:: ue
+ue
+^^
+    .. attribute:: BitArray.ue
+       :noindex:
 
         Writable version of :attr:`Bits.uie`.
 
-    .. attribute:: sie
+sie
+^^^
+    .. attribute:: BitArray.sie
+       :noindex:
 
         Writable version of :attr:`Bits.sie`.
 
-    .. attribute:: uie
+uie
+^^^
+    .. attribute:: BitArray.uie
+       :noindex:
 
         Writable version of :attr:`Bits.ue`.
 
-    .. attribute:: uint
+uint
+^^^^
+    .. attribute:: BitArray.uint
+       :noindex:
 
         Writable version of :attr:`Bits.uint`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
-    .. attribute:: uintbe
+uintbe
+^^^^^^
+    .. attribute:: BitArray.uintbe
+       :noindex:
 
         Writable version of :attr:`Bits.uintbe`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
-    .. attribute:: uintle
+uintle
+^^^^^^
+    .. attribute:: BitArray.uintle
+       :noindex:
 
         Writable version of :attr:`Bits.uintle`.
         
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
-    .. attribute:: uintne
+uintne
+^^^^^^
+    .. attribute:: BitArray.uintne
+       :noindex:
 
         Writable version of :attr:`Bits.uintne`.
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
-    .. method:: __delitem__(key)
+Special Methods
+---------------
+
+__delitem__
+^^^^^^^^^^^
+    .. method:: BitArray.__delitem__(key)
 
         ``del s[start:end:step]``
 
         Deletes the slice specified.
-        
-    .. method:: __iadd__(bs)
+
+__iadd__
+^^^^^^^^
+    .. method:: BitArray.__iadd__(bs)
 
         ``s1 += s2``
 
@@ -302,20 +392,26 @@ The BitArray class
             423
             >>> s.read('ue')
             12
-             
-    .. method:: __iand__(bs)
+
+__iand__
+^^^^^^^^
+    .. method:: BitArray.__iand__(bs)
     
         ``s &= bs``
         
         In-place bit-wise AND between two bitstrings. If the two bitstrings are not the same length then a :exc:`ValueError` is raised.        
-        
-    .. method:: __ilshift__(n)
+
+__ilshift__
+^^^^^^^^^^^
+    .. method:: BitArray.__ilshift__(n)
     
         ``s <<= n``
         
         Shifts the bits in-place *n* bits to the left. The *n* right-most bits will become zeros and bits shifted off the left will be lost.
-        
-    .. method:: __imul__(n)
+
+__imul__
+^^^^^^^^
+    .. method:: BitArray.__imul__(n)
     
         ``s *= n``
         
@@ -325,26 +421,34 @@ The BitArray class
             >>> s *= 3
             >>> s.hex
             'badbadbad'
-        
-    .. method:: __ior__(bs)
+
+__ior__
+^^^^^^^
+    .. method:: BitArray.__ior__(bs)
     
         ``s |= bs``
         
         In-place bit-wise OR between two bitstrings. If the two bitstrings are not the same length then a :exc:`ValueError` is raised.        
-                
-    .. method:: __irshift__(n)
+
+__irshift__
+^^^^^^^^^^^
+    .. method:: BitArray.__irshift__(n)
     
         ``s >>= n``
         
         Shifts the bits in-place *n* bits to the right. The *n* left-most bits will become zeros and bits shifted off the right will be lost.
-            
-    .. method:: __ixor__(bs)
+
+__ixor__
+^^^^^^^^
+    .. method:: BitArray.__ixor__(bs)
 
         ``s ^= bs``
         
         In-place bit-wise XOR between two bitstrings. If the two bitstrings are not the same length then a :exc:`ValueError` is raised.        
-                 
-    .. method:: __setitem__(key, value)
+
+__setitem__
+^^^^^^^^^^^
+    .. method:: BitArray.__setitem__(key, value)
 
         ``s1[start:end:step] = s2``
 

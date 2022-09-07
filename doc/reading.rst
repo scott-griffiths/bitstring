@@ -85,9 +85,9 @@ So in the earlier example we could have written::
 
 and we also could have combined the three reads as::
 
-    start_code, width, height = s.readlist('hex:32, 12, 12')
+    start_code, width, height = s.readlist('hex:32, 2*uint:12')
 
-where here we are also taking advantage of the default :attr:`~Bits.uint` interpretation for the second and third tokens.
+where here we are also using a multiplier to combine the format of the second and third tokens.
 
 You are allowed to use one 'stretchy' token in a :meth:`~ConstBitStream.readlist`. This is a token without a length specified which will stretch to fill encompass as many bits as possible. This is often useful when you just want to assign something to 'the rest' of the bitstring::
 

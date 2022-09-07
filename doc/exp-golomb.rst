@@ -40,7 +40,7 @@ The answer is that it decodes to 3, 0, 0, 2, 2, 1, 0, 0, 8, 4. Note how you donâ
 
 and to read it back::
 
- while a.pos != a.len:
+ while a.pos != len(a):
      print(a.read('ue'))
 
 The notation ``ue`` and ``se`` for the exponential-Golomb code properties comes from the H.264 video standard, which uses these types of code a lot. There are other ways to map the bitstrings to integers:
