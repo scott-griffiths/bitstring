@@ -1,11 +1,3 @@
-HOPEFULLY TEMPORARY WORKAROUND.
-
-There are no wheel files in the original distribution yet. I need these for creating my windows installer
-with pynsist. As soon as wheels are distributed in the original package, this will be removed.
-
-To create a wheel:
-
-python setup.py
 
 .. image:: /doc/bitstring_logo_small.png
 
