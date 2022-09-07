@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import setuptools
-from distutils.core import setup
+from setuptools import setup
 import sys
 
 
