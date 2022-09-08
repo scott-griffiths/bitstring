@@ -805,17 +805,6 @@ class FromFile(unittest.TestCase):
         b = s.all(0, [0, 1, 2])
         self.assertFalse(b)
 
-    def testVeryLargeFiles(self):
-        # This uses an 11GB file which isn't distributed for obvious reasons
-        # and so this test won't work for anyone except me!
-        try:
-            s = ConstBitStream(filename=os.path.join(THIS_DIR, '11GB.mkv'))
-        except IOError:
-            return
-        self.assertEqual(s.len, 11743020505 * 8)
-        self.assertEqual(s[1000000000:1000000100].hex, 'bdef7335d4545f680d669ce24')
-        self.assertEqual(s[-4::8].hex, 'bbebf7a1')
-
 
 class CreationErrors(unittest.TestCase):
     def testIncorrectBinAssignment(self):
