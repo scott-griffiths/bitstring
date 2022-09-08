@@ -735,13 +735,14 @@ class FromFile(unittest.TestCase):
         self.assertEqual(s.hex, '000001b3')
         s = ConstBitStream(filename=test_filename, length=0)
         self.assertFalse(s)
+        small_test_filename = os.path.join(THIS_DIR, 'smalltestfile')
         with self.assertRaises(bitstring.CreationError):
-            _ = BitStream(filename='smalltestfile', length=65)
+            _ = BitStream(filename=small_test_filename, length=65)
         with self.assertRaises(bitstring.CreationError):
-            _ = ConstBitStream(filename='smalltestfile', length=64, offset=1)
+            _ = ConstBitStream(filename=small_test_filename, length=64, offset=1)
         with self.assertRaises(bitstring.CreationError):
-            _ = ConstBitStream(filename='smalltestfile', offset=65)
-        with open('smalltestfile', 'rb') as f:
+            _ = ConstBitStream(filename=small_test_filename, offset=65)
+        with open(small_test_filename, 'rb') as f:
             with self.assertRaises(bitstring.CreationError):
                 _ = ConstBitStream(f, offset=65)
             with self.assertRaises(bitstring.CreationError):
@@ -4093,7 +4094,7 @@ class TestFormat(unittest.TestCase):
         self.assertEqual(f'{a}', '0b1010101111000')
         b = BitStream(10, pos=4)
         self.assertEqual(f'{b}', '0b0000000000')
-        c = BitStream(filename='test.m1v')
+        c = BitStream(filename=os.path.join(THIS_DIR, 'test.m1v'))
         self.assertEqual(f'{c}'[0:10], '0x000001b3')
 
     def testFormatStringsWithInterpretation(self):

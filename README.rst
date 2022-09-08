@@ -73,10 +73,9 @@ Searching, inserting and deleting::
 Unit Tests
 ----------
 
-The 500+ unit tests should all pass. To run them, from the `test`
-directory run::
+The 500+ unit tests should all pass. To run them use::
 
-     python -m unittest discover
+     python -m unittest
 
 ----
 
