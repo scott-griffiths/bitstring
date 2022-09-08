@@ -1703,8 +1703,8 @@ class Multiplication(unittest.TestCase):
         filename = os.path.join(THIS_DIR, 'smalltestfile')
         a = ConstBitStream(filename=filename)
         b = BitStream(filename=filename)
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
-        self.assertTrue(isinstance(b._datastore._rawarray, bytearray))
+        self.assertTrue(isinstance(a._datastore.rawarray, bitstring.MmapByteArray))
+        self.assertTrue(isinstance(b._datastore.rawarray, bytearray))
         self.assertEqual(a._datastore.getbyte(0), b._datastore.getbyte(0))
         self.assertEqual(a._datastore.getbyteslice(1, 5), bytearray(b._datastore.getbyteslice(1, 5)))
 
@@ -2408,39 +2408,13 @@ class Split2(unittest.TestCase):
 
         a = BitStream('int:1000000=-1')
         self.assertEqual(a.int, -1)
-        f = open('temp_bitstring_unit_testing_file', 'wb')
-        a = BitStream('0x911111')
-        del a[:1]
-        self.assertEqual(a + '0b0', '0x222222')
         f = open(filename, 'wb')
         a.tofile(f)
         f.close()
-        b = BitStream(filename='temp_bitstring_unit_testing_file')
+        b = BitStream(filename=filename)
         self.assertEqual(b.int, -1)
         self.assertEqual(b.len, 1000000)
-        os.remove('temp_bitstring_unit_testing_file')
-        b = BitStream(filename=filename)
-        self.assertEqual(b, '0x222222')
         os.remove(filename)
-
-    #def testToFileWithLargerFile(self):
-    #    a = BitStream(length=16000000)
-    #    a[1] = '0b1'
-    #    a[-2] = '0b1'
-    #    f = open('temp_bitstring_unit_testing_file' ,'wb')
-    #    a.tofile(f)
-    #    f.close()
-    #    b = BitStream(filename='temp_bitstring_unit_testing_file')
-    #    self.assertEqual(b.len, 16000000)
-    #    self.assertEqual(b[1], True)
-    #
-    #    f = open('temp_bitstring_unit_testing_file' ,'wb')
-    #    a[1:].tofile(f)
-    #    f.close()
-    #    b = BitStream(filename='temp_bitstring_unit_testing_file')
-    #    self.assertEqual(b.len, 16000000)
-    #    self.assertEqual(b[0], True)
-    #    os.remove('temp_bitstring_unit_testing_file')
 
     def testTokenParser(self):
         tp = bitstring.tokenparser
@@ -3298,7 +3272,7 @@ class AllAndAny(unittest.TestCase):
 
     def testRolFromFile(self):
         a = BitStream(filename=os.path.join(THIS_DIR, 'test.m1v'))
-        l = a.len
+        m = a.len
         a.rol(1)
         self.assertTrue(a.startswith('0x000003'))
         self.assertEqual(a.len, m)
@@ -3306,7 +3280,7 @@ class AllAndAny(unittest.TestCase):
 
     def testRorFromFile(self):
         a = BitStream(filename=os.path.join(THIS_DIR, 'test.m1v'))
-        l = a.len
+        m = a.len
         a.ror(1)
         self.assertTrue(a.startswith('0x800000'))
         self.assertEqual(a.len, m)
@@ -3942,7 +3916,7 @@ class FileReadingStrategy(unittest.TestCase):
     def testBitsIsNeverRead(self):
         filename = os.path.join(THIS_DIR, 'smalltestfile')
         a = ConstBitStream(filename=filename)
-        self.assertTrue(isinstance(a._datastore._rawarray, bitstring.MmapByteArray))
+        self.assertTrue(isinstance(a._datastore.rawarray, bitstring.MmapByteArray))
         with open(filename, 'rb') as f:
             b = ConstBitStream(f)
             self.assertTrue(isinstance(b._datastore.rawarray, bitstring.MmapByteArray))
