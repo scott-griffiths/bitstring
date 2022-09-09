@@ -1262,7 +1262,7 @@ class Bits:
 
     if _debug is True:
         def _assertsanity(self) -> bool:
-            """Check internal self consistency as a debugging aid."""
+            """Check internal self-consistency as a debugging aid."""
             assert self.len >= 0
             assert 0 <= self._offset, f"offset={self._offset}"
             assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset,\
@@ -2933,7 +2933,6 @@ class Bits:
         printable = string.digits + string.ascii_letters + string.punctuation + ' '
 
         def format_bits(bits_, bits_per_group_, sep_, fmt_):
-            assert bpc.keys() == {'bin', 'oct', 'hex', 'bytes'}
             if fmt_ == 'bin':
                 raw = bits_._getbin()
             elif fmt_ == 'oct':
@@ -2944,6 +2943,9 @@ class Bits:
                 raw = bits_._getbytes()
                 # Replace unprintable characters with '.'
                 raw = ''.join(chr(x) if chr(x) in printable else '.' for x in raw)
+            else:
+                assert bpc.keys() == {'bin', 'oct', 'hex', 'bytes'}
+                raw = ''
 
             if bits_per_group_ == 0:
                 return raw

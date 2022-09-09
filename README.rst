@@ -3,17 +3,21 @@
 **bitstring** is a pure Python module designed to help make
 the creation and analysis of binary data as simple and natural as possible.
 
-Bitstrings can be constructed from integers (big and little endian), hex,
-octal, binary, strings or files. They can be sliced, joined, reversed,
-inserted into, overwritten, etc. with simple functions or slice notation.
-They can also be read from, searched and replaced, and navigated in,
-similar to a file or stream.
-
-bitstring is open source software, and has been released under the MIT
-licence.
+It has been maintained since 2006 and now has about 20 million downloads per year.
 
 bitstring version 4 onwards only supports Python 3.7 and later. Use
 bitstring version 3 if you're using Python 2.7 or 3.6 or earlier.
+
+Overview
+--------
+
+* Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
+* Powerful binary packing and unpacking functions.
+* Bit level slicing, joining, searching, replacing and more.
+* Read from and interpret bitstrings as streams of binary data.
+* Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
+* Open source software, released under the MIT licence.
+
 
 Installation
 ------------
@@ -25,9 +29,8 @@ Probably all you need to do is::
 
 Documentation
 -------------
-The manual for the bitstring module is available here
-<https://bitstring.readthedocs.org>. It contains a walk-through of all
-the features and a complete reference section.
+The manual for the bitstring module is available at `Read the Docs <https://bitstring.readthedocs.org>`_.
+It contains a walk-through of all the features and a complete reference section.
 
 
 Simple Examples
@@ -77,11 +80,17 @@ The 500+ unit tests should all pass. To run them use::
 
      python -m unittest
 
-----
+
+Credits
+-------
+
+Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files.
+Maintained and expanded ever since as it became unexpectedly popular. Thanks to all those who have contributed ideas
+and code (and bug reports) over the years.
+
+For more information see the project's homepage on `GitHub <https://github.com/scott-griffiths/bitstring>`_.
+
+--------
 
 The bitstring module has been released as open source under the MIT License.
 Copyright (c) 2006 Scott Griffiths
-
-For more information see the project's homepage on GitHub:
-<https://github.com/scott-griffiths/bitstring>
-
