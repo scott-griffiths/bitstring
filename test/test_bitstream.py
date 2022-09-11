@@ -214,9 +214,9 @@ class Rfind(unittest.TestCase):
 
     def testRfindEndbit(self):
         a = BitStream('0x000fff')
-        b = a.rfind('0b011', bytealigned=False, start=0, end=14)
+        b = a.rfind('0b011', start=0, end=14, bytealigned=False)
         self.assertEqual(bool(b), True)
-        b = a.rfind('0b011', False, 0, 13)
+        b = a.rfind('0b011', 0, 13, False)
         self.assertEqual(b, ())
 
     def testRfindErrors(self):
@@ -797,7 +797,7 @@ class FromFile(unittest.TestCase):
             s1.pos += 1
 
     def testFileBitGetting(self):
-        s = ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), offset=16, length=8) # 0x45
+        s = ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), offset=16, length=8)
         b = s[1]
         self.assertTrue(b)
         b = s.any(0, [-1, -2, -3])

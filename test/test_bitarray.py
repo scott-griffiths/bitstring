@@ -27,6 +27,8 @@ class All(unittest.TestCase):
         self.assertEqual(s.len, 8)
         with self.assertRaises(bitstring.CreationError):
             s.uint = 256
+        with self.assertRaises(bitstring.CreationError):
+            s.uint = -1
 
     def testCreationFromOct(self):
         s = BitArray(oct='7')

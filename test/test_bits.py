@@ -715,6 +715,21 @@ class PrettyPrinting(unittest.TestCase):
                            "00000a   00000012\n")
         self.assertEqual(s.getvalue(), expected_output)
 
+    def testOct(self):
+        a = Bits('0o01234567'*20)
+        s = io.StringIO()
+        a.pp(stream=s, fmt='oct', show_offset=False, width=20)
+        expected_output = "0123 4567 0123 4567\n" * 10
+        self.assertEqual(s.getvalue(), expected_output)
+
+    def testBytes(self):
+        a = Bits(bytes=b'helloworld!!'*5)
+        s = io.StringIO()
+        a.pp(stream=s, fmt='bytes', show_offset=False, width=48)
+        expected_output = ("hell owor ld!! hell owor ld!! hell owor ld!!\n"
+                           "hell owor ld!! hell owor ld!!               \n")
+        self.assertEqual(s.getvalue(), expected_output)
+
 
 # class PrettyPrinting_LSB0(unittest.TestCase):
 #

@@ -2930,7 +2930,8 @@ class Bits:
                 chars_per_24_bits = 24 // bpc[fmt1] + 24 // bpc[fmt2]
                 max_bits_per_line = 24 * (width_available // chars_per_24_bits)
 
-        printable = string.digits + string.ascii_letters + string.punctuation + ' '
+        unprintable = list(range(0x00, 0x20))  # ASCII control characters
+        unprintable.extend(list(range(0x7f, 0xa1)))  # More UTF-8 control characters
 
         def format_bits(bits_, bits_per_group_, sep_, fmt_):
             if fmt_ == 'bin':
@@ -2942,7 +2943,7 @@ class Bits:
             elif fmt_ == 'bytes':
                 raw = bits_._getbytes()
                 # Replace unprintable characters with '.'
-                raw = ''.join(chr(x) if chr(x) in printable else '.' for x in raw)
+                raw = ''.join('.' if x in unprintable else chr(x) for x in raw)
             else:
                 assert bpc.keys() == {'bin', 'oct', 'hex', 'bytes'}
                 raw = ''

@@ -7,7 +7,7 @@ the creation and analysis of binary data as simple and natural as possible.
 
 It has been maintained since 2006 and now has about [20 million downloads](https://pypistats.org/packages/bitstring) per year.
 
-bitstring version 4.0 onwards only supports Python 3.7 and later. Use
+bitstring version 4.0 only supports Python 3.7 and later. Use
 bitstring version 3.1 if you're using Python 2.7 or 3.6 or earlier.
 
 Overview
@@ -84,8 +84,4 @@ Maintained and expanded ever since as it became unexpectedly popular. Thanks to 
 and code (and bug reports) over the years.
 
 
---------
-
-The bitstring module has been released as open source under the MIT License.
-
-Copyright (c) 2006 Scott Griffiths
+<sub>Copyright (c) 2006 Scott Griffiths</sub>
