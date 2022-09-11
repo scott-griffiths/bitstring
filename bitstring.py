@@ -98,11 +98,6 @@ class Error(Exception):
         self.msg = params[0] if params else ''
         self.params = params[1:]
 
-    def __str__(self):
-        if self.params:
-            return self.msg.format(*self.params)
-        return self.msg
-
 
 class ReadError(Error, IndexError):
     """Reading or peeking past the end of a bitstring."""
@@ -1316,7 +1311,7 @@ class Bits:
         """Reset the bitstring to an empty state."""
         self._datastore = ByteStore(bytearray(0))
 
-    def _setauto(self, s: Any, length: Optional[int], offset: Optional[int]) -> None:
+    def _setauto(self, s: Any, length: Optional[int], offset: int) -> None:
         """Set bitstring from a bitstring, file, bool, integer, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
@@ -1329,8 +1324,6 @@ class Bits:
             return
 
         if isinstance(s, io.BytesIO):
-            if offset is None:
-                offset = 0
             if length is None:
                 length = s.seek(0, 2) * 8 - offset
             byteoffset, offset = divmod(offset, 8)
@@ -1342,8 +1335,6 @@ class Bits:
             return
 
         if isinstance(s, io.BufferedReader):
-            if offset is None:
-                offset = 0
             if length is None:
                 length = os.path.getsize(s.name) * 8 - offset
             byteoffset, offset = divmod(offset, 8)
@@ -1356,7 +1347,7 @@ class Bits:
 
         if length is not None:
             raise CreationError("The length keyword isn't applicable to this initialiser.")
-        if offset:
+        if offset > 0:
             raise CreationError("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, str):
             bs = self._converttobitstring(s)
@@ -1985,11 +1976,6 @@ class Bits:
         """Return the length of the bitstring in bits."""
         return self._datastore.bitlength
 
-    def _ensureinmemory(self) -> None:
-        """Ensure the data is held in memory, not in a file."""
-        self._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength),
-                              self.len, self._offset)
-
     @classmethod
     def _converttobitstring(cls, bs: Any, offset: int = 0, cache: dict = {}) -> Bits:
         """Convert bs to a bitstring and return it.
@@ -2083,7 +2069,7 @@ class Bits:
         self._setbytes_unsafe(bytearray().join(n), self.length, newoffset)
 
     def _truncateleft(self, bits: int) -> Bits:
-        """Truncate bits from the start of the bitstring."""
+        """Truncate bits from the start of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= self.len
         if not bits:
             return Bits()
@@ -2098,7 +2084,7 @@ class Bits:
         return truncated_bits
 
     def _truncateright(self, bits: int) -> Bits:
-        """Truncate bits from the end of the bitstring."""
+        """Truncate bits from the end of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= self.len
         if not bits:
             return Bits()
@@ -3187,8 +3173,6 @@ class BitArray(Bits):
         """
         # For mutable BitArrays we always read in files to memory:
         super().__init__()
-        if not isinstance(self._datastore, ByteStore):
-            self._ensureinmemory()
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, **kwargs) -> Bits:
@@ -3500,9 +3484,8 @@ class BitArray(Bits):
         if bs is self:
             bs = self.__copy__()
         if pos is None:
-            try:
-                pos = self._pos
-            except AttributeError:
+            pos = self._pos
+            if pos is None:
                 raise TypeError("insert needs a bit position specified when used on a BitArray.")
         if pos < 0:
             pos += self.len
@@ -4255,9 +4238,7 @@ class BitStream(ConstBitStream, BitArray):
         pos -- Initial bit position, defaults to 0.
 
         """
-        # For mutable BitStreams we always read in files to memory:
-        if not isinstance(self._datastore, (ByteStore, ConstByteStore)):
-            self._ensureinmemory()
+        pass
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: int = 0, **kwargs) -> Bits:

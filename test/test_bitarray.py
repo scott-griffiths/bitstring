@@ -59,6 +59,22 @@ class NoPosAttribute(unittest.TestCase):
         s.insert('0xf', 1)
         self.assertEqual(s, '0b011110')
 
+    def testInsertSelf(self):
+        b = BitArray('0b10')
+        b.insert(b, 0)
+        self.assertEqual(b, '0b1010')
+        c = BitArray('0x00ff')
+        c.insert(c, 8)
+        self.assertEqual(c, '0x0000ffff')
+        a = BitArray('0b11100')
+        a.insert(a, 3)
+        self.assertEqual(a, '0b1111110000')
+
+    def testNoBitPosForInsert(self):
+        s = BitArray(100)
+        with self.assertRaises(TypeError):
+            s.insert('0xabc')
+
     def testInsertParameters(self):
         s = BitArray('0b111')
         with self.assertRaises(TypeError):
@@ -101,6 +117,8 @@ class NoPosAttribute(unittest.TestCase):
         s[4:5] = '0xf'
         self.assertEqual(s, '0b000111110')
         s[0:1] = [1]
+        self.assertEqual(s, '0b100111110')
+        s[5:5] = BitArray()
         self.assertEqual(s, '0b100111110')
 
 
