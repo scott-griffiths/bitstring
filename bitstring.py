@@ -57,7 +57,6 @@ __author__ = "Scott Griffiths"
 import numbers
 import copy
 import pathlib
-import string
 import sys
 import re
 import mmap
@@ -2341,8 +2340,8 @@ class Bits:
                     if name == 'bytes':
                         length *= 8
                 if name in kwargs and length is None:
-                    # Using default 'uint' - the name is really the length.
-                    value, pos = self._readtoken('uint', pos, kwargs[name])
+                    # Using default 'bits' - the name is really the length.
+                    value, pos = self._readtoken('bits', pos, kwargs[name])
                     lst.append(value)
                     continue
                 value, pos = self._readtoken(name, pos, length)
@@ -2357,9 +2356,6 @@ class Bits:
                 length = kwargs[length]
                 if name == 'bytes':
                     length *= 8
-            if name in kwargs and length is None:
-                # Default 'uint'.
-                length = kwargs[name]
             if stretchy_token:
                 if name in ('se', 'ue', 'sie', 'uie'):
                     raise Error("It's not possible to parse a variable length token after a 'filler' token.")

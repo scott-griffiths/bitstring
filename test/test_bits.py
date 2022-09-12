@@ -7,6 +7,7 @@ sys.path.insert(0, '..')
 import bitstring
 import array
 import os
+from bitstring import InterpretError
 from bitstring import MmapByteArray
 from bitstring import Bits, BitArray, ConstByteStore
 
@@ -729,6 +730,25 @@ class PrettyPrinting(unittest.TestCase):
         expected_output = ("hell owor ld!! hell owor ld!! hell owor ld!!\n"
                            "hell owor ld!! hell owor ld!!               \n")
         self.assertEqual(s.getvalue(), expected_output)
+
+
+class PrettyPrintingErrors(unittest.TestCase):
+
+    def testWrongFormats(self):
+        a = Bits('0x12341234')
+        with self.assertRaises(ValueError):
+            a.pp('binary')
+        with self.assertRaises(ValueError):
+            a.pp('bin, bin, bin')
+
+    def testInterpretProblems(self):
+        a = Bits(7)
+        with self.assertRaises(InterpretError):
+            a.pp('oct')
+        with self.assertRaises(InterpretError):
+            a.pp('hex')
+        with self.assertRaises(InterpretError):
+            a.pp('bin, bytes')
 
 
 # class PrettyPrinting_LSB0(unittest.TestCase):
