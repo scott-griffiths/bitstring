@@ -2693,7 +2693,7 @@ class Split2(unittest.TestCase):
         self.assertEqual(a, 'hex=0Xabc, oct=0, bin=0B11')
 
     def testEfficientOverwrite(self):
-        a = BitStream(1000000000)
+        a = BitStream(100000000)
         a.overwrite([1], 123456)
         self.assertEqual(a[123456], True)
         a.overwrite('0xff', 1)

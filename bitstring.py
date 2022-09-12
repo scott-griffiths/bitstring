@@ -2931,7 +2931,8 @@ class Bits:
                 max_bits_per_line = 24 * (width_available // chars_per_24_bits)
 
         unprintable = list(range(0x00, 0x20))  # ASCII control characters
-        unprintable.extend(list(range(0x7f, 0xa1)))  # More UTF-8 control characters
+        unprintable.extend(range(0x7f, 0xa1))  # More UTF-8 control characters
+        unprintable.append(0xad)               # Soft hyphen, usually rendered invisibly!
 
         def format_bits(bits_, bits_per_group_, sep_, fmt_):
             if fmt_ == 'bin':
