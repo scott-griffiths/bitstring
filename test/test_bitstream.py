@@ -284,6 +284,11 @@ class Shift(unittest.TestCase):
         s >>= 0
         self.assertEqual(s, '0x7f')
 
+    def testShiftInPlaceWholeBitstring(self):
+        s = BitStream('0xabcd')
+        s >>= len(s)
+        self.assertEqual(s, '0x0000')
+
     def testShiftRightInPlaceErrors(self):
         s = BitStream()
         with self.assertRaises(ValueError):
