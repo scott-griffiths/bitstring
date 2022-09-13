@@ -19,7 +19,7 @@ class ModuleData(unittest.TestCase):
     def testAll(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',
                     'Bits', 'pack', 'Error', 'ReadError',
-                    'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
+                    'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0']
         self.assertEqual(set(bitstring.__all__), set(exported))
 
     def testReverseDict(self):
@@ -77,13 +77,9 @@ class Interning(unittest.TestCase):
 class LSB0(unittest.TestCase):
     def testGettingAndSetting(self):
         self.assertEqual(bitstring._lsb0, False)
-        bitstring.set_lsb0()
+        bitstring.lsb0 = True
         self.assertEqual(bitstring._lsb0, True)
-        bitstring.set_lsb0(False)
-        self.assertEqual(bitstring._lsb0, False)
-        bitstring.set_msb0(False)
-        self.assertEqual(bitstring._lsb0, True)
-        bitstring.set_msb0()
+        bitstring.lsb0 = False
         self.assertEqual(bitstring._lsb0, False)
 
 

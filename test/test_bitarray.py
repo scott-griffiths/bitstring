@@ -144,16 +144,14 @@ class Bugs(unittest.TestCase):
 
 
 class ByteAligned(unittest.TestCase):
-    def testDefault(self, defaultbytealigned=bitstring.bytealigned):
-        self.assertFalse(defaultbytealigned)
 
     def testChangingIt(self):
         bitstring.bytealigned = True
-        self.assertTrue(bitstring.bytealigned)
+        self.assertTrue(bitstring._bytealigned)
         bitstring.bytealigned = False
+        self.assertFalse(bitstring._bytealigned)
 
     def testNotByteAligned(self):
-        bitstring.bytealigned = False
         a = BitArray('0x00 ff 0f f')
         li = list(a.findall('0xff'))
         self.assertEqual(li, [8, 20])
@@ -179,6 +177,7 @@ class ByteAligned(unittest.TestCase):
         self.assertEqual(s, ['0x00', '0xff0ff'])
         a.replace('0xff', '')
         self.assertEqual(a, '0x000ff')
+        bitstring.bytealigned = False
 
 
 class SliceAssignment(unittest.TestCase):
@@ -352,11 +351,11 @@ class Lsb0Setting(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bitstring.set_lsb0(True)
+        bitstring.lsb0 = True
 
     @classmethod
     def tearDownClass(cls):
-        bitstring.set_lsb0(False)
+        bitstring.lsb0 = False
 
     def testSetSingleBit(self):
         a = BitArray(10)
@@ -507,7 +506,12 @@ class Lsb0Setting(unittest.TestCase):
         self.assertEqual(a, '0b011100')
 
     def testRol(self):
-        pass
+        a = BitArray('0b1')
+        a.rol(12)
+        self.assertEqual(a, '0b1')
+        b = BitArray('0b000010')
+        b.rol(3)
+        self.assertEqual(b, '0b010000')
 
     def testSet(self):
         a = BitArray(100)

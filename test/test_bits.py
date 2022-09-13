@@ -524,11 +524,11 @@ class Lsb0Indexing(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bitstring.set_lsb0(True)
+        bitstring.lsb0 = True
 
     @classmethod
     def tearDownClass(cls):
-        bitstring.set_lsb0(False)
+        bitstring.lsb0 = False
 
     def testGetSingleBit(self):
         a = Bits('0b000001111')
@@ -587,11 +587,11 @@ class Lsb0Interpretations(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bitstring.set_lsb0(True)
+        bitstring.lsb0 = True
 
     @classmethod
     def tearDownClass(cls):
-        bitstring.set_lsb0(False)
+        bitstring.lsb0 = False
 
     def testUint(self):
         a = Bits('0x01')

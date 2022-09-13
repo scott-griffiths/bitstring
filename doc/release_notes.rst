@@ -60,8 +60,21 @@ New features and improvements:
      48: 10000111 00101000 01110010 11111001 10000111 10011000   87 28 72 f9 87 98
      96: 11110111 10011110 10000111 11111101 11111001 10001100   f7 9e 87 fd f9 8c
     144: 01111111 10111100 10111111 11011011 11101011 11111011   7f bc bf db eb fb
-    192: 1100
+    192: 1100                                                    c
 
+
+July 20th 2021: version 3.1.9 released
+---------------------------------------
+(version 3.1.8 was pulled due to serious issues)
+Another maintenance release.
+
+* Fixed a couple of outdated results in the readme (Issue 214).
+* Some more documentation tidying.
+* Turned off some debug code by default.
+* Fixed a couple of failing tests in different Python versions.
+* Fix for consistent pos initialisation semantics for different types.
+* Change to allow wheels to be uploaded to PyPI.
+* More work for LSB0 mode, but still not finished or documented (sorry).
 
 
 May 5th 2020: version 3.1.7 released

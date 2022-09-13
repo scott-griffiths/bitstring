@@ -155,11 +155,11 @@ class Lsb0Reading(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bitstring.set_lsb0(True)
+        bitstring.lsb0 = True
 
     @classmethod
     def tearDownClass(cls):
-        bitstring.set_lsb0(False)
+        bitstring.lsb0 = False
 
     def testReadingHex(self):
         s = CBS('0xabcdef')

@@ -67,6 +67,7 @@ import array
 import io
 import collections
 import functools
+import types
 from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, TextIO, Callable
 from contextlib import suppress
 
@@ -76,9 +77,33 @@ BitsType = Union['Bits', int, float, str, Iterable[Any], bool, BinaryIO, bytearr
 
 byteorder: str = sys.byteorder
 
-bytealigned: bool = False
-"""Determines whether a number of methods default to working only on byte boundaries."""
+# An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
+_bytealigned: bool = False
+_lsb0: bool = False
 
+class _MyModuleType(types.ModuleType):
+
+    @property
+    def bytealigned(self):
+        """Determines whether a number of methods default to working only on byte boundaries."""
+        return globals()['_bytealigned']
+    @bytealigned.setter
+    def bytealigned(self, value):
+        """Determines whether a number of methods default to working only on byte boundaries."""
+        globals()['_bytealigned'] = value
+
+    @property
+    def lsb0(self):
+        """If True, index bits with the least significant bit (the final bit) as bit zero."""
+        return globals()['_lsb0']
+    @lsb0.setter
+    def lsb0(self, value):
+        """If True, index bits with the least significant bit (the final bit) as bit zero."""
+        value = bool(value)
+        _switch_lsb0_methods(value)
+        globals()['_lsb0'] = value
+
+sys.modules[__name__].__class__ = _MyModuleType
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
@@ -2482,7 +2507,7 @@ class Bits:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = globals()['_bytealigned']
         if bytealigned and not bs.len % 8 and not self._datastore.offset:
             p = self._findbytes(bs.bytes, start, end)
         else:
@@ -2515,7 +2540,7 @@ class Bits:
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = globals()['_bytealigned']
         c = 0
         if bytealigned and not bs.len % 8 and not self._datastore.offset:
             # Use the quick find method
@@ -2562,7 +2587,7 @@ class Bits:
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = globals()['_bytealigned']
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         # Search chunks starting near the end and then moving back
@@ -2633,7 +2658,7 @@ class Bits:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = globals()['_bytealigned']
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
@@ -3426,7 +3451,7 @@ class BitArray(Bits):
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['bytealigned']
+            bytealigned = globals()['_bytealigned']
         # Adjust count for use in split()
         if count is not None:
             count += 1
@@ -4347,9 +4372,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     raise CreationError("Too many parameters present to pack according to the format.")
 
 
-# Whether to label the Least Significant Bit as bit 0. Default is False. Experimental feature.
-_lsb0: bool = False
-
+# Whether to label the Least Significant Bit as bit 0. Default is False.
 
 def _switch_lsb0_methods(lsb0: bool) -> None:
     global _lsb0
@@ -4391,24 +4414,13 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
         Bits._truncateend = Bits._truncateright
         Bits._validate_slice = Bits._validate_slice_msb0
 
-
-def set_lsb0(v: bool = True) -> None:
-    """Experimental method changing the bit numbering so that the least significant bit is bit 0"""
-    _switch_lsb0_methods(v)
-
-
-def set_msb0(v: bool = True) -> None:
-    """Experimental method to reset the bit numbering so that the most significant bit is bit 0"""
-    set_lsb0(not v)
-
-
 # Initialise the default behaviour
-set_msb0()
+_switch_lsb0_methods(False)
 
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
-           'ByteAlignError', 'CreationError', 'bytealigned', 'set_lsb0', 'set_msb0']
+           'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0']
 
 
 def main() -> None:

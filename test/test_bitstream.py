@@ -2320,6 +2320,9 @@ class Split2(unittest.TestCase):
         s.pos = 0
         with self.assertRaises(bitstring.Error):
             s.readlist('bin, bin')
+        s.pos = 0
+        with self.assertRaises(bitstring.Error):
+            s.readlist('bin, hex:4, bin')
 
     def testIntelligentPeek(self):
         a = BitStream('0b01, 0x43, 0o4, uint:23=2, se=5, ue=3')
@@ -4024,11 +4027,11 @@ class Lsb0Streaming(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bitstring.set_lsb0()
+        bitstring.lsb0 = True
 
     @classmethod
     def tearDownClass(cls):
-        bitstring.set_msb0()
+        bitstring.lsb0 = False
 
     def testSimpleBitPositions(self):
         s = BitStream('0x00000f')
