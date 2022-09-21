@@ -40,6 +40,57 @@ And of course you can combine the different methods in a single pack.
 
 A :exc:`ValueError` will be raised if the ``*values`` are not all used up by the format string, and if a value provided doesn't match the length specified by a token.
 
+Module Options
+--------------
+
+bitstring.lsb0
+^^^^^^^^^^^^^^
+
+By default bit numbering in the bitstring module is done from 'left' to 'right'. That is, from bit ``0`` at the start of the data to bit ``n - 1`` at the end. This allows bitstrings to be treated like an ordinary Python container that is only allowed to contain single bits.
+
+When bitstrings are interpreted as integers and other types the left-most bit is considered as the most significant bit (MSB).
+
+This feature allows bitstring to use Least Significant Bit Zero
+(LSB0) bit numbering; that is the final bit in the bitstring will
+be bit 0, and the first bit will be bit (n-1), rather than the
+other way around. LSB0 is a more natural numbering
+system in many fields, but is the opposite to Most Significant Bit
+Zero (MSB0) numbering which is the natural option when thinking of
+bitstrings as standard Python containers.
+
+To switch from the default MSB0, use the module level attribute ``bitstring.lsb0``. This defaults to ``False`` and unless explicitly stated all examples related to the bitstring module use the default MSB0 indexing.
+
+    >>> bitstring.lsb0 = True
+
+Slicing is still done with the start bit smaller than the end bit.
+For example:
+
+    >>> s = Bits('0b000000111')
+    >>> s[0:5]
+    Bits('0b00111')
+    >>> s[0]
+    True
+
+Negative indices work as you'd expect, with the first stored
+bit being `s[-1]` and the final stored bit being `s[-n]`.
+
+
+bitstring.bytealigned
+^^^^^^^^^^^^^^^^^^^^^
+A number of methods take a bytealigned parameter to indicate that they should only work on byte boundaries (e.g. find, replace, split). Previously this parameter defaulted to ``False``. Instead it now defaults to ``bitstring.bytealigned``, which itself defaults to ``False``, but can be changed to modify the default behaviour of the methods. For example::
+
+    >>> a = BitArray('0x00 ff 0f ff')
+    >>> a.find('0x0f')
+    (4,)    # found first not on a byte boundary
+    >>> a.find('0x0f', bytealigned=True)
+    (16,)   # forced looking only on byte boundaries
+    >>> bitstring.bytealigned = True  # Change default behaviour
+    >>> a.find('0x0f')
+    (16,)
+    >>> a.find('0x0f', bytealigned=False)
+    (4,)
+
+If you’re only working with bytes then this can help avoid some errors and save some typing.
 
 Command Line Usage
 ------------------

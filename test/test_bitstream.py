@@ -4039,12 +4039,16 @@ class Lsb0Streaming(unittest.TestCase):
         v = s.read('uint:8')
         self.assertEqual(v, 15)
         self.assertEqual(s.pos, 8)
+        v = s.read(10)
+        self.assertEqual(v, Bits(10))
+        self.assertEqual(s.pos, 18)
 
-    # def testBitPosAfterFind(self):
-    #     s = BitStream('0b01100001000011 0000')
-    #     s.find('0b11')
-    #     self.assertEqual(s.pos, 4)
-    #
+    def testBitPosAfterFind(self):
+        s = BitStream('0b01100001000011 0000')
+        s.find('0b11')
+        self.assertEqual(s.pos, 4)
+
+    # @unittest.expectedFailure
     # def testBitPosAfterRfind(self):
     #     s = BitStream('0b011 000010000110000')
     #     s.rfind('0b11')
@@ -4067,6 +4071,47 @@ class Lsb0Streaming(unittest.TestCase):
         
         vals = a.readlist('uint:4, uint:4, uint:24, uint:12, uint:12, uint:8')
         self.assertEqual(vals, [15, 14, 0x89abcd, 0x567, 0x234, 1])
+
+
+class TestLsb0PackingUnpacking(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        bitstring.lsb0 = True
+
+    @classmethod
+    def tearDownClass(cls):
+        bitstring.lsb0 = False
+
+    def testSimplest(self):
+        lsb0 = bitstring.pack('uint:2', 1)
+        self.assertEqual(lsb0.unpack('uint:2'), [1])
+
+    # @unittest.expectedFailure
+    # def testMoreComplex(self):
+    #     lsb0 = bitstring.pack('uint:10, hex, int:13, 0b11', 130, '3d', -23)
+    #     x = lsb0.unpack('uint:10, hex, int:13, bin:2')
+    #     self.assertEqual(x, (130, '3d', -23, '11'))
+
+    def testGolombCodes(self):
+        v = [10, 8, 6, 4, 100, -9]
+        # Exp-Golomb codes can only be read in msb0 mode. So also doesn't
+        # make sense for creation with pack
+        with self.assertRaises(bitstring.CreationError):
+            lsb0 = bitstring.pack('5*ue, sie', *v)
+        with self.assertRaises(bitstring.CreationError):
+            lsb0 = BitStream('ue=34')
+        lsb0 = BitStream('0b0010010')
+        with self.assertRaises(bitstring.ReadError):
+            x = lsb0.unpack('5*ue, sie')
+        with self.assertRaises(bitstring.ReadError):
+            _ = lsb0.read('ue')
+        with self.assertRaises(bitstring.ReadError):
+            _ = lsb0.read('uie')
+        with self.assertRaises(bitstring.ReadError):
+            _ = lsb0.read('se')
+        with self.assertRaises(bitstring.ReadError):
+            _ = lsb0.read('sie')
 
 
 class TestRepr(unittest.TestCase):

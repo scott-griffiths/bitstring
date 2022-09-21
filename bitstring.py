@@ -1312,6 +1312,8 @@ class Bits:
             b = cls(**{_tokenname_to_initialiser[name]: value})
         except KeyError:
             if name in ('se', 'ue', 'sie', 'uie'):
+                if _lsb0:
+                    raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
                 b = cls(**{name: int(value)})
             elif name in ('uint', 'int', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne'):
                 b = cls(**{name: int(value), 'length': token_length})
@@ -1690,6 +1692,8 @@ class Bits:
         Raises CreationError if i < 0.
 
         """
+        if _lsb0:
+            raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         if _length is not None or _offset is not None:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
         if i < 0:
@@ -1713,6 +1717,8 @@ class Bits:
         reading the code.
 
         """
+        if _lsb0:
+            raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         oldpos = pos
         try:
             while not self[pos]:
@@ -1791,6 +1797,8 @@ class Bits:
         Raises CreationError if i < 0.
 
         """
+        if _lsb0:
+            raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         if i < 0:
             raise CreationError("Cannot use negative initialiser for unsigned interleaved exponential-Golomb.")
         self._setbin_unsafe('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
@@ -1802,6 +1810,8 @@ class Bits:
         reading the code.
 
         """
+        if _lsb0:
+            raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         try:
             codenum = 1
             while not self[pos]:
@@ -2498,7 +2508,8 @@ class Bits:
         start, end = self._validate_slice_lsb0(start, end)
         p = self.rfind(bs, start, end, bytealigned)
         if p:
-            return (self.len - p[0] - bs.length,)
+            self._pos = self.len - p[0] - bs.length
+            return (self._pos,)
 
     def _find_msb0(self, bs: Bits, start: Optional[int] = None, end: Optional[int] = None,
                    bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
@@ -2931,11 +2942,15 @@ class Bits:
             assert bits_per_group == 0  # Don't divide into groups
             group_chars1 = group_chars2 = 0
             width_available = width - offset_width - len(format_sep)*(fmt2 is not None)
+            width_available = max(width_available, 1)
             if fmt2 is None:
                 max_bits_per_line = width_available * bpc[fmt1]
             else:
                 chars_per_24_bits = 24 // bpc[fmt1] + 24 // bpc[fmt2]
                 max_bits_per_line = 24 * (width_available // chars_per_24_bits)
+                if max_bits_per_line == 0:
+                    max_bits_per_line = 24  # We can't fit into the width asked for. Show something small.
+        assert max_bits_per_line > 0
 
         unprintable = list(range(0x00, 0x20))  # ASCII control characters
         unprintable.extend(range(0x7f, 0xa1))  # More UTF-8 control characters

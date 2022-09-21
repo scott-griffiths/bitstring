@@ -597,6 +597,21 @@ class Lsb0Interpretations(unittest.TestCase):
         a = Bits('0x01')
         self.assertEqual(a, '0b00000001')
         self.assertEqual(a.uint, 1)
+        self.assertEqual(a[0], True)
+
+    def testFloat(self):
+        a = Bits(float=0.25, length=32)
+        self.assertEqual(a.float, 0.25)
+
+    def testGolomb(self):
+        with self.assertRaises(bitstring.CreationError):
+            a = Bits(ue=2)
+        with self.assertRaises(bitstring.CreationError):
+            a = Bits(se=2)
+        with self.assertRaises(bitstring.CreationError):
+            a = Bits(uie=2)
+        with self.assertRaises(bitstring.CreationError):
+            a = Bits(sie=2)
 
 
 class UnderscoresInLiterals(unittest.TestCase):
@@ -722,6 +737,11 @@ class PrettyPrinting(unittest.TestCase):
         a.pp(stream=s, fmt='oct', show_offset=False, width=20)
         expected_output = "0123 4567 0123 4567\n" * 10
         self.assertEqual(s.getvalue(), expected_output)
+
+        t = io.StringIO()
+        a.pp('hex, oct', bits_per_group=0, width=1, show_offset=False, stream=t)
+        expected_output = "053977   01234567\n" * 20
+        self.assertEqual(t.getvalue(), expected_output)
 
     def testBytes(self):
         a = Bits(bytes=b'helloworld!!'*5)
