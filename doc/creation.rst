@@ -46,7 +46,7 @@ When initialising a bitstring you need to specify at most one initialiser. These
 * ``se``, ``ue`` : Signed or unsigned exponential-Golomb coded integers.
 * ``sie``, ``uie`` : Signed or unsigned interleaved exponential-Golomb coded integers.
 * ``bool`` : A boolean (i.e. True or False).
-* ``filename`` : Directly from a file, without reading into memory.
+* ``filename`` : Directly from a file, without reading into memory if using :class:`Bits` or :class:`ConstBitStream`.
 
 From a hexadecimal string
 ^^^^^^^^^^^^^^^^^^^^^^^^^

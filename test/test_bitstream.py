@@ -4098,12 +4098,12 @@ class TestLsb0PackingUnpacking(unittest.TestCase):
         # Exp-Golomb codes can only be read in msb0 mode. So also doesn't
         # make sense for creation with pack
         with self.assertRaises(bitstring.CreationError):
-            lsb0 = bitstring.pack('5*ue, sie', *v)
+            _ = bitstring.pack('5*ue, sie', *v)
         with self.assertRaises(bitstring.CreationError):
-            lsb0 = BitStream('ue=34')
+            _ = BitStream('ue=34')
         lsb0 = BitStream('0b0010010')
         with self.assertRaises(bitstring.ReadError):
-            x = lsb0.unpack('5*ue, sie')
+            _ = lsb0.unpack('5*ue, sie')
         with self.assertRaises(bitstring.ReadError):
             _ = lsb0.read('ue')
         with self.assertRaises(bitstring.ReadError):

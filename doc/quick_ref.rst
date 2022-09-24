@@ -9,13 +9,23 @@ This section lists the bitstring module's classes together with all their method
 
 Module level
 ------------
-TODO
 
-pack
-bytealigned
-lsb0
-'Error', 'ReadError', 'InterpretError',
-           'ByteAlignError', 'CreationError'
+Functions
+^^^^^^^^^
+* :func:`~bitstring.pack` -- Create a new ``BitStream`` according to a format string and values.
+
+Exceptions
+^^^^^^^^^^
+* :class:`~bitstring.Error` -- Base class for module exceptions.
+* :class:`~bitstring.ReadError` -- Reading or peeking past the end of a bitstring.
+* :class:`~bitstring.InterpretError` -- Inappropriate interpretation of binary data.
+* :class:`~bitstring.ByteAlignError` -- Whole-byte position or length needed.
+* :class:`~bitstring.CreationError` -- Inappropriate argument during bitstring creation.
+
+Module variables
+^^^^^^^^^^^^^^^^
+* :data:`~bitstring.bytealigned` -- Determines whether a number of methods default to working only on byte boundaries.
+* :data:`~bitstring.lsb0` -- If True, index bits with the least significant bit (the final bit) as bit zero.
 
 
 Bits

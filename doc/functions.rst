@@ -40,23 +40,28 @@ And of course you can combine the different methods in a single pack.
 
 A :exc:`ValueError` will be raised if the ``*values`` are not all used up by the format string, and if a value provided doesn't match the length specified by a token.
 
-Module Options
---------------
+Module Variables
+----------------
 
-bitstring.lsb0
-^^^^^^^^^^^^^^
+lsb0
+^^^^
+
+.. data:: lsb0
+
 
 By default bit numbering in the bitstring module is done from 'left' to 'right'. That is, from bit ``0`` at the start of the data to bit ``n - 1`` at the end. This allows bitstrings to be treated like an ordinary Python container that is only allowed to contain single bits.
 
-When bitstrings are interpreted as integers and other types the left-most bit is considered as the most significant bit (MSB).
 
-This feature allows bitstring to use Least Significant Bit Zero
+The ``lsb0`` module variable allows bitstrings to use Least Significant Bit Zero
 (LSB0) bit numbering; that is the final bit in the bitstring will
 be bit 0, and the first bit will be bit (n-1), rather than the
 other way around. LSB0 is a more natural numbering
 system in many fields, but is the opposite to Most Significant Bit
 Zero (MSB0) numbering which is the natural option when thinking of
 bitstrings as standard Python containers.
+
+When bitstrings are interpreted as integers and other types the left-most bit is considered as the most significant bit. It's important to note that this is the case irrespective of whether the first of last bit is considered the bit zero, so for example if you were to interpret a whole bitstring as an integer, its value would be the same with and without `lsb0` being set to `True`.
+
 
 To switch from the default MSB0, use the module level attribute ``bitstring.lsb0``. This defaults to ``False`` and unless explicitly stated all examples related to the bitstring module use the default MSB0 indexing.
 
@@ -71,12 +76,19 @@ For example:
     >>> s[0]
     True
 
+In some standards and documents using LSB0 notation the slice of the final five bits would be shown as `s[5:0]`, which is reasonable as bit 5 comes before bit 0 when reading left to right, but this notation isn't used in this module as it clashes too much with the usual Python notation.
+
 Negative indices work as you'd expect, with the first stored
 bit being `s[-1]` and the final stored bit being `s[-n]`.
 
+Reading, peeking and unpacking of bitstrings are also affected by the `lsb0` flag, so reading always increments the bit position, and will move from right to left if `lsb0` is `True`. Because of the way that exponential-Golomb codes are read (with the left-most bits determining the length of the code) these interpretations are not available in LSB0 mode, and using them will raise an exception.
 
-bitstring.bytealigned
-^^^^^^^^^^^^^^^^^^^^^
+
+bytealigned
+^^^^^^^^^^^
+
+.. data:: bytealigned
+
 A number of methods take a bytealigned parameter to indicate that they should only work on byte boundaries (e.g. find, replace, split). Previously this parameter defaulted to ``False``. Instead it now defaults to ``bitstring.bytealigned``, which itself defaults to ``False``, but can be changed to modify the default behaviour of the methods. For example::
 
     >>> a = BitArray('0x00 ff 0f ff')
