@@ -522,6 +522,11 @@ class Lsb0Setting(unittest.TestCase):
         a.set(False, 0)
         self.assertEqual(a, '0b110')
 
+    def testFailingRepr(self):
+        a = BitArray('0b010')
+        a.find('0b1')
+        self.assertEqual(repr(a), "BitArray('0b010')")
+
 
 class Repr(unittest.TestCase):
 

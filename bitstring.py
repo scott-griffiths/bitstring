@@ -2507,9 +2507,12 @@ class Bits:
         bs = Bits(bs)
         start, end = self._validate_slice_lsb0(start, end)
         p = self.rfind(bs, start, end, bytealigned)
+        newpos = self._pos
         if p:
-            self._pos = self.len - p[0] - bs.length
-            return (self._pos,)
+            newpos = self.len - p[0] - bs.length
+            if self._pos is not None:
+                self._pos = newpos
+        return (newpos,)
 
     def _find_msb0(self, bs: Bits, start: Optional[int] = None, end: Optional[int] = None,
                    bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
