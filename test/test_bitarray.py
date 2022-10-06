@@ -464,11 +464,56 @@ class Lsb0Setting(unittest.TestCase):
         p, = a.find('0b10101010', start=5, bytealigned=False)
         self.assertEqual(p, 22)
 
+    def testFindFailing(self):
+        a = BitArray()
+        p = a.find('0b1')
+        self.assertEqual(p, ())
+        a = BitArray('0b11111111111011')
+        p = a.find('0b100')
+        self.assertFalse(p)
+
     def testRfind(self):
-        pass
+        a = BitArray('0b1000000')
+        p = a.rfind('0b1')
+        self.assertEqual(p, (6,))
+        p = a.rfind('0b000')
+        self.assertEqual(p, (3,))
 
     def testFindall(self):
-        pass
+        a = BitArray('0b001000100001')
+        b = list(a.findall('0b1'))
+        self.assertEqual(b, [0, 5, 9])
+        c = list(a.findall('0b0001'))
+        self.assertEqual(c, [0, 5])
+        d = list(a.findall('0b10'))
+        self.assertEqual(d, [4, 8])
+        e = list(a.findall('0x198273641234'))
+        self.assertEqual(e, [])
+
+    def testFindAllWithStartAndEnd(self):
+        a = BitArray('0xaabbccaabbccccbb')
+        b = list(a.findall('0xbb', start=0, end=8))
+        self.assertEqual(b, [0])
+        b = list(a.findall('0xbb', start=1, end=8))
+        self.assertEqual(b, [])
+        b = list(a.findall('0xbb', start=0, end=7))
+        self.assertEqual(b, [])
+        b = list(a.findall('0xbb', start=48))
+        self.assertEqual(b, [48])
+        b = list(a.findall('0xbb', start=47))
+        self.assertEqual(b, [48])
+        b = list(a.findall('0xbb', start=49))
+        self.assertEqual(b, [])
+
+    def testFindAllByteAligned(self):
+        a = BitArray('0x0550550')
+        b = list(a.findall('0x55', bytealigned=True))
+        self.assertEqual(b, [16])
+
+    def testFindAllWithCount(self):
+        a = BitArray('0b0001111101')
+        b = list(a.findall([1], start=1, count=3))
+        self.assertEqual(b, [2, 3, 4])
 
     def testSplit(self):
         a = BitArray('0x4700004711472222')
@@ -492,7 +537,13 @@ class Lsb0Setting(unittest.TestCase):
         self.assertEqual(a, '0x000dead0')
 
     def testReplace(self):
-        pass
+        a = BitArray('0x0001100')
+        n = a.replace('0x1', '0xabc')
+        self.assertEqual(n, 2)
+        self.assertEqual(a, '0x000abcabc00')
+        n = a.replace([1], [0], end=12)
+        self.assertEqual(n, 2)
+        self.assertEqual(a, '0x000abcab000')
 
     def testReverse(self):
         pass

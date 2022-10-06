@@ -81,12 +81,13 @@ byteorder: str = sys.byteorder
 _bytealigned: bool = False
 _lsb0: bool = False
 
-class _MyModuleType(types.ModuleType):
 
+class _MyModuleType(types.ModuleType):
     @property
     def bytealigned(self):
         """Determines whether a number of methods default to working only on byte boundaries."""
         return globals()['_bytealigned']
+
     @bytealigned.setter
     def bytealigned(self, value):
         """Determines whether a number of methods default to working only on byte boundaries."""
@@ -96,12 +97,14 @@ class _MyModuleType(types.ModuleType):
     def lsb0(self):
         """If True, index bits with the least significant bit (the final bit) as bit zero."""
         return globals()['_lsb0']
+
     @lsb0.setter
     def lsb0(self, value):
         """If True, index bits with the least significant bit (the final bit) as bit zero."""
         value = bool(value)
         _switch_lsb0_methods(value)
         globals()['_lsb0'] = value
+
 
 sys.modules[__name__].__class__ = _MyModuleType
 
@@ -1476,7 +1479,6 @@ class Bits:
         self._setbytes_unsafe(bytearray(data), length, offset)
 
     def _readuint_lsb0(self, start: int, length: int) -> int:
-        # TODO: This needs a complete rewrite - can't delegate to _readuint_msb0
         return self._readuint_msb0(self.len - start - length, length)
 
     def _readuint_msb0(self, start: int, length: int) -> int:
@@ -2500,28 +2502,26 @@ class Bits:
         (6,)
 
         """
-        return self._find(bs, start, end, bytealigned)
-
-    def _find_lsb0(self, bs: Bits, start: Optional[int] = None, end: Optional[int] = None,
-                   bytealigned: Optional[bool] = None) -> Optional[Tuple[int]]:
         bs = Bits(bs)
-        start, end = self._validate_slice_lsb0(start, end)
-        p = self.rfind(bs, start, end, bytealigned)
-        newpos = self._pos
-        if p:
-            newpos = self.len - p[0] - bs.length
-            if self._pos is not None:
-                self._pos = newpos
-        return (newpos,)
-
-    def _find_msb0(self, bs: Bits, start: Optional[int] = None, end: Optional[int] = None,
-                   bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
-        bs = Bits(bs)
-        if not bs.len:
+        if bs.len == 0:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
             bytealigned = globals()['_bytealigned']
+        return self._find(bs, start, end, bytealigned)
+
+    def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+        # A find in lsb0 is very like a reverse find in msb0.
+        p = self._rfind_msb0(bs, start, end, bytealigned)
+        if p:
+            newpos = self.len - p[0] - bs.length
+            if self._pos is not None:
+                self._pos = newpos
+            return (newpos,)
+        else:
+            return ()
+
+    def _find_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         if bytealigned and not bs.len % 8 and not self._datastore.offset:
             p = self._findbytes(bs.bytes, start, end)
         else:
@@ -2555,6 +2555,10 @@ class Bits:
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
             bytealigned = globals()['_bytealigned']
+        return self._findall(bs, start, end, count, bytealigned)
+
+    def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
+                      bytealigned: bool) -> Generator[int, None, None]:
         c = 0
         if bytealigned and not bs.len % 8 and not self._datastore.offset:
             # Use the quick find method
@@ -2562,11 +2566,11 @@ class Bits:
         else:
             f = functools.partial(self._findregex, reg_ex=re.compile(bs._getbin()), bytealigned=bytealigned)
         while True:
+            if count is not None and c >= count:
+                return
             p = f(start=start, end=end)
             if not p:
                 break
-            if count is not None and c >= count:
-                return
             c += 1
             if self._pos is not None:
                 self._pos = p[0]
@@ -2578,6 +2582,30 @@ class Bits:
             if start >= end:
                 break
         return
+
+    def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
+                      bytealigned: bool) -> Generator[int, None, None]:
+        # Search chunks starting near the end and then moving back.
+        c = 0
+        increment = max(8192, bs.len * 80)
+        buffersize = min(increment + bs.len, end - start)
+        pos = max(start, end - buffersize)
+        while True:
+            found = list(self._findall_msb0(bs, start=pos, end=pos + buffersize, count=None,
+                                            bytealigned=bytealigned))
+            if not found:
+                if pos == start:
+                    return
+                pos = max(start, pos - increment)
+                continue
+            while found:
+                if count is not None and c >= count:
+                    return
+                c += 1
+                yield self.len - found.pop() - bs.len
+            pos = max(start, pos - increment)
+            if pos == start:
+                return
 
     def rfind(self, bs: Any, start: Optional[int] = None, end: Optional[int] = None,
               bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
@@ -2604,20 +2632,34 @@ class Bits:
             bytealigned = globals()['_bytealigned']
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
+        return self._rfind(bs, start, end, bytealigned)
+
+    def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # Search chunks starting near the end and then moving back
         # until we find bs.
         increment = max(8192, bs.len * 80)
         buffersize = min(increment + bs.len, end - start)
         pos = max(start, end - buffersize)
         while True:
-            found = list(self.findall(bs, start=pos, end=pos + buffersize,
-                                      bytealigned=bytealigned))
+            found = list(self._findall_msb0(bs, start=pos, end=pos + buffersize, count=None,
+                                            bytealigned=bytealigned))
             if not found:
                 if pos == start:
                     return ()
                 pos = max(start, pos - increment)
                 continue
             return (found[-1],)
+
+    def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+        # A reverse find in lsb0 is very like a forward find in msb0.
+        p = self._find_msb0(bs, start, end, bytealigned)
+        if p:
+            newpos = self.len - p[0] - bs.length
+            if self._pos is not None:
+                self._pos = newpos
+            return (newpos,)
+        else:
+            return ()
 
     def cut(self, bits: int, start: Optional[int] = None, end: Optional[int] = None,
             count: Optional[int] = None) -> Generator[Bits, None, None]:
@@ -4398,6 +4440,8 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
     if lsb0:
         ConstByteStore.getbit = ConstByteStore._getbit_lsb0
         Bits._find = Bits._find_lsb0
+        Bits._rfind = Bits._rfind_lsb0
+        Bits._findall = Bits._findall_lsb0
         Bits._slice = Bits._slice_lsb0
         BitArray._overwrite = BitArray._overwrite_lsb0
         BitArray._insert = BitArray._insert_lsb0
@@ -4416,6 +4460,8 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
     else:
         ConstByteStore.getbit = ConstByteStore._getbit_msb0
         Bits._find = Bits._find_msb0
+        Bits._rfind = Bits._rfind_msb0
+        Bits._findall = Bits._findall_msb0
         Bits._slice = Bits._slice_msb0
         BitArray._overwrite = BitArray._overwrite_msb0
         BitArray._insert = BitArray._insert_msb0

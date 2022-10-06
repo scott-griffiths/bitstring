@@ -601,17 +601,29 @@ class Lsb0Interpretations(unittest.TestCase):
 
     def testFloat(self):
         a = Bits(float=0.25, length=32)
+        try:
+            bitstring.lsb0 = False
+            b = Bits(float=0.25, length=32)
+        finally:
+            bitstring.lsb0 = True
         self.assertEqual(a.float, 0.25)
+        self.assertEqual(b.float, 0.25)
+        self.assertEqual(a.bin, b.bin)
 
     def testGolomb(self):
         with self.assertRaises(bitstring.CreationError):
-            a = Bits(ue=2)
+            _ = Bits(ue=2)
         with self.assertRaises(bitstring.CreationError):
-            a = Bits(se=2)
+            _ = Bits(se=2)
         with self.assertRaises(bitstring.CreationError):
-            a = Bits(uie=2)
+            _ = Bits(uie=2)
         with self.assertRaises(bitstring.CreationError):
-            a = Bits(sie=2)
+            _ = Bits(sie=2)
+
+    def testBytes(self):
+        a = Bits('0xabcdef')
+        b = a.bytes
+        self.assertEqual(b, b'\xab\xcd\xef')
 
 
 class UnderscoresInLiterals(unittest.TestCase):

@@ -1965,9 +1965,8 @@ class Split2(unittest.TestCase):
         s = BitStream('0b1') * 100
         for i in [0, 1, 23]:
             self.assertEqual(len(list(s.findall('0b1', count=i))), i)
-        b = s.findall('0b1', bytealigned=True, count=-1)
         with self.assertRaises(ValueError):
-            _ = next(b)
+            _ = s.findall('0b1', bytealigned=True, count=-1)
 
     def testContains(self):
         a = BitStream('0b1') + '0x0001dead0001'
@@ -4086,8 +4085,12 @@ class TestLsb0PackingUnpacking(unittest.TestCase):
     def testSimplest(self):
         lsb0 = bitstring.pack('uint:2', 1)
         self.assertEqual(lsb0.unpack('uint:2'), [1])
-
-    # @unittest.expectedFailure
+    #
+    # def testSlightlyHarder(self):
+    #     lsb0 = bitstring.pack('float:32, hex', 0.25, 'ab')
+    #     x = lsb0.unpack('float:32, hex')
+    #     self.assertEqual(x, (0.25, 'ab'))
+    #
     # def testMoreComplex(self):
     #     lsb0 = bitstring.pack('uint:10, hex, int:13, 0b11', 130, '3d', -23)
     #     x = lsb0.unpack('uint:10, hex, int:13, bin:2')
