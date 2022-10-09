@@ -520,6 +520,8 @@ INIT_NAMES: Tuple[str, ...] = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', '
 
 TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>' + '|'.join(INIT_NAMES) +
                                     r')(:(?P<len>[^=]+))?(=(?P<value>.*))?$', re.IGNORECASE)
+# Tokens such as 'u32', 'f64=4.5' or 'i6=-3'
+SHORT_TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>u|i|f)(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 DEFAULT_BITS: Pattern[str] = re.compile(r'(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
 MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'(?P<factor>.*)\*(?P<token>.+)')
@@ -642,13 +644,20 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
                 length = m1.group('len')
                 value = m1.group('value')
             else:
-                # If you don't specify a 'name' then the default is 'bits':
-                name = 'bits'
-                m2 = DEFAULT_BITS.match(token)
-                if not m2:
-                    raise ValueError(f"Don't understand token '{token}'.")
-                length = m2.group('len')
-                value = m2.group('value')
+                m1_short = SHORT_TOKEN_RE.match(token)
+                if m1_short:
+                    name = m1_short.group('name')
+                    name = {'u': 'uint', 'i': 'int', 'f': 'float'}[name]
+                    length = m1_short.group('len')
+                    value = m1_short.group('value')
+                else:
+                    # If you don't specify a 'name' then the default is 'bits':
+                    name = 'bits'
+                    m2 = DEFAULT_BITS.match(token)
+                    if not m2:
+                        raise ValueError(f"Don't understand token '{token}'.")
+                    length = m2.group('len')
+                    value = m2.group('value')
 
             if name == 'bool':
                 if length is not None and length != '1':
@@ -932,6 +941,26 @@ class Bits:
             offset = 0
         self._setauto(auto, length, offset)
         return
+
+    def __getattr__(self, attribute):
+        try:
+            f = {'u': self._getuint,
+                 'i': self._getint,
+                 'f': self._getfloat}[attribute]
+            return f()
+        except KeyError:
+            short_token: Pattern[str] = re.compile(r'(?P<name>u|i|f)(?P<len>\d+)$', re.IGNORECASE)
+            m1_short = short_token.match(attribute)
+            if m1_short:
+                length = int(m1_short.group('len'))
+                if length is not None and self.len != length:
+                    raise InterpretError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
+                name = m1_short.group('name')
+                f = {'u': self._getuint,
+                     'i': self._getint,
+                     'f': self._getfloat}[name]
+                return f()
+            raise AttributeError
 
     def __iter__(self) -> Iterable[bool]:
         return iter(self._datastore)
@@ -1466,9 +1495,9 @@ class Bits:
         if _offset is not None:
             raise CreationError("An offset can't be specified with an integer initialiser.")
         if uint >= (1 << length):
-            msg = "{0} is too large an unsigned integer for a bitstring of length {1}. "\
-                  "The allowed range is [0, {2}]."
-            raise CreationError(msg, uint, length, (1 << length) - 1)
+            msg = f"{uint} is too large an unsigned integer for a bitstring of length {length}. "\
+                  f"The allowed range is [0, {(1 << length) - 1}]."
+            raise CreationError(msg)
         if uint < 0:
             raise CreationError("uint cannot be initialised with a negative number.")
         data = int.to_bytes(uint, (length + 7) // 8, 'big')
@@ -1508,9 +1537,8 @@ class Bits:
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with an int initialiser.")
         if int_ >= (1 << (length - 1)) or int_ < -(1 << (length - 1)):
-            raise CreationError("{0} is too large a signed integer for a bitstring of length {1}. "
-                                "The allowed range is [{2}, {3}].", int_, length, -(1 << (length - 1)),
-                                (1 << (length - 1)) - 1)
+            raise CreationError(f"{int_} is too large a signed integer for a bitstring of length {length}. "
+                                f"The allowed range is [{-(1 << (length - 1))}, {(1 << (length - 1)) - 1}].")
         if int_ >= 0:
             self._setuint(int_, length)
             return
@@ -3265,6 +3293,31 @@ class BitArray(Bits):
                                  y._datastore.offset)
         x._pos = None
         return x
+
+    def __setattr__(self, attribute, value):
+        try:
+            super().__setattr__(attribute, value)
+        except AttributeError:
+            try:
+                f = {'u': self._setuint,
+                     'i': self._setint,
+                     'f': self._setfloat}[attribute]
+                f(value)
+                return
+            except KeyError:
+                short_token: Pattern[str] = re.compile(r'(?P<name>u|i|f)(?P<len>\d+)$', re.IGNORECASE)
+                m1_short = short_token.match(attribute)
+                if m1_short:
+                    length = int(m1_short.group('len'))
+                    if length is not None and self.len != length:
+                        raise InterpretError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
+                    name = m1_short.group('name')
+                    f = {'u': self._setuint,
+                         'i': self._setint,
+                         'f': self._setfloat}[name]
+                    f(value)
+                    return
+            raise AttributeError  # TODO: message
 
     def __iadd__(self, bs: BitsType) -> BitArray:
         """Append bs to current bitstring. Return self.

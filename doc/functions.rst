@@ -46,8 +46,12 @@ Module Variables
 lsb0
 ^^^^
 
-.. data:: lsb0
+.. warning::
+    The LSB0 feature is considered experimental and certain aspects may change in future versions. Some features,
+    especially those unique to the ``BitStream`` and ``ConstBitStream`` classes, have not been exhaustively tested. Please
+    report any bugs you find, but it should be fine for most people's use cases.
 
+.. data:: lsb0
 
 By default bit numbering in the bitstring module is done from 'left' to 'right'. That is, from bit ``0`` at the start of the data to bit ``n - 1`` at the end. This allows bitstrings to be treated like an ordinary Python container that is only allowed to contain single bits.
 
@@ -76,12 +80,12 @@ For example:
     >>> s[0]
     True
 
-In some standards and documents using LSB0 notation the slice of the final five bits would be shown as `s[5:0]`, which is reasonable as bit 5 comes before bit 0 when reading left to right, but this notation isn't used in this module as it clashes too much with the usual Python notation.
+In some standards and documents using LSB0 notation the slice of the final five bits would be shown as ``s[5:0]``, which is reasonable as bit 5 comes before bit 0 when reading left to right, but this notation isn't used in this module as it clashes too much with the usual Python notation.
 
 Negative indices work as you'd expect, with the first stored
-bit being `s[-1]` and the final stored bit being `s[-n]`.
+bit being ``s[-1]`` and the final stored bit being ``s[-n]``.
 
-Reading, peeking and unpacking of bitstrings are also affected by the `lsb0` flag, so reading always increments the bit position, and will move from right to left if `lsb0` is `True`. Because of the way that exponential-Golomb codes are read (with the left-most bits determining the length of the code) these interpretations are not available in LSB0 mode, and using them will raise an exception.
+Reading, peeking and unpacking of bitstrings are also affected by the ``lsb0`` flag, so reading always increments the bit position, and will move from right to left if ``lsb0`` is ``True``. Because of the way that exponential-Golomb codes are read (with the left-most bits determining the length of the code) these interpretations are not available in LSB0 mode, and using them will raise an exception.
 
 
 bytealigned
@@ -89,7 +93,7 @@ bytealigned
 
 .. data:: bytealigned
 
-A number of methods take a bytealigned parameter to indicate that they should only work on byte boundaries (e.g. find, replace, split). Previously this parameter defaulted to ``False``. Instead it now defaults to ``bitstring.bytealigned``, which itself defaults to ``False``, but can be changed to modify the default behaviour of the methods. For example::
+A number of methods take a bytealigned parameter to indicate that they should only work on byte boundaries (e.g. find, replace, split). This parameter defaults to ``bitstring.bytealigned``, which itself defaults to ``False``, but can be changed to modify the default behaviour of the methods. For example::
 
     >>> a = BitArray('0x00 ff 0f ff')
     >>> a.find('0x0f')

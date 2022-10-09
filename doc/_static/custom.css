@@ -31,3 +31,12 @@ div.document div.highlight {
 h1, h2, h3 {
     color: #046ab1;
 }
+
+div.document div.admonition.attention, div.document div.admonition.caution, div.document div.admonition.warning {
+    border: 2px solid #d77732;
+}
+
+div.document div.admonition.attention p.admonition-title, div.document div.admonition.caution p.admonition-title, div.document div.admonition.warning p.admonition-title {
+    color: #ffffff;
+    background-color: #d77732;
+}
