@@ -39,7 +39,6 @@ New features and improvements:
   a ``.`` followed by an interpretation string then that interpretation
   of the bitstring will be used when printing it. ::
 
-
       $ python -m bitstring int:16=-400
       0xfe70
       $ python -m bitstring float:32=0.2 bin
@@ -61,6 +60,22 @@ New features and improvements:
      96: 11110111 10011110 10000111 11111101 11111001 10001100   f7 9e 87 fd f9 8c
     144: 01111111 10111100 10111111 11011011 11101011 11111011   7f bc bf db eb fb
     192: 1100                                                    c
+
+* Shorter and more versatile properties. The bin, oct, hex, float, uint and int
+  properties can now be shortened to just their first letter. They can also have
+  a length in bits after them - allowing Rust-like data types. ::
+
+      >>> s = BitArray('0x44961000')
+      >>> s.h
+      '44961000'
+      >>> s.f32
+      1200.5
+      >>> s.u
+      1150685184
+      >>> s.i7 = -60
+      >>> s.b
+      '1000100'
+      >>> t = Bits('u12=160, u12=120, b=100')
 
 
 July 20th 2021: version 3.1.9 released

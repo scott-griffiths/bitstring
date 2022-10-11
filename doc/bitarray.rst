@@ -201,8 +201,10 @@ set
 Properties
 ----------
 
-bin
-^^^
+Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter.
+
+bin / b
+^^^^^^^
     .. attribute:: BitArray.bin
        :noindex:
 
@@ -222,15 +224,15 @@ bytes
 
         Writable version of :attr:`Bits.bytes`.
 
-hex
-^^^
+hex / h
+^^^^^^^
     .. attribute:: BitArray.hex
        :noindex:
 
         Writable version of :attr:`Bits.hex`.
 
-int
-^^^
+int / i
+^^^^^^^
     .. attribute:: BitArray.int
        :noindex:
 
@@ -271,8 +273,8 @@ intne
 
         When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
-float / floatbe
-^^^^^^^^^^^^^^^
+float / floatbe / f
+^^^^^^^^^^^^^^^^^^^
     .. attribute:: BitArray.float
        :noindex:
     .. attribute:: BitArray.floatbe
@@ -294,8 +296,8 @@ floatne
 
         Writable version of :attr:`Bits.floatne`.
 
-oct
-^^^
+oct / o
+^^^^^^^
     .. attribute:: BitArray.oct
        :noindex:
 
@@ -329,8 +331,8 @@ uie
 
         Writable version of :attr:`Bits.ue`.
 
-uint
-^^^^
+uint / u
+^^^^^^^^
     .. attribute:: BitArray.uint
        :noindex:
 

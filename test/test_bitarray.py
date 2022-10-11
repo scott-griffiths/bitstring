@@ -584,3 +584,97 @@ class Repr(unittest.TestCase):
     def testStandardRepr(self):
         a = BitArray('0o12345')
         self.assertEqual(repr(a), "BitArray('0b001010011100101')")
+
+
+class NewProperties(unittest.TestCase):
+
+    def testAliases(self):
+        a = BitArray('0x1234567890ab')
+        self.assertEqual(a.oct, a.o)
+        self.assertEqual(a.hex, a.h)
+        self.assertEqual(a.bin, a.b)
+        self.assertEqual(a[:32].float, a[:32].f)
+        self.assertEqual(a.int, a.i)
+        self.assertEqual(a.uint, a.u)
+
+    def testAliasesWithLengths(self):
+        a = BitArray('0x123')
+        h = a.h12
+        self.assertEqual(h, '123')
+        b = a.b12
+        self.assertEqual(b, '000100100011')
+        o = a.o12
+        self.assertEqual(o, '0443')
+        u = a.u12
+        self.assertEqual(u, a.u)
+        i = a.i12
+        self.assertEqual(i, a.i)
+        x = BitArray('0x12345678')
+        f = x.f32
+        self.assertEqual(f, x.f)
+
+    def testAssignments(self):
+        a = BitArray()
+        a.f64 = 0.5
+        self.assertEqual(a.f64, 0.5)
+        a.u88 = 1244322
+        self.assertEqual(a.u88, 1244322)
+        a.i3 = -3
+        self.assertEqual(a.i3, -3)
+        a.h16 = '0x1234'
+        self.assertEqual(a.h16, '1234')
+        a.o9 = '0o765'
+        self.assertEqual(a.o9, '765')
+        a.b7 = '0b0001110'
+        self.assertEqual(a.b7, '0001110')
+
+    def testAssignmentsWithoutLength(self):
+        a = BitArray(64)
+        a.f = 1234.5
+        self.assertEqual(a.float, 1234.5)
+        self.assertEqual(a.len, 64)
+        a.u = 99
+        self.assertEqual(a.uint, 99)
+        self.assertEqual(a.len, 64)
+        a.i = -999
+        self.assertEqual(a.int, -999)
+        self.assertEqual(a.len, 64)
+        a.h = 'feedbeef'
+        self.assertEqual(a.hex, 'feedbeef')
+        a.o = '1234567'
+        self.assertEqual(a.oct, '1234567')
+        a.b = '001'
+        self.assertEqual(a.bin, '001')
+
+    def testGetterLengthErrors(self):
+        a = BitArray('0x123')
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.h16
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.b331123112313
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.o2
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.f
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.f32
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.u13
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.i1
+
+    def testUnpack(self):
+        a = BitArray('0xff160120')
+        b = a.unpack('h8,2*u12')
+        self.assertEqual(b, ['ff', 352, 288])
+
+    def testReading(self):
+        a = bitstring.BitStream('0x01ff')
+        b = a.read('u8')
+        self.assertEqual(b, 1)
+        self.assertEqual(a.pos, 8)
+        c = a.read('i')
+        self.assertEqual(c, -1)
+        a.pos = 0
+        b, c = a.readlist(['b8', 'h'])
+        self.assertEqual([b, c], ['00000001', 'ff'])

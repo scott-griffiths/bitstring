@@ -521,7 +521,7 @@ INIT_NAMES: Tuple[str, ...] = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', '
 TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>' + '|'.join(INIT_NAMES) +
                                     r')(:(?P<len>[^=]+))?(=(?P<value>.*))?$', re.IGNORECASE)
 # Tokens such as 'u32', 'f64=4.5' or 'i6=-3'
-SHORT_TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>u|i|f)(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
+SHORT_TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>u|i|f|b|o|h)(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 DEFAULT_BITS: Pattern[str] = re.compile(r'(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
 MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'(?P<factor>.*)\*(?P<token>.+)')
@@ -647,7 +647,12 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
                 m1_short = SHORT_TOKEN_RE.match(token)
                 if m1_short:
                     name = m1_short.group('name')
-                    name = {'u': 'uint', 'i': 'int', 'f': 'float'}[name]
+                    name = {'u': 'uint',
+                            'i': 'int',
+                            'f': 'float',
+                            'b': 'bin',
+                            'o': 'oct',
+                            'h': 'hex'}[name]
                     length = m1_short.group('len')
                     value = m1_short.group('value')
                 else:
@@ -943,24 +948,24 @@ class Bits:
         return
 
     def __getattr__(self, attribute):
-        try:
-            f = {'u': self._getuint,
-                 'i': self._getint,
-                 'f': self._getfloat}[attribute]
+        # Support for arbitrary attributes like u16 or f64.
+        letter_to_getter: Dict[str, Callable] = \
+            {'u': self._getuint,
+             'i': self._getint,
+             'f': self._getfloat,
+             'b': self._getbin,
+             'o': self._getoct,
+             'h': self._gethex}
+        short_token: Pattern[str] = re.compile(r'(?P<name>u|i|f|b|o|h)(?P<len>\d+)$', re.IGNORECASE)
+        m1_short = short_token.match(attribute)
+        if m1_short:
+            length = int(m1_short.group('len'))
+            if length is not None and self.len != length:
+                raise InterpretError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
+            name = m1_short.group('name')
+            f = letter_to_getter[name]
             return f()
-        except KeyError:
-            short_token: Pattern[str] = re.compile(r'(?P<name>u|i|f)(?P<len>\d+)$', re.IGNORECASE)
-            m1_short = short_token.match(attribute)
-            if m1_short:
-                length = int(m1_short.group('len'))
-                if length is not None and self.len != length:
-                    raise InterpretError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
-                name = m1_short.group('name')
-                f = {'u': self._getuint,
-                     'i': self._getint,
-                     'f': self._getfloat}[name]
-                return f()
-            raise AttributeError
+        raise AttributeError(f"Can't parse attribute {attribute}.")
 
     def __iter__(self) -> Iterable[bool]:
         return iter(self._datastore)
@@ -3164,6 +3169,13 @@ class Bits:
     sie = property(_getsie,
                    doc="""The bitstring as a signed interleaved exponential-Golomb code. Read only.
                       """)
+    # Some shortened aliases of the above properties
+    i = int
+    u = uint
+    f = float
+    b = bin
+    o = oct
+    h = hex
 
 
 class BitArray(Bits):
@@ -3296,28 +3308,33 @@ class BitArray(Bits):
 
     def __setattr__(self, attribute, value):
         try:
+            # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
         except AttributeError:
-            try:
-                f = {'u': self._setuint,
-                     'i': self._setint,
-                     'f': self._setfloat}[attribute]
-                f(value)
+            letter_to_setter: Dict[str, Callable] =\
+                {'u': self._setuint,
+                 'i': self._setint,
+                 'f': self._setfloat,
+                 'b': self._setbin_safe,
+                 'o': self._setoct,
+                 'h': self._sethex}
+            short_token: Pattern[str] = re.compile(r'(?P<name>u|i|f|b|o|h)(?P<len>\d+)$', re.IGNORECASE)
+            m1_short = short_token.match(attribute)
+            if m1_short:
+                length = int(m1_short.group('len'))
+                name = m1_short.group('name')
+                f = letter_to_setter[name]
+                a_copy = self._copy()
+                f(value, length)
+                if self.len != length:
+                    new_len = self.len
+                    # Reset to previous value
+                    self._setbytes_unsafe(a_copy._datastore.getbyteslice(0, a_copy._datastore.bytelength),
+                                          a_copy.len, a_copy._offset)
+                    raise CreationError(f"Can't initialise with value of length {new_len} bits, "
+                                        f"as attribute has length of {length} bits.")
                 return
-            except KeyError:
-                short_token: Pattern[str] = re.compile(r'(?P<name>u|i|f)(?P<len>\d+)$', re.IGNORECASE)
-                m1_short = short_token.match(attribute)
-                if m1_short:
-                    length = int(m1_short.group('len'))
-                    if length is not None and self.len != length:
-                        raise InterpretError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
-                    name = m1_short.group('name')
-                    f = {'u': self._setuint,
-                         'i': self._setint,
-                         'f': self._setfloat}[name]
-                    f(value)
-                    return
-            raise AttributeError  # TODO: message
+            raise AttributeError(f"Can't parse attribute {attribute}.")
 
     def __iadd__(self, bs: BitsType) -> BitArray:
         """Append bs to current bitstring. Return self.
@@ -3922,6 +3939,13 @@ class BitArray(Bits):
     bytes = property(Bits._getbytes, Bits._setbytes_safe,
                      doc="""The bitstring as a ordinary string. Read and write.
                       """)
+    # Aliases for some properties
+    f = float
+    i = int
+    u = uint
+    b = bin
+    h = hex
+    o = oct
 
 
 class ConstBitStream(Bits):

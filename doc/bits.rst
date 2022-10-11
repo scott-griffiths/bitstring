@@ -269,8 +269,10 @@ unpack
 Properties
 ----------
 
-bin
-^^^
+Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter.
+
+bin / b
+^^^^^^^
     .. attribute:: Bits.bin
 
         Property for the representation of the bitstring as a binary string.
@@ -297,8 +299,8 @@ bytes
             >>> s.bytes
             b'\x124Vx'
 
-hex
-^^^
+hex / h
+^^^^^^^
     .. attribute:: Bits.hex
 
         Property representing the hexadecimal value of the bitstring.
@@ -309,8 +311,8 @@ hex
             >>> s.hex
             'f0'
 
-int
-^^^
+int / i
+^^^^^^^
     .. attribute:: Bits.int
 
         Property for the signed two’s complement integer representation of the bitstring.
@@ -339,8 +341,8 @@ intne
 
         Only valid for whole-byte bitstrings, and will equal either the big-endian or the little-endian integer representation depending on the platform being used.
 
-float / floatbe
-^^^^^^^^^^^^^^^
+float / floatbe / f
+^^^^^^^^^^^^^^^^^^^
     .. attribute:: Bits.float
     .. attribute:: Bits.floatbe
 
@@ -373,8 +375,8 @@ len / length
 
         This is almost equivalent to using the ``len()`` built-in function, except that for large bitstrings ``len()`` may fail with an :exc:`OverflowError`, whereas the :attr:`len` property continues to work.
 
-oct
-^^^
+oct / o
+^^^^^^^
     .. attribute:: Bits.oct
 
         Property for the octal representation of the bitstring.
@@ -427,8 +429,8 @@ uie
 
         When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
 
-uint
-^^^^
+uint / u
+^^^^^^^^
     .. attribute:: Bits.uint
 
         Property for the unsigned base-2 integer representation of the bitstring.
