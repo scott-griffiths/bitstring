@@ -2941,24 +2941,32 @@ class Bits:
         count += Bits._bitCount[self._datastore.getbyte(self._datastore.bytelength - 1) >> endbits]
         return count if value else self.len - count
 
-    def pp(self, fmt: str = 'bin', width: int = 80, bits_per_group: Optional[int] = None, sep: Optional[str] = ' ',
+    def pp(self, fmt: str = 'bin', width: int = 80, sep: Optional[str] = ' ',
            show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty print the bitstring's value.
 
         fmt -- Printed data format. One of 'bin', 'oct', 'hex' or 'bytes'. Defaults to 'bin'.
+              The number of bits represented in each printed group defaults to 8 for hex and bin,
+              12 for oct and 32 for bytes. This can be overridden with an explicit length, e.g. 'hex:64'.
+              Use a length of 0 to not split into groups, e.g. `bin:0`.
         width -- Max width of printed lines. Defaults to 80. A single group will always be printed
                  per line even if it exceeds the max width.
-        bits_per_group -- The number of bits represented in each printed group.
-                      Default is 8 for hex and bin, 12 for oct and 32 for bytes. Use 0 to not group characters.
         sep -- A separator string to insert between groups. Defaults to a single space.
         show_offset -- If True (the default) shows the bit offset in the first column of each line.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
-        >>> s.pp('hex', bits_per_group=16)
+        >>> s.pp('hex:16')
         >>> s.pp('bin, hex', sep='_', show_offset=False)
 
         """
+        # TODO: Allow int and uint formats. These would require a bits_per_group - no default possible.
+        # then we work out the maximum length of the integer and use that for group_chars.
+        # TODO: Allow float format. Similar to int and uint but with greater restriction on bits_per_group.
+        # TODO: Allow shortened formats. u/i/f/o/b/h. Plus f64, u12 etc.
+
         bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
+
+
         formats = [f.strip() for f in fmt.split(',')]
         if len(formats) == 1:
             fmt1, fmt2 = formats[0], None
@@ -2967,6 +2975,22 @@ class Bits:
         else:
             raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}."
                              " Format string was {fmt}.")
+
+        short_token: Pattern[str] = re.compile(r'(?P<name>bin|oct|hex):(?P<len>\d+)$', re.IGNORECASE)
+        m1 = short_token.match(fmt1)
+        if m1:
+            length1 = int(m1.group('len'))
+            fmt1 = m1.group('name')
+        else:
+            length1 = None
+        if fmt2 is not None:
+            m2 = short_token.match(fmt2)
+            if m2:
+                length2 = int(m2.group('len'))
+                fmt2 = m2.group('name')
+            else:
+                length2 = None
+
         if fmt1 not in bpc.keys() or (fmt2 is not None and fmt2 not in bpc.keys()):
             raise ValueError(f"Pretty print formats only support {'/'.join(bpc.keys())}. Received '{fmt}'.")
         if len(self) % bpc[fmt1] != 0:
@@ -2974,9 +2998,17 @@ class Bits:
         if fmt2 is not None and len(self) % bpc[fmt2] != 0:
             raise InterpretError(f"Cannot convert bitstring of length {len(self)} to {fmt2} - not a multiple of {bpc[fmt2]} bits long.")
 
+        if fmt2 is not None and length2 is not None and length1 is not None:
+            # Both lengths defined so must be equal
+            if length1 != length2:
+                raise ValueError(f"Differing bit lengths of {length1} and {length2} in format string '{fmt}'.")
+        bits_per_group = None
+        if fmt2 is not None and length2 is not None:
+            bits_per_group = length2
+        elif length1 is not None:
+            bits_per_group = length1
+
         if bits_per_group is not None:
-            if bits_per_group < 0:
-                raise ValueError(f"bits_per_group must be positive. Received {bits_per_group}.")
             if bits_per_group % bpc[fmt1] != 0:
                 raise ValueError(f"bits_per_group must be a multiple of {bpc[fmt1]} for {fmt1} format.")
             if fmt2 is not None and bits_per_group % bpc[fmt2] != 0:
