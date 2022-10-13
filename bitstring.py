@@ -2966,7 +2966,6 @@ class Bits:
 
         bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
 
-
         formats = [f.strip() for f in fmt.split(',')]
         if len(formats) == 1:
             fmt1, fmt2 = formats[0], None
@@ -2976,7 +2975,7 @@ class Bits:
             raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}."
                              " Format string was {fmt}.")
 
-        short_token: Pattern[str] = re.compile(r'(?P<name>bin|oct|hex):(?P<len>\d+)$', re.IGNORECASE)
+        short_token: Pattern[str] = re.compile(r'(?P<name>bin|oct|hex|b|o|h):?(?P<len>\d+)$', re.IGNORECASE)
         m1 = short_token.match(fmt1)
         if m1:
             length1 = int(m1.group('len'))
@@ -2991,6 +2990,14 @@ class Bits:
             else:
                 length2 = None
 
+        aliases = {'hex': 'hex', 'oct': 'oct', 'bin': 'bin', 'bytes': 'bytes',
+                   'b': 'bin', 'o': 'oct', 'h': 'hex'}
+        try:
+            fmt1 = aliases[fmt1]
+            if fmt2 is not None:
+                fmt2 = aliases[fmt2]
+        except KeyError:
+            pass  # Should be dealt with in the next check
         if fmt1 not in bpc.keys() or (fmt2 is not None and fmt2 not in bpc.keys()):
             raise ValueError(f"Pretty print formats only support {'/'.join(bpc.keys())}. Received '{fmt}'.")
         if len(self) % bpc[fmt1] != 0:
