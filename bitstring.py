@@ -521,7 +521,7 @@ INIT_NAMES: Tuple[str, ...] = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', '
 TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>' + '|'.join(INIT_NAMES) +
                                     r')(:(?P<len>[^=]+))?(=(?P<value>.*))?$', re.IGNORECASE)
 # Tokens such as 'u32', 'f64=4.5' or 'i6=-3'
-SHORT_TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>u|i|f|b|o|h)(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
+SHORT_TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>[uifboh])(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 DEFAULT_BITS: Pattern[str] = re.compile(r'(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
 MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'(?P<factor>.*)\*(?P<token>.+)')
@@ -956,7 +956,7 @@ class Bits:
              'b': self._getbin,
              'o': self._getoct,
              'h': self._gethex}
-        short_token: Pattern[str] = re.compile(r'(?P<name>u|i|f|b|o|h)(?P<len>\d+)$', re.IGNORECASE)
+        short_token: Pattern[str] = re.compile(r'(?P<name>[uifboh])(?P<len>\d+)$', re.IGNORECASE)
         m1_short = short_token.match(attribute)
         if m1_short:
             length = int(m1_short.group('len'))
@@ -1488,6 +1488,17 @@ class Bits:
         if self.len % 8:
             raise InterpretError("Cannot interpret as bytes unambiguously - not multiple of 8 bits.")
         return self._readbytes(0, self.len)
+
+    _unprintable = list(range(0x00, 0x20))  # ASCII control characters
+    _unprintable.extend(range(0x7f, 0xa1))  # More UTF-8 control characters
+    _unprintable.append(0xad)  # Soft hyphen, usually rendered invisibly!
+
+    def _getbytes_printable(self) -> str:
+        """Return an approximation of the data as a string of printable characters."""
+        bytes_ = self._getbytes()
+        # Replace unprintable characters with '.'
+        string = ''.join('.' if x in Bits._unprintable else chr(x) for x in bytes_)
+        return string
 
     def _setuint(self, uint: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given unsigned int interpretation."""
@@ -2956,14 +2967,9 @@ class Bits:
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
         >>> s.pp('hex:16')
-        >>> s.pp('bin, hex', sep='_', show_offset=False)
+        >>> s.pp('b, h', sep='_', show_offset=False)
 
         """
-        # TODO: Allow int and uint formats. These would require a bits_per_group - no default possible.
-        # then we work out the maximum length of the integer and use that for group_chars.
-        # TODO: Allow float format. Similar to int and uint but with greater restriction on bits_per_group.
-        # TODO: Allow shortened formats. u/i/f/o/b/h. Plus f64, u12 etc.
-
         bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
 
         formats = [f.strip() for f in fmt.split(',')]
@@ -3017,9 +3023,9 @@ class Bits:
 
         if bits_per_group is not None:
             if bits_per_group % bpc[fmt1] != 0:
-                raise ValueError(f"bits_per_group must be a multiple of {bpc[fmt1]} for {fmt1} format.")
+                raise ValueError(f"Bits per group must be a multiple of {bpc[fmt1]} for {fmt1} format.")
             if fmt2 is not None and bits_per_group % bpc[fmt2] != 0:
-                raise ValueError(f"bits_per_group must be a multiple of {bpc[fmt2]} for {fmt2} format.")
+                raise ValueError(f"Bits per group must be a multiple of {bpc[fmt2]} for {fmt2} format.")
 
         if bits_per_group is None:
             if fmt2 is None:
@@ -3069,25 +3075,11 @@ class Bits:
                     max_bits_per_line = 24  # We can't fit into the width asked for. Show something small.
         assert max_bits_per_line > 0
 
-        unprintable = list(range(0x00, 0x20))  # ASCII control characters
-        unprintable.extend(range(0x7f, 0xa1))  # More UTF-8 control characters
-        unprintable.append(0xad)               # Soft hyphen, usually rendered invisibly!
-
         def format_bits(bits_, bits_per_group_, sep_, fmt_):
-            if fmt_ == 'bin':
-                raw = bits_._getbin()
-            elif fmt_ == 'oct':
-                raw = bits_._getoct()
-            elif fmt_ == 'hex':
-                raw = bits_._gethex()
-            elif fmt_ == 'bytes':
-                raw = bits_._getbytes()
-                # Replace unprintable characters with '.'
-                raw = ''.join('.' if x in unprintable else chr(x) for x in raw)
-            else:
-                assert bpc.keys() == {'bin', 'oct', 'hex', 'bytes'}
-                raw = ''
-
+            raw = {'bin': bits_._getbin,
+                   'oct': bits_._getoct,
+                   'hex': bits_._gethex,
+                   'bytes': bits_._getbytes_printable}[fmt_]()
             if bits_per_group_ == 0:
                 return raw
             formatted = sep_.join(raw[i: i + bits_per_group_] for i in range(0, len(raw), bits_per_group_))
