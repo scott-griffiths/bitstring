@@ -128,6 +128,7 @@ For 'network' endianness use ``>`` as network and big-endian are equivalent. Thi
 ``L``   32 bit unsigned integer
 ``q``   64 bit signed integer
 ``Q``   64 bit unsigned integer
+``e``   16 bit floating point number
 ``f``   32 bit floating point number
 ``d``   64 bit floating point number
 =====   ===============================

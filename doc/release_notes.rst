@@ -77,6 +77,9 @@ New features and improvements:
       '1000100'
       >>> t = Bits('u12=160, u12=120, b=100')
 
+* Support for 16 bit floats. Floating point types can now be 16 bits long as well
+  as 32 and 64 bits. This is using the 'e' format from the struct module.
+
 
 July 20th 2021: version 3.1.9 released
 ---------------------------------------

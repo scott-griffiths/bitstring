@@ -298,9 +298,9 @@ float / floatbe / f
     .. attribute:: BitArray.f
        :noindex:
 
-        Writable version of :attr:`Bits.float`. The standard ``float``, the big-endian ``floatbe` and the shortened ``f`` are all equivalent.
+        Writable version of :attr:`Bits.float`. The standard ``float``, the big-endian ``floatbe`` and the shortened ``f`` are all equivalent.
 
-        The ``f`` property can have a bit length appended to it such as ``f32`` or ``f64`` to specify the new length of the bitstring. Using a length that doesn't support any floating point types will raise a :exc:`CreationError`.
+        The ``f`` property can have a bit length appended to it such as ``f16`` or ``f64`` to specify the new length of the bitstring. Using a length that doesn't support any floating point types will raise a :exc:`CreationError`.
 
 floatle
 ^^^^^^^

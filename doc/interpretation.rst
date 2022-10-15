@@ -91,7 +91,7 @@ For byte-wise big, little and native endian signed integer interpretations use :
 float / f / floatbe / floatle / floatne
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For a floating point interpretation use the :attr:`~Bits.float` property. This uses your machine's underlying floating point representation and will only work if the bitstring is 32 or 64 bits long.
+For a floating point interpretation use the :attr:`~Bits.float` property. This uses the IEEE 754 floating point representation and will only work if the bitstring is 16, 32 or 64 bits long.
 
 Different endiannesses are provided via :attr:`~Bits.floatle` and :attr:`~Bits.floatne`. Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian :attr:`~Bits.float` and the byte-wise big-endian :attr:`~Bits.floatbe`.
 
@@ -155,7 +155,7 @@ Short Interpretations
 
 Many of the more commonly used interpretations have single letter equivalents. The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can be shortened to ``h``, ``b``, ``o``, ``i``, ``u`` and ``f`` respectively. These shorter properties can have bit lengths appended to them to make properties such as ``f64`` or ``u32``.
 
-When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exe:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
+When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
 
     s = BitArray()  # Empty bitstring
     s.f32 = 101.5   # New length is 32 bits, representing a float

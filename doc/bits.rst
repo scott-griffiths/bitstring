@@ -13,7 +13,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
     ``offset`` is available when using the ``bytes`` or ``filename`` initialisers. It gives a number of bits to ignore at the start of the bitstring.
 
-    Specifying ``length`` is mandatory when using the various integer initialisers. It must be large enough that a bitstring can contain the integer in ``length`` bits. It must also be specified for the float initialisers (the only valid values are 32 and 64). It is optional for the ``bytes`` and ``filename`` initialisers and can be used to truncate data from the end of the input value. ::
+    Specifying ``length`` is mandatory when using the various integer initialisers. It must be large enough that a bitstring can contain the integer in ``length`` bits. It must also be specified for the float initialisers (the only valid values are 16, 32 and 64). It is optional for the ``bytes`` and ``filename`` initialisers and can be used to truncate data from the end of the input value. ::
 
            >>> s1 = Bits(hex='0x934')
            >>> s2 = Bits(oct='0o4464')
@@ -356,7 +356,7 @@ float / floatbe / f
 
         Property for the floating point representation of the bitstring.
 
-        The bitstring must be either 32 or 64 bits long to support the floating point interpretations, otherwise an :exc:`InterpretError` will be raised.
+        The bitstring must be 16, 32 or 64 bits long to support the floating point interpretations, otherwise an :exc:`InterpretError` will be raised.
 
         If the underlying floating point methods on your machine are not IEEE 754 compliant then using the float interpretations is undefined (this is unlikely unless you're on some very unusual hardware).
 
