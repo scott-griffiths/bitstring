@@ -61,25 +61,25 @@ Special methods
 Properties
 ^^^^^^^^^^
 
- *   :attr:`~Bits.bin` -- The bitstring as a binary string.
+ *   :attr:`~Bits.bin` / ``b`` -- The bitstring as a binary string.
  *   :attr:`~Bits.bool` -- For single bit bitstrings, interpret as True or False.
  *   :attr:`~Bits.bytes` -- The bitstring as a bytes object.
- *   :attr:`~Bits.float` -- Interpret as a floating point number.
+ *   :attr:`~Bits.float` / ``f`` -- Interpret as a floating point number.
  *   :attr:`~Bits.floatbe` -- Interpret as a big-endian floating point number.
  *   :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
  *   :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
- *   :attr:`~Bits.hex` -- The bitstring as a hexadecimal string.
- *   :attr:`~Bits.int` -- Interpret as a two's complement signed integer.
+ *   :attr:`~Bits.hex` / ``h`` -- The bitstring as a hexadecimal string.
+ *   :attr:`~Bits.int` / ``i`` -- Interpret as a two's complement signed integer.
  *   :attr:`~Bits.intbe` -- Interpret as a big-endian signed integer.
  *   :attr:`~Bits.intle` -- Interpret as a little-endian signed integer.
  *   :attr:`~Bits.intne` -- Interpret as a native-endian signed integer.
  *   :attr:`~Bits.len` -- Length of the bitstring in bits.
- *   :attr:`~Bits.oct` -- The bitstring as an octal string.
+ *   :attr:`~Bits.oct` / ``o`` -- The bitstring as an octal string.
  *   :attr:`~Bits.se` -- Interpret as a signed exponential-Golomb code.
  *   :attr:`~Bits.ue` -- Interpret as an unsigned exponential-Golomb code.
  *   :attr:`~Bits.sie` -- Interpret as a signed interleaved exponential-Golomb code.
  *   :attr:`~Bits.uie` -- Interpret as an unsigned interleaved exponential-Golomb code.
- *   :attr:`~Bits.uint` -- Interpret as a two's complement unsigned integer.
+ *   :attr:`~Bits.uint` / ``u`` -- Interpret as a two's complement unsigned integer.
  *   :attr:`~Bits.uintbe` -- Interpret as a big-endian unsigned integer.
  *   :attr:`~Bits.uintle` -- Interpret as a little-endian unsigned integer.
  *   :attr:`~Bits.uintne` -- Interpret as a native-endian unsigned integer.

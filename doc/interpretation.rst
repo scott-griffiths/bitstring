@@ -16,20 +16,20 @@ For the properties described below we will use these::
     >>> a = BitArray('0x123')
     >>> b = BitArray('0b111')
 
-bin
-^^^
+bin / b
+^^^^^^^
 
 The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The :attr:`~Bits.bin` property returns a string of the binary representation of the bitstring. All bitstrings can use this property and it is used to test equality between bitstrings. ::
 
     >>> a.bin
     '000100100011'
-    >>> b.bin
+    >>> b.b
     '111'
 
 Note that the initial zeros are significant; for bitstrings the zeros are just as important as the ones!
 
-hex
-^^^
+hex / h
+^^^^^^^
 
 For whole-byte bitstrings the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits.
 
@@ -37,11 +37,11 @@ If the bitstring does not have a length that is a multiple of four bits then an 
 
     >>> a.hex
     '123'
-    >>> b.hex
+    >>> b.h
     ValueError: Cannot convert to hex unambiguously - not multiple of 4 bits.
 
-oct
-^^^
+oct / o
+^^^^^^^
 
 For an octal interpretation use the :attr:`~Bits.oct` property.
 
@@ -49,19 +49,19 @@ If the bitstring does not have a length that is a multiple of three then an :exc
 
     >>> a.oct
     '0443'
-    >>> b.oct
+    >>> b.o
     '7'
     >>> (b + '0b0').oct
     ValueError: Cannot convert to octal unambiguously - not multiple of 3 bits.
 
-uint / uintbe / uintle / uintne
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uint / u / uintbe / uintle / uintne
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the :attr:`~Bits.uint` property.
 
     >>> a.uint
     283
-    >>> b.uint
+    >>> b.u
     7
 
 For byte-wise big-endian, little-endian and native-endian interpretations use :attr:`~Bits.uintbe`, :attr:`~Bits.uintle` and :attr:`~Bits.uintne` respectively. These will raise a :exc:`ValueError` if the bitstring is not a whole number of bytes long. ::
@@ -76,20 +76,20 @@ For byte-wise big-endian, little-endian and native-endian interpretations use :a
     >>> s.uintne   # byte-wise native-endian (will be 1 on a big-endian platform!)
     65536
  
-int / intbe / intle / intne
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+int / i / intbe / intle / intne
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For a two's complement interpretation as a base-2 signed integer use the :attr:`~Bits.int` property. If the first bit of the bitstring is zero then the :attr:`~Bits.int` and :attr:`~Bits.uint` interpretations will be equal, otherwise the :attr:`~Bits.int` will represent a negative number. ::
 
     >>> a.int
     283
-    >>> b.int
+    >>> b.i
     -1
 
 For byte-wise big, little and native endian signed integer interpretations use :attr:`~Bits.intbe`, :attr:`~Bits.intle` and :attr:`~Bits.intne` respectively. These work in the same manner as their unsigned counterparts described above.
 
-float / floatbe / floatle / floatne
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+float / f / floatbe / floatle / floatne
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For a floating point interpretation use the :attr:`~Bits.float` property. This uses your machine's underlying floating point representation and will only work if the bitstring is 32 or 64 bits long.
 
@@ -148,3 +148,15 @@ uie / sie
 ^^^^^^^^^
 
 A slightly different type, interleaved exponential-Golomb codes are also supported. The principles are the same as with ``ue`` and ``se`` - see :ref:`exp-golomb` for detail of the differences.
+
+
+Short Interpretations
+---------------------
+
+Many of the more commonly used interpretations have single letter equivalents. The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can be shortened to ``h``, ``b``, ``o``, ``i``, ``u`` and ``f`` respectively. These shorter properties can have bit lengths appended to them to make properties such as ``f64`` or ``u32``.
+
+When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exe:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
+
+    s = BitArray()  # Empty bitstring
+    s.f32 = 101.5   # New length is 32 bits, representing a float
+

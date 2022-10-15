@@ -161,7 +161,7 @@ join
 
 pp
 ^^
-    .. method:: Bits.pp([fmt, width, bits_per_group, sep, show_offset, stream])
+    .. method:: Bits.pp([fmt, width, sep, show_offset, stream])
 
         Pretty print the bitstring's value according to the *fmt*. Either a single, or two comma separated formats can be specified, together with options for setting the maximum display *width*, the number of bits to display in each group, and the separator to print between groups.
 
@@ -172,14 +172,18 @@ pp
             128: 11111111 11111111 11111111 10100101 11111000 10010000 00101110 00101010
             192: 11110100
 
-            >>> s.pp('hex, bin', show_offset=False, sep='-', bits_per_group=12)
+            >>> s.pp('h12, b', show_offset=False, sep='-')
             fff-fff-fff-fff   111111111111-111111111111-111111111111-111111111111
             fff-fff-fff-fff   111111111111-111111111111-111111111111-111111111111
             fff-fff-fff-fff   111111111111-111111111111-111111111111-111111111111
             ffa-5f8-902-e2a   111111111010-010111111000-100100000010-111000101010
             f4                11110100
 
-        The available formats are ``'bin'`` (the default), ``'oct'``, ``'hex'`` and ``'bytes'``. For the ``'bytes'`` format unprintable characters are replaced with a full stop. The default *bits_per_group* is based on the format or two formats selected but can be overridden. Setting ``bits_per_group=0`` removes all separators and displays one block of characters per line for each format in *fmt*.
+        The available formats are ``'bin'`` (the default), ``'oct'``, ``'hex'`` and ``'bytes'``. A bit length can be specified after the format (with an optional `:`) to give the number of bits represented by each group, otherwise the default is based on the format or formats selected. Using a length of zero removes all separators and displays one block of characters per line for each format in *fmt* (e.g. ``'hex:0'``).
+
+        The ``hex``, ``oct`` and ``bin`` format string can be replaced with just their initial letter.
+
+        For the ``'bytes'`` format unprintable characters are replaced with a full stop.
 
         If the bitstring cannot be represented in a format due to it's length not being a multiple of the number of bits represented by each character then an :exc:`InterpretError` will be raised.
 
@@ -269,11 +273,12 @@ unpack
 Properties
 ----------
 
-Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter.
+Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter. They can also have a length in bits appended to them to make properties such as ``u8`` or ``f64``. These properties with lengths will cause an :exc:`InterpretError` to be raised if the bitstring is not of the specified length.
 
 bin / b
 ^^^^^^^
     .. attribute:: Bits.bin
+    .. attribute:: Bits.b
 
         Property for the representation of the bitstring as a binary string.
 
@@ -302,6 +307,7 @@ bytes
 hex / h
 ^^^^^^^
     .. attribute:: Bits.hex
+    .. attribute:: Bits.h
 
         Property representing the hexadecimal value of the bitstring.
 
@@ -314,6 +320,7 @@ hex / h
 int / i
 ^^^^^^^
     .. attribute:: Bits.int
+    .. attribute:: Bits.i
 
         Property for the signed two’s complement integer representation of the bitstring.
 
@@ -345,6 +352,7 @@ float / floatbe / f
 ^^^^^^^^^^^^^^^^^^^
     .. attribute:: Bits.float
     .. attribute:: Bits.floatbe
+    .. attribute:: Bits.f
 
         Property for the floating point representation of the bitstring.
 
@@ -378,6 +386,7 @@ len / length
 oct / o
 ^^^^^^^
     .. attribute:: Bits.oct
+    .. attribute:: Bits.o
 
         Property for the octal representation of the bitstring.
 
@@ -432,6 +441,7 @@ uie
 uint / u
 ^^^^^^^^
     .. attribute:: Bits.uint
+    .. attribute:: Bits.u
 
         Property for the unsigned base-2 integer representation of the bitstring.
 

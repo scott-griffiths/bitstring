@@ -662,6 +662,36 @@ class NewProperties(unittest.TestCase):
             _ = a.u13
         with self.assertRaises(bitstring.InterpretError):
             _ = a.i1
+        b = BitArray()
+        with self.assertRaises(bitstring.InterpretError):
+            _ = b.u0
+
+    def testSetterLengthErrors(self):
+        a = BitArray()
+        a.u8 = 255
+        self.assertEqual(a.len, 8)
+        with self.assertRaises(ValueError):
+            a.u8 = 256
+        a.f32 = 10
+        a.f64 = 10
+        with self.assertRaises(ValueError):
+            a.f256 = 10
+        with self.assertRaises(bitstring.CreationError):
+            a.u0 = 2
+        with self.assertRaises(bitstring.CreationError):
+            a.h4 = '0xab'
+        with self.assertRaises(bitstring.CreationError):
+            a.o3 = '0xab'
+        with self.assertRaises(bitstring.CreationError):
+            a.b4 = '0xab'
+        a.h0 = ''
+        self.assertEqual(a.len, 0)
+        a.i8 = 127
+        a.i8 = -128
+        with self.assertRaises(ValueError):
+            a.i8 = 128
+        with self.assertRaises(ValueError):
+            a.i8 = -129
 
     def testUnpack(self):
         a = BitArray('0xff160120')

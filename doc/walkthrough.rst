@@ -66,7 +66,8 @@ Now you would be forgiven for thinking that the strings that we used to create t
 There are a few things to note here:
 
 * To get the different interpretations of the binary data we use properties such as :attr:`~Bits.bin`, :attr:`~Bits.hex`, :attr:`~Bits.oct`, :attr:`~Bits.int` and :attr:`~Bits.bytes`. You can probably guess what these all mean, but you don't need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.
-* The :attr:`~Bits.bytes` property returns a ``bytes`` object.
+* Many of the interpretations have single letter aliases, which can also have bit lengths appended to them. This allows expressions such as ``a.u32 = 900`` which will set ``a`` to the 32 bit representation of the unsigned integer ``900``. Of course you're not restricted to the usual bit lengths, so something like ``a.i5 = -8`` will work as well.
+
 
 Great - let's try some more::
 
@@ -178,9 +179,9 @@ which is fine, but if you wanted to be a bit more concise you could just write :
 This is better, but it might not be a good idea to have the width and height hard-wired in like that. We can make it more flexible by using a format string and the :func:`pack` function::
 
     width, height = 352, 288
-    s = bitstring.pack('0x000001b3, 2*uint:12', width, height)
+    s = bitstring.pack('0x000001b3, 2*u12', width, height)
 
-where we have also used ``2*uint:12`` as shorthand for ``uint:12, uint:12``.
+where we have also used ``2*u12`` as shorthand for ``uint:12, uint:12``.
 
 The :func:`pack` function can also take a dictionary as a parameter which can replace the tokens in the format string. For example::
 

@@ -202,10 +202,22 @@ Properties
 ----------
 
 Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter.
+The short properties can also have a length in bits appended to them to make properties such as ``u8`` or ``f64``. These properties with lengths can be used to quickly create a new bitstring. ::
+
+    >>> a = BitArray()
+    >>> a.f32 = 17.6
+    >>> a.h
+    '418ccccd'
+    >>> a.i7 = -1
+    >>> a.b
+    '1111111'
+
 
 bin / b
 ^^^^^^^
     .. attribute:: BitArray.bin
+       :noindex:
+    .. attribute:: BitArray.b
        :noindex:
 
         Writable version of :attr:`Bits.bin`.
@@ -228,6 +240,8 @@ hex / h
 ^^^^^^^
     .. attribute:: BitArray.hex
        :noindex:
+    .. attribute:: BitArray.h
+       :noindex:
 
         Writable version of :attr:`Bits.hex`.
 
@@ -235,10 +249,12 @@ int / i
 ^^^^^^^
     .. attribute:: BitArray.int
        :noindex:
+    .. attribute:: BitArray.i
+       :noindex:
 
-        Writable version of :attr:`Bits.int`.
+        Writable version of :attr:`Bits.int`. The ``i`` property can have a bit length appended to it such as ``i32`` or ``i5`` to specify the new length of the bitstring. Using a length too small to contain the value given will raise a :exc:`CreationError`.
                 
-        When used  as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
+        When used  as a setter without a new length the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
 
             >>> s = BitArray('0xf3')
             >>> s.int
@@ -279,8 +295,12 @@ float / floatbe / f
        :noindex:
     .. attribute:: BitArray.floatbe
        :noindex:
+    .. attribute:: BitArray.f
+       :noindex:
 
-        Writable version of :attr:`Bits.float`.
+        Writable version of :attr:`Bits.float`. The standard ``float``, the big-endian ``floatbe` and the shortened ``f`` are all equivalent.
+
+        The ``f`` property can have a bit length appended to it such as ``f32`` or ``f64`` to specify the new length of the bitstring. Using a length that doesn't support any floating point types will raise a :exc:`CreationError`.
 
 floatle
 ^^^^^^^
@@ -299,6 +319,8 @@ floatne
 oct / o
 ^^^^^^^
     .. attribute:: BitArray.oct
+       :noindex:
+    .. attribute:: BitArray.o
        :noindex:
 
         Writable version of :attr:`Bits.oct`.
@@ -334,6 +356,8 @@ uie
 uint / u
 ^^^^^^^^
     .. attribute:: BitArray.uint
+       :noindex:
+    .. attribute:: BitArray.u
        :noindex:
 
         Writable version of :attr:`Bits.uint`.

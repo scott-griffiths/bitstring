@@ -677,7 +677,7 @@ class PrettyPrinting(unittest.TestCase):
     def testSeparator(self):
         a = Bits('0x0f0f')*9
         s = io.StringIO()
-        a.pp('hex', sep='!-!', stream=s, bits_per_group=32)
+        a.pp('hex:32', sep='!-!', stream=s)
         self.assertEqual(s.getvalue(), '  0: 0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f\n')
 
     def testMultiLine(self):
@@ -693,13 +693,13 @@ class PrettyPrinting(unittest.TestCase):
         a.pp(stream=s, fmt='bin, hex')
         self.assertEqual(s.getvalue(), ' 0: 11110000 11110000   f0 f0\n')
         s = io.StringIO()
-        a.pp(stream=s, fmt='hex, bin', bits_per_group=12)
+        a.pp(stream=s, fmt='hex, bin:12')
         self.assertEqual(s.getvalue(), ' 0: f0f 0   111100001111 0000\n')
 
     def testMultiLineMultiFormat(self):
         a = Bits(int=-1, length=112)
         s = io.StringIO()
-        a.pp(stream=s, fmt='bin, hex', width=42)
+        a.pp(stream=s, fmt='bin:8, hex:8', width=42)
         self.assertEqual(s.getvalue(), '  0: 11111111 11111111 11111111   ff ff ff\n'            
                                        ' 24: 11111111 11111111 11111111   ff ff ff\n'
                                        ' 48: 11111111 11111111 11111111   ff ff ff\n'
@@ -718,27 +718,25 @@ class PrettyPrinting(unittest.TestCase):
     def testGroupSizeErrors(self):
         a = Bits(120)
         with self.assertRaises(ValueError):
-            a.pp('hex', bits_per_group=3)
+            a.pp('hex:3')
         with self.assertRaises(ValueError):
-            a.pp('hex, oct', bits_per_group=4)
-        with self.assertRaises(ValueError):
-            a.pp(bits_per_group=-1)
+            a.pp('hex:4, oct')
 
     def testZeroGroupSize(self):
         a = Bits(400)
         s = io.StringIO()
-        a.pp(stream=s, bits_per_group=0, show_offset=False)
+        a.pp('b0', stream=s, show_offset=False)
         expected_output = ('0' * 80 + '\n') * 5
         self.assertEqual(s.getvalue(), expected_output)
 
         s = io.StringIO()
-        a.pp(stream=s, bits_per_group=0, fmt='hex', show_offset=False)
+        a.pp(stream=s, fmt='hex:0', show_offset=False)
         expected_output = ('0' * 80 + '\n') + ('0' * 20 + ' ' * 60 + '\n')
         self.assertEqual(s.getvalue(), expected_output)
 
         s = io.StringIO()
         a = Bits(uint=10, length=48)
-        a.pp(stream=s, width=20, fmt='hex, oct', show_offset=False, bits_per_group=0)
+        a.pp(stream=s, width=20, fmt='hex:0, oct:0', show_offset=False)
         expected_output = ("000000   00000000\n"
                            "00000a   00000012\n")
         self.assertEqual(s.getvalue(), expected_output)
@@ -746,12 +744,12 @@ class PrettyPrinting(unittest.TestCase):
     def testOct(self):
         a = Bits('0o01234567'*20)
         s = io.StringIO()
-        a.pp(stream=s, fmt='oct', show_offset=False, width=20)
+        a.pp(stream=s, fmt='o', show_offset=False, width=20)
         expected_output = "0123 4567 0123 4567\n" * 10
         self.assertEqual(s.getvalue(), expected_output)
 
         t = io.StringIO()
-        a.pp('hex, oct', bits_per_group=0, width=1, show_offset=False, stream=t)
+        a.pp('h, oct:0', width=1, show_offset=False, stream=t)
         expected_output = "053977   01234567\n" * 20
         self.assertEqual(t.getvalue(), expected_output)
 
@@ -762,6 +760,7 @@ class PrettyPrinting(unittest.TestCase):
         expected_output = ("hell owor ld!! hell owor ld!! hell owor ld!!\n"
                            "hell owor ld!! hell owor ld!!               \n")
         self.assertEqual(s.getvalue(), expected_output)
+
 
 
 class PrettyPrintingErrors(unittest.TestCase):
