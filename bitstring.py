@@ -530,10 +530,10 @@ MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'(?P<factor>.*)\*(?P<token>.+)')
 LITERAL_RE: Pattern[str] = re.compile(r'(?P<name>0([xob]))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-STRUCT_PACK_RE: Pattern[str] = re.compile(r'(?P<endian>[<>@])?(?P<fmt>(?:\d*[bBhHlLqQfd])+)$')
+STRUCT_PACK_RE: Pattern[str] = re.compile(r'(?P<endian>[<>@])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
 
 # A number followed by a single character struct.pack code
-STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQfd]')
+STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQefd]')
 
 # These replicate the struct.pack codes
 # Big-endian
@@ -541,17 +541,17 @@ REPLACEMENTS_BE: Dict[str, str] = {'b': 'intbe:8', 'B': 'uintbe:8',
                                    'h': 'intbe:16', 'H': 'uintbe:16',
                                    'l': 'intbe:32', 'L': 'uintbe:32',
                                    'q': 'intbe:64', 'Q': 'uintbe:64',
-                                   'f': 'floatbe:32', 'd': 'floatbe:64'}
+                                   'e': 'floatbe:16', 'f': 'floatbe:32', 'd': 'floatbe:64'}
 # Little-endian
 REPLACEMENTS_LE: Dict[str, str] = {'b': 'intle:8', 'B': 'uintle:8',
                                    'h': 'intle:16', 'H': 'uintle:16',
                                    'l': 'intle:32', 'L': 'uintle:32',
                                    'q': 'intle:64', 'Q': 'uintle:64',
-                                   'f': 'floatle:32', 'd': 'floatle:64'}
+                                   'e': 'floatle:16', 'f': 'floatle:32', 'd': 'floatle:64'}
 
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
-                                  'q': 8, 'Q': 8, 'f': 4, 'd': 8}
+                                  'q': 8, 'Q': 8, 'e': 2, 'f': 4, 'd': 8}
 
 _tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct',
                                              '0o': 'oct', '0O': 'oct', 'bin': 'bin', '0b': 'bin',
@@ -1672,8 +1672,10 @@ class Bits:
             b = struct.pack('>f', f)
         elif length == 64:
             b = struct.pack('>d', f)
+        elif length == 16:
+            b = struct.pack('>e', f)
         else:
-            raise CreationError(f"floats can only be 32 or 64 bits long, not {length} bits")
+            raise CreationError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
         self._setbytes_unsafe(bytearray(b), length, 0)
 
     def _readfloat(self, start: int, length: int) -> float:
@@ -1684,14 +1686,18 @@ class Bits:
                 return struct.unpack('>f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))[0]
             elif length == 64:
                 return struct.unpack('>d', bytes(self._datastore.getbyteslice(startbyte, startbyte + 8)))[0]
+            elif length == 16:
+                return struct.unpack('>e', bytes(self._datastore.getbyteslice(startbyte, startbyte + 2)))[0]
         else:
             if length == 32:
                 return struct.unpack('>f', self._readbytes(start, 32))[0]
             elif length == 64:
                 return struct.unpack('>d', self._readbytes(start, 64))[0]
+            elif length == 16:
+                return struct.unpack('>e', self._readbytes(start, 16))[0]
 
-        assert length not in [32, 64]
-        raise InterpretError(f"floats can only be 32 or 64 bits long, not {length} bits")
+        assert length not in [16, 32, 64]
+        raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
 
     def _getfloat(self) -> float:
         """Interpret the whole bitstring as a float."""
@@ -1707,8 +1713,10 @@ class Bits:
             b = struct.pack('<f', f)
         elif length == 64:
             b = struct.pack('<d', f)
+        elif length == 16:
+            b = struct.pack('<e', f)
         else:
-            raise CreationError("floats can only be 32 or 64 bits long, "
+            raise CreationError("Floats can only be 16, 32 or 64 bits long, "
                                 "not {0} bits", length)
         self._setbytes_unsafe(bytearray(b), length, 0)
 
@@ -1720,13 +1728,17 @@ class Bits:
                 return struct.unpack('<f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))[0]
             if length == 64:
                 return struct.unpack('<d', bytes(self._datastore.getbyteslice(startbyte, startbyte + 8)))[0]
+            if length == 16:
+                return struct.unpack('<e', bytes(self._datastore.getbyteslice(startbyte, startbyte + 2)))[0]
         else:
             if length == 32:
                 return struct.unpack('<f', self._readbytes(start, 32))[0]
             if length == 64:
                 return struct.unpack('<d', self._readbytes(start, 64))[0]
-        assert length not in [32, 64]
-        raise InterpretError(f"floats can only be 32 or 64 bits long, not {length} bits")
+            if length == 16:
+                return struct.unpack('<e', self._readbytes(start, 16))[0]
+        assert length not in [16, 32, 64]
+        raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
 
     def _getfloatle(self) -> float:
         """Interpret the whole bitstring as a little-endian float."""

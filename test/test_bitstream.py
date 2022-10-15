@@ -3127,7 +3127,7 @@ class AllAndAny(unittest.TestCase):
     ###################
 
     def testFloatInitialisation(self):
-        for f in (0.0000001, -1.0, 1.0, 0.2, -3.1415265, 1.331e32):
+        for f in (0.000001, -1.0, 1.0, 0.2, -3.14159265):
             a = BitStream(float=f, length=64)
             a.pos = 6
             self.assertEqual(a.float, f)
@@ -3143,6 +3143,7 @@ class AllAndAny(unittest.TestCase):
             a = BitStream('floatne:64=%s' % str(f))
             a.pos = 6
             self.assertEqual(a.floatne, f)
+
             b = BitStream(float=f, length=32)
             b.pos = 6
             self.assertAlmostEqual(b.float / f, 1.0)
@@ -3158,15 +3159,35 @@ class AllAndAny(unittest.TestCase):
             b = BitStream('floatne:32=%s' % str(f))
             b.pos = 6
             self.assertAlmostEqual(b.floatne / f, 1.0)
+
+            a = BitStream(float=f, length=16)
+            a.pos = 6
+            self.assertAlmostEqual(a.float, f, places=2)
+            a = BitStream('float:16=%s' % str(f))
+            a.pos = 6
+            self.assertAlmostEqual(a.float, f, places=2)
+            a = BitStream('floatbe:16=%s' % str(f))
+            a.pos = 6
+            self.assertAlmostEqual(a.floatbe, f, places=2)
+            a = BitStream('floatle:16=%s' % str(f))
+            a.pos = 6
+            self.assertAlmostEqual(a.floatle, f, places=2)
+            a = BitStream('floatne:16=%s' % str(f))
+            a.pos = 6
+            self.assertAlmostEqual(a.floatne, f, places=2)
+
         a = BitStream('0x12345678')
         a.pos = 6
-        a.float = 23
-        self.assertEqual(a.float, 23.0)
+        a.f = 23
+        self.assertEqual(a.f, 23.0)
 
     def testFloatInitStrings(self):
         for s in ('5', '+0.0001', '-1e101', '4.', '.2', '-.65', '43.21E+32'):
             a = BitStream('float:64=%s' % s)
             self.assertEqual(a.float, float(s))
+        for s in ('5', '+0.5', '-1e2', '4.', '.25', '-.75'):
+            a = BitStream('float:16=%s' % s)
+            self.assertEqual(a.f, float(s))
 
     def testFloatPacking(self):
         a = pack('>d', 0.01)
@@ -3180,6 +3201,8 @@ class AllAndAny(unittest.TestCase):
         self.assertAlmostEqual(c.floatle / 10.3, 1.0)
         d = pack('>5d', 10.0, 5.0, 2.5, 1.25, 0.1)
         self.assertEqual(d.unpack('>5d'), [10.0, 5.0, 2.5, 1.25, 0.1])
+        e = pack('>3e', -100, 100, 0.25)
+        self.assertEqual(e.unpack('>3e'), [-100.0, 100.0, 0.25])
 
     def testFloatReading(self):
         a = BitStream('floatle:64=12, floatbe:64=-0.01, floatne:64=3e33')
@@ -3187,8 +3210,8 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(x, 12.0)
         self.assertEqual(y, -0.01)
         self.assertEqual(z, 3e33)
-        a = BitStream('floatle:32=12, floatbe:32=-0.01, floatne:32=3e33')
-        x, y, z = a.readlist('floatle:32, floatbe:32, floatne:32')
+        a = BitStream('floatle:16=12, floatbe:32=-0.01, floatne:32=3e33')
+        x, y, z = a.readlist('floatle:16, floatbe:32, floatne:32')
         self.assertAlmostEqual(x / 12.0, 1.0)
         self.assertAlmostEqual(y / -0.01, 1.0)
         self.assertAlmostEqual(z / 3e33, 1.0)
@@ -3214,7 +3237,7 @@ class AllAndAny(unittest.TestCase):
             _ = a.float
         with self.assertRaises(bitstring.CreationError):
             a.float = -0.2
-        for le in (8, 10, 12, 16, 18, 30, 128, 200):
+        for le in (8, 10, 12, 18, 30, 128, 200):
             with self.assertRaises(ValueError):
                 _ = BitStream(float=1.0, length=le)
         with self.assertRaises(bitstring.CreationError):
