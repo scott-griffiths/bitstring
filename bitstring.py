@@ -850,10 +850,10 @@ class Bits:
                         'bool': cls._setbool,
                         'uint': cls._setuint,
                         'int': cls._setint,
-                        'float': cls._setfloat,
+                        'float': cls._setfloatbe,
                         'uintbe': cls._setuintbe,
                         'intbe': cls._setintbe,
-                        'floatbe': cls._setfloat,
+                        'floatbe': cls._setfloatbe,
                         'uintle': cls._setuintle,
                         'intle': cls._setintle,
                         'floatle': cls._setfloatle,
@@ -872,8 +872,8 @@ class Bits:
                              'intle': Bits._readintle,
                              'intbe': Bits._readintbe,
                              'intne': Bits._readintne,
-                             'float': Bits._readfloat,
-                             'floatbe': Bits._readfloat,  # floatbe is a synonym for float
+                             'float': Bits._readfloatbe,
+                             'floatbe': Bits._readfloatbe,  # floatbe is a synonym for float
                              'floatle': Bits._readfloatle,
                              'floatne': Bits._readfloatne,
                              'hex': Bits._readhex,
@@ -1662,83 +1662,52 @@ class Bits:
     def _getintle(self) -> int:
         return self._readintle(0, self.len)
 
-    def _setfloat(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
+    def _setfloat(self, f: float, struct_dict: Dict[int, str], length: Optional[int] = None):
         # If no length given, and we've previously been given a length, use it.
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with a float initialiser.")
-        if length == 32:
-            b = struct.pack('>f', f)
-        elif length == 64:
-            b = struct.pack('>d', f)
-        elif length == 16:
-            b = struct.pack('>e', f)
-        else:
+        try:
+            b = struct.pack(struct_dict[length], f)
+        except KeyError:
             raise CreationError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
+        except (OverflowError, struct.error):
+            if length == 16:
+                # Not sure why only f16 overflows. Other types go to 'inf'. Could do the same here?
+                raise CreationError(f"Overflow trying to create float16 from {f}.")
         self._setbytes_unsafe(bytearray(b), length, 0)
 
-    def _readfloat(self, start: int, length: int) -> float:
+    def _readfloat(self, start: int, length: int, struct_dict: Dict[int, str]) -> float:
         """Read bits and interpret as a float."""
-        if not (start + self._offset) % 8:
-            startbyte = (start + self._offset) // 8
-            if length == 32:
-                return struct.unpack('>f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))[0]
-            elif length == 64:
-                return struct.unpack('>d', bytes(self._datastore.getbyteslice(startbyte, startbyte + 8)))[0]
-            elif length == 16:
-                return struct.unpack('>e', bytes(self._datastore.getbyteslice(startbyte, startbyte + 2)))[0]
-        else:
-            if length == 32:
-                return struct.unpack('>f', self._readbytes(start, 32))[0]
-            elif length == 64:
-                return struct.unpack('>d', self._readbytes(start, 64))[0]
-            elif length == 16:
-                return struct.unpack('>e', self._readbytes(start, 16))[0]
+        try:
+            fmt = struct_dict[length]
+        except KeyError:
+            raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
 
-        assert length not in [16, 32, 64]
-        raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
+        startbyte, offset = divmod(start + self._offset, 8)
+        if not offset:
+            return struct.unpack(fmt, bytes(self._datastore.getbyteslice(startbyte, startbyte + length // 8)))[0]
+        else:
+            return struct.unpack(fmt, self._readbytes(start, length))[0]
+
+    def _setfloatbe(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
+        self._setfloat(f, {16: '>e', 32: '>f', 64: '>d'}, length)
+
+    def _readfloatbe(self, start: int, length: int) -> float:
+        """Read bits and interpret as a big-endian float."""
+        return self._readfloat(start, length, {16: '>e', 32: '>f', 64: '>d'})
 
     def _getfloat(self) -> float:
-        """Interpret the whole bitstring as a float."""
-        return self._readfloat(0, self.len)
+        """Interpret the whole bitstring as a big-endian float."""
+        return self._readfloatbe(0, self.len)
 
     def _setfloatle(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
-        # If no length given, and we've previously been given a length, use it.
-        if length is None and hasattr(self, 'len') and self.len != 0:
-            length = self.len
-        if length is None or length == 0:
-            raise CreationError("A non-zero length must be specified with a float initialiser.")
-        if length == 32:
-            b = struct.pack('<f', f)
-        elif length == 64:
-            b = struct.pack('<d', f)
-        elif length == 16:
-            b = struct.pack('<e', f)
-        else:
-            raise CreationError("Floats can only be 16, 32 or 64 bits long, "
-                                "not {0} bits", length)
-        self._setbytes_unsafe(bytearray(b), length, 0)
+        self._setfloat(f, {16: '<e', 32: '<f', 64: '<d'}, length)
 
     def _readfloatle(self, start: int, length: int) -> float:
         """Read bits and interpret as a little-endian float."""
-        startbyte, offset = divmod(start + self._offset, 8)
-        if not offset:
-            if length == 32:
-                return struct.unpack('<f', bytes(self._datastore.getbyteslice(startbyte, startbyte + 4)))[0]
-            if length == 64:
-                return struct.unpack('<d', bytes(self._datastore.getbyteslice(startbyte, startbyte + 8)))[0]
-            if length == 16:
-                return struct.unpack('<e', bytes(self._datastore.getbyteslice(startbyte, startbyte + 2)))[0]
-        else:
-            if length == 32:
-                return struct.unpack('<f', self._readbytes(start, 32))[0]
-            if length == 64:
-                return struct.unpack('<d', self._readbytes(start, 64))[0]
-            if length == 16:
-                return struct.unpack('<e', self._readbytes(start, 16))[0]
-        assert length not in [16, 32, 64]
-        raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
+        return self._readfloat(start, length, {16: '<e', 32: '<f', 64: '<d'})
 
     def _getfloatle(self) -> float:
         """Interpret the whole bitstring as a little-endian float."""
@@ -3131,8 +3100,8 @@ class Bits:
         _readintne = _readintle
         _getintne = _getintle
     else:
-        _setfloatne = _setfloat
-        _readfloatne = _readfloat
+        _setfloatne = _setfloatbe
+        _readfloatne = _readfloatbe
         _getfloatne = _getfloat
         _setuintne = _setuintbe
         _readuintne = _readuintbe
@@ -3357,7 +3326,7 @@ class BitArray(Bits):
             letter_to_setter: Dict[str, Callable] =\
                 {'u': self._setuint,
                  'i': self._setint,
-                 'f': self._setfloat,
+                 'f': self._setfloatbe,
                  'b': self._setbin_safe,
                  'o': self._setoct,
                  'h': self._sethex}
@@ -3925,7 +3894,7 @@ class BitArray(Bits):
     uint = property(Bits._getuint, Bits._setuint,
                     doc="""The bitstring as a two's complement unsigned int. Read and write.
                       """)
-    float = property(Bits._getfloat, Bits._setfloat,
+    float = property(Bits._getfloat, Bits._setfloatbe,
                      doc="""The bitstring as a floating point number. Read and write.
                       """)
     intbe = property(Bits._getintbe, Bits._setintbe,
@@ -3934,7 +3903,7 @@ class BitArray(Bits):
     uintbe = property(Bits._getuintbe, Bits._setuintbe,
                       doc="""The bitstring as a two's complement big-endian unsigned int. Read and write.
                       """)
-    floatbe = property(Bits._getfloat, Bits._setfloat,
+    floatbe = property(Bits._getfloat, Bits._setfloatbe,
                        doc="""The bitstring as a big-endian floating point number. Read and write.
                       """)
     intle = property(Bits._getintle, Bits._setintle,

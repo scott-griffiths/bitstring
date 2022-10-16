@@ -3189,6 +3189,13 @@ class AllAndAny(unittest.TestCase):
             a = BitStream('float:16=%s' % s)
             self.assertEqual(a.f, float(s))
 
+    def testFloatOverflows(self):
+        a = BitStream()
+        with self.assertRaises(bitstring.CreationError):
+            a.f16 = 1_000_000
+        with self.assertRaises(bitstring.CreationError):
+            a.f16 = 1000000.5
+
     def testFloatPacking(self):
         a = pack('>d', 0.01)
         self.assertEqual(a.float, 0.01)
@@ -3362,7 +3369,7 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(b._readintle(8, 200), 918019283740918263512351235)
 
         a = BitStream('0b111, floatbe:64=-5.32, 0xffffffff')
-        self.assertEqual(a._readfloat(3, 64), -5.32)
+        self.assertEqual(a._readfloatbe(3, 64), -5.32)
 
         a = BitStream('0b111, floatle:64=9.9998, 0b111')
         self.assertEqual(a._readfloatle(3, 64), 9.9998)
