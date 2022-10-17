@@ -160,6 +160,12 @@ class Creation(unittest.TestCase):
         d = bitstring.pack('bool:1=1, 2*bool:1', 1, 0)
         self.assertEqual(d, '0b110')
 
+    def testCreationFromBoolErrors(self):
+        with self.assertRaises(ValueError):
+            _ = Bits('bool=3')
+        with self.assertRaises(bitstring.CreationError):
+            _ = Bits(bool=0, length=2)
+
     def testCreationKeywordError(self):
         with self.assertRaises(bitstring.CreationError):
             Bits(squirrel=5)

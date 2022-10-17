@@ -708,3 +708,40 @@ class NewProperties(unittest.TestCase):
         a.pos = 0
         b, c = a.readlist(['b8', 'h'])
         self.assertEqual([b, c], ['00000001', 'ff'])
+
+
+class BFloats(unittest.TestCase):
+
+    def testCreation(self):
+        a = BitArray('bfloat=100.5')
+        self.assertEqual(a.unpack('bfloat')[0], 100.5)
+        b = BitArray(bfloat=20.25)
+        self.assertEqual(b.bfloat, 20.25)
+        b.bfloat = -30.5
+        self.assertEqual(b.bfloat, -30.5)
+        self.assertEqual(len(b), 16)
+        fs = [0.0, -6.1, 1.52e35, 0.000001]
+        a = bitstring.pack('4*bfloat', *fs)
+        fsp = a.unpack('4*bfloat')
+        self.assertEqual(len(a), len(fs)*16)
+        for f, fp in zip(fs, fsp):
+            self.assertAlmostEqual(f, fp, delta=max(f/100, -f/100))
+        a = BitArray(bfloat=13)
+        self.assertEqual(a.bfloat, 13)
+
+    def testCreationErrors(self):
+        a = BitArray(bfloat=-0.25, length=16)
+        self.assertEqual(len(a), 16)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitArray(bfloat=10, length=15)
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitArray('bfloat:1=0.5')
+
+    def testLittleEndian(self):
+        a = BitArray('f32=1000')
+        b = BitArray(bfloat=a.f)
+        self.assertEqual(a[0:16], b[0:16])
+
+        a = BitArray('floatle:32=1000')
+        b = BitArray(bfloatle=a.floatle)
+        self.assertEqual(a.byteswap()[0:16], b[0:16])

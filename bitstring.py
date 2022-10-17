@@ -516,7 +516,7 @@ def tidy_input_string(s: str) -> str:
 
 INIT_NAMES: Tuple[str, ...] = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
                                'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
-                               'float', 'floatbe', 'floatle', 'floatne', 'bytes', 'bool', 'pad')
+                               'float', 'floatbe', 'floatle', 'floatne', 'bfloat', 'bytes', 'bool', 'pad')
 
 TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>' + '|'.join(INIT_NAMES) +
                                     r')(:(?P<len>[^=]+))?(=(?P<value>.*))?$', re.IGNORECASE)
@@ -555,7 +555,7 @@ PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4
 
 _tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct',
                                              '0o': 'oct', '0O': 'oct', 'bin': 'bin', '0b': 'bin',
-                                             '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes', 'pad': 'pad'}
+                                             '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat'}
 
 
 def structparser(token: str) -> List[str]:
@@ -668,6 +668,10 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
                 if length is not None and length != '1':
                     raise ValueError(f"bool tokens can only be 1 bit long, not {length} bits.")
                 length = 1
+            if name == 'bfloat':
+                if length is not None and length != '16':
+                    raise ValueError(f"bfloat tokens can only be 16 bits long, not {length} bits.")
+                length = 16
             if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 stretchy_token = True
             if length is not None:
@@ -768,6 +772,7 @@ class Bits:
     floatbe -- Interpret as a big-endian floating point number.
     floatle -- Interpret as a little-endian floating point number.
     floatne -- Interpret as a native-endian floating point number.
+    bfloat -- Interpret as a 16-bit bfloat type.
     hex -- The bitstring as a hexadecimal string.
     int -- Interpret as a two's complement signed integer.
     intbe -- Interpret as a big-endian signed integer.
@@ -814,6 +819,7 @@ class Bits:
         uintbe -- an unsigned big-endian whole byte integer.
         intbe -- a signed big-endian whole byte integer.
         floatbe - a big-endian floating point number.
+        bfloat - a bfloat 16-bit floating point number.
         uintle -- an unsigned little-endian whole byte integer.
         intle -- a signed little-endian whole byte integer.
         floatle -- a little-endian floating point number.
@@ -851,6 +857,7 @@ class Bits:
                         'uint': cls._setuint,
                         'int': cls._setint,
                         'float': cls._setfloatbe,
+                        'bfloat': cls._setbfloat,
                         'uintbe': cls._setuintbe,
                         'intbe': cls._setintbe,
                         'floatbe': cls._setfloatbe,
@@ -876,6 +883,7 @@ class Bits:
                              'floatbe': Bits._readfloatbe,  # floatbe is a synonym for float
                              'floatle': Bits._readfloatle,
                              'floatne': Bits._readfloatne,
+                             'bfloat': Bits._readbfloat,
                              'hex': Bits._readhex,
                              'oct': Bits._readoct,
                              'bin': Bits._readbin,
@@ -1713,6 +1721,21 @@ class Bits:
         """Interpret the whole bitstring as a little-endian float."""
         return self._readfloatle(0, self.len)
 
+    def _getbfloat(self) -> float:
+        return self._readbfloat(0, self.len)
+
+    def _readbfloat(self, start: int, _length: int) -> float:
+        two_bytes = self._readbits(start, 16)
+        zero_padded = two_bytes + Bits(16)
+        return zero_padded._getfloat()
+
+    def _setbfloat(self, f: Union[float, str], length: Optional[int] = None, _offset: None = None) -> None:
+        if length is not None and length != 16:
+            raise CreationError(f"bfloats must be length 16, received a length of {length} bits.")
+        f = float(f)
+        four_byte_float = Bits(float=f, length=32)
+        self._setbytes_unsafe(four_byte_float._datastore.rawarray[0:2], 16, 0)
+
     def _setue(self, i: int, _length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
 
@@ -1908,9 +1931,11 @@ class Bits:
         except IndexError:
             raise ReadError("Read off end of bitstring trying to read code.")
 
-    def _setbool(self, value: Union[bool, str], _length: None = None, _offset: None = None) -> None:
+    def _setbool(self, value: Union[bool, str], length: Optional[int] = None, _offset: None = None) -> None:
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
+        if length is not None and length != 1:
+            raise CreationError(f"bools must be length 1, received a length of {length} bits.")
         if value in (1, 'True'):
             self._setbytes_unsafe(bytearray(b'\x80'), 1, 0)
         elif value in (0, 'False'):
@@ -3142,6 +3167,9 @@ class Bits:
     float = property(_getfloat,
                      doc="""The bitstring as a floating point number. Read only.
                       """)
+    bfloat = property(_getbfloat,
+                      doc="""The bitstring as a 16 bit bfloat floating point number. Read only.
+                      """)
     intbe = property(_getintbe,
                      doc="""The bitstring as a two's complement big-endian signed int. Read only.
                       """)
@@ -3244,6 +3272,7 @@ class BitArray(Bits):
     floatbe -- Interpret as a big-endian floating point number.
     floatle -- Interpret as a little-endian floating point number.
     floatne -- Interpret as a native-endian floating point number.
+    # TODO
     hex -- The bitstring as a hexadecimal string.
     int -- Interpret as a two's complement signed integer.
     intbe -- Interpret as a big-endian signed integer.
@@ -3296,6 +3325,7 @@ class BitArray(Bits):
         uie -- an unsigned interleaved exponential-Golomb code.
         bool -- a boolean (True or False).
         filename -- a file which will be opened in binary read-only mode.
+        # TODO
 
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
@@ -3897,6 +3927,9 @@ class BitArray(Bits):
     float = property(Bits._getfloat, Bits._setfloatbe,
                      doc="""The bitstring as a floating point number. Read and write.
                       """)
+    bfloat = property(Bits._getbfloat, Bits._setbfloat,
+                      doc="""The bitstring as a 16 bit bfloat floating point number. Read and write.
+                      """)
     intbe = property(Bits._getintbe, Bits._setintbe,
                      doc="""The bitstring as a two's complement big-endian signed int. Read and write.
                       """)
@@ -4023,7 +4056,7 @@ class ConstBitStream(Bits):
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
     uintne -- Interpret as a native-endian unsigned integer.
-
+    # TODO
     """
 
     __slots__ = ()
@@ -4057,6 +4090,7 @@ class ConstBitStream(Bits):
         uie -- an unsigned interleaved exponential-Golomb code.
         bool -- a boolean (True or False).
         filename -- a file which will be opened in binary read-only mode.
+        # TODO
 
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
@@ -4365,7 +4399,7 @@ class BitStream(ConstBitStream, BitArray):
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
     uintne -- Interpret as a native-endian unsigned integer.
-
+    # TODO
     """
 
     __slots__ = ()
@@ -4399,6 +4433,7 @@ class BitStream(ConstBitStream, BitArray):
         uie -- an unsigned interleaved exponential-Golomb code.
         bool -- a boolean (True or False).
         filename -- a file which will be opened in binary read-only mode.
+        # TODO
 
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
@@ -4566,6 +4601,7 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
         Bits._truncatestart = Bits._truncateleft
         Bits._truncateend = Bits._truncateright
         Bits._validate_slice = Bits._validate_slice_msb0
+
 
 # Initialise the default behaviour
 _switch_lsb0_methods(False)
