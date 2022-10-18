@@ -743,5 +743,12 @@ class BFloats(unittest.TestCase):
         self.assertEqual(a[0:16], b[0:16])
 
         a = BitArray('floatle:32=1000')
-        b = BitArray(bfloatle=a.floatle)
-        self.assertEqual(a.byteswap()[0:16], b[0:16])
+        b = BitArray(bfloatle=1000)
+        self.assertEqual(a[16:32], b)
+        self.assertEqual(b.bfloatle, 1000.0)
+        b.byteswap()
+        self.assertEqual(b.bfloat, 1000.0)
+        self.assertEqual(b.bfloatbe, 1000.0)
+
+        with self.assertRaises(bitstring.CreationError):
+            _ = BitArray(bfloatle=-5, length=15)

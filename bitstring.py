@@ -857,7 +857,10 @@ class Bits:
                         'uint': cls._setuint,
                         'int': cls._setint,
                         'float': cls._setfloatbe,
-                        'bfloat': cls._setbfloat,
+                        'bfloat': cls._setbfloatbe,
+                        'bfloatbe': cls._setbfloatbe,
+                        'bfloatle': cls._setbfloatle,
+                        'bfloatne': cls._setbfloatne,
                         'uintbe': cls._setuintbe,
                         'intbe': cls._setintbe,
                         'floatbe': cls._setfloatbe,
@@ -883,7 +886,10 @@ class Bits:
                              'floatbe': Bits._readfloatbe,  # floatbe is a synonym for float
                              'floatle': Bits._readfloatle,
                              'floatne': Bits._readfloatne,
-                             'bfloat': Bits._readbfloat,
+                             'bfloat': Bits._readbfloatbe,
+                             'bfloatbe': Bits._readbfloatbe,
+                             'bfloatle': Bits._readbfloatle,
+                             'bfloatne': Bits._readbfloatne,
                              'hex': Bits._readhex,
                              'oct': Bits._readoct,
                              'bin': Bits._readbin,
@@ -958,9 +964,9 @@ class Bits:
     def __getattr__(self, attribute):
         # Support for arbitrary attributes like u16 or f64.
         letter_to_getter: Dict[str, Callable] = \
-            {'u': self._getuint,
+            {'u': self._getuint,  # TODO: Should these be big-endian explictly?
              'i': self._getint,
-             'f': self._getfloat,
+             'f': self._getfloatbe,
              'b': self._getbin,
              'o': self._getoct,
              'h': self._gethex}
@@ -1706,7 +1712,7 @@ class Bits:
         """Read bits and interpret as a big-endian float."""
         return self._readfloat(start, length, {16: '>e', 32: '>f', 64: '>d'})
 
-    def _getfloat(self) -> float:
+    def _getfloatbe(self) -> float:
         """Interpret the whole bitstring as a big-endian float."""
         return self._readfloatbe(0, self.len)
 
@@ -1721,20 +1727,35 @@ class Bits:
         """Interpret the whole bitstring as a little-endian float."""
         return self._readfloatle(0, self.len)
 
-    def _getbfloat(self) -> float:
-        return self._readbfloat(0, self.len)
+    def _getbfloatbe(self) -> float:
+        return self._readbfloatbe(0, self.len)
 
-    def _readbfloat(self, start: int, _length: int) -> float:
+    def _readbfloatbe(self, start: int, _length: int) -> float:
         two_bytes = self._readbits(start, 16)
         zero_padded = two_bytes + Bits(16)
-        return zero_padded._getfloat()
+        return zero_padded._getfloatbe()
 
-    def _setbfloat(self, f: Union[float, str], length: Optional[int] = None, _offset: None = None) -> None:
+    def _setbfloatbe(self, f: Union[float, str], length: Optional[int] = None, _offset: None = None) -> None:
         if length is not None and length != 16:
             raise CreationError(f"bfloats must be length 16, received a length of {length} bits.")
         f = float(f)
         four_byte_float = Bits(float=f, length=32)
         self._setbytes_unsafe(four_byte_float._datastore.rawarray[0:2], 16, 0)
+
+    def _getbfloatle(self) -> float:
+        return self._readbfloatle(0, self.len)
+
+    def _readbfloatle(self, start: int, _length: int) -> float:
+        two_bytes = self._readbits(start, 16)
+        zero_padded = Bits(16) + two_bytes
+        return zero_padded._getfloatle()
+
+    def _setbfloatle(self, f: Union[float, str], length: Optional[int] = None, _offset: None = None) -> None:
+        if length is not None and length != 16:
+            raise CreationError(f"bfloats must be length 16, received a length of {length} bits.")
+        f = float(f)
+        four_byte_float = Bits(floatle=f, length=32)
+        self._setbytes_unsafe(four_byte_float._datastore.rawarray[2:4], 16, 0)
 
     def _setue(self, i: int, _length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
@@ -3118,6 +3139,9 @@ class Bits:
         _setfloatne = _setfloatle
         _readfloatne = _readfloatle
         _getfloatne = _getfloatle
+        _setbfloatne = _setbfloatle
+        _readbfloatne = _readbfloatle
+        _getbfloatne = _getbfloatle
         _setuintne = _setuintle
         _readuintne = _readuintle
         _getuintne = _getuintle
@@ -3127,7 +3151,10 @@ class Bits:
     else:
         _setfloatne = _setfloatbe
         _readfloatne = _readfloatbe
-        _getfloatne = _getfloat
+        _getfloatne = _getfloatbe
+        _setbfloatne = _setbfloatbe
+        _readbfloatne = _readbfloatbe
+        _getbfloatne = _getbfloatbe
         _setuintne = _setuintbe
         _readuintne = _readuintbe
         _getuintne = _getuintbe
@@ -3164,11 +3191,20 @@ class Bits:
     uint = property(_getuint,
                     doc="""The bitstring as a two's complement unsigned int. Read only.
                       """)
-    float = property(_getfloat,
-                     doc="""The bitstring as a floating point number. Read only.
+    float = property(_getfloatbe,
+                     doc="""The bitstring as a big-endian floating point number. Read only.
                       """)
-    bfloat = property(_getbfloat,
-                      doc="""The bitstring as a 16 bit bfloat floating point number. Read only.
+    bfloat = property(_getbfloatbe,
+                      doc="""The bitstring as a 16 bit big-endian bfloat floating point number. Read only.
+                      """)
+    bfloatbe = property(_getbfloatbe,
+                      doc="""The bitstring as a 16 bit big-endian bfloat floating point number. Read only.
+                      """)
+    bfloatle = property(_getbfloatle,
+                      doc="""The bitstring as a 16 bit little-endian bfloat floating point number. Read only.
+                      """)
+    bfloatne = property(_getbfloatne,
+                      doc="""The bitstring as a 16 bit native-endian bfloat floating point number. Read only.
                       """)
     intbe = property(_getintbe,
                      doc="""The bitstring as a two's complement big-endian signed int. Read only.
@@ -3176,7 +3212,7 @@ class Bits:
     uintbe = property(_getuintbe,
                       doc="""The bitstring as a two's complement big-endian unsigned int. Read only.
                       """)
-    floatbe = property(_getfloat,
+    floatbe = property(_getfloatbe,
                        doc="""The bitstring as a big-endian floating point number. Read only.
                       """)
     intle = property(_getintle,
@@ -3924,10 +3960,10 @@ class BitArray(Bits):
     uint = property(Bits._getuint, Bits._setuint,
                     doc="""The bitstring as a two's complement unsigned int. Read and write.
                       """)
-    float = property(Bits._getfloat, Bits._setfloatbe,
+    float = property(Bits._getfloatbe, Bits._setfloatbe,
                      doc="""The bitstring as a floating point number. Read and write.
                       """)
-    bfloat = property(Bits._getbfloat, Bits._setbfloat,
+    bfloat = property(Bits._getbfloatbe, Bits._setbfloatbe,
                       doc="""The bitstring as a 16 bit bfloat floating point number. Read and write.
                       """)
     intbe = property(Bits._getintbe, Bits._setintbe,
@@ -3936,7 +3972,7 @@ class BitArray(Bits):
     uintbe = property(Bits._getuintbe, Bits._setuintbe,
                       doc="""The bitstring as a two's complement big-endian unsigned int. Read and write.
                       """)
-    floatbe = property(Bits._getfloat, Bits._setfloatbe,
+    floatbe = property(Bits._getfloatbe, Bits._setfloatbe,
                        doc="""The bitstring as a big-endian floating point number. Read and write.
                       """)
     intle = property(Bits._getintle, Bits._setintle,
