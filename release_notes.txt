@@ -10,7 +10,7 @@ requirement of Python 3.7. Around 94% of downloads satisfy this - users of
 older versions can continue to use bitstring 3.1, which will still be supported
 with fixes, but no new features.
 
-Other changes are minimal, with a few features added.
+Other breaking changes are minimal, and there are a few cool features added.
 
 Breaking changes:
 
@@ -72,6 +72,9 @@ New features and improvements:
 
 * Support for 16 bit floats. Floating point types can now be 16 bits long as well
   as 32 and 64 bits. This is using the 'e' format from the struct module.
+* Support for bfloats. The bfloat type is a 16-bit floating point format used
+  mainly in machine learning. It's essentially a truncated IEEE 32-bit format that
+  keeps its range but only has a couple of signficant figures of accuracy.
 
 
 ---------------------------------------

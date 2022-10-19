@@ -964,7 +964,7 @@ class Bits:
     def __getattr__(self, attribute):
         # Support for arbitrary attributes like u16 or f64.
         letter_to_getter: Dict[str, Callable] = \
-            {'u': self._getuint,  # TODO: Should these be big-endian explictly?
+            {'u': self._getuint,
              'i': self._getint,
              'f': self._getfloatbe,
              'b': self._getbin,
@@ -979,7 +979,19 @@ class Bits:
             name = m1_short.group('name')
             f = letter_to_getter[name]
             return f()
-        raise AttributeError(f"Can't parse attribute {attribute}.")
+        # Try to split into [name][length], then try standard properties
+        name_length_pattern: Pattern[str] = re.compile(r'(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
+        name_length = name_length_pattern.match(attribute)
+        if name_length:
+            name = name_length.group('name')
+            length = name_length.group('len')
+            if length is not None and self.len != int(length):
+                raise InterpretError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
+            try:
+                return getattr(self, name)
+            except AttributeError:
+                pass
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'.")
 
     def __iter__(self) -> Iterable[bool]:
         return iter(self._datastore)
@@ -3388,7 +3400,7 @@ class BitArray(Bits):
         try:
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
-        except AttributeError:
+        except AttributeError as e:
             letter_to_setter: Dict[str, Callable] =\
                 {'u': self._setuint,
                  'i': self._setint,
@@ -3396,7 +3408,7 @@ class BitArray(Bits):
                  'b': self._setbin_safe,
                  'o': self._setoct,
                  'h': self._sethex}
-            short_token: Pattern[str] = re.compile(r'(?P<name>u|i|f|b|o|h)(?P<len>\d+)$', re.IGNORECASE)
+            short_token: Pattern[str] = re.compile(r'(?P<name>[uifboh])(?P<len>\d+)$', re.IGNORECASE)
             m1_short = short_token.match(attribute)
             if m1_short:
                 length = int(m1_short.group('len'))
@@ -3412,7 +3424,28 @@ class BitArray(Bits):
                     raise CreationError(f"Can't initialise with value of length {new_len} bits, "
                                         f"as attribute has length of {length} bits.")
                 return
-            raise AttributeError(f"Can't parse attribute {attribute}.")
+            # Try to split into [name][length], then try standard properties
+            name_length_pattern: Pattern[str] = re.compile(r'(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
+            name_length = name_length_pattern.match(attribute)
+            if name_length:
+                name = name_length.group('name')
+                length = name_length.group('len')
+                if length is not None:
+                    length = int(length)
+                try:
+                    a_copy = self._copy()
+                    self._initialise(auto=None, length=length, offset=None, **{name: value})
+                    if length is not None and self.len != length:
+                        new_len = self.len
+                        # Reset to previous value
+                        self._setbytes_unsafe(a_copy._datastore.getbyteslice(0, a_copy._datastore.bytelength),
+                                              a_copy.len, a_copy._offset)
+                        raise CreationError(f"Can't initialise with value of length {new_len} bits, "
+                                            f"as attribute has length of {length} bits.")
+                    return
+                except AttributeError:
+                    pass
+            raise e
 
     def __iadd__(self, bs: BitsType) -> BitArray:
         """Append bs to current bitstring. Return self.

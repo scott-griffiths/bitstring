@@ -709,6 +709,13 @@ class NewProperties(unittest.TestCase):
         b, c = a.readlist(['b8', 'h'])
         self.assertEqual([b, c], ['00000001', 'ff'])
 
+    def testLongerMoreGeneralNames(self):
+        a = BitArray()
+        a.f64 = 0.0
+        self.assertEqual(a.float64, 0.0)
+        a.float32 = 10.5
+        self.assertEqual(a.f32, 10.5)
+
 
 class BFloats(unittest.TestCase):
 
