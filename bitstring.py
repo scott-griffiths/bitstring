@@ -14,6 +14,11 @@ Functions:
 
 pack -- Create a BitStream from a format string.
 
+Module Properties:
+
+bytealigned -- Determines whether a number of methods default to working only on byte boundaries.
+lsb0 -- If True, the least significant bit (the final bit) is indexed as bit zero.
+
 Exceptions:
 
 Error -- Module exception base class.
@@ -68,12 +73,12 @@ import io
 import collections
 import functools
 import types
-from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, TextIO, Callable
+from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, TextIO, Callable, overload
 from contextlib import suppress
 
 
 # Things that can be converted to Bits when a Bits type is needed
-BitsType = Union['Bits', int, float, str, Iterable[Any], bool, BinaryIO, bytearray, bytes, array.array]
+BitsType = Union['Bits', int, float, str, Iterable[Any], bool, BinaryIO, bytearray, bytes]
 
 byteorder: str = sys.byteorder
 
@@ -89,18 +94,18 @@ class _MyModuleType(types.ModuleType):
         return globals()['_bytealigned']
 
     @bytealigned.setter
-    def bytealigned(self, value):
+    def bytealigned(self, value: bool):
         """Determines whether a number of methods default to working only on byte boundaries."""
         globals()['_bytealigned'] = value
 
     @property
     def lsb0(self):
-        """If True, index bits with the least significant bit (the final bit) as bit zero."""
+        """If True, the least significant bit (the final bit) is indexed as bit zero."""
         return globals()['_lsb0']
 
     @lsb0.setter
-    def lsb0(self, value):
-        """If True, index bits with the least significant bit (the final bit) as bit zero."""
+    def lsb0(self, value: bool):
+        """If True, the least significant bit (the final bit) is indexed as bit zero."""
         value = bool(value)
         _switch_lsb0_methods(value)
         globals()['_lsb0'] = value
@@ -121,7 +126,7 @@ _debug: bool = False
 class Error(Exception):
     """Base class for errors in the bitstring module."""
 
-    def __init__(self, *params):
+    def __init__(self, *params: object):
         self.msg = params[0] if params else ''
         self.params = params[1:]
 
@@ -129,28 +134,28 @@ class Error(Exception):
 class ReadError(Error, IndexError):
     """Reading or peeking past the end of a bitstring."""
 
-    def __init__(self, *params):
+    def __init__(self, *params: object):
         Error.__init__(self, *params)
 
 
 class InterpretError(Error, ValueError):
     """Inappropriate interpretation of binary data."""
 
-    def __init__(self, *params):
+    def __init__(self, *params: object):
         Error.__init__(self, *params)
 
 
 class ByteAlignError(Error):
     """Whole-byte position or length needed."""
 
-    def __init__(self, *params):
+    def __init__(self, *params: object):
         Error.__init__(self, *params)
 
 
 class CreationError(Error, ValueError):
     """Inappropriate argument during bitstring creation."""
 
-    def __init__(self, *params):
+    def __init__(self, *params: object):
         Error.__init__(self, *params)
 
 
@@ -160,9 +165,16 @@ class ConstByteStore:
     Used internally - not part of public interface.
     """
 
+    @classmethod
+    def _setlsb0methods(cls, lsb0: bool) -> None:
+        if lsb0:
+            cls.getbit = cls._getbit_lsb0
+        else:
+            cls.getbit = cls._getbit_msb0
+
     __slots__ = ('offset', 'rawarray', 'bitlength')
 
-    def __init__(self, data: Union[bytearray, bytes, MmapByteArray],
+    def __init__(self, data: Union[bytearray, MmapByteArray],
                  bitlength: Optional[int] = None, offset: int = 0) -> None:
         self.rawarray = data
         if bitlength is None:
@@ -170,7 +182,7 @@ class ConstByteStore:
         self.offset = offset
         self.bitlength = bitlength
 
-    def __iter__(self) -> Optional[Iterator]:
+    def __iter__(self) -> Iterator[bool]:
         start_byte, start_bit = divmod(self.offset, 8)
         end_byte, end_bit = divmod(self.offset + self.bitlength, 8)
 
@@ -190,7 +202,7 @@ class ConstByteStore:
         for byte in self.rawarray[start_byte + 1: end_byte]:
             reversed_int = Bits._int8ReversalDict[byte]
             for _ in range(0, 8):
-                yield reversed_int & 1
+                yield bool(reversed_int & 1)
                 reversed_int >>= 1
             start_bit = 0
 
@@ -214,7 +226,7 @@ class ConstByteStore:
         """Direct access to byte data."""
         return self.rawarray[pos]
 
-    def getbyteslice(self, start: int, end: int) -> Union[int, bytearray]:
+    def getbyteslice(self, start: int, end: int) -> bytes:
         """Direct access to byte data."""
         return self.rawarray[start:end]
 
@@ -272,7 +284,7 @@ class ConstByteStore:
         return self.offset // 8
 
     @property
-    def rawbytes(self) -> Union[bytearray, MmapByteArray]:
+    def rawbytes(self) -> Union[bytes, MmapByteArray]:
         return self.rawarray
 
 
@@ -281,6 +293,18 @@ class ByteStore(ConstByteStore):
 
     Used internally - not part of public interface.
     """
+
+    @classmethod
+    def _setlsb0methods(cls, lsb0: bool) -> None:
+        if lsb0:
+            cls.setbit = cls._setbit_lsb0
+            cls.unsetbit = cls._unsetbit_lsb0
+            cls.invertbit = cls._invertbit_lsb0
+        else:
+            cls.setbit = cls._setbit_msb0
+            cls.unsetbit = cls._unsetbit_msb0
+            cls.invertbit = cls._invertbit_msb0
+
     __slots__ = ()
 
     def _setbit_lsb0(self, pos: int) -> None:
@@ -488,13 +512,15 @@ class MmapByteArray:
         self.bytelength = bytelength
         self.filemap = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
 
+    @overload
+    def __getitem__(self, key: slice) -> bytearray: ...
+    @overload
+    def __getitem__(self, key: int) -> int: ...
+
     def __getitem__(self, key: Union[slice, int]) -> Union[bytearray, int]:
-        try:
+        if isinstance(key, slice):
             start = key.start
             stop = key.stop
-        except AttributeError:
-            return self.filemap[key + self.byteoffset]
-        else:
             if start is None:
                 start = 0
             if stop is None:
@@ -504,6 +530,8 @@ class MmapByteArray:
             assert 0 <= stop <= self.bytelength
             s = slice(start + self.byteoffset, stop + self.byteoffset)
             return bytearray(self.filemap.__getitem__(s))
+        else:
+            return self.filemap[key + self.byteoffset]
 
     def __len__(self) -> int:
         return self.bytelength
@@ -766,37 +794,60 @@ class Bits:
     Properties:
 
     bin -- The bitstring as a binary string.
-    bool -- For single bit bitstrings, interpret as True or False.
-    bytes -- The bitstring as a bytes object.
-    float -- Interpret as a floating point number.
-    floatbe -- Interpret as a big-endian floating point number.
-    floatle -- Interpret as a little-endian floating point number.
-    floatne -- Interpret as a native-endian floating point number.
-    bfloat -- Interpret as a 16-bit bfloat type.
     hex -- The bitstring as a hexadecimal string.
-    int -- Interpret as a two's complement signed integer.
-    intbe -- Interpret as a big-endian signed integer.
-    intle -- Interpret as a little-endian signed integer.
-    intne -- Interpret as a native-endian signed integer.
-    len -- Length of the bitstring in bits.
     oct -- The bitstring as an octal string.
+    bytes -- The bitstring as a bytes object.
+    int -- Interpret as a two's complement signed integer.
+    uint -- Interpret as a two's complement unsigned integer.
+    float / floatbe -- Interpret as a big-endian floating point number.
+    bool -- For single bit bitstrings, interpret as True or False.
     se -- Interpret as a signed exponential-Golomb code.
     ue -- Interpret as an unsigned exponential-Golomb code.
     sie -- Interpret as a signed interleaved exponential-Golomb code.
     uie -- Interpret as an unsigned interleaved exponential-Golomb code.
-    uint -- Interpret as a two's complement unsigned integer.
+    floatle -- Interpret as a little-endian floating point number.
+    floatne -- Interpret as a native-endian floating point number.
+    bfloat / bfloatbe -- Interpret as a big-endian 16-bit bfloat type.
+    bfloatle -- Interpret as a little-endian 16-bit bfloat type.
+    intbe -- Interpret as a big-endian signed integer.
+    intle -- Interpret as a little-endian signed integer.
+    intne -- Interpret as a native-endian signed integer.
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
     uintne -- Interpret as a native-endian unsigned integer.
 
+    len -- Length of the bitstring in bits.
+
     """
+
+    @classmethod
+    def _setlsb0methods(cls, lsb0: bool) -> None:
+        if lsb0:
+            cls._find = cls._find_lsb0
+            cls._rfind = cls._rfind_lsb0
+            cls._findall = cls._findall_lsb0
+            cls._slice = cls._slice_lsb0
+            cls._readuint = cls._readuint_lsb0
+            cls._truncatestart = cls._truncateright
+            cls._truncateend = cls._truncateleft
+            cls._validate_slice = cls._validate_slice_lsb0
+        else:
+            cls._find = cls._find_msb0
+            cls._rfind = cls._rfind_msb0
+            cls._findall = cls._findall_msb0
+            cls._slice = cls._slice_msb0
+            cls._readuint = cls._readuint_msb0
+            cls._truncatestart = cls._truncateleft
+            cls._truncateend = cls._truncateright
+            cls._validate_slice = cls._validate_slice_msb0
+
 
     __slots__ = ('_datastore', '_pos')
     # This converts a single octal digit to 3 bits.
     _octToBits: List[str] = ['{0:03b}'.format(i) for i in range(8)]
 
     # A dictionary of number of 1 bits contained in binary representation of any byte
-    _bitCount: Dict[int, int] = dict(zip(range(256), [bin(i).count('1') for i in range(256)]))
+    _bitCount: Dict[int, int] = dict(zip(range(0x100), [bin(i).count('1') for i in range(0x100)]))
 
     # Creates dictionaries to quickly reverse single bytes
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
@@ -809,29 +860,29 @@ class Bits:
                 a bytearray, a boolean iterable, an array or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
-        bytes -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
-        uint -- an unsigned integer.
+        bytes -- raw data as a bytes object, for example read from a binary file.
         int -- a signed integer.
-        float -- a floating point number.
-        uintbe -- an unsigned big-endian whole byte integer.
-        intbe -- a signed big-endian whole byte integer.
-        floatbe - a big-endian floating point number.
-        bfloat - a bfloat 16-bit floating point number.
-        uintle -- an unsigned little-endian whole byte integer.
-        intle -- a signed little-endian whole byte integer.
-        floatle -- a little-endian floating point number.
-        uintne -- an unsigned native-endian whole byte integer.
-        intne -- a signed native-endian whole byte integer.
-        floatne -- a native-endian floating point number.
+        uint -- an unsigned integer.
+        float / floatbe -- a big-endian floating point number.
+        bool -- a boolean (True or False).
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
         sie -- a signed interleaved exponential-Golomb code.
         uie -- an unsigned interleaved exponential-Golomb code.
-        bool -- a boolean (True or False).
-        filename -- a file which will be opened in binary read-only mode.
+        floatle -- a little-endian floating point number.
+        floatne -- a native-endian floating point number.
+        bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
+        bfloatle -- a little-endian bfloat format 16-bit floating point number.
+        intbe -- a signed big-endian whole byte integer.
+        intle -- a signed little-endian whole byte integer.
+        intne -- a signed native-endian whole byte integer.
+        uintbe -- an unsigned big-endian whole byte integer.
+        uintle -- an unsigned little-endian whole byte integer.
+        uintne -- an unsigned native-endian whole byte integer.
+        filename -- the path of a file which will be opened in binary read-only mode.
 
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
@@ -961,9 +1012,9 @@ class Bits:
         self._setauto(auto, length, offset)
         return
 
-    def __getattr__(self, attribute):
+    def __getattr__(self, attribute: str):
         # Support for arbitrary attributes like u16 or f64.
-        letter_to_getter: Dict[str, Callable] = \
+        letter_to_getter: Dict[str, Callable[..., Union[int, float, str]]] = \
             {'u': self._getuint,
              'i': self._getint,
              'f': self._getfloatbe,
@@ -1002,16 +1053,16 @@ class Bits:
         # The copy can return self as it's immutable.
         return self
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any):
         raise TypeError(f"unorderable type: {type(self).__name__}")
 
-    def __gt__(self, other):
+    def __gt__(self, other: Any):
         raise TypeError(f"unorderable type: {type(self).__name__}")
 
-    def __le__(self, other):
+    def __le__(self, other: Any):
         raise TypeError(f"unorderable type: {type(self).__name__}")
 
-    def __ge__(self, other):
+    def __ge__(self, other: Any):
         raise TypeError(f"unorderable type: {type(self).__name__}")
 
     def __add__(self, bs: Any) -> Bits:
@@ -1039,6 +1090,11 @@ class Bits:
         bs = self._converttobitstring(bs)
         return bs.__add__(self)
 
+    @overload
+    def __getitem__(self, key: slice) -> Bits: ...
+    @overload
+    def __getitem__(self, key: int) -> bool: ...
+
     def __getitem__(self, key: Union[slice, int]) -> Union[Bits, bool]:
         """Return a new bitstring representing a slice of the current bitstring.
 
@@ -1051,7 +1107,7 @@ class Bits:
         '0x1122'
 
         """
-        length = self.len
+        length = self._getlength()
         if isinstance(key, slice):
             step = key.step if key.step is not None else 1
             if step != 1:
@@ -1141,12 +1197,6 @@ class Bits:
             if s.endswith('...'):
                 lengthstring = "  # length={0}".format(length)
             return "{0}('{1}'{2}){3}".format(self.__class__.__name__, s, pos_string, lengthstring)
-
-    # TODO: Something like this :)
-    # def __format__(self, fmt: str) -> str:
-    #     if fmt is None:
-    #         return self.__repr__()
-    #     return ', '.join(str(x) for x in self.unpack(fmt))
 
     def __eq__(self, bs: Any) -> bool:
         """Return True if two bitstrings have the same binary representation.
@@ -1896,7 +1946,7 @@ class Bits:
         if _lsb0:
             raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         try:
-            codenum = 1
+            codenum: int = 1
             while not self[pos]:
                 pos += 1
                 codenum <<= 1
@@ -2096,7 +2146,7 @@ class Bits:
         return self._datastore.bitlength
 
     @classmethod
-    def _converttobitstring(cls, bs: Any, offset: int = 0, cache: dict = {}) -> Bits:
+    def _converttobitstring(cls, bs: BitsType, offset: int = 0, cache: Dict = {}) -> Bits:
         """Convert bs to a bitstring and return it.
 
         offset gives the suggested bit offset of first significant
@@ -2396,7 +2446,7 @@ class Bits:
         """Read some bits from the bitstring and return newly constructed bitstring."""
         return self._slice(start, start + length)
 
-    def _validate_slice_msb0(self, start: int, end: int) -> Tuple[int, int]:
+    def _validate_slice_msb0(self, start: Optional[int], end: Optional[int]) -> Tuple[int, int]:
         """Validate start and end and return them as positive bit positions."""
         if start is None:
             start = 0
@@ -2418,7 +2468,7 @@ class Bits:
         start, end = self._validate_slice_msb0(start, end)
         return self.len - end, self.len - start
 
-    def unpack(self, fmt: Union[str, List[str]], **kwargs) -> List[Bits]:
+    def unpack(self, fmt: Union[str, List[Union[str, int]]], **kwargs) -> List[Union[float, int, str, None, Bits]]:
         """Interpret the whole bitstring using fmt and return list.
 
         fmt -- A single string or a list of strings with comma separated tokens
@@ -2435,7 +2485,7 @@ class Bits:
         """
         return self._readlist(fmt, 0, **kwargs)[0]
 
-    def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs)\
+    def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs: int)\
             -> Tuple[List[Union[float, int, str, None, Bits]], int]:
         tokens = []
         if isinstance(fmt, str):
@@ -2563,7 +2613,7 @@ class Bits:
         # Not found, return empty tuple
         return ()
 
-    def find(self, bs: Any, start: Optional[int] = None, end: Optional[int] = None,
+    def find(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
         """Find first occurrence of substring bs.
 
@@ -3027,13 +3077,12 @@ class Bits:
             fmt1 = m1.group('name')
         else:
             length1 = None
+        length2 = None
         if fmt2 is not None:
             m2 = short_token.match(fmt2)
             if m2:
                 length2 = int(m2.group('len'))
                 fmt2 = m2.group('name')
-            else:
-                length2 = None
 
         aliases = {'hex': 'hex', 'oct': 'oct', 'bin': 'bin', 'bytes': 'bytes',
                    'b': 'bin', 'o': 'oct', 'h': 'hex'}
@@ -3339,6 +3388,25 @@ class BitArray(Bits):
 
     """
 
+    @classmethod
+    def _setlsb0methods(cls, lsb0: bool) -> None:
+        if lsb0:
+            cls._overwrite = cls._overwrite_lsb0
+            cls._insert = cls._insert_lsb0
+            cls._delete = cls._delete_lsb0
+            cls._ror = cls._rol_msb0
+            cls._rol = cls._ror_msb0
+            cls._append = cls._append_lsb0
+            cls._prepend = cls._append_msb0  # An LSB0 prepend is an MSB0 append
+        else:
+            cls._overwrite = cls._overwrite_msb0
+            cls._insert = cls._insert_msb0
+            cls._delete = cls._delete_msb0
+            cls._ror = cls._ror_msb0
+            cls._rol = cls._rol_msb0
+            cls._append = cls._append_msb0
+            cls._prepend = cls._append_lsb0
+
     __slots__ = ()
 
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
@@ -3401,7 +3469,7 @@ class BitArray(Bits):
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
         except AttributeError as e:
-            letter_to_setter: Dict[str, Callable] =\
+            letter_to_setter: Dict[str, Callable[..., None]] =\
                 {'u': self._setuint,
                  'i': self._setint,
                  'f': self._setfloatbe,
@@ -3606,7 +3674,7 @@ class BitArray(Bits):
             self._delete(stop - start, start)
             return
 
-    def __ilshift__(self, n: int) -> BitArray:
+    def __ilshift__(self, n: int) -> Bits:
         """Shift bits by n to the left in place. Return self.
 
         n -- the number of bits to shift. Must be >= 0.
@@ -3621,7 +3689,7 @@ class BitArray(Bits):
         n = min(n, self.len)
         return self._ilshift(n)
 
-    def __irshift__(self, n: int) -> BitArray:
+    def __irshift__(self, n: int) -> Bits:
         """Shift bits by n to the right in place. Return self.
 
         n -- the number of bits to shift. Must be >= 0.
@@ -3636,7 +3704,7 @@ class BitArray(Bits):
         n = min(n, self.len)
         return self._irshift(n)
 
-    def __imul__(self, n: int) -> BitArray:
+    def __imul__(self, n: int) -> Bits:
         """Concatenate n copies of self in place. Return self.
 
         Called for expressions of the form 'a *= 3'.
@@ -3647,19 +3715,19 @@ class BitArray(Bits):
             raise ValueError("Cannot multiply by a negative integer.")
         return self._imul(n)
 
-    def __ior__(self, bs: BitsType) -> BitArray:
+    def __ior__(self, bs: BitsType) -> Bits:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for |= operator.")
         return self._ior(bs)
 
-    def __iand__(self, bs: BitsType) -> BitArray:
+    def __iand__(self, bs: BitsType) -> Bits:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for &= operator.")
         return self._iand(bs)
 
-    def __ixor__(self, bs: BitsType) -> BitArray:
+    def __ixor__(self, bs: BitsType) -> Bits:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for ^= operator.")
@@ -4227,7 +4295,7 @@ class ConstBitStream(Bits):
         s._pos = 0
         return s
 
-    def read(self, fmt: Union[int, str]) -> Union[int, float, str, ConstBitStream, bool, bytes, None]:
+    def read(self, fmt: Union[int, str]) -> Union[int, float, str, Bits, bool, bytes, None]:
         """Interpret next bits according to the format string and return result.
 
         fmt -- Token string describing how to interpret the next bits.
@@ -4630,46 +4698,10 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
 def _switch_lsb0_methods(lsb0: bool) -> None:
     global _lsb0
     _lsb0 = lsb0
-    if lsb0:
-        ConstByteStore.getbit = ConstByteStore._getbit_lsb0
-        Bits._find = Bits._find_lsb0
-        Bits._rfind = Bits._rfind_lsb0
-        Bits._findall = Bits._findall_lsb0
-        Bits._slice = Bits._slice_lsb0
-        BitArray._overwrite = BitArray._overwrite_lsb0
-        BitArray._insert = BitArray._insert_lsb0
-        BitArray._delete = BitArray._delete_lsb0
-        BitArray._ror = BitArray._rol_msb0
-        BitArray._rol = BitArray._ror_msb0
-        ByteStore.setbit = ByteStore._setbit_lsb0
-        ByteStore.unsetbit = ByteStore._unsetbit_lsb0
-        ByteStore.invertbit = ByteStore._invertbit_lsb0
-        BitArray._append = BitArray._append_lsb0
-        BitArray._prepend = BitArray._append_msb0  # An LSB0 prepend is an MSB0 append
-        Bits._readuint = Bits._readuint_lsb0
-        Bits._truncatestart = Bits._truncateright
-        Bits._truncateend = Bits._truncateleft
-        Bits._validate_slice = Bits._validate_slice_lsb0
-    else:
-        ConstByteStore.getbit = ConstByteStore._getbit_msb0
-        Bits._find = Bits._find_msb0
-        Bits._rfind = Bits._rfind_msb0
-        Bits._findall = Bits._findall_msb0
-        Bits._slice = Bits._slice_msb0
-        BitArray._overwrite = BitArray._overwrite_msb0
-        BitArray._insert = BitArray._insert_msb0
-        BitArray._delete = BitArray._delete_msb0
-        BitArray._ror = BitArray._ror_msb0
-        BitArray._rol = BitArray._rol_msb0
-        ByteStore.setbit = ByteStore._setbit_msb0
-        ByteStore.unsetbit = ByteStore._unsetbit_msb0
-        ByteStore.invertbit = ByteStore._invertbit_msb0
-        BitArray._append = BitArray._append_msb0
-        BitArray._prepend = BitArray._append_lsb0
-        Bits._readuint = Bits._readuint_msb0
-        Bits._truncatestart = Bits._truncateleft
-        Bits._truncateend = Bits._truncateright
-        Bits._validate_slice = Bits._validate_slice_msb0
+    Bits._setlsb0methods(lsb0)
+    BitArray._setlsb0methods(lsb0)
+    ConstByteStore._setlsb0methods(lsb0)
+    ByteStore._setlsb0methods(lsb0)
 
 
 # Initialise the default behaviour
