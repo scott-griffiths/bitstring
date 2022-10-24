@@ -71,7 +71,7 @@ Simple Examples
 Unit Tests
 ----------
 
-The 500+ unit tests should all pass. They can be run from the root of the project with
+The 600+ unit tests should all pass. They can be run from the root of the project with
 
      python -m unittest
 

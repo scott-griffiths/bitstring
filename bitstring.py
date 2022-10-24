@@ -159,7 +159,7 @@ class CreationError(Error, ValueError):
         Error.__init__(self, *params)
 
 
-class ConstByteStore:
+class ByteStore:
     """Stores raw bytes together with a bit offset and length.
 
     Used internally - not part of public interface.
@@ -169,12 +169,18 @@ class ConstByteStore:
     def _setlsb0methods(cls, lsb0: bool) -> None:
         if lsb0:
             cls.getbit = cls._getbit_lsb0
+            cls.setbit = cls._setbit_lsb0
+            cls.unsetbit = cls._unsetbit_lsb0
+            cls.invertbit = cls._invertbit_lsb0
         else:
             cls.getbit = cls._getbit_msb0
+            cls.setbit = cls._setbit_msb0
+            cls.unsetbit = cls._unsetbit_msb0
+            cls.invertbit = cls._invertbit_msb0
 
     __slots__ = ('offset', 'rawarray', 'bitlength')
 
-    def __init__(self, data: Union[bytearray, MmapByteArray],
+    def __init__(self, data: bytearray,
                  bitlength: Optional[int] = None, offset: int = 0) -> None:
         self.rawarray = data
         if bitlength is None:
@@ -226,7 +232,7 @@ class ConstByteStore:
         """Direct access to byte data."""
         return self.rawarray[pos]
 
-    def getbyteslice(self, start: int, end: int) -> bytes:
+    def getbyteslice(self, start: int, end: int) -> bytearray:
         """Direct access to byte data."""
         return self.rawarray[start:end]
 
@@ -241,7 +247,7 @@ class ConstByteStore:
     def __copy__(self) -> ByteStore:
         return ByteStore(self.rawarray[:], self.bitlength, self.offset)
 
-    def appendstore(self, store: ConstByteStore) -> None:
+    def appendstore(self, store: ByteStore) -> None:
         """Join another store on to the end of this one."""
         if not store.bitlength:
             return
@@ -257,7 +263,7 @@ class ConstByteStore:
             self.rawarray.extend(store.rawarray)
         self.bitlength += store.bitlength
 
-    def prependstore(self, store: ConstByteStore) -> None:
+    def prependstore(self, store: ByteStore) -> None:
         """Join another store on to the start of this one."""
         if not store.bitlength:
             return
@@ -278,34 +284,6 @@ class ConstByteStore:
         self.rawarray = store.rawarray
         self.offset = store.offset
         self.bitlength += store.bitlength
-
-    @property
-    def byteoffset(self) -> int:
-        return self.offset // 8
-
-    @property
-    def rawbytes(self) -> Union[bytes, MmapByteArray]:
-        return self.rawarray
-
-
-class ByteStore(ConstByteStore):
-    """Adding mutating methods to ConstByteStore
-
-    Used internally - not part of public interface.
-    """
-
-    @classmethod
-    def _setlsb0methods(cls, lsb0: bool) -> None:
-        if lsb0:
-            cls.setbit = cls._setbit_lsb0
-            cls.unsetbit = cls._unsetbit_lsb0
-            cls.invertbit = cls._invertbit_lsb0
-        else:
-            cls.setbit = cls._setbit_msb0
-            cls.unsetbit = cls._unsetbit_msb0
-            cls.invertbit = cls._invertbit_msb0
-
-    __slots__ = ()
 
     def _setbit_lsb0(self, pos: int) -> None:
         assert 0 <= pos < self.bitlength
@@ -343,11 +321,20 @@ class ByteStore(ConstByteStore):
     def setbyte(self, pos: int, value: int) -> None:
         self.rawarray[pos] = value
 
-    def setbyteslice(self, start: int, end: int, value: int) -> None:
+    def setbyteslice(self, start: int, end: int, value: bytearray) -> None:
         self.rawarray[start:end] = value
 
 
-def offsetcopy(s: ConstByteStore, newoffset: int) -> ConstByteStore:
+    @property
+    def byteoffset(self) -> int:
+        return self.offset // 8
+
+    @property
+    def rawbytes(self) -> bytearray:
+        return self.rawarray
+
+
+def offsetcopy(s: ByteStore, newoffset: int) -> ByteStore:
     """Return a copy of a ByteStore with the newoffset.
 
     Not part of public interface.
@@ -387,7 +374,7 @@ def offsetcopy(s: ConstByteStore, newoffset: int) -> ConstByteStore:
         return new_s
 
 
-def equal(a: ConstByteStore, b: ConstByteStore) -> bool:
+def equal(a: ByteStore, b: ByteStore) -> bool:
     """Return True if ByteStores a == b.
 
     Not part of public interface.
@@ -969,7 +956,7 @@ class Bits:
                         raise CreationError("offset should not be specified when using string initialisation.")
                     if length is not None:
                         raise CreationError("length should not be specified when using string initialisation.")
-                    x._datastore = ConstByteStore(bytearray(0), 0)
+                    x._datastore = ByteStore(bytearray(0), 0)
                     for token in tokens:
                         x._datastore.appendstore(Bits._init_with_token(*token)._datastore)
                     assert x._assertsanity()
@@ -979,7 +966,7 @@ class Bits:
             if type(auto) is Bits:
                 return auto
         x = super(Bits, cls).__new__(cls)
-        x._datastore = ConstByteStore(b'')
+        x._datastore = ByteStore(bytearray())
         x._initialise(auto, length, offset, **kwargs)
         return x
 
@@ -1407,9 +1394,7 @@ class Bits:
             return True
 
     @classmethod
-    def _init_with_token(cls, name: str, token_length: Optional[str], value: Union[int, str]) -> Bits:
-        if token_length is not None:
-            token_length = int(token_length)
+    def _init_with_token(cls, name: str, token_length: Optional[int], value: Union[int, str]) -> Bits:
         if token_length == 0:
             return cls()
         # For pad token just return the length in zero bits
@@ -1469,7 +1454,7 @@ class Bits:
             bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
             if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
                 raise CreationError("BytesIO object is not long enough for specified length and offset.")
-            self._datastore = ConstByteStore(bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]),
+            self._datastore = ByteStore(bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]),
                                              length, offset)
             return
 
@@ -1481,7 +1466,7 @@ class Bits:
             m = MmapByteArray(s, bytelength, byteoffset)
             if length + byteoffset * 8 + offset > m.filelength * 8:
                 raise CreationError("File is not long enough for specified length and offset.")
-            self._datastore = ConstByteStore(m, length, offset)
+            self._datastore = ByteStore(m, length, offset)
             return
 
         if length is not None:
@@ -1525,7 +1510,7 @@ class Bits:
             m = MmapByteArray(source, bytelength, byteoffset)
             if length + byteoffset * 8 + offset > m.filelength * 8:
                 raise CreationError("File is not long enough for specified length and offset.")
-            self._datastore = ConstByteStore(m, length, offset)
+            self._datastore = ByteStore(m, length, offset)
 
     def _setbytes_safe(self, data: Union[bytearray, bytes, MmapByteArray],
                        length: Optional[int] = None, offset: Optional[int] = None) -> None:
@@ -2464,7 +2449,7 @@ class Bits:
             raise ValueError("end must not be less than start.")
         return start, end
 
-    def _validate_slice_lsb0(self, start: int, end: int) -> Tuple[int, int]:
+    def _validate_slice_lsb0(self, start: Optional[int], end: Optional[int]) -> Tuple[int, int]:
         start, end = self._validate_slice_msb0(start, end)
         return self.len - end, self.len - start
 
@@ -3535,6 +3520,7 @@ class BitArray(Bits):
             s_copy._datastore = copy.copy(self._datastore)
         return s_copy
 
+    # TODO: overload
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
         try:
             # A slice
@@ -4700,9 +4686,7 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
     _lsb0 = lsb0
     Bits._setlsb0methods(lsb0)
     BitArray._setlsb0methods(lsb0)
-    ConstByteStore._setlsb0methods(lsb0)
     ByteStore._setlsb0methods(lsb0)
-
 
 # Initialise the default behaviour
 _switch_lsb0_methods(False)
