@@ -3520,38 +3520,17 @@ class BitArray(Bits):
             s_copy._datastore = copy.copy(self._datastore)
         return s_copy
 
-    # TODO: overload
+    @overload
+    def __setitem__(self, key: slice, value: BitsType) -> None: ...
+    @overload
+    def __setitem__(self, key: int, value: BitsType) -> None: ...
+    
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
-        try:
+        if isinstance(key, slice):
             # A slice
             start, step = 0, 1
             if key.step is not None:
                 step = key.step
-        except AttributeError:
-            # single element
-            if key < 0:
-                key += self.len
-            if not 0 <= key < self.len:
-                raise IndexError("Slice index out of range.")
-            if isinstance(value, numbers.Integral):
-                if not value:
-                    self._unset(key)
-                    return
-                if value in (1, -1):
-                    self._set(key)
-                    return
-                raise ValueError(f"Cannot set a single bit with integer {value}.")
-            value = Bits(value)
-            if value.len == 1:
-                if value[0]:
-                    self._set(key)
-                else:
-                    self._unset(key)
-            else:
-                self._delete(1, key)
-                self._insert(value, key)
-            return
-        else:
             if step != 1:
                 # convert to binary string and use string slicing
                 # TODO: Horribly inefficient
@@ -3607,6 +3586,30 @@ class BitArray(Bits):
                 else:
                     self._insert(value.__getitem__(slice(None, None, 1)), start)
                 # pos is now after the inserted piece.
+            return
+        else:
+            # single element
+            if key < 0:
+                key += self._getlength()
+            if not 0 <= key < self.len:
+                raise IndexError("Slice index out of range.")
+            if isinstance(value, numbers.Integral):
+                if not value:
+                    self._unset(key)
+                    return
+                if value in (1, -1):
+                    self._set(key)
+                    return
+                raise ValueError(f"Cannot set a single bit with integer {value}.")
+            value = Bits(value)
+            if value.len == 1:
+                if value[0]:
+                    self._set(key)
+                else:
+                    self._unset(key)
+            else:
+                self._delete(1, key)
+                self._insert(value, key)
             return
 
     def __delitem__(self, key: Union[slice, int]) -> None:
