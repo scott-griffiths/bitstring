@@ -73,7 +73,7 @@ import io
 import collections
 import functools
 import types
-from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, TextIO, Callable, overload
+from typing import Generator, SupportsIndex, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, TextIO, Callable, overload
 from contextlib import suppress
 
 
@@ -180,7 +180,7 @@ class ByteStore:
 
     __slots__ = ('offset', 'rawarray', 'bitlength')
 
-    def __init__(self, data: bytearray,
+    def __init__(self, data: Union[bytearray, MmapByteArray],
                  bitlength: Optional[int] = None, offset: int = 0) -> None:
         self.rawarray = data
         if bitlength is None:
@@ -253,7 +253,7 @@ class ByteStore:
             return
         # Set new array offset to the number of bits in the final byte of current array.
         store = offsetcopy(store, (self.offset + self.bitlength) % 8)
-        if store.offset:
+        if store.offset != 0:
             # first do the byte with the join.
             joinval = (self.rawarray.pop() & (255 ^ (255 >> store.offset)) |
                        (store.getbyte(0) & (255 >> store.offset)))
@@ -522,6 +522,22 @@ class MmapByteArray:
 
     def __len__(self) -> int:
         return self.bytelength
+
+    # These methods shouldn't ever get called
+    def pop(self, __index: int = ..., /) -> int:
+        raise NotImplementedError
+    
+    def append(self, __item: SupportsIndex, /) -> None:
+        raise NotImplementedError
+
+    def extend(self, __iterable_of_ints: Iterable[SupportsIndex], /) -> None:
+        raise NotImplementedError
+
+    def __iter__(self):
+        raise NotImplementedError
+    
+    def __setitem__(self, key: Union[slice, int], value: Any) -> None:
+        raise NotImplementedError
 
 
 def tidy_input_string(s: str) -> str:
@@ -1443,7 +1459,7 @@ class Bits:
         # and bytes/bytearray before Iterable but after str!
         if isinstance(s, Bits):
             if length is None:
-                length = s.len - offset
+                length = s._getlength() - offset
             self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
             return
 
@@ -1485,7 +1501,7 @@ class Bits:
             b = s.tobytes()
             self._setbytes_unsafe(bytearray(b), len(b) * 8, 0)
             return
-        if isinstance(s, numbers.Integral):
+        if isinstance(s, int):
             # Initialise with s zero bits.
             if s < 0:
                 raise CreationError(f"Can't create bitstring of negative length {s}.")
@@ -2436,14 +2452,14 @@ class Bits:
         if start is None:
             start = 0
         elif start < 0:
-            start += self.len
+            start += self._getlength()
         if end is None:
-            end = self.len
+            end = self._getlength()
         elif end < 0:
-            end += self.len
-        if not 0 <= end <= self.len:
+            end += self._getlength()
+        if not 0 <= end <= self._getlength():
             raise ValueError("end is not a valid position in the bitstring.")
-        if not 0 <= start <= self.len:
+        if not 0 <= start <= self._getlength():
             raise ValueError("start is not a valid position in the bitstring.")
         if end < start:
             raise ValueError("end must not be less than start.")
@@ -2451,7 +2467,7 @@ class Bits:
 
     def _validate_slice_lsb0(self, start: Optional[int], end: Optional[int]) -> Tuple[int, int]:
         start, end = self._validate_slice_msb0(start, end)
-        return self.len - end, self.len - start
+        return self._getlength() - end, self._getlength() - start
 
     def unpack(self, fmt: Union[str, List[Union[str, int]]], **kwargs) -> List[Union[float, int, str, None, Bits]]:
         """Interpret the whole bitstring using fmt and return list.
@@ -2479,7 +2495,7 @@ class Bits:
         has_stretchy_token = False
         for f_item in fmt:
             # Replace integers with 'bits' tokens
-            if isinstance(f_item, numbers.Integral):
+            if isinstance(f_item, int):
                 f_item = f"bits:{f_item}"
             stretchy, tkns = tokenparser(f_item, keys)
             if stretchy:
@@ -2672,7 +2688,7 @@ class Bits:
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['_bytealigned']
+            bytealigned: bool = globals()['_bytealigned']
         return self._findall(bs, start, end, count, bytealigned)
 
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
@@ -2804,7 +2820,7 @@ class Bits:
                 return
             assert nextchunk._assertsanity()
             yield nextchunk
-            if nextchunk.len != bits:
+            if nextchunk._getlength() != bits:
                 return
             start += bits
         return
@@ -3519,11 +3535,6 @@ class BitArray(Bits):
         else:
             s_copy._datastore = copy.copy(self._datastore)
         return s_copy
-
-    @overload
-    def __setitem__(self, key: slice, value: BitsType) -> None: ...
-    @overload
-    def __setitem__(self, key: int, value: BitsType) -> None: ...
     
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
         if isinstance(key, slice):
@@ -3542,7 +3553,7 @@ class BitArray(Bits):
 
             # If value is an integer then we want to set the slice to that
             # value rather than initialise a new bitstring of that length.
-            if not isinstance(value, numbers.Integral):
+            if not isinstance(value, int):
                 try:
                     value = Bits(value)
                 except TypeError:
@@ -3562,7 +3573,7 @@ class BitArray(Bits):
                 # The standard behaviour for lists is to just insert at the
                 # start position if stop < start and step == 1.
                 stop = start
-            if isinstance(value, numbers.Integral):
+            if isinstance(value, int):
                 if value >= 0:
                     value = self.__class__(uint=value, length=stop - start)
                 else:
@@ -3570,8 +3581,8 @@ class BitArray(Bits):
             stop = min(stop, self.len)
             start = max(start, 0)
             start = min(start, stop)
-            if (stop - start) == value.len:
-                if not value.len:
+            if (stop - start) == value._getlength():
+                if value.len == 0:
                     return
                 if step >= 0:
                     self._overwrite(value, start)
@@ -3593,7 +3604,7 @@ class BitArray(Bits):
                 key += self._getlength()
             if not 0 <= key < self.len:
                 raise IndexError("Slice index out of range.")
-            if isinstance(value, numbers.Integral):
+            if isinstance(value, int):
                 if not value:
                     self._unset(key)
                     return
@@ -3624,19 +3635,10 @@ class BitArray(Bits):
         0x0022
 
         """
-        try:
+        if isinstance(key, slice):
             # A slice
             start = 0
             step = key.step if key.step is not None else 1
-        except AttributeError:
-            # single element
-            if key < 0:
-                key += self.len
-            if not 0 <= key < self.len:
-                raise IndexError("Slice index out of range.")
-            self._delete(1, key)
-            return
-        else:
             if step != 1:
                 # convert to binary string and use string slicing
                 # TODO: Horribly inefficient
@@ -3661,6 +3663,14 @@ class BitArray(Bits):
             start = max(start, 0)
             start = min(start, stop)
             self._delete(stop - start, start)
+            return
+        else:
+            # single element
+            if key < 0:
+                key += self._getlength()
+            if not 0 <= key < self._getlength():
+                raise IndexError("Slice index out of range.")
+            self._delete(1, key)
             return
 
     def __ilshift__(self, n: int) -> Bits:
@@ -3996,7 +4006,7 @@ class BitArray(Bits):
         if fmt is None or fmt == 0:
             # reverse all of the whole bytes.
             bytesizes = [(end - start) // 8]
-        elif isinstance(fmt, numbers.Integral):
+        elif isinstance(fmt, int):
             if fmt < 0:
                 raise ValueError(f"Improper byte length {fmt}.")
             bytesizes = [fmt]
@@ -4016,7 +4026,7 @@ class BitArray(Bits):
         elif isinstance(fmt, collections.abc.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
-                if not isinstance(bytesize, numbers.Integral) or bytesize < 0:
+                if not isinstance(bytesize, int) or bytesize < 0:
                     raise ValueError(f"Improper byte length {bytesize}.")
         else:
             raise TypeError("Format must be an integer, string or iterable.")
@@ -4320,7 +4330,7 @@ class ConstBitStream(Bits):
         Raises ValueError if the format is not understood.
 
         """
-        if isinstance(fmt, numbers.Integral):
+        if isinstance(fmt, int):
             if fmt < 0:
                 raise ValueError("Cannot read negative amount.")
             if fmt > self.len - self._pos:
@@ -4365,7 +4375,7 @@ class ConstBitStream(Bits):
         value, self._pos = self._readlist(fmt, self._pos, **kwargs)
         return value
 
-    def readto(self, bs: BitsType, bytealigned: Optional[bool] = None) -> ConstBitStream:
+    def readto(self, bs: BitsType, bytealigned: Optional[bool] = None) -> Bits:
         """Read up to and including next occurrence of bs and return result.
 
         bs -- The bitstring to find. An integer is not permitted.
@@ -4376,7 +4386,7 @@ class ConstBitStream(Bits):
         Raises ReadError if bs is not found.
 
         """
-        if isinstance(bs, numbers.Integral):
+        if isinstance(bs, int):
             raise ValueError("Integers cannot be searched for")
         bs = Bits(bs)
         oldpos = self._pos
@@ -4386,7 +4396,7 @@ class ConstBitStream(Bits):
         self._pos += bs.len
         return self._slice(oldpos, self._pos)
 
-    def peek(self, fmt: Union[int, str]) -> Union[int, float, str, ConstBitStream, bool, bytes, None]:
+    def peek(self, fmt: Union[int, str]) -> Union[int, float, str, Bits, bool, bytes, None]:
         """Interpret next bits according to format string and return result.
 
         fmt -- Token string describing how to interpret the next bits.
