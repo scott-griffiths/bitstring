@@ -323,7 +323,6 @@ class ByteStore:
     def setbyteslice(self, start: int, end: int, value: bytearray) -> None:
         self.rawarray[start:end] = value
 
-
     @property
     def byteoffset(self) -> int:
         return self.offset // 8
@@ -3364,28 +3363,29 @@ class BitArray(Bits):
     Properties:
 
     bin -- The bitstring as a binary string.
-    bool -- For single bit bitstrings, interpret as True or False.
-    bytes -- The bitstring as a bytes object.
-    float -- Interpret as a floating point number.
-    floatbe -- Interpret as a big-endian floating point number.
-    floatle -- Interpret as a little-endian floating point number.
-    floatne -- Interpret as a native-endian floating point number.
-    # TODO
     hex -- The bitstring as a hexadecimal string.
-    int -- Interpret as a two's complement signed integer.
-    intbe -- Interpret as a big-endian signed integer.
-    intle -- Interpret as a little-endian signed integer.
-    intne -- Interpret as a native-endian signed integer.
-    len -- Length of the bitstring in bits.
     oct -- The bitstring as an octal string.
+    bytes -- The bitstring as a bytes object.
+    int -- Interpret as a two's complement signed integer.
+    uint -- Interpret as a two's complement unsigned integer.
+    float / floatbe -- Interpret as a big-endian floating point number.
+    bool -- For single bit bitstrings, interpret as True or False.
     se -- Interpret as a signed exponential-Golomb code.
     ue -- Interpret as an unsigned exponential-Golomb code.
     sie -- Interpret as a signed interleaved exponential-Golomb code.
     uie -- Interpret as an unsigned interleaved exponential-Golomb code.
-    uint -- Interpret as a two's complement unsigned integer.
+    floatle -- Interpret as a little-endian floating point number.
+    floatne -- Interpret as a native-endian floating point number.
+    bfloat / bfloatbe -- Interpret as a big-endian 16-bit bfloat type.
+    bfloatle -- Interpret as a little-endian 16-bit bfloat type.
+    intbe -- Interpret as a big-endian signed integer.
+    intle -- Interpret as a little-endian signed integer.
+    intne -- Interpret as a native-endian signed integer.
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
     uintne -- Interpret as a native-endian unsigned integer.
+
+    len -- Length of the bitstring in bits.
 
     """
 
@@ -3420,29 +3420,29 @@ class BitArray(Bits):
                 a bytearray, a boolean iterable or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
-        bytes -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
-        uint -- an unsigned integer.
+        bytes -- raw data as a bytes object, for example read from a binary file.
         int -- a signed integer.
-        float -- a floating point number.
-        uintbe -- an unsigned big-endian whole byte integer.
-        intbe -- a signed big-endian whole byte integer.
-        floatbe - a big-endian floating point number.
-        uintle -- an unsigned little-endian whole byte integer.
-        intle -- a signed little-endian whole byte integer.
-        floatle -- a little-endian floating point number.
-        uintne -- an unsigned native-endian whole byte integer.
-        intne -- a signed native-endian whole byte integer.
-        floatne -- a native-endian floating point number.
+        uint -- an unsigned integer.
+        float / floatbe -- a big-endian floating point number.
+        bool -- a boolean (True or False).
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
         sie -- a signed interleaved exponential-Golomb code.
         uie -- an unsigned interleaved exponential-Golomb code.
-        bool -- a boolean (True or False).
-        filename -- a file which will be opened in binary read-only mode.
-        # TODO
+        floatle -- a little-endian floating point number.
+        floatne -- a native-endian floating point number.
+        bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
+        bfloatle -- a little-endian bfloat format 16-bit floating point number.
+        intbe -- a signed big-endian whole byte integer.
+        intle -- a signed little-endian whole byte integer.
+        intne -- a signed native-endian whole byte integer.
+        uintbe -- an unsigned big-endian whole byte integer.
+        uintle -- an unsigned little-endian whole byte integer.
+        uintne -- an unsigned native-endian whole byte integer.
+        filename -- the path of a file which will be opened in binary read-only mode.
 
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
@@ -4168,30 +4168,30 @@ class ConstBitStream(Bits):
     Properties:
 
     bin -- The bitstring as a binary string.
-    bool -- For single bit bitstrings, interpret as True or False.
-    bytepos -- The current byte position in the bitstring.
-    bytes -- The bitstring as a bytes object.
-    float -- Interpret as a floating point number.
-    floatbe -- Interpret as a big-endian floating point number.
-    floatle -- Interpret as a little-endian floating point number.
-    floatne -- Interpret as a native-endian floating point number.
     hex -- The bitstring as a hexadecimal string.
-    int -- Interpret as a two's complement signed integer.
-    intbe -- Interpret as a big-endian signed integer.
-    intle -- Interpret as a little-endian signed integer.
-    intne -- Interpret as a native-endian signed integer.
-    len -- Length of the bitstring in bits.
     oct -- The bitstring as an octal string.
-    pos -- The current bit position in the bitstring.
+    bytes -- The bitstring as a bytes object.
+    int -- Interpret as a two's complement signed integer.
+    uint -- Interpret as a two's complement unsigned integer.
+    float / floatbe -- Interpret as a big-endian floating point number.
+    bool -- For single bit bitstrings, interpret as True or False.
     se -- Interpret as a signed exponential-Golomb code.
     ue -- Interpret as an unsigned exponential-Golomb code.
     sie -- Interpret as a signed interleaved exponential-Golomb code.
     uie -- Interpret as an unsigned interleaved exponential-Golomb code.
-    uint -- Interpret as a two's complement unsigned integer.
+    floatle -- Interpret as a little-endian floating point number.
+    floatne -- Interpret as a native-endian floating point number.
+    bfloat / bfloatbe -- Interpret as a big-endian 16-bit bfloat type.
+    bfloatle -- Interpret as a little-endian 16-bit bfloat type.
+    intbe -- Interpret as a big-endian signed integer.
+    intle -- Interpret as a little-endian signed integer.
+    intne -- Interpret as a native-endian signed integer.
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
     uintne -- Interpret as a native-endian unsigned integer.
-    # TODO
+
+    len -- Length of the bitstring in bits.
+    pos -- The current bit position in the bitstring.
     """
 
     __slots__ = ()
@@ -4203,35 +4203,35 @@ class ConstBitStream(Bits):
                 a bytearray, a boolean iterable or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
-        bytes -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
-        uint -- an unsigned integer.
+        bytes -- raw data as a bytes object, for example read from a binary file.
         int -- a signed integer.
-        float -- a floating point number.
-        uintbe -- an unsigned big-endian whole byte integer.
-        intbe -- a signed big-endian whole byte integer.
-        floatbe - a big-endian floating point number.
-        uintle -- an unsigned little-endian whole byte integer.
-        intle -- a signed little-endian whole byte integer.
-        floatle -- a little-endian floating point number.
-        uintne -- an unsigned native-endian whole byte integer.
-        intne -- a signed native-endian whole byte integer.
-        floatne -- a native-endian floating point number.
+        uint -- an unsigned integer.
+        float / floatbe -- a big-endian floating point number.
+        bool -- a boolean (True or False).
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
         sie -- a signed interleaved exponential-Golomb code.
         uie -- an unsigned interleaved exponential-Golomb code.
-        bool -- a boolean (True or False).
-        filename -- a file which will be opened in binary read-only mode.
-        # TODO
+        floatle -- a little-endian floating point number.
+        floatne -- a native-endian floating point number.
+        bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
+        bfloatle -- a little-endian bfloat format 16-bit floating point number.
+        intbe -- a signed big-endian whole byte integer.
+        intle -- a signed little-endian whole byte integer.
+        intne -- a signed native-endian whole byte integer.
+        uintbe -- an unsigned big-endian whole byte integer.
+        uintle -- an unsigned little-endian whole byte integer.
+        uintne -- an unsigned native-endian whole byte integer.
+        filename -- the path of a file which will be opened in binary read-only mode.
 
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
                   It must be supplied for all integer and float initialisers.
         offset -- bit offset to the data. These offset bits are
-                  ignored and this is intended for use when
+                  ignored and this is mainly intended for use when
                   initialising using 'bytes' or 'filename'.
         pos -- Initial bit position, defaults to 0.
 
@@ -4511,30 +4511,30 @@ class BitStream(ConstBitStream, BitArray):
     Properties:
 
     bin -- The bitstring as a binary string.
-    bool -- For single bit bitstrings, interpret as True or False.
-    bytepos -- The current byte position in the bitstring.
-    bytes -- The bitstring as a bytes object.
-    float -- Interpret as a floating point number.
-    floatbe -- Interpret as a big-endian floating point number.
-    floatle -- Interpret as a little-endian floating point number.
-    floatne -- Interpret as a native-endian floating point number.
     hex -- The bitstring as a hexadecimal string.
-    int -- Interpret as a two's complement signed integer.
-    intbe -- Interpret as a big-endian signed integer.
-    intle -- Interpret as a little-endian signed integer.
-    intne -- Interpret as a native-endian signed integer.
-    len -- Length of the bitstring in bits.
     oct -- The bitstring as an octal string.
-    pos -- The current bit position in the bitstring.
+    bytes -- The bitstring as a bytes object.
+    int -- Interpret as a two's complement signed integer.
+    uint -- Interpret as a two's complement unsigned integer.
+    float / floatbe -- Interpret as a big-endian floating point number.
+    bool -- For single bit bitstrings, interpret as True or False.
     se -- Interpret as a signed exponential-Golomb code.
     ue -- Interpret as an unsigned exponential-Golomb code.
     sie -- Interpret as a signed interleaved exponential-Golomb code.
     uie -- Interpret as an unsigned interleaved exponential-Golomb code.
-    uint -- Interpret as a two's complement unsigned integer.
+    floatle -- Interpret as a little-endian floating point number.
+    floatne -- Interpret as a native-endian floating point number.
+    bfloat / bfloatbe -- Interpret as a big-endian 16-bit bfloat type.
+    bfloatle -- Interpret as a little-endian 16-bit bfloat type.
+    intbe -- Interpret as a big-endian signed integer.
+    intle -- Interpret as a little-endian signed integer.
+    intne -- Interpret as a native-endian signed integer.
     uintbe -- Interpret as a big-endian unsigned integer.
     uintle -- Interpret as a little-endian unsigned integer.
     uintne -- Interpret as a native-endian unsigned integer.
-    # TODO
+
+    len -- Length of the bitstring in bits.
+    pos -- The current bit position in the bitstring.
     """
 
     __slots__ = ()
@@ -4546,29 +4546,29 @@ class BitStream(ConstBitStream, BitArray):
                 a bytearray, a boolean iterable or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
-        bytes -- raw data as a string, for example read from a binary file.
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
-        uint -- an unsigned integer.
+        bytes -- raw data as a bytes object, for example read from a binary file.
         int -- a signed integer.
-        float -- a floating point number.
-        uintbe -- an unsigned big-endian whole byte integer.
-        intbe -- a signed big-endian whole byte integer.
-        floatbe - a big-endian floating point number.
-        uintle -- an unsigned little-endian whole byte integer.
-        intle -- a signed little-endian whole byte integer.
-        floatle -- a little-endian floating point number.
-        uintne -- an unsigned native-endian whole byte integer.
-        intne -- a signed native-endian whole byte integer.
-        floatne -- a native-endian floating point number.
+        uint -- an unsigned integer.
+        float / floatbe -- a big-endian floating point number.
+        bool -- a boolean (True or False).
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
         sie -- a signed interleaved exponential-Golomb code.
         uie -- an unsigned interleaved exponential-Golomb code.
-        bool -- a boolean (True or False).
-        filename -- a file which will be opened in binary read-only mode.
-        # TODO
+        floatle -- a little-endian floating point number.
+        floatne -- a native-endian floating point number.
+        bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
+        bfloatle -- a little-endian bfloat format 16-bit floating point number.
+        intbe -- a signed big-endian whole byte integer.
+        intle -- a signed little-endian whole byte integer.
+        intne -- a signed native-endian whole byte integer.
+        uintbe -- an unsigned big-endian whole byte integer.
+        uintle -- an unsigned little-endian whole byte integer.
+        uintne -- an unsigned native-endian whole byte integer.
+        filename -- the path of a file which will be opened in binary read-only mode.
 
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
