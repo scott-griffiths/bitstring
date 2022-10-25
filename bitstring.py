@@ -59,7 +59,6 @@ __version__ = "4.0.0"
 
 __author__ = "Scott Griffiths"
 
-import numbers
 import copy
 import pathlib
 import sys
@@ -70,7 +69,7 @@ import struct
 import operator
 import array
 import io
-import collections
+from collections import abc
 import functools
 import types
 from typing import Generator, SupportsIndex, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, TextIO, Callable, overload
@@ -330,7 +329,7 @@ class ByteStore:
         return self.offset // 8
 
     @property
-    def rawbytes(self) -> bytearray:
+    def rawbytes(self) -> Union[bytearray, MmapByteArray]:
         return self.rawarray
 
 
@@ -895,7 +894,7 @@ class Bits:
                   initialising using 'bytes' or 'filename'.
 
         """
-        self._pos: None = None
+        pass
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, _cache={}, **kwargs) -> Bits:
@@ -1016,6 +1015,9 @@ class Bits:
         return
 
     def __getattr__(self, attribute: str):
+        if attribute == '_pos':
+            # For the classes without pos it's easier to return None than throw an exception.
+            return None
         # Support for arbitrary attributes like u16 or f64.
         letter_to_getter: Dict[str, Callable[..., Union[int, float, str]]] = \
             {'u': self._getuint,
@@ -1508,7 +1510,7 @@ class Bits:
             data = bytearray((s + 7) // 8)
             self._datastore = ByteStore(data, int(s), 0)
             return
-        if isinstance(s, collections.abc.Iterable):
+        if isinstance(s, abc.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
             return
@@ -2421,8 +2423,8 @@ class Bits:
     def _inplace_logical_helper(self, bs: Bits, f: Callable[[int, int], int]) -> Bits:
         """Helper function containing most of the __ior__, __iand__, __ixor__ code."""
         # Give the two bitstrings the same offset (modulo 8)
-        self_byteoffset, self_bitoffset = divmod(self._offset, 8)
-        bs_byteoffset, bs_bitoffset = divmod(bs._offset, 8)
+        self_byteoffset, self_bitoffset = divmod(self._getoffset(), 8)
+        bs_byteoffset, bs_bitoffset = divmod(bs._getoffset(), 8)
         if bs_bitoffset != self_bitoffset:
             if not self_bitoffset:
                 bs._datastore = offsetcopy(bs._datastore, 0)
@@ -2848,7 +2850,7 @@ class Bits:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['_bytealigned']
+            bytealigned: bool = globals()['_bytealigned']
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
@@ -2945,7 +2947,7 @@ class Bits:
             if a != self.len:
                 f.write(self._slice(a, self.len).tobytes())
 
-    def startswith(self, prefix: Any, start: Optional[int] = None, end: Optional[int] = None) -> bool:
+    def startswith(self, prefix: BitsType, start: Optional[int] = None, end: Optional[int] = None) -> bool:
         """Return whether the current bitstring starts with prefix.
 
         prefix -- The bitstring to search for.
@@ -2955,12 +2957,12 @@ class Bits:
         """
         prefix = Bits(prefix)
         start, end = self._validate_slice_msb0(start, end)  # the _slice deals with msb0/lsb0
-        if end < start + prefix.len:
+        if end < start + prefix._getlength():
             return False
-        end = start + prefix.len
+        end = start + prefix._getlength()
         return self._slice(start, end) == prefix
 
-    def endswith(self, suffix: Any, start: Optional[int] = None, end: Optional[int] = None) -> bool:
+    def endswith(self, suffix: BitsType, start: Optional[int] = None, end: Optional[int] = None) -> bool:
         """Return whether the current bitstring ends with suffix.
 
         suffix -- The bitstring to search for.
@@ -2972,7 +2974,7 @@ class Bits:
         start, end = self._validate_slice(start, end)
         if start + suffix.len > end:
             return False
-        start = end - suffix.len
+        start = end - suffix._getlength()
         return self._slice(start, end) == suffix
 
     def all(self, value: Any, pos: Optional[Iterable[int]] = None) -> bool:
@@ -3118,9 +3120,8 @@ class Bits:
 
         if bits_per_group is None:
             if fmt2 is None:
-                if fmt1 in ['bin', 'hex']:
-                    bits_per_group = 8
-                elif fmt1 == 'oct':
+                bits_per_group = 8  # Default for 'bin' and 'hex'
+                if fmt1 == 'oct':
                     bits_per_group = 12
                 elif fmt1 == 'bytes':
                     bits_per_group = 32
@@ -3462,7 +3463,6 @@ class BitArray(Bits):
         x._datastore = ByteStore(y._datastore.rawarray[:],
                                  y._datastore.bitlength,
                                  y._datastore.offset)
-        x._pos = None
         return x
 
     def __setattr__(self, attribute, value):
@@ -3818,8 +3818,8 @@ class BitArray(Bits):
             if pos is None:
                 raise TypeError("insert needs a bit position specified when used on a BitArray.")
         if pos < 0:
-            pos += self.len
-        if not 0 <= pos <= self.len:
+            pos += self._getlength()
+        if not 0 <= pos <= self._getlength():
             raise ValueError("Invalid insert position.")
         self._insert(bs, pos)
 
@@ -3906,7 +3906,7 @@ class BitArray(Bits):
         f = self._set if value else self._unset
         if pos is None:
             pos = range(self.len)
-        if not isinstance(pos, collections.abc.Iterable):
+        if not isinstance(pos, abc.Iterable):
             pos = (pos,)
         length = self.len
         for p in pos:
@@ -3928,7 +3928,7 @@ class BitArray(Bits):
         if pos is None:
             self._invert_all()
             return
-        if not isinstance(pos, collections.abc.Iterable):
+        if not isinstance(pos, abc.Iterable):
             pos = (pos,)
         length = self.len
 
@@ -4023,7 +4023,7 @@ class BitArray(Bits):
                     bytesizes.append(PACK_CODE_SIZE[f])
                 else:
                     bytesizes.extend([PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
-        elif isinstance(fmt, collections.abc.Iterable):
+        elif isinstance(fmt, abc.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
                 if not isinstance(bytesize, int) or bytesize < 0:
@@ -4351,7 +4351,7 @@ class ConstBitStream(Bits):
         return value
 
     def readlist(self, fmt: Union[str, List[Union[int, str]]], **kwargs)\
-            -> List[Union[int, float, str, ConstBitStream, bool, bytes, None]]:
+            -> List[Union[float, int, str, None, Bits]]:
         """Interpret next bits according to format string(s) and return list.
 
         fmt -- A single string or list of strings with comma separated tokens
