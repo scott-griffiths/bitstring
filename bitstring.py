@@ -2489,7 +2489,7 @@ class Bits:
 
     def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs: int)\
             -> Tuple[List[Union[float, int, str, None, Bits]], int]:
-        tokens: List[Tuple[str, Optional[str], str]]= []
+        tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]]= []
         if isinstance(fmt, str):
             fmt = [fmt]
         keys = tuple(sorted(kwargs.keys()))
@@ -2497,13 +2497,14 @@ class Bits:
         for f_item in fmt:
             # Replace integers with 'bits' tokens
             if isinstance(f_item, int):
-                f_item = f"bits:{f_item}"
-            stretchy, tkns = tokenparser(f_item, keys)
-            if stretchy:
-                if has_stretchy_token:
-                    raise Error("It's not possible to have more than one 'filler' token.")
-                has_stretchy_token = True
-            tokens.extend(tkns)
+                tokens.append(('bits', f_item, None))
+            else:
+                stretchy, tkns = tokenparser(f_item, keys)
+                if stretchy:
+                    if has_stretchy_token:
+                        raise Error("It's not possible to have more than one 'filler' token.")
+                    has_stretchy_token = True
+                tokens.extend(tkns)
         if not has_stretchy_token:
             lst = []
             for name, length, _ in tokens:
@@ -2549,9 +2550,6 @@ class Bits:
                 length = kwargs[length]
                 if name == 'bytes':
                     length *= 8
-            if name in kwargs and length is None:
-                # Default 'uint'
-                length = kwargs[name]
             if length is not None:
                 bits_left -= length
             value, pos = self._readtoken(name, pos, length)
@@ -4415,7 +4413,7 @@ class ConstBitStream(Bits):
         return value
 
     def peeklist(self, fmt: Union[str, List[Union[int, str]]], **kwargs)\
-            -> List[Union[int, float, str, ConstBitStream, bool, bytes, None]]:
+            -> List[Union[int, float, str, Bits, None]]:
         """Interpret next bits according to format string(s) and return list.
 
         fmt -- One or more integers or strings with comma separated tokens describing
