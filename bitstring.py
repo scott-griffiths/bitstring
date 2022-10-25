@@ -617,7 +617,7 @@ def structparser(token: str) -> List[str]:
     return tokens
 
 
-def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: Dict = {}) -> Tuple[bool, List[tuple]]:
+def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: Dict = {}) -> Tuple[bool, List[Tuple[str, Optional[str], Optional[str]]]]:
     """Divide the format string into tokens and parse them.
 
     Return stretchy token and list of [initialiser, length, value]
@@ -663,15 +663,15 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
             # Match literal tokens of the form 0x... 0o... and 0b...
             m = LITERAL_RE.match(token)
             if m:
-                name = m.group('name')
-                value = m.group('value')
+                name: str = m.group('name')
+                value: str = m.group('value')
                 ret_vals.append([name, None, value])
                 continue
             # Match everything else:
             m1 = TOKEN_RE.match(token)
             if m1:
                 name = m1.group('name')
-                length = m1.group('len')
+                length: str = m1.group('len')
                 value = m1.group('value')
             else:
                 m1_short = SHORT_TOKEN_RE.match(token)
@@ -2490,7 +2490,7 @@ class Bits:
 
     def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs: int)\
             -> Tuple[List[Union[float, int, str, None, Bits]], int]:
-        tokens = []
+        tokens: List[Tuple[str, Optional[str], str]]= []
         if isinstance(fmt, str):
             fmt = [fmt]
         keys = tuple(sorted(kwargs.keys()))
@@ -2809,7 +2809,7 @@ class Bits:
                  Default is to cut as many times as possible.
 
         """
-        start, end = self._validate_slice(start, end)
+        start_, end_ = self._validate_slice(start, end)
         if count is not None and count < 0:
             raise ValueError("Cannot cut - count must be >= 0.")
         if bits <= 0:
@@ -2817,14 +2817,14 @@ class Bits:
         c = 0
         while count is None or c < count:
             c += 1
-            nextchunk = self._slice(start, min(start + bits, end))
+            nextchunk = self._slice(start_, min(start_ + bits, end_))
             if nextchunk.len == 0:
                 return
             assert nextchunk._assertsanity()
             yield nextchunk
             if nextchunk._getlength() != bits:
                 return
-            start += bits
+            start_ += bits
         return
 
     def split(self, delimiter: Any, start: Optional[int] = None, end: Optional[int] = None,
@@ -2849,17 +2849,16 @@ class Bits:
         if not delimiter.len:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
-        if bytealigned is None:
-            bytealigned: bool = globals()['_bytealigned']
+        bytealigned_ : bool = globals()['_bytealigned'] if bytealigned is None else bytealigned
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
             return
-        if bytealigned and not delimiter.len % 8 and not self._datastore.offset:
+        if bytealigned_ and not delimiter.len % 8 and not self._datastore.offset:
             # Use the quick find method
             f = functools.partial(self._findbytes, bytes_=delimiter._getbytes())
         else:
-            f = functools.partial(self._findregex, reg_ex=re.compile(delimiter._getbin()), bytealigned=bytealigned)
+            f = functools.partial(self._findregex, reg_ex=re.compile(delimiter._getbin()), bytealigned=bytealigned_)
         found = f(start=start, end=end)
         if not found:
             # Initial bits are the whole bitstring being searched
