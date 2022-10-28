@@ -2286,7 +2286,7 @@ class Split2(unittest.TestCase):
 
     def testIntelligentRead8(self):
         a = BitStream('0x123456')
-        for t in ['hex:1', 'oct:1', 'hex4', '-5', 'fred', 'bin:-2',
+        for t in ['hex:1', 'oct:1', '-5', 'fred', 'bin:-2',
                   'uint:p', 'uint:-2', 'int:u', 'int:-3', 'ses', 'uee', '-14']:
             with self.assertRaises(ValueError):
                 _ = a.read(t)
@@ -2426,8 +2426,6 @@ class Split2(unittest.TestCase):
         self.assertEqual(tp('bits:10'), (False, [('bits', 10, None)]))
         self.assertEqual(tp('123'), (False, [('bits', 123, None)]))
         self.assertEqual(tp('123'), (False, [('bits', 123, None)]))
-        with self.assertRaises(ValueError):
-            _ = tp('hex12')
         self.assertEqual(tp('hex12', ('hex12',)), (False, [('hex12', None, None)]))
         self.assertEqual(tp('2*bits:6'), (False, [('bits', 6, None), ('bits', 6, None)]))
 
@@ -3368,8 +3366,8 @@ class AllAndAny(unittest.TestCase):
         b = BitStream('0xff, intle:200=918019283740918263512351235, 0xfffffff')
         self.assertEqual(b._readintle(8, 200), 918019283740918263512351235)
 
-        a = BitStream('0b111, floatbe:64=-5.32, 0xffffffff')
-        self.assertEqual(a._readfloatbe(3, 64), -5.32)
+        a = BitStream('0b111, bfloat:16=-5.25, 0xffffffff')
+        self.assertEqual(a._readbfloatbe(3, 19), -5.25)
 
         a = BitStream('0b111, floatle:64=9.9998, 0b111')
         self.assertEqual(a._readfloatle(3, 64), 9.9998)

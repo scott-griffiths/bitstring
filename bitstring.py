@@ -543,23 +543,25 @@ def tidy_input_string(s: str) -> str:
     return ''.join(s.split()).lower().replace('_', '')
 
 
-INIT_NAMES: Tuple[str, ...] = ('uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
+INIT_NAMES: List[str, ...] = ['uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
                                'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
-                               'float', 'floatbe', 'floatle', 'floatne', 'bfloat', 'bytes', 'bool', 'pad')
+                               'float', 'floatbe', 'floatle', 'floatne', 'bfloat', 'bytes', 'bool', 'pad']
+# Sort longest first as we want to match them in that order (so floatne before float etc.).
+INIT_NAMES.sort(key=len, reverse=True)
 
-TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>' + '|'.join(INIT_NAMES) +
-                                    r')(:(?P<len>[^=]+))?(=(?P<value>.*))?$', re.IGNORECASE)
+TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>' + '|'.join(INIT_NAMES) +
+                                    r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 # Tokens such as 'u32', 'f64=4.5' or 'i6=-3'
-SHORT_TOKEN_RE: Pattern[str] = re.compile(r'(?P<name>[uifboh])(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
-DEFAULT_BITS: Pattern[str] = re.compile(r'(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
+SHORT_TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>[uifboh]):?(?P<len>\d+)?(=(?P<value>.*))?$', re.IGNORECASE)
+DEFAULT_BITS: Pattern[str] = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
-MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'(?P<factor>.*)\*(?P<token>.+)')
+MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
 
 # Hex, oct or binary literals
-LITERAL_RE: Pattern[str] = re.compile(r'(?P<name>0([xob]))(?P<value>.+)', re.IGNORECASE)
+LITERAL_RE: Pattern[str] = re.compile(r'^(?P<name>0([xob]))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-STRUCT_PACK_RE: Pattern[str] = re.compile(r'(?P<endian>[<>@])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
+STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
 
 # A number followed by a single character struct.pack code
 STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQefd]')
@@ -696,11 +698,11 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
             if name == 'bool':
                 if length is not None and length != '1':
                     raise ValueError(f"bool tokens can only be 1 bit long, not {length} bits.")
-                length = 1
+                length = '1'
             if name == 'bfloat':
                 if length is not None and length != '16':
                     raise ValueError(f"bfloat tokens can only be 16 bits long, not {length} bits.")
-                length = 16
+                length = '16'
             if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 stretchy_token = True
             if length is not None:
@@ -1025,7 +1027,7 @@ class Bits:
              'b': self._getbin,
              'o': self._getoct,
              'h': self._gethex}
-        short_token: Pattern[str] = re.compile(r'(?P<name>[uifboh])(?P<len>\d+)$', re.IGNORECASE)
+        short_token: Pattern[str] = re.compile(r'^(?P<name>[uifboh]):?(?P<len>\d+)$', re.IGNORECASE)
         m1_short = short_token.match(attribute)
         if m1_short:
             length = int(m1_short.group('len'))
@@ -1035,7 +1037,7 @@ class Bits:
             f = letter_to_getter[name]
             return f()
         # Try to split into [name][length], then try standard properties
-        name_length_pattern: Pattern[str] = re.compile(r'(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
+        name_length_pattern: Pattern[str] = re.compile(r'^(?P<name>[a-z]+):?(?P<len>\d+)$', re.IGNORECASE)
         name_length = name_length_pattern.match(attribute)
         if name_length:
             name = name_length.group('name')
@@ -2489,7 +2491,7 @@ class Bits:
 
     def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs: int)\
             -> Tuple[List[Union[float, int, str, None, Bits]], int]:
-        tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]]= []
+        tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]] = []
         if isinstance(fmt, str):
             fmt = [fmt]
         keys = tuple(sorted(kwargs.keys()))
@@ -3474,7 +3476,7 @@ class BitArray(Bits):
                  'b': self._setbin_safe,
                  'o': self._setoct,
                  'h': self._sethex}
-            short_token: Pattern[str] = re.compile(r'(?P<name>[uifboh])(?P<len>\d+)$', re.IGNORECASE)
+            short_token: Pattern[str] = re.compile(r'^(?P<name>[uifboh])(?P<len>\d+)$', re.IGNORECASE)
             m1_short = short_token.match(attribute)
             if m1_short:
                 length = int(m1_short.group('len'))
@@ -3491,7 +3493,7 @@ class BitArray(Bits):
                                         f"as attribute has length of {length} bits.")
                 return
             # Try to split into [name][length], then try standard properties
-            name_length_pattern: Pattern[str] = re.compile(r'(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
+            name_length_pattern: Pattern[str] = re.compile(r'^(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
             name_length = name_length_pattern.match(attribute)
             if name_length:
                 name = name_length.group('name')

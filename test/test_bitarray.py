@@ -759,3 +759,8 @@ class BFloats(unittest.TestCase):
 
         with self.assertRaises(bitstring.CreationError):
             _ = BitArray(bfloatle=-5, length=15)
+
+    def testMoreCreation(self):
+        a = BitArray('bfloat:16=1.0, bfloat16=2.0, bfloat=3.0')
+        x, y, z = a.unpack('3*bfloat16')
+        self.assertEqual((x, y, z), (1.0, 2.0, 3.0))
