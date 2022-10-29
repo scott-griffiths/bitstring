@@ -77,8 +77,20 @@ New features and improvements:
       '1000100'
       >>> t = Bits('u12=160, u12=120, b=100')
 
+  The standard properties can also have lengths as part of them where appropriate. ::
+
+      >>> s.floatle32 = 50000
+
 * Support for 16 bit floats. Floating point types can now be 16 bits long as well
   as 32 and 64 bits. This is using the 'e' format from the struct module.
+
+* Support for the bfloat format. This is a specialised 16-bit floating point format
+  mostly used in machine learning. It is essentially a truncated IEEE 32-bit floating
+  point number that has the same range but much less accuracy.
+
+* Removed requirement to have a colon before lengths in format strings. So for example
+  `'uint:12=100'` can be just `'uint12=100'`. The colon is still recommended for
+  readability if the length isn't given as a number literal.
 
 
 July 20th 2021: version 3.1.9 released

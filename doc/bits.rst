@@ -273,7 +273,7 @@ unpack
 Properties
 ----------
 
-Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter. Properties can also have a length in bits appended to them to such as ``u8`` or ``f64`` (for the ``bytes`` property only the length is interpreted in bytes instead of bits). These properties with lengths will cause an :exc:`InterpretError` to be raised if the bitstring is not of the specified length.
+Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter. Properties can also have a length in bits appended to them to such as ``u8`` or ``f64`` (for the ``bytes`` property the length is interpreted in bytes instead of bits). These properties with lengths will cause an :exc:`InterpretError` to be raised if the bitstring is not of the specified length.
 
 bin / b
 ^^^^^^^

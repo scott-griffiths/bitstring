@@ -72,7 +72,8 @@ import io
 from collections import abc
 import functools
 import types
-from typing import Generator, SupportsIndex, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict, BinaryIO, TextIO, Callable, overload
+from typing import Generator, SupportsIndex, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict,\
+    BinaryIO, TextIO, Callable, overload
 from contextlib import suppress
 
 
@@ -117,9 +118,6 @@ MAX_CHARS: int = 250
 
 # Maximum size of caches used for speed optimisations.
 CACHE_SIZE: int = 1000
-
-# Set this to True for extra assertions for debugging.
-_debug: bool = False
 
 
 class Error(Exception):
@@ -522,13 +520,13 @@ class MmapByteArray:
         return self.bytelength
 
     # These methods shouldn't ever get called
-    def pop(self, __index: int = ..., /) -> int:
+    def pop(self, __index: int = ...) -> int:
         raise NotImplementedError
     
-    def append(self, __item: SupportsIndex, /) -> None:
+    def append(self, __item: SupportsIndex) -> None:
         raise NotImplementedError
 
-    def extend(self, __iterable_of_ints: Iterable[SupportsIndex], /) -> None:
+    def extend(self, __iterable_of_ints: Iterable[SupportsIndex]) -> None:
         raise NotImplementedError
 
     def __iter__(self):
@@ -544,8 +542,8 @@ def tidy_input_string(s: str) -> str:
 
 
 INIT_NAMES: List[str] = ['uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
-                               'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
-                               'float', 'floatbe', 'floatle', 'floatne', 'bfloat', 'bytes', 'bool', 'pad']
+                         'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
+                         'float', 'floatbe', 'floatle', 'floatne', 'bfloat', 'bytes', 'bool', 'pad']
 # Sort longest first as we want to match them in that order (so floatne before float etc.).
 INIT_NAMES.sort(key=len, reverse=True)
 
@@ -584,9 +582,9 @@ REPLACEMENTS_LE: Dict[str, str] = {'b': 'intle:8', 'B': 'uintle:8',
 PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
                                   'q': 8, 'Q': 8, 'e': 2, 'f': 4, 'd': 8}
 
-_tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct',
-                                             '0o': 'oct', '0O': 'oct', 'bin': 'bin', '0b': 'bin',
-                                             '0B': 'bin', 'bits': 'auto', 'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat'}
+_tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct', '0o': 'oct',
+                                             '0O': 'oct', 'bin': 'bin', '0b': 'bin', '0B': 'bin', 'bits': 'auto',
+                                             'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat'}
 
 
 def structparser(token: str) -> List[str]:
@@ -618,7 +616,8 @@ def structparser(token: str) -> List[str]:
     return tokens
 
 
-def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: Dict = {}) -> Tuple[bool, List[Tuple[str, Optional[str], Optional[str]]]]:
+def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: Dict = {}) -> \
+        Tuple[bool, List[Tuple[str, Optional[int], Optional[str]]]]:
     """Divide the format string into tokens and parse them.
 
     Return stretchy token and list of [initialiser, length, value]
@@ -705,6 +704,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
                 length = '16'
             if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 stretchy_token = True
+                
             if length is not None:
                 # Try converting length to int, otherwise check it's a key.
                 try:
@@ -844,7 +844,6 @@ class Bits:
             cls._truncateend = cls._truncateright
             cls._validate_slice = cls._validate_slice_msb0
 
-
     __slots__ = ('_datastore', '_pos')
     # This converts a single octal digit to 3 bits.
     _octToBits: List[str] = ['{0:03b}'.format(i) for i in range(8)]
@@ -958,29 +957,27 @@ class Bits:
 
         # For instances auto-initialised with a string we intern the
         # instance for re-use.
-        with suppress(TypeError):
-            if isinstance(auto, str):
+        if isinstance(auto, str):
+            try:
+                return _cache[auto]
+            except KeyError:
+                x = object.__new__(Bits)
                 try:
-                    return _cache[auto]
-                except KeyError:
-                    x = object.__new__(Bits)
-                    try:
-                        _, tokens = tokenparser(auto)
-                    except ValueError as e:
-                        raise CreationError(*e.args)
-                    if offset is not None:
-                        raise CreationError("offset should not be specified when using string initialisation.")
-                    if length is not None:
-                        raise CreationError("length should not be specified when using string initialisation.")
-                    x._datastore = ByteStore(bytearray(0), 0)
-                    for token in tokens:
-                        x._datastore.appendstore(Bits._init_with_token(*token)._datastore)
-                    assert x._assertsanity()
-                    if len(_cache) < CACHE_SIZE:
-                        _cache[auto] = x
-                    return x
-            if type(auto) is Bits:
-                return auto
+                    _, tokens = tokenparser(auto)
+                except ValueError as e:
+                    raise CreationError(*e.args)
+                if offset is not None:
+                    raise CreationError("offset should not be specified when using string initialisation.")
+                if length is not None:
+                    raise CreationError("length should not be specified when using string initialisation.")
+                x._datastore = ByteStore(bytearray(0), 0)
+                for token in tokens:
+                    x._datastore.appendstore(Bits._init_with_token(*token)._datastore)
+                if len(_cache) < CACHE_SIZE:
+                    _cache[auto] = x
+                return x
+        if type(auto) is Bits:
+            return auto
         x = super(Bits, cls).__new__(cls)
         x._datastore = ByteStore(bytearray())
         x._initialise(auto, length, offset, **kwargs)
@@ -1398,28 +1395,13 @@ class Bits:
         """Return True if any bits are set to 1, otherwise return False."""
         return self.any(True)
 
-    if _debug is True:
-        def _assertsanity(self) -> bool:
-            """Check internal self-consistency as a debugging aid."""
-            assert self.len >= 0
-            assert 0 <= self._offset, f"offset={self._offset}"
-            assert (self.len + self._offset + 7) // 8 == self._datastore.bytelength + self._datastore.byteoffset,\
-                f"len={self.len}, offset={self._offset}, bytelength={self._datastore.bytelength}, " \
-                f"byteoffset={self._datastore.byteoffset}"
-            return True
-    else:
-        @staticmethod
-        def _assertsanity() -> bool:
-            return True
-
     @classmethod
-    def _init_with_token(cls, name: str, token_length: Optional[int], value: Union[int, str]) -> Bits:
+    def _init_with_token(cls, name: str, token_length: Optional[int], value: Optional[str]) -> Bits:
         if token_length == 0:
             return cls()
         # For pad token just return the length in zero bits
         if name == 'pad':
             return cls(token_length)
-
         if value is None:
             if token_length is None:
                 raise ValueError(f"Token has no value ({name}=???).")
@@ -1474,7 +1456,7 @@ class Bits:
             if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
                 raise CreationError("BytesIO object is not long enough for specified length and offset.")
             self._datastore = ByteStore(bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]),
-                                             length, offset)
+                                        length, offset)
             return
 
         if isinstance(s, io.BufferedReader):
@@ -1552,7 +1534,6 @@ class Bits:
     def _setbytes_unsafe(self, data: Union[bytearray, MmapByteArray], length: int, offset: int):
         """Unchecked version of _setbytes_safe."""
         self._datastore = type(self._datastore)(data[:], length, offset)
-        assert self._assertsanity()
 
     def _readbytes(self, start: int, length: int) -> bytes:
         """Read bytes and return them. Note that length is in bits."""
@@ -2173,7 +2154,6 @@ class Bits:
                     b._datastore = offsetcopy(b._datastore, offset)
                     for token in tokens[1:]:
                         b._addright(Bits._init_with_token(*token))
-                assert b._assertsanity()
                 assert b.len == 0 or b._offset == offset
                 if len(cache) < CACHE_SIZE:
                     cache[(bs, offset)] = b
@@ -2253,7 +2233,6 @@ class Bits:
         bytepos, offset = divmod(self._offset + bits, 8)
         self._setbytes_unsafe(self._datastore.getbyteslice(bytepos, self._datastore.bytelength), self.len - bits,
                               offset)
-        assert self._assertsanity()
         return truncated_bits
 
     def _truncateright(self, bits: int) -> Bits:
@@ -2268,7 +2247,6 @@ class Bits:
         newlength_in_bytes = (self._offset + self.len - bits + 7) // 8
         self._setbytes_unsafe(self._datastore.getbyteslice(0, newlength_in_bytes), self.len - bits,
                               self._offset)
-        assert self._assertsanity()
         return truncated_bits
 
     def _insert_lsb0(self, bs: Bits, pos: int) -> None:
@@ -2291,7 +2269,6 @@ class Bits:
             self._addleft(start)
         if self._pos is not None:
             self._pos = pos + bs.len
-        assert self._assertsanity()
 
     def _overwrite_lsb0(self, bs: Bits, pos: int) -> None:
         """Overwrite with bs at pos (LSB0)."""
@@ -2328,7 +2305,6 @@ class Bits:
             self._datastore.setbyte(lastbytepos, self._datastore.getbyte(lastbytepos) & mask)
             self._datastore.setbyte(lastbytepos,
                                     self._datastore.getbyte(lastbytepos) | (d.getbyte(d.bytelength - 1) & ~mask))
-        assert self._assertsanity()
 
     def _delete_lsb0(self, bits: int, pos: int) -> None:
         """Delete bits at pos (LSB0)."""
@@ -2644,9 +2620,8 @@ class Bits:
         if bs.len == 0:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
-        if bytealigned is None:
-            bytealigned = globals()['_bytealigned']
-        return self._find(bs, start, end, bytealigned)
+        ba = globals()['_bytealigned'] if bytealigned is None else bytealigned
+        return self._find(bs, start, end, ba)
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A find in lsb0 is very like a reverse find in msb0.
@@ -2691,9 +2666,8 @@ class Bits:
             raise ValueError("In findall, count must be >= 0.")
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
-        if bytealigned is None:
-            bytealigned: bool = globals()['_bytealigned']
-        return self._findall(bs, start, end, count, bytealigned)
+        ba = globals()['_bytealigned'] if bytealigned is None else bytealigned
+        return self._findall(bs, start, end, count, ba)
 
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Generator[int, None, None]:
@@ -2766,11 +2740,10 @@ class Bits:
         """
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
-        if bytealigned is None:
-            bytealigned = globals()['_bytealigned']
+        ba = globals()['_bytealigned'] if bytealigned is None else bytealigned
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
-        return self._rfind(bs, start, end, bytealigned)
+        return self._rfind(bs, start, end, ba)
 
     def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # Search chunks starting near the end and then moving back
@@ -2822,7 +2795,6 @@ class Bits:
             nextchunk = self._slice(start_, min(start_ + bits, end_))
             if nextchunk.len == 0:
                 return
-            assert nextchunk._assertsanity()
             yield nextchunk
             if nextchunk._getlength() != bits:
                 return
@@ -2851,7 +2823,7 @@ class Bits:
         if not delimiter.len:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
-        bytealigned_ : bool = globals()['_bytealigned'] if bytealigned is None else bytealigned
+        bytealigned_: bool = globals()['_bytealigned'] if bytealigned is None else bytealigned
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
@@ -3262,17 +3234,17 @@ class Bits:
                       doc="""The bitstring as a 16 bit big-endian bfloat floating point number. Read only.
                       """)
     bfloatbe = property(_getbfloatbe,
-                      doc="""The bitstring as a 16 bit big-endian bfloat floating point number. Read only.
-                      """)
+                        doc="""The bitstring as a 16 bit big-endian bfloat floating point number. Read only.
+                        """)
     bfloatle = property(_getbfloatle,
-                      doc="""The bitstring as a 16 bit little-endian bfloat floating point number. Read only.
-                      """)
+                        doc="""The bitstring as a 16 bit little-endian bfloat floating point number. Read only.
+                        """)
     bfloatne = property(_getbfloatne,
-                      doc="""The bitstring as a 16 bit native-endian bfloat floating point number. Read only.
-                      """)
+                        doc="""The bitstring as a 16 bit native-endian bfloat floating point number. Read only.
+                        """)
     intbe = property(_getintbe,
                      doc="""The bitstring as a two's complement big-endian signed int. Read only.
-                      """)
+                     """)
     uintbe = property(_getuintbe,
                       doc="""The bitstring as a two's complement big-endian unsigned int. Read only.
                       """)
@@ -3802,7 +3774,6 @@ class BitArray(Bits):
         else:
             for p in positions:
                 self[p:p + old.len] = new
-        assert self._assertsanity()
         return len(lengths) - 1
 
     def insert(self, bs: BitsType, pos: Optional[int] = None) -> None:
@@ -3846,7 +3817,7 @@ class BitArray(Bits):
             if pos is None:
                 raise TypeError("overwrite needs a bit position specified when used on a BitArray.")
         if pos < 0:
-            pos += self.len
+            pos += self._getlength()
         if pos < 0 or pos + bs.len > self.len:
             raise ValueError("Overwrite exceeds boundary of bitstring.")
         self._overwrite(bs, pos)
@@ -4453,7 +4424,6 @@ class ConstBitStream(Bits):
         """
         skipped = (8 - (self._pos % 8)) % 8
         self.pos += self._offset + skipped
-        assert self._assertsanity()
         return skipped
 
     pos = property(_getbitpos, _setbitpos,
@@ -4706,6 +4676,7 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
     Bits._setlsb0methods(lsb0)
     BitArray._setlsb0methods(lsb0)
     ByteStore._setlsb0methods(lsb0)
+
 
 # Initialise the default behaviour
 _switch_lsb0_methods(False)
