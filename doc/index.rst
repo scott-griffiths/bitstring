@@ -27,7 +27,7 @@ A short example usage
 ::
 
     >>> s = bitstring.BitArray('0x4f8e220')
-    >>> s.unpack('uint:12, hex:8, bin')
+    >>> s.unpack('uint12, hex8, bin')
     [1272, 'e2', '00100000']
     >>> '0b11000' in s
     True

@@ -543,7 +543,7 @@ def tidy_input_string(s: str) -> str:
     return ''.join(s.split()).lower().replace('_', '')
 
 
-INIT_NAMES: List[str, ...] = ['uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
+INIT_NAMES: List[str] = ['uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
                                'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
                                'float', 'floatbe', 'floatle', 'floatne', 'bfloat', 'bytes', 'bool', 'pad']
 # Sort longest first as we want to match them in that order (so floatne before float etc.).
@@ -3468,7 +3468,7 @@ class BitArray(Bits):
         try:
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
-        except AttributeError as e:
+        except AttributeError:
             letter_to_setter: Dict[str, Callable[..., None]] =\
                 {'u': self._setuint,
                  'i': self._setint,
@@ -3483,7 +3483,11 @@ class BitArray(Bits):
                 name = m1_short.group('name')
                 f = letter_to_setter[name]
                 a_copy = self._copy()
-                f(value, length)
+                try:
+                    f(value, length)
+                except AttributeError:
+                    raise AttributeError(f"Can't set attribute {attribute} with value {value}.")
+
                 if self.len != length:
                     new_len = self.len
                     # Reset to previous value
@@ -3513,7 +3517,7 @@ class BitArray(Bits):
                     return
                 except AttributeError:
                     pass
-            raise e
+            raise AttributeError(f"Can't set attribute {attribute} with value {value}.")
 
     def __iadd__(self, bs: BitsType) -> BitArray:
         """Append bs to current bitstring. Return self.

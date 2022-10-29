@@ -205,11 +205,11 @@ class SliceAssignment(unittest.TestCase):
     def testSliceAssignmentMulipleBits(self):
         a = BitArray('0b0')
         a[0] = '0b110'
-        self.assertEqual(a.bin, '110')
+        self.assertEqual(a.bin3, '110')
         a[0] = '0b000'
-        self.assertEqual(a.bin, '00010')
+        self.assertEqual(a.bin5, '00010')
         a[0:3] = '0b111'
-        self.assertEqual(a.bin, '11110')
+        self.assertEqual(a.b5, '11110')
         a[-2:] = '0b011'
         self.assertEqual(a.bin, '111011')
         a[:] = '0x12345'
@@ -284,7 +284,7 @@ class SliceAssignment(unittest.TestCase):
         a[7:3:-1] = [1, 1, 1, 0]
         self.assertEqual(a.bin, '1010011110')
         a[7:1:-2] = [0, 0, 1]
-        self.assertEqual(a.bin, '1011001010')
+        self.assertEqual(a.b, '1011001010')
         a[::-5] = [1, 1]
         self.assertEqual(a.bin, '1011101011')
         a[::-1] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
@@ -764,3 +764,4 @@ class BFloats(unittest.TestCase):
         a = BitArray('bfloat:16=1.0, bfloat16=2.0, bfloat=3.0')
         x, y, z = a.unpack('3*bfloat16')
         self.assertEqual((x, y, z), (1.0, 2.0, 3.0))
+

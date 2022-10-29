@@ -110,13 +110,13 @@ class Creation(unittest.TestCase):
 
     def testCreationFromIntErrors(self):
         with self.assertRaises(bitstring.CreationError):
-            Bits(int=-1, length=0)
+            _ = Bits(int=-1, length=0)
         with self.assertRaises(bitstring.CreationError):
-            Bits(int=12)
+            _ = Bits(int=12)
         with self.assertRaises(bitstring.CreationError):
-            Bits(int=4, length=3)
+            _ = Bits(int=4, length=3)
         with self.assertRaises(bitstring.CreationError):
-            Bits(int=-5, length=3)
+            _ = Bits(int=-5, length=3)
 
     def testCreationFromSe(self):
         for i in range(-100, 10):
@@ -130,6 +130,8 @@ class Creation(unittest.TestCase):
     def testCreationFromSeErrors(self):
         with self.assertRaises(bitstring.CreationError):
             Bits(se=-5, length=33)
+        with self.assertRaises(bitstring.CreationError):
+            Bits('se2=0')
         s = Bits(bin='001000')
         with self.assertRaises(bitstring.InterpretError):
             _ = s.se
@@ -157,7 +159,7 @@ class Creation(unittest.TestCase):
         self.assertEqual(b, [0])
         c = bitstring.pack('bool=1, 2*bool', 0, 1)
         self.assertEqual(c, '0b101')
-        d = bitstring.pack('bool:1=1, 2*bool:1', 1, 0)
+        d = bitstring.pack('bool:1=1, 2*bool1', 1, 0)
         self.assertEqual(d, '0b110')
 
     def testCreationFromBoolErrors(self):
@@ -272,7 +274,7 @@ class FileBased(unittest.TestCase):
         x = self.a[20:24] + self.c[-4:] + self.c[8:12]
         self.assertEqual(x, '0x587')
         x = self.b + x
-        self.assertEqual(x.hex, '456789abcdef587')
+        self.assertEqual(x.h, '456789abcdef587')
         x = BitArray(x)
         del x[12:24]
         self.assertEqual(x, '0x456abcdef587')
@@ -393,14 +395,14 @@ class PadToken(unittest.TestCase):
         self.assertEqual(s.bin, '110001')
         d = bitstring.pack('pad:c', c=12)
         self.assertEqual(d, Bits(12))
-        e = bitstring.pack('0xf, uint12, pad:1, bin, pad:4, 0b10', 0, '111')
+        e = bitstring.pack('0xf, uint12, pad:1, bin, pad4, 0b10', 0, '111')
         self.assertEqual(e.bin, '11110000000000000111000010')
 
     def testUnpack(self):
         s = Bits('0b111000111')
         x, y = s.unpack('3, pad:3, 3')
         self.assertEqual((x, y.u), ('0b111', 7))
-        x, y = s.unpack('2, pad:2, bin')
+        x, y = s.unpack('2, pad2, bin')
         self.assertEqual((x.u2, y), (3, '00111'))
         x = s.unpack('pad:1, pad:2, pad:3')
         self.assertEqual(x, [])
@@ -509,7 +511,7 @@ class ByteStoreImmutablity(unittest.TestCase):
         c = BitArray(b)
         c[1] = 0
         self.assertEqual(c.bin, '101000')
-        self.assertEqual(a.bin, '111')
+        self.assertEqual(a.b3, '111')
         self.assertEqual(b.bin, '111000')
         self.assertEqual(type(b._datastore), ByteStore)
 

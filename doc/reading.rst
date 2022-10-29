@@ -51,47 +51,53 @@ The :meth:`~ConstBitStream.read` / :meth:`~ConstBitStream.readlist` methods can 
 
 The format string consists of comma separated tokens that describe how to interpret the next bits in the bitstring. The tokens are:
 
-==============  ===================================================================
-``int:n``       ``n`` bits as a signed integer.
-``uint:n``      ``n`` bits as an unsigned integer.
-``intbe:n``	    ``n`` bits as a byte-wise big-endian signed integer.
-``uintbe:n``    ``n`` bits as a byte-wise big-endian unsigned integer.
-``intle:n``     ``n`` bits as a byte-wise little-endian signed integer.
-``uintle:n``    ``n`` bits as a byte-wise little-endian unsigned integer.
-``intne:n``     ``n`` bits as a byte-wise native-endian signed integer.
-``uintne:n``    ``n`` bits as a byte-wise native-endian unsigned integer.
-``float:n``     ``n`` bits as a big-endian floating point number (same as ``floatbe``). 
-``floatbe:n``   ``n`` bits as a big-endian floating point number (same as ``float``).
-``floatle:n``   ``n`` bits as a little-endian floating point number. 
-``floatne:n``   ``n`` bits as a native-endian floating point number. 
-``hex:n``       ``n`` bits as a hexadecimal string.
-``oct:n``       ``n`` bits as an octal string.
-``bin:n``       ``n`` bits as a binary string.
-``bits:n``      ``n`` bits as a new bitstring.
-``bytes:n``     ``n`` bytes as a ``bytes`` object.
-``ue``          next bits as an unsigned exponential-Golomb code.
-``se``          next bits as a signed exponential-Golomb code.
-``uie``         next bits as an interleaved unsigned exponential-Golomb code.
-``sie``         next bits as an interleaved signed exponential-Golomb code.
-``bool[:1]``    next bit as a boolean (True or False).
-``pad:n``       next ``n`` bits will be ignored (padding).
-==============  ===================================================================
+==============   ===================================================================
+``int:n``        ``n`` bits as a signed integer.
+``uint:n``       ``n`` bits as an unsigned integer.
+``intbe:n``	     ``n`` bits as a byte-wise big-endian signed integer.
+``uintbe:n``     ``n`` bits as a byte-wise big-endian unsigned integer.
+``intle:n``      ``n`` bits as a byte-wise little-endian signed integer.
+``uintle:n``     ``n`` bits as a byte-wise little-endian unsigned integer.
+``intne:n``      ``n`` bits as a byte-wise native-endian signed integer.
+``uintne:n``     ``n`` bits as a byte-wise native-endian unsigned integer.
+``float:n``      ``n`` bits as a big-endian floating point number (same as ``floatbe``).
+``floatbe:n``    ``n`` bits as a big-endian floating point number (same as ``float``).
+``floatle:n``    ``n`` bits as a little-endian floating point number.
+``floatne:n``    ``n`` bits as a native-endian floating point number.
+``bfloat[:16]``   16 bits as a big-endian bfloat floating point number (same as ``bfloatbe``).
+``bfloatbe[:16]`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
+``bfloatle[:16]`` 16 bits as a little-endian floating point number.
+``bfloatne[:16]`` 16 bits as a native-endian floating point number.
+``hex:n``        ``n`` bits as a hexadecimal string.
+``oct:n``        ``n`` bits as an octal string.
+``bin:n``        ``n`` bits as a binary string.
+``bits:n``       ``n`` bits as a new bitstring.
+``bytes:n``      ``n`` bytes as a ``bytes`` object.
+``ue``           next bits as an unsigned exponential-Golomb code.
+``se``           next bits as a signed exponential-Golomb code.
+``uie``          next bits as an interleaved unsigned exponential-Golomb code.
+``sie``          next bits as an interleaved signed exponential-Golomb code.
+``bool[:1]``     next bit as a boolean (True or False).
+``pad:n``        next ``n`` bits will be ignored (padding).
+==============   ===================================================================
+
+The ``:`` before the length is optional but can improve readability.
 
 So in the earlier example we could have written::
 
-    start_code = s.read('hex:32')
-    width = s.read('uint:12')
-    height = s.read('uint:12')
+    start_code = s.read('hex32')
+    width = s.read('uint12')
+    height = s.read('uint12')
 
 and we also could have combined the three reads as::
 
-    start_code, width, height = s.readlist('hex:32, 2*uint:12')
+    start_code, width, height = s.readlist('hex32, 2*uint12')
 
 where here we are also using a multiplier to combine the format of the second and third tokens.
 
 You are allowed to use one 'stretchy' token in a :meth:`~ConstBitStream.readlist`. This is a token without a length specified which will stretch to fill encompass as many bits as possible. This is often useful when you just want to assign something to 'the rest' of the bitstring::
 
-    a, b, everything_else = s.readlist('intle:16, intle:24, bits')
+    a, b, everything_else = s.readlist('intle16, intle24, bits')
 
 In this example the ``bits`` token will consist of everything left after the first two tokens are read, and could be empty.
 
@@ -99,7 +105,7 @@ It is an error to use more than one stretchy token, or to use a ``ue``, ``se``, 
 
 The ``pad`` token is a special case in that it just causes bits to be skipped over without anything being returned. This can be useful for example if parts of a binary format are uninteresting::
 
-    a, b = s.readlist('pad:12, uint:4, pad:4, uint:8')
+    a, b = s.readlist('pad12, uint4, pad4, uint8')
 
 Peeking
 ^^^^^^^^
@@ -118,8 +124,8 @@ Unpacking
 
 The :meth:`~Bits.unpack` method works in a very similar way to :meth:`~ConstBitStream.readlist`. The major difference is that it interprets the whole bitstring from the start, and takes no account of the current :attr:`~ConstBitStream.pos`. It's a natural complement of the :func:`pack` function. ::
 
-    s = pack('uint:10, hex, int:13, 0b11', 130, '3d', -23)
-    a, b, c, d = s.unpack('uint:10, hex, int:13, bin:2')
+    s = pack('uint10, hex, int13, 0b11', 130, '3d', -23)
+    a, b, c, d = s.unpack('uint10, hex, int13, bin2')
 
 Seeking
 -------
@@ -137,7 +143,7 @@ For example::
     >>> s.pos                    # note pos verses bytepos
     16
     >>> s.pos += 4
-    >>> print(s.read('bin:4'))   # the final nibble '0x6'
+    >>> print(s.read('bin4'))   # the final nibble '0x6'
     0110
 
 Finding and replacing

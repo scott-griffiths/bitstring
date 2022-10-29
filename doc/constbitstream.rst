@@ -40,7 +40,7 @@ peek
             >>> s = ConstBitStream('0x123456')
             >>> s.peek(16)
             ConstBitStream('0x1234')
-            >>> s.peek('hex:8')
+            >>> s.peek('hex8')
             '12'
 
 peeklist
@@ -87,16 +87,18 @@ read
         ``pad:n``        next ``n`` bits will be skipped.
         ==============   =================================================
 
+        The ``:`` before the length is optional as of bitstring version 4, and is mostly omitted in the documentation, except where it improves readability.
+
         For example::
 
             >>> s = ConstBitStream('0x23ef55302')
-            >>> s.read('hex:12')
+            >>> s.read('hex12')
             '23e'
-            >>> s.read('bin:4')
+            >>> s.read('bin4')
             '1111'
-            >>> s.read('uint:5')
+            >>> s.read('uint5')
             10
-            >>> s.read('bits:4')
+            >>> s.read('bits4')
             ConstBitStream('0xa')
 
         The :meth:`~ConstBitStream.read` method is useful for reading exponential-Golomb codes. ::
@@ -122,9 +124,9 @@ readlist
         For multiple items you can separate using commas or given multiple parameters::
 
             >>> s = ConstBitStream('0x43fe01ff21')
-            >>> s.readlist('hex:8, uint:6')
+            >>> s.readlist('hex8, uint6')
             ['43', 63]
-            >>> s.readlist(['bin:3', 'intle:16'])
+            >>> s.readlist(['bin3', 'intle16'])
             ['100', -509]
             >>> s.pos = 0
             >>> s.readlist('hex:b, uint:d', b=8, d=6)

@@ -43,6 +43,7 @@ When initialising a bitstring you need to specify at most one initialiser. These
 * ``intbe``, ``uintbe``: Signed or unsigned byte-wise big-endian binary integers.
 * ``intne``, ``uintne``: Signed or unsigned byte-wise native-endian binary integers.
 * ``float`` / ``floatbe``, ``floatle``, ``floatne``: Big, little and native endian floating point numbers.
+* ``bfloat`` / ``bfloatbe``, ``bfloatle``, ``bfloatne``: Big, little and native endian 16 bit 'bfloat' numbers.
 * ``se``, ``ue`` : Signed or unsigned exponential-Golomb coded integers.
 * ``sie``, ``uie`` : Signed or unsigned interleaved exponential-Golomb coded integers.
 * ``bool`` : A boolean (i.e. True or False).
@@ -102,8 +103,8 @@ For initialisation with signed and unsigned binary integers (``int`` and ``uint`
 
 The auto initialise can be used by giving a colon and the length in bits immediately after the ``int`` or ``uint`` token, followed by an equals sign then the value::
 
-    >>> e = BitArray('uint:12=45')
-    >>> f = BitArray('int:7=-1')
+    >>> e = BitArray('uint12=45')
+    >>> f = BitArray('int7=-1')
 
 The plain ``int`` and ``uint`` initialisers are bit-wise big-endian. That is to say that the most significant bit comes first and the least significant bit comes last, so the unsigned number one will have a ``1`` as its final bit with all other bits set to ``0``. These can be any number of bits long. For whole-byte bitstring objects there are more options available with different endiannesses.
 
@@ -131,7 +132,7 @@ From a floating point number
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     >>> f1 = BitArray(float=10.3, length=32)
-    >>> f2 = BitArray('float:64=5.4e31')
+    >>> f2 = BitArray('float64=5.4e31')
 
 Floating point numbers can be used for initialisation provided that the bitstring is 16, 32 or 64 bits long. Standard Python floating point numbers are 64 bits long, so if you use 32 bits then some accuracy could be lost. The 16 bit version has very limited range and is used mainly in specialised areas such as machine learning.
 
@@ -143,6 +144,13 @@ As with other initialisers you can also auto initialise, as demonstrated with th
 
     >>> little_endian = BitArray(floatle=0.0, length=64)
     >>> native_endian = BitArray('floatne:32=-6.3')
+
+The bfloat format is also supported. This is a 16-bit format that is essentially a truncation of the IEEE 754 32-bit format - it has the same range, but much less accuracy. It is mostly used in machine learning. ::
+
+    >>> bf = Bits(bfloat=4.5e23)  # No need to specify length as always 16 bits
+    >>> a.bfloat
+    4.486248158726163e+23  # Converted to Python float
+
 
 Exponential-Golomb codes
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -207,8 +215,8 @@ Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` 
     >>> fromhex = BitArray('0x01ffc9')
     >>> frombin = BitArray('0b01')
     >>> fromoct = BitArray('0o7550')
-    >>> fromint = BitArray('int:32=10')
-    >>> fromfloat = BitArray('float:64=0.2')
+    >>> fromint = BitArray('int32=10')
+    >>> fromfloat = BitArray('float64=0.2')
     >>> acopy = BitArray(fromoct)
     >>> fromlist = BitArray([1, 0, 0])
     >>> f = open('somefile', 'rb')
@@ -248,8 +256,8 @@ Note how in the final examples above only one half of the ``==`` needs to be a b
 
 You can also chain together string initialisers with commas, which causes the individual bitstrings to be concatenated. ::
 
-    >>> s = BitArray('0x12, 0b1, uint:5=2, ue=5, se=-1, se=4')
-    >>> s.find('uint:5=2, ue=5')
+    >>> s = BitArray('0x12, 0b1, uint5=2, ue=5, se=-1, se=4')
+    >>> s.find('uint5=2, ue=5')
     True
     >>> s.insert('0o332, 0b11, int:23=300', 4)
 

@@ -1466,9 +1466,9 @@ class Adding(unittest.TestCase):
         s = BitStream('hex=123abc')
         self.assertEqual(s, '0x123abc')
 
-        s = BitStream('bin:2=01')
+        s = BitStream('bin2=01')
         self.assertEqual(s, '0b01')
-        for s in ['bin:1=01', 'bits:4=0b1', 'oct:3=000', 'hex:4=0x1234']:
+        for s in ['bin:1=01', 'bits:4=0b1', 'oct3=000', 'hex4=0x1234']:
             with self.assertRaises(bitstring.CreationError):
                 _ = BitStream(s)
 

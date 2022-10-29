@@ -14,19 +14,19 @@ pack
    :param kwargs: a dictionary of token replacements
    :rtype: BitStream
 
-The format string consists of comma separated tokens of the form ``name:length=value``. See the entry for :meth:`~ConstBitStream.read` for more details.
+The format string consists of comma separated tokens of the form ``name[:]length=value``. See the entry for :meth:`~ConstBitStream.read` for more details. The ``:`` is optional and is mostly omitted here except where it improves readability.
 
-The tokens can be 'literals', like ``0xef``, ``0b110``, ``uint:8=55``, etc. which just represent a set sequence of bits.
+The tokens can be 'literals', like ``0xef``, ``0b110``, ``uint8=55``, etc. which just represent a set sequence of bits.
 
 They can also have the value missing, in which case the values contained in ``*values`` will be used. ::
 
- >>> a = pack('bin:3, hex:4', '001', 'f')
- >>> b = pack('uint:10', 33)
+ >>> a = pack('bin3, hex4', '001', 'f')
+ >>> b = pack('uint10', 33)
 
 A dictionary or keyword arguments can also be provided. These will replace items in the format string. ::
 
  >>> c = pack('int:a=b', a=10, b=20)
- >>> d = pack('int:8=a, bin=b, int:4=a', a=7, b='0b110')
+ >>> d = pack('int8=a, bin=b, int4=a', a=7, b='0b110')
  
 Plain names can also be used as follows::
 
@@ -113,16 +113,16 @@ Command Line Usage
 
 The bitstring module can be called from the command line to perform simple operations. For example::
 
-    $ python -m bitstring int:16=-400
+    $ python -m bitstring int16=-400
     0xfe70
 
-    $ python -m bitstring float:32=0.2 bin
+    $ python -m bitstring float32=0.2 bin
     00111110010011001100110011001101
 
     $ python -m bitstring 0xff "3*0b01,0b11" uint
     65367
 
-    $ python -m bitstring hex=01, uint:12=352.hex
+    $ python -m bitstring hex=01, uint12=352.hex
     01160
 
 Command-line parameters are concatenated and a bitstring created from them. If the final parameter is either an interpretation string or ends with a ``.`` followed by an interpretation string then that interpretation of the bitstring will be used when printing it. If no interpretation is given then the bitstring is just printed.

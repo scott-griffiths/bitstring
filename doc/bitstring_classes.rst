@@ -26,11 +26,11 @@ Note that in places where a bitstring can be used as a parameter, any other vali
 
 * Starting with ``bin=``, or simply starting with ``0b`` implies binary. e.g. ``0b0011010``, ``bin=0011010``
 
-* Starting with ``int:`` or ``uint:`` followed by a length in bits and ``=`` gives base-2 integers. e.g. ``uint:8=255``, ``int:4=-7``
+* Starting with ``int`` or ``uint`` followed by a length in bits and ``=`` gives base-2 integers. e.g. ``uint8=255``, ``int4=-7``
 
-* To get big, little and native-endian whole-byte integers append ``be``, ``le`` or ``ne`` respectively to the ``uint`` or ``int`` identifier. e.g. ``uintle:32=1``, ``intne:16=-23``
+* To get big, little and native-endian whole-byte integers append ``be``, ``le`` or ``ne`` respectively to the ``uint`` or ``int`` identifier. e.g. ``uintle32=1``, ``intne16=-23``
 
-* For floating point numbers use ``float:`` followed by the length in bits and ``=`` and the number. The default is big-endian, but you can also append ``be``, ``le`` or ``ne`` as with integers. e.g. ``float:64=0.2``, ``floatle:32=-0.3e12``
+* For floating point numbers use ``float:`` followed by the length in bits and ``=`` and the number. The default is big-endian, but you can also append ``be``, ``le`` or ``ne`` as with integers. e.g. ``float64=0.2``, ``floatle32=-0.3e12``
 
 * Starting with ``ue=``, ``uie=``, ``se=`` or ``sie=`` implies an exponential-Golomb coded integer. e.g. ``ue=12``, ``sie=-4``
 

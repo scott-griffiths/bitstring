@@ -7,7 +7,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
 .. class:: Bits([auto, length, offset, **kwargs])
 
-    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``bfloat``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`, :class:`BitStream` and :class:`ConstBitStream`.
 
@@ -42,7 +42,7 @@ all
        
        *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
        
-           >>> s = Bits('int:15=-1')
+           >>> s = Bits('int15=-1')
            >>> s.all(True, [3, 4, 12, 13])
            True
            >>> s.all(1)
@@ -179,7 +179,7 @@ pp
             ffa-5f8-902-e2a   111111111010-010111111000-100100000010-111000101010
             f4                11110100
 
-        The available formats are ``'bin'`` (the default), ``'oct'``, ``'hex'`` and ``'bytes'``. A bit length can be specified after the format (with an optional `:`) to give the number of bits represented by each group, otherwise the default is based on the format or formats selected. Using a length of zero removes all separators and displays one block of characters per line for each format in *fmt* (e.g. ``'hex:0'``).
+        The available formats are ``'bin'`` (the default), ``'oct'``, ``'hex'`` and ``'bytes'``. A bit length can be specified after the format (with an optional `:`) to give the number of bits represented by each group, otherwise the default is based on the format or formats selected. Using a length of zero removes all separators and displays one block of characters per line for each format in *fmt* (e.g. ``'hex0'``).
 
         The ``hex``, ``oct`` and ``bin`` format string can be replaced with just their initial letter.
 
@@ -265,7 +265,7 @@ unpack
 
         *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`read` for details. ::
 
-            >>> s = Bits('int:4=-1, 0b1110')
+            >>> s = Bits('int4=-1, 0b1110')
             >>> i, b = s.unpack('int:4, bin')
 
         If a token doesn't supply a length (as with ``bin`` above) then it will try to consume the rest of the bitstring. Only one such token is allowed.
@@ -273,7 +273,7 @@ unpack
 Properties
 ----------
 
-Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter. They can also have a length in bits appended to them to make properties such as ``u8`` or ``f64``. These properties with lengths will cause an :exc:`InterpretError` to be raised if the bitstring is not of the specified length.
+Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter. Properties can also have a length in bits appended to them to such as ``u8`` or ``f64`` (for the ``bytes`` property only the length is interpreted in bytes instead of bits). These properties with lengths will cause an :exc:`InterpretError` to be raised if the bitstring is not of the specified length.
 
 bin / b
 ^^^^^^^
@@ -711,6 +711,8 @@ __str__
             0b1111111 
             >>> print(s + '0b1')
             0xff
+
+        See also the :meth:`pp` method for ways to pretty-print the bitstring.
 
 __xor__ / __rxor__
 ^^^^^^^^^^^^^^^^^^

@@ -18,13 +18,13 @@ When parsing a bitstring one way to write code is in the following style::
  
 This works fine, but is not very quick. The problem is that the call to :meth:`~Bits.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
 
-    width = s.read('uint:12')
-    height = s.read('uint:12')
-    flags = s.read('bin:4')
+    width = s.read('uint12')
+    height = s.read('uint12')
+    flags = s.read('bin4')
  
 This is much faster, although probably not as fast as the combined call::
 
-    width, height, flags = s.readlist('uint:12, uint:12, bin:4')
+    width, height, flags = s.readlist('uint12, uint12, bin4')
  
 Choose the simplest class you can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

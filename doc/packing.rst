@@ -7,16 +7,16 @@ Another method of creating :class:`BitStream` objects is to use the :func:`pack`
 
 For example using just the ``*values`` arguments we can say::
 
-    s = bitstring.pack('hex:32, uint:12, uint:12', '0x000001b3', 352, 288)
+    s = bitstring.pack('hex32, uint12, uint12', '0x000001b3', 352, 288)
 
 which is equivalent to initialising as::
 
-    s = BitStream('0x0000001b3, uint:12=352, uint:12=288')
+    s = BitStream('0x0000001b3, uint12=352, uint12=288')
 
 The advantage of the pack function is if you want to write more general code for creation. ::
 
     def foo(a, b, c, d):
-        return bitstring.pack('uint:8, 0b110, int:6, bin, bits', a, b, c, d)
+        return bitstring.pack('uint8, 0b110, int6, bin, bits', a, b, c, d)
  
     s1 = foo(12, 5, '0b00000', '')
     s2 = foo(101, 3, '0b11011', s1)
@@ -25,7 +25,7 @@ Note how you can use some tokens without sizes (such as ``bin`` and ``bits`` in 
 
 You can also include keyword, value pairs (or an equivalent dictionary) as the final parameter(s). The values are then packed according to the positions of the keywords in the format string. This is most easily explained with some examples. Firstly the format string needs to contain parameter names::
 
-    format = 'hex:32=start_code, uint:12=width, uint:12=height'
+    format = 'hex32=start_code, uint12=width, uint12=height'
 
 Then we can make a dictionary with these parameters as keys and pass it to pack::
 
@@ -38,7 +38,7 @@ Another method is to pass the same information as keywords at the end of pack's 
 
 The tokens in the format string that you must provide values for are:
 
-=============       ================================================================
+=================== ================================================================
 ``int:n``           ``n`` bits as a signed integer.
 ``uint:n``          ``n`` bits as an unsigned integer.
 ``intbe:n``         ``n`` bits as a big-endian whole byte signed integer.
@@ -50,7 +50,11 @@ The tokens in the format string that you must provide values for are:
 ``float:n``         ``n`` bits as a big-endian floating point number (same as ``floatbe``). 
 ``floatbe:n``       ``n`` bits as a big-endian floating point number (same as ``float``).
 ``floatle:n``       ``n`` bits as a little-endian floating point number. 
-``floatne:n``       ``n`` bits as a native-endian floating point number. 
+``floatne:n``       ``n`` bits as a native-endian floating point number.
+``bfloat[:16]``     16 bits as a big-endian bfloat floating point number (same as ``bfloatbe``).
+``bfloatbe[:16]``   16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
+``bfloatle[:16]``   16 bits as a little-endian bfloat floating point number.
+``bfloatne[:16]``   16 bits as a native-endian bfloat floating point number.
 ``hex[:n]``         [``n`` bits as] a hexadecimal string.
 ``oct[:n]``         [``n`` bits as] an octal string.
 ``bin[:n]``         [``n`` bits as] a binary string.
@@ -60,7 +64,7 @@ The tokens in the format string that you must provide values for are:
 ``se``              a signed integer as an exponential-Golomb code.
 ``uie``             an unsigned integer as an interleaved exponential-Golomb code.
 ``sie``             a signed integer as an interleaved exponential-Golomb code.
-=============       ================================================================
+=================== ================================================================
 
 and you can also include constant bitstring tokens constructed from any of the following:
 
@@ -80,6 +84,10 @@ and you can also include constant bitstring tokens constructed from any of the f
 ``floatbe:n=f``      big-endian floating point number ``f`` in ``n`` bits.
 ``floatle:n=f``      little-endian floating point number ``f`` in ``n`` bits.
 ``floatne:n=f``      native-endian floating point number ``f`` in ``n`` bits.
+``bfloat=f``         big-endian bfloat floating point number ``f`` in 16 bits.
+``bfloatbe=f``       big-endian bfloat floating point number ``f`` in 16 bits.
+``bfloatle=f``       little-endian bfloat floating point number ``f`` in 16 bits.
+``bfloatne=f``       native-endian bfloat floating point number ``f`` in 16 bits.
 ``ue=m``             exponential-Golomb code for unsigned integer ``m``.
 ``se=m``             exponential-Golomb code for signed integer ``m``.
 ``uie=m``            interleaved exponential-Golomb code for unsigned integer ``m``.
@@ -88,6 +96,7 @@ and you can also include constant bitstring tokens constructed from any of the f
 ``pad:n``            ``n`` zero bits (for use as padding).
 ================     ===============================================================
 
+Note that the ``:`` before the length is optional, but can improve readability.
 You can also use a keyword for the length specifier in the token, for example::
 
     s = bitstring.pack('int:n=-1', n=100)
@@ -98,8 +107,8 @@ And finally it is also possible just to use a keyword as a token::
 
 As you would expect, there is also an :meth:`~Bits.unpack` function that takes a bitstring and unpacks it according to a very similar format string. This is covered later in more detail, but a quick example is::
 
-    >>> s = bitstring.pack('ue, oct:3, hex:8, uint:14', 3, '0o7', '0xff', 90)
-    >>> s.unpack('ue, oct:3, hex:8, uint:14')
+    >>> s = bitstring.pack('ue, oct3, hex8, uint14', 3, '0o7', '0xff', 90)
+    >>> s.unpack('ue, oct3, hex8, uint14')
     [3, '7', 'ff', 90]
 
 .. _compact_format:
@@ -135,11 +144,11 @@ For 'network' endianness use ``>`` as network and big-endian are equivalent. Thi
 
 The exact type is determined by combining the endianness character with the format character, but rather than give an exhaustive list a single example should explain:
 
-======  ======================================   ============
-``>h``  Big-endian 16 bit signed integer         ``intbe:16``
-``<h``  Little-endian 16 bit signed integer      ``intle:16``
-``@h``  Native-endian 16 bit signed integer      ``intne:16``
-======  ======================================   ============
+======  ======================================   ===========
+``>h``  Big-endian 16 bit signed integer         ``intbe16``
+``<h``  Little-endian 16 bit signed integer      ``intle16``
+``@h``  Native-endian 16 bit signed integer      ``intne16``
+======  ======================================   ===========
 
 As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian ``@h`` will equal the big-endian ``>h`` on big-endian systems, and equal the little-endian ``<h`` on little-endian systems. For the single byte codes ``b`` and ``B`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
 
@@ -149,7 +158,7 @@ An example::
 
 is equivalent to ::
 
-    s = bitstring.pack('intbe:64, intbe:64, intbe:64, intbe:64', 10, 11, 12, 13)
+    s = bitstring.pack('intbe64, intbe64, intbe64, intbe64', 10, 11, 12, 13)
 
 Just as in the struct module you can also give a multiplicative factor before the format character, so the previous example could be written even more concisely as ::
 

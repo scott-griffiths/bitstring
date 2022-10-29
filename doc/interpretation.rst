@@ -97,6 +97,11 @@ Different endiannesses are provided via :attr:`~Bits.floatle` and :attr:`~Bits.f
 
 Note also that standard floating point numbers in Python are stored in 64 bits, so use this size if you wish to avoid rounding errors.
 
+bfloat / bfloatbe / bfloatle / bfloatne
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is a specialised 16-bit floating point format that is essentially a truncated version of the 32-bit IEEE float. It is used mainly in machine learning. As only one length is permitted it doesn't need to be specified on creation or interpretation.
+
 bytes
 ^^^^^
 

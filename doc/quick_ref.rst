@@ -64,10 +64,12 @@ Properties
  *   :attr:`~Bits.bin` / ``b`` -- The bitstring as a binary string.
  *   :attr:`~Bits.bool` -- For single bit bitstrings, interpret as True or False.
  *   :attr:`~Bits.bytes` -- The bitstring as a bytes object.
- *   :attr:`~Bits.float` / ``f`` -- Interpret as a floating point number.
- *   :attr:`~Bits.floatbe` -- Interpret as a big-endian floating point number.
+ *   :attr:`~Bits.float` / ``floatbe`` / ``f`` -- Interpret as a big-endian floating point number.
  *   :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
  *   :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
+ *   :attr:`~Bits.bfloat` / ``bfloatbe`` -- Interpret as a big-endian bfloat floating point number.
+ *   :attr:`~Bits.bfloatle` -- Interpret as a little-endian bfloat floating point number.
+ *   :attr:`~Bits.bfloatne` -- Interpret as a native-endian bfloat floating point number.
  *   :attr:`~Bits.hex` / ``h`` -- The bitstring as a hexadecimal string.
  *   :attr:`~Bits.int` / ``i`` -- Interpret as a two's complement signed integer.
  *   :attr:`~Bits.intbe` -- Interpret as a big-endian signed integer.

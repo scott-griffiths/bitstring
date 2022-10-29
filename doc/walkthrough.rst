@@ -66,7 +66,7 @@ Now you would be forgiven for thinking that the strings that we used to create t
 There are a few things to note here:
 
 * To get the different interpretations of the binary data we use properties such as :attr:`~Bits.bin`, :attr:`~Bits.hex`, :attr:`~Bits.oct`, :attr:`~Bits.int` and :attr:`~Bits.bytes`. You can probably guess what these all mean, but you don't need to know quite yet. The properties are calculated when you ask for them rather than being stored as part of the object itself.
-* Many of the interpretations have single letter aliases, which can also have bit lengths appended to them. This allows expressions such as ``a.u32 = 900`` which will set ``a`` to the 32 bit representation of the unsigned integer ``900``. Of course you're not restricted to the usual bit lengths, so something like ``a.i5 = -8`` will work as well.
+* Many of the interpretations have single letter aliases, and interpretations can also have bit lengths appended to them. This allows expressions such as ``a.u32 = 900`` which will set ``a`` to the 32 bit representation of the unsigned integer ``900``. Of course you're not restricted to the usual bit lengths, so something like ``a.i5 = -8`` will work as well.
 
 
 Great - let's try some more::
@@ -168,27 +168,27 @@ So to create a sequence_header for your particular stream with width of 352 and 
 
     s = BitArray()
     s.append('0x000001b3')  # the sequence_header_code
-    s.append('uint:12=352') # 12 bit unsigned integer
-    s.append('uint:12=288')
+    s.append('uint12=352') # 12 bit unsigned integer
+    s.append('uint12=288')
     ...
 
 which is fine, but if you wanted to be a bit more concise you could just write ::
 
-    s = BitArray('0x000001b3, uint:12=352, uint:12=288')
+    s = BitArray('0x000001b3, uint12=352, uint12=288')
 
 This is better, but it might not be a good idea to have the width and height hard-wired in like that. We can make it more flexible by using a format string and the :func:`pack` function::
 
     width, height = 352, 288
     s = bitstring.pack('0x000001b3, 2*u12', width, height)
 
-where we have also used ``2*u12`` as shorthand for ``uint:12, uint:12``.
+where we have also used ``2*u12`` as shorthand for ``uint12, uint12``.
 
 The :func:`pack` function can also take a dictionary as a parameter which can replace the tokens in the format string. For example::
 
     fmt = 'sequence_header_code,
-           uint:12=horizontal_size_value,
-           uint:12=vertical_size_value,
-           uint:4=aspect_ratio_information,
+           uint12=horizontal_size_value,
+           uint12=vertical_size_value,
+           uint4=aspect_ratio_information,
            ...
            '
     d = {'sequence_header_code': '0x000001b3',
@@ -218,19 +218,19 @@ The stream-ness of this object is via its bit position, and various reading and 
     BitStream('0x000001')
     >>> s.pos
     24
-    >>> s.read('hex:8')
+    >>> s.read('hex8')
     'b3'
     >>> s.pos
     32
 
 First we read 24 bits, which returned a new :class:`BitStream` object, then we used a format string to read 8 bits interpreted as a hexadecimal string. We know that the next two sets of 12 bits were created from integers, so to read them back we can say
 
-    >>> s.readlist('2*uint:12')
+    >>> s.readlist('2*uint12')
     [352, 288]
 
 If you don't want to use a bitstream then you can always use :meth:`~Bits.unpack`. This takes much the same form as :meth:`~ConstBitStream.readlist` except it just unpacks from the start of the bitstring. For example::
 
-    >>> s.unpack('bytes:4, 2*uint:12, uint:4')
+    >>> s.unpack('bytes4, 2*uint12, uint4')
     ['\x00\x00\x01\xb3', 352, 288, 1]
 
 

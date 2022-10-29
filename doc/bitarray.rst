@@ -49,7 +49,7 @@ byteswap
         
        It can also be used to swap the endianness of the whole :class:`BitArray`. ::
 
-           >>> s = BitArray('uintle:32=1234')
+           >>> s = BitArray('uintle32=1234')
            >>> s.byteswap()
            >>> print(s.uintbe)
            1234
@@ -202,7 +202,7 @@ Properties
 ----------
 
 Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter.
-The short properties can also have a length in bits appended to them to make properties such as ``u8`` or ``f64``. These properties with lengths can be used to quickly create a new bitstring. ::
+Properties can also have a length in bits appended to them to make properties such as ``u8`` or ``floatle64`` (a length after ths ``bytes`` property is an exception as it is in units of bytes instead of bits). These properties with lengths can be used to quickly create a new bitstring. ::
 
     >>> a = BitArray()
     >>> a.f32 = 17.6
