@@ -672,7 +672,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
             m1 = TOKEN_RE.match(token)
             if m1:
                 name = m1.group('name')
-                length: str = m1.group('len')
+                length = m1.group('len')
                 value = m1.group('value')
             else:
                 m1_short = SHORT_TOKEN_RE.match(token)
@@ -1750,13 +1750,13 @@ class Bits:
             raise CreationError("A non-zero length must be specified with a float initialiser.")
         try:
             b = struct.pack(struct_dict[length], f)
+            self._setbytes_unsafe(bytearray(b), length, 0)
         except KeyError:
             raise CreationError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
         except (OverflowError, struct.error):
             if length == 16:
                 # Not sure why only f16 overflows. Other types go to 'inf'. Could do the same here?
                 raise CreationError(f"Overflow trying to create float16 from {f}.")
-        self._setbytes_unsafe(bytearray(b), length, 0)
 
     def _readfloat(self, start: int, length: int, struct_dict: Dict[int, str]) -> float:
         """Read bits and interpret as a float."""
@@ -2495,6 +2495,18 @@ class Bits:
         if isinstance(fmt, str):
             fmt = [fmt]
         keys = tuple(sorted(kwargs.keys()))
+
+        def convert_length_strings(length_: Optional[Union[str, int]]) -> Optional[int]:
+            int_length: Optional[int] = None
+            if isinstance(length_, str):
+                if length_ in kwargs:
+                    int_length = kwargs[length_]
+                    if name == 'bytes':
+                        int_length *= 8
+            else:
+                int_length = length_
+            return int_length
+
         has_stretchy_token = False
         for f_item in fmt:
             # Replace integers with 'bits' tokens
@@ -2510,10 +2522,7 @@ class Bits:
         if not has_stretchy_token:
             lst = []
             for name, length, _ in tokens:
-                if length in kwargs:
-                    length = kwargs[length]
-                    if name == 'bytes':
-                        length *= 8
+                length = convert_length_strings(length)
                 if name in kwargs and length is None:
                     # Using default 'bits' - the name is really the length.
                     value, pos = self._readtoken('bits', pos, kwargs[name])
@@ -2527,10 +2536,7 @@ class Bits:
         bits_after_stretchy_token = 0
         for token in tokens:
             name, length, _ = token
-            if length in kwargs:
-                length = kwargs[length]
-                if name == 'bytes':
-                    length *= 8
+            length = convert_length_strings(length)
             if stretchy_token:
                 if name in ('se', 'ue', 'sie', 'uie'):
                     raise Error("It's not possible to parse a variable length token after a 'filler' token.")
@@ -2548,10 +2554,7 @@ class Bits:
             if token is stretchy_token:
                 # Set length to the remaining bits
                 length = max(bits_left - bits_after_stretchy_token, 0)
-            if length in kwargs:
-                length = kwargs[length]
-                if name == 'bytes':
-                    length *= 8
+            length = convert_length_strings(length)
             if length is not None:
                 bits_left -= length
             value, pos = self._readtoken(name, pos, length)
