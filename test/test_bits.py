@@ -691,7 +691,7 @@ class PrettyPrinting(unittest.TestCase):
     def testMultiLine(self):
         a = Bits(100)
         s = io.StringIO()
-        a.pp(sep=None, stream=s)
+        a.pp(sep=None, stream=s, width=80)
         self.assertEqual(s.getvalue(), '  0: 000000000000000000000000000000000000000000000000000000000000000000000000\n'
                                        ' 72: 0000000000000000000000000000                                            \n')
 
@@ -731,14 +731,15 @@ class PrettyPrinting(unittest.TestCase):
             a.pp('hex:4, oct')
 
     def testZeroGroupSize(self):
-        a = Bits(400)
+        a = Bits(600)
         s = io.StringIO()
         a.pp('b0', stream=s, show_offset=False)
-        expected_output = ('0' * 80 + '\n') * 5
+        expected_output = ('0' * 120 + '\n') * 5
         self.assertEqual(s.getvalue(), expected_output)
 
+        a = Bits(400)
         s = io.StringIO()
-        a.pp(stream=s, fmt='hex:0', show_offset=False)
+        a.pp(stream=s, fmt='hex:0', show_offset=False, width=80)
         expected_output = ('0' * 80 + '\n') + ('0' * 20 + ' ' * 60 + '\n')
         self.assertEqual(s.getvalue(), expected_output)
 
@@ -768,6 +769,12 @@ class PrettyPrinting(unittest.TestCase):
         expected_output = ("hell owor ld!! hell owor ld!! hell owor ld!!\n"
                            "hell owor ld!! hell owor ld!!               \n")
         self.assertEqual(s.getvalue(), expected_output)
+        s = io.StringIO()
+        a.pp(stream=s, fmt='bytes0', show_offset=False, width=40)
+        expected_output = ("helloworld!!helloworld!!helloworld!!hell\n"
+                           "oworld!!helloworld!!                    \n")
+        self.assertEqual(s.getvalue(), expected_output)
+
 
 
 

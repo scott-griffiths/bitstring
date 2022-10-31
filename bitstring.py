@@ -3017,7 +3017,7 @@ class Bits:
         count += Bits._bitCount[self._datastore.getbyte(self._datastore.bytelength - 1) >> endbits]
         return count if value else self.len - count
 
-    def pp(self, fmt: str = 'bin', width: int = 80, sep: Optional[str] = ' ',
+    def pp(self, fmt: str = 'bin', width: int = 120, sep: Optional[str] = ' ',
            show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty print the bitstring's value.
 
@@ -3025,7 +3025,7 @@ class Bits:
               The number of bits represented in each printed group defaults to 8 for hex and bin,
               12 for oct and 32 for bytes. This can be overridden with an explicit length, e.g. 'hex:64'.
               Use a length of 0 to not split into groups, e.g. `bin:0`.
-        width -- Max width of printed lines. Defaults to 80. A single group will always be printed
+        width -- Max width of printed lines. Defaults to 120. A single group will always be printed
                  per line even if it exceeds the max width.
         sep -- A separator string to insert between groups. Defaults to a single space.
         show_offset -- If True (the default) shows the bit offset in the first column of each line.
@@ -3046,7 +3046,7 @@ class Bits:
             raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}."
                              " Format string was {fmt}.")
 
-        short_token: Pattern[str] = re.compile(r'(?P<name>bin|oct|hex|b|o|h):?(?P<len>\d+)$', re.IGNORECASE)
+        short_token: Pattern[str] = re.compile(r'(?P<name>bytes|bin|oct|hex|b|o|h):?(?P<len>\d+)$', re.IGNORECASE)
         m1 = short_token.match(fmt1)
         if m1:
             length1 = int(m1.group('len'))
