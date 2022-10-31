@@ -222,12 +222,25 @@ bin / b
 
         Writable version of :attr:`Bits.bin`.
 
+bfloat / bfloatbe / bfloatle / bfloatne
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    .. attribute:: BitArray.bfloat
+       :noindex:
+    .. attribute:: BitArray.bfloatbe
+       :noindex:
+    .. attribute:: BitArray.bfloatle
+       :noindex:
+    .. attribute:: BitArray.bfloatne
+       :noindex:
+
+        Writable versions of :attr:`Bits.bfloat` / :attr:`Bits.bfloatbe` / :attr:`Bits.bfloatle` / :attr:`Bits.bfloatne`.
+
 bool
 ^^^^
     .. attribute:: BitArray.bool
        :noindex:
 
-       Writable version of :attr:`Bits.bool`.
+        Writable version of :attr:`Bits.bool`.
 
 bytes
 ^^^^^
@@ -252,7 +265,7 @@ int / i
     .. attribute:: BitArray.i
        :noindex:
 
-        Writable version of :attr:`Bits.int`. The ``i`` property can have a bit length appended to it such as ``i32`` or ``i5`` to specify the new length of the bitstring. Using a length too small to contain the value given will raise a :exc:`CreationError`.
+        Writable version of :attr:`Bits.int`. The properties can have a bit length appended to it such as ``i32`` or ``int5`` to specify the new length of the bitstring. Using a length too small to contain the value given will raise a :exc:`CreationError`.
                 
         When used  as a setter without a new length the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
 
@@ -300,7 +313,7 @@ float / floatbe / f
 
         Writable version of :attr:`Bits.float`. The standard ``float``, the big-endian ``floatbe`` and the shortened ``f`` are all equivalent.
 
-        The ``f`` property can have a bit length appended to it such as ``f16`` or ``f64`` to specify the new length of the bitstring. Using a length that doesn't support any floating point types will raise a :exc:`CreationError`.
+        The properties can have a bit length appended to them such as ``f16`` or ``floatle64`` to specify the new length of the bitstring. Using a length that doesn't support any floating point types will raise a :exc:`CreationError`.
 
 floatle
 ^^^^^^^
