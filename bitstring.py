@@ -2531,9 +2531,9 @@ class Bits:
                 # Set length to the remaining bits
                 length = max(bits_left - bits_after_stretchy_token, 0)
             length = convert_length_strings(length)
-            if length is not None:
-                bits_left -= length
-            value, pos = self._readtoken(name, pos, length)
+            value, newpos = self._readtoken(name, pos, length)
+            bits_left -= newpos - pos
+            pos = newpos
             if value is not None:
                 return_values.append(value)
         return return_values, pos
@@ -3031,7 +3031,7 @@ class Bits:
         show_offset -- If True (the default) shows the bit offset in the first column of each line.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
-        >>> s.pp('hex:16')
+        >>> s.pp('hex16')
         >>> s.pp('b, h', sep='_', show_offset=False)
 
         """

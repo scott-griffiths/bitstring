@@ -26,8 +26,8 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
     For information on the use of ``auto`` see :ref:`auto_init`. ::
 
-        >>> s = Bits('uint:12=32, 0b110')
-        >>> t = Bits('0o755, ue:12, int:3=-1')
+        >>> s = Bits('uint12=32, 0b110')
+        >>> t = Bits('0o755, ue=12, int:3=-1')
 
 Methods
 -------

@@ -407,6 +407,11 @@ class PadToken(unittest.TestCase):
         x = s.unpack('pad:1, pad:2, pad:3')
         self.assertEqual(x, [])
 
+    def testUnpackBug(self):
+        t = Bits('0o755, ue=12, int3=-1')
+        a, b = t.unpack('pad:9, ue, int')
+        self.assertEqual((a, b), (12, -1))
+
 
 class ModifiedByAddingBug(unittest.TestCase):
 
@@ -774,8 +779,6 @@ class PrettyPrinting(unittest.TestCase):
         expected_output = ("helloworld!!helloworld!!helloworld!!hell\n"
                            "oworld!!helloworld!!                    \n")
         self.assertEqual(s.getvalue(), expected_output)
-
-
 
 
 class PrettyPrintingErrors(unittest.TestCase):
