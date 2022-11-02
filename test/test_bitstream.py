@@ -1232,8 +1232,10 @@ class Adding(unittest.TestCase):
             s.overwrite(BitStream(bin='1'), -10)
         with self.assertRaises(ValueError):
             s.overwrite(BitStream(bin='1'), 6)
-        with self.assertRaises(ValueError):
-            s.overwrite(BitStream(bin='11111'), 1)
+        s.overwrite('bin=0', 5)
+        self.assertEqual(s.b, '111110')
+        s.overwrite(BitStream(hex='0x00'), 1)
+        self.assertEqual(s.b, '100000000')
 
     def testDeleteBits(self):
         s = BitStream(bin='000111100000')
@@ -2095,8 +2097,6 @@ class Split2(unittest.TestCase):
         a.overwrite('0xb')
         self.assertEqual(a, '0xab')
         self.assertEqual(a.bitpos, 8)
-        with self.assertRaises(ValueError):
-            a.overwrite('0b1')
         a.overwrite('0xa', 4)
         self.assertEqual(a, '0xaa')
         self.assertEqual(a.bitpos, 8)

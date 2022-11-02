@@ -2276,11 +2276,14 @@ class Bits:
 
     def _overwrite_msb0(self, bs: Bits, pos: int) -> None:
         """Overwrite with bs at pos."""
-        assert 0 <= pos < self.len
+        assert 0 <= pos <= self.len
         if bs is self:
             # Just overwriting with self, so do nothing.
             assert pos == 0
             return
+        if pos + bs.len > self.len:
+            # The overwrite goes past the end. Easiest thing is to extend with zeros then overwrite.
+            self._addright(Bits(pos + bs.len - self.len))
         firstbytepos = (self._offset + pos) // 8
         lastbytepos = (self._offset + pos + bs.len - 1) // 8
         bytepos, bitoffset = divmod(self._offset + pos, 8)
@@ -3806,7 +3809,7 @@ class BitArray(Bits):
         bs -- The bitstring to overwrite with.
         pos -- The bit position to begin overwriting from.
 
-        Raises ValueError if pos < 0 or pos + len(bs) > len(self).
+        Raises ValueError if pos < 0 or pos > len(self).
 
         """
         bs = Bits(bs)
@@ -3815,11 +3818,11 @@ class BitArray(Bits):
         if pos is None:
             pos = self._pos
             if pos is None:
-                raise TypeError("overwrite needs a bit position specified when used on a BitArray.")
+                raise TypeError("Overwrite needs a bit position specified when used on a BitArray.")
         if pos < 0:
             pos += self._getlength()
-        if pos < 0 or pos + bs.len > self.len:
-            raise ValueError("Overwrite exceeds boundary of bitstring.")
+        if pos < 0 or pos > self.len:
+            raise ValueError("Overwrite starts outside boundary of bitstring.")
         self._overwrite(bs, pos)
         if self._pos is not None:
             self._pos = pos + bs.len

@@ -27,6 +27,8 @@ Breaking changes:
 * Removed default uint interpretation. This wasn't being applied uniformly - default
   is now always to return a bitstring object of the given length and not to interpret
   it as a uint. Bug 220.
+* If an overwrite goes beyond the end of the bitstring it will now extend the bitstring
+  rather than raise an exception. Bug 148.
 
 New features and improvements:
 
