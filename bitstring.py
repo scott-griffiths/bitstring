@@ -3114,7 +3114,7 @@ class Bits:
         format_sep = "   "  # String to insert on each line between multiple formats
 
         offset_width = 0
-        offset_sep = ': '
+        offset_sep = ' :' if _lsb0 else ': '
         if show_offset:
             # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
             offset_width = len(str(len(self))) + len(offset_sep)
@@ -3152,20 +3152,33 @@ class Bits:
             return formatted
 
         bitpos = 0
-        first_fb_width = None
+        first_fb_width = second_fb_width = None
         for bits in self.cut(max_bits_per_line):
-            if show_offset:
-                stream.write(f'{bitpos: >{offset_width - len(offset_sep)}}{offset_sep}')
+            if _lsb0:
+                offset_str = f'{offset_sep}{bitpos: >{offset_width - len(offset_sep)}}' if show_offset else ''
+            else:
+                offset_str = f'{bitpos: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
             fb = format_bits(bits, group_chars1, sep, fmt1)
             if first_fb_width is None:
                 first_fb_width = len(fb)
             if len(fb) < first_fb_width:  # Pad final line with spaces to align it
-                fb += ' ' * (first_fb_width - len(fb))
-            stream.write(fb)
-            if fmt2 is not None:
-                stream.write(format_sep)
-                stream.write(format_bits(bits, group_chars2, sep, fmt2))
-            stream.write('\n')
+                if _lsb0:
+                    fb = ' ' * (first_fb_width - len(fb)) + fb
+                else:
+                    fb += ' ' * (first_fb_width - len(fb))
+            fb2 = '' if fmt2 is None else format_sep + format_bits(bits, group_chars2, sep, fmt2)
+            if second_fb_width is None:
+                second_fb_width = len(fb2)
+            if len(fb2) < second_fb_width:
+                if _lsb0:
+                    fb2 = ' ' * (second_fb_width - len(fb2)) + fb2
+                else:
+                    fb2 += ' ' * (second_fb_width - len(fb2))
+            if _lsb0 is True:
+                line_fmt = fb + fb2 + offset_str + '\n'
+            else:
+                line_fmt = offset_str + fb + fb2 + '\n'
+            stream.write(line_fmt)
             bitpos += len(bits)
         return
 

@@ -717,7 +717,7 @@ class PrettyPrinting(unittest.TestCase):
                                        ' 24: 11111111 11111111 11111111   ff ff ff\n'
                                        ' 48: 11111111 11111111 11111111   ff ff ff\n'
                                        ' 72: 11111111 11111111 11111111   ff ff ff\n'
-                                       ' 96: 11111111 11111111            ff ff\n')
+                                       ' 96: 11111111 11111111            ff ff   \n')
         s = io.StringIO()
         a.pp(stream=s, fmt='bin, hex', width=41)
         self.assertEqual(s.getvalue(), '  0: 11111111 11111111   ff ff\n'            
@@ -800,21 +800,21 @@ class PrettyPrintingErrors(unittest.TestCase):
             a.pp('bin, bytes')
 
 
-# class PrettyPrinting_LSB0(unittest.TestCase):
-#
-#     def setUp(self) -> None:
-#         bitstring.set_lsb0()
-#
-#     def tearDown(self) -> None:
-#         bitstring.set_msb0()
-#
-#     def test_lsb0(self):
-#         a = Bits(20)
-#         s = io.StringIO()
-#         a.pp(stream=s, width=5)
-#         self.assertEqual(s.getvalue(), '    0000 :16\n'
-#                                        '00000000 : 8\n'
-#                                        '00000000 : 0\n')
+class PrettyPrinting_LSB0(unittest.TestCase):
+
+    def setUp(self) -> None:
+        bitstring.lsb0 = True
+
+    def tearDown(self) -> None:
+        bitstring.lsb0 = False
+
+    def test_bin(self):
+        a = Bits(bin='1111 0000 0000 1111 1010')
+        s = io.StringIO()
+        a.pp(stream=s, width=5)
+        self.assertEqual(s.getvalue(), '11111010 : 0\n'
+                                       '00000000 : 8\n'
+                                       '    1111 :16\n')
 
 class Copy(unittest.TestCase):
 
