@@ -158,7 +158,7 @@ A slightly different type, interleaved exponential-Golomb codes are also support
 Short Interpretations
 ---------------------
 
-Many of the more commonly used interpretations have single letter equivalents. The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can be shortened to ``h``, ``b``, ``o``, ``i``, ``u`` and ``f`` respectively. These shorter properties can have bit lengths appended to them to make properties such as ``f64`` or ``u32``.
+Many of the more commonly used interpretations have single letter equivalents. The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can be shortened to ``h``, ``b``, ``o``, ``i``, ``u`` and ``f`` respectively. Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32`` or ``floatle32``.
 
 When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
 

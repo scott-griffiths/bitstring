@@ -3,7 +3,7 @@
 from setuptools import setup
 
 
-kwds = {'long_description': open('README.rst').read()}
+kwds = {'long_description': open('README.md').read()}
 
 setup(name='bitstring',
       version='4.0.0.b2',

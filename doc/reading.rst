@@ -51,37 +51,37 @@ The :meth:`~ConstBitStream.read` / :meth:`~ConstBitStream.readlist` methods can 
 
 The format string consists of comma separated tokens that describe how to interpret the next bits in the bitstring. The tokens are:
 
-==============   ===================================================================
-``int:n``        ``n`` bits as a signed integer.
-``uint:n``       ``n`` bits as an unsigned integer.
-``intbe:n``	     ``n`` bits as a byte-wise big-endian signed integer.
-``uintbe:n``     ``n`` bits as a byte-wise big-endian unsigned integer.
-``intle:n``      ``n`` bits as a byte-wise little-endian signed integer.
-``uintle:n``     ``n`` bits as a byte-wise little-endian unsigned integer.
-``intne:n``      ``n`` bits as a byte-wise native-endian signed integer.
-``uintne:n``     ``n`` bits as a byte-wise native-endian unsigned integer.
-``float:n``      ``n`` bits as a big-endian floating point number (same as ``floatbe``).
-``floatbe:n``    ``n`` bits as a big-endian floating point number (same as ``float``).
-``floatle:n``    ``n`` bits as a little-endian floating point number.
-``floatne:n``    ``n`` bits as a native-endian floating point number.
+================= ===============================================================================
+``int:n``         ``n`` bits as a signed integer.
+``uint:n``        ``n`` bits as an unsigned integer.
+``intbe:n``	      ``n`` bits as a byte-wise big-endian signed integer.
+``uintbe:n``      ``n`` bits as a byte-wise big-endian unsigned integer.
+``intle:n``       ``n`` bits as a byte-wise little-endian signed integer.
+``uintle:n``      ``n`` bits as a byte-wise little-endian unsigned integer.
+``intne:n``       ``n`` bits as a byte-wise native-endian signed integer.
+``uintne:n``      ``n`` bits as a byte-wise native-endian unsigned integer.
+``float:n``       ``n`` bits as a big-endian floating point number (same as ``floatbe``).
+``floatbe:n``     ``n`` bits as a big-endian floating point number (same as ``float``).
+``floatle:n``     ``n`` bits as a little-endian floating point number.
+``floatne:n``     ``n`` bits as a native-endian floating point number.
 ``bfloat[:16]``   16 bits as a big-endian bfloat floating point number (same as ``bfloatbe``).
 ``bfloatbe[:16]`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
 ``bfloatle[:16]`` 16 bits as a little-endian floating point number.
 ``bfloatne[:16]`` 16 bits as a native-endian floating point number.
-``hex:n``        ``n`` bits as a hexadecimal string.
-``oct:n``        ``n`` bits as an octal string.
-``bin:n``        ``n`` bits as a binary string.
-``bits:n``       ``n`` bits as a new bitstring.
-``bytes:n``      ``n`` bytes as a ``bytes`` object.
-``ue``           next bits as an unsigned exponential-Golomb code.
-``se``           next bits as a signed exponential-Golomb code.
-``uie``          next bits as an interleaved unsigned exponential-Golomb code.
-``sie``          next bits as an interleaved signed exponential-Golomb code.
-``bool[:1]``     next bit as a boolean (True or False).
-``pad:n``        next ``n`` bits will be ignored (padding).
-==============   ===================================================================
+``hex:n``         ``n`` bits as a hexadecimal string.
+``oct:n``         ``n`` bits as an octal string.
+``bin:n``         ``n`` bits as a binary string.
+``bits:n``        ``n`` bits as a new bitstring.
+``bytes:n``       ``n`` bytes as a ``bytes`` object.
+``ue``            next bits as an unsigned exponential-Golomb code.
+``se``            next bits as a signed exponential-Golomb code.
+``uie``           next bits as an interleaved unsigned exponential-Golomb code.
+``sie``           next bits as an interleaved signed exponential-Golomb code.
+``bool[:1]``      next bit as a boolean (True or False).
+``pad:n``         next ``n`` bits will be ignored (padding).
+================= ===============================================================================
 
-The ``:`` before the length is optional but can improve readability.
+Using a ``:`` before the length is optional but can improve readability.
 
 So in the earlier example we could have written::
 

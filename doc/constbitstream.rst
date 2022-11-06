@@ -61,31 +61,35 @@ read
 
         *fmt* is either a token string that describes how to interpret the next bits in the bitstring or an integer. If it's an integer then that number of bits will be read, and returned as a new bitstring. Otherwise the tokens are:
 
-        ==============   =================================================
-        ``int:n``        ``n`` bits as a signed integer.
-        ``uint:n``       ``n`` bits as an unsigned integer.
-        ``float:n``      ``n`` bits as a floating point number.
-        ``intbe:n``      ``n`` bits as a big-endian signed integer.
-        ``uintbe:n``     ``n`` bits as a big-endian unsigned integer.
-        ``floatbe:n``    ``n`` bits as a big-endian float.
-        ``intle:n``      ``n`` bits as a little-endian signed int.
-        ``uintle:n``     ``n`` bits as a little-endian unsigned int.
-        ``floatle:n``    ``n`` bits as a little-endian float.
-        ``intne:n``      ``n`` bits as a native-endian signed int.
-        ``uintne:n``     ``n`` bits as a native-endian unsigned int.
-        ``floatne:n``    ``n`` bits as a native-endian float.
-        ``hex:n``        ``n`` bits as a hexadecimal string.
-        ``oct:n``        ``n`` bits as an octal string.
-        ``bin:n``        ``n`` bits as a binary string.
-        ``ue``           next bits as an unsigned exp-Golomb.
-        ``se``           next bits as a signed exp-Golomb.
-        ``uie``          next bits as an interleaved unsigned exp-Golomb.
-        ``sie``          next bits as an interleaved signed exp-Golomb.
-        ``bits:n``       ``n`` bits as a new bitstring.
-        ``bytes:n``      ``n`` bytes as ``bytes`` object.
-        ``bool[:1]``     next bit as a boolean (True or False).
-        ``pad:n``        next ``n`` bits will be skipped.
-        ==============   =================================================
+        ================= ===============================================================================
+        ``int:n``         ``n`` bits as a signed integer.
+        ``uint:n``        ``n`` bits as an unsigned integer.
+        ``intbe:n``	      ``n`` bits as a byte-wise big-endian signed integer.
+        ``uintbe:n``      ``n`` bits as a byte-wise big-endian unsigned integer.
+        ``intle:n``       ``n`` bits as a byte-wise little-endian signed integer.
+        ``uintle:n``      ``n`` bits as a byte-wise little-endian unsigned integer.
+        ``intne:n``       ``n`` bits as a byte-wise native-endian signed integer.
+        ``uintne:n``      ``n`` bits as a byte-wise native-endian unsigned integer.
+        ``float:n``       ``n`` bits as a big-endian floating point number (same as ``floatbe``).
+        ``floatbe:n``     ``n`` bits as a big-endian floating point number (same as ``float``).
+        ``floatle:n``     ``n`` bits as a little-endian floating point number.
+        ``floatne:n``     ``n`` bits as a native-endian floating point number.
+        ``bfloat[:16]``   16 bits as a big-endian bfloat floating point number (same as ``bfloatbe``).
+        ``bfloatbe[:16]`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
+        ``bfloatle[:16]`` 16 bits as a little-endian floating point number.
+        ``bfloatne[:16]`` 16 bits as a native-endian floating point number.
+        ``hex:n``         ``n`` bits as a hexadecimal string.
+        ``oct:n``         ``n`` bits as an octal string.
+        ``bin:n``         ``n`` bits as a binary string.
+        ``bits:n``        ``n`` bits as a new bitstring.
+        ``bytes:n``       ``n`` bytes as a ``bytes`` object.
+        ``ue``            next bits as an unsigned exponential-Golomb code.
+        ``se``            next bits as a signed exponential-Golomb code.
+        ``uie``           next bits as an interleaved unsigned exponential-Golomb code.
+        ``sie``           next bits as an interleaved signed exponential-Golomb code.
+        ``bool[:1]``      next bit as a boolean (True or False).
+        ``pad:n``         next ``n`` bits will be ignored (padding).
+        ================= ===============================================================================
 
         The ``:`` before the length is optional as of bitstring version 4, and is mostly omitted in the documentation, except where it improves readability.
 

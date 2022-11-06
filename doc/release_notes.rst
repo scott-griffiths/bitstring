@@ -8,8 +8,8 @@ Release Notes
 Full version history
 ====================
 
-2022: version 4.0.0 released
-----------------------------
+November 2022: version 4.0.0 released
+-------------------------------------
 
 This is a major release which drops support for Python 2.7 and has a new minimum
 requirement of Python 3.7. Around 94% of downloads satisfy this - users of
@@ -79,11 +79,7 @@ New features and improvements:
       '1000100'
       >>> t = Bits('u12=160, u12=120, b=100')
 
-  The standard properties can also have lengths as part of them where appropriate. ::
-
-      >>> s.floatle32 = 50000
-
-* Support for 16 bit floats. Floating point types can now be 16 bits long as well
+* Support for IEEE 16 bit floats. Floating point types can now be 16 bits long as well
   as 32 and 64 bits. This is using the 'e' format from the struct module.
 
 * Support for the bfloat format. This is a specialised 16-bit floating point format

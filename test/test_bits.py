@@ -637,6 +637,8 @@ class Lsb0Interpretations(unittest.TestCase):
         a = Bits('0xabcdef')
         b = a.bytes
         self.assertEqual(b, b'\xab\xcd\xef')
+        b = a.bytes3
+        self.assertEqual(b, b'\xab\xcd\xef')
 
 
 class UnderscoresInLiterals(unittest.TestCase):

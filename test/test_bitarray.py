@@ -716,6 +716,17 @@ class NewProperties(unittest.TestCase):
         a.float32 = 10.5
         self.assertEqual(a.f32, 10.5)
 
+    def testBytesProperties(self):
+        a = BitArray()
+        a.bytes = b'hello'
+        self.assertEqual(a.bytes5, b'hello')
+        a.bytes3 = b'123'
+        self.assertEqual(a.bytes, b'123')
+        with self.assertRaises(bitstring.CreationError):
+            a.bytes5 = b'123456789'
+        with self.assertRaises(bitstring.CreationError):
+            a.bytes5 = b'123'
+
 
 class BFloats(unittest.TestCase):
 

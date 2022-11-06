@@ -1038,7 +1038,9 @@ class Bits:
         name_length = name_length_pattern.match(attribute)
         if name_length:
             name = name_length.group('name')
-            length = name_length.group('len')
+            length = int(name_length.group('len'))
+            if name == 'bytes' and length is not None:
+                length *= 8
             if length is not None and self.len != int(length):
                 raise InterpretError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
             try:
@@ -1104,9 +1106,9 @@ class Bits:
         Indices are in units of the step parameter (default 1 bit).
         Stepping is used to specify the number of bits in each item.
 
-        >>> print BitArray('0b00110')[1:4]
+        >>> print(BitArray('0b00110')[1:4])
         '0b011'
-        >>> print BitArray('0x00112233')[1:3:8]
+        >>> print(BitArray('0x00112233')[1:3:8])
         '0x1122'
 
         """
@@ -3495,6 +3497,10 @@ class BitArray(Bits):
                 length = name_length.group('len')
                 if length is not None:
                     length = int(length)
+                    if name == 'bytes':
+                        if len(value) != length:
+                            raise CreationError(f"Wrong amount of byte data preset - {length} bytes needed, have {len(value)} bytes.")
+                        length *= 8
                 try:
                     a_copy = self._copy()
                     self._initialise(auto=None, length=length, offset=None, **{name: value})

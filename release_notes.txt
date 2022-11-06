@@ -2,11 +2,12 @@
 bitstring module version history
 --------------------------------
 
----
-version 4.0.0
+-------------------------------------
+November 2022: version 4.0.0 released
+-------------------------------------
 
 This is a major release which drops support for Python 2.7 and has a new minimum
-requirement of Python 3.7. Around 94% of downloads satisfy this - users of
+requirement of Python 3.7. Around 95% of downloads satisfy this - users of
 older versions can continue to use bitstring 3.1, which will still be supported
 with fixes, but no new features.
 
@@ -72,12 +73,26 @@ New features and improvements:
       '1000100'
       >>> t = Bits('u12=160, u12=120, b=100')
 
-* Support for 16 bit floats. Floating point types can now be 16 bits long as well
-  as 32 and 64 bits. This is using the 'e' format from the struct module.
-* Support for bfloats. The bfloat type is a 16-bit floating point format used
-  mainly in machine learning. It's essentially a truncated IEEE 32-bit format that
-  keeps its range but only has a couple of signficant figures of accuracy.
+* Other types with bit lengths can also be used as properties ::
 
+      >>> s.floatle64 = 10.511
+
+* A colon is no longer required in format strings before a bit length. So for
+  example `Bits('int:15=-101')` could be written as `Bits('int15=-101')`. This is
+  now the preferred usage in the documentation except where the colon improves
+  readability.
+
+* Support for IEEE 16 bit floats. Floating point types can now be 16 bits long as well
+  as 32 and 64 bits. This is using the 'e' format from the struct module.
+
+* Support for bfloats. This is a specialised 16-bit floating point format
+  mostly used in machine learning. It's essentially a truncated IEEE 32-bit
+  format that keeps its range but only has a couple of signficant figures of
+  accuracy.
+
+* Removed requirement to have a colon before lengths in format strings. So for example
+  `'uint:12=100'` can be just `'uint12=100'`. The colon is still recommended for
+  readability if the length isn't given as a number literal.
 
 ---------------------------------------
 July 20th 2021: version 3.1.9 released
