@@ -812,6 +812,7 @@ class Bits:
     floatne -- Interpret as a native-endian floating point number.
     bfloat / bfloatbe -- Interpret as a big-endian 16-bit bfloat type.
     bfloatle -- Interpret as a little-endian 16-bit bfloat type.
+    bfloatne -- Interpret as a native-endian 16-bit bfloat type.
     intbe -- Interpret as a big-endian signed integer.
     intle -- Interpret as a little-endian signed integer.
     intne -- Interpret as a native-endian signed integer.
@@ -878,6 +879,7 @@ class Bits:
         floatne -- a native-endian floating point number.
         bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
         bfloatle -- a little-endian bfloat format 16-bit floating point number.
+        bfloatne -- a native-endian bfloat format 16-bit floating point number.
         intbe -- a signed big-endian whole byte integer.
         intle -- a signed little-endian whole byte integer.
         intne -- a signed native-endian whole byte integer.
@@ -3371,6 +3373,7 @@ class BitArray(Bits):
     floatne -- Interpret as a native-endian floating point number.
     bfloat / bfloatbe -- Interpret as a big-endian 16-bit bfloat type.
     bfloatle -- Interpret as a little-endian 16-bit bfloat type.
+    bfloatne -- Interpret as a native-endian 16-bit bfloat type.
     intbe -- Interpret as a big-endian signed integer.
     intle -- Interpret as a little-endian signed integer.
     intne -- Interpret as a native-endian signed integer.
@@ -3429,6 +3432,7 @@ class BitArray(Bits):
         floatne -- a native-endian floating point number.
         bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
         bfloatle -- a little-endian bfloat format 16-bit floating point number.
+        bfloatne -- a native-endian bfloat format 16-bit floating point number.
         intbe -- a signed big-endian whole byte integer.
         intle -- a signed little-endian whole byte integer.
         intne -- a signed native-endian whole byte integer.
@@ -4183,6 +4187,7 @@ class ConstBitStream(Bits):
     floatne -- Interpret as a native-endian floating point number.
     bfloat / bfloatbe -- Interpret as a big-endian 16-bit bfloat type.
     bfloatle -- Interpret as a little-endian 16-bit bfloat type.
+    bfloatne -- Interpret as a native-endian 16-bit bfloat type.
     intbe -- Interpret as a big-endian signed integer.
     intle -- Interpret as a little-endian signed integer.
     intne -- Interpret as a native-endian signed integer.
@@ -4219,6 +4224,7 @@ class ConstBitStream(Bits):
         floatne -- a native-endian floating point number.
         bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
         bfloatle -- a little-endian bfloat format 16-bit floating point number.
+        bfloatne -- a native-endian bfloat format 16-bit floating point number.
         intbe -- a signed big-endian whole byte integer.
         intle -- a signed little-endian whole byte integer.
         intne -- a signed native-endian whole byte integer.
@@ -4525,6 +4531,7 @@ class BitStream(ConstBitStream, BitArray):
     floatne -- Interpret as a native-endian floating point number.
     bfloat / bfloatbe -- Interpret as a big-endian 16-bit bfloat type.
     bfloatle -- Interpret as a little-endian 16-bit bfloat type.
+    bfloatne -- Interpret as a native-endian 16-bit bfloat type.
     intbe -- Interpret as a big-endian signed integer.
     intle -- Interpret as a little-endian signed integer.
     intne -- Interpret as a native-endian signed integer.
@@ -4561,6 +4568,7 @@ class BitStream(ConstBitStream, BitArray):
         floatne -- a native-endian floating point number.
         bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
         bfloatle -- a little-endian bfloat format 16-bit floating point number.
+        bfloatne -- a native-endian bfloat format 16-bit floating point number.
         intbe -- a signed big-endian whole byte integer.
         intle -- a signed little-endian whole byte integer.
         intne -- a signed native-endian whole byte integer.
