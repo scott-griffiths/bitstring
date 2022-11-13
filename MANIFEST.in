@@ -1,5 +1,5 @@
-include test/test.m1v
-include test/smalltestfile
+include tests/test.m1v
+include tests/smalltestfile
 include release_notes.txt
 include README.md
 prune doc

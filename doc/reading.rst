@@ -19,7 +19,7 @@ The property :attr:`~ConstBitStream.bytepos` is also available, and is useful if
 ^^^^^^^^^^^^^^^^^^^
 For simple reading of a number of bits you can use :meth:`~ConstBitStream.read` with an integer argument. A new bitstring object gets returned, which can be interpreted using one of its properties or used for further reads. The following example does some simple parsing of an MPEG-1 video stream (the stream is provided in the ``test`` directory if you downloaded the source archive). ::
 
-    >>> s = ConstBitStream(filename='test/test.m1v')
+    >>> s = ConstBitStream(filename='tests/test.m1v')
     >>> print(s.pos)
     0
     >>> start_code = s.read(32).hex
