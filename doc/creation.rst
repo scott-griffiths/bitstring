@@ -101,10 +101,17 @@ From an integer
 
 For initialisation with signed and unsigned binary integers (``int`` and ``uint`` respectively) the ``length`` parameter is mandatory, and must be large enough to contain the integer. So for example if ``length`` is 8 then ``uint`` can be in the range 0 to 255, while ``int`` can range from -128 to 127. Two's complement is used to represent negative numbers.
 
-The auto initialise can be used by giving a colon and the length in bits immediately after the ``int`` or ``uint`` token, followed by an equals sign then the value::
+The auto initialise can be used by giving the length in bits immediately after the ``int`` or ``uint`` token, followed by an equals sign then the value::
 
     >>> e = BitArray('uint12=45')
     >>> f = BitArray('int7=-1')
+
+The ``uint`` and ``int`` names can be shortened to just ``u`` and ``i`` respectively. For mutable bitstrings you can change value by assigning to a property with a length::
+
+    >>> e = BitArray()
+    >>> e.u12 = 45
+    >>> f = BitArray()
+    >>> f.i7 = -1
 
 The plain ``int`` and ``uint`` initialisers are bit-wise big-endian. That is to say that the most significant bit comes first and the least significant bit comes last, so the unsigned number one will have a ``1`` as its final bit with all other bits set to ``0``. These can be any number of bits long. For whole-byte bitstring objects there are more options available with different endiannesses.
 
@@ -259,7 +266,7 @@ You can also chain together string initialisers with commas, which causes the in
     >>> s = BitArray('0x12, 0b1, uint5=2, ue=5, se=-1, se=4')
     >>> s.find('uint5=2, ue=5')
     True
-    >>> s.insert('0o332, 0b11, int:23=300', 4)
+    >>> s.insert('0o332, 0b11, int23=300', 4)
 
 Again, note how the format used in the ``auto`` initialiser can be used in many other places where a bitstring is needed.
 

@@ -81,7 +81,7 @@ Simple Examples
 
      >>> a = BitArray(bin='00101')
      >>> b = Bits(a_file_object)
-     >>> c = BitArray('0xff, 0b101, 0o65, uint:6=22')
+     >>> c = BitArray('0xff, 0b101, 0o65, uint6=22')
      >>> d = pack('intle16, hex=a, 0b1', 100, a='0x34f')
      >>> e = pack('<16h', *range(16))
 
