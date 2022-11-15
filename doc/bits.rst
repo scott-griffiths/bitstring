@@ -409,7 +409,7 @@ len / length
 
         Read-only property that give the length of the bitstring in bits (:attr:`len` and :attr:`length` are equivalent).
 
-        This is almost equivalent to using the ``len()`` built-in function, except that for large bitstrings ``len()`` may fail with an :exc:`OverflowError`, whereas the :attr:`len` property continues to work.
+        Using the ``len()`` built-in function is preferred in almost all cases, but these properties are available for backward compatibility. The only occasion where the properties are needed is if a 32-bit build of Python is being used and you have a bitstring whose length doesn't fit in a 32-bit unsigned integer. In that case ``len(s)`` may fail with an :exc:`OverflowError`, whereas ``s.len`` will still work. With 64-bit Python the problem shouldn't occur unless you have more than a couple of exabytes of data!
 
 oct / o
 ^^^^^^^

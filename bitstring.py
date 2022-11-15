@@ -3106,10 +3106,8 @@ class Bits:
                 elif fmt1 == 'bytes':
                     bits_per_group = 32
             else:
-                bpc1 = bpc[fmt1]
-                bpc2 = bpc[fmt2]
                 # Rule of thumb seems to work OK for all combinations.
-                bits_per_group = 2 * bpc1 * bpc2
+                bits_per_group = 2 * bpc[fmt1] * bpc[fmt2]
                 if bits_per_group >= 24:
                     bits_per_group //= 2
 

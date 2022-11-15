@@ -21,4 +21,4 @@ keywords = ["binary", "bitarray", "bitvector"]
 
 [project.urls]
 homepage = "https://github.com/scott-griffiths/bitstring"
-documentation = "https://bitstring.readthedocs.io/en/latest/"
+documentation = "https://bitstring.readthedocs.io/"

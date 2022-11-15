@@ -90,9 +90,6 @@ New features and improvements:
   format that keeps its range but only has a couple of signficant figures of
   accuracy.
 
-* Removed requirement to have a colon before lengths in format strings. So for example
-  `'uint:12=100'` can be just `'uint12=100'`. The colon is still recommended for
-  readability if the length isn't given as a number literal.
 
 ---------------------------------------
 July 20th 2021: version 3.1.9 released

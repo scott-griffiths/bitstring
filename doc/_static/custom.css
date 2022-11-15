@@ -40,3 +40,7 @@ div.document div.admonition.attention p.admonition-title, div.document div.admon
     color: #ffffff;
     background-color: #d77732;
 }
+
+div.document li p {
+    margin: 0 0 0.3rem 0;
+}
