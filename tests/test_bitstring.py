@@ -14,7 +14,7 @@ import copy
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '4.0.0')
+        self.assertEqual(bitstring.__version__, '4.0.1')
 
     def testAll(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',
