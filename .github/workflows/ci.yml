@@ -100,6 +100,8 @@ jobs:
             action: 'pypy-3.8'
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: repo
 
       - name: Download package files
         uses: actions/download-artifact@v3
@@ -124,7 +126,7 @@ jobs:
         run: |
           python --version --version
           # make sure we test the installed code
-          rm -rf bitstring/
+          cp -R repo/tests/ .
           pip install --find-links dist/ bitstring
           python -m unittest
 
