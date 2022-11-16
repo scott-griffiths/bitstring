@@ -133,6 +133,8 @@ jobs:
           cp -R repo/tests/ .
           python -m pip install --upgrade pip
           python -m pip install ./dist/*.whl
+          # make sure bitstring at least looks like what we want
+          python -c 'import bitstring; print(bitstring); assert bitstring.__file__.endswith("/site-packages/bitstring.py")'
 
       - name: Run unittest
         run: |
