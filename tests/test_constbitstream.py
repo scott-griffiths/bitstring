@@ -220,6 +220,6 @@ class CreationWithPos(unittest.TestCase):
     def testStringRepresentationFromFile(self):
         filename = os.path.join(THIS_DIR, 'test.m1v')
         s = CBS(filename=filename, pos=2001)
-        self.assertEqual(s.__repr__(), f"ConstBitStream(filename='{filename}', length=1002400, pos=2001)")
+        self.assertEqual(s.__repr__(), f"ConstBitStream(filename={repr(str(filename))}, length=1002400, pos=2001)")
         s.pos = 0
-        self.assertEqual(s.__repr__(), f"ConstBitStream(filename='{filename}', length=1002400)")
+        self.assertEqual(s.__repr__(), f"ConstBitStream(filename={repr(str(filename))}, length=1002400)")
