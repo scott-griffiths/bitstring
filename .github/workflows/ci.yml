@@ -127,3 +127,20 @@ jobs:
           rm -rf bitstring/
           pip install --find-links dist/ bitstring
           python -m unittest
+
+  all:
+    name: All successful
+    runs-on: ubuntu-latest
+    # The always() part is very important.
+    # If not set, the job will be skipped on failing dependencies.
+    if: always()
+    needs:
+      # This is the list of CI job that we are interested to be green before
+      # a merge.
+      - build
+      - test
+    steps:
+      - name: Require all successes
+        uses: re-actors/alls-green@v1
+        with:
+          jobs: ${{ toJSON(needs) }}
