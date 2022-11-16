@@ -776,3 +776,7 @@ class BFloats(unittest.TestCase):
         x, y, z = a.unpack('3*bfloat16')
         self.assertEqual((x, y, z), (1.0, 2.0, 3.0))
 
+    def testInterpretBug(self):
+        a = BitArray(100)
+        with self.assertRaises(bitstring.InterpretError):
+            v = a.bfloat

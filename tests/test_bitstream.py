@@ -3367,7 +3367,7 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(b._readintle(8, 200), 918019283740918263512351235)
 
         a = BitStream('0b111, bfloat:16=-5.25, 0xffffffff')
-        self.assertEqual(a._readbfloatbe(3, 19), -5.25)
+        self.assertEqual(a._readbfloatbe(3, 16), -5.25)
 
         a = BitStream('0b111, floatle:64=9.9998, 0b111')
         self.assertEqual(a._readfloatle(3, 64), 9.9998)
