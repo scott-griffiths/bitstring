@@ -10,6 +10,10 @@ on:
     branches:
       - '**'
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref == 'refs/heads/main' && github.sha || '' }}
+  cancel-in-progress: true
+
 defaults:
   run:
     shell: bash
@@ -53,7 +57,7 @@ jobs:
           # PyPy    -> pypy-3.7
           python-version: ${{ fromJSON(format('["{0}", "{1}"]', format('{0}.0-alpha - {0}.X', matrix.python.major_dot_minor), matrix.python.major_dot_minor))[startsWith(matrix.python.major_dot_minor, 'pypy')] }}
           architecture: x64
-      - run: |
-          pwd
+      - name: Run unittest
+        run: |
           python --version --version
           python -m unittest
