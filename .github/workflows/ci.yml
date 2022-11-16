@@ -63,6 +63,8 @@ jobs:
 
   test:
     name: Test ${{ matrix.os.name }} ${{ matrix.python.name }}
+    needs:
+      - build
     runs-on: ${{ matrix.os.runs-on }}
     strategy:
       fail-fast: false
@@ -99,6 +101,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Download package files
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist
+
       - uses: actions/setup-python@v4
         with:
           # This allows the matrix to specify just the major.minor version while still
@@ -115,4 +123,7 @@ jobs:
       - name: Run unittest
         run: |
           python --version --version
+          # make sure we test the installed code
+          rm -rf bitstring/
+          pip install --find-links dist/ bitstring
           python -m unittest
