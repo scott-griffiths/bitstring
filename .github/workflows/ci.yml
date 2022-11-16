@@ -50,12 +50,13 @@ jobs:
 
       - name: Setup environment
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install build
+          python -m venv venv
+          venv/bin/python -m pip install --upgrade pip
+          venv/bin/python -m pip install build
 
       - name: Build sdist and wheel
         run: |
-          python -m build
+          venv/bin/python -m build
 
       - name: Publish package files
         if: always()
@@ -128,17 +129,18 @@ jobs:
 
       - name: Setup environment
         run: |
-          python --version --version
+          python -m venv venv
+          venv/bin/python --version --version
           # make sure we test the installed code
           cp -R repo/tests/ .
-          python -m pip install --upgrade pip
-          python -m pip install ./dist/*.whl
+          venv/bin/python -m pip install --upgrade pip
+          venv/bin/python -m pip install ./dist/*.whl
           # make sure bitstring at least looks like what we want
-          python -c 'import bitstring; print(bitstring); assert bitstring.__file__.endswith("/site-packages/bitstring.py")'
+          venv/bin/python -c 'import bitstring; print(bitstring); assert bitstring.__file__.endswith("/site-packages/bitstring.py")'
 
       - name: Run unittest
         run: |
-          python -m unittest
+          venv/bin/python -m unittest
 
   all:
     name: All successful
