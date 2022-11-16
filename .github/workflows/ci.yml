@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   build:
-    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }}
+    name: Build ${{ matrix.os.name }} ${{ matrix.python.name }}
     runs-on: ${{ matrix.os.runs-on }}
     strategy:
       fail-fast: false
