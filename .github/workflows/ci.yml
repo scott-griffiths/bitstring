@@ -133,12 +133,11 @@ jobs:
           cp -R repo/tests/ tests/
           python -m pip install --upgrade pip
           python -m pip install ./dist/*.whl
-          # make sure bitstring at least looks like what we want
-          python -c 'import bitstring; print(bitstring)'
+          # show the directory contents for diagnostics
+          ls -la
 
       - name: Run unittest
         run: |
-          ls -la
           python -m unittest
 
   all:
