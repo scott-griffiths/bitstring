@@ -130,7 +130,7 @@ jobs:
         run: |
           python --version --version
           # make sure we test the installed code
-          cp -R repo/tests/ .
+          cp -R repo/tests/ tests/
           python -m pip install --upgrade pip
           python -m pip install ./dist/*.whl
           # make sure bitstring at least looks like what we want
