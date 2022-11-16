@@ -104,7 +104,7 @@ jobs:
       - name: Download package files
         uses: actions/download-artifact@v3
         with:
-          name: dist
+          name: packages
           path: dist
 
       - uses: actions/setup-python@v4
