@@ -132,7 +132,7 @@ jobs:
           # make sure we test the installed code
           cp -R repo/tests/ .
           python -m pip install --upgrade pip
-          python -m pip install --find-links dist/ bitstring
+          python -m pip install ./dist/*.whl
 
       - name: Run unittest
         run: |
