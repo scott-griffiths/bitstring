@@ -35,14 +35,25 @@ jobs:
         python:
           - name: CPython 3.7
             major_dot_minor: '3.7'
+            action: '3.7'
           - name: CPython 3.8
             major_dot_minor: '3.8'
+            action: '3.8'
           - name: CPython 3.9
             major_dot_minor: '3.9'
+            action: '3.9'
           - name: CPython 3.10
             major_dot_minor: '3.10'
+            action: '3.10'
           - name: CPython 3.11
             major_dot_minor: '3.11'
+            action: '3.11'
+          - name: PyPy 3.7
+            major_dot_minor: '3.7'
+            action: 'pypy-3.7'
+          - name: PyPy 3.8
+            major_dot_minor: '3.8'
+            action: 'pypy-3.8'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -55,7 +66,7 @@ jobs:
           #
           # CPython -> 3.9.0-alpha - 3.9.X
           # PyPy    -> pypy-3.7
-          python-version: ${{ fromJSON(format('["{0}", "{1}"]', format('{0}.0-alpha - {0}.X', matrix.python.major_dot_minor), matrix.python.major_dot_minor))[startsWith(matrix.python.major_dot_minor, 'pypy')] }}
+          python-version: ${{ fromJSON(format('["{0}", "{1}"]', format('{0}.0-alpha - {0}.X', matrix.python.action), matrix.python.action))[startsWith(matrix.python.action, 'pypy')] }}
           architecture: x64
       - name: Run unittest
         run: |
