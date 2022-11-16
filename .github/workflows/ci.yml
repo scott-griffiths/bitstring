@@ -48,9 +48,13 @@ jobs:
           python-version: ${{ fromJSON(format('["{0}", "{1}"]', format('{0}.0-alpha - {0}.X', matrix.python.action), matrix.python.action))[startsWith(matrix.python.action, 'pypy')] }}
           architecture: x64
 
+      - name: Setup environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build
+
       - name: Build sdist and wheel
         run: |
-          python -m pip install build
           python -m build
 
       - name: Publish package files
@@ -122,12 +126,16 @@ jobs:
           python-version: ${{ fromJSON(format('["{0}", "{1}"]', format('{0}.0-alpha - {0}.X', matrix.python.action), matrix.python.action))[startsWith(matrix.python.action, 'pypy')] }}
           architecture: x64
 
-      - name: Run unittest
+      - name: Setup environment
         run: |
           python --version --version
           # make sure we test the installed code
           cp -R repo/tests/ .
-          pip install --find-links dist/ bitstring
+          python -m pip install --upgrade pip
+          python -m pip install --find-links dist/ bitstring
+
+      - name: Run unittest
+        run: |
           python -m unittest
 
   all:
