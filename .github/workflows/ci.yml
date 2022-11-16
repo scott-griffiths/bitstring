@@ -10,6 +10,10 @@ on:
     branches:
       - '**'
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   test:
     name: Test ${{ matrix.os.name }} ${{ matrix.python.name }}
@@ -50,4 +54,6 @@ jobs:
           python-version: ${{ fromJSON(format('["{0}", "{1}"]', format('{0}.0-alpha - {0}.X', matrix.python.major_dot_minor), matrix.python.major_dot_minor))[startsWith(matrix.python.major_dot_minor, 'pypy')] }}
           architecture: x64
       - run: |
+          pwd
+          python --version --version
           python -m unittest
