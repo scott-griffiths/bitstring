@@ -1195,8 +1195,8 @@ class Bits:
             if self._datastore.byteoffset or self._offset:
                 offsetstring = ", offset=%d" % (self._datastore.rawarray.byteoffset * 8 + self._offset)
             lengthstring = ", length=%d" % length
-            return "{0}(filename='{1}'{2}{3}{4})".format(self.__class__.__name__,
-                                                         self._datastore.rawarray.source.name,
+            return "{0}(filename={1}{2}{3}{4})".format(self.__class__.__name__,
+                                                         repr(str(self._datastore.rawarray.source.name)),
                                                          lengthstring, offsetstring, pos_string)
         else:
             s = self.__str__()
