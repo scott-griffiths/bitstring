@@ -12,8 +12,8 @@ It has been maintained since 2006 and now has about [20 million downloads](https
 > Version 4.0 of bitstring only supports Python 3.7 and later. \
 > Use bitstring version 3.1 if you're using Python 2.7 or 3.6 or earlier.
 
-:star: New in version 4.0 :star:
---------------------------------
+New in version 4.0
+------------------
 
 * New Python 3.7 minimum requirement. The code has been updated with type hints and legacy code removed.
 * Shorter and more versative properties are available.
@@ -131,4 +131,4 @@ Maintained and expanded ever since as it became unexpectedly popular. Thanks to 
 and code (and bug reports) over the years.
 
 
-<sub>Copyright (c) 2006 Scott Griffiths</sub>
+<sub>Copyright (c) 2006 - 2022 Scott Griffiths</sub>

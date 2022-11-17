@@ -8,7 +8,7 @@ Release Notes
 Full version history
 ====================
 
-November 2022: version 4.0.0 released
+November 2022: version 4.0.1 released
 -------------------------------------
 
 This is a major release which drops support for Python 2.7 and has a new minimum

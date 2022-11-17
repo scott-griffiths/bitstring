@@ -55,7 +55,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "4.0.0"
+__version__ = "4.0.1"
 
 __author__ = "Scott Griffiths"
 
@@ -72,7 +72,7 @@ import io
 from collections import abc
 import functools
 import types
-from typing import Generator, SupportsIndex, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict,\
+from typing import Generator, Sequence, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict,\
     BinaryIO, TextIO, Callable, overload
 from contextlib import suppress
 
@@ -523,10 +523,10 @@ class MmapByteArray:
     def pop(self, __index: int = ...) -> int:
         raise NotImplementedError
     
-    def append(self, __item: SupportsIndex) -> None:
+    def append(self, __item: Sequence) -> None:
         raise NotImplementedError
 
-    def extend(self, __iterable_of_ints: Iterable[SupportsIndex]) -> None:
+    def extend(self, __iterable_of_ints: Iterable[Sequence]) -> None:
         raise NotImplementedError
 
     def __iter__(self):
