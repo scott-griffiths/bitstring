@@ -7,7 +7,7 @@ year = datetime.datetime.now().year
 project = 'bitstring'
 copyright = f'2006 - {year}, Scott Griffiths'
 author = 'Scott Griffiths'
-release = '4.0.0'
+release = '4.0'
 
 extensions = []
 
