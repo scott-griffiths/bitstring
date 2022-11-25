@@ -780,3 +780,33 @@ class BFloats(unittest.TestCase):
         a = BitArray(100)
         with self.assertRaises(bitstring.InterpretError):
             v = a.bfloat
+
+    def testOverflows(self):
+        s = BitArray()
+        inf16 = BitArray(float=float('inf'), length=16)
+        inf32 = BitArray(float=float('inf'), length=32)
+        inf64 = BitArray(float=float('inf'), length=64)
+        infbfloat = BitArray(bfloat=float('inf'))
+        
+        s.f64 = 1e400
+        self.assertEqual(s, inf64)
+        s.f32 = 1e60
+        self.assertEqual(s, inf32)
+        s.f16 = 100000
+        self.assertEqual(s, inf16)
+        s.bfloat = 1e60
+        self.assertEqual(s, infbfloat)
+
+        ninf16 = BitArray(float=float('-inf'), length=16)
+        ninf32 = BitArray(float=float('-inf'), length=32)
+        ninf64 = BitArray(float=float('-inf'), length=64)
+        ninfbfloat = BitArray(bfloat=float('-inf'))
+
+        s.f64 = -1e400
+        self.assertEqual(s, ninf64)
+        s.f32 = -1e60
+        self.assertEqual(s, ninf32)
+        s.f16 = -100000
+        self.assertEqual(s, ninf16)
+        s.bfloat = -1e60
+        self.assertEqual(s, ninfbfloat)

@@ -1739,9 +1739,10 @@ class Bits:
         except KeyError:
             raise CreationError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
         except (OverflowError, struct.error):
-            if length == 16:
-                # Not sure why only f16 overflows. Other types go to 'inf'. Could do the same here?
-                raise CreationError(f"Overflow trying to create float16 from {f}.")
+            # If float64 doesn't fit it automatically goes to 'inf'. This reproduces that behaviour for other types.
+            if length in [16, 32]:
+                b = struct.pack(struct_dict[length], float('inf') if f > 0 else float('-inf'))
+                self._setbytes_unsafe(bytearray(b), length, 0)
 
     def _readfloat(self, start: int, length: int, struct_dict: Dict[int, str]) -> float:
         """Read bits and interpret as a float."""
