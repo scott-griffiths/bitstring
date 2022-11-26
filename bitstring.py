@@ -930,14 +930,17 @@ class Bits:
 
         # Dictionary that maps token names to the function that reads them
         cls._name_to_read = {'uint': Bits._readuint,
+                             'u': Bits._readuint,
                              'uintle': Bits._readuintle,
                              'uintbe': Bits._readuintbe,
                              'uintne': Bits._readuintne,
                              'int': Bits._readint,
+                             'i': Bits._readint,
                              'intle': Bits._readintle,
                              'intbe': Bits._readintbe,
                              'intne': Bits._readintne,
                              'float': Bits._readfloatbe,
+                             'f': Bits._readfloatbe,
                              'floatbe': Bits._readfloatbe,  # floatbe is a synonym for float
                              'floatle': Bits._readfloatle,
                              'floatne': Bits._readfloatne,
@@ -946,8 +949,11 @@ class Bits:
                              'bfloatle': Bits._readbfloatle,
                              'bfloatne': Bits._readbfloatne,
                              'hex': Bits._readhex,
+                             'h': Bits._readhex,
                              'oct': Bits._readoct,
+                             'o': Bits._readoct,
                              'bin': Bits._readbin,
+                             'b': Bits._readbin,
                              'bits': Bits._readbits,
                              'bytes': Bits._readbytes,
                              'ue': Bits._readue,
@@ -4742,7 +4748,8 @@ $ python -m bitstring 0xff 3*0b01,0b11 uint
 $ python -m bitstring hex=01, uint:12=352.hex
 01160
         """)
-    elif fp in dummy._name_to_read.keys():
+        return
+    if fp in dummy._name_to_read.keys():
         # concatenate all other parameters and interpret using the final one
         b1 = Bits(','.join(sys.argv[1: -1]))
         print(b1._readtoken(fp, 0, b1.__len__())[0])

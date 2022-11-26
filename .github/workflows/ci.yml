@@ -156,6 +156,6 @@ jobs:
       - test
     steps:
       - name: Require all successes
-        uses: re-actors/alls-green@v1
+        uses: re-actors/alls-green@v1.2.2
         with:
           jobs: ${{ toJSON(needs) }}
