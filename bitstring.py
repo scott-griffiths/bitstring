@@ -169,11 +169,13 @@ class ByteStore:
             cls.setbit = cls._setbit_lsb0
             cls.unsetbit = cls._unsetbit_lsb0
             cls.invertbit = cls._invertbit_lsb0
+            cls.__iter__ = cls._iter_lsb0
         else:
             cls.getbit = cls._getbit_msb0
             cls.setbit = cls._setbit_msb0
             cls.unsetbit = cls._unsetbit_msb0
             cls.invertbit = cls._invertbit_msb0
+            cls.__iter__ = cls._iter_msb0
 
     __slots__ = ('offset', 'rawarray', 'bitlength')
 
@@ -185,7 +187,14 @@ class ByteStore:
         self.offset = offset
         self.bitlength = bitlength
 
-    def __iter__(self) -> Iterator[bool]:
+    def _iter_lsb0(self) -> Iterator[bool]:
+        # TODO: Rewrite like _iter_msb0
+        # A rather slow but simple version
+        for p in range(0, self.bitlength):
+            yield self._getbit_lsb0(p)
+        return
+
+    def _iter_msb0(self) -> Iterator[bool]:
         start_byte, start_bit = divmod(self.offset, 8)
         end_byte, end_bit = divmod(self.offset + self.bitlength, 8)
 
@@ -1757,8 +1766,10 @@ class Bits:
         except KeyError:
             raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
 
+        if globals()['_lsb0']:
+            start = self._getlength() - start - length
         startbyte, offset = divmod(start + self._offset, 8)
-        if not offset:
+        if offset == 0:
             return struct.unpack(fmt, bytes(self._datastore.getbyteslice(startbyte, startbyte + length // 8)))[0]
         else:
             return struct.unpack(fmt, self._readbytes(start, length))[0]
@@ -2058,17 +2069,12 @@ class Bits:
 
     def _readbin(self, start: int, length: int) -> str:
         """Read bits and interpret as a binary string."""
-        if not length:
+        if length == 0:
             return ''
-        # Get the byte slice containing our bit slice
-        startbyte, startoffset = divmod(start + self._offset, 8)
-        endbyte, endbit = divmod(start + self._offset + length - 1, 8)
-        b = self._datastore.getbyteslice(startbyte, endbyte + 1)
-        # Convert to a string of '0' and '1's
+        b = self._readbits(start, length).tobytes()
         integer = int.from_bytes(b, 'big')
         c = "{:0{}b}".format(integer, 8*len(b))
-        # Finally chop off any extra bits.
-        return c[startoffset:startoffset + length]
+        return c[0:length]
 
     def _getbin(self) -> str:
         """Return interpretation as a binary string."""
@@ -4693,7 +4699,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
             if value is None and name != 'pad':
                 # Take the next value from the ones provided
                 value = next(value_iter)
-            s._addright(BitStream._init_with_token(name, length, value))
+            s._append(BitStream._init_with_token(name, length, value))
     except StopIteration:
         raise CreationError(f"Not enough parameters present to pack according to the "
                             "format. {len(tokens)} values are needed.")
