@@ -840,7 +840,6 @@ class Bits:
             cls._rfind = cls._rfind_lsb0
             cls._findall = cls._findall_lsb0
             cls._slice = cls._slice_lsb0
-            cls._readuint = cls._readuint_lsb0
             cls._truncatestart = cls._truncateright
             cls._truncateend = cls._truncateleft
             cls._validate_slice = cls._validate_slice_lsb0
@@ -849,7 +848,6 @@ class Bits:
             cls._rfind = cls._rfind_msb0
             cls._findall = cls._findall_msb0
             cls._slice = cls._slice_msb0
-            cls._readuint = cls._readuint_msb0
             cls._truncatestart = cls._truncateleft
             cls._truncateend = cls._truncateright
             cls._validate_slice = cls._validate_slice_msb0
@@ -909,71 +907,7 @@ class Bits:
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, _cache={}, **kwargs) -> Bits:
-        # Mapping token names to the methods used to set them
-        cls._setfunc = {'bin': cls._setbin_safe,
-                        'hex': cls._sethex,
-                        'oct': cls._setoct,
-                        'ue': cls._setue,
-                        'se': cls._setse,
-                        'uie': cls._setuie,
-                        'sie': cls._setsie,
-                        'bool': cls._setbool,
-                        'uint': cls._setuint,
-                        'int': cls._setint,
-                        'float': cls._setfloatbe,
-                        'bfloat': cls._setbfloatbe,
-                        'bfloatbe': cls._setbfloatbe,
-                        'bfloatle': cls._setbfloatle,
-                        'bfloatne': cls._setbfloatne,
-                        'uintbe': cls._setuintbe,
-                        'intbe': cls._setintbe,
-                        'floatbe': cls._setfloatbe,
-                        'uintle': cls._setuintle,
-                        'intle': cls._setintle,
-                        'floatle': cls._setfloatle,
-                        'uintne': cls._setuintne,
-                        'intne': cls._setintne,
-                        'floatne': cls._setfloatne,
-                        'bytes': cls._setbytes_safe,
-                        'filename': cls._setfile}
-
-        # Dictionary that maps token names to the function that reads them
-        cls._name_to_read = {'uint': Bits._readuint,
-                             'u': Bits._readuint,
-                             'uintle': Bits._readuintle,
-                             'uintbe': Bits._readuintbe,
-                             'uintne': Bits._readuintne,
-                             'int': Bits._readint,
-                             'i': Bits._readint,
-                             'intle': Bits._readintle,
-                             'intbe': Bits._readintbe,
-                             'intne': Bits._readintne,
-                             'float': Bits._readfloatbe,
-                             'f': Bits._readfloatbe,
-                             'floatbe': Bits._readfloatbe,  # floatbe is a synonym for float
-                             'floatle': Bits._readfloatle,
-                             'floatne': Bits._readfloatne,
-                             'bfloat': Bits._readbfloatbe,
-                             'bfloatbe': Bits._readbfloatbe,
-                             'bfloatle': Bits._readbfloatle,
-                             'bfloatne': Bits._readbfloatne,
-                             'hex': Bits._readhex,
-                             'h': Bits._readhex,
-                             'oct': Bits._readoct,
-                             'o': Bits._readoct,
-                             'bin': Bits._readbin,
-                             'b': Bits._readbin,
-                             'bits': Bits._readbits,
-                             'bytes': Bits._readbytes,
-                             'ue': Bits._readue,
-                             'se': Bits._readse,
-                             'uie': Bits._readuie,
-                             'sie': Bits._readsie,
-                             'bool': Bits._readbool,
-                             'pad': Bits._readpad}
-
-        # For instances auto-initialised with a string we intern the
-        # instance for re-use.
+        # For instances auto-initialised with a string we intern the instance for re-use.
         if isinstance(auto, str):
             try:
                 return _cache[auto]
@@ -1603,6 +1537,13 @@ class Bits:
             offset = 0
         self._setbytes_unsafe(bytearray(data), length, offset)
 
+    def _readuint(self, start:int, length: int) -> int:
+        # TODO: This needs to be refactored again.
+        if _lsb0:
+            return self._readuint_lsb0(start, length)
+        else:
+            return self._readuint_msb0(start, length)
+
     def _readuint_lsb0(self, start: int, length: int) -> int:
         return self._readuint_msb0(self.len - start - length, length)
 
@@ -1766,7 +1707,7 @@ class Bits:
         except KeyError:
             raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
 
-        if globals()['_lsb0']:
+        if _lsb0:
             start = self._getlength() - start - length
         startbyte, offset = divmod(start + self._offset, 8)
         if offset == 0:
@@ -2642,7 +2583,7 @@ class Bits:
         if bs.len == 0:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
-        ba = globals()['_bytealigned'] if bytealigned is None else bytealigned
+        ba = _bytealigned if bytealigned is None else bytealigned
         return self._find(bs, start, end, ba)
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
@@ -2688,7 +2629,7 @@ class Bits:
             raise ValueError("In findall, count must be >= 0.")
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
-        ba = globals()['_bytealigned'] if bytealigned is None else bytealigned
+        ba = _bytealigned if bytealigned is None else bytealigned
         return self._findall(bs, start, end, count, ba)
 
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
@@ -2762,7 +2703,7 @@ class Bits:
         """
         bs = Bits(bs)
         start, end = self._validate_slice(start, end)
-        ba = globals()['_bytealigned'] if bytealigned is None else bytealigned
+        ba = _bytealigned if bytealigned is None else bytealigned
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         return self._rfind(bs, start, end, ba)
@@ -2845,7 +2786,7 @@ class Bits:
         if not delimiter.len:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
-        bytealigned_: bool = globals()['_bytealigned'] if bytealigned is None else bytealigned
+        bytealigned_: bool = _bytealigned if bytealigned is None else bytealigned
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
@@ -3322,6 +3263,69 @@ class Bits:
     o = oct
     h = hex
 
+    # Dictionary that maps token names to the function that reads them
+    _name_to_read = {'uint': _readuint,
+                     'u': _readuint,
+                     'uintle': _readuintle,
+                     'uintbe': _readuintbe,
+                     'uintne': _readuintne,
+                     'int': _readint,
+                     'i': _readint,
+                     'intle': _readintle,
+                     'intbe': _readintbe,
+                     'intne': _readintne,
+                     'float': _readfloatbe,
+                     'f': _readfloatbe,
+                     'floatbe': _readfloatbe,  # floatbe is a synonym for float
+                     'floatle': _readfloatle,
+                     'floatne': _readfloatne,
+                     'bfloat': _readbfloatbe,
+                     'bfloatbe': _readbfloatbe,
+                     'bfloatle': _readbfloatle,
+                     'bfloatne': _readbfloatne,
+                     'hex': _readhex,
+                     'h': _readhex,
+                     'oct': _readoct,
+                     'o': _readoct,
+                     'bin': _readbin,
+                     'b': _readbin,
+                     'bits': _readbits,
+                     'bytes': _readbytes,
+                     'ue': _readue,
+                     'se': _readse,
+                     'uie': _readuie,
+                     'sie': _readsie,
+                     'bool': _readbool,
+                     'pad': _readpad}
+
+    # Mapping token names to the methods used to set them
+    _setfunc = {'bin': _setbin_safe,
+                'hex': _sethex,
+                'oct': _setoct,
+                'ue': _setue,
+                'se': _setse,
+                'uie': _setuie,
+                'sie': _setsie,
+                'bool': _setbool,
+                'uint': _setuint,
+                'int': _setint,
+                'float': _setfloatbe,
+                'bfloat': _setbfloatbe,
+                'bfloatbe': _setbfloatbe,
+                'bfloatle': _setbfloatle,
+                'bfloatne': _setbfloatne,
+                'uintbe': _setuintbe,
+                'intbe': _setintbe,
+                'floatbe': _setfloatbe,
+                'uintle': _setuintle,
+                'intle': _setintle,
+                'floatle': _setfloatle,
+                'uintne': _setuintne,
+                'intne': _setintne,
+                'floatne': _setfloatne,
+                'bytes': _setbytes_safe,
+                'filename': _setfile}
+
 
 class BitArray(Bits):
     """A container holding a mutable sequence of bits.
@@ -3776,7 +3780,7 @@ class BitArray(Bits):
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
-            bytealigned = globals()['_bytealigned']
+            bytealigned = _bytealigned
         # Adjust count for use in split()
         if count is not None:
             count += 1
