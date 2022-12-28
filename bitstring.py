@@ -345,38 +345,33 @@ def offsetcopy(s: ByteStore, newoffset: int) -> ByteStore:
     Not part of public interface.
     """
     assert 0 <= newoffset < 8
-    if not s.bitlength:
+    if s.bitlength == 0:
         return copy.copy(s)
+    if newoffset == s.offset % 8:
+        return type(s)(s.getbyteslice(s.byteoffset, s.byteoffset + s.bytelength), s.bitlength, newoffset)
+
+    v = int.from_bytes(s.rawarray, 'big')
+    if newoffset < s.offset % 8:
+        # We need to shift everything left
+        shiftleft = s.offset % 8 - newoffset
+        v <<= shiftleft
+        v &= (1 << 8 * len(s.rawarray)) - 1
+        newdata = v.to_bytes(len(s.rawarray), 'big')
     else:
-        if newoffset == s.offset % 8:
-            return type(s)(s.getbyteslice(s.byteoffset, s.byteoffset + s.bytelength), s.bitlength, newoffset)
-        newdata = []
-        d = s.rawarray
-        assert newoffset != s.offset % 8
-        if newoffset < s.offset % 8:
-            # We need to shift everything left
-            shiftleft = s.offset % 8 - newoffset
-            # First deal with everything except for the final byte
-            for x in range(s.byteoffset, s.byteoffset + s.bytelength - 1):
-                newdata.append(((d[x] << shiftleft) & 0xff) + (d[x + 1] >> (8 - shiftleft)))
-            bits_in_last_byte = (s.offset + s.bitlength) % 8
-            if not bits_in_last_byte:
-                bits_in_last_byte = 8
-            if bits_in_last_byte > shiftleft:
-                newdata.append((d[s.byteoffset + s.bytelength - 1] << shiftleft) & 0xff)
-        else:  # newoffset > s._offset % 8
-            shiftright = newoffset - s.offset % 8
-            newdata.append(s.getbyte(0) >> shiftright)
-            for x in range(s.byteoffset + 1, s.byteoffset + s.bytelength):
-                newdata.append(((d[x - 1] << (8 - shiftright)) & 0xff) + (d[x] >> shiftright))
-            bits_in_last_byte = (s.offset + s.bitlength) % 8
-            if not bits_in_last_byte:
-                bits_in_last_byte = 8
-            if bits_in_last_byte + shiftright > 8:
-                newdata.append((d[s.byteoffset + s.bytelength - 1] << (8 - shiftright)) & 0xff)
-        new_s = type(s)(bytearray(newdata), s.bitlength, newoffset)
-        assert new_s.offset == newoffset
-        return new_s
+        # Shifting right, but we use a left shift as we don't want to lose any data
+        shiftleft = 8 - newoffset + s.offset % 8
+        v <<= shiftleft
+        newdata = v.to_bytes(len(s.rawarray) + 1, 'big')
+
+    bits_remaining_in_last_byte = (s.offset + s.bitlength) % 8
+    if bits_remaining_in_last_byte == 0:
+        bits_remaining_in_last_byte = 8
+    bits_remaining_in_last_byte -= shiftleft
+    if bits_remaining_in_last_byte <= 0 and len(newdata) > 1:
+        newdata = newdata[:-1]
+
+    new_s = type(s)(bytearray(newdata), s.bitlength, newoffset)
+    return new_s
 
 
 def equal(a: ByteStore, b: ByteStore) -> bool:
