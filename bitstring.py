@@ -851,9 +851,6 @@ class Bits:
     # This converts a single octal digit to 3 bits.
     _octToBits: List[str] = ['{0:03b}'.format(i) for i in range(8)]
 
-    # A dictionary of number of 1 bits contained in binary representation of any byte
-    _bitCount: Dict[int, int] = dict(zip(range(0x100), [bin(i).count('1') for i in range(0x100)]))
-
     # Creates dictionaries to quickly reverse single bytes
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
     _byteReversalDict: Dict[int, bytes] = {i: bytes([int("{0:08b}".format(i)[::-1], 2)]) for i in range(0x100)}
@@ -2962,17 +2959,8 @@ class Bits:
         7
 
         """
-        if not self.len:
-            return 0
         # count the number of 1s (from which it's easy to work out the 0s).
-        # Don't count the final byte yet.
-        count = sum(Bits._bitCount[self._datastore.getbyte(i)] for i in range(self._datastore.bytelength - 1))
-        # adjust for bits at start that aren't part of the bitstring
-        if self._offset:
-            count -= Bits._bitCount[self._datastore.getbyte(0) >> (8 - self._offset)]
-        # and count the last 1 - 8 bits at the end.
-        endbits = self._datastore.bytelength * 8 - (self._offset + self.len)
-        count += Bits._bitCount[self._datastore.getbyte(self._datastore.bytelength - 1) >> endbits]
+        count = (self._getbin()).count('1')
         return count if value else self.len - count
 
     def pp(self, fmt: str = 'bin', width: int = 120, sep: Optional[str] = ' ',
