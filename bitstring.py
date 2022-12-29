@@ -350,7 +350,11 @@ def offsetcopy(s: ByteStore, newoffset: int) -> ByteStore:
     if newoffset == s.offset % 8:
         return type(s)(s.getbyteslice(s.byteoffset, s.byteoffset + s.bytelength), s.bitlength, newoffset)
 
-    v = int.from_bytes(s.rawarray, 'big')
+    if isinstance(s.rawarray, MmapByteArray):
+        # Need to make a copy in memory first
+        v = int.from_bytes(s.rawarray[:], 'big')
+    else:
+        v = int.from_bytes(s.rawarray, 'big')
     if newoffset < s.offset % 8:
         # We need to shift everything left
         shiftleft = s.offset % 8 - newoffset
@@ -1735,7 +1739,7 @@ class Bits:
     def _readbfloatbe(self, start: int, _length: int) -> float:
         if _length != 16:
             raise InterpretError(f"bfloats must be length 16, received a length of {_length} bits.")
-        two_bytes = self._readbits(start, 16)
+        two_bytes = self._slice(start, start + 16)
         zero_padded = two_bytes + Bits(16)
         return zero_padded._getfloatbe()
 
@@ -1750,7 +1754,7 @@ class Bits:
         return self._readbfloatle(0, self.len)
 
     def _readbfloatle(self, start: int, _length: int) -> float:
-        two_bytes = self._readbits(start, 16)
+        two_bytes = self._slice(start, start + 16)
         zero_padded = Bits(16) + two_bytes
         return zero_padded._getfloatle()
 
@@ -1989,22 +1993,23 @@ class Bits:
 
     def _setbin_unsafe(self, binstring: str, _length: None = None, _offset: None = None) -> None:
         """Same as _setbin_safe, but input isn't sanity checked. binstring mustn't start with '0b'."""
-        length = len(binstring)
-        # pad with zeros up to byte boundary if needed
-        boundary = ((length + 7) // 8) * 8
-        padded_binstring = binstring + '0' * (boundary - length) if len(binstring) < boundary else binstring
+        if binstring == '':
+            self._setbytes_unsafe(bytearray(), 0, 0)
+            return
         try:
-            bytelist = [int(padded_binstring[x:x + 8], 2)
-                        for x in range(0, len(padded_binstring), 8)]
+            i = int(binstring, 2)
         except ValueError:
             raise CreationError(f"Invalid character in bin initialiser {binstring}.")
-        self._setbytes_unsafe(bytearray(bytelist), length, 0)
+        if len(binstring) % 8 != 0:
+            i <<= 8 - (len(binstring) % 8)
+        b = i.to_bytes((len(binstring) + 7) // 8, 'big')
+        self._setbytes_unsafe(bytearray(b), len(binstring), 0)
 
     def _readbin(self, start: int, length: int) -> str:
         """Read bits and interpret as a binary string."""
         if length == 0:
             return ''
-        b = self._readbits(start, length).tobytes()
+        b = self._slice(start, start + length).tobytes()
         integer = int.from_bytes(b, 'big')
         c = "{:0{}b}".format(integer, 8*len(b))
         return c[0:length]
