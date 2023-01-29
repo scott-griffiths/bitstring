@@ -456,6 +456,12 @@ class Lsb0Setting(unittest.TestCase):
         self.assertEqual(li, ['0x2222', '0x11ff', '0xff11', '0xff00'])
 
     def testFind(self):
+        t = BitArray('0b10')
+        p, = t.find('0b1')
+        self.assertEqual(p, 1)
+        t = BitArray('0b1010')
+        p, = t.find('0b1')
+        self.assertEqual(p, 1)
         a = BitArray('0b10101010, 0xabcd, 0b10101010, 0x0')
         p, = a.find('0b10101010', bytealigned=False)
         self.assertEqual(p, 4)

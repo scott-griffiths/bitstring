@@ -203,6 +203,9 @@ class Initialisation(unittest.TestCase):
         a = Bits('0b0010011')
         b = list(a.findall([1]))
         self.assertEqual(b, [2, 5, 6])
+        t = BitArray('0b10')
+        tp = list(t.findall('0b1'))
+        self.assertEqual(tp, [0])
 
 
 class Cut(unittest.TestCase):
