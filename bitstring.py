@@ -1195,7 +1195,7 @@ class Bits:
         if not self.len:
             raise ValueError("Cannot shift an empty bitstring.")
         n = min(n, self.len)
-        s = self._slice(n, self.len)
+        s = self._absolute_slice(n, self.len)
         s._addright(Bits(n))
         return s
 
@@ -1212,7 +1212,8 @@ class Bits:
         if not n:
             return self._copy()
         s = self.__class__(length=min(n, self.len))
-        s._addright(self[:-n])
+        n = min(n, self.len)
+        s._addright(self._absolute_slice(0, self.len - n))
         return s
 
     def __mul__(self, n: int) -> Bits:
@@ -2129,10 +2130,15 @@ class Bits:
 
     def _slice_lsb0(self, start: int, end: int) -> Bits:
         """Used internally to get a slice, without error checking (LSB0)."""
-        return self._slice_msb0(self.length - end, self.length - start)
+        return self._absolute_slice(self.length - end, self.length - start)
 
     def _slice_msb0(self, start: int, end: int) -> Bits:
-        """Used internally to get a slice, without error checking."""
+        """Used internally to get a slice, without error checking (MSB0)."""
+        return self._absolute_slice(start, end)
+
+    def _absolute_slice(self, start: int, end: int) -> Bits:
+        """Used internally to get a slice, without error checking.
+        Uses MSB0 bit numbering even if LSB0 is set."""
         if end == start:
             return self.__class__()
         assert start < end, f"start={start}, end={end}"
@@ -2183,7 +2189,7 @@ class Bits:
         assert 0 <= bits <= self.len
         if not bits:
             return Bits()
-        truncated_bits = self._slice_msb0(0, bits)
+        truncated_bits = self._absolute_slice(0, bits)
         if bits == self.len:
             self._clear()
             return truncated_bits
@@ -2197,7 +2203,7 @@ class Bits:
         assert 0 <= bits <= self.len
         if not bits:
             return Bits()
-        truncated_bits = self._slice_lsb0(0, bits)
+        truncated_bits = self._absolute_slice(self.length - bits, self.length)
         if bits == self.len:
             self._clear()
             return truncated_bits

@@ -584,6 +584,18 @@ class Lsb0Setting(unittest.TestCase):
         a.find('0b1')
         self.assertEqual(repr(a), "BitArray('0b010')")
 
+    def testLeftShift(self):
+        a = BitArray('0b11001')
+        self.assertEqual((a << 1).b, '10010')
+        self.assertEqual((a << 5).b, '00000')
+        self.assertEqual((a << 0).b, '11001')
+
+    def testRightShift(self):
+        a = BitArray('0b11001')
+        self.assertEqual((a >> 1).b, '01100')
+        self.assertEqual((a >> 5).b, '00000')
+        self.assertEqual((a >> 0).b, '11001')
+
 
 class Repr(unittest.TestCase):
 
