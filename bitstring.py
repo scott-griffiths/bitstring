@@ -2524,33 +2524,52 @@ class Bits:
             return ()
         return (p * 8,)
 
-    def _findregex(self, reg_ex: Pattern[str], start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        """Find first occurrence of a compiled regular expression.
-
-        Note that this doesn't support arbitrary regexes, in particular they
-        must match a known length.
-
-        """
+    def _findbin(self, binstr: str, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+        """Find first occurrence of a binary string."""
         p = start
-        length = len(reg_ex.pattern)
+        length = len(binstr)
         # We grab overlapping chunks of the binary representation and
         # do an ordinary string search within that.
-        increment = max(4096, length * 10)
+        increment = max(4096, length * 64)
         buffersize = increment + length
         while p < end:
             buf = self._readbin(p, min(buffersize, end - p))
-            # Test using regular expressions...
-            m = reg_ex.search(buf)
-            if m:
-                pos = m.start()
-                # if bytealigned then we only accept byte aligned positions.
-                if not bytealigned or (p + pos) % 8 == 0:
+            pos = buf.find(binstr)
+            if pos != -1:
+                if not bytealigned:
                     return (p + pos,)
-                if bytealigned:
-                    # Advance to just beyond the non-byte-aligned match and try again...
-                    p += pos + 1
-                    continue
+                if (p + pos) % 8 == 0:  # TODO: Is this logic only right for MSB0?
+                    return (p + pos,)
+                # Advance to just beyond the non-byte-aligned match and try again...
+                p += pos + 1
+                continue
             p += increment
+        # Not found, return empty tuple
+        return ()
+
+    def _rfindbin(self, binstr: str, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+        """Find final occurrence of a binary string."""
+        p = end
+        # We grab overlapping chunks of the binary representation and
+        # do an ordinary string search within that.
+        increment = max(4096, len(binstr) * 64)
+        buffersize = increment + len(binstr)
+        while p > start:
+            start_pos = max(start, p - buffersize)
+            if not _lsb0:
+                buf = self._readbin(start_pos, p - start_pos)
+            else:
+                buf = self._readbin(self.len - p, p - start_pos)
+            pos = buf.rfind(binstr)
+            if pos != -1:
+                if not bytealigned:
+                    return (pos + start_pos,)
+                if (pos + start_pos) % 8 == 0:
+                    return (pos + start_pos,)
+                # Advance to just beyond the non-byte-aligned match and try again...
+                p = pos + start_pos + len(binstr) - 1
+                continue
+            p -= increment
         # Not found, return empty tuple
         return ()
 
@@ -2584,10 +2603,10 @@ class Bits:
         return self._find(bs, start, end, ba)
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        # A find in lsb0 is very like a reverse find in msb0.
-        p = self._rfind_msb0(bs, start, end, bytealigned)
+        p = self._rfindbin(bs._getbin(), start, end, bytealigned)
+
         if p:
-            newpos = self.len - p[0] - bs.length
+            newpos = end - p[0] - bs.length
             if self._pos is not None:
                 self._pos = newpos
             return (newpos,)
@@ -2598,7 +2617,7 @@ class Bits:
         if bytealigned and not bs.len % 8 and not self._datastore.offset:
             p = self._findbytes(bs.bytes, start, end)
         else:
-            p = self._findregex(re.compile(bs._getbin()), start, end, bytealigned)
+            p = self._findbin(bs._getbin(), start, end, bytealigned)
         # If called from a class that has a pos, set it
         if p and self._pos is not None:
             self._pos = p[0]
@@ -2636,7 +2655,7 @@ class Bits:
             # Use the quick find method
             f = functools.partial(self._findbytes, bytes_=bs._getbytes())
         else:
-            f = functools.partial(self._findregex, reg_ex=re.compile(bs._getbin()), bytealigned=bytealigned)
+            f = functools.partial(self._findbin, binstr=bs._getbin(), bytealigned=bytealigned)
         while True:
             if count is not None and c >= count:
                 return
@@ -2703,23 +2722,14 @@ class Bits:
         ba = _bytealigned if bytealigned is None else bytealigned
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
-        return self._rfind(bs, start, end, ba)
+        p = self._rfind(bs, start, end, ba)
+        # If called from a class that has a pos, set it
+        if p and self._pos is not None:
+            self._pos = p[0]
+        return p
 
     def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        # Search chunks starting near the end and then moving back
-        # until we find bs.
-        increment = max(8192, bs.len * 80)
-        buffersize = min(increment + bs.len, end - start)
-        pos = max(start, end - buffersize)
-        while True:
-            found = list(self._findall_msb0(bs, start=pos, end=pos + buffersize, count=None,
-                                            bytealigned=bytealigned))
-            if not found:
-                if pos == start:
-                    return ()
-                pos = max(start, pos - increment)
-                continue
-            return (found[-1],)
+        return self._rfindbin(bs.bin, start, end, bytealigned)
 
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
@@ -2792,7 +2802,7 @@ class Bits:
             # Use the quick find method
             f = functools.partial(self._findbytes, bytes_=delimiter._getbytes())
         else:
-            f = functools.partial(self._findregex, reg_ex=re.compile(delimiter._getbin()), bytealigned=bytealigned_)
+            f = functools.partial(self._findbin, binstr=delimiter._getbin(), bytealigned=bytealigned_)
         found = f(start=start, end=end)
         if not found:
             # Initial bits are the whole bitstring being searched
