@@ -57,35 +57,93 @@ By default bit numbering in the bitstring module is done from 'left' to 'right'.
 
 
 The ``lsb0`` module variable allows bitstrings to use Least Significant Bit Zero
-(LSB0) bit numbering; that is the final bit in the bitstring will
-be bit 0, and the first bit will be bit (n-1), rather than the
+(LSB0) bit numbering; that is the right-most bit in the bitstring will
+be bit 0, and the left-most bit will be bit (n-1), rather than the
 other way around. LSB0 is a more natural numbering
 system in many fields, but is the opposite to Most Significant Bit
 Zero (MSB0) numbering which is the natural option when thinking of
 bitstrings as standard Python containers.
 
-When bitstrings are interpreted as integers and other types the left-most bit is considered as the most significant bit. It's important to note that this is the case irrespective of whether the first of last bit is considered the bit zero, so for example if you were to interpret a whole bitstring as an integer, its value would be the same with and without `lsb0` being set to `True`.
+For example, if you set a bitstring to be the binary ``010001111`` it will be stored in the same way for MSB0 and LSB0 but slicing, reading, unpacking etc. will all behave differently.
 
+.. list-table:: MSB0 →
+   :header-rows: 1
 
-To switch from the default MSB0, use the module level attribute ``bitstring.lsb0``. This defaults to ``False`` and unless explicitly stated all examples related to the bitstring module use the default MSB0 indexing.
+   * - bit index
+     - 0
+     - 1
+     - 2
+     - 3
+     - 4
+     - 5
+     - 6
+     - 7
+     - 8
+   * - value
+     - ``0``
+     - ``1``
+     - ``0``
+     - ``0``
+     - ``0``
+     - ``1``
+     - ``1``
+     - ``1``
+     - ``1``
+
+In MSB0 everything behaves like an ordinary Python container. Bit zero is the left-most bit and reads/slices happen from left to right.
+
+.. list-table:: ← LSB0
+   :header-rows: 1
+
+   * - bit index
+     - 8
+     - 7
+     - 6
+     - 5
+     - 4
+     - 3
+     - 2
+     - 1
+     - 0
+   * - value
+     - ``0``
+     - ``1``
+     - ``0``
+     - ``0``
+     - ``0``
+     - ``1``
+     - ``1``
+     - ``1``
+     - ``1``
+
+In LSB0 the final, right-most bit is labelled as bit zero. Reads and slices happen from right to left.
+
+When bitstrings (or slices of bitstrings) are interpreted as integers and other types the left-most bit is considered as the most significant bit. It's important to note that this is the case irrespective of whether the first or last bit is considered the bit zero, so for example if you were to interpret a whole bitstring as an integer, its value would be the same with and without `lsb0` being set to `True`.
+
+To illustrate this, for the example above this means that the bin and int representations would be ``010001111`` and ``143`` respectively for both MSB0 and LSB0 bit numbering.
+
+To switch from the default MSB0, use the module level attribute ``bitstring.lsb0``. This defaults to ``False`` and unless explicitly stated all examples and documentation related to the bitstring module use the default MSB0 indexing.
 
     >>> bitstring.lsb0 = True
 
 Slicing is still done with the start bit smaller than the end bit.
 For example:
 
-    >>> s = Bits('0b000000111')
-    >>> s[0:5]
-    Bits('0b00111')
+    >>> s = Bits('0b010001111')
+    >>> s[0:5]  # LSB0 so this is the right-most five bits
+    Bits('0b01111')
     >>> s[0]
     True
 
-In some standards and documents using LSB0 notation the slice of the final five bits would be shown as ``s[5:0]``, which is reasonable as bit 5 comes before bit 0 when reading left to right, but this notation isn't used in this module as it clashes too much with the usual Python notation.
+.. note::
+    In some standards and documents using LSB0 notation the slice of the final five bits would be shown as ``s[5:0]``, which is reasonable as bit 5 comes before bit 0 when reading left to right, but this notation isn't used in this module as it clashes too much with the usual Python notation.
 
 Negative indices work as you'd expect, with the first stored
 bit being ``s[-1]`` and the final stored bit being ``s[-n]``.
 
 Reading, peeking and unpacking of bitstrings are also affected by the ``lsb0`` flag, so reading always increments the bit position, and will move from right to left if ``lsb0`` is ``True``. Because of the way that exponential-Golomb codes are read (with the left-most bits determining the length of the code) these interpretations are not available in LSB0 mode, and using them will raise an exception.
+
+For ``BitStream`` and ``ConstBitStream`` objects changing the value of ``bitstring.lsb0`` invalidates the current position in the bitstring, unless that value is ``0``, and future results are undefined. Basically don't perform reads or change the current bit position before switching the bit numbering system!
 
 
 bytealigned
