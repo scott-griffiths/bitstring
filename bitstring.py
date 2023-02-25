@@ -1141,8 +1141,8 @@ class Bits:
                 offsetstring = ", offset=%d" % (self._datastore.rawarray.byteoffset * 8 + self._offset)
             lengthstring = ", length=%d" % length
             return "{0}(filename={1}{2}{3}{4})".format(self.__class__.__name__,
-                                                         repr(str(self._datastore.rawarray.source.name)),
-                                                         lengthstring, offsetstring, pos_string)
+                                                       repr(str(self._datastore.rawarray.source.name)),
+                                                       lengthstring, offsetstring, pos_string)
         else:
             s = self.__str__()
             lengthstring = ''
@@ -1240,7 +1240,7 @@ class Bits:
         """
         return self.__mul__(n)
 
-    def __and__(self, bs: Any) -> Bits:
+    def __and__(self, bs: BitsType) -> Bits:
         """Bit-wise 'and' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '&' with.
@@ -1255,7 +1255,7 @@ class Bits:
         s._iand(bs)
         return s
 
-    def __rand__(self, bs: Any) -> Bits:
+    def __rand__(self, bs: BitsType) -> Bits:
         """Bit-wise 'and' between two bitstrings. Returns new bitstring.
 
         bs -- the bitstring to '&' with.
@@ -1265,7 +1265,7 @@ class Bits:
         """
         return self.__and__(bs)
 
-    def __or__(self, bs: Any) -> Bits:
+    def __or__(self, bs: BitsType) -> Bits:
         """Bit-wise 'or' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '|' with.
@@ -1280,7 +1280,7 @@ class Bits:
         s._ior(bs)
         return s
 
-    def __ror__(self, bs: Any) -> Bits:
+    def __ror__(self, bs: BitsType) -> Bits:
         """Bit-wise 'or' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '|' with.
@@ -1290,7 +1290,7 @@ class Bits:
         """
         return self.__or__(bs)
 
-    def __xor__(self, bs: Any) -> Bits:
+    def __xor__(self, bs: BitsType) -> Bits:
         """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '^' with.
@@ -1305,7 +1305,7 @@ class Bits:
         s._ixor(bs)
         return s
 
-    def __rxor__(self, bs: Any) -> Bits:
+    def __rxor__(self, bs: BitsType) -> Bits:
         """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '^' with.
@@ -1315,7 +1315,7 @@ class Bits:
         """
         return self.__xor__(bs)
 
-    def __contains__(self, bs: Any) -> bool:
+    def __contains__(self, bs: BitsType) -> bool:
         """Return whether bs is contained in the current bitstring.
 
         bs -- The bitstring to search for.
@@ -1534,7 +1534,7 @@ class Bits:
             offset = 0
         self._setbytes_unsafe(bytearray(data), length, offset)
 
-    def _readuint(self, start:int, length: int) -> int:
+    def _readuint(self, start: int, length: int) -> int:
         # TODO: This needs to be refactored again.
         if _lsb0:
             return self._readuint_lsb0(start, length)
@@ -4026,10 +4026,10 @@ class BitArray(Bits):
                   as much as possible.
 
         """
-        start, end = self._validate_slice(start, end)
+        start_v, end_v = self._validate_slice(start, end)
         if fmt is None or fmt == 0:
             # reverse all of the whole bytes.
-            bytesizes = [(end - start) // 8]
+            bytesizes = [(end_v - start_v) // 8]
         elif isinstance(fmt, int):
             if fmt < 0:
                 raise ValueError(f"Improper byte length {fmt}.")
@@ -4056,16 +4056,16 @@ class BitArray(Bits):
             raise TypeError("Format must be an integer, string or iterable.")
 
         repeats = 0
-        totalbitsize = 8 * sum(bytesizes)
+        totalbitsize: int = 8 * sum(bytesizes)
         if not totalbitsize:
             return 0
         if repeat:
             # Try to repeat up to the end of the bitstring.
-            finalbit = end
+            finalbit = end_v
         else:
             # Just try one (set of) byteswap(s).
-            finalbit = start + totalbitsize
-        for patternend in range(start + totalbitsize, finalbit + 1, totalbitsize):
+            finalbit = start_v + totalbitsize
+        for patternend in range(start_v + totalbitsize, finalbit + 1, totalbitsize):
             bytestart = patternend - totalbitsize
             for bytesize in bytesizes:
                 byteend = bytestart + bytesize * 8
