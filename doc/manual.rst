@@ -22,7 +22,6 @@ A complete reference for the module is given in the :ref:`reference` section, wh
 .. toctree::
    :maxdepth: 2
 
-   walkthrough
    creation
    packing
    interpretation

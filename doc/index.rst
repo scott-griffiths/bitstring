@@ -9,6 +9,12 @@
 
 It has been maintained since 2006 and now has about `20 million downloads per year. <https://pypistats.org/packages/bitstring>`_
 
+You can try out an interactive walkthrough notebook on `binder <https://mybinder.org/v2/gh/scott-griffiths/bitstring/4.0-update?labpath=doc%2Fwalkthrough.ipynb>`_ (or the non-interactive version `here <https://github.com/scott-griffiths/bitstring/blob/4.0-update/doc/walkthrough.ipynb>`_).
+
+.. image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/scott-griffiths/bitstring/4.0-update?labpath=doc%2Fwalkthrough.ipynb
+
+
 
 Overview
 ========
