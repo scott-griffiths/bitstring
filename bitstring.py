@@ -165,17 +165,17 @@ class ByteStore:
     @classmethod
     def _setlsb0methods(cls, lsb0: bool) -> None:
         if lsb0:
-            cls.getbit = cls._getbit_lsb0
-            cls.setbit = cls._setbit_lsb0
-            cls.unsetbit = cls._unsetbit_lsb0
-            cls.invertbit = cls._invertbit_lsb0
-            cls.__iter__ = cls._iter_lsb0
+            cls.getbit = cls._getbit_lsb0  # type: ignore
+            cls.setbit = cls._setbit_lsb0  # type: ignore
+            cls.unsetbit = cls._unsetbit_lsb0  # type: ignore
+            cls.invertbit = cls._invertbit_lsb0  # type: ignore
+            cls.__iter__ = cls._iter_lsb0  # type: ignore
         else:
-            cls.getbit = cls._getbit_msb0
-            cls.setbit = cls._setbit_msb0
-            cls.unsetbit = cls._unsetbit_msb0
-            cls.invertbit = cls._invertbit_msb0
-            cls.__iter__ = cls._iter_msb0
+            cls.getbit = cls._getbit_msb0  # type: ignore
+            cls.setbit = cls._setbit_msb0  # type: ignore
+            cls.unsetbit = cls._unsetbit_msb0  # type: ignore
+            cls.invertbit = cls._invertbit_msb0  # type: ignore
+            cls.__iter__ = cls._iter_msb0  # type: ignore
 
     __slots__ = ('offset', 'rawarray', 'bitlength')
 
@@ -531,10 +531,10 @@ class MmapByteArray:
     def pop(self, __index: int = ...) -> int:
         raise NotImplementedError
     
-    def append(self, __item: Sequence) -> None:
+    def append(self, __item: Union[Sequence, int]) -> None:
         raise NotImplementedError
 
-    def extend(self, __iterable_of_ints: Iterable[Sequence]) -> None:
+    def extend(self, __iterable_of_ints: Union[Iterable[Sequence], bytearray]) -> None:
         raise NotImplementedError
 
     def __iter__(self):
@@ -835,21 +835,21 @@ class Bits:
     @classmethod
     def _setlsb0methods(cls, lsb0: bool) -> None:
         if lsb0:
-            cls._find = cls._find_lsb0
-            cls._rfind = cls._rfind_lsb0
-            cls._findall = cls._findall_lsb0
-            cls._slice = cls._slice_lsb0
-            cls._truncatestart = cls._truncateright
-            cls._truncateend = cls._truncateleft
-            cls._validate_slice = cls._validate_slice_lsb0
+            cls._find = cls._find_lsb0  # type: ignore
+            cls._rfind = cls._rfind_lsb0  # type: ignore
+            cls._findall = cls._findall_lsb0  # type: ignore
+            cls._slice = cls._slice_lsb0  # type: ignore
+            cls._truncatestart = cls._truncateright  # type: ignore
+            cls._truncateend = cls._truncateleft  # type: ignore
+            cls._validate_slice = cls._validate_slice_lsb0  # type: ignore
         else:
-            cls._find = cls._find_msb0
-            cls._rfind = cls._rfind_msb0
-            cls._findall = cls._findall_msb0
-            cls._slice = cls._slice_msb0
-            cls._truncatestart = cls._truncateleft
-            cls._truncateend = cls._truncateright
-            cls._validate_slice = cls._validate_slice_msb0
+            cls._find = cls._find_msb0  # type: ignore
+            cls._rfind = cls._rfind_msb0  # type: ignore
+            cls._findall = cls._findall_msb0  # type: ignore
+            cls._slice = cls._slice_msb0  # type: ignore
+            cls._truncatestart = cls._truncateleft  # type: ignore
+            cls._truncateend = cls._truncateright  # type: ignore
+            cls._validate_slice = cls._validate_slice_msb0  # type: ignore
 
     __slots__ = ('_datastore', '_pos')
     # This converts a single octal digit to 3 bits.
@@ -3409,21 +3409,22 @@ class BitArray(Bits):
     @classmethod
     def _setlsb0methods(cls, lsb0: bool) -> None:
         if lsb0:
-            cls._overwrite = cls._overwrite_lsb0
-            cls._insert = cls._insert_lsb0
-            cls._delete = cls._delete_lsb0
-            cls._ror = cls._rol_msb0
-            cls._rol = cls._ror_msb0
-            cls._append = cls._append_lsb0
-            cls._prepend = cls._append_msb0  # An LSB0 prepend is an MSB0 append
+            cls._overwrite = cls._overwrite_lsb0  # type: ignore
+            cls._insert = cls._insert_lsb0  # type: ignore
+            cls._delete = cls._delete_lsb0  # type: ignore
+            cls._ror = cls._rol_msb0  # type: ignore
+            cls._rol = cls._ror_msb0  # type: ignore
+            cls._append = cls._append_lsb0  # type: ignore
+            # An LSB0 prepend is an MSB0 append
+            cls._prepend = cls._append_msb0  # type: ignore
         else:
-            cls._overwrite = cls._overwrite_msb0
-            cls._insert = cls._insert_msb0
-            cls._delete = cls._delete_msb0
-            cls._ror = cls._ror_msb0
-            cls._rol = cls._rol_msb0
-            cls._append = cls._append_msb0
-            cls._prepend = cls._append_lsb0
+            cls._overwrite = cls._overwrite_msb0  # type: ignore
+            cls._insert = cls._insert_msb0  # type: ignore
+            cls._delete = cls._delete_msb0  # type: ignore
+            cls._ror = cls._ror_msb0  # type: ignore
+            cls._rol = cls._rol_msb0  # type: ignore
+            cls._append = cls._append_msb0  # type: ignore
+            cls._prepend = cls._append_lsb0  # type: ignore
 
     __slots__ = ()
 
