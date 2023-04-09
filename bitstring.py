@@ -3930,9 +3930,11 @@ class BitArray(Bits):
         Raises IndexError if pos < -len(self) or pos >= len(self).
 
         """
-        f = self._set if value else self._unset
         if pos is None:
-            pos = range(self.len)
+            # Set all bits to either 1 or 0
+            self._setint(-1 if value else 0)
+            return
+        f = self._set if value else self._unset
         if not isinstance(pos, abc.Iterable):
             pos = (pos,)
         length = self.len
