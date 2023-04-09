@@ -2609,10 +2609,11 @@ class Bits:
         return self._find(bs, start, end, ba)
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+        assert start <= end
         p = self._rfindbin(bs._getbin(), start, end, bytealigned)
 
         if p:
-            newpos = end - p[0] - bs.length
+            newpos = self.length - p[0] - bs.length
             if self._pos is not None:
                 self._pos = newpos
             return (newpos,)
@@ -2682,6 +2683,7 @@ class Bits:
 
     def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Generator[int, None, None]:
+        assert start <= end
         # Search chunks starting near the end and then moving back.
         c = 0
         increment = max(8192, bs.len * 80)
