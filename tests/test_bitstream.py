@@ -2983,7 +2983,7 @@ class Set(unittest.TestCase):
             b.set(False, 8)
 
     def testSetWholeBitStream(self):
-        a = BitStream(14)
+        a = BitStream(10000)
         a.set(1)
         self.assertTrue(a.all(1))
         a.set(0)
@@ -4065,7 +4065,7 @@ class Lsb0Streaming(unittest.TestCase):
 
     def testBitPosAfterFind(self):
         s = BitStream('0b01100001000011 0000')
-        s.find('0b11')
+        s.find('0b11', start=1)
         self.assertEqual(s.pos, 4)
 
     def testIter(self):
