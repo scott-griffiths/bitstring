@@ -8,9 +8,9 @@ the creation and analysis of binary data as simple and natural as possible.
 It has been maintained since 2006 and now has about 20 million downloads per year.
 
 
-You can try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/4.0-update?labpath=doc%2Fwalkthrough.ipynb)
+You can try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/4.0-update?labpath=doc%2Fwalkthrough.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
 
 
 
@@ -139,4 +139,4 @@ Maintained and expanded ever since as it became unexpectedly popular. Thanks to 
 and code (and bug reports) over the years.
 
 
-<sub>Copyright (c) 2006 - 2022 Scott Griffiths</sub>
+<sub>Copyright (c) 2006 - 2023 Scott Griffiths</sub>
