@@ -1981,8 +1981,7 @@ class Bits:
     def _readbool(self, pos: int, _length: None = None) -> Tuple[int, int]:
         return self[pos], pos + 1
 
-    @staticmethod
-    def _readpad(_self, _pos, _length) -> None:
+    def _readpad(self, _pos, _length) -> None:
         return None
 
     def _setbin_safe(self, binstring: str, _length: None = None, _offset: None = None) -> None:
