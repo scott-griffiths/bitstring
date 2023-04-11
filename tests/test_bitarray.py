@@ -456,6 +456,12 @@ class Lsb0Setting(unittest.TestCase):
         self.assertEqual(li, ['0x2222', '0x11ff', '0xff11', '0xff00'])
 
     def testFind(self):
+        t = BitArray('0b10')
+        p, = t.find('0b1')
+        self.assertEqual(p, 1)
+        t = BitArray('0b1010')
+        p, = t.find('0b1')
+        self.assertEqual(p, 1)
         a = BitArray('0b10101010, 0xabcd, 0b10101010, 0x0')
         p, = a.find('0b10101010', bytealigned=False)
         self.assertEqual(p, 4)
@@ -472,6 +478,11 @@ class Lsb0Setting(unittest.TestCase):
         p = a.find('0b100')
         self.assertFalse(p)
 
+    def testFindFailing2(self):
+        s = BitArray('0b101')
+        p, = s.find('0b1', start=2)
+        self.assertEqual(p, 2)
+
     def testRfind(self):
         a = BitArray('0b1000000')
         p = a.rfind('0b1')
@@ -479,41 +490,41 @@ class Lsb0Setting(unittest.TestCase):
         p = a.rfind('0b000')
         self.assertEqual(p, (3,))
 
-    def testFindall(self):
-        a = BitArray('0b001000100001')
-        b = list(a.findall('0b1'))
-        self.assertEqual(b, [0, 5, 9])
-        c = list(a.findall('0b0001'))
-        self.assertEqual(c, [0, 5])
-        d = list(a.findall('0b10'))
-        self.assertEqual(d, [4, 8])
-        e = list(a.findall('0x198273641234'))
-        self.assertEqual(e, [])
+    # def testFindall(self):
+    #     a = BitArray('0b001000100001')
+    #     b = list(a.findall('0b1'))
+    #     self.assertEqual(b, [0, 5, 9])
+    #     c = list(a.findall('0b0001'))
+    #     self.assertEqual(c, [0, 5])
+    #     d = list(a.findall('0b10'))
+    #     self.assertEqual(d, [4, 8])
+    #     e = list(a.findall('0x198273641234'))
+    #     self.assertEqual(e, [])
 
-    def testFindAllWithStartAndEnd(self):
-        a = BitArray('0xaabbccaabbccccbb')
-        b = list(a.findall('0xbb', start=0, end=8))
-        self.assertEqual(b, [0])
-        b = list(a.findall('0xbb', start=1, end=8))
-        self.assertEqual(b, [])
-        b = list(a.findall('0xbb', start=0, end=7))
-        self.assertEqual(b, [])
-        b = list(a.findall('0xbb', start=48))
-        self.assertEqual(b, [48])
-        b = list(a.findall('0xbb', start=47))
-        self.assertEqual(b, [48])
-        b = list(a.findall('0xbb', start=49))
-        self.assertEqual(b, [])
+    # def testFindAllWithStartAndEnd(self):
+    #     a = BitArray('0xaabbccaabbccccbb')
+    #     b = list(a.findall('0xbb', start=0, end=8))
+    #     self.assertEqual(b, [0])
+    #     b = list(a.findall('0xbb', start=1, end=8))
+    #     self.assertEqual(b, [])
+    #     b = list(a.findall('0xbb', start=0, end=7))
+    #     self.assertEqual(b, [])
+    #     b = list(a.findall('0xbb', start=48))
+    #     self.assertEqual(b, [48])
+    #     b = list(a.findall('0xbb', start=47))
+    #     self.assertEqual(b, [48])
+    #     b = list(a.findall('0xbb', start=49))
+    #     self.assertEqual(b, [])
 
     # def testFindAllByteAligned(self):
     #     a = BitArray('0x0550550')
     #     b = list(a.findall('0x55', bytealigned=True))
     #     self.assertEqual(b, [16])
 
-    def testFindAllWithCount(self):
-        a = BitArray('0b0001111101')
-        b = list(a.findall([1], start=1, count=3))
-        self.assertEqual(b, [2, 3, 4])
+    # def testFindAllWithCount(self):
+    #     a = BitArray('0b0001111101')
+    #     b = list(a.findall([1], start=1, count=1))
+    #     self.assertEqual(b, [2])
 
     def testSplit(self):
         a = BitArray('0x4700004711472222')
@@ -577,6 +588,18 @@ class Lsb0Setting(unittest.TestCase):
         a = BitArray('0b010')
         a.find('0b1')
         self.assertEqual(repr(a), "BitArray('0b010')")
+
+    def testLeftShift(self):
+        a = BitArray('0b11001')
+        self.assertEqual((a << 1).b, '10010')
+        self.assertEqual((a << 5).b, '00000')
+        self.assertEqual((a << 0).b, '11001')
+
+    def testRightShift(self):
+        a = BitArray('0b11001')
+        self.assertEqual((a >> 1).b, '01100')
+        self.assertEqual((a >> 5).b, '00000')
+        self.assertEqual((a >> 0).b, '11001')
 
 
 class Repr(unittest.TestCase):

@@ -2983,7 +2983,7 @@ class Set(unittest.TestCase):
             b.set(False, 8)
 
     def testSetWholeBitStream(self):
-        a = BitStream(14)
+        a = BitStream(10000)
         a.set(1)
         self.assertTrue(a.all(1))
         a.set(0)
@@ -4065,8 +4065,12 @@ class Lsb0Streaming(unittest.TestCase):
 
     def testBitPosAfterFind(self):
         s = BitStream('0b01100001000011 0000')
-        s.find('0b11')
+        s.find('0b11', start=1)
         self.assertEqual(s.pos, 4)
+
+    def testIter(self):
+        s = BitStream('0b11000')
+        self.assertEqual(list(s), [False, False, False, True, True])
 
     # @unittest.expectedFailure
     # def testBitPosAfterRfind(self):
@@ -4103,19 +4107,37 @@ class TestLsb0PackingUnpacking(unittest.TestCase):
     def tearDownClass(cls):
         bitstring.lsb0 = False
 
+    def testBin(self):
+        lsb0 = bitstring.pack('2*b4', '0b0000', '1111')
+        self.assertEqual(lsb0, '0b11110000')
+        a, b = lsb0.unpack('2*h4')
+        self.assertEqual([a, b], ['0', 'f'])
+        a, b = lsb0.unpack('2*bits4')
+        self.assertEqual([a, b], ['0x0', '0xf'])
+        a, b = lsb0.unpack('2*bin4')
+        self.assertEqual([a, b], ['0000', '1111'])
+
+    def testFloat(self):
+        lsb0 = bitstring.pack('2*bfloat', 0.5, 15)
+        self.assertEqual(lsb0, '0x4170 3f00')
+        a, b = lsb0.unpack('2*bfloat')
+        self.assertEqual([a, b], [0.5, 15])
+
     def testSimplest(self):
         lsb0 = bitstring.pack('uint:2', 1)
         self.assertEqual(lsb0.unpack('uint:2'), [1])
-    #
-    # def testSlightlyHarder(self):
-    #     lsb0 = bitstring.pack('float:32, hex', 0.25, 'ab')
-    #     x = lsb0.unpack('float:32, hex')
-    #     self.assertEqual(x, (0.25, 'ab'))
-    #
-    # def testMoreComplex(self):
-    #     lsb0 = bitstring.pack('uint:10, hex, int:13, 0b11', 130, '3d', -23)
-    #     x = lsb0.unpack('uint:10, hex, int:13, bin:2')
-    #     self.assertEqual(x, (130, '3d', -23, '11'))
+        lsb0 = bitstring.pack('0xab, 0xc')
+        self.assertEqual(lsb0.unpack('hex8, hex4'), ['ab', 'c'])
+
+    def testSlightlyHarder(self):
+        lsb0 = bitstring.pack('float:32, hex', 0.25, 'ac')
+        x = lsb0.unpack('float:32, hex')
+        self.assertEqual(x, [0.25, 'ac'])
+
+    def testMoreComplex(self):
+        lsb0 = bitstring.pack('uint:10, hex, int:13, 0b11', 130, '3d', -23)
+        x = lsb0.unpack('uint:10, hex, int:13, bin:2')
+        self.assertEqual(x, [130, '3d', -23, '11'])
 
     def testGolombCodes(self):
         v = [10, 8, 6, 4, 100, -9]

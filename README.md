@@ -5,12 +5,20 @@
 **bitstring** is a pure Python module designed to help make
 the creation and analysis of binary data as simple and natural as possible.
 
-It has been maintained since 2006 and now has about [20 million downloads](https://pypistats.org/packages/bitstring) per year.
+It has been maintained since 2006 and now has about 20 million downloads per year.
+
+
+You can try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
+
+
 
 > **Note** \
 > \
 > Version 4.0 of bitstring only supports Python 3.7 and later. \
 > Use bitstring version 3.1 if you're using Python 2.7 or 3.6 or earlier.
+
 
 New in version 4.0
 ------------------
@@ -131,4 +139,4 @@ Maintained and expanded ever since as it became unexpectedly popular. Thanks to 
 and code (and bug reports) over the years.
 
 
-<sub>Copyright (c) 2006 - 2022 Scott Griffiths</sub>
+<sub>Copyright (c) 2006 - 2023 Scott Griffiths</sub>
