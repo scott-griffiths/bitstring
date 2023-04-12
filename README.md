@@ -10,9 +10,10 @@ It has been maintained since 2006 and now has about 20 million downloads per yea
 
 You can try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb), or take a look at the [static version](https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb).
 
+
 [![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)](https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/readthedocs/bitstring)](https://bitstring.readthedocs.io/en/latest/)
-[![Downloads](https://img.shields.io/pypi/dm/bitstring?color=purple)](https://pypistats.org/packages/bitstring)
+[![Downloads](https://img.shields.io/pypi/dm/bitstring?color=blue)](https://pypistats.org/packages/bitstring)
 [![Licence](https://img.shields.io/pypi/l/bitstring)](https://github.com/scott-griffiths/bitstring/blob/main/LICENSE) &nbsp; &nbsp; 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
 
@@ -29,7 +30,6 @@ Overview
 
 
 > **Note** \
-> \
 > Version 4.0 of bitstring only supports Python 3.7 and later. \
 > Use bitstring version 3.1 if you're using Python 2.7 or 3.6 or earlier.
 
@@ -38,6 +38,53 @@ Documentation
 -------------
 The manual for the bitstring module is available at [Read the Docs](https://bitstring.readthedocs.org).
 It contains a walk-through of all the features and a complete [reference section](https://bitstring.readthedocs.io/en/stable/quick_ref.html).
+
+
+Examples
+--------
+
+### Installation
+
+    $ pip install bitstring
+
+### [Creation](https://bitstring.readthedocs.io/en/stable/creation.html)
+
+     >>> from bitstring import Bits, BitArray, BitStream, pack
+     >>> a = BitArray(bin='00101')
+     >>> b = Bits(a_file_object)
+     >>> c = BitArray('0xff, 0b101, 0o65, uint6=22')
+     >>> d = pack('intle16, hex=a, 0b1', 100, a='0x34f')
+     >>> e = pack('<16h', *range(16))
+
+### [Different interpretations, slicing and concatenation](https://bitstring.readthedocs.io/en/stable/interpretation.html)
+
+     >>> a = BitArray('0x3348')
+     >>> a.hex, a.bin, a.uint, a.float, a.bytes
+     ('3348', '0011001101001000', 13128, 0.2275390625, b'3H')
+     >>> a[10:3:-1].bin
+     '0101100'
+     >>> '0b100' + 3*a
+     BitArray('0x866906690669, 0b000')
+
+### [Reading data sequentially](https://bitstring.readthedocs.io/en/stable/reading.html)
+
+     >>> b = BitStream('0x160120f')
+     >>> b.read(12).hex
+     '160'
+     >>> b.pos = 0
+     >>> b.read('uint12')
+     352
+     >>> b.readlist('uint12, bin3')
+     [288, '111']
+
+### [Searching, inserting and deleting](https://bitstring.readthedocs.io/en/stable/reading.html#finding-and-replacing)
+
+     >>> c = BitArray('0b00010010010010001111')   # c.hex == '0x1248f'
+     >>> c.find('0x48')
+     (8,)
+     >>> c.replace('0b001', '0xabc')
+     >>> c.insert('0b0000', pos=3)
+     >>> del c[12:16]
 
 
 New in version 4.0
@@ -84,47 +131,6 @@ New in version 4.0
 
 * Support for 16 bit floating point types (both IEEE and bfloat).
 
-
-Simple Examples
----------------
-
-### [Creation](https://bitstring.readthedocs.io/en/stable/creation.html)
-
-     >>> a = BitArray(bin='00101')
-     >>> b = Bits(a_file_object)
-     >>> c = BitArray('0xff, 0b101, 0o65, uint6=22')
-     >>> d = pack('intle16, hex=a, 0b1', 100, a='0x34f')
-     >>> e = pack('<16h', *range(16))
-
-### [Different interpretations, slicing and concatenation](https://bitstring.readthedocs.io/en/stable/interpretation.html)
-
-     >>> a = BitArray('0x1af')
-     >>> a.hex, a.bin, a.uint
-     ('1af', '000110101111', 431)
-     >>> a[10:3:-1].bin
-     '1110101'
-     >>> '0b100' + 3*a
-     BitArray('0x835e35e35, 0b111')
-
-### [Reading data sequentially](https://bitstring.readthedocs.io/en/stable/reading.html)
-
-     >>> b = BitStream('0x160120f')
-     >>> b.read(12).hex
-     '160'
-     >>> b.pos = 0
-     >>> b.read('uint12')
-     352
-     >>> b.readlist('uint12, bin3')
-     [288, '111']
-
-### [Searching, inserting and deleting](https://bitstring.readthedocs.io/en/stable/reading.html#finding-and-replacing)
-
-     >>> c = BitArray('0b00010010010010001111')   # c.hex == '0x1248f'
-     >>> c.find('0x48')
-     (8,)
-     >>> c.replace('0b001', '0xabc')
-     >>> c.insert('0b0000', pos=3)
-     >>> del c[12:16]
 
 Unit Tests
 ----------
