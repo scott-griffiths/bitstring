@@ -8,16 +8,36 @@ the creation and analysis of binary data as simple and natural as possible.
 It has been maintained since 2006 and now has about 20 million downloads per year.
 
 
-You can try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
+You can try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb), or take a look at the [static version](https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb).
 
+[![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)](https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/readthedocs/bitstring)](https://bitstring.readthedocs.io/en/latest/)
+[![Downloads](https://img.shields.io/pypi/dm/bitstring?color=purple)](https://pypistats.org/packages/bitstring)
+[![Licence](https://img.shields.io/pypi/l/bitstring)](https://github.com/scott-griffiths/bitstring/blob/main/LICENSE) &nbsp; &nbsp; 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
 
+
+Overview
+--------
+
+* Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
+* Powerful binary packing and unpacking functions.
+* Bit-level slicing, joining, searching, replacing and more.
+* Read from and interpret bitstrings as streams of binary data.
+* Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
+* Open source software, released under the MIT licence.
 
 
 > **Note** \
 > \
 > Version 4.0 of bitstring only supports Python 3.7 and later. \
 > Use bitstring version 3.1 if you're using Python 2.7 or 3.6 or earlier.
+
+
+Documentation
+-------------
+The manual for the bitstring module is available at [Read the Docs](https://bitstring.readthedocs.org).
+It contains a walk-through of all the features and a complete [reference section](https://bitstring.readthedocs.io/en/stable/quick_ref.html).
 
 
 New in version 4.0
@@ -63,23 +83,6 @@ New in version 4.0
         0xfe70
 
 * Support for 16 bit floating point types (both IEEE and bfloat).
-
-
-Overview
---------
-
-* Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
-* Powerful binary packing and unpacking functions.
-* Bit-level slicing, joining, searching, replacing and more.
-* Read from and interpret bitstrings as streams of binary data.
-* Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
-* Open source software, released under the MIT licence.
-
-
-Documentation
--------------
-The manual for the bitstring module is available at [Read the Docs](https://bitstring.readthedocs.org).
-It contains a walk-through of all the features and a complete [reference section](https://bitstring.readthedocs.io/en/stable/quick_ref.html).
 
 
 Simple Examples
