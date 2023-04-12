@@ -10,10 +10,10 @@ It has been maintained since 2006 and now has about 20 million downloads per yea
 
 You can try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb), or take a look at the [static version](https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb).
 
-![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)
-![Docs](https://img.shields.io/readthedocs/bitstring)
-![Downloads](https://img.shields.io/pypi/dm/bitstring?color=purple)
-![Licence](https://img.shields.io/pypi/l/bitstring) &nbsp; &nbsp; 
+[![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)](https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/readthedocs/bitstring)](https://bitstring.readthedocs.io/en/latest/)
+[![Downloads](https://img.shields.io/pypi/dm/bitstring?color=purple)](https://pypistats.org/packages/bitstring)
+[![Licence](https://img.shields.io/pypi/l/bitstring)](https://github.com/scott-griffiths/bitstring/blob/main/LICENSE) &nbsp; &nbsp; 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
 
 
