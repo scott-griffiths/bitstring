@@ -19,9 +19,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-
 keywords = ["binary", "bitarray", "bitvector"]
 
 [project.urls]
 homepage = "https://github.com/scott-griffiths/bitstring"
 documentation = "https://bitstring.readthedocs.io/"
+
+[tool.setuptools]
+packages = ["bitstring"]
