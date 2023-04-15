@@ -2,6 +2,19 @@
 bitstring module version history
 --------------------------------
 
+----------------------------------
+April 2023: version 4.0.2 released
+----------------------------------
+A maintenance release.
+
+* Added py.typed file and converted module to package to let mypy find type
+  annotations. Bug 248.
+* Fix to shifting operations when using LSB0 mode. Bug 251.
+* A few more fixes for LSB0 mode.
+* Improved LSB0 documentation.
+* Added build-system section to pyproject.toml. Bug 243.
+* Rewrote the walkthrough documentation as a jupyter notebook.
+
 -------------------------------------
 November 2022: version 4.0.1 released
 -------------------------------------
