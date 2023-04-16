@@ -1,6 +1,6 @@
 
 
-![bitstring](https://github.com/scott-griffiths/bitstring/blob/d85c22504882d93b8c0cec373ef03b375e9ea7f8/doc/bitstring_logo_small.png?raw=true "bitstring")
+![bitstring](https://raw.githubusercontent.com/scott-griffiths/bitstring/main/doc/bitstring_logo_small.png "bitstring")
 
 **bitstring** is a pure Python module designed to help make
 the creation and analysis of binary data as simple and natural as possible.
