@@ -165,18 +165,8 @@ class ByteStore:
 
     @classmethod
     def _setlsb0methods(cls, lsb0: bool) -> None:
-        if lsb0:
-            cls.getbit = cls._getbit_lsb0  # type: ignore
-            cls.setbit = cls._setbit_lsb0  # type: ignore
-            cls.unsetbit = cls._unsetbit_lsb0  # type: ignore
-            cls.invertbit = cls._invertbit_lsb0  # type: ignore
-            cls.__iter__ = cls._iter_lsb0  # type: ignore
-        else:
-            cls.getbit = cls._getbit_msb0  # type: ignore
-            cls.setbit = cls._setbit_msb0  # type: ignore
-            cls.unsetbit = cls._unsetbit_msb0  # type: ignore
-            cls.invertbit = cls._invertbit_msb0  # type: ignore
-            cls.__iter__ = cls._iter_msb0  # type: ignore
+        pass
+
 
     __slots__ = ('offset', 'rawarray', 'bitlength')
 
@@ -224,82 +214,24 @@ class ByteStore:
             for bit in range(start_bit, end_bit):
                 yield bool(byte & (128 >> bit))
 
-    def _getbit_lsb0(self, pos: int) -> bool:
-        assert 0 <= pos < self.bitlength
-        pos = self.bitlength - pos - 1
-        byte, bit = divmod(self.offset + pos, 8)
-        return bool(self.rawarray[byte] & (128 >> bit))
 
-    def _getbit_msb0(self, pos: int) -> bool:
-        assert 0 <= pos < self.bitlength
-        byte, bit = divmod(self.offset + pos, 8)
-        return bool(self.rawarray[byte] & (128 >> bit))
 
-    def getbyte(self, pos: int) -> int:
-        """Direct access to byte data."""
-        return self.rawarray[pos]
 
-    def getbyteslice(self, start: int, end: int) -> bytearray:
-        """Direct access to byte data."""
-        return self.rawarray[start:end]
 
-    @property
-    def bytelength(self) -> int:
-        if not self.bitlength:
-            return 0
-        sb = self.offset // 8
-        eb = (self.offset + self.bitlength - 1) // 8
-        return eb - sb + 1
 
-    def __copy__(self) -> ByteStore:
-        return ByteStore(self.rawarray[:], self.bitlength, self.offset)
-
-    def _setbit_lsb0(self, pos: int) -> None:
-        assert 0 <= pos < self.bitlength
-        pos = self.bitlength - pos - 1
-        byte, bit = divmod(self.offset + pos, 8)
-        self.rawarray[byte] |= (128 >> bit)
-
-    def _setbit_msb0(self, pos: int) -> None:
-        assert 0 <= pos < self.bitlength
-        byte, bit = divmod(self.offset + pos, 8)
-        self.rawarray[byte] |= (128 >> bit)
-
-    def _unsetbit_lsb0(self, pos: int) -> None:
-        assert 0 <= pos < self.bitlength
-        pos = self.bitlength - pos - 1
-        byte, bit = divmod(self.offset + pos, 8)
-        self.rawarray[byte] &= ~(128 >> bit)
-
-    def _unsetbit_msb0(self, pos: int) -> None:
-        assert 0 <= pos < self.bitlength
-        byte, bit = divmod(self.offset + pos, 8)
-        self.rawarray[byte] &= ~(128 >> bit)
-
-    def _invertbit_lsb0(self, pos: int) -> None:
-        assert 0 <= pos < self.bitlength
-        pos = self.bitlength - pos - 1
-        byte, bit = divmod(self.offset + pos, 8)
-        self.rawarray[byte] ^= (128 >> bit)
-
-    def _invertbit_msb0(self, pos: int) -> None:
-        assert 0 <= pos < self.bitlength
-        byte, bit = divmod(self.offset + pos, 8)
-        self.rawarray[byte] ^= (128 >> bit)
-
-    def setbyte(self, pos: int, value: int) -> None:
-        self.rawarray[pos] = value
-
-    def setbyteslice(self, start: int, end: int, value: bytearray) -> None:
-        self.rawarray[start:end] = value
-
-    @property
-    def byteoffset(self) -> int:
-        return self.offset // 8
-
-    @property
-    def rawbytes(self) -> Union[bytearray, MmapByteArray]:
-        return self.rawarray
+    # def setbyte(self, pos: int, value: int) -> None:
+    #     self.rawarray[pos] = value
+    #
+    # def setbyteslice(self, start: int, end: int, value: bytearray) -> None:
+    #     self.rawarray[start:end] = value
+    #
+    # @property
+    # def byteoffset(self) -> int:
+    #     return self.offset // 8
+    #
+    # @property
+    # def rawbytes(self) -> Union[bytearray, MmapByteArray]:
+    #     return self.rawarray
 
 
 class MmapByteArray:
@@ -740,7 +672,6 @@ class Bits:
                 x._datastore = ByteStore(bytearray(0), 0)
                 x._bitarray = bitarray.bitarray()
                 for token in tokens:
-                    # x._datastore.appendstore(Bits._init_with_token(*token)._datastore)
                     b = Bits._init_with_token(*token)
                     x._bitarray += b._bitarray
                 if len(_cache) < CACHE_SIZE:
@@ -820,7 +751,12 @@ class Bits:
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'.")
 
     def __iter__(self) -> Iterable[bool]:
-        return iter(self._bitarray)
+        if _lsb0:
+            backwards = self._bitarray[:]  # TODO: Better not to make a copy here
+            backwards.reverse()
+            return iter(backwards)
+        else:
+            return iter(self._bitarray)
 
     def __copy__(self) -> Bits:
         """Return a new copy of the Bits for the copy module."""
@@ -963,8 +899,8 @@ class Bits:
         pos_string = "" if self._pos in (0, None) else f", pos={self._pos}"
         if isinstance(self._datastore.rawarray, MmapByteArray):
             offsetstring = ''
-            if self._datastore.byteoffset or self._offset:
-                offsetstring = ", offset=%d" % (self._datastore.rawarray.byteoffset * 8 + self._offset)
+            # if self._datastore.byteoffset or self._offset:
+            #     offsetstring = ", offset=%d" % (self._datastore.rawarray.byteoffset * 8 + self._offset)
             lengthstring = ", length=%d" % length
             return "{0}(filename={1}{2}{3}{4})".format(self.__class__.__name__,
                                                        repr(str(self._datastore.rawarray.source.name)),
@@ -1223,7 +1159,6 @@ class Bits:
         if isinstance(s, Bits):
             if length is None:
                 length = s._getlength() - offset
-            self._setbytes_unsafe(s._datastore.rawbytes, length, s._offset + offset)
             self._bitarray = s._bitarray[offset: offset + length]
             return
 
@@ -1260,8 +1195,6 @@ class Bits:
             raise CreationError("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, str):
             bs = self._converttobitstring(s)
-            assert bs._offset == 0
-            self._setbytes_unsafe(bs._datastore.rawbytes, bs.length, 0)
             self._bitarray = bs._bitarray
             return
         if isinstance(s, (bytes, bytearray)):
@@ -1532,7 +1465,7 @@ class Bits:
 
         if _lsb0:
             start = self._getlength() - start - length
-        startbyte, offset = divmod(start + self._offset, 8)
+        startbyte, offset = divmod(start, 8)
         if offset == 0:
             return struct.unpack(fmt, self._bitarray[start: start + length].tobytes())[0]
         else:
@@ -2100,25 +2033,22 @@ class Bits:
     def _set(self, pos: int) -> None:
         """Set bit at pos to 1."""
         assert 0 <= pos < self.len
-        # self._datastore.setbit(pos)
         if _lsb0:
-            self._bitarray[self.len - pos -1] = 1
+            self._bitarray[self.len - pos - 1] = 1
         else:
             self._bitarray[pos] = 1
 
     def _unset(self, pos: int) -> None:
         """Set bit at pos to 0."""
         assert 0 <= pos < self.len
-        # self._datastore.unsetbit(pos)
         if _lsb0:
-            self._bitarray[self.len - pos -1] = 0
+            self._bitarray[self.len - pos - 1] = 0
         else:
             self._bitarray[pos] = 0
 
     def _invert(self, pos: int) -> None:
         """Flip bit at pos 1<->0."""
         assert 0 <= pos < self.len
-        # self._datastore.invertbit(pos)
         if _lsb0:
             self._bitarray.invert(self.len - pos - 1)
         else:
@@ -2409,7 +2339,7 @@ class Bits:
             return ()
 
     def _find_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        if bytealigned and not bs.len % 8 and not self._datastore.offset:
+        if bytealigned and not bs.len % 8:
             p = self._findbytes(bs.bytes, start, end)
         else:
             p = self._findbin(bs._getbin(), start, end, bytealigned)
@@ -2656,30 +2586,31 @@ class Bits:
         # If the bitstring is file based then we don't want to read it all
         # in to memory.
         chunksize = 1024 * 1024  # 1 MiB chunks
-        if self._offset == 0:
-            a = 0
-            bytelen = self._datastore.bytelength
-            p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
-            while len(p) == chunksize:
-                f.write(p)
-                a += chunksize
-                p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
-            f.write(p)
-            # Now the final byte, ensuring that unused bits at end are set to 0.
-            bits_in_final_byte = self.len % 8
-            if not bits_in_final_byte:
-                bits_in_final_byte = 8
-            f.write(self[-bits_in_final_byte:].tobytes())
-        else:
-            # Really quite inefficient...
-            a = 0
-            b = a + chunksize * 8
-            while b <= self.len:
-                f.write(self._slice(a, b)._getbytes())
-                a += chunksize * 8
-                b += chunksize * 8
-            if a != self.len:
-                f.write(self._slice(a, self.len).tobytes())
+        # if self._offset == 0:
+        #     a = 0
+        #     bytelen = (len(self._bitarray) + 7) // 8
+        #     # TODO: This doesn't appear to be unit tested?
+        #     p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
+        #     while len(p) == chunksize:
+        #         f.write(p)
+        #         a += chunksize
+        #         p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
+        #     f.write(p)
+        #     # Now the final byte, ensuring that unused bits at end are set to 0.
+        #     bits_in_final_byte = self.len % 8
+        #     if not bits_in_final_byte:
+        #         bits_in_final_byte = 8
+        #     f.write(self[-bits_in_final_byte:].tobytes())
+        # else:
+        #     # Really quite inefficient...
+        #     a = 0
+        #     b = a + chunksize * 8
+        #     while b <= self.len:
+        #         f.write(self._slice(a, b)._getbytes())
+        #         a += chunksize * 8
+        #         b += chunksize * 8
+        #     if a != self.len:
+        #         f.write(self._slice(a, self.len).tobytes())
 
     def startswith(self, prefix: BitsType, start: Optional[int] = None, end: Optional[int] = None) -> bool:
         """Return whether the current bitstring starts with prefix.
@@ -3301,8 +3232,7 @@ class BitArray(Bits):
                 if self.len != length:
                     new_len = self.len
                     # Reset to previous value
-                    self._setbytes_unsafe(a_copy._datastore.getbyteslice(0, a_copy._datastore.bytelength),
-                                          a_copy.len, a_copy._offset)
+                    self = a_copy._copy()
                     raise CreationError(f"Can't initialise with value of length {new_len} bits, "
                                         f"as attribute has length of {length} bits.")
                 return
@@ -3728,12 +3658,13 @@ class BitArray(Bits):
         if not isinstance(pos, abc.Iterable):
             pos = (pos,)
         length = self.len
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError(f"Bit position {p} out of range.")
-            f(p)
+        v = 1 if value else 0
+        if _lsb0:
+            for p in pos:
+                self._bitarray[length - p - 1] = v
+        else:
+            for p in pos:
+                self._bitarray[p] = v
 
     def invert(self, pos: Optional[Union[Iterable[int], int]] = None) -> None:
         """Invert one or many bits from 0 to 1 or vice versa.
@@ -4411,9 +4342,6 @@ class BitStream(ConstBitStream, BitArray):
                 offset: Optional[int] = None, pos: int = 0, **kwargs) -> Bits:
         x = super(BitStream, cls).__new__(cls)
         y = ConstBitStream.__new__(BitStream, auto, length, offset, pos, **kwargs)
-        x._datastore = ByteStore(y._datastore.rawarray[:],
-                                 y._datastore.bitlength,
-                                 y._datastore.offset)
         x._bitarray = y._bitarray
         x._pos = y._pos
         return x
