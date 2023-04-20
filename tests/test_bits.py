@@ -93,6 +93,7 @@ class Creation(unittest.TestCase):
 
     def testCreationFromInt(self):
         s = Bits(int=0, length=4)
+        temp = s.hex
         self.assertEqual(s.bin, '0000')
         s = Bits(int=1, length=2)
         self.assertEqual(s.bin, '01')

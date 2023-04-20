@@ -137,6 +137,8 @@ class Bugs(unittest.TestCase):
     def testPrependAfterCreationFromDataWithOffset(self):
         s1 = BitArray(bytes=b'\x00\x00\x07\xff\xf0\x00', offset=21, length=15)
         self.assertFalse(s1.any(0))
+        b = s1.tobytes()
+        self.assertEqual(b, b'\xff\xfe')
         s1.prepend('0b0')
         self.assertEqual(s1.bin, '0111111111111111')
         s1.prepend('0b0')
