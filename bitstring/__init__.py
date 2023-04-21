@@ -118,7 +118,7 @@ sys.modules[__name__].__class__ = _MyModuleType
 MAX_CHARS: int = 250
 
 # Maximum size of caches used for speed optimisations.
-CACHE_SIZE: int = 0  # SCOTT TODO: Return this to 1000
+CACHE_SIZE: int = 1000
 
 
 class Error(Exception):
@@ -1796,10 +1796,11 @@ class Bits:
             return bs
 
         if isinstance(bs, str):
+            b = cls()
             try:
-                return cache[bs]
+                b._bitarray = bitarray.bitarray(cache[bs])
+                return b
             except KeyError:
-                b = cls()
                 try:
                     _, tokens = tokenparser(bs)
                 except ValueError as e:
@@ -1809,7 +1810,7 @@ class Bits:
                     for token in tokens[1:]:
                         b._addright(Bits._init_with_token(*token))
                 if len(cache) < CACHE_SIZE:
-                    cache[bs] = b
+                    cache[bs] = bitarray.frozenbitarray(b._bitarray)
                 return b
         return cls(bs)
 
