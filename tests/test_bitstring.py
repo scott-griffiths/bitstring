@@ -40,7 +40,7 @@ class Copy(unittest.TestCase):
         ba = bitstring.BitArray(100)
         ba_copy = copy.copy(ba)
         self.assertFalse(ba is ba_copy)
-        self.assertFalse(ba._datastore is ba_copy._datastore)
+        self.assertFalse(ba._bitarray is ba_copy._bitarray)
         self.assertTrue(ba == ba_copy)
 
     def testConstBitStreamCopy(self):
@@ -48,7 +48,7 @@ class Copy(unittest.TestCase):
         cbs.pos = 50
         cbs_copy = copy.copy(cbs)
         self.assertEqual(cbs_copy.pos, 0)
-        self.assertTrue(cbs._datastore is cbs_copy._datastore)
+        self.assertTrue(cbs._bitarray is cbs_copy._bitarray)
         self.assertTrue(cbs == cbs_copy)
 
     def testBitStreamCopy(self):
@@ -56,7 +56,7 @@ class Copy(unittest.TestCase):
         bs.pos = 50
         bs_copy = copy.copy(bs)
         self.assertEqual(bs_copy.pos, 0)
-        self.assertFalse(bs._datastore is bs_copy._datastore)
+        self.assertFalse(bs._bitarray is bs_copy._bitarray)
         self.assertTrue(bs == bs_copy)
 
 
