@@ -534,10 +534,10 @@ class Lsb0Setting(unittest.TestCase):
         self.assertEqual(li, ['', '0x472222', '0x4711', '0x470000'])
 
     def testByteSwap(self):
-        a = BitArray('0xff00ff00ff00')
+        a = BitArray('0xaa00ff00ff00')
         n = a.byteswap(2, end=32, repeat=True)
         self.assertEqual(n, 2)
-        self.assertEqual(a, '0xff0000ff00ff')
+        self.assertEqual(a, '0xaa0000ff00ff')
 
     def testInsert(self):
         a = BitArray('0x0123456')

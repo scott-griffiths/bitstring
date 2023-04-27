@@ -64,7 +64,7 @@ class Interning(unittest.TestCase):
     def testBits(self):
         a = bitstring.Bits('0xf')
         b = bitstring.Bits('0xf')
-        self.assertTrue(a is b)
+        self.assertTrue(a._bitarray is b._bitarray)
         c = bitstring.Bits('0b1111')
         self.assertFalse(a is c)
 
