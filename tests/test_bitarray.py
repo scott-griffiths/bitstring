@@ -492,41 +492,41 @@ class Lsb0Setting(unittest.TestCase):
         p = a.rfind('0b000')
         self.assertEqual(p, (3,))
 
-    # def testFindall(self):
-    #     a = BitArray('0b001000100001')
-    #     b = list(a.findall('0b1'))
-    #     self.assertEqual(b, [0, 5, 9])
-    #     c = list(a.findall('0b0001'))
-    #     self.assertEqual(c, [0, 5])
-    #     d = list(a.findall('0b10'))
-    #     self.assertEqual(d, [4, 8])
-    #     e = list(a.findall('0x198273641234'))
-    #     self.assertEqual(e, [])
+    def testFindall(self):
+        a = BitArray('0b001000100001')
+        b = list(a.findall('0b1'))
+        self.assertEqual(b, [0, 5, 9])
+        c = list(a.findall('0b0001'))
+        self.assertEqual(c, [0, 5])
+        d = list(a.findall('0b10'))
+        self.assertEqual(d, [4, 8])
+        e = list(a.findall('0x198273641234'))
+        self.assertEqual(e, [])
 
-    # def testFindAllWithStartAndEnd(self):
-    #     a = BitArray('0xaabbccaabbccccbb')
-    #     b = list(a.findall('0xbb', start=0, end=8))
-    #     self.assertEqual(b, [0])
-    #     b = list(a.findall('0xbb', start=1, end=8))
-    #     self.assertEqual(b, [])
-    #     b = list(a.findall('0xbb', start=0, end=7))
-    #     self.assertEqual(b, [])
-    #     b = list(a.findall('0xbb', start=48))
-    #     self.assertEqual(b, [48])
-    #     b = list(a.findall('0xbb', start=47))
-    #     self.assertEqual(b, [48])
-    #     b = list(a.findall('0xbb', start=49))
-    #     self.assertEqual(b, [])
+    def testFindAllWithStartAndEnd(self):
+        a = BitArray('0xaabbccaabbccccbb')
+        b = list(a.findall('0xbb', start=0, end=8))
+        self.assertEqual(b, [0])
+        b = list(a.findall('0xbb', start=1, end=8))
+        self.assertEqual(b, [])
+        b = list(a.findall('0xbb', start=0, end=7))
+        self.assertEqual(b, [])
+        b = list(a.findall('0xbb', start=48))
+        self.assertEqual(b, [48])
+        b = list(a.findall('0xbb', start=47))
+        self.assertEqual(b, [48])
+        b = list(a.findall('0xbb', start=49))
+        self.assertEqual(b, [])
 
-    # def testFindAllByteAligned(self):
-    #     a = BitArray('0x0550550')
-    #     b = list(a.findall('0x55', bytealigned=True))
-    #     self.assertEqual(b, [16])
+    def testFindAllByteAligned(self):
+        a = BitArray('0x0550550')
+        b = list(a.findall('0x55', bytealigned=True))
+        self.assertEqual(b, [16])
 
-    # def testFindAllWithCount(self):
-    #     a = BitArray('0b0001111101')
-    #     b = list(a.findall([1], start=1, count=1))
-    #     self.assertEqual(b, [2])
+    def testFindAllWithCount(self):
+        a = BitArray('0b0001111101')
+        b = list(a.findall([1], start=1, count=1))
+        self.assertEqual(b, [2])
 
     def testSplit(self):
         a = BitArray('0x4700004711472222')
@@ -549,14 +549,14 @@ class Lsb0Setting(unittest.TestCase):
         a.overwrite('0xdead', 4)
         self.assertEqual(a, '0x000dead0')
 
-    # def testReplace(self):
-    #     a = BitArray('0x0001100')
-    #     n = a.replace('0x1', '0xabc')
-    #     self.assertEqual(n, 2)
-    #     self.assertEqual(a, '0x000abcabc00')
-    #     n = a.replace([1], [0], end=12)
-    #     self.assertEqual(n, 2)
-    #     self.assertEqual(a, '0x000abcab000')
+    def testReplace(self):
+        a = BitArray('0x5551100')
+        n = a.replace('0x1', '0xabc')
+        self.assertEqual(n, 2)
+        self.assertEqual(a, '0x555abcabc00')
+        n = a.replace([1], [0], end=12)
+        self.assertEqual(n, 2)
+        self.assertEqual(a, '0x555abcab000')
 
     def testReverse(self):
         pass

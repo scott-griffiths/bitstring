@@ -4,7 +4,7 @@ import unittest
 import sys
 sys.path.insert(0, '..')
 import bitstring
-from bitstring import BitStore
+from bitstring import BitStore, _convert_start_and_stop_from_lsb0_to_msb0
 
 
 class BasicFunctionality(unittest.TestCase):
@@ -67,3 +67,24 @@ class BasicLSB0Functionality(unittest.TestCase):
             a[5] = 1
         with self.assertRaises(IndexError):
             a[-6] = 0
+
+
+class GettingSlices(unittest.TestCase):
+
+    def tearDown(self) -> None:
+        bitstring.lsb0 = False
+
+    def testEverything(self):
+        a = BitStore('010010001000110111001111101101001111')
+
+        # Try combination of start and stop for msb0 and get the result.
+        # Convert to start and stop needed for lsb0
+        options = [5, 2, -2, 1, 7, -3, -9, 0, -1, -len(a), len(a), len(a) - 1, -len(a) - 1, -100, 100, None]
+        for start_option in options:
+            for end_option in options:
+                bitstring.lsb0 = True
+                lsb0 = a[start_option: end_option]
+                bitstring.lsb0 = False
+                msb0 = a[start_option: end_option]
+                new_start, new_end =_convert_start_and_stop_from_lsb0_to_msb0(start_option, end_option, len(a))
+                self.assertEqual(len(msb0), len(lsb0), f"[{start_option}: {end_option}] -> [{new_start}: {new_end}]  len(msb0)={len(msb0)}, len(lsb0)={len(lsb0)}")

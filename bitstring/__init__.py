@@ -157,6 +157,19 @@ class CreationError(Error, ValueError):
         Error.__init__(self, *params)
 
 
+def _convert_start_and_stop_from_lsb0_to_msb0(start, stop, length):
+    if start is None:
+        new_stop = None
+    else:
+        new_stop = -start if start != 0 else None
+    if stop is None:
+        new_start = None
+    elif stop == 0:
+        new_start = length
+    else:
+        new_start = -stop
+    return new_start, new_stop
+
 class BitStore(bitarray.bitarray):
     """A light wrapper around bitarray that does the LSB0 stuff"""
 
@@ -165,17 +178,11 @@ class BitStore(bitarray.bitarray):
             if isinstance(key, int):
                 return super().__getitem__(-key - 1)
             else:
-                if key.start is None:
-                    new_stop = None
-                else:
-                    new_stop = -key.start if key.start != 0 else None
-                if key.stop is None:
-                    new_start = None
-                else:
-                    new_start = -key.stop
+                new_start, new_stop = _convert_start_and_stop_from_lsb0_to_msb0(key.start, key.stop, len(self))
                 return super().__getitem__(slice(new_start, new_stop, key.step))
         else:
             return super().__getitem__(key)
+
 
     def __setitem__(self, key, value):
         if _lsb0:
@@ -183,19 +190,22 @@ class BitStore(bitarray.bitarray):
                 super().__setitem__(-key - 1, value)
                 return
             else:
-                if key.start is None:
-                    new_stop = None
-                else:
-                    new_stop = -key.start if key.start != 0 else None
-                if key.stop is None:
-                    new_start = None
-                else:
-                    new_start = -key.stop
+                new_start, new_stop = _convert_start_and_stop_from_lsb0_to_msb0(key.start, key.stop, len(self))
                 super().__setitem__(slice(new_start, new_stop, key.step), value)
                 return
         else:
             super().__setitem__(key, value)
             return
+
+    def __delitem__(self, key):
+        if _lsb0:
+            if isinstance(key, int):
+                return super().__delitem__(-key - 1)
+            else:
+                new_start, new_stop = _convert_start_and_stop_from_lsb0_to_msb0(key.start, key.stop, len(self))
+                super().__delitem__(slice(new_start, new_stop, key.step))
+        else:
+            super().__delitem__(key)
     
     def __iter__(self):
         for i in range(len(self)):
@@ -206,6 +216,15 @@ class BitStore(bitarray.bitarray):
 
     def setitem_msb0(self, key, value):
         super().__setitem__(key, value)
+
+    def invert(self, index=None):
+        if index is not None:
+            if _lsb0:
+                super().invert(-index - 1)
+            else:
+                super().invert(index)
+        else:
+            super().invert()
 
 
 class ByteStore:
@@ -581,18 +600,14 @@ class Bits:
             cls._find = cls._find_lsb0  # type: ignore
             cls._rfind = cls._rfind_lsb0  # type: ignore
             cls._findall = cls._findall_lsb0  # type: ignore
-            cls._slice = cls._slice_lsb0  # type: ignore
             cls._truncatestart = cls._truncateright  # type: ignore
             cls._truncateend = cls._truncateleft  # type: ignore
-            cls._validate_slice = cls._validate_slice_msb0  # type: ignore
         else:
             cls._find = cls._find_msb0  # type: ignore
             cls._rfind = cls._rfind_msb0  # type: ignore
             cls._findall = cls._findall_msb0  # type: ignore
-            cls._slice = cls._slice_msb0  # type: ignore
             cls._truncatestart = cls._truncateleft  # type: ignore
             cls._truncateend = cls._truncateright  # type: ignore
-            cls._validate_slice = cls._validate_slice_msb0  # type: ignore
 
     __slots__ = ('_datastore', '_bitarray', '_pos')
     # This converts a single octal digit to 3 bits.
@@ -648,6 +663,10 @@ class Bits:
                 offset: Optional[int] = None, _cache={}, **kwargs) -> Bits:
         # For instances auto-initialised with a string we intern the instance for re-use.
         if isinstance(auto, str):
+            if offset is not None:
+                raise CreationError("offset should not be specified when using string initialisation.")
+            if length is not None:
+                raise CreationError("length should not be specified when using string initialisation.")
             x = object.__new__(cls)
             try:
                 x._bitarray = BitStore(_cache[auto])
@@ -657,10 +676,6 @@ class Bits:
                     _, tokens = tokenparser(auto)
                 except ValueError as e:
                     raise CreationError(*e.args)
-                if offset is not None:
-                    raise CreationError("offset should not be specified when using string initialisation.")
-                if length is not None:
-                    raise CreationError("length should not be specified when using string initialisation.")
 
                 x._bitarray = BitStore()
                 for token in tokens:
@@ -1820,13 +1835,14 @@ class Bits:
         #                         self.len, self._offset)
         return s_copy
 
-    def _slice_lsb0(self, start: int, end: int) -> Bits:
-        """Used internally to get a slice, without error checking (LSB0)."""
-        return self._absolute_slice(self.length - end, self.length - start)
-
-    def _slice_msb0(self, start: int, end: int) -> Bits:
-        """Used internally to get a slice, without error checking (MSB0)."""
-        return self._absolute_slice(start, end)
+    def _slice(self, start: int, end: int) -> Bits:
+        """Used internally to get a slice, without error checking."""
+        if end == start:
+            return self.__class__()
+        assert start < end, f"start={start}, end={end}"
+        bs = self.__class__()
+        bs._bitarray = self._bitarray.__getitem__(slice(start, end, None))
+        return bs
 
     def _absolute_slice(self, start: int, end: int) -> Bits:
         """Used internally to get a slice, without error checking.
@@ -1910,11 +1926,7 @@ class Bits:
         if self._pos is not None:
             self._pos = pos + bs.len
 
-    def _overwrite_lsb0(self, bs: Bits, pos: int) -> None:
-        """Overwrite with bs at pos (LSB0)."""
-        self._overwrite_msb0(bs, self.len - pos - bs.len)
-
-    def _overwrite_msb0(self, bs: Bits, pos: int) -> None:
+    def _overwrite(self, bs: Bits, pos: int) -> None:
         """Overwrite with bs at pos."""
         assert 0 <= pos <= self.len
         if bs is self:
@@ -1923,34 +1935,23 @@ class Bits:
             return
         self._bitarray[pos: pos + bs.len] = bs._bitarray
 
-    def _delete_lsb0(self, bits: int, pos: int) -> None:
-        """Delete bits at pos (LSB0)."""
-        self._delete_msb0(bits, self.len - pos - bits)
-
-    def _delete_msb0(self, bits: int, pos: int) -> None:
+    def _delete(self, bits: int, pos: int) -> None:
         """Delete bits at pos."""
         assert 0 <= pos <= self.len
         assert pos + bits <= self.len, f"pos={pos}, bits={bits}, len={self.len}"
-        if not pos:
+
+        if pos == 0:
             # Cutting bits off at the start.
-            self._truncateleft(bits)
+            self._bitarray = self._bitarray[bits:]
             return
         if pos + bits == self.len:
             # Cutting bits off at the end.
-            self._truncateright(bits)
+            self._bitarray = self._bitarray[: -bits]
             return
-        if pos > self.len - pos - bits:
-            # More bits before cut point than after it, so do bit shifting
-            # on the final bits.
-            end = self._slice_msb0(pos + bits, self.len)
-            assert self.len - pos > 0
-            self._truncateright(self.len - pos)
-            self._addright(end)
-            return
-        # More bits after the cut point than before it.
-        start = self._slice_msb0(0, pos)
-        self._truncateleft(pos + bits)
-        self._addleft(start)
+        if _lsb0:
+            self._bitarray = self._bitarray[pos + bits:] + self._bitarray[0: pos]  # TODO: Combine these two cases?
+        else:
+            self._bitarray = self._bitarray[0: pos] + self._bitarray[pos + bits:]
         return
 
     def _reversebytes(self, start: int, end: int) -> None:
@@ -1959,16 +1960,6 @@ class Bits:
         temp1 = self._bitarray[start:end].tobytes()
         temp2 = BitStore(buffer=bytearray(temp1[::-1]))
         self._bitarray[start:end] = BitStore(buffer=bytearray(self._bitarray[start:end].tobytes()[::-1]))
-
-    def _set(self, pos: int) -> None:
-        """Set bit at pos to 1."""
-        assert 0 <= pos < self.len
-        self._bitarray[pos] = 1
-
-    def _unset(self, pos: int) -> None:
-        """Set bit at pos to 0."""
-        assert 0 <= pos < self.len
-        self._bitarray[pos] = 0
 
     def _invert(self, pos: int) -> None:
         """Flip bit at pos 1<->0."""
@@ -2030,7 +2021,7 @@ class Bits:
         """Read some bits from the bitstring and return newly constructed bitstring."""
         return self._slice(start, start + length)
 
-    def _validate_slice_msb0(self, start: Optional[int], end: Optional[int]) -> Tuple[int, int]:
+    def _validate_slice(self, start: Optional[int], end: Optional[int]) -> Tuple[int, int]:
         """Validate start and end and return them as positive bit positions."""
         if start is None:
             start = 0
@@ -2047,10 +2038,6 @@ class Bits:
         if end < start:
             raise ValueError("end must not be less than start.")
         return start, end
-
-    def _validate_slice_lsb0(self, start: Optional[int], end: Optional[int]) -> Tuple[int, int]:
-        start, end = self._validate_slice_msb0(start, end)
-        return self._getlength() - end, self._getlength() - start
 
     def unpack(self, fmt: Union[str, List[Union[str, int]]], **kwargs) -> List[Union[float, int, str, None, Bits]]:
         """Interpret the whole bitstring using fmt and return list.
@@ -2169,9 +2156,8 @@ class Bits:
             return ()
         return (p * 8,)
 
-    def _findbin(self, sub_bitarray: BitStore, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _findbin_msb0(self, sub_bitarray: BitStore, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         """Find first occurrence of a binary string."""
-        # sub_bitarray = bitarray.bitarray(binstr)
         while True:
             p = self._bitarray.find(sub_bitarray, start, end)
             if p == -1:
@@ -2181,8 +2167,30 @@ class Bits:
             # Advance to just beyond the non-byte-aligned match and try again...
             start = p + 1
 
-    def _rfindbin(self, binstr: str, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _rfindbin_msb0(self, binstr: str, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         """Find final occurrence of a binary string."""
+
+        sub_bitarray = Bits(bin=binstr)
+        increment = max(4096, len(binstr) * 64)
+        buffersize = increment + len(binstr)
+        p = end
+        while p > start:
+            start_pos = max(start, p - buffersize)
+            # if _lsb0:
+            #     # Convert start and end to msb0
+            #     msb0_start, msb0_end = self._validate_slice(*_convert_start_and_stop_from_lsb0_to_msb0(start_pos, p, len(self)))
+            # else:
+            #     msb0_start, msb0_end = start_pos, p
+            ps = list(self._findall_msb0(sub_bitarray, start_pos, p, count=None, bytealigned=bytealigned))  # TODO: Checking for bytealigned twice here. Lots of inefficiencies...
+            if ps:
+                while ps:
+                    if not bytealigned or (ps[-1] % 8 == 0):
+                        return (ps[-1],)
+                    ps.pop()
+            p -= increment
+        return ()
+
+
         p = end
         # We grab overlapping chunks of the binary representation and
         # do an ordinary string search within that.
@@ -2229,13 +2237,15 @@ class Bits:
         bs = Bits(bs)
         if bs.len == 0:
             raise ValueError("Cannot find an empty bitstring.")
-        start, end = self._validate_slice_msb0(start, end)
+        start, end = self._validate_slice(start, end)
         ba = _bytealigned if bytealigned is None else bytealigned
         return self._find(bs, start, end, ba)
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         assert start <= end
-        p = self._rfindbin(bs._getbin(), start, end, bytealigned)
+        assert _lsb0
+        msb0_start, msb0_end = self._validate_slice(*_convert_start_and_stop_from_lsb0_to_msb0(start, end, len(self)))
+        p = self._rfindbin_msb0(bs._getbin(), msb0_start, msb0_end, bytealigned)
 
         if p:
             newpos = self.length - p[0] - bs.length
@@ -2249,7 +2259,7 @@ class Bits:
         if bytealigned and not bs.len % 8:
             p = self._findbytes(bs.bytes, start, end)
         else:
-            p = self._findbin(bs._bitarray, start, end, bytealigned)
+            p = self._findbin_msb0(bs._bitarray, start, end, bytealigned)
         # If called from a class that has a pos, set it
         if p and self._pos is not None:
             self._pos = p[0]
@@ -2287,7 +2297,7 @@ class Bits:
             # Use the quick find method
             f = functools.partial(self._findbytes, bytes_=bs._getbytes())
         else:
-            f = functools.partial(self._findbin, sub_bitarray=bs._bitarray, bytealigned=bytealigned)
+            f = functools.partial(self._findbin_msb0, sub_bitarray=bs._bitarray, bytealigned=bytealigned)
         while True:
             if count is not None and c >= count:
                 return
@@ -2362,7 +2372,7 @@ class Bits:
         return p
 
     def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        return self._rfindbin(bs.bin, start, end, bytealigned)
+        return self._rfindbin_msb0(bs.bin, start, end, bytealigned)
 
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
@@ -2435,7 +2445,7 @@ class Bits:
             # Use the quick find method
             f = functools.partial(self._findbytes, bytes_=delimiter._getbytes())
         else:
-            f = functools.partial(self._findbin, sub_bitarray=delimiter._bitarray, bytealigned=bytealigned_)
+            f = functools.partial(self._findbin_msb0, sub_bitarray=delimiter._bitarray, bytealigned=bytealigned_)
         found = f(start=start, end=end)
         if not found:
             # Initial bits are the whole bitstring being searched
@@ -2528,7 +2538,7 @@ class Bits:
 
         """
         prefix = Bits(prefix)
-        start, end = self._validate_slice_msb0(start, end)  # the _slice deals with msb0/lsb0
+        start, end = self._validate_slice(start, end)  # the _slice deals with msb0/lsb0
         if end < start + prefix._getlength():
             return False
         end = start + prefix._getlength()
@@ -3032,18 +3042,14 @@ class BitArray(Bits):
     @classmethod
     def _setlsb0methods(cls, lsb0: bool) -> None:
         if lsb0:
-            cls._overwrite = cls._overwrite_lsb0  # type: ignore
             cls._insert = cls._insert_lsb0  # type: ignore
-            cls._delete = cls._delete_lsb0  # type: ignore
             cls._ror = cls._rol_msb0  # type: ignore
             cls._rol = cls._ror_msb0  # type: ignore
             cls._append = cls._append_lsb0  # type: ignore
             # An LSB0 prepend is an MSB0 append
             cls._prepend = cls._append_msb0  # type: ignore
         else:
-            cls._overwrite = cls._overwrite_msb0  # type: ignore
             cls._insert = cls._insert_msb0  # type: ignore
-            cls._delete = cls._delete_msb0  # type: ignore
             cls._ror = cls._ror_msb0  # type: ignore
             cls._rol = cls._rol_msb0  # type: ignore
             cls._append = cls._append_msb0  # type: ignore
@@ -3096,11 +3102,6 @@ class BitArray(Bits):
         """
         # For mutable BitArrays we always read in files to memory:
         pass
-
-    def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
-                offset: Optional[int] = None, **kwargs) -> Bits:
-        y = super().__new__(cls, auto, length, offset, **kwargs)
-        return y
 
     def __setattr__(self, attribute, value):
         try:
@@ -3279,6 +3280,9 @@ class BitArray(Bits):
         0x0022
 
         """
+        self._bitarray.__delitem__(key)
+        return
+
         if isinstance(key, slice):
             # A slice
             start = 0
@@ -3404,6 +3408,33 @@ class BitArray(Bits):
         start, end = self._validate_slice(start, end)
         if bytealigned is None:
             bytealigned = _bytealigned
+        if new is self:
+            # Prevent self assignment woes
+            new = copy.copy(self)
+
+        new_bitarray = self._bitarray[0: start]
+        p = start
+        c = 0
+        for x in self.findall(old, start, end, bytealigned=bytealigned):
+            if c == count:
+                break
+            if x < p:
+                continue  # Can't replace overlapping matches more than once
+            new_bitarray += self._bitarray[p: x]
+            p = x + len(old)
+            if _lsb0:
+                new_bitarray = new._bitarray + new_bitarray
+            else:
+                new_bitarray += new._bitarray
+            c += 1
+        if _lsb0:
+            new_bitarray = self._bitarray[p:] + new_bitarray
+        else:
+            new_bitarray += self._bitarray[p:]
+
+        self._bitarray = new_bitarray
+        return c
+
         # Adjust count for use in split()
         if count is not None:
             count += 1
@@ -3438,8 +3469,12 @@ class BitArray(Bits):
                         newpos = p
             self._pos = newpos
         else:
+            sections = []
             for p in positions:
-                self[p:p + old.len] = new
+                sections.extend([self._bitarray[0:p] + new._bitarray + self._bitarray[p + len(old):]])
+            self._bitarray.clear()
+            for section in sections:
+                self._bitarray += section
         return len(lengths) - 1
 
     def insert(self, bs: BitsType, pos: Optional[int] = None) -> None:
@@ -3550,10 +3585,8 @@ class BitArray(Bits):
             # Set all bits to either 1 or 0
             self._setint(-1 if value else 0)
             return
-        f = self._set if value else self._unset
         if not isinstance(pos, abc.Iterable):
             pos = (pos,)
-        length = self.len
         v = 1 if value else 0
         for p in pos:
             self._bitarray[p] = v
@@ -3598,7 +3631,7 @@ class BitArray(Bits):
         self._ror(bits, start, end)
 
     def _ror_msb0(self, bits: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
-        start, end = self._validate_slice_msb0(start, end)  # the _slice deals with msb0/lsb0
+        start, end = self._validate_slice(start, end)  # the _slice deals with msb0/lsb0
         bits %= (end - start)
         if not bits:
             return
@@ -3623,9 +3656,9 @@ class BitArray(Bits):
         self._rol(bits, start, end)
 
     def _rol_msb0(self, bits: int, start: Optional[int] = None, end: Optional[int] = None):
-        start, end = self._validate_slice_msb0(start, end)
+        start, end = self._validate_slice(start, end)
         bits %= (end - start)
-        if not bits:
+        if bits == 0:
             return
         lhs = self._slice(start, start + bits)
         self._delete(bits, start)
@@ -3644,7 +3677,7 @@ class BitArray(Bits):
                   as much as possible.
 
         """
-        start_v, end_v = self._validate_slice_msb0(start, end)
+        start_v, end_v = self._validate_slice(start, end)
         if fmt is None or fmt == 0:
             # reverse all of the whole bytes.
             bytesizes = [(end_v - start_v) // 8]
@@ -3881,12 +3914,16 @@ class ConstBitStream(Bits):
         pos -- Initial bit position, defaults to 0.
 
         """
-        pass
+        super().__init__(auto, length, offset, **kwargs)
+        if pos < 0:
+            pos += len(self._bitarray)
+        if pos < 0 or pos > len(self._bitarray):
+            raise CreationError(f"Cannot set pos to {pos} when length is {len(self._bitarray)}.")
+        self._pos = pos
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: int = 0, **kwargs) -> Bits:
         x = super().__new__(cls, auto, length, offset, **kwargs)
-        x._initialise(auto, length, offset, **kwargs)
         x._pos = len(x._bitarray) + pos if pos < 0 else pos
         if x._pos < 0 or x._pos > len(x._bitarray):
             raise CreationError(f"Cannot set pos to {pos} when length is {len(x._bitarray)}.")
@@ -4225,15 +4262,8 @@ class BitStream(ConstBitStream, BitArray):
         pos -- Initial bit position, defaults to 0.
 
         """
-        pass
+        ConstBitStream.__init__(self, auto, length, offset, pos, **kwargs)
 
-    def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
-                offset: Optional[int] = None, pos: int = 0, **kwargs) -> Bits:
-        x = super().__new__(cls)
-        y = super().__new__(cls, auto, length, offset, pos, **kwargs)
-        x._bitarray = y._bitarray
-        x._pos = y._pos
-        return x
 
     def __copy__(self) -> BitStream:
         """Return a new copy of the BitStream."""
@@ -4256,6 +4286,7 @@ class BitStream(ConstBitStream, BitArray):
         bs -- The bitstring to prepend.
 
         """
+        # super().prepend(bs)  # TODO: Shouldn't this line work in place of the next two?
         bs = self._converttobitstring(bs)
         self._addleft(bs)
         self._pos += bs.len

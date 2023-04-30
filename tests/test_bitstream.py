@@ -3319,21 +3319,21 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(x, 98798798172)
         self.assertEqual(a.pos, 0)
 
-        # a = BitStream('0b111, uintle:40=123516, 0b111')
-        # self.assertEqual(a._readuintle(3, 40), 123516)
-        # b = BitStream('0xff, uintle:800=999, 0xffff')
-        # self.assertEqual(b._readuintle(8, 800), 999)
-        #
-        # a = BitStream('0b111, intle:48=999999999, 0b111111111111')
-        # self.assertEqual(a._readintle(3, 48), 999999999)
-        # b = BitStream('0xff, intle:200=918019283740918263512351235, 0xfffffff')
-        # self.assertEqual(b._readintle(8, 200), 918019283740918263512351235)
-        #
-        # a = BitStream('0b111, bfloat:16=-5.25, 0xffffffff')
-        # self.assertEqual(a._readbfloatbe(3, 16), -5.25)
-        #
-        # a = BitStream('0b111, floatle:64=9.9998, 0b111')
-        # self.assertEqual(a._readfloatle(3, 64), 9.9998)
+        a = BitStream('0b111, uintle:40=123516, 0b111')
+        self.assertEqual(a._readuintle(3, 40), 123516)
+        b = BitStream('0xff, uintle:800=999, 0xffff')
+        self.assertEqual(b._readuintle(8, 800), 999)
+
+        a = BitStream('0b111, intle:48=999999999, 0b111111111111')
+        self.assertEqual(a._readintle(3, 48), 999999999)
+        b = BitStream('0xff, intle:200=918019283740918263512351235, 0xfffffff')
+        self.assertEqual(b._readintle(8, 200), 918019283740918263512351235)
+
+        a = BitStream('0b111, bfloat:16=-5.25, 0xffffffff')
+        self.assertEqual(a._readbfloatbe(3, 16), -5.25)
+
+        a = BitStream('0b111, floatle:64=9.9998, 0b111')
+        self.assertEqual(a._readfloatle(3, 64), 9.9998)
 
     def testAutoInitWithInt(self):
         a = BitStream(0)
@@ -4045,11 +4045,10 @@ class Lsb0Streaming(unittest.TestCase):
         s = BitStream('0b11000')
         self.assertEqual(list(s), [False, False, False, True, True])
 
-    # @unittest.expectedFailure
-    # def testBitPosAfterRfind(self):
-    #     s = BitStream('0b011 000010000110000')
-    #     s.rfind('0b11')
-    #     self.assertEqual(s.pos, 15)
+    def testBitPosAfterRfind(self):
+        s = BitStream('0b011 000010000110000')
+        s.rfind('0b11')
+        self.assertEqual(s.pos, 15)
 
     def testBitPosAfterFindall(self):
         pass
@@ -4161,3 +4160,22 @@ class TestFormat(unittest.TestCase):
     def testFormatStringsWithInterpretation(self):
         a = Bits('0xf')
         self.assertEqual(f'{a.bin}', '1111')
+
+
+class CacheingIssues(unittest.TestCase):
+
+    def testCacheWithOffset(self):
+        y = BitStream('0xdeadbeef1000')
+        with self.assertRaises(bitstring.CreationError):
+            x = BitStream('0xdeadbeef1000', offset=8)
+
+    def testCacheWithPos(self):
+        y = BitStream('0xdeadbeef1001', pos=3)
+        self.assertEqual(y.pos, 3)
+        x = BitStream('0xdeadbeef1001', pos=5)
+        self.assertEqual(x.pos, 5)
+
+    def testCacheWithLength(self):
+        y = BitStream('0xdeadbeef002')
+        with self.assertRaises(bitstring.CreationError):
+            x = BitStream('0xdeadbeef002', length=16)

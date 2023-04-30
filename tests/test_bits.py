@@ -795,3 +795,5 @@ class Copy(unittest.TestCase):
         s = Bits('0xc00dee')
         t = s.copy()
         self.assertEqual(s, t)
+
+
