@@ -21,8 +21,9 @@ Huge kudos to Ilan Schnell for all his work on bitarray.
 
 Other changes:
 
-* Deleting or inserting into a bitstring invalidates the bit position. Previously the
-  bit position was adjusted but this was not well defined.
+* Deleting, replacing or inserting into a bitstring invalidates the bit position if the
+  bitstring's length has been changed. Previously the bit position was adjusted but
+  this was not well defined.
 
 ----------------------------------
 April 2023: version 4.0.2 released
