@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 4.0-update
+      - bitarray_test
       - main
     tags:
       - v*
