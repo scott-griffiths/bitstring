@@ -684,7 +684,7 @@ class Bits:
                 if len(_cache) < CACHE_SIZE:
                     _cache[auto] = BitStore(x._bitarray)
                 return x
-        if type(auto) is cls:
+        if type(auto) is auto:
             return auto
         x = object.__new__(cls)
         x._initialise(auto, length, offset, **kwargs)
@@ -701,10 +701,10 @@ class Bits:
         if not kwargs:
             # No initialisers, so initialise with nothing or zero bits
             if length is not None and length != 0:
-                data = bytearray((length + 7) // 8)
-                self._setbytes_unsafe(data, length, 0)
+                self._bitarray = BitStore(length)
+                self._bitarray.setall(0)
                 return
-            self._setbytes_unsafe(bytearray(0), 0, 0)
+            self._bitarray = BitStore(0)
             return
         k, v = kwargs.popitem()
 
@@ -2256,10 +2256,10 @@ class Bits:
             return ()
 
     def _find_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        if bytealigned and not bs.len % 8:
-            p = self._findbytes(bs.bytes, start, end)
-        else:
-            p = self._findbin_msb0(bs._bitarray, start, end, bytealigned)
+        # if bytealigned and not bs.len % 8:
+        #     p = self._findbytes(bs.bytes, start, end)
+        # else:
+        p = self._findbin_msb0(bs._bitarray, start, end, bytealigned)
         # If called from a class that has a pos, set it
         if p and self._pos is not None:
             self._pos = p[0]
@@ -2293,11 +2293,11 @@ class Bits:
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Generator[int, None, None]:
         c = 0
-        if bytealigned and (bs.len % 8) == 0:
-            # Use the quick find method
-            f = functools.partial(self._findbytes, bytes_=bs._getbytes())
-        else:
-            f = functools.partial(self._findbin_msb0, sub_bitarray=bs._bitarray, bytealigned=bytealigned)
+        # if bytealigned and (bs.len % 8) == 0:
+        #     # Use the quick find method
+        #     f = functools.partial(self._findbytes, bytes_=bs._getbytes())
+        # else:
+        f = functools.partial(self._findbin_msb0, sub_bitarray=bs._bitarray, bytealigned=bytealigned)
         while True:
             if count is not None and c >= count:
                 return
@@ -2376,7 +2376,11 @@ class Bits:
 
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
-        p = self._find_msb0(bs, start, end, bytealigned)
+        assert start <= end
+        assert _lsb0
+        msb0_start, msb0_end = self._validate_slice(*_convert_start_and_stop_from_lsb0_to_msb0(start, end, len(self)))
+
+        p = self._find_msb0(bs, msb0_start, msb0_end, bytealigned)
         if p:
             newpos = self.len - p[0] - bs.length
             if self._pos is not None:
@@ -2441,11 +2445,11 @@ class Bits:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
             return
-        if bytealigned_ and not delimiter.len % 8:
-            # Use the quick find method
-            f = functools.partial(self._findbytes, bytes_=delimiter._getbytes())
-        else:
-            f = functools.partial(self._findbin_msb0, sub_bitarray=delimiter._bitarray, bytealigned=bytealigned_)
+        # if bytealigned_ and not delimiter.len % 8:
+        #     # Use the quick find method
+        #     f = functools.partial(self._findbytes, bytes_=delimiter._getbytes())
+        # else:
+        f = functools.partial(self._findbin_msb0, sub_bitarray=delimiter._bitarray, bytealigned=bytealigned_)
         found = f(start=start, end=end)
         if not found:
             # Initial bits are the whole bitstring being searched
@@ -3103,6 +3107,19 @@ class BitArray(Bits):
         # For mutable BitArrays we always read in files to memory:
         pass
 
+    # def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
+    #             offset: Optional[int] = None, **kwargs) -> Bits:
+    #     x = Bits.__new__(BitArray, auto, length, offset, **kwargs)
+    #     return x
+
+    # def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
+    #             offset: Optional[int] = None, **kwargs) -> Bits:
+    #     x = super(BitArray, cls).__new__(cls)
+    #     y = Bits.__new__(BitArray, auto, length, offset, **kwargs)
+    #     x._bitarray = y._bitarray
+    #     return y
+
+
     def __setattr__(self, attribute, value):
         try:
             # First try the ordinary attribute setter
@@ -3588,6 +3605,9 @@ class BitArray(Bits):
         if not isinstance(pos, abc.Iterable):
             pos = (pos,)
         v = 1 if value else 0
+        if isinstance(pos, range):
+            self._bitarray.__setitem__(slice(pos.start, pos.stop, pos.step), v)
+            return
         for p in pos:
             self._bitarray[p] = v
 
@@ -4141,7 +4161,7 @@ class ConstBitStream(Bits):
                       """)
 
 
-class BitStream(ConstBitStream, BitArray):
+class BitStream(BitArray, ConstBitStream):
     """A container or stream holding a mutable sequence of bits
 
     Subclass of the ConstBitStream and BitArray classes. Inherits all of
@@ -4264,6 +4284,18 @@ class BitStream(ConstBitStream, BitArray):
         """
         ConstBitStream.__init__(self, auto, length, offset, pos, **kwargs)
 
+    def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
+                offset: Optional[int] = None, pos: int = 0, **kwargs) -> Bits:
+        x = BitArray.__new__(BitStream, auto, length, offset, **kwargs)
+        x._pos = pos
+        return x
+        y = ConstBitStream.__new__(BitStream, auto, length, offset, pos, **kwargs)
+    #     y._bitarray = y._bitarray.copy()
+    #     # x._datastore = ByteStore(y._datastore.rawarray[:],
+    #     #                          y._datastore.bitlength,
+    #     #                          y._datastore.offset)
+    #     # x._pos = y._pos
+    #     return y
 
     def __copy__(self) -> BitStream:
         """Return a new copy of the BitStream."""

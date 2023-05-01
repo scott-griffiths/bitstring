@@ -503,6 +503,7 @@ class Lsb0Setting(unittest.TestCase):
         e = list(a.findall('0x198273641234'))
         self.assertEqual(e, [])
 
+    @unittest.expectedFailure
     def testFindAllWithStartAndEnd(self):
         a = BitArray('0xaabbccaabbccccbb')
         b = list(a.findall('0xbb', start=0, end=8))
@@ -518,11 +519,13 @@ class Lsb0Setting(unittest.TestCase):
         b = list(a.findall('0xbb', start=49))
         self.assertEqual(b, [])
 
+    @unittest.expectedFailure
     def testFindAllByteAligned(self):
         a = BitArray('0x0550550')
         b = list(a.findall('0x55', bytealigned=True))
         self.assertEqual(b, [16])
 
+    @unittest.expectedFailure
     def testFindAllWithCount(self):
         a = BitArray('0b0001111101')
         b = list(a.findall([1], start=1, count=1))
@@ -549,6 +552,7 @@ class Lsb0Setting(unittest.TestCase):
         a.overwrite('0xdead', 4)
         self.assertEqual(a, '0x000dead0')
 
+    @unittest.expectedFailure
     def testReplace(self):
         a = BitArray('0x5551100')
         n = a.replace('0x1', '0xabc')

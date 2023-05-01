@@ -2,6 +2,28 @@
 bitstring module version history
 --------------------------------
 
+version 4.1
+
+The major weakness of bitstring has been its poor performance for computationally
+intensive tasks relative to lower level alternatives. This was principally due to
+relying on pure Python code to achieve things that the base language often didn't have
+fast ways of doing.
+
+This release starts to address that problem with a fairly extensive rewrite to replace
+much of the pure Python low-level bit operations with methods from the bitarray package.
+This is a package that does many of the same things as bitstring, and the two packages
+have co-existed for a long time. While bitarray doesn't have all of the options and
+facilities of bitstring it has the advantage of being very fast as it is implemented in C.
+By replacing the internal datatypes I can speed up bitstring's operations while keeping
+the same API.
+
+Huge kudos to Ilan Schnell for all his work on bitarray.
+
+Other changes:
+
+* Deleting or inserting into a bitstring invalidates the bit position. Previously the
+  bit position was adjusted but this was not well defined.
+
 ----------------------------------
 April 2023: version 4.0.2 released
 ----------------------------------
