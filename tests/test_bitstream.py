@@ -2871,7 +2871,7 @@ class Split2(unittest.TestCase):
         a.pos = 11
         b = copy.copy(a)
         b.pos = 4
-        self.assertEqual(id(a._bitarray), id(b._bitarray))
+        self.assertEqual(id(a._bitstore), id(b._bitstore))
         self.assertEqual(a.pos, 11)
         self.assertEqual(b.pos, 4)
 

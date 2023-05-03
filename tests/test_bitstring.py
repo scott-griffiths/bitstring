@@ -40,7 +40,7 @@ class Copy(unittest.TestCase):
         ba = bitstring.BitArray(100)
         ba_copy = copy.copy(ba)
         self.assertFalse(ba is ba_copy)
-        self.assertFalse(ba._bitarray is ba_copy._bitarray)
+        self.assertFalse(ba._bitstore is ba_copy._bitstore)
         self.assertTrue(ba == ba_copy)
 
     def testConstBitStreamCopy(self):
@@ -48,7 +48,7 @@ class Copy(unittest.TestCase):
         cbs.pos = 50
         cbs_copy = copy.copy(cbs)
         self.assertEqual(cbs_copy.pos, 0)
-        self.assertTrue(cbs._bitarray is cbs_copy._bitarray)
+        self.assertTrue(cbs._bitstore is cbs_copy._bitstore)
         self.assertTrue(cbs == cbs_copy)
 
     def testBitStreamCopy(self):
@@ -56,7 +56,7 @@ class Copy(unittest.TestCase):
         bs.pos = 50
         bs_copy = copy.copy(bs)
         self.assertEqual(bs_copy.pos, 0)
-        self.assertFalse(bs._bitarray is bs_copy._bitarray)
+        self.assertFalse(bs._bitstore is bs_copy._bitstore)
         self.assertTrue(bs == bs_copy)
 
 
@@ -65,7 +65,7 @@ class Interning(unittest.TestCase):
     def testBits(self):
         a = bitstring.Bits('0xf')
         b = bitstring.Bits('0xf')
-        self.assertTrue(a._bitarray is b._bitarray)
+        self.assertTrue(a._bitstore is b._bitstore)
         c = bitstring.Bits('0b1111')
         self.assertFalse(a is c)
 
@@ -73,7 +73,7 @@ class Interning(unittest.TestCase):
     def testCBS(self):
         a = bitstring.ConstBitStream('0b11000')
         b = bitstring.ConstBitStream('0b11000')
-        self.assertTrue(a._bitarray is b._bitarray)
+        self.assertTrue(a._bitstore is b._bitstore)
         self.assertFalse(a is b)
 
 
