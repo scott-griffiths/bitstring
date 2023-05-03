@@ -3971,14 +3971,14 @@ class CoverageCompletionTests(unittest.TestCase):
 
 class Subclassing(unittest.TestCase):
 
-    @unittest.expectedFailure
     def testIsInstance(self):
+        b = BitStream()
+        self.assertTrue(isinstance(b, BitStream))
         class SubBits(BitStream):
             pass
         a = SubBits()
         self.assertTrue(isinstance(a, SubBits))
 
-    @unittest.expectedFailure
     def testClassType(self):
         class SubBits(BitStream):
             pass

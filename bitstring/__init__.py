@@ -657,7 +657,7 @@ class Bits:
                   initialising using 'bytes' or 'filename'.
 
         """
-        pass
+        self._initialise(auto, length, offset, **kwargs)
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, _cache={}, **kwargs) -> Bits:
@@ -687,7 +687,6 @@ class Bits:
         if type(auto) is auto:
             return auto
         x = object.__new__(cls)
-        x._initialise(auto, length, offset, **kwargs)
         return x
 
     def _initialise(self, auto: Any, length: Optional[int], offset: Optional[int], **kwargs) -> None:
@@ -3104,21 +3103,8 @@ class BitArray(Bits):
                   initialising using 'bytes' or 'filename'.
 
         """
-        # For mutable BitArrays we always read in files to memory:
-        pass
-
-    # def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
-    #             offset: Optional[int] = None, **kwargs) -> Bits:
-    #     x = Bits.__new__(BitArray, auto, length, offset, **kwargs)
-    #     return x
-
-    # def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
-    #             offset: Optional[int] = None, **kwargs) -> Bits:
-    #     x = super(BitArray, cls).__new__(cls)
-    #     y = Bits.__new__(BitArray, auto, length, offset, **kwargs)
-    #     x._bitarray = y._bitarray
-    #     return y
-
+        # For mutable BitArrays we always read in files to memory: # TODO: Comment wrong?
+        super().__init__(auto, length, offset, **kwargs)
 
     def __setattr__(self, attribute, value):
         try:
@@ -3941,14 +3927,6 @@ class ConstBitStream(Bits):
             raise CreationError(f"Cannot set pos to {pos} when length is {len(self._bitarray)}.")
         self._pos = pos
 
-    def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
-                offset: Optional[int] = None, pos: int = 0, **kwargs) -> Bits:
-        x = super().__new__(cls, auto, length, offset, **kwargs)
-        x._pos = len(x._bitarray) + pos if pos < 0 else pos
-        if x._pos < 0 or x._pos > len(x._bitarray):
-            raise CreationError(f"Cannot set pos to {pos} when length is {len(x._bitarray)}.")
-        return x
-
     def _setbytepos(self, bytepos: int) -> None:
         """Move to absolute byte-aligned position in stream."""
         self._setbitpos(bytepos * 8)
@@ -4284,32 +4262,11 @@ class BitStream(BitArray, ConstBitStream):
         """
         ConstBitStream.__init__(self, auto, length, offset, pos, **kwargs)
 
-    def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
-                offset: Optional[int] = None, pos: int = 0, **kwargs) -> Bits:
-        x = BitArray.__new__(BitStream, auto, length, offset, **kwargs)
-        x._pos = pos
-        return x
-        y = ConstBitStream.__new__(BitStream, auto, length, offset, pos, **kwargs)
-    #     y._bitarray = y._bitarray.copy()
-    #     # x._datastore = ByteStore(y._datastore.rawarray[:],
-    #     #                          y._datastore.bitlength,
-    #     #                          y._datastore.offset)
-    #     # x._pos = y._pos
-    #     return y
-
     def __copy__(self) -> BitStream:
         """Return a new copy of the BitStream."""
         s_copy = BitStream()
         s_copy._pos = 0
         s_copy._bitarray = self._bitarray[:]
-        # if not isinstance(self._datastore, ByteStore):
-        #     # Let them both point to the same (invariant) array.
-        #     # If either gets modified then at that point they'll be read into memory.
-        #     s_copy._datastore = self._datastore
-        # else:
-        #     s_copy._datastore = ByteStore(self._datastore.rawarray[:],
-        #                                   self._datastore.bitlength,
-        #                                   self._datastore.offset)
         return s_copy
 
     def prepend(self, bs: BitsType) -> None:
