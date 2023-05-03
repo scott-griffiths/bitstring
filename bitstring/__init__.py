@@ -891,7 +891,6 @@ class Bits:
         except TypeError:
             return False
         return self._bitstore == bs._bitstore
-        # return equal(self._datastore, bs._datastore)
 
     def __ne__(self, bs: Any) -> bool:
         """Return False if two bitstrings have the same binary representation.
@@ -1228,11 +1227,6 @@ class Bits:
         assert start + length <= self.len
         return self._bitstore[start: start + length].tobytes()
 
-        # if not (start + self._offset) % 8:
-        #     return bytes(self._datastore.getbyteslice((start + self._offset) // 8,
-        #                                               (start + self._offset + length) // 8))
-        # return self._slice(start, start + length).tobytes()
-
     def _getbytes(self) -> bytes:
         """Return the data as an ordinary bytes object."""
         if self.len % 8:
@@ -1294,7 +1288,6 @@ class Bits:
         if self.len == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
         return bitarray.util.ba2int(self._bitstore, signed=False)
-        # return self._readuint(0, self.len)
 
     def _setint(self, int_: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given signed int interpretation."""
@@ -1830,8 +1823,6 @@ class Bits:
         """Create and return a new copy of the Bits (always in memory)."""
         s_copy = self.__class__()
         s_copy._bitstore = self._bitstore[:]
-        # s_copy._setbytes_unsafe(self._datastore.getbyteslice(0, self._datastore.bytelength),
-        #                         self.len, self._offset)
         return s_copy
 
     def _slice(self, start: int, end: int) -> Bits:
@@ -2133,7 +2124,6 @@ class Bits:
         and byte aligned.
 
         """
-        # assert self._datastore.offset == 0
         # Extract data bytes from bitstring to be found.
         bytepos = (start + 7) // 8
         found = False
@@ -2143,7 +2133,6 @@ class Bits:
         buffersize = increment + len(bytes_)
         while p < finalpos:
             # Read in file or from memory in overlapping chunks and search the chunks.
-            # buf = bytearray(self._datastore.getbyteslice(p, min(p + buffersize, finalpos)))
             buf = self._bitstore[p * 8: min((p + buffersize) * 8, finalpos * 8)].tobytes()
             pos: int = buf.find(bytes_)
             if pos != -1:
@@ -2175,11 +2164,6 @@ class Bits:
         p = end
         while p > start:
             start_pos = max(start, p - buffersize)
-            # if _lsb0:
-            #     # Convert start and end to msb0
-            #     msb0_start, msb0_end = self._validate_slice(*_convert_start_and_stop_from_lsb0_to_msb0(start_pos, p, len(self)))
-            # else:
-            #     msb0_start, msb0_end = start_pos, p
             ps = list(self._findall_msb0(sub_bitstore, start_pos, p, count=None, bytealigned=bytealigned))  # TODO: Checking for bytealigned twice here. Lots of inefficiencies...
             if ps:
                 while ps:
@@ -3177,12 +3161,6 @@ class BitArray(Bits):
         """Return a new copy of the BitArray."""
         s_copy = BitArray()
         s_copy._bitstore = self._bitstore[:]
-        # if not isinstance(self._datastore, ByteStore):
-        #     # Let them both point to the same (invariant) array.
-        #     # If either gets modified then at that point they'll be read into memory.
-        #     s_copy._datastore = self._datastore
-        # else:
-        #     s_copy._datastore = copy.copy(self._datastore)
         return s_copy
     
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
@@ -3285,44 +3263,6 @@ class BitArray(Bits):
         """
         self._bitstore.__delitem__(key)
         return
-
-        if isinstance(key, slice):
-            # A slice
-            start = 0
-            step = key.step if key.step is not None else 1
-            if step != 1:
-                # convert to binary string and use string slicing
-                # TODO: Horribly inefficient
-                temp = list(self._getbin())
-                temp.__delitem__(key)
-                self._setbin_unsafe(''.join(temp))
-                return
-            if key.start is not None:
-                start = key.start
-                if key.start < 0:
-                    start += self.len
-                if start < 0:
-                    start = 0
-            stop = self.len
-            if key.stop is not None:
-                stop = key.stop
-                if key.stop < 0:
-                    stop += self.len
-            if start > stop:
-                return
-            stop = min(stop, self.len)
-            start = max(start, 0)
-            start = min(start, stop)
-            self._delete(stop - start, start)
-            return
-        else:
-            # single element
-            if key < 0:
-                key += self._getlength()
-            if not 0 <= key < self._getlength():
-                raise IndexError("Slice index out of range.")
-            self._delete(1, key)
-            return
 
     def __ilshift__(self, n: int) -> Bits:
         """Shift bits by n to the left in place. Return self.
@@ -3437,48 +3377,6 @@ class BitArray(Bits):
 
         self._bitstore = new_bitstore
         return c
-
-        # Adjust count for use in split()
-        if count is not None:
-            count += 1
-        sections = self.split(old, start, end, count, bytealigned)
-        lengths = [s.len for s in sections]
-        if len(lengths) == 1:
-            # Didn't find anything to replace.
-            return 0  # no replacements done
-        if new is self:
-            # Prevent self assignment woes
-            new = copy.copy(self)
-        positions = [lengths[0] + start]
-        for le in lengths[1:-1]:
-            # Next position is the previous one plus the length of the next section.
-            positions.append(positions[-1] + le)
-        # We have all the positions that need replacements. We do them
-        # in reverse order so that they won't move around as we replace.
-        positions.reverse()
-        if self._pos is not None:
-            # Need to calculate new pos, if this is a bitstream
-            newpos = self._pos
-            for p in positions:
-                self[p:p + old.len] = new
-            if old.len != new.len:
-                diff = new.len - old.len
-                for p in positions:
-                    if p >= newpos:
-                        continue
-                    if p + old.len <= newpos:
-                        newpos += diff
-                    else:
-                        newpos = p
-            self._pos = newpos
-        else:
-            sections = []
-            for p in positions:
-                sections.extend([self._bitstore[0:p] + new._bitstore + self._bitstore[p + len(old):]])
-            self._bitstore.clear()
-            for section in sections:
-                self._bitstore += section
-        return len(lengths) - 1
 
     def insert(self, bs: BitsType, pos: Optional[int] = None) -> None:
         """Insert bs at bit position pos.
