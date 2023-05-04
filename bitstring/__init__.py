@@ -55,7 +55,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "4.0.2"
+__version__ = "4.1.0"
 
 __author__ = "Scott Griffiths"
 
@@ -132,29 +132,18 @@ class Error(Exception):
 class ReadError(Error, IndexError):
     """Reading or peeking past the end of a bitstring."""
 
-    def __init__(self, *params: object):
-        Error.__init__(self, *params)
-
 
 class InterpretError(Error, ValueError):
     """Inappropriate interpretation of binary data."""
-
-    def __init__(self, *params: object):
-        Error.__init__(self, *params)
 
 
 class ByteAlignError(Error):
     """Whole-byte position or length needed."""
 
-    def __init__(self, *params: object):
-        Error.__init__(self, *params)
-
 
 class CreationError(Error, ValueError):
     """Inappropriate argument during bitstring creation."""
 
-    def __init__(self, *params: object):
-        Error.__init__(self, *params)
 
 
 def _convert_start_and_stop_from_lsb0_to_msb0(start, stop, length):
@@ -169,6 +158,7 @@ def _convert_start_and_stop_from_lsb0_to_msb0(start, stop, length):
     else:
         new_start = -stop
     return new_start, new_stop
+
 
 class BitStore(bitarray.bitarray):
     """A light wrapper around bitarray that does the LSB0 stuff"""
@@ -227,23 +217,6 @@ class BitStore(bitarray.bitarray):
             super().invert()
 
 
-class ByteStore:
-    """Stores raw bytes together with a bit offset and length.
-
-    Used internally - not part of public interface.
-    """
-
-    __slots__ = ('offset', 'rawarray', 'bitlength')
-
-    def __init__(self, data: Union[bytearray, MmapByteArray],
-                 bitlength: Optional[int] = None, offset: int = 0) -> None:
-        self.rawarray = data
-        if bitlength is None:
-            bitlength = 8 * len(data) - offset
-        self.offset = offset
-        self.bitlength = bitlength
-
-
 class MmapByteArray:
     """Looks like a bytearray, but from an mmap.
 
@@ -292,7 +265,7 @@ class MmapByteArray:
     # These methods shouldn't ever get called
     def pop(self, __index: int = ...) -> int:
         raise NotImplementedError
-    
+
     def append(self, __item: Union[Sequence, int]) -> None:
         raise NotImplementedError
 
@@ -301,7 +274,7 @@ class MmapByteArray:
 
     def __iter__(self):
         raise NotImplementedError
-    
+
     def __setitem__(self, key: Union[slice, int], value: Any) -> None:
         raise NotImplementedError
 
@@ -609,7 +582,7 @@ class Bits:
             cls._truncatestart = cls._truncateleft  # type: ignore
             cls._truncateend = cls._truncateright  # type: ignore
 
-    __slots__ = ('_datastore', '_bitstore', '_pos')
+    __slots__ = ('_bitstore', '_pos')
     # This converts a single octal digit to 3 bits.
     _octToBits: List[str] = ['{0:03b}'.format(i) for i in range(8)]
 
@@ -1113,7 +1086,6 @@ class Bits:
 
     def _clear(self) -> None:
         """Reset the bitstring to an empty state."""
-        self._datastore = ByteStore(bytearray(0))
         self._bitstore = BitStore()
 
     def _setauto(self, s: Any, length: Optional[int], offset: int) -> None:
@@ -1135,8 +1107,6 @@ class Bits:
             bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
             if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
                 raise CreationError("BytesIO object is not long enough for specified length and offset.")
-            self._datastore = ByteStore(bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]),
-                                        length, offset)
             self._bitstore = BitStore(buffer=bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]))[offset: offset + length]
             return
 
@@ -1148,7 +1118,6 @@ class Bits:
             m = MmapByteArray(s, bytelength, byteoffset)
             if length + byteoffset * 8 + offset > m.filelength * 8:
                 raise CreationError("File is not long enough for specified length and offset.")
-            self._datastore = ByteStore(m, length, offset)
             if m.bytelength != 0:
                 self._bitstore = BitStore(buffer=m[:])[offset: offset + length]  # TODO: don't create copy in memory
             else:
@@ -1175,7 +1144,6 @@ class Bits:
             if s < 0:
                 raise CreationError(f"Can't create bitstring of negative length {s}.")
             data = bytearray((s + 7) // 8)
-            self._datastore = ByteStore(data, int(s), 0)
             self._bitstore = BitStore(int(s))
             self._bitstore.setall(0)
             return
@@ -1197,7 +1165,6 @@ class Bits:
             m = MmapByteArray(source, bytelength, byteoffset)
             if length + byteoffset * 8 + offset > m.filelength * 8:
                 raise CreationError("File is not long enough for specified length and offset.")
-            self._datastore = ByteStore(m, length, offset)
             if m.bytelength != 0:
                 self._bitstore = BitStore(buffer=m[:])[offset: offset + length]  # TODO: don't create copy in memory
             else:
@@ -1246,7 +1213,7 @@ class Bits:
 
     def _setuint(self, uint: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given unsigned int interpretation."""
-        with suppress(AttributeError):  # bitstring will only have a _datastore if it's been created
+        with suppress(AttributeError):  # bitstring will only have a _bitstore if it's been created
             if length is None:
                 # Use the whole length. Deliberately not using .len here.
                 length = len(self._bitstore)
@@ -1272,9 +1239,6 @@ class Bits:
     def _readuint(self, start: int, length: int) -> int:
         # TODO: This needs to be refactored again.
         return self._readuint_msb0(start, length)
-
-    def _readuint_lsb0(self, start: int, length: int) -> int:
-        return self._readuint_msb0(self.len - start - length, length)
 
     def _readuint_msb0(self, start: int, length: int) -> int:
         """Read bits and interpret as an unsigned int."""
@@ -1786,9 +1750,6 @@ class Bits:
         """
         return self._readhex(0, self.len)
 
-    def _getoffset(self) -> int:
-        return self._datastore.offset
-
     def _getlength(self) -> int:
         """Return the length of the bitstring in bits."""
         return len(self._bitstore)
@@ -1895,26 +1856,13 @@ class Bits:
         self._bitstore = self._bitstore.getitem_msb0(slice(None, -bits, None))
         return truncated_bits
 
-    def _insert_lsb0(self, bs: Bits, pos: int) -> None:
-        """Insert bs at pos (LSB0)."""
-        self._insert_msb0(bs, self.len - pos)
-
-    def _insert_msb0(self, bs: Bits, pos: int) -> None:
+    def _insert(self, bs: Bits, pos: int) -> None:
         """Insert bs at pos."""
         assert 0 <= pos <= self.len
-        if pos > self.len // 2:
-            # Inserting nearer end, so cut off end.
-            end = self._truncateright(self.len - pos)
-            self._addright(bs)
-            self._addright(end)
-        else:
-            # Inserting nearer start, so cut off start.
-            start = self._slice(0, pos)
-            self._truncateleft(pos)
-            self._addleft(bs)
-            self._addleft(start)
+        self._bitstore[pos: pos] = bs._bitstore
         if self._pos is not None:
             self._pos = pos + bs.len
+        return
 
     def _overwrite(self, bs: Bits, pos: int) -> None:
         """Overwrite with bs at pos."""
@@ -2796,8 +2744,6 @@ class Bits:
         _readintne = _readintbe
         _getintne = _getintbe
 
-    _offset = property(_getoffset)
-
     len = property(_getlength,
                    doc="""The length of the bitstring in bits. Read only.
                       """)
@@ -3029,14 +2975,12 @@ class BitArray(Bits):
     @classmethod
     def _setlsb0methods(cls, lsb0: bool) -> None:
         if lsb0:
-            cls._insert = cls._insert_lsb0  # type: ignore
             cls._ror = cls._rol_msb0  # type: ignore
             cls._rol = cls._ror_msb0  # type: ignore
             cls._append = cls._append_lsb0  # type: ignore
             # An LSB0 prepend is an MSB0 append
             cls._prepend = cls._append_msb0  # type: ignore
         else:
-            cls._insert = cls._insert_msb0  # type: ignore
             cls._ror = cls._ror_msb0  # type: ignore
             cls._rol = cls._rol_msb0  # type: ignore
             cls._append = cls._append_msb0  # type: ignore
@@ -3139,6 +3083,7 @@ class BitArray(Bits):
                     if length is not None and self.len != length:
                         new_len = self.len
                         # Reset to previous value
+                        assert False  # TODO: This is never being hit??
                         self._setbytes_unsafe(a_copy._datastore.getbyteslice(0, a_copy._datastore.bytelength),
                                               a_copy.len, a_copy._offset)
                         raise CreationError(f"Can't initialise with value of length {new_len} bits, "
@@ -3164,7 +3109,6 @@ class BitArray(Bits):
         return s_copy
     
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
-
         if isinstance(key, int):
             if isinstance(value, int):
                 if value == 0:
@@ -3188,66 +3132,22 @@ class BitArray(Bits):
                 return
 
         assert isinstance(key, slice)
-        start, step = 0, 1
-        if key.step is not None:
-            step = key.step
-        if step != 1:
-            # convert to binary string and use string slicing
-            # TODO: Horribly inefficient
-            temp = list(self._getbin())
-            v = list(Bits(value)._getbin())
-            temp.__setitem__(key, v)
-            self._setbin_unsafe(''.join(temp))
-            return
-
-        # If value is an integer then we want to set the slice to that
-        # value rather than initialise a new bitstring of that length.
-        if not isinstance(value, int):
+        if isinstance(value, int):
+            # To find the length we first get the slice
+            s = self._bitstore.__getitem__(key)
+            length = len(s)
+            # Now create an int of the correct length
+            if value >= 0:
+                value = self.__class__(uint=value, length=length)
+            else:
+                value = self.__class__(int=value, length=length)
+        else:
             try:
                 value = Bits(value)
             except TypeError:
                 raise TypeError(f"Bitstring, integer or string expected. Got {type(value)}.")
-        if key.start is not None:
-            start = key.start
-            if key.start < 0:
-                start += self.len
-            if start < 0:
-                start = 0
-        stop = self.len
-        if key.stop is not None:
-            stop = key.stop
-            if key.stop < 0:
-                stop += self.len
-        if start > stop:
-            # The standard behaviour for lists is to just insert at the
-            # start position if stop < start and step == 1.
-            stop = start
-        if isinstance(value, int):
-            if value >= 0:
-                value = self.__class__(uint=value, length=stop - start)
-            else:
-                value = self.__class__(int=value, length=stop - start)
-        stop = min(stop, self.len)
-        start = max(start, 0)
-        start = min(start, stop)
-        if (stop - start) == value._getlength():
-            if value.len == 0:
-                return
-            if step >= 0:
-                self._overwrite(value, start)
-            else:
-                self._overwrite(value.__getitem__(slice(None, None, 1)), start)
-        else:
-            # TODO: A delete then insert is wasteful - it could do unneeded shifts.
-            # Could be either overwrite + insert or overwrite + delete.
-            self._delete(stop - start, start)
-            if step >= 0:
-                self._insert(value, start)
-            else:
-                self._insert(value.__getitem__(slice(None, None, 1)), start)
-            # pos is now after the inserted piece.
+        self._bitstore.__setitem__(key, value._bitstore)
         return
-
 
     def __delitem__(self, key: Union[slice, int]) -> None:
         """Delete item or range.

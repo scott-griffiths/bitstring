@@ -9,7 +9,7 @@ import array
 import os
 from bitstring import InterpretError
 from bitstring import MmapByteArray
-from bitstring import Bits, BitArray, ByteStore
+from bitstring import Bits, BitArray
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
