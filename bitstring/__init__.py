@@ -2236,8 +2236,6 @@ class Bits:
             if not p:
                 break
             c += 1
-            if self._pos is not None:
-                self._pos = p[0]
             yield p[0]
             if bytealigned:
                 start = p[0] + 8
@@ -3109,6 +3107,7 @@ class BitArray(Bits):
         return s_copy
     
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
+        length_before = self.len
         if isinstance(key, int):
             if isinstance(value, int):
                 if value == 0:
@@ -3123,12 +3122,12 @@ class BitArray(Bits):
                     value = Bits(value)
                 except TypeError:
                     raise TypeError(f"Bitstring, integer or string expected. Got {type(value)}.")
-                if key >= len(self._bitstore) or key < -len(self._bitstore):
+                positive_key = key + self.len if key < 0 else key
+                if positive_key < 0 or positive_key >= len(self._bitstore):
                     raise IndexError(f"Bit position {key} out of range.")
-                if key != -1:
-                    self._bitstore[key: key + 1] = value._bitstore
-                else:
-                    self._bitstore[-1:] = value._bitstore  # TODO: Does this really have to be a special case?
+                self._bitstore[positive_key: positive_key + 1] = value._bitstore
+                if self._pos is not None and self._pos >= positive_key:
+                    self._pos += self.len - length_before
                 return
 
         assert isinstance(key, slice)
@@ -3147,6 +3146,11 @@ class BitArray(Bits):
             except TypeError:
                 raise TypeError(f"Bitstring, integer or string expected. Got {type(value)}.")
         self._bitstore.__setitem__(key, value._bitstore)
+        if self._pos is not None:
+            start = key.start if key.start is not None else 0
+            positive_start = start if start >= 0 else start + self.len
+            if self._pos >= positive_start:
+                self._pos += self.len - length_before
         return
 
     def __delitem__(self, key: Union[slice, int]) -> None:
@@ -3161,7 +3165,21 @@ class BitArray(Bits):
         0x0022
 
         """
+        if self._pos is None:
+            self._bitstore.__delitem__(key)
+            return
+
+        length_before = self.len
+        if isinstance(key, int):
+            start = key
+        else:
+            start = key.start if key.start is not None else 0
+        positive_start = start if start >= 0 else start + self.len
         self._bitstore.__delitem__(key)
+        if self._pos >= positive_start:
+            self._pos += self.len - length_before
+            if self._pos < 0:
+                self._pos = 0
         return
 
     def __ilshift__(self, n: int) -> Bits:
@@ -3244,6 +3262,8 @@ class BitArray(Bits):
         out of range.
 
         """
+        if count == 0:
+            return 0
         old = Bits(old)
         new = Bits(new)
         if not old.len:
@@ -3255,28 +3275,37 @@ class BitArray(Bits):
             # Prevent self assignment woes
             new = copy.copy(self)
 
-        new_bitstore = self._bitstore[0: start]
-        p = start
-        c = 0
+        # First find all the places where we want to do the replacements
+        starting_points: List[int] = []
         for x in self.findall(old, start, end, bytealigned=bytealigned):
-            if c == count:
+            if not starting_points:
+                starting_points.append(x)
+            elif x >= starting_points[-1] + old.len:
+                # Can only replace here if it hasn't already been replaced!
+                starting_points.append(x)
+            if len(starting_points) == count:
                 break
-            if x < p:
-                continue  # Can't replace overlapping matches more than once
-            new_bitstore += self._bitstore[p: x]
-            p = x + len(old)
-            if _lsb0:
-                new_bitstore = new._bitstore + new_bitstore
-            else:
-                new_bitstore += new._bitstore
-            c += 1
-        if _lsb0:
-            new_bitstore = self._bitstore[p:] + new_bitstore
-        else:
-            new_bitstore += self._bitstore[p:]
+        if not starting_points:
+            return 0
+        replacement_bitstore = self._bitstore[0: starting_points[0]]
+        for i in range(len(starting_points) - 1):
+            replacement_bitstore += new._bitstore + self._bitstore[starting_points[i] + old.len: starting_points[i + 1]]
+        # Final replacement
+        replacement_bitstore += new._bitstore + self._bitstore[starting_points[-1] + old.len:]
+        self._bitstore = replacement_bitstore
 
-        self._bitstore = new_bitstore
-        return c
+        if self._pos is not None and self._pos > starting_points[0]:
+            # Need to adjust our position in the bitstring
+            oldpos = self._pos
+            for starting_point in starting_points:
+                if oldpos > starting_point:
+                    if oldpos < starting_point + old.len:
+                        self._pos = starting_point + new.len
+                        break
+                    self._pos += new.len - old.len
+
+        return len(starting_points)
+
 
     def insert(self, bs: BitsType, pos: Optional[int] = None) -> None:
         """Insert bs at bit position pos.
