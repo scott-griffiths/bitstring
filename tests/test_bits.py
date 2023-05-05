@@ -3,6 +3,8 @@ import io
 import unittest
 import sys
 
+import bitarray
+
 sys.path.insert(0, '..')
 import bitstring
 import array
@@ -172,6 +174,38 @@ class Creation(unittest.TestCase):
     def testCreationKeywordError(self):
         with self.assertRaises(bitstring.CreationError):
             Bits(squirrel=5)
+
+    def testCreationFromBitarray(self):
+        ba = bitarray.bitarray('0010')
+        bs = Bits(ba)
+        self.assertEqual(bs.bin, '0010')
+        bs = Bits(ba, length=2)
+        self.assertEqual(bs.bin, '00')
+        bs2 = Bits(bitarray=ba)
+        self.assertEqual(bs2.bin, '0010')
+
+    def testCreationFromFrozenBitarray(self):
+        fba = bitarray.frozenbitarray('111100001')
+        ba = Bits(fba)
+        self.assertEqual(ba.bin, '111100001')
+        bs2 = Bits(bitarray=fba)
+        self.assertEqual(bs2.bin, '111100001')
+        bs3 = Bits(bitarray=fba, offset=4)
+        self.assertEqual(bs3.bin, '00001')
+        bs3 = Bits(bitarray=fba, offset=4, length=4)
+        self.assertEqual(bs3.bin, '0000')
+
+    def testCreationFromBitarrayErrors(self):
+        ba = bitarray.bitarray('0101')
+        with self.assertRaises(bitstring.CreationError):
+            _ = Bits(bitarray=ba, length=5)
+        with self.assertRaises(bitstring.CreationError):
+            _ = Bits(bitarray=ba, offset=5)
+        with self.assertRaises(bitstring.CreationError):
+            _ = Bits(ba, length=-1)
+
+
+
 
 
 class Initialisation(unittest.TestCase):

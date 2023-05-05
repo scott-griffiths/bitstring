@@ -79,7 +79,7 @@ import bitarray
 import bitarray.util
 
 # Things that can be converted to Bits when a Bits type is needed
-BitsType = Union['Bits', int, float, str, Iterable[Any], bool, BinaryIO, bytearray, bytes]
+BitsType = Union['Bits', int, float, str, Iterable[Any], bool, BinaryIO, bytearray, bytes, bitarray.bitarray]
 
 byteorder: str = sys.byteorder
 
@@ -1124,6 +1124,17 @@ class Bits:
                 self._bitstore = BitStore()
             return
 
+        if isinstance(s, bitarray.bitarray):
+            if length is None:
+                if offset > len(s):
+                    raise CreationError(f"Offset of {offset} too large for bitarray of length {len(s)}.")
+                self._bitstore = BitStore(s[offset:])
+            else:
+                if offset + length > len(s):
+                    raise CreationError(f"Offset of {offset} and length of {length} too large for bitarray of length {len(s)}.")
+                self._bitstore = BitStore(s[offset: offset + length])
+            return
+
         if length is not None:
             raise CreationError("The length keyword isn't applicable to this initialiser.")
         if offset > 0:
@@ -1143,7 +1154,6 @@ class Bits:
             # Initialise with s zero bits.
             if s < 0:
                 raise CreationError(f"Can't create bitstring of negative length {s}.")
-            data = bytearray((s + 7) // 8)
             self._bitstore = BitStore(int(s))
             self._bitstore.setall(0)
             return
@@ -1169,6 +1179,18 @@ class Bits:
                 self._bitstore = BitStore(buffer=m[:])[offset: offset + length]  # TODO: don't create copy in memory
             else:
                 self._bitstore = BitStore()
+
+    def _setbitarray(self, ba: bitarray.bitarray, length: Optional[int], offset: Optional[int]) -> None:
+        if offset is None:
+            offset = 0
+        if offset > len(ba):
+            raise CreationError(f"Offset of {offset} too large for bitarray of length {len(ba)}.")
+        if length is None:
+            self._bitstore = BitStore(ba[offset:])
+        else:
+            if offset + length > len(ba):
+                raise CreationError(f"Offset of {offset} and length of {length} too large for bitarray of length {len(ba)}.")
+            self._bitstore = BitStore(ba[offset: offset + length])
 
     def _setbytes_safe(self, data: Union[bytearray, bytes, MmapByteArray],
                        length: Optional[int] = None, offset: Optional[int] = None) -> None:
@@ -2892,7 +2914,8 @@ class Bits:
                 'intne': _setintne,
                 'floatne': _setfloatne,
                 'bytes': _setbytes_safe,
-                'filename': _setfile}
+                'filename': _setfile,
+                'bitarray': _setbitarray}
 
 
 class BitArray(Bits):
