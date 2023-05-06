@@ -1744,20 +1744,17 @@ class Bits:
         """Read bits and interpret as a hex string."""
         if length % 4:
             raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
-        if not length:
-            return ''
-        s = self._slice(start, start + length).tobytes()
-        s_hex = s.hex()
-        # If there's one nibble too many then cut it off
-        return s_hex[:-1] if (length // 4) % 2 else s_hex
+        return bitarray.util.ba2hex(self._bitstore[start: start + length])
 
     def _gethex(self) -> str:
-        """Return the hexadecimal representation as a string prefixed with '0x'.
+        """Return the hexadecimal representation as a string.
 
         Raises an InterpretError if the bitstring's length is not a multiple of 4.
 
         """
-        return self._readhex(0, self.len)
+        if self.len % 4:
+            raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
+        return bitarray.util.ba2hex(self._bitstore)
 
     def _getlength(self) -> int:
         """Return the length of the bitstring in bits."""
@@ -1836,10 +1833,6 @@ class Bits:
     def _addleft(self, bs: Bits) -> None:
         """Prepend a bitstring to the current bitstring."""
         self._bitstore = bs._bitstore + self._bitstore
-
-    def _reverse(self) -> None:
-        """Reverse all bits in-place."""
-        self._bitstore.reverse()
 
     def _truncateleft(self, bits: int) -> Bits:
         """Truncate bits from the start of the bitstring. Return the truncated bits."""
@@ -2422,6 +2415,10 @@ class Bits:
         """
         return self._bitstore.tobytes()
 
+    def tobitarray(self) -> bitarray.bitarray:
+        """Convert the bitstring to a bitarray object."""
+        return bitarray.bitarray(self._bitstore)
+
     def tofile(self, f: BinaryIO) -> None:
         """Write the bitstring to a file object, padding with zero bits if needed.
 
@@ -2466,7 +2463,7 @@ class Bits:
 
         """
         prefix = Bits(prefix)
-        start, end = self._validate_slice(start, end)  # the _slice deals with msb0/lsb0
+        start, end = self._validate_slice(start, end)
         if end < start + prefix._getlength():
             return False
         end = start + prefix._getlength()
@@ -2499,7 +2496,10 @@ class Bits:
         value = bool(value)
         length = self.len
         if pos is None:
-            pos = range(self.len)
+            if value is True:
+                return self._bitstore.all()
+            else:
+                return not self._bitstore.any()
         for p in pos:
             if p < 0:
                 p += length
@@ -2521,7 +2521,10 @@ class Bits:
         value = bool(value)
         length = self.len
         if pos is None:
-            pos = range(self.len)
+            if value is True:
+                return self._bitstore.any()
+            else:
+                return not self._bitstore.all()
         for p in pos:
             if p < 0:
                 p += length
@@ -3390,10 +3393,10 @@ class BitArray(Bits):
         """
         start, end = self._validate_slice(start, end)
         if start == 0 and end == self.len:
-            self._reverse()
+            self._bitstore.reverse()
             return
         s = self._slice(start, end)
-        s._reverse()
+        s._bitstore.reverse()
         self[start:end] = s
 
     def set(self, value: Any, pos: Optional[Union[int, Iterable[int]]] = None) -> None:

@@ -5,6 +5,8 @@ Unit tests for the bitarray module.
 
 import unittest
 import sys
+import os
+import bitarray
 
 sys.path.insert(0, '..')
 import bitstring
@@ -839,3 +841,29 @@ class BFloats(unittest.TestCase):
         self.assertEqual(s, ninf16)
         s.bfloat = -1e60
         self.assertEqual(s, ninfbfloat)
+
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+class BitarrayTests(unittest.TestCase):
+
+    def tearDown(self) -> None:
+        bitstring.lsb0 = False
+
+    def testToBitarray(self):
+        a = BitArray('0xff, 0b0')
+        b = a.tobitarray()
+        self.assertEqual(type(b), bitarray.bitarray)
+        self.assertEqual(b, bitarray.bitarray('111111110'))
+
+    def testToBitarrayLSB0(self):
+        bitstring.lsb0 = True
+        a = bitstring.Bits('0xff, 0b0')
+        b = a.tobitarray()
+        self.assertEqual(type(b), bitarray.bitarray)
+        self.assertEqual(b, bitarray.bitarray('111111110'))
+
+    def testFromFile(self):
+        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+        b = a.tobitarray()
+        self.assertEqual(a.bin, b.to01())

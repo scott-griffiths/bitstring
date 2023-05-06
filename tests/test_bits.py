@@ -205,9 +205,6 @@ class Creation(unittest.TestCase):
             _ = Bits(ba, length=-1)
 
 
-
-
-
 class Initialisation(unittest.TestCase):
     def testEmptyInit(self):
         a = Bits()
