@@ -3217,12 +3217,19 @@ class BitArray(Bits):
                 break
         if not starting_points:
             return 0
-        replacement_bitstore = self._bitstore[0: starting_points[0]]
+        replacement_list = [self._bitstore[0: starting_points[0]]]
         for i in range(len(starting_points) - 1):
-            replacement_bitstore += new._bitstore + self._bitstore[starting_points[i] + old.len: starting_points[i + 1]]
+            replacement_list.append(new._bitstore)
+            replacement_list.append(self._bitstore[starting_points[i] + old.len: starting_points[i + 1]])
         # Final replacement
-        replacement_bitstore += new._bitstore + self._bitstore[starting_points[-1] + old.len:]
-        self._bitstore = replacement_bitstore
+        replacement_list.append(new._bitstore)
+        replacement_list.append(self._bitstore[starting_points[-1] + old.len:])
+        if _lsb0:
+            # Addition of bitarray is always on the right, so assemble from other end
+            replacement_list.reverse()
+        self._bitstore.clear()
+        for r in replacement_list:
+            self._bitstore += r
 
         if self._pos is not None and self._pos > starting_points[0]:
             # Need to adjust our position in the bitstring
@@ -3233,9 +3240,7 @@ class BitArray(Bits):
                         self._pos = starting_point + new.len
                         break
                     self._pos += new.len - old.len
-
         return len(starting_points)
-
 
     def insert(self, bs: BitsType, pos: Optional[int] = None) -> None:
         """Insert bs at bit position pos.
