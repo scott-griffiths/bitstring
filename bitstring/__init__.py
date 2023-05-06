@@ -468,7 +468,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
         # The only way to do this would be to return the factor in some fashion
         # (we can't use the key's value here as it would mean that we couldn't
         # sensibly continue to cache the function's results. (TODO).
-        return_values.extend(ret_vals * factor)
+        return_values.extend(tuple(ret_vals * factor))
     return_values = [tuple(x) for x in return_values]
     if len(token_cache) < CACHE_SIZE:
         token_cache[token_key] = stretchy_token, return_values
@@ -1235,34 +1235,24 @@ class Bits:
 
     def _setuint(self, uint: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given unsigned int interpretation."""
-        with suppress(AttributeError):  # bitstring will only have a _bitstore if it's been created
-            if length is None:
-                # Use the whole length. Deliberately not using .len here.
-                length = len(self._bitstore)
+        # If no length given, and we've previously been given a length, use it.
+        if length is None and hasattr(self, 'len') and self.len != 0:
+            length = self.len
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with a uint initialiser.")
         if _offset is not None:
             raise CreationError("An offset can't be specified with an integer initialiser.")
-        if uint >= (1 << length):
-            msg = f"{uint} is too large an unsigned integer for a bitstring of length {length}. " \
-                  f"The allowed range is [0, {(1 << length) - 1}]."
-            raise CreationError(msg)
-        if uint < 0:
-            raise CreationError("uint cannot be initialised with a negative number.")
-
-        data = int.to_bytes(uint, (length + 7) // 8, 'big')
-
-        offset = 8 - (length % 8)
-        if offset == 8:
-            offset = 0
-        self._setbytes_unsafe(bytearray(data), length, offset)
-        self._bitstore = BitStore(bitarray.util.int2ba(uint, length, 'big'))
+        try:
+            self._bitstore = BitStore(bitarray.util.int2ba(uint, length=length, endian='big', signed=False))
+        except OverflowError:
+            if uint >= (1 << length):
+                msg = f"{uint} is too large an unsigned integer for a bitstring of length {length}. " \
+                      f"The allowed range is [0, {(1 << length) - 1}]."
+                raise CreationError(msg)
+            if uint < 0:
+                raise CreationError("uint cannot be initialised with a negative number.")
 
     def _readuint(self, start: int, length: int) -> int:
-        # TODO: This needs to be refactored again.
-        return self._readuint_msb0(start, length)
-
-    def _readuint_msb0(self, start: int, length: int) -> int:
         """Read bits and interpret as an unsigned int."""
         if length == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
@@ -1282,28 +1272,25 @@ class Bits:
             length = self.len
         if length is None or length == 0:
             raise CreationError("A non-zero length must be specified with an int initialiser.")
-        if int_ >= (1 << (length - 1)) or int_ < -(1 << (length - 1)):
-            raise CreationError(f"{int_} is too large a signed integer for a bitstring of length {length}. "
-                                f"The allowed range is [{-(1 << (length - 1))}, {(1 << (length - 1)) - 1}].")
-        if int_ >= 0:
-            self._setuint(int_, length)
-            return
-        # Do the 2's complement thing. Add one, set to minus number, then flip bits.
-        self._setuint((-int_ - 1) ^ ((1 << length) - 1), length)
+        try:
+            self._bitstore = BitStore(bitarray.util.int2ba(int_, length=length, endian='big', signed=True))
+        except OverflowError:
+            if int_ >= (1 << (length - 1)) or int_ < -(1 << (length - 1)):
+                raise CreationError(f"{int_} is too large a signed integer for a bitstring of length {length}. "
+                                    f"The allowed range is [{-(1 << (length - 1))}, {(1 << (length - 1)) - 1}].")
 
     def _readint(self, start: int, length: int) -> int:
         """Read bits and interpret as a signed int"""
-        ui = self._readuint(start, length)
-        if not ui >> (length - 1):
-            # Top bit not set, number is positive
-            return ui
-        # Top bit is set, so number is negative
-        tmp = (~(ui - 1)) & ((1 << length) - 1)
-        return -tmp
+        if length == 0:
+            raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
+        ip = bitarray.util.ba2int(self._bitstore[start: start + length], signed=True)
+        return ip
 
     def _getint(self) -> int:
         """Return data as a two's complement signed int."""
-        return self._readint(0, self.len)
+        if self.len == 0:
+            raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
+        return bitarray.util.ba2int(self._bitstore, signed=True)
 
     def _setuintbe(self, uintbe: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Set the bitstring to a big-endian unsigned int interpretation."""
@@ -1760,9 +1747,9 @@ class Bits:
         if not length:
             return ''
         s = self._slice(start, start + length).tobytes()
-        s = s.hex()
+        s_hex = s.hex()
         # If there's one nibble too many then cut it off
-        return s[:-1] if (length // 4) % 2 else s
+        return s_hex[:-1] if (length // 4) % 2 else s_hex
 
     def _gethex(self) -> str:
         """Return the hexadecimal representation as a string prefixed with '0x'.
@@ -1899,26 +1886,12 @@ class Bits:
         """Delete bits at pos."""
         assert 0 <= pos <= self.len
         assert pos + bits <= self.len, f"pos={pos}, bits={bits}, len={self.len}"
-
-        if pos == 0:
-            # Cutting bits off at the start.
-            self._bitstore = self._bitstore[bits:]
-            return
-        if pos + bits == self.len:
-            # Cutting bits off at the end.
-            self._bitstore = self._bitstore[: -bits]
-            return
-        if _lsb0:
-            self._bitstore = self._bitstore[pos + bits:] + self._bitstore[0: pos]  # TODO: Combine these two cases?
-        else:
-            self._bitstore = self._bitstore[0: pos] + self._bitstore[pos + bits:]
+        del self._bitstore[pos: pos + bits]
         return
 
     def _reversebytes(self, start: int, end: int) -> None:
         """Reverse bytes in-place."""
         assert (end - start) % 8 == 0
-        temp1 = self._bitstore[start:end].tobytes()
-        temp2 = BitStore(buffer=bytearray(temp1[::-1]))
         self._bitstore[start:end] = BitStore(buffer=bytearray(self._bitstore[start:end].tobytes()[::-1]))
 
     def _invert(self, pos: int) -> None:
@@ -3055,7 +3028,7 @@ class BitArray(Bits):
         # For mutable BitArrays we always read in files to memory: # TODO: Comment wrong?
         super().__init__(auto, length, offset, **kwargs)
 
-    def __setattr__(self, attribute, value):
+    def __setattr__(self, attribute, value) -> None:
         try:
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
