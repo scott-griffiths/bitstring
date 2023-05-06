@@ -2055,82 +2055,6 @@ class Bits:
                 return_values.append(value)
         return return_values, pos
 
-    def _findbytes(self, bytes_: bytes, start: int, end: int) -> Union[Tuple[int], Tuple[()]]:
-        """Quicker version of find when everything's whole byte
-        and byte aligned.
-
-        """
-        # Extract data bytes from bitstring to be found.
-        bytepos = (start + 7) // 8
-        found = False
-        p = bytepos
-        finalpos = end // 8
-        increment = max(1024, len(bytes_) * 10)
-        buffersize = increment + len(bytes_)
-        while p < finalpos:
-            # Read in file or from memory in overlapping chunks and search the chunks.
-            buf = self._bitstore[p * 8: min((p + buffersize) * 8, finalpos * 8)].tobytes()
-            pos: int = buf.find(bytes_)
-            if pos != -1:
-                found = True
-                p += pos
-                break
-            p += increment
-        if not found:
-            return ()
-        return (p * 8,)
-
-    def _findbin_msb0(self, sub_bitstore: BitStore, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        """Find first occurrence of a binary string."""
-        while True:
-            p = self._bitstore.find(sub_bitstore, start, end)
-            if p == -1:
-                return ()
-            if not bytealigned or (p % 8) == 0:
-                return (p,)
-            # Advance to just beyond the non-byte-aligned match and try again...
-            start = p + 1
-
-    def _rfindbin_msb0(self, binstr: str, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        """Find final occurrence of a binary string."""
-
-        sub_bitstore = Bits(bin=binstr)
-        increment = max(4096, len(binstr) * 64)
-        buffersize = increment + len(binstr)
-        p = end
-        while p > start:
-            start_pos = max(start, p - buffersize)
-            ps = list(self._findall_msb0(sub_bitstore, start_pos, p, count=None, bytealigned=bytealigned))  # TODO: Checking for bytealigned twice here. Lots of inefficiencies...
-            if ps:
-                while ps:
-                    if not bytealigned or (ps[-1] % 8 == 0):
-                        return (ps[-1],)
-                    ps.pop()
-            p -= increment
-        return ()
-
-
-        p = end
-        # We grab overlapping chunks of the binary representation and
-        # do an ordinary string search within that.
-        increment = max(4096, len(binstr) * 64)
-        buffersize = increment + len(binstr)
-        while p > start:
-            start_pos = max(start, p - buffersize)
-            buf = self._readbin(start_pos, p - start_pos)
-            pos = buf.rfind(binstr)
-            if pos != -1:
-                if not bytealigned:
-                    return (pos + start_pos,)
-                if (pos + start_pos) % 8 == 0:
-                    return (pos + start_pos,)
-                # Advance to just beyond the non-byte-aligned match and try again...
-                p = pos + start_pos + len(binstr) - 1
-                continue
-            p -= increment
-        # Not found, return empty tuple
-        return ()
-
     def find(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
         """Find first occurrence of substring bs.
@@ -2158,30 +2082,35 @@ class Bits:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
         ba = _bytealigned if bytealigned is None else bytealigned
-        return self._find(bs, start, end, ba)
+        p = self._find(bs, start, end, ba)
+        # If called from a class that has a pos, set it
+        if p and self._pos is not None:
+            self._pos = p[0]
+        return p
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+        # A forward find in lsb0 is very like a reverse find in msb0.
         assert start <= end
         assert _lsb0
+
         msb0_start, msb0_end = self._validate_slice(*_convert_start_and_stop_from_lsb0_to_msb0(start, end, len(self)))
-        p = self._rfindbin_msb0(bs._getbin(), msb0_start, msb0_end, bytealigned)
+        p = self._rfind_msb0(bs, msb0_start, msb0_end, bytealigned)
 
         if p:
-            newpos = self.length - p[0] - bs.length
-            if self._pos is not None:
-                self._pos = newpos
-            return (newpos,)
+            return (self.length - p[0] - bs.length,)
         else:
             return ()
 
     def _find_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        # if bytealigned and not bs.len % 8:
-        #     p = self._findbytes(bs.bytes, start, end)
-        # else:
-        p = self._findbin_msb0(bs._bitstore, start, end, bytealigned)
-        # If called from a class that has a pos, set it
-        if p and self._pos is not None:
-            self._pos = p[0]
+        """Find first occurrence of a binary string."""
+        while True:
+            p = self._bitstore.find(bs._bitstore, start, end)
+            if p == -1:
+                return ()
+            if not bytealigned or (p % 8) == 0:
+                return (p,)
+            # Advance to just beyond the non-byte-aligned match and try again...
+            start = p + 1
         return p
 
     def findall(self, bs: Any, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
@@ -2212,50 +2141,46 @@ class Bits:
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Generator[int, None, None]:
         c = 0
-        # if bytealigned and (bs.len % 8) == 0:
-        #     # Use the quick find method
-        #     f = functools.partial(self._findbytes, bytes_=bs._getbytes())
-        # else:
-        f = functools.partial(self._findbin_msb0, sub_bitstore=bs._bitstore, bytealigned=bytealigned)
-        while True:
+        for i in self._bitstore.getitem_msb0(slice(start, end, None)).itersearch(bs._bitstore):
             if count is not None and c >= count:
                 return
-            p = f(start=start, end=end)
-            if not p:
-                break
-            c += 1
-            yield p[0]
             if bytealigned:
-                start = p[0] + 8
+                if (start + i) % 8 == 0:
+                    c += 1
+                    yield start + i
             else:
-                start = p[0] + 1
-            if start >= end:
-                break
+                c += 1
+                yield start + i
         return
 
     def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Generator[int, None, None]:
         assert start <= end
+        assert _lsb0
+        msb0_start, msb0_end = self._validate_slice(*_convert_start_and_stop_from_lsb0_to_msb0(start, end, len(self)))
+
         # Search chunks starting near the end and then moving back.
         c = 0
         increment = max(8192, bs.len * 80)
-        buffersize = min(increment + bs.len, end - start)
-        pos = max(start, end - buffersize)
+        buffersize = min(increment + bs.len, msb0_end - msb0_start)
+        pos = max(msb0_start, msb0_end - buffersize)
         while True:
-            found = list(self._findall_msb0(bs, start=pos, end=pos + buffersize, count=None,
-                                            bytealigned=bytealigned))
+            found = list(self._findall_msb0(bs, start=pos, end=pos + buffersize, count=None, bytealigned=False))
             if not found:
-                if pos == start:
+                if pos == msb0_start:
                     return
-                pos = max(start, pos - increment)
+                pos = max(msb0_start, pos - increment)
                 continue
             while found:
                 if count is not None and c >= count:
                     return
                 c += 1
-                yield self.len - found.pop() - bs.len
-            pos = max(start, pos - increment)
-            if pos == start:
+                lsb0_pos = self.len - found.pop() - bs.len
+                if not bytealigned or lsb0_pos % 8 == 0:
+                    yield lsb0_pos
+
+            pos = max(msb0_start, pos - increment)
+            if pos == msb0_start:
                 return
 
     def rfind(self, bs: Any, start: Optional[int] = None, end: Optional[int] = None,
@@ -2289,7 +2214,20 @@ class Bits:
         return p
 
     def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        return self._rfindbin_msb0(bs.bin, start, end, bytealigned)
+        """Find final occurrence of a binary string."""
+        increment = max(4096, len(bs) * 64)
+        buffersize = increment + len(bs)
+        p = end
+        while p > start:
+            start_pos = max(start, p - buffersize)
+            ps = list(self._findall_msb0(bs, start_pos, p, count=None, bytealigned=False))
+            if ps:
+                while ps:
+                    if not bytealigned or (ps[-1] % 8 == 0):
+                        return (ps[-1],)
+                    ps.pop()
+            p -= increment
+        return ()
 
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
@@ -2299,10 +2237,7 @@ class Bits:
 
         p = self._find_msb0(bs, msb0_start, msb0_end, bytealigned)
         if p:
-            newpos = self.len - p[0] - bs.length
-            if self._pos is not None:
-                self._pos = newpos
-            return (newpos,)
+            return (self.len - p[0] - bs.length,)
         else:
             return ()
 
@@ -2362,11 +2297,7 @@ class Bits:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
             return
-        # if bytealigned_ and not delimiter.len % 8:
-        #     # Use the quick find method
-        #     f = functools.partial(self._findbytes, bytes_=delimiter._getbytes())
-        # else:
-        f = functools.partial(self._findbin_msb0, sub_bitstore=delimiter._bitstore, bytealigned=bytealigned_)
+        f = functools.partial(self._find_msb0, bs=delimiter, bytealigned=bytealigned_)
         found = f(start=start, end=end)
         if not found:
             # Initial bits are the whole bitstring being searched

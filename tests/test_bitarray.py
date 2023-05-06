@@ -494,6 +494,15 @@ class Lsb0Setting(unittest.TestCase):
         p = a.rfind('0b000')
         self.assertEqual(p, (3,))
 
+    def testRfindWithStartAndEnd(self):
+        a = BitArray('0b11 0000 11 00')
+        p = a.rfind('0b11', start=8)
+        self.assertEqual(p[0], 8)
+        p = a.rfind('0b110', start=8)
+        self.assertEqual(p, ())
+        p = a.rfind('0b11', end=-1)
+        self.assertEqual(p[0], 2)
+
     def testFindall(self):
         a = BitArray('0b001000100001')
         b = list(a.findall('0b1'))
@@ -505,7 +514,6 @@ class Lsb0Setting(unittest.TestCase):
         e = list(a.findall('0x198273641234'))
         self.assertEqual(e, [])
 
-    @unittest.expectedFailure
     def testFindAllWithStartAndEnd(self):
         a = BitArray('0xaabbccaabbccccbb')
         b = list(a.findall('0xbb', start=0, end=8))
@@ -521,13 +529,11 @@ class Lsb0Setting(unittest.TestCase):
         b = list(a.findall('0xbb', start=49))
         self.assertEqual(b, [])
 
-    @unittest.expectedFailure
     def testFindAllByteAligned(self):
         a = BitArray('0x0550550')
         b = list(a.findall('0x55', bytealigned=True))
         self.assertEqual(b, [16])
 
-    @unittest.expectedFailure
     def testFindAllWithCount(self):
         a = BitArray('0b0001111101')
         b = list(a.findall([1], start=1, count=1))
@@ -554,7 +560,6 @@ class Lsb0Setting(unittest.TestCase):
         a.overwrite('0xdead', 4)
         self.assertEqual(a, '0x000dead0')
 
-    @unittest.expectedFailure
     def testReplace(self):
         a = BitArray('0x5551100')
         n = a.replace('0x1', '0xabc')
