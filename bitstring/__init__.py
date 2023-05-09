@@ -145,7 +145,6 @@ class CreationError(Error, ValueError):
     """Inappropriate argument during bitstring creation."""
 
 
-
 def _convert_start_and_stop_from_lsb0_to_msb0(start, stop, length):
     if start is None:
         new_stop = None
@@ -159,9 +158,31 @@ def _convert_start_and_stop_from_lsb0_to_msb0(start, stop, length):
         new_start = -stop
     return new_start, new_stop
 
+def _convert_start_and_stop_from_msb0_to_ints(start, stop, offset, length, full_length):
+    """Convert from indices inside slice with offset and length to indices of containing slice"""
+    if start is None:
+        start = offset
+    elif start >= 0:
+        start = start + offset
+    if stop is None:
+        stop = full_length
+    elif stop >= 0:
+        stop = stop + offset
+    else:
+        stop = stop - (full_length - length)
+    return start, stop
+
 
 class BitStore(bitarray.bitarray):
     """A light wrapper around bitarray that does the LSB0 stuff"""
+
+    def __init__(self, initialiser=0, /, endian='big', buffer=None, offset=None, length=None, immutable=False):
+        self.immutable = immutable
+        self.length = super().__len__() if length is None else length
+        self.offset = 0 if offset is None else offset
+
+    def __add__(self, other):
+        return BitStore(super().__add__(other))
 
     def __getitem__(self, key):
         if _lsb0:
@@ -169,12 +190,18 @@ class BitStore(bitarray.bitarray):
                 return super().__getitem__(-key - 1)
             else:
                 new_start, new_stop = _convert_start_and_stop_from_lsb0_to_msb0(key.start, key.stop, len(self))
-                return super().__getitem__(slice(new_start, new_stop, key.step))
+                ba = super().__getitem__(slice(new_start, new_stop, key.step))
+                return BitStore(ba)
         else:
-            return super().__getitem__(key)
-
+            if isinstance(key, int):
+                return super().__getitem__(key)
+            else:
+                ba = super().__getitem__(key)
+                return BitStore(ba)
 
     def __setitem__(self, key, value):
+        if self.immutable:
+            raise NotImplementedError
         if _lsb0:
             if isinstance(key, int):
                 super().__setitem__(-key - 1, value)
@@ -187,10 +214,12 @@ class BitStore(bitarray.bitarray):
             super().__setitem__(key, value)
             return
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
+        if self.immutable:
+            raise NotImplementedError
         if _lsb0:
             if isinstance(key, int):
-                return super().__delitem__(-key - 1)
+                super().__delitem__(-key - 1)
             else:
                 new_start, new_stop = _convert_start_and_stop_from_lsb0_to_msb0(key.start, key.stop, len(self))
                 super().__delitem__(slice(new_start, new_stop, key.step))
@@ -202,12 +231,20 @@ class BitStore(bitarray.bitarray):
             yield self[i]
 
     def getitem_msb0(self, key):
-        return super().__getitem__(key)
+        if isinstance(key, int):
+            return super().__getitem__(key)
+        else:
+            x = super().__getitem__(key)
+            return BitStore(x)
 
     def setitem_msb0(self, key, value):
+        if self.immutable:
+            raise NotImplementedError
         super().__setitem__(key, value)
 
     def invert(self, index=None):
+        if self.immutable:
+            raise NotImplementedError
         if index is not None:
             if _lsb0:
                 super().invert(-index - 1)
@@ -215,6 +252,44 @@ class BitStore(bitarray.bitarray):
                 super().invert(index)
         else:
             super().invert()
+
+    def __len__(self):
+        # if self.immutable:
+        #     return self.length
+        return super().__len__()
+
+
+class MmapBitStore:
+
+    def __init__(self, source: Union[BinaryIO, io.BufferedReader], offset: Optional[int] = None, length: Optional[int] = None):
+        self.source = source
+        source.seek(0, os.SEEK_END)
+        self.filelength = source.tell()
+        self.offset = 0 if offset is None else offset
+        self.length = self.filelength * 8 - self.offset if length is None else length
+        m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
+        self.bitstore = BitStore(buffer=m)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            if key >= self.length or key < -self.length:
+                raise IndexError
+            if key >= 0:
+                key += self.offset
+            return self.bitstore.__getitem__(key)
+        else:
+            new_start, new_stop = _convert_start_and_stop_from_msb0_to_ints(key.start, key.stop, self.offset, self.length, self.filelength)
+            return self.bitstore.__getitem__(slice(new_start, new_stop, key.step))
+
+    def __setitem__(self, key, value):
+        raise NotImplementedError
+
+    def __delitem__(self, key):
+        raise NotImplementedError
+
+    def __len__(self):
+        return self.length
+
 
 
 class MmapByteArray:
