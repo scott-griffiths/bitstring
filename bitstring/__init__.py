@@ -55,7 +55,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "4.1.0"
+__version__ = "4.1.0b1"
 
 __author__ = "Scott Griffiths"
 
@@ -64,7 +64,6 @@ import pathlib
 import sys
 import re
 import mmap
-import os
 import struct
 import operator
 import array
@@ -72,9 +71,8 @@ import io
 from collections import abc
 import functools
 import types
-from typing import Generator, Sequence, Tuple, Union, List, Iterable, Any, Optional, Iterator, Pattern, Dict,\
+from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict,\
     BinaryIO, TextIO, Callable, overload
-from contextlib import suppress
 import bitarray
 import bitarray.util
 
@@ -1420,8 +1418,12 @@ class Bits:
         if length is not None and length != 16:
             raise CreationError(f"bfloats must be length 16, received a length of {length} bits.")
         f = float(f)
-        four_byte_float = Bits(float=f, length=32)
-        self._bitstore = BitStore(buffer=bytearray(four_byte_float._bitstore.tobytes()[0:2]))
+        try:
+            b = struct.pack('>f', f)
+        except OverflowError:
+            # For consistency we overflow to 'inf'.
+            b = struct.pack('>f', float('inf') if f > 0 else float('-inf'))
+        self._bitstore = BitStore(buffer=bytearray(b[0:2]))
 
     def _getbfloatle(self) -> float:
         return self._readbfloatle(0, self.len)
@@ -1435,8 +1437,12 @@ class Bits:
         if length is not None and length != 16:
             raise CreationError(f"bfloats must be length 16, received a length of {length} bits.")
         f = float(f)
-        four_byte_float = Bits(floatle=f, length=32)
-        self._bitstore = BitStore(buffer=bytearray(four_byte_float._bitstore.tobytes()[2:4]))
+        try:
+            b = struct.pack('<f', f)
+        except OverflowError:
+            # For consistency we overflow to 'inf'.
+            b = struct.pack('<f', float('inf') if f > 0 else float('-inf'))
+        self._bitstore = BitStore(buffer=bytearray(b[2:4]))
 
     def _setue(self, i: int, _length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
