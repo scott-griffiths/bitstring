@@ -10,7 +10,6 @@ import bitstring
 import array
 import os
 from bitstring import InterpretError
-from bitstring import MmapByteArray
 from bitstring import Bits, BitArray
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -289,9 +288,9 @@ class FileBased(unittest.TestCase):
         self.d = Bits(filename=filename, offset=20, length=4)
 
     def testCreationWithOffset(self):
-        self.assertEqual(self.a, '0x0123456789abcdef')
-        self.assertEqual(self.b, '0x456789abcdef')
-        self.assertEqual(self.c, '0x5678')
+        self.assertEqual(str(self.a), '0x0123456789abcdef')
+        self.assertEqual(str(self.b), '0x456789abcdef')
+        self.assertEqual(str(self.c), '0x5678')
 
     def testBitOperators(self):
         x = self.b[4:20]
@@ -309,41 +308,6 @@ class FileBased(unittest.TestCase):
         x = BitArray(x)
         del x[12:24]
         self.assertEqual(x, '0x456abcdef587')
-        
-
-class Mmap(unittest.TestCase):
-    def setUp(self):
-        self.f = open(os.path.join(THIS_DIR, 'smalltestfile'), 'rb')
-
-    def tearDown(self):
-        self.f.close()
-
-    def testByteArrayEquivalence(self):
-        a = MmapByteArray(self.f)
-        self.assertEqual(a.bytelength, 8)
-        self.assertEqual(len(a), 8)
-        self.assertEqual(a[0], 0x01)
-        self.assertEqual(a[1], 0x23)
-        self.assertEqual(a[7], 0xef)
-        self.assertEqual(a[0:1], bytearray([1]))
-        self.assertEqual(a[:], bytearray([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]))
-        self.assertEqual(a[2:4], bytearray([0x45, 0x67]))
-
-    def testWithLength(self):
-        a = MmapByteArray(self.f, 3)
-        self.assertEqual(a[0], 0x01)
-        self.assertEqual(len(a), 3)
-
-    def testWithOffset(self):
-        a = MmapByteArray(self.f, None, 5)
-        self.assertEqual(len(a), 3)
-        self.assertEqual(a[0], 0xab)
-
-    def testWithLengthAndOffset(self):
-        a = MmapByteArray(self.f, 3, 3)
-        self.assertEqual(len(a), 3)
-        self.assertEqual(a[0], 0x67)
-        self.assertEqual(a[:], bytearray([0x67, 0x89, 0xab]))
 
 
 class Comparisons(unittest.TestCase):

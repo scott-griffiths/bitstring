@@ -145,73 +145,82 @@ class CreationError(Error, ValueError):
     """Inappropriate argument during bitstring creation."""
 
 
-def _convert_start_and_stop_from_lsb0_to_msb0(start, stop, length):
-    if start is None:
+def _offset_slice_indices_lsb0(key: slice, length: int, offset: int) -> slice:
+    # First convert slice to all integers
+    # Length already should take account of the offset
+    start, stop, step = key.indices(length)
+    new_start = length - stop - offset
+    new_stop = length - start - offset
+    # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
+    if new_stop < 0:
         new_stop = None
-    else:
-        new_stop = -start if start != 0 else None
-    if stop is None:
-        new_start = None
-    elif stop == 0:
-        new_start = length
-    else:
-        new_start = -stop
-    return new_start, new_stop
+    return slice(new_start, new_stop, step)
 
-def _convert_start_and_stop_from_msb0_to_ints(start, stop, offset, length, full_length):
-    """Convert from indices inside slice with offset and length to indices of containing slice"""
-    if start is None:
-        start = offset
-    elif start >= 0:
-        start = start + offset
-    if stop is None:
-        stop = full_length
-    elif stop >= 0:
-        stop = stop + offset
-    else:
-        stop = stop - (full_length - length)
-    return start, stop
+
+def _offset_slice_indices(key: slice, length: int, offset: int) -> slice:
+    # First convert slice to all integers
+    # Length already should take account of the offset
+    start, stop, step = key.indices(length)
+    start += offset
+    stop += offset
+    # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
+    if stop < 0:
+        stop = None
+    return slice(start, stop, step)
 
 
 class BitStore(bitarray.bitarray):
     """A light wrapper around bitarray that does the LSB0 stuff"""
 
-    def __init__(self, initialiser=0, /, endian='big', buffer=None, offset=None, length=None, immutable=False):
-        self.immutable = immutable
-        self.length = super().__len__() if length is None else length
-        self.offset = 0 if offset is None else offset
+    def __init__(self, initializer=0, endian='big', buffer=None) -> None:
+        self.immutable = False
+        self.filename = None
+        self.length = None
+        self.offset = 0
 
-    def __add__(self, other):
+    def set_params(self, offset: int = 0, length: Optional[int] = None, filename: Optional[str] = None, immutable: bool = False) -> None:
+        # Ideally this would be done in __init__ but I just can't get it to work!
+        self.immutable = immutable
+        self.filename = filename
+        self.offset = offset
+        self.length = super().__len__() - self.offset if length is None else length
+        if self.length < 0:
+            self.length = 0
+            raise CreationError  # TODO: Error message
+        if self.length + self.offset > super().__len__():
+            self.length = super().__len__() - self.offset
+            raise CreationError  # TODO: Error message
+
+    def __add__(self, other: bitarray.bitarray):
         return BitStore(super().__add__(other))
 
     def __getitem__(self, key):
         if _lsb0:
             if isinstance(key, int):
+                if key >= 0:
+                    key += self.offset
                 return super().__getitem__(-key - 1)
             else:
-                new_start, new_stop = _convert_start_and_stop_from_lsb0_to_msb0(key.start, key.stop, len(self))
-                ba = super().__getitem__(slice(new_start, new_stop, key.step))
-                return BitStore(ba)
+                new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
+                return BitStore(super().__getitem__(new_slice))
         else:
-            if isinstance(key, int):
-                return super().__getitem__(key)
-            else:
-                ba = super().__getitem__(key)
-                return BitStore(ba)
+            return self.getitem_msb0(key)
 
     def __setitem__(self, key, value):
         if self.immutable:
             raise NotImplementedError
         if _lsb0:
             if isinstance(key, int):
+                if key >= 0:
+                    key += self.offset
                 super().__setitem__(-key - 1, value)
                 return
             else:
-                new_start, new_stop = _convert_start_and_stop_from_lsb0_to_msb0(key.start, key.stop, len(self))
-                super().__setitem__(slice(new_start, new_stop, key.step), value)
+                new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
+                super().__setitem__(new_slice, value)
                 return
         else:
-            super().__setitem__(key, value)
+            self.setitem_msb0(key, value)
             return
 
     def __delitem__(self, key) -> None:
@@ -219,33 +228,51 @@ class BitStore(bitarray.bitarray):
             raise NotImplementedError
         if _lsb0:
             if isinstance(key, int):
+                if key >= 0:
+                    key += self.offset
                 super().__delitem__(-key - 1)
             else:
-                new_start, new_stop = _convert_start_and_stop_from_lsb0_to_msb0(key.start, key.stop, len(self))
-                super().__delitem__(slice(new_start, new_stop, key.step))
+                new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
+                super().__delitem__(new_slice)
         else:
-            super().__delitem__(key)
+            if isinstance(key, int):
+                if key >= 0:
+                    key += self.offset
+                super().__delitem__(key)
+            else:
+                new_slice = _offset_slice_indices(key, len(self), self.offset)
+                super().__delitem__(new_slice)
     
     def __iter__(self):
-        for i in range(len(self)):
+        for i in range(0, len(self)):
             yield self[i]
 
     def getitem_msb0(self, key):
         if isinstance(key, int):
+            if key >= 0:
+                key += self.offset
             return super().__getitem__(key)
         else:
-            x = super().__getitem__(key)
-            return BitStore(x)
+            new_slice = _offset_slice_indices(key, len(self), self.offset)
+            return BitStore(super().__getitem__(new_slice))
 
     def setitem_msb0(self, key, value):
         if self.immutable:
             raise NotImplementedError
-        super().__setitem__(key, value)
+        if isinstance(key, int):
+            if key >= 0:
+                key += self.offset
+            super().__setitem__(key, value)
+        else:
+            new_slice = _offset_slice_indices(key, len(self), self.offset)
+            super().__setitem__(new_slice, value)
 
     def invert(self, index=None):
         if self.immutable:
             raise NotImplementedError
         if index is not None:
+            if index >= 0:
+                index += self.offset
             if _lsb0:
                 super().invert(-index - 1)
             else:
@@ -254,104 +281,9 @@ class BitStore(bitarray.bitarray):
             super().invert()
 
     def __len__(self):
-        # if self.immutable:
-        #     return self.length
+        if self.immutable:
+            return self.length
         return super().__len__()
-
-
-class MmapBitStore:
-
-    def __init__(self, source: Union[BinaryIO, io.BufferedReader], offset: Optional[int] = None, length: Optional[int] = None):
-        self.source = source
-        source.seek(0, os.SEEK_END)
-        self.filelength = source.tell()
-        self.offset = 0 if offset is None else offset
-        self.length = self.filelength * 8 - self.offset if length is None else length
-        m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
-        self.bitstore = BitStore(buffer=m)
-
-    def __getitem__(self, key):
-        if isinstance(key, int):
-            if key >= self.length or key < -self.length:
-                raise IndexError
-            if key >= 0:
-                key += self.offset
-            return self.bitstore.__getitem__(key)
-        else:
-            new_start, new_stop = _convert_start_and_stop_from_msb0_to_ints(key.start, key.stop, self.offset, self.length, self.filelength)
-            return self.bitstore.__getitem__(slice(new_start, new_stop, key.step))
-
-    def __setitem__(self, key, value):
-        raise NotImplementedError
-
-    def __delitem__(self, key):
-        raise NotImplementedError
-
-    def __len__(self):
-        return self.length
-
-
-
-class MmapByteArray:
-    """Looks like a bytearray, but from an mmap.
-
-    Not part of public interface.
-    """
-
-    __slots__ = ('filemap', 'filelength', 'source', 'byteoffset', 'bytelength')
-
-    def __init__(self, source: Union[BinaryIO, io.BufferedReader], bytelength: Optional[int] = None,
-                 byteoffset: Optional[int] = None) -> None:
-        self.source = source
-        source.seek(0, os.SEEK_END)
-        self.filelength = source.tell()
-        if byteoffset is None:
-            byteoffset = 0
-        if bytelength is None:
-            bytelength = self.filelength - byteoffset
-        self.byteoffset = byteoffset
-        self.bytelength = bytelength
-        self.filemap = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
-
-    @overload
-    def __getitem__(self, key: slice) -> bytearray: ...
-    @overload
-    def __getitem__(self, key: int) -> int: ...
-
-    def __getitem__(self, key: Union[slice, int]) -> Union[bytearray, int]:
-        if isinstance(key, slice):
-            start = key.start
-            stop = key.stop
-            if start is None:
-                start = 0
-            if stop is None:
-                stop = self.bytelength
-            assert key.step is None
-            assert 0 <= start < self.bytelength
-            assert 0 <= stop <= self.bytelength
-            s = slice(start + self.byteoffset, stop + self.byteoffset)
-            return bytearray(self.filemap.__getitem__(s))
-        else:
-            return self.filemap[key + self.byteoffset]
-
-    def __len__(self) -> int:
-        return self.bytelength
-
-    # These methods shouldn't ever get called
-    def pop(self, __index: int = ...) -> int:
-        raise NotImplementedError
-
-    def append(self, __item: Union[Sequence, int]) -> None:
-        raise NotImplementedError
-
-    def extend(self, __iterable_of_ints: Union[Iterable[Sequence], bytearray]) -> None:
-        raise NotImplementedError
-
-    def __iter__(self):
-        raise NotImplementedError
-
-    def __setitem__(self, key: Union[slice, int], value: Any) -> None:
-        raise NotImplementedError
 
 
 def tidy_input_string(s: str) -> str:
@@ -717,7 +649,7 @@ class Bits:
                 raise CreationError("length should not be specified when using string initialisation.")
             x = object.__new__(cls)
             try:
-                x._bitstore = BitStore(_cache[auto])
+                x._bitstore = _cache[auto]
                 return x
             except KeyError:
                 try:
@@ -912,19 +844,19 @@ class Bits:
         """
         length = self.len
         pos_string = "" if self._pos in (0, None) else f", pos={self._pos}"
-        if False:  # isinstance(self._datastore.rawarray, MmapByteArray):
+        if self._bitstore.filename is not None:
             offsetstring = ''
-            if self._datastore.byteoffset or self._offset:
-                offsetstring = ", offset=%d" % (self._datastore.rawarray.byteoffset * 8 + self._offset)
-            lengthstring = ", length=%d" % length
-            return "{0}(filename={1}{2}{3}{4})".format(self.__class__.__name__,
-                                                       repr(str(self._datastore.rawarray.source.name)),
+            if self._bitstore.offset:
+                offsetstring = f', offset={self._bitstore.offset}'
+            lengthstring = f', length={length}'
+            return '{0}(filename={1}{2}{3}{4})'.format(self.__class__.__name__,
+                                                       repr(str(self._bitstore.filename)),
                                                        lengthstring, offsetstring, pos_string)
         else:
             s = self.__str__()
             lengthstring = ''
             if s.endswith('...'):
-                lengthstring = "  # length={0}".format(length)
+                lengthstring = f'  # length={length}'
             return "{0}('{1}'{2}){3}".format(self.__class__.__name__, s, pos_string, lengthstring)
 
     def __eq__(self, bs: Any) -> bool:
@@ -1186,17 +1118,9 @@ class Bits:
             return
 
         if isinstance(s, io.BufferedReader):
-            if length is None:
-                length = max(os.path.getsize(s.name) * 8 - offset, 0)
-            byteoffset, offset = divmod(offset, 8)
-            bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
-            m = MmapByteArray(s, bytelength, byteoffset)
-            if length + byteoffset * 8 + offset > m.filelength * 8:
-                raise CreationError("File is not long enough for specified length and offset.")
-            if m.bytelength != 0:
-                self._bitstore = BitStore(buffer=m[:])[offset: offset + length]  # TODO: don't create copy in memory
-            else:
-                self._bitstore = BitStore()
+            m = mmap.mmap(s.fileno(), 0, access=mmap.ACCESS_READ)
+            self._bitstore = BitStore(buffer=m)
+            self._bitstore.set_params(offset, length, s.name, True)
             return
 
         if isinstance(s, bitarray.bitarray):
@@ -1243,17 +1167,9 @@ class Bits:
         with open(pathlib.Path(filename), 'rb') as source:
             if offset is None:
                 offset = 0
-            if length is None:
-                length = max(os.path.getsize(source.name) * 8 - offset, 0)
-            byteoffset, offset = divmod(offset, 8)
-            bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
-            m = MmapByteArray(source, bytelength, byteoffset)
-            if length + byteoffset * 8 + offset > m.filelength * 8:
-                raise CreationError("File is not long enough for specified length and offset.")
-            if m.bytelength != 0:
-                self._bitstore = BitStore(buffer=m[:])[offset: offset + length]  # TODO: don't create copy in memory
-            else:
-                self._bitstore = BitStore()
+            m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
+            self._bitstore = BitStore(buffer=m)
+            self._bitstore.set_params(offset, length, source.name, True)
 
     def _setbitarray(self, ba: bitarray.bitarray, length: Optional[int], offset: Optional[int]) -> None:
         if offset is None:
@@ -1267,7 +1183,7 @@ class Bits:
                 raise CreationError(f"Offset of {offset} and length of {length} too large for bitarray of length {len(ba)}.")
             self._bitstore = BitStore(ba[offset: offset + length])
 
-    def _setbytes_safe(self, data: Union[bytearray, bytes, MmapByteArray],
+    def _setbytes_safe(self, data: Union[bytearray, bytes],
                        length: Optional[int] = None, offset: Optional[int] = None) -> None:
         """Set the data from a string."""
         data = bytearray(data)
@@ -1281,7 +1197,7 @@ class Bits:
                 raise CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
         self._bitstore = BitStore(buffer=data).getitem_msb0(slice(offset, offset + length, None))
 
-    def _setbytes_unsafe(self, data: Union[bytearray, MmapByteArray], length: int, offset: int):
+    def _setbytes_unsafe(self, data: Union[bytearray], length: int, offset: int):
         """Unchecked version of _setbytes_safe."""
         self._bitstore = BitStore(buffer=data[:]).getitem_msb0(slice(offset, offset + length, None))
 
@@ -1338,7 +1254,7 @@ class Bits:
         """Return data as an unsigned int."""
         if self.len == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        return bitarray.util.ba2int(self._bitstore, signed=False)
+        return bitarray.util.ba2int(self._bitstore[:], signed=False)  # TODO: The copy is only needed when the bitstore offset or length is set (and probably not even then).
 
     def _setint(self, int_: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given signed int interpretation."""
@@ -1365,7 +1281,7 @@ class Bits:
         """Return data as a two's complement signed int."""
         if self.len == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        return bitarray.util.ba2int(self._bitstore, signed=True)
+        return bitarray.util.ba2int(self._bitstore[:], signed=True)  # TODO: The copy is only needed when the bitstore offset or length is set (and probably not even then).
 
     def _setuintbe(self, uintbe: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Set the bitstring to a big-endian unsigned int interpretation."""
@@ -1829,7 +1745,7 @@ class Bits:
         """
         if self.len % 4:
             raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
-        return bitarray.util.ba2hex(self._bitstore)
+        return bitarray.util.ba2hex(self._bitstore[:])  # TODO: The copy is only needed when the bitstore offset or length is set (and probably not even then).
 
     def _getlength(self) -> int:
         """Return the length of the bitstring in bits."""
@@ -2168,7 +2084,8 @@ class Bits:
         assert start <= end
         assert _lsb0
 
-        msb0_start, msb0_end = self._validate_slice(*_convert_start_and_stop_from_lsb0_to_msb0(start, end, len(self)))
+        new_slice = _offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
+        msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
         p = self._rfind_msb0(bs, msb0_start, msb0_end, bytealigned)
 
         if p:
@@ -2186,7 +2103,6 @@ class Bits:
                 return (p,)
             # Advance to just beyond the non-byte-aligned match and try again...
             start = p + 1
-        return p
 
     def findall(self, bs: Any, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
                 bytealigned: Optional[bool] = None) -> Generator[int, None, None]:
@@ -2232,7 +2148,9 @@ class Bits:
                       bytealigned: bool) -> Generator[int, None, None]:
         assert start <= end
         assert _lsb0
-        msb0_start, msb0_end = self._validate_slice(*_convert_start_and_stop_from_lsb0_to_msb0(start, end, len(self)))
+
+        new_slice = _offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
+        msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
 
         # Search chunks starting near the end and then moving back.
         c = 0
@@ -2308,7 +2226,8 @@ class Bits:
         # A reverse find in lsb0 is very like a forward find in msb0.
         assert start <= end
         assert _lsb0
-        msb0_start, msb0_end = self._validate_slice(*_convert_start_and_stop_from_lsb0_to_msb0(start, end, len(self)))
+        new_slice = _offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
+        msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
 
         p = self._find_msb0(bs, msb0_start, msb0_end, bytealigned)
         if p:
@@ -2431,34 +2350,8 @@ class Bits:
         Up to seven zero bits will be added at the end to byte align.
 
         """
-        # If the bitstring is file based then we don't want to read it all
-        # in to memory.
-        chunksize = 1024 * 1024  # 1 MiB chunks
-        # if self._offset == 0:
-        #     a = 0
-        #     bytelen = (len(self._bitstore) + 7) // 8
-        #     # TODO: This doesn't appear to be unit tested?
-        #     p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
-        #     while len(p) == chunksize:
-        #         f.write(p)
-        #         a += chunksize
-        #         p = self._datastore.getbyteslice(a, min(a + chunksize, bytelen - 1))
-        #     f.write(p)
-        #     # Now the final byte, ensuring that unused bits at end are set to 0.
-        #     bits_in_final_byte = self.len % 8
-        #     if not bits_in_final_byte:
-        #         bits_in_final_byte = 8
-        #     f.write(self[-bits_in_final_byte:].tobytes())
-        # else:
-        #     # Really quite inefficient...
-        #     a = 0
-        #     b = a + chunksize * 8
-        #     while b <= self.len:
-        #         f.write(self._slice(a, b)._getbytes())
-        #         a += chunksize * 8
-        #         b += chunksize * 8
-        #     if a != self.len:
-        #         f.write(self._slice(a, self.len).tobytes())
+        # TODO: If the bitstring is file based then we don't want to read it all in to memory first.
+        f.write(self.tobytes())
 
     def startswith(self, prefix: BitsType, start: Optional[int] = None, end: Optional[int] = None) -> bool:
         """Return whether the current bitstring starts with prefix.
@@ -4098,6 +3991,8 @@ class BitStream(BitArray, ConstBitStream):
 
         """
         ConstBitStream.__init__(self, auto, length, offset, pos, **kwargs)
+        if self._bitstore.immutable:
+            self._bitstore = self._bitstore[:]
 
     def __copy__(self) -> BitStream:
         """Return a new copy of the BitStream."""

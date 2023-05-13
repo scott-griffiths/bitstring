@@ -4,8 +4,7 @@ import unittest
 import sys
 sys.path.insert(0, '..')
 import bitstring
-from bitstring import BitStore, _convert_start_and_stop_from_lsb0_to_msb0, MmapBitStore
-import os
+from bitstring import BitStore, _offset_slice_indices_lsb0
 
 
 class BasicFunctionality(unittest.TestCase):
@@ -87,41 +86,6 @@ class GettingSlices(unittest.TestCase):
                 lsb0 = a[start_option: end_option]
                 bitstring.lsb0 = False
                 msb0 = a[start_option: end_option]
-                new_start, new_end =_convert_start_and_stop_from_lsb0_to_msb0(start_option, end_option, len(a))
+                new_slice = _offset_slice_indices_lsb0(slice(start_option, end_option, None), len(a), 0)
+                new_start, new_end = new_slice.start, new_slice.stop
                 self.assertEqual(len(msb0), len(lsb0), f"[{start_option}: {end_option}] -> [{new_start}: {new_end}]  len(msb0)={len(msb0)}, len(lsb0)={len(lsb0)}")
-
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-
-class MmapBitStoreTests(unittest.TestCase):
-
-    def testSimpleCase(self):
-        filename = os.path.join(THIS_DIR, 'test.m1v')
-        with open(filename, 'rb') as f:
-            mba = MmapBitStore(f)
-            start_code = '000001b3'
-            x = mba[:32].tobytes().hex()
-            self.assertEqual(x, start_code)
-            self.assertEqual(mba[0], 0)
-            self.assertEqual(mba[23], 1)
-
-    def testOffsetCase(self):
-        filename = os.path.join(THIS_DIR, 'test.m1v')
-        with open(filename, 'rb') as f:
-            mba = MmapBitStore(f, offset=10)
-            self.assertEqual(mba[12], 0)
-            self.assertEqual(mba[13], 1)
-            self.assertEqual(mba[13:22].to01(), '110110011')
-
-    def testLimits(self):
-        filename = os.path.join(THIS_DIR, 'test.m1v')
-        with open(filename, 'rb') as f:
-            mba = MmapBitStore(f)
-            full_length = len(mba)
-            mba = MmapBitStore(f, offset=999, length=1001)
-            self.assertEqual(len(mba), 1001)
-            _ = mba[1000]
-            _ = mba[-1001]
-            with self.assertRaises(IndexError):
-                _ = mba[1001]
-            with self.assertRaises(IndexError):
-                _ = mba[-1002]

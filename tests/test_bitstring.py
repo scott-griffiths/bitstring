@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0, '..')
 import bitstring
 import copy
+from collections import abc
 
 
 class ModuleData(unittest.TestCase):
@@ -135,3 +136,23 @@ class Main(unittest.TestCase):
         s = f.getvalue()
         self.assertEqual(s, '001\n')
 
+
+@unittest.expectedFailure
+class ABCs(unittest.TestCase):
+    def testBaseClasses(self):
+        # https://github.com/scott-griffiths/bitstring/issues/261
+        bits = bitstring.Bits()
+        self.assertTrue(isinstance(bits, abc.Sequence))
+        self.assertFalse(isinstance(bits, abc.MutableSequence))
+
+        bitarray = bitstring.BitArray()
+        self.assertTrue(isinstance(bitarray, abc.MutableSequence))
+        self.assertTrue(isinstance(bitarray, abc.Sequence))
+
+        constbitstream = bitstring.ConstBitStream()
+        self.assertTrue(isinstance(constbitstream, abc.Sequence))
+        self.assertFalse(isinstance(constbitstream, abc.MutableSequence))
+
+        bitstream = bitstring.BitArray()
+        self.assertTrue(isinstance(bitstream, abc.MutableSequence))
+        self.assertTrue(isinstance(bitstream, abc.Sequence))

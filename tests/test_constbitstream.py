@@ -217,7 +217,6 @@ class CreationWithPos(unittest.TestCase):
         s = CBS('0b110', pos=2)
         self.assertEqual(s.__repr__(), "ConstBitStream('0b110', pos=2)")
 
-    @unittest.expectedFailure
     def testStringRepresentationFromFile(self):
         filename = os.path.join(THIS_DIR, 'test.m1v')
         s = CBS(filename=filename, pos=2001)
