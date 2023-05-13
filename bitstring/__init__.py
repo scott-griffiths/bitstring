@@ -155,7 +155,7 @@ def _offset_slice_indices_lsb0(key: slice, length: int, offset: int) -> slice:
     return slice(new_start, new_stop, step)
 
 
-def _offset_slice_indices(key: slice, length: int, offset: int) -> slice:
+def _offset_slice_indices_msb0(key: slice, length: int, offset: int) -> slice:
     # First convert slice to all integers
     # Length already should take account of the offset
     start, stop, step = key.indices(length)
@@ -170,18 +170,12 @@ def _offset_slice_indices(key: slice, length: int, offset: int) -> slice:
 class BitStore(bitarray.bitarray):
     """A light wrapper around bitarray that does the LSB0 stuff"""
 
-    def __init__(self, initializer=0, endian='big', buffer=None) -> None:
-        self.immutable = False
-        self.filename = None
-        self.length = None
-        self.offset = 0
-
-    def set_params(self, offset: int = 0, length: Optional[int] = None, filename: Optional[str] = None, immutable: bool = False) -> None:
-        # Ideally this would be done in __init__ but I just can't get it to work!
+    def __init__(self, *args, offset=0, length=None, filename=None, immutable=False, **kwargs) -> None:
         self.immutable = immutable
-        self.filename = filename
         self.offset = offset
+        self.filename = filename
         self.length = super().__len__() - self.offset if length is None else length
+
         if self.length < 0:
             self.length = 0
             raise CreationError  # TODO: Error message
@@ -189,57 +183,33 @@ class BitStore(bitarray.bitarray):
             self.length = super().__len__() - self.offset
             raise CreationError  # TODO: Error message
 
+    def __new__(cls, *args, **kwargs):
+        for key in ['length', 'offset', 'filename', 'immutable']:
+            kwargs.pop(key, None)
+        return bitarray.bitarray.__new__(cls, *args, **kwargs)
+
     def __add__(self, other: bitarray.bitarray):
         return BitStore(super().__add__(other))
 
     def __getitem__(self, key):
         if _lsb0:
-            if isinstance(key, int):
-                if key >= 0:
-                    key += self.offset
-                return super().__getitem__(-key - 1)
-            else:
-                new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
-                return BitStore(super().__getitem__(new_slice))
+            return self.getitem_lsb0(key)
         else:
             return self.getitem_msb0(key)
 
     def __setitem__(self, key, value):
-        if self.immutable:
-            raise NotImplementedError
+        assert not self.immutable
         if _lsb0:
-            if isinstance(key, int):
-                if key >= 0:
-                    key += self.offset
-                super().__setitem__(-key - 1, value)
-                return
-            else:
-                new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
-                super().__setitem__(new_slice, value)
-                return
+            self.setitem_lsb0(key, value)
         else:
             self.setitem_msb0(key, value)
-            return
 
     def __delitem__(self, key) -> None:
-        if self.immutable:
-            raise NotImplementedError
+        assert not self.immutable
         if _lsb0:
-            if isinstance(key, int):
-                if key >= 0:
-                    key += self.offset
-                super().__delitem__(-key - 1)
-            else:
-                new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
-                super().__delitem__(new_slice)
+            self.delitem_lsb0(key)
         else:
-            if isinstance(key, int):
-                if key >= 0:
-                    key += self.offset
-                super().__delitem__(key)
-            else:
-                new_slice = _offset_slice_indices(key, len(self), self.offset)
-                super().__delitem__(new_slice)
+            self.delitem_msb0(key)
     
     def __iter__(self):
         for i in range(0, len(self)):
@@ -251,23 +221,59 @@ class BitStore(bitarray.bitarray):
                 key += self.offset
             return super().__getitem__(key)
         else:
-            new_slice = _offset_slice_indices(key, len(self), self.offset)
+            new_slice = _offset_slice_indices_msb0(key, len(self), self.offset)
+            return BitStore(super().__getitem__(new_slice))
+
+    def getitem_lsb0(self, key):
+        if isinstance(key, int):
+            if key >= 0:
+                key += self.offset
+            return super().__getitem__(-key - 1)
+        else:
+            new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
             return BitStore(super().__getitem__(new_slice))
 
     def setitem_msb0(self, key, value):
-        if self.immutable:
-            raise NotImplementedError
+        assert not self.immutable
         if isinstance(key, int):
             if key >= 0:
                 key += self.offset
             super().__setitem__(key, value)
         else:
-            new_slice = _offset_slice_indices(key, len(self), self.offset)
+            new_slice = _offset_slice_indices_msb0(key, len(self), self.offset)
             super().__setitem__(new_slice, value)
 
+    def setitem_lsb0(self, key, value):
+        if isinstance(key, int):
+            if key >= 0:
+                key += self.offset
+            super().__setitem__(-key - 1, value)
+            return
+        else:
+            new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
+            super().__setitem__(new_slice, value)
+            return
+
+    def delitem_lsb0(self, key):
+        if isinstance(key, int):
+            if key >= 0:
+                key += self.offset
+            super().__delitem__(-key - 1)
+        else:
+            new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
+            super().__delitem__(new_slice)
+
+    def delitem_msb0(self, key):
+        if isinstance(key, int):
+            if key >= 0:
+                key += self.offset
+            super().__delitem__(key)
+        else:
+            new_slice = _offset_slice_indices_msb0(key, len(self), self.offset)
+            super().__delitem__(new_slice)
+
     def invert(self, index=None):
-        if self.immutable:
-            raise NotImplementedError
+        assert not self.immutable
         if index is not None:
             if index >= 0:
                 index += self.offset
@@ -1117,8 +1123,7 @@ class Bits:
 
         if isinstance(s, io.BufferedReader):
             m = mmap.mmap(s.fileno(), 0, access=mmap.ACCESS_READ)
-            self._bitstore = BitStore(buffer=m)
-            self._bitstore.set_params(offset, length, s.name, True)
+            self._bitstore = BitStore(buffer=m, offset=offset, length=length, filename=s.name, immutable=True)
             return
 
         if isinstance(s, bitarray.bitarray):
@@ -1166,8 +1171,7 @@ class Bits:
             if offset is None:
                 offset = 0
             m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
-            self._bitstore = BitStore(buffer=m)
-            self._bitstore.set_params(offset, length, source.name, True)
+            self._bitstore = BitStore(buffer=m, offset=offset, length=length, filename=source.name, immutable=True)
 
     def _setbitarray(self, ba: bitarray.bitarray, length: Optional[int], offset: Optional[int]) -> None:
         if offset is None:
