@@ -264,6 +264,18 @@ class BitStore(bitarray.bitarray):
         else:
             super().invert()
 
+    def any_set(self) -> bool:
+        if self.immutable:
+            return super().__getitem__(slice(self.offset, self.offset + self.length, None)).any()
+        else:
+            return super().any()
+
+    def all_set(self) -> bool:
+        if self.immutable:
+            return super().__getitem__(slice(self.offset, self.offset + self.length, None)).all()
+        else:
+            return super().all()
+
     def __len__(self):
         if self.immutable:
             return self.length
@@ -2355,9 +2367,9 @@ class Bits:
         length = self.len
         if pos is None:
             if value is True:
-                return self._bitstore.all()
+                return self._bitstore.all_set()
             else:
-                return not self._bitstore.any()
+                return not self._bitstore.any_set()
         for p in pos:
             if p < 0:
                 p += length
@@ -2380,9 +2392,9 @@ class Bits:
         length = self.len
         if pos is None:
             if value is True:
-                return self._bitstore.any()
+                return self._bitstore.any_set()
             else:
-                return not self._bitstore.all()
+                return not self._bitstore.all_set()
         for p in pos:
             if p < 0:
                 p += length
