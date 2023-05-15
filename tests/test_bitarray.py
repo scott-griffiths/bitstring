@@ -294,6 +294,17 @@ class SliceAssignment(unittest.TestCase):
         a[::-1] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
         self.assertEqual(a.bin, '1000000000')
 
+    def testSetSliceStepWithInt(self):
+        a = BitArray(9)
+        a[5:8] = -1
+        self.assertEqual(a.bin, '000001110')
+        a[:] = 10
+        self.assertEqual(a.bin, '000001010')
+        a[::-1] = 10
+        self.assertEqual(a.bin, '010100000')
+        with self.assertRaises(ValueError):
+            a[::2] = True
+
     def testSetSliceErrors(self):
         a = BitArray(8)
         with self.assertRaises(ValueError):

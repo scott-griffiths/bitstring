@@ -185,6 +185,17 @@ class BitStore(bitarray.bitarray):
             self.length = super().__len__() - self.offset
             raise CreationError  # TODO: Error message
 
+    @classmethod
+    def _setlsb0methods(cls, lsb0: bool = False):
+        if lsb0:
+            cls.__getitem__ = cls.getitem_lsb0
+            cls.__setitem__ = cls.setitem_lsb0
+            cls.__delitem__ = cls.delitem_lsb0
+        else:
+            cls.__getitem__ = cls.getitem_msb0
+            cls.__setitem__ = cls.setitem_msb0
+            cls.__delitem__ = cls.delitem_msb0
+
     def __new__(cls, *args, **kwargs):
         for key in ['length', 'offset', 'filename']:
             kwargs.pop(key, None)
@@ -193,17 +204,6 @@ class BitStore(bitarray.bitarray):
     def __add__(self, other: bitarray.bitarray):
         return BitStore(super().__add__(other))
 
-    def __getitem__(self, key):
-        return self.getitem_lsb0(key) if _lsb0 else self.getitem_msb0(key)
-
-    def __setitem__(self, key, value):
-        assert not self.immutable
-        self.setitem_lsb0(key, value) if _lsb0 else self.setitem_msb0(key, value)
-
-    def __delitem__(self, key) -> None:
-        assert not self.immutable
-        self.delitem_lsb0(key) if _lsb0 else self.delitem_msb0(key)
-    
     def __iter__(self):
         for i in range(0, len(self)):
             yield self[i]
@@ -228,38 +228,27 @@ class BitStore(bitarray.bitarray):
 
     def setitem_msb0(self, key, value):
         assert not self.immutable
-        if isinstance(key, int):
-            if key >= 0:
-                key += self.offset
-            super().__setitem__(key, value)
-        else:
-            new_slice = _offset_slice_indices_msb0(key, len(self), self.offset)
-            super().__setitem__(new_slice, value)
+        super().__setitem__(key, value)
 
     def setitem_lsb0(self, key, value):
+        assert not self.immutable
         if isinstance(key, int):
-            if key >= 0:
-                key += self.offset
             super().__setitem__(-key - 1, value)
-            return
         else:
             new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
             super().__setitem__(new_slice, value)
-            return
 
     def delitem_lsb0(self, key):
+        assert not self.immutable
         if isinstance(key, int):
-            if key >= 0:
-                key += self.offset
             super().__delitem__(-key - 1)
         else:
             new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
             super().__delitem__(new_slice)
 
     def delitem_msb0(self, key):
+        assert not self.immutable
         if isinstance(key, int):
-            if key >= 0:
-                key += self.offset
             super().__delitem__(key)
         else:
             new_slice = _offset_slice_indices_msb0(key, len(self), self.offset)
@@ -268,8 +257,6 @@ class BitStore(bitarray.bitarray):
     def invert(self, index=None):
         assert not self.immutable
         if index is not None:
-            if index >= 0:
-                index += self.offset
             if _lsb0:
                 super().invert(-index - 1)
             else:
@@ -3002,6 +2989,12 @@ class BitArray(Bits):
 
         assert isinstance(key, slice)
         if isinstance(value, int):
+            if key.step not in [None, -1, 1]:
+                if value in [0, 1]:
+                    raise ValueError(f"Can't assign a single bit to a slice with a step value. "
+                                     f"Instead of 's[start:stop:step] = {value}' try 's.set({value}, range(start, stop, step))'.")
+                else:
+                    raise ValueError("Can't assign an integer to a slice with a step value.")
             # To find the length we first get the slice
             s = self._bitstore.__getitem__(key)
             length = len(s)
@@ -3982,9 +3975,8 @@ class BitStream(BitArray, ConstBitStream):
         bs -- The bitstring to prepend.
 
         """
-        # super().prepend(bs)  # TODO: Shouldn't this line work in place of the next two?
-        bs = self._converttobitstring(bs)
-        self._addleft(bs)
+        bs = Bits(bs)
+        super().prepend(bs)
         self._pos += bs.len
 
 
@@ -4070,6 +4062,7 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
     _lsb0 = lsb0
     Bits._setlsb0methods(lsb0)
     BitArray._setlsb0methods(lsb0)
+    BitStore._setlsb0methods(lsb0)
 
 
 # Initialise the default behaviour

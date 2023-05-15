@@ -185,7 +185,7 @@ set
 
         Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. The default is to set every bit in the :class:`BitArray`.
 
-        Using ``s.set(True, x)`` can be more efficient than other equivalent methods such as ``s[x] = 1``, ``s[x] = "0b1"`` or ``s.overwrite('0b1', x)``, especially if many bits are being set. ::
+        Using ``s.set(True, x)`` can be more efficient than other equivalent methods such as ``s[x] = 1``, ``s[x] = "0b1"`` or ``s.overwrite('0b1', x)``, especially if many bits are being set. In particular using a ``range`` object as an iterable is treated as a special case and is done efficiently. ::
 
             >>> s = BitArray('0x0000')
             >>> s.set(True, -1)
@@ -197,6 +197,10 @@ set
             >>> s.set(0)
             >>> s.bin
             '0000000000000000'
+            >>> s.set(1, range(0, len(s), 2))
+            >>> s.bin
+            '1010101010101010'
+
 
 Properties
 ----------
