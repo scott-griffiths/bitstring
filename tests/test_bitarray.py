@@ -872,3 +872,21 @@ class BitarrayTests(unittest.TestCase):
         a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
         b = a.tobitarray()
         self.assertEqual(a.bin, b.to01())
+
+    def testWithOffset(self):
+        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+        b = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), offset=11)
+        self.assertEqual(len(a), len(b) + 11)
+        self.assertEqual(a[11:].tobitarray(), b.tobitarray())
+
+    def testWithLength(self):
+        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+        b = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), length=11)
+        self.assertEqual(len(b), 11)
+        self.assertEqual(a[:11].tobitarray(), b.tobitarray())
+
+    def testWithOffsetAndLength(self):
+        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+        b = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), offset=17, length=7)
+        self.assertEqual(len(b), 7)
+        self.assertEqual(a[17:24].tobitarray(), b.tobitarray())

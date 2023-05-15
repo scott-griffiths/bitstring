@@ -170,8 +170,10 @@ def _offset_slice_indices_msb0(key: slice, length: int, offset: int) -> slice:
 class BitStore(bitarray.bitarray):
     """A light wrapper around bitarray that does the LSB0 stuff"""
 
-    def __init__(self, *args, offset=0, length=None, filename=None, immutable=False, **kwargs) -> None:
-        self.immutable = immutable
+    def __init__(self, *args, offset: int = 0, length: Optional[int] = None, filename: Optional[str] = None,
+                 **kwargs) -> None:
+
+        self.immutable = offset != 0 or length is not None or filename is not None
         self.offset = offset
         self.filename = filename
         self.length = super().__len__() - self.offset if length is None else length
@@ -184,7 +186,7 @@ class BitStore(bitarray.bitarray):
             raise CreationError  # TODO: Error message
 
     def __new__(cls, *args, **kwargs):
-        for key in ['length', 'offset', 'filename', 'immutable']:
+        for key in ['length', 'offset', 'filename']:
             kwargs.pop(key, None)
         return bitarray.bitarray.__new__(cls, *args, **kwargs)
 
@@ -192,24 +194,15 @@ class BitStore(bitarray.bitarray):
         return BitStore(super().__add__(other))
 
     def __getitem__(self, key):
-        if _lsb0:
-            return self.getitem_lsb0(key)
-        else:
-            return self.getitem_msb0(key)
+        return self.getitem_lsb0(key) if _lsb0 else self.getitem_msb0(key)
 
     def __setitem__(self, key, value):
         assert not self.immutable
-        if _lsb0:
-            self.setitem_lsb0(key, value)
-        else:
-            self.setitem_msb0(key, value)
+        self.setitem_lsb0(key, value) if _lsb0 else self.setitem_msb0(key, value)
 
     def __delitem__(self, key) -> None:
         assert not self.immutable
-        if _lsb0:
-            self.delitem_lsb0(key)
-        else:
-            self.delitem_msb0(key)
+        self.delitem_lsb0(key) if _lsb0 else self.delitem_msb0(key)
     
     def __iter__(self):
         for i in range(0, len(self)):
@@ -584,18 +577,12 @@ class Bits:
             cls._find = cls._find_lsb0  # type: ignore
             cls._rfind = cls._rfind_lsb0  # type: ignore
             cls._findall = cls._findall_lsb0  # type: ignore
-            cls._truncatestart = cls._truncateright  # type: ignore
-            cls._truncateend = cls._truncateleft  # type: ignore
         else:
             cls._find = cls._find_msb0  # type: ignore
             cls._rfind = cls._rfind_msb0  # type: ignore
             cls._findall = cls._findall_msb0  # type: ignore
-            cls._truncatestart = cls._truncateleft  # type: ignore
-            cls._truncateend = cls._truncateright  # type: ignore
 
     __slots__ = ('_bitstore', '_pos')
-    # This converts a single octal digit to 3 bits.
-    _octToBits: List[str] = ['{0:03b}'.format(i) for i in range(8)]
 
     # Creates dictionaries to quickly reverse single bytes
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
@@ -965,7 +952,7 @@ class Bits:
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for & operator.")
         s = self._copy()
-        s._iand(bs)
+        s._bitstore &= bs._bitstore
         return s
 
     def __rand__(self, bs: BitsType) -> Bits:
@@ -990,7 +977,7 @@ class Bits:
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for | operator.")
         s = self._copy()
-        s._ior(bs)
+        s._bitstore |= bs._bitstore
         return s
 
     def __ror__(self, bs: BitsType) -> Bits:
@@ -1015,7 +1002,7 @@ class Bits:
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for ^ operator.")
         s = self._copy()
-        s._ixor(bs)
+        s._bitstore ^= bs._bitstore
         return s
 
     def __rxor__(self, bs: BitsType) -> Bits:
@@ -1123,7 +1110,7 @@ class Bits:
 
         if isinstance(s, io.BufferedReader):
             m = mmap.mmap(s.fileno(), 0, access=mmap.ACCESS_READ)
-            self._bitstore = BitStore(buffer=m, offset=offset, length=length, filename=s.name, immutable=True)
+            self._bitstore = BitStore(buffer=m, offset=offset, length=length, filename=s.name)
             return
 
         if isinstance(s, bitarray.bitarray):
@@ -1171,7 +1158,7 @@ class Bits:
             if offset is None:
                 offset = 0
             m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
-            self._bitstore = BitStore(buffer=m, offset=offset, length=length, filename=source.name, immutable=True)
+            self._bitstore = BitStore(buffer=m, offset=offset, length=length, filename=source.name)
 
     def _setbitarray(self, ba: bitarray.bitarray, length: Optional[int], offset: Optional[int]) -> None:
         if offset is None:
@@ -1199,9 +1186,9 @@ class Bits:
                 raise CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
         self._bitstore = BitStore(buffer=data).getitem_msb0(slice(offset, offset + length, None))
 
-    def _setbytes_unsafe(self, data: Union[bytearray], length: int, offset: int):
+    def _setbytes_unsafe(self, data: bytearray, length: int, offset: int):
         """Unchecked version of _setbytes_safe."""
-        self._bitstore = BitStore(buffer=data[:]).getitem_msb0(slice(offset, offset + length, None))
+        self._bitstore = BitStore(buffer=data).getitem_msb0(slice(offset, offset + length, None))
 
     def _readbytes(self, start: int, length: int) -> bytes:
         """Read bytes and return them. Note that length is in bits."""
@@ -1256,7 +1243,8 @@ class Bits:
         """Return data as an unsigned int."""
         if self.len == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        return bitarray.util.ba2int(self._bitstore[:], signed=False)  # TODO: The copy is only needed when the bitstore offset or length is set (and probably not even then).
+        bs = self._bitstore[:] if self._bitstore.immutable else self._bitstore
+        return bitarray.util.ba2int(bs, signed=False)
 
     def _setint(self, int_: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given signed int interpretation."""
@@ -1283,7 +1271,8 @@ class Bits:
         """Return data as a two's complement signed int."""
         if self.len == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        return bitarray.util.ba2int(self._bitstore[:], signed=True)  # TODO: The copy is only needed when the bitstore offset or length is set (and probably not even then).
+        bs = self._bitstore[:] if self._bitstore.immutable else self._bitstore
+        return bitarray.util.ba2int(bs, signed=True)
 
     def _setuintbe(self, uintbe: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Set the bitstring to a big-endian unsigned int interpretation."""
@@ -1327,9 +1316,8 @@ class Bits:
         """Read bits and interpret as a little-endian unsigned int."""
         if length % 8:
             raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
-
-        tmp = BitStore(buffer=bytearray(self._bitstore[start: start + length].tobytes()[::-1]))
-        val = bitarray.util.ba2int(tmp, signed=False)
+        bs = BitStore(buffer=bytearray(self._bitstore[start: start + length].tobytes()[::-1]))
+        val = bitarray.util.ba2int(bs, signed=False)
         return val
 
     def _getuintle(self) -> int:
@@ -1345,13 +1333,11 @@ class Bits:
 
     def _readintle(self, start: int, length: int) -> int:
         """Read bits and interpret as a little-endian signed int."""
-        ui = self._readuintle(start, length)
-        if not ui >> (length - 1):
-            # Top bit not set, number is positive
-            return ui
-        # Top bit is set, so number is negative
-        tmp = (~(ui - 1)) & ((1 << length) - 1)
-        return -tmp
+        if length % 8:
+            raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
+        bs = BitStore(buffer=bytearray(self._bitstore[start: start + length].tobytes()[::-1]))
+        val = bitarray.util.ba2int(bs, signed=True)
+        return val
 
     def _getintle(self) -> int:
         return self._readintle(0, self.len)
@@ -1701,45 +1687,36 @@ class Bits:
     def _setoct(self, octstring: str, _length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in octstring."""
         octstring = tidy_input_string(octstring)
-        # remove any 0o if present
         octstring = octstring.replace('0o', '')
-        binlist = []
-        for i in octstring:
-            try:
-                binlist.append(Bits._octToBits[int(i)])
-            except (ValueError, IndexError):
-                raise CreationError(f"Invalid symbol '{i}' in oct initialiser.")
-        self._setbin_unsafe(''.join(binlist))
+        try:
+            ba = bitarray.util.base2ba(8, octstring)
+        except ValueError:
+            raise CreationError("Invalid symbol in oct initialiser.")
+        self._bitstore = BitStore(ba)
 
     def _readoct(self, start: int, length: int) -> str:
         """Read bits and interpret as an octal string."""
         if length % 3:
             raise InterpretError("Cannot convert to octal unambiguously - not multiple of 3 bits long.")
-        if not length:
-            return ''
-        # Get main octal bit by converting from int.
-        # Strip starting '0o'.
-        end = oct(self._readuint(start, length))[2:]
-        middle = '0' * (length // 3 - len(end))
-        return middle + end
+        s = bitarray.util.ba2base(8, self._bitstore[start: start + length])
+        return s
 
     def _getoct(self) -> str:
         """Return interpretation as an octal string."""
-        return self._readoct(0, self.len)
+        if self.len % 3:
+            raise InterpretError("Cannot convert to octal unambiguously - not multiple of 3 bits long.")
+        ba = self._bitstore[:] if self._bitstore.immutable else self._bitstore
+        return bitarray.util.ba2base(8, ba)
 
     def _sethex(self, hexstring: str, _length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in hexstring."""
         hexstring = tidy_input_string(hexstring)
-        # remove any 0x if present
         hexstring = hexstring.replace('0x', '')
-        length = len(hexstring)
-        if length % 2:
-            hexstring += '0'
         try:
-            data = bytearray.fromhex(hexstring)
+            ba = bitarray.util.hex2ba(hexstring)
         except ValueError:
             raise CreationError("Invalid symbol in hex initialiser.")
-        self._setbytes_unsafe(data, length * 4, 0)
+        self._bitstore = BitStore(ba)
 
     def _readhex(self, start: int, length: int) -> str:
         """Read bits and interpret as a hex string."""
@@ -1755,7 +1732,8 @@ class Bits:
         """
         if self.len % 4:
             raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
-        return bitarray.util.ba2hex(self._bitstore[:])  # TODO: The copy is only needed when the bitstore offset or length is set (and probably not even then).
+        ba = self._bitstore[:] if self._bitstore.immutable else self._bitstore
+        return bitarray.util.ba2hex(ba)
 
     def _getlength(self) -> int:
         """Return the length of the bitstring in bits."""
@@ -1924,25 +1902,6 @@ class Bits:
             m *= 2
         self._addright(self[0:(n - m) * old_len])
         return self
-
-    def _inplace_logical_helper(self, bs: Bits, f: Callable[[int, int], int]) -> Bits:
-        """Helper function containing most of the __ior__, __iand__, __ixor__ code."""
-        if f is operator.ior:
-            self._bitstore |= bs._bitstore
-        elif f is operator.iand:
-            self._bitstore &= bs._bitstore
-        elif f is operator.xor:  # SCOTT TODO: Why is this .xor and not .ixor?
-            self._bitstore ^= bs._bitstore
-        return self
-
-    def _ior(self, bs: Bits) -> Bits:
-        return self._inplace_logical_helper(bs, operator.ior)
-
-    def _iand(self, bs: Bits) -> Bits:
-        return self._inplace_logical_helper(bs, operator.iand)
-
-    def _ixor(self, bs: Bits) -> Bits:
-        return self._inplace_logical_helper(bs, operator.xor)  # SCOTT TODO: Why is this .xor and not .ixor?
 
     def _readbits(self, start: int, length: int) -> Bits:
         """Read some bits from the bitstring and return newly constructed bitstring."""
@@ -2114,7 +2073,7 @@ class Bits:
             # Advance to just beyond the non-byte-aligned match and try again...
             start = p + 1
 
-    def findall(self, bs: Any, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
+    def findall(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
                 bytealigned: Optional[bool] = None) -> Generator[int, None, None]:
         """Find all occurrences of bs. Return generator of bit positions.
 
@@ -2186,7 +2145,7 @@ class Bits:
             if pos == msb0_start:
                 return
 
-    def rfind(self, bs: Any, start: Optional[int] = None, end: Optional[int] = None,
+    def rfind(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
               bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
         """Find final occurrence of substring bs.
 
@@ -2274,7 +2233,7 @@ class Bits:
             start_ += bits
         return
 
-    def split(self, delimiter: Any, start: Optional[int] = None, end: Optional[int] = None,
+    def split(self, delimiter: BitsType, start: Optional[int] = None, end: Optional[int] = None,
               count: Optional[int] = None, bytealigned: Optional[bool] = None) -> Generator[Bits, None, None]:
         """Return bitstring generator by splitting using a delimiter.
 
@@ -2352,7 +2311,10 @@ class Bits:
 
     def tobitarray(self) -> bitarray.bitarray:
         """Convert the bitstring to a bitarray object."""
-        return bitarray.bitarray(self._bitstore)
+        if self._bitstore.immutable:
+            return bitarray.bitarray(self._bitstore[:])
+        else:
+            return bitarray.bitarray(self._bitstore)
 
     def tofile(self, f: BinaryIO) -> None:
         """Write the bitstring to a file object, padding with zero bits if needed.
@@ -3135,19 +3097,22 @@ class BitArray(Bits):
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for |= operator.")
-        return self._ior(bs)
+        self._bitstore |= bs._bitstore
+        return self
 
     def __iand__(self, bs: BitsType) -> Bits:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for &= operator.")
-        return self._iand(bs)
+        self._bitstore &= bs._bitstore
+        return self
 
     def __ixor__(self, bs: BitsType) -> Bits:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for ^= operator.")
-        return self._ixor(bs)
+        self._bitstore ^= bs._bitstore
+        return self
 
     def replace(self, old: BitsType, new: BitsType, start: Optional[int] = None, end: Optional[int] = None,
                 count: Optional[int] = None, bytealigned: Optional[bool] = None) -> int:
