@@ -170,8 +170,10 @@ def _offset_slice_indices_msb0(key: slice, length: int, offset: int) -> slice:
 class BitStore(bitarray.bitarray):
     """A light wrapper around bitarray that does the LSB0 stuff"""
 
-    def __init__(self, *args, offset: int = 0, length: Optional[int] = None, filename: Optional[str] = None,
+    def __init__(self, *args, frombytes: Optional[Union[bytes, bytearray]] = None, offset: int = 0, length: Optional[int] = None, filename: Optional[str] = None,
                  **kwargs) -> None:
+        if frombytes is not None:
+            self.frombytes(frombytes)
 
         self.immutable = offset != 0 or length is not None or filename is not None
         self.offset = offset
@@ -197,7 +199,7 @@ class BitStore(bitarray.bitarray):
             cls.__delitem__ = cls.delitem_msb0
 
     def __new__(cls, *args, **kwargs):
-        for key in ['length', 'offset', 'filename']:
+        for key in ['length', 'offset', 'filename', 'frombytes']:
             kwargs.pop(key, None)
         return bitarray.bitarray.__new__(cls, *args, **kwargs)
 
@@ -1104,7 +1106,7 @@ class Bits:
             bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
             if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
                 raise CreationError("BytesIO object is not long enough for specified length and offset.")
-            self._bitstore = BitStore(buffer=bytearray(s.getvalue()[byteoffset: byteoffset + bytelength]))[offset: offset + length]
+            self._bitstore = BitStore(frombytes=s.getvalue()[byteoffset: byteoffset + bytelength])[offset: offset + length]
             return
 
         if isinstance(s, io.BufferedReader):
@@ -1309,13 +1311,13 @@ class Bits:
         if length is not None and length % 8 != 0:
             raise CreationError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
         self._setuint(uintle, length)
-        self._bitstore = BitStore(buffer=bytearray(self._bitstore.tobytes()[::-1]))
+        self._bitstore = BitStore(frombytes=self._bitstore.tobytes()[::-1])
 
     def _readuintle(self, start: int, length: int) -> int:
         """Read bits and interpret as a little-endian unsigned int."""
         if length % 8:
             raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
-        bs = BitStore(buffer=bytearray(self._bitstore[start: start + length].tobytes()[::-1]))
+        bs = BitStore(frombytes=self._bitstore[start: start + length].tobytes()[::-1])
         val = bitarray.util.ba2int(bs, signed=False)
         return val
 
@@ -1328,13 +1330,13 @@ class Bits:
         if length is None:
             length = self._getlength()
         big_endian_bitstore = bitarray.util.int2ba(intle, length=length)
-        self._bitstore = BitStore(buffer=bytearray(big_endian_bitstore.tobytes()[::-1]))
+        self._bitstore = BitStore(frombytes=big_endian_bitstore.tobytes()[::-1])
 
     def _readintle(self, start: int, length: int) -> int:
         """Read bits and interpret as a little-endian signed int."""
         if length % 8:
             raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
-        bs = BitStore(buffer=bytearray(self._bitstore[start: start + length].tobytes()[::-1]))
+        bs = BitStore(frombytes=self._bitstore[start: start + length].tobytes()[::-1])
         val = bitarray.util.ba2int(bs, signed=True)
         return val
 
@@ -1412,7 +1414,7 @@ class Bits:
         except OverflowError:
             # For consistency we overflow to 'inf'.
             b = struct.pack('>f', float('inf') if f > 0 else float('-inf'))
-        self._bitstore = BitStore(buffer=bytearray(b[0:2]))
+        self._bitstore = BitStore(frombytes=b[0:2])
 
     def _getbfloatle(self) -> float:
         return self._readbfloatle(0, self.len)
@@ -1431,7 +1433,7 @@ class Bits:
         except OverflowError:
             # For consistency we overflow to 'inf'.
             b = struct.pack('<f', float('inf') if f > 0 else float('-inf'))
-        self._bitstore = BitStore(buffer=bytearray(b[2:4]))
+        self._bitstore = BitStore(frombytes=b[2:4])
 
     def _setue(self, i: int, _length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
@@ -1863,7 +1865,7 @@ class Bits:
     def _reversebytes(self, start: int, end: int) -> None:
         """Reverse bytes in-place."""
         assert (end - start) % 8 == 0
-        self._bitstore[start:end] = BitStore(buffer=bytearray(self._bitstore[start:end].tobytes()[::-1]))
+        self._bitstore[start:end] = BitStore(frombytes=self._bitstore[start:end].tobytes()[::-1])
 
     def _invert(self, pos: int) -> None:
         """Flip bit at pos 1<->0."""
