@@ -2367,21 +2367,18 @@ class Split2(unittest.TestCase):
     def testToFile(self):
         filename = os.path.join(THIS_DIR, 'temp_bitstring_unit_testing_file')
         a = BitStream('0x0000ff')[:17]
-        f = open(filename, 'wb')
-        a.tofile(f)
-        f.close()
+        with open(filename, 'wb') as f:
+            a.tofile(f)
         b = BitStream(filename=filename)
         self.assertEqual(b, '0x000080')
 
         a = BitStream('int:1000000=-1')
         self.assertEqual(a.int, -1)
-        f = open(filename, 'wb')
-        a.tofile(f)
-        f.close()
+        with open(filename, 'wb') as f:
+            a.tofile(f)
         b = BitStream(filename=filename)
         self.assertEqual(b.int, -1)
         self.assertEqual(b.len, 1000000)
-        os.remove(filename)
 
     def testTokenParser(self):
         tp = bitstring.tokenparser
