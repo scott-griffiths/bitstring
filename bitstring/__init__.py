@@ -115,9 +115,6 @@ sys.modules[__name__].__class__ = _MyModuleType
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
 
-# Maximum size of caches used for speed optimisations.
-CACHE_SIZE: int = 1000
-
 
 class Error(Exception):
     """Base class for errors in the bitstring module."""
@@ -364,7 +361,7 @@ def structparser(token: str) -> List[str]:
     return tokens
 
 
-def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: Dict = {}) -> \
+def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
         Tuple[bool, List[Tuple[str, Optional[int], Optional[str]]]]:
     """Divide the format string into tokens and parse them.
 
@@ -378,10 +375,6 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
     tokens must be of the form: [factor*][initialiser][:][length][=value]
 
     """
-    try:
-        return token_cache[(fmt, keys)]
-    except KeyError:
-        token_key = (fmt, keys)
     # Very inefficient expanding of brackets.
     fmt = expand_brackets(fmt)
     # Split tokens by ',' and remove whitespace
@@ -475,8 +468,6 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None, token_cache: D
         # sensibly continue to cache the function's results. (TODO).
         return_values.extend(tuple(ret_vals * factor))
     return_values = [tuple(x) for x in return_values]
-    if len(token_cache) < CACHE_SIZE:
-        token_cache[token_key] = stretchy_token, return_values
     return stretchy_token, return_values
 
 
@@ -629,36 +620,12 @@ class Bits:
                   initialising using 'bytes' or 'filename'.
 
         """
-        self._initialise(auto, length, offset, **kwargs)
+        pass
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
-                offset: Optional[int] = None, _cache={}, **kwargs) -> Bits:
-        # For instances auto-initialised with a string we intern the instance for re-use.
-        if isinstance(auto, str):
-            if offset is not None:
-                raise CreationError("offset should not be specified when using string initialisation.")
-            if length is not None:
-                raise CreationError("length should not be specified when using string initialisation.")
-            x = object.__new__(cls)
-            try:
-                x._bitstore = _cache[auto]
-                return x
-            except KeyError:
-                try:
-                    _, tokens = tokenparser(auto)
-                except ValueError as e:
-                    raise CreationError(*e.args)
-
-                x._bitstore = BitStore()
-                for token in tokens:
-                    b = cls._init_with_token(*token)
-                    x._bitstore += b._bitstore
-                if len(_cache) < CACHE_SIZE:
-                    _cache[auto] = BitStore(x._bitstore)
-                return x
-        if type(auto) is auto:
-            return auto
+                offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> Bits:
         x = object.__new__(cls)
+        x._initialise(auto, length, offset, **kwargs)
         return x
 
     def _initialise(self, auto: Any, length: Optional[int], offset: Optional[int], **kwargs) -> None:
@@ -667,7 +634,7 @@ class Bits:
         if offset is not None and offset < 0:
             raise CreationError("offset must be >= 0.")
         if auto is not None:
-            self._initialise_from_auto(auto, length, offset)
+            self._setauto(auto, length, offset)
             return
         if not kwargs:
             # No initialisers, so initialise with nothing or zero bits
@@ -683,12 +650,6 @@ class Bits:
             self._setfunc[k](self, v, length, offset)
         except KeyError:
             raise CreationError(f"Unrecognised keyword '{k}' used to initialise.")
-
-    def _initialise_from_auto(self, auto: Any, length: Optional[int], offset: Optional[int]) -> None:
-        if offset is None:
-            offset = 0
-        self._setauto(auto, length, offset)
-        return
 
     def __getattr__(self, attribute: str):
         if attribute == '_pos':
@@ -1087,12 +1048,14 @@ class Bits:
         """Reset the bitstring to an empty state."""
         self._bitstore = BitStore()
 
-    def _setauto(self, s: Any, length: Optional[int], offset: int) -> None:
+    def _setauto(self, s: Any, length: Optional[int], offset: Optional[int]) -> None:
         """Set bitstring from a bitstring, file, bool, integer, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
         # So str must be checked before Iterable
         # and bytes/bytearray before Iterable but after str!
+        if offset is None:
+            offset = 0
         if isinstance(s, Bits):
             if length is None:
                 length = s._getlength() - offset
@@ -1130,8 +1093,7 @@ class Bits:
         if offset > 0:
             raise CreationError("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, str):
-            bs = self._converttobitstring(s)
-            self._bitstore = bs._bitstore
+            self._bitstore = self._str_to_bitstore(s)
             return
         if isinstance(s, (bytes, bytearray)):
             self._setbytes_unsafe(bytearray(s), len(s) * 8, 0)
@@ -1152,6 +1114,10 @@ class Bits:
             self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
             return
         raise TypeError(f"Cannot initialise bitstring from {type(s)}.")
+
+    def _str_to_bitstore(self, s: str) -> BitStore:
+        bs = self._converttobitstring(s)
+        return bs._bitstore
 
     def _setfile(self, filename: str, length: Optional[int], offset: Optional[int]) -> None:
         """Use file as source of bits."""
@@ -1741,7 +1707,7 @@ class Bits:
         return len(self._bitstore)
 
     @classmethod
-    def _converttobitstring(cls, bs: BitsType, cache: Dict = {}) -> Bits:
+    def _converttobitstring(cls, bs: BitsType) -> Bits:
         """Convert bs to a bitstring and return it.
         """
         if isinstance(bs, Bits):
@@ -1750,20 +1716,14 @@ class Bits:
         if isinstance(bs, str):
             b = cls()
             try:
-                b._bitstore = BitStore(cache[bs])
-                return b
-            except KeyError:
-                try:
-                    _, tokens = tokenparser(bs)
-                except ValueError as e:
-                    raise CreationError(*e.args)
-                if tokens:
-                    b._addright(Bits._init_with_token(*tokens[0]))
-                    for token in tokens[1:]:
-                        b._addright(Bits._init_with_token(*token))
-                if len(cache) < CACHE_SIZE:
-                    cache[bs] = BitStore(b._bitstore)
-                return b
+                _, tokens = tokenparser(bs)
+            except ValueError as e:
+                raise CreationError(*e.args)
+            if tokens:
+                b._addright(Bits._init_with_token(*tokens[0]))
+                for token in tokens[1:]:
+                    b._addright(Bits._init_with_token(*token))
+            return b
         return cls(bs)
 
     def _copy(self) -> Bits:
@@ -2900,8 +2860,7 @@ class BitArray(Bits):
                   initialising using 'bytes' or 'filename'.
 
         """
-        # For mutable BitArrays we always read in files to memory: # TODO: Comment wrong?
-        super().__init__(auto, length, offset, **kwargs)
+        pass
 
     def __setattr__(self, attribute, value) -> None:
         try:
@@ -3632,7 +3591,6 @@ class ConstBitStream(Bits):
         pos -- Initial bit position, defaults to 0.
 
         """
-        super().__init__(auto, length, offset, **kwargs)
         if pos < 0:
             pos += len(self._bitstore)
         if pos < 0 or pos > len(self._bitstore):
