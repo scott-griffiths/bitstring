@@ -792,3 +792,33 @@ class Copy(unittest.TestCase):
         self.assertEqual(s, t)
 
 
+class NativeEndianIntegers(unittest.TestCase):
+
+    def testUintne(self):
+        s = Bits(uintne=454, length=160)
+        t = Bits('uintne160=454')
+        self.assertEqual(s, t)
+
+    def testIntne(self):
+        s = Bits(intne=-1000, length=64)
+        t = Bits('intne:64=-1000')
+        self.assertEqual(s, t)
+
+
+class NonNativeEndianIntegers(unittest.TestCase):
+
+    def setUp(self) -> None:
+        bitstring.byteorder = 'little' if bitstring.byteorder == 'big' else 'little'
+
+    def tearDown(self) -> None:
+        self.setUp()
+
+    def testUintne(self):
+        s = Bits(uintne=454, length=160)
+        t = Bits('uintne160=454')
+        self.assertEqual(s, t)
+
+    def testIntne(self):
+        s = Bits(intne=-1000, length=64)
+        t = Bits('intne:64=-1000')
+        self.assertEqual(s, t)

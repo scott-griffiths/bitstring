@@ -858,6 +858,25 @@ class BFloats(unittest.TestCase):
         s.bfloat = -1e60
         self.assertEqual(s, ninfbfloat)
 
+    def testBigEndianStringInitialisers(self):
+        a = BitArray('bfloatbe=4.5')
+        b = BitArray('bfloatbe:16=-2.25')
+        self.assertEqual(a.bfloatbe, 4.5)
+        self.assertEqual(b.bfloatbe, -2.25)
+
+    def testLilleEndianStringInitialisers(self):
+        a = BitArray('bfloatle=4.5')
+        b = BitArray('bfloatle:16=-2.25')
+        self.assertEqual(a.bfloatle, 4.5)
+        self.assertEqual(b.bfloatle, -2.25)
+
+    def testNativeEndianStringInitialisers(self):
+        a = BitArray('bfloatne=4.5')
+        b = BitArray('bfloatne:16=-2.25')
+        self.assertEqual(a.bfloatne, 4.5)
+        self.assertEqual(b.bfloatne, -2.25)
+
+
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
