@@ -172,17 +172,21 @@ class BitStore(bitarray.bitarray):
         if frombytes is not None:
             self.frombytes(frombytes)
 
-        self.immutable = offset != 0 or length is not None or filename is not None
-        self.offset = offset
-        self.filename = filename
-        self.length = super().__len__() - self.offset if length is None else length
+        # Here 'modified' means that it isn't just the underlying bitarray. It could have a different start and end, and be from a file.
+        # This also means that it shouldn't be changed further, so setting deleting etc. are disallowed.
+        self.modified = offset != 0 or length is not None or filename is not None
+        if self.modified:
+            # These class variable only exist if modified is True.
+            self.offset = offset
+            self.filename = filename
+            self.length = super().__len__() - self.offset if length is None else length
 
-        if self.length < 0:
-            self.length = 0
-            raise CreationError  # TODO: Error message
-        if self.length + self.offset > super().__len__():
-            self.length = super().__len__() - self.offset
-            raise CreationError  # TODO: Error message
+            if self.length < 0:
+                self.length = 0
+                raise CreationError  # TODO: Error message
+            if self.length + self.offset > super().__len__():
+                self.length = super().__len__() - self.offset
+                raise CreationError  # TODO: Error message
 
     @classmethod
     def _setlsb0methods(cls, lsb0: bool = False):
@@ -192,8 +196,8 @@ class BitStore(bitarray.bitarray):
             cls.getindex = cls.getindex_lsb0
             cls.getslice = cls.getslice_lsb0
         else:
-            cls.__setitem__ = cls.setitem_msb0
-            cls.__delitem__ = cls.delitem_msb0
+            cls.__setitem__ = super().__setitem__
+            cls.__delitem__ = super().__delitem__
             cls.getindex = cls.getindex_msb0
             cls.getslice = cls.getslice_msb0
 
@@ -218,62 +222,45 @@ class BitStore(bitarray.bitarray):
         raise NotImplementedError
 
     def getindex_msb0(self, index):
-        if index >= 0:
+        if self.modified and index >= 0:
             index += self.offset
         return super().__getitem__(index)
 
     def getslice_msb0(self, key):
-        new_slice = _offset_slice_indices_msb0(key, len(self), self.offset)
-        return BitStore(super().__getitem__(new_slice))
+        if self.modified:
+            key = _offset_slice_indices_msb0(key, len(self), self.offset)
+        return BitStore(super().__getitem__(key))
 
     def getindex_lsb0(self, index):
-        if index >= 0:
+        if self.modified and index >= 0:
             index += self.offset
         return super().__getitem__(-index - 1)
 
     def getslice_lsb0(self, key):
-        new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
-        return BitStore(super().__getitem__(new_slice))
-
-    def getitem_lsb0(self, key):
-        if isinstance(key, int):
-            if key >= 0:
-                key += self.offset
-            return super().__getitem__(-key - 1)
+        if self.modified:
+            key = _offset_slice_indices_lsb0(key, len(self), self.offset)
         else:
-            new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
-            return BitStore(super().__getitem__(new_slice))
-
-    def setitem_msb0(self, key, value):
-        assert not self.immutable
-        super().__setitem__(key, value)
+            key = _offset_slice_indices_lsb0(key, len(self), 0)
+        return BitStore(super().__getitem__(key))
 
     def setitem_lsb0(self, key, value):
-        assert not self.immutable
+        assert not self.modified
         if isinstance(key, int):
             super().__setitem__(-key - 1, value)
         else:
-            new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
+            new_slice = _offset_slice_indices_lsb0(key, len(self), 0)
             super().__setitem__(new_slice, value)
 
     def delitem_lsb0(self, key):
-        assert not self.immutable
+        assert not self.modified
         if isinstance(key, int):
             super().__delitem__(-key - 1)
         else:
-            new_slice = _offset_slice_indices_lsb0(key, len(self), self.offset)
-            super().__delitem__(new_slice)
-
-    def delitem_msb0(self, key):
-        assert not self.immutable
-        if isinstance(key, int):
-            super().__delitem__(key)
-        else:
-            new_slice = _offset_slice_indices_msb0(key, len(self), self.offset)
+            new_slice = _offset_slice_indices_lsb0(key, len(self), 0)
             super().__delitem__(new_slice)
 
     def invert(self, index=None):
-        assert not self.immutable
+        assert not self.modified
         if index is not None:
             if _lsb0:
                 super().invert(-index - 1)
@@ -283,19 +270,19 @@ class BitStore(bitarray.bitarray):
             super().invert()
 
     def any_set(self) -> bool:
-        if self.immutable:
+        if self.modified:
             return super().__getitem__(slice(self.offset, self.offset + self.length, None)).any()
         else:
             return super().any()
 
     def all_set(self) -> bool:
-        if self.immutable:
+        if self.modified:
             return super().__getitem__(slice(self.offset, self.offset + self.length, None)).all()
         else:
             return super().all()
 
     def __len__(self):
-        if self.immutable:
+        if self.modified:
             return self.length
         return super().__len__()
 
@@ -1095,7 +1082,7 @@ class Bits:
         """
         length = self.len
         pos_string = "" if self._pos in (0, None) else f", pos={self._pos}"
-        if self._bitstore.filename is not None:
+        if hasattr(self._bitstore, 'filename'):
             offsetstring = ''
             if self._bitstore.offset:
                 offsetstring = f', offset={self._bitstore.offset}'
@@ -1496,7 +1483,7 @@ class Bits:
         """Return data as an unsigned int."""
         if self.len == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        bs = self._bitstore.copy() if self._bitstore.immutable else self._bitstore
+        bs = self._bitstore.copy() if self._bitstore.modified else self._bitstore
         return bitarray.util.ba2int(bs, signed=False)
 
     def _setint(self, int_: int, length: Optional[int] = None, _offset: None = None) -> None:
@@ -1521,7 +1508,7 @@ class Bits:
         """Return data as a two's complement signed int."""
         if self.len == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        bs = self._bitstore.copy() if self._bitstore.immutable else self._bitstore
+        bs = self._bitstore.copy() if self._bitstore.modified else self._bitstore
         return bitarray.util.ba2int(bs, signed=True)
 
     def _setuintbe(self, uintbe: int, length: Optional[int] = None, _offset: None = None) -> None:
@@ -1900,7 +1887,7 @@ class Bits:
         """Return interpretation as an octal string."""
         if self.len % 3:
             raise InterpretError("Cannot convert to octal unambiguously - not multiple of 3 bits long.")
-        ba = self._bitstore.copy() if self._bitstore.immutable else self._bitstore
+        ba = self._bitstore.copy() if self._bitstore.modified else self._bitstore
         return bitarray.util.ba2base(8, ba)
 
     def _sethex(self, hexstring: str, _length: None = None, _offset: None = None) -> None:
@@ -1921,7 +1908,7 @@ class Bits:
         """
         if self.len % 4:
             raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
-        ba = self._bitstore.copy() if self._bitstore.immutable else self._bitstore
+        ba = self._bitstore.copy() if self._bitstore.modified else self._bitstore
         return bitarray.util.ba2hex(ba)
 
     def _getlength(self) -> int:
@@ -2474,7 +2461,7 @@ class Bits:
 
     def tobitarray(self) -> bitarray.bitarray:
         """Convert the bitstring to a bitarray object."""
-        if self._bitstore.immutable:
+        if self._bitstore.modified:
             return bitarray.bitarray(self._bitstore.copy())
         else:
             return bitarray.bitarray(self._bitstore)
@@ -4132,7 +4119,7 @@ class BitStream(BitArray, ConstBitStream):
 
         """
         ConstBitStream.__init__(self, auto, length, offset, pos, **kwargs)
-        if self._bitstore.immutable:
+        if self._bitstore.modified:
             self._bitstore = self._bitstore.copy()
 
     def __copy__(self) -> BitStream:
