@@ -11,18 +11,18 @@ class BasicFunctionality(unittest.TestCase):
 
     def testGettingInt(self):
         a = BitStore('001')
-        self.assertEqual(a[0], 0)
-        self.assertEqual(a[1], 0)
-        self.assertEqual(a[2], 1)
+        self.assertEqual(a.getindex(0), 0)
+        self.assertEqual(a.getindex(1), 0)
+        self.assertEqual(a.getindex(2), 1)
 
-        self.assertEqual(a[-1], 1)
-        self.assertEqual(a[-2], 0)
-        self.assertEqual(a[-3], 0)
+        self.assertEqual(a.getindex(-1), 1)
+        self.assertEqual(a.getindex(-2), 0)
+        self.assertEqual(a.getindex(-3), 0)
 
         with self.assertRaises(IndexError):
-            _ = a[3]
+            _ = a.getindex(3)
         with self.assertRaises(IndexError):
-            _ = a[-4]
+            _ = a.getindex(-4)
 
 
 class BasicLSB0Functionality(unittest.TestCase):
@@ -37,25 +37,25 @@ class BasicLSB0Functionality(unittest.TestCase):
 
     def testGettingInt(self):
         a = BitStore('001')
-        self.assertEqual(a[0], 1)
-        self.assertEqual(a[1], 0)
-        self.assertEqual(a[2], 0)
+        self.assertEqual(a.getindex(0), 1)
+        self.assertEqual(a.getindex(1), 0)
+        self.assertEqual(a.getindex(2), 0)
 
-        self.assertEqual(a[-1], 0)
-        self.assertEqual(a[-2], 0)
-        self.assertEqual(a[-3], 1)
+        self.assertEqual(a.getindex(-1), 0)
+        self.assertEqual(a.getindex(-2), 0)
+        self.assertEqual(a.getindex(-3), 1)
 
         with self.assertRaises(IndexError):
-            _ = a[3]
+            _ = a.getindex(3)
         with self.assertRaises(IndexError):
-            _ = a[-4]
+            _ = a.getindex(-4)
 
     def testGettingSlice(self):
         a = BitStore(buffer=b'12345678')
-        self.assertEqual(a[:].tobytes(), b'12345678')
-        self.assertEqual(a[:-8].tobytes(), b'2345678')
-        self.assertEqual(a[8:].tobytes(), b'1234567')
-        self.assertEqual(a[16:24].tobytes(), b'6')
+        self.assertEqual(a.getslice(slice(None, None, None)).tobytes(), b'12345678')
+        self.assertEqual(a.getslice(slice(None, -8, None)).tobytes(), b'2345678')
+        self.assertEqual(a.getslice(slice(8, None, None)).tobytes(), b'1234567')
+        self.assertEqual(a.getslice(slice(16, 24, None)).tobytes(), b'6')
 
     def testSettingInt(self):
         a = BitStore('00000')
@@ -83,9 +83,9 @@ class GettingSlices(unittest.TestCase):
         for start_option in options:
             for end_option in options:
                 bitstring.lsb0 = True
-                lsb0 = a[start_option: end_option]
+                lsb0 = a.getslice(slice(start_option, end_option, None))
                 bitstring.lsb0 = False
-                msb0 = a[start_option: end_option]
+                msb0 = a.getslice(slice(start_option, end_option, None))
                 new_slice = _offset_slice_indices_lsb0(slice(start_option, end_option, None), len(a), 0)
                 new_start, new_end = new_slice.start, new_slice.stop
                 self.assertEqual(len(msb0), len(lsb0), f"[{start_option}: {end_option}] -> [{new_start}: {new_end}]  len(msb0)={len(msb0)}, len(lsb0)={len(lsb0)}")
