@@ -65,7 +65,6 @@ import sys
 import re
 import mmap
 import struct
-import operator
 import array
 import io
 from collections import abc
@@ -166,6 +165,8 @@ def _offset_slice_indices_msb0(key: slice, length: int, offset: int) -> slice:
 
 class BitStore(bitarray.bitarray):
     """A light wrapper around bitarray that does the LSB0 stuff"""
+
+    __slots__ = ('modified', 'length', 'offset', 'filename')
 
     def __init__(self, *args, frombytes: Optional[Union[bytes, bytearray]] = None, offset: int = 0, length: Optional[int] = None, filename: Optional[str] = None,
                  **kwargs) -> None:
@@ -367,6 +368,8 @@ def structparser(token: str) -> List[str]:
             tokens = [REPLACEMENTS_BE[c] for c in fmt]
     return tokens
 
+
+@functools.lru_cache()
 def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
         Tuple[bool, List[Tuple[str, Optional[int], Optional[str]]]]:
     """Divide the format string into tokens and parse them.
@@ -510,18 +513,26 @@ def expand_brackets(s: str) -> str:
                 raise ValueError(f"Failed to parse '{s}'.")
     return s
 
+CACHE_SIZE = 128
 
-def _str_to_bitstore(s: str) -> BitStore:
+def _str_to_bitstore(s: str, _str_to_bitstore_cache = {}) -> BitStore:
     try:
-        _, tokens = tokenparser(s)
-    except ValueError as e:
-        raise CreationError(*e.args)
-    bs = BitStore()
-    if tokens:
-        bs = bs + _bitstore_from_token(*tokens[0])
-        for token in tokens[1:]:
-            bs = bs + _bitstore_from_token(*token)
-    return bs
+        return _str_to_bitstore_cache[s]
+    except KeyError:
+        try:
+            _, tokens = tokenparser(s)
+        except ValueError as e:
+            raise CreationError(*e.args)
+        bs = BitStore()
+        if tokens:
+            bs = bs + _bitstore_from_token(*tokens[0])
+            for token in tokens[1:]:
+                bs = bs + _bitstore_from_token(*token)
+        _str_to_bitstore_cache[s] = bs.copy()
+        if len(_str_to_bitstore_cache) > CACHE_SIZE:
+            # Remove the oldest one. FIFO.
+            del _str_to_bitstore_cache[next(iter(_str_to_bitstore_cache))]
+        return bs
 
 
 def _bin2bitstore(binstring: str) -> BitStore:
@@ -719,7 +730,7 @@ else:
 
 # Given a string of the format 'name=value' get a bitstore representing it by using
 # _name2bitstore_func[name](value)
-_name2bitstore_func: Dict[str, Callable] = {
+_name2bitstore_func: Dict[str, Callable[..., BitStore]] = {
     'hex': _hex2bitstore,
     '0x':  _hex2bitstore,
     '0X':  _hex2bitstore,
@@ -741,7 +752,7 @@ _name2bitstore_func: Dict[str, Callable] = {
 
 # Given a string of the format 'name[:]length=value' get a bitstore representing it by using
 # _name2bitstore_func_with_length[name](value, length)
-_name2bitstore_func_with_length: Dict[str, Callable] = {
+_name2bitstore_func_with_length: Dict[str, Callable[..., BitStore]] = {
     'uint':   _uint2bitstore,
     'int':    _int2bitstore,
     'uintbe': _uintbe2bitstore,
@@ -910,6 +921,14 @@ class Bits:
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> Bits:
         x = object.__new__(cls)
+        if auto is None and not kwargs:
+            # No initialiser so fill with zero bits up to length
+            if length is not None:
+                x._bitstore = BitStore(length)
+                x._bitstore.setall(0)
+            else:
+                x._bitstore = BitStore()
+            return x
         x._initialise(auto, length, offset, **kwargs)
         return x
 
@@ -921,20 +940,12 @@ class Bits:
         if auto is not None:
             self._setauto(auto, length, offset)
             return
-        if not kwargs:
-            # No initialisers, so initialise with nothing or zero bits
-            if length is not None and length != 0:
-                self._bitstore = BitStore(length)
-                self._bitstore.setall(0)
-                return
-            self._bitstore = BitStore(0)
-            return
         k, v = kwargs.popitem()
-
         try:
-            self._setfunc[k](self, v, length, offset)
+            setting_function = self._setfunc[k]
         except KeyError:
             raise CreationError(f"Unrecognised keyword '{k}' used to initialise.")
+        setting_function(self, v, length, offset)
 
     def __getattr__(self, attribute: str):
         if attribute == '_pos':
@@ -1333,7 +1344,7 @@ class Bits:
         """Reset the bitstring to an empty state."""
         self._bitstore = BitStore()
 
-    def _setauto(self, s: Any, length: Optional[int], offset: Optional[int]) -> None:
+    def _setauto(self, s: BitsType, length: Optional[int], offset: Optional[int]) -> None:
         """Set bitstring from a bitstring, file, bool, integer, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
@@ -1378,14 +1389,13 @@ class Bits:
         if offset > 0:
             raise CreationError("The offset keyword isn't applicable to this initialiser.")
         if isinstance(s, str):
-            self._bitstore = _str_to_bitstore(s)
+            self._bitstore = _str_to_bitstore(s).copy()
             return
         if isinstance(s, (bytes, bytearray)):
-            self._setbytes_unsafe(bytearray(s), len(s) * 8, 0)
+            self._bitstore = BitStore(frombytes=bytearray(s))
             return
         if isinstance(s, array.array):
-            b = s.tobytes()
-            self._setbytes_unsafe(bytearray(b), len(b) * 8, 0)
+            self._bitstore = BitStore(frombytes=bytearray(s.tobytes()))
             return
         if isinstance(s, int):
             # Initialise with s zero bits.
@@ -1420,9 +1430,12 @@ class Bits:
                 raise CreationError(f"Offset of {offset} and length of {length} too large for bitarray of length {len(ba)}.")
             self._bitstore = BitStore(ba[offset: offset + length])
 
-    def _setbytes_safe(self, data: Union[bytearray, bytes],
+    def _setbytes(self, data: Union[bytearray, bytes],
                        length: Optional[int] = None, offset: Optional[int] = None) -> None:
-        """Set the data from a string."""
+        """Set the data from a bytes or bytearray object."""
+        if offset is None and length is None:
+            self._bitstore = BitStore(frombytes=bytearray(data))
+            return
         data = bytearray(data)
         if offset is None:
             offset = 0
@@ -1432,10 +1445,6 @@ class Bits:
         else:
             if length + offset > len(data) * 8:
                 raise CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
-        self._bitstore = BitStore(buffer=data).getslice_msb0(slice(offset, offset + length, None))
-
-    def _setbytes_unsafe(self, data: bytearray, length: int, offset: int):
-        """Unchecked version of _setbytes_safe."""
         self._bitstore = BitStore(buffer=data).getslice_msb0(slice(offset, offset + length, None))
 
     def _readbytes(self, start: int, length: int) -> bytes:
@@ -1923,9 +1932,6 @@ class Bits:
 
     def _slice(self, start: int, end: int) -> Bits:
         """Used internally to get a slice, without error checking."""
-        if end == start:
-            return self.__class__()
-        assert start < end, f"start={start}, end={end}"
         bs = self.__class__()
         bs._bitstore = self._bitstore.getslice(slice(start, end, None))
         return bs
@@ -2472,8 +2478,10 @@ class Bits:
         Up to seven zero bits will be added at the end to byte align.
 
         """
-        # TODO: If the bitstring is file based then we don't want to read it all in to memory first.
-        f.write(self.tobytes())
+        # If the bitstring is file based then we don't want to read it all in to memory first.
+        chunk_size = 8 * 100 * 1024 * 1024  # 100 MiB
+        for chunk in self.cut(chunk_size):
+            f.write(chunk.tobytes())
 
     def startswith(self, prefix: BitsType, start: Optional[int] = None, end: Optional[int] = None) -> bool:
         """Return whether the current bitstring starts with prefix.
@@ -2911,7 +2919,7 @@ class Bits:
                 'uintne': _setuintne,
                 'intne': _setintne,
                 'floatne': _setfloatne,
-                'bytes': _setbytes_safe,
+                'bytes': _setbytes,
                 'filename': _setfile,
                 'bitarray': _setbitarray}
 
@@ -3657,7 +3665,7 @@ class BitArray(Bits):
     bool = property(Bits._getbool, Bits._setbool,
                     doc="""The bitstring as a bool (True or False). Read and write.
                     """)
-    bytes = property(Bits._getbytes, Bits._setbytes_safe,
+    bytes = property(Bits._getbytes, Bits._setbytes,
                      doc="""The bitstring as a ordinary string. Read and write.
                       """)
     # Aliases for some properties
