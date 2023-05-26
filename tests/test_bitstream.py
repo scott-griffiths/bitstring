@@ -2413,7 +2413,6 @@ class Split2(unittest.TestCase):
                 # TODO: u == s2 is much slower than u.bytes == s2.bytes
                 self.assertEqual(u.bytes, s2.bytes)
 
-
     def testFileBasedCopy(self):
         with open(os.path.join(THIS_DIR, 'smalltestfile'), 'rb') as f:
             s = BitStream(f)
@@ -2834,7 +2833,7 @@ class Split2(unittest.TestCase):
         c = BitStream(a)
         self.assertEqual(a, c)
         a = ConstBitStream('0b1')
-        a._addright(a)
+        a += a
         self.assertEqual(a, '0b11')
         self.assertEqual(type(a), ConstBitStream)
         a._addleft(a)

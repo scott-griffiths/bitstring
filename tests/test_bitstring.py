@@ -62,7 +62,6 @@ class Copy(unittest.TestCase):
 
 
 class Interning(unittest.TestCase):
-    @unittest.expectedFailure
     def testBits(self):
         a = bitstring.Bits('0xf')
         b = bitstring.Bits('0xf')
@@ -70,7 +69,6 @@ class Interning(unittest.TestCase):
         c = bitstring.Bits('0b1111')
         self.assertFalse(a is c)
 
-    @unittest.expectedFailure
     def testCBS(self):
         a = bitstring.ConstBitStream('0b11000')
         b = bitstring.ConstBitStream('0b11000')
