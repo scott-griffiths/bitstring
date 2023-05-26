@@ -428,8 +428,6 @@ class Replace(unittest.TestCase):
 
 class SliceAssignment(unittest.TestCase):
 
-    @unittest.expectedFailure
-    # TODO: Move this to another class
     def testSetSlice(self):
         a = BitStream()
         a[0:0] = '0xabcdef'
@@ -475,7 +473,6 @@ class SliceAssignment(unittest.TestCase):
         a[8:0] = '0x00000'
         self.assertTrue(a.startswith('0xff00000adead'))
 
-    @unittest.expectedFailure
     def testSliceAssignmentBitPos(self):
         a = BitStream('int:64=-1')
         a.pos = 64
@@ -2410,8 +2407,7 @@ class Split2(unittest.TestCase):
             self.assertTrue(t2.endswith('0xc'))
             with open(filename, 'rb') as b:
                 u = BitStream(bytes=b.read())
-                # TODO: u == s2 is much slower than u.bytes == s2.bytes
-                self.assertEqual(u.bytes, s2.bytes)
+                self.assertTrue(u == s2)
 
     def testFileBasedCopy(self):
         with open(os.path.join(THIS_DIR, 'smalltestfile'), 'rb') as f:

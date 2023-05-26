@@ -16,6 +16,21 @@ You can try out the interactive walkthrough notebook on [binder](https://mybinde
 [![Downloads](https://img.shields.io/pypi/dm/bitstring?color=blue)](https://pypistats.org/packages/bitstring) &nbsp; &nbsp; 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
 
+# \<<< 4.1 beta now available - the _speed_ update \>>>
+
+This version concentrats on what is perhaps bitstring's major weakness - speed.
+It's always been a pure Python module with no dependencies, which has a few advantages, but means it can't compete with C-coded extensions in terms of raw speed of operation.
+
+Version 4.1 of bitstring has been rewritten to use the `bitarray` type from the package of the same name as its underlying data type.
+This lets us keep the API and functionality of bitstring but gains (most of) the speed of bitarray.
+
+The 4.1 beta should be fully functional - there are no known issues.
+To install the beta you need to specify the precise version:
+
+    python -m pip install bitstring==4.1.0b1
+
+Please try it out and report any problems or observations.
+You shouldn't need to change any code - everything should just work the same as version 4.0, just faster.
 
 Overview
 --------
@@ -29,7 +44,7 @@ Overview
 
 
 > **Note** \
-> Version 4.0 of bitstring only supports Python 3.7 and later. \
+> Version 4 of bitstring only supports Python 3.7 and later. \
 > Use bitstring version 3.1 if you're using Python 2.7 or 3.6 or earlier.
 
 

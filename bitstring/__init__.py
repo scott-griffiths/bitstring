@@ -187,11 +187,10 @@ class BitStore(bitarray.bitarray):
             self.length = super().__len__() - self.offset if length is None else length
 
             if self.length < 0:
-                self.length = 0
-                raise CreationError  # TODO: Error message
+                raise CreationError("Can't create bitstring with a negative length.")
             if self.length + self.offset > super().__len__():
                 self.length = super().__len__() - self.offset
-                raise CreationError  # TODO: Error message
+                raise CreationError(f"Can't create bitstring with a length of {self.length} and an offset of {self.offset} from {super().__len__()} bits of data.")
 
     @classmethod
     def _setlsb0methods(cls, lsb0: bool = False):
@@ -201,11 +200,8 @@ class BitStore(bitarray.bitarray):
             cls.getindex = cls.getindex_lsb0
             cls.getslice = cls.getslice_lsb0
         else:
-            # TODO: Revert to the faster case below
             cls.__setitem__ = super().__setitem__
             cls.__delitem__ = super().__delitem__
-            # cls.__setitem__ = cls.setitem_msb0
-            # cls.__delitem__ = cls.delitem_msb0
             cls.getindex = cls.getindex_msb0
             cls.getslice = cls.getslice_msb0
 
@@ -482,7 +478,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
         # we can't allow keyword values as multipliers (e.g. n*uint:8).
         # The only way to do this would be to return the factor in some fashion
         # (we can't use the key's value here as it would mean that we couldn't
-        # sensibly continue to cache the function's results. (TODO).
+        # sensibly continue to cache the function's results.
         return_values.extend(tuple(ret_vals * factor))
     return_values = [tuple(x) for x in return_values]
     return stretchy_token, return_values
@@ -1934,7 +1930,7 @@ class Bits:
 
     def _copy(self) -> Bits:
         """Create and return a new copy of the Bits (always in memory)."""
-        # TODO: This should just return self, and sub class should do real copy.
+        # Note that __copy__ may choose to return self if it's immutable. This method always makes a copy.
         s_copy = self.__class__()
         s_copy._bitstore = self._bitstore.copy()
         return s_copy
@@ -2420,7 +2416,7 @@ class Bits:
 
         """
         delimiter = Bits(delimiter)
-        if not delimiter.len:
+        if len(delimiter) == 0:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
         bytealigned_: bool = _bytealigned if bytealigned is None else bytealigned
@@ -2428,7 +2424,6 @@ class Bits:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
             return
-        # TODO: No need for functools any more here
         f = functools.partial(self._find_msb0, bs=delimiter, bytealigned=bytealigned_)
         found = f(start=start, end=end)
         if not found:
@@ -3094,7 +3089,6 @@ class BitArray(Bits):
                 length = int(m1_short.group('len'))
                 name = m1_short.group('name')
                 f = letter_to_setter[name]
-                a_copy = self._copy()
                 try:
                     f(value, length)
                 except AttributeError:
@@ -3102,8 +3096,6 @@ class BitArray(Bits):
 
                 if self.len != length:
                     new_len = self.len
-                    # Reset to previous value
-                    self = a_copy._copy()
                     raise CreationError(f"Can't initialise with value of length {new_len} bits, "
                                         f"as attribute has length of {length} bits.")
                 return
@@ -3120,16 +3112,7 @@ class BitArray(Bits):
                             raise CreationError(f"Wrong amount of byte data preset - {length} bytes needed, have {len(value)} bytes.")
                         length *= 8
                 try:
-                    a_copy = self._copy()
                     self._initialise(auto=None, length=length, offset=None, **{name: value})
-                    if length is not None and self.len != length:
-                        new_len = self.len
-                        # Reset to previous value
-                        assert False  # TODO: This is never being hit??
-                        self._setbytes_unsafe(a_copy._datastore.getbyteslice(0, a_copy._datastore.bytelength),
-                                              a_copy.len, a_copy._offset)
-                        raise CreationError(f"Can't initialise with value of length {new_len} bits, "
-                                            f"as attribute has length of {length} bits.")
                     return
                 except AttributeError:
                     pass
@@ -3379,7 +3362,7 @@ class BitArray(Bits):
         if not bs.len:
             return
         if bs is self:
-            bs = self.__copy__()
+            bs = self._copy()
         if pos is None:
             pos = self._pos
             if pos is None:

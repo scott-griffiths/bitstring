@@ -739,6 +739,8 @@ class NewProperties(unittest.TestCase):
             a.i8 = 128
         with self.assertRaises(ValueError):
             a.i8 = -129
+        with self.assertRaises(bitstring.CreationError):
+            a.froggy16 = '0xabc'
 
     def testUnpack(self):
         a = BitArray('0xff160120')
