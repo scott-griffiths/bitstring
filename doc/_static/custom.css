@@ -8,6 +8,11 @@
 
 div#top_nav nav {
     background-image: linear-gradient(#348ad1, #046ab1);
+    padding: 0.2rem 1rem;
+}
+
+div#top_nav nav h1 img{
+    height: 3rem;
 }
 
 .highlight {

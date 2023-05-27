@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bitstring"
-version = "4.0.2"
+version = "4.1.0b1"
 authors = [
   { name="Scott Griffiths", email="dr.scottgriffiths@gmail.com" },
 ]
@@ -20,6 +20,9 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 keywords = ["binary", "bitarray", "bitvector"]
+dependencies = [
+  "bitarray == 2.7.3",
+]
 
 [project.urls]
 homepage = "https://github.com/scott-griffiths/bitstring"

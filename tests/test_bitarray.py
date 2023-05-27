@@ -5,6 +5,8 @@ Unit tests for the bitarray module.
 
 import unittest
 import sys
+import os
+import bitarray
 
 sys.path.insert(0, '..')
 import bitstring
@@ -137,6 +139,8 @@ class Bugs(unittest.TestCase):
     def testPrependAfterCreationFromDataWithOffset(self):
         s1 = BitArray(bytes=b'\x00\x00\x07\xff\xf0\x00', offset=21, length=15)
         self.assertFalse(s1.any(0))
+        b = s1.tobytes()
+        self.assertEqual(b, b'\xff\xfe')
         s1.prepend('0b0')
         self.assertEqual(s1.bin, '0111111111111111')
         s1.prepend('0b0')
@@ -289,6 +293,17 @@ class SliceAssignment(unittest.TestCase):
         self.assertEqual(a.bin, '1011101011')
         a[::-1] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
         self.assertEqual(a.bin, '1000000000')
+
+    def testSetSliceStepWithInt(self):
+        a = BitArray(9)
+        a[5:8] = -1
+        self.assertEqual(a.bin, '000001110')
+        a[:] = 10
+        self.assertEqual(a.bin, '000001010')
+        a[::-1] = 10
+        self.assertEqual(a.bin, '010100000')
+        with self.assertRaises(ValueError):
+            a[::2] = True
 
     def testSetSliceErrors(self):
         a = BitArray(8)
@@ -490,41 +505,50 @@ class Lsb0Setting(unittest.TestCase):
         p = a.rfind('0b000')
         self.assertEqual(p, (3,))
 
-    # def testFindall(self):
-    #     a = BitArray('0b001000100001')
-    #     b = list(a.findall('0b1'))
-    #     self.assertEqual(b, [0, 5, 9])
-    #     c = list(a.findall('0b0001'))
-    #     self.assertEqual(c, [0, 5])
-    #     d = list(a.findall('0b10'))
-    #     self.assertEqual(d, [4, 8])
-    #     e = list(a.findall('0x198273641234'))
-    #     self.assertEqual(e, [])
+    def testRfindWithStartAndEnd(self):
+        a = BitArray('0b11 0000 11 00')
+        p = a.rfind('0b11', start=8)
+        self.assertEqual(p[0], 8)
+        p = a.rfind('0b110', start=8)
+        self.assertEqual(p, ())
+        p = a.rfind('0b11', end=-1)
+        self.assertEqual(p[0], 2)
 
-    # def testFindAllWithStartAndEnd(self):
-    #     a = BitArray('0xaabbccaabbccccbb')
-    #     b = list(a.findall('0xbb', start=0, end=8))
-    #     self.assertEqual(b, [0])
-    #     b = list(a.findall('0xbb', start=1, end=8))
-    #     self.assertEqual(b, [])
-    #     b = list(a.findall('0xbb', start=0, end=7))
-    #     self.assertEqual(b, [])
-    #     b = list(a.findall('0xbb', start=48))
-    #     self.assertEqual(b, [48])
-    #     b = list(a.findall('0xbb', start=47))
-    #     self.assertEqual(b, [48])
-    #     b = list(a.findall('0xbb', start=49))
-    #     self.assertEqual(b, [])
+    def testFindall(self):
+        a = BitArray('0b001000100001')
+        b = list(a.findall('0b1'))
+        self.assertEqual(b, [0, 5, 9])
+        c = list(a.findall('0b0001'))
+        self.assertEqual(c, [0, 5])
+        d = list(a.findall('0b10'))
+        self.assertEqual(d, [4, 8])
+        e = list(a.findall('0x198273641234'))
+        self.assertEqual(e, [])
 
-    # def testFindAllByteAligned(self):
-    #     a = BitArray('0x0550550')
-    #     b = list(a.findall('0x55', bytealigned=True))
-    #     self.assertEqual(b, [16])
+    def testFindAllWithStartAndEnd(self):
+        a = BitArray('0xaabbccaabbccccbb')
+        b = list(a.findall('0xbb', start=0, end=8))
+        self.assertEqual(b, [0])
+        b = list(a.findall('0xbb', start=1, end=8))
+        self.assertEqual(b, [])
+        b = list(a.findall('0xbb', start=0, end=7))
+        self.assertEqual(b, [])
+        b = list(a.findall('0xbb', start=48))
+        self.assertEqual(b, [48])
+        b = list(a.findall('0xbb', start=47))
+        self.assertEqual(b, [48])
+        b = list(a.findall('0xbb', start=49))
+        self.assertEqual(b, [])
 
-    # def testFindAllWithCount(self):
-    #     a = BitArray('0b0001111101')
-    #     b = list(a.findall([1], start=1, count=1))
-    #     self.assertEqual(b, [2])
+    def testFindAllByteAligned(self):
+        a = BitArray('0x0550550')
+        b = list(a.findall('0x55', bytealigned=True))
+        self.assertEqual(b, [16])
+
+    def testFindAllWithCount(self):
+        a = BitArray('0b0001111101')
+        b = list(a.findall([1], start=1, count=1))
+        self.assertEqual(b, [2])
 
     def testSplit(self):
         a = BitArray('0x4700004711472222')
@@ -532,10 +556,10 @@ class Lsb0Setting(unittest.TestCase):
         self.assertEqual(li, ['', '0x472222', '0x4711', '0x470000'])
 
     def testByteSwap(self):
-        a = BitArray('0xff00ff00ff00')
+        a = BitArray('0xaa00ff00ff00')
         n = a.byteswap(2, end=32, repeat=True)
         self.assertEqual(n, 2)
-        self.assertEqual(a, '0xff0000ff00ff')
+        self.assertEqual(a, '0xaa0000ff00ff')
 
     def testInsert(self):
         a = BitArray('0x0123456')
@@ -547,14 +571,14 @@ class Lsb0Setting(unittest.TestCase):
         a.overwrite('0xdead', 4)
         self.assertEqual(a, '0x000dead0')
 
-    # def testReplace(self):
-    #     a = BitArray('0x0001100')
-    #     n = a.replace('0x1', '0xabc')
-    #     self.assertEqual(n, 2)
-    #     self.assertEqual(a, '0x000abcabc00')
-    #     n = a.replace([1], [0], end=12)
-    #     self.assertEqual(n, 2)
-    #     self.assertEqual(a, '0x000abcab000')
+    def testReplace(self):
+        a = BitArray('0x5551100')
+        n = a.replace('0x1', '0xabc')
+        self.assertEqual(n, 2)
+        self.assertEqual(a, '0x555abcabc00')
+        n = a.replace([1], [0], end=12)
+        self.assertEqual(n, 2)
+        self.assertEqual(a, '0x555abcab000')
 
     def testReverse(self):
         pass
@@ -715,6 +739,8 @@ class NewProperties(unittest.TestCase):
             a.i8 = 128
         with self.assertRaises(ValueError):
             a.i8 = -129
+        with self.assertRaises(bitstring.CreationError):
+            a.froggy16 = '0xabc'
 
     def testUnpack(self):
         a = BitArray('0xff160120')
@@ -833,3 +859,66 @@ class BFloats(unittest.TestCase):
         self.assertEqual(s, ninf16)
         s.bfloat = -1e60
         self.assertEqual(s, ninfbfloat)
+
+    def testBigEndianStringInitialisers(self):
+        a = BitArray('bfloatbe=4.5')
+        b = BitArray('bfloatbe:16=-2.25')
+        self.assertEqual(a.bfloatbe, 4.5)
+        self.assertEqual(b.bfloatbe, -2.25)
+
+    def testLilleEndianStringInitialisers(self):
+        a = BitArray('bfloatle=4.5')
+        b = BitArray('bfloatle:16=-2.25')
+        self.assertEqual(a.bfloatle, 4.5)
+        self.assertEqual(b.bfloatle, -2.25)
+
+    def testNativeEndianStringInitialisers(self):
+        a = BitArray('bfloatne=4.5')
+        b = BitArray('bfloatne:16=-2.25')
+        self.assertEqual(a.bfloatne, 4.5)
+        self.assertEqual(b.bfloatne, -2.25)
+
+
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+class BitarrayTests(unittest.TestCase):
+
+    def tearDown(self) -> None:
+        bitstring.lsb0 = False
+
+    def testToBitarray(self):
+        a = BitArray('0xff, 0b0')
+        b = a.tobitarray()
+        self.assertEqual(type(b), bitarray.bitarray)
+        self.assertEqual(b, bitarray.bitarray('111111110'))
+
+    def testToBitarrayLSB0(self):
+        bitstring.lsb0 = True
+        a = bitstring.Bits('0xff, 0b0')
+        b = a.tobitarray()
+        self.assertEqual(type(b), bitarray.bitarray)
+        self.assertEqual(b, bitarray.bitarray('111111110'))
+
+    def testFromFile(self):
+        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+        b = a.tobitarray()
+        self.assertEqual(a.bin, b.to01())
+
+    def testWithOffset(self):
+        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+        b = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), offset=11)
+        self.assertEqual(len(a), len(b) + 11)
+        self.assertEqual(a[11:].tobitarray(), b.tobitarray())
+
+    def testWithLength(self):
+        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+        b = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), length=11)
+        self.assertEqual(len(b), 11)
+        self.assertEqual(a[:11].tobitarray(), b.tobitarray())
+
+    def testWithOffsetAndLength(self):
+        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+        b = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), offset=17, length=7)
+        self.assertEqual(len(b), 7)
+        self.assertEqual(a[17:24].tobitarray(), b.tobitarray())

@@ -3,13 +3,14 @@ import io
 import unittest
 import sys
 
+import bitarray
+
 sys.path.insert(0, '..')
 import bitstring
 import array
 import os
 from bitstring import InterpretError
-from bitstring import MmapByteArray
-from bitstring import Bits, BitArray, ByteStore
+from bitstring import Bits, BitArray
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -93,6 +94,7 @@ class Creation(unittest.TestCase):
 
     def testCreationFromInt(self):
         s = Bits(int=0, length=4)
+        temp = s.hex
         self.assertEqual(s.bin, '0000')
         s = Bits(int=1, length=2)
         self.assertEqual(s.bin, '01')
@@ -172,9 +174,34 @@ class Creation(unittest.TestCase):
         with self.assertRaises(bitstring.CreationError):
             Bits(squirrel=5)
 
-    def testDataStoreType(self):
-        a = Bits('0xf')
-        self.assertEqual(type(a._datastore), bitstring.ByteStore)
+    def testCreationFromBitarray(self):
+        ba = bitarray.bitarray('0010')
+        bs = Bits(ba)
+        self.assertEqual(bs.bin, '0010')
+        bs = Bits(ba, length=2)
+        self.assertEqual(bs.bin, '00')
+        bs2 = Bits(bitarray=ba)
+        self.assertEqual(bs2.bin, '0010')
+
+    def testCreationFromFrozenBitarray(self):
+        fba = bitarray.frozenbitarray('111100001')
+        ba = Bits(fba)
+        self.assertEqual(ba.bin, '111100001')
+        bs2 = Bits(bitarray=fba)
+        self.assertEqual(bs2.bin, '111100001')
+        bs3 = Bits(bitarray=fba, offset=4)
+        self.assertEqual(bs3.bin, '00001')
+        bs3 = Bits(bitarray=fba, offset=4, length=4)
+        self.assertEqual(bs3.bin, '0000')
+
+    def testCreationFromBitarrayErrors(self):
+        ba = bitarray.bitarray('0101')
+        with self.assertRaises(bitstring.CreationError):
+            _ = Bits(bitarray=ba, length=5)
+        with self.assertRaises(bitstring.CreationError):
+            _ = Bits(bitarray=ba, offset=5)
+        with self.assertRaises(bitstring.CreationError):
+            _ = Bits(ba, length=-1)
 
 
 class Initialisation(unittest.TestCase):
@@ -261,9 +288,9 @@ class FileBased(unittest.TestCase):
         self.d = Bits(filename=filename, offset=20, length=4)
 
     def testCreationWithOffset(self):
-        self.assertEqual(self.a, '0x0123456789abcdef')
-        self.assertEqual(self.b, '0x456789abcdef')
-        self.assertEqual(self.c, '0x5678')
+        self.assertEqual(str(self.a), '0x0123456789abcdef')
+        self.assertEqual(str(self.b), '0x456789abcdef')
+        self.assertEqual(str(self.c), '0x5678')
 
     def testBitOperators(self):
         x = self.b[4:20]
@@ -281,41 +308,6 @@ class FileBased(unittest.TestCase):
         x = BitArray(x)
         del x[12:24]
         self.assertEqual(x, '0x456abcdef587')
-        
-
-class Mmap(unittest.TestCase):
-    def setUp(self):
-        self.f = open(os.path.join(THIS_DIR, 'smalltestfile'), 'rb')
-
-    def tearDown(self):
-        self.f.close()
-
-    def testByteArrayEquivalence(self):
-        a = MmapByteArray(self.f)
-        self.assertEqual(a.bytelength, 8)
-        self.assertEqual(len(a), 8)
-        self.assertEqual(a[0], 0x01)
-        self.assertEqual(a[1], 0x23)
-        self.assertEqual(a[7], 0xef)
-        self.assertEqual(a[0:1], bytearray([1]))
-        self.assertEqual(a[:], bytearray([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]))
-        self.assertEqual(a[2:4], bytearray([0x45, 0x67]))
-
-    def testWithLength(self):
-        a = MmapByteArray(self.f, 3)
-        self.assertEqual(a[0], 0x01)
-        self.assertEqual(len(a), 3)
-
-    def testWithOffset(self):
-        a = MmapByteArray(self.f, None, 5)
-        self.assertEqual(len(a), 3)
-        self.assertEqual(a[0], 0xab)
-
-    def testWithLengthAndOffset(self):
-        a = MmapByteArray(self.f, 3, 3)
-        self.assertEqual(len(a), 3)
-        self.assertEqual(a[0], 0x67)
-        self.assertEqual(a[:], bytearray([0x67, 0x89, 0xab]))
 
 
 class Comparisons(unittest.TestCase):
@@ -352,35 +344,6 @@ class LongBoolConversion(unittest.TestCase):
         a = Bits(1000)
         b = bool(a)
         self.assertTrue(b is False)
-
-
-# Some basic tests for the private ByteStore classes
-
-class ByteStoreCreation(unittest.TestCase):
-
-    def testProperties(self):
-        a = ByteStore(bytearray(b'abc'))
-        self.assertEqual(a.bytelength, 3)
-        self.assertEqual(a.offset, 0)
-        self.assertEqual(a.bitlength, 24)
-        self.assertEqual(a.rawarray, b'abc')
-
-    def testGetBit(self):
-        a = ByteStore(bytearray([0x0f]))
-        self.assertEqual(a.getbit(0), False)
-        self.assertEqual(a.getbit(3), False)
-        self.assertEqual(a.getbit(4), True)
-        self.assertEqual(a.getbit(7), True)
-
-        b = ByteStore(bytearray([0x0f]), 7, 1)
-        self.assertEqual(b.getbit(2), False)
-        self.assertEqual(b.getbit(3), True)
-
-    def testGetByte(self):
-        a = ByteStore(bytearray(b'abcde'), 1, 13)
-        self.assertEqual(a.getbyte(0), 97)
-        self.assertEqual(a.getbyte(1), 98)
-        self.assertEqual(a.getbyte(4), 101)
 
 
 class PadToken(unittest.TestCase):
@@ -505,13 +468,13 @@ class ContainsBug(unittest.TestCase):
 
 class ByteStoreImmutablity(unittest.TestCase):
     
-    def testBitsDataStoreType(self):
-        a = Bits('0b1')
-        b = Bits('0b111')
-        c = a + b
-        self.assertEqual(type(a._datastore), ByteStore)
-        self.assertEqual(type(b._datastore), ByteStore)
-        self.assertEqual(type(c._datastore), ByteStore)
+    # def testBitsDataStoreType(self):
+    #     a = Bits('0b1')
+    #     b = Bits('0b111')
+    #     c = a + b
+    #     self.assertEqual(type(a._datastore), ByteStore)
+    #     self.assertEqual(type(b._datastore), ByteStore)
+    #     self.assertEqual(type(c._datastore), ByteStore)
 
     def testImmutabilityBugAppend(self):
         a = Bits('0b111')
@@ -521,7 +484,7 @@ class ByteStoreImmutablity(unittest.TestCase):
         self.assertEqual(c.bin, '101000')
         self.assertEqual(a.b3, '111')
         self.assertEqual(b.bin, '111000')
-        self.assertEqual(type(b._datastore), ByteStore)
+        # self.assertEqual(type(b._datastore), ByteStore)
 
     def testImmutabilityBugPrepend(self):
         a = Bits('0b111')
@@ -533,7 +496,7 @@ class ByteStoreImmutablity(unittest.TestCase):
 
     def testImmutabilityBugCreation(self):
         a = Bits()
-        self.assertEqual(type(a._datastore), ByteStore)
+        # self.assertEqual(type(a._datastore), ByteStore)
 
 
 class Lsb0Indexing(unittest.TestCase):
@@ -826,4 +789,36 @@ class Copy(unittest.TestCase):
     def testCopyMethod(self):
         s = Bits('0xc00dee')
         t = s.copy()
+        self.assertEqual(s, t)
+
+
+class NativeEndianIntegers(unittest.TestCase):
+
+    def testUintne(self):
+        s = Bits(uintne=454, length=160)
+        t = Bits('uintne160=454')
+        self.assertEqual(s, t)
+
+    def testIntne(self):
+        s = Bits(intne=-1000, length=64)
+        t = Bits('intne:64=-1000')
+        self.assertEqual(s, t)
+
+
+class NonNativeEndianIntegers(unittest.TestCase):
+
+    def setUp(self) -> None:
+        bitstring.byteorder = 'little' if bitstring.byteorder == 'big' else 'little'
+
+    def tearDown(self) -> None:
+        self.setUp()
+
+    def testUintne(self):
+        s = Bits(uintne=454, length=160)
+        t = Bits('uintne160=454')
+        self.assertEqual(s, t)
+
+    def testIntne(self):
+        s = Bits(intne=-1000, length=64)
+        t = Bits('intne:64=-1000')
         self.assertEqual(s, t)

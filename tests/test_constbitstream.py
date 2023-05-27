@@ -163,11 +163,25 @@ class Lsb0Reading(unittest.TestCase):
 
     def testReadingHex(self):
         s = CBS('0xabcdef')
-        self.assertEqual(s.read(4), '0xf')
+        self.assertEqual(s.read('hex:4'), 'f')
         self.assertEqual(s.read(4), '0xe')
         self.assertEqual(s.pos, 8)
 
-    # TODO: Add more tests
+    def testReadingOct(self):
+        s = CBS('0o123456')
+        self.assertEqual(s.read('o6'), '56')
+        self.assertEqual(s.pos, 6)
+
+    def testReadingBin(self):
+        s = CBS('0b00011')
+        self.assertEqual(s.read('bin:3'), '011')
+        self.assertEqual(s.pos, 3)
+
+    def testReadingBytes(self):
+        s = CBS(bytes=b'54321')
+        self.assertEqual(s.pos, 0)
+        s.pos = 8
+        self.assertEqual(s.read('bytes:2'), b'32')
 
 
 class BytesIOCreation(unittest.TestCase):
