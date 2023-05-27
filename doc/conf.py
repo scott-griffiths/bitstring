@@ -7,7 +7,7 @@ year = datetime.datetime.now().year
 project = 'bitstring'
 copyright = f'2006 - {year}, Scott Griffiths'
 author = 'Scott Griffiths'
-release = '4.0'
+release = '4.1'
 
 extensions = []
 
@@ -32,3 +32,5 @@ html_theme_options = {
     "globaltoc_maxdepth": 2,
     "source_url": 'https://github.com/scott-griffiths/bitstring/',
 }
+
+html_logo = './bitstring_logo_small_white.png'
