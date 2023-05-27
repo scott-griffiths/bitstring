@@ -6,8 +6,6 @@
 the creation and analysis of binary data as simple and natural as possible.
 
 It has been maintained since 2006 and now has many millions of downloads per year.
-
-
 You can try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb), or take a look at the [static version](https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb).
 
 
@@ -18,7 +16,7 @@ You can try out the interactive walkthrough notebook on [binder](https://mybinde
 
 # \<<< 4.1 beta now available - the _speed_ update \>>>
 
-This version concentrats on what is perhaps bitstring's major weakness - speed.
+This version concentrates on what is perhaps bitstring's major weakness - speed.
 It's always been a pure Python module with no dependencies, which has a few advantages, but means it can't compete with C-coded extensions in terms of raw speed of operation.
 
 Version 4.1 of bitstring has been rewritten to use the `bitarray` type from the package of the same name as its underlying data type.

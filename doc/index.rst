@@ -7,8 +7,7 @@
 
 `bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
 
-It has been maintained since 2006 and now has about `20 million downloads per year. <https://pypistats.org/packages/bitstring>`_
-
+It has been maintained since 2006 and now has many millions of downloads per year.
 You can try out an interactive walkthrough notebook on `binder <https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb>`_ (or the non-interactive version `here <https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb>`_).
 
 .. image:: https://mybinder.org/badge_logo.svg

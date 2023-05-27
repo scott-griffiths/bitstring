@@ -26,8 +26,8 @@ html_css_files = ["custom.css"]
 html_theme = 'piccolo_theme'
 
 html_theme_options = {
-    "banner_text": "New major version released. Requires Python 3.7 or later - see release notes for full details.",
-    "banner_hiding": "permanent",
+    # "banner_text": "New major version released. Requires Python 3.7 or later - see release notes for full details.",
+    # "banner_hiding": "permanent",
     "show_theme_credit": False,
     "globaltoc_maxdepth": 2,
     "source_url": 'https://github.com/scott-griffiths/bitstring/',

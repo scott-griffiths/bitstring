@@ -29,6 +29,7 @@ Methods
 * :meth:`~Bits.rfind` -- Seek backwards to find a sub-bitstring.
 * :meth:`~Bits.split` -- Create generator of chunks split by a delimiter.
 * :meth:`~Bits.startswith` -- Return whether the bitstring starts with a sub-bitstring.
+* :meth:`~Bits.tobitarray` -- Return bitstring as a `bitarray` object from the `bitarray` package.
 * :meth:`~Bits.tobytes` -- Return bitstring as bytes, padding if needed.
 * :meth:`~Bits.tofile` -- Write bitstring to file, padding if needed.
 * :meth:`~Bits.unpack` -- Interpret bits using format string.

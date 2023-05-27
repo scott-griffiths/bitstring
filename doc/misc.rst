@@ -80,7 +80,7 @@ A few of the special methods have already been covered, for example :meth:`~Bits
 ``__len__``
 ^^^^^^^^^^^^^^^
 
-This implements the :func:`len` function and returns the length of the bitstring in bits.
+This implements the ``len`` function and returns the length of the bitstring in bits.
 
 It's recommended that you use the :attr:`~Bits.len` property instead of the function if you're using a 32-bit Python installation as the len function will raise an :exc:`OverflowError` if the bitstring has more than ``sys.maxsize`` elements (that's typically 256MiB of data with 32-bit Python).
 
@@ -155,7 +155,7 @@ Multiplication of a bitstring by an integer means the same as it does for ordina
 ``__copy__``
 ^^^^^^^^^^^^
 
-This allows the bitstring to be copied via the :mod:`copy` module. ::
+This allows the bitstring to be copied via the ``copy`` module. ::
 
  >>> import copy
  >>> a = Bits('0x4223fbddec2231')

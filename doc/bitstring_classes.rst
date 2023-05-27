@@ -51,7 +51,7 @@ The ``auto`` parameter also accepts other types:
 Compact format strings
 ^^^^^^^^^^^^^^^^^^^^^^
 
-For the :meth:`~ConstBitStream.read`, :meth:`~Bits.unpack`, :meth:`~ConstBitStream.peek` methods and :func:`pack` function you can use compact format strings similar to those used in the :mod:`struct` and :mod:`array` modules. These start with an endian identifier: ``>`` for big-endian, ``<`` for little-endian or ``@`` for native-endian. This must be followed by at least one of these codes:
+For the :meth:`~ConstBitStream.read`, :meth:`~Bits.unpack`, :meth:`~ConstBitStream.peek` methods and :func:`pack` function you can use compact format strings similar to those used in the ``struct`` and ``array`` modules. These start with an endian identifier: ``>`` for big-endian, ``<`` for little-endian or ``@`` for native-endian. This must be followed by at least one of these codes:
 
 +------+------------------------------------+
 |Code  |      Interpretation                |
