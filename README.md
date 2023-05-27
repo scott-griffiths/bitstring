@@ -18,11 +18,12 @@ You can try out the interactive walkthrough notebook on [binder](https://mybinde
 
 # \<<< 4.1 beta now available - the _speed_ update \>>>
 
-This version concentrats on what is perhaps bitstring's major weakness - speed.
+This version concentrates on what is perhaps bitstring's major weakness - speed.
 It's always been a pure Python module with no dependencies, which has a few advantages, but means it can't compete with C-coded extensions in terms of raw speed of operation.
 
-Version 4.1 of bitstring has been rewritten to use the `bitarray` type from the package of the same name as its underlying data type.
+Version 4.1 of bitstring has been rewritten to use the [`bitarray`](https://pypi.org/project/bitarray/) type from the package of the same name as its underlying data type.
 This lets us keep the API and functionality of bitstring but gains (most of) the speed of bitarray.
+Huge kudos to Ilan Schnell for all his work on bitarray over the last 15 or so years.
 
 The 4.1 beta should be fully functional - there are no known issues.
 To install the beta you need to specify the precise version:
