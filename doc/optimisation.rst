@@ -16,7 +16,7 @@ When parsing a bitstring one way to write code is in the following style::
     height = s.read(12).uint
     flags = s.read(4).bin
  
-This works fine, but is not very quick. The problem is that the call to :meth:`~Bits.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
+This works fine, but is not very quick. The problem is that the call to :meth:`~ConstBitStream.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
 
     width = s.read('uint12')
     height = s.read('uint12')

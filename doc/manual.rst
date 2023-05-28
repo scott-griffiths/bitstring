@@ -6,7 +6,7 @@ User Manual
 ###########
 
 
-While it is not difficult to manipulate binary data in Python, for example using the :mod:`struct` and :mod:`array` modules, it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing only with whole-byte data.
+While it is not difficult to manipulate binary data in Python, for example using the ``struct`` and ``array`` modules, it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing only with whole-byte data.
 
 The bitstring module provides four classes, :class:`BitStream`, :class:`BitArray`, :class:`ConstBitStream` and :class:`Bits`, instances of which can be constructed from integers, floats, hex, octal, binary, strings or files, but they all just represent a string of binary digits. I shall use the term 'bitstring' when referring generically to any of the classes, and use the class names for parts that apply to only one or another.
 

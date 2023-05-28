@@ -168,7 +168,7 @@ pos / bitpos
     .. attribute:: ConstBitStream.pos
     .. attribute:: ConstBitStream.bitpos
 
-        Read and write property for setting and getting the current bit position in the bitstring. Can be set to any value from ``0`` to :attr:`len`.
+        Read and write property for setting and getting the current bit position in the bitstring. Can be set to any value from ``0`` to ``len(s)``.
 
         The :attr:`pos` and :attr:`bitpos` properties are exactly equivalent - you can use whichever you prefer. ::
 

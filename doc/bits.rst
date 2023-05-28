@@ -121,7 +121,7 @@ find
 ^^^^
     .. method:: Bits.find(bs[, start, end, bytealigned])
 
-        Searches for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
+        Searches for *bs* in the current bitstring and sets :attr:`~ConstBitStream.pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
         The reason for returning the bit position in a tuple is so that it evaluates as True even if the bit position is zero. This allows constructs such as ``if s.find('0xb3'):`` to work as expected.
 
@@ -193,7 +193,7 @@ rfind
 ^^^^^
     .. method:: Bits.rfind(bs[, start, end, bytealigned])
     
-        Searches backwards for *bs* in the current bitstring and sets :attr:`pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
+        Searches backwards for *bs* in the current bitstring and sets :attr:`~ConstBitStream.pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
         The reason for returning the bit position in a tuple is so that it evaluates as True even if the bit position is zero. This allows constructs such as ``if s.rfind('0xb3'):`` to work as expected.
 
@@ -275,7 +275,7 @@ unpack
         
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string.
 
-        *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`read` for details. ::
+        *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`~ConstBitStream.read` for details. ::
 
             >>> s = Bits('int4=-1, 0b1110')
             >>> i, b = s.unpack('int:4, bin')
@@ -567,7 +567,7 @@ __copy__
 
         ``s2 = copy.copy(s1)``
 
-        This allows the :mod:`copy` module to correctly copy bitstrings. Other equivalent methods are to initialise a new bitstring with the old one or to take a complete slice. ::
+        This allows the ``copy`` module to correctly copy bitstrings. Other equivalent methods are to initialise a new bitstring with the old one or to take a complete slice. ::
 
             >>> import copy
             >>> s = Bits('0o775')

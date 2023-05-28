@@ -6,7 +6,7 @@ Exponential-Golomb Codes
 
 As this type of representation of integers isn't as well known as the standard base-2 representation I thought that a short explanation of them might be welcome. This section can be safely skipped if you're not interested.
 
-Exponential-Golomb codes represent integers using bit patterns that get longer for larger numbers. For unsigned and signed numbers (the bitstring properties :attr:`ue` and :attr:`se` respectively) the patterns start like this:
+Exponential-Golomb codes represent integers using bit patterns that get longer for larger numbers. For unsigned and signed numbers (the bitstring properties :attr:`~Bits.ue` and :attr:`~Bits.se` respectively) the patterns start like this:
 
 =============  ===========  ===========
 Bit pattern    Unsigned     Signed 
@@ -48,7 +48,7 @@ The notation ``ue`` and ``se`` for the exponential-Golomb code properties comes 
 Interleaved exponential-Golomb codes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This type of code is used in the Dirac video standard, and is represented by the attributes :attr:`uie` and :attr:`sie`. For the interleaved codes the pattern is very similar to before for the unsigned case:
+This type of code is used in the Dirac video standard, and is represented by the attributes :attr:`~Bits.uie` and :attr:`~Bits.sie`. For the interleaved codes the pattern is very similar to before for the unsigned case:
 
 =============  ===========
 Bit pattern    Unsigned
