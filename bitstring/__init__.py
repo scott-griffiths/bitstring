@@ -76,7 +76,7 @@ import bitarray
 import bitarray.util
 
 # Things that can be converted to Bits when a Bits type is needed
-BitsType = Union['Bits', int, float, str, Iterable[Any], bool, BinaryIO, bytearray, bytes, bitarray.bitarray]
+BitsType = Union['Bits', int, str, Iterable[Any], bool, BinaryIO, bytearray, bytes, bitarray.bitarray]
 
 byteorder: str = sys.byteorder
 
@@ -90,22 +90,22 @@ CACHE_SIZE = 256
 
 class _MyModuleType(types.ModuleType):
     @property
-    def bytealigned(self):
+    def bytealigned(self) -> bool:
         """Determines whether a number of methods default to working only on byte boundaries."""
         return globals()['_bytealigned']
 
     @bytealigned.setter
-    def bytealigned(self, value: bool):
+    def bytealigned(self, value: bool) -> None:
         """Determines whether a number of methods default to working only on byte boundaries."""
         globals()['_bytealigned'] = value
 
     @property
-    def lsb0(self):
+    def lsb0(self) -> bool:
         """If True, the least significant bit (the final bit) is indexed as bit zero."""
         return globals()['_lsb0']
 
     @lsb0.setter
-    def lsb0(self, value: bool):
+    def lsb0(self, value: bool) -> None:
         """If True, the least significant bit (the final bit) is indexed as bit zero."""
         value = bool(value)
         _switch_lsb0_methods(value)
@@ -121,7 +121,7 @@ MAX_CHARS: int = 250
 class Error(Exception):
     """Base class for errors in the bitstring module."""
 
-    def __init__(self, *params: object):
+    def __init__(self, *params: object) -> None:
         self.msg = params[0] if params else ''
         self.params = params[1:]
 
@@ -193,7 +193,7 @@ class BitStore(bitarray.bitarray):
                 raise CreationError(f"Can't create bitstring with a length of {self.length} and an offset of {self.offset} from {super().__len__()} bits of data.")
 
     @classmethod
-    def _setlsb0methods(cls, lsb0: bool = False):
+    def _setlsb0methods(cls, lsb0: bool = False) -> None:
         if lsb0:
             cls.__setitem__ = cls.setitem_lsb0
             cls.__delitem__ = cls.delitem_lsb0
@@ -205,50 +205,55 @@ class BitStore(bitarray.bitarray):
             cls.getindex = cls.getindex_msb0
             cls.getslice = cls.getslice_msb0
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs) -> bitarray.bitarray:
         # Just pass on the buffer keyword, not the length, offset, filename and frombytes
         new_kwargs = {'buffer': kwargs.get('buffer', None)}
         return bitarray.bitarray.__new__(cls, *args, **new_kwargs)
 
-    def __add__(self, other: bitarray.bitarray):
+    def __add__(self, other: bitarray.bitarray) -> BitStore:
         assert not self.immutable
         return BitStore(super().__add__(other))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[bool]:
         for i in range(0, len(self)):
             yield self.getindex(i)
 
-    def copy(self):
+    def copy(self) -> BitStore:
         x = BitStore(self.getslice(slice(None, None, None)))
         return x
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Union[int, slice]) -> None:
         # Use getindex or getslice instead
         raise NotImplementedError
 
-    def getindex_msb0(self, index):
+    def getindex_msb0(self, index: int) -> int:
         if self.modified and index >= 0:
             index += self.offset
         return super().__getitem__(index)
 
-    def getslice_msb0(self, key):
+    def getslice_msb0(self, key: slice) -> BitStore:
         if self.modified:
             key = _offset_slice_indices_msb0(key, len(self), self.offset)
         return BitStore(super().__getitem__(key))
 
-    def getindex_lsb0(self, index):
+    def getindex_lsb0(self, index: int) -> int:
         if self.modified and index >= 0:
             index += self.offset
         return super().__getitem__(-index - 1)
 
-    def getslice_lsb0(self, key):
+    def getslice_lsb0(self, key: slice) -> BitStore:
         if self.modified:
             key = _offset_slice_indices_lsb0(key, len(self), self.offset)
         else:
             key = _offset_slice_indices_lsb0(key, len(self), 0)
         return BitStore(super().__getitem__(key))
 
-    def setitem_lsb0(self, key, value):
+    @overload
+    def setitem_lsb0(self, key: int, value: int) -> None: ...
+    @overload
+    def setitem_lsb0(self, key: slice, value: BitStore) -> None: ...
+
+    def setitem_lsb0(self, key: Union[int, slice], value: Union[int, BitStore]) -> None:
         assert not self.immutable
         if isinstance(key, int):
             super().__setitem__(-key - 1, value)
@@ -256,7 +261,7 @@ class BitStore(bitarray.bitarray):
             new_slice = _offset_slice_indices_lsb0(key, len(self), 0)
             super().__setitem__(new_slice, value)
 
-    def delitem_lsb0(self, key):
+    def delitem_lsb0(self, key: Union[int, slice]) -> None:
         assert not self.immutable
         if isinstance(key, int):
             super().__delitem__(-key - 1)
@@ -264,7 +269,7 @@ class BitStore(bitarray.bitarray):
             new_slice = _offset_slice_indices_lsb0(key, len(self), 0)
             super().__delitem__(new_slice)
 
-    def invert(self, index=None):
+    def invert(self, index: Optional[int] = None) -> None:
         assert not self.immutable
         if index is not None:
             if _lsb0:
@@ -286,7 +291,7 @@ class BitStore(bitarray.bitarray):
         else:
             return super().all()
 
-    def __len__(self):
+    def __len__(self) -> int:
         if self.modified:
             return self.length
         return super().__len__()
@@ -951,7 +956,7 @@ class Bits:
             raise CreationError(f"Unrecognised keyword '{k}' used to initialise.")
         setting_function(self, v, length, offset)
 
-    def __getattr__(self, attribute: str):
+    def __getattr__(self, attribute: str) -> Any:
         if attribute == '_pos':
             # For the classes without pos it's easier to return None than throw an exception.
             return None
@@ -998,6 +1003,7 @@ class Bits:
         return self
 
     def __lt__(self, other: Any):
+        # TODO: Shouldn't these all just return NotImplemented?
         raise TypeError(f"unorderable type: {type(self).__name__}")
 
     def __gt__(self, other: Any):
@@ -1009,7 +1015,7 @@ class Bits:
     def __ge__(self, other: Any):
         raise TypeError(f"unorderable type: {type(self).__name__}")
 
-    def __add__(self, bs: Any) -> Bits:
+    def __add__(self, bs: BitsType) -> Bits:
         """Concatenate bitstrings and return new bitstring.
 
         bs -- the bitstring to append.
@@ -1435,7 +1441,7 @@ class Bits:
             self._bitstore = BitStore(ba[offset: offset + length])
 
     def _setbytes(self, data: Union[bytearray, bytes],
-                       length: Optional[int] = None, offset: Optional[int] = None) -> None:
+                  length: Optional[int] = None, offset: Optional[int] = None) -> None:
         """Set the data from a bytes or bytearray object."""
         if offset is None and length is None:
             self._bitstore = BitStore(frombytes=bytearray(data))
@@ -3840,6 +3846,11 @@ class ConstBitStream(Bits):
         s._pos = 0
         return s
 
+    @overload
+    def read(self, fmt: int) -> Bits: ...
+    @overload
+    def read(self, fmt: str) -> Any: ...
+
     def read(self, fmt: Union[int, str]) -> Union[int, float, str, Bits, bool, bytes, None]:
         """Interpret next bits according to the format string and return result.
 
@@ -3941,6 +3952,11 @@ class ConstBitStream(Bits):
             raise ReadError("Substring not found")
         self._pos += bs.len
         return self._slice(oldpos, self._pos)
+
+    @overload
+    def peek(self, fmt: int) -> Bits: ...
+    @overload
+    def peek(self, fmt: str) -> Any: ...
 
     def peek(self, fmt: Union[int, str]) -> Union[int, float, str, Bits, bool, bytes, None]:
         """Interpret next bits according to format string and return result.
