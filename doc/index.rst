@@ -5,10 +5,19 @@
    :width: 400px
 
 
-`bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a pure Python module that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
+`bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a Python package that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
 
 It has been maintained since 2006 and now has many millions of downloads per year.
 You can try out an interactive walkthrough notebook on `binder <https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb>`_ (or the non-interactive version `here <https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb>`_).
+
+
+.. image:: https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg
+ :target: https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml
+
+.. image:: https://img.shields.io/readthedocs/bitstring
+
+.. image:: https://img.shields.io/pypi/dm/bitstring?color=blue
+ :target: https://pypistats.org/packages/bitstring
 
 .. image:: https://mybinder.org/badge_logo.svg
  :target: https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb
