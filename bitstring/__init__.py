@@ -222,9 +222,9 @@ class BitStore(bitarray.bitarray):
         x = BitStore(self.getslice(slice(None, None, None)))
         return x
 
-    def __getitem__(self, item: Union[int, slice]) -> None:
+    def __getitem__(self, item: Union[int, slice]) -> Union[int, BitStore]:
         # Use getindex or getslice instead
-        raise NotImplementedError
+        return NotImplemented
 
     def getindex_msb0(self, index: int) -> int:
         if self.modified and index >= 0:
@@ -830,6 +830,7 @@ class Bits:
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
+    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
@@ -926,6 +927,7 @@ class Bits:
 
         """
         self._bitstore.immutable = True
+        self._pos = None
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> Bits:
@@ -1002,18 +1004,18 @@ class Bits:
         # The copy can return self as it's immutable.
         return self
 
-    def __lt__(self, other: Any):
-        # TODO: Shouldn't these all just return NotImplemented?
-        raise TypeError(f"unorderable type: {type(self).__name__}")
+    def __lt__(self, other: Any) -> bool:
+        # bitstrings can't really be ordered.
+        return NotImplemented
 
-    def __gt__(self, other: Any):
-        raise TypeError(f"unorderable type: {type(self).__name__}")
+    def __gt__(self, other: Any) -> bool:
+        return NotImplemented
 
-    def __le__(self, other: Any):
-        raise TypeError(f"unorderable type: {type(self).__name__}")
+    def __le__(self, other: Any) -> bool:
+        return NotImplemented
 
-    def __ge__(self, other: Any):
-        raise TypeError(f"unorderable type: {type(self).__name__}")
+    def __ge__(self, other: Any) -> bool:
+        return NotImplemented
 
     def __add__(self, bs: BitsType) -> Bits:
         """Concatenate bitstrings and return new bitstring.
@@ -2975,6 +2977,7 @@ class BitArray(Bits):
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
+    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
@@ -3703,6 +3706,7 @@ class ConstBitStream(Bits):
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
+    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
@@ -4061,6 +4065,7 @@ class BitStream(BitArray, ConstBitStream):
     set() -- Set bit(s) to 1 or 0.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
+    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
