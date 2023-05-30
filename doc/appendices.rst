@@ -1,3 +1,5 @@
+.. currentmodule:: bitstring
+
 ###########
 Appendices
 ###########
