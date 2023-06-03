@@ -46,11 +46,6 @@ Module Variables
 lsb0
 ^^^^
 
-.. warning::
-    The LSB0 feature is considered experimental and certain aspects may change in future versions. Some features,
-    especially those unique to the ``BitStream`` and ``ConstBitStream`` classes, have not been exhaustively tested. Please
-    report any bugs you find, but it should be fine for most people's use cases.
-
 .. data:: lsb0
 
 By default bit numbering in the bitstring module is done from 'left' to 'right'. That is, from bit ``0`` at the start of the data to bit ``n - 1`` at the end. This allows bitstrings to be treated like an ordinary Python container that is only allowed to contain single bits.

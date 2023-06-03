@@ -4237,7 +4237,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
             s._append(BitStream._init_with_token(name, length, value))
     except StopIteration:
         raise CreationError(f"Not enough parameters present to pack according to the "
-                            "format. {len(tokens)} values are needed.")
+                            f"format. {len(tokens)} values are needed.")
     try:
         next(value_iter)
     except StopIteration:

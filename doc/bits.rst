@@ -181,9 +181,9 @@ pp
 
         The available formats are ``'bin'`` (the default), ``'oct'``, ``'hex'`` and ``'bytes'``. A bit length can be specified after the format (with an optional `:`) to give the number of bits represented by each group, otherwise the default is based on the format or formats selected. Using a length of zero removes all separators and displays one block of characters per line for each format in *fmt* (e.g. ``'hex0'``).
 
-        The ``hex``, ``oct`` and ``bin`` format string can be replaced with just their initial letter.
+        The ``'hex'``, ``'oct'`` and ``'bin'`` format string can be replaced with just their initial letter.
 
-        For the ``'bytes'`` format unprintable characters are replaced with a full stop.
+        For the ``'bytes'`` format unprintable characters are replaced with a ``'.'``.
 
         If the bitstring cannot be represented in a format due to it's length not being a multiple of the number of bits represented by each character then an :exc:`InterpretError` will be raised.
 

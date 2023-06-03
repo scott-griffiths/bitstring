@@ -215,7 +215,7 @@ It's also possible to use the ``auto`` initialiser for file objects. It's as sim
 
 The auto initialiser
 --------------------
-The ``auto`` parameter is the first parameter in the :class:`__init__<Bits>` function and so the ``auto=`` can be omitted when using it. It accepts either a string, an iterable, another bitstring, an integer, a bytearray or a file object.
+The ``auto`` parameter is the first parameter in the :class:`__init__<Bits>` function and so the ``auto=`` can (and should) be omitted when using it. It accepts either a string, an iterable, another bitstring, an integer, a bytearray or a file object.
 
 Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, (non string) iterables are interpreted as boolean arrays and file objects acts a source of binary data. An ``array`` object will be converted into its constituent bytes. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
 
