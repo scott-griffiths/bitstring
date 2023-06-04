@@ -149,9 +149,7 @@ def _offset_slice_indices_lsb0(key: slice, length: int, offset: int) -> slice:
     new_start = length - stop - offset
     new_stop = length - start - offset
     # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
-    if new_stop < 0:
-        new_stop = None
-    return slice(new_start, new_stop, step)
+    return slice(new_start, None if new_stop < 0 else new_stop, step)
 
 
 def _offset_slice_indices_msb0(key: slice, length: int, offset: int) -> slice:
@@ -161,9 +159,7 @@ def _offset_slice_indices_msb0(key: slice, length: int, offset: int) -> slice:
     start += offset
     stop += offset
     # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
-    if stop < 0:
-        stop = None
-    return slice(start, stop, step)
+    return slice(start, None if stop < 0 else stop, step)
 
 
 class BitStore(bitarray.bitarray):
@@ -3140,7 +3136,7 @@ class BitArray(Bits):
         """Return a new copy of the BitArray."""
         s_copy = BitArray()
         s_copy._bitstore = self._bitstore.copy()
-        assert s_copy._bitstore.immutable == False
+        assert s_copy._bitstore.immutable is False
         return s_copy
     
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
@@ -3212,17 +3208,19 @@ class BitArray(Bits):
             self._bitstore.__delitem__(key)
             return
 
-        length_before = self.len
         if isinstance(key, int):
-            start = key
-        else:
-            start = key.start if key.start is not None else 0
-        positive_start = start if start >= 0 else start + self.len
+            del_pos = key if key >= 0 else key + len(self)
+            if del_pos < self._pos:
+                self._pos -= 1
+            return
+
+        length_before = self.len
+        del_start, del_stop, _ = key.indices(len(self))
         self._bitstore.__delitem__(key)
-        if self._pos >= positive_start:
-            self._pos += self.len - length_before
-            if self._pos < 0:
-                self._pos = 0
+        if self._pos > del_stop:
+            self._pos -= length_before - len(self)
+        elif self.pos > del_start:
+            self._pos = del_start
         return
 
     def __ilshift__(self, n: int) -> Bits:
