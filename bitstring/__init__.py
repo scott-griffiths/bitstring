@@ -167,7 +167,7 @@ class BitStore(bitarray.bitarray):
 
     __slots__ = ('modified', 'length', 'offset', 'filename', 'immutable')
 
-    def __init__(self, *args, immutable: bool=False, frombytes: Optional[Union[bytes, bytearray]] = None, offset: int = 0, length: Optional[int] = None, filename: Optional[str] = None,
+    def __init__(self, *args, immutable: bool = False, frombytes: Optional[Union[bytes, bytearray]] = None, offset: int = 0, length: Optional[int] = None, filename: Optional[str] = None,
                  **kwargs) -> None:
         if frombytes is not None:
             self.frombytes(frombytes)
@@ -211,7 +211,7 @@ class BitStore(bitarray.bitarray):
         return BitStore(super().__add__(other))
 
     def __iter__(self) -> Iterable[bool]:
-        for i in range(0, len(self)):
+        for i in range(len(self)):
             yield self.getindex(i)
 
     def copy(self) -> BitStore:
@@ -220,22 +220,22 @@ class BitStore(bitarray.bitarray):
 
     def __getitem__(self, item: Union[int, slice]) -> Union[int, BitStore]:
         # Use getindex or getslice instead
-        return NotImplemented
+        raise NotImplementedError
 
-    def getindex_msb0(self, index: int) -> int:
+    def getindex_msb0(self, index: int) -> bool:
         if self.modified and index >= 0:
             index += self.offset
-        return super().__getitem__(index)
+        return bool(super().__getitem__(index))
 
     def getslice_msb0(self, key: slice) -> BitStore:
         if self.modified:
             key = _offset_slice_indices_msb0(key, len(self), self.offset)
         return BitStore(super().__getitem__(key))
 
-    def getindex_lsb0(self, index: int) -> int:
+    def getindex_lsb0(self, index: int) -> bool:
         if self.modified and index >= 0:
             index += self.offset
-        return super().__getitem__(-index - 1)
+        return bool(super().__getitem__(-index - 1))
 
     def getslice_lsb0(self, key: slice) -> BitStore:
         if self.modified:
@@ -291,6 +291,12 @@ class BitStore(bitarray.bitarray):
         if self.modified:
             return self.length
         return super().__len__()
+
+    # Default to the MSB0 methods (mainly to stop mypy from complaining)
+    getslice = getslice_msb0
+    getindex = getindex_msb0
+    __setitem__ = bitarray.bitarray.__setitem__
+    __delitem__ = bitarray.bitarray.__delitem__
 
 
 def tidy_input_string(s: str) -> str:
@@ -395,7 +401,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
     # The meta_tokens can either be ordinary single tokens or multiple
     # struct-format token strings.
     meta_tokens = (''.join(f.split()) for f in fmt.split(','))
-    return_values = []
+    return_values: List[Tuple] = []
     stretchy_token = False
     for meta_token in meta_tokens:
         # See if it has a multiplicative factor
@@ -519,7 +525,7 @@ def expand_brackets(s: str) -> str:
     return s
 
 
-def _str_to_bitstore(s: str, _str_to_bitstore_cache = {}) -> BitStore:
+def _str_to_bitstore(s: str, _str_to_bitstore_cache={}) -> BitStore:
     try:
         return _str_to_bitstore_cache[s]
     except KeyError:
@@ -642,13 +648,14 @@ def _uint2bitstore(uint: Union[str, int], length: int) -> BitStore:
     uint = int(uint)
     try:
         x = BitStore(bitarray.util.int2ba(uint, length=length, endian='big', signed=False))
-    except OverflowError:
+    except OverflowError as e:
         if uint >= (1 << length):
             msg = f"{uint} is too large an unsigned integer for a bitstring of length {length}. " \
                   f"The allowed range is [0, {(1 << length) - 1}]."
             raise CreationError(msg)
         if uint < 0:
             raise CreationError("uint cannot be initialised with a negative number.")
+        raise e
     return x
 
 
@@ -656,10 +663,12 @@ def _int2bitstore(i: Union[str, int], length: int) -> BitStore:
     i = int(i)
     try:
         x = BitStore(bitarray.util.int2ba(i, length=length, endian='big', signed=True))
-    except OverflowError:
+    except OverflowError as e:
         if i >= (1 << (length - 1)) or i < -(1 << (length - 1)):
             raise CreationError(f"{i} is too large a signed integer for a bitstring of length {length}. "
                                 f"The allowed range is [{-(1 << (length - 1))}, {(1 << (length - 1)) - 1}].")
+        else:
+            raise e
     return x
 
 
@@ -2781,7 +2790,6 @@ class Bits:
         _setintne = _setintbe
         _readintne = _readintbe
         _getintne = _getintbe
-
 
     len = property(_getlength,
                    doc="""The length of the bitstring in bits. Read only.

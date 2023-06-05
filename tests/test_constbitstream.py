@@ -19,6 +19,14 @@ class All(unittest.TestCase):
         height = s.read(12).uint
         self.assertEqual((width, height), (352, 288))
 
+    def testFromFileWithOffsetAndLength(self):
+        s = CBS(filename=os.path.join(THIS_DIR, 'test.m1v'), offset=24, length=8)
+        self.assertEqual(s.h, 'b3')
+        reconstructed = ''
+        for bit in s:
+            reconstructed += '1' if bit is True else '0'
+        self.assertEqual(reconstructed, s.bin)
+
 
 class InterleavedExpGolomb(unittest.TestCase):
     def testReading(self):
