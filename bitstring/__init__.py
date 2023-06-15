@@ -4383,7 +4383,7 @@ class FP8Format:
             b = struct.pack('>e', f)
         except OverflowError:
             return 0b01111111 if f > 0 else 0b11111111
-        f16_int = int.from_bytes(b)
+        f16_int = int.from_bytes(b, byteorder='big')
         # Then use this as an index to our large LUT
         return self.lut_float16_to_float8[f16_int]
 
