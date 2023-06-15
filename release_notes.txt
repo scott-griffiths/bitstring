@@ -21,6 +21,18 @@ Huge kudos to Ilan Schnell for all his work on bitarray.
 
 Other changes:
 
+* Added two new floating point interpretations: float8_143 and float8_152. These are 8-bit
+  floating point formats, with obviously very limited range and precision, but useful in
+  some fields, especially machine learning. This is an experimental feature - the formats
+  haven't even been standardised yet.
+
+  >>> a = Bits(float8_143=16.5)
+  >>> a.bin
+  '01100000'
+  >>> a.float8_143
+  16.0
+
+
 * Deleting, replacing or inserting into a bitstring invalidates the bit position if the
   bitstring's length has been changed. Previously the bit position was adjusted but
   this was not well defined.

@@ -4381,7 +4381,7 @@ class FP8Format:
         # First convert the float to a float16, then a 16 bit uint
         try:
             b = struct.pack('>e', f)
-        except OverflowError:
+        except (OverflowError, struct.error):
             return 0b01111111 if f > 0 else 0b11111111
         f16_int = int.from_bytes(b, byteorder='big')
         # Then use this as an index to our large LUT
@@ -4431,7 +4431,7 @@ class FP8Format:
         if f < 0:
             if f > self.lut_int8_to_float[129]:
                 # Rounding upwards to zero
-                return 0  # There's no negative zero so this is a special case
+                return 0b00000000  # There's no negative zero so this is a special case
             for i in range(130, 256):
                 if f > self.lut_int8_to_float[i]:
                     return i - 1

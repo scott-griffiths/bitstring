@@ -7,7 +7,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
 .. class:: Bits([auto, length, offset, **kwargs])
 
-    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``float8_143``, ``float8_152``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`, :class:`BitStream` and :class:`ConstBitStream`.
 
@@ -299,7 +299,7 @@ bfloat / bfloatbe
 ^^^^^^^^^^^^^^^^^
     .. note::
 
-        The ``bfloat`` properties are specialised representations mainly used in machine learning. They are essentially the first half of the IEEE 32-bit floats, so have the same range but with less accuracy. If you don't know what a bfloat is then you almost certainly want to use the ``float`` properties instead.
+        The ``bfloat`` properties are specialised representations mainly used in machine learning. They are essentially the first half of the IEEE 32-bit floats, so have the same range but with less accuracy. If you don't know what a bfloat is then you almost certainly want to use the ``float`` properties instead. See :ref:`Exotic floats` for more information.
 
     .. attribute:: Bits.bfloat
     .. attribute:: Bits.bfloatbe
@@ -413,6 +413,20 @@ floatne
     .. attribute:: Bits.floatne
 
         Property for the byte-wise native-endian floating point representation of the bitstring.
+
+float8_143
+^^^^^^^^^^
+    .. attribute:: Bits.float8_143
+
+        Property for an 8 bit floating point representation with 4 exponent bits and 3 mantissa bits.
+        See :ref:`Exotic floats` for more information.
+
+float8_152
+^^^^^^^^^^
+    .. attribute:: Bits.float8_152
+
+        Property for an 8 bit floating point representation with 5 exponent bits and 2 mantissa bits.
+        See :ref:`Exotic floats` for more information.
 
 len / length
 ^^^^^^^^^^^^

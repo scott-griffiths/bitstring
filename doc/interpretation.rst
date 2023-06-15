@@ -102,6 +102,11 @@ bfloat / bfloatbe / bfloatle / bfloatne
 
 This is a specialised 16-bit floating point format that is essentially a truncated version of the 32-bit IEEE float. It is used mainly in machine learning. As only one length is permitted it doesn't need to be specified on creation or interpretation.
 
+float8_143 / float8_152
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Specialised 8-bit floating point formats. See :ref:`Exotic floats` for more information.
+
 bytes
 ^^^^^
 

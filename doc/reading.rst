@@ -64,6 +64,8 @@ The format string consists of comma separated tokens that describe how to interp
 ``floatbe:n``     ``n`` bits as a big-endian floating point number (same as ``float``).
 ``floatle:n``     ``n`` bits as a little-endian floating point number.
 ``floatne:n``     ``n`` bits as a native-endian floating point number.
+``float8_143``    8 bits as a '143' format floating point number.
+``float8_152``    8 bits as a '152' format floating point number.
 ``bfloat[:16]``   16 bits as a big-endian bfloat floating point number (same as ``bfloatbe``).
 ``bfloatbe[:16]`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
 ``bfloatle[:16]`` 16 bits as a little-endian floating point number.

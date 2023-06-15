@@ -333,6 +333,18 @@ floatne
 
         Writable version of :attr:`Bits.floatne`.
 
+float8_143
+^^^^^^^^^^
+    .. attribute:: BitArray.float8_143
+
+        Writable version of :attr:`Bits.float8_143`.
+
+float8_152
+^^^^^^^^^^
+    .. attribute:: BitArray.float8_152
+
+        Writable version of :attr:`Bits.float8_152`.
+
 oct / o
 ^^^^^^^
     .. attribute:: BitArray.oct
