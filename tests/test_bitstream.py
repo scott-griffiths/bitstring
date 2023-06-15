@@ -426,8 +426,8 @@ class Replace(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.replace('0b1', '0b1', end=19, bytealigned=True)
 
-class SliceAssignment(unittest.TestCase):
 
+class SliceAssignment(unittest.TestCase):
     @unittest.expectedFailure
     def testSetSlice(self):
         a = BitStream()
@@ -4176,3 +4176,21 @@ class CacheingIssues(unittest.TestCase):
         y = BitStream('0xdeadbeef002')
         with self.assertRaises(bitstring.CreationError):
             x = BitStream('0xdeadbeef002', length=16)
+
+
+class Fp8(unittest.TestCase):
+
+    def testReading(self):
+        a = BitStream('0x00fff')
+        x = a.read('float8_152')
+        self.assertEqual(x, 0.0)
+        self.assertEqual(a.pos, 8)
+        x = a.read('float8_143')
+        self.assertEqual(x, -240.0)
+        self.assertEqual(a.pos, 16)
+
+    def testReadList(self):
+        v = [-6, -2, 0.125, 7, 10]
+        a = bitstring.pack('5*float8_143', *v)
+        vp = a.readlist('5*float8_143')
+        self.assertEqual(v, vp)

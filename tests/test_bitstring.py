@@ -11,6 +11,9 @@ sys.path.insert(0, '..')
 import bitstring
 import copy
 from collections import abc
+import math
+from bitstring import fp143_fmt, fp152_fmt
+import struct
 
 
 class ModuleData(unittest.TestCase):
@@ -154,3 +157,84 @@ class ABCs(unittest.TestCase):
         bitstream = bitstring.BitArray()
         self.assertTrue(isinstance(bitstream, abc.MutableSequence))
         self.assertTrue(isinstance(bitstream, abc.Sequence))
+
+
+class ConversionToFP8(unittest.TestCase):
+
+    def testSome143Values(self):
+        zero = bitstring.Bits('0b0000 0000')
+        self.assertEqual(fp143_fmt.lut_int8_to_float[zero.uint], 0.0)
+        max_normal = bitstring.Bits('0b0111 1111')
+        self.assertEqual(fp143_fmt.lut_int8_to_float[max_normal.uint], 240.0)
+        max_normal_neg = bitstring.Bits('0b1111 1111')
+        self.assertEqual(fp143_fmt.lut_int8_to_float[max_normal_neg.uint], -240.0)
+        min_normal = bitstring.Bits('0b0000 1000')
+        self.assertEqual(fp143_fmt.lut_int8_to_float[min_normal.uint], 2**-7)
+        min_subnormal = bitstring.Bits('0b0000 0001')
+        self.assertEqual(fp143_fmt.lut_int8_to_float[min_subnormal.uint], 2**-10)
+        max_subnormal = bitstring.Bits('0b0000 0111')
+        self.assertEqual(fp143_fmt.lut_int8_to_float[max_subnormal.uint], 0.875 * 2**-7)
+        nan = bitstring.Bits('0b1000 0000')
+        self.assertTrue(math.isnan(fp143_fmt.lut_int8_to_float[nan.uint]))
+
+    def testSome152Values(self):
+        zero = bitstring.Bits('0b0000 0000')
+        self.assertEqual(fp152_fmt.lut_int8_to_float[zero.uint], 0.0)
+        max_normal = bitstring.Bits('0b0111 1111')
+        self.assertEqual(fp152_fmt.lut_int8_to_float[max_normal.uint], 57344.0)
+        max_normal_neg = bitstring.Bits('0b1111 1111')
+        self.assertEqual(fp152_fmt.lut_int8_to_float[max_normal_neg.uint], -57344.0)
+        min_normal = bitstring.Bits('0b0000 0100')
+        self.assertEqual(fp152_fmt.lut_int8_to_float[min_normal.uint], 2**-15)
+        min_subnormal = bitstring.Bits('0b0000 0001')
+        self.assertEqual(fp152_fmt.lut_int8_to_float[min_subnormal.uint], 0.25 * 2**-15)
+        max_subnormal = bitstring.Bits('0b0000 0011')
+        self.assertEqual(fp152_fmt.lut_int8_to_float[max_subnormal.uint], 0.75 * 2**-15)
+        nan = bitstring.Bits('0b1000 0000')
+        self.assertTrue(math.isnan(fp152_fmt.lut_int8_to_float[nan.uint]))
+
+    @unittest.skip  # Skipping as it takes a few seconds to run
+    def testFloatToInt8(self):
+        # Checking equivalence of the LUT method to the loop over values method.
+        for fmt in [fp143_fmt, fp152_fmt]:
+            for i in range(1 << 16):
+                b = struct.pack('>H', i)
+                f, = struct.unpack('>e', b)
+                x = fmt.float_to_int8(f)
+                y = fmt.slow_float_to_int8(f)
+                self.assertEqual(x, y)
+
+    def testRoundTrip(self):
+        # For each possible 8bit int, convert to float, then convert that float back to an int
+        for fmt in [fp143_fmt, fp152_fmt]:
+            for i in range(256):
+                f = fmt.lut_int8_to_float[i]
+                ip = fmt.float_to_int8(f)
+                self.assertEqual(ip, i)
+
+    def testFloat16Conversion(self):
+        # Convert a float16 to a float8, then convert that to a Python float. Then convert back to a float16.
+        # This value should have been rounded towards zero. Convert back to a float8 again - should be the
+        # same value as before or the adjacent smaller value
+        for fmt in [fp143_fmt, fp152_fmt]:
+            # Keeping sign bit == 0 so only positive numbers
+            previous_value = 0.0
+            for i in range(1 << 15):
+                # Check that the f16 is a standard number
+                b = struct.pack('>H', i)
+                f16, = struct.unpack('>e', b)
+                if math.isnan(f16):
+                    continue
+                # OK, it's an ordinary number - convert to a float8
+                f8 = fmt.lut_float16_to_float8[i]
+                # And convert back to a float
+                f = fmt.lut_int8_to_float[f8]
+                # This should have been rounded towards zero compared to the original
+                self.assertTrue(f <= f16)
+                # But not rounded more than to the previous valid value
+                self.assertTrue(f >= previous_value)
+                if f > previous_value:
+                    previous_value = f
+
+
+

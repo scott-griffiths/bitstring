@@ -74,6 +74,8 @@ from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Patte
     BinaryIO, TextIO, Callable, overload
 import bitarray
 import bitarray.util
+import zlib
+
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', int, str, Iterable[Any], bool, BinaryIO, bytearray, bytes, bitarray.bitarray]
@@ -307,7 +309,7 @@ def tidy_input_string(s: str) -> str:
 INIT_NAMES: List[str] = ['uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
                          'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
                          'float', 'floatbe', 'floatle', 'floatne', 'bfloatbe', 'bfloatle', 'bfloatne', 'bfloat',
-                         'bytes', 'bool', 'pad']
+                         'bytes', 'bool', 'pad', 'float8_143', 'float8_152']
 # Sort longest first as we want to match them in that order (so floatne before float etc.).
 INIT_NAMES.sort(key=len, reverse=True)
 
@@ -348,7 +350,8 @@ PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4
 
 _tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct', '0o': 'oct',
                                              '0O': 'oct', 'bin': 'bin', '0b': 'bin', '0B': 'bin', 'bits': 'auto',
-                                             'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat'}
+                                             'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat',
+                                             'float8_143': 'float8_143', 'float8_152': 'float8_152'}
 
 
 def structparser(token: str) -> List[str]:
@@ -463,6 +466,10 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
                 if length is not None and length != '16':
                     raise ValueError(f"bfloat tokens can only be 16 bits long, not {length} bits.")
                 length = '16'
+            if name in ['float8_143', 'float8_152']:
+                if length is not None and length != '8':
+                    raise ValueError(f"float8 tokens can only be 8 bits long, not {length} bits.")
+                length = '8'
             if length is None and name not in ('se', 'ue', 'sie', 'uie'):
                 stretchy_token = True
                 
@@ -643,6 +650,15 @@ def _bfloatle2bitstore(f: Union[str, float]) -> BitStore:
         b = struct.pack('<f', float('inf') if f > 0 else float('-inf'))
     return BitStore(frombytes=b[2:4])
 
+def _float8_143_2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    u = fp143_fmt.float_to_int8(f)
+    return _uint2bitstore(u, 8)
+
+def _float8_152_2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    u = fp152_fmt.float_to_int8(f)
+    return _uint2bitstore(u, 8)
 
 def _uint2bitstore(uint: Union[str, int], length: int) -> BitStore:
     uint = int(uint)
@@ -762,6 +778,8 @@ _name2bitstore_func: Dict[str, Callable[..., BitStore]] = {
     'bfloatbe': _bfloat2bitstore,
     'bfloatle': _bfloatle2bitstore,
     'bfloatne': _bfloatne2bitstore,
+    'float8_143' : _float8_143_2bitstore,
+    'float8_152' : _float8_152_2bitstore,
 }
 
 # Given a string of the format 'name[:]length=value' get a bitstore representing it by using
@@ -1447,6 +1465,14 @@ class Bits:
                 raise CreationError(f"Offset of {offset} and length of {length} too large for bitarray of length {len(ba)}.")
             self._bitstore = BitStore(ba[offset: offset + length])
 
+    def _setfloat152(self, f: float, _length: None = None, _offset: None = None):
+        u = fp152_fmt.float_to_int8(f)
+        self._bitstore = _uint2bitstore(u, 8)
+
+    def _setfloat143(self, f: float, _length: None = None, _offset: None = None):
+        u = fp143_fmt.float_to_int8(f)
+        self._bitstore = _uint2bitstore(u, 8)
+
     def _setbytes(self, data: Union[bytearray, bytes],
                   length: Optional[int] = None, offset: Optional[int] = None) -> None:
         """Set the data from a bytes or bytearray object."""
@@ -1625,6 +1651,24 @@ class Bits:
             return struct.unpack(fmt, self._bitstore.getslice(slice(start, start + length, None)).tobytes())[0]
         else:
             return struct.unpack(fmt, self._readbytes(start, length))[0]
+
+    def _readfloat143(self, start: int, _length: None = None) -> float:
+        u = self._readuint(start, length=8)
+        return fp143_fmt.lut_int8_to_float[u]
+
+    def _getfloat143(self) -> float:
+        if len(self) != 8:
+            raise InterpretError  # TODO
+        return self._readfloat143(0)
+
+    def _readfloat152(self, start: int, _length: None = None) -> float:
+        u = self._readuint(start, length=8)
+        return fp152_fmt.lut_int8_to_float[u]
+
+    def _getfloat152(self) -> float:
+        if len(self) != 8:
+            raise InterpretError  # TODO
+        return self._readfloat152(start=0)
 
     def _setfloatbe(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
         if length is None and hasattr(self, 'len') and self.len != 0:
@@ -2872,6 +2916,9 @@ class Bits:
     sie = property(_getsie,
                    doc="""The bitstring as a signed interleaved exponential-Golomb code. Read only.
                       """)
+    float8_143 = property(_getfloat143)
+    float8_152 = property(_getfloat152)
+
     # Some shortened aliases of the above properties
     i = int
     u = uint
@@ -2913,7 +2960,9 @@ class Bits:
                      'uie': _readuie,
                      'sie': _readsie,
                      'bool': _readbool,
-                     'pad': _readpad}
+                     'pad': _readpad,
+                     'float8_143': _readfloat143,
+                     'float8_152': _readfloat152}
 
     # Mapping token names to the methods used to set them
     _setfunc = {'bin': _setbin_safe,
@@ -2942,7 +2991,9 @@ class Bits:
                 'floatne': _setfloatne,
                 'bytes': _setbytes,
                 'filename': _setfile,
-                'bitarray': _setbitarray}
+                'bitarray': _setbitarray,
+                'float8_152': _setfloat152,
+                'float8_143': _setfloat143}
 
 
 class BitArray(Bits):
@@ -3683,6 +3734,9 @@ class BitArray(Bits):
     bytes = property(Bits._getbytes, Bits._setbytes,
                      doc="""The bitstring as a ordinary string. Read and write.
                       """)
+    float8_143 = property(Bits._getfloat143, Bits._setfloat143)
+    float8_152 = property(Bits._getfloat152, Bits._setfloat152)
+
     # Aliases for some properties
     f = float
     i = int
@@ -4249,7 +4303,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     except StopIteration:
         # Good, we've used up all the *values.
         return s
-    raise CreationError("Too many parameters present to pack according to the format.")
+    raise CreationError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")
 
 
 # Whether to label the Least Significant Bit as bit 0. Default is False.
@@ -4269,6 +4323,126 @@ _switch_lsb0_methods(False)
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
            'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0']
+
+
+lut_float16_to_float8_143_compressed = b"x\x01\xed\xdde\xb6\x96\x05\x00E\xe1\x8f\xee\x06\xe9FZA\xa4\xbb\xbb;\xa4SB\xba\xeb\xd2\xdd\x8dt\x97\x92J(\xa14\xa2\x84" \
+    b"\x92\x8a\xa4\x82\xd2\x1d\x12\x0e\xe2\xfe\xd8k\xf1\xeeg\x06gO\xe0\x84B\xb2\x80\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05\xde" \
+    b"\xd7\x02\x11d\x01\x0b\x04\xb6@D\x05\xba@$\x05\xba@\xe4\x80\x8b\x12pQ\x03.Z\xc0E\x87\xc5\x80\xc5\x84\xc5\x82\xc5\x86\xc5\x81\xc5\x85\xc5\x83\xc5\x87%\x80%\x84" \
+    b"%\x82%\x86%\x81}\x00K\nK\x06K\x0eK\x01K\tK\x05K\rK\x03K\x0bK\x07K\x0f\xcb\x00\xcb\x08\xcb\x04\xfb\x10\x96\x19\x96\x05\x96\x15\x96\r\x96\x1d\x96\x03\x96\x13" \
+    b"\xf6\x11\xeccX.Xn\xd8'\xb0<\xb0Oaya\xf9`\xf9a\x05`\x05a\x85`\x85aE`Ea\xc5`\xc5a%`%a\xa5`\xa5ae`ea\xe5`\xe5a\x15`\x15a\x95`\x95aU`Ua\xd5`\xd5a5`5a\xb5`\xb5au`" \
+    b"ua\xf5`\xf5a\r`\ra\x8d`\x8daM`\x9f\xc1\x9a\xc2\x9a\xc1\x9a\xc3Z\xc0Z\xc2Z\xc1Z\xc3\xda\xc0\xda\xc2\xda\xc1\xda\xc3:\xc0>\x87u\x84u\x82u\x86u\x81}\x01\xeb\n" \
+    b"\xeb\x06\xeb\x0e\xeb\x01\xeb\t\xeb\x05\xeb\r\xeb\x03\xeb\x0b\xeb\x07\xeb\x0f\x1b\x00\x1b\x08\x1b\x04\x1b\x0c\x1b\x02\x1b*\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01" \
+    b"\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05,\x10\xde\x02a\xb2\x80\x05\x82Z\xe0}\xfd5s\x97\x05,`\x01" \
+    b"\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05,\x10\n\r\x93\x05,\x10\xd8\x02\xc3\x15\xe8\x02#\x14\xe8\x02#\x03nT\xc0\x8d\x0e\xb81\x017\x166" \
+    b"\x0e6\x1e6\x016\x116\t6\x196\x056\x156\r6\x1d6\x036\x136\x0b6\x1b6\x076\x176\x0f6\x1f\xf6%l\x01l!l\x11l1l\tl)l\x19l9l\x05l%l\x15l5l\rl-l\x1dl=l\x03\xec+\xd8" \
+    b"\xd7\xb0\x8d\xb0M\xb0\xcd\xb0-\xb0\xad\xb0m\xb0o`\xdf\xc2\xb6\xc3v\xc0v\xc2v\xc1\xbe\x83}\x0f\xdb\r\xdb\x03\xdb\x0b\xdb\x07\xfb\x01\xf6#l?\xec\x00\xec \xec" \
+    b"\x10\xec0\xec\x08\xec(\xec\x18\xec'\xd8q\xd8\xcf\xb0_`'`'a\xa7`\xa7a\xbf\xc2~\x83\x9d\x81\x9d\x85\x9d\x83\x9d\x87]\x80]\x84\xfd\x0e\xfb\x03v\t\xf6'\xec2\xec" \
+    b"\n\xec*\xec\x1a\xec:\xec\x06\xec/\xd8\xdf\xb0\x9b\xb0[\xb0\x7f`\xff\xc2n\xc3\xee\xc0\xee\xc2\xee\xc1\xee\xc3\x1e\xc0\x1e\xc2\x1e\xc1\x1e\xc3\x9e\xc0\x9e\xc2" \
+    b"\x9e\xc1\x9e\xc3^\xc0^\xc2^\xc1\xfe\x83\xbd\x86\xbd\x81\xbd\x85\xbd\x93\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX" \
+    b"\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX\xc0\x02\x16\x08o\x81\xa0\x1e\x9f\xbb\xdb\x02\x16\x08\xfb\x1f\x0b\xd9\xb3x"
+
+lut_float16_to_float8_152_compressed = b'x\x01\xed\xdde\xa2\x16T\x00E\xd1\x07\n\x82R\x92J\nJHK7"\xa1H#\xd2HIwwI\xa7R\xd2H\xab(\xdd%(\xadt\x89A\xa7\xd2\xdd1\x8c' \
+    b'\xfbc}k\x06gO\xe0DE\x85\x15-\xb0\xe8\x81\xbd\x12\xd8\xab\x81\xc5\x08,f`\xaf\x05\x16\x0b\x17\x1b\xf7:\xee\r\\\x1c\\\\\\<\\|\\\x02\xdc\x9b\xb8\x84\xb8D\xb8\xc4' \
+    b'\xb8$\xb8\xa4\xb8d\xb8\xb7po\xe3\x92\xe3R\xe0R\xe2R\xe1R\xe3\xd2\xe0\xde\xc1\xa5\xc5\xa5\xc3\xbd\x8b{\x0f\x97\x1e\x97\x01\x97\x11\x97\t\xf7>.3.\x0b.+.\x1b.;.' \
+    b'\x07.\'\xee\x03\\.\\n\\\x1e\\^\\>\\~\\\x01\\A\\!\\a\\\x11\\Q\\1\\q\xdc\x87\xb8\x12\xb8\x8fp%q\xa5p\xa5qep\x1f\xe3>\xc1\x95\xc5}\x8a+\x87+\x8f\xab\x80\xab\x88' \
+    b'\xab\x84\xab\x8c\xab\x82\xab\x8a\xfb\x0cW\r\xf79\xae:\xae\x06\xae&\xae\x16\xae6\xae\x0e\xae.\xae\x1e\xee\x0b\\}\\\x03\\C\\#\\c\xdc\x97\xb8&\xb8\xa6\xb8f\xb8' \
+    b'\xe6\xb8\x16\xb8\x96\xb8V\xb8\xd6\xb86\xb8\xb6\xb8v\xb8\xf6\xb8\x0e\xb8\x8e\xb8N\xb8\xce\xb8.\xb8\xae\xb8n\xb8\xee\xb8\x1e\xb8\x9e\xb8^\xb8\xde\xb8>\xb8\xbe' \
+    b'\xb8~\xba\xfe\x11\x91\x02\x91\x02j\x81\xa8\xc0\x06\x04\xf6U`\x03\x03\x1b\x14\xd8\xe0\xc0\x86\x0464\xb0a\xb8\xe1\xb8\x11\xb8\x91\xb8Q\xb8\xd1\xb81\xb8\xafq' \
+    b'\xdf\xe0\xc6\xe2\xc6\xe1\xc6\xe3&\xe0&\xe2\xbe\xc5M\xc2M\xc6M\xc1M\xc5M\xc3M\xc7\xcd\xc0\xcd\xc4}\x87\x9b\x85\x9b\x8d\x9b\x83\x9b\x8b\x9b\x87\x9b\x8f[\x80' \
+    b'\xfb\x1e\xf7\x03\xeeG\xdcB\xdcO\xb8\x9fq\x8bp\x8bqKpKq\xcbp\xcbq+p+q\xabp\xabqkpkq\xebp\xebq\x1bp\x1bq\x9bp\xbf\xe06\xe3\xb6\xe0~\xc5\xfd\x86\xdb\x8a\xdb' \
+    b'\x86\xdb\x8e\xdb\x81\xdb\x89\xdb\x85\xdb\x8d\xfb\x1d\xf7\x07n\x0fn/n\x1fn?\xee\x00\xee \xee\x10\xee0\xee\x08\xee(\xee\x18\xeeO\xdcq\xdc_\xb8\xbfq\xff\xe0\xfe' \
+    b'\xc5\x9d\xc0\x9d\xc4\x9d\xc2\x9d\xc6\x9d\xc1\x9d\xc5\x9d\xc3\x9d\xc7]\xc0]\xc4]\xc2]\xc6\xfd\x87\xfb\x1fw\x05w\x15w\rw\x1dw\x03w\x13w\x0bw\x1bw\x07w\x17w\x0f' \
+    b'w\x1f\xf7\x00\xf7\x10\xf7\x08\xf7\x18\xf7\x04\xf7\x14\xf7\x0c\xf7\x1c\xf7B\xa7\x1e\x9fGvG\nD\n\xf4\x7f\tz_,\x0e'
+
+
+class FP8Format:
+    """Defining an 8-bit floating point format"""
+
+    def __init__(self, exp_bits: int, bias: int):
+        self.exp_bits = exp_bits
+        self.bias = bias
+        self.mantissa_bits = 8 - 1 - self.exp_bits
+        self.lut_int8_to_float = self.createLUT_for_int8_to_float()
+        # We use look up tables to go from an IEEE float16 to the best float8 representation.
+        # For startup efficiency they've been precalculated and zipped up, but the method to
+        # reproduce them is given.
+        if self.exp_bits == 4 and self.bias == 8:
+            self.lut_float16_to_float8 = zlib.decompress(lut_float16_to_float8_143_compressed)
+        elif self.exp_bits == 5 and self.bias == 16:
+            self.lut_float16_to_float8 = zlib.decompress(lut_float16_to_float8_152_compressed)
+        else:
+            assert False
+            # This is how the LUTs above were calculated. For reference only - shouldn't be needed any more
+            # self.lut_float16_to_float8 = self.createLUT_for_float16_to_float8()
+            # Then we used a line like this to create the constants:
+            # lut_float16_to_float8_143_compressed = zlib.compress(self.lut_float16_to_float8, 1)
+
+    def float_to_int8(self, f: float) -> int:
+        # First convert the float to a float16, then a 16 bit uint
+        try:
+            b = struct.pack('>e', f)
+        except OverflowError:
+            return 0b01111111 if f > 0 else 0b11111111
+        f16_int = int.from_bytes(b)
+        # Then use this as an index to our large LUT
+        return self.lut_float16_to_float8[f16_int]
+
+    def createLUT_for_int8_to_float(self) -> array.array[float]:
+        """Create a LUT to convert an int in range 0-255 representing a float8 into a Python float"""
+        i2f = []
+        for i in range(256):
+            b = BitArray(uint=i, length=8)
+            sign = b[0]
+            exponent = b[1:1 + self.exp_bits].u
+            significand = b[1 + self.exp_bits:]
+            if exponent == 0:
+                significand.prepend([0])
+                exponent = -self.bias + 1
+            else:
+                significand.prepend([1])
+                exponent -= self.bias
+            f = float(significand.u) / (2.0 ** (7 - self.exp_bits))
+            f *= 2 ** exponent
+            i2f.append(f if not sign else -f)
+        # One special case for minus zero
+        i2f[0b10000000] = float('nan')
+        return array.array('f', i2f)
+
+    # Create a bytearray where the nth element is the 8 bit float corresponding to the fp16 value interpreted as n.
+    def createLUT_for_float16_to_float8(self) -> bytes:
+        # Used to create the LUT that are compressed and stored above. This is reference code that isn't
+        # run any more (unless we want to add more formats).
+        fp16_to_fp8 = bytearray(1 << 16)
+        for i in range(1 << 16):
+            b = struct.pack('>H', i)
+            f, = struct.unpack('>e', b)
+            fp8_i = self.slow_float_to_int8(f)
+            fp16_to_fp8[i] = fp8_i
+        return bytes(fp16_to_fp8)
+
+    def slow_float_to_int8(self, f: float) -> int:
+        # Slow, but easier to follow than the faster version. Used only for validation.
+        if f >= 0:
+            for i in range(128):
+                if f < self.lut_int8_to_float[i]:
+                    return i - 1
+            # Clip to positive max
+            return 0b01111111
+        if f < 0:
+            if f > self.lut_int8_to_float[129]:
+                # Rounding upwards to zero
+                return 0  # There's no negative zero so this is a special case
+            for i in range(130, 256):
+                if f > self.lut_int8_to_float[i]:
+                    return i - 1
+            # Clip to negative max
+            return 0b11111111
+        # We only have one nan value
+        return 0b10000000
+
+
+fp143_fmt = FP8Format(exp_bits=4, bias=8)
+fp152_fmt = FP8Format(exp_bits=5, bias=16)
 
 
 def main() -> None:
