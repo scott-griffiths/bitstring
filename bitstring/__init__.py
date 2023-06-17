@@ -4445,6 +4445,74 @@ fp143_fmt = FP8Format(exp_bits=4, bias=8)
 fp152_fmt = FP8Format(exp_bits=5, bias=16)
 
 
+class Array:
+    def __init__(self, fmt: str, initializer: BitsType):
+        x = tokenparser(fmt, None)
+        token_name, token_length, _ = x[1][0]
+        self.element_length = token_length
+        self.element_name = token_name
+
+        # To mirror the array module, if given a list the initializer is passed to the new array’s fromlist() or frombytes()
+
+
+        # We need to do all these in the right order, similar to Bits.
+        # If int then initialize with zeros.
+        # If bytes, bytearray, Bits, bitarray then we have bit data
+        # If str, create a Bits from it then use it.
+        # If iterable, use elements to initialise the fmt
+        if isinstance(initializer, int):
+            self.bs = BitArray(initializer * self.element_length)
+            return
+        if isinstance(initializer, (list, tuple)):
+            self.bs = BitArray(pack(f'{len(initializer)}*{self.element_name}:{self.element_length}', *initializer))
+        else:
+            self.bs = BitArray(initializer)
+
+    def __len__(self):
+        return len(self.bs) // self.element_length
+
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            i = self.bs[self.element_length * item: self.element_length * (item + 1)]
+            return i._readtoken(self.element_name, 0, self.element_length)[0]
+
+    def __setitem__(self, key, value):
+        pass
+
+    def fromlist(self, list_: Union[List, Tuple]) -> None:
+        pass
+
+    def frombytes(self, buffer) -> None:
+        pass
+
+    def extend(self, i: Iterable) -> None:
+        pass
+
+    def byteswap(self) -> None:
+        pass
+
+    def count(self, x: Any) -> int:
+        pass
+
+    def fromfile(self, f: BitArray, n: int) -> None:
+        pass
+
+    def tobytes(self) -> bytes:
+        pass
+
+    def tofile(self, f: BinaryIO) -> None:
+        pass
+
+    def tolist(self) -> List[Any]:
+        pass
+
+    def reverse(self) -> None:
+        pass
+
+    def remove(self, x: Any) -> None:
+        pass
+
+
 def main() -> None:
     dummy = Bits()  # We need an instance to query the _name_to_read
     # check if final parameter is an interpretation string

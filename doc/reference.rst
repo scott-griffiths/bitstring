@@ -15,6 +15,7 @@ The :ref:`quick_reference` gives one line summaries of all of the methods and pr
    bitstring_classes
    bits
    bitarray
+   array
    constbitstream
    bitstream
    functions
