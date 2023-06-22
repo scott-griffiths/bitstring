@@ -71,7 +71,7 @@ from collections import abc
 import functools
 import types
 from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict,\
-    BinaryIO, TextIO, Callable, overload
+    BinaryIO, TextIO, Callable, overload, Iterator
 import bitarray
 import bitarray.util
 import zlib
@@ -2295,7 +2295,7 @@ class Bits:
             start = p + 1
 
     def findall(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
-                bytealigned: Optional[bool] = None) -> Generator[int, None, None]:
+                bytealigned: Optional[bool] = None) -> Iterable[int]:
         """Find all occurrences of bs. Return generator of bit positions.
 
         bs -- The bitstring to find.
@@ -2320,7 +2320,7 @@ class Bits:
         return self._findall(bs, start, end, count, ba)
 
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
-                      bytealigned: bool) -> Generator[int, None, None]:
+                      bytealigned: bool) -> Iterable[int]:
         c = 0
         for i in self._bitstore.getslice_msb0(slice(start, end, None)).itersearch(bs._bitstore):
             if count is not None and c >= count:
@@ -2335,7 +2335,7 @@ class Bits:
         return
 
     def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
-                      bytealigned: bool) -> Generator[int, None, None]:
+                      bytealigned: bool) -> Iterable[int]:
         assert start <= end
         assert _lsb0
 
@@ -2426,7 +2426,7 @@ class Bits:
             return ()
 
     def cut(self, bits: int, start: Optional[int] = None, end: Optional[int] = None,
-            count: Optional[int] = None) -> Generator[Bits, None, None]:
+            count: Optional[int] = None) -> Iterator[Bits]:
         """Return bitstring generator by cutting into bits sized chunks.
 
         bits -- The size in bits of the bitstring chunks to generate.
@@ -2455,7 +2455,7 @@ class Bits:
         return
 
     def split(self, delimiter: BitsType, start: Optional[int] = None, end: Optional[int] = None,
-              count: Optional[int] = None, bytealigned: Optional[bool] = None) -> Generator[Bits, None, None]:
+              count: Optional[int] = None, bytealigned: Optional[bool] = None) -> Iterable[Bits]:
         """Return bitstring generator by splitting using a delimiter.
 
         The first item returned is the initial bitstring before the delimiter,
@@ -4446,55 +4446,133 @@ fp152_fmt = FP8Format(exp_bits=5, bias=16)
 
 
 class Array:
-    def __init__(self, fmt: str, initializer: BitsType):
-        x = tokenparser(fmt, None)
-        token_name, token_length, _ = x[1][0]
-        self.element_length = token_length
-        self.element_name = token_name
+    def __init__(self, fmt: str, initializer: Optional[Union[BitsType, Iterable]] = None, trailing_bits: Optional[BitsType] = None):
+        try:
+            self.fmt = fmt
+        except ValueError as e:
+            raise CreationError(e)
 
-        # To mirror the array module, if given a list the initializer is passed to the new array’s fromlist() or frombytes()
-
+        self.data = BitArray()
 
         # We need to do all these in the right order, similar to Bits.
-        # If int then initialize with zeros.
-        # If bytes, bytearray, Bits, bitarray then we have bit data
-        # If str, create a Bits from it then use it.
-        # If iterable, use elements to initialise the fmt
         if isinstance(initializer, int):
-            self.bs = BitArray(initializer * self.element_length)
-            return
-        if isinstance(initializer, (list, tuple)):
-            self.bs = BitArray(pack(f'{len(initializer)}*{self.element_name}:{self.element_length}', *initializer))
+            self.data = BitArray(initializer * self._totalitemsize)
+        elif isinstance(initializer, Array):
+            self.fromlist(initializer.tolist())
+        elif isinstance(initializer, (list, tuple)):
+            self.fromlist(initializer)
         else:
-            self.bs = BitArray(initializer)
+            self.data = BitArray(initializer)
+
+        if trailing_bits is not None:
+            self.data += BitArray(trailing_bits)
+
+
+    @property
+    def itemsize(self) -> Union[int, Tuple[int]]:
+        return self._itemsizes
+
+    @property
+    def fmt(self) -> str:
+        return self._fmt
+
+    @fmt.setter
+    def fmt(self, new_fmt: str) -> None:
+        # Let's save the exact fmt string so we can use it in __repr__ etc
+        self._fmt = new_fmt
+        tokens = tokenparser(new_fmt, None)[1]
+        self._token_names_and_lengths = [(x[0], x[1]) for x in tokens]
+        for token in self._token_names_and_lengths:
+            token_name, token_length = token
+            if token_length is None:
+                raise ValueError(f"The format '{token_name}' doesn't have a fixed length and so can't be used in an Array.")
+        self._itemsizes = [x[1] for x in self._token_names_and_lengths]
+        self._totalitemsize = sum(self._itemsizes)
+        if len(self._itemsizes) == 1:
+            self._itemsizes = self._itemsizes[0]
+        self._format_str = ','.join(f'{token_name}:{token_length}' for token_name, token_length in self._token_names_and_lengths)
+
 
     def __len__(self):
-        return len(self.bs) // self.element_length
+        return len(self.data) // self._totalitemsize
+
+    # TODO: in readlist the pad token means that an item isn't returned (c.f. returning None). I don't think we should copy that behaviour?
+
 
     def __getitem__(self, item):
         if isinstance(item, int):
-            i = self.bs[self.element_length * item: self.element_length * (item + 1)]
-            return i._readtoken(self.element_name, 0, self.element_length)[0]
+            if item < 0:
+                item += len(self)
+            start = self._totalitemsize * item
+            items = []
+            for token in self._token_names_and_lengths:
+                token_name, token_length = token
+                i = self.data[start: start + token_length]
+                items.append(i._readtoken(token_name, 0, token_length)[0])
+                start += token_length
+            if len(items) == 1:
+                return items[0]
+            return items
 
     def __setitem__(self, key, value):
-        pass
+        if isinstance(key, int):
+            if key < 0:
+                key += len(self)
+            start = self._totalitemsize * key
+            if len(self._token_names_and_lengths) == 1:
+                self.data[start: start + self._totalitemsize] = value
+                return
+            for token, val in zip(self._token_names_and_lengths, value):
+                token_name, token_length = token
+                self.data[start: start + token_length] = val
+                start += token_length
+
+    def __repr__(self) -> str:
+        list_str = f"{self.tolist()}"
+        trailing_bit_length = len(self.data) % self._totalitemsize
+        final_str = "" if trailing_bit_length == 0 else ", trailing_bits='" + str(self.data[-final_bits:] + "'")
+        return f"Array('{self._fmt}', {list_str}{final_str})"
 
     def fromlist(self, list_: Union[List, Tuple]) -> None:
+        bs = BitArray(pack(f'{len(list_)}*({self._format_str})', *list_))
+        self.data += bs
+
+    def frombytes(self, b: Union[bytes, bytearray, memoryview]) -> None:
+        if isinstance(b, (bytes, bytearray, memoryview)):
+            self.data += b
+        else:
+            raise TypeError(f"Array.frombytes() can only accept a bytes-like object, not a {type(b)}.")
+
+    def append(self, x: Any) -> None:
+        trailing_bit_length = len(self.data) % self._totalitemsize
+        if trailing_bit_length != 0:
+            raise ValueError(f"Cannot append to Array as its length is not a multiple of the format length.")
+        if len(self._token_names_and_lengths) == 1:
+            self.data += pack(self._format_str, x)
+        else:
+            self.data += pack(self._format_str, *x)
+
+    def extend(self, initializer: Iterable) -> None:
+        trailing_bit_length = len(self.data) % self._totalitemsize
+        if trailing_bit_length != 0:
+            raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
+        # TODO: If iterable is another Array, check _itemname is the same, otherwise raise TypeError (mirror array).
+        for x in initializer:
+            self.data += pack(self._format_str, x)
+
+    def insert(self, i: int, x):
         pass
 
-    def frombytes(self, buffer) -> None:
-        pass
-
-    def extend(self, i: Iterable) -> None:
+    def pop(self, i: Optional[int]):
         pass
 
     def byteswap(self) -> None:
         pass
 
     def count(self, x: Any) -> int:
-        pass
+        return sum(i == x for i in self)
 
-    def fromfile(self, f: BitArray, n: int) -> None:
+    def fromfile(self, f: BinaryIO, n: int) -> None:
         pass
 
     def tobytes(self) -> bytes:
@@ -4504,13 +4582,27 @@ class Array:
         pass
 
     def tolist(self) -> List[Any]:
-        pass
+        trailing_bit_length = len(self.data) % self._totalitemsize
+        return list(i._readlist(self._format_str, 0)[0][0] for i in self.data.cut(self._totalitemsize, end=(-trailing_bit_length if trailing_bit_length != 0 else None)))
 
     def reverse(self) -> None:
         pass
 
     def remove(self, x: Any) -> None:
+        # Removes just the first occurrence of x. Mirroring array.array.
         pass
+
+    def replace(self, old, new) -> int:
+        # Nice one to have?
+        pass
+
+    def __eq__(self, other: Array) -> bool:
+        if self._token_names_and_lengths != other._token_names_and_lengths:
+            return False
+        if self.data != other.data:
+            return False
+        return True
+
 
 
 def main() -> None:
