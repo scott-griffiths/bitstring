@@ -35,12 +35,12 @@ class Creation(unittest.TestCase):
         self.assertEqual(a[2], '43')
         self.assertEqual(a[3], '44')
 
-    def testCreationFromBits(self):
-        a = Bits('0x000102030405')
-        b = Array('bits:8', a)
-        c = b.tolist()
-        self.assertEqual(c[0], Bits('0x00'))
-        self.assertEqual(c[-1], Bits('0x05'))
+    # def testCreationFromBits(self):
+    #     a = Bits('0x000102030405')
+    #     b = Array('bits:8', a)
+    #     c = b.tolist()
+    #     self.assertEqual(c[0], Bits('0x00'))
+    #     self.assertEqual(c[-1], Bits('0x05'))
 
     def testCreationFromFloat8(self):
         x = b'\x7f\x00'

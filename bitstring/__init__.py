@@ -1465,11 +1465,11 @@ class Bits:
                 raise CreationError(f"Offset of {offset} and length of {length} too large for bitarray of length {len(ba)}.")
             self._bitstore = BitStore(ba[offset: offset + length])
 
-    def _setfloat152(self, f: float, _length: None = None, _offset: None = None):
+    def _setfloat152(self, f: float, length: None = None, _offset: None = None):
         u = fp152_fmt.float_to_int8(f)
         self._bitstore = _uint2bitstore(u, 8)
 
-    def _setfloat143(self, f: float, _length: None = None, _offset: None = None):
+    def _setfloat143(self, f: float, length: None = None, _offset: None = None):
         u = fp143_fmt.float_to_int8(f)
         self._bitstore = _uint2bitstore(u, 8)
 
@@ -1652,7 +1652,7 @@ class Bits:
         else:
             return struct.unpack(fmt, self._readbytes(start, length))[0]
 
-    def _readfloat143(self, start: int, _length: None = None) -> float:
+    def _readfloat143(self, start: int, length: None = None) -> float:
         u = self._readuint(start, length=8)
         return fp143_fmt.lut_int8_to_float[u]
 
@@ -1661,7 +1661,7 @@ class Bits:
             raise InterpretError  # TODO
         return self._readfloat143(0)
 
-    def _readfloat152(self, start: int, _length: None = None) -> float:
+    def _readfloat152(self, start: int, length: None = None) -> float:
         u = self._readuint(start, length=8)
         return fp152_fmt.lut_int8_to_float[u]
 
@@ -1703,9 +1703,9 @@ class Bits:
     def _getbfloatbe(self) -> float:
         return self._readbfloatbe(0, self.len)
 
-    def _readbfloatbe(self, start: int, _length: int) -> float:
-        if _length != 16:
-            raise InterpretError(f"bfloats must be length 16, received a length of {_length} bits.")
+    def _readbfloatbe(self, start: int, length: int) -> float:
+        if length != 16:
+            raise InterpretError(f"bfloats must be length 16, received a length of {length} bits.")
         two_bytes = self._slice(start, start + 16)
         zero_padded = two_bytes + Bits(16)
         return zero_padded._getfloatbe()
@@ -1718,7 +1718,7 @@ class Bits:
     def _getbfloatle(self) -> float:
         return self._readbfloatle(0, self.len)
 
-    def _readbfloatle(self, start: int, _length: int) -> float:
+    def _readbfloatle(self, start: int, length: int) -> float:
         two_bytes = self._slice(start, start + 16)
         zero_padded = Bits(16) + two_bytes
         return zero_padded._getfloatle()
@@ -1918,17 +1918,17 @@ class Bits:
             raise InterpretError(f"For a bool interpretation a bitstring must be 1 bit long, not {self.length} bits.")
         return self[0]
 
-    def _readbool(self, pos: int, _length: None = None) -> Tuple[int, int]:
-        return self[pos], pos + 1
+    def _readbool(self, start: int, length: None = None) -> int:
+        return self[start]
 
     def _readpad(self, _pos, _length) -> None:
         return None
 
-    def _setbin_safe(self, binstring: str, _length: None = None, _offset: None = None) -> None:
+    def _setbin_safe(self, binstring: str, length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to the value given in binstring."""
         self._bitstore = _bin2bitstore(binstring)
 
-    def _setbin_unsafe(self, binstring: str, _length: None = None, _offset: None = None) -> None:
+    def _setbin_unsafe(self, binstring: str, length: None = None, _offset: None = None) -> None:
         """Same as _setbin_safe, but input isn't sanity checked. binstring mustn't start with '0b'."""
         self._bitstore = _bin2bitstore_unsafe(binstring)
 
@@ -1942,7 +1942,7 @@ class Bits:
         """Return interpretation as a binary string."""
         return self._readbin(0, self.len)
 
-    def _setoct(self, octstring: str, _length: None = None, _offset: None = None) -> None:
+    def _setoct(self, octstring: str, length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in octstring."""
         self._bitstore = _oct2bitstore(octstring)
 
@@ -1960,7 +1960,7 @@ class Bits:
         ba = self._bitstore.copy() if self._bitstore.modified else self._bitstore
         return bitarray.util.ba2base(8, ba)
 
-    def _sethex(self, hexstring: str, _length: None = None, _offset: None = None) -> None:
+    def _sethex(self, hexstring: str, length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in hexstring."""
         self._bitstore = _hex2bitstore(hexstring)
 
@@ -4448,12 +4448,11 @@ fp152_fmt = FP8Format(exp_bits=5, bias=16)
 class Array:
     def __init__(self, fmt: str, initializer: Optional[Union[BitsType, Iterable]] = None,
                  trailing_bits: Optional[BitsType] = None) -> None:
+        self.data = BitArray()
         try:
             self.fmt = fmt
         except ValueError as e:
             raise CreationError(e)
-
-        self.data = BitArray()
 
         # We need to do all these in the right order, similar to Bits.
         if isinstance(initializer, int):
@@ -4513,24 +4512,27 @@ class Array:
         self._format_str = f'{token_name}:{token_length}'
         self._token_name = token_name
         self._token_length = token_length
+        self._setter_func = functools.partial(Bits._setfunc[self._token_name], length=self._token_length)
+        self._getter_func = functools.partial(Bits._name_to_read[self._token_name], length=self._token_length)
+
 
     def __len__(self) -> int:
         return len(self.data) // self._itemsize
-
-    # TODO: in readlist the pad token means that an item isn't returned (c.f. returning None). I don't think we should copy that behaviour?
 
     def __getitem__(self, item):
         if isinstance(item, int):
             if item < 0:
                 item += len(self)
-            start = self._itemsize * item
-            i = self.data[start: start + self._token_length]
-            return i._readtoken(self._token_name, 0, self._token_length)[0]
+            if item < 0 or item >= len(self):
+                raise IndexError
+            return self._getter_func(self.data, start=self._itemsize * item)
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
             if key < 0:
                 key += len(self)
+            if key < 0 or key >= len(self):
+                raise IndexError
             start = self._itemsize * key
             self.data[start: start + self._itemsize] = value
             return
@@ -4542,8 +4544,16 @@ class Array:
         return f"Array('{self._fmt}', {list_str}{final_str})"
 
     def fromlist(self, list_: Union[List, Tuple]) -> None:
-        bs = BitArray(pack(f'{len(list_)}*({self._format_str})', *list_))
-        self.data += bs
+        trailing_bit_length = len(self.data) % self._itemsize
+        if trailing_bit_length != 0:
+            raise ValueError(f"Cannot append to Array using fromlist as its length is not a multiple of the format length.")
+        for item in list_:
+            b = Bits()
+            self._setter_func(b, item)
+            self.data += b
+
+    def tolist(self) -> List[Any]:
+        return [self._getter_func(self.data, start=start) for start in range(0, len(self.data), self._itemsize)]
 
     def frombytes(self, b: Union[bytes, bytearray, memoryview]) -> None:
         if isinstance(b, (bytes, bytearray, memoryview)):
@@ -4555,10 +4565,9 @@ class Array:
         trailing_bit_length = len(self.data) % self._itemsize
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot append to Array as its length is not a multiple of the format length.")
-        self.data += pack(self._format_str, x)
-        # b = Bits()
-        # Bits._setfunc[self._token_name](b, x, self._token_length)
-        # self.data += b
+        b = Bits()
+        self._setter_func(b, x)
+        self.data += b
 
     def extend(self, initializer: Iterable) -> None:
         trailing_bit_length = len(self.data) % self._itemsize
@@ -4570,10 +4579,10 @@ class Array:
             # No need to iterate over the elements, we can just append the data
             self.data += initializer.data
         else:
-            new_data = BitArray()
             for x in initializer:
-                new_data += pack(self._format_str, x)
-            self.data += new_data
+                b = Bits()
+                self._setter_func(b, x)
+                self.data += b
 
     def insert(self, i: int, x: Any):
         pass
@@ -4595,10 +4604,6 @@ class Array:
 
     def tofile(self, f: BinaryIO) -> None:
         pass
-
-    def tolist(self) -> List[Any]:
-        trailing_bit_length = len(self.data) % self._itemsize
-        return list(i._readlist(self._format_str, 0)[0][0] for i in self.data.cut(self._itemsize, end=(-trailing_bit_length if trailing_bit_length != 0 else None)))
 
     def reverse(self) -> None:
         pass
@@ -4634,7 +4639,6 @@ class Array:
                 return True
             except AttributeError:
                 return False
-
 
 
 def main() -> None:
