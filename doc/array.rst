@@ -22,7 +22,7 @@ The ``bitstring.Array`` type is meant as a more flexible version of the standard
 
 So far, so pointless! Its flexibility lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
 
-For example ``'uint4'``, ``'bfloat'``, ``'bits7'``, ``'hex12'`` or even compound formats such as ``'2*uint12, bin3'`` can be used.
+For example ``'uint4'``, ``'bfloat'``, ``'bits7'`` or ``'hex12'`` can be used.
 
 Each element in the ``Array`` must then be something that makes sense for the ``fmt``.
 Some examples will help illustrate::
@@ -35,14 +35,14 @@ Some examples will help illustrate::
     # Convert and store floats in 8 bits each
     b = Array('float8_152', [-56.0, 0.123, 99.6])
 
-    # Each element is a pair of 7 bit signed integers!
-    c = Array('2*int7', [[-3, 15], [0, 0], [99, 120]])
+    # Each element is a  7 bit signed integer
+    c = Array('int7', [-3, 0, 120])
 
 You can then access and modify the ``Array`` with the usual notation::
 
     a[1:5]  # Array('uint4', [5, 5, 3])
     b[0]  # -56.0
-    c[-1]  # [99, 120]
+    c[-1]  # 120
 
     a[0] = 2
     b.extend([0.0, -1.5])
@@ -78,42 +78,44 @@ The data for the array is stored internally as a ``BitArray`` object.
 It can be directly accessed  using the ``data`` property.
 You can manipulate the internal data directly using all of the methods available for the ``BitArray`` class.
 
-The ``Array`` object also has a ``final`` read-only data member, which consists of the end bits of the ``data`` ``BitArray`` that are left over when the ``Array`` is interpreted using ``fmt``.
-Typically ``final`` will be an empty ``BitArray`` but if you change the length of the ``data`` or change the ``fmt`` specification there may be some bits left over.
+The ``Array`` object also has a ``trailing_bits`` read-only data member, which consists of the end bits of the ``data`` ``BitArray`` that are left over when the ``Array`` is interpreted using ``fmt``.
+Typically ``trailing_bits`` will be an empty ``BitArray`` but if you change the length of the ``data`` or change the ``fmt`` specification there may be some bits left over.
 
-Some methods, such as ``append`` and ``extend`` will raise an exception if used when ``final`` is not empty, as it not clear how these should behave in this case.
-
-
+Some methods, such as ``append`` and ``extend`` will raise an exception if used when ``trailing_bits`` is not empty, as it not clear how these should behave in this case.
 
 
 
-.. class:: Array(fmt, [initializer], [final])
+
+
+.. class:: Array(fmt, [initializer], [trailing_bits])
 
     Create a new ``Array`` whose elements are set by the ``fmt`` string.
-    The ``fmt`` string can be a typecode such as ``'H'`` or ``'d'`` but it can also be a string defining any fixed-length bitstring.
+    The ``fmt`` string can be a type code such as ``'H'`` or ``'d'`` but it can also be a string defining any fixed-length bitstring.
 
+    The correspondence between type codes and bitstring format codes is given in the table below.
 
+    =========   ===================
+    Type code   bitstring format
+    =========   ===================
+    ``'b'``     ``'int8'``
+    ``'B'``     ``'uint8'``
+    ``'h'``     ``'intne16'``
+    ``'H'``     ``'uintne16'``
+    ``'l'``     ``'intne32'``
+    ``'L'``     ``'uintne32'``
+    ``'q'``     ``'intne64'``
+    ``'Q'``     ``'uintne64'``
+    ``'e'``     ``'floatne16'``
+    ``'f'``     ``'floatne32'``
+    ``'d'``     ``'floatne64'``
+    =========   ===================
 
-    The `fmt` can either be a single interpretation or multiple.
-    Getting and setting elements of the ``Array`` need to take this into account.
-    The single interpretation case is straightforward::
+    .. note::
+        To keep compatibility with the ``array`` module the multi-byte formats all have native endianness.
 
-        x = Array('float32', some_byte_data)
-        if x[0] == 0.0:
-            x[0] = -1.0
+        The ``'u'`` type code from the ``array`` module isn't supported as its length is platform dependent.
 
-    For multiple interpreations each element of the ``Array`` represents multiple objects, so a list or tuple is needed to get and set::
-
-        x = Array('2*float16', some_byte_data)
-        if x[0] == (0.0, 0.0):
-            x[0] = (0.0, 1005.0)
-
-    Note that you can use the ``'pad'`` token to ignore some bits, and this will cause ``None`` to be returned::
-
-        x = Array('uint4, pad4, uint8', some_byte_data)
-        a, b, c = x[5]
-        assert b is None
-
+        The ``'e'`` type code isn't one of the ``array`` supported types, but it is used in the ``struct`` module and we support it here.
 
 
 Methods
@@ -132,24 +134,24 @@ Properties
 
 .. attribute:: data
 
-    The bit data of the ``Array``, as a ``BitArray``. Read and write, but note that if you want to continue to use it as an ``Array`` it should always be left with a length that is a multiple of its ``itemsize``.
+    The bit data of the ``Array``, as a ``BitArray``. Read and write, and can be freely manipulated with all of ``BitArray`` methods.
+    Note that some ``Array`` methods such as ``append`` and ``extend`` require the bit data to have a length that is a multiple of the ``Array``'s ``itemsize``.
 
 .. attribute:: fmt
 
-    The format string used to initialise the ``Array`` type. Read-only.
+    The format string used to initialise the ``Array`` type. Read and write.
+    Changing the format for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
+    Note that some ``Array`` methods such as ``append`` and ``extend`` require the bit data to have a length that is a multiple of the ``Array``'s ``itemsize``.
 
 .. attribute:: itemsize
 
     The size in bits of each item in the ``Array``. Read-only.
 
-    If each element of the ``Array`` is a single item the ``itemsize`` will be a single ``int``.
-    If the ``fmt`` specifies more than one item the ``itemsize`` will be a list of ``int`` values.
-
     Note that this gives a value in bits, unlike the equivalent in the ``array`` module which gives a value in bytes. ::
 
-        >>> a = Array('int8')
-        >>> b = Array('bool, pad3, uint4')
+        >>> a = Array('h')
+        >>> b = Array('bool')
         >>> a.itemsize
-        8
+        16
         >>> b.itemsize
-        [1, 3, 4]
+        1

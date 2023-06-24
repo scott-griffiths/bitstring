@@ -316,7 +316,7 @@ INIT_NAMES.sort(key=len, reverse=True)
 TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>' + '|'.join(INIT_NAMES) +
                                     r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 # Tokens such as 'u32', 'f64=4.5' or 'i6=-3'
-SHORT_TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>[uifboh]):?(?P<len>\d+)?(=(?P<value>.*))?$', re.IGNORECASE)
+SHORT_TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>[uifboh]):?(?P<len>\d+)?(=(?P<value>.*))?$')
 DEFAULT_BITS: Pattern[str] = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
 MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
@@ -4446,7 +4446,8 @@ fp152_fmt = FP8Format(exp_bits=5, bias=16)
 
 
 class Array:
-    def __init__(self, fmt: str, initializer: Optional[Union[BitsType, Iterable]] = None, trailing_bits: Optional[BitsType] = None):
+    def __init__(self, fmt: str, initializer: Optional[Union[BitsType, Iterable]] = None,
+                 trailing_bits: Optional[BitsType] = None) -> None:
         try:
             self.fmt = fmt
         except ValueError as e:
@@ -4456,7 +4457,7 @@ class Array:
 
         # We need to do all these in the right order, similar to Bits.
         if isinstance(initializer, int):
-            self.data = BitArray(initializer * self._totalitemsize)
+            self.data = BitArray(initializer * self._itemsize)
         elif isinstance(initializer, Array):
             self.fromlist(initializer.tolist())
         elif isinstance(initializer, (list, tuple)):
@@ -4467,10 +4468,27 @@ class Array:
         if trailing_bits is not None:
             self.data += BitArray(trailing_bits)
 
+    @property
+    def itemsize(self) -> int:
+        return self._itemsize
 
     @property
-    def itemsize(self) -> Union[int, Tuple[int]]:
-        return self._itemsizes
+    def trailing_bits(self) -> BitArray:
+        trailing_bit_length = len(self.data) % self._itemsize
+        return BitArray() if trailing_bit_length == 0 else self.data[-trailing_bit_length:]
+
+
+    array_typecodes: dict[str, str]  = {'b': 'int8',
+                                        'B': 'uint8',
+                                        'h': 'intne16',
+                                        'H': 'uintne16',
+                                        'l': 'intne32',
+                                        'L': 'uintne32',
+                                        'q': 'intne64',
+                                        'Q': 'uintne64',
+                                        'e': 'floatne16',
+                                        'f': 'floatne32',
+                                        'd': 'floatne64'}
 
     @property
     def fmt(self) -> str:
@@ -4478,59 +4496,49 @@ class Array:
 
     @fmt.setter
     def fmt(self, new_fmt: str) -> None:
-        # Let's save the exact fmt string so we can use it in __repr__ etc
+        # We save the exact fmt string so we can use it in __repr__ etc
         self._fmt = new_fmt
+        try:
+            new_fmt = Array.array_typecodes[new_fmt]
+        except KeyError:
+            pass
         tokens = tokenparser(new_fmt, None)[1]
-        self._token_names_and_lengths = [(x[0], x[1]) for x in tokens]
-        for token in self._token_names_and_lengths:
-            token_name, token_length = token
-            if token_length is None:
-                raise ValueError(f"The format '{token_name}' doesn't have a fixed length and so can't be used in an Array.")
-        self._itemsizes = [x[1] for x in self._token_names_and_lengths]
-        self._totalitemsize = sum(self._itemsizes)
-        if len(self._itemsizes) == 1:
-            self._itemsizes = self._itemsizes[0]
-        self._format_str = ','.join(f'{token_name}:{token_length}' for token_name, token_length in self._token_names_and_lengths)
+        token_names_and_lengths = [(x[0], x[1]) for x in tokens]
+        if len(token_names_and_lengths) != 1:
+            raise ValueError(f"Only a single token can be used in an Array format - '{new_fmt}' has {len(token_names_and_lengths)} tokens.")
+        token_name, token_length = token_names_and_lengths[0]
+        if token_length is None:
+            raise ValueError(f"The format '{token_name}' doesn't have a fixed length and so can't be used in an Array.")
+        self._itemsize = token_length
+        self._format_str = f'{token_name}:{token_length}'
+        self._token_name = token_name
+        self._token_length = token_length
 
-
-    def __len__(self):
-        return len(self.data) // self._totalitemsize
+    def __len__(self) -> int:
+        return len(self.data) // self._itemsize
 
     # TODO: in readlist the pad token means that an item isn't returned (c.f. returning None). I don't think we should copy that behaviour?
-
 
     def __getitem__(self, item):
         if isinstance(item, int):
             if item < 0:
                 item += len(self)
-            start = self._totalitemsize * item
-            items = []
-            for token in self._token_names_and_lengths:
-                token_name, token_length = token
-                i = self.data[start: start + token_length]
-                items.append(i._readtoken(token_name, 0, token_length)[0])
-                start += token_length
-            if len(items) == 1:
-                return items[0]
-            return items
+            start = self._itemsize * item
+            i = self.data[start: start + self._token_length]
+            return i._readtoken(self._token_name, 0, self._token_length)[0]
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
             if key < 0:
                 key += len(self)
-            start = self._totalitemsize * key
-            if len(self._token_names_and_lengths) == 1:
-                self.data[start: start + self._totalitemsize] = value
-                return
-            for token, val in zip(self._token_names_and_lengths, value):
-                token_name, token_length = token
-                self.data[start: start + token_length] = val
-                start += token_length
+            start = self._itemsize * key
+            self.data[start: start + self._itemsize] = value
+            return
 
     def __repr__(self) -> str:
         list_str = f"{self.tolist()}"
-        trailing_bit_length = len(self.data) % self._totalitemsize
-        final_str = "" if trailing_bit_length == 0 else ", trailing_bits='" + str(self.data[-final_bits:] + "'")
+        trailing_bit_length = len(self.data) % self._itemsize
+        final_str = "" if trailing_bit_length == 0 else ", trailing_bits='" + str(self.data[-trailing_bit_length:] + "'")
         return f"Array('{self._fmt}', {list_str}{final_str})"
 
     def fromlist(self, list_: Union[List, Tuple]) -> None:
@@ -4544,23 +4552,30 @@ class Array:
             raise TypeError(f"Array.frombytes() can only accept a bytes-like object, not a {type(b)}.")
 
     def append(self, x: Any) -> None:
-        trailing_bit_length = len(self.data) % self._totalitemsize
+        trailing_bit_length = len(self.data) % self._itemsize
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot append to Array as its length is not a multiple of the format length.")
-        if len(self._token_names_and_lengths) == 1:
-            self.data += pack(self._format_str, x)
-        else:
-            self.data += pack(self._format_str, *x)
+        self.data += pack(self._format_str, x)
+        # b = Bits()
+        # Bits._setfunc[self._token_name](b, x, self._token_length)
+        # self.data += b
 
     def extend(self, initializer: Iterable) -> None:
-        trailing_bit_length = len(self.data) % self._totalitemsize
+        trailing_bit_length = len(self.data) % self._itemsize
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
-        # TODO: If iterable is another Array, check _itemname is the same, otherwise raise TypeError (mirror array).
-        for x in initializer:
-            self.data += pack(self._format_str, x)
+        if isinstance(initializer, Array):
+            if self._token_name != initializer._token_name or self._token_length != initializer._token_length:
+                raise TypeError(f"Formats must match when extending one Array with another Array.")
+            # No need to iterate over the elements, we can just append the data
+            self.data += initializer.data
+        else:
+            new_data = BitArray()
+            for x in initializer:
+                new_data += pack(self._format_str, x)
+            self.data += new_data
 
-    def insert(self, i: int, x):
+    def insert(self, i: int, x: Any):
         pass
 
     def pop(self, i: Optional[int]):
@@ -4582,8 +4597,8 @@ class Array:
         pass
 
     def tolist(self) -> List[Any]:
-        trailing_bit_length = len(self.data) % self._totalitemsize
-        return list(i._readlist(self._format_str, 0)[0][0] for i in self.data.cut(self._totalitemsize, end=(-trailing_bit_length if trailing_bit_length != 0 else None)))
+        trailing_bit_length = len(self.data) % self._itemsize
+        return list(i._readlist(self._format_str, 0)[0][0] for i in self.data.cut(self._itemsize, end=(-trailing_bit_length if trailing_bit_length != 0 else None)))
 
     def reverse(self) -> None:
         pass
@@ -4596,12 +4611,29 @@ class Array:
         # Nice one to have?
         pass
 
-    def __eq__(self, other: Array) -> bool:
-        if self._token_names_and_lengths != other._token_names_and_lengths:
-            return False
-        if self.data != other.data:
-            return False
-        return True
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, Array):
+            if self._token_name != other._token_name:
+                return False
+            if self._token_length != other._token_length:
+                return False
+            if self.data != other.data:
+                return False
+            return True
+        else:
+            # Assume we are comparing with an array type
+            if self.trailing_bits:
+                return False
+            try:
+                if self.itemsize != other.itemsize * 8:
+                    return False
+                if len(self) != len(other):
+                    return False
+                if self.tolist() != other.tolist():
+                    return False
+                return True
+            except AttributeError:
+                return False
 
 
 

@@ -51,10 +51,8 @@ class Creation(unittest.TestCase):
         self.assertEqual(a, b)
 
     def testCreationFromMultiple(self):
-        a = Array('2*float16')
-        self.assertEqual(a.itemsize, [16, 16])
-        a.append([0.25, -100])
-        self.assertEqual(a[0], [0.25, -100])
+        with self.assertRaises(ValueError):
+            a = Array('2*float16')
 
     def testChangingFmt(self):
         a = Array('uint8', [255]*100)
@@ -66,12 +64,32 @@ class Creation(unittest.TestCase):
         self.assertEqual(len(a), 201)
         self.assertEqual(a.count(-1), 200)
 
+    def testCreationWithTrailingBits(self):
+        a = Array('bool', trailing_bits='0xf')
+        self.assertEqual(a.data, '0b1111')
+        self.assertEqual(len(a), 4)
+
+        b = Array('bin:3', ['111', '000', '111'])
+        self.assertEqual(len(b), 3)
+        self.assertEqual(b.data, '0b111000111')
+        b.fmt = 'h4'
+        self.assertEqual(len(b), 2)
+        with self.assertRaises(ValueError):
+            b.append('f')
+        del b.data[0]
+        b.append('f')
+        self.assertEqual(len(b), 3)
+
+    def testCreationWithArrayCode(self):
+        a = Array('f')
+        self.assertEqual(a.itemsize, 32)
+
 
 
 class ArrayMethods(unittest.TestCase):
 
     def testCount(self):
-        a = Array('u9', [0,4,3,2,3,4,2,3,2,1,2,11,2,1])
+        a = Array('u9', [0, 4, 3, 2, 3, 4, 2, 3, 2, 1, 2, 11, 2, 1])
         self.assertEqual(a.count(0), 1)
         self.assertEqual(a.count(-1), 0)
         self.assertEqual(a.count(2), 5)
@@ -95,9 +113,52 @@ class ArrayMethods(unittest.TestCase):
         with self.assertRaises(TypeError):
             a.frombytes(16)
 
+    def testEquals(self):
+        a = Array('hex:40')
+        b = Array('h40')
+        self.assertEqual(a, b)
+        c = Array('bin:160')
+        self.assertNotEqual(a, c)
+        v = ['1234567890']
+        a.extend(v)
+        b.extend(v)
+        self.assertEqual(a, b)
+        b.extend(v)
+        self.assertNotEqual(a, b)
+
+        a = Array('uint20', [16, 32, 64, 128])
+        b = Array('uint10', [0, 16, 0, 32, 0, 64, 0, 128])
+        self.assertNotEqual(a, b)
+        b.fmt = 'u20'
+        self.assertEqual(a, b)
+        a.data += '0b1'
+        self.assertNotEqual(a, b)
+        b.data += '0b1'
+        self.assertEqual(a, b)
+
     def testSetting(self):
         a = Array('bool')
         a.data += b'\x00'
         a[0] = 1
         self.assertEqual(a[0], True)
 
+    def testEquivalence(self):
+        a = Array('floatne32', [54.2, -998, 411.9])
+        b = Array('floatne32')
+        b.extend(a.tolist())
+        self.assertEqual(a.data, b.data)
+
+        b = array.array('f', [54.2, -998, 411.9])
+        self.assertEqual(a, b)
+
+    def testExtend(self):
+        a = Array('uint:3', (1, 2, 3))
+        a.extend([4, 5, 6])
+        self.assertEqual(a.tolist(), [1, 2, 3, 4, 5, 6])
+        a.extend([])
+        self.assertEqual(a.tolist(), [1, 2, 3, 4, 5, 6])
+        a.extend(a)
+        self.assertEqual(a.tolist(), [1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6])
+        b = Array('int:3', [0])
+        with self.assertRaises(TypeError):
+            a.extend(b)
