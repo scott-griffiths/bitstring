@@ -35,12 +35,10 @@ class Creation(unittest.TestCase):
         self.assertEqual(a[2], '43')
         self.assertEqual(a[3], '44')
 
-    # def testCreationFromBits(self):
-    #     a = Bits('0x000102030405')
-    #     b = Array('bits:8', a)
-    #     c = b.tolist()
-    #     self.assertEqual(c[0], Bits('0x00'))
-    #     self.assertEqual(c[-1], Bits('0x05'))
+    def testCreationFromBits(self):
+        a = Bits('0x000102030405')
+        with self.assertRaises(bitstring.CreationError):
+            b = Array('bits:8', a)
 
     def testCreationFromFloat8(self):
         x = b'\x7f\x00'
@@ -64,6 +62,18 @@ class Creation(unittest.TestCase):
         self.assertEqual(len(a), 201)
         self.assertEqual(a.count(-1), 200)
 
+        a = Array('d', [0, 0, 1])
+        with self.assertRaises(ValueError):
+            a.fmt = 'se'
+        self.assertEqual(a[-1], 1.0)
+        self.assertEqual(a.fmt, 'd')
+
+    def testChangingFormatWithTrailingBits(self):
+        a = Array('bool', 803)
+        self.assertEqual(len(a), 803)
+        a.fmt = 'e'
+        self.assertEqual(len(a), 803 // 16)
+
     def testCreationWithTrailingBits(self):
         a = Array('bool', trailing_bits='0xf')
         self.assertEqual(a.data, '0b1111')
@@ -79,6 +89,10 @@ class Creation(unittest.TestCase):
         del b.data[0]
         b.append('f')
         self.assertEqual(len(b), 3)
+
+        c = Array('e', trailing_bits='0x0000, 0b1')
+        self.assertEqual(c[0], 0.0)
+        self.assertEqual(c.tolist(), [0.0])
 
     def testCreationWithArrayCode(self):
         a = Array('f')
@@ -142,6 +156,23 @@ class ArrayMethods(unittest.TestCase):
         a[0] = 1
         self.assertEqual(a[0], True)
 
+        b = Array('h12')
+        with self.assertRaises(ValueError):
+            b.append('12')
+        b.append('123')
+        with self.assertRaises(ValueError):
+            b.extend(['3456'])
+        b.extend(['345'])
+        self.assertEqual(b.tolist(), ['123', '345'])
+        with self.assertRaises(ValueError):
+            b[0] = 'abcd'
+        with self.assertRaises(ValueError):
+            b[0] = 12
+        with self.assertRaises(ValueError):
+            b[0] = Bits('0xfff')
+        b[0] = 'fff'
+        self.assertEqual(b.data.hex, 'fff345')
+
     def testEquivalence(self):
         a = Array('floatne32', [54.2, -998, 411.9])
         b = Array('floatne32')
@@ -162,3 +193,23 @@ class ArrayMethods(unittest.TestCase):
         b = Array('int:3', [0])
         with self.assertRaises(TypeError):
             a.extend(b)
+
+    def testInsert(self):
+        a = Array('hex:12', ['abc', 'def'])
+        self.assertEqual(a.data.hex, 'abcdef')
+        a.insert(0, '000')
+        self.assertEqual(a.data.hex, '000abcdef')
+        a.insert(-1, '111')
+        self.assertEqual(a[-1], 'def')
+        self.assertEqual(a[-2], '111')
+        a.data += '0b1'
+        self.assertEqual(a[-1], 'def')
+        a.insert(1, '111')
+        self.assertEqual(a.tolist(), ['000', '111', 'abc', '111', 'def'])
+
+        with self.assertRaises(ValueError):
+            a.insert(2, 'hello')
+        with self.assertRaises(ValueError):
+            a.insert(2, 'ab')
+
+

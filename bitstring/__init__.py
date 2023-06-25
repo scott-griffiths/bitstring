@@ -303,7 +303,11 @@ class BitStore(bitarray.bitarray):
 
 def tidy_input_string(s: str) -> str:
     """Return string made lowercase and with all whitespace and underscores removed."""
-    return ''.join(s.split()).lower().replace('_', '')
+    try:
+        l = s.split()
+    except (AttributeError, TypeError):
+        raise ValueError
+    return ''.join(l).lower().replace('_', '')
 
 
 INIT_NAMES: List[str] = ['uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
@@ -4496,25 +4500,33 @@ class Array:
     @fmt.setter
     def fmt(self, new_fmt: str) -> None:
         # We save the exact fmt string so we can use it in __repr__ etc
-        self._fmt = new_fmt
-        try:
-            new_fmt = Array.array_typecodes[new_fmt]
-        except KeyError:
-            pass
-        tokens = tokenparser(new_fmt, None)[1]
+        new_fmt_parsed = Array.array_typecodes.get(new_fmt, new_fmt)
+        tokens = tokenparser(new_fmt_parsed, None)[1]
         token_names_and_lengths = [(x[0], x[1]) for x in tokens]
         if len(token_names_and_lengths) != 1:
             raise ValueError(f"Only a single token can be used in an Array format - '{new_fmt}' has {len(token_names_and_lengths)} tokens.")
         token_name, token_length = token_names_and_lengths[0]
         if token_length is None:
-            raise ValueError(f"The format '{token_name}' doesn't have a fixed length and so can't be used in an Array.")
+            raise ValueError(f"The format '{new_fmt}' doesn't have a fixed length and so can't be used in an Array.")
+        try:
+            self._setter_func = functools.partial(Bits._setfunc[token_name], length=token_length)
+        except KeyError:
+            raise ValueError(f"The token '{token_name}' can't be used to set Array elements.")
+        try:
+            self._getter_func = functools.partial(Bits._name_to_read[token_name], length=token_length)
+        except KeyError:
+            raise ValueError(f"The token '{token_name}' can't be used to get Array elements.")
         self._itemsize = token_length
-        self._format_str = f'{token_name}:{token_length}'
         self._token_name = token_name
-        self._token_length = token_length
-        self._setter_func = functools.partial(Bits._setfunc[self._token_name], length=self._token_length)
-        self._getter_func = functools.partial(Bits._name_to_read[self._token_name], length=self._token_length)
+        self._fmt = new_fmt
 
+    def _create_element(self, value: Any) -> Bits:
+        """Create Bits from value according to the token_name and token_length"""
+        b = Bits()
+        self._setter_func(b, value)
+        if len(b) != self._itemsize:
+            raise ValueError(f"The value '{value}' has the wrong length for the format '{self._fmt}'.")
+        return b
 
     def __len__(self) -> int:
         return len(self.data) // self._itemsize
@@ -4534,7 +4546,7 @@ class Array:
             if key < 0 or key >= len(self):
                 raise IndexError
             start = self._itemsize * key
-            self.data[start: start + self._itemsize] = value
+            self.data.overwrite(self._create_element(value), start)
             return
 
     def __repr__(self) -> str:
@@ -4546,14 +4558,13 @@ class Array:
     def fromlist(self, list_: Union[List, Tuple]) -> None:
         trailing_bit_length = len(self.data) % self._itemsize
         if trailing_bit_length != 0:
-            raise ValueError(f"Cannot append to Array using fromlist as its length is not a multiple of the format length.")
+            raise ValueError(f"Cannot append to Array using fromlist as the Array length is not a multiple of its format length.")
         for item in list_:
-            b = Bits()
-            self._setter_func(b, item)
-            self.data += b
+            self.data += self._create_element(item)
 
     def tolist(self) -> List[Any]:
-        return [self._getter_func(self.data, start=start) for start in range(0, len(self.data), self._itemsize)]
+        return [self._getter_func(self.data, start=start)
+                for start in range(0, len(self.data) - self._itemsize + 1, self._itemsize)]
 
     def frombytes(self, b: Union[bytes, bytearray, memoryview]) -> None:
         if isinstance(b, (bytes, bytearray, memoryview)):
@@ -4565,27 +4576,24 @@ class Array:
         trailing_bit_length = len(self.data) % self._itemsize
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot append to Array as its length is not a multiple of the format length.")
-        b = Bits()
-        self._setter_func(b, x)
-        self.data += b
+        self.data += self._create_element(x)
 
     def extend(self, initializer: Iterable) -> None:
         trailing_bit_length = len(self.data) % self._itemsize
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
         if isinstance(initializer, Array):
-            if self._token_name != initializer._token_name or self._token_length != initializer._token_length:
+            if self._token_name != initializer._token_name or self._itemsize != initializer._itemsize:
                 raise TypeError(f"Formats must match when extending one Array with another Array.")
             # No need to iterate over the elements, we can just append the data
             self.data += initializer.data
         else:
             for x in initializer:
-                b = Bits()
-                self._setter_func(b, x)
-                self.data += b
+                self.data += self._create_element(x)
 
     def insert(self, i: int, x: Any):
-        pass
+        i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
+        self.data.insert(self._create_element(x), i * self._itemsize)
 
     def pop(self, i: Optional[int]):
         pass
@@ -4618,9 +4626,9 @@ class Array:
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Array):
-            if self._token_name != other._token_name:
+            if self._itemsize != other._itemsize:
                 return False
-            if self._token_length != other._token_length:
+            if self._token_name != other._token_name:
                 return False
             if self.data != other.data:
                 return False
