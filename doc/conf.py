@@ -1,8 +1,14 @@
 # Configuration file for the Sphinx documentation builder.
 #
+import os
+import time
 import datetime
 
-year = datetime.datetime.now().year
+import datetime
+
+year = datetime.datetime.utcfromtimestamp(
+    int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))
+).year
 
 project = 'bitstring'
 copyright = f'2006 - {year}, Scott Griffiths'
