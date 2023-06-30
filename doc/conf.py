@@ -4,7 +4,6 @@ import os
 import time
 import datetime
 
-import datetime
 
 year = datetime.datetime.utcfromtimestamp(
     int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))
