@@ -73,6 +73,10 @@ class Creation(unittest.TestCase):
         self.assertEqual(len(a), 803)
         a.fmt = 'e'
         self.assertEqual(len(a), 803 // 16)
+        b = Array('f', [0])
+        b.fmt = 'i3'
+        self.assertEqual(b.tolist(), [0]*10)
+        x = b.__repr__()
 
     def testCreationWithTrailingBits(self):
         a = Array('bool', trailing_bits='0xf')
@@ -131,7 +135,7 @@ class ArrayMethods(unittest.TestCase):
         a = Array('hex:40')
         b = Array('h40')
         self.assertEqual(a, b)
-        c = Array('bin:160')
+        c = Array('bin:40')
         self.assertNotEqual(a, c)
         v = ['1234567890']
         a.extend(v)
@@ -181,6 +185,17 @@ class ArrayMethods(unittest.TestCase):
 
         b = array.array('f', [54.2, -998, 411.9])
         self.assertEqual(a, b)
+        a.fmt = 'bool'
+        self.assertNotEqual(a, b)
+        a.fmt = 'floatne16'
+        self.assertNotEqual(a, b)
+        a.fmt = 'floatne32'
+        a.data += '0x0'
+        self.assertNotEqual(a, b)
+        a.data += '0x0000000'
+        self.assertNotEqual(a, b)
+        b.append(0.0)
+        self.assertEqual(a, b)
 
     def testExtend(self):
         a = Array('uint:3', (1, 2, 3))
@@ -193,6 +208,9 @@ class ArrayMethods(unittest.TestCase):
         b = Array('int:3', [0])
         with self.assertRaises(TypeError):
             a.extend(b)
+        del a.data[0]
+        with self.assertRaises(ValueError):
+            a.extend([1, 0])
 
     def testInsert(self):
         a = Array('hex:12', ['abc', 'def'])
@@ -211,5 +229,71 @@ class ArrayMethods(unittest.TestCase):
             a.insert(2, 'hello')
         with self.assertRaises(ValueError):
             a.insert(2, 'ab')
+
+    def testPop(self):
+        a = Array('oct:6', ['33', '21', '11', '76'])
+        self.assertEqual(len(a), 4)
+        x = a.pop()
+        self.assertEqual(len(a), 3)
+        self.assertEqual(x, '76')
+        with self.assertRaises(IndexError):
+            _ = a.pop(3)
+        x = a.pop(2)
+        self.assertEqual(x, '11')
+        x = a.pop(0)
+        self.assertEqual(x, '33')
+        x = a.pop()
+        self.assertEqual(x, '21')
+        with self.assertRaises(IndexError):
+            _ = a.pop()
+
+    def testReverse(self):
+        a = Array('int30', [])
+        a.reverse()
+        self.assertEqual(a.tolist(), [])
+        a.append(2)
+        a.reverse()
+        self.assertEqual(a.tolist(), [2])
+        a.append(3)
+        a.reverse()
+        self.assertEqual(a.tolist(), [3, 2])
+        a.data.clear()
+        a.fromlist(list(range(1000)))
+        a.reverse()
+        self.assertEqual(a.tolist(), list(range(999, -1, -1)))
+        x = a.pop(0)
+        self.assertEqual(x, 999)
+        a.reverse()
+        self.assertEqual(a.tolist(), list(range(0, 999)))
+        a.data += '0b1'
+        with self.assertRaises(ValueError):
+            a.reverse()
+
+    def testByteswap(self):
+        a = Array('float16')
+        a.byteswap()
+        self.assertEqual(a.tolist(), [])
+        b = Array('uint17')
+        with self.assertRaises(ValueError):
+            b.byteswap()
+        a.fromlist([0.25, 104, -6])
+        a.byteswap()
+        self.assertEqual(a.data.unpack('3*floatle16'), [0.25, 104, -6])
+        a.byteswap()
+        self.assertEqual(a.tolist(), [0.25, 104, -6])
+
+    def testToFile(self):
+        filename = os.path.join(THIS_DIR, 'temp_bitstring_unit_testing_file')
+        a = Array('uint5', [0, 1, 2, 3, 4, 5])
+        with open(filename, 'wb') as f:
+            a.tofile(f)
+        with open(filename, 'rb') as f:
+            b = Array('u5')
+            b.fromfile(f, 1)
+        self.assertEqual(b.tolist(), [0])
+
+    def testToBytes(self):
+        pass
+
 
 

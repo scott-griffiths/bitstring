@@ -654,15 +654,18 @@ def _bfloatle2bitstore(f: Union[str, float]) -> BitStore:
         b = struct.pack('<f', float('inf') if f > 0 else float('-inf'))
     return BitStore(frombytes=b[2:4])
 
+
 def _float8_143_2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     u = fp143_fmt.float_to_int8(f)
     return _uint2bitstore(u, 8)
 
+
 def _float8_152_2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     u = fp152_fmt.float_to_int8(f)
     return _uint2bitstore(u, 8)
+
 
 def _uint2bitstore(uint: Union[str, int], length: int) -> BitStore:
     uint = int(uint)
@@ -1340,7 +1343,7 @@ class Bits:
 
     def __bool__(self) -> bool:
         """Return True if any bits are set to 1, otherwise return False."""
-        return self.any(True)
+        return len(self) != 0
 
     @classmethod
     def _init_with_token(cls, name: str, token_length: Optional[int], value: Optional[str]) -> Bits:
@@ -2647,6 +2650,39 @@ class Bits:
         count = self._bitstore.count(1)
         return count if value else self.len - count
 
+    @staticmethod
+    def _chars_in_pp_token(fmt: str) -> Tuple[str, Optional[int], Optional[int]]:
+        """
+        bin8 -> 'bin', 8, 8
+        hex12 -> 'hex', 12, 3
+        o9 -> 'oct', 9, 3
+        b -> 'bin', None, None
+        """
+        bpc_dict = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
+        short_token: Pattern[str] = re.compile(r'(?P<name>bytes|bin|oct|hex|b|o|h):?(?P<len>\d+)$')
+
+        m1 = short_token.match(fmt)
+        if m1:
+            length = int(m1.group('len'))
+            name = m1.group('name')
+        else:
+            length = None
+            name = fmt
+        aliases = {'hex': 'hex', 'oct': 'oct', 'bin': 'bin', 'bytes': 'bytes', 'b': 'bin', 'o': 'oct', 'h': 'hex'}
+        try:
+            name = aliases[name]
+        except KeyError:
+            pass  # Should be dealt with in the next check
+        if name not in bpc_dict.keys():
+            raise ValueError(f"Pretty print formats only support {'/'.join(bpc_dict.keys())}. Received '{fmt}'.")
+        bpc = bpc_dict[name]
+        if length is None:
+            return name, None, None
+        if length % bpc != 0:
+            raise ValueError(f"Bits per group must be a multiple of {bpc} for '{fmt}' format.")
+        chars = length // bpc
+        return name, chars, length
+
     def pp(self, fmt: str = 'bin', width: int = 120, sep: Optional[str] = ' ',
            show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty print the bitstring's value.
@@ -2665,6 +2701,7 @@ class Bits:
         >>> s.pp('b, h', sep='_', show_offset=False)
 
         """
+
         bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
 
         formats = [f.strip() for f in fmt.split(',')]
@@ -2676,61 +2713,31 @@ class Bits:
             raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}."
                              " Format string was {fmt}.")
 
-        short_token: Pattern[str] = re.compile(r'(?P<name>bytes|bin|oct|hex|b|o|h):?(?P<len>\d+)$', re.IGNORECASE)
-        m1 = short_token.match(fmt1)
-        if m1:
-            length1 = int(m1.group('len'))
-            fmt1 = m1.group('name')
-        else:
-            length1 = None
-        length2 = None
+        name1, chars1, length1 = Bits._chars_in_pp_token(fmt1)
         if fmt2 is not None:
-            m2 = short_token.match(fmt2)
-            if m2:
-                length2 = int(m2.group('len'))
-                fmt2 = m2.group('name')
-
-        aliases = {'hex': 'hex', 'oct': 'oct', 'bin': 'bin', 'bytes': 'bytes',
-                   'b': 'bin', 'o': 'oct', 'h': 'hex'}
-        try:
-            fmt1 = aliases[fmt1]
-            if fmt2 is not None:
-                fmt2 = aliases[fmt2]
-        except KeyError:
-            pass  # Should be dealt with in the next check
-        if fmt1 not in bpc.keys() or (fmt2 is not None and fmt2 not in bpc.keys()):
-            raise ValueError(f"Pretty print formats only support {'/'.join(bpc.keys())}. Received '{fmt}'.")
-        if len(self) % bpc[fmt1] != 0:
-            raise InterpretError(f"Cannot convert bitstring of length {len(self)} to {fmt1} - not a multiple of {bpc[fmt1]} bits long.")
-        if fmt2 is not None and len(self) % bpc[fmt2] != 0:
-            raise InterpretError(f"Cannot convert bitstring of length {len(self)} to {fmt2} - not a multiple of {bpc[fmt2]} bits long.")
+            name2, chars2, length2 = Bits._chars_in_pp_token(fmt2)
 
         if fmt2 is not None and length2 is not None and length1 is not None:
             # Both lengths defined so must be equal
             if length1 != length2:
                 raise ValueError(f"Differing bit lengths of {length1} and {length2} in format string '{fmt}'.")
+
         bits_per_group = None
         if fmt2 is not None and length2 is not None:
             bits_per_group = length2
         elif length1 is not None:
             bits_per_group = length1
 
-        if bits_per_group is not None:
-            if bits_per_group % bpc[fmt1] != 0:
-                raise ValueError(f"Bits per group must be a multiple of {bpc[fmt1]} for {fmt1} format.")
-            if fmt2 is not None and bits_per_group % bpc[fmt2] != 0:
-                raise ValueError(f"Bits per group must be a multiple of {bpc[fmt2]} for {fmt2} format.")
-
         if bits_per_group is None:
             if fmt2 is None:
                 bits_per_group = 8  # Default for 'bin' and 'hex'
-                if fmt1 == 'oct':
+                if name1 == 'oct':
                     bits_per_group = 12
-                elif fmt1 == 'bytes':
+                elif name1 == 'bytes':
                     bits_per_group = 32
             else:
                 # Rule of thumb seems to work OK for all combinations.
-                bits_per_group = 2 * bpc[fmt1] * bpc[fmt2]
+                bits_per_group = 2 * bpc[name1] * bpc[name2]
                 if bits_per_group >= 24:
                     bits_per_group //= 2
 
@@ -2744,8 +2751,8 @@ class Bits:
             # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
             offset_width = len(str(len(self))) + len(offset_sep)
         if bits_per_group > 0:
-            group_chars1 = bits_per_group // bpc[fmt1]
-            group_chars2 = 0 if fmt2 is None else bits_per_group // bpc[fmt2]
+            group_chars1 = bits_per_group // bpc[name1]
+            group_chars2 = 0 if fmt2 is None else bits_per_group // bpc[name2]
             # The number of characters that get added when we add an extra group (after the first one)
             total_group_chars = group_chars1 + group_chars2 + len(sep) + len(sep) * bool(group_chars2)
             width_excluding_offset_and_final_group = width - offset_width - group_chars1 - group_chars2 - len(format_sep)*bool(group_chars2)
@@ -2758,9 +2765,9 @@ class Bits:
             width_available = width - offset_width - len(format_sep)*(fmt2 is not None)
             width_available = max(width_available, 1)
             if fmt2 is None:
-                max_bits_per_line = width_available * bpc[fmt1]
+                max_bits_per_line = width_available * bpc[name1]
             else:
-                chars_per_24_bits = 24 // bpc[fmt1] + 24 // bpc[fmt2]
+                chars_per_24_bits = 24 // bpc[name1] + 24 // bpc[name2]
                 max_bits_per_line = 24 * (width_available // chars_per_24_bits)
                 if max_bits_per_line == 0:
                     max_bits_per_line = 24  # We can't fit into the width asked for. Show something small.
@@ -2783,7 +2790,7 @@ class Bits:
                 offset_str = f'{offset_sep}{bitpos: >{offset_width - len(offset_sep)}}' if show_offset else ''
             else:
                 offset_str = f'{bitpos: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
-            fb = format_bits(bits, group_chars1, sep, fmt1)
+            fb = format_bits(bits, group_chars1, sep, name1)
             if first_fb_width is None:
                 first_fb_width = len(fb)
             if len(fb) < first_fb_width:  # Pad final line with spaces to align it
@@ -2791,7 +2798,7 @@ class Bits:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
-            fb2 = '' if fmt2 is None else format_sep + format_bits(bits, group_chars2, sep, fmt2)
+            fb2 = '' if fmt2 is None else format_sep + format_bits(bits, group_chars2, sep, name2)
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:
@@ -3230,6 +3237,8 @@ class BitArray(Bits):
         if isinstance(value, int):
             if key.step not in [None, -1, 1]:
                 if value in [0, 1]:
+                    # TODO: If this is what is wanted why don't we just do it? Wouldn't the next line work?
+                    # self.set(value, range(*key.indices(len(self))))
                     raise ValueError(f"Can't assign a single bit to a slice with a step value. "
                                      f"Instead of 's[start:stop:step] = {value}' try 's.set({value}, range(start, stop, step))'.")
                 else:
@@ -4549,10 +4558,19 @@ class Array:
             self.data.overwrite(self._create_element(value), start)
             return
 
+    def __delitem__(self, key):
+        if isinstance(key, int):
+            if key < 0:
+                key += len(self)
+            if key < 0 or key >= len(self):
+                raise IndexError
+            start = self._itemsize * key
+            del self.data[start: start + self._itemsize]
+
     def __repr__(self) -> str:
         list_str = f"{self.tolist()}"
         trailing_bit_length = len(self.data) % self._itemsize
-        final_str = "" if trailing_bit_length == 0 else ", trailing_bits='" + str(self.data[-trailing_bit_length:] + "'")
+        final_str = "" if trailing_bit_length == 0 else ", trailing_bits='" + str(self.data[-trailing_bit_length:]) + "'"
         return f"Array('{self._fmt}', {list_str}{final_str})"
 
     def fromlist(self, list_: Union[List, Tuple]) -> None:
@@ -4595,34 +4613,61 @@ class Array:
         i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
         self.data.insert(self._create_element(x), i * self._itemsize)
 
-    def pop(self, i: Optional[int]):
-        pass
+    def pop(self, i: int = -1) -> Any:
+        x = self[i]
+        del self[i]
+        return x
 
     def byteswap(self) -> None:
-        pass
+        if self._itemsize % 8 != 0:
+            raise ValueError(f"byteswap can only be used for whole-byte elements. The '{self._fmt}' format is {self._itemsize} bits long.")
+        self.data.byteswap(self.itemsize // 8)
 
-    def count(self, x: Any) -> int:
-        return sum(i == x for i in self)
-
-    def fromfile(self, f: BinaryIO, n: int) -> None:
-        pass
+    def count(self, value: Any) -> int:
+        return sum(i == value for i in self)
 
     def tobytes(self) -> bytes:
-        pass
+        return self.data.tobytes()
 
     def tofile(self, f: BinaryIO) -> None:
-        pass
+        self.data.tofile(f)
+
+    def fromfile(self, f: BinaryIO, n: Optional[int] = None) -> None:
+        trailing_bit_length = len(self.data) % self._itemsize
+        if trailing_bit_length != 0:
+            raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
+
+        new_data = Bits(f)
+        max_items = len(new_data) // self._itemsize
+        items_to_append = max_items if n is None else min(n, max_items)
+        self.data += new_data[0: items_to_append * self._itemsize]
+        if n is not None and items_to_append < n:
+            raise EOFError(f"Only {items_to_append} were appended, not the {n} items requested.")
 
     def reverse(self) -> None:
-        pass
+        trailing_bit_length = len(self.data) % self._itemsize
+        if trailing_bit_length != 0:
+            raise ValueError(f"Cannot reverse the items in the Array as its length is not a multiple of the format length.")
+        for start_bit in range(0, len(self.data) // 2, self._itemsize):
+            start_swap_bit = len(self.data) - start_bit - self._itemsize
+            temp = self.data[start_bit: start_bit + self._itemsize]
+            self.data[start_bit: start_bit + self._itemsize] = self.data[start_swap_bit: start_swap_bit + self._itemsize]
+            self.data[start_swap_bit: start_swap_bit + self._itemsize] = temp
 
-    def remove(self, x: Any) -> None:
-        # Removes just the first occurrence of x. Mirroring array.array.
-        pass
-
-    def replace(self, old, new) -> int:
-        # Nice one to have?
-        pass
+    # def pp(self, fmt: str = '', width: int = 120, sep: Optional[str] = ' ',
+    #        show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
+    #     trailing_bit_length = len(self.data) % self._itemsize
+    #     if fmt == '':
+    #         # Work out a good format given the known type of the Array
+    #         fmt = f'bin{self._itemsize}'
+    #     #     if self._itemsize % 4 == 0:
+    #     #         b =
+    #
+    #     if trailing_bit_length == 0:
+    #         self.data.pp(fmt, width, sep, show_offset, stream)
+    #     else:
+    #         self.data[0: -trailing_bit_length].pp(fmt, width, sep, show_offset, stream)
+    #         stream.write("trailing_bits = " + str(self.data[-trailing_bit_length:]))
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Array):
@@ -4638,6 +4683,7 @@ class Array:
             if self.trailing_bits:
                 return False
             try:
+                # array's itemsize is in bytes, not bits.
                 if self.itemsize != other.itemsize * 8:
                     return False
                 if len(self) != len(other):
@@ -4647,6 +4693,12 @@ class Array:
                 return True
             except AttributeError:
                 return False
+
+    def __iter__(self) -> Iterable[Any]:
+        start = 0
+        for i in range(len(self)):
+            yield self._getter_func(self.data, start=start)
+            start += self._itemsize
 
 
 def main() -> None:

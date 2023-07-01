@@ -2316,7 +2316,7 @@ class Split2(unittest.TestCase):
         s = BitStream('0b1101, 0o721, 0x2234567')
         a, b, c, d = s.peeklist([2, 1, 1, 9])
         self.assertEqual(a, '0b11')
-        self.assertEqual(bool(b), False)
+        self.assertEqual(bool(b), True)
         self.assertEqual(bool(c), True)
         self.assertEqual(d, '0o721')
         self.assertEqual(s.pos, 0)

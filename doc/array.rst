@@ -22,7 +22,7 @@ The ``bitstring.Array`` type is meant as a more flexible version of the standard
 
 So far, so pointless! Its flexibility lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
 
-For example ``'uint4'``, ``'bfloat'``, ``'bits7'`` or ``'hex12'`` can be used.
+For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used.
 
 Each element in the ``Array`` must then be something that makes sense for the ``fmt``.
 Some examples will help illustrate::
@@ -75,22 +75,21 @@ This will not copy any data but will cause the current data to be shown differen
 
 
 The data for the array is stored internally as a ``BitArray`` object.
-It can be directly accessed  using the ``data`` property.
-You can manipulate the internal data directly using all of the methods available for the ``BitArray`` class.
+It can be directly accessed using the ``data`` property.
+You can freely manipulate the internal data using all of the methods available for the ``BitArray`` class.
 
 The ``Array`` object also has a ``trailing_bits`` read-only data member, which consists of the end bits of the ``data`` ``BitArray`` that are left over when the ``Array`` is interpreted using ``fmt``.
 Typically ``trailing_bits`` will be an empty ``BitArray`` but if you change the length of the ``data`` or change the ``fmt`` specification there may be some bits left over.
 
-Some methods, such as ``append`` and ``extend`` will raise an exception if used when ``trailing_bits`` is not empty, as it not clear how these should behave in this case.
-
-
-
+Some methods, such as ``append`` and ``extend`` will raise an exception if used when ``trailing_bits`` is not empty, as it not clear how these should behave in this case. You can however still use ``insert`` which will always leave the ``trailing_bits`` unchanged.
 
 
 .. class:: Array(fmt, [initializer], [trailing_bits])
 
     Create a new ``Array`` whose elements are set by the ``fmt`` string.
-    The ``fmt`` string can be a type code such as ``'H'`` or ``'d'`` but it can also be a string defining any fixed-length bitstring.
+    This can be any format which has a well defined and fixed length in bits.
+
+    The ``fmt`` string can be a type code such as ``'H'`` or ``'d'`` but it can also be a string defining any format which has a fixed-length in bits.
 
     The correspondence between type codes and bitstring format codes is given in the table below.
 
@@ -118,28 +117,19 @@ Some methods, such as ``append`` and ``extend`` will raise an exception if used 
         The ``'e'`` type code isn't one of the ``array`` supported types, but it is used in the ``struct`` module and we support it here.
 
 
-Methods
--------
-
-.. method:: Array.count(value)
-
-    Returns the number of elements set to *value*.
-
-.. method:: Array.frombytes(b)
-
-    Appends elements from `b`, which can be any initializer for ``Bits`` as long as it's a multiple of the bit length of the array's elements.
-
 Properties
 ----------
 
 .. attribute:: data
 
     The bit data of the ``Array``, as a ``BitArray``. Read and write, and can be freely manipulated with all of ``BitArray`` methods.
-    Note that some ``Array`` methods such as ``append`` and ``extend`` require the bit data to have a length that is a multiple of the ``Array``'s ``itemsize``.
+
+    Note that some ``Array`` methods such as ``append`` and ``extend`` require the  ``data`` to have a length that is a multiple of the ``Array``'s ``itemsize``.
 
 .. attribute:: fmt
 
     The format string used to initialise the ``Array`` type. Read and write.
+
     Changing the format for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
     Note that some ``Array`` methods such as ``append`` and ``extend`` require the bit data to have a length that is a multiple of the ``Array``'s ``itemsize``.
 
@@ -155,3 +145,47 @@ Properties
         16
         >>> b.itemsize
         1
+
+.. attribute:: trailing_bits
+
+    A ``BitArray`` object that returns the end of the ``data`` that is not a multiple of the ``itemsize``. Read only.
+
+
+
+Methods
+-------
+
+
+
+.. method:: ~Array.append(x)
+
+.. method:: ~Array.byteswap()
+
+.. method:: ~Array.count(value)
+
+    Returns the number of elements set to *value*.
+
+.. method:: ~Array.extend(initializer)
+
+.. method:: ~Array.frombytes(b)
+
+    Appends elements from `b`, which can be any initializer for ``Bits`` as long as it's a multiple of the bit length of the array's elements.
+
+.. method:: ~Array.fromfile(f, n)
+
+.. method:: ~Array.fromlist(list_)
+
+.. method:: ~Array.insert(i, x)
+
+.. method:: ~Array.pop([i])
+
+.. method:: ~Array.remove(x)
+
+.. method:: ~Array.reverse()
+
+.. method:: ~Array.tobytes()
+
+.. method:: ~Array.tofile()
+
+.. method:: ~Array.tolist()
+
