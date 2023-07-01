@@ -4540,16 +4540,43 @@ class Array:
     def __len__(self) -> int:
         return len(self.data) // self._itemsize
 
-    def __getitem__(self, item):
-        if isinstance(item, int):
-            if item < 0:
-                item += len(self)
-            if item < 0 or item >= len(self):
-                raise IndexError
-            return self._getter_func(self.data, start=self._itemsize * item)
+    @overload
+    def __getitem__(self, key: slice) -> List[Any]: ...
+    @overload
+    def __getitem__(self, key: int) -> Any: ...
 
-    def __setitem__(self, key, value):
-        if isinstance(key, int):
+    def __getitem__(self, key: Union[slice, int]) -> Union[List[Any], Any]:
+        if isinstance(key, slice):
+            start, stop, step = key.indices(len(self))
+            ret_vals = []
+            for s in range(start * self._itemsize, stop * self._itemsize, step * self._itemsize):
+                ret_vals.append(self._getter_func(self.data, start=s))
+            return ret_vals
+        else:
+            if key < 0:
+                key += len(self)
+            if key < 0 or key >= len(self):
+                raise IndexError
+            return self._getter_func(self.data, start=self._itemsize * key)
+
+    def __setitem__(self, key: Union[slice, int], value) -> None:
+        if isinstance(key, slice):
+            start, stop, step = key.indices(len(self))
+            if not isinstance(value, Iterable):
+                value = [value]
+            if step == 1:
+                new_data = BitArray()
+                for x in value:
+                    new_data += self._create_element(x)
+                self.data[start * self._itemsize: stop * self._itemsize] = new_data
+                return
+            items_in_slice = len(range(start, stop, step))
+            if len(value) == items_in_slice:
+                for s, v in zip(range(start, stop, step), value):
+                    self.data.overwrite(self._create_element(v), s * self._itemsize)
+            else:
+                raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {stop - start}.")
+        else:
             if key < 0:
                 key += len(self)
             if key < 0 or key >= len(self):

@@ -292,6 +292,32 @@ class ArrayMethods(unittest.TestCase):
             b.fromfile(f, 1)
         self.assertEqual(b.tolist(), [0])
 
+    def testGetting(self):
+        a = Array('int17')
+        with self.assertRaises(IndexError):
+            _ = a[0]
+        a.extend([1, 2, 3, 4])
+        self.assertEqual(a[:], [1, 2, 3, 4])
+        self.assertEqual(a[:1], [1])
+        self.assertEqual(a[1:3], [2, 3])
+        self.assertEqual(a[-2:], [3, 4])
+        self.assertEqual(a[::2], [1, 3])
+        self.assertEqual(a[::-2], [4, 2])
+
+    def testSetting(self):
+        a = Array('i1', [0, -1, -1, 0, 0, -1, 0])
+        a[0] = -1
+        self.assertEqual(a[0], -1)
+        a[0:3] = [0, 0]
+        self.assertEqual(a[:], [0, 0, 0, 0, -1, 0])
+        b = Array('i20', a)
+        with self.assertRaises(ValueError):
+            b[::2] = 9
+        b[::2] = [9]*3
+        self.assertEqual(b[:], [9, 0, 9, 0, 9, 0])
+        b[1:4] = a[-2:]
+        self.assertEqual(b[:], [9, -1, 0, 9, 0])
+
     def testToBytes(self):
         pass
 
