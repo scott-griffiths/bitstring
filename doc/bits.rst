@@ -551,14 +551,14 @@ __bool__
     
         ``if s:``
         
-        Returns ``True`` if at least one bit is set to 1, otherwise returns ``False``.
+        Returns ``False`` if the bitstring is empty (has zero length), otherwise returns ``True``.
 
             >>> bool(Bits())
             False
             >>> bool(Bits('0b0000010000'))
             True
             >>> bool(Bits('0b0000000000'))
-            False
+            True
 
 __contains__
 ^^^^^^^^^^^^

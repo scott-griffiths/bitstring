@@ -4586,7 +4586,15 @@ class Array:
             return
 
     def __delitem__(self, key):
-        if isinstance(key, int):
+        if isinstance(key, slice):
+            start, stop, step = key.indices(len(self))
+            if step == 1:
+                self.data.__delitem__(slice(start * self._itemsize, stop * self._itemsize))
+                return
+            # Delete from end or the start positions will change
+            for s in range(start, stop, step)[::-1]:
+                self.data.__delitem__(slice(s * self._itemsize, (s + 1) * self._itemsize))
+        else:
             if key < 0:
                 key += len(self)
             if key < 0 or key >= len(self):

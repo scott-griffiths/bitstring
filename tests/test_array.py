@@ -318,6 +318,14 @@ class ArrayMethods(unittest.TestCase):
         b[1:4] = a[-2:]
         self.assertEqual(b[:], [9, -1, 0, 9, 0])
 
+    def testDeleting(self):
+        a = Array('u99', list(range(1000)))
+        del a[::2]
+        self.assertEqual(len(a), 500)
+        del a[-100:]
+        self.assertEqual(len(a), 400)
+        self.assertEqual(a[:10], [1, 3, 5, 7, 9, 11, 13, 15, 17, 19])
+
     def testToBytes(self):
         pass
 
