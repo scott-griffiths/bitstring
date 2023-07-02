@@ -4459,6 +4459,45 @@ fp152_fmt = FP8Format(exp_bits=5, bias=16)
 
 
 class Array:
+    """Return an Array whose elements are initialised according to the fmt string.
+    The fmt string can be typecode as used in the array module or any fixed-length bitstring
+    format.
+
+    a = Array('H', [1, 15, 105])
+    b = Array('int5', [-9, 0, 4])
+
+    The Array data is stored compactly as a BitArray object and the Array behaves very like
+    a list of items of the given format. Both the Array data and fmt properties can be freely
+    modified after creation. If the data length is not a multiple of the fmt length then the
+    Array will have 'trailing_bits' which will prevent some methods from appending to the
+    Array.
+
+    Methods:
+
+    append() -- Append a single item to the end of the Array.
+    byteswap() -- Change byte endianness of all items.
+    count() -- Count the number of occurences of a value.
+    extend() -- Append multiple items to the end of the Array from an iterable.
+    frombytes() -- Append byte data to the Array's data.
+    fromfile() -- Append items read from a file object.
+    fromlist() -- Append items from a list.
+    insert() -- Insert an item at a given position.
+    pop() -- Return and remove an item.
+    reverse() -- Reverse the order of all items.
+    tobytes() -- Return Array data as bytes object, padding with zero bits at end if needed.
+    tofile() -- Write Array data to a file, padding with zero bits at end if needed.
+    tolist() -- Return Array items as a list.
+
+    Properties:
+
+    data -- The BitArray binary data of the Array. Can be freely modified.
+    fmt -- The format string or typecode. Can be freely modified.
+    itemsize -- The length *in bits* of a single item. Read only.
+    trailing_bits -- If the data length is not a multiple of the fmt length, this BitArray
+                     gives the leftovers at the end of the data.
+
+
+    """
     def __init__(self, fmt: str, initializer: Optional[Union[BitsType, Iterable]] = None,
                  trailing_bits: Optional[BitsType] = None) -> None:
         self.data = BitArray()
@@ -4489,18 +4528,17 @@ class Array:
         trailing_bit_length = len(self.data) % self._itemsize
         return BitArray() if trailing_bit_length == 0 else self.data[-trailing_bit_length:]
 
-
-    array_typecodes: dict[str, str]  = {'b': 'int8',
-                                        'B': 'uint8',
-                                        'h': 'intne16',
-                                        'H': 'uintne16',
-                                        'l': 'intne32',
-                                        'L': 'uintne32',
-                                        'q': 'intne64',
-                                        'Q': 'uintne64',
-                                        'e': 'floatne16',
-                                        'f': 'floatne32',
-                                        'd': 'floatne64'}
+    _array_typecodes: dict[str, str]  = {'b': 'int8',
+                                         'B': 'uint8',
+                                         'h': 'intne16',
+                                         'H': 'uintne16',
+                                         'l': 'intne32',
+                                         'L': 'uintne32',
+                                         'q': 'intne64',
+                                         'Q': 'uintne64',
+                                         'e': 'floatne16',
+                                         'f': 'floatne32',
+                                         'd': 'floatne64'}
 
     @property
     def fmt(self) -> str:
@@ -4509,7 +4547,7 @@ class Array:
     @fmt.setter
     def fmt(self, new_fmt: str) -> None:
         # We save the exact fmt string so we can use it in __repr__ etc
-        new_fmt_parsed = Array.array_typecodes.get(new_fmt, new_fmt)
+        new_fmt_parsed = Array._array_typecodes.get(new_fmt, new_fmt)
         tokens = tokenparser(new_fmt_parsed, None)[1]
         token_names_and_lengths = [(x[0], x[1]) for x in tokens]
         if len(token_names_and_lengths) != 1:
@@ -4563,7 +4601,7 @@ class Array:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if not isinstance(value, Iterable):
-                value = [value]
+                raise TypeError("Can only assign an iterable to a slice.")
             if step == 1:
                 new_data = BitArray()
                 for x in value:

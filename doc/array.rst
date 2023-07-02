@@ -131,6 +131,7 @@ Properties
     The format string used to initialise the ``Array`` type. Read and write.
 
     Changing the format for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
+
     Note that some ``Array`` methods such as ``append`` and ``extend`` require the bit data to have a length that is a multiple of the ``Array``'s ``itemsize``.
 
 .. attribute:: itemsize
@@ -150,11 +151,13 @@ Properties
 
     A ``BitArray`` object that returns the end of the ``data`` that is not a multiple of the ``itemsize``. Read only.
 
+    This will typically be an empty ``BitArray``, but if an the ``fmt`` or the ``data`` of an ``Array`` object has been altered after its creation then there may be left-over bits at the end of the data.
+
+    Note that any methods that append items to the ``Array`` will fail with a ``ValueError`` if there are any trailing bits.
 
 
 Methods
 -------
-
 
 
 .. method:: ~Array.append(x)
@@ -169,8 +172,6 @@ Methods
 
 .. method:: ~Array.frombytes(b)
 
-    Appends elements from `b`, which can be any initializer for ``Bits`` as long as it's a multiple of the bit length of the array's elements.
-
 .. method:: ~Array.fromfile(f, n)
 
 .. method:: ~Array.fromlist(list_)
@@ -178,8 +179,6 @@ Methods
 .. method:: ~Array.insert(i, x)
 
 .. method:: ~Array.pop([i])
-
-.. method:: ~Array.remove(x)
 
 .. method:: ~Array.reverse()
 

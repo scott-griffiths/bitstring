@@ -1952,14 +1952,14 @@ class Split2(unittest.TestCase):
         for bs in bls:
             a = BitStream(bs)
             b = eval(a.__repr__())
-            self.assertTrue(a == b)
+            self.assertEqual(a, b)
         filename = os.path.join(THIS_DIR, 'test.m1v')
         for f in [ConstBitStream(filename=filename),
                   ConstBitStream(filename=filename, length=17),
                   ConstBitStream(filename=filename, length=23, offset=23102)]:
             f2 = eval(f.__repr__())
             self.assertEqual(f._bitstore.filename, f2._bitstore.filename)
-            self.assertTrue(f2.tobytes() == f.tobytes())
+            self.assertEqual(f2.tobytes(), f.tobytes())
         a = BitStream('0b1')
         self.assertEqual(repr(a), "BitStream('0b1')")
         a += '0b11'

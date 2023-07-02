@@ -4,6 +4,11 @@ bitstring module version history
 
 version 4.1
 
+This has turned into a suprisingly big release, with a major refactor and a brand new
+class (the first for 12 years!)
+
+* Speed increased with bitarray dependency.
+
 The major weakness of bitstring has been its poor performance for computationally
 intensive tasks relative to lower level alternatives. This was principally due to
 relying on pure Python code to achieve things that the base language often didn't have
@@ -19,12 +24,31 @@ the same API.
 
 Huge kudos to Ilan Schnell for all his work on bitarray.
 
+* New Array class for homogeneous data (beta)
+
+If your data is all of the same type you can make use of the new Array class, which
+mirrors much of the functionality of the standard array.array type, but doesn't restrict
+you to just a dozen formats.
+
+  >>> from bitstring import Array
+  >>> a = Array('uint12', [9, 100, 3, 1])
+  >>> b = Array('float16', a)
+  >>> b.append(0.25)
+  >>> b.tobytes()
+  b'H\x80V@B\x00<\x004\x00'
+  >>> b.tolist()
+  [9.0, 100.0, 3.0, 1.0, 0.25]
+
+The data is stored efficiently in a BitArray object, and you can manipulate both the
+data and the format freely. See the main documentation for more details. Note that this
+feature carries the 'beta' flag so may change in future point versions.
+
 Other changes:
 
 * Added two new floating point interpretations: float8_143 and float8_152. These are 8-bit
-  floating point formats, with obviously very limited range and precision, but useful in
-  some fields, especially machine learning. This is an experimental feature - the formats
-  haven't even been standardised yet.
+  floating point formats, with very limited range and precision, but useful in some fields,
+  particularly machine learning. This is an experimental feature - the formats haven't
+  even been standardised yet.
 
   >>> a = Bits(float8_143=16.5)
   >>> a.bin
@@ -32,10 +56,17 @@ Other changes:
   >>> a.float8_143
   16.0
 
-
 * Deleting, replacing or inserting into a bitstring invalidates the bit position if the
   bitstring's length has been changed. Previously the bit position was adjusted but
   this was not well defined.
+
+* Only empty bitstring are now considered False in a boolean sense. Previously s was
+  False is no bits in s were set to 1, but this goes against what it means to be a
+  container in Python so I consider this to be a bug, even if it was documented. I'm
+  guessing it's related to __nonzero__ in Python 2 becoming __bool__ in Python 3, and
+  it's never been fixed before now.
+
+* More fixes for LSB0 mode. There are now no known issues with this feature.
 
 ----------------------------------
 April 2023: version 4.0.2 released

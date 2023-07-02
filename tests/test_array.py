@@ -76,7 +76,6 @@ class Creation(unittest.TestCase):
         b = Array('f', [0])
         b.fmt = 'i3'
         self.assertEqual(b.tolist(), [0]*10)
-        x = b.__repr__()
 
     def testCreationWithTrailingBits(self):
         a = Array('bool', trailing_bits='0xf')
@@ -212,6 +211,21 @@ class ArrayMethods(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.extend([1, 0])
 
+    def testExtendWithMixedClasses(self):
+        a = Array('uint8', [1, 2, 3])
+        b = array.array('B', [4, 5, 6])
+        ap = Array('uint8', a[:])
+        bp = array.array('B', b[:])
+        a.extend(b)
+        bp.extend(ap)
+        self.assertEqual(a.tolist(), [1, 2, 3, 4, 5, 6])
+        self.assertEqual(bp.tolist(), [4, 5, 6, 1, 2, 3])
+
+        a.fmt = 'int8'
+        ap = Array('uint8', a[:])
+        self.assertNotEqual(a, ap)
+        self.assertEqual(a.tolist(), ap.tolist())
+
     def testInsert(self):
         a = Array('hex:12', ['abc', 'def'])
         self.assertEqual(a.data.hex, 'abcdef')
@@ -311,7 +325,7 @@ class ArrayMethods(unittest.TestCase):
         a[0:3] = [0, 0]
         self.assertEqual(a[:], [0, 0, 0, 0, -1, 0])
         b = Array('i20', a)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             b[::2] = 9
         b[::2] = [9]*3
         self.assertEqual(b[:], [9, 0, 9, 0, 9, 0])
@@ -329,5 +343,27 @@ class ArrayMethods(unittest.TestCase):
     def testToBytes(self):
         pass
 
+    def testRepr(self):
+        a = Array('int5')
+        b = eval(a.__repr__())
+        self.assertEqual(a, b)
+        a.data += '0b11'
 
+        b = eval(a.__repr__())
+        self.assertEqual(a, b)
 
+        a.data += '0b000'
+        b = eval(a.__repr__())
+        self.assertEqual(a, b)
+
+        a.fromlist([1]*9)
+        b = eval(a.__repr__())
+        self.assertEqual(a, b)
+
+        a.fromlist([-4]*100)
+        b = eval(a.__repr__())
+        self.assertEqual(a, b)
+
+        a.fmt = 'float32'
+        b = eval(a.__repr__())
+        self.assertEqual(a, b)
