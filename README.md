@@ -14,7 +14,7 @@ You can try out the interactive walkthrough notebook on [binder](https://mybinde
 [![Downloads](https://img.shields.io/pypi/dm/bitstring?color=blue)](https://pypistats.org/packages/bitstring) &nbsp; &nbsp; 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
 
-# \<<< 4.1 beta now available - the _speed_ update \>>>
+# 4.1 beta now available
 
 This version concentrates on what is perhaps bitstring's major weakness - speed.
 It's always been a pure Python module with no dependencies, which has a few advantages, but means it can't compete with C-coded extensions in terms of raw speed of operation.

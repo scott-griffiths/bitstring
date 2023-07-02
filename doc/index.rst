@@ -31,12 +31,21 @@ Overview
 * Powerful binary packing and unpacking functions.
 * Bit level slicing, joining, searching, replacing and more.
 * Read from and interpret bitstrings as streams of binary data.
+* Create arrays of any fixed-length formats.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Supports Python 3.7 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
 * Open source software, released under the MIT licence.
 
-A short example usage
----------------------
+It is not difficult to manipulate binary data in Python, for example using the ``struct`` and ``array`` modules, it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing with whole-byte data.
+
+The bitstring module provides support many different bit formats, allowing easy and efficient storage, interpretation and construction.
+
+Mixed format bitstrings
+^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have binary data (or want to construct it) from multiple types then use the :class:`BitArray` class.
+The example below constructs a 28 bit bitstring from a hexadecimal string, then unpacks it into multiple bit interpretations.
+It also demonstrates how it can be flexibly modified and sliced using standard notation, and how properties such as `bin` and `float` can be used to interpret the data.
 
 ::
 
@@ -50,6 +59,37 @@ A short example usage
     '010011111000111000100010000000111010100000110001001001101111'
     >>> s[-32:].float
     0.0010000000474974513
+
+
+:class:`BitArray` objects can be sliced, joined, reversed, inserted into, overwritten, packed, unpacked etc. with simple functions or slice notation. :class:`BitStream` objects can also be read from, searched in, and navigated in, similar to a file or stream.
+
+Bitstrings are designed to be as lightweight as possible and can be considered to be just a list of binary digits. They are however stored efficiently - although there are a variety of ways of creating and viewing the binary data, the bitstring itself just stores the byte data, and all views are calculated as needed, and are not stored as part of the object.
+
+The different views or interpretations on the data are accessed through properties such as :attr:`~Bits.hex`, :attr:`~Bits.bin` and :attr:`~Bits.int`, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.
+
+There are also a companion classes called :class:`Bits` and :class:`ConstBitStream` which are immutable versions of :class:`BitArray` and :class:`BitStream` respectively.
+See the reference documentation for full details.
+
+Arrays of bitstrings
+^^^^^^^^^^^^^^^^^^^^
+
+If you are dealing with just one type of data but perhaps it's not one of the dozen or so supported in the ``array`` module in the standard library, then we have you covered with the :class:`Array` class.
+
+A ``bitstring.Array`` works in a similar way to a ``array.array``, except that you can efficiently pack in any fixed-length binary format.
+
+Want an array of 5 bit unsigned integers, or of 8 or 16 bit floating point numbers? No problem.
+You can also easily change the data's interpretation, convert to another format and freely modify the underlying data which is stored as a :class:`BitArray` object.
+
+::
+
+    >>> a = bitstring.Array('uint16', [0, 1, 4, 6, 11, 2, 8, 7])
+    >>> a.data
+    BitArray('0x0000000100040006000b000200080007')
+    >>> b = bitstring.Array('int5', a)
+    >>> b.data
+    BitArray('0x0048658907')
+    >>> a.tolist() == b.tolist()
+    True
 
 
 Installation and download

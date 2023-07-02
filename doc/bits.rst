@@ -551,14 +551,14 @@ __bool__
     
         ``if s:``
         
-        Returns ``True`` if at least one bit is set to 1, otherwise returns ``False``.
+        Returns ``False`` if the bitstring is empty (has zero length), otherwise returns ``True``.
 
             >>> bool(Bits())
             False
             >>> bool(Bits('0b0000010000'))
             True
             >>> bool(Bits('0b0000000000'))
-            False
+            True
 
 __contains__
 ^^^^^^^^^^^^
@@ -661,17 +661,10 @@ __len__
 
         ``len(s)``
 
-        Returns the length of the bitstring in bits if it is less than ``sys.maxsize``, otherwise raises :exc:`OverflowError`.
+        Returns the length of the bitstring in bits.
 
-        It's recommended that you use the :attr:`len` property rather than the :func:`len` function because of the function's behaviour for large bitstring objects, although calling the special function directly will always work. ::
+        If you are using a 32-bit Python build (which is quite unlikely these days) it's recommended that you use the :attr:`len` property rather than the :func:`len` function because of the function will raise a :exc:`OverflowError` if the length is greater than ``sys.maxsize``.
 
-            >>> s = Bits(filename='11GB.mkv')
-            >>> s.len
-            93944160032
-            >>> len(s)
-            OverflowError: long int too large to convert to int
-            >>> s.__len__()
-            93944160032
 
 __lshift__
 ^^^^^^^^^^

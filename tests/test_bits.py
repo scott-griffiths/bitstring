@@ -343,7 +343,7 @@ class LongBoolConversion(unittest.TestCase):
     def testLongBool(self):
         a = Bits(1000)
         b = bool(a)
-        self.assertTrue(b is False)
+        self.assertTrue(b is True)
 
 
 class PadToken(unittest.TestCase):
