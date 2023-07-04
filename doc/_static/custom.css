@@ -37,6 +37,7 @@ h1, h2, h3 {
     color: #046ab1;
 }
 
+
 div.document div.admonition.attention, div.document div.admonition.caution, div.document div.admonition.warning {
     border: 2px solid #d77732;
 }
@@ -48,4 +49,14 @@ div.document div.admonition.attention p.admonition-title, div.document div.admon
 
 div.document li p {
     margin: 0 0 0.3rem 0;
+}
+
+div.document table.docutils td {
+    border: none;
+    padding: 0.1rem 1rem;
+}
+
+div.document table.docutils th {
+    border: none;
+    padding: 0.1rem 1rem;
 }

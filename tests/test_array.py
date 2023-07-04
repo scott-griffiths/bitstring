@@ -8,7 +8,7 @@ import bitstring
 import array
 import os
 from bitstring import Array, Bits, BitArray
-
+import copy
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -152,6 +152,16 @@ class ArrayMethods(unittest.TestCase):
         self.assertNotEqual(a, b)
         b.data += '0b1'
         self.assertEqual(a, b)
+
+    def testEqualsWithTrailingBits(self):
+        a = Array('hex4', ['a', 'b', 'c', 'd', 'e', 'f'])
+        c = Array('hex4')
+        c.data = BitArray('0xabcdef, 0b11')
+        self.assertEqual(a.tolist(), c.tolist())
+        self.assertNotEqual(a, c)
+        a.data.append('0b11')
+        self.assertEqual(a.tolist(), c.tolist())
+        self.assertEqual(a, c)
 
     def testSetting(self):
         a = Array('bool')
@@ -340,9 +350,6 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(len(a), 400)
         self.assertEqual(a[:10], [1, 3, 5, 7, 9, 11, 13, 15, 17, 19])
 
-    def testToBytes(self):
-        pass
-
     def testRepr(self):
         a = Array('int5')
         b = eval(a.__repr__())
@@ -367,3 +374,61 @@ class ArrayMethods(unittest.TestCase):
         a.fmt = 'float32'
         b = eval(a.__repr__())
         self.assertEqual(a, b)
+
+    def testToBytes(self):
+        pass
+
+    def test__add__(self):
+        a = Array('B', [1, 2, 3])
+        b = Array('B', [3, 4])
+        c = a + b
+        self.assertEqual(a, Array('B', [1, 2, 3]))
+        self.assertEqual(c, Array('B', [1, 2, 3, 3, 4]))
+        d = a + [10, 11, 12]
+        self.assertEqual(d, Array('B', [1, 2, 3, 10, 11, 12]))
+
+    def test__add__array(self):
+        a = array.array('B', [10, 11])
+        b = a + Array('B', [12, 13])
+        self.assertEqual(b, array.array('B', [10, 11, 12, 13]))
+        c = Array('B', [0, 1, 2]) + a
+        self.assertEqual(c, Array('uint8', [0, 1, 2, 10, 11]))
+        c.data += '0x0'
+        with self.assertRaises(ValueError):
+            _ = c + a
+
+    def test__contains__(self):
+        a = Array('i9', [-1, 88, 3])
+        self.assertTrue(88 in a)
+        self.assertFalse(89 in a)
+
+    def test__copy__(self):
+        a = Array('i4')
+        a.data += '0x123451234561'
+        b = copy.copy(a)
+        self.assertEqual(a, b)
+        a.data += '0b1010'
+        self.assertNotEqual(a, b)
+
+    def test__iadd__(self):
+        a = Array('uint999')
+        a += [4]
+        self.assertEqual(a.tolist(), [4])
+        with self.assertRaises(TypeError):
+            a += 5
+        a += a
+        self.assertEqual(a.tolist(), [4, 4])
+
+    def test__radd__(self):
+        a = Array('f', [3, 2, 1])
+        b = array.array('f', [-3, -2, -1])
+        c = b + a
+        self.assertEqual(c.tolist(), [-3, -2, -1, 3, 2, 1])
+        self.assertEqual(c.itemsize, 32)
+        self.assertTrue(isinstance(c, Array))
+
+    def testFloat8Bug(self):
+        a = Array('float8_152', [0.0, 1.5])
+        b = Array('float8_143')
+        b[:] = a[:]
+        self.assertEqual(b[:], [0.0, 1.5])

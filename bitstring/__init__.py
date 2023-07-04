@@ -4692,17 +4692,37 @@ class Array:
         return x
 
     def byteswap(self) -> None:
+        """Change the endianness in-place of all items in the Array.
+
+        If the Array format is not a whole number of bytes a ValueError will be raised.
+
+        """
         if self._itemsize % 8 != 0:
             raise ValueError(f"byteswap can only be used for whole-byte elements. The '{self._fmt}' format is {self._itemsize} bits long.")
         self.data.byteswap(self.itemsize // 8)
 
     def count(self, value: Any) -> int:
+        """Return count of Array items that equal value.
+
+        value -- The quantity to compare each Array element to. Type should be appropriate for the Array format.
+
+        """
         return sum(i == value for i in self)
 
     def tobytes(self) -> bytes:
+        """Return the Array data as a bytes object, padding with zero bits if needed.
+
+        Up to seven zero bits will be added at the end to byte align.
+
+        """
         return self.data.tobytes()
 
     def tofile(self, f: BinaryIO) -> None:
+        """Write the Array data to a file object, padding with zero bits if needed.
+
+        Up to seven zero bits will be added at the end to byte align.
+
+        """
         self.data.tofile(f)
 
     def fromfile(self, f: BinaryIO, n: Optional[int] = None) -> None:
@@ -4743,6 +4763,7 @@ class Array:
     #         stream.write("trailing_bits = " + str(self.data[-trailing_bit_length:]))
 
     def __eq__(self, other: Any) -> bool:
+        """Return True if format and all Array items are equal."""
         if isinstance(other, Array):
             if self._itemsize != other._itemsize:
                 return False
@@ -4772,6 +4793,65 @@ class Array:
         for i in range(len(self)):
             yield self._getter_func(self.data, start=start)
             start += self._itemsize
+
+    def __copy__(self) -> Array:
+        a_copy = Array(fmt=self._fmt)
+        a_copy.data = copy.copy(self.data)
+        return a_copy
+
+    def __add__(self, other: Union[Array, array.array, Iterable]) -> Array:
+        trailing_bit_length = len(self.data) % self._itemsize
+        if trailing_bit_length != 0:
+            raise ValueError(f"Cannot append to the Array as its length is not a multiple of the format length.")
+        new_array = copy.copy(self)
+        if isinstance(other, Array):
+            if self._fmt != other._fmt:
+                raise ValueError(f"Cannot add an Array with format '{other._fmt}' to an Array with format '{self._fmt}'.")
+            new_array.data += other.data
+        elif isinstance(other, array.array):
+            other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
+            token_name, token_length, _ = tokenparser(other_fmt, None)[1][0]
+            if self._token_name != token_name or self._itemsize != token_length:
+                raise ValueError(f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
+            new_array.data += other.tobytes()
+        else:
+            new_array.fromlist(other)
+        return new_array
+
+    def __radd__(self, other: Union[Array, array.array, Iterable]) -> Array:
+        # We know that the LHS can't be an Array otherwise __add__ would be used.
+        if isinstance(other, array.array):
+            other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
+            token_name, token_length, _ = tokenparser(other_fmt, None)[1][0]
+            if self._token_name != token_name or self._itemsize != token_length:
+                raise ValueError(f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
+            new_array = Array(self.fmt)
+            new_array.frombytes(other.tobytes())
+            new_array.data += self.data
+            return new_array
+        else:
+            new_array = Array(self.fmt)
+            new_array.fromlist(other)
+            new_array.data += self.data
+            return new_array
+
+    def __iadd__(self, other: Union[Array, array.array, Iterable]) -> Array:
+        trailing_bit_length = len(self.data) % self._itemsize
+        if trailing_bit_length != 0:
+            raise ValueError(f"Cannot append to the Array as its length is not a multiple of the format length.")
+        if isinstance(other, Array):
+            if self._fmt != other._fmt:
+                raise ValueError(f"Cannot add an Array with format '{other._fmt}' to and Array with format '{self._fmt}'.")
+            self.data += other.data
+        elif isinstance(other, array.array):
+            other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
+            if self._fmt != other_fmt:
+                raise ValueError(f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
+            self.data += other.tobytes()
+        else:
+            self.fromlist(other)
+        return self
+
 
 
 def main() -> None:

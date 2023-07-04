@@ -8,6 +8,36 @@ Quick Reference
 This section lists the bitstring module's classes together with all their methods and attributes. The next section goes into full detail with examples.
 
 
+.. list-table::
+   :widths: 15 10 10 65
+   :header-rows: 1
+
+   * - Class
+     - Mutable?
+     - Streaming methods?
+     -
+   * - :class:`Bits`
+     - ✘
+     - ✘
+     - An efficient, immutable container of bits.
+   * - :class:`BitArray`
+     - ✔
+     - ✘
+     - Like ``Bits`` but it can be changed after creation.
+   * - :class:`ConstBitStream`
+     - ✘
+     - ✔
+     - Immutable like ``Bits`` but with a bit position and reading methods.
+   * - :class:`BitStream`
+     - ✔
+     - ✔
+     - Mutable like ``BitArray`` but with a bit position and reading methods.
+   * - :class:`Array`
+     - ✔
+     - ✘
+     - An efficient list-like container where each item has a fixed-length binary format.
+
+
 Bits
 ----
 

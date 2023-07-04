@@ -89,7 +89,7 @@ Some methods, such as ``append`` and ``extend`` will raise an exception if used 
     Create a new ``Array`` whose elements are set by the ``fmt`` string.
     This can be any format which has a well defined and fixed length in bits.
 
-    The ``fmt`` string can be a type code such as ``'H'`` or ``'d'`` but it can also be a string defining any format which has a fixed-length in bits.
+    The ``fmt`` string can be a type code such as ``'H'`` or ``'d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
     The correspondence between type codes and bitstring format codes is given in the table below.
 
@@ -116,75 +116,76 @@ Some methods, such as ``append`` and ``extend`` will raise an exception if used 
 
         The ``'e'`` type code isn't one of the ``array`` supported types, but it is used in the ``struct`` module and we support it here.
 
-
-Properties
-----------
-
-.. attribute:: data
-
-    The bit data of the ``Array``, as a ``BitArray``. Read and write, and can be freely manipulated with all of ``BitArray`` methods.
-
-    Note that some ``Array`` methods such as ``append`` and ``extend`` require the  ``data`` to have a length that is a multiple of the ``Array``'s ``itemsize``.
-
-.. attribute:: fmt
-
-    The format string used to initialise the ``Array`` type. Read and write.
-
-    Changing the format for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
-
-    Note that some ``Array`` methods such as ``append`` and ``extend`` require the bit data to have a length that is a multiple of the ``Array``'s ``itemsize``.
-
-.. attribute:: itemsize
-
-    The size in bits of each item in the ``Array``. Read-only.
-
-    Note that this gives a value in bits, unlike the equivalent in the ``array`` module which gives a value in bytes. ::
-
-        >>> a = Array('h')
-        >>> b = Array('bool')
-        >>> a.itemsize
-        16
-        >>> b.itemsize
-        1
-
-.. attribute:: trailing_bits
-
-    A ``BitArray`` object that returns the end of the ``data`` that is not a multiple of the ``itemsize``. Read only.
-
-    This will typically be an empty ``BitArray``, but if an the ``fmt`` or the ``data`` of an ``Array`` object has been altered after its creation then there may be left-over bits at the end of the data.
-
-    Note that any methods that append items to the ``Array`` will fail with a ``ValueError`` if there are any trailing bits.
-
-
 Methods
 -------
 
 
-.. method:: ~Array.append(x)
+    .. method:: Array.append(x)
 
-.. method:: ~Array.byteswap()
+    .. method:: Array.byteswap()
 
-.. method:: ~Array.count(value)
+    .. method:: Array.count(value)
 
-    Returns the number of elements set to *value*.
+        Returns the number of elements set to *value*.
 
-.. method:: ~Array.extend(initializer)
+    .. method:: Array.extend(initializer)
 
-.. method:: ~Array.frombytes(b)
+    .. method:: Array.frombytes(b)
 
-.. method:: ~Array.fromfile(f, n)
+    .. method:: Array.fromfile(f, n)
 
-.. method:: ~Array.fromlist(list_)
+    .. method:: Array.fromlist(list_)
 
-.. method:: ~Array.insert(i, x)
+    .. method:: Array.insert(i, x)
 
-.. method:: ~Array.pop([i])
+    .. method:: Array.pop([i])
 
-.. method:: ~Array.reverse()
+    .. method:: Array.reverse()
 
-.. method:: ~Array.tobytes()
+    .. method:: Array.tobytes()
 
-.. method:: ~Array.tofile()
+    .. method:: Array.tofile()
 
-.. method:: ~Array.tolist()
+    .. method:: Array.tolist()
+
+
+
+Properties
+----------
+
+    .. attribute:: Array.data
+
+        The bit data of the ``Array``, as a ``BitArray``. Read and write, and can be freely manipulated with all of ``BitArray`` methods.
+
+        Note that some ``Array`` methods such as ``append`` and ``extend`` require the  ``data`` to have a length that is a multiple of the ``Array``'s ``itemsize``.
+
+    .. attribute:: Array.fmt
+
+        The format string used to initialise the ``Array`` type. Read and write.
+
+        Changing the format for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
+
+        Note that some ``Array`` methods such as ``append`` and ``extend`` require the bit data to have a length that is a multiple of the ``Array``'s ``itemsize``.
+
+    .. attribute:: Array.itemsize
+
+        The size in bits of each item in the ``Array``. Read-only.
+
+        Note that this gives a value in bits, unlike the equivalent in the ``array`` module which gives a value in bytes. ::
+
+            >>> a = Array('h')
+            >>> b = Array('bool')
+            >>> a.itemsize
+            16
+            >>> b.itemsize
+            1
+
+    .. attribute:: Array.trailing_bits
+
+        A ``BitArray`` object that returns the end of the ``data`` that is not a multiple of the ``itemsize``. Read only.
+
+        This will typically be an empty ``BitArray``, but if an the ``fmt`` or the ``data`` of an ``Array`` object has been altered after its creation then there may be left-over bits at the end of the data.
+
+        Note that any methods that append items to the ``Array`` will fail with a ``ValueError`` if there are any trailing bits.
+
 

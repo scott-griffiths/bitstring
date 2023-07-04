@@ -96,7 +96,7 @@ and you can also include constant bitstring tokens constructed from any of the f
 ``pad:n``            ``n`` zero bits (for use as padding).
 ================     ===============================================================
 
-Note that the ``:`` before the length is optional, but can improve readability.
+Note that the ``':'`` before the length is optional, but can improve readability.
 You can also use a keyword for the length specifier in the token, for example::
 
     s = bitstring.pack('int:n=-1', n=100)
@@ -120,37 +120,37 @@ Another option when using :func:`pack`, as well as other methods such as :meth:`
 
 The endianness character must start the format string and unlike in the struct module it is not optional (except when used with :meth:`~BitArray.byteswap`):
 
-=====   =============
-``>``   Big-endian
-``<``   Little-endian
-``@``   Native-endian
-=====   =============
+=======   =============
+``'>'``   Big-endian
+``'<'``   Little-endian
+``'@'``   Native-endian
+=======   =============
 
-For 'network' endianness use ``>`` as network and big-endian are equivalent. This is followed by at least one of these format characters:
+For 'network' endianness use ``'>'`` as network and big-endian are equivalent. This is followed by at least one of these format characters:
 
-=====   ===============================
-``b``   8 bit signed integer
-``B``   8 bit unsigned integer
-``h``   16 bit signed integer
-``H``   16 bit unsigned integer
-``l``   32 bit signed integer
-``L``   32 bit unsigned integer
-``q``   64 bit signed integer
-``Q``   64 bit unsigned integer
-``e``   16 bit floating point number
-``f``   32 bit floating point number
-``d``   64 bit floating point number
-=====   ===============================
+=======   ===============================
+``'b'``   8 bit signed integer
+``'B'``   8 bit unsigned integer
+``'h'``   16 bit signed integer
+``'H'``   16 bit unsigned integer
+``'l'``   32 bit signed integer
+``'L'``   32 bit unsigned integer
+``'q'``   64 bit signed integer
+``'Q'``   64 bit unsigned integer
+``'e'``   16 bit floating point number
+``'f'``   32 bit floating point number
+``'d'``   64 bit floating point number
+=======   ===============================
 
 The exact type is determined by combining the endianness character with the format character, but rather than give an exhaustive list a single example should explain:
 
-======  ======================================   ===========
-``>h``  Big-endian 16 bit signed integer         ``intbe16``
-``<h``  Little-endian 16 bit signed integer      ``intle16``
-``@h``  Native-endian 16 bit signed integer      ``intne16``
-======  ======================================   ===========
+========  ======================================   ===========
+``'>h'``  Big-endian 16 bit signed integer         ``intbe16``
+``'<h'``  Little-endian 16 bit signed integer      ``intle16``
+``'@h'``  Native-endian 16 bit signed integer      ``intne16``
+========  ======================================   ===========
 
-As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian ``@h`` will equal the big-endian ``>h`` on big-endian systems, and equal the little-endian ``<h`` on little-endian systems. For the single byte codes ``b`` and ``B`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
+As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian ``'@h'`` will equal the big-endian ``'>h'`` on big-endian systems, and equal the little-endian ``'<h'`` on little-endian systems. For the single byte codes ``'b'`` and ``'B'`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
 
 An example::
 
