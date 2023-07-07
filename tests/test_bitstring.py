@@ -12,7 +12,7 @@ import bitstring
 import copy
 from collections import abc
 import math
-from bitstring import fp143_fmt, fp152_fmt
+from bitstring.bitstring_classes import fp143_fmt, fp152_fmt
 import struct
 
 
@@ -22,7 +22,7 @@ class ModuleData(unittest.TestCase):
 
     def testAll(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',
-                    'Bits', 'pack', 'Error', 'ReadError',
+                    'Bits', 'pack', 'Error', 'ReadError', 'Array',
                     'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0']
         self.assertEqual(set(bitstring.__all__), set(exported))
 
@@ -81,11 +81,11 @@ class Interning(unittest.TestCase):
 
 class LSB0(unittest.TestCase):
     def testGettingAndSetting(self):
-        self.assertEqual(bitstring._lsb0, False)
+        self.assertEqual(bitstring.lsb0, False)
         bitstring.lsb0 = True
-        self.assertEqual(bitstring._lsb0, True)
+        self.assertEqual(bitstring.lsb0, True)
         bitstring.lsb0 = False
-        self.assertEqual(bitstring._lsb0, False)
+        self.assertEqual(bitstring.lsb0, False)
 
 
 class Main(unittest.TestCase):

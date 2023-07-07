@@ -151,9 +151,9 @@ class ByteAligned(unittest.TestCase):
 
     def testChangingIt(self):
         bitstring.bytealigned = True
-        self.assertTrue(bitstring._bytealigned)
+        self.assertTrue(bitstring.bytealigned)
         bitstring.bytealigned = False
-        self.assertFalse(bitstring._bytealigned)
+        self.assertFalse(bitstring.bytealigned)
 
     def testNotByteAligned(self):
         a = BitArray('0x00 ff 0f f')
