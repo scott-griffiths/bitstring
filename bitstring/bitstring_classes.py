@@ -11,7 +11,7 @@ import io
 from collections import abc
 import functools
 import types
-from typing import Generator, Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
+from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, Callable, overload, Iterator
 import bitarray
 import bitarray.util
@@ -4553,10 +4553,17 @@ class Array:
     def __getitem__(self, key: Union[slice, int]) -> Union[List[Any], Any]:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
-            ret_vals = []
-            for s in range(start * self._itemsize, stop * self._itemsize, step * self._itemsize):
-                ret_vals.append(self._getter_func(self.data, start=s))
-            return ret_vals
+            if step != 1:
+                d = BitArray()
+                for s in range(start * self._itemsize, stop * self._itemsize, step * self._itemsize):
+                    d.append(self.data[s: s + self._itemsize])
+                a = Array(fmt=self._fmt)
+                a.data = d
+                return a
+            else:
+                a = Array(fmt=self._fmt)
+                a.data = self.data[start * self._itemsize: stop * self._itemsize]
+                return a
         else:
             if key < 0:
                 key += len(self)

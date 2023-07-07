@@ -321,26 +321,26 @@ class ArrayMethods(unittest.TestCase):
         with self.assertRaises(IndexError):
             _ = a[0]
         a.extend([1, 2, 3, 4])
-        self.assertEqual(a[:], [1, 2, 3, 4])
-        self.assertEqual(a[:1], [1])
-        self.assertEqual(a[1:3], [2, 3])
-        self.assertEqual(a[-2:], [3, 4])
-        self.assertEqual(a[::2], [1, 3])
-        self.assertEqual(a[::-2], [4, 2])
+        self.assertEqual(a[:], Array('i17', [1, 2, 3, 4]))
+        self.assertEqual(a[:1], Array('i17', [1]))
+        self.assertEqual(a[1:3], Array('i17', [2, 3]))
+        self.assertEqual(a[-2:], Array('i17', [3, 4]))
+        self.assertEqual(a[::2], Array('i17', [1, 3]))
+        self.assertEqual(a[::-2], Array('i17', [4, 2]))
 
     def testSetting(self):
         a = Array('i1', [0, -1, -1, 0, 0, -1, 0])
         a[0] = -1
         self.assertEqual(a[0], -1)
         a[0:3] = [0, 0]
-        self.assertEqual(a[:], [0, 0, 0, 0, -1, 0])
+        self.assertEqual(a.tolist(), [0, 0, 0, 0, -1, 0])
         b = Array('i20', a)
         with self.assertRaises(TypeError):
             b[::2] = 9
         b[::2] = [9]*3
-        self.assertEqual(b[:], [9, 0, 9, 0, 9, 0])
+        self.assertEqual(b.tolist(), [9, 0, 9, 0, 9, 0])
         b[1:4] = a[-2:]
-        self.assertEqual(b[:], [9, -1, 0, 9, 0])
+        self.assertEqual(b.tolist(), [9, -1, 0, 9, 0])
 
     def testDeleting(self):
         a = Array('u99', list(range(1000)))
@@ -348,7 +348,7 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(len(a), 500)
         del a[-100:]
         self.assertEqual(len(a), 400)
-        self.assertEqual(a[:10], [1, 3, 5, 7, 9, 11, 13, 15, 17, 19])
+        self.assertEqual(a[:10].tolist(), [1, 3, 5, 7, 9, 11, 13, 15, 17, 19])
 
     def testRepr(self):
         a = Array('int5')
@@ -430,7 +430,7 @@ class ArrayMethods(unittest.TestCase):
         a = Array('float8_152', [0.0, 1.5])
         b = Array('float8_143')
         b[:] = a[:]
-        self.assertEqual(b[:], [0.0, 1.5])
+        self.assertEqual(b[:], Array('float8_143', [0.0, 1.5]))
 
 
 class ArrayOperations(unittest.TestCase):
@@ -438,15 +438,15 @@ class ArrayOperations(unittest.TestCase):
     def testInPlaceAdd(self):
         a = Array('i7', [-9, 4, 0])
         a += 9
-        self.assertEqual(a[:], [0, 13, 9])
+        self.assertEqual(a.tolist(), [0, 13, 9])
         self.assertEqual(len(a.data), 21)
 
     def testAdd(self):
         a = Array('d')
         a.fromlist([1.0, -2.0, 100.5])
         b = a + 2
-        self.assertEqual(a[:], [1.0, -2.0, 100.5])
-        self.assertEqual(b[:], [3.0, 0.0, 102.5])
+        self.assertEqual(a, Array('d', [1.0, -2.0, 100.5]))
+        self.assertEqual(b, Array('d', [3.0, 0.0, 102.5]))
 
     def testSub(self):
         a = Array('uint44', [3, 7, 10])
@@ -458,7 +458,7 @@ class ArrayOperations(unittest.TestCase):
     def testInPlaceSub(self):
         a = Array('float16', [-9, -10.5])
         a -= -1.5
-        self.assertEqual(a[:], [-7.5, -9.0])
+        self.assertEqual(a.tolist(), [-7.5, -9.0])
 
     def testMul(self):
         pass
