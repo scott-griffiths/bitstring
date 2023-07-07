@@ -4394,8 +4394,11 @@ class FP8Format:
         # First convert the float to a float16, then a 16 bit uint
         try:
             b = struct.pack('>e', f)
-        except (OverflowError, struct.error):
-            return 0b01111111 if f > 0 else 0b11111111
+        except (OverflowError, struct.error) as e:
+            try:
+                return 0b01111111 if f > 0 else 0b11111111
+            except TypeError:
+                raise ValueError(f"Can't set a float with '{f}' of type {type(f)}.")
         f16_int = int.from_bytes(b, byteorder='big')
         # Then use this as an index to our large LUT
         return self.lut_float16_to_float8[f16_int]
@@ -4799,9 +4802,16 @@ class Array:
         a_copy.data = copy.copy(self.data)
         return a_copy
 
-    def __add__(self, other: Union[Array, array.array, Iterable]) -> Array:
-        trailing_bit_length = len(self.data) % self._itemsize
-        if trailing_bit_length != 0:
+    def __add__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
+        if isinstance(other, (int, float)):
+            new_data = BitArray()
+            for i in range(len(self)):
+                v = self._getter_func(self.data, start=self._itemsize * i)
+                new_data += self._create_element(v + other)
+            new_array = Array(fmt=self.fmt)
+            new_array.data = new_data
+            return new_array
+        if len(self.data) % self._itemsize != 0:
             raise ValueError(f"Cannot append to the Array as its length is not a multiple of the format length.")
         new_array = copy.copy(self)
         if isinstance(other, Array):
@@ -4835,9 +4845,17 @@ class Array:
             new_array.data += self.data
             return new_array
 
-    def __iadd__(self, other: Union[Array, array.array, Iterable]) -> Array:
-        trailing_bit_length = len(self.data) % self._itemsize
-        if trailing_bit_length != 0:
+    def __iadd__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
+        if isinstance(other, (int, float)):
+            # Just try to add to every item in the Array
+            # This isn't really in-place, but it's simpler and faster
+            new_data = BitArray()
+            for i in range(len(self)):
+                v = self._getter_func(self.data, start=self._itemsize * i)
+                new_data += self._create_element(v + other)
+            self.data = new_data
+            return self
+        if len(self.data) % self._itemsize != 0:
             raise ValueError(f"Cannot append to the Array as its length is not a multiple of the format length.")
         if isinstance(other, Array):
             if self._fmt != other._fmt:
@@ -4851,6 +4869,12 @@ class Array:
         else:
             self.fromlist(other)
         return self
+
+    def __isub__(self, other: Union[int, float]) -> Array:
+        return self.__iadd__(-other)
+
+    def __sub__(self, other: Union[int,float]) -> Array:
+        return self.__add__(-other)
 
 
 

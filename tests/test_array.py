@@ -414,10 +414,9 @@ class ArrayMethods(unittest.TestCase):
         a = Array('uint999')
         a += [4]
         self.assertEqual(a.tolist(), [4])
-        with self.assertRaises(TypeError):
-            a += 5
+        a += 5
         a += a
-        self.assertEqual(a.tolist(), [4, 4])
+        self.assertEqual(a.tolist(), [9, 9])
 
     def test__radd__(self):
         a = Array('f', [3, 2, 1])
@@ -432,3 +431,73 @@ class ArrayMethods(unittest.TestCase):
         b = Array('float8_143')
         b[:] = a[:]
         self.assertEqual(b[:], [0.0, 1.5])
+
+
+class ArrayOperations(unittest.TestCase):
+
+    def testInPlaceAdd(self):
+        a = Array('i7', [-9, 4, 0])
+        a += 9
+        self.assertEqual(a[:], [0, 13, 9])
+        self.assertEqual(len(a.data), 21)
+
+    def testAdd(self):
+        a = Array('d')
+        a.fromlist([1.0, -2.0, 100.5])
+        b = a + 2
+        self.assertEqual(a[:], [1.0, -2.0, 100.5])
+        self.assertEqual(b[:], [3.0, 0.0, 102.5])
+
+    def testSub(self):
+        a = Array('uint44', [3, 7, 10])
+        b = a - 3
+        self.assertEqual(b, Array('u44', [0, 4, 7]))
+        with self.assertRaises(bitstring.CreationError):  # TODO: This would be more naturally an OverflowError ?
+            _ = a - 4
+
+    def testInPlaceSub(self):
+        a = Array('float16', [-9, -10.5])
+        a -= -1.5
+        self.assertEqual(a[:], [-7.5, -9.0])
+
+    def testMul(self):
+        pass
+
+    def testInPlaceMul(self):
+        pass
+
+    def testDiv(self):
+        pass
+
+    def testInPlaceDiv(self):
+        pass
+
+    def testAnd(self):
+        pass
+
+    def testInPlaceAnd(self):
+        pass
+
+    def testOr(self):
+        pass
+
+    def testInPlaceOr(self):
+        pass
+
+    def testXor(self):
+        pass
+
+    def testInPlaceXor(self):
+        pass
+
+    def testRshift(self):
+        pass
+
+    def testInPlaceRshift(self):
+        pass
+
+    def testLshift(self):
+        pass
+
+    def testInPlaceLshift(self):
+        pass
