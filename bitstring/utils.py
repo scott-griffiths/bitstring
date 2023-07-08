@@ -10,8 +10,6 @@ byteorder: str = sys.byteorder
 
 CACHE_SIZE = 256
 
-
-
 INIT_NAMES: List[str] = ['uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
                          'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
                          'float', 'floatbe', 'floatle', 'floatne', 'bfloatbe', 'bfloatle', 'bfloatne', 'bfloat',
