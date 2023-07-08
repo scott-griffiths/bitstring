@@ -437,7 +437,7 @@ class ArrayOperations(unittest.TestCase):
 
     def testInPlaceAdd(self):
         a = Array('i7', [-9, 4, 0])
-        a += 9
+        a.__iadd__(9)
         self.assertEqual(a.tolist(), [0, 13, 9])
         self.assertEqual(len(a.data), 21)
 
@@ -457,14 +457,21 @@ class ArrayOperations(unittest.TestCase):
 
     def testInPlaceSub(self):
         a = Array('float16', [-9, -10.5])
-        a -= -1.5
+        a.__isub__(-1.5)
         self.assertEqual(a.tolist(), [-7.5, -9.0])
 
     def testMul(self):
-        pass
+        a = Array('i21', [-5, -4, 0, 2, 100])
+        b = a * 2
+        self.assertEqual(b.tolist(), [-10, -8, 0, 4, 200])
+
+
+    # TODO: Tests for rmul, radd etc?
 
     def testInPlaceMul(self):
-        pass
+        a = Array('i21', [-5, -4, 0, 2, 100])
+        a.__imul__(0.5)
+        self.assertEqual(a.tolist(), [-2, -2, 0, 1, 50])
 
     def testDiv(self):
         pass

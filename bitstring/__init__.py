@@ -30,7 +30,6 @@ ReadError -- Reading or peeking past the end of a bitstring.
 
 https://github.com/scott-griffiths/bitstring
 """
-from __future__ import annotations
 
 __licence__ = """
 The MIT License
@@ -62,8 +61,8 @@ __author__ = "Scott Griffiths"
 
 import sys
 
-from bitstring.bitstring_classes import Bits, BitArray, Array, BitStream, ConstBitStream, pack, Error, ReadError,\
-    InterpretError, ByteAlignError, CreationError, bytealigned, lsb0, _MyModuleType
+from bitstring.bitstring_classes import Bits, BitArray, Array, BitStream, ConstBitStream, pack, bytealigned, lsb0, _MyModuleType
+from bitstring.exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 
 
 sys.modules[__name__].__class__ = _MyModuleType

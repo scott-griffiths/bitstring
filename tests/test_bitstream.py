@@ -3704,7 +3704,7 @@ class Bugs(unittest.TestCase):
         self.assertEqual(swaps, 2)
 
     def testBracketExpander(self):
-        be = bitstring.bitstring_classes.expand_brackets
+        be = bitstring.utils.expand_brackets
         self.assertEqual(be('hello'), 'hello')
         self.assertEqual(be('(hello)'), 'hello')
         self.assertEqual(be('1*(hello)'), 'hello')
@@ -3724,13 +3724,13 @@ class Bugs(unittest.TestCase):
         self.assertEqual(a, b)
 
     def testPackCodeDicts(self):
-        self.assertEqual(sorted(bitstring.bitstring_classes.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.bitstring_classes.REPLACEMENTS_LE.keys()))
-        self.assertEqual(sorted(bitstring.bitstring_classes.REPLACEMENTS_BE.keys()),
+        self.assertEqual(sorted(bitstring.utils.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.utils.REPLACEMENTS_LE.keys()))
+        self.assertEqual(sorted(bitstring.utils.REPLACEMENTS_BE.keys()),
                          sorted(bitstring.bitstring_classes.PACK_CODE_SIZE.keys()))
         for key in bitstring.bitstring_classes.PACK_CODE_SIZE:
-            be = pack(bitstring.bitstring_classes.REPLACEMENTS_BE[key], 0)
-            le = pack(bitstring.bitstring_classes.REPLACEMENTS_LE[key], 0)
+            be = pack(bitstring.utils.REPLACEMENTS_BE[key], 0)
+            le = pack(bitstring.utils.REPLACEMENTS_LE[key], 0)
             self.assertEqual(be.len, bitstring.bitstring_classes.PACK_CODE_SIZE[key] * 8)
             self.assertEqual(le.len, be.len)
 
