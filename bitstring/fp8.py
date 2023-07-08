@@ -1,8 +1,14 @@
+"""
+The 8-bit float formats used here are from a proposal supported by Graphcore, AMD and Qualcomm.
+See https://arxiv.org/abs/2206.02915
+
+"""
+
 import array
 import struct
 import zlib
 
-
+# When uncompressed this gives the conversion from every possible float16 value to a float8_143 value.
 lut_float16_to_float8_143_compressed = b"x\x01\xed\xdde\xb6\x96\x05\x00E\xe1\x8f\xee\x06\xe9FZA\xa4\xbb\xbb;\xa4SB\xba\xeb\xd2\xdd\x8dt\x97\x92J(\xa14\xa2\x84" \
                                        b"\x92\x8a\xa4\x82\xd2\x1d\x12\x0e\xe2\xfe\xd8k\xf1\xeeg\x06gO\xe0\x84B\xb2\x80\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05\xde" \
                                        b"\xd7\x02\x11d\x01\x0b\x04\xb6@D\x05\xba@$\x05\xba@\xe4\x80\x8b\x12pQ\x03.Z\xc0E\x87\xc5\x80\xc5\x84\xc5\x82\xc5\x86\xc5\x81\xc5\x85\xc5\x83\xc5\x87%\x80%\x84" \
@@ -19,6 +25,7 @@ lut_float16_to_float8_143_compressed = b"x\x01\xed\xdde\xb6\x96\x05\x00E\xe1\x8f
                                        b"\x9e\xc1\x9e\xc3^\xc0^\xc2^\xc1\xfe\x83\xbd\x86\xbd\x81\xbd\x85\xbd\x93\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX" \
                                        b"\xc0\x02\x16\xb0\x80\x05,`\x01\x0bX\xc0\x02\x16\x08o\x81\xa0\x1e\x9f\xbb\xdb\x02\x16\x08\xfb\x1f\x0b\xd9\xb3x"
 
+# When uncompressed this gives the conversion from every possible float16 value to a float8_152 value.
 lut_float16_to_float8_152_compressed = b'x\x01\xed\xdde\xa2\x16T\x00E\xd1\x07\n\x82R\x92J\nJHK7"\xa1H#\xd2HIwwI\xa7R\xd2H\xab(\xdd%(\xadt\x89A\xa7\xd2\xdd1\x8c' \
                                        b'\xfbc}k\x06gO\xe0DE\x85\x15-\xb0\xe8\x81\xbd\x12\xd8\xab\x81\xc5\x08,f`\xaf\x05\x16\x0b\x17\x1b\xf7:\xee\r\\\x1c\\\\\\<\\|\\\x02\xdc\x9b\xb8\x84\xb8D\xb8\xc4' \
                                        b'\xb8$\xb8\xa4\xb8d\xb8\xb7po\xe3\x92\xe3R\xe0R\xe2R\xe1R\xe3\xd2\xe0\xde\xc1\xa5\xc5\xa5\xc3\xbd\x8b{\x0f\x97\x1e\x97\x01\x97\x11\x97\t\xf7>.3.\x0b.+.\x1b.;.' \
@@ -32,6 +39,7 @@ lut_float16_to_float8_152_compressed = b'x\x01\xed\xdde\xa2\x16T\x00E\xd1\x07\n\
                                        b'\xc5\x9d\xc0\x9d\xc4\x9d\xc2\x9d\xc6\x9d\xc1\x9d\xc5\x9d\xc3\x9d\xc7]\xc0]\xc4]\xc2]\xc6\xfd\x87\xfb\x1fw\x05w\x15w\rw\x1dw\x03w\x13w\x0bw\x1bw\x07w\x17w\x0f' \
                                        b'w\x1f\xf7\x00\xf7\x10\xf7\x08\xf7\x18\xf7\x04\xf7\x14\xf7\x0c\xf7\x1c\xf7B\xa7\x1e\x9fGvG\nD\n\xf4\x7f\tz_,\x0e'
 
+# When uncompressed this maps each single byte integer to the Python float value that it represents when interpreted as a float8_143 value.
 lut_int8_to_float8_143_compressed = b'x\x01\x15\xcc[\xb5\x90!\x10\x80Q"\x18\x81\x08<\xabGQ\x0b\x10\x81\x084\x90\x08D \x02\xcf^\xd1S\xe0\x8f@\x04"\xb8e\xad=/3\x1f!\xfc\x7f\xfd\xad\xf1.\x84Lg\xb29' \
                                     b'\x84\xf7!\xbc!\x92\xc8\x14*\x8d\xce`\xb2\xd8<\x1c.\xe1EO$\x91)T\x1a\x9d\xc1d\xb1y8\\\xc2\x07=\x91D\xa6Pit\x06\x93\xc5\xe6\xe1p\t\x1f\xf5D\x12\x99B\xa5\xd1\x19' \
                                     b'L\x16\x9b\x87\xc3%d=\x91D\xa6Pit\x06\x93\xc5\xe6\xe1p\t\x9f\xf4D\x12\x99B\xa5\xd1\x19L\x16\x9b\x87\xc3%|\xd6\x13Id\n\x95Fg0Yl\x1e\x0e\x97\xf0EO$\x91)T\x1a\xfb' \
@@ -39,6 +47,7 @@ lut_int8_to_float8_143_compressed = b'x\x01\x15\xcc[\xb5\x90!\x10\x80Q"\x18\x81\
                                     b'.\xe1\xb7\x9eH"S\xa84:\x83\xc9b\xf3p\xb8\x84\xad\'\x92\xc8\x14*\x8d\xce`\xb2\xd8<\x1c.\xe1\x8f\x9eH"S\xa84:\x83\xc9b\xf3p\xb8\x84\xbfz"\x89L\xa1\xd2\xe8\x0c&\x8b' \
                                     b'\xcd\xc3\xe1\x12^\xf5D\x12\x99B\xa5\xbd\xfe\x03\xc2b\xf2\xc8'
 
+# When uncompressed this maps each single byte integer to the Python float value that it represents when interpreted as a float8_152 value.
 lut_int8_to_float8_152_compressed = b'x\x01\x1d\xca\xd9\x11\x10\x06\x08EQJ\xb1\x0b\x8d[\xd0\xb8\xb4A\'R\n]\xc45\xc1\xb8\xb5A)\x9e\t3\xe7\x87\xfb"\xfe\xbf\x87\x11\xcd\x12\x8f"\x1e\x90\x14\xcd\xb0\x1c' \
                                     b'\xf1\x87NR4\xc3r\xc4c\x9d\xa4h\x86\xe5\x88\':I\xd1\x0c\xcb\x11Ou\x92\xa2\x19\x96#\x9e\xe9$E3,G<\xd7I\x8afX\x8e\xf8S\')\x9aa9"u\x92\xa2\x19\x96#^\xe8$E3,G\xbc\xd4' \
                                     b'I\x8afX\x8e\xf8K\')\x9aa9\xe2\x95NR4\xc3r\xc4k\x9d\xa4h\x86\xe5\x887:I\xd1\x0c\xcb\x11ou\x92b\xdf\xf9\xfdm\xc7\x12\xefu\x92\xa2\x19\x96#>\xe8$E3,G|\xd4I\x8afX' \
@@ -55,8 +64,7 @@ class FP8Format:
         self.mantissa_bits = 8 - 1 - self.exp_bits
 
         # We use look up tables to go from an IEEE float16 to the best float8 representation.
-        # For startup efficiency they've been precalculated and zipped up, but the method to
-        # reproduce them is given.
+        # For startup efficiency they've been precalculated and zipped up
         self.lut_int8_to_float = array.array('f')
         if self.exp_bits == 4 and self.bias == 8:
             self.lut_float16_to_float8 = zlib.decompress(lut_float16_to_float8_143_compressed)
@@ -65,14 +73,16 @@ class FP8Format:
             self.lut_float16_to_float8 = zlib.decompress(lut_float16_to_float8_152_compressed)
             self.lut_int8_to_float.frombytes(zlib.decompress(lut_int8_to_float8_152_compressed))
         else:
-            assert False
-            # This is how the LUTs above were calculated. For reference only - shouldn't be needed any more
+            raise RuntimeError("Unsupported float8 format trying to be created. Only float8_143 and float8_152 available for now.")
+            # # This is how the LUTs above were calculated. For reference only - shouldn't be needed any more
             # self.lut_int8_to_float = self.createLUT_for_int8_to_float()
             # self.lut_float16_to_float8 = self.createLUT_for_float16_to_float8()
-            # Then we used a line like this to create the constants:
+            # # Then we used a line like this to create the constants:
             # lut_float16_to_float8_143_compressed = zlib.compress(self.lut_float16_to_float8, 1)
+            # # See also the test_fp8.py unit tests which check the equivalence.
 
     def float_to_int8(self, f: float) -> int:
+        """Given a Python float convert to the best float8 (expressed as an integer in 0-255 range)."""
         # First convert the float to a float16, then a 16 bit uint
         try:
             b = struct.pack('>e', f)
@@ -85,59 +95,7 @@ class FP8Format:
         # Then use this as an index to our large LUT
         return self.lut_float16_to_float8[f16_int]
 
-    # def createLUT_for_int8_to_float(self) -> array.array[float]:
-    #     """Create a LUT to convert an int in range 0-255 representing a float8 into a Python float"""
-    #     i2f = []
-    #     for i in range(256):
-    #         b = BitArray(uint=i, length=8)
-    #         sign = b[0]
-    #         exponent = b[1:1 + self.exp_bits].u
-    #         significand = b[1 + self.exp_bits:]
-    #         if exponent == 0:
-    #             significand.prepend([0])
-    #             exponent = -self.bias + 1
-    #         else:
-    #             significand.prepend([1])
-    #             exponent -= self.bias
-    #         f = float(significand.u) / (2.0 ** (7 - self.exp_bits))
-    #         f *= 2 ** exponent
-    #         i2f.append(f if not sign else -f)
-    #     # One special case for minus zero
-    #     i2f[0b10000000] = float('nan')
-    #     return array.array('f', i2f)
-    #
-    # # Create a bytearray where the nth element is the 8 bit float corresponding to the fp16 value interpreted as n.
-    # def createLUT_for_float16_to_float8(self) -> bytes:
-    #     # Used to create the LUT that are compressed and stored above. This is reference code that isn't
-    #     # run any more (unless we want to add more formats).
-    #     fp16_to_fp8 = bytearray(1 << 16)
-    #     for i in range(1 << 16):
-    #         b = struct.pack('>H', i)
-    #         f, = struct.unpack('>e', b)
-    #         fp8_i = self.slow_float_to_int8(f)
-    #         fp16_to_fp8[i] = fp8_i
-    #     return bytes(fp16_to_fp8)
-    #
-    # def slow_float_to_int8(self, f: float) -> int:
-    #     # Slow, but easier to follow than the faster version. Used only for validation.
-    #     if f >= 0:
-    #         for i in range(128):
-    #             if f < self.lut_int8_to_float[i]:
-    #                 return i - 1
-    #         # Clip to positive max
-    #         return 0b01111111
-    #     if f < 0:
-    #         if f > self.lut_int8_to_float[129]:
-    #             # Rounding upwards to zero
-    #             return 0b00000000  # There's no negative zero so this is a special case
-    #         for i in range(130, 256):
-    #             if f > self.lut_int8_to_float[i]:
-    #                 return i - 1
-    #         # Clip to negative max
-    #         return 0b11111111
-    #     # We only have one nan value
-    #     return 0b10000000
 
-
+# We create the 1.5.2 and 1.4.3 formats. The proposed 1.3.4 format isn't yet supported here.
 fp143_fmt = FP8Format(exp_bits=4, bias=8)
 fp152_fmt = FP8Format(exp_bits=5, bias=16)

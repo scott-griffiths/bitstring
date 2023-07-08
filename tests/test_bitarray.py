@@ -923,29 +923,3 @@ class BitarrayTests(unittest.TestCase):
         self.assertEqual(len(b), 7)
         self.assertEqual(a[17:24].tobitarray(), b.tobitarray())
 
-
-class Fp8(unittest.TestCase):
-
-    def testCreation(self):
-        a = Bits(float8_143=-14.0)
-        self.assertEqual(a.float8_143, -14.0)
-        b = Bits('float8_152=3.0')
-        self.assertEqual(b.float8_152, 3.0)
-        self.assertEqual(len(b), 8)
-        c = Bits('float8_143=1000000000')
-        self.assertEqual(c.hex, '7f')
-        d = Bits('float8_152=-1e15774')
-        self.assertEqual(d.hex, 'ff')
-        e = Bits(float8_152=float('nan'))
-        self.assertEqual(e.hex, '80')
-
-    def testReassignment(self):
-        a = BitArray()
-        a.float8_143 = -0.25
-        self.assertEqual(a.float8_143, -0.25)
-        a.float8_152 = float('inf')
-        self.assertEqual(a.hex, '7f')
-        a.float8_143 = -9000.0
-        self.assertEqual(a.hex, 'ff')
-        a.float8_152 = -0.00000000001
-        self.assertEqual(a.float8_152, 0.0)
