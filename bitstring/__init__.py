@@ -61,7 +61,7 @@ __author__ = "Scott Griffiths"
 
 import sys
 
-from bitstring.bitstring_classes import Bits, BitArray, Array, BitStream, ConstBitStream, pack, bytealigned, lsb0, _MyModuleType
+from bitstring.classes import Bits, BitArray, Array, BitStream, ConstBitStream, pack, bytealigned, lsb0, _MyModuleType
 from bitstring.exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 
 
