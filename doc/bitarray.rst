@@ -206,7 +206,7 @@ Properties
 ----------
 
 Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter.
-Properties can also have a length in bits appended to them to make properties such as ``u8`` or ``floatle64`` (a length after ths ``bytes`` property is an exception as it is in units of bytes instead of bits). These properties with lengths can be used to quickly create a new bitstring. ::
+Properties can also have a length in bits appended to them to make properties such as ``u8`` or ``floatle64`` (with the exception of the ``bytes`` property which uses a unit of bytes instead of bits, so ``bytes4`` is 32 bits long). These properties with lengths can be used to quickly create a new bitstring. ::
 
     >>> a = BitArray()
     >>> a.f32 = 17.6
