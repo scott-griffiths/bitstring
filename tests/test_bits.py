@@ -808,7 +808,7 @@ class NativeEndianIntegers(unittest.TestCase):
 class NonNativeEndianIntegers(unittest.TestCase):
 
     def setUp(self) -> None:
-        bitstring.bitstring_classes.byteorder = 'little' if bitstring.bitstring_classes.byteorder == 'big' else 'little'
+        bitstring.classes.byteorder = 'little' if bitstring.classes.byteorder == 'big' else 'little'
 
     def tearDown(self) -> None:
         self.setUp()

@@ -12,7 +12,7 @@ import bitstring
 import copy
 from collections import abc
 import math
-from bitstring.bitstring_classes import fp143_fmt, fp152_fmt
+from bitstring.classes import fp143_fmt, fp152_fmt
 import struct
 
 

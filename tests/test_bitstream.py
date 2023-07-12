@@ -11,11 +11,6 @@ from bitstring import Bits, BitStream, ConstBitStream, pack
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
-try:
-    collectionsAbc = collections.abc
-except AttributeError:  # Python 2.7
-    collectionsAbc = collections
-
 
 class FlexibleInitialisation(unittest.TestCase):
     def testFlexibleInitialisation(self):
@@ -1947,7 +1942,7 @@ class Split2(unittest.TestCase):
         self.assertFalse('0xfeed' in a)
 
     def testRepr(self):
-        max_ = bitstring.bitstring_classes.MAX_CHARS
+        max_ = bitstring.classes.MAX_CHARS
         bls = ['', '0b1', '0o5', '0x43412424f41', '0b00101001010101']
         for bs in bls:
             a = BitStream(bs)
@@ -1977,7 +1972,7 @@ class Split2(unittest.TestCase):
         s = BitStream(hex='0x00')
         self.assertEqual('0x' + s.hex, s.__str__())
         s = BitStream(filename=os.path.join(THIS_DIR, 'test.m1v'))
-        self.assertEqual('0x' + s[0:bitstring.bitstring_classes.MAX_CHARS * 4].hex + '...', s.__str__())
+        self.assertEqual('0x' + s[0: bitstring.classes.MAX_CHARS * 4].hex + '...', s.__str__())
         self.assertEqual(BitStream().__str__(), '')
         s = BitStream('0b11010')
         self.assertEqual('0b' + s.bin, s.__str__())
@@ -2380,7 +2375,7 @@ class Split2(unittest.TestCase):
         self.assertEqual(b.len, 1000000)
 
     def testTokenParser(self):
-        tp = bitstring.bitstring_classes.tokenparser
+        tp = bitstring.classes.tokenparser
         self.assertEqual(tp('hex'), (True, [('hex', None, None)]))
         self.assertEqual(tp('hex=14'), (True, [('hex', None, '14')]))
         self.assertEqual(tp('se'), (False, [('se', None, None)]))
@@ -3704,7 +3699,7 @@ class Bugs(unittest.TestCase):
         self.assertEqual(swaps, 2)
 
     def testBracketExpander(self):
-        be = bitstring.bitstring_classes.expand_brackets
+        be = bitstring.utils.expand_brackets
         self.assertEqual(be('hello'), 'hello')
         self.assertEqual(be('(hello)'), 'hello')
         self.assertEqual(be('1*(hello)'), 'hello')
@@ -3724,14 +3719,14 @@ class Bugs(unittest.TestCase):
         self.assertEqual(a, b)
 
     def testPackCodeDicts(self):
-        self.assertEqual(sorted(bitstring.bitstring_classes.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.bitstring_classes.REPLACEMENTS_LE.keys()))
-        self.assertEqual(sorted(bitstring.bitstring_classes.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.bitstring_classes.PACK_CODE_SIZE.keys()))
-        for key in bitstring.bitstring_classes.PACK_CODE_SIZE:
-            be = pack(bitstring.bitstring_classes.REPLACEMENTS_BE[key], 0)
-            le = pack(bitstring.bitstring_classes.REPLACEMENTS_LE[key], 0)
-            self.assertEqual(be.len, bitstring.bitstring_classes.PACK_CODE_SIZE[key] * 8)
+        self.assertEqual(sorted(bitstring.utils.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.utils.REPLACEMENTS_LE.keys()))
+        self.assertEqual(sorted(bitstring.utils.REPLACEMENTS_BE.keys()),
+                         sorted(bitstring.classes.PACK_CODE_SIZE.keys()))
+        for key in bitstring.classes.PACK_CODE_SIZE:
+            be = pack(bitstring.utils.REPLACEMENTS_BE[key], 0)
+            le = pack(bitstring.utils.REPLACEMENTS_LE[key], 0)
+            self.assertEqual(be.len, bitstring.classes.PACK_CODE_SIZE[key] * 8)
             self.assertEqual(le.len, be.len)
 
     def testUnicode(self):
@@ -4177,20 +4172,3 @@ class CacheingIssues(unittest.TestCase):
         with self.assertRaises(bitstring.CreationError):
             x = BitStream('0xdeadbeef002', length=16)
 
-
-class Fp8(unittest.TestCase):
-
-    def testReading(self):
-        a = BitStream('0x00fff')
-        x = a.read('float8_152')
-        self.assertEqual(x, 0.0)
-        self.assertEqual(a.pos, 8)
-        x = a.read('float8_143')
-        self.assertEqual(x, -240.0)
-        self.assertEqual(a.pos, 16)
-
-    def testReadList(self):
-        v = [-6, -2, 0.125, 7, 10]
-        a = bitstring.pack('5*float8_143', *v)
-        vp = a.readlist('5*float8_143')
-        self.assertEqual(v, vp)
