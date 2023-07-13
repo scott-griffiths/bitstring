@@ -2,11 +2,13 @@
 
 import unittest
 import sys
-sys.path.insert(0, '..')
 import bitstring
 import io
 import os
 from bitstring import ConstBitStream as CBS
+
+sys.path.insert(0, '..')
+
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 

@@ -11,6 +11,11 @@ from bitstring import Bits, BitStream, ConstBitStream, pack
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
+try:
+    collectionsAbc = collections.abc
+except AttributeError:  # Python 2.7
+    collectionsAbc = collections
+
 
 class FlexibleInitialisation(unittest.TestCase):
     def testFlexibleInitialisation(self):

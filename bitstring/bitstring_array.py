@@ -7,6 +7,7 @@ from bitstring.utils import tokenparser
 import functools
 import copy
 import array
+import operator
 
 
 class Array:
@@ -50,7 +51,7 @@ class Array:
 
     """
 
-    def __init__(self, fmt: str, initializer: Optional[Union[BitsType, Iterable]] = None,
+    def __init__(self, fmt: str, initializer: Optional[Union[int, Array, Iterable]] = None,
                  trailing_bits: Optional[BitsType] = None) -> None:
         self.data = BitArray()
         try:
@@ -63,10 +64,10 @@ class Array:
             self.data = BitArray(initializer * self._itemsize)
         elif isinstance(initializer, Array):
             self.fromlist(initializer.tolist())
-        elif isinstance(initializer, (list, tuple)):
+        elif isinstance(initializer, Iterable):
             self.fromlist(initializer)
-        else:
-            self.data = BitArray(initializer)
+        elif initializer is not None:
+            raise TypeError
 
         if trailing_bits is not None:
             self.data += BitArray(trailing_bits)
@@ -116,6 +117,8 @@ class Array:
             self._getter_func = functools.partial(Bits._name_to_read[token_name], length=token_length)
         except KeyError:
             raise ValueError(f"The token '{token_name}' can't be used to get Array elements.")
+        self._uint_getter_func = functools.partial(Bits._name_to_read['uint'], length=token_length)
+        self._uint_setter_func = functools.partial(Bits._setfunc['uint'], length=token_length)
         self._itemsize = token_length
         self._token_name = token_name
         self._fmt = new_fmt
@@ -210,12 +213,12 @@ class Array:
             self.data[-trailing_bit_length:]) + "'"
         return f"Array('{self._fmt}', {list_str}{final_str})"
 
-    def fromlist(self, list_: Union[List, Tuple]) -> None:
+    def fromlist(self, iterable: Iterable[Any]) -> None:
         trailing_bit_length = len(self.data) % self._itemsize
         if trailing_bit_length != 0:
             raise ValueError(
                 f"Cannot append to Array using fromlist as the Array length is not a multiple of its format length.")
-        for item in list_:
+        for item in iterable:
             self.data += self._create_element(item)
 
     def tolist(self) -> List[Any]:
@@ -367,15 +370,54 @@ class Array:
         a_copy.data = copy.copy(self.data)
         return a_copy
 
+    def _apply_op_to_all_elements(self, op, value: Union[int, float]) -> Array:
+        """Apply op with value to each element of the Array and return a new Array"""
+        new_data = BitArray()
+        for i in range(len(self)):
+            v = self._getter_func(self.data, start=self._itemsize * i)
+            new_data.append(self._create_element(op(v, value)))
+        new_array = Array(fmt=self.fmt)
+        new_array.data = new_data
+        return new_array
+
+    def _apply_op_to_all_elements_inplace(self, op, value: Union[int, float]) -> Array:
+        """Apply op with value to each element of the Array in place."""
+        # This isn't really being done in-place, but it's simpler and faster for now?
+        new_data = BitArray()
+        for i in range(len(self)):
+            v = self._getter_func(self.data, start=self._itemsize * i)
+            new_data.append(self._create_element(op(v, value)))
+        self.data = new_data
+        return self
+
+    def _apply_bitwise_op_to_all_elements(self, op, value: Union[int, float]) -> Array:
+        """Apply op with value to each element of the Array as an unsigned integer and return a new Array"""
+        new_data = BitArray()
+        for i in range(len(self)):
+            v = self._uint_getter_func(self.data, start=self._itemsize * i)
+            b = Bits()
+            self._uint_setter_func(b, op(v, value))
+            new_data.append(b)
+        new_array = Array(fmt=self.fmt)
+        new_array.data = new_data
+        return new_array
+
+    def _apply_bitwise_op_to_all_elements_inplace(self, op, value: Union[int, float]) -> Array:
+        """Apply op with value to each element of the Array as an unsigned integer in place."""
+        # This isn't really being done in-place, but it's simpler and faster for now?
+        new_data = BitArray()
+        for i in range(len(self)):
+            v = self._uint_getter_func(self.data, start=self._itemsize * i)
+            b = Bits()
+            self._uint_setter_func(b, op(v, value))
+            new_data.append(b)
+        self.data = new_data
+        return self
+
     def __add__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
+        """Either extend the Array with an iterable or other Array, or add int or float to all elements."""
         if isinstance(other, (int, float)):
-            new_data = BitArray()
-            for i in range(len(self)):
-                v = self._getter_func(self.data, start=self._itemsize * i)
-                new_data.append(self._create_element(v + other))
-            new_array = Array(fmt=self.fmt)
-            new_array.data = new_data
-            return new_array
+            return self._apply_op_to_all_elements(operator.add, other)
         if len(self.data) % self._itemsize != 0:
             raise ValueError(f"Cannot append to the Array as its length is not a multiple of the format length.")
         new_array = copy.copy(self)
@@ -415,14 +457,7 @@ class Array:
 
     def __iadd__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
         if isinstance(other, (int, float)):
-            # Just try to add to every item in the Array
-            # This isn't really in-place, but it's simpler and faster
-            new_data = BitArray()
-            for i in range(len(self)):
-                v = self._getter_func(self.data, start=self._itemsize * i)
-                new_data.append(self._create_element(v + other))
-            self.data = new_data
-            return self
+            return self._apply_op_to_all_elements_inplace(operator.add, other)
         if len(self.data) % self._itemsize != 0:
             raise ValueError(f"Cannot append to the Array as its length is not a multiple of the format length.")
         if isinstance(other, Array):
@@ -441,26 +476,55 @@ class Array:
         return self
 
     def __isub__(self, other: Union[int, float]) -> Array:
-        return self.__iadd__(-other)
+        return self._apply_op_to_all_elements_inplace(operator.sub, other)
 
     def __sub__(self, other: Union[int, float]) -> Array:
-        return self.__add__(-other)
+        return self._apply_op_to_all_elements(operator.sub, other)
 
     def __mul__(self, other: Union[int, float]) -> Array:
-        new_data = BitArray()
-        for i in range(len(self)):
-            v = self._getter_func(self.data, start=self._itemsize * i)
-            new_data.append(self._create_element(v * other))
-        new_array = Array(fmt=self.fmt)
-        new_array.data = new_data
-        return new_array
+        return self._apply_op_to_all_elements(operator.mul, other)
 
     def __imul__(self, other: Union[int, float]) -> Array:
-        # This isn't really in-place, but it's simpler and faster
-        new_data = BitArray()
-        for i in range(len(self)):
-            v = self._getter_func(self.data, start=self._itemsize * i)
-            new_data.append(self._create_element(v *
-                                                 other))
-        self.data = new_data
-        return self
+        return self._apply_op_to_all_elements_inplace(operator.mul, other)
+
+    def __floordiv__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements(operator.floordiv, other)
+
+    def __ifloordiv__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements_inplace(operator.floordiv, other)
+
+    def __truediv__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements(operator.truediv, other)
+
+    def __itruediv__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements_inplace(operator.truediv, other)
+
+    def __rshift__(self, other: int) -> Array:
+        return self._apply_op_to_all_elements(operator.rshift, other)
+
+    def __lshift__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements(operator.lshift, other)
+
+    def __irshift__(self, other: int) -> Array:
+        return self._apply_op_to_all_elements_inplace(operator.rshift, other)
+
+    def __ilshift__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements_inplace(operator.lshift, other)
+
+    def __and__(self, other: int) -> Array:
+        return self._apply_bitwise_op_to_all_elements(operator.and_, other)
+
+    def __iand__(self, other: int) -> Array:
+        return self._apply_bitwise_op_to_all_elements_inplace(operator.and_, other)
+
+    def __or__(self, other: int) -> Array:
+        return self._apply_bitwise_op_to_all_elements(operator.or_, other)
+
+    def __ior__(self, other: int) -> Array:
+        return self._apply_bitwise_op_to_all_elements_inplace(operator.or_, other)
+
+    def __xor__(self, other: int) -> Array:
+        return self._apply_bitwise_op_to_all_elements(operator.xor, other)
+
+    def __ixor__(self, other: int) -> Array:
+        return self._apply_bitwise_op_to_all_elements_inplace(operator.xor, other)

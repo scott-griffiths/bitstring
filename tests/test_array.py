@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-import io
 import unittest
 import sys
-
-sys.path.insert(0, '..')
 import bitstring
 import array
 import os
 from bitstring import Array, Bits, BitArray
 import copy
+
+sys.path.insert(0, '..')
+
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -29,7 +29,8 @@ class Creation(unittest.TestCase):
         self.assertEqual(a[-1], 7)
 
     def testCreationFromBytes(self):
-        a = Array('hex:8', b'ABCD')
+        a = Array('hex:8')
+        a.data.bytes = b'ABCD'
         self.assertEqual(a[0], '41')
         self.assertEqual(a[1], '42')
         self.assertEqual(a[2], '43')
@@ -41,8 +42,8 @@ class Creation(unittest.TestCase):
             b = Array('bits:8', a)
 
     def testCreationFromFloat8(self):
-        x = b'\x7f\x00'
-        a = Array('float8_143', x)
+        a = Array('float8_143')
+        a.data.bytes = b'\x7f\x00'
         self.assertEqual(a[0], 240.0)
         self.assertEqual(a[1], 0.0)
         b = Array('float8_143', [100000, -0.0])
@@ -50,7 +51,7 @@ class Creation(unittest.TestCase):
 
     def testCreationFromMultiple(self):
         with self.assertRaises(ValueError):
-            a = Array('2*float16')
+            _ = Array('2*float16')
 
     def testChangingFmt(self):
         a = Array('uint8', [255]*100)
@@ -464,6 +465,12 @@ class ArrayOperations(unittest.TestCase):
         a = Array('i21', [-5, -4, 0, 2, 100])
         b = a * 2
         self.assertEqual(b.tolist(), [-10, -8, 0, 4, 200])
+        a = Array('int9', [-1, 0, 3])
+        b = a * 2
+        self.assertEqual(a.tolist(), [-1, 0, 3])
+        self.assertEqual(b.tolist(), [-2, 0, 6])
+        c = a * 2.5
+        self.assertEqual(c.tolist(), [-2, 0, 7])
 
 
     # TODO: Tests for rmul, radd etc?
@@ -474,13 +481,29 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(a.tolist(), [-2, -2, 0, 1, 50])
 
     def testDiv(self):
-        pass
+        a = Array('i32', [-2, -1, 0, 1, 2])
+        b = a // 2
+        self.assertEqual(a.tolist(), [-2, -1, 0, 1, 2])
+        self.assertEqual(b.tolist(), [-1, -1, 0, 0, 1])
 
     def testInPlaceDiv(self):
         pass
 
-    def testAnd(self):
+    def testTrueDiv(self):
         pass
+
+    def testInPlaceTrueDiv(self):
+        pass
+
+    def testAnd(self):
+        a = Array('int16', [-1, 100, 9])
+        b = a & 0
+        self.assertEqual(b.tolist(), [0, 0, 0])
+        b = a & 1
+        self.assertEqual(b.tolist(), [1, 0, 1])
+        b = a & 65535
+        self.assertEqual(b.fmt, 'int16')
+        self.assertEqual(b.tolist(), [-1, 100, 9])
 
     def testInPlaceAnd(self):
         pass

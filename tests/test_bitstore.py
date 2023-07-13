@@ -5,6 +5,9 @@ import sys
 sys.path.insert(0, '..')
 import bitstring
 from bitstring.classes import BitStore, _offset_slice_indices_lsb0
+import sys
+
+sys.path.insert(0, '..')
 
 
 class BasicFunctionality(unittest.TestCase):

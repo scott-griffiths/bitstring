@@ -2,15 +2,13 @@
 import io
 import unittest
 import sys
-
 import bitarray
-
-sys.path.insert(0, '..')
 import bitstring
 import array
 import os
-from bitstring import InterpretError
-from bitstring import Bits, BitArray
+from bitstring import InterpretError, Bits, BitArray
+
+sys.path.insert(0, '..')
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 

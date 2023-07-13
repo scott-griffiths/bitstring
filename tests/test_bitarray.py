@@ -7,10 +7,10 @@ import unittest
 import sys
 import os
 import bitarray
-
-sys.path.insert(0, '..')
 import bitstring
 from bitstring import BitArray, Bits
+
+sys.path.insert(0, '..')
 
 
 class All(unittest.TestCase):
