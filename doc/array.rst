@@ -134,7 +134,7 @@ Methods
 
     .. method:: Array.fromfile(f, n)
 
-    .. method:: Array.fromlist(list_)
+    .. method:: Array.fromlist(iterable)
 
     .. method:: Array.insert(i, x)
 
@@ -148,6 +148,16 @@ Methods
 
     .. method:: Array.tolist()
 
+
+Special Methods
+---------------
+
+__add__ / __radd__
+^^^^^^^^^^^^^^^^^^
+    .. method:: Array.__add__(bs)
+    .. method:: Array.__radd__(bs)
+
+        If you add an iterable to an ``Array`` it
 
 
 Properties
@@ -164,12 +174,13 @@ Properties
         The format string used to initialise the ``Array`` type. Read and write.
 
         Changing the format for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
+        However, changing the format won't change the underlying bit data in any way.
 
         Note that some ``Array`` methods such as ``append`` and ``extend`` require the bit data to have a length that is a multiple of the ``Array``'s ``itemsize``.
 
     .. attribute:: Array.itemsize
 
-        The size in bits of each item in the ``Array``. Read-only.
+        The size *in bits* of each item in the ``Array``. Read-only.
 
         Note that this gives a value in bits, unlike the equivalent in the ``array`` module which gives a value in bytes. ::
 
@@ -182,7 +193,7 @@ Properties
 
     .. attribute:: Array.trailing_bits
 
-        A ``BitArray`` object that returns the end of the ``data`` that is not a multiple of the ``itemsize``. Read only.
+        A ``BitArray`` object equal to the end of the ``data`` that is not a multiple of the ``itemsize``. Read only.
 
         This will typically be an empty ``BitArray``, but if an the ``fmt`` or the ``data`` of an ``Array`` object has been altered after its creation then there may be left-over bits at the end of the data.
 

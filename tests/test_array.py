@@ -329,7 +329,7 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(a[::2], Array('i17', [1, 3]))
         self.assertEqual(a[::-2], Array('i17', [4, 2]))
 
-    def testSetting(self):
+    def testMoreSetting(self):
         a = Array('i1', [0, -1, -1, 0, 0, -1, 0])
         a[0] = -1
         self.assertEqual(a[0], -1)
@@ -381,12 +381,12 @@ class ArrayMethods(unittest.TestCase):
 
     def test__add__(self):
         a = Array('B', [1, 2, 3])
-        b = Array('B', [3, 4])
+        b = Array('u8', [3, 4])
         c = a + b
         self.assertEqual(a, Array('B', [1, 2, 3]))
         self.assertEqual(c, Array('B', [1, 2, 3, 3, 4]))
         d = a + [10, 11, 12]
-        self.assertEqual(d, Array('B', [1, 2, 3, 10, 11, 12]))
+        self.assertEqual(d, Array('uint:8', [1, 2, 3, 10, 11, 12]))
 
     def test__add__array(self):
         a = array.array('B', [10, 11])
@@ -458,7 +458,7 @@ class ArrayOperations(unittest.TestCase):
 
     def testInPlaceSub(self):
         a = Array('float16', [-9, -10.5])
-        a.__isub__(-1.5)
+        a -= -1.5
         self.assertEqual(a.tolist(), [-7.5, -9.0])
 
     def testMul(self):
@@ -509,13 +509,19 @@ class ArrayOperations(unittest.TestCase):
         pass
 
     def testOr(self):
-        pass
+        a = Array('float8_143', [-4, 2.5, -9, 0.25])
+        b = a | 0b10000000
+        self.assertEqual(a.tolist(), [-4,  2.5, -9,  0.25])
+        self.assertEqual(b.tolist(), [-4, -2.5, -9, -0.25])
 
     def testInPlaceOr(self):
         pass
 
     def testXor(self):
-        pass
+        a = Array('hex8', ['00', 'ff', 'aa'])
+        b = a ^ 0xff
+        self.assertEqual(a.tolist(), ['00', 'ff', 'aa'])
+        self.assertEqual(b.tolist(), ['ff', '00', '55'])
 
     def testInPlaceXor(self):
         pass

@@ -7,36 +7,47 @@ Quick Reference
 ******************
 This section lists the bitstring module's classes together with all their methods and attributes. The next section goes into full detail with examples.
 
+The first four classes are bit containers, so that each element is a single bit.
+They differ based on whether they can be modified after creation and on whether they have the concept of a current bit position.
 
 .. list-table::
-   :widths: 15 10 10 65
+   :widths: 30 15 15 40
    :header-rows: 1
 
    * - Class
      - Mutable?
      - Streaming methods?
      -
-   * - :class:`Bits`
+   * - ``Bits``
      - ✘
      - ✘
      - An efficient, immutable container of bits.
-   * - :class:`BitArray`
+   * - ``BitArray``
      - ✔
      - ✘
      - Like ``Bits`` but it can be changed after creation.
-   * - :class:`ConstBitStream`
+   * - ``ConstBitStream``
      - ✘
      - ✔
      - Immutable like ``Bits`` but with a bit position and reading methods.
-   * - :class:`BitStream`
+   * - ``BitStream``
      - ✔
      - ✔
      - Mutable like ``BitArray`` but with a bit position and reading methods.
-   * - :class:`Array`
+
+
+The final class is a flexible container whose elements are fixed-length bitstrings.
+
+.. list-table::
+   :widths: 30 15 15 40
+
+   * - ``Array``
      - ✔
      - ✘
      - An efficient list-like container where each item has a fixed-length binary format.
 
+
+----
 
 Bits
 ----
@@ -98,6 +109,9 @@ Properties
 * :attr:`~Bits.uintle` -- Interpret as a little-endian unsigned integer.
 * :attr:`~Bits.uintne` -- Interpret as a native-endian unsigned integer.
 
+----
+
+
 BitArray
 --------
 
@@ -132,6 +146,7 @@ Properties
 
 The same as ``Bits``, except that they are all (with the exception of ``len``) writable as well as readable.
 
+----
 
 ConstBitStream
 --------------
@@ -156,6 +171,7 @@ Additional properties
 * :attr:`~ConstBitStream.bytepos` -- The current byte position in the bitstring.
 * :attr:`~ConstBitStream.pos` -- The current bit position in the bitstring.
 
+----
 
 BitStream
 ---------
@@ -164,6 +180,49 @@ BitStream
 
 This class contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``. It is the most general of the four classes, but it is usually best to choose the simplest class for your use case.
 
+----
+
+Array
+-----
+
+The bitstring ``Array`` is similar to the ``array`` type in the ``array`` module, except that it is far more flexible.
+The ``fmt`` specifies a fixed-length format for each element of the ``Array``, and it behaves largely like a list.
+
+Both the format and the underlying bit data (stored as a ``BitArray``) can be freely modified after creation, and element-wise operations can be used on the ``Array``.
+
+Methods
+^^^^^^^
+
+* :meth:`~Array.append` -- Append a single item to the end of the Array.
+* :meth:`~Array.byteswap` -- Change byte endianness of all items.
+* :meth:`~Array.count` -- Count the number of occurences of a value.
+* :meth:`~Array.extend` -- Append multiple items to the end of the Array from an iterable.
+* :meth:`~Array.frombytes` -- Append byte data to the Array's data.
+* :meth:`~Array.fromfile` -- Append items read from a file object.
+* :meth:`~Array.fromlist` -- Append items from an iterable.
+* :meth:`~Array.insert` -- Insert an item at a given position.
+* :meth:`~Array.pop` -- Return and remove an item.
+* :meth:`~Array.reverse` -- Reverse the order of all items.
+* :meth:`~Array.tobytes` -- Return Array data as bytes object, padding with zero bits at end if needed.
+* :meth:`~Array.tofile` -- Write Array data to a file, padding with zero bits at end if needed.
+* :meth:`~Array.tolist` -- Return Array items as a list.
+
+Special methods
+^^^^^^^^^^^^^^^
+
+Also available are the operators ``[]``, ``==``, ``!=``, ``+``, ``*``, ``<<``, ``>>``, ``&``, ``|`` and ``^``.
+
+Mutating operators are available: ``[]``, ``<<=``, ``>>=``, ``*=``, ``&=``, ``|=`` and ``^=``.
+
+Properties
+^^^^^^^^^^
+
+* :attr:`~Array.data` -- The complete binary data in a ``BitArray`` object. Can be freely modified.
+* :attr:`~Array.fmt` -- The format string or typecode. Can be freely modified.
+* :attr:`~Array.itemsize` -- The length *in bits* of a single item. Read only.
+* :attr:`~Array.trailing_bits` -- If the data length is not a multiple of the fmt length, this BitArray gives the leftovers at the end of the data.
+
+----
 
 Module level
 ------------

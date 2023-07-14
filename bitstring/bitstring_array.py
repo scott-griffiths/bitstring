@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from bitstring.exceptions import CreationError
-from typing import Tuple, Union, List, Iterable, Any, Optional, BinaryIO, overload
+from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, Callable
 from bitstring.classes import BitArray, Bits, BitsType
 from bitstring.utils import tokenparser
 import functools
@@ -32,7 +32,7 @@ class Array:
     extend() -- Append multiple items to the end of the Array from an iterable.
     frombytes() -- Append byte data to the Array's data.
     fromfile() -- Append items read from a file object.
-    fromlist() -- Append items from a list.
+    fromlist() -- Append items from an iterable.
     insert() -- Insert an item at a given position.
     pop() -- Return and remove an item.
     reverse() -- Reverse the order of all items.
@@ -232,23 +232,28 @@ class Array:
             raise TypeError(f"Array.frombytes() can only accept a bytes-like object, not a {type(b)}.")
 
     def append(self, x: Any) -> None:
-        trailing_bit_length = len(self.data) % self._itemsize
-        if trailing_bit_length != 0:
+        if len(self.data) % self._itemsize != 0:
             raise ValueError(f"Cannot append to Array as its length is not a multiple of the format length.")
         self.data += self._create_element(x)
 
-    def extend(self, initializer: Iterable) -> None:
-        trailing_bit_length = len(self.data) % self._itemsize
-        if trailing_bit_length != 0:
+    def extend(self, initializer: Union[Array, array.array, Iterable]) -> None:
+        if len(self.data) % self._itemsize != 0:
             raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
         if isinstance(initializer, Array):
             if self._token_name != initializer._token_name or self._itemsize != initializer._itemsize:
-                raise TypeError(f"Formats must match when extending one Array with another Array.")
+                raise TypeError(
+                    f"Cannot add an Array with format '{initializer._fmt}' to an Array with format '{self._fmt}'.")
             # No need to iterate over the elements, we can just append the data
-            self.data += initializer.data
+            self.data.append(initializer.data)
+        elif isinstance(initializer, array.array):
+            other_fmt = Array._array_typecodes.get(initializer.typecode, initializer.typecode)
+            token_name, token_length, _ = tokenparser(other_fmt, None)[1][0]
+            if self._token_name != token_name or self._itemsize != token_length:
+                raise ValueError(
+                    f"Cannot add an array with typecode '{initializer.typecode}' to an Array with format '{self._fmt}'.")
+            self.data += initializer.tobytes()
         else:
-            for x in initializer:
-                self.data += self._create_element(x)
+            self.fromlist(initializer)
 
     def insert(self, i: int, x: Any):
         i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
@@ -419,10 +424,10 @@ class Array:
         if isinstance(other, (int, float)):
             return self._apply_op_to_all_elements(operator.add, other)
         if len(self.data) % self._itemsize != 0:
-            raise ValueError(f"Cannot append to the Array as its length is not a multiple of the format length.")
+            raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
         new_array = copy.copy(self)
         if isinstance(other, Array):
-            if self._fmt != other._fmt:
+            if self._token_name != other._token_name or self._itemsize != other._itemsize:
                 raise ValueError(
                     f"Cannot add an Array with format '{other._fmt}' to an Array with format '{self._fmt}'.")
             new_array.data += other.data
@@ -437,7 +442,7 @@ class Array:
             new_array.fromlist(other)
         return new_array
 
-    def __radd__(self, other: Union[Array, array.array, Iterable]) -> Array:
+    def __radd__(self, other: Union[array.array, Iterable]) -> Array:
         # We know that the LHS can't be an Array otherwise __add__ would be used.
         if isinstance(other, array.array):
             other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
@@ -458,22 +463,9 @@ class Array:
     def __iadd__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
         if isinstance(other, (int, float)):
             return self._apply_op_to_all_elements_inplace(operator.add, other)
-        if len(self.data) % self._itemsize != 0:
-            raise ValueError(f"Cannot append to the Array as its length is not a multiple of the format length.")
-        if isinstance(other, Array):
-            if self._fmt != other._fmt:
-                raise ValueError(
-                    f"Cannot add an Array with format '{other._fmt}' to and Array with format '{self._fmt}'.")
-            self.data.append(other.data)
-        elif isinstance(other, array.array):
-            other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
-            if self._fmt != other_fmt:
-                raise ValueError(
-                    f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
-            self.data += other.tobytes()
         else:
-            self.fromlist(other)
-        return self
+            self.extend(other)
+            return self
 
     def __isub__(self, other: Union[int, float]) -> Array:
         return self._apply_op_to_all_elements_inplace(operator.sub, other)
