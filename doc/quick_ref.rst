@@ -52,7 +52,7 @@ The final class is a flexible container whose elements are fixed-length bitstrin
 Bits
 ----
 
-``Bits`` is the most basic class. It is immutable, so once created its value cannot change. It is a base class for all the other classes in the `bitstring` module.
+``Bits`` is the most basic class and is just a container of bits. It is immutable, so once created its value cannot change.
 
 Methods
 ^^^^^^^
@@ -90,6 +90,8 @@ Properties
 * :attr:`~Bits.float` / ``floatbe`` / ``f`` -- Interpret as a big-endian floating point number.
 * :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
 * :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
+* :attr:`~Bits.float8_143` -- Interpret as an 8 bit float with float8_143 format.
+* :attr:`~Bits.float8_152` -- Interpret as an 8 bit float with float8_152 format.
 * :attr:`~Bits.bfloat` / ``bfloatbe`` -- Interpret as a big-endian bfloat floating point number.
 * :attr:`~Bits.bfloatle` -- Interpret as a little-endian bfloat floating point number.
 * :attr:`~Bits.bfloatne` -- Interpret as a native-endian bfloat floating point number.

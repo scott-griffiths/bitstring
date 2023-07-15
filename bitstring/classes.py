@@ -2480,8 +2480,11 @@ class Bits:
     sie = property(_getsie,
                    doc="""The bitstring as a signed interleaved exponential-Golomb code. Read only.
                       """)
-    float8_143 = property(_getfloat143)
-    float8_152 = property(_getfloat152)
+    float8_143 = property(_getfloat143,
+                          doc="""The bitstring as an 8 bit float with float8_143 format. Read only.""")
+    float8_152 = property(_getfloat152,
+                          doc="""The bitstring as an 8 bit float with float8_152 format. Read only.""")
+
 
     # Some shortened aliases of the above properties
     i = int
@@ -3302,8 +3305,12 @@ class BitArray(Bits):
     bytes = property(Bits._getbytes, Bits._setbytes,
                      doc="""The bitstring as a ordinary string. Read and write.
                       """)
-    float8_143 = property(Bits._getfloat143, Bits._setfloat143)
-    float8_152 = property(Bits._getfloat152, Bits._setfloat152)
+    float8_143 = property(Bits._getfloat143, Bits._setfloat143,
+                          doc="""The bitstring as an 8 bit float with float8_143 format. Read and write.
+                          """)
+    float8_152 = property(Bits._getfloat152, Bits._setfloat152,
+                          doc="""The bitstring as an 8 bit float with float8_152 format. Read and write.
+                          """)
 
     # Aliases for some properties
     f = float

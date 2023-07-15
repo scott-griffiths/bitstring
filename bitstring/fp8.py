@@ -59,17 +59,13 @@ class FP8Format:
     """Defining an 8-bit floating point format"""
 
     def __init__(self, exp_bits: int, bias: int):
-        self.exp_bits = exp_bits
-        self.bias = bias
-        self.mantissa_bits = 8 - 1 - self.exp_bits
-
         # We use look up tables to go from an IEEE float16 to the best float8 representation.
         # For startup efficiency they've been precalculated and zipped up
         self.lut_int8_to_float = array.array('f')
-        if self.exp_bits == 4 and self.bias == 8:
+        if exp_bits == 4 and bias == 8:
             self.lut_float16_to_float8 = zlib.decompress(lut_float16_to_float8_143_compressed)
             self.lut_int8_to_float.frombytes(zlib.decompress(lut_int8_to_float8_143_compressed))
-        elif self.exp_bits == 5 and self.bias == 16:
+        elif exp_bits == 5 and bias == 16:
             self.lut_float16_to_float8 = zlib.decompress(lut_float16_to_float8_152_compressed)
             self.lut_int8_to_float.frombytes(zlib.decompress(lut_int8_to_float8_152_compressed))
         else:
@@ -86,8 +82,9 @@ class FP8Format:
         # First convert the float to a float16, then a 16 bit uint
         try:
             b = struct.pack('>e', f)
-        except (OverflowError, struct.error) as e:
+        except (OverflowError, struct.error):
             try:
+                # Return the largest representable positive or negative value
                 return 0b01111111 if f > 0 else 0b11111111
             except TypeError:
                 raise ValueError(f"Can't set a float with '{f}' of type {type(f)}.")
