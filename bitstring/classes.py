@@ -1062,14 +1062,13 @@ class Bits:
         return self._readbytes(0, self.len)
 
     _unprintable = list(range(0x00, 0x20))  # ASCII control characters
-    _unprintable.extend(range(0x7f, 0xa1))  # More UTF-8 control characters
-    _unprintable.append(0xad)  # Soft hyphen, usually rendered invisibly!
+    _unprintable.extend(range(0x7f, 0xff))  # DEL char + non-ASCII
 
     def _getbytes_printable(self) -> str:
         """Return an approximation of the data as a string of printable characters."""
         bytes_ = self._getbytes()
-        # Replace unprintable characters with '.'
-        string = ''.join('.' if x in Bits._unprintable else chr(x) for x in bytes_)
+        # For everything that isn't printable ASCII, use value from 'Latin Extended-A' unicode block.
+        string = ''.join(chr(0x100 + x) if x in Bits._unprintable else chr(x) for x in bytes_)
         return string
 
     def _setuint(self, uint: int, length: Optional[int] = None, _offset: None = None) -> None:
