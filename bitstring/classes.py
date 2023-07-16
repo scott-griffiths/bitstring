@@ -649,6 +649,9 @@ class Bits:
         """Return the length of the bitstring in bits."""
         return self._getlength()
 
+    def __bytes__(self) -> bytes:
+        return self.tobytes()
+
     def __str__(self) -> str:
         """Return approximate string representation of bitstring for printing.
 

@@ -694,6 +694,14 @@ class PrettyPrinting(unittest.TestCase):
                                        ' 80: 11111111 11111111   ff ff\n'
                                        ' 96: 11111111 11111111   ff ff\n')
 
+        a = bytearray(range(0, 256))
+        b = Bits(bytes=a)
+        s = io.StringIO()
+        b.pp(stream=s, fmt='bytes')
+        self.assertEqual(s.getvalue(), """   0: ĀāĂă ĄąĆć ĈĉĊċ ČčĎď ĐđĒē ĔĕĖė ĘęĚě ĜĝĞğ  !"# $%&' ()*+ ,-./ 0123 4567 89:; <=>? @ABC DEFG HIJK LMNO PQRS TUVW XYZ[
+ 736: \]^_ `abc defg hijk lmno pqrs tuvw xyz{ |}~ſ ƀƁƂƃ ƄƅƆƇ ƈƉƊƋ ƌƍƎƏ ƐƑƒƓ ƔƕƖƗ Ƙƙƚƛ ƜƝƞƟ ƠơƢƣ ƤƥƦƧ ƨƩƪƫ ƬƭƮƯ ưƱƲƳ ƴƵƶƷ
+1472: Ƹƹƺƻ Ƽƽƾƿ ǀǁǂǃ ǄǅǆǇ ǈǉǊǋ ǌǍǎǏ ǐǑǒǓ ǔǕǖǗ ǘǙǚǛ ǜǝǞǟ ǠǡǢǣ ǤǥǦǧ ǨǩǪǫ ǬǭǮǯ ǰǱǲǳ ǴǵǶǷ ǸǹǺǻ ǼǽǾÿ                         \n""")
+
     def testGroupSizeErrors(self):
         a = Bits(120)
         with self.assertRaises(ValueError):

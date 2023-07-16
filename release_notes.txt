@@ -66,6 +66,12 @@ Other changes:
   guessing it's related to __nonzero__ in Python 2 becoming __bool__ in Python 3, and
   it's never been fixed before now.
 
+* Casting to bytes now behaves as expected, so that bytes(s) gives the same result as
+  s.tobytes(). Previously it created a byte per bit.
+
+* Pretty printing with the 'bytes' format now uses characters from the 'Latin Extended-A'
+  unicode block for non-ASCII and unprintable characters instead of replacing them with '.'
+
 * More fixes for LSB0 mode. There are now no known issues with this feature.
 
 ----------------------------------

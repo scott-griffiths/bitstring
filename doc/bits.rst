@@ -183,7 +183,7 @@ pp
 
         The ``'hex'``, ``'oct'`` and ``'bin'`` format string can be replaced with just their initial letter.
 
-        For the ``'bytes'`` format unprintable characters are replaced with a ``'.'``.
+        For the ``'bytes'`` format, characters from the 'Latin Extended-A' unicode block are used for non-ASCII and unprintable characters.
 
         If the bitstring cannot be represented in a format due to it's length not being a multiple of the number of bits represented by each character then an :exc:`InterpretError` will be raised.
 
@@ -254,6 +254,11 @@ tobytes
             >>> s = Bits(bytes=b'hello')
             >>> s += '0b01'
             >>> s.tobytes()
+            b'hello@'
+
+        This is equivalent to casting to a bytes object directly: ::
+
+            >>> bytes(s)
             b'hello@'
 
 tofile

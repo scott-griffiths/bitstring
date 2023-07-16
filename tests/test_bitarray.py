@@ -776,6 +776,15 @@ class NewProperties(unittest.TestCase):
         with self.assertRaises(bitstring.CreationError):
             a.bytes5 = b'123'
 
+    def testConversionToBytes(self):
+        a = BitArray(bytes=b'1234')
+        b = bytes(a)
+        self.assertEqual(b, b'1234')
+        a += [1]
+        self.assertEqual(bytes(a), b'1234\x80')
+        a = BitArray()
+        self.assertEqual(bytes(a), b'')
+
 
 class BFloats(unittest.TestCase):
 
