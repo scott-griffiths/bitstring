@@ -1,9 +1,8 @@
 .. currentmodule:: bitstring
 
-.. warning::
-    The Array class is a work in progress and has not been released even in beta form.
-    I sometimes like to write the documentation first, then the tests, then the code.
-    So these are plans, not reality!
+.. note::
+    The Array class is new in version 4.1 of bitstring, and is considered a 'beta' feature for now.
+    There may be some small changes in future point releases and it hasn't been tested as well as the rest of the library.
 
 
 Array Class
@@ -119,22 +118,37 @@ Some methods, such as ``append`` and ``extend`` will raise an exception if used 
 Methods
 -------
 
+    .. note::
+        Some methods that are available for ``array.array`` objects are deliberately omitted in this interface as they don't really add much.
+        In particular, some omissions and their suggested replacements are:
+
+        ``a.fromlist(alist)`` → ``a.extend(alist)``
+        ``a.frombytes(s)`` → ``a.data.extend(s)``
+
 
     .. method:: Array.append(x)
 
+        Add a new element with value `x` to the end of the Array.
+
+        Raises a ``ValueError`` if the Array's bit length is not a multiple of its format length (see :attribute:~Array.trailing_bits).
+
     .. method:: Array.byteswap()
+
+        Change the byte endianness of each element.
+
+        Raises a ``ValueError`` if the format is not an integer number of bytes long.
 
     .. method:: Array.count(value)
 
         Returns the number of elements set to *value*.
 
-    .. method:: Array.extend(initializer)
+    .. method:: Array.extend(iterable)
 
-    .. method:: Array.frombytes(b)
+        Extend the Array by constructing new elements from the values in a list or other iterable.
+
+        The `iterable` can be another ``Array`` or an ``array.array``, but only if the format (or typecode) is the same.
 
     .. method:: Array.fromfile(f, n)
-
-    .. method:: Array.fromlist(iterable)
 
     .. method:: Array.insert(i, x)
 

@@ -199,9 +199,7 @@ Methods
 * :meth:`~Array.byteswap` -- Change byte endianness of all items.
 * :meth:`~Array.count` -- Count the number of occurences of a value.
 * :meth:`~Array.extend` -- Append multiple items to the end of the Array from an iterable.
-* :meth:`~Array.frombytes` -- Append byte data to the Array's data.
 * :meth:`~Array.fromfile` -- Append items read from a file object.
-* :meth:`~Array.fromlist` -- Append items from an iterable.
 * :meth:`~Array.insert` -- Insert an item at a given position.
 * :meth:`~Array.pop` -- Return and remove an item.
 * :meth:`~Array.reverse` -- Reverse the order of all items.

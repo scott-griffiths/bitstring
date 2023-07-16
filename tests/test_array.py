@@ -28,7 +28,7 @@ class Creation(unittest.TestCase):
         self.assertEqual(a[2], -1)
         self.assertEqual(a[-1], 7)
 
-    def testCreationFromBytes(self):
+    def testCreationFromBytesExplicit(self):
         a = Array('hex:8')
         a.data.bytes = b'ABCD'
         self.assertEqual(a[0], '41')
@@ -36,7 +36,7 @@ class Creation(unittest.TestCase):
         self.assertEqual(a[2], '43')
         self.assertEqual(a[3], '44')
 
-    def testCreationFromBits(self):
+    def testCreationFromBitsFormat(self):
         a = Bits('0x000102030405')
         with self.assertRaises(bitstring.CreationError):
             b = Array('bits:8', a)
@@ -102,6 +102,32 @@ class Creation(unittest.TestCase):
         a = Array('f')
         self.assertEqual(a.itemsize, 32)
 
+    def testCreationFromBytes(self):
+        a = Array('u8', b'ABC')
+        self.assertEqual(len(a), 3)
+        self.assertEqual(a[0], 65)
+        self.assertFalse(a.trailing_bits)
+
+    def testCreationFromBytearray(self):
+        a = Array('u7', bytearray(range(70)))
+        self.assertEqual(len(a), 80)
+        self.assertFalse(a.trailing_bits)
+
+    def testCreationFromMemoryview(self):
+        pass
+
+    def testCreationFromBits(self):
+        a = bitstring.pack('20*i19', *range(-10, 10))
+        b = Array('i19', a)
+        self.assertEqual(b.tolist(), list(range(-10, 10)))
+
+    def testCreationFromArrayArray(self):
+        a = array.array('H', [10, 20, 30, 40])
+        b = Array('uintne16', a)
+        self.assertEqual(a.tolist(), b.tolist())
+        self.assertEqual(a.tobytes(), b.tobytes())
+        with self.assertRaises(ValueError):
+            _ = Array('float16', a)
 
 
 class ArrayMethods(unittest.TestCase):
@@ -115,21 +141,15 @@ class ArrayMethods(unittest.TestCase):
     def testFromBytes(self):
         a = Array('i16')
         self.assertEqual(len(a), 0)
-        a.frombytes(bytearray([0, 0, 0, 55]))
+        a.data += bytearray([0, 0, 0, 55])
         self.assertEqual(len(a), 2)
         self.assertEqual(a[0], 0)
         self.assertEqual(a[1], 55)
-        a.frombytes(b'\x01\x00')
+        a.data += b'\x01\x00'
         self.assertEqual(len(a), 3)
         self.assertEqual(a[-1], 256)
-
-        a.frombytes(bytearray())
+        a.data += bytearray()
         self.assertEqual(len(a), 3)
-
-        with self.assertRaises(TypeError):
-            a.frombytes('i16=-45')
-        with self.assertRaises(TypeError):
-            a.frombytes(16)
 
     def testEquals(self):
         a = Array('hex:40')
@@ -233,7 +253,7 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(bp.tolist(), [4, 5, 6, 1, 2, 3])
 
         a.fmt = 'int8'
-        ap = Array('uint8', a[:])
+        ap = Array('uint8', a.tolist())
         self.assertNotEqual(a, ap)
         self.assertEqual(a.tolist(), ap.tolist())
 
@@ -283,7 +303,7 @@ class ArrayMethods(unittest.TestCase):
         a.reverse()
         self.assertEqual(a.tolist(), [3, 2])
         a.data.clear()
-        a.fromlist(list(range(1000)))
+        a.extend(list(range(1000)))
         a.reverse()
         self.assertEqual(a.tolist(), list(range(999, -1, -1)))
         x = a.pop(0)
@@ -301,7 +321,7 @@ class ArrayMethods(unittest.TestCase):
         b = Array('uint17')
         with self.assertRaises(ValueError):
             b.byteswap()
-        a.fromlist([0.25, 104, -6])
+        a.extend([0.25, 104, -6])
         a.byteswap()
         self.assertEqual(a.data.unpack('3*floatle16'), [0.25, 104, -6])
         a.byteswap()
@@ -335,7 +355,7 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(a[0], -1)
         a[0:3] = [0, 0]
         self.assertEqual(a.tolist(), [0, 0, 0, 0, -1, 0])
-        b = Array('i20', a)
+        b = Array('i20', a.tolist())
         with self.assertRaises(TypeError):
             b[::2] = 9
         b[::2] = [9]*3
@@ -364,20 +384,17 @@ class ArrayMethods(unittest.TestCase):
         b = eval(a.__repr__())
         self.assertEqual(a, b)
 
-        a.fromlist([1]*9)
+        a.extend([1]*9)
         b = eval(a.__repr__())
         self.assertEqual(a, b)
 
-        a.fromlist([-4]*100)
+        a.extend([-4]*100)
         b = eval(a.__repr__())
         self.assertEqual(a, b)
 
         a.fmt = 'float32'
         b = eval(a.__repr__())
         self.assertEqual(a, b)
-
-    def testToBytes(self):
-        pass
 
     def test__add__(self):
         a = Array('B', [1, 2, 3])
@@ -444,7 +461,7 @@ class ArrayOperations(unittest.TestCase):
 
     def testAdd(self):
         a = Array('d')
-        a.fromlist([1.0, -2.0, 100.5])
+        a.extend([1.0, -2.0, 100.5])
         b = a + 2
         self.assertEqual(a, Array('d', [1.0, -2.0, 100.5]))
         self.assertEqual(b, Array('d', [3.0, 0.0, 102.5]))
@@ -472,8 +489,8 @@ class ArrayOperations(unittest.TestCase):
         c = a * 2.5
         self.assertEqual(c.tolist(), [-2, 0, 7])
 
-
-    # TODO: Tests for rmul, radd etc?
+    def testRadd(self):
+        pass
 
     def testInPlaceMul(self):
         a = Array('i21', [-5, -4, 0, 2, 100])

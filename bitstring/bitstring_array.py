@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from bitstring.exceptions import CreationError
-from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, Callable
+from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload
 from bitstring.classes import BitArray, Bits, BitsType
 from bitstring.utils import tokenparser
 import functools
@@ -29,10 +29,8 @@ class Array:
     append() -- Append a single item to the end of the Array.
     byteswap() -- Change byte endianness of all items.
     count() -- Count the number of occurences of a value.
-    extend() -- Append multiple items to the end of the Array from an iterable.
-    frombytes() -- Append byte data to the Array's data.
+    extend() -- Append new items to the end of the Array from an iterable.
     fromfile() -- Append items read from a file object.
-    fromlist() -- Append items from an iterable.
     insert() -- Insert an item at a given position.
     pop() -- Return and remove an item.
     reverse() -- Reverse the order of all items.
@@ -51,7 +49,7 @@ class Array:
 
     """
 
-    def __init__(self, fmt: str, initializer: Optional[Union[int, Array, Iterable]] = None,
+    def __init__(self, fmt: str, initializer: Optional[Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview]] = None,
                  trailing_bits: Optional[BitsType] = None) -> None:
         self.data = BitArray()
         try:
@@ -59,15 +57,12 @@ class Array:
         except ValueError as e:
             raise CreationError(e)
 
-        # We need to do all these in the right order, similar to Bits.
         if isinstance(initializer, int):
             self.data = BitArray(initializer * self._itemsize)
-        elif isinstance(initializer, Array):
-            self.fromlist(initializer.tolist())
-        elif isinstance(initializer, Iterable):
-            self.fromlist(initializer)
+        elif isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
+            self.data += initializer
         elif initializer is not None:
-            raise TypeError
+            self.extend(initializer)
 
         if trailing_bits is not None:
             self.data += BitArray(trailing_bits)
@@ -213,47 +208,34 @@ class Array:
             self.data[-trailing_bit_length:]) + "'"
         return f"Array('{self._fmt}', {list_str}{final_str})"
 
-    def fromlist(self, iterable: Iterable[Any]) -> None:
-        trailing_bit_length = len(self.data) % self._itemsize
-        if trailing_bit_length != 0:
-            raise ValueError(
-                f"Cannot append to Array using fromlist as the Array length is not a multiple of its format length.")
-        for item in iterable:
-            self.data += self._create_element(item)
-
     def tolist(self) -> List[Any]:
         return [self._getter_func(self.data, start=start)
                 for start in range(0, len(self.data) - self._itemsize + 1, self._itemsize)]
-
-    def frombytes(self, b: Union[bytes, bytearray, memoryview]) -> None:
-        if isinstance(b, (bytes, bytearray, memoryview)):
-            self.data += b
-        else:
-            raise TypeError(f"Array.frombytes() can only accept a bytes-like object, not a {type(b)}.")
 
     def append(self, x: Any) -> None:
         if len(self.data) % self._itemsize != 0:
             raise ValueError(f"Cannot append to Array as its length is not a multiple of the format length.")
         self.data += self._create_element(x)
 
-    def extend(self, initializer: Union[Array, array.array, Iterable]) -> None:
+    def extend(self, iterable: Union[Array, array.array, Iterable]) -> None:
         if len(self.data) % self._itemsize != 0:
             raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
-        if isinstance(initializer, Array):
-            if self._token_name != initializer._token_name or self._itemsize != initializer._itemsize:
+        if isinstance(iterable, Array):
+            if self._token_name != iterable._token_name or self._itemsize != iterable._itemsize:
                 raise TypeError(
-                    f"Cannot add an Array with format '{initializer._fmt}' to an Array with format '{self._fmt}'.")
+                    f"Cannot extend an Array with format '{self._fmt}' from an Array of format '{iterable._fmt}'.")
             # No need to iterate over the elements, we can just append the data
-            self.data.append(initializer.data)
-        elif isinstance(initializer, array.array):
-            other_fmt = Array._array_typecodes.get(initializer.typecode, initializer.typecode)
+            self.data.append(iterable.data)
+        elif isinstance(iterable, array.array):
+            other_fmt = Array._array_typecodes.get(iterable.typecode, iterable.typecode)
             token_name, token_length, _ = tokenparser(other_fmt, None)[1][0]
             if self._token_name != token_name or self._itemsize != token_length:
                 raise ValueError(
-                    f"Cannot add an array with typecode '{initializer.typecode}' to an Array with format '{self._fmt}'.")
-            self.data += initializer.tobytes()
+                    f"Cannot extend an Array with format '{self._fmt}' from an array with typecode '{iterable.typecode}'.")
+            self.data += iterable.tobytes()
         else:
-            self.fromlist(initializer)
+            for item in iterable:
+                self.data += self._create_element(item)
 
     def insert(self, i: int, x: Any):
         i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
@@ -439,7 +421,7 @@ class Array:
                     f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
             new_array.data += other.tobytes()
         else:
-            new_array.fromlist(other)
+            new_array.extend(other)
         return new_array
 
     def __radd__(self, other: Union[array.array, Iterable]) -> Array:
@@ -450,13 +432,12 @@ class Array:
             if self._token_name != token_name or self._itemsize != token_length:
                 raise ValueError(
                     f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
-            new_array = Array(self.fmt)
-            new_array.frombytes(other.tobytes())
+            new_array = Array(self.fmt, other.tobytes())
             new_array.data.append(self.data)
             return new_array
         else:
             new_array = Array(self.fmt)
-            new_array.fromlist(other)
+            new_array.extend(other)
             new_array.data.append(self.data)
             return new_array
 
