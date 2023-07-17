@@ -19,6 +19,7 @@ from bitstring.utils import tokenparser, STRUCT_PACK_RE, STRUCT_SPLIT_RE
 from bitstring.exceptions import CreationError, InterpretError, ReadError, Error, ByteAlignError
 from bitstring.fp8 import fp143_fmt, fp152_fmt
 from bitstring.bitstore import BitStore, _offset_slice_indices_lsb0
+from typing_extensions import Self
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', int, str, Iterable[Any], bool, BinaryIO, bytearray, bytes, bitarray.bitarray]
@@ -506,7 +507,7 @@ class Bits:
         self._pos = None
 
     def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
-                offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> Bits:
+                offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> Self:
         x = object.__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
