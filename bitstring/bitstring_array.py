@@ -8,7 +8,11 @@ import functools
 import copy
 import array
 import operator
+import io
 
+
+# The possible types stored in each element of the Array
+ElementType = Union[float, str, int, bytes]
 
 class Array:
     """Return an Array whose elements are initialised according to the fmt string.
@@ -49,7 +53,7 @@ class Array:
 
     """
 
-    def __init__(self, fmt: str, initializer: Optional[Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview]] = None,
+    def __init__(self, fmt: str, initializer: Optional[Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview, BinaryIO]] = None,
                  trailing_bits: Optional[BitsType] = None) -> None:
         self.data = BitArray()
         try:
@@ -61,6 +65,8 @@ class Array:
             self.data = BitArray(initializer * self._itemsize)
         elif isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
             self.data += initializer
+        elif isinstance(initializer, io.BufferedReader):
+            self.fromfile(initializer)
         elif initializer is not None:
             self.extend(initializer)
 
@@ -118,26 +124,26 @@ class Array:
         self._token_name = token_name
         self._fmt = new_fmt
 
-    def _create_element(self, value: Any) -> Bits:
+    def _create_element(self, value: ElementType) -> Bits:
         """Create Bits from value according to the token_name and token_length"""
         b = Bits()
         self._setter_func(b, value)
         if len(b) != self._itemsize:
-            raise ValueError(f"The value '{value}' has the wrong length for the format '{self._fmt}'.")
+            raise ValueError(f"The value '{value!r}' has the wrong length for the format '{self._fmt}'.")
         return b
 
     def __len__(self) -> int:
         return len(self.data) // self._itemsize
 
     @overload
-    def __getitem__(self, key: slice) -> List[Any]:
+    def __getitem__(self, key: slice) -> Array:
         ...
 
     @overload
-    def __getitem__(self, key: int) -> Any:
+    def __getitem__(self, key: int) -> ElementType:
         ...
 
-    def __getitem__(self, key: Union[slice, int]) -> Union[List[Any], Any]:
+    def __getitem__(self, key: Union[slice, int]) -> Union[Array, ElementType]:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if step != 1:
@@ -158,7 +164,15 @@ class Array:
                 raise IndexError
             return self._getter_func(self.data, start=self._itemsize * key)
 
-    def __setitem__(self, key: Union[slice, int], value) -> None:
+    @overload
+    def __setitem__(self, key: slice, value: Iterable[ElementType]) -> None:
+        ...
+
+    @overload
+    def __setitem__(self, key: int, value: ElementType) -> None:
+        ...
+
+    def __setitem__(self, key: Union[slice, int], value: Union[Iterable[ElementType], ElementType]) -> None:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if not isinstance(value, Iterable):
@@ -170,6 +184,8 @@ class Array:
                 self.data[start * self._itemsize: stop * self._itemsize] = new_data
                 return
             items_in_slice = len(range(start, stop, step))
+            if not hasattr(value, 'len'):
+                value = list(value)
             if len(value) == items_in_slice:
                 for s, v in zip(range(start, stop, step), value):
                     self.data.overwrite(self._create_element(v), s * self._itemsize)
@@ -184,7 +200,7 @@ class Array:
             self.data.overwrite(self._create_element(value), start)
             return
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: Union[slice, int]):
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if step == 1:
@@ -208,11 +224,11 @@ class Array:
             self.data[-trailing_bit_length:]) + "'"
         return f"Array('{self._fmt}', {list_str}{final_str})"
 
-    def tolist(self) -> List[Any]:
+    def tolist(self) -> List[ElementType]:
         return [self._getter_func(self.data, start=start)
                 for start in range(0, len(self.data) - self._itemsize + 1, self._itemsize)]
 
-    def append(self, x: Any) -> None:
+    def append(self, x: ElementType) -> None:
         if len(self.data) % self._itemsize != 0:
             raise ValueError(f"Cannot append to Array as its length is not a multiple of the format length.")
         self.data += self._create_element(x)
@@ -237,11 +253,11 @@ class Array:
             for item in iterable:
                 self.data += self._create_element(item)
 
-    def insert(self, i: int, x: Any):
+    def insert(self, i: int, x: ElementType):
         i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
         self.data.insert(self._create_element(x), i * self._itemsize)
 
-    def pop(self, i: int = -1) -> Any:
+    def pop(self, i: int = -1) -> ElementType:
         x = self[i]
         del self[i]
         return x
@@ -257,7 +273,7 @@ class Array:
                 f"byteswap can only be used for whole-byte elements. The '{self._fmt}' format is {self._itemsize} bits long.")
         self.data.byteswap(self.itemsize // 8)
 
-    def count(self, value: Any) -> int:
+    def count(self, value: ElementType) -> int:
         """Return count of Array items that equal value.
 
         value -- The quantity to compare each Array element to. Type should be appropriate for the Array format.
@@ -330,7 +346,7 @@ class Array:
             if self.data != other.data:
                 return False
             return True
-        else:
+        elif isinstance(other, array.array):
             # Assume we are comparing with an array type
             if self.trailing_bits:
                 return False
@@ -345,8 +361,9 @@ class Array:
                 return True
             except AttributeError:
                 return False
+        return False
 
-    def __iter__(self) -> Iterable[Any]:
+    def __iter__(self) -> Iterable[ElementType]:
         start = 0
         for i in range(len(self)):
             yield self._getter_func(self.data, start=start)

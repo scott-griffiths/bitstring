@@ -1213,7 +1213,8 @@ class Bits:
         else:
             return struct.unpack(fmt, self._readbytes(start, length))[0]
 
-    def _readfloat143(self, start: int, length: None = None) -> float:
+    def _readfloat143(self, start: int, length: int = 0) -> float:
+        # length is ignored - it's only present to make the function signature consistent.
         u = self._readuint(start, length=8)
         return fp143_fmt.lut_int8_to_float[u]
 
@@ -1222,7 +1223,8 @@ class Bits:
             raise InterpretError  # TODO
         return self._readfloat143(0)
 
-    def _readfloat152(self, start: int, length: None = None) -> float:
+    def _readfloat152(self, start: int, length: int = 0) -> float:
+        # length is ignored - it's only present to make the function signature consistent.
         u = self._readuint(start, length=8)
         return fp152_fmt.lut_int8_to_float[u]
 
@@ -1299,13 +1301,14 @@ class Bits:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
         self._bitstore = _ue2bitstore(i)
 
-    def _readue(self, pos: int, _length: None = None) -> Tuple[int, int]:
+    def _readue(self, pos: int, _length: int = 0) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned exponential-Golomb code.
 
         Raises ReadError if the end of the bitstring is encountered while
         reading the code.
 
         """
+        # _length is ignored - it's only present to make the function signature consistent.
         if _lsb0:
             raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         oldpos = pos
@@ -1386,13 +1389,14 @@ class Bits:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
         self._bitstore = _uie2bitstore(i)
 
-    def _readuie(self, pos: int, _length: None = None) -> Tuple[int, int]:
+    def _readuie(self, pos: int, _length: int = 0) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned interleaved exponential-Golomb code.
 
         Raises ReadError if the end of the bitstring is encountered while
         reading the code.
 
         """
+        # _length is ignored - it's only present to make the function signature consistent.
         if _lsb0:
             raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         try:
@@ -1479,7 +1483,8 @@ class Bits:
             raise InterpretError(f"For a bool interpretation a bitstring must be 1 bit long, not {self.length} bits.")
         return self[0]
 
-    def _readbool(self, start: int, length: None = None) -> int:
+    def _readbool(self, start: int, length: int = 0) -> int:
+        # length is ignored - it's only present to make the function signature consistent.
         return self[start]
 
     def _readpad(self, _pos, _length) -> None:
@@ -2401,6 +2406,79 @@ class Bits:
         _readintne = _readintbe
         _getintne = _getintbe
 
+
+    # Dictionary that maps token names to the function that reads them
+    _name_to_read: Dict[str, Callable[[Bits, int, int], Any]] = {
+        'uint': _readuint,
+        'u': _readuint,
+        'uintle': _readuintle,
+        'uintbe': _readuintbe,
+        'uintne': _readuintne,
+        'int': _readint,
+        'i': _readint,
+        'intle': _readintle,
+        'intbe': _readintbe,
+        'intne': _readintne,
+        'float': _readfloatbe,
+        'f': _readfloatbe,
+        'floatbe': _readfloatbe,  # floatbe is a synonym for float
+        'floatle': _readfloatle,
+        'floatne': _readfloatne,
+        'bfloat': _readbfloatbe,
+        'bfloatbe': _readbfloatbe,
+        'bfloatle': _readbfloatle,
+        'bfloatne': _readbfloatne,
+        'hex': _readhex,
+        'h': _readhex,
+        'oct': _readoct,
+        'o': _readoct,
+        'bin': _readbin,
+        'b': _readbin,
+        'bits': _readbits,
+        'bytes': _readbytes,
+        'ue': _readue,
+        'se': _readse,
+        'uie': _readuie,
+        'sie': _readsie,
+        'bool': _readbool,
+        'pad': _readpad,
+        'float8_143': _readfloat143,
+        'float8_152': _readfloat152
+    }
+
+    # Mapping token names to the methods used to set them
+    _setfunc: Dict[str, Callable[..., None]] = {
+        'bin': _setbin_safe,
+        'hex': _sethex,
+        'oct': _setoct,
+        'ue': _setue,
+        'se': _setse,
+        'uie': _setuie,
+        'sie': _setsie,
+        'bool': _setbool,
+        'uint': _setuint,
+        'int': _setint,
+        'float': _setfloatbe,
+        'bfloat': _setbfloatbe,
+        'bfloatbe': _setbfloatbe,
+        'bfloatle': _setbfloatle,
+        'bfloatne': _setbfloatne,
+        'uintbe': _setuintbe,
+        'intbe': _setintbe,
+        'floatbe': _setfloatbe,
+        'uintle': _setuintle,
+        'intle': _setintle,
+        'floatle': _setfloatle,
+        'uintne': _setuintne,
+        'intne': _setintne,
+        'floatne': _setfloatne,
+        'bytes': _setbytes,
+        'filename': _setfile,
+        'bitarray': _setbitarray,
+        'float8_152': _setfloat152,
+        'float8_143': _setfloat143
+    }
+
     len = property(_getlength,
                    doc="""The length of the bitstring in bits. Read only.
                       """)
@@ -2495,74 +2573,6 @@ class Bits:
     b = bin
     o = oct
     h = hex
-
-    # Dictionary that maps token names to the function that reads them
-    _name_to_read = {'uint': _readuint,
-                     'u': _readuint,
-                     'uintle': _readuintle,
-                     'uintbe': _readuintbe,
-                     'uintne': _readuintne,
-                     'int': _readint,
-                     'i': _readint,
-                     'intle': _readintle,
-                     'intbe': _readintbe,
-                     'intne': _readintne,
-                     'float': _readfloatbe,
-                     'f': _readfloatbe,
-                     'floatbe': _readfloatbe,  # floatbe is a synonym for float
-                     'floatle': _readfloatle,
-                     'floatne': _readfloatne,
-                     'bfloat': _readbfloatbe,
-                     'bfloatbe': _readbfloatbe,
-                     'bfloatle': _readbfloatle,
-                     'bfloatne': _readbfloatne,
-                     'hex': _readhex,
-                     'h': _readhex,
-                     'oct': _readoct,
-                     'o': _readoct,
-                     'bin': _readbin,
-                     'b': _readbin,
-                     'bits': _readbits,
-                     'bytes': _readbytes,
-                     'ue': _readue,
-                     'se': _readse,
-                     'uie': _readuie,
-                     'sie': _readsie,
-                     'bool': _readbool,
-                     'pad': _readpad,
-                     'float8_143': _readfloat143,
-                     'float8_152': _readfloat152}
-
-    # Mapping token names to the methods used to set them
-    _setfunc = {'bin': _setbin_safe,
-                'hex': _sethex,
-                'oct': _setoct,
-                'ue': _setue,
-                'se': _setse,
-                'uie': _setuie,
-                'sie': _setsie,
-                'bool': _setbool,
-                'uint': _setuint,
-                'int': _setint,
-                'float': _setfloatbe,
-                'bfloat': _setbfloatbe,
-                'bfloatbe': _setbfloatbe,
-                'bfloatle': _setbfloatle,
-                'bfloatne': _setbfloatne,
-                'uintbe': _setuintbe,
-                'intbe': _setintbe,
-                'floatbe': _setfloatbe,
-                'uintle': _setuintle,
-                'intle': _setintle,
-                'floatle': _setfloatle,
-                'uintne': _setuintne,
-                'intne': _setintne,
-                'floatne': _setfloatne,
-                'bytes': _setbytes,
-                'filename': _setfile,
-                'bitarray': _setbitarray,
-                'float8_152': _setfloat152,
-                'float8_143': _setfloat143}
 
 
 class BitArray(Bits):

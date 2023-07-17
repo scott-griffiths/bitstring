@@ -6,6 +6,7 @@ import array
 import os
 from bitstring import Array, Bits, BitArray
 import copy
+import itertools
 
 sys.path.insert(0, '..')
 
@@ -129,6 +130,12 @@ class Creation(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = Array('float16', a)
 
+    def testCreationFromFile(self):
+        filename = os.path.join(THIS_DIR, 'test.m1v')
+        with open(filename, 'rb') as f:
+            a = Array('uint8', f)
+            self.assertEqual(a[0:4].tobytes(), b'\x00\x00\x01\xb3')
+
 
 class ArrayMethods(unittest.TestCase):
 
@@ -206,6 +213,15 @@ class ArrayMethods(unittest.TestCase):
             b[0] = Bits('0xfff')
         b[0] = 'fff'
         self.assertEqual(b.data.hex, 'fff345')
+
+    def testSettingFromIterable(self):
+        a = Array('uint99', range(100))
+        x = itertools.chain([1, 2, 3], [4, 5])
+        a[10:15] = x
+        self.assertEqual(a[10:15].tolist(), list(range(1, 6)))
+        x = itertools.chain([1, 2, 3], [4, 5])
+        a[50:60:2] = x
+        self.assertEqual(a[50:60:2].tolist(), list(range(1, 6)))
 
     def testEquivalence(self):
         a = Array('floatne32', [54.2, -998, 411.9])

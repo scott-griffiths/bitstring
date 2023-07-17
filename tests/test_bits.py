@@ -235,9 +235,9 @@ class Initialisation(unittest.TestCase):
 
 class Cut(unittest.TestCase):
     def testCut(self):
-        s = Bits(30)
-        for t in s.cut(3):
-            self.assertEqual(t, [0] * 3)
+        s = Bits('0b000111'*10)
+        for t in s.cut(6):
+            self.assertEqual(t.bin, '000111')
 
 
 class InterleavedExpGolomb(unittest.TestCase):
