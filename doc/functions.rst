@@ -32,7 +32,7 @@ Plain names can also be used as follows::
 
  >>> e = pack('a, b, b, a', a='0b11', b='0o2')
  
-Tokens starting with an endianness identifier (``<``, ``>`` or ``@``) implies a struct-like compact format string (see :ref:`compact_format`). For example this packs three little-endian 16-bit integers::
+Tokens starting with an endianness identifier (``<``, ``>`` or ``=``) implies a struct-like compact format string (see :ref:`compact_format`). For example this packs three little-endian 16-bit integers::
 
  >>> f = pack('<3h', 12, 3, 108)
 

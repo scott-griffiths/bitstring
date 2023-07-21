@@ -123,10 +123,15 @@ The endianness character must start the format string and unlike in the struct m
 =======   =============
 ``'>'``   Big-endian
 ``'<'``   Little-endian
-``'@'``   Native-endian
+``'='``   Native-endian
 =======   =============
 
-For 'network' endianness use ``'>'`` as network and big-endian are equivalent. This is followed by at least one of these format characters:
+.. note::
+    * For native-endian ``'@'`` and ``'='`` can both be used and are equivalent. The ``'@'`` character was required for native-endianness prior to version 4.1 of bitstring.
+
+    * For 'network' endianness use ``'>'`` as network and big-endian are equivalent.
+
+This is followed by at least one of these format characters:
 
 =======   ===============================
 ``'b'``   8 bit signed integer
@@ -147,10 +152,10 @@ The exact type is determined by combining the endianness character with the form
 ========  ======================================   ===========
 ``'>h'``  Big-endian 16 bit signed integer         ``intbe16``
 ``'<h'``  Little-endian 16 bit signed integer      ``intle16``
-``'@h'``  Native-endian 16 bit signed integer      ``intne16``
+``'=h'``  Native-endian 16 bit signed integer      ``intne16``
 ========  ======================================   ===========
 
-As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian ``'@h'`` will equal the big-endian ``'>h'`` on big-endian systems, and equal the little-endian ``'<h'`` on little-endian systems. For the single byte codes ``'b'`` and ``'B'`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
+As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian ``'=h'`` will equal the big-endian ``'>h'`` on big-endian systems, and equal the little-endian ``'<h'`` on little-endian systems. For the single byte codes ``'b'`` and ``'B'`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
 
 An example::
 

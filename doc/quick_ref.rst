@@ -117,8 +117,7 @@ Properties
 BitArray
 --------
 
-``BitArray(Bits)``
-
+``Bits`` ⟶ ``BitArray``
 
 This class adds mutating methods to ``Bits``.
 
@@ -153,7 +152,7 @@ The same as ``Bits``, except that they are all (with the exception of ``len``) w
 ConstBitStream
 --------------
 
-``ConstBitStream(Bits)``
+``Bits`` ⟶ ``ConstBitStream``
 
 This class adds a bit position and methods to read and navigate in the bitstream.
 
@@ -178,7 +177,8 @@ Additional properties
 BitStream
 ---------
 
-``BitStream(BitArray, ConstBitStream)``
+``Bits`` ⟶ ``BitArray / ConstBitStream`` ⟶ ``BitStream``
+
 
 This class contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``. It is the most general of the four classes, but it is usually best to choose the simplest class for your use case.
 

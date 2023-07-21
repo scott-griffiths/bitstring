@@ -14,14 +14,16 @@ The ``bitstring.Array`` type is meant as a more flexible version of the standard
     import array
     import bitstring
 
-    x = array.array('d', [1.0, 2.0, 3.14])
-    y = bitstring.Array('d', [1.0, 2.0, 3.14])
+    x = array.array('f', [1.0, 2.0, 3.14])
+    y = bitstring.Array('=f', [1.0, 2.0, 3.14])
 
     assert x.tobytes() == y.tobytes()
 
-So far, so pointless! Its flexibility lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
+This example packs three 32-bit floats into objects using both libraries.
+The only difference is the explicit native endianness for the format string of the bitstring version.
+The bitstring Array's advantage lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
 
-For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used.
+For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte formats can be properly specified.
 
 Each element in the ``Array`` must then be something that makes sense for the ``fmt``.
 Some examples will help illustrate::
@@ -88,32 +90,51 @@ Some methods, such as ``append`` and ``extend`` will raise an exception if used 
     Create a new ``Array`` whose elements are set by the ``fmt`` string.
     This can be any format which has a well defined and fixed length in bits.
 
-    The ``fmt`` string can be a type code such as ``'H'`` or ``'d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
+    The ``fmt`` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
-    The correspondence between type codes and bitstring format codes is given in the table below.
+    Note that the typecodes must include an endianness character (with the exception of ``'b'`` / ``'B'``) to give the byte ordering.
+    This is more like the ``struct`` module typecodes, and is different to the ``array.array`` typecodes which are always native-endian.
+
+    The correspondence between the big-endian type codes and bitstring format codes is given in the table below.
 
     =========   ===================
     Type code   bitstring format
     =========   ===================
-    ``'b'``     ``'int8'``
-    ``'B'``     ``'uint8'``
-    ``'h'``     ``'intne16'``
-    ``'H'``     ``'uintne16'``
-    ``'l'``     ``'intne32'``
-    ``'L'``     ``'uintne32'``
-    ``'q'``     ``'intne64'``
-    ``'Q'``     ``'uintne64'``
-    ``'e'``     ``'floatne16'``
-    ``'f'``     ``'floatne32'``
-    ``'d'``     ``'floatne64'``
+    ``'>b'``     ``'int8'``
+    ``'>B'``     ``'uint8'``
+    ``'>h'``     ``'int16'``
+    ``'>H'``     ``'uint16'``
+    ``'>l'``     ``'int32'``
+    ``'>L'``     ``'uint32'``
+    ``'>q'``     ``'int64'``
+    ``'>Q'``     ``'uint64'``
+    ``'>e'``     ``'float16'``
+    ``'>f'``     ``'float32'``
+    ``'>d'``     ``'float64'``
     =========   ===================
 
+    The endianness character can be ``'>'`` for big-endian, ``'<'`` for little-endian or ``'='`` for native-endian (``'@'`` can also be used for native-endian).
+    In the bitstring formats the default is big-endian, but you can specify little or native endian using ``'le'`` or ``'ne'`` modifiers, for example:
+
+    ============  =============================
+    Type code     bitstring format
+    ============  =============================
+    ``'>H'``      ``'uint16'`` / ``'uintbe16'``
+    ``'=H'``      ``'uintne16'``
+    ``'<H'``      ``'uintle16'``
+    ============  =============================
+
+
     .. note::
-        To keep compatibility with the ``array`` module the multi-byte formats all have native endianness.
+        * The ``array`` module's native endianness means that different packed binary data will be created on different types of machines.
+          Users may find that behaviour unexpected which is why endianness must be explicitly given as in the rest of the bitstring module.
 
-        The ``'u'`` type code from the ``array`` module isn't supported as its length is platform dependent.
+        * The ``'u'`` type code from the ``array`` module isn't supported as its length is platform dependent.
 
-        The ``'e'`` type code isn't one of the ``array`` supported types, but it is used in the ``struct`` module and we support it here.
+        * The ``'e'`` type code isn't one of the ``array`` supported types, but it is used in the ``struct`` module and we support it here.
+
+        * The ``'b'`` and ``'B'`` type codes need to be preceded by an endianness character even though it makes no difference which one you use as they are only 1 byte long.
+
 
 Methods
 -------
@@ -123,6 +144,7 @@ Methods
         In particular, some omissions and their suggested replacements are:
 
         ``a.fromlist(alist)`` → ``a.extend(alist)``
+
         ``a.frombytes(s)`` → ``a.data.extend(s)``
 
 
@@ -198,7 +220,7 @@ Properties
 
         Note that this gives a value in bits, unlike the equivalent in the ``array`` module which gives a value in bytes. ::
 
-            >>> a = Array('h')
+            >>> a = Array('>h')
             >>> b = Array('bool')
             >>> a.itemsize
             16
