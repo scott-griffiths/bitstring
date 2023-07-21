@@ -1,8 +1,7 @@
 from __future__ import annotations
 import functools
 import re
-from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
-    BinaryIO, TextIO, Callable, overload, Iterator
+from typing import Tuple, List, Optional, Pattern, Dict
 import sys
 from bitstring.exceptions import Error
 
@@ -29,24 +28,32 @@ MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
 LITERAL_RE: Pattern[str] = re.compile(r'^(?P<name>0([xob]))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
+STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
 
 # A number followed by a single character struct.pack code
 STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQefd]')
 
 # These replicate the struct.pack codes
 # Big-endian
-REPLACEMENTS_BE: Dict[str, str] = {'b': 'intbe:8', 'B': 'uintbe:8',
+REPLACEMENTS_BE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
                                    'h': 'intbe:16', 'H': 'uintbe:16',
                                    'l': 'intbe:32', 'L': 'uintbe:32',
                                    'q': 'intbe:64', 'Q': 'uintbe:64',
                                    'e': 'floatbe:16', 'f': 'floatbe:32', 'd': 'floatbe:64'}
 # Little-endian
-REPLACEMENTS_LE: Dict[str, str] = {'b': 'intle:8', 'B': 'uintle:8',
+REPLACEMENTS_LE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
                                    'h': 'intle:16', 'H': 'uintle:16',
                                    'l': 'intle:32', 'L': 'uintle:32',
                                    'q': 'intle:64', 'Q': 'uintle:64',
                                    'e': 'floatle:16', 'f': 'floatle:32', 'd': 'floatle:64'}
+
+# Native-endian
+REPLACEMENTS_NE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
+                                   'h': 'intne:16', 'H': 'uintne:16',
+                                   'l': 'intne:32', 'L': 'uintne:32',
+                                   'q': 'intne:64', 'Q': 'uintne:64',
+                                   'e': 'floatne:16', 'f': 'floatne:32', 'd': 'floatne:64'}
+
 
 def structparser(token: str) -> List[str]:
     """Parse struct-like format string token into sub-token list."""
@@ -62,14 +69,10 @@ def structparser(token: str) -> List[str]:
         # Now deal with multiplicative factors, 4h -> hhhh etc.
         fmt = ''.join([f[-1] * int(f[:-1]) if len(f) != 1 else
                        f for f in formatlist])
-        if endian == '@':
+        if endian in '@=':
             # Native endianness
-            if byteorder == 'little':
-                endian = '<'
-            else:
-                assert byteorder == 'big'
-                endian = '>'
-        if endian == '<':
+            tokens = [REPLACEMENTS_NE[c] for c in fmt]
+        elif endian == '<':
             tokens = [REPLACEMENTS_LE[c] for c in fmt]
         else:
             assert endian == '>'
@@ -186,7 +189,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
         # we can't allow keyword values as multipliers (e.g. n*uint:8).
         # The only way to do this would be to return the factor in some fashion
         # (we can't use the key's value here as it would mean that we couldn't
-        # sensibly continue to cache the function's results.
+        # sensibly continue to cache the function's results).
         return_values.extend(tuple(ret_vals * factor))
     return_values = [tuple(x) for x in return_values]
     return stretchy_token, return_values

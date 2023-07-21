@@ -2380,7 +2380,7 @@ class Split2(unittest.TestCase):
         self.assertEqual(b.len, 1000000)
 
     def testTokenParser(self):
-        tp = bitstring.classes.tokenparser
+        tp = bitstring.utils.tokenparser
         self.assertEqual(tp('hex'), (True, [('hex', None, None)]))
         self.assertEqual(tp('hex=14'), (True, [('hex', None, '14')]))
         self.assertEqual(tp('se'), (False, [('se', None, None)]))
@@ -2394,6 +2394,17 @@ class Split2(unittest.TestCase):
         self.assertEqual(tp('123'), (False, [('bits', 123, None)]))
         self.assertEqual(tp('hex12', ('hex12',)), (False, [('hex12', None, None)]))
         self.assertEqual(tp('2*bits:6'), (False, [('bits', 6, None), ('bits', 6, None)]))
+
+    def testTokenParserStructCodes(self):
+        tp = bitstring.utils.tokenparser
+        self.assertEqual(tp('>H'), (False, [('uintbe', 16, None)]))
+        self.assertEqual(tp('<H'), (False, [('uintle', 16, None)]))
+        self.assertEqual(tp('=H'), (False, [('uintne', 16, None)]))
+        self.assertEqual(tp('@H'), (False, [('uintne', 16, None)]))
+        with self.assertRaises(ValueError):
+            _ = tp('H')
+        self.assertEqual(tp('>b'), (False, [('int', 8, None)]))
+        self.assertEqual(tp('<b'), (False, [('int', 8, None)]))
 
     def testAutoFromFileObject(self):
         filename = os.path.join(THIS_DIR, 'test.m1v')

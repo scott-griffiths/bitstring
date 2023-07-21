@@ -64,18 +64,18 @@ class Creation(unittest.TestCase):
         self.assertEqual(len(a), 201)
         self.assertEqual(a.count(-1), 200)
 
-        a = Array('d', [0, 0, 1])
+        a = Array('>d', [0, 0, 1])
         with self.assertRaises(ValueError):
             a.fmt = 'se'
         self.assertEqual(a[-1], 1.0)
-        self.assertEqual(a.fmt, 'd')
+        self.assertEqual(a.fmt, '>d')
 
     def testChangingFormatWithTrailingBits(self):
         a = Array('bool', 803)
         self.assertEqual(len(a), 803)
-        a.fmt = 'e'
+        a.fmt = '>e'
         self.assertEqual(len(a), 803 // 16)
-        b = Array('f', [0])
+        b = Array('>f', [0])
         b.fmt = 'i3'
         self.assertEqual(b.tolist(), [0]*10)
 
@@ -95,12 +95,12 @@ class Creation(unittest.TestCase):
         b.append('f')
         self.assertEqual(len(b), 3)
 
-        c = Array('e', trailing_bits='0x0000, 0b1')
+        c = Array('>e', trailing_bits='0x0000, 0b1')
         self.assertEqual(c[0], 0.0)
         self.assertEqual(c.tolist(), [0.0])
 
     def testCreationWithArrayCode(self):
-        a = Array('f')
+        a = Array('<f')
         self.assertEqual(a.itemsize, 32)
 
     def testCreationFromBytes(self):
@@ -135,6 +135,14 @@ class Creation(unittest.TestCase):
         with open(filename, 'rb') as f:
             a = Array('uint8', f)
             self.assertEqual(a[0:4].tobytes(), b'\x00\x00\x01\xb3')
+
+    def testDifferentTypeCodes(self):
+        a = Array('>H', [10, 20])
+        self.assertEqual(a.data.unpack('2*uint16'), a.tolist())
+        a = Array('<h', [-10, 20])
+        self.assertEqual(a.data.unpack('2*intle16'), a.tolist())
+        a = Array('<e', [0.25, -1000])
+        self.assertEqual(a.data.unpack('2*floatle16'), a.tolist())
 
 
 class ArrayMethods(unittest.TestCase):
@@ -413,20 +421,20 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(a, b)
 
     def test__add__(self):
-        a = Array('B', [1, 2, 3])
+        a = Array('=B', [1, 2, 3])
         b = Array('u8', [3, 4])
         c = a + b
-        self.assertEqual(a, Array('B', [1, 2, 3]))
-        self.assertEqual(c, Array('B', [1, 2, 3, 3, 4]))
+        self.assertEqual(a, Array('>B', [1, 2, 3]))
+        self.assertEqual(c, Array('<B', [1, 2, 3, 3, 4]))
         d = a + [10, 11, 12]
         self.assertEqual(d, Array('uint:8', [1, 2, 3, 10, 11, 12]))
 
     def test__add__array(self):
-        a = array.array('B', [10, 11])
-        b = a + Array('B', [12, 13])
-        self.assertEqual(b, array.array('B', [10, 11, 12, 13]))
-        c = Array('B', [0, 1, 2]) + a
-        self.assertEqual(c, Array('uint8', [0, 1, 2, 10, 11]))
+        a = array.array('H', [10, 11])
+        b = a + Array('=H', [12, 13])
+        self.assertEqual(b, array.array('H', [10, 11, 12, 13]))
+        c = Array('=H', [0, 1, 2]) + a
+        self.assertEqual(c, Array('uintne16', [0, 1, 2, 10, 11]))
         c.data += '0x0'
         with self.assertRaises(ValueError):
             _ = c + a
@@ -453,7 +461,9 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(a.tolist(), [9, 9])
 
     def test__radd__(self):
-        a = Array('f', [3, 2, 1])
+        with self.assertRaises(ValueError):
+            a = Array('f', [3, 2, 1])
+        a = Array('=f', [3, 2, 1])
         b = array.array('f', [-3, -2, -1])
         c = b + a
         self.assertEqual(c.tolist(), [-3, -2, -1, 3, 2, 1])
@@ -476,11 +486,11 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(len(a.data), 21)
 
     def testAdd(self):
-        a = Array('d')
+        a = Array('>d')
         a.extend([1.0, -2.0, 100.5])
         b = a + 2
-        self.assertEqual(a, Array('d', [1.0, -2.0, 100.5]))
-        self.assertEqual(b, Array('d', [3.0, 0.0, 102.5]))
+        self.assertEqual(a, Array('>d', [1.0, -2.0, 100.5]))
+        self.assertEqual(b, Array('>d', [3.0, 0.0, 102.5]))
 
     def testSub(self):
         a = Array('uint44', [3, 7, 10])

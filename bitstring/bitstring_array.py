@@ -10,7 +10,6 @@ import array
 import operator
 import io
 
-
 # The possible types stored in each element of the Array
 ElementType = Union[float, str, int, bytes]
 
@@ -19,7 +18,7 @@ class Array:
     The fmt string can be typecode as used in the array module or any fixed-length bitstring
     format.
 
-    a = Array('H', [1, 15, 105])
+    a = Array('>H', [1, 15, 105])
     b = Array('int5', [-9, 0, 4])
 
     The Array data is stored compactly as a BitArray object and the Array behaves very like
@@ -82,6 +81,7 @@ class Array:
         trailing_bit_length = len(self.data) % self._itemsize
         return BitArray() if trailing_bit_length == 0 else self.data[-trailing_bit_length:]
 
+    # Converting array.array typecodes to our equivalents.
     _array_typecodes: dict[str, str] = {'b': 'int8',
                                         'B': 'uint8',
                                         'h': 'intne16',
@@ -100,9 +100,7 @@ class Array:
 
     @fmt.setter
     def fmt(self, new_fmt: str) -> None:
-        # We save the exact fmt string so we can use it in __repr__ etc
-        new_fmt_parsed = Array._array_typecodes.get(new_fmt, new_fmt)
-        tokens = tokenparser(new_fmt_parsed, None)[1]
+        tokens = tokenparser(new_fmt, None)[1]
         token_names_and_lengths = [(x[0], x[1]) for x in tokens]
         if len(token_names_and_lengths) != 1:
             raise ValueError(
@@ -122,6 +120,7 @@ class Array:
         self._uint_setter_func = functools.partial(Bits._setfunc['uint'], length=token_length)
         self._itemsize = token_length
         self._token_name = token_name
+        # We save the exact fmt string so we can use it in __repr__ etc.
         self._fmt = new_fmt
 
     def _create_element(self, value: ElementType) -> Bits:
@@ -448,7 +447,7 @@ class Array:
             token_name, token_length, _ = tokenparser(other_fmt, None)[1][0]
             if self._token_name != token_name or self._itemsize != token_length:
                 raise ValueError(
-                    f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
+                    f"Cannot add an array.array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
             new_array = Array(self.fmt, other.tobytes())
             new_array.data.append(self.data)
             return new_array
