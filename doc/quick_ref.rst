@@ -54,6 +54,22 @@ Bits
 
 ``Bits`` is the most basic class and is just a container of bits. It is immutable, so once created its value cannot change.
 
+Constructor
+^^^^^^^^^^^
+
+``Bits(auto, length: Optional[int], offset: Optional[int], **kwargs)``
+
+The `auto` parameter can be many different types, including parsable strings, a file handle, a bytes or bytearray object, an integer or an iterable.
+
+A single initialiser from `kwargs` can be used instead of `auto`, including  ``bin``, ``hex``, ``oct``, ``bool``, ``uint``, ``int``, ``float``, ``bytes`` and ``filename``.
+
+Examples::
+
+   Bits('0xef')
+   Bits(float=-50.5, length=32)
+   Bits('uint10=99')
+   Bits(uint=99, length=10)
+
 Methods
 ^^^^^^^
 
@@ -119,7 +135,7 @@ BitArray
 
 ``Bits`` ⟶ ``BitArray``
 
-This class adds mutating methods to ``Bits``.
+This class adds mutating methods to ``Bits``. The constructor is the same as for ``Bits``.
 
 Additional methods
 ^^^^^^^^^^^^^^^^^^
@@ -191,6 +207,25 @@ The bitstring ``Array`` is similar to the ``array`` type in the ``array`` module
 The ``fmt`` specifies a fixed-length format for each element of the ``Array``, and it behaves largely like a list.
 
 Both the format and the underlying bit data (stored as a ``BitArray``) can be freely modified after creation, and element-wise operations can be used on the ``Array``.
+
+Constructor
+^^^^^^^^^^^
+
+``Array(fmt: str, initializer, trailing_bits)``
+
+The `fmt` can be a struct-like type code, or a single fixed-length token as used in the ``Bits`` class.
+
+The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``Array`` or an ``array.array``.
+
+The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the format `fmt`.
+Modifying the data or format after creation may cause the `trailing_bits` to not be empty.
+
+Examples::
+
+    Array('>H', [1, 10, 20])
+    Array('float16', a_file_object)
+    Array('int4', stored_bytes)
+
 
 Methods
 ^^^^^^^

@@ -85,7 +85,7 @@ Typically ``trailing_bits`` will be an empty ``BitArray`` but if you change the 
 Some methods, such as ``append`` and ``extend`` will raise an exception if used when ``trailing_bits`` is not empty, as it not clear how these should behave in this case. You can however still use ``insert`` which will always leave the ``trailing_bits`` unchanged.
 
 
-.. class:: Array(fmt, [initializer], [trailing_bits])
+.. class:: Array(fmt: str[, initializer[, trailing_bits]])
 
     Create a new ``Array`` whose elements are set by the ``fmt`` string.
     This can be any format which has a well defined and fixed length in bits.
@@ -148,53 +148,56 @@ Methods
         ``a.frombytes(s)`` → ``a.data.extend(s)``
 
 
-    .. method:: Array.append(x)
+    .. method:: Array.append(x: float | int | str | bytes) -> None
 
         Add a new element with value `x` to the end of the Array.
+        The type of `x` should be appropriate for the type of the Array.
 
         Raises a ``ValueError`` if the Array's bit length is not a multiple of its format length (see :attribute:~Array.trailing_bits).
 
-    .. method:: Array.byteswap()
+    .. method:: Array.byteswap() -> None
 
         Change the byte endianness of each element.
 
         Raises a ``ValueError`` if the format is not an integer number of bytes long.
 
-    .. method:: Array.count(value)
+    .. method:: Array.count(value: float | int | str | bytes) -> int
 
         Returns the number of elements set to *value*.
 
-    .. method:: Array.extend(iterable)
+    .. method:: Array.extend(iterable: Iterable | Array) -> None
 
         Extend the Array by constructing new elements from the values in a list or other iterable.
 
         The `iterable` can be another ``Array`` or an ``array.array``, but only if the format (or typecode) is the same.
 
-    .. method:: Array.fromfile(f, n)
+    .. method:: Array.fromfile(f: BinaryIO, n: int | None) -> None
 
-    .. method:: Array.insert(i, x)
+    .. method:: Array.insert(i: int, x: float | int | str | bytes) -> None
 
-    .. method:: Array.pop([i])
+    .. method:: Array.pop(i: int | None) -> float | int | str | bytes
 
-    .. method:: Array.reverse()
+    .. method:: Array.reverse() -> None
 
-    .. method:: Array.tobytes()
+    .. method:: Array.tobytes() -> bytes
 
-    .. method:: Array.tofile()
+    .. method:: Array.tofile(f: BinaryIO) -> None
 
-    .. method:: Array.tolist()
+    .. method:: Array.tolist() -> List[float | int | str | bytes]
 
 
 Special Methods
 ---------------
 
-__add__ / __radd__
-^^^^^^^^^^^^^^^^^^
-    .. method:: Array.__add__(bs)
-    .. method:: Array.__radd__(bs)
+    .. method:: Array.__add__(other: Array | Iterable | int | float) -> Array
+    .. method:: Array.__radd__(other: Iterable) -> Array
 
-        If you add an iterable to an ``Array`` it
+    .. method:: Array.__len__(self)
 
+    .. method:: __getitem__(self, key)
+    .. method:: __setitem__(self, key, value)
+    .. method:: __delitem__(self, key)
+    .. method:: __eq__(self, other)
 
 Properties
 ----------

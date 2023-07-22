@@ -199,7 +199,7 @@ class Array:
             self.data.overwrite(self._create_element(value), start)
             return
 
-    def __delitem__(self, key: Union[slice, int]):
+    def __delitem__(self, key: Union[slice, int]) -> None:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if step == 1:
@@ -219,8 +219,8 @@ class Array:
     def __repr__(self) -> str:
         list_str = f"{self.tolist()}"
         trailing_bit_length = len(self.data) % self._itemsize
-        final_str = "" if trailing_bit_length == 0 else ", trailing_bits='" + str(
-            self.data[-trailing_bit_length:]) + "'"
+        final_str = "" if trailing_bit_length == 0 else ", trailing_bits=" + repr(
+            self.data[-trailing_bit_length:])
         return f"Array('{self._fmt}', {list_str}{final_str})"
 
     def tolist(self) -> List[ElementType]:
@@ -252,7 +252,7 @@ class Array:
             for item in iterable:
                 self.data += self._create_element(item)
 
-    def insert(self, i: int, x: ElementType):
+    def insert(self, i: int, x: ElementType) -> None:
         i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
         self.data.insert(self._create_element(x), i * self._itemsize)
 
