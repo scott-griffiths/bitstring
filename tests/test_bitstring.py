@@ -7,11 +7,9 @@ import unittest
 from unittest import mock
 from contextlib import redirect_stdout
 import bitstring
+import bitarray
 import copy
 from collections import abc
-import math
-from bitstring.classes import fp143_fmt, fp152_fmt
-import struct
 import sys
 
 sys.path.insert(0, '..')
@@ -20,6 +18,7 @@ sys.path.insert(0, '..')
 class ModuleData(unittest.TestCase):
     def testVersion(self):
         self.assertEqual(bitstring.__version__, '4.1.0b2')
+        self.assertEqual(bitarray.__version__, '2.8.0')
 
     def testAll(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',
