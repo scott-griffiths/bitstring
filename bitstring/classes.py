@@ -2242,11 +2242,11 @@ class Bits:
         chars = length // bpc
         return name, chars, length
 
-    def pp(self, fmt: str = 'bin', width: int = 120, sep: Optional[str] = ' ',
+    def pp(self, fmt: Optional[str] = None, width: int = 120, sep: Optional[str] = ' ',
            show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty print the bitstring's value.
 
-        fmt -- Printed data format. One of 'bin', 'oct', 'hex' or 'bytes'. Defaults to 'bin'.
+        fmt -- Printed data format. One or two of 'bin', 'oct', 'hex' or 'bytes'.
               The number of bits represented in each printed group defaults to 8 for hex and bin,
               12 for oct and 32 for bytes. This can be overridden with an explicit length, e.g. 'hex:64'.
               Use a length of 0 to not split into groups, e.g. `bin:0`.
@@ -2260,6 +2260,8 @@ class Bits:
         >>> s.pp('b, h', sep='_', show_offset=False)
 
         """
+        if fmt is None:
+            fmt = 'bin' if len(self) % 4 != 0 else 'bin, hex'
 
         bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
 

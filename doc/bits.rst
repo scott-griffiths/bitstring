@@ -166,20 +166,21 @@ pp
         Pretty print the bitstring's value according to the *fmt*. Either a single, or two comma separated formats can be specified, together with options for setting the maximum display *width*, the number of bits to display in each group, and the separator to print between groups.
 
             >>> s = Bits(int=-98987987293452, length=200)
-            >>> s.pp()
-              0: 11111111 11111111 11111111 11111111 11111111 11111111 11111111 11111111
-             64: 11111111 11111111 11111111 11111111 11111111 11111111 11111111 11111111
-            128: 11111111 11111111 11111111 10100101 11111000 10010000 00101110 00101010
-            192: 11110100
+            >>> s.pp(width=80)
+              0: 11111111 11111111 11111111 11111111 11111111 11111111   ff ff ff ff ff ff
+             48: 11111111 11111111 11111111 11111111 11111111 11111111   ff ff ff ff ff ff
+             96: 11111111 11111111 11111111 11111111 11111111 11111111   ff ff ff ff ff ff
+            144: 11111111 10100101 11111000 10010000 00101110 00101010   ff a5 f8 90 2e 2a
+            192: 11110100                                                f4
 
-            >>> s.pp('h12, b', show_offset=False, sep='-')
-            fff-fff-fff-fff   111111111111-111111111111-111111111111-111111111111
-            fff-fff-fff-fff   111111111111-111111111111-111111111111-111111111111
-            fff-fff-fff-fff   111111111111-111111111111-111111111111-111111111111
-            ffa-5f8-902-e2a   111111111010-010111111000-100100000010-111000101010
-            f4                11110100
+            >>> s.pp('h16, b', width=80, show_offset=False, sep=' / ')
+            ffff / ffff / ffff   1111111111111111 / 1111111111111111 / 1111111111111111
+            ffff / ffff / ffff   1111111111111111 / 1111111111111111 / 1111111111111111
+            ffff / ffff / ffff   1111111111111111 / 1111111111111111 / 1111111111111111
+            ffa5 / f890 / 2e2a   1111111110100101 / 1111100010010000 / 0010111000101010
+            f4                   11110100
 
-        The available formats are ``'bin'`` (the default), ``'oct'``, ``'hex'`` and ``'bytes'``. A bit length can be specified after the format (with an optional `:`) to give the number of bits represented by each group, otherwise the default is based on the format or formats selected. Using a length of zero removes all separators and displays one block of characters per line for each format in *fmt* (e.g. ``'hex0'``).
+        The available formats are ``'bin'``, ``'oct'``, ``'hex'`` and ``'bytes'``. A bit length can be specified after the format (with an optional `:`) to give the number of bits represented by each group, otherwise the default is based on the format or formats selected. Using a length of zero removes all separators and displays one block of characters per line for each format in *fmt* (e.g. ``'hex0'``).
 
         The ``'hex'``, ``'oct'`` and ``'bin'`` format string can be replaced with just their initial letter.
 

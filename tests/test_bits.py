@@ -635,7 +635,7 @@ class PrettyPrinting(unittest.TestCase):
         a = Bits('0b101011110000')
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(), ' 0: 10101111 0000\n')
+        self.assertEqual(s.getvalue(), ' 0: 10101111 0000   af 0\n')
 
         s = io.StringIO()
         a.pp('hex', stream=s)
@@ -648,7 +648,7 @@ class PrettyPrinting(unittest.TestCase):
     def testSmallWidth(self):
         a = Bits(20)
         s = io.StringIO()
-        a.pp(stream=s, width=5)
+        a.pp(fmt='b', stream=s, width=5)
         self.assertEqual(s.getvalue(), ' 0: 00000000\n'
                                        ' 8: 00000000\n'
                                        '16: 0000    \n')
@@ -662,7 +662,7 @@ class PrettyPrinting(unittest.TestCase):
     def testMultiLine(self):
         a = Bits(100)
         s = io.StringIO()
-        a.pp(sep=None, stream=s, width=80)
+        a.pp('bin', sep=None, stream=s, width=80)
         self.assertEqual(s.getvalue(), '  0: 000000000000000000000000000000000000000000000000000000000000000000000000\n'
                                        ' 72: 0000000000000000000000000000                                            \n')
 
@@ -785,7 +785,7 @@ class PrettyPrinting_LSB0(unittest.TestCase):
     def test_bin(self):
         a = Bits(bin='1111 0000 0000 1111 1010')
         s = io.StringIO()
-        a.pp(stream=s, width=5)
+        a.pp('bin', stream=s, width=5)
         self.assertEqual(s.getvalue(), '11111010 : 0\n'
                                        '00000000 : 8\n'
                                        '    1111 :16\n')
