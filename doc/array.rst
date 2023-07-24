@@ -189,15 +189,62 @@ Methods
 Special Methods
 ---------------
 
-    .. method:: Array.__add__(other: Array | Iterable | int | float) -> Array
-    .. method:: Array.__radd__(other: Iterable) -> Array
+    .. method:: Array.__add__(other: Array | Iterable | int | float)
+
+    .. method:: Array.__radd__(other: Iterable)
 
     .. method:: Array.__len__(self)
 
-    .. method:: __getitem__(self, key)
-    .. method:: __setitem__(self, key, value)
-    .. method:: __delitem__(self, key)
-    .. method:: __eq__(self, other)
+    .. method:: Array.__getitem__(self, key)
+
+    .. method:: Array.__setitem__(self, key, value)
+
+    .. method:: Array.__delitem__(self, key)
+
+    .. method:: Array.__eq__(self, other)
+
+    .. method:: Array.__ne__(self, other)
+
+    .. method:: Array.__truediv__(self, other: int | float)
+
+    .. method:: Array.__floordiv__(self, other: int | float)
+
+    .. method:: Array.__sub__(self, other: int | float)
+
+    .. method:: Array.__mul__(self, other: int | float)
+
+    .. method:: Array.__rshift__(self, other: int | float)
+
+    .. method:: Array.__lshift__(self, other: int | float)
+
+    .. method:: Array.__and__(self, other: int | float)
+
+    .. method:: Array.__or__(self, other: int | float)
+
+    .. method:: Array.__xor__(self, other: int | float)
+
+    .. method:: Array.__itruediv__(self, other: int | float)
+
+    .. method:: Array.__ifloordiv__(self, other: int | float)
+
+    .. method:: Array.__iadd__(self, other: int | float)
+
+    .. method:: Array.__isub__(self, other: int | float)
+
+    .. method:: Array.__imul__(self, other: int | float)
+
+    .. method:: Array.__irshift__(self, other: int | float)
+
+    .. method:: Array.__ilshift__(self, other: int | float)
+
+    .. method:: Array.__iand__(self, other: int | float)
+
+    .. method:: Array.__ior__(self, other: int | float)
+
+    .. method:: Array.__ixor__(self, other: int | float)
+
+
+
 
 Properties
 ----------

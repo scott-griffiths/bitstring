@@ -99,8 +99,8 @@ Also available are operators that will return a new bitstring (or check for equa
 
 * :meth:`[] <Bits.__getitem__>` -- Get an element or slice.
 * :meth:`== <Bits.__eq__>` / :meth:`\!= <Bits.__ne__>` -- Equality tests.
-* :meth:`+ <Bits.__add__>` -- Concatenate bitstrings.
-* :meth:`* <Bits.__mul__>` -- Concatenate multiple copies of the bitstring.
+* :meth:`+ <Bits.__add__>` -- Concatenate with another bitstring.
+* :meth:`* <Bits.__mul__>` -- Concatenate multiple copies of the current bitstring.
 * :meth:`~ <Bits.__invert__>` -- Invert every bit of the bitstring.
 * :meth:`\<\< <Bits.__lshift__>` -- Shift bits to the left.
 * :meth:`>> <Bits.__rshift__>` -- Shift bits to the right.
@@ -172,8 +172,9 @@ Additional special methods
 The special methods available for the ``Bits`` class are all available, plus some which will modify the bitstring:
 
 * :meth:`[] <BitArray.__setitem__>` -- Set an element or slice.
+* :meth:`del <BitArray.__delitem__>` -- Delete an element or slice.
 * :meth:`+= <BitArray.__iadd__>` -- Append bitstring to the current bitstring.
-* :meth:`*= <BitArray.__imul__>` -- Concatenate multiple copies of the bitstring.
+* :meth:`*= <BitArray.__imul__>` -- Concatenate multiple copies of the current bitstring.
 * :meth:`\<\<= <BitArray.__ilshift__>` -- Shift bits in-place to the left.
 * :meth:`>>= <BitArray.__irshift__>` -- Shift bits in-place to the right.
 * :meth:`&= <BitArray.__iand__>` -- In-place bit-wise AND between two bitstrings.
@@ -244,7 +245,7 @@ Constructor
 
 The `fmt` can be a struct-like type code, or a single fixed-length token as used in the ``Bits`` class.
 
-The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``Array`` or an ``array.array``.
+The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
 
 The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the format `fmt`.
 Modifying the data or format after creation may cause the `trailing_bits` to not be empty.
@@ -274,9 +275,36 @@ Methods
 Special methods
 ^^^^^^^^^^^^^^^
 
-Also available are the operators ``[]``, ``==``, ``!=``, ``+``, ``*``, ``<<``, ``>>``, ``&``, ``|`` and ``^``.
+These non-mutating special methods are available. Where appropriate they return a new ``Array``.
 
-Mutating operators are available: ``[]``, ``<<=``, ``>>=``, ``*=``, ``&=``, ``|=`` and ``^=``.
+* :meth:`[] <Array.__getitem__>` -- Get an element or slice.
+* :meth:`== <Array.__eq__>` / :meth:`\!= <Array.__ne__>` -- Equality tests.
+* :meth:`+ <Array.__add__>` -- Concatenate Arrays, or add value to each element.
+* :meth:`- <Array.__sub__>` -- Subtract value from each element.
+* :meth:`* <Array.__mul__>` -- Multiply each element by a value.
+* :meth:`/ <Array.__truediv__>` -- Divide each element by a value.
+* :meth:`// <Array.__floordiv__>` -- Floor divide each element by a value.
+* :meth:`\<\< <Array.__lshift__>` -- Shift bits of each element to the left.
+* :meth:`>> <Array.__rshift__>` -- Shift bits of each element to the right.
+* :meth:`& <Array.__and__>` -- Bit-wise AND of each element.
+* :meth:`| <Array.__or__>` -- Bit-wise OR of each element.
+* :meth:`^ <Array.__xor__>` -- Bit-wise XOR of each element.
+
+Mutating versions of many of the methods are also available.
+
+* :meth:`[] <Array.__setitem__>` -- Get an element or slice.
+* :meth:`del <Array.__delitem__>` -- Delete an element or slice.
+* :meth:`+= <Array.__iadd__>` -- Concatenate Array, or add value to each element in-place.
+* :meth:`-= <Array.__isub__>` -- Subtract value from each element in-place.
+* :meth:`*= <Array.__imul__>` -- Multiply each element by a value in-place.
+* :meth:`/= <Array.__itruediv__>` -- Divide each element by a value in-place.
+* :meth:`//= <Array.__ifloordiv__>` -- Floor divide each element by a value in-place.
+* :meth:`\<\<= <Array.__ilshift__>` -- Shift bits of each element to the left in-place.
+* :meth:`>>= <Array.__irshift__>` -- Shift bits of each element to the right in-place.
+* :meth:`&= <Array.__iand__>` -- In-place bit-wise AND of each element.
+* :meth:`|= <Array.__ior__>` -- In-place bit-wise OR of each element.
+* :meth:`^= <Array.__ixor__>` -- In-place bit-wise XOR of each element.
+
 
 Properties
 ^^^^^^^^^^
