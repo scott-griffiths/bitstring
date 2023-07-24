@@ -95,7 +95,18 @@ Methods
 Special methods
 ^^^^^^^^^^^^^^^
 
-Also available are the operators ``[]``, ``==``, ``!=``, ``+``, ``*``, ``~``, ``<<``, ``>>``, ``&``, ``|`` and ``^``.
+Also available are operators that will return a new bitstring (or check for equality):
+
+* :meth:`[] <Bits.__getitem__>` -- Get an element or slice.
+* :meth:`== <Bits.__eq__>` / :meth:`\!= <Bits.__ne__>` -- Equality tests.
+* :meth:`+ <Bits.__add__>` -- Concatenate bitstrings.
+* :meth:`* <Bits.__mul__>` -- Concatenate multiple copies of the bitstring.
+* :meth:`~ <Bits.__invert__>` -- Invert every bit of the bitstring.
+* :meth:`\<\< <Bits.__lshift__>` -- Shift bits to the left.
+* :meth:`>> <Bits.__rshift__>` -- Shift bits to the right.
+* :meth:`& <Bits.__and__>` -- Bit-wise AND between two bitstrings.
+* :meth:`| <Bits.__or__>` -- Bit-wise OR between two bitstrings.
+* :meth:`^ <Bits.__xor__>` -- Bit-wise XOR between two bitstrings.
 
 Properties
 ^^^^^^^^^^
@@ -140,6 +151,8 @@ This class adds mutating methods to ``Bits``. The constructor is the same as for
 Additional methods
 ^^^^^^^^^^^^^^^^^^
 
+All of the methods listed above for the ``Bits`` class are available, plus:
+
 * :meth:`~BitArray.append` -- Append a bitstring.
 * :meth:`~BitArray.byteswap` -- Change byte endianness in-place.
 * :meth:`~BitArray.clear` -- Remove all bits from the bitstring.
@@ -156,7 +169,17 @@ Additional methods
 Additional special methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Mutating operators are available: ``[]``, ``<<=``, ``>>=``, ``*=``, ``&=``, ``|=`` and ``^=``.
+The special methods available for the ``Bits`` class are all available, plus some which will modify the bitstring:
+
+* :meth:`[] <BitArray.__setitem__>` -- Set an element or slice.
+* :meth:`+= <BitArray.__iadd__>` -- Append bitstring to the current bitstring.
+* :meth:`*= <BitArray.__imul__>` -- Concatenate multiple copies of the bitstring.
+* :meth:`\<\<= <BitArray.__ilshift__>` -- Shift bits in-place to the left.
+* :meth:`>>= <BitArray.__irshift__>` -- Shift bits in-place to the right.
+* :meth:`&= <BitArray.__iand__>` -- In-place bit-wise AND between two bitstrings.
+* :meth:`|= <BitArray.__ior__>` -- In-place bit-wise OR between two bitstrings.
+* :meth:`^= <BitArray.__ixor__>` -- In-place bit-wise XOR between two bitstrings.
+
 
 Properties
 ^^^^^^^^^^
@@ -170,7 +193,10 @@ ConstBitStream
 
 ``Bits`` ⟶ ``ConstBitStream``
 
-This class adds a bit position and methods to read and navigate in the bitstream.
+This class adds a bit position and methods to read and navigate in an immutable bitstream.
+If you wish to use streaming methods on a large file without changing it then this is often the best class to use.
+
+All of the methods, special methods and properties listed above for the ``Bits`` class are available, plus:
 
 Additional methods
 ^^^^^^^^^^^^^^^^^^
@@ -196,7 +222,10 @@ BitStream
 ``Bits`` ⟶ ``BitArray / ConstBitStream`` ⟶ ``BitStream``
 
 
-This class contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``. It is the most general of the four classes, but it is usually best to choose the simplest class for your use case.
+This class contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
+It has all the methods, special methods and properties of the ``Bits``, ``BitArray`` and ``ConstBitArray`` classes.
+
+It is the most general of the four classes, but it is usually best to choose the simplest class for your use case.
 
 ----
 

@@ -2,11 +2,11 @@
 
 ![bitstring](https://raw.githubusercontent.com/scott-griffiths/bitstring/main/doc/bitstring_logo_small.png "bitstring")
 
-**bitstring** is a Python package designed to help make
-the creation and analysis of binary data as simple and natural as possible.
+**bitstring** is a Python module to help make the creation and analysis of binary data as simple and efficient as possible.
+
 
 It has been maintained since 2006 and now has many millions of downloads per year.
-You can try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb), or take a look at the [static version](https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb).
+
 
 
 [![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)](https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml)
@@ -14,43 +14,29 @@ You can try out the interactive walkthrough notebook on [binder](https://mybinde
 [![Downloads](https://img.shields.io/pypi/dm/bitstring?color=blue)](https://pypistats.org/packages/bitstring) &nbsp; &nbsp; 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
 
-# 4.1 beta now available
-
-This version concentrates on what is perhaps bitstring's major weakness - speed.
-It's always been a pure Python module with no dependencies, which has a few advantages, but means it can't compete with C-coded extensions in terms of raw speed of operation.
-
-Version 4.1 of bitstring has been rewritten to use the [`bitarray`](https://pypi.org/project/bitarray/) type from the package of the same name as its underlying data type.
-This lets us keep the API and functionality of bitstring but gains (most of) the speed of bitarray.
-Huge kudos to Ilan Schnell for all his work on bitarray over the last 15 or so years.
-
-The 4.1 beta should be fully functional - there are no known issues.
-To install the beta you need to specify the precise version:
-
-    python -m pip install bitstring==4.1.0b1
-
-Please try it out and report any problems or observations.
-You shouldn't need to change any code - everything should just work the same as version 4.0, just faster.
 
 Overview
 --------
 
+* Efficiently store and manipulate binary data in idiomatic Python.
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
 * Powerful binary packing and unpacking functions.
 * Bit-level slicing, joining, searching, replacing and more.
+* Create and manipulate arrays of fixed-length bitstrings.
 * Read from and interpret bitstrings as streams of binary data.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Open source software, released under the MIT licence.
 
-
-> **Note** \
-> Version 4 of bitstring only supports Python 3.7 and later. \
-> Use bitstring version 3.1 if you're using Python 2.7 or 3.6 or earlier.
-
-
 Documentation
 -------------
-The manual for the bitstring module is available at [Read the Docs](https://bitstring.readthedocs.org).
-It contains a walk-through of all the features and a complete [reference section](https://bitstring.readthedocs.io/en/stable/quick_ref.html).
+Extensive documentation for the bitstring module is available at [Read the Docs](https://bitstring.readthedocs.org). Some starting points are given below:
+
+* [Overview](https://github.com/scott-griffiths/bitstring/blob/stable/doc/index.ipynb)
+* [Walkthrough](https://github.com/scott-griffiths/bitstring/blob/stable/doc/walkthrough.ipynb)
+* [Quick Reference](https://bitstring.readthedocs.io/en/stable/quick_ref.html)
+* [Full Reference](https://bitstring.readthedocs.io/en/stable/reference.html)
+
+You can also try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
 
 
 Examples

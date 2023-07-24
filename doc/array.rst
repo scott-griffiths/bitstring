@@ -153,7 +153,7 @@ Methods
         Add a new element with value `x` to the end of the Array.
         The type of `x` should be appropriate for the type of the Array.
 
-        Raises a ``ValueError`` if the Array's bit length is not a multiple of its format length (see :attribute:~Array.trailing_bits).
+        Raises a ``ValueError`` if the Array's bit length is not a multiple of its format length (see :attr:`~Array.trailing_bits`).
 
     .. method:: Array.byteswap() -> None
 
