@@ -35,6 +35,7 @@ Extensive documentation for the bitstring module is available at [Read the Docs]
 * [Walkthrough](https://github.com/scott-griffiths/bitstring/blob/stable/doc/walkthrough.ipynb)
 * [Quick Reference](https://bitstring.readthedocs.io/en/stable/quick_ref.html)
 * [Full Reference](https://bitstring.readthedocs.io/en/stable/reference.html)
+* [Release Notes](https://bitstring.readthedocs.io/en/stable/release_notes.html)
 
 You can also try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
 

@@ -120,7 +120,7 @@ class Array:
         self._uint_setter_func = functools.partial(Bits._setfunc['uint'], length=token_length)
         self._itemsize = token_length
         self._token_name = token_name
-        # We save the exact fmt string so we can use it in __repr__ etc.
+        # We save the user's fmt string so that we can use it in __repr__ etc.
         self._fmt = new_fmt
 
     def _create_element(self, value: ElementType) -> Bits:
@@ -183,13 +183,16 @@ class Array:
                 self.data[start * self._itemsize: stop * self._itemsize] = new_data
                 return
             items_in_slice = len(range(start, stop, step))
-            if not hasattr(value, 'len'):
+            try:
+                value_len = len(value)
+            except TypeError:
                 value = list(value)
-            if len(value) == items_in_slice:
+                value_len = len(value)
+            if value_len == items_in_slice:
                 for s, v in zip(range(start, stop, step), value):
                     self.data.overwrite(self._create_element(v), s * self._itemsize)
             else:
-                raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {stop - start}.")
+                raise ValueError(f"Can't assign {value_len} values to an extended slice of length {stop - start}.")
         else:
             if key < 0:
                 key += len(self)

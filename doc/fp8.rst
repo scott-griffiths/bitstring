@@ -6,10 +6,10 @@
 ==========================
 
 Python floats are typically 64 bits long, but 32 and 16 bit sizes are also supported through the ``struct`` module.
-These are the well-known and widely used IEEE formats.
-Recently lower precision floating points have become more widely used, largely driven by the requirements of machine learning.
+These are the well-known IEEE formats.
+Recently lower precision floating points have become more widely used, largely driven by the requirements of machine learning algorithms and hardware.
 
-As well as the 'half' precision 16 bit standard, a truncated version of the 32 bit standard called 'bfloat16' is used which has the range of a single precision float but less precision.
+As well as the 'half' precision 16 bit standard, a truncated version of the 32 bit standard called 'bfloat16' is used which has the range of a 32-bit float but less precision.
 
 The #bits value in the tables below show how the available bits are split into `sign` + `exponent` + `mantissa`.
 There's always 1 bit to determine the sign of the floating point value.
@@ -75,6 +75,10 @@ Given the limited ranges and precision it's remarkable that any useful calculati
 You can easily examine every possible value that these formats can represent using a line like this ::
 
     >>> [Bits(uint=x, length=8).float8_143 for x in range(256)]
+
+or using the :class:`Array` type it's even more concise::
+
+    >>> Array('float8_152', bytearray(range(256)))
 
 You'll see that there is only 1 zero value, no 'inf' values and only one 'nan' value.
 

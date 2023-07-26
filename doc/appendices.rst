@@ -8,8 +8,7 @@ Gathered together here are a few odds and ends that didn't fit well into either 
 
 .. toctree:: 
    :maxdepth: 2
-   
-   examples
+
    exp-golomb
    fp8
    optimisation

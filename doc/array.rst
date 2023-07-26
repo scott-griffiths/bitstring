@@ -2,7 +2,7 @@
 
 .. note::
     The Array class is new in version 4.1 of bitstring, and is considered a 'beta' feature for now.
-    There may be some small changes in future point releases and it hasn't been tested as well as the rest of the library.
+    There may be some small changes in future point releases and it hasn't been tested as well as the rest of the library. This documentation may also be a bit 'beta'.
 
 
 Array Class
@@ -92,7 +92,7 @@ Some methods, such as ``append`` and ``extend`` will raise an exception if used 
 
     The ``fmt`` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
-    Note that the typecodes must include an endianness character (with the exception of ``'b'`` / ``'B'``) to give the byte ordering.
+    Note that the typecodes must include an endianness character to give the byte ordering.
     This is more like the ``struct`` module typecodes, and is different to the ``array.array`` typecodes which are always native-endian.
 
     The correspondence between the big-endian type codes and bitstring format codes is given in the table below.
@@ -193,13 +193,13 @@ Special Methods
 
     .. method:: Array.__radd__(other: Iterable)
 
-    .. method:: Array.__len__(self)
+    .. method:: Array.__len__(self) -> int
 
-    .. method:: Array.__getitem__(self, key)
+    .. method:: Array.__getitem__(self, key: int | slice) -> float | int | str | bytes
 
-    .. method:: Array.__setitem__(self, key, value)
+    .. method:: Array.__setitem__(self, key: int | slice, value)
 
-    .. method:: Array.__delitem__(self, key)
+    .. method:: Array.__delitem__(self, key: int | slice)
 
     .. method:: Array.__eq__(self, other)
 
