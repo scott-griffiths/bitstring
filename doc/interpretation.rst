@@ -1,7 +1,7 @@
 .. currentmodule:: bitstring
 
 Interpreting Bitstrings
------------------------
+=======================
 
 Bitstrings don't know or care how they were created; they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
 
@@ -15,6 +15,9 @@ For the properties described below we will use these::
 
     >>> a = BitArray('0x123')
     >>> b = BitArray('0b111')
+
+Properties
+----------
 
 bin / b
 ^^^^^^^

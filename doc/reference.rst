@@ -17,9 +17,9 @@ Note that full variable types aren't given here, and more specific information c
    bitstring_classes
    bits
    bitarray
-   array
    constbitstream
    bitstream
+   array
    functions
 
 

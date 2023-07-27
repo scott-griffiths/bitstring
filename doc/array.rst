@@ -8,87 +8,88 @@
 Array Class
 ===========
 
-The ``Array`` class is a way to efficiently store data that has a single type with a set length.
-The ``bitstring.Array`` type is meant as a more flexible version of the standard ``array.array``, and can be used the same way. ::
-
-    import array
-    import bitstring
-
-    x = array.array('f', [1.0, 2.0, 3.14])
-    y = bitstring.Array('=f', [1.0, 2.0, 3.14])
-
-    assert x.tobytes() == y.tobytes()
-
-This example packs three 32-bit floats into objects using both libraries.
-The only difference is the explicit native endianness for the format string of the bitstring version.
-The bitstring Array's advantage lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
-
-For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte formats can be properly specified.
-
-Each element in the ``Array`` must then be something that makes sense for the ``fmt``.
-Some examples will help illustrate::
-
-    from bitstring import Array
-
-    # Each unsigned int is stored in 4 bits
-    a = Array('uint4', [0, 5, 5, 3, 2])
-
-    # Convert and store floats in 8 bits each
-    b = Array('float8_152', [-56.0, 0.123, 99.6])
-
-    # Each element is a  7 bit signed integer
-    c = Array('int7', [-3, 0, 120])
-
-You can then access and modify the ``Array`` with the usual notation::
-
-    a[1:5]  # Array('uint4', [5, 5, 3])
-    b[0]  # -56.0
-    c[-1]  # 120
-
-    a[0] = 2
-    b.extend([0.0, -1.5])
-
-Conversion between ``Array`` types can be done by creating a new one with the new format.
-If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
-
-    >>> x = Array('float64', [89.3, 1e34, -0.00000001, 34])
-    >>> y = Array('float16', x)
-    >>> y
-    Array('float16', [89.3125, inf, -0.0, 34.0])
-    >>> y = Array('float8_143', y)
-    >>> y
-    Array('float8_143', [88.0, 240.0, 0.0, 32.0])
-    >>> Array('uint8', y)
-    Array('uint8', [88, 240, 0, 32])
-    >>> Array('uint7', y)
-    bitstring.CreationError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
-
-You can also reinterpret the data by changing the ``fmt`` property directly.
-This will not copy any data but will cause the current data to be shown differently. ::
-
-    >>> x = Array('int16', [-5, 100, -4])
-    >>> x
-    Array('int16', [-5, 100, -4])
-    >>> x.fmt = 'int8'
-    >>> x
-    Array('int8', [-1, -5, 0, 100, -1, -4])
-
-
-
-The data for the array is stored internally as a ``BitArray`` object.
-It can be directly accessed using the ``data`` property.
-You can freely manipulate the internal data using all of the methods available for the ``BitArray`` class.
-
-The ``Array`` object also has a ``trailing_bits`` read-only data member, which consists of the end bits of the ``data`` ``BitArray`` that are left over when the ``Array`` is interpreted using ``fmt``.
-Typically ``trailing_bits`` will be an empty ``BitArray`` but if you change the length of the ``data`` or change the ``fmt`` specification there may be some bits left over.
-
-Some methods, such as ``append`` and ``extend`` will raise an exception if used when ``trailing_bits`` is not empty, as it not clear how these should behave in this case. You can however still use ``insert`` which will always leave the ``trailing_bits`` unchanged.
-
-
 .. class:: Array(fmt: str[, initializer[, trailing_bits]])
 
     Create a new ``Array`` whose elements are set by the ``fmt`` string.
-    This can be any format which has a well defined and fixed length in bits.
+    This can be any format which has a fixed length.
+
+    The ``Array`` class is a way to efficiently store data that has a single type with a set length.
+    The ``bitstring.Array`` type is meant as a more flexible version of the standard ``array.array``, and can be used the same way. ::
+
+        import array
+        import bitstring
+
+        x = array.array('f', [1.0, 2.0, 3.14])
+        y = bitstring.Array('=f', [1.0, 2.0, 3.14])
+
+        assert x.tobytes() == y.tobytes()
+
+    This example packs three 32-bit floats into objects using both libraries.
+    The only difference is the explicit native endianness for the format string of the bitstring version.
+    The bitstring Array's advantage lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
+
+    For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte formats can be properly specified.
+
+    Each element in the ``Array`` must then be something that makes sense for the ``fmt``.
+    Some examples will help illustrate::
+
+        from bitstring import Array
+
+        # Each unsigned int is stored in 4 bits
+        a = Array('uint4', [0, 5, 5, 3, 2])
+
+        # Convert and store floats in 8 bits each
+        b = Array('float8_152', [-56.0, 0.123, 99.6])
+
+        # Each element is a  7 bit signed integer
+        c = Array('int7', [-3, 0, 120])
+
+    You can then access and modify the ``Array`` with the usual notation::
+
+        a[1:5]  # Array('uint4', [5, 5, 3])
+        b[0]    # -56.0
+        c[-1]   # 120
+
+        a[0] = 2
+        b.extend([0.0, -1.5])
+
+    Conversion between ``Array`` types can be done by creating a new one with the new format.
+    If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
+
+        >>> x = Array('float64', [89.3, 1e34, -0.00000001, 34])
+        >>> y = Array('float16', x)
+        >>> y
+        Array('float16', [89.3125, inf, -0.0, 34.0])
+        >>> y = Array('float8_143', y)
+        >>> y
+        Array('float8_143', [88.0, 240.0, 0.0, 32.0])
+        >>> Array('uint8', y)
+        Array('uint8', [88, 240, 0, 32])
+        >>> Array('uint7', y)
+        bitstring.CreationError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
+
+    You can also reinterpret the data by changing the ``fmt`` property directly.
+    This will not copy any data but will cause the current data to be shown differently. ::
+
+        >>> x = Array('int16', [-5, 100, -4])
+        >>> x
+        Array('int16', [-5, 100, -4])
+        >>> x.fmt = 'int8'
+        >>> x
+        Array('int8', [-1, -5, 0, 100, -1, -4])
+
+
+
+    The data for the array is stored internally as a ``BitArray`` object.
+    It can be directly accessed using the ``data`` property.
+    You can freely manipulate the internal data using all of the methods available for the ``BitArray`` class.
+
+    The ``Array`` object also has a ``trailing_bits`` read-only data member, which consists of the end bits of the ``data`` ``BitArray`` that are left over when the ``Array`` is interpreted using ``fmt``.
+    Typically ``trailing_bits`` will be an empty ``BitArray`` but if you change the length of the ``data`` or change the ``fmt`` specification there may be some bits left over.
+
+    Some methods, such as ``append`` and ``extend`` will raise an exception if used when ``trailing_bits`` is not empty, as it not clear how these should behave in this case. You can however still use ``insert`` which will always leave the ``trailing_bits`` unchanged.
+
+
 
     The ``fmt`` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
