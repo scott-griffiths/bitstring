@@ -178,6 +178,8 @@ Methods
 
     .. method:: Array.pop(i: int | None) -> float | int | str | bytes
 
+    .. method:: Array.pp(fmt: str | None, width: int, sep: str, show_offset: bool, stream: TextIO) -> None
+
     .. method:: Array.reverse() -> None
 
     .. method:: Array.tobytes() -> bytes

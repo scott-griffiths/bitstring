@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from bitstring.exceptions import CreationError
-from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload
+from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.classes import BitArray, Bits, BitsType
 from bitstring.utils import tokenparser
 import functools
@@ -9,9 +9,11 @@ import copy
 import array
 import operator
 import io
+import sys
 
 # The possible types stored in each element of the Array
-ElementType = Union[float, str, int, bytes]
+ElementType = Union[float, str, int, bytes, bool]
+
 
 class Array:
     """Return an Array whose elements are initialised according to the fmt string.
@@ -323,20 +325,30 @@ class Array:
                                                                start_swap_bit: start_swap_bit + self._itemsize]
             self.data[start_swap_bit: start_swap_bit + self._itemsize] = temp
 
-    # def pp(self, fmt: str = '', width: int = 120, sep: Optional[str] = ' ',
-    #        show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
-    #     trailing_bit_length = len(self.data) % self._itemsize
-    #     if fmt == '':
-    #         # Work out a good format given the known type of the Array
-    #         fmt = f'bin{self._itemsize}'
-    #     #     if self._itemsize % 4 == 0:
-    #     #         b =
-    #
-    #     if trailing_bit_length == 0:
-    #         self.data.pp(fmt, width, sep, show_offset, stream)
-    #     else:
-    #         self.data[0: -trailing_bit_length].pp(fmt, width, sep, show_offset, stream)
-    #         stream.write("trailing_bits = " + str(self.data[-trailing_bit_length:]))
+    def pp(self, fmt: Optional[str] = None, width: int = 120, sep: str = ' ',
+           show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
+        """Pretty-print the Array contents.
+
+        fmt -- Printed data format. Not yet supported! Defaults to either hex or bin.
+        width -- Max width of printed lines. Defaults to 120. A single group will always be printed
+                 per line even if it exceeds the max width.
+        sep -- A separator string to insert between groups. Defaults to a single space.
+        show_offset -- If True (the default) shows the element offset in the first column of each line.
+        stream -- A TextIO object with a write() method. Defaults to sys.stdout.
+
+        """
+        trailing_bit_length = len(self.data) % self._itemsize
+        # fmt is not yet supported
+        name1 = 'hex' if self._itemsize % 4 == 0 else 'bin'
+        format_sep = "   "  # String to insert on each line between multiple formats
+
+        if trailing_bit_length == 0:
+            data = self.data
+        else:
+            data = self.data[0: -trailing_bit_length]
+        data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize)
+        if trailing_bit_length != 0:
+            stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))
 
     def __eq__(self, other: Any) -> bool:
         """Return True if format and all Array items are equal."""

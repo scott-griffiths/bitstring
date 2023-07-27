@@ -662,7 +662,7 @@ class PrettyPrinting(unittest.TestCase):
     def testMultiLine(self):
         a = Bits(100)
         s = io.StringIO()
-        a.pp('bin', sep=None, stream=s, width=80)
+        a.pp('bin', sep='', stream=s, width=80)
         self.assertEqual(s.getvalue(), '  0: 000000000000000000000000000000000000000000000000000000000000000000000000\n'
                                        ' 72: 0000000000000000000000000000                                            \n')
 

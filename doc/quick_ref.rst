@@ -267,6 +267,7 @@ Methods
 * :meth:`~Array.fromfile` -- Append items read from a file object.
 * :meth:`~Array.insert` -- Insert an item at a given position.
 * :meth:`~Array.pop` -- Return and remove an item.
+* :meth:`~Array.pp` -- Pretty print the Array.
 * :meth:`~Array.reverse` -- Reverse the order of all items.
 * :meth:`~Array.tobytes` -- Return Array data as bytes object, padding with zero bits at end if needed.
 * :meth:`~Array.tofile` -- Write Array data to a file, padding with zero bits at end if needed.

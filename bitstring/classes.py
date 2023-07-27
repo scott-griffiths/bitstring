@@ -2242,7 +2242,86 @@ class Bits:
         chars = length // bpc
         return name, chars, length
 
-    def pp(self, fmt: Optional[str] = None, width: int = 120, sep: Optional[str] = ' ',
+    def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
+            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
+        """Internal pretty print method."""
+
+        bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
+
+        offset_width = 0
+        offset_sep = ' :' if lsb0 else ': '
+        if show_offset:
+            # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
+            offset_width = len(str(len(self))) + len(offset_sep)
+        if bits_per_group > 0:
+            group_chars1 = bits_per_group // bpc[name1]
+            group_chars2 = 0 if name2 is None else bits_per_group // bpc[name2]
+            # The number of characters that get added when we add an extra group (after the first one)
+            total_group_chars = group_chars1 + group_chars2 + len(sep) + len(sep) * bool(group_chars2)
+            width_excluding_offset_and_final_group = width - offset_width - group_chars1 - group_chars2 - len(
+                format_sep) * bool(group_chars2)
+            width_excluding_offset_and_final_group = max(width_excluding_offset_and_final_group, 0)
+            groups_per_line = 1 + width_excluding_offset_and_final_group // total_group_chars
+            max_bits_per_line = groups_per_line * bits_per_group  # Number of bits represented on each line
+        else:
+            assert bits_per_group == 0  # Don't divide into groups
+            group_chars1 = group_chars2 = 0
+            width_available = width - offset_width - len(format_sep) * (name2 is not None)
+            width_available = max(width_available, 1)
+            if name2 is None:
+                max_bits_per_line = width_available * bpc[name1]
+            else:
+                chars_per_24_bits = 24 // bpc[name1] + 24 // bpc[name2]
+                max_bits_per_line = 24 * (width_available // chars_per_24_bits)
+                if max_bits_per_line == 0:
+                    max_bits_per_line = 24  # We can't fit into the width asked for. Show something small.
+        assert max_bits_per_line > 0
+
+        def format_bits(bits_, bits_per_group_, sep_, fmt_):
+            raw = {'bin': bits_._getbin,
+                   'oct': bits_._getoct,
+                   'hex': bits_._gethex,
+                   'bytes': bits_._getbytes_printable}[fmt_]()
+            if bits_per_group_ == 0:
+                return raw
+            formatted = sep_.join(raw[i: i + bits_per_group_] for i in range(0, len(raw), bits_per_group_))
+            return formatted
+
+        bitpos = 0
+        first_fb_width = second_fb_width = None
+        for bits in self.cut(max_bits_per_line):
+            offset = bitpos // offset_factor
+            if _lsb0:
+                offset_str = f'{offset_sep}{offset: >{offset_width - len(offset_sep)}}' if show_offset else ''
+            else:
+                offset_str = f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
+            fb = format_bits(bits, group_chars1, sep, name1)
+            if first_fb_width is None:
+                first_fb_width = len(fb)
+            if len(fb) < first_fb_width:  # Pad final line with spaces to align it
+                if _lsb0:
+                    fb = ' ' * (first_fb_width - len(fb)) + fb
+                else:
+                    fb += ' ' * (first_fb_width - len(fb))
+            fb2 = '' if name2 is None else format_sep + format_bits(bits, group_chars2, sep, name2)
+            if second_fb_width is None:
+                second_fb_width = len(fb2)
+            if len(fb2) < second_fb_width:
+                if _lsb0:
+                    fb2 = ' ' * (second_fb_width - len(fb2)) + fb2
+                else:
+                    fb2 += ' ' * (second_fb_width - len(fb2))
+            if _lsb0 is True:
+                line_fmt = fb + fb2 + offset_str + '\n'
+            else:
+                line_fmt = offset_str + fb + fb2 + '\n'
+            stream.write(line_fmt)
+            bitpos += len(bits)
+        return
+
+
+
+    def pp(self, fmt: Optional[str] = None, width: int = 120, sep: str = ' ',
            show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty print the bitstring's value.
 
@@ -2302,78 +2381,9 @@ class Bits:
                 if bits_per_group >= 24:
                     bits_per_group //= 2
 
-        if sep is None:
-            sep = ''
         format_sep = "   "  # String to insert on each line between multiple formats
 
-        offset_width = 0
-        offset_sep = ' :' if _lsb0 else ': '
-        if show_offset:
-            # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
-            offset_width = len(str(len(self))) + len(offset_sep)
-        if bits_per_group > 0:
-            group_chars1 = bits_per_group // bpc[name1]
-            group_chars2 = 0 if fmt2 is None else bits_per_group // bpc[name2]
-            # The number of characters that get added when we add an extra group (after the first one)
-            total_group_chars = group_chars1 + group_chars2 + len(sep) + len(sep) * bool(group_chars2)
-            width_excluding_offset_and_final_group = width - offset_width - group_chars1 - group_chars2 - len(
-                format_sep) * bool(group_chars2)
-            width_excluding_offset_and_final_group = max(width_excluding_offset_and_final_group, 0)
-            groups_per_line = 1 + width_excluding_offset_and_final_group // total_group_chars
-            max_bits_per_line = groups_per_line * bits_per_group  # Number of bits represented on each line
-        else:
-            assert bits_per_group == 0  # Don't divide into groups
-            group_chars1 = group_chars2 = 0
-            width_available = width - offset_width - len(format_sep) * (fmt2 is not None)
-            width_available = max(width_available, 1)
-            if fmt2 is None:
-                max_bits_per_line = width_available * bpc[name1]
-            else:
-                chars_per_24_bits = 24 // bpc[name1] + 24 // bpc[name2]
-                max_bits_per_line = 24 * (width_available // chars_per_24_bits)
-                if max_bits_per_line == 0:
-                    max_bits_per_line = 24  # We can't fit into the width asked for. Show something small.
-        assert max_bits_per_line > 0
-
-        def format_bits(bits_, bits_per_group_, sep_, fmt_):
-            raw = {'bin': bits_._getbin,
-                   'oct': bits_._getoct,
-                   'hex': bits_._gethex,
-                   'bytes': bits_._getbytes_printable}[fmt_]()
-            if bits_per_group_ == 0:
-                return raw
-            formatted = sep_.join(raw[i: i + bits_per_group_] for i in range(0, len(raw), bits_per_group_))
-            return formatted
-
-        bitpos = 0
-        first_fb_width = second_fb_width = None
-        for bits in self.cut(max_bits_per_line):
-            if _lsb0:
-                offset_str = f'{offset_sep}{bitpos: >{offset_width - len(offset_sep)}}' if show_offset else ''
-            else:
-                offset_str = f'{bitpos: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
-            fb = format_bits(bits, group_chars1, sep, name1)
-            if first_fb_width is None:
-                first_fb_width = len(fb)
-            if len(fb) < first_fb_width:  # Pad final line with spaces to align it
-                if _lsb0:
-                    fb = ' ' * (first_fb_width - len(fb)) + fb
-                else:
-                    fb += ' ' * (first_fb_width - len(fb))
-            fb2 = '' if fmt2 is None else format_sep + format_bits(bits, group_chars2, sep, name2)
-            if second_fb_width is None:
-                second_fb_width = len(fb2)
-            if len(fb2) < second_fb_width:
-                if _lsb0:
-                    fb2 = ' ' * (second_fb_width - len(fb2)) + fb2
-                else:
-                    fb2 += ' ' * (second_fb_width - len(fb2))
-            if _lsb0 is True:
-                line_fmt = fb + fb2 + offset_str + '\n'
-            else:
-                line_fmt = offset_str + fb + fb2 + '\n'
-            stream.write(line_fmt)
-            bitpos += len(bits)
+        self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset, stream, _lsb0, 1)
         return
 
     def copy(self) -> Bits:
