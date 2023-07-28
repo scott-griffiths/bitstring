@@ -3,7 +3,9 @@ from __future__ import annotations
 from bitstring.classes import BitArray, Bits, BitsType
 from bitstring.utils import tokenparser
 from bitstring.exceptions import ReadError, ByteAlignError, CreationError
-from typing import Union, List, Any, Optional, overload
+from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
+
+TConstBitStream = TypeVar("TConstBitStream", bound='ConstBitStream')
 
 
 class ConstBitStream(Bits):
@@ -74,7 +76,7 @@ class ConstBitStream(Bits):
     pos -- The current bit position in the bitstring.
     """
 
-    __slots__ = ()
+    __slots__ = ('_pos')
 
     def __init__(self, auto: Optional[BitsType] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, pos: int = 0, **kwargs) -> None:
@@ -150,17 +152,17 @@ class ConstBitStream(Bits):
         Bits._clear(self)
         self._pos = 0
 
-    def __copy__(self) -> ConstBitStream:
+    def __copy__(self: TConstBitStream) -> TConstBitStream:
         """Return a new copy of the ConstBitStream for the copy module."""
         # Note that if you want a new copy (different ID), use _copy instead.
         # The copy can use the same datastore as it's immutable.
-        s = ConstBitStream()
+        s = self.__class__()
         s._bitstore = self._bitstore
         # Reset the bit position, don't copy it.
         s._pos = 0
         return s
 
-    def __add__(self, bs: BitsType) -> Bits:
+    def __add__(self: TConstBitStream, bs: BitsType) -> TConstBitStream:
         """Concatenate bitstrings and return new bitstring.
 
         bs -- the bitstring to append.
@@ -169,6 +171,34 @@ class ConstBitStream(Bits):
         s = Bits.__add__(self, bs)
         s._pos = 0
         return s
+
+    def find(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
+             bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
+        """Find first occurrence of substring bs.
+
+        Returns a single item tuple with the bit position if found, or an
+        empty tuple if not found. The bit position (pos property) will
+        also be set to the start of the substring if it is found.
+
+        bs -- The bitstring to find.
+        start -- The bit position to start the search. Defaults to 0.
+        end -- The bit position one past the last bit to search.
+               Defaults to len(self).
+        bytealigned -- If True the bitstring will only be
+                       found on byte boundaries.
+
+        Raises ValueError if bs is empty, if start < 0, if end > len(self) or
+        if end < start.
+
+        >>> BitStream('0xc3e').find('0b1111')
+        (6,)
+
+        """
+
+        p = super().find(bs, start, end, bytealigned)
+        if p and self._pos is not None:
+            self._pos = p[0]
+        return p
 
     @overload
     def read(self, fmt: int) -> Bits:
@@ -259,7 +289,7 @@ class ConstBitStream(Bits):
         value, self._pos = self._readlist(fmt, self._pos, **kwargs)
         return value
 
-    def readto(self, bs: BitsType, bytealigned: Optional[bool] = None) -> Bits:
+    def readto(self: TConstBitStream, bs: BitsType, bytealigned: Optional[bool] = None) -> TConstBitStream:
         """Read up to and including next occurrence of bs and return result.
 
         bs -- The bitstring to find. An integer is not permitted.
@@ -281,14 +311,14 @@ class ConstBitStream(Bits):
         return self._slice(oldpos, self._pos)
 
     @overload
-    def peek(self, fmt: int) -> Bits:
+    def peek(self: TConstBitStream, fmt: int) -> TConstBitStream:
         ...
 
     @overload
     def peek(self, fmt: str) -> Any:
         ...
 
-    def peek(self, fmt: Union[int, str]) -> Union[int, float, str, Bits, bool, bytes, None]:
+    def peek(self: TConstBitStream, fmt: Union[int, str]) -> Union[Any, TConstBitStream]:
         """Interpret next bits according to format string and return result.
 
         fmt -- Token string describing how to interpret the next bits.

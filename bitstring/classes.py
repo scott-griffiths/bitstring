@@ -12,7 +12,7 @@ from collections import abc
 import functools
 import types
 from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
-    BinaryIO, TextIO, Callable, overload, Iterator
+    BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
 from bitstring.utils import tokenparser, STRUCT_PACK_RE, STRUCT_SPLIT_RE
@@ -22,6 +22,8 @@ from bitstring.bitstore import BitStore, _offset_slice_indices_lsb0
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', int, str, Iterable[Any], bool, BinaryIO, bytearray, bytes, bitarray.bitarray]
+
+TBits = TypeVar("TBits", bound='Bits')
 
 byteorder: str = sys.byteorder
 
@@ -456,7 +458,7 @@ class Bits:
             cls._rfind = cls._rfind_msb0  # type: ignore
             cls._findall = cls._findall_msb0  # type: ignore
 
-    __slots__ = ('_bitstore', '_pos')
+    __slots__ = ('_bitstore')
 
     # Creates dictionaries to quickly reverse single bytes
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
@@ -503,10 +505,9 @@ class Bits:
 
         """
         self._bitstore.immutable = True
-        self._pos = None
 
-    def __new__(cls, auto: Optional[BitsType] = None, length: Optional[int] = None,
-                offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> Bits:
+    def __new__(cls: Type[TBits], auto: Optional[BitsType] = None, length: Optional[int] = None,
+                offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
         x = object.__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
@@ -574,7 +575,7 @@ class Bits:
     def __iter__(self) -> Iterable[bool]:
         return iter(self._bitstore)
 
-    def __copy__(self) -> Bits:
+    def __copy__(self: TBits) -> TBits:
         """Return a new copy of the Bits for the copy module."""
         # Note that if you want a new copy (different ID), use _copy instead.
         # The copy can return self as it's immutable.
@@ -593,13 +594,13 @@ class Bits:
     def __ge__(self, other: Any) -> bool:
         return NotImplemented
 
-    def __add__(self, bs: BitsType) -> Bits:
+    def __add__(self: TBits, bs: BitsType) -> TBits:
         """Concatenate bitstrings and return new bitstring.
 
         bs -- the bitstring to append.
 
         """
-        bs = Bits(bs)
+        bs = self.__class__(bs)
         if bs.len <= self.len:
             s = self._copy()
             s._addright(bs)
@@ -609,7 +610,7 @@ class Bits:
             s._addleft(self)
         return s
 
-    def __radd__(self, bs: BitsType) -> Bits:
+    def __radd__(self: TBits, bs: BitsType) -> TBits:
         """Append current bitstring to bs and return new bitstring.
 
         bs -- the string for the 'auto' initialiser that will be appended to.
@@ -619,14 +620,14 @@ class Bits:
         return bs.__add__(self)
 
     @overload
-    def __getitem__(self, key: slice) -> Bits:
+    def __getitem__(self: TBits, key: slice) -> TBits:
         ...
 
     @overload
     def __getitem__(self, key: int) -> bool:
         ...
 
-    def __getitem__(self, key: Union[slice, int]) -> Union[Bits, bool]:
+    def __getitem__(self: TBits, key: Union[slice, int]) -> Union[TBits, bool]:
         """Return a new bitstring representing a slice of the current bitstring.
 
         Indices are in units of the step parameter (default 1 bit).
@@ -724,7 +725,7 @@ class Bits:
         """
         return not self.__eq__(bs)
 
-    def __invert__(self) -> Bits:
+    def __invert__(self: TBits) -> TBits:
         """Return bitstring with every bit inverted.
 
         Raises Error if the bitstring is empty.
@@ -736,7 +737,7 @@ class Bits:
         s._invert_all()
         return s
 
-    def __lshift__(self, n: int) -> Bits:
+    def __lshift__(self: TBits, n: int) -> TBits:
         """Return bitstring with bits shifted by n to the left.
 
         n -- the number of bits to shift. Must be >= 0.
@@ -751,7 +752,7 @@ class Bits:
         s._addright(Bits(n))
         return s
 
-    def __rshift__(self, n: int) -> Bits:
+    def __rshift__(self: TBits, n: int) -> TBits:
         """Return bitstring with bits shifted by n to the right.
 
         n -- the number of bits to shift. Must be >= 0.
@@ -768,7 +769,7 @@ class Bits:
         s._addright(self._absolute_slice(0, self.len - n))
         return s
 
-    def __mul__(self, n: int) -> Bits:
+    def __mul__(self: TBits, n: int) -> TBits:
         """Return bitstring consisting of n concatenations of self.
 
         Called for expression of the form 'a = b*3'.
@@ -783,7 +784,7 @@ class Bits:
         s._imul(n)
         return s
 
-    def __rmul__(self, n: int) -> Bits:
+    def __rmul__(self: TBits, n: int) -> TBits:
         """Return bitstring consisting of n concatenations of self.
 
         Called for expressions of the form 'a = 3*b'.
@@ -792,7 +793,7 @@ class Bits:
         """
         return self.__mul__(n)
 
-    def __and__(self, bs: BitsType) -> Bits:
+    def __and__(self: TBits, bs: BitsType) -> TBits:
         """Bit-wise 'and' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '&' with.
@@ -807,7 +808,7 @@ class Bits:
         s._bitstore &= bs._bitstore
         return s
 
-    def __rand__(self, bs: BitsType) -> Bits:
+    def __rand__(self: TBits, bs: BitsType) -> TBits:
         """Bit-wise 'and' between two bitstrings. Returns new bitstring.
 
         bs -- the bitstring to '&' with.
@@ -817,7 +818,7 @@ class Bits:
         """
         return self.__and__(bs)
 
-    def __or__(self, bs: BitsType) -> Bits:
+    def __or__(self: TBits, bs: BitsType) -> TBits:
         """Bit-wise 'or' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '|' with.
@@ -832,7 +833,7 @@ class Bits:
         s._bitstore |= bs._bitstore
         return s
 
-    def __ror__(self, bs: BitsType) -> Bits:
+    def __ror__(self: TBits, bs: BitsType) -> TBits:
         """Bit-wise 'or' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '|' with.
@@ -842,7 +843,7 @@ class Bits:
         """
         return self.__or__(bs)
 
-    def __xor__(self, bs: BitsType) -> Bits:
+    def __xor__(self: TBits, bs: BitsType) -> TBits:
         """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '^' with.
@@ -857,7 +858,7 @@ class Bits:
         s._bitstore ^= bs._bitstore
         return s
 
-    def __rxor__(self, bs: BitsType) -> Bits:
+    def __rxor__(self: TBits, bs: BitsType) -> TBits:
         """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '^' with.
@@ -873,10 +874,7 @@ class Bits:
         bs -- The bitstring to search for.
 
         """
-        # Don't want to change pos
-        pos = self._pos
         found = Bits.find(self, bs, bytealigned=False)
-        self._pos = pos
         return bool(found)
 
     def __hash__(self) -> int:
@@ -898,7 +896,7 @@ class Bits:
         return len(self) != 0
 
     @classmethod
-    def _init_with_token(cls, name: str, token_length: Optional[int], value: Optional[str]) -> Bits:
+    def _init_with_token(cls: Type[TBits], name: str, token_length: Optional[int], value: Optional[str]) -> TBits:
         if token_length == 0:
             return cls()
         # For pad token just return the length in zero bits
@@ -1551,20 +1549,20 @@ class Bits:
         """Return the length of the bitstring in bits."""
         return len(self._bitstore)
 
-    def _copy(self) -> Bits:
+    def _copy(self: TBits) -> TBits:
         """Create and return a new copy of the Bits (always in memory)."""
         # Note that __copy__ may choose to return self if it's immutable. This method always makes a copy.
         s_copy = self.__class__()
         s_copy._bitstore = self._bitstore.copy()
         return s_copy
 
-    def _slice(self, start: int, end: int) -> Bits:
+    def _slice(self: TBits, start: int, end: int) -> TBits:
         """Used internally to get a slice, without error checking."""
         bs = self.__class__()
         bs._bitstore = self._bitstore.getslice(slice(start, end, None))
         return bs
 
-    def _absolute_slice(self, start: int, end: int) -> Bits:
+    def _absolute_slice(self: TBits, start: int, end: int) -> TBits:
         """Used internally to get a slice, without error checking.
         Uses MSB0 bit numbering even if LSB0 is set."""
         if end == start:
@@ -1600,11 +1598,11 @@ class Bits:
         else:
             self._bitstore = bs._bitstore + self._bitstore
 
-    def _truncateleft(self, bits: int) -> Bits:
+    def _truncateleft(self: TBits, bits: int) -> TBits:
         """Truncate bits from the start of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= self.len
         if not bits:
-            return Bits()
+            return self.__class__()
         truncated_bits = self._absolute_slice(0, bits)
         if bits == self.len:
             self._clear()
@@ -1612,11 +1610,11 @@ class Bits:
         self._bitstore = self._bitstore.getslice_msb0(slice(bits, None, None))
         return truncated_bits
 
-    def _truncateright(self, bits: int) -> Bits:
+    def _truncateright(self: TBits, bits: int) -> TBits:
         """Truncate bits from the end of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= self.len
         if not bits:
-            return Bits()
+            return self.__class__()
         truncated_bits = self._absolute_slice(self.length - bits, self.length)
         if bits == self.len:
             self._clear()
@@ -1662,21 +1660,21 @@ class Bits:
         """Invert every bit."""
         self._bitstore.invert()
 
-    def _ilshift(self, n: int) -> Bits:
+    def _ilshift(self: TBits, n: int) -> TBits:
         """Shift bits by n to the left in place. Return self."""
         assert 0 < n <= self.len
         self._addright(Bits(n))
         self._truncateleft(n)
         return self
 
-    def _irshift(self, n: int) -> Bits:
+    def _irshift(self: TBits, n: int) -> TBits:
         """Shift bits by n to the right in place. Return self."""
         assert 0 < n <= self.len
         self._addleft(Bits(n))
         self._truncateright(n)
         return self
 
-    def _imul(self, n: int) -> Bits:
+    def _imul(self: TBits, n: int) -> TBits:
         """Concatenate n copies of self in place. Return self."""
         assert n >= 0
         if not n:
@@ -1690,7 +1688,7 @@ class Bits:
         self._addright(self[0:(n - m) * old_len])
         return self
 
-    def _readbits(self, start: int, length: int) -> Bits:
+    def _readbits(self: TBits, start: int, length: int) -> TBits:
         """Read some bits from the bitstring and return newly constructed bitstring."""
         return self._slice(start, start + length)
 
@@ -1825,14 +1823,11 @@ class Bits:
 
         """
         bs = Bits(bs)
-        if bs.len == 0:
+        if len(bs) == 0:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
         ba = _bytealigned if bytealigned is None else bytealigned
         p = self._find(bs, start, end, ba)
-        # If called from a class that has a pos, set it
-        if p and self._pos is not None:
-            self._pos = p[0]
         return p
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
@@ -2070,7 +2065,7 @@ class Bits:
         # Have generated count bitstrings, so time to quit.
         return
 
-    def join(self, sequence: Iterable[Any]) -> Bits:
+    def join(self: TBits, sequence: Iterable[Any]) -> TBits:
         """Return concatenation of bitstrings joined by self.
 
         sequence -- A sequence of bitstrings.
@@ -2386,7 +2381,7 @@ class Bits:
         self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset, stream, _lsb0, 1)
         return
 
-    def copy(self) -> Bits:
+    def copy(self: TBits) -> TBits:
         """Return a copy of the bitstring."""
         return self._copy()
 
@@ -2876,7 +2871,7 @@ class BitArray(Bits):
             self._pos = del_start
         return
 
-    def __ilshift__(self, n: int) -> Bits:
+    def __ilshift__(self: TBits, n: int) -> TBits:
         """Shift bits by n to the left in place. Return self.
 
         n -- the number of bits to shift. Must be >= 0.
@@ -2891,7 +2886,7 @@ class BitArray(Bits):
         n = min(n, self.len)
         return self._ilshift(n)
 
-    def __irshift__(self, n: int) -> Bits:
+    def __irshift__(self: TBits, n: int) -> TBits:
         """Shift bits by n to the right in place. Return self.
 
         n -- the number of bits to shift. Must be >= 0.
@@ -2906,7 +2901,7 @@ class BitArray(Bits):
         n = min(n, self.len)
         return self._irshift(n)
 
-    def __imul__(self, n: int) -> Bits:
+    def __imul__(self: TBits, n: int) -> TBits:
         """Concatenate n copies of self in place. Return self.
 
         Called for expressions of the form 'a *= 3'.
@@ -2917,21 +2912,21 @@ class BitArray(Bits):
             raise ValueError("Cannot multiply by a negative integer.")
         return self._imul(n)
 
-    def __ior__(self, bs: BitsType) -> Bits:
+    def __ior__(self: TBits, bs: BitsType) -> TBits:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for |= operator.")
         self._bitstore |= bs._bitstore
         return self
 
-    def __iand__(self, bs: BitsType) -> Bits:
+    def __iand__(self: TBits, bs: BitsType) -> TBits:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for &= operator.")
         self._bitstore &= bs._bitstore
         return self
 
-    def __ixor__(self, bs: BitsType) -> Bits:
+    def __ixor__(self: TBits, bs: BitsType) -> TBits:
         bs = Bits(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for ^= operator.")

@@ -58,7 +58,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
             if value in kwargs:
                 value = kwargs[value]
             # If the length is in the kwd dictionary then use that too.
-            if length in kwargs:
+            if isinstance(length, str) and length in kwargs:
                 length = kwargs[length]
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:

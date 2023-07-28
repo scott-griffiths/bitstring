@@ -1,7 +1,7 @@
 from __future__ import annotations
 import functools
 import re
-from typing import Tuple, List, Optional, Pattern, Dict
+from typing import Tuple, List, Optional, Pattern, Dict, Union
 import sys
 from bitstring.exceptions import Error
 
@@ -82,7 +82,7 @@ def structparser(token: str) -> List[str]:
 
 @functools.lru_cache(CACHE_SIZE)
 def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
-        Tuple[bool, List[Tuple[str, Optional[int], Optional[str]]]]:
+        Tuple[bool, List[Tuple[str, Union[int, str, None], Optional[str]]]]:
     """Divide the format string into tokens and parse them.
 
     Return stretchy token and list of [initialiser, length, value]
