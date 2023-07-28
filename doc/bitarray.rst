@@ -147,12 +147,15 @@ reverse
 
         Reverses bits in the :class:`BitArray` in-place.
 
-        *start* and *end* give the range and default to ``0`` and :attr:`~Bits.len` respectively. ::
+        *start* and *end* give the range of bits to reverse and default to ``0`` and :attr:`~Bits.len` respectively. ::
 
-            >>> a = BitArray('0b10111')
-            >>> a.reverse()
-            >>> a.bin
-            '11101'
+        >>> a = BitArray('0b000001101')
+        >>> a.reverse()
+        >>> a.bin
+        '101100000'
+        >>> a.reverse(0, 4)
+        >>> a.bin
+        '110100000'
 
 rol
 ^^^

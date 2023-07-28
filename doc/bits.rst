@@ -228,7 +228,11 @@ startswith
 
         Returns ``True`` if the bitstring starts with the sub-string *bs*, otherwise returns ``False``.
 
-        A slice can be given using the *start* and *end* bit positions and defaults to the whole bitstring.
+        A slice can be given using the *start* and *end* bit positions and defaults to the whole bitstring. ::
+
+            >>> s = BitArray('0xef133')
+            >>> s.startswith('0b111011')
+            True
 
 tobitarray
 ^^^^^^^^^^
@@ -249,6 +253,7 @@ tobytes
         Returns the bitstring as a ``bytes`` object.
 
         The returned value will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
+        This differs from using the plain :attr:`~Bits.bytes` property which will not pad with zero bits and instead raises an exception if the bitstring is not a whole number of bytes long.
 
         This method can also be used to output your bitstring to a file - just open a file in binary write mode and write the function's output. ::
 
@@ -660,6 +665,8 @@ __invert__
             0b0001101
             >>> print(~s & s)
             0b0000000
+            >>> ~~s == s
+            True
 
 __len__
 ^^^^^^^

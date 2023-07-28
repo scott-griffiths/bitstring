@@ -3,91 +3,8 @@
 Miscellany
 ==========
 
-Other Functions
----------------
 
-``bytealign``
-^^^^^^^^^^^^^
 
-:meth:`~ConstBitStream.bytealign` advances between zero and seven bits to make the :attr:`~ConstBitStream.pos` a multiple of eight. It returns the number of bits advanced. ::
-
- >>> a = BitStream('0x11223344')
- >>> a.pos = 1
- >>> skipped = a.bytealign()
- >>> print(skipped, a.pos)
- 7 8
- >>> skipped = a.bytealign()
- >>> print(skipped, a.pos)
- 0 8
-
-``reverse``
-^^^^^^^^^^^
-
-This simply reverses the bits of the :class:`BitArray` in place. You can optionally specify a range of bits to reverse. ::
-
- >>> a = BitArray('0b000001101')
- >>> a.reverse()
- >>> a.bin
- '101100000'
- >>> a.reverse(0, 4)
- >>> a.bin
- '110100000'
-
-``tobytes``
-^^^^^^^^^^^
-
-Returns the byte data contained in the bitstring as a ``bytes`` object. This differs from using the plain :attr:`~Bits.bytes` property in that if the bitstring isn't a whole number of bytes long then it will be made so by appending up to seven zero bits. ::
-
- >>> BitArray('0b1').tobytes()
- b'\x80'
-
-``tofile``
-^^^^^^^^^^
-
-Writes the byte data contained in the bitstring to a file. The file should have been opened in a binary write mode, for example::
-
- >>> f = open('newfile', 'wb')
- >>> BitArray('0xffee3241fed').tofile(f)
-
-In exactly the same manner as with :meth:`~Bits.tobytes`, up to seven zero bits will be appended to make the file a whole number of bytes long.
-
-``startswith / endswith``
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-These act like the same named functions on strings, that is they return ``True`` if the bitstring starts or ends with the parameter given. Optionally you can specify a range of bits to use. ::
-
- >>> s = BitArray('0xef133')
- >>> s.startswith('0b111011')
- True
- >>> s.endswith('0x4')
- False
-
-``ror / rol``
-^^^^^^^^^^^^^
-
-To rotate the bits in a :class:`BitArray` use :meth:`~BitArray.ror` and :meth:`~BitArray.rol` for right and left rotations respectively. The changes are done in-place. ::
-
- >>> s = BitArray('0x00001')
- >>> s.rol(6)
- >>> s.hex
- '00040'
-
-Special Methods
----------------
-
-A few of the special methods have already been covered, for example :meth:`~Bits.__add__` and :meth:`~BitArray.__iadd__` (the ``+`` and ``+=`` operators) and :meth:`~Bits.__getitem__` and :meth:`~BitArray.__setitem__` (reading and setting slices via ``[]``). Here are some more:
-
-``__len__``
-^^^^^^^^^^^^^^^
-
-This implements the ``len`` function and returns the length of the bitstring in bits.
-
-It's recommended that you use the :attr:`~Bits.len` property instead of the function if you're using a 32-bit Python installation as the len function will raise an :exc:`OverflowError` if the bitstring has more than ``sys.maxsize`` elements (that's typically 256MiB of data with 32-bit Python).
-
-There's not much more to say really, except to emphasise that it is always in bits and never bytes. ::
-
- >>> len(BitArray('0x00'))
- 8
 
 ``__str__ / __repr__``
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -117,18 +34,7 @@ The equality of two bitstring objects is determined by their binary representati
  >>> BitArray('0x2') != '0o2'
  True
 
-``__invert__``
-^^^^^^^^^^^^^^
 
-To get a bit-inverted copy of a bitstring use the ``~`` operator::
-
- >>> a = BitArray('0b0001100111')
- >>> print(a)
- 0b0001100111
- >>> print(~a)
- 0b1110011000
- >>> ~~a == a
- True
 
 ``__lshift__ / __rshift__ / __ilshift__ / __irshift__``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -152,20 +58,6 @@ Multiplication of a bitstring by an integer means the same as it does for ordina
  >>> print(a.bin)
  1010101010101010
 
-``__copy__``
-^^^^^^^^^^^^
-
-This allows the bitstring to be copied via the ``copy`` module. ::
-
- >>> import copy
- >>> a = Bits('0x4223fbddec2231')
- >>> b = copy.copy(a)
- >>> b == a
- True
- >>> b is a
- False
-
-It's not terribly exciting, and isn't the only method of making a copy. Using ``b = BitArray(a)`` is another option, but ``b = a[:]`` may be more familiar to some.
 
 ``__and__ / __or__ / __xor__ / __iand__ / __ior__ / __ixor__``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -97,8 +97,8 @@ Special methods
 
 Also available are operators that will return a new bitstring (or check for equality):
 
-* :meth:`[] <Bits.__getitem__>` -- Get an element or slice.
 * :meth:`== <Bits.__eq__>` / :meth:`\!= <Bits.__ne__>` -- Equality tests.
+* :meth:`[] <Bits.__getitem__>` -- Get an element or slice.
 * :meth:`+ <Bits.__add__>` -- Concatenate with another bitstring.
 * :meth:`* <Bits.__mul__>` -- Concatenate multiple copies of the current bitstring.
 * :meth:`~ <Bits.__invert__>` -- Invert every bit of the bitstring.
@@ -117,8 +117,8 @@ Properties
 * :attr:`~Bits.float` / ``floatbe`` / ``f`` -- Interpret as a big-endian floating point number.
 * :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
 * :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
-* :attr:`~Bits.float8_143` -- Interpret as an 8 bit float with float8_143 format.
-* :attr:`~Bits.float8_152` -- Interpret as an 8 bit float with float8_152 format.
+* :attr:`~Bits.float8_143` -- Interpret as an 8 bit float with 1:4:3 format.
+* :attr:`~Bits.float8_152` -- Interpret as an 8 bit float with 1:5:2 format.
 * :attr:`~Bits.bfloat` / ``bfloatbe`` -- Interpret as a big-endian bfloat floating point number.
 * :attr:`~Bits.bfloatle` -- Interpret as a little-endian bfloat floating point number.
 * :attr:`~Bits.bfloatne` -- Interpret as a native-endian bfloat floating point number.
@@ -197,6 +197,14 @@ ConstBitStream
 This class adds a bit position and methods to read and navigate in an immutable bitstream.
 If you wish to use streaming methods on a large file without changing it then this is often the best class to use.
 
+Constructor
+^^^^^^^^^^^
+
+The same as for ``Bits`` / ``BitArray`` but with an optional current bit position.
+
+``ConstBitStream(auto, length: Optional[int], offset: Optional[int], pos: int = 0, **kwargs)``
+
+
 All of the methods, special methods and properties listed above for the ``Bits`` class are available, plus:
 
 Additional methods
@@ -224,6 +232,7 @@ BitStream
 
 
 This class contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
+The constructor is the same as for ``ConstBitStream``.
 It has all the methods, special methods and properties of the ``Bits``, ``BitArray`` and ``ConstBitArray`` classes.
 
 It is the most general of the four classes, but it is usually best to choose the simplest class for your use case.
@@ -234,7 +243,7 @@ Array
 -----
 
 The bitstring ``Array`` is similar to the ``array`` type in the ``array`` module, except that it is far more flexible.
-The ``fmt`` specifies a fixed-length format for each element of the ``Array``, and it behaves largely like a list.
+The ``fmt`` specifies a fixed-length format for each element of the ``Array``, and it behaves largely like a list of elements of that format.
 
 Both the format and the underlying bit data (stored as a ``BitArray``) can be freely modified after creation, and element-wise operations can be used on the ``Array``.
 
@@ -277,16 +286,18 @@ Special methods
 ^^^^^^^^^^^^^^^
 
 These non-mutating special methods are available. Where appropriate they return a new ``Array``.
+The element-wise operations are performed on the interpreted data, not on the bit-data.
+For example this means that the shift operations won't work on floating point formats.
 
-* :meth:`[] <Array.__getitem__>` -- Get an element or slice.
 * :meth:`== <Array.__eq__>` / :meth:`\!= <Array.__ne__>` -- Equality tests.
+* :meth:`[] <Array.__getitem__>` -- Get an element or slice.
 * :meth:`+ <Array.__add__>` -- Concatenate Arrays, or add value to each element.
 * :meth:`- <Array.__sub__>` -- Subtract value from each element.
 * :meth:`* <Array.__mul__>` -- Multiply each element by a value.
 * :meth:`/ <Array.__truediv__>` -- Divide each element by a value.
 * :meth:`// <Array.__floordiv__>` -- Floor divide each element by a value.
-* :meth:`\<\< <Array.__lshift__>` -- Shift bits of each element to the left.
-* :meth:`>> <Array.__rshift__>` -- Shift bits of each element to the right.
+* :meth:`\<\< <Array.__lshift__>` -- Shift value of each element to the left.
+* :meth:`>> <Array.__rshift__>` -- Shift value of each element to the right.
 * :meth:`& <Array.__and__>` -- Bit-wise AND of each element.
 * :meth:`| <Array.__or__>` -- Bit-wise OR of each element.
 * :meth:`^ <Array.__xor__>` -- Bit-wise XOR of each element.
