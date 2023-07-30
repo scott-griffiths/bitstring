@@ -4,6 +4,7 @@ from bitstring.classes import BitArray, Bits, BitsType
 from bitstring.utils import tokenparser
 from bitstring.exceptions import ReadError, ByteAlignError, CreationError
 from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
+import copy
 
 TConstBitStream = TypeVar("TConstBitStream", bound='ConstBitStream')
 
@@ -172,6 +173,47 @@ class ConstBitStream(Bits):
         s._pos = 0
         return s
 
+    def append(self, bs: BitsType) -> None:
+        """Append a bitstring to the current bitstring.
+
+        bs -- The bitstring to append.
+
+        The current bit position will be moved to the end of the BitStream.
+
+        """
+        self._append(bs)
+        self._pos = len(self)
+
+    def __repr__(self) -> str:
+        """Return representation that could be used to recreate the bitstring.
+
+        If the returned string is too long it will be truncated. See __str__().
+
+        """
+        return self._repr(self.__class__.__name__, len(self), self._bitstore.offset, self._bitstore.filename, self._pos)
+
+    def overwrite(self, bs: BitsType, pos: Optional[int] = None) -> None:
+        """Overwrite with bs at bit position pos.
+
+        bs -- The bitstring to overwrite with.
+        pos -- The bit position to begin overwriting from.
+
+        The current bit position will be moved to the end of the overwritten section.
+        Raises ValueError if pos < 0 or pos > len(self).
+
+        """
+        bs = Bits(bs)
+        if not bs.len:
+            return
+        if pos is None:
+            pos = self._pos
+        if pos < 0:
+            pos += self._getlength()
+        if pos < 0 or pos > self.len:
+            raise ValueError("Overwrite starts outside boundary of bitstring.")
+        self._overwrite(bs, pos)
+        self._pos = pos + bs.len
+
     def find(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
         """Find first occurrence of substring bs.
@@ -196,7 +238,31 @@ class ConstBitStream(Bits):
         """
 
         p = super().find(bs, start, end, bytealigned)
-        if p and self._pos is not None:
+        if p:
+            self._pos = p[0]
+        return p
+
+    def rfind(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
+              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
+        """Find final occurrence of substring bs.
+
+        Returns a single item tuple with the bit position if found, or an
+        empty tuple if not found. The bit position (pos property) will
+        also be set to the start of the substring if it is found.
+
+        bs -- The bitstring to find.
+        start -- The bit position to end the reverse search. Defaults to 0.
+        end -- The bit position one past the first bit to reverse search.
+               Defaults to len(self).
+        bytealigned -- If True the bitstring will only be found on byte
+                       boundaries.
+
+        Raises ValueError if bs is empty, if start < 0, if end > len(self) or
+        if end < start.
+
+        """
+        p = super().rfind(bs, start, end, bytealigned)
+        if p:
             self._pos = p[0]
         return p
 
@@ -382,7 +448,7 @@ class ConstBitStream(Bits):
                       """)
 
 
-class BitStream(BitArray, ConstBitStream):
+class BitStream(ConstBitStream, BitArray):
     """A container or stream holding a mutable sequence of bits
 
     Subclass of the ConstBitStream and BitArray classes. Inherits all of
@@ -516,6 +582,17 @@ class BitStream(BitArray, ConstBitStream):
         s_copy._bitstore = self._bitstore.copy()
         return s_copy
 
+    def __iadd__(self, bs: BitsType) -> BitStream:
+        """Append bs to current bitstring. Return self.
+
+        bs -- the bitstring to append.
+
+        The current bit position will be moved to the end of the BitStream.
+        """
+        self._append(bs)
+        self._pos = len(self)
+        return self
+
     def prepend(self, bs: BitsType) -> None:
         """Prepend a bitstring to the current bitstring.
 
@@ -524,4 +601,86 @@ class BitStream(BitArray, ConstBitStream):
         """
         bs = Bits(bs)
         super().prepend(bs)
-        self._pos += bs.len
+        self._pos = 0
+
+    def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
+        length_before = len(self)
+        super().__setitem__(key, value)
+        if len(self) != length_before:
+            self._pos = 0
+        return
+
+    def __delitem__(self, key: Union[slice, int]) -> None:
+        """Delete item or range.
+
+        >>> a = BitArray('0x001122')
+        >>> del a[8:16]
+        >>> print a
+        0x0022
+
+        """
+        length_before = len(self)
+        self._bitstore.__delitem__(key)
+        if len(self) != length_before:
+            self._pos = 0
+
+    def insert(self, bs: BitsType, pos: Optional[int] = None) -> None:
+        """Insert bs at bit position pos.
+
+        bs -- The bitstring to insert.
+        pos -- The bit position to insert at.
+
+        The current bit position will be moved to the end of the inserted section.
+        Raises ValueError if pos < 0 or pos > len(self).
+
+        """
+        bs = Bits(bs)
+        if len(bs) == 0:
+            return
+        if bs is self:
+            bs = self._copy()
+        if pos is None:
+            pos = self._pos
+        if pos < 0:
+            pos += self._getlength()
+        if not 0 <= pos <= self._getlength():
+            raise ValueError("Invalid insert position.")
+        self._insert(bs, pos)
+        self._pos = pos + len(bs)
+
+    def replace(self, old: BitsType, new: BitsType, start: Optional[int] = None, end: Optional[int] = None,
+                count: Optional[int] = None, bytealigned: Optional[bool] = None) -> int:
+        """Replace all occurrences of old with new in place.
+
+        Returns number of replacements made.
+
+        old -- The bitstring to replace.
+        new -- The replacement bitstring.
+        start -- Any occurrences that start before this will not be replaced.
+                 Defaults to 0.
+        end -- Any occurrences that finish after this will not be replaced.
+               Defaults to len(self).
+        count -- The maximum number of replacements to make. Defaults to
+                 replace all occurrences.
+        bytealigned -- If True replacements will only be made on byte
+                       boundaries.
+
+        Raises ValueError if old is empty or if start or end are
+        out of range.
+
+        """
+        if count == 0:
+            return 0
+        old = Bits(old)
+        new = Bits(new)
+        if not old.len:
+            raise ValueError("Empty bitstring cannot be replaced.")
+        start, end = self._validate_slice(start, end)
+        if new is self:
+            # Prevent self assignment woes
+            new = copy.copy(self)
+        length_before = len(self)
+        replacement_count = self._replace(old, new, start, end, 0 if count is None else count, bytealigned)
+        if len(self) != length_before:
+            self._pos = 0
+        return replacement_count

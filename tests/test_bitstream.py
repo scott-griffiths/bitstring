@@ -368,7 +368,7 @@ class Replace(unittest.TestCase):
         a = BitStream('0x0011223344')
         a.pos = 12
         a.replace('0x11', '0xfff', bytealigned=True)
-        self.assertEqual(a.pos, 20)
+        self.assertEqual(a.pos, 0)
         self.assertEqual(a, '0x00fff223344')
 
     def testReplaceWithSelf(self):
@@ -401,16 +401,17 @@ class Replace(unittest.TestCase):
         a = BitStream('0b0011110001')
         a.bitpos = 4
         a.replace('0b1', '0b000')
-        self.assertEqual(a.bitpos, 8)
+        self.assertEqual(a.bitpos, 0)
         a = BitStream('0b1')
         a.bitpos = 1
         a.replace('0b1', '0b11111', bytealigned=True)
-        self.assertEqual(a.bitpos, 5)
+        self.assertEqual(a.bitpos, 0)
         a.replace('0b11', '0b0', False)
-        self.assertEqual(a.bitpos, 3)
+        self.assertEqual(a.bitpos, 0)
         a.append('0b00')
-        a.replace('0b00', '0xffff')
-        self.assertEqual(a.bitpos, 17)
+        a.pos = 5
+        a.replace('0b00', '0b11')
+        self.assertEqual(a.bitpos, 5)
 
     def testReplaceErrors(self):
         a = BitStream('0o123415')
@@ -423,22 +424,22 @@ class Replace(unittest.TestCase):
 
 
 class SliceAssignment(unittest.TestCase):
-    @unittest.expectedFailure
     def testSetSlice(self):
         a = BitStream()
         a[0:0] = '0xabcdef'
-        self.assertEqual(a.bytepos, 3)
+        self.assertEqual(a.bytepos, 0)
         a[4:16] = ''
         self.assertEqual(a, '0xaef')
-        self.assertEqual(a.bitpos, 12)
+        self.assertEqual(a.bitpos, 0)
+        a.pos = 4
         a[8:] = '0x00'
         self.assertEqual(a, '0xae00')
-        self.assertEqual(a.bytepos, 2)
+        self.assertEqual(a.bitpos, 0)
         a += '0xf'
-        self.assertEqual(a.bytepos, 2)
+        self.assertEqual(a.bitpos, 20)
         a[8:] = '0xe'
         self.assertEqual(a, '0xaee')
-        self.assertEqual(a.bitpos, 12)
+        self.assertEqual(a.bitpos, 0)
         b = BitStream()
         b[0:800] = '0xffee'
         self.assertEqual(b, '0xffee')
@@ -456,32 +457,28 @@ class SliceAssignment(unittest.TestCase):
         a = BitStream()
         a[0:0] = '0xdeadbeef'
         self.assertEqual(a, '0xdeadbeef')
-        self.assertEqual(a.bytepos, 4)
+        self.assertEqual(a.bytepos, 0)
         a[16:16] = '0xfeed'
         self.assertEqual(a, '0xdeadfeedbeef')
-        self.assertEqual(a.bytepos, 6)
+        self.assertEqual(a.bytepos, 0)
         a[0:0] = '0xa'
         self.assertEqual(a, '0xadeadfeedbeef')
-        self.assertEqual(a.bitpos, 52)
+        self.assertEqual(a.bitpos, 0)
         a.bytepos = 6
-        a[0:0] = '0xff'
-        self.assertEqual(a.bitpos, 56)
-        a[8:0] = '0x00000'
-        self.assertTrue(a.startswith('0xff00000adead'))
+        a[0:8] = '0xff'
+        self.assertEqual(a.bytepos, 6)
+        a[8:0] = '0x000'
+        self.assertTrue(a.startswith('0xff000ead'))
 
-    @unittest.expectedFailure
     def testSliceAssignmentBitPos(self):
         a = BitStream('int:64=-1')
         a.pos = 64
         a[0:8] = ''
-        self.assertEqual(a.pos, 56)
+        self.assertEqual(a.pos, 0)
         a.pos = 52
-        a[48:56] = '0x0000'
-        self.assertEqual(a.pos, 64)
-        a[10:10] = '0x0'
-        self.assertEqual(a.pos, 14)
-        a[56:68] = '0x000'
-        self.assertEqual(a.pos, 14)
+        a[-16:] = '0x0000'
+        self.assertEqual(a.pos, 52)
+
 
 
 class Pack(unittest.TestCase):
@@ -959,7 +956,7 @@ class ByteAlign(unittest.TestCase):
 class Truncate(unittest.TestCase):
     def testTruncateStart(self):
         s = BitStream('0b1')
-        del s[:1]
+        del s[0]
         self.assertFalse(s)
         s = BitStream(hex='1234')
         self.assertEqual(s.hex, '1234')
@@ -1641,7 +1638,7 @@ class Multiplication(unittest.TestCase):
         q *= 143
         self.assertFalse(q)
         q += [True, True, False]
-        q.pos += 2
+        self.assertEqual(q.bitpos, 3)
         q *= 0
         self.assertFalse(q)
         self.assertEqual(q.bitpos, 0)
@@ -1886,14 +1883,14 @@ class Split2(unittest.TestCase):
     def testPrependAndAppendAgain(self):
         c = BitStream('0x1122334455667788')
         c.bitpos = 40
-        c.prepend('0b1')
-        self.assertEqual(c.bitpos, 41)
+        c.append('0b1')
+        self.assertEqual(c.bitpos, len(c))
         c = BitStream()
         c.prepend('0x1234')
-        self.assertEqual(c.bytepos, 2)
+        self.assertEqual(c.bytepos, 0)
         c = BitStream()
         c.append('0x1234')
-        self.assertEqual(c.bytepos, 0)
+        self.assertEqual(c.bytepos, 2)
         s = BitStream(bytes=b'\xff\xff', offset=2)
         self.assertEqual(s.length, 14)
         t = BitStream(bytes=b'\x80', offset=1, length=2)
@@ -1962,11 +1959,12 @@ class Split2(unittest.TestCase):
         self.assertEqual(repr(a), "BitStream('0b111', pos=2)")
         a.pos = 0
         a += '0b1'
-        self.assertEqual(repr(a), "BitStream('0xf')")
+        self.assertEqual(repr(a), "BitStream('0xf', pos=4)")
+        a.pos = 0
         a *= max_
         self.assertEqual(repr(a), "BitStream('0x" + "f" * max_ + "')")
         a += '0xf'
-        self.assertEqual(repr(a), "BitStream('0x" + "f" * max_ + "...')  # length=%d" % (max_ * 4 + 4))
+        self.assertEqual(repr(a), "BitStream('0x" + "f" * max_ + "...', pos=1004)  # length=%d" % (max_ * 4 + 4))
 
     def testPrint(self):
         s = BitStream(hex='0x00')
@@ -2045,7 +2043,7 @@ class Split2(unittest.TestCase):
         b[0:0] = '0b0'
         b[0:0] = '0b1'
         self.assertEqual(b, '0b10')
-        self.assertEqual(b.bitpos, 2)
+        self.assertEqual(b.bitpos, 0)
         a = BitStream()
         a.insert('0b0')
         a.insert('0b1')

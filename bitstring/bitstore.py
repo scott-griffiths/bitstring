@@ -31,19 +31,20 @@ class BitStore(bitarray.bitarray):
     __slots__ = ('modified', 'length', 'offset', 'filename', 'immutable')
 
     def __init__(self, *args, immutable: bool = False, frombytes: Optional[Union[bytes, bytearray]] = None,
-                 offset: int = 0, length: Optional[int] = None, filename: Optional[str] = None,
+                 offset: int = 0, length: Optional[int] = None, filename: str = '',
                  **kwargs) -> None:
         if frombytes is not None:
             self.frombytes(frombytes)
         self.immutable = immutable
+        self.offset = offset
+        self.filename = filename
         # Here 'modified' means that it isn't just the underlying bitarray. It could have a different start and end, and be from a file.
         # This also means that it shouldn't be changed further, so setting deleting etc. are disallowed.
-        self.modified = offset != 0 or length is not None or filename is not None
+        self.modified = offset != 0 or length is not None or filename != ''
         if self.modified:
             assert immutable is True
             # These class variable only exist if modified is True.
-            self.offset = offset
-            self.filename = filename
+
             self.length = super().__len__() - self.offset if length is None else length
 
             if self.length < 0:
