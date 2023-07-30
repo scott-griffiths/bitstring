@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import collections
+from collections.abc import Sized
 from bitstring.exceptions import CreationError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.classes import BitArray, Bits, BitsType
@@ -192,7 +192,7 @@ class Array:
                 self.data[start * self._itemsize: stop * self._itemsize] = new_data
                 return
             items_in_slice = len(range(start, stop, step))
-            if not isinstance(value, collections.Sized):
+            if not isinstance(value, Sized):
                 value = list(value)
             if len(value) == items_in_slice:
                 for s, v in zip(range(start, stop, step), value):
