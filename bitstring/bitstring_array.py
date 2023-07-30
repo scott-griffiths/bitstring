@@ -18,7 +18,7 @@ ElementType = Union[float, str, int, bytes, bool]
 
 class Array:
     """Return an Array whose elements are initialised according to the fmt string.
-    The fmt string can be typecode as used in the array module or any fixed-length bitstring
+    The fmt string can be typecode as used in the struct module or any fixed-length bitstring
     format.
 
     a = Array('>H', [1, 15, 105])
@@ -39,10 +39,16 @@ class Array:
     fromfile() -- Append items read from a file object.
     insert() -- Insert an item at a given position.
     pop() -- Return and remove an item.
+    pp() -- Pretty print the Array.
     reverse() -- Reverse the order of all items.
     tobytes() -- Return Array data as bytes object, padding with zero bits at end if needed.
     tofile() -- Write Array data to a file, padding with zero bits at end if needed.
     tolist() -- Return Array items as a list.
+
+    Special methods:
+
+    Also available are the operators [], ==, !=, +, *, <<, >>, &, |, ^,
+    plus the mutating operators [], +=, *=, <<=, >>=, &=, |=, ^=.
 
     Properties:
 
@@ -256,10 +262,18 @@ class Array:
                 self.data += self._create_element(item)
 
     def insert(self, i: int, x: ElementType) -> None:
+        """Insert a new element into the Array.
+
+        """
         i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
         self.data.insert(self._create_element(x), i * self._itemsize)
 
     def pop(self, i: int = -1) -> ElementType:
+        """Return and remove an element of the Array.
+
+        Default is to return and remove the final element.
+
+        """
         x = self[i]
         del self[i]
         return x
@@ -439,8 +453,7 @@ class Array:
         new_array = copy.copy(self)
         if isinstance(other, Array):
             if self._token_name != other._token_name or self._itemsize != other._itemsize:
-                raise ValueError(
-                    f"Cannot add an Array with format '{other._fmt}' to an Array with format '{self._fmt}'.")
+                raise ValueError(f"Cannot add an Array with format '{other._fmt}' to an Array with format '{self._fmt}'.")
             new_array.data += other.data
         elif isinstance(other, array.array):
             other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)

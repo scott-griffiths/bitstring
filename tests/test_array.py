@@ -301,6 +301,8 @@ class ArrayMethods(unittest.TestCase):
 
     def testPop(self):
         a = Array('oct:6', ['33', '21', '11', '76'])
+        with self.assertRaises(IndexError):
+            _ = a.pop(4)
         self.assertEqual(len(a), 4)
         x = a.pop()
         self.assertEqual(len(a), 3)
@@ -516,7 +518,11 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(c.tolist(), [-2, 0, 7])
 
     def testRadd(self):
-        pass
+        b = Array(fmt='floatne32', initializer=(x + 0.5 for x in range(0, 5)))
+        a = array.array('f', [-100])
+        c = a + b
+        self.assertTrue(isinstance(c, Array))
+        self.assertEqual(c.tolist(), [-100, 0.5, 1.5, 2.5, 3.5, 4.5])
 
     def testInPlaceMul(self):
         a = Array('i21', [-5, -4, 0, 2, 100])
