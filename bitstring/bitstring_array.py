@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections
 from bitstring.exceptions import CreationError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.classes import BitArray, Bits, BitsType
@@ -120,7 +121,7 @@ class Array:
             raise ValueError(f"The token '{token_name}' can't be used to get Array elements.")
         self._uint_getter_func = functools.partial(Bits._name_to_read['uint'], length=token_length)
         self._uint_setter_func = functools.partial(Bits._setfunc['uint'], length=token_length)
-        self._itemsize = token_length
+        self._itemsize = int(token_length)
         self._token_name = token_name
         # We save the user's fmt string so that we can use it in __repr__ etc.
         self._fmt = new_fmt
@@ -162,7 +163,7 @@ class Array:
             if key < 0:
                 key += len(self)
             if key < 0 or key >= len(self):
-                raise IndexError
+                raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
             return self._getter_func(self.data, start=self._itemsize * key)
 
     @overload
@@ -185,16 +186,13 @@ class Array:
                 self.data[start * self._itemsize: stop * self._itemsize] = new_data
                 return
             items_in_slice = len(range(start, stop, step))
-            try:
-                value_len = len(value)
-            except TypeError:
+            if not isinstance(value, collections.Sized):
                 value = list(value)
-                value_len = len(value)
-            if value_len == items_in_slice:
+            if len(value) == items_in_slice:
                 for s, v in zip(range(start, stop, step), value):
                     self.data.overwrite(self._create_element(v), s * self._itemsize)
             else:
-                raise ValueError(f"Can't assign {value_len} values to an extended slice of length {stop - start}.")
+                raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {stop - start}.")
         else:
             if key < 0:
                 key += len(self)
