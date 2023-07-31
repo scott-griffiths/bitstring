@@ -47,6 +47,15 @@ div.document div.admonition.attention p.admonition-title, div.document div.admon
     background-color: #d77732;
 }
 
+div.document div.admonition.attention, div.document div.admonition.caution, div.document div.admonition.note {
+    border: 2px solid #587f9f;
+}
+
+div.document div.admonition.attention p.admonition-title, div.document div.admonition.caution p.admonition-title, div.document div.admonition.note p.admonition-title {
+    color: #ffffff;
+    background-color: #587f9f;
+}
+
 div.document li p {
     margin: 0 0 0.3rem 0;
 }

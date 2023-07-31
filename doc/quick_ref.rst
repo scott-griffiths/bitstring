@@ -304,7 +304,7 @@ For example this means that the shift operations won't work on floating point fo
 
 Mutating versions of many of the methods are also available.
 
-* :meth:`[] <Array.__setitem__>` -- Get an element or slice.
+* :meth:`[] <Array.__setitem__>` -- Set an element or slice.
 * :meth:`del <Array.__delitem__>` -- Delete an element or slice.
 * :meth:`+= <Array.__iadd__>` -- Concatenate Array, or add value to each element in-place.
 * :meth:`-= <Array.__isub__>` -- Subtract value from each element in-place.

@@ -38,11 +38,11 @@ class Array:
     extend() -- Append new items to the end of the Array from an iterable.
     fromfile() -- Append items read from a file object.
     insert() -- Insert an item at a given position.
-    pop() -- Return and remove an item.
+    pop() -- Remove and return an item.
     pp() -- Pretty print the Array.
     reverse() -- Reverse the order of all items.
-    tobytes() -- Return Array data as bytes object, padding with zero bits at end if needed.
-    tofile() -- Write Array data to a file, padding with zero bits at end if needed.
+    tobytes() -- Return Array data as bytes object, padding with zero bits at the end if needed.
+    tofile() -- Write Array data to a file, padding with zero bits at the end if needed.
     tolist() -- Return Array items as a list.
 
     Special methods:
@@ -432,16 +432,14 @@ class Array:
         new_array.data = new_data
         return new_array
 
-    def _apply_bitwise_op_to_all_elements_inplace(self, op, value: Union[int, float]) -> Array:
+    def _apply_bitwise_op_to_all_elements_inplace(self, op, value: BitsType) -> Array:
         """Apply op with value to each element of the Array as an unsigned integer in place."""
         # This isn't really being done in-place, but it's simpler and faster for now?
-        new_data = BitArray()
+        value = BitArray(value)
+        if len(value) != self._itemsize:
+            raise ValueError(f"Bitwise op needs a bitstring of length {self._itemsize} to match format {self._fmt}.")
         for i in range(len(self)):
-            v = self._uint_getter_func(self.data, start=self._itemsize * i)
-            b = Bits()
-            self._uint_setter_func(b, op(v, value))
-            new_data.append(b)
-        self.data = new_data
+            op(self.data[self._itemsize * i: self._itemsize * (i + 1)], value)
         return self
 
     def __add__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
@@ -517,13 +515,13 @@ class Array:
     def __rshift__(self, other: int) -> Array:
         return self._apply_op_to_all_elements(operator.rshift, other)
 
-    def __lshift__(self, other: Union[int, float]) -> Array:
+    def __lshift__(self, other: int) -> Array:
         return self._apply_op_to_all_elements(operator.lshift, other)
 
     def __irshift__(self, other: int) -> Array:
         return self._apply_op_to_all_elements_inplace(operator.rshift, other)
 
-    def __ilshift__(self, other: Union[int, float]) -> Array:
+    def __ilshift__(self, other: int) -> Array:
         return self._apply_op_to_all_elements_inplace(operator.lshift, other)
 
     def __and__(self, other: int) -> Array:

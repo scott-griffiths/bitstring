@@ -157,11 +157,21 @@ readto
 Properties
 ----------
 
+The ``ConstBitStream`` and ``BitStream`` classes have the concept of a current bit position.
+This position will be set to zero by default on construction, and will be modified by many of the methods described above as the stream is being read.
+
+Using :meth:`Bits.find`` or :meth:`Bits.rfind` will move ``pos`` to the start of the substring if it is found.
+
+Note that the ``pos`` property isn’t considered a part of the bitstring's identity; this allows it to vary for immutable ``ConstBitStream`` objects and means that it doesn’t affect equality or hash values.
+It also will be reset to zero if a bitstring is copied.
+
+
 bytepos
 ^^^^^^^
     .. attribute:: ConstBitStream.bytepos
 
         Property for setting and getting the current byte position in the bitstring.
+        The value of ``pos`` will always be ``bytepos * 8`` as the two values are not independent.
         
         When used as a getter will raise a :exc:`ByteAlignError` if the current position in not byte aligned.
 

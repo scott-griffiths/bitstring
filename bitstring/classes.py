@@ -681,7 +681,7 @@ class Bits:
         pos_string = f', pos={pos}' if pos else ''
         if filename:
             offsetstring = f', offset={offset}' if offset else ''
-            return f"{classname}(filename={repr(str(filename))}, length={length}{offsetstring}{pos_string})"
+            return f"{classname}(filename={repr(filename)}, length={length}{offsetstring}{pos_string})"
         else:
             s = self.__str__()
             lengthstring = ''

@@ -53,19 +53,19 @@ Array Class
         a[0] = 2
         b.extend([0.0, -1.5])
 
-    Conversion between ``Array`` types can be done by creating a new one with the new format.
+    Conversion between ``Array`` types can be done by creating a new one with the new format from the elements of the other one.
     If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
 
         >>> x = Array('float64', [89.3, 1e34, -0.00000001, 34])
-        >>> y = Array('float16', x)
+        >>> y = Array('float16', x.tolist())
         >>> y
         Array('float16', [89.3125, inf, -0.0, 34.0])
-        >>> y = Array('float8_143', y)
+        >>> y = Array('float8_143', y.tolist())
         >>> y
         Array('float8_143', [88.0, 240.0, 0.0, 32.0])
-        >>> Array('uint8', y)
+        >>> Array('uint8', y.tolist())
         Array('uint8', [88, 240, 0, 32])
-        >>> Array('uint7', y)
+        >>> Array('uint7', y.tolist())
         bitstring.CreationError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
 
     You can also reinterpret the data by changing the ``fmt`` property directly.
@@ -77,7 +77,6 @@ Array Class
         >>> x.fmt = 'int8'
         >>> x
         Array('int8', [-1, -5, 0, 100, -1, -4])
-
 
 
     The data for the array is stored internally as a ``BitArray`` object.
@@ -126,15 +125,16 @@ Array Class
     ============  =============================
 
 
-    .. note::
-        * The ``array`` module's native endianness means that different packed binary data will be created on different types of machines.
-          Users may find that behaviour unexpected which is why endianness must be explicitly given as in the rest of the bitstring module.
+    Note that:
 
-        * The ``'u'`` type code from the ``array`` module isn't supported as its length is platform dependent.
+    * The ``array`` module's native endianness means that different packed binary data will be created on different types of machines.
+      Users may find that behaviour unexpected which is why endianness must be explicitly given as in the rest of the bitstring module.
 
-        * The ``'e'`` type code isn't one of the ``array`` supported types, but it is used in the ``struct`` module and we support it here.
+    * The ``'u'`` type code from the ``array`` module isn't supported as its length is platform dependent.
 
-        * The ``'b'`` and ``'B'`` type codes need to be preceded by an endianness character even though it makes no difference which one you use as they are only 1 byte long.
+    * The ``'e'`` type code isn't one of the ``array`` supported types, but it is used in the ``struct`` module and we support it here.
+
+    * The ``'b'`` and ``'B'`` type codes need to be preceded by an endianness character even though it makes no difference which one you use as they are only 1 byte long.
 
 
 Methods
@@ -174,19 +174,35 @@ Methods
 
     .. method:: Array.fromfile(f: BinaryIO, n: int | None) -> None
 
+        Append items read from a file object.
+
     .. method:: Array.insert(i: int, x: float | int | str | bytes) -> None
+
+        Insert an item at a given position.
 
     .. method:: Array.pop(i: int | None) -> float | int | str | bytes
 
+        Remove and return an item.
+
     .. method:: Array.pp(fmt: str | None, width: int, sep: str, show_offset: bool, stream: TextIO) -> None
+
+        Pretty print the Array.
 
     .. method:: Array.reverse() -> None
 
+        Reverse the order of all items in the Array.
+
     .. method:: Array.tobytes() -> bytes
+
+        Return Array data as bytes object, padding with zero bits at the end if needed.
 
     .. method:: Array.tofile(f: BinaryIO) -> None
 
+        Write Array data to a file, padding with zero bits at the end if needed.
+
     .. method:: Array.tolist() -> List[float | int | str | bytes]
+
+        Return Array items as a list.
 
 
 Special Methods
@@ -200,51 +216,51 @@ Special Methods
 
     .. method:: Array.__getitem__(self, key: int | slice) -> float | int | str | bytes
 
-    .. method:: Array.__setitem__(self, key: int | slice, value)
+    .. method:: Array.__setitem__(self, key: int | slice, value) -> None
 
-    .. method:: Array.__delitem__(self, key: int | slice)
+    .. method:: Array.__delitem__(self, key: int | slice) -> None
 
-    .. method:: Array.__eq__(self, other)
+    .. method:: Array.__eq__(self, other) -> bool
 
-    .. method:: Array.__ne__(self, other)
+    .. method:: Array.__ne__(self, other) -> bool
 
-    .. method:: Array.__truediv__(self, other: int | float)
+    .. method:: Array.__truediv__(self, other: int | float) -> Array
 
-    .. method:: Array.__floordiv__(self, other: int | float)
+    .. method:: Array.__floordiv__(self, other: int | float) -> Array
 
-    .. method:: Array.__sub__(self, other: int | float)
+    .. method:: Array.__sub__(self, other: int | float) -> Array
 
-    .. method:: Array.__mul__(self, other: int | float)
+    .. method:: Array.__mul__(self, other: int | float) -> Array
 
-    .. method:: Array.__rshift__(self, other: int | float)
+    .. method:: Array.__rshift__(self, other: int) -> Array
 
-    .. method:: Array.__lshift__(self, other: int | float)
+    .. method:: Array.__lshift__(self, other: int) -> Array
 
-    .. method:: Array.__and__(self, other: int | float)
+    .. method:: Array.__and__(self, other: Bits) -> Array
 
-    .. method:: Array.__or__(self, other: int | float)
+    .. method:: Array.__or__(self, other: Bits) -> Array
 
-    .. method:: Array.__xor__(self, other: int | float)
+    .. method:: Array.__xor__(self, other: Bits) -> Array
 
-    .. method:: Array.__itruediv__(self, other: int | float)
+    .. method:: Array.__itruediv__(self, other: int | float) -> Array
 
-    .. method:: Array.__ifloordiv__(self, other: int | float)
+    .. method:: Array.__ifloordiv__(self, other: int | float) -> Array
 
-    .. method:: Array.__iadd__(self, other: int | float)
+    .. method:: Array.__iadd__(self, other: int | float) -> Array
 
-    .. method:: Array.__isub__(self, other: int | float)
+    .. method:: Array.__isub__(self, other: int | float) -> Array
 
-    .. method:: Array.__imul__(self, other: int | float)
+    .. method:: Array.__imul__(self, other: int | float) -> Array
 
-    .. method:: Array.__irshift__(self, other: int | float)
+    .. method:: Array.__irshift__(self, other: int) -> Array
 
-    .. method:: Array.__ilshift__(self, other: int | float)
+    .. method:: Array.__ilshift__(self, other: int) -> Array
 
-    .. method:: Array.__iand__(self, other: int | float)
+    .. method:: Array.__iand__(self, other: Bits) -> Array
 
-    .. method:: Array.__ior__(self, other: int | float)
+    .. method:: Array.__ior__(self, other: Bits) -> Array
 
-    .. method:: Array.__ixor__(self, other: int | float)
+    .. method:: Array.__ixor__(self, other: Bits) -> Array
 
 
 

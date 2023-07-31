@@ -472,6 +472,14 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(c.itemsize, 32)
         self.assertTrue(isinstance(c, Array))
 
+        d = [30, 20, 10] + a
+        self.assertEqual(d.fmt, '=f')
+        self.assertEqual(d.tolist(), [30, 20, 10, 3, 2, 1])
+
+        a.fmt = '>f'
+        with self.assertRaises(ValueError):
+            _ = b + a
+
     def testFloat8Bug(self):
         a = Array('float8_152', [0.0, 1.5])
         b = Array('float8_143')
@@ -555,7 +563,18 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(b.tolist(), [-1, 100, 9])
 
     def testInPlaceAnd(self):
-        pass
+        a = Array('bool', [True, False, True])
+        a &= 0b1
+        self.assertEqual(a.tolist(), [True, False, True])
+        a = Array('uint10', a.tolist())
+        a <<= 3
+        self.assertEqual(a.tolist(), [8, 0, 8])
+        a += 1
+        self.assertEqual(a.tolist(), [9, 1, 9])
+        with self.assertRaises(ValueError):
+            a &= '0b111'
+        a &= '0b0000000111'
+        self.assertEqual(a.data, '0b 0000001001 0000000001 0000001001')
 
     def testOr(self):
         a = Array('float8_143', [-4, 2.5, -9, 0.25])
