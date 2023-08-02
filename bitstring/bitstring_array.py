@@ -79,7 +79,7 @@ class Array:
             self.extend(initializer)
 
         if trailing_bits is not None:
-            self.data += BitArray(trailing_bits)
+            self.data += BitArray._create_from_bitstype(trailing_bits)
 
     @property
     def itemsize(self) -> int:

@@ -264,9 +264,9 @@ class SliceAssignment(unittest.TestCase):
     def testDelSliceErrors(self):
         a = BitArray(10)
         del a[5:3]
-        self.assertEqual(a, 10)
+        self.assertEqual(a, Bits(10))
         del a[3:5:-1]
-        self.assertEqual(a, 10)
+        self.assertEqual(a, Bits(10))
 
     def testDelSingleElement(self):
         a = BitArray('0b0010011')

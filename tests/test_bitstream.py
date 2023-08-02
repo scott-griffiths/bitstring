@@ -416,7 +416,7 @@ class Replace(unittest.TestCase):
     def testReplaceErrors(self):
         a = BitStream('0o123415')
         with self.assertRaises(ValueError):
-            a.replace('', 0o7, bytealigned=True)
+            a.replace('', Bits(0o7), bytealigned=True)
         with self.assertRaises(ValueError):
             a.replace('0b1', '0b1', start=-100, bytealigned=True)
         with self.assertRaises(ValueError):
@@ -3344,11 +3344,9 @@ class AllAndAny(unittest.TestCase):
         with self.assertRaises(bitstring.CreationError):
             _ = BitStream(-1)
 
-        a = 6 + ConstBitStream('0b1') + 3
-        self.assertEqual(a, '0b0000001000')
-        a += 1
-        self.assertEqual(a, '0b00000010000')
-        self.assertEqual(ConstBitStream(13), 13)
+        self.assertEqual(ConstBitStream(13), Bits(13))
+        with self.assertRaises(TypeError):
+            a += 10
 
     def testReadingProblems(self):
         a = BitStream('0x000001')
@@ -3464,8 +3462,8 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(c2, '0x00a')
 
     def testAutoFromBool(self):
-        a = ConstBitStream() + True + False + True
-        self.assertEqual(a, '0b00')
+        with self.assertRaises(TypeError):
+            a = ConstBitStream() + True + False + True
 
 
 class Bugs(unittest.TestCase):
@@ -4151,7 +4149,7 @@ class TestFormat(unittest.TestCase):
         a = Bits('0xabc')
         s = f'{a}'
         self.assertEqual(s, '0xabc')
-        a += 1
+        a += '0b0'
         self.assertEqual(f'{a}', '0b1010101111000')
         b = BitStream(10, pos=4)
         self.assertEqual(f'{b}', '0b0000000000')

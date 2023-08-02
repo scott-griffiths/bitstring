@@ -56,7 +56,19 @@ Other changes:
   >>> a.float8_143
   16.0
 
-* Deleting, replacing or inserting into a bitstring invalidates the bit position if the
+* Auto initialistion from ints has been removed and now raises a TypeError. Creating a
+  bitstring from an int still creates a zeroed bitstring of that length but ints won't
+  be promoted to bitstrings as that has been a constant source of errors and confusion.
+
+  >>> a = BitArray(100)  # Fine - 100 zero bits
+  >>> b = a + 0b1   # TypeError - previously this would have appended a single zero bit.
+  >>> b = a + '0b1'  # Probably what was meant - append a single one bit.
+  >>> b = a + Bits(1)  # Fine, append a single zero bit
+
+  This is a breaking change, but it breaks loudly with an exception, it is easily recoded,
+  and it removes a confusing wrinkle.
+
+* Deleting, replacing or inserting into a bitstring resets the bit position to 0 if the
   bitstring's length has been changed. Previously the bit position was adjusted but
   this was not well defined.
 

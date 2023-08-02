@@ -294,7 +294,7 @@ class FileBased(unittest.TestCase):
         x = self.b[4:20]
         self.assertEqual(x, '0x5678')
         self.assertEqual((x & self.c).hex, self.c.hex)
-        self.assertEqual(self.c ^ self.b[4:20], 16)
+        self.assertEqual(self.c ^ self.b[4:20], Bits(16))
         self.assertEqual(self.a[23:36] | self.c[3:], self.c[3:])
 
     def testAddition(self):
@@ -391,9 +391,9 @@ class ModifiedByAddingBug(unittest.TestCase):
         a = Bits(100)
         b = Bits(101)
         c = a + b
-        self.assertEqual(a, 100)
-        self.assertEqual(b, 101)
-        self.assertEqual(c, 201)
+        self.assertEqual(a, Bits(100))
+        self.assertEqual(b, Bits(101))
+        self.assertEqual(c, Bits(201))
 
 
 class WrongTypeBug(unittest.TestCase):
@@ -549,7 +549,7 @@ class Lsb0Indexing(unittest.TestCase):
     def testStartswith(self):
         a = Bits('0b0000000111')
         self.assertTrue(a.startswith('0b111'))
-        self.assertFalse(a.startswith(1))
+        self.assertFalse(a.startswith('0b0'))
         self.assertTrue(a.startswith('0b011', start=1))
         self.assertFalse(a.startswith('0b0111', end=3))
         self.assertTrue(a.startswith('0b0111', end=4))

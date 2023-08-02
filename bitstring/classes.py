@@ -21,7 +21,7 @@ from bitstring.fp8 import fp143_fmt, fp152_fmt
 from bitstring.bitstore import BitStore, _offset_slice_indices_lsb0
 
 # Things that can be converted to Bits when a Bits type is needed
-BitsType = Union['Bits', int, str, Iterable[Any], bool, BinaryIO, bytearray, bytes, bitarray.bitarray]
+BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, bitarray.bitarray]
 
 TBits = TypeVar("TBits", bound='Bits')
 
@@ -464,7 +464,7 @@ class Bits:
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
     _byteReversalDict: Dict[int, bytes] = {i: bytes([int("{0:08b}".format(i)[::-1], 2)]) for i in range(0x100)}
 
-    def __init__(self, auto: Optional[BitsType] = None, length: Optional[int] = None,
+    def __init__(self, auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
@@ -506,7 +506,7 @@ class Bits:
         """
         self._bitstore.immutable = True
 
-    def __new__(cls: Type[TBits], auto: Optional[BitsType] = None, length: Optional[int] = None,
+    def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
         x = object.__new__(cls)
         if auto is None and not kwargs:
@@ -519,6 +519,17 @@ class Bits:
             return x
         x._initialise(auto, length, offset, **kwargs)
         return x
+
+    @classmethod
+    def _create_from_bitstype(cls: Type[TBits], auto: Optional[BitsType]) -> TBits:
+        b = cls()
+        if auto is None:
+            return b
+        if isinstance(auto, int):
+            raise TypeError(f"It's not possible to auto initialise a bitstring from an integer."
+                            f" Use '{cls.__name__}({auto})' instead of just '{auto}' as this makes it clearer that a bitstring of {auto} zero bits will be created.")
+        b._setauto(auto, None, None)
+        return b
 
     def _initialise(self, auto: Any, length: Optional[int], offset: Optional[int], **kwargs) -> None:
         if length is not None and length < 0:
@@ -597,7 +608,7 @@ class Bits:
         bs -- the bitstring to append.
 
         """
-        bs = self.__class__(bs)
+        bs = self.__class__._create_from_bitstype(bs)
         if bs.len <= self.len:
             s = self._copy()
             s._addright(bs)
@@ -613,7 +624,7 @@ class Bits:
         bs -- the string for the 'auto' initialiser that will be appended to.
 
         """
-        bs = self.__class__(bs)
+        bs = self.__class__._create_from_bitstype(bs)
         return bs.__add__(self)
 
     @overload
@@ -705,7 +716,7 @@ class Bits:
 
         """
         try:
-            bs = Bits(bs)
+            bs = Bits._create_from_bitstype(bs)
         except TypeError:
             return False
         return self._bitstore == bs._bitstore
@@ -795,7 +806,7 @@ class Bits:
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for & operator.")
         s = self._copy()
@@ -820,7 +831,7 @@ class Bits:
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for | operator.")
         s = self._copy()
@@ -845,7 +856,7 @@ class Bits:
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for ^ operator.")
         s = self._copy()
@@ -930,7 +941,7 @@ class Bits:
         """Reset the bitstring to an empty state."""
         self._bitstore = BitStore()
 
-    def _setauto(self, s: BitsType, length: Optional[int], offset: Optional[int]) -> None:
+    def _setauto(self, s: Union[BitsType, int], length: Optional[int], offset: Optional[int]) -> None:
         """Set bitstring from a bitstring, file, bool, integer, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
@@ -1814,7 +1825,7 @@ class Bits:
         (6,)
 
         """
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         if len(bs) == 0:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
@@ -1867,7 +1878,7 @@ class Bits:
         """
         if count is not None and count < 0:
             raise ValueError("In findall, count must be >= 0.")
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         start, end = self._validate_slice(start, end)
         ba = _bytealigned if bytealigned is None else bytealigned
         return self._findall(bs, start, end, count, ba)
@@ -1938,7 +1949,7 @@ class Bits:
         if end < start.
 
         """
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         start, end = self._validate_slice(start, end)
         ba = _bytealigned if bytealigned is None else bytealigned
         if not bs.len:
@@ -2022,7 +2033,7 @@ class Bits:
         Raises ValueError if the delimiter is empty.
 
         """
-        delimiter = Bits(delimiter)
+        delimiter = Bits._create_from_bitstype(delimiter)
         if len(delimiter) == 0:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
@@ -2107,7 +2118,7 @@ class Bits:
         end -- The bit position to end at. Defaults to len(self).
 
         """
-        prefix = Bits(prefix)
+        prefix = self._create_from_bitstype(prefix)
         start, end = self._validate_slice(start, end)
         if end < start + prefix._getlength():
             return False
@@ -2122,7 +2133,7 @@ class Bits:
         end -- The bit position to end at. Defaults to len(self).
 
         """
-        suffix = Bits(suffix)
+        suffix = self._create_from_bitstype(suffix)
         start, end = self._validate_slice(start, end)
         if start + suffix.len > end:
             return False
@@ -2666,7 +2677,7 @@ class BitArray(Bits):
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
 
-    def __init__(self, auto: Optional[BitsType] = None, length: Optional[int] = None,
+    def __init__(self, auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
@@ -2784,7 +2795,7 @@ class BitArray(Bits):
                 return
             raise ValueError(f"Cannot set a single bit with integer {value}.")
         try:
-            value = Bits(value)
+            value = self._create_from_bitstype(value)
         except TypeError:
             raise TypeError(f"Bitstring, integer or string expected. Got {type(value)}.")
         positive_key = key + self.len if key < 0 else key
@@ -2812,7 +2823,7 @@ class BitArray(Bits):
                 value = self.__class__(int=value, length=length)
         else:
             try:
-                value = Bits(value)
+                value = self._create_from_bitstype(value)
             except TypeError:
                 raise TypeError(f"Bitstring, integer or string expected. Got {type(value)}.")
         self._bitstore.__setitem__(key, value._bitstore)
@@ -2877,21 +2888,21 @@ class BitArray(Bits):
         return self._imul(n)
 
     def __ior__(self: TBits, bs: BitsType) -> TBits:
-        bs = Bits(bs)
+        bs = self._create_from_bitstype(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for |= operator.")
         self._bitstore |= bs._bitstore
         return self
 
     def __iand__(self: TBits, bs: BitsType) -> TBits:
-        bs = Bits(bs)
+        bs = self._create_from_bitstype(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for &= operator.")
         self._bitstore &= bs._bitstore
         return self
 
     def __ixor__(self: TBits, bs: BitsType) -> TBits:
-        bs = Bits(bs)
+        bs = self._create_from_bitstype(bs)
         if self.len != bs.len:
             raise ValueError("Bitstrings must have the same length for ^= operator.")
         self._bitstore ^= bs._bitstore
@@ -2951,8 +2962,8 @@ class BitArray(Bits):
         """
         if count == 0:
             return 0
-        old = Bits(old)
-        new = Bits(new)
+        old = self._create_from_bitstype(old)
+        new = self._create_from_bitstype(new)
         if not old.len:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
@@ -2972,7 +2983,7 @@ class BitArray(Bits):
         Raises ValueError if pos < 0 or pos > len(self).
 
         """
-        bs = Bits(bs)
+        bs = self._create_from_bitstype(bs)
         if not bs.len:
             return
         if bs is self:
@@ -2992,7 +3003,7 @@ class BitArray(Bits):
         Raises ValueError if pos < 0 or pos > len(self).
 
         """
-        bs = Bits(bs)
+        bs = self._create_from_bitstype(bs)
         if not bs.len:
             return
         if pos < 0:
@@ -3018,10 +3029,10 @@ class BitArray(Bits):
         self._prepend(bs)
 
     def _append_msb0(self, bs: BitsType) -> None:
-        self._addright(Bits(bs))
+        self._addright(self._create_from_bitstype(bs))
 
     def _append_lsb0(self, bs: BitsType) -> None:
-        bs = Bits(bs)
+        bs = self._create_from_bitstype(bs)
         self._addleft(bs)
 
     def reverse(self, start: Optional[int] = None, end: Optional[int] = None) -> None:

@@ -79,7 +79,7 @@ class ConstBitStream(Bits):
 
     __slots__ = ('_pos')
 
-    def __init__(self, auto: Optional[BitsType] = None, length: Optional[int] = None,
+    def __init__(self, auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, pos: int = 0, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
@@ -202,7 +202,7 @@ class ConstBitStream(Bits):
         Raises ValueError if pos < 0 or pos > len(self).
 
         """
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         if not bs.len:
             return
         if pos is None:
@@ -368,7 +368,7 @@ class ConstBitStream(Bits):
         """
         if isinstance(bs, int):
             raise ValueError("Integers cannot be searched for")
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         oldpos = self._pos
         p = self.find(bs, self._pos, bytealigned=bytealigned)
         if not p:
@@ -529,7 +529,7 @@ class BitStream(ConstBitStream, BitArray):
 
     __slots__ = ()
 
-    def __init__(self, auto: Optional[BitsType] = None, length: Optional[int] = None,
+    def __init__(self, auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, pos: int = 0, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         auto -- a string of comma separated tokens, an integer, a file object,
@@ -599,7 +599,7 @@ class BitStream(ConstBitStream, BitArray):
         bs -- The bitstring to prepend.
 
         """
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         super().prepend(bs)
         self._pos = 0
 
@@ -634,7 +634,7 @@ class BitStream(ConstBitStream, BitArray):
         Raises ValueError if pos < 0 or pos > len(self).
 
         """
-        bs = Bits(bs)
+        bs = Bits._create_from_bitstype(bs)
         if len(bs) == 0:
             return
         if bs is self:
@@ -671,8 +671,8 @@ class BitStream(ConstBitStream, BitArray):
         """
         if count == 0:
             return 0
-        old = Bits(old)
-        new = Bits(new)
+        old = Bits._create_from_bitstype(old)
+        new = Bits._create_from_bitstype(new)
         if not old.len:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
