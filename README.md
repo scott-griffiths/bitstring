@@ -29,10 +29,10 @@ Overview
 
 Documentation
 -------------
-Extensive documentation for the bitstring module is available at [Read the Docs](https://bitstring.readthedocs.org). Some starting points are given below:
+Extensive documentation for the bitstring module is available.
+Some starting points are given below:
 
-* [Overview](https://github.com/scott-griffiths/bitstring/blob/stable/doc/index.ipynb)
-* [Walkthrough](https://github.com/scott-griffiths/bitstring/blob/stable/doc/walkthrough.ipynb)
+* [Overview](https://bitstring.readthedocs.io/en/stable/index.html)
 * [Quick Reference](https://bitstring.readthedocs.io/en/stable/quick_ref.html)
 * [Full Reference](https://bitstring.readthedocs.io/en/stable/reference.html)
 * [Release Notes](https://bitstring.readthedocs.io/en/stable/release_notes.html)

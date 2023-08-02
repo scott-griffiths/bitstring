@@ -263,8 +263,6 @@ Special Methods
     .. method:: Array.__ixor__(self, other: Bits) -> Array
 
 
-
-
 Properties
 ----------
 

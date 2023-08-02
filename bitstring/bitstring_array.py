@@ -420,13 +420,12 @@ class Array:
         self.data = new_data
         return self
 
-    def _apply_bitwise_op_to_all_elements(self, op, value: Union[int, float]) -> Array:
+    def _apply_bitwise_op_to_all_elements(self, op, value: BitsType) -> Array:
         """Apply op with value to each element of the Array as an unsigned integer and return a new Array"""
+        value = BitArray._create_from_bitstype(value)
         new_data = BitArray()
         for i in range(len(self)):
-            v = self._uint_getter_func(self.data, start=self._itemsize * i)
-            b = Bits()
-            self._uint_setter_func(b, op(v, value))
+            b = op(self.data[self._itemsize * i: self._itemsize * (i + 1)], value)
             new_data.append(b)
         new_array = Array(fmt=self.fmt)
         new_array.data = new_data
@@ -435,7 +434,7 @@ class Array:
     def _apply_bitwise_op_to_all_elements_inplace(self, op, value: BitsType) -> Array:
         """Apply op with value to each element of the Array as an unsigned integer in place."""
         # This isn't really being done in-place, but it's simpler and faster for now?
-        value = BitArray(value)
+        value = BitArray._create_from_bitstype(value)
         if len(value) != self._itemsize:
             raise ValueError(f"Bitwise op needs a bitstring of length {self._itemsize} to match format {self._fmt}.")
         for i in range(len(self)):

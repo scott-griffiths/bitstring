@@ -5,7 +5,7 @@
    :width: 400px
 
 
-`bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a Python package that makes the creation, manipulation and analysis of binary data as simple and natural as possible.
+`bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a Python module that makes the creation and analysis of binary data as simple and efficient as possible.
 
 It has been maintained since 2006 and now has many millions of downloads per year.
 You can try out an interactive walkthrough notebook on `binder <https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb>`_ (or the non-interactive version `here <https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb>`_).
@@ -73,7 +73,7 @@ See the reference documentation for full details.
 Arrays of bitstrings
 ^^^^^^^^^^^^^^^^^^^^
 
-.. warning ::
+.. note ::
     This class was introduced in version 4.1.0 of bitstring, and is a 'beta' feature that may have some small changes in future point releases.
 
 If you are dealing with just one type of data but perhaps it's not one of the dozen or so supported in the ``array`` module in the standard library, then we have you covered with the :class:`Array` class.
@@ -88,7 +88,7 @@ You can also easily change the data's interpretation, convert to another format,
     >>> a = bitstring.Array('uint16', [0, 1, 4, 6, 11, 2, 8, 7])
     >>> a.data
     BitArray('0x0000000100040006000b000200080007')
-    >>> b = bitstring.Array('int5', a)
+    >>> b = bitstring.Array('int5', a.tolist())
     >>> b.data
     BitArray('0x0048658907')
     >>> a.tolist() == b.tolist()

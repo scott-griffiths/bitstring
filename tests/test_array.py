@@ -552,42 +552,42 @@ class ArrayOperations(unittest.TestCase):
     def testInPlaceTrueDiv(self):
         pass
 
-    # def testAnd(self):
-    #     a = Array('int16', [-1, 100, 9])
-    #     with self.assertRaises(TypeError):
-    #         _ = a & 0
-    #     b = a & '0x0001'
-    #     self.assertEqual(b.tolist(), [1, 0, 1])
-    #     b = a & '0xffff'
-    #     self.assertEqual(b.fmt, 'int16')
-    #     self.assertEqual(b.tolist(), [-1, 100, 9])
-    #
-    # def testInPlaceAnd(self):
-    #     a = Array('bool', [True, False, True])
-    #     a &= 0b1
-    #     self.assertEqual(a.tolist(), [True, False, True])
-    #     a = Array('uint10', a.tolist())
-    #     a <<= 3
-    #     self.assertEqual(a.tolist(), [8, 0, 8])
-    #     a += 1
-    #     self.assertEqual(a.tolist(), [9, 1, 9])
-    #     with self.assertRaises(ValueError):
-    #         a &= '0b111'
-    #     a &= '0b0000000111'
-    #     self.assertEqual(a.data, '0b 0000001001 0000000001 0000001001')
-    #
-    # def testOr(self):
-    #     a = Array('float8_143', [-4, 2.5, -9, 0.25])
-    #     b = a | '0b10000000'
-    #     self.assertEqual(a.tolist(), [-4,  2.5, -9,  0.25])
-    #     self.assertEqual(b.tolist(), [-4, -2.5, -9, -0.25])
+    def testAnd(self):
+        a = Array('int16', [-1, 100, 9])
+        with self.assertRaises(TypeError):
+            _ = a & 0
+        b = a & '0x0001'
+        self.assertEqual(b.tolist(), [1, 0, 1])
+        b = a & '0xffff'
+        self.assertEqual(b.fmt, 'int16')
+        self.assertEqual(b.tolist(), [-1, 100, 9])
+
+    def testInPlaceAnd(self):
+        a = Array('bool', [True, False, True])
+        with self.assertRaises(TypeError):
+            a &= 0b1
+        a = Array('uint10', a.tolist())
+        a <<= 3
+        self.assertEqual(a.tolist(), [8, 0, 8])
+        a += 1
+        self.assertEqual(a.tolist(), [9, 1, 9])
+        with self.assertRaises(ValueError):
+            a &= '0b111'
+        a &= '0b0000000111'
+        self.assertEqual(a.data, '0b 0000001001 0000000001 0000001001')
+
+    def testOr(self):
+        a = Array('float8_143', [-4, 2.5, -9, 0.25])
+        b = a | '0b10000000'
+        self.assertEqual(a.tolist(), [-4,  2.5, -9,  0.25])
+        self.assertEqual(b.tolist(), [-4, -2.5, -9, -0.25])
 
     def testInPlaceOr(self):
         pass
 
     def testXor(self):
         a = Array('hex8', ['00', 'ff', 'aa'])
-        b = a ^ 0xff
+        b = a ^ '0xff'
         self.assertEqual(a.tolist(), ['00', 'ff', 'aa'])
         self.assertEqual(b.tolist(), ['ff', '00', '55'])
 

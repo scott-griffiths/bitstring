@@ -286,8 +286,17 @@ Special methods
 ^^^^^^^^^^^^^^^
 
 These non-mutating special methods are available. Where appropriate they return a new ``Array``.
-The element-wise operations are performed on the interpreted data, not on the bit-data.
+The bit-wise logical operations (``&``, ``|``, ``^``) are performed on each element with a ``Bits`` object.
+The other element-wise operations are performed on the interpreted data, not on the bit-data.
 For example this means that the shift operations won't work on floating point formats.
+
+Examples::
+
+    >>> a = Array('float16', [1.5, 2.5, 7])
+    >>> a *= 3.0  # Multiplication of each float16 value
+    >>> a
+    Array('float16', [4.5, 7.5, 21.0])
+
 
 * :meth:`== <Array.__eq__>` / :meth:`\!= <Array.__ne__>` -- Equality tests.
 * :meth:`[] <Array.__getitem__>` -- Get an element or slice.
