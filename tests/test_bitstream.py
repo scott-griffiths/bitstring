@@ -3042,6 +3042,11 @@ class AllAndAny(unittest.TestCase):
         self.assertTrue(a.any(True, (31, 12)))
         a = BitStream(filename=filename)
         self.assertTrue(a.any(False, (0, 1, 2, 3, 4)))
+        b = ConstBitStream(filename=filename, offset=16)
+        self.assertTrue(b.startswith('0x01'))
+        self.assertFalse(b.any(True, range(0, 7)))
+        self.assertTrue(b.any(True, range(0, 8)))
+        self.assertTrue(b.any(True))
 
     def testAny(self):
         a = BitStream('0b10011011')

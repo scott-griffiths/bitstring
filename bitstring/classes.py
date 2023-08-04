@@ -79,7 +79,7 @@ PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4
                                   'q': 8, 'Q': 8, 'e': 2, 'f': 4, 'd': 8}
 
 _tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct', '0o': 'oct',
-                                             '0O': 'oct', 'bin': 'bin', '0b': 'bin', '0B': 'bin', 'bits': 'auto',
+                                             '0O': 'oct', 'bin': 'bin', '0b': 'bin', '0B': 'bin', 'bits': 'bits',
                                              'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat',
                                              'float8_143': 'float8_143', 'float8_152': 'float8_152'}
 
@@ -464,11 +464,11 @@ class Bits:
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
     _byteReversalDict: Dict[int, bytes] = {i: bytes([int("{0:08b}".format(i)[::-1], 2)]) for i in range(0x100)}
 
-    def __init__(self, auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
+    def __init__(self, __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
-        auto -- a string of comma separated tokens, an integer, a file object,
-                a bytearray, a boolean iterable, an array or another bitstring.
+        A string of comma separated tokens, an integer, a file object,
+        a bytearray, a boolean iterable, an array or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
         bin -- binary string representation, e.g. '0b001010'.
@@ -506,10 +506,10 @@ class Bits:
         """
         self._bitstore.immutable = True
 
-    def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
+    def __new__(cls: Type[TBits], __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
         x = object.__new__(cls)
-        if auto is None and not kwargs:
+        if __auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
                 x._bitstore = BitStore(length)
@@ -517,7 +517,7 @@ class Bits:
             else:
                 x._bitstore = BitStore()
             return x
-        x._initialise(auto, length, offset, **kwargs)
+        x._initialise(__auto, length, offset, **kwargs)
         return x
 
     @classmethod
@@ -621,7 +621,7 @@ class Bits:
     def __radd__(self: TBits, bs: BitsType) -> TBits:
         """Append current bitstring to bs and return new bitstring.
 
-        bs -- the string for the 'auto' initialiser that will be appended to.
+        bs -- An object that can be 'auto' initialised as a bitstring that will be appended to.
 
         """
         bs = self.__class__._create_from_bitstype(bs)
@@ -1030,6 +1030,10 @@ class Bits:
                     f"Offset of {offset} and length of {length} too large for bitarray of length {len(ba)}.")
             self._bitstore = BitStore(ba[offset: offset + length])
 
+    def _setbits(self, bs: BitsType, length: None = None, offset: None = None) -> None:
+        bs = Bits._create_from_bitstype(bs)
+        self._bitstore = bs._bitstore
+
     def _setfloat152(self, f: float, length: None = None, _offset: None = None):
         u = fp152_fmt.float_to_int8(f)
         self._bitstore = _uint2bitstore(u, 8)
@@ -1223,7 +1227,7 @@ class Bits:
 
     def _getfloat143(self) -> float:
         if len(self) != 8:
-            raise InterpretError  # TODO
+            raise InterpretError(f"A float8_143 must be 8 bits long, not {len(self)} bits.")
         return self._readfloat143(0)
 
     def _readfloat152(self, start: int, length: int = 0) -> float:
@@ -1233,7 +1237,7 @@ class Bits:
 
     def _getfloat152(self) -> float:
         if len(self) != 8:
-            raise InterpretError  # TODO
+            raise InterpretError(f"A float8_152 must be 8 bits long, not {len(self)} bits.")
         return self._readfloat152(start=0)
 
     def _setfloatbe(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
@@ -2483,7 +2487,8 @@ class Bits:
         'filename': _setfile,
         'bitarray': _setbitarray,
         'float8_152': _setfloat152,
-        'float8_143': _setfloat143
+        'float8_143': _setfloat143,
+        'bits': _setbits
     }
 
     len = property(_getlength,
@@ -2677,11 +2682,11 @@ class BitArray(Bits):
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
 
-    def __init__(self, auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
+    def __init__(self, __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
-        auto -- a string of comma separated tokens, an integer, a file object,
-                a bytearray, a boolean iterable or another bitstring.
+        A string of comma separated tokens, an integer, a file object,
+        a bytearray, a boolean iterable or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
         bin -- binary string representation, e.g. '0b001010'.
@@ -2807,12 +2812,10 @@ class BitArray(Bits):
         if isinstance(value, int):
             if key.step not in [None, -1, 1]:
                 if value in [0, 1]:
-                    # TODO: If this is what is wanted why don't we just do it? Wouldn't the next line work?
-                    # self.set(value, range(*key.indices(len(self))))
-                    raise ValueError(f"Can't assign a single bit to a slice with a step value. "
-                                     f"Instead of 's[start:stop:step] = {value}' try 's.set({value}, range(start, stop, step))'.")
+                    self.set(value, range(*key.indices(len(self))))
+                    return
                 else:
-                    raise ValueError("Can't assign an integer to a slice with a step value.")
+                    raise ValueError("Can't assign an integer except 0 or 1 to a slice with a step value.")
             # To find the length we first get the slice
             s = self._bitstore.getslice(key)
             length = len(s)

@@ -39,8 +39,9 @@ class Creation(unittest.TestCase):
 
     def testCreationFromBitsFormat(self):
         a = Bits('0x000102030405')
-        with self.assertRaises(bitstring.CreationError):
-            b = Array('bits:8', a)
+        b = Array('bits:8', a)
+        c = Array('bits:8', [Bits('0x00'), Bits('0x01'), Bits('0x02'), Bits('0x03'), Bits('0x04'), Bits('0x05')])
+        self.assertEqual(b, c)
 
     def testCreationFromFloat8(self):
         a = Array('float8_143')
@@ -506,7 +507,7 @@ class ArrayOperations(unittest.TestCase):
         a = Array('uint44', [3, 7, 10])
         b = a - 3
         self.assertEqual(b, Array('u44', [0, 4, 7]))
-        with self.assertRaises(bitstring.CreationError):  # TODO: This would be more naturally an OverflowError ?
+        with self.assertRaises(bitstring.CreationError):
             _ = a - 4
 
     def testInPlaceSub(self):

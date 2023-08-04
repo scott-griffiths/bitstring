@@ -300,8 +300,8 @@ class SliceAssignment(unittest.TestCase):
         self.assertEqual(a.bin, '000001010')
         a[::-1] = 10
         self.assertEqual(a.bin, '010100000')
-        with self.assertRaises(ValueError):
-            a[::2] = True
+        a[::2] = True
+        self.assertEqual(a.bin, '111110101')
 
     def testSetSliceErrors(self):
         a = BitArray(8)
@@ -450,6 +450,10 @@ class Lsb0Setting(unittest.TestCase):
         a = BitArray('0b0000101')
         self.assertTrue(a.all(1, [0, 2]))
         self.assertTrue(a.all(False, [-1, -2, -3, -4]))
+
+        b = Bits(bytes=b'\x00\xff\xff', offset=7)
+        self.assertTrue(b.all(1, [1, 2, 3, 4, 5, 6, 7]))
+        self.assertTrue(b.all(1, [-2, -3, -4, -5, -6, -7, -8]))
 
     def testAny(self):
         a = BitArray('0b0001')
@@ -622,6 +626,12 @@ class Lsb0Setting(unittest.TestCase):
         self.assertEqual((a >> 1).b, '01100')
         self.assertEqual((a >> 5).b, '00000')
         self.assertEqual((a >> 0).b, '11001')
+
+    # def testConstFileBased(self):
+    #     filename = os.path.join(THIS_DIR, 'test.m1v')
+    #     a = Bits(filename=filename, offset=8)
+    #     self.assertTrue(a[-8])
+    #     self.assertTrue(a.endswith('0x01b3'))
 
 
 class Repr(unittest.TestCase):
