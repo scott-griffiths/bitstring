@@ -68,6 +68,15 @@ Other changes:
   This is a breaking change, but it breaks loudly with an exception, it is easily recoded,
   and it removes a confusing wrinkle.
 
+* Explicitly specifying the 'auto' parameter is now disallowed rather than discouraged.
+  It was always meant to be a positional-only parameter (and will be once I can drop
+  Python 3.7 support) but for now it's renamed to '__auto'. In the unlikely event
+  this breaks code, the fix should be just to delete the 'auto=' if it's already the
+  first parameter.
+
+  >>> s = Bits(auto='0xff')  # Now raises a CreationError
+  >>> s = Bits('0xff')  # Fine, as always
+
 * Deleting, replacing or inserting into a bitstring resets the bit position to 0 if the
   bitstring's length has been changed. Previously the bit position was adjusted but
   this was not well defined.

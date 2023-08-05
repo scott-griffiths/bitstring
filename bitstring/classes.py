@@ -526,24 +526,28 @@ class Bits:
         if auto is None:
             return b
         if isinstance(auto, int):
-            raise TypeError(f"It's not possible to auto initialise a bitstring from an integer."
-                            f" Use '{cls.__name__}({auto})' instead of just '{auto}' as this makes it clearer that a bitstring of {auto} zero bits will be created.")
+            raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
+                            f" Use '{cls.__name__}({auto})' instead of just '{auto}' as this makes it clearer that a bitstring of {int(auto)} zero bits will be created.")
         b._setauto(auto, None, None)
         return b
 
-    def _initialise(self, auto: Any, length: Optional[int], offset: Optional[int], **kwargs) -> None:
+    def _initialise(self, __auto: Any, length: Optional[int], offset: Optional[int], **kwargs) -> None:
         if length is not None and length < 0:
             raise CreationError("bitstring length cannot be negative.")
         if offset is not None and offset < 0:
             raise CreationError("offset must be >= 0.")
-        if auto is not None:
-            self._setauto(auto, length, offset)
+        if __auto is not None:
+            self._setauto(__auto, length, offset)
             return
         k, v = kwargs.popitem()
         try:
             setting_function = self._setfunc[k]
         except KeyError:
-            raise CreationError(f"Unrecognised keyword '{k}' used to initialise.")
+            if k == 'auto':
+                raise CreationError(f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
+                                    f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
+            else:
+                raise CreationError(f"Unrecognised keyword '{k}' used to initialise.")
         setting_function(self, v, length, offset)
 
     def __getattr__(self, attribute: str) -> Any:
@@ -2768,7 +2772,7 @@ class BitArray(Bits):
                                 f"Wrong amount of byte data preset - {length} bytes needed, have {len(value)} bytes.")
                         length *= 8
                 try:
-                    self._initialise(auto=None, length=length, offset=None, **{name: value})
+                    self._initialise(None, length=length, offset=None, **{name: value})
                     return
                 except AttributeError:
                     pass

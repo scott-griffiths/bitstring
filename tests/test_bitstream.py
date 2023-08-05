@@ -1812,6 +1812,10 @@ class Split2(unittest.TestCase):
 
     #######################
 
+    def testExplicitAuto(self):
+        with self.assertRaises(bitstring.CreationError):
+            a = BitStream(auto='0x1')
+
     def testPositionInSlice(self):
         a = BitStream('0x00ffff00')
         a.bytepos = 2

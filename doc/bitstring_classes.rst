@@ -45,7 +45,7 @@ Using the constructor
 ---------------------
 When initialising a bitstring you need to specify at most one initialiser. These will be explained in full below, but briefly they are:
 
-* ``auto`` : Either a specially formatted string, a list or tuple, a file object, integer, bytearray, array, bytes or another bitstring.
+* 'auto' initialisation : The first parameter of the constructor can be either a specially formatted string, a list or tuple, a file object, integer, bytearray, array, bytes or another bitstring.
 * ``bytes`` : A ``bytes`` object, for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
 * ``int``, ``uint``: Signed or unsigned bit-wise big-endian binary integers.
@@ -69,7 +69,7 @@ From a hexadecimal string
 
 The initial ``0x`` or ``0X`` is optional. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of ``c`` will be 32.
 
-If you include the initial ``0x`` then you can use the ``auto`` initialiser instead. As it is the first parameter in :class:`__init__<Bits>` this will work equally well::
+If you include the initial ``0x`` then you can use the 'auto' initialiser instead. As it is the first parameter in :class:`__init__<Bits>` this will work equally well::
 
     c = BitArray('0x000001b3')
 
@@ -82,7 +82,7 @@ From a binary string
 
 An initial ``0b`` or ``0B`` is optional and whitespace will be ignored.
 
-As with ``hex``, the ``auto`` initialiser will work if the binary string is prefixed by ``0b``::
+As with ``hex``, the 'auto' initialiser will work if the binary string is prefixed by ``0b``::
 
     >>> d = BitArray('0b001100')
 
@@ -95,7 +95,7 @@ From an octal string
 
 An initial ``0o`` or ``0O`` is optional, but ``0o`` (a zero and lower-case 'o') is preferred as it is slightly more readable.
 
-As with ``hex`` and ``bin``, the ``auto`` initialiser will work if the octal string is prefixed by ``0o``::
+As with ``hex`` and ``bin``, the 'auto' initialiser will work if the octal string is prefixed by ``0o``::
 
     >>> o = BitArray('0o34100')
 
@@ -112,7 +112,7 @@ From an integer
 
 For initialisation with signed and unsigned binary integers (``int`` and ``uint`` respectively) the ``length`` parameter is mandatory, and must be large enough to contain the integer. So for example if ``length`` is 8 then ``uint`` can be in the range 0 to 255, while ``int`` can range from -128 to 127. Two's complement is used to represent negative numbers.
 
-The auto initialise can be used by giving the length in bits immediately after the ``int`` or ``uint`` token, followed by an equals sign then the value::
+The 'auto' initialiser can be used by giving the length in bits immediately after the ``int`` or ``uint`` token, followed by an equals sign then the value::
 
     >>> e = BitArray('uint12=45')
     >>> f = BitArray('int7=-1')
@@ -158,7 +158,7 @@ Note that the exact bits used to represent the floating point number could be pl
 
 Similar to the situation with integers there are big and little endian versions. The plain ``float`` is big endian and so ``floatbe`` is just an alias.
 
-As with other initialisers you can also auto initialise, as demonstrated with the second example below::
+As with other initialisers you can also 'auto' initialise, as demonstrated with the second example below::
 
     >>> little_endian = BitArray(floatle=0.0, length=64)
     >>> native_endian = BitArray('floatne:32=-6.3')
@@ -228,12 +228,12 @@ Initialisation with integers represented by exponential-Golomb codes is also pos
 
 For these initialisers the length of the bitstring is fixed by the value it is initialised with, so the length parameter must not be supplied and it is an error to do so. If you don't know what exponential-Golomb codes are then you are in good company, but they are quite interesting, so I’ve included a section on them (see :ref:`exp-golomb`).
 
-The ``auto`` initialiser may also be used by giving an equals sign and the value immediately after a ``ue`` or ``se`` token::
+The 'auto' initialiser may also be used by giving an equals sign and the value immediately after a ``ue`` or ``se`` token::
 
     >>> g = BitArray('ue=12')
     >>> h = BitArray('se=-402')
 
-You may wonder why you would bother with ``auto`` in this case as the syntax is slightly longer. Hopefully all will become clear in the next section.
+You may wonder why you would bother doing this in this case as the syntax is slightly longer. Hopefully all will become clear in the next section.
 
 From raw byte data
 ^^^^^^^^^^^^^^^^^^
@@ -245,7 +245,7 @@ Using the length and offset parameters to specify the length in bits and an offs
 
 The ``length`` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the bitstring. The ``offset`` parameter is also optional and is used to truncate bits at the start of the data.
 
-You can also use a ``bytearray`` or a ``bytes`` object, either explicitly with a ``bytes=some_bytearray`` keyword or via the ``auto`` initialiser::
+You can also use a ``bytearray`` or a ``bytes`` object, either explicitly with a ``bytes=some_bytearray`` keyword or via the 'auto' initialiser::
 
     c = BitArray(a_bytearray_object)
     d = BitArray(b'\x23g$5')
@@ -262,7 +262,7 @@ This will open the file in binary read-only mode. The file will only be read as 
 
 Note that we created a :class:`Bits` here rather than a :class:`BitArray`, as they have quite different behaviour in this case. The immutable :class:`Bits` will never read the file into memory (except as needed by other operations), whereas if we had created a :class:`BitArray` then the whole of the file would immediately have been read into memory. This is because in creating a :class:`BitArray` you are implicitly saying that you want to modify it, and so it needs to be in memory.
 
-It's also possible to use the ``auto`` initialiser for file objects. It's as simple as::
+It's also possible to use the 'auto' initialiser for file objects. It's as simple as::
 
     f = open('my2GBfile', 'rb')
     p = Bits(f)
@@ -270,7 +270,8 @@ It's also possible to use the ``auto`` initialiser for file objects. It's as sim
 
 The auto initialiser
 --------------------
-The ``auto`` parameter is the first parameter in the :class:`__init__<Bits>` function and so the ``auto=`` can (and should) be omitted when using it. It accepts either a string, an iterable, another bitstring, an integer, a bytearray or a file object.
+The 'auto' parameter is the first parameter in the :class:`__init__<Bits>` function and is a positional-only parameter.
+It accepts either a string, an iterable, another bitstring, an integer, a bytearray or a file object.
 
 Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, (non string) iterables are interpreted as boolean arrays and file objects acts a source of binary data. An ``array`` object will be converted into its constituent bytes. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
 
@@ -314,7 +315,7 @@ As always the bitstring doesn't know how it was created; initialising with octal
     >>> frombin[::-1] + '0b0' == fromlist
     True
 
-Note how in the final examples above only one half of the ``==`` needs to be a bitstring, the other half gets ``auto`` initialised before the comparison is made. This is in common with many other functions and operators.
+Note how in the final examples above only one half of the ``==`` needs to be a bitstring, the other half gets 'auto' initialised before the comparison is made. This is in common with many other functions and operators.
 
 You can also chain together string initialisers with commas, which causes the individual bitstrings to be concatenated. ::
 
@@ -323,7 +324,7 @@ You can also chain together string initialisers with commas, which causes the in
     True
     >>> s.insert('0o332, 0b11, int23=300', 4)
 
-Again, note how the format used in the ``auto`` initialiser can be used in many other places where a bitstring is needed.
+Again, note how the format used in the 'auto' initialiser can be used in many other places where a bitstring is needed.
 
 
 

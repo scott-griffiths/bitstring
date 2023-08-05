@@ -606,3 +606,18 @@ class ArrayOperations(unittest.TestCase):
 
     def testInPlaceLshift(self):
         pass
+
+
+class CreationFromBits(unittest.TestCase):
+
+    def testAppendingAuto(self):
+        a = Array('bits8')
+        a.append('0xff')
+        self.assertEqual(len(a), 1)
+        self.assertEqual(a[0], Bits('0xff'))
+        with self.assertRaises(TypeError):
+            a += 8
+        a.append(Bits(8))
+        self.assertEqual(a[:], Array('bits:8', ['0b1111 1111', Bits('0x00')]))
+        a += ['0b10101011']
+        self.assertEqual(a[-1].hex, 'ab')

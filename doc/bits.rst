@@ -5,9 +5,9 @@ Bits Class
 
 The ``Bits`` class is the simplest type in the bitstring module, and represents an immutable sequence of bits. This is the best class to use if you will not need to modify the data after creation and don't need streaming methods.
 
-.. class:: Bits([auto, length, offset, **kwargs])
+.. class:: Bits([__auto, length, offset, **kwargs])
 
-    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``float8_143``, ``float8_152``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value as the first parameter, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``float8_143``, ``float8_152``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`, :class:`BitStream` and :class:`ConstBitStream`.
 
@@ -24,7 +24,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
            >>> s1 == s2 == s3 == s4 == s5 == s6
            True
 
-    For information on the use of ``auto`` see :ref:`auto_init`. ::
+    See also :ref:`auto_init`. ::
 
         >>> s = Bits('uint12=32, 0b110')
         >>> t = Bits('0o755, ue=12, int:3=-1')

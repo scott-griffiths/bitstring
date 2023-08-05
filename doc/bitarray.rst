@@ -3,7 +3,7 @@
 BitArray Class
 ==============
 
-.. class:: BitArray([auto, length, offset, **kwargs])
+.. class:: BitArray([__auto, length, offset, **kwargs])
 
     The :class:`Bits` class is the base class for :class:`BitArray` and so (with the exception of :meth:`~Bits.__hash__`) all of its methods are also available for :class:`BitArray` objects. The initialiser is also the same as for :class:`Bits` and so won't be repeated here.
 
@@ -149,13 +149,13 @@ reverse
 
         *start* and *end* give the range of bits to reverse and default to ``0`` and :attr:`~Bits.len` respectively. ::
 
-        >>> a = BitArray('0b000001101')
-        >>> a.reverse()
-        >>> a.bin
-        '101100000'
-        >>> a.reverse(0, 4)
-        >>> a.bin
-        '110100000'
+            >>> a = BitArray('0b000001101')
+            >>> a.reverse()
+            >>> a.bin
+            '101100000'
+            >>> a.reverse(0, 4)
+            >>> a.bin
+            '110100000'
 
 rol
 ^^^

@@ -13,7 +13,7 @@ import io
 import sys
 
 # The possible types stored in each element of the Array
-ElementType = Union[float, str, int, bytes, bool]
+ElementType = Union[float, str, int, bytes, bool, Bits]
 
 
 class Array:
@@ -137,7 +137,7 @@ class Array:
         b = Bits()
         self._setter_func(b, value)
         if len(b) != self._itemsize:
-            raise ValueError(f"The value '{value!r}' has the wrong length for the format '{self._fmt}'.")
+            raise ValueError(f"The value {value!r} has the wrong length for the format '{self._fmt}'.")
         return b
 
     def __len__(self) -> int:
@@ -203,7 +203,7 @@ class Array:
             if key < 0:
                 key += len(self)
             if key < 0 or key >= len(self):
-                raise IndexError
+                raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
             start = self._itemsize * key
             self.data.overwrite(self._create_element(value), start)
             return
@@ -258,6 +258,8 @@ class Array:
                     f"Cannot extend an Array with format '{self._fmt}' from an array with typecode '{iterable.typecode}'.")
             self.data += iterable.tobytes()
         else:
+            if isinstance(iterable, str):
+                raise TypeError(f"Can't extend an Array with a str.")
             for item in iterable:
                 self.data += self._create_element(item)
 
@@ -523,20 +525,20 @@ class Array:
     def __ilshift__(self, other: int) -> Array:
         return self._apply_op_to_all_elements_inplace(operator.lshift, other)
 
-    def __and__(self, other: int) -> Array:
+    def __and__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements(operator.and_, other)
 
-    def __iand__(self, other: int) -> Array:
+    def __iand__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements_inplace(operator.and_, other)
 
-    def __or__(self, other: int) -> Array:
+    def __or__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements(operator.or_, other)
 
-    def __ior__(self, other: int) -> Array:
+    def __ior__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements_inplace(operator.or_, other)
 
-    def __xor__(self, other: int) -> Array:
+    def __xor__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements(operator.xor, other)
 
-    def __ixor__(self, other: int) -> Array:
+    def __ixor__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements_inplace(operator.xor, other)
