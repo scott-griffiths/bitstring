@@ -145,6 +145,14 @@ class Creation(unittest.TestCase):
         a = Array('<e', [0.25, -1000])
         self.assertEqual(a.data.unpack('2*floatle16'), a.tolist())
 
+    def testFormatChanges(self):
+        a = Array('uint8', [5, 4, 3])
+        with self.assertRaises(ValueError):
+            a.fmt = 'ue3'
+        b = a[:]
+        b.fmt = 'int8'
+        self.assertEqual(a.tolist(), b.tolist())
+        self.assertNotEqual(a, b)
 
 class ArrayMethods(unittest.TestCase):
 
@@ -189,6 +197,10 @@ class ArrayMethods(unittest.TestCase):
         self.assertNotEqual(a, b)
         b.data += '0b1'
         self.assertEqual(a, b)
+
+        c = Array('uint8', [1, 2])
+        self.assertNotEqual(c, 'hello')
+        self.assertNotEqual(c, array.array('B', [1, 3]))
 
     def testEqualsWithTrailingBits(self):
         a = Array('hex4', ['a', 'b', 'c', 'd', 'e', 'f'])

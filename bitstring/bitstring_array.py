@@ -378,17 +378,14 @@ class Array:
             # Assume we are comparing with an array type
             if self.trailing_bits:
                 return False
-            try:
-                # array's itemsize is in bytes, not bits.
-                if self.itemsize != other.itemsize * 8:
-                    return False
-                if len(self) != len(other):
-                    return False
-                if self.tolist() != other.tolist():
-                    return False
-                return True
-            except AttributeError:
+            # array's itemsize is in bytes, not bits.
+            if self.itemsize != other.itemsize * 8:
                 return False
+            if len(self) != len(other):
+                return False
+            if self.tolist() != other.tolist():
+                return False
+            return True
         return False
 
     def __iter__(self) -> Iterable[ElementType]:

@@ -167,8 +167,12 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
                 if length is not None and length != '8':
                     raise ValueError(f"float8 tokens can only be 8 bits long, not {length} bits.")
                 length = '8'
-            if length is None and name not in ('se', 'ue', 'sie', 'uie'):
-                stretchy_token = True
+            if name in ('se', 'ue', 'sie', 'uie'):
+                if length is not None:
+                    raise ValueError(f"Exponential-Golomb codes (se/ue/sie/uie) can't have fixed lengths. Length of {length} was given.")
+            else:
+                if length is None:
+                    stretchy_token = True
 
             if length is not None:
                 # Try converting length to int, otherwise check it's a key.

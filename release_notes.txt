@@ -64,8 +64,8 @@ Other changes:
   be promoted to bitstrings as that has been a constant source of errors and confusion.
 
   >>> a = BitArray(100)  # Fine - create with 100 zeroed bits
-  >>> a += 0xff   # TypeError - previously this would have appended 255 zero bits.
-  >>> a += '0xff'  # Probably what was meant - append a eight one bits.
+  >>> a += 0xff   # TypeError - previously this would have appended 0xff (=255) zero bits.
+  >>> a += '0xff'  # Probably what was meant - append eight '1' bits.
   >>> a += Bits(255)  # Fine, append 255 zero bits.
 
   This is a breaking change, but it breaks loudly with an exception, it is easily recoded,
@@ -95,6 +95,9 @@ Other changes:
 
 * Pretty printing with the 'bytes' format now uses characters from the 'Latin Extended-A'
   unicode block for non-ASCII and unprintable characters instead of replacing them with '.'
+
+* When using struct-like codes you can now use '=' instead of '@' to signify native-
+  endianness. They behave identically, but the new '=' is now preferred.
 
 * More fixes for LSB0 mode. There are now no known issues with this feature.
 
