@@ -5,7 +5,8 @@ bitstring module version history
 version 4.1
 
 This has turned into a suprisingly big release, with a major refactor and a brand new
-class (the first for 12 years!)
+class (the first for 12 years!) There are also a couple of small possibly breaking changes
+detailed below, in particular 'auto' initialising bitstrings from integers is now disallowed.
 
 * Speed increased with bitarray dependency.
 
@@ -31,8 +32,10 @@ mirrors much of the functionality of the standard array.array type, but doesn't 
 you to just a dozen formats.
 
   >>> from bitstring import Array
-  >>> a = Array('uint12', [9, 100, 3, 1])
-  >>> b = Array('float16', a)
+  >>> a = Array('uint7', [9, 100, 3, 1])
+  >>> a.data
+  BitArray('0x1390181')
+  >>> b = Array('float16', a.tolist())
   >>> b.append(0.25)
   >>> b.tobytes()
   b'H\x80V@B\x00<\x004\x00'
@@ -40,8 +43,8 @@ you to just a dozen formats.
   [9.0, 100.0, 3.0, 1.0, 0.25]
 
 The data is stored efficiently in a BitArray object, and you can manipulate both the
-data and the format freely. See the main documentation for more details. Note that this
-feature carries the 'beta' flag so may change in future point versions.
+data and the Array format freely. See the main documentation for more details. Note that
+this feature carries the 'beta' flag so may change in future point versions.
 
 Other changes:
 
@@ -60,10 +63,10 @@ Other changes:
   bitstring from an int still creates a zeroed bitstring of that length but ints won't
   be promoted to bitstrings as that has been a constant source of errors and confusion.
 
-  >>> a = BitArray(100)  # Fine - 100 zero bits
-  >>> b = a + 0b1   # TypeError - previously this would have appended a single zero bit.
-  >>> b = a + '0b1'  # Probably what was meant - append a single one bit.
-  >>> b = a + Bits(1)  # Fine, append a single zero bit
+  >>> a = BitArray(100)  # Fine - create with 100 zeroed bits
+  >>> a += 0xff   # TypeError - previously this would have appended 255 zero bits.
+  >>> a += '0xff'  # Probably what was meant - append a eight one bits.
+  >>> a += Bits(255)  # Fine, append 255 zero bits.
 
   This is a breaking change, but it breaks loudly with an exception, it is easily recoded,
   and it removes a confusing wrinkle.

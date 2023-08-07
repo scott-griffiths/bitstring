@@ -507,7 +507,7 @@ class ArrayOperations(unittest.TestCase):
         a = Array('uint44', [3, 7, 10])
         b = a - 3
         self.assertEqual(b, Array('u44', [0, 4, 7]))
-        with self.assertRaises(bitstring.CreationError):
+        with self.assertRaises(ValueError):
             _ = a - 4
 
     def testInPlaceSub(self):
@@ -575,7 +575,7 @@ class ArrayOperations(unittest.TestCase):
         with self.assertRaises(ValueError):
             a &= '0b111'
         a &= '0b0000000111'
-        self.assertEqual(a.data, '0b 0000001001 0000000001 0000001001')
+        self.assertEqual(a.data, '0b 0000000001 0000000001 0000000001')
 
     def testOr(self):
         a = Array('float8_143', [-4, 2.5, -9, 0.25])

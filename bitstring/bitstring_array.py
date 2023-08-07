@@ -404,43 +404,41 @@ class Array:
 
     def _apply_op_to_all_elements(self, op, value: Union[int, float]) -> Array:
         """Apply op with value to each element of the Array and return a new Array"""
-        new_data = BitArray()
-        for i in range(len(self)):
-            v = self._getter_func(self.data, start=self._itemsize * i)
-            new_data.append(self._create_element(op(v, value)))
-        new_array = Array(fmt=self.fmt)
-        new_array.data = new_data
-        return new_array
+        return self[:]._apply_op_to_all_elements_inplace(op, value)
 
     def _apply_op_to_all_elements_inplace(self, op, value: Union[int, float]) -> Array:
         """Apply op with value to each element of the Array in place."""
         # This isn't really being done in-place, but it's simpler and faster for now?
         new_data = BitArray()
+        failures = 0
         for i in range(len(self)):
             v = self._getter_func(self.data, start=self._itemsize * i)
-            new_data.append(self._create_element(op(v, value)))
+            try:
+                new_data.append(self._create_element(op(v, value)))
+            except CreationError as e:
+                if failures == 0:
+                    msg = e.msg
+                    index = i
+                failures += 1
+        if failures != 0:
+            raise ValueError(f'Applying operator \'{op.__name__}\' to Array caused {failures} errors. '
+                             f'First error at index {index} was: "{msg}"')
         self.data = new_data
         return self
 
     def _apply_bitwise_op_to_all_elements(self, op, value: BitsType) -> Array:
         """Apply op with value to each element of the Array as an unsigned integer and return a new Array"""
-        value = BitArray._create_from_bitstype(value)
-        new_data = BitArray()
-        for i in range(len(self)):
-            b = op(self.data[self._itemsize * i: self._itemsize * (i + 1)], value)
-            new_data.append(b)
-        new_array = Array(fmt=self.fmt)
-        new_array.data = new_data
-        return new_array
+        a_copy = self[:]
+        a_copy._apply_bitwise_op_to_all_elements_inplace(op, value)
+        return a_copy
 
     def _apply_bitwise_op_to_all_elements_inplace(self, op, value: BitsType) -> Array:
         """Apply op with value to each element of the Array as an unsigned integer in place."""
-        # This isn't really being done in-place, but it's simpler and faster for now?
         value = BitArray._create_from_bitstype(value)
         if len(value) != self._itemsize:
             raise ValueError(f"Bitwise op needs a bitstring of length {self._itemsize} to match format {self._fmt}.")
-        for i in range(len(self)):
-            op(self.data[self._itemsize * i: self._itemsize * (i + 1)], value)
+        for start in range(0, len(self) * self._itemsize, self._itemsize):
+            self.data[start: start + self._itemsize] = op(self.data[start: start + self._itemsize], value)
         return self
 
     def __add__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
@@ -526,19 +524,19 @@ class Array:
         return self._apply_op_to_all_elements_inplace(operator.lshift, other)
 
     def __and__(self, other: BitsType) -> Array:
-        return self._apply_bitwise_op_to_all_elements(operator.and_, other)
+        return self._apply_bitwise_op_to_all_elements(operator.iand, other)
 
     def __iand__(self, other: BitsType) -> Array:
-        return self._apply_bitwise_op_to_all_elements_inplace(operator.and_, other)
+        return self._apply_bitwise_op_to_all_elements_inplace(operator.iand, other)
 
     def __or__(self, other: BitsType) -> Array:
-        return self._apply_bitwise_op_to_all_elements(operator.or_, other)
+        return self._apply_bitwise_op_to_all_elements(operator.ior, other)
 
     def __ior__(self, other: BitsType) -> Array:
-        return self._apply_bitwise_op_to_all_elements_inplace(operator.or_, other)
+        return self._apply_bitwise_op_to_all_elements_inplace(operator.ior, other)
 
     def __xor__(self, other: BitsType) -> Array:
-        return self._apply_bitwise_op_to_all_elements(operator.xor, other)
+        return self._apply_bitwise_op_to_all_elements(operator.ixor, other)
 
     def __ixor__(self, other: BitsType) -> Array:
-        return self._apply_bitwise_op_to_all_elements_inplace(operator.xor, other)
+        return self._apply_bitwise_op_to_all_elements_inplace(operator.ixor, other)
