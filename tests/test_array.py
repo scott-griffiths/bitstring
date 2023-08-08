@@ -7,6 +7,7 @@ import os
 from bitstring import Array, Bits, BitArray
 import copy
 import itertools
+import io
 
 sys.path.insert(0, '..')
 
@@ -278,6 +279,9 @@ class ArrayMethods(unittest.TestCase):
         del a.data[0]
         with self.assertRaises(ValueError):
             a.extend([1, 0])
+        del a.data[-2:]
+        with self.assertRaises(TypeError):
+            a.extend('uint:3=3')  # Can't extend with a str even though it's iterable
 
     def testExtendWithMixedClasses(self):
         a = Array('uint8', [1, 2, 3])
@@ -409,6 +413,10 @@ class ArrayMethods(unittest.TestCase):
         del a[-100:]
         self.assertEqual(len(a), 400)
         self.assertEqual(a[:10].tolist(), [1, 3, 5, 7, 9, 11, 13, 15, 17, 19])
+        with self.assertRaises(IndexError):
+            del a[len(a)]
+        with self.assertRaises(IndexError):
+            del a[-len(a) - 1]
 
     def testRepr(self):
         a = Array('int5')
@@ -499,6 +507,16 @@ class ArrayMethods(unittest.TestCase):
         b[:] = a[:]
         self.assertEqual(b[:], Array('float8_143', [0.0, 1.5]))
 
+    def testPp(self):
+        a = Array('bfloat', [-3, 1, 2])
+        s = io.StringIO()
+        a.pp(stream=s)
+        self.assertEqual(s.getvalue(),  ' 0: c040 3f80 4000\n')
+        a.data += '0b110'
+        s = io.StringIO()
+        a.pp(stream=s)
+        self.assertEqual(s.getvalue(),  ' 0: c040 3f80 4000\n + trailing_bits = 0b110\n')
+
 
 class ArrayOperations(unittest.TestCase):
 
@@ -557,13 +575,20 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(b.tolist(), [-1, -1, 0, 0, 1])
 
     def testInPlaceDiv(self):
-        pass
+        a = Array('i10', [-4, -3, -2, -1, 0, 1, 2])
+        a //= 2
+        self.assertEqual(a, Array('i10', [-2, -2, -1, -1, 0, 0, 1]))
 
     def testTrueDiv(self):
-        pass
+        a = Array('float16', [5, 10, -6])
+        b = a / 4
+        self.assertEqual(a, Array('float16', [5.0, 10.0, -6.0]))
+        self.assertEqual(b, Array('float16', [1.25, 2.5, -1.5]))
 
     def testInPlaceTrueDiv(self):
-        pass
+        a = Array('int71', [-4, -3, -2, -1, 0, 1, 2])
+        a /= 2
+        self.assertEqual(a, Array('int71', [-2, -1, -1, 0, 0, 0, 1]))
 
     def testAnd(self):
         a = Array('int16', [-1, 100, 9])
@@ -596,7 +621,13 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(b.tolist(), [-4, -2.5, -9, -0.25])
 
     def testInPlaceOr(self):
-        pass
+        a = Array('hex:12')
+        a.append('f0f')
+        a.extend(['000', '111'])
+        a |= '0x00f'
+        self.assertEqual(a.tolist(), ['f0f', '00f', '11f'])
+        with self.assertRaises(TypeError):
+            a |= 12
 
     def testXor(self):
         a = Array('hex8', ['00', 'ff', 'aa'])
@@ -605,13 +636,30 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(b.tolist(), ['ff', '00', '55'])
 
     def testInPlaceXor(self):
-        pass
+        a = Array('u10', [0, 0xf, 0x1f])
+        a ^= '0b00, 0x0f'
 
     def testRshift(self):
-        pass
+        a = Array(fmt='u8')
+        a.data = Bits('0x00010206')
+        b = a >> 1
+        self.assertEqual(a.tolist(), [0, 1, 2, 6])
+        self.assertEqual(b.tolist(), [0, 0, 1, 3])
+
+        a = Array('i10', [-1, 0, -20, 10])
+        b = a >> 1
+        self.assertEqual(b.tolist(), [-1, 0, -10, 5])
+        c = a >> 0
+        self.assertEqual(c.tolist(), [-1, 0, -20, 10])
+        with self.assertRaises(ValueError):
+            _ = a >> -1
 
     def testInPlaceRshift(self):
-        pass
+        a = Array('i8', [-8, -1, 0, 1, 100])
+        a >>= 1
+        self.assertEqual(a.tolist(), [-4, -1, 0, 0, 50])
+        a >>= 100000
+        self.assertEqual(a.tolist(), [-1, -1, 0, 0, 0])
 
     def testLshift(self):
         pass

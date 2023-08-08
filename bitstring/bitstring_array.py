@@ -243,7 +243,7 @@ class Array:
 
     def extend(self, iterable: Union[Array, array.array, Iterable]) -> None:
         if len(self.data) % self._itemsize != 0:
-            raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
+            raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._itemsize} bits).")
         if isinstance(iterable, Array):
             if self._token_name != iterable._token_name or self._itemsize != iterable._itemsize:
                 raise TypeError(
@@ -362,7 +362,7 @@ class Array:
             data = self.data[0: -trailing_bit_length]
         data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize)
         if trailing_bit_length != 0:
-            stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))
+            stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]) + '\n')
 
     def __eq__(self, other: Any) -> bool:
         """Return True if format and all Array items are equal."""
