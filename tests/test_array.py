@@ -418,6 +418,12 @@ class ArrayMethods(unittest.TestCase):
         with self.assertRaises(IndexError):
             del a[-len(a) - 1]
 
+    def testDeletingMoreRanges(self):
+        a = Array('uint:18', [1, 2, 3, 4, 5, 6])
+        del a[3:1:-1]
+        self.assertEqual(a.tolist(), [1, 2, 5, 6])
+
+
     def testRepr(self):
         a = Array('int5')
         b = eval(a.__repr__())
@@ -662,7 +668,16 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(a.tolist(), [-1, -1, 0, 0, 0])
 
     def testLshift(self):
-        pass
+        a = Array('float8_152', [0.3, 1.2])
+        with self.assertRaises(TypeError):
+            _ = a << 3
+        a = Array('int16', [-2, -1, 0, 128])
+        b = a << 4
+        self.assertEqual(a.tolist(), [-2, -1, 0, 128])
+        self.assertEqual(b.tolist(), [-32, -16, 0, 2048])
+        with self.assertRaises(ValueError):
+            _ = a << 1000
+
 
     def testInPlaceLshift(self):
         pass

@@ -1587,9 +1587,9 @@ class Bits:
 
     def _readtoken(self, name: str, pos: int, length: Optional[int]) -> Tuple[Union[float, int, str, None, Bits], int]:
         """Reads a token from the bitstring and returns the result."""
-        if length is not None and int(length) > self.length - pos:
+        if length is not None and length > self.length - pos:
             raise ReadError("Reading off the end of the data. "
-                            f"Tried to read {int(length)} bits when only {self.length - pos} available.")
+                            f"Tried to read {length} bits when only {self.length - pos} available.")
         try:
             val = self._name_to_read[name](self, pos, length)
             if isinstance(val, tuple):
@@ -1739,11 +1739,11 @@ class Bits:
         return self._readlist(fmt, 0, **kwargs)[0]
 
     def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs: int) \
-            -> Tuple[List[Union[float, int, str, None, Bits]], int]:
+            -> Tuple[List[Union[float, int, str, Bits]], int]:
         tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]] = []
         if isinstance(fmt, str):
             fmt = [fmt]
-        keys = tuple(sorted(kwargs.keys()))
+        keys: Tuple[str, ...] = tuple(sorted(kwargs.keys()))
 
         def convert_length_strings(length_: Optional[Union[str, int]]) -> Optional[int]:
             int_length: Optional[int] = None

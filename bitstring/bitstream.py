@@ -331,7 +331,7 @@ class ConstBitStream(Bits):
         return value
 
     def readlist(self, fmt: Union[str, List[Union[int, str]]], **kwargs) \
-            -> List[Union[float, int, str, None, Bits]]:
+            -> List[Union[float, int, str, Bits]]:
         """Interpret next bits according to format string(s) and return list.
 
         fmt -- A single string or list of strings with comma separated tokens

@@ -68,7 +68,7 @@ class FP8Format:
         elif exp_bits == 5 and bias == 16:
             self.lut_float16_to_float8 = zlib.decompress(lut_float16_to_float8_152_compressed)
             self.lut_int8_to_float.frombytes(zlib.decompress(lut_int8_to_float8_152_compressed))
-        else:
+        else:  # pragma: no cover
             raise RuntimeError("Unsupported float8 format trying to be created. Only float8_143 and float8_152 available for now.")
             # # This is how the LUTs above were calculated. For reference only - shouldn't be needed any more
             # self.lut_int8_to_float = self.createLUT_for_int8_to_float()
@@ -83,16 +83,13 @@ class FP8Format:
         try:
             b = struct.pack('>e', f)
         except (OverflowError, struct.error):
-            try:
-                # Return the largest representable positive or negative value
-                return 0b01111111 if f > 0 else 0b11111111
-            except TypeError:
-                raise ValueError(f"Can't set a float with '{f}' of type {type(f)}.")
+            # Return the largest representable positive or negative value
+            return 0b01111111 if f > 0 else 0b11111111
         f16_int = int.from_bytes(b, byteorder='big')
         # Then use this as an index to our large LUT
         return self.lut_float16_to_float8[f16_int]
 
 
-# We create the 1.5.2 and 1.4.3 formats. The proposed 1.3.4 format isn't yet supported here.
+# We create the 1.5.2 and 1.4.3 formats. The proposed 1.3.4 format isn't supported here.
 fp143_fmt = FP8Format(exp_bits=4, bias=8)
 fp152_fmt = FP8Format(exp_bits=5, bias=16)

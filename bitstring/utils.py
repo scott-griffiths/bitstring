@@ -81,7 +81,7 @@ def structparser(token: str) -> List[str]:
 
 
 @functools.lru_cache(CACHE_SIZE)
-def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
+def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
         Tuple[bool, List[Tuple[str, Union[int, str, None], Optional[str]]]]:
     """Divide the format string into tokens and parse them.
 
@@ -101,7 +101,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
     # The meta_tokens can either be ordinary single tokens or multiple
     # struct-format token strings.
     meta_tokens = (''.join(f.split()) for f in fmt.split(','))
-    return_values: List[Tuple] = []
+    return_values: List[Tuple[str, Union[int, str, None], Optional[str]]] = []
     stretchy_token = False
     for meta_token in meta_tokens:
         # See if it has a multiplicative factor
@@ -113,11 +113,11 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
             meta_token = m.group('token')
         # See if it's a struct-like format
         tokens = structparser(meta_token)
-        ret_vals = []
+        ret_vals: List[Tuple[str, Union[str, int, None], Optional[str]]] = []
         for token in tokens:
             if keys and token in keys:
                 # Don't bother parsing it, it's a keyword argument
-                ret_vals.append([token, None, None])
+                ret_vals.append((token, None, None))
                 continue
             if token == '':
                 continue
@@ -126,7 +126,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
             if m:
                 name: str = m.group('name')
                 value: str = m.group('value')
-                ret_vals.append([name, None, value])
+                ret_vals.append((name, None, value))
                 continue
             # Match everything else:
             m1 = TOKEN_RE.match(token)
@@ -188,7 +188,7 @@ def tokenparser(fmt: str, keys: Optional[Tuple[str, ...]] = None) -> \
                 except ValueError:
                     if not keys or length not in keys:
                         raise ValueError(f"Don't understand length '{length}' of token.")
-            ret_vals.append([name, length, value])
+            ret_vals.append((name, length, value))
         # This multiplies by the multiplicative factor, but this means that
         # we can't allow keyword values as multipliers (e.g. n*uint:8).
         # The only way to do this would be to return the factor in some fashion

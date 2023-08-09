@@ -109,7 +109,7 @@ class Array:
 
     @fmt.setter
     def fmt(self, new_fmt: str) -> None:
-        tokens = tokenparser(new_fmt, None)[1]
+        tokens = tokenparser(new_fmt)[1]
         token_names_and_lengths = [(x[0], x[1]) for x in tokens]
         if len(token_names_and_lengths) != 1:
             raise ValueError(
@@ -125,8 +125,6 @@ class Array:
             self._getter_func = functools.partial(Bits._name_to_read[token_name], length=token_length)
         except KeyError:
             raise ValueError(f"The token '{token_name}' can't be used to get Array elements.")
-        self._uint_getter_func = functools.partial(Bits._name_to_read['uint'], length=token_length)
-        self._uint_setter_func = functools.partial(Bits._setfunc['uint'], length=token_length)
         self._itemsize = int(token_length)
         self._token_name = token_name
         # We save the user's fmt string so that we can use it in __repr__ etc.
@@ -214,8 +212,9 @@ class Array:
             if step == 1:
                 self.data.__delitem__(slice(start * self._itemsize, stop * self._itemsize))
                 return
-            # Delete from end or the start positions will change
-            for s in range(start, stop, step)[::-1]:
+            # We need to delete from the end or the earlier positions will change
+            r = reversed(range(start, stop, step)) if step > 0 else range(start, stop, step)
+            for s in r:
                 self.data.__delitem__(slice(s * self._itemsize, (s + 1) * self._itemsize))
         else:
             if key < 0:
@@ -252,7 +251,7 @@ class Array:
             self.data.append(iterable.data)
         elif isinstance(iterable, array.array):
             other_fmt = Array._array_typecodes.get(iterable.typecode, iterable.typecode)
-            token_name, token_length, _ = tokenparser(other_fmt, None)[1][0]
+            token_name, token_length, _ = tokenparser(other_fmt)[1][0]
             if self._token_name != token_name or self._itemsize != token_length:
                 raise ValueError(
                     f"Cannot extend an Array with format '{self._fmt}' from an array with typecode '{iterable.typecode}'.")
@@ -451,7 +450,7 @@ class Array:
             new_array.data += other.data
         elif isinstance(other, array.array):
             other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
-            token_name, token_length, _ = tokenparser(other_fmt, None)[1][0]
+            token_name, token_length, _ = tokenparser(other_fmt)[1][0]
             if self._token_name != token_name or self._itemsize != token_length:
                 raise ValueError(
                     f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
@@ -464,7 +463,7 @@ class Array:
         # We know that the LHS can't be an Array otherwise __add__ would be used.
         if isinstance(other, array.array):
             other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
-            token_name, token_length, _ = tokenparser(other_fmt, None)[1][0]
+            token_name, token_length, _ = tokenparser(other_fmt)[1][0]
             if self._token_name != token_name or self._itemsize != token_length:
                 raise ValueError(
                     f"Cannot add an array.array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
