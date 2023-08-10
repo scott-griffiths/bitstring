@@ -617,6 +617,8 @@ __eq__
             >>> a == b
             False
 
+        If you have a different criterion you wish to use then code it explicitly, for example ``a.int == b.int`` could be true even if ``a == b`` wasn't (as they could be different lengths).
+
 __getitem__
 ^^^^^^^^^^^
     .. method:: Bits.__getitem__(key)

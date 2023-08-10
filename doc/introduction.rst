@@ -8,7 +8,7 @@ Introduction
 
 The bitstring module provides four classes, :class:`Bits`, :class:`BitArray`, :class:`ConstBitStream` and :class:`BitStream` which are containers for binary data.
 
-It also has a class which stores a compact array of an arbitrary fixed-length binary type. The rest of this introduction mostly concerns the more basic types - for more details skip directly to the  :class:`Array` class.
+It also has a class which stores a compact array of an arbitrary fixed-length binary type. The rest of this introduction mostly concerns the more basic types - for more details skip directly to the reference documentation for the  :class:`Array` class.
 
 :class:`Bits` is the simplest, and represents an immutable sequence of bits. :class:`BitArray` adds various methods that modify the contents. These classes are intended to loosely mirror the ``bytes`` and ``bytearray`` types in Python. The :class:`BitStream` and :class:`ConstBitStream` classes have additional methods to treat the bits as a file or stream.
 
@@ -163,56 +163,7 @@ As with other initialisers you can also 'auto' initialise, as demonstrated with 
     >>> little_endian = BitArray(floatle=0.0, length=64)
     >>> native_endian = BitArray('floatne:32=-6.3')
 
-
-.. _Exotic floats:
-
-Exotic floating point formats
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The ``bfloat`` format is also supported. This is a 16-bit format that is essentially a truncation of the IEEE 754 32-bit format - it has the same range, but much less accuracy. It is mostly used in machine learning. ::
-
-    >>> bf = Bits(bfloat=4.5e23)  # No need to specify length as always 16 bits
-    >>> a.bfloat
-    4.486248158726163e+23  # Converted to Python float
-
-Two 8-bit floating point formats are supported as an experimental feature in bitstring 4.1.
-These are also mainly of use in machine learning and have very limited ranges and precision.
-There is no standardised format for these but there are a few candidates.
-The ones used in bitstring are those proposed in `this paper <https://arxiv.org/abs/2206.02915>`_ and there is some useful information `here <https://github.com/openxla/stablehlo/blob/2fcdf9b25d622526f81cd1575c65d01a6db319d2/rfcs/20230321-fp8_fnuz.md>`_ too.
-
-The 8-bit formats are named after how the byte is split between the sign-exponent-mantissa parts.
-So ``float8_143`` has a single sign bit, 4 bits for the exponent and 3 bits for the mantissa.
-For a bit more range and less precision you can use ``float8_152`` which has 5 bits for the exponent and only 2 for the mantissa.
-
-These representations are so compact you can easily just examine every possible value:
-
-    >>> [Bits(uint=x, length=8).float8_143 for x in range(256)]
-
-and the precision available means that very few values can be exactly represented.
-When converting to the ``float8`` formats, unrepresentable values get rounded towards zero.
-The formats have no code for infinity, instead using the largest positive and negative values.
-
-    >>> a = BitArray(float8_152=70)
-    >>> print(a.bin)
-    01011000
-    >>> print(a.float8_152)
-    64.0
-    >>> a.float8_152 = 1456789.0
-    >>> print(a.float8_152)
-    57344.0
-
-
-.. note::
-    The 8-bit float formats used here are from a proposal supported by Graphcore, AMD and Qualcomm.
-    There is a different but similar proposal from other companies, and there is an ongoing standardisation process.
-
-    I (Scott Griffiths) currently work at Graphcore, but I have not been involved in the low-precision float work.
-    This implementation is not part of my work at Graphcore - believe it or not this counts as fun for me.
-    I have been careful to only base my work here on public sources, and any misunderstandings or errors are my own.
-
-    This is an experimental feature and may be modified in future point releases.
-
-
+See also :ref:`Exotic floats` for information on non IEEE 754 floating point representations that are supported (bfloat and different 8-bit float formats).
 
 Exponential-Golomb codes
 ^^^^^^^^^^^^^^^^^^^^^^^^

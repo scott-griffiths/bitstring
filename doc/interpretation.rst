@@ -11,13 +11,26 @@ Note that these properties can potentially be very expensive in terms of both co
 
 If you're in an interactive session then the pretty-print method :meth:`~Bits.pp` can be useful as it will only convert the bitstring one chunk at a time for display.
 
+
+Short Interpretations
+---------------------
+
+Many of the more commonly used interpretations have single letter equivalents. The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can be shortened to ``h``, ``b``, ``o``, ``i``, ``u`` and ``f`` respectively. Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32`` or ``floatle32``.
+
+When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
+
+    s = BitArray()  # Empty bitstring
+    s.f32 = 101.5   # New length is 32 bits, representing a float
+
+
+Properties
+----------
+
 For the properties described below we will use these::
 
     >>> a = BitArray('0x123')
     >>> b = BitArray('0b111')
 
-Properties
-----------
 
 bin / b
 ^^^^^^^
@@ -105,6 +118,8 @@ bfloat / bfloatbe / bfloatle / bfloatne
 
 This is a specialised 16-bit floating point format that is essentially a truncated version of the 32-bit IEEE float. It is used mainly in machine learning. As only one length is permitted it doesn't need to be specified on creation or interpretation.
 
+See :ref:`Exotic floats` for more information.
+
 float8_143 / float8_152
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -131,13 +146,13 @@ Note that the :meth:`~Bits.tobytes` method automatically padded with four zero b
 ue
 ^^
 
-The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
+The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function or unpack with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
 
-    >>> s = BitArray(ue=12)
+    >>> s = BitStream(ue=12)
     >>> s.bin
     '0001101'
-    >>> s.append(BitArray(ue=3))
-    >>> print(s.readlist('2*ue'))
+    >>> s.append('ue=3')
+    >>> print(s.unpack('2*ue'))
     [12, 3]
 
 se
@@ -145,10 +160,10 @@ se
 
 The :attr:`~Bits.se` property does much the same as ``ue`` and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see :ref:`exp-golomb` for more information. ::
 
-    >>> s = BitArray('0x164b')
+    >>> s = BitStream('0x164b')
     >>> s.se
-    InterpretError: BitArray, is not a single exponential-Golomb code.
-    >>> while s.pos < s.length:
+    InterpretError: Bitstring is not a single exponential-Golomb code.
+    >>> while s.pos < len(s):
     ...     print(s.read('se'))
     -5
     2
@@ -162,14 +177,4 @@ uie / sie
 
 A slightly different type, interleaved exponential-Golomb codes are also supported. The principles are the same as with ``ue`` and ``se`` - see :ref:`exp-golomb` for detail of the differences.
 
-
-Short Interpretations
----------------------
-
-Many of the more commonly used interpretations have single letter equivalents. The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can be shortened to ``h``, ``b``, ``o``, ``i``, ``u`` and ``f`` respectively. Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32`` or ``floatle32``.
-
-When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
-
-    s = BitArray()  # Empty bitstring
-    s.f32 = 101.5   # New length is 32 bits, representing a float
 

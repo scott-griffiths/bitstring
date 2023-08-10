@@ -613,7 +613,7 @@ class BitStream(ConstBitStream, BitArray):
     def __delitem__(self, key: Union[slice, int]) -> None:
         """Delete item or range.
 
-        >>> a = BitArray('0x001122')
+        >>> a = BitStream('0x001122')
         >>> del a[8:16]
         >>> print a
         0x0022

@@ -107,7 +107,7 @@ Documentation
 ^^^^^^^^^^^^^
 
 
-The :ref:`manual` provides an introduction to the module and details most its capabilities.
+The :ref:`quick_reference` provides a basic list of the classes and their methods.
 
 The :ref:`reference` section has a complete list of all the classes, methods, properties and functions of the bitstring module, together with short examples for many items.
 
@@ -119,7 +119,6 @@ The :ref:`reference` section has a complete list of all the classes, methods, pr
 .. toctree::
     :maxdepth: 2
 
-    manual
     quick_ref
     reference
     appendices
