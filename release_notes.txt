@@ -2,7 +2,9 @@
 bitstring module version history
 --------------------------------
 
-version 4.1
+----------------------------------
+  NOT YET RELEASED: version 4.1
+----------------------------------
 
 This has turned into a suprisingly big release, with a major refactor and a brand new
 class (the first for 12 years!) There are also a couple of small possibly breaking changes
