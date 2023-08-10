@@ -2080,15 +2080,20 @@ class Bits:
 
         """
         s = self.__class__()
-        i = iter(sequence)
-        try:
-            s._addright(Bits(next(i)))
-            while True:
-                n = next(i)
-                s._addright(self)
-                s._addright(Bits(n))
-        except StopIteration:
-            pass
+        if len(self) == 0:
+            # Optimised version that doesn't need to add self between every item
+            for item in sequence:
+                s._addright(Bits._create_from_bitstype(item))
+        else:
+            i = iter(sequence)
+            try:
+                s._addright(Bits._create_from_bitstype(next(i)))
+                while True:
+                    n = next(i)
+                    s._addright(self)
+                    s._addright(Bits._create_from_bitstype(n))
+            except StopIteration:
+                pass
         return s
 
     def tobytes(self) -> bytes:

@@ -1290,6 +1290,10 @@ class Adding(unittest.TestCase):
         s = BitStream().join(bsl)
         self.assertEqual(s.length, 1200)
 
+    def testJoinWithInts(self):
+        with self.assertRaises(TypeError):
+            s = BitStream().join([1, 2])
+
     def testPos(self):
         s = BitStream(bin='1')
         self.assertEqual(s.bitpos, 0)
@@ -2171,11 +2175,12 @@ class Split2(unittest.TestCase):
     def testJoinFunctions(self):
         a = BitStream().join(['0xa', '0xb', '0b1111'])
         self.assertEqual(a, '0xabf')
-        tmp = BitStream('0b1')
         a = BitStream('0b1').join(['0b0' for _ in range(10)])
         self.assertEqual(a, '0b0101010101010101010')
         a = BitStream('0xff').join([])
         self.assertFalse(a)
+        a = BitStream('0xff').join([Bits(5), '0xab', '0xabc'])
+        self.assertEqual(a, '0b00000, 0xffabffabc')
 
     def testAddingBitpos(self):
         a = BitStream('0xff')
