@@ -2,9 +2,9 @@
 
 .. _reference:
 
-*********
+#########
 Reference
-*********
+#########
 
 The :ref:`quick_reference` gives one line summaries of all of the methods and properties of the bitstring classes.
 

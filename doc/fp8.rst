@@ -64,7 +64,7 @@ An example of creation and interpretation of a bfloat::
     There is a different but similar proposal from other companies, and there is an ongoing standardisation process.
 
     I (Scott Griffiths) currently work at Graphcore, but I have not been involved in the low-precision float work.
-    This implementation is not part of my work at Graphcore - believe it or not this counts as fun for me.
+    This implementation is not part of my work at Graphcore (this counts as fun for me).
     I have been careful to only base my work here on public sources, and any misunderstandings or errors are my own.
 
     This is an experimental feature and may be modified in future point releases.
@@ -98,10 +98,10 @@ For a bit more range and less precision you can use ``float8_152`` which has 5 b
      - ``'float8_152'``
 
 
-As there are just 256 possible values both the range and precision of these formats are extremely limited.
+As there are just 256 possible values, both the range and precision of these formats are extremely limited.
 It's remarkable that any useful calculations can be performed, but both inference and training of large machine learning models can be done with these formats.
 
-You can easily examine every possible value that these formats can represent using a line like this ::
+You can easily examine every possible value that these formats can represent using a line like this::
 
     >>> [Bits(uint=x, length=8).float8_143 for x in range(256)]
 

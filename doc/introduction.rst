@@ -6,30 +6,20 @@ Introduction
 .. module:: bitstring
 .. moduleauthor:: Scott Griffiths <dr.scottgriffiths@gmail.com>
 
-The bitstring module provides four classes, :class:`Bits`, :class:`BitArray`, :class:`ConstBitStream` and :class:`BitStream` which are containers for binary data.
-
-It also has a class which stores a compact array of an arbitrary fixed-length binary type. The rest of this introduction mostly concerns the more basic types - for more details skip directly to the reference documentation for the  :class:`Array` class.
-
-:class:`Bits` is the simplest, and represents an immutable sequence of bits. :class:`BitArray` adds various methods that modify the contents. These classes are intended to loosely mirror the ``bytes`` and ``bytearray`` types in Python. The :class:`BitStream` and :class:`ConstBitStream` classes have additional methods to treat the bits as a file or stream.
-
-If you need to change the contents of a bitstring after creation then you must use either the :class:`BitArray` or :class:`BitStream` classes. If you need to use bitstrings as keys in a dictionary or members of a set then you must use either a :class:`Bits` or a :class:`ConstBitStream`. In this documentation the generic term 'bitstring' is used to refer to an object of any of these classes.
-
-Note that for the bitstream classes the bit position within the bitstream (the position from which reads occur) can change without affecting the equality operation. This means that the :attr:`~ConstBitStream.pos` and :attr:`~ConstBitStream.bytepos` properties can change even for a :class:`ConstBitStream` object.
-
 
 The bitstring classes
 ---------------------
 
-Four classes are provided by the bitstring module: :class:`BitStream` and :class:`BitArray` together with their immutable versions :class:`ConstBitStream` and :class:`Bits`:
+Five classes are provided by the bitstring module, four are simple containers of bits:
 
 * ``Bits``: This is the most basic class. It is immutable and so its contents can't be changed after creation.
 * ``BitArray(Bits)``: This adds mutating methods to its base class.
 * ``ConstBitStream(Bits)``: This adds methods and properties to allow the bits to be treated as a stream of bits, with a bit position and reading/parsing methods.
 * ``BitStream(BitArray, ConstBitStream)``: This is the most versatile class, having both the bitstream methods and the mutating methods.
 
-The term 'bitstring' is used in this manual to refer generically to any of these classes.
+:class:`Bits` and :class:`BitArray` are intended to loosely mirror the ``bytes`` and ``bytearray`` types in Python.
+The term 'bitstring' is used in this documentation to refer generically to any of these four classes.
 
-Most of the examples in this manual use the :class:`BitArray` class, with :class:`BitStream` used when necessary. For most uses the non-const classes are more versatile and so probably your best choice when starting to use the module.
 
 To summarise when to use each class:
 
@@ -40,12 +30,17 @@ To summarise when to use each class:
 
 The :class:`Bits` class is the base class of the other three class. This means that ``isinstance(s, Bits)`` will be true if ``s`` is an instance of any of the four classes.
 
+The fifth class is :class:`Array` which is a container of fixed-length bitstrings. The rest of this introduction mostly concerns the more basic types - for more details on :class:`Array` you can go directly to the reference documentation, but understanding how bit format strings are specified will be helpful.
 
-Using the constructor
----------------------
-When initialising a bitstring you need to specify at most one initialiser. These will be explained in full below, but briefly they are:
 
-* 'auto' initialisation : The first parameter of the constructor can be either a specially formatted string, a list or tuple, a file object, integer, bytearray, array, bytes or another bitstring.
+Creating bitstrings
+-------------------
+
+``Bits(__auto, length: Optional[int], offset: Optional[int], **kwargs)``
+
+When initialising a bitstring you need to specify at most one initialiser.
+This can either be the first parameter in the constructor ('auto' initialisation, described below), or using one of the following keywords:
+
 * ``bytes`` : A ``bytes`` object, for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
 * ``int``, ``uint``: Signed or unsigned bit-wise big-endian binary integers.
@@ -60,8 +55,89 @@ When initialising a bitstring you need to specify at most one initialiser. These
 * ``bool`` : A boolean (i.e. True or False).
 * ``filename`` : Directly from a file, without reading into memory if using :class:`Bits` or :class:`ConstBitStream`.
 
+For example::
+
+   a = Bits(hex='deadbeef')
+   b = BitArray(float=100.25, length=32)
+   c = ConstBitStream(filename='a_big_file')
+
+Note that some types need a length to be specified and others can infer the length.
+
+Another way to create a bitstring is via the ``pack`` function, which packs multiple values accoring to a given format.
+See the entry on :func:`pack` for more information.
+
+.. _auto_init:
+
+The auto initialiser
+^^^^^^^^^^^^^^^^^^^^
+
+The first parameter when creating a bitstring is a positional only parameter, referred to as 'auto', that can be a variety of types:
+
+* An iterable, whose elements will be evaluated as booleans (imagine calling ``bool()`` on each item) and the bits set to ``1`` for ``True`` items and ``0`` for ``False`` items.
+* A positive integer, used to create a bitstring of that many zero bits.
+* A file object, opened in binary mode, from which the bitstring will be formed.
+* A ``bytearray`` or ``bytes`` object.
+* An ``array`` object from the built-in ``array`` module. This is used after being converted to it's constituent byte data via its ``tobytes`` method.
+* A ``bitarray`` or ``frozenbitarray`` object from the 3rd party ``bitarray`` package.
+
+If it is a string then that string will be parsed into tokens to construct the binary data:
+
+* Starting with ``'0x'`` or ``'hex='`` implies hexadecimal. e.g. ``'0x013ff'``, ``'hex=013ff'``
+* Starting with ``'0o'`` or ``'oct='`` implies octal. e.g. ``'0o755'``, ``'oct=755'``
+* Starting with ``'0b'`` or ``'bin='`` implies binary. e.g. ``'0b0011010'``, ``'bin=0011010'``
+* Starting with ``'int'`` or ``'uint'`` followed by a length in bits and ``'='`` gives base-2 integers. e.g. ``'uint8=255'``, ``'int4=-7'``
+* To get big, little and native-endian whole-byte integers append ``'be'``, ``'le'`` or ``'ne'`` respectively to the ``'uint'`` or ``'int'`` identifier. e.g. ``'uintle32=1'``, ``'intne16=-23'``
+* For floating point numbers use ``'float'`` followed by the length in bits and ``'='`` and the number. The default is big-endian, but you can also append ``'be'``, ``'le'`` or ``'ne'`` as with integers. e.g. ``'float64=0.2'``, ``'floatle32=-0.3e12'``
+* Starting with ``'ue='``, ``'uie='``, ``'se='`` or ``'sie='`` implies an exponential-Golomb coded integer. e.g. ``'ue=12'``, ``'sie=-4'``
+
+Multiples tokens can be joined by separating them with commas, so for example ``'uint4=4, 0b1, se=-1'`` represents the concatenation of three elements.
+
+Parentheses and multiplicative factors can also be used, for example ``'2*(0b10, 0xf)'`` is equivalent to ``'0b10, 0xf, 0b10, 0xf'``.
+The multiplying factor must come before the thing it is being used to repeat.
+
+Promotion to bitstrings
+"""""""""""""""""""""""
+
+Almost anywhere that a bitstring is expected you can substitute something that will get 'auto' promoted to a bitstring.
+For example::
+
+    >>> BitArray('0xf') == '0b1111'
+    True
+
+Here the equals operator is expecting another bitstring so creates one from the string.
+The right hand side gets promoted to ``Bits('0b1111')``.
+
+Methods that need another bitstring as a parameter will also 'auto' promote, for example::
+
+    for bs in s.split('0x40'):
+        if bs.endswith('0b111'):
+            bs.append([1, 0])
+            ...
+
+    if 'u8=42' in bs:
+        bs.prepend(b'\x01')
+
+
+which illustrates a variety of methods promoting strings, iterables and a bytes object to bitstrings.
+
+Anything that can be used as the first parameter of the ``Bits`` constructor can be auto promoted to a bitstring where one is expected, with the exception of integers.
+Integers won't be auto promoted, but instead will raise a ``TypeError``::
+
+    >>> a = BitArray(100)  # Create bitstring with 100 zeroed bits.
+    >>> a += 0xff          # TypeError - 0xff is the same as the integer 255.
+    >>> a += '0xff'        # Probably what was meant - append eight '1' bits.
+    >>> a += Bits(255)     # If you really want to do it then code it explicitly.
+
+
+
+Keyword initialisers
+^^^^^^^^^^^^^^^^^^^^
+
+If the 'auto' initialiser isn't used then at most one keyword initialiser can be used.
+
+
 From a hexadecimal string
-^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""
 
     >>> c = BitArray(hex='0x000001b3')
     >>> c.hex
@@ -74,7 +150,7 @@ If you include the initial ``0x`` then you can use the 'auto' initialiser instea
     c = BitArray('0x000001b3')
 
 From a binary string
-^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
     >>> d = BitArray(bin='0011 00')
     >>> d.bin
@@ -87,7 +163,7 @@ As with ``hex``, the 'auto' initialiser will work if the binary string is prefix
     >>> d = BitArray('0b001100')
 
 From an octal string
-^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
     >>> o = BitArray(oct='34100')
     >>> o.oct
@@ -101,7 +177,7 @@ As with ``hex`` and ``bin``, the 'auto' initialiser will work if the octal strin
 
 
 From an integer
-^^^^^^^^^^^^^^^
+"""""""""""""""
 
     >>> e = BitArray(uint=45, length=12)
     >>> f = BitArray(int=-1, length=7)
@@ -127,7 +203,7 @@ The ``uint`` and ``int`` names can be shortened to just ``u`` and ``i`` respecti
 The plain ``int`` and ``uint`` initialisers are bit-wise big-endian. That is to say that the most significant bit comes first and the least significant bit comes last, so the unsigned number one will have a ``1`` as its final bit with all other bits set to ``0``. These can be any number of bits long. For whole-byte bitstring objects there are more options available with different endiannesses.
 
 Big and little-endian integers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""""""""
 
     >>> big_endian = BitArray(uintbe=1, length=16)
     >>> little_endian = BitArray(uintle=1, length=16)
@@ -147,7 +223,7 @@ The second, ``little_endian``, is interpreted as least significant byte first, i
 Finally we have ``native_endian``, which will equal either ``big_endian`` or ``little_endian``, depending on whether you are running on a big or little-endian machine (if you really need to check then use ``import sys; sys.byteorder``).
 
 From a floating point number
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""""""
 
     >>> f1 = BitArray(float=10.3, length=32)
     >>> f2 = BitArray('float64=5.4e31')
@@ -165,8 +241,8 @@ As with other initialisers you can also 'auto' initialise, as demonstrated with 
 
 See also :ref:`Exotic floats` for information on non IEEE 754 floating point representations that are supported (bfloat and different 8-bit float formats).
 
-Exponential-Golomb codes
-^^^^^^^^^^^^^^^^^^^^^^^^
+From exponential-Golomb codes
+"""""""""""""""""""""""""""""
 
 Initialisation with integers represented by exponential-Golomb codes is also possible. ``ue`` is an unsigned code while ``se`` is a signed code. Interleaved exponential-Golomb codes are also supported via ``uie`` and ``sie``::
 
@@ -187,7 +263,7 @@ The 'auto' initialiser may also be used by giving an equals sign and the value i
 You may wonder why you would bother doing this in this case as the syntax is slightly longer. Hopefully all will become clear in the next section.
 
 From raw byte data
-^^^^^^^^^^^^^^^^^^
+""""""""""""""""""
 
 Using the length and offset parameters to specify the length in bits and an offset at the start to be ignored is particularly useful when initialising from raw data or from a file. ::
 
@@ -203,11 +279,11 @@ You can also use a ``bytearray`` or a ``bytes`` object, either explicitly with a
 
 
 From a file
-^^^^^^^^^^^
+"""""""""""
 
 Using the ``filename`` initialiser allows a file to be analysed without the need to read it all into memory. The way to create a file-based bitstring is::
 
-    p = Bits(filename="my2GBfile")
+    p = Bits(filename="my200GBfile")
 
 This will open the file in binary read-only mode. The file will only be read as and when other operations require it, and the contents of the file will not be changed by any operations. If only a portion of the file is needed then the ``offset`` and ``length`` parameters (specified in bits) can be used.
 
@@ -215,115 +291,7 @@ Note that we created a :class:`Bits` here rather than a :class:`BitArray`, as th
 
 It's also possible to use the 'auto' initialiser for file objects. It's as simple as::
 
-    f = open('my2GBfile', 'rb')
+    f = open('my200GBfile', 'rb')
     p = Bits(f)
-
-
-The auto initialiser
---------------------
-The 'auto' parameter is the first parameter in the :class:`__init__<Bits>` function and is a positional-only parameter.
-It accepts either a string, an iterable, another bitstring, an integer, a bytearray or a file object.
-
-Strings starting with ``0x`` or ``hex:`` are interpreted as hexadecimal, ``0o`` or ``oct:`` implies octal, and strings starting with ``0b`` or ``bin:`` are interpreted as binary. You can also initialise with the various integer initialisers as described above. If given another bitstring it will create a copy of it, (non string) iterables are interpreted as boolean arrays and file objects acts a source of binary data. An ``array`` object will be converted into its constituent bytes. Finally you can use an integer to create a zeroed bitstring of that number of bits. ::
-
-    >>> fromhex = BitArray('0x01ffc9')
-    >>> frombin = BitArray('0b01')
-    >>> fromoct = BitArray('0o7550')
-    >>> fromint = BitArray('int32=10')
-    >>> fromfloat = BitArray('float64=0.2')
-    >>> acopy = BitArray(fromoct)
-    >>> fromlist = BitArray([1, 0, 0])
-    >>> f = open('somefile', 'rb')
-    >>> fromfile = BitArray(f)
-    >>> zeroed = BitArray(1000)
-    >>> frombytes = BitArray(bytearray(b'xyz'))
-    >>> fromarray = BitArray(array.array('h', [3, 17, 10]))
-
-It can also be used to convert between the :class:`BitArray` and :class:`Bits` classes::
-
-    >>> immutable = Bits('0xabc')
-    >>> mutable = BitArray(immutable)
-    >>> mutable += '0xdef'
-    >>> immutable = Bits(mutable)
-
-As always the bitstring doesn't know how it was created; initialising with octal or hex might be more convenient or natural for a particular example but it is exactly equivalent to initialising with the corresponding binary string. ::
-
-    >>> fromoct.oct
-    '7550'
-    >>> fromoct.hex
-    'f68'
-    >>> fromoct.bin
-    '111101101000'
-    >>> fromoct.uint
-    3994
-    >>> fromoct.int
-    -152
-
-    >>> BitArray('0o7777') == '0xfff'
-    True
-    >>> BitArray('0xf') == '0b1111'
-    True
-    >>> frombin[::-1] + '0b0' == fromlist
-    True
-
-Note how in the final examples above only one half of the ``==`` needs to be a bitstring, the other half gets 'auto' initialised before the comparison is made. This is in common with many other functions and operators.
-
-You can also chain together string initialisers with commas, which causes the individual bitstrings to be concatenated. ::
-
-    >>> s = BitArray('0x12, 0b1, uint5=2, ue=5, se=-1, se=4')
-    >>> s.find('uint5=2, ue=5')
-    True
-    >>> s.insert('0o332, 0b11, int23=300', 4)
-
-Again, note how the format used in the 'auto' initialiser can be used in many other places where a bitstring is needed.
-
-
-
-
-
-
-.. _auto_init:
-
-The auto initialiser
-^^^^^^^^^^^^^^^^^^^^
-
-The first parameter when creating a bitstring is called ``auto`` and can be a variety of types.
-If it is a string then that string will be parsed into tokens to construct the binary data:
-
-
-* Starting with ``'0x'`` or ``'hex='`` implies hexadecimal. e.g. ``'0x013ff'``, ``'hex=013ff'``
-
-* Starting with ``'0o'`` or ``'oct='`` implies octal. e.g. ``'0o755'``, ``'oct=755'``
-
-* Starting with ``'0b'`` or ``'bin='`` implies binary. e.g. ``'0b0011010'``, ``'bin=0011010'``
-
-* Starting with ``'int'`` or ``'uint'`` followed by a length in bits and ``'='`` gives base-2 integers. e.g. ``'uint8=255'``, ``'int4=-7'``
-
-* To get big, little and native-endian whole-byte integers append ``'be'``, ``'le'`` or ``'ne'`` respectively to the ``'uint'`` or ``'int'`` identifier. e.g. ``'uintle32=1'``, ``'intne16=-23'``
-
-* For floating point numbers use ``'float'`` followed by the length in bits and ``'='`` and the number. The default is big-endian, but you can also append ``'be'``, ``'le'`` or ``'ne'`` as with integers. e.g. ``'float64=0.2'``, ``'floatle32=-0.3e12'``
-
-* Starting with ``'ue='``, ``'uie='``, ``'se='`` or ``'sie='`` implies an exponential-Golomb coded integer. e.g. ``'ue=12'``, ``'sie=-4'``
-
-Multiples tokens can be joined by separating them with commas, so for example ``'uint4=4, 0b1, se=-1'`` represents the concatenation of three elements.
-
-Parentheses and multiplicative factors can also be used, for example ``'2*(0b10, 0xf)'`` is equivalent to ``'0b10, 0xf, 0b10, 0xf'``.
-The multiplying factor must come before the thing it is being used to repeat.
-
-The ``auto`` parameter also accepts other types:
-
-* A list or tuple, whose elements will be evaluated as booleans (imagine calling ``bool()`` on each item) and the bits set to ``1`` for ``True`` items and ``0`` for ``False`` items.
-* A positive integer, used to create a bitstring of that many zero bits.
-* A file object, opened in binary mode, from which the bitstring will be formed.
-* A ``bytearray`` or ``bytes`` object.
-* An ``array`` object from the built-in ``array`` module. This is used after being converted to it's constituent byte data via its ``tobytes`` method.
-* A ``bitarray`` or ``frozenbitarray`` object from the 3rd party ``bitarray`` package.
-
-
-
-Class properties
-^^^^^^^^^^^^^^^^
-
-Bitstrings use a wide range of properties for getting and setting different interpretations on the binary data, as well as accessing bit lengths and positions. For the mutable :class:`BitStream` and :class:`BitArray` objects the properties are all read and write (with the exception of the :attr:`~Bits.len`), whereas for immutable objects the only write enabled properties are for the position in the bitstream (:attr:`~ConstBitStream.pos`/:attr:`~ConstBitStream.bitpos` and :attr:`~ConstBitStream.bytepos`).
 
 

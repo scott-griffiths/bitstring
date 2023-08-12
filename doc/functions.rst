@@ -14,7 +14,7 @@ pack
    :param kwargs: a dictionary of token replacements
    :rtype: BitStream
 
-The format string consists of comma separated tokens of the form ``name[:]length=value``. See the entry for :meth:`~ConstBitStream.read` for more details. The ``:`` is optional and is mostly omitted here except where it improves readability.
+The format string consists of comma separated tokens, see :ref:`format_tokens` and :ref:`compact_format` for details.
 
 The tokens can be 'literals', like ``0xef``, ``0b110``, ``uint8=55``, etc. which just represent a set sequence of bits.
 
@@ -39,6 +39,51 @@ Tokens starting with an endianness identifier (``<``, ``>`` or ``=``) implies a 
 And of course you can combine the different methods in a single pack.
 
 A :exc:`ValueError` will be raised if the ``*values`` are not all used up by the format string, and if a value provided doesn't match the length specified by a token.
+
+
+
+As an example of using just the ``*values`` arguments we can say::
+
+    s = bitstring.pack('hex32, uint12, uint12', '0x000001b3', 352, 288)
+
+which is equivalent to initialising as::
+
+    s = BitStream('0x0000001b3, uint12=352, uint12=288')
+
+The advantage of the pack function is if you want to write more general code for creation. ::
+
+    def foo(a, b, c, d):
+        return bitstring.pack('uint8, 0b110, int6, bin, bits', a, b, c, d)
+
+    s1 = foo(12, 5, '0b00000', '')
+    s2 = foo(101, 3, '0b11011', s1)
+
+Note how you can use some tokens without sizes (such as ``bin`` and ``bits`` in the above example), and use values of any length to fill them.
+If the size had been specified then a :exc:`ValueError` would be raised if the parameter given was the wrong length.
+Note also how bitstring literals can be used (the ``0b110`` in the bitstring returned by ``foo``) and these don't consume any of the items in ``*values``.
+
+You can also include keyword, value pairs (or an equivalent dictionary) as the final parameter(s). The values are then packed according to the positions of the keywords in the format string. This is most easily explained with some examples. Firstly the format string needs to contain parameter names::
+
+    format = 'hex32=start_code, uint12=width, uint12=height'
+
+Then we can make a dictionary with these parameters as keys and pass it to pack::
+
+    d = {'start_code': '0x000001b3', 'width': 352, 'height': 288}
+    s = bitstring.pack(format, **d)
+
+Another method is to pass the same information as keywords at the end of pack's parameter list::
+
+    s = bitstring.pack(format, width=352, height=288, start_code='0x000001b3')
+
+
+You can include constant bitstring tokens such as '0x101', '0xff', 'uint7=81' etc. and also use a keyword for the length specifier in the token, for example::
+
+    s = bitstring.pack('0xabc, int:n=-1', n=100)
+
+Finally it is also possible just to use a keyword as a token::
+
+    s = bitstring.pack('hello, world', world='0x123', hello='0b110')
+
 
 Module Variables
 ----------------

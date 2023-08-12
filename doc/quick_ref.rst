@@ -2,9 +2,10 @@
 
 .. _quick_reference:
 
-******************
+###############
 Quick Reference
-******************
+###############
+
 This section lists the bitstring module's classes together with all their methods and attributes. The next section goes into full detail with examples.
 
 The first four classes are bit containers, so that each element is a single bit.
@@ -46,8 +47,8 @@ The final class is a flexible container whose elements are fixed-length bitstrin
      - ✘
      - An efficient list-like container where each item has a fixed-length binary format.
 
-
 ----
+
 
 Bits
 ----
@@ -57,9 +58,9 @@ Bits
 Constructor
 ^^^^^^^^^^^
 
-``Bits(auto, length: Optional[int], offset: Optional[int], **kwargs)``
+``Bits(__auto, length: Optional[int], offset: Optional[int], **kwargs)``
 
-The `auto` parameter can be many different types, including parsable strings, a file handle, a bytes or bytearray object, an integer or an iterable.
+The first parameter (usually referred to as `auto`) can be many different types, including parsable strings, a file handle, a bytes or bytearray object, an integer or an iterable.
 
 A single initialiser from `kwargs` can be used instead of `auto`, including  ``bin``, ``hex``, ``oct``, ``bool``, ``uint``, ``int``, ``float``, ``bytes`` and ``filename``.
 
@@ -242,7 +243,7 @@ It is the most general of the four classes, but it is usually best to choose the
 Array
 -----
 
-The bitstring ``Array`` is similar to the ``array`` type in the ``array`` module, except that it is far more flexible.
+The bitstring ``Array`` is similar to the ``array`` type in the `array <https://docs.python.org/3/library/array.html>`_ module, except that it is far more flexible.
 The ``fmt`` specifies a fixed-length format for each element of the ``Array``, and it behaves largely like a list of elements of that format.
 
 Both the format and the underlying bit data (stored as a ``BitArray``) can be freely modified after creation, and element-wise operations can be used on the ``Array``.
@@ -252,7 +253,7 @@ Constructor
 
 ``Array(fmt: str, initializer, trailing_bits)``
 
-The `fmt` can be a struct-like type code, or a single fixed-length token as used in the ``Bits`` class.
+The `fmt` can any single fixed-length token as described in :ref:`format_tokens` and :ref:`compact_format`.
 
 The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
 
@@ -336,6 +337,115 @@ Properties
 * :attr:`~Array.trailing_bits` -- If the data length is not a multiple of the fmt length, this BitArray gives the leftovers at the end of the data.
 
 ----
+
+General Information
+-------------------
+
+Format strings are used when constructing bitstrings, as well as reading, packing and unpacking them, as well as giving the format for :class:`Array` objects.
+They can also be auto promoted to bitstring when appropriate - see :ref:`auto_init`.
+
+.. _format_tokens:
+
+Format tokens
+^^^^^^^^^^^^^
+
+=================== ===============================================================================
+``'int:n'``         ``n`` bits as a signed integer.
+``'uint:n'``        ``n`` bits as an unsigned integer.
+``'intbe:n'``	      ``n`` bits as a byte-wise big-endian signed integer.
+``'uintbe:n'``      ``n`` bits as a byte-wise big-endian unsigned integer.
+``'intle:n'``       ``n`` bits as a byte-wise little-endian signed integer.
+``'uintle:n'``      ``n`` bits as a byte-wise little-endian unsigned integer.
+``'intne:n'``       ``n`` bits as a byte-wise native-endian signed integer.
+``'uintne:n'``      ``n`` bits as a byte-wise native-endian unsigned integer.
+``'float:n'``       ``n`` bits as a big-endian floating point number (same as ``floatbe``).
+``'floatbe:n'``     ``n`` bits as a big-endian floating point number (same as ``float``).
+``'floatle:n'``     ``n`` bits as a little-endian floating point number.
+``'floatne:n'``     ``n`` bits as a native-endian floating point number.
+``'bfloat[:16]'``   16 bits as a big-endian bfloat floating point number (same as ``bfloatbe``).
+``'bfloatbe[:16]'`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
+``'bfloatle[:16]'`` 16 bits as a little-endian floating point number.
+``'bfloatne[:16]'`` 16 bits as a native-endian floating point number.
+``'float8_143'``    8 bits as a 1:4:3 format floating point number.
+``'float8_152'``    8 bits as a 1:5:2 format floating point number.
+``'hex:n'``         ``n`` bits as a hexadecimal string.
+``'oct:n'``         ``n`` bits as an octal string.
+``'bin:n'``         ``n`` bits as a binary string.
+``'bits:n'``        ``n`` bits as a new bitstring.
+``'bytes:n'``       ``n`` bytes as a ``bytes`` object.
+``'ue'``            next bits as an unsigned exponential-Golomb code.
+``'se'``            next bits as a signed exponential-Golomb code.
+``'uie'``           next bits as an interleaved unsigned exponential-Golomb code.
+``'sie'``           next bits as an interleaved signed exponential-Golomb code.
+``'bool[:1]'``      next bit as a boolean (True or False).
+``'pad:n'``         next ``n`` bits will be ignored (padding). Only applicable when reading, not creating.
+=================== ===============================================================================
+
+The ``':'`` before the length is optional, and is mostly omitted in the documentation, except where it improves readability.
+
+The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can all be shortened to just their initial letter.
+
+Bitstring literals
+^^^^^^^^^^^^^^^^^^
+
+To make a literal quantity (one that directly represents a sequence of bits) you can use any of the format tokens above followed by an ``'='`` and a value to initialise with.
+For example::
+
+    s = BitArray('float32=10.125, int7=-9')
+    s.append('hex:abc')
+
+You can also create binary, octal and hexadecimal literals by starting a string with ``'0b'``, ``'0o'`` and ``'0ox'`` respectively::
+
+    t = BitArray('0b101')
+    t += '0x001f'
+
+
+.. _compact_format:
+
+Compact format strings
+^^^^^^^^^^^^^^^^^^^^^^
+
+Another option is to use a format specifier similar to those used in the ``struct`` and ``array`` modules. These consist of a character to give the endianness, followed by more single characters to give the format.
+
+The endianness character must start the format string:
+
+=======   =============
+``'>'``   Big-endian
+``'<'``   Little-endian
+``'='``   Native-endian
+=======   =============
+
+.. note::
+    * For native-endian ``'@'`` and ``'='`` can both be used and are equivalent. The ``'@'`` character was required for native-endianness prior to version 4.1 of bitstring.
+
+    * For 'network' endianness use ``'>'`` as network and big-endian are equivalent.
+
+This is followed by at least one of these format characters:
+
+=======   ===============================
+``'b'``   8 bit signed integer
+``'B'``   8 bit unsigned integer
+``'h'``   16 bit signed integer
+``'H'``   16 bit unsigned integer
+``'l'``   32 bit signed integer
+``'L'``   32 bit unsigned integer
+``'q'``   64 bit signed integer
+``'Q'``   64 bit unsigned integer
+``'e'``   16 bit floating point number
+``'f'``   32 bit floating point number
+``'d'``   64 bit floating point number
+=======   ===============================
+
+The exact type is determined by combining the endianness character with the format character, but rather than give an exhaustive list a single example should explain:
+
+========  ======================================   ===========
+``'>h'``  Big-endian 16 bit signed integer         ``intbe16``
+``'<h'``  Little-endian 16 bit signed integer      ``intle16``
+``'=h'``  Native-endian 16 bit signed integer      ``intne16``
+========  ======================================   ===========
+
+As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian ``'=h'`` will equal the big-endian ``'>h'`` on big-endian systems, and equal the little-endian ``'<h'`` on little-endian systems. For the single byte codes ``'b'`` and ``'B'`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
+
 
 Module level
 ------------

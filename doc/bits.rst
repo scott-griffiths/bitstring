@@ -87,6 +87,7 @@ count
             >>> s.count(False)
             999997
 
+        If you need to count more than just single bits you can use :meth:`~Bits.findall`, for example ``len(list(s.findall('0xabc')))``.
         Note that if the bitstring is very sparse, as in the example here, it could be quicker to find and count all the set bits with something like ``len(list(s.findall('0b1')))``. For bitstrings with more entropy the ``count`` method will be much quicker than finding.
 
 cut
@@ -286,12 +287,18 @@ unpack
         
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string.
 
-        *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :meth:`~ConstBitStream.read` for details. ::
+        *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :ref:`format_tokens` for details. ::
 
             >>> s = Bits('int4=-1, 0b1110')
             >>> i, b = s.unpack('int:4, bin')
 
         If a token doesn't supply a length (as with ``bin`` above) then it will try to consume the rest of the bitstring. Only one such token is allowed.
+
+        The ``unpack`` method is a natural complement of the :func:`pack` function. ::
+
+            s = bitstring.pack('uint10, hex, int13, 0b11', 130, '3d', -23)
+            a, b, c, d = s.unpack('uint10, hex, int13, bin2')
+
 
 Properties
 ----------

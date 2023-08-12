@@ -78,8 +78,8 @@ read
         ``bfloatbe[:16]`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
         ``bfloatle[:16]`` 16 bits as a little-endian floating point number.
         ``bfloatne[:16]`` 16 bits as a native-endian floating point number.
-        ``float8_143``    8 bits as a 1.4.3 format floating point number.
-        ``float8_152``    8 bits as a 1.5.2 format floating point number.
+        ``float8_143``    8 bits as a 1:4:3 format floating point number.
+        ``float8_152``    8 bits as a 1:5:2 format floating point number.
         ``hex:n``         ``n`` bits as a hexadecimal string.
         ``oct:n``         ``n`` bits as an octal string.
         ``bin:n``         ``n`` bits as a binary string.

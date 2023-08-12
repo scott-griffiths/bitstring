@@ -2,9 +2,9 @@
 
 .. _reading:
 
-******************************
-Reading, Parsing and Unpacking
-******************************
+******************
+Reading BitStreams
+******************
 
 Reading and parsing
 ---------------------
@@ -64,8 +64,8 @@ The format string consists of comma separated tokens that describe how to interp
 ``floatbe:n``     ``n`` bits as a big-endian floating point number (same as ``float``).
 ``floatle:n``     ``n`` bits as a little-endian floating point number.
 ``floatne:n``     ``n`` bits as a native-endian floating point number.
-``float8_143``    8 bits as a '143' format floating point number.
-``float8_152``    8 bits as a '152' format floating point number.
+``float8_143``    8 bits as a '1:4:3' format floating point number.
+``float8_152``    8 bits as a '1:5:2' format floating point number.
 ``bfloat[:16]``   16 bits as a big-endian bfloat floating point number (same as ``bfloatbe``).
 ``bfloatbe[:16]`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
 ``bfloatle[:16]`` 16 bits as a little-endian floating point number.
@@ -121,13 +121,6 @@ In addition to the read methods there are matching peek methods. These are ident
         s.find('0x47')
 
 
-Unpacking
----------
-
-The :meth:`~Bits.unpack` method works in a very similar way to :meth:`~ConstBitStream.readlist`. The major difference is that it interprets the whole bitstring from the start, and takes no account of the current :attr:`~ConstBitStream.pos`. It's a natural complement of the :func:`pack` function. ::
-
-    s = pack('uint10, hex, int13, 0b11', 130, '3d', -23)
-    a, b, c, d = s.unpack('uint10, hex, int13, bin2')
 
 Seeking
 -------
