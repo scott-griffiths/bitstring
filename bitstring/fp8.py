@@ -4,7 +4,6 @@ See https://arxiv.org/abs/2206.02915
 
 """
 
-import array
 import struct
 import zlib
 
@@ -61,13 +60,12 @@ class FP8Format:
     def __init__(self, exp_bits: int, bias: int):
         # We use look up tables to go from an IEEE float16 to the best float8 representation.
         # For startup efficiency they've been precalculated and zipped up
-        self.lut_int8_to_float = array.array('f')
         if exp_bits == 4 and bias == 8:
             self.lut_float16_to_float8 = zlib.decompress(lut_float16_to_float8_143_compressed)
-            self.lut_int8_to_float.frombytes(zlib.decompress(lut_int8_to_float8_143_compressed))
+            self.lut_int8_to_float = struct.unpack('<256f', zlib.decompress(lut_int8_to_float8_143_compressed))
         elif exp_bits == 5 and bias == 16:
             self.lut_float16_to_float8 = zlib.decompress(lut_float16_to_float8_152_compressed)
-            self.lut_int8_to_float.frombytes(zlib.decompress(lut_int8_to_float8_152_compressed))
+            self.lut_int8_to_float = struct.unpack('<256f', zlib.decompress(lut_int8_to_float8_152_compressed))
         else:  # pragma: no cover
             raise RuntimeError("Unsupported float8 format trying to be created. Only float8_143 and float8_152 available for now.")
             # # This is how the LUTs above were calculated. For reference only - shouldn't be needed any more
