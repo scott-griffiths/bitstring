@@ -1,62 +1,11 @@
 .. currentmodule:: bitstring
 
-.. _quick_reference:
-
-###############
-Quick Reference
-###############
-
-This section lists the bitstring module's classes together with all their methods and attributes. The next section goes into full detail with examples.
-
-The first four classes are bit containers, so that each element is a single bit.
-They differ based on whether they can be modified after creation and on whether they have the concept of a current bit position.
-
-.. list-table::
-   :widths: 30 15 15 40
-   :header-rows: 1
-
-   * - Class
-     - Mutable?
-     - Streaming methods?
-     -
-   * - ``Bits``
-     - ✘
-     - ✘
-     - An efficient, immutable container of bits.
-   * - ``BitArray``
-     - ✔
-     - ✘
-     - Like ``Bits`` but it can be changed after creation.
-   * - ``ConstBitStream``
-     - ✘
-     - ✔
-     - Immutable like ``Bits`` but with a bit position and reading methods.
-   * - ``BitStream``
-     - ✔
-     - ✔
-     - Mutable like ``BitArray`` but with a bit position and reading methods.
-
-
-The final class is a flexible container whose elements are fixed-length bitstrings.
-
-.. list-table::
-   :widths: 30 15 15 40
-
-   * - ``Array``
-     - ✔
-     - ✘
-     - An efficient list-like container where each item has a fixed-length binary format.
-
-----
-
 
 Bits
 ----
 
-``Bits`` is the most basic class and is just a container of bits. It is immutable, so once created its value cannot change.
+:class:`Bits` is the most basic class and is just a container of bits. It is immutable, so once created its value cannot change.
 
-Constructor
-^^^^^^^^^^^
 
 ``Bits(__auto, length: Optional[int], offset: Optional[int], **kwargs)``
 
@@ -112,6 +61,9 @@ Also available are operators that will return a new bitstring (or check for equa
 Properties
 ^^^^^^^^^^
 
+These read-only properties of the ``Bits`` object are interpretations of the binary data and are calculated as required.
+Many require the bitstring to be specific lengths.
+
 * :attr:`~Bits.bin` / ``b`` -- The bitstring as a binary string.
 * :attr:`~Bits.bool` -- For single bit bitstrings, interpret as True or False.
 * :attr:`~Bits.bytes` -- The bitstring as a bytes object.
@@ -147,7 +99,7 @@ BitArray
 
 ``Bits`` ⟶ ``BitArray``
 
-This class adds mutating methods to ``Bits``. The constructor is the same as for ``Bits``.
+:class:`BitArray` adds mutating methods to ``Bits``. The constructor is the same as for ``Bits``.
 
 Additional methods
 ^^^^^^^^^^^^^^^^^^
@@ -183,10 +135,7 @@ The special methods available for the ``Bits`` class are all available, plus som
 * :meth:`^= <BitArray.__ixor__>` -- In-place bit-wise XOR between two bitstrings.
 
 
-Properties
-^^^^^^^^^^
-
-The same as ``Bits``, except that they are all (with the exception of ``len``) writable as well as readable.
+``BitArray`` objects have the same properties as ``Bits``, except that they are all (with the exception of ``len``) writable as well as readable.
 
 ----
 
@@ -195,16 +144,12 @@ ConstBitStream
 
 ``Bits`` ⟶ ``ConstBitStream``
 
-This class adds a bit position and methods to read and navigate in an immutable bitstream.
+:class:`ConstBitStream` adds a bit position and methods to read and navigate in an immutable bitstream.
 If you wish to use streaming methods on a large file without changing it then this is often the best class to use.
 
-Constructor
-^^^^^^^^^^^
-
-The same as for ``Bits`` / ``BitArray`` but with an optional current bit position.
+The constructor is the same as for ``Bits`` / ``BitArray`` but with an optional current bit position.
 
 ``ConstBitStream(auto, length: Optional[int], offset: Optional[int], pos: int = 0, **kwargs)``
-
 
 All of the methods, special methods and properties listed above for the ``Bits`` class are available, plus:
 
@@ -232,7 +177,7 @@ BitStream
 ``Bits`` ⟶ ``BitArray / ConstBitStream`` ⟶ ``BitStream``
 
 
-This class contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
+:class:`BitStream` contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
 The constructor is the same as for ``ConstBitStream``.
 It has all the methods, special methods and properties of the ``Bits``, ``BitArray`` and ``ConstBitArray`` classes.
 
@@ -243,13 +188,9 @@ It is the most general of the four classes, but it is usually best to choose the
 Array
 -----
 
-The bitstring ``Array`` is similar to the ``array`` type in the `array <https://docs.python.org/3/library/array.html>`_ module, except that it is far more flexible.
-The ``fmt`` specifies a fixed-length format for each element of the ``Array``, and it behaves largely like a list of elements of that format.
+A bitstring :class:`Array` is a contiguously allocated sequence of bitstrings of the same type.
+It is similar to the ``array`` type in the `array <https://docs.python.org/3/library/array.html>`_ module, except that it is far more flexible.
 
-Both the format and the underlying bit data (stored as a ``BitArray``) can be freely modified after creation, and element-wise operations can be used on the ``Array``.
-
-Constructor
-^^^^^^^^^^^
 
 ``Array(fmt: str, initializer, trailing_bits)``
 
@@ -258,7 +199,8 @@ The `fmt` can any single fixed-length token as described in :ref:`format_tokens`
 The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
 
 The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the format `fmt`.
-Modifying the data or format after creation may cause the `trailing_bits` to not be empty.
+
+Both the format and the underlying bit data (stored as a ``BitArray``) can be freely modified after creation, and element-wise operations can be used on the ``Array``. Modifying the data or format after creation may cause the `trailing_bits` to not be empty.
 
 Examples::
 
@@ -287,7 +229,7 @@ Special methods
 ^^^^^^^^^^^^^^^
 
 These non-mutating special methods are available. Where appropriate they return a new ``Array``.
-The bit-wise logical operations (``&``, ``|``, ``^``) are performed on each element with a ``Bits`` object.
+The bit-wise logical operations (``&``, ``|``, ``^``) are performed on each element with a ``Bits`` object, which must have the same length as the ``Array`` elements.
 The other element-wise operations are performed on the interpreted data, not on the bit-data.
 For example this means that the shift operations won't work on floating point formats.
 
@@ -341,13 +283,14 @@ Properties
 General Information
 -------------------
 
-Format strings are used when constructing bitstrings, as well as reading, packing and unpacking them, as well as giving the format for :class:`Array` objects.
-They can also be auto promoted to bitstring when appropriate - see :ref:`auto_init`.
-
 .. _format_tokens:
 
 Format tokens
 ^^^^^^^^^^^^^
+
+Format strings are used when constructing bitstrings, as well as reading, packing and unpacking them, as well as giving the format for :class:`Array` objects.
+They can also be auto promoted to bitstring when appropriate - see :ref:`auto_init`.
+
 
 =================== ===============================================================================
 ``'int:n'``         ``n`` bits as a signed integer.

@@ -59,41 +59,9 @@ read
 
         Reads from current bit position :attr:`pos` in the bitstring according the format string and returns a single result. If not enough bits are available then a :exc:`ReadError` is raised.
 
-        *fmt* is either a token string that describes how to interpret the next bits in the bitstring or an integer. If it's an integer then that number of bits will be read, and returned as a new bitstring. Otherwise the tokens are:
-
-        ================= ===============================================================================
-        ``int:n``         ``n`` bits as a signed integer.
-        ``uint:n``        ``n`` bits as an unsigned integer.
-        ``intbe:n``	      ``n`` bits as a byte-wise big-endian signed integer.
-        ``uintbe:n``      ``n`` bits as a byte-wise big-endian unsigned integer.
-        ``intle:n``       ``n`` bits as a byte-wise little-endian signed integer.
-        ``uintle:n``      ``n`` bits as a byte-wise little-endian unsigned integer.
-        ``intne:n``       ``n`` bits as a byte-wise native-endian signed integer.
-        ``uintne:n``      ``n`` bits as a byte-wise native-endian unsigned integer.
-        ``float:n``       ``n`` bits as a big-endian floating point number (same as ``floatbe``).
-        ``floatbe:n``     ``n`` bits as a big-endian floating point number (same as ``float``).
-        ``floatle:n``     ``n`` bits as a little-endian floating point number.
-        ``floatne:n``     ``n`` bits as a native-endian floating point number.
-        ``bfloat[:16]``   16 bits as a big-endian bfloat floating point number (same as ``bfloatbe``).
-        ``bfloatbe[:16]`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
-        ``bfloatle[:16]`` 16 bits as a little-endian floating point number.
-        ``bfloatne[:16]`` 16 bits as a native-endian floating point number.
-        ``float8_143``    8 bits as a 1:4:3 format floating point number.
-        ``float8_152``    8 bits as a 1:5:2 format floating point number.
-        ``hex:n``         ``n`` bits as a hexadecimal string.
-        ``oct:n``         ``n`` bits as an octal string.
-        ``bin:n``         ``n`` bits as a binary string.
-        ``bits:n``        ``n`` bits as a new bitstring.
-        ``bytes:n``       ``n`` bytes as a ``bytes`` object.
-        ``ue``            next bits as an unsigned exponential-Golomb code.
-        ``se``            next bits as a signed exponential-Golomb code.
-        ``uie``           next bits as an interleaved unsigned exponential-Golomb code.
-        ``sie``           next bits as an interleaved signed exponential-Golomb code.
-        ``bool[:1]``      next bit as a boolean (True or False).
-        ``pad:n``         next ``n`` bits will be ignored (padding).
-        ================= ===============================================================================
-
-        The ``:`` before the length is optional as of bitstring version 4, and is mostly omitted in the documentation, except where it improves readability.
+        *fmt* is either a token string that describes how to interpret the next bits in the bitstring or an integer.
+        If it's an integer then that number of bits will be read, and returned as a new bitstring.
+        A full list of the tokens is given in :ref:`format_tokens`.
 
         For example::
 
@@ -102,7 +70,7 @@ read
             '23e'
             >>> s.read('bin4')
             '1111'
-            >>> s.read('uint5')
+            >>> s.read('u5')
             10
             >>> s.read('bits4')
             ConstBitStream('0xa')
@@ -125,7 +93,7 @@ readlist
 
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is advanced to after the read items.
 
-        See the entry for :meth:`read` for information on the format strings.
+        See :ref:`format_tokens` for information on the format strings.
 
         For multiple items you can separate using commas or given multiple parameters::
 
@@ -160,7 +128,7 @@ Properties
 The ``ConstBitStream`` and ``BitStream`` classes have the concept of a current bit position.
 This position will be set to zero by default on construction, and will be modified by many of the methods described above as the stream is being read.
 
-Using :meth:`Bits.find`` or :meth:`Bits.rfind` will move ``pos`` to the start of the substring if it is found.
+Using :meth:`~Bits.find` or :meth:`~Bits.rfind` will move ``pos`` to the start of the substring if it is found.
 
 Note that the ``pos`` property isn’t considered a part of the bitstring's identity; this allows it to vary for immutable ``ConstBitStream`` objects and means that it doesn’t affect equality or hash values.
 It also will be reset to zero if a bitstring is copied.

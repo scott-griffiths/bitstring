@@ -119,7 +119,7 @@ The :ref:`reference` section has a complete list of all the classes, methods, pr
 .. toctree::
     :maxdepth: 2
 
-    quick_ref
+    quick_reference
     reference
     appendices
 

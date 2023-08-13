@@ -287,7 +287,7 @@ unpack
         
         A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string.
 
-        *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the entry for :ref:`format_tokens` for details. ::
+        *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the  :ref:`format_tokens` for details. ::
 
             >>> s = Bits('int4=-1, 0b1110')
             >>> i, b = s.unpack('int:4, bin')
