@@ -202,7 +202,7 @@ The `trailing_bits` typically isn't used in construction, and specifies bits lef
 
 Both the format and the underlying bit data (stored as a ``BitArray``) can be freely modified after creation, and element-wise operations can be used on the ``Array``. Modifying the data or format after creation may cause the `trailing_bits` to not be empty.
 
-Examples::
+Initialization examples::
 
     Array('>H', [1, 10, 20])
     Array('float16', a_file_object)
@@ -221,25 +221,14 @@ Methods
 * :meth:`~Array.pop` -- Return and remove an item.
 * :meth:`~Array.pp` -- Pretty print the Array.
 * :meth:`~Array.reverse` -- Reverse the order of all items.
-* :meth:`~Array.tobytes` -- Return Array data as bytes object, padding with zero bits at end if needed.
-* :meth:`~Array.tofile` -- Write Array data to a file, padding with zero bits at end if needed.
+* :meth:`~Array.tobytes` -- Return Array data as bytes object, padding with zero bits at the end if needed.
+* :meth:`~Array.tofile` -- Write Array data to a file, padding with zero bits at the end if needed.
 * :meth:`~Array.tolist` -- Return Array items as a list.
 
 Special methods
 ^^^^^^^^^^^^^^^
 
 These non-mutating special methods are available. Where appropriate they return a new ``Array``.
-The bit-wise logical operations (``&``, ``|``, ``^``) are performed on each element with a ``Bits`` object, which must have the same length as the ``Array`` elements.
-The other element-wise operations are performed on the interpreted data, not on the bit-data.
-For example this means that the shift operations won't work on floating point formats.
-
-Examples::
-
-    >>> a = Array('float16', [1.5, 2.5, 7])
-    >>> a *= 3.0  # Multiplication of each float16 value
-    >>> a
-    Array('float16', [4.5, 7.5, 21.0])
-
 
 * :meth:`== <Array.__eq__>` / :meth:`\!= <Array.__ne__>` -- Equality tests.
 * :meth:`[] <Array.__getitem__>` -- Get an element or slice.
@@ -253,6 +242,17 @@ Examples::
 * :meth:`& <Array.__and__>` -- Bit-wise AND of each element.
 * :meth:`| <Array.__or__>` -- Bit-wise OR of each element.
 * :meth:`^ <Array.__xor__>` -- Bit-wise XOR of each element.
+
+For example::
+
+    >>> b = Array('i6', [30, -10, 1, 0])
+    >>> b >> 2
+    Array('i6', [7, -3, 0, 0])
+    >>> b + 1
+    Array('i6', [31, -9, 2, 1])
+    >>> b + b
+    Array('i6', [30, -10, 1, 0, 30, -10, 1, 0])
+
 
 Mutating versions of many of the methods are also available.
 
@@ -269,6 +269,18 @@ Mutating versions of many of the methods are also available.
 * :meth:`|= <Array.__ior__>` -- In-place bit-wise OR of each element.
 * :meth:`^= <Array.__ixor__>` -- In-place bit-wise XOR of each element.
 
+Example::
+
+    >>> a = Array('float16', [1.5, 2.5, 7, 1000])
+    >>> a[::2] *= 3.0  # Multiply every other float16 value in-place
+    >>> a
+    Array('float16', [4.5, 2.5, 21.0, 1000.0])
+
+
+The bit-wise logical operations (``&``, ``|``, ``^``) are performed on each element with a ``Bits`` object, which must have the same length as the ``Array`` elements.
+The other element-wise operations are performed on the interpreted data, not on the bit-data.
+For example this means that the shift operations won't work on floating point formats.
+
 
 Properties
 ^^^^^^^^^^
@@ -276,7 +288,7 @@ Properties
 * :attr:`~Array.data` -- The complete binary data in a ``BitArray`` object. Can be freely modified.
 * :attr:`~Array.fmt` -- The format string or typecode. Can be freely modified.
 * :attr:`~Array.itemsize` -- The length *in bits* of a single item. Read only.
-* :attr:`~Array.trailing_bits` -- If the data length is not a multiple of the fmt length, this BitArray gives the leftovers at the end of the data.
+* :attr:`~Array.trailing_bits` -- If the data length is not a multiple of the fmt length, this ``BitArray`` gives the leftovers at the end of the data.
 
 ----
 

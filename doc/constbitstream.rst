@@ -9,6 +9,60 @@ ConstBitStream Class
 
     A :class:`ConstBitStream` is a :class:`Bits` with added methods and properties that allow it to be parsed as a stream of bits.
 
+Reading and parsing
+---------------------
+
+The :class:`BitStream` and :class:`ConstBitStream` classes contain number of methods for reading the bitstring as if it were a file or stream. Depending on how it was constructed the bitstream might actually be contained in a file rather than stored in memory, but these methods work for either case.
+
+In order to behave like a file or stream, every bitstream has a property :attr:`~ConstBitStream.pos` which is the current position from which reads occur. :attr:`~ConstBitStream.pos` can range from zero (its default value on construction) to the length of the bitstream, a position from which all reads will fail as it is past the last bit. Note that the :attr:`~ConstBitStream.pos` property isn't considered a part of the bitstream's identity; this allows it to vary for immutable :class:`ConstBitStream` objects and means that it doesn't affect equality or hash values.
+
+The property :attr:`~ConstBitStream.bytepos` is also available, and is useful if you are only dealing with byte data and don't want to always have to divide the bit position by eight. Note that if you try to use :attr:`~ConstBitStream.bytepos` and the bitstring isn't byte aligned (i.e. :attr:`~ConstBitStream.pos` isn't a multiple of 8) then a :exc:`ByteAlignError` exception will be raised.
+
+Reading using format strings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :meth:`~ConstBitStream.read` / :meth:`~ConstBitStream.readlist` methods can also take a format string similar to that used in the auto initialiser. Only one token should be provided to :meth:`~ConstBitStream.read` and a single value is returned. To read multiple tokens use :meth:`~ConstBitStream.readlist`, which unsurprisingly returns a list.
+
+The format string consists of comma separated tokens that describe how to interpret the next bits in the bitstring.
+The tokens are given in :ref:`format_tokens`.
+
+For example we can read and interpret three quantities from a bitstream with::
+
+    start_code = s.read('hex32')
+    width = s.read('uint12')
+    height = s.read('uint12')
+
+and we also could have combined the three reads as::
+
+    start_code, width, height = s.readlist('hex32, 2*uint12')
+
+where here we are also using a multiplier to combine the format of the second and third tokens.
+
+You are allowed to use one 'stretchy' token in a :meth:`~ConstBitStream.readlist`. This is a token without a length specified, which will stretch to fill encompass as many bits as possible. This is often useful when you just want to assign something to 'the rest' of the bitstring::
+
+    a, b, everything_else = s.readlist('intle16, intle24, bits')
+
+In this example the ``bits`` token will consist of everything left after the first two tokens are read, and could be empty.
+
+It is an error to use more than one stretchy token, or to use a ``ue``, ``se``, ``uie`` or ``se`` token after a stretchy token (the reason you can't use exponential-Golomb codes after a stretchy token is that the codes can only be read forwards; that is you can't ask "if this code ends here, where did it begin?" as there could be many possible answers).
+
+The ``pad`` token is a special case in that it just causes bits to be skipped over without anything being returned. This can be useful for example if parts of a binary format are uninteresting::
+
+    a, b = s.readlist('pad12, uint4, pad4, uint8')
+
+Peeking
+^^^^^^^^
+
+In addition to the read methods there are matching peek methods. These are identical to the read except that they do not advance the position in the bitstring to after the read elements. ::
+
+    s = ConstBitStream('0x4732aa34')
+    if s.peek(8) == '0x47':
+        t = s.read(16)          # t is first 2 bytes '0x4732'
+    else:
+        s.find('0x47')
+
+
+
 Methods
 -------
 

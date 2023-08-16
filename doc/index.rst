@@ -40,6 +40,27 @@ It is not difficult to manipulate binary data in Python, for example using the `
 
 The bitstring module provides support many different bit formats, allowing easy and efficient storage, interpretation and construction.
 
+
+Documentation
+^^^^^^^^^^^^^
+
+
+The :ref:`quick_reference` provides a basic list of the classes and their methods.
+
+The :ref:`reference` section has a complete list of all the classes, methods, properties and functions of the bitstring module, together with short examples for many items.
+
+.. toctree::
+   :hidden:
+
+   self
+
+.. toctree::
+    :hidden:
+
+    quick_reference
+    reference
+    appendices
+
 Mixed format bitstrings
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -101,27 +122,6 @@ You can also take and set slices as you'd expect, and apply operations to each e
     Array('uint16', [0, 1, 20, 6, 55, 2, 40, 7])
     >>> a >> 2
     Array('uint16', [0, 0, 5, 1, 13, 0, 10, 1])
-
-
-Documentation
-^^^^^^^^^^^^^
-
-
-The :ref:`quick_reference` provides a basic list of the classes and their methods.
-
-The :ref:`reference` section has a complete list of all the classes, methods, properties and functions of the bitstring module, together with short examples for many items.
-
-.. toctree::
-   :hidden:
-
-   self
-
-.. toctree::
-    :maxdepth: 2
-
-    quick_reference
-    reference
-    appendices
 
 
 Installation and download

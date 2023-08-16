@@ -7,7 +7,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
 .. class:: Bits([__auto, length, offset, **kwargs])
 
-    Creates a new bitstring. You must specify either no initialiser, just an ``auto`` value as the first parameter, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``float8_143``, ``float8_152``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    Creates a new bitstring. You must specify either no initialiser, just an 'auto' value as the first parameter, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``float8_143``, ``float8_152``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`, :class:`BitStream` and :class:`ConstBitStream`.
 
@@ -315,10 +315,6 @@ bin / b
 
 bfloat / bfloatbe
 ^^^^^^^^^^^^^^^^^
-    .. note::
-
-        The ``bfloat`` properties are specialised representations mainly used in machine learning. They are essentially the first half of the IEEE 32-bit floats, so have the same range but with less accuracy. If you don't know what a bfloat is then you almost certainly want to use the ``float`` properties instead. See :ref:`Exotic floats` for more information.
-
     .. attribute:: Bits.bfloat
     .. attribute:: Bits.bfloatbe
 
@@ -327,6 +323,9 @@ bfloat / bfloatbe
         The bitstring must be 16 bits long to support this floating point interpretation, otherwise an :exc:`InterpretError` will be raised.
 
         The :attr:`bfloat` property is bit-wise big-endian, which as all floats must be whole-byte is exactly equivalent to the byte-wise big-endian :attr:`bfloatbe`.
+
+        The ``bfloat`` properties are specialised representations mainly used in machine learning. They are essentially the first half of the IEEE 32-bit floats, so have the same range but with less accuracy. If you don't know what a bfloat is then you almost certainly want to use the ``float`` properties instead. See :ref:`Exotic floats` for more information.
+
 
 bfloatle
 ^^^^^^^^

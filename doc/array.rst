@@ -48,7 +48,7 @@ Array Class
 
     You can then access and modify the ``Array`` with the usual notation::
 
-        a[1:5]  # Array('uint4', [5, 5, 3])
+        a[1:4]  # Array('uint4', [5, 5, 3])
         b[0]    # -56.0
         c[-1]   # 120
 
