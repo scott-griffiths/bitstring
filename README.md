@@ -14,6 +14,16 @@ It has been maintained since 2006 and now has many millions of downloads per yea
 [![Downloads](https://img.shields.io/pypi/dm/bitstring?color=blue)](https://pypistats.org/packages/bitstring) &nbsp; &nbsp; 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
 
+News
+----
+17th August 2023: bitstring 4.1.0 released. This is a very big update in terms of how much of the code has changed.
+
+* Speed increased with bitarray dependency.
+* New Array class for homogeneous data.
+* Support for 8-bit floating point values.
+
+See the [release notes](release_notes.txt) for details. Please let me know if you encounter any problems.
+
 
 Overview
 --------
