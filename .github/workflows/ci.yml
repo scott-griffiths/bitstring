@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     branches:
-      - 4.0-update
-      - bitarray_test
+      - stable
       - main
+      - 4.1-update
     tags:
       - v*
   pull_request:
