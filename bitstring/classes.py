@@ -70,7 +70,7 @@ def tidy_input_string(s: str) -> str:
     try:
         l = s.split()
     except (AttributeError, TypeError):
-        raise ValueError
+        raise ValueError(f"Expected str object but received a {type(s)} with value {s}.")
     return ''.join(l).lower().replace('_', '')
 
 

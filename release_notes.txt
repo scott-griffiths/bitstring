@@ -2,8 +2,8 @@
 bitstring module version history
 --------------------------------
 
-----------------------------------
-  NOT YET RELEASED: version 4.1
+-----------------------------------
+August 2023: version 4.1.0 released
 ----------------------------------
 
 This has turned into a suprisingly big release, with a major refactor and a brand new

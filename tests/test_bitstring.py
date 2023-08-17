@@ -17,7 +17,7 @@ sys.path.insert(0, '..')
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '4.1.0b2')
+        self.assertEqual(bitstring.__version__, '4.1.0')
         self.assertEqual(bitarray.__version__, '2.8.0')
 
     def testAll(self):
@@ -138,22 +138,22 @@ class Main(unittest.TestCase):
         self.assertEqual(s, '001\n')
 
 
-# @unittest.expectedFailure
-# class ABCs(unittest.TestCase):
-#     def testBaseClasses(self):
-#         # https://github.com/scott-griffiths/bitstring/issues/261
-#         bits = bitstring.Bits()
-#         self.assertTrue(isinstance(bits, abc.Sequence))
-#         self.assertFalse(isinstance(bits, abc.MutableSequence))
-#
-#         bitarray = bitstring.BitArray()
-#         self.assertTrue(isinstance(bitarray, abc.MutableSequence))
-#         self.assertTrue(isinstance(bitarray, abc.Sequence))
-#
-#         constbitstream = bitstring.ConstBitStream()
-#         self.assertTrue(isinstance(constbitstream, abc.Sequence))
-#         self.assertFalse(isinstance(constbitstream, abc.MutableSequence))
-#
-#         bitstream = bitstring.BitArray()
-#         self.assertTrue(isinstance(bitstream, abc.MutableSequence))
-#         self.assertTrue(isinstance(bitstream, abc.Sequence))
+@unittest.skip('Bug #261')
+class ABCs(unittest.TestCase):
+    def testBaseClasses(self):
+        # https://github.com/scott-griffiths/bitstring/issues/261
+        bits = bitstring.Bits()
+        self.assertTrue(isinstance(bits, abc.Sequence))
+        self.assertFalse(isinstance(bits, abc.MutableSequence))
+
+        bitarray = bitstring.BitArray()
+        self.assertTrue(isinstance(bitarray, abc.MutableSequence))
+        self.assertTrue(isinstance(bitarray, abc.Sequence))
+
+        constbitstream = bitstring.ConstBitStream()
+        self.assertTrue(isinstance(constbitstream, abc.Sequence))
+        self.assertFalse(isinstance(constbitstream, abc.MutableSequence))
+
+        bitstream = bitstring.BitArray()
+        self.assertTrue(isinstance(bitstream, abc.MutableSequence))
+        self.assertTrue(isinstance(bitstream, abc.Sequence))

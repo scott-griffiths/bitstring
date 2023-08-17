@@ -2390,7 +2390,7 @@ class Split2(unittest.TestCase):
         self.assertEqual(tp('0xef'), (False, [('0x', None, 'ef')]))
         self.assertEqual(tp('uint:12'), (False, [('uint', 12, None)]))
         self.assertEqual(tp('int:30=-1'), (False, [('int', 30, '-1')]))
-        self.assertEqual(tp('bits:10'), (False, [('bits', 10, None)]))
+        self.assertEqual(tp('bits10'), (False, [('bits', 10, None)]))
         self.assertEqual(tp('bits:10'), (False, [('bits', 10, None)]))
         self.assertEqual(tp('123'), (False, [('bits', 123, None)]))
         self.assertEqual(tp('123'), (False, [('bits', 123, None)]))
@@ -2553,10 +2553,10 @@ class Split2(unittest.TestCase):
         # I couldn't find a way to test both types of native endianness
         # on a single machine, so only one set of tests will run.
         if sys.byteorder == 'little':
-            self.assertEqual(pack('@b', 23), BitStream('intle:8=23'))
-            self.assertEqual(pack('@B', 23), BitStream('uintle:8=23'))
-            self.assertEqual(pack('@h', 23), BitStream('intle:16=23'))
-            self.assertEqual(pack('@H', 23), BitStream('uintle:16=23'))
+            self.assertEqual(pack('=b', 23), BitStream('intle:8=23'))
+            self.assertEqual(pack('=B', 23), BitStream('uintle:8=23'))
+            self.assertEqual(pack('=h', 23), BitStream('intle:16=23'))
+            self.assertEqual(pack('=H', 23), BitStream('uintle:16=23'))
             self.assertEqual(pack('@l', 23), BitStream('intle:32=23'))
             self.assertEqual(pack('@L', 23), BitStream('uintle:32=23'))
             self.assertEqual(pack('@q', 23), BitStream('intle:64=23'))
@@ -2572,7 +2572,7 @@ class Split2(unittest.TestCase):
             self.assertEqual(pack('@Q', 23), BitStream('uintbe:64=23'))
 
     def testNativeEndianness(self):
-        s = pack('@2L', 40, 40)
+        s = pack('=2L', 40, 40)
         if sys.byteorder == 'little':
             self.assertEqual(s, pack('<2L', 40, 40))
         else:
@@ -3369,6 +3369,20 @@ class AllAndAny(unittest.TestCase):
         a.pos = 0
         with self.assertRaises(bitstring.ReadError):
             _ = a.read('bytes:4')
+
+    @unittest.skip("Bug #266")
+    def testPosResetBug(self):
+        a = BitStream('0x0120310230123', pos=23)
+        self.assertEqual(a.pos, 23)
+        a.u8 = 14
+        self.assertEqual(a.pos, 0)
+        a.pos = 5
+        a.u8 = 9
+        self.assertEqual(a.pos, 0)
+
+    def testCreationExceptionBug(self):
+        with self.assertRaises(ValueError):
+            _ = BitStream(bin=1)
 
     def testAddVersesInPlaceAdd(self):
         a1 = ConstBitStream('0xabc')
