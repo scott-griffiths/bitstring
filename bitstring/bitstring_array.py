@@ -263,7 +263,7 @@ class Array:
                 self.data += self._create_element(item)
 
     def insert(self, i: int, x: ElementType) -> None:
-        """Insert a new element into the Array.
+        """Insert a new element into the Array at position i.
 
         """
         i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
@@ -275,6 +275,8 @@ class Array:
         Default is to return and remove the final element.
 
         """
+        if len(self) == 0:
+            raise IndexError("Can't pop from an empty Array.")
         x = self[i]
         del self[i]
         return x
