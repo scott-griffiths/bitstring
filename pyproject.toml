@@ -24,9 +24,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-keywords = ["binary", "bitarray", "bitvector"]
+keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
-  "bitarray == 2.8.0",
+  "bitarray >= 2.5.0 < 3.0.0",
 ]
 
 [project.urls]
