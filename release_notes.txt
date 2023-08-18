@@ -3,8 +3,14 @@ bitstring module version history
 --------------------------------
 
 -----------------------------------
+Upcoming: version 4.1.1
+-----------------------------------
+
+* bitarray dependency now pinned to ">=2.8.0, <3.0.0" rather than a specific version.
+
+-----------------------------------
 August 2023: version 4.1.0 released
-----------------------------------
+-----------------------------------
 
 This has turned into a suprisingly big release, with a major refactor and a brand new
 class (the first for 12 years!) There are also a couple of small possibly breaking changes
