@@ -2735,26 +2735,29 @@ class BitArray(Bits):
             self._bitstore = self._bitstore.copy()
             self._bitstore.immutable = False
 
+    _letter_to_setter: Dict[str, Callable[..., None]] = \
+        {'u': Bits._setuint,
+         'i': Bits._setint,
+         'f': Bits._setfloatbe,
+         'b': Bits._setbin_safe,
+         'o': Bits._setoct,
+         'h': Bits._sethex}
+
+    _short_token: Pattern[str] = re.compile(r'^(?P<name>[uifboh])(?P<len>\d+)$', re.IGNORECASE)
+    _name_length_pattern: Pattern[str] = re.compile(r'^(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
+
     def __setattr__(self, attribute, value) -> None:
         try:
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
         except AttributeError:
-            letter_to_setter: Dict[str, Callable[..., None]] = \
-                {'u': self._setuint,
-                 'i': self._setint,
-                 'f': self._setfloatbe,
-                 'b': self._setbin_safe,
-                 'o': self._setoct,
-                 'h': self._sethex}
-            short_token: Pattern[str] = re.compile(r'^(?P<name>[uifboh])(?P<len>\d+)$', re.IGNORECASE)
-            m1_short = short_token.match(attribute)
+            m1_short = BitArray._short_token.match(attribute)
             if m1_short:
                 length = int(m1_short.group('len'))
                 name = m1_short.group('name')
-                f = letter_to_setter[name]
+                f = BitArray._letter_to_setter[name]
                 try:
-                    f(value, length)
+                    f(self, value, length)
                 except AttributeError:
                     raise AttributeError(f"Can't set attribute {attribute} with value {value}.")
 
@@ -2764,8 +2767,7 @@ class BitArray(Bits):
                                         f"as attribute has length of {length} bits.")
                 return
             # Try to split into [name][length], then try standard properties
-            name_length_pattern: Pattern[str] = re.compile(r'^(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
-            name_length = name_length_pattern.match(attribute)
+            name_length = BitArray._name_length_pattern.match(attribute)
             if name_length:
                 name = name_length.group('name')
                 length = name_length.group('len')
