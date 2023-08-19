@@ -278,10 +278,12 @@ def _float2bitstore(f: Union[str, float], length: int) -> BitStore:
     try:
         b = struct.pack(fmt, f)
         assert len(b) * 8 == length
-    except (OverflowError, struct.error):
+    except (OverflowError, struct.error) as e:
         # If float64 doesn't fit it automatically goes to 'inf'. This reproduces that behaviour for other types.
         if length in [16, 32]:
             b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
+        else:
+            raise e
     return BitStore(frombytes=b)
 
 
@@ -294,10 +296,12 @@ def _floatle2bitstore(f: Union[str, float], length: int) -> BitStore:
     try:
         b = struct.pack(fmt, f)
         assert len(b) * 8 == length
-    except (OverflowError, struct.error):
+    except (OverflowError, struct.error) as e:
         # If float64 doesn't fit it automatically goes to 'inf'. This reproduces that behaviour for other types.
         if length in [16, 32]:
             b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
+        else:
+            raise e
     return BitStore(frombytes=b)
 
 
@@ -527,7 +531,8 @@ class Bits:
             return b
         if isinstance(auto, int):
             raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
-                            f" Use '{cls.__name__}({auto})' instead of just '{auto}' as this makes it clearer that a bitstring of {int(auto)} zero bits will be created.")
+                            f" Use '{cls.__name__}({auto})' instead of just '{auto}' as this makes it "
+                            f"clearer that a bitstring of {int(auto)} zero bits will be created.")
         b._setauto(auto, None, None)
         return b
 
@@ -2250,6 +2255,64 @@ class Bits:
         chars = length // bpc
         return name, chars, length
 
+    @staticmethod
+    def _format_bits(bits: Bits, chars_per_group: int, bits_per_group: int, sep: str, fmt: str) -> str:
+        if fmt in ['bin', 'oct', 'hex', 'bytes']:
+            raw = {'bin': bits._getbin,
+                   'oct': bits._getoct,
+                   'hex': bits._gethex,
+                   'bytes': bits._getbytes_printable}[fmt]()
+            if chars_per_group == 0:
+                return raw
+            formatted = sep.join(raw[i: i + chars_per_group] for i in range(0, len(raw), chars_per_group))
+            return formatted
+
+        else:
+            getter_fn = {'uint': Bits._getuint,
+                         'int': Bits._getint,
+                         'float8_152': Bits._getfloat152,
+                         'float8_143': Bits._getfloat143,
+                         'float': Bits._getfloatbe,
+                         'bfloat': Bits._getbfloatbe,
+                         'bool': Bits._getbool,
+                         }[fmt]
+            values = []
+            for i in range(0, len(bits), bits_per_group):
+                b = bits[i: i + bits_per_group]
+                values.append(f"{getter_fn(b): >{chars_per_group}}")
+            formatted = sep.join(values)
+            return formatted
+
+    @staticmethod
+    def _chars_per_group(bits_per_group: int, fmt: Optional[str]):
+        if fmt is None:
+            return 0
+        bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
+        try:
+            return bits_per_group // bpc[fmt]
+        except KeyError:
+            # Work out how many chars are needed for each format given the number of bits
+            if fmt == 'uint':
+                # How many chars is largest uint?
+                chars_per_value = len(str((1 << bits_per_group) - 1))
+            elif fmt == 'int':
+                # Use largest negative int so we get the '-' sign
+                chars_per_value = len(str((-1 << (bits_per_group - 1))))
+            elif fmt in ['bfloat', 'float16', 'float32']:
+                chars_per_value = 23  # Empirical value
+            elif fmt == 'float64':
+                chars_per_value = 24  # Empirical value
+            elif fmt == 'float8_143':
+                chars_per_value = 13  # Empirical value
+            elif fmt == 'float8_152':
+                chars_per_value = 19  # Empirical value
+            elif fmt == 'bool':
+                chars_per_value = 5   # for 'False'
+            else:
+                assert False
+                raise ValueError(f"Unsupported format string {fmt}.")
+            return chars_per_value
+
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
         """Internal pretty print method."""
@@ -2262,8 +2325,8 @@ class Bits:
             # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
             offset_width = len(str(len(self))) + len(offset_sep)
         if bits_per_group > 0:
-            group_chars1 = bits_per_group // bpc[name1]
-            group_chars2 = 0 if name2 is None else bits_per_group // bpc[name2]
+            group_chars1 = Bits._chars_per_group(bits_per_group, name1)
+            group_chars2 = Bits._chars_per_group(bits_per_group, name2)
             # The number of characters that get added when we add an extra group (after the first one)
             total_group_chars = group_chars1 + group_chars2 + len(sep) + len(sep) * bool(group_chars2)
             width_excluding_offset_and_final_group = width - offset_width - group_chars1 - group_chars2 - len(
@@ -2285,16 +2348,6 @@ class Bits:
                     max_bits_per_line = 24  # We can't fit into the width asked for. Show something small.
         assert max_bits_per_line > 0
 
-        def format_bits(bits_, bits_per_group_, sep_, fmt_):
-            raw = {'bin': bits_._getbin,
-                   'oct': bits_._getoct,
-                   'hex': bits_._gethex,
-                   'bytes': bits_._getbytes_printable}[fmt_]()
-            if bits_per_group_ == 0:
-                return raw
-            formatted = sep_.join(raw[i: i + bits_per_group_] for i in range(0, len(raw), bits_per_group_))
-            return formatted
-
         bitpos = 0
         first_fb_width = second_fb_width = None
         for bits in self.cut(max_bits_per_line):
@@ -2303,7 +2356,7 @@ class Bits:
                 offset_str = f'{offset_sep}{offset: >{offset_width - len(offset_sep)}}' if show_offset else ''
             else:
                 offset_str = f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
-            fb = format_bits(bits, group_chars1, sep, name1)
+            fb = Bits._format_bits(bits, group_chars1, bits_per_group, sep, name1)
             if first_fb_width is None:
                 first_fb_width = len(fb)
             if len(fb) < first_fb_width:  # Pad final line with spaces to align it
@@ -2311,7 +2364,7 @@ class Bits:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
-            fb2 = '' if name2 is None else format_sep + format_bits(bits, group_chars2, sep, name2)
+            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, group_chars2, bits_per_group, sep, name2)
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:
@@ -2326,8 +2379,6 @@ class Bits:
             stream.write(line_fmt)
             bitpos += len(bits)
         return
-
-
 
     def pp(self, fmt: Optional[str] = None, width: int = 120, sep: str = ' ',
            show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
@@ -2425,7 +2476,6 @@ class Bits:
         _setintne = _setintbe
         _readintne = _readintbe
         _getintne = _getintbe
-
 
     # Dictionary that maps token names to the function that reads them
     _name_to_read: Dict[str, Callable[[Bits, int, int], Any]] = {
@@ -2585,7 +2635,6 @@ class Bits:
                           doc="""The bitstring as an 8 bit float with float8_143 format. Read only.""")
     float8_152 = property(_getfloat152,
                           doc="""The bitstring as an 8 bit float with float8_152 format. Read only.""")
-
 
     # Some shortened aliases of the above properties
     i = int
@@ -2987,7 +3036,6 @@ class BitArray(Bits):
             new = copy.copy(self)
         return self._replace(old, new, start, end, 0 if count is None else count, bytealigned)
 
-
     def insert(self, bs: BitsType, pos: int) -> None:
         """Insert bs at bit position pos.
 
@@ -3325,5 +3373,3 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
 
 # Initialise the default behaviour
 _switch_lsb0_methods(False)
-
-

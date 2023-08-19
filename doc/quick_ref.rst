@@ -307,7 +307,7 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
 =================== ===============================================================================
 ``'int:n'``         ``n`` bits as a signed integer.
 ``'uint:n'``        ``n`` bits as an unsigned integer.
-``'intbe:n'``	      ``n`` bits as a byte-wise big-endian signed integer.
+``'intbe:n'``	    ``n`` bits as a byte-wise big-endian signed integer.
 ``'uintbe:n'``      ``n`` bits as a byte-wise big-endian unsigned integer.
 ``'intle:n'``       ``n`` bits as a byte-wise little-endian signed integer.
 ``'uintle:n'``      ``n`` bits as a byte-wise little-endian unsigned integer.

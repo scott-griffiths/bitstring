@@ -154,6 +154,14 @@ class Creation(unittest.TestCase):
         b.fmt = 'int8'
         self.assertEqual(a.tolist(), b.tolist())
         self.assertNotEqual(a, b)
+        with self.assertRaises(ValueError):
+            b.fmt = 'hello_everyone'
+        with self.assertRaises(ValueError):
+            b.fmt = 'float'
+        with self.assertRaises(ValueError):
+            b.fmt = 'uintle12'
+        with self.assertRaises(ValueError):
+            b.fmt = 'float17'
 
 class ArrayMethods(unittest.TestCase):
 
@@ -515,6 +523,7 @@ class ArrayMethods(unittest.TestCase):
 
     def testPp(self):
         a = Array('bfloat', [-3, 1, 2])
+        a.fmt = 'hex16'
         s = io.StringIO()
         a.pp(stream=s)
         self.assertEqual(s.getvalue(),  ' 0: c040 3f80 4000\n')
@@ -523,6 +532,11 @@ class ArrayMethods(unittest.TestCase):
         a.pp(stream=s)
         self.assertEqual(s.getvalue(),  ' 0: c040 3f80 4000\n + trailing_bits = 0b110\n')
 
+    def testPpUint(self):
+        a = Array('uint32', [12, 100, 99])
+        s = io.StringIO()
+        a.pp(stream=s)
+        self.assertEqual(s.getvalue(), ' 0:         12        100         99\n')
 
 class ArrayOperations(unittest.TestCase):
 

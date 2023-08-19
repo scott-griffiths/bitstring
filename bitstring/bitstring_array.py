@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sized
-from bitstring.exceptions import CreationError
+from bitstring.exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.classes import BitArray, Bits, BitsType
 from bitstring.utils import tokenparser
@@ -125,6 +125,12 @@ class Array:
             self._getter_func = functools.partial(Bits._name_to_read[token_name], length=token_length)
         except KeyError:
             raise ValueError(f"The token '{token_name}' can't be used to get Array elements.")
+        # Test if the length makes sense by trying out the getter.
+        temp = BitArray(token_length)
+        try:
+            _ = self._getter_func(temp, 0)
+        except InterpretError as e:
+            raise ValueError(f"Invalid Array fmt: {e.msg}")
         self._itemsize = int(token_length)
         self._token_name = token_name
         # We save the user's fmt string so that we can use it in __repr__ etc.
@@ -354,7 +360,7 @@ class Array:
         """
         trailing_bit_length = len(self.data) % self._itemsize
         # fmt is not yet supported
-        name1 = 'hex' if self._itemsize % 4 == 0 else 'bin'
+        name1 = self._token_name
         format_sep = "   "  # String to insert on each line between multiple formats
 
         if trailing_bit_length == 0:
