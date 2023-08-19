@@ -309,15 +309,10 @@ Special Methods
 
         ``a[start:end:step]``
 
-    .. method:: Array.__add__(other: Array | Iterable | int | float) -> Array
+    .. method:: Array.__add__(other: int | float) -> Array
 
         ``a + x``
 
-        ``a1 + a2``
-
-    .. method:: Array.__radd__(other: Iterable) -> Array
-
-        ``iterable + a``
 
     .. method:: Array.__sub__(self, other: int | float) -> Array
 
@@ -367,12 +362,11 @@ Special Methods
 
         ``del[start:end:step]``
 
-    .. method:: Array.__iadd__(self, other: Array | Iterable | int | float) -> None
+    .. method:: Array.__iadd__(self, other: int | float) -> None
 
         In-place version of :meth:`+ <Array.__add__>`. ::
 
             >>> a += 3
-            >>> a += a
 
 
     .. method:: Array.__isub__(self, other: int | float) -> None

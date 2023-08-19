@@ -351,8 +351,8 @@ class Array:
         """Pretty-print the Array contents.
 
         fmt -- Printed data format. Not yet supported! Defaults to either hex or bin.
-        width -- Max width of printed lines. Defaults to 120. A single group will always be printed
-                 per line even if it exceeds the max width.
+        width -- Max width of printed lines in characters. Defaults to 120. A single group will always
+                 be printed per line even if it exceeds the max width.
         sep -- A separator string to insert between groups. Defaults to a single space.
         show_offset -- If True (the default) shows the element offset in the first column of each line.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
@@ -445,51 +445,12 @@ class Array:
             self.data[start: start + self._itemsize] = op(self.data[start: start + self._itemsize], value)
         return self
 
-    def __add__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
-        """Either extend the Array with an iterable or other Array, or add int or float to all elements."""
-        if isinstance(other, (int, float)):
-            return self._apply_op_to_all_elements(operator.add, other)
-        if len(self.data) % self._itemsize != 0:
-            raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
-        new_array = copy.copy(self)
-        if isinstance(other, Array):
-            if self._token_name != other._token_name or self._itemsize != other._itemsize:
-                raise ValueError(f"Cannot add an Array with format '{other._fmt}' to an Array with format '{self._fmt}'.")
-            new_array.data += other.data
-        elif isinstance(other, array.array):
-            other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
-            token_name, token_length, _ = tokenparser(other_fmt)[1][0]
-            if self._token_name != token_name or self._itemsize != token_length:
-                raise ValueError(
-                    f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
-            new_array.data += other.tobytes()
-        else:
-            new_array.extend(other)
-        return new_array
+    def __add__(self, other: Union[int, float]) -> Array:
+        """Add int or float to all elements."""
+        return self._apply_op_to_all_elements(operator.add, other)
 
-    def __radd__(self, other: Union[array.array, Iterable]) -> Array:
-        # We know that the LHS can't be an Array otherwise __add__ would be used.
-        if isinstance(other, array.array):
-            other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
-            token_name, token_length, _ = tokenparser(other_fmt)[1][0]
-            if self._token_name != token_name or self._itemsize != token_length:
-                raise ValueError(
-                    f"Cannot add an array.array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
-            new_array = Array(self.fmt, other.tobytes())
-            new_array.data.append(self.data)
-            return new_array
-        else:
-            new_array = Array(self.fmt)
-            new_array.extend(other)
-            new_array.data.append(self.data)
-            return new_array
-
-    def __iadd__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
-        if isinstance(other, (int, float)):
-            return self._apply_op_to_all_elements_inplace(operator.add, other)
-        else:
-            self.extend(other)
-            return self
+    def __iadd__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements_inplace(operator.add, other)
 
     def __isub__(self, other: Union[int, float]) -> Array:
         return self._apply_op_to_all_elements_inplace(operator.sub, other)

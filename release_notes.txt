@@ -7,6 +7,7 @@ Upcoming: version 4.1.1
 -----------------------------------
 
 * bitarray dependency now pinned to ">=2.8.0, <3.0.0" rather than a specific version.
+* Removed ability to extend an Array with the '+' operator. Use the 'extend' method instead.
 
 -----------------------------------
 August 2023: version 4.1.0 released

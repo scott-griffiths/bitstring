@@ -232,7 +232,7 @@ These non-mutating special methods are available. Where appropriate they return 
 
 * :meth:`== <Array.__eq__>` / :meth:`\!= <Array.__ne__>` -- Equality tests.
 * :meth:`[] <Array.__getitem__>` -- Get an element or slice.
-* :meth:`+ <Array.__add__>` -- Concatenate Arrays, or add value to each element.
+* :meth:`+ <Array.__add__>` -- Add value to each element.
 * :meth:`- <Array.__sub__>` -- Subtract value from each element.
 * :meth:`* <Array.__mul__>` -- Multiply each element by a value.
 * :meth:`/ <Array.__truediv__>` -- Divide each element by a value.
