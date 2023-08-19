@@ -367,7 +367,7 @@ class Array:
             data = self.data
         else:
             data = self.data[0: -trailing_bit_length]
-        data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize)
+        data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize, self._getter_func)
         if trailing_bit_length != 0:
             stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]) + '\n')
 

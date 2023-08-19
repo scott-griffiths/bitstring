@@ -2256,7 +2256,7 @@ class Bits:
         return name, chars, length
 
     @staticmethod
-    def _format_bits(bits: Bits, chars_per_group: int, bits_per_group: int, sep: str, fmt: str) -> str:
+    def _format_bits(bits: Bits, chars_per_group: int, bits_per_group: int, sep: str, fmt: str, getter_fn=None) -> str:
         if fmt in ['bin', 'oct', 'hex', 'bytes']:
             raw = {'bin': bits._getbin,
                    'oct': bits._getoct,
@@ -2268,18 +2268,10 @@ class Bits:
             return formatted
 
         else:
-            getter_fn = {'uint': Bits._getuint,
-                         'int': Bits._getint,
-                         'float8_152': Bits._getfloat152,
-                         'float8_143': Bits._getfloat143,
-                         'float': Bits._getfloatbe,
-                         'bfloat': Bits._getbfloatbe,
-                         'bool': Bits._getbool,
-                         }[fmt]
             values = []
             for i in range(0, len(bits), bits_per_group):
                 b = bits[i: i + bits_per_group]
-                values.append(f"{getter_fn(b): >{chars_per_group}}")
+                values.append(f"{getter_fn(b, 0): >{chars_per_group}}")
             formatted = sep.join(values)
             return formatted
 
@@ -2292,29 +2284,32 @@ class Bits:
             return bits_per_group // bpc[fmt]
         except KeyError:
             # Work out how many chars are needed for each format given the number of bits
-            if fmt == 'uint':
+            if fmt in ['uint', 'uintne', 'uintbe', 'uintle']:
                 # How many chars is largest uint?
                 chars_per_value = len(str((1 << bits_per_group) - 1))
-            elif fmt == 'int':
+            elif fmt in ['int', 'intne', 'intbe', 'intle']:
                 # Use largest negative int so we get the '-' sign
                 chars_per_value = len(str((-1 << (bits_per_group - 1))))
-            elif fmt in ['bfloat', 'float16', 'float32']:
+            elif fmt in ['bfloat', 'bfloatne', 'bfloatbe', 'bfloatle']:
                 chars_per_value = 23  # Empirical value
-            elif fmt == 'float64':
-                chars_per_value = 24  # Empirical value
+            elif fmt in ['float', 'floatne', 'floatbe', 'floatle']:
+                if bits_per_group in [16, 32]:
+                    chars_per_value = 23  # Empirical value
+                elif bits_per_group == 64:
+                    chars_per_value = 24  # Empirical value
             elif fmt == 'float8_143':
                 chars_per_value = 13  # Empirical value
             elif fmt == 'float8_152':
                 chars_per_value = 19  # Empirical value
             elif fmt == 'bool':
-                chars_per_value = 5   # for 'False'
+                chars_per_value = 1   # '0' or '1'
             else:
                 assert False
                 raise ValueError(f"Unsupported format string {fmt}.")
             return chars_per_value
 
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
-            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
+            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int, getter_fn=None) -> None:
         """Internal pretty print method."""
 
         bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
@@ -2356,7 +2351,7 @@ class Bits:
                 offset_str = f'{offset_sep}{offset: >{offset_width - len(offset_sep)}}' if show_offset else ''
             else:
                 offset_str = f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
-            fb = Bits._format_bits(bits, group_chars1, bits_per_group, sep, name1)
+            fb = Bits._format_bits(bits, group_chars1, bits_per_group, sep, name1, getter_fn)
             if first_fb_width is None:
                 first_fb_width = len(fb)
             if len(fb) < first_fb_width:  # Pad final line with spaces to align it
@@ -2364,7 +2359,7 @@ class Bits:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
-            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, group_chars2, bits_per_group, sep, name2)
+            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, group_chars2, bits_per_group, sep, name2, getter_fn)
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:
