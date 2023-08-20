@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Sized
-from bitstring.exceptions import CreationError
+from bitstring.exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.classes import BitArray, Bits, BitsType
 from bitstring.utils import tokenparser
@@ -125,6 +126,12 @@ class Array:
             self._getter_func = functools.partial(Bits._name_to_read[token_name], length=token_length)
         except KeyError:
             raise ValueError(f"The token '{token_name}' can't be used to get Array elements.")
+        # Test if the length makes sense by trying out the getter.
+        temp = BitArray(token_length)
+        try:
+            _ = self._getter_func(temp, 0)
+        except InterpretError as e:
+            raise ValueError(f"Invalid Array fmt: {e.msg}")
         self._itemsize = int(token_length)
         self._token_name = token_name
         # We save the user's fmt string so that we can use it in __repr__ etc.
@@ -263,7 +270,7 @@ class Array:
                 self.data += self._create_element(item)
 
     def insert(self, i: int, x: ElementType) -> None:
-        """Insert a new element into the Array.
+        """Insert a new element into the Array at position i.
 
         """
         i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
@@ -275,6 +282,8 @@ class Array:
         Default is to return and remove the final element.
 
         """
+        if len(self) == 0:
+            raise IndexError("Can't pop from an empty Array.")
         x = self[i]
         del self[i]
         return x
@@ -295,8 +304,13 @@ class Array:
 
         value -- The quantity to compare each Array element to. Type should be appropriate for the Array format.
 
+        For floating point types using a value of float('nan') will count the number of elements that are NaN.
+
         """
-        return sum(i == value for i in self)
+        if math.isnan(value):
+            return sum(math.isnan(i) for i in self)
+        else:
+            return sum(i == value for i in self)
 
     def tobytes(self) -> bytes:
         """Return the Array data as a bytes object, padding with zero bits if needed.
@@ -338,30 +352,41 @@ class Array:
                                                                start_swap_bit: start_swap_bit + self._itemsize]
             self.data[start_swap_bit: start_swap_bit + self._itemsize] = temp
 
-    def pp(self, fmt: Optional[str] = None, width: int = 120, sep: str = ' ',
-           show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
+    def pp(self, fmt: Optional[str] = None, width: int = 120,
+           show_offset: bool = False, stream: TextIO = sys.stdout) -> None:
         """Pretty-print the Array contents.
 
-        fmt -- Printed data format. Not yet supported! Defaults to either hex or bin.
-        width -- Max width of printed lines. Defaults to 120. A single group will always be printed
-                 per line even if it exceeds the max width.
-        sep -- A separator string to insert between groups. Defaults to a single space.
-        show_offset -- If True (the default) shows the element offset in the first column of each line.
+        fmt -- Printed data format. Defaults to current Array fmt.
+        width -- Max width of printed lines in characters. Defaults to 120. A single group will always
+                 be printed per line even if it exceeds the max width.
+        show_offset -- If True shows the element offset in the first column of each line.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
         """
-        trailing_bit_length = len(self.data) % self._itemsize
-        # fmt is not yet supported
-        name1 = 'hex' if self._itemsize % 4 == 0 else 'bin'
-        format_sep = "   "  # String to insert on each line between multiple formats
+        sep = ' '
 
-        if trailing_bit_length == 0:
-            data = self.data
-        else:
-            data = self.data[0: -trailing_bit_length]
-        data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize)
-        if trailing_bit_length != 0:
-            stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]) + '\n')
+        original_fmt = self._fmt
+        try:
+            if fmt is not None:
+                self.fmt = fmt
+
+            trailing_bit_length = len(self.data) % self._itemsize
+            name1 = self._token_name
+            format_sep = "   "  # String to insert on each line between multiple formats
+
+            if trailing_bit_length == 0:
+                data = self.data
+            else:
+                data = self.data[0: -trailing_bit_length]
+            stream.write(f"<Array fmt='{self._fmt}', length={len(self)}, itemsize={self._itemsize} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
+            data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize, self._getter_func)
+            stream.write("]")
+            if trailing_bit_length != 0:
+                stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))
+            stream.write("\n")
+        finally:
+            if self._fmt != original_fmt:
+                self.fmt = original_fmt
 
     def __eq__(self, other: Any) -> bool:
         """Return True if format and all Array items are equal."""
@@ -437,51 +462,12 @@ class Array:
             self.data[start: start + self._itemsize] = op(self.data[start: start + self._itemsize], value)
         return self
 
-    def __add__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
-        """Either extend the Array with an iterable or other Array, or add int or float to all elements."""
-        if isinstance(other, (int, float)):
-            return self._apply_op_to_all_elements(operator.add, other)
-        if len(self.data) % self._itemsize != 0:
-            raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
-        new_array = copy.copy(self)
-        if isinstance(other, Array):
-            if self._token_name != other._token_name or self._itemsize != other._itemsize:
-                raise ValueError(f"Cannot add an Array with format '{other._fmt}' to an Array with format '{self._fmt}'.")
-            new_array.data += other.data
-        elif isinstance(other, array.array):
-            other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
-            token_name, token_length, _ = tokenparser(other_fmt)[1][0]
-            if self._token_name != token_name or self._itemsize != token_length:
-                raise ValueError(
-                    f"Cannot add an array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
-            new_array.data += other.tobytes()
-        else:
-            new_array.extend(other)
-        return new_array
+    def __add__(self, other: Union[int, float]) -> Array:
+        """Add int or float to all elements."""
+        return self._apply_op_to_all_elements(operator.add, other)
 
-    def __radd__(self, other: Union[array.array, Iterable]) -> Array:
-        # We know that the LHS can't be an Array otherwise __add__ would be used.
-        if isinstance(other, array.array):
-            other_fmt = Array._array_typecodes.get(other.typecode, other.typecode)
-            token_name, token_length, _ = tokenparser(other_fmt)[1][0]
-            if self._token_name != token_name or self._itemsize != token_length:
-                raise ValueError(
-                    f"Cannot add an array.array with typecode '{other.typecode}' to an Array with format '{self._fmt}'.")
-            new_array = Array(self.fmt, other.tobytes())
-            new_array.data.append(self.data)
-            return new_array
-        else:
-            new_array = Array(self.fmt)
-            new_array.extend(other)
-            new_array.data.append(self.data)
-            return new_array
-
-    def __iadd__(self, other: Union[Array, array.array, Iterable, int, float]) -> Array:
-        if isinstance(other, (int, float)):
-            return self._apply_op_to_all_elements_inplace(operator.add, other)
-        else:
-            self.extend(other)
-            return self
+    def __iadd__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements_inplace(operator.add, other)
 
     def __isub__(self, other: Union[int, float]) -> Array:
         return self._apply_op_to_all_elements_inplace(operator.sub, other)

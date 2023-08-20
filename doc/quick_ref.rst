@@ -232,7 +232,7 @@ These non-mutating special methods are available. Where appropriate they return 
 
 * :meth:`== <Array.__eq__>` / :meth:`\!= <Array.__ne__>` -- Equality tests.
 * :meth:`[] <Array.__getitem__>` -- Get an element or slice.
-* :meth:`+ <Array.__add__>` -- Concatenate Arrays, or add value to each element.
+* :meth:`+ <Array.__add__>` -- Add value to each element.
 * :meth:`- <Array.__sub__>` -- Subtract value from each element.
 * :meth:`* <Array.__mul__>` -- Multiply each element by a value.
 * :meth:`/ <Array.__truediv__>` -- Divide each element by a value.
@@ -307,7 +307,7 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
 =================== ===============================================================================
 ``'int:n'``         ``n`` bits as a signed integer.
 ``'uint:n'``        ``n`` bits as an unsigned integer.
-``'intbe:n'``	      ``n`` bits as a byte-wise big-endian signed integer.
+``'intbe:n'``	    ``n`` bits as a byte-wise big-endian signed integer.
 ``'uintbe:n'``      ``n`` bits as a byte-wise big-endian unsigned integer.
 ``'intle:n'``       ``n`` bits as a byte-wise little-endian signed integer.
 ``'uintle:n'``      ``n`` bits as a byte-wise little-endian unsigned integer.

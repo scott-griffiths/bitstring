@@ -154,6 +154,14 @@ class Creation(unittest.TestCase):
         b.fmt = 'int8'
         self.assertEqual(a.tolist(), b.tolist())
         self.assertNotEqual(a, b)
+        with self.assertRaises(ValueError):
+            b.fmt = 'hello_everyone'
+        with self.assertRaises(ValueError):
+            b.fmt = 'float'
+        with self.assertRaises(ValueError):
+            b.fmt = 'uintle12'
+        with self.assertRaises(ValueError):
+            b.fmt = 'float17'
 
 class ArrayMethods(unittest.TestCase):
 
@@ -162,6 +170,11 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(a.count(0), 1)
         self.assertEqual(a.count(-1), 0)
         self.assertEqual(a.count(2), 5)
+
+    def testCountNan(self):
+        a = Array('uint8', [0, 10, 128, 128, 4, 2, 1])
+        a.fmt = 'float8_152'
+        self.assertEqual(a.count(float('nan')), 2)
 
     def testFromBytes(self):
         a = Array('i16')
@@ -452,21 +465,13 @@ class ArrayMethods(unittest.TestCase):
     def test__add__(self):
         a = Array('=B', [1, 2, 3])
         b = Array('u8', [3, 4])
-        c = a + b
-        self.assertEqual(a, Array('>B', [1, 2, 3]))
-        self.assertEqual(c, Array('<B', [1, 2, 3, 3, 4]))
-        d = a + [10, 11, 12]
+        c = a[:]
+        c.extend(b)
+        self.assertEqual(a, Array('=B', [1, 2, 3]))
+        self.assertEqual(c, Array('=B', [1, 2, 3, 3, 4]))
+        d = a[:]
+        d.extend([10, 11, 12])
         self.assertEqual(d, Array('uint:8', [1, 2, 3, 10, 11, 12]))
-
-    def test__add__array(self):
-        a = array.array('H', [10, 11])
-        b = a + Array('=H', [12, 13])
-        self.assertEqual(b, array.array('H', [10, 11, 12, 13]))
-        c = Array('=H', [0, 1, 2]) + a
-        self.assertEqual(c, Array('uintne16', [0, 1, 2, 10, 11]))
-        c.data += '0x0'
-        with self.assertRaises(ValueError):
-            _ = c + a
 
     def test__contains__(self):
         a = Array('i9', [-1, 88, 3])
@@ -483,29 +488,11 @@ class ArrayMethods(unittest.TestCase):
 
     def test__iadd__(self):
         a = Array('uint999')
-        a += [4]
+        a.extend([4])
         self.assertEqual(a.tolist(), [4])
         a += 5
-        a += a
+        a.extend(a)
         self.assertEqual(a.tolist(), [9, 9])
-
-    def test__radd__(self):
-        with self.assertRaises(ValueError):
-            a = Array('f', [3, 2, 1])
-        a = Array('=f', [3, 2, 1])
-        b = array.array('f', [-3, -2, -1])
-        c = b + a
-        self.assertEqual(c.tolist(), [-3, -2, -1, 3, 2, 1])
-        self.assertEqual(c.itemsize, 32)
-        self.assertTrue(isinstance(c, Array))
-
-        d = [30, 20, 10] + a
-        self.assertEqual(d.fmt, '=f')
-        self.assertEqual(d.tolist(), [30, 20, 10, 3, 2, 1])
-
-        a.fmt = '>f'
-        with self.assertRaises(ValueError):
-            _ = b + a
 
     def testFloat8Bug(self):
         a = Array('float8_152', [0.0, 1.5])
@@ -515,14 +502,29 @@ class ArrayMethods(unittest.TestCase):
 
     def testPp(self):
         a = Array('bfloat', [-3, 1, 2])
+        a.fmt = 'hex16'
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(),  ' 0: c040 3f80 4000\n')
+        self.assertEqual(s.getvalue(),  "<Array fmt='hex16', length=3, itemsize=16 bits, total data size=6 bytes>\n"
+                                        "[\n"
+                                        "c040 3f80 4000\n"
+                                        "]\n")
         a.data += '0b110'
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(),  ' 0: c040 3f80 4000\n + trailing_bits = 0b110\n')
+        self.assertEqual(s.getvalue(),  """<Array fmt='hex16', length=3, itemsize=16 bits, total data size=7 bytes>
+[
+c040 3f80 4000
+] + trailing_bits = 0b110\n""")
 
+    def testPpUint(self):
+        a = Array('uint32', [12, 100, 99])
+        s = io.StringIO()
+        a.pp(stream=s)
+        self.assertEqual(s.getvalue(), """<Array fmt='uint32', length=3, itemsize=32 bits, total data size=12 bytes>
+[
+        12        100         99
+]\n""")
 
 class ArrayOperations(unittest.TestCase):
 
@@ -561,13 +563,6 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(b.tolist(), [-2, 0, 6])
         c = a * 2.5
         self.assertEqual(c.tolist(), [-2, 0, 7])
-
-    def testRadd(self):
-        b = Array(fmt='floatne32', initializer=(x + 0.5 for x in range(0, 5)))
-        a = array.array('f', [-100])
-        c = a + b
-        self.assertTrue(isinstance(c, Array))
-        self.assertEqual(c.tolist(), [-100, 0.5, 1.5, 2.5, 3.5, 4.5])
 
     def testInPlaceMul(self):
         a = Array('i21', [-5, -4, 0, 2, 100])
@@ -694,5 +689,5 @@ class CreationFromBits(unittest.TestCase):
             a += 8
         a.append(Bits(8))
         self.assertEqual(a[:], Array('bits:8', ['0b1111 1111', Bits('0x00')]))
-        a += ['0b10101011']
+        a.extend(['0b10101011'])
         self.assertEqual(a[-1].hex, 'ab')

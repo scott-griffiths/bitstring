@@ -17,9 +17,10 @@ Five classes are provided by the bitstring module, four are simple containers of
 * ``ConstBitStream(Bits)``: This adds methods and properties to allow the bits to be treated as a stream of bits, with a bit position and reading/parsing methods.
 * ``BitStream(BitArray, ConstBitStream)``: This is the most versatile class, having both the bitstream methods and the mutating methods.
 
+The fifth class is :class:`Array` which is a container of fixed-length bitstrings. The rest of this introduction mostly concerns the more basic types - for more details on :class:`Array` you can go directly to the reference documentation, but understanding how bit format strings are specified will be helpful.
+
 :class:`Bits` and :class:`BitArray` are intended to loosely mirror the ``bytes`` and ``bytearray`` types in Python.
 The term 'bitstring' is used in this documentation to refer generically to any of these four classes.
-
 
 To summarise when to use each class:
 
@@ -29,8 +30,6 @@ To summarise when to use each class:
 * If you don't need the extra functionality of a particular class then the simpler ones might be faster and more memory efficient. The fastest and most memory efficient class is :class:`Bits`.
 
 The :class:`Bits` class is the base class of the other three class. This means that ``isinstance(s, Bits)`` will be true if ``s`` is an instance of any of the four classes.
-
-The fifth class is :class:`Array` which is a container of fixed-length bitstrings. The rest of this introduction mostly concerns the more basic types - for more details on :class:`Array` you can go directly to the reference documentation, but understanding how bit format strings are specified will be helpful.
 
 
 Creating bitstrings
