@@ -2268,12 +2268,16 @@ class Bits:
             return formatted
 
         else:
-            values = []
-            for i in range(0, len(bits), bits_per_group):
-                b = bits[i: i + bits_per_group]
-                values.append(f"{getter_fn(b, 0): >{chars_per_group}}")
-            formatted = sep.join(values)
-            return formatted
+            if fmt == 'bits':
+                formatted = sep.join(str(getter_fn(b, 0)) for b in bits.cut(bits_per_group))
+                return formatted
+            else:
+                values = []
+                for i in range(0, len(bits), bits_per_group):
+                    b = bits[i: i + bits_per_group]
+                    values.append(f"{getter_fn(b, 0): >{chars_per_group}}")
+                formatted = sep.join(values)
+                return formatted
 
     @staticmethod
     def _chars_per_group(bits_per_group: int, fmt: Optional[str]):
