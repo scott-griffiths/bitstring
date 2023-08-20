@@ -171,6 +171,11 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(a.count(-1), 0)
         self.assertEqual(a.count(2), 5)
 
+    def testCountNan(self):
+        a = Array('uint8', [0, 10, 128, 128, 4, 2, 1])
+        a.fmt = 'float8_152'
+        self.assertEqual(a.count(float('nan')), 2)
+
     def testFromBytes(self):
         a = Array('i16')
         self.assertEqual(len(a), 0)

@@ -184,6 +184,8 @@ Methods
             >>> a.count('e')
             3
 
+        For floating point types using a `value` of ``float('nan')`` will count the number of elements for which ``math.isnan()`` returns ``True``.
+
     .. method:: Array.extend(iterable: Iterable | Array) -> None
 
         Extend the Array by constructing new elements from the values in a list or other iterable.

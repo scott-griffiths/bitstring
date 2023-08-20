@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Sized
 from bitstring.exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
@@ -303,8 +304,13 @@ class Array:
 
         value -- The quantity to compare each Array element to. Type should be appropriate for the Array format.
 
+        For floating point types using a value of float('nan') will count the number of elements that are NaN.
+
         """
-        return sum(i == value for i in self)
+        if math.isnan(value):
+            return sum(math.isnan(i) for i in self)
+        else:
+            return sum(i == value for i in self)
 
     def tobytes(self) -> bytes:
         """Return the Array data as a bytes object, padding with zero bits if needed.
@@ -346,30 +352,41 @@ class Array:
                                                                start_swap_bit: start_swap_bit + self._itemsize]
             self.data[start_swap_bit: start_swap_bit + self._itemsize] = temp
 
-    def pp(self, fmt: Optional[str] = None, width: int = 120, sep: str = ' ',
-           show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
+    def pp(self, fmt: Optional[str] = None, width: int = 120,
+           show_offset: bool = False, stream: TextIO = sys.stdout) -> None:
         """Pretty-print the Array contents.
 
         fmt -- Printed data format. Not yet supported! Defaults to either hex or bin.
         width -- Max width of printed lines in characters. Defaults to 120. A single group will always
                  be printed per line even if it exceeds the max width.
-        sep -- A separator string to insert between groups. Defaults to a single space.
-        show_offset -- If True (the default) shows the element offset in the first column of each line.
+        show_offset -- If True shows the element offset in the first column of each line.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
         """
-        trailing_bit_length = len(self.data) % self._itemsize
-        # fmt is not yet supported
-        name1 = self._token_name
-        format_sep = "   "  # String to insert on each line between multiple formats
+        sep = ' '
 
-        if trailing_bit_length == 0:
-            data = self.data
-        else:
-            data = self.data[0: -trailing_bit_length]
-        data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize, self._getter_func)
-        if trailing_bit_length != 0:
-            stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]) + '\n')
+        original_fmt = self._fmt
+        try:
+            if fmt is not None:
+                self.fmt = fmt
+
+            trailing_bit_length = len(self.data) % self._itemsize
+            name1 = self._token_name
+            format_sep = "   "  # String to insert on each line between multiple formats
+
+            if trailing_bit_length == 0:
+                data = self.data
+            else:
+                data = self.data[0: -trailing_bit_length]
+            stream.write(f"<Array fmt='{self._fmt}', length={len(self)}, item size={self._itemsize} bits, total size={(len(self.data) + 7) // 8} bytes>\n[\n")
+            data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize, self._getter_func)
+            stream.write("]")
+            if trailing_bit_length != 0:
+                stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))
+            stream.write("\n")
+        finally:
+            if self._fmt != original_fmt:
+                self.fmt = original_fmt
 
     def __eq__(self, other: Any) -> bool:
         """Return True if format and all Array items are equal."""
