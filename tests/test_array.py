@@ -505,17 +505,26 @@ class ArrayMethods(unittest.TestCase):
         a.fmt = 'hex16'
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(),  ' 0: c040 3f80 4000\n')
+        self.assertEqual(s.getvalue(),  "<Array fmt='hex16', length=3, itemsize=16 bits, total data size=6 bytes>\n"
+                                        "[\n"
+                                        "c040 3f80 4000\n"
+                                        "]\n")
         a.data += '0b110'
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(),  ' 0: c040 3f80 4000\n + trailing_bits = 0b110\n')
+        self.assertEqual(s.getvalue(),  """<Array fmt='hex16', length=3, itemsize=16 bits, total data size=7 bytes>
+[
+c040 3f80 4000
+] + trailing_bits = 0b110\n""")
 
     def testPpUint(self):
         a = Array('uint32', [12, 100, 99])
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(), ' 0:         12        100         99\n')
+        self.assertEqual(s.getvalue(), """<Array fmt='uint32', length=3, itemsize=32 bits, total data size=12 bytes>
+[
+        12        100         99
+]\n""")
 
 class ArrayOperations(unittest.TestCase):
 

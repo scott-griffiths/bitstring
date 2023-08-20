@@ -227,9 +227,52 @@ Methods
             b'DEF'
 
 
-    .. method:: Array.pp(fmt: str | None, width: int, sep: str, show_offset: bool, stream: TextIO) -> None
+    .. method:: Array.pp(fmt: str | None, width: int, show_offset: bool, stream: TextIO) -> None
 
         Pretty print the Array.
+
+        `fmt` defaults to the Array's current format, but any other valid Array format string can be used.
+
+        The output will try to stay within `width` characters per line, but will always output at least one element value.
+
+        Setting `show_offset` to ``True`` will add a element index to each line of the output.
+
+        An output `stream` can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
+
+            >>> a = Array('u20', bytearray(range(100)))
+            >>> a.pp(width=70)
+            <Array fmt='u20', length=40, itemsize=20 bits, total data size=100 bytes>
+            [
+                 16  131844   20576  460809   41136  789774   61697   70163
+              82257  399128  102817  728093  123378    8482  143938  337447
+             164498  666412  185058  995377  205619  275766  226179  604731
+             246739  933696  267300  214085  287860  543050  308420  872015
+             328981  152404  349541  481369  370101  810334  390662   90723
+            ]
+
+            >>> a.pp('hex32', width=70)
+            <Array fmt='hex32', length=25, itemsize=32 bits, total data size=100 bytes>
+            [
+            00010203 04050607 08090a0b 0c0d0e0f 10111213 14151617 18191a1b
+            1c1d1e1f 20212223 24252627 28292a2b 2c2d2e2f 30313233 34353637
+            38393a3b 3c3d3e3f 40414243 44454647 48494a4b 4c4d4e4f 50515253
+            54555657 58595a5b 5c5d5e5f 60616263
+            ]
+
+            >>> a.pp('i7', show_offset=True, width=70)
+            <Array fmt='i7', length=114, itemsize=7 bits, total data size=100 bytes>
+            [
+              0:   0   0  32  32  24  16  10   6   3 -62   1  16 -48  44  24  13
+             16:   7   3 -30   1   8 -56  38  20  10 -59 -62 -15 -64 -28  52  27
+             32:  14   7  35 -31  -7   0 -62  34  17 -55   4 -46  49  28 -48  41
+             48:  21  10 -27 -62 -23  56 -34  48  24 -52 -58  51  33 -44 -20  55
+             64:  28  14  39  35 -39 -16  -6  62  31 -48   8  20  18  13   8 -59
+             80:  35  17 -23   4 -54  41  22 -52  38 -45 -55 -11   2 -59  36 -45
+             96:  42  21  42 -27  58 -31  50 -38  45 -41  11 -43 -14  -3 -64 -31
+            112:  49  24
+            ] + trailing_bits = 0b11
+
+
 
     .. method:: Array.reverse() -> None
 

@@ -356,7 +356,7 @@ class Array:
            show_offset: bool = False, stream: TextIO = sys.stdout) -> None:
         """Pretty-print the Array contents.
 
-        fmt -- Printed data format. Not yet supported! Defaults to either hex or bin.
+        fmt -- Printed data format. Defaults to current Array fmt.
         width -- Max width of printed lines in characters. Defaults to 120. A single group will always
                  be printed per line even if it exceeds the max width.
         show_offset -- If True shows the element offset in the first column of each line.
@@ -378,7 +378,7 @@ class Array:
                 data = self.data
             else:
                 data = self.data[0: -trailing_bit_length]
-            stream.write(f"<Array fmt='{self._fmt}', length={len(self)}, item size={self._itemsize} bits, total size={(len(self.data) + 7) // 8} bytes>\n[\n")
+            stream.write(f"<Array fmt='{self._fmt}', length={len(self)}, itemsize={self._itemsize} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
             data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize, self._getter_func)
             stream.write("]")
             if trailing_bit_length != 0:

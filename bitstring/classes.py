@@ -2303,8 +2303,11 @@ class Bits:
                 chars_per_value = 19  # Empirical value
             elif fmt == 'bool':
                 chars_per_value = 1   # '0' or '1'
+            elif fmt == 'bits':
+                temp = BitArray(bits_per_group)
+                chars_per_value = len(str(temp))
             else:
-                assert False
+                assert False, f"Unsupported format string {fmt}."
                 raise ValueError(f"Unsupported format string {fmt}.")
             return chars_per_value
 
