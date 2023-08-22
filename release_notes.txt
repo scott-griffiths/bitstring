@@ -8,7 +8,7 @@ August 2023: version 4.1.1 released
 A maintenance release, with some changes to the Array class which is still in 'beta'.
 
 * bitarray dependency now pinned to ">=2.8.0, <3.0.0" rather than a specific version. Bug #283.
-* Fix for using numpy integers a integer parameters. Bug #286.
+* Fix for using numpy integers as integer parameters. Bug #286.
 * Removed ability to extend an Array with the '+' operator. Use the 'extend' method instead.
 * Improvements when pretty-printing the Array.
 * Array.count() can now count 'nan' values for floating point types.
