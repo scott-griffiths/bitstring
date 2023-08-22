@@ -231,7 +231,7 @@ Methods
 
         Pretty print the Array.
 
-        `fmt` defaults to the Array's current format, but any other valid Array format string can be used.
+        `fmt` defaults to the Array's current format, but any other valid Array format string, or pair of comma-separated format strings can be used.
 
         The output will try to stay within `width` characters per line, but will always output at least one element value.
 
@@ -259,20 +259,21 @@ Methods
             54555657 58595a5b 5c5d5e5f 60616263
             ]
 
-            >>> a.pp('i7', show_offset=True, width=70)
-            <Array fmt='i7', length=114, itemsize=7 bits, total data size=100 bytes>
+            >>> a.pp('i12, hex', show_offset=True, width=70)
+            <Array fmt='i12, hex', length=114, itemsize=7 bits, total data size=100 bytes>
             [
-              0:   0   0  32  32  24  16  10   6   3 -62   1  16 -48  44  24  13
-             16:   7   3 -30   1   8 -56  38  20  10 -59 -62 -15 -64 -28  52  27
-             32:  14   7  35 -31  -7   0 -62  34  17 -55   4 -46  49  28 -48  41
-             48:  21  10 -27 -62 -23  56 -34  48  24 -52 -58  51  33 -44 -20  55
-             64:  28  14  39  35 -39 -16  -6  62  31 -48   8  20  18  13   8 -59
-             80:  35  17 -23   4 -54  41  22 -52  38 -45 -55 -11   2 -59  36 -45
-             96:  42  21  42 -27  58 -31  50 -38  45 -41  11 -43 -14  -3 -64 -31
-            112:  49  24
-            ] + trailing_bits = 0b11
-
-
+                0   258    48  1029    96  1800 : 000 102 030 405 060 708
+              144 -1525   192  -754   241    17 : 090 a0b 0c0 d0e 0f1 011
+              289   788   337  1559   385 -1766 : 121 314 151 617 181 91a
+              433  -995   481  -224   530   547 : 1b1 c1d 1e1 f20 212 223
+              578  1318   626 -2007   674 -1236 : 242 526 272 829 2a2 b2c
+              722  -465   771   306   819  1077 : 2d2 e2f 303 132 333 435
+              867  1848   915 -1477   963  -706 : 363 738 393 a3b 3c3 d3e
+             1012    65  1060   836  1108  1607 : 3f4 041 424 344 454 647
+             1156 -1718  1204  -947  1252  -176 : 484 94a 4b4 c4d 4e4 f50
+             1301   595  1349  1366  1397 -1959 : 515 253 545 556 575 859
+             1445 -1188  1493  -417  1542   354 : 5a5 b5c 5d5 e5f 606 162
+            ] + trailing_bits = 0x63
 
     .. method:: Array.reverse() -> None
 
