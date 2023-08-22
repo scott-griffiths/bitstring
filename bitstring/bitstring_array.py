@@ -356,7 +356,7 @@ class Array:
            show_offset: bool = False, stream: TextIO = sys.stdout) -> None:
         """Pretty-print the Array contents.
 
-        fmt -- Printed data format. Defaults to current Array fmt.
+        fmt -- Data format string. Defaults to current Array fmt.
         width -- Max width of printed lines in characters. Defaults to 120. A single group will always
                  be printed per line even if it exceeds the max width.
         show_offset -- If True shows the element offset in the first column of each line.
@@ -364,29 +364,60 @@ class Array:
 
         """
         sep = ' '
+        if fmt is None:
+            fmt = self._fmt
 
-        original_fmt = self._fmt
+        tokens = tokenparser(fmt)[1]
+        token_names_and_lengths = [(x[0], x[1]) for x in tokens]
+        if len(token_names_and_lengths) not in [1, 2]:
+            raise ValueError(
+                f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {len(token_names_and_lengths)} tokens.")
+        token_name, token_length = token_names_and_lengths[0]
+        token_name2, token_length2 = None, None
+        getter_func2 = None
+        if len(token_names_and_lengths) == 1:
+            if token_length is None:
+                raise ValueError(f"The format '{fmt}' doesn't have a fixed length and so can't be used.")
+        if len(token_names_and_lengths) == 2:
+            token_name2, token_length2 = token_names_and_lengths[1]
+            if token_length is None and token_length2 is None:
+                raise ValueError(f"At least one format must have a fixed length specified - none give by '{fmt}'.")
+            if token_length is None:
+                token_length = token_length2
+            if token_length2 is None:
+                token_length2 = token_length
+            if token_length != token_length2:
+                raise ValueError(f"Two different format lengths specified ('{fmt}'). Either specify just one, or two the same length.")
+            getter_func2 = functools.partial(Bits._name_to_read[token_name2], length=token_length2)
+
+        getter_func = functools.partial(Bits._name_to_read[token_name], length=token_length)
+
+        # Check that the getter functions will work
+        temp = BitArray(token_length)
         try:
-            if fmt is not None:
-                self.fmt = fmt
+            getter_func(temp, 0)
+        except bitstring.InterpretError as e:
+            raise ValueError(f"Pretty print format not valied: {e.msg}")
+        if token_name2 is not None:
+            try:
+                getter_func2(temp, 0)
+            except bitstring.InterpretError as e:
+                raise ValueError(f"Pretty print format not valied: {e.msg}")
 
-            trailing_bit_length = len(self.data) % self._itemsize
-            name1 = self._token_name
-            format_sep = "   "  # String to insert on each line between multiple formats
+        trailing_bit_length = len(self.data) % token_length
+        format_sep = " : "  # String to insert on each line between multiple formats
 
-            if trailing_bit_length == 0:
-                data = self.data
-            else:
-                data = self.data[0: -trailing_bit_length]
-            stream.write(f"<Array fmt='{self._fmt}', length={len(self)}, itemsize={self._itemsize} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
-            data._pp(name1, None, self._itemsize, width, sep, format_sep, show_offset, stream, False, self._itemsize, self._getter_func)
-            stream.write("]")
-            if trailing_bit_length != 0:
-                stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))
-            stream.write("\n")
-        finally:
-            if self._fmt != original_fmt:
-                self.fmt = original_fmt
+        if trailing_bit_length == 0:
+            data = self.data
+        else:
+            data = self.data[0: -trailing_bit_length]
+        length = len(self.data) // token_length
+        stream.write(f"<Array fmt='{fmt}', length={length}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
+        data._pp(token_name, token_name2, token_length, width, sep, format_sep, show_offset, stream, False, token_length, getter_func, getter_func2)
+        stream.write("]")
+        if trailing_bit_length != 0:
+            stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))
+        stream.write("\n")
 
     def __eq__(self, other: Any) -> bool:
         """Return True if format and all Array items are equal."""

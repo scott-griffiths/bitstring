@@ -542,6 +542,18 @@ c040 3f80 4000
  7: 0b01
 ]\n""")
 
+    def testPpTwoFormats(self):
+        a = Array('float16', bytearray(20))
+        s = io.StringIO()
+        a.pp(stream=s, fmt='float8_152, bin')
+        self.assertEqual(s.getvalue(), """<Array fmt='float8_152, bin', length=20, itemsize=8 bits, total data size=20 bytes>
+[
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+]\n""")
 
 class ArrayOperations(unittest.TestCase):
 

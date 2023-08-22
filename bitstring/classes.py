@@ -2316,7 +2316,7 @@ class Bits:
             return chars_per_value
 
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
-            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int, getter_fn=None) -> None:
+            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int, getter_fn=None, getter_fn2=None) -> None:
         """Internal pretty print method."""
 
         bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
@@ -2366,7 +2366,7 @@ class Bits:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
-            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, group_chars2, bits_per_group, sep, name2, getter_fn)
+            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, group_chars2, bits_per_group, sep, name2, getter_fn2)
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:
