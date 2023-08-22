@@ -940,3 +940,32 @@ class BitarrayTests(unittest.TestCase):
         self.assertEqual(len(b), 7)
         self.assertEqual(a[17:24].tobitarray(), b.tobitarray())
 
+
+try:
+    import numpy as np
+    numpy_installed = True
+except ImportError:
+    numpy_installed = False
+
+
+class Numpy(unittest.TestCase):
+
+    @unittest.skipIf(not numpy_installed, "numpy not installed.")
+    def testGetting(self):
+        a = BitArray('0b110')
+        p = np.int_(1)
+        self.assertEqual(a[p], True)
+        p = np.short(0)
+        self.assertEqual(a[p], True)
+
+    @unittest.skipIf(not numpy_installed, "numpy not installed.")
+    def testSetting(self):
+        a = BitArray('0b110')
+        p = np.int_(1)
+        a[p] = '0b1111'
+        self.assertEqual(a, '0b111110')
+
+    @unittest.skipIf(not numpy_installed, "numpy not installed.")
+    def testCreation(self):
+        a = BitArray(np.longlong(12))
+        self.assertEqual(a.hex, '000')

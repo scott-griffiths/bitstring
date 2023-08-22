@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import numbers
 import pathlib
 import sys
 import re
@@ -529,7 +530,7 @@ class Bits:
         b = cls()
         if auto is None:
             return b
-        if isinstance(auto, int):
+        if isinstance(auto, numbers.Integral):
             raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
                             f" Use '{cls.__name__}({auto})' instead of just '{auto}' as this makes it "
                             f"clearer that a bitstring of {int(auto)} zero bits will be created.")
@@ -656,7 +657,7 @@ class Bits:
         '0x1122'
 
         """
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             return bool(self._bitstore.getindex(key))
         x = self._bitstore.getslice(key)
         bs = self.__class__()
@@ -1005,7 +1006,7 @@ class Bits:
         if isinstance(s, array.array):
             self._bitstore = BitStore(frombytes=bytearray(s.tobytes()))
             return
-        if isinstance(s, int):
+        if isinstance(s, numbers.Integral):
             # Initialise with s zero bits.
             if s < 0:
                 raise CreationError(f"Can't create bitstring of negative length {s}.")
@@ -1764,7 +1765,7 @@ class Bits:
         has_stretchy_token = False
         for f_item in fmt:
             # Replace integers with 'bits' tokens
-            if isinstance(f_item, int):
+            if isinstance(f_item, numbers.Integral):
                 tokens.append(('bits', f_item, None))
             else:
                 stretchy, tkns = tokenparser(f_item, keys)
@@ -2853,7 +2854,7 @@ class BitArray(Bits):
         return s_copy
 
     def _setitem_int(self, key: int, value: Union[BitsType, int]) -> None:
-        if isinstance(value, int):
+        if isinstance(value, numbers.Integral):
             if value == 0:
                 self._bitstore[key] = 0
                 return
@@ -2871,7 +2872,7 @@ class BitArray(Bits):
         self._bitstore[positive_key: positive_key + 1] = value._bitstore
 
     def _setitem_slice(self, key: slice, value: BitsType) -> None:
-        if isinstance(value, int):
+        if isinstance(value, numbers.Integral):
             if key.step not in [None, -1, 1]:
                 if value in [0, 1]:
                     self.set(value, range(*key.indices(len(self))))
@@ -2894,7 +2895,7 @@ class BitArray(Bits):
         self._bitstore.__setitem__(key, value._bitstore)
 
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             self._setitem_int(key, value)
         else:
             self._setitem_slice(key, value)
@@ -3233,7 +3234,7 @@ class BitArray(Bits):
         if fmt is None or fmt == 0:
             # reverse all of the whole bytes.
             bytesizes = [(end_v - start_v) // 8]
-        elif isinstance(fmt, int):
+        elif isinstance(fmt, numbers.Integral):
             if fmt < 0:
                 raise ValueError(f"Improper byte length {fmt}.")
             bytesizes = [fmt]
@@ -3253,7 +3254,7 @@ class BitArray(Bits):
         elif isinstance(fmt, abc.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
-                if not isinstance(bytesize, int) or bytesize < 0:
+                if not isinstance(bytesize, numbers.Integral) or bytesize < 0:
                     raise ValueError(f"Improper byte length {bytesize}.")
         else:
             raise TypeError("Format must be an integer, string or iterable.")

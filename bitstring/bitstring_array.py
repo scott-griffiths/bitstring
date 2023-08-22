@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import numbers
 from collections.abc import Sized
 from bitstring.exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
@@ -70,7 +71,7 @@ class Array:
         except ValueError as e:
             raise CreationError(e)
 
-        if isinstance(initializer, int):
+        if isinstance(initializer, numbers.Integral):
             self.data = BitArray(initializer * self._itemsize)
         elif isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
             self.data += initializer
