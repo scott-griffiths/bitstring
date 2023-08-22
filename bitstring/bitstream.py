@@ -5,6 +5,7 @@ from bitstring.utils import tokenparser
 from bitstring.exceptions import ReadError, ByteAlignError, CreationError
 from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
 import copy
+import numbers
 
 TConstBitStream = TypeVar("TConstBitStream", bound='ConstBitStream')
 
@@ -310,7 +311,7 @@ class ConstBitStream(Bits):
         Raises ValueError if the format is not understood.
 
         """
-        if isinstance(fmt, int):
+        if isinstance(fmt, numbers.Integral):
             if fmt < 0:
                 raise ValueError("Cannot read negative amount.")
             if fmt > self.len - self._pos:
@@ -366,7 +367,7 @@ class ConstBitStream(Bits):
         Raises ReadError if bs is not found.
 
         """
-        if isinstance(bs, int):
+        if isinstance(bs, numbers.Integral):
             raise ValueError("Integers cannot be searched for")
         bs = Bits._create_from_bitstype(bs)
         oldpos = self._pos

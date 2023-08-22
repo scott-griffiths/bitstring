@@ -122,19 +122,19 @@ class BitStore(bitarray.bitarray):
 
     def setitem_lsb0(self, key: Union[int, slice], value: Union[int, BitStore]) -> None:
         assert not self.immutable
-        if isinstance(key, int):
-            super().__setitem__(-key - 1, value)
-        else:
+        if isinstance(key, slice):
             new_slice = _offset_slice_indices_lsb0(key, len(self), 0)
             super().__setitem__(new_slice, value)
+        else:
+            super().__setitem__(-key - 1, value)
 
     def delitem_lsb0(self, key: Union[int, slice]) -> None:
         assert not self.immutable
-        if isinstance(key, int):
-            super().__delitem__(-key - 1)
-        else:
+        if isinstance(key, slice):
             new_slice = _offset_slice_indices_lsb0(key, len(self), 0)
             super().__delitem__(new_slice)
+        else:
+            super().__delitem__(-key - 1)
 
     def invert_msb0(self, index: Optional[int] = None) -> None:
         assert not self.immutable

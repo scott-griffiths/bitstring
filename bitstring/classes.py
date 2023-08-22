@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import numbers
 import pathlib
 import sys
 import re
@@ -529,7 +530,7 @@ class Bits:
         b = cls()
         if auto is None:
             return b
-        if isinstance(auto, int):
+        if isinstance(auto, numbers.Integral):
             raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
                             f" Use '{cls.__name__}({auto})' instead of just '{auto}' as this makes it "
                             f"clearer that a bitstring of {int(auto)} zero bits will be created.")
@@ -656,7 +657,7 @@ class Bits:
         '0x1122'
 
         """
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             return bool(self._bitstore.getindex(key))
         x = self._bitstore.getslice(key)
         bs = self.__class__()
@@ -1005,7 +1006,7 @@ class Bits:
         if isinstance(s, array.array):
             self._bitstore = BitStore(frombytes=bytearray(s.tobytes()))
             return
-        if isinstance(s, int):
+        if isinstance(s, numbers.Integral):
             # Initialise with s zero bits.
             if s < 0:
                 raise CreationError(f"Can't create bitstring of negative length {s}.")
@@ -1764,7 +1765,7 @@ class Bits:
         has_stretchy_token = False
         for f_item in fmt:
             # Replace integers with 'bits' tokens
-            if isinstance(f_item, int):
+            if isinstance(f_item, numbers.Integral):
                 tokens.append(('bits', f_item, None))
             else:
                 stretchy, tkns = tokenparser(f_item, keys)
@@ -2268,12 +2269,16 @@ class Bits:
             return formatted
 
         else:
-            values = []
-            for i in range(0, len(bits), bits_per_group):
-                b = bits[i: i + bits_per_group]
-                values.append(f"{getter_fn(b, 0): >{chars_per_group}}")
-            formatted = sep.join(values)
-            return formatted
+            if fmt == 'bits':
+                formatted = sep.join(str(getter_fn(b, 0)) for b in bits.cut(bits_per_group))
+                return formatted
+            else:
+                values = []
+                for i in range(0, len(bits), bits_per_group):
+                    b = bits[i: i + bits_per_group]
+                    values.append(f"{getter_fn(b, 0): >{chars_per_group}}")
+                formatted = sep.join(values)
+                return formatted
 
     @staticmethod
     def _chars_per_group(bits_per_group: int, fmt: Optional[str]):
@@ -2312,7 +2317,7 @@ class Bits:
             return chars_per_value
 
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
-            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int, getter_fn=None) -> None:
+            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int, getter_fn=None, getter_fn2=None) -> None:
         """Internal pretty print method."""
 
         bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
@@ -2362,7 +2367,7 @@ class Bits:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
-            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, group_chars2, bits_per_group, sep, name2, getter_fn)
+            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, group_chars2, bits_per_group, sep, name2, getter_fn2)
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:
@@ -2849,7 +2854,7 @@ class BitArray(Bits):
         return s_copy
 
     def _setitem_int(self, key: int, value: Union[BitsType, int]) -> None:
-        if isinstance(value, int):
+        if isinstance(value, numbers.Integral):
             if value == 0:
                 self._bitstore[key] = 0
                 return
@@ -2867,7 +2872,7 @@ class BitArray(Bits):
         self._bitstore[positive_key: positive_key + 1] = value._bitstore
 
     def _setitem_slice(self, key: slice, value: BitsType) -> None:
-        if isinstance(value, int):
+        if isinstance(value, numbers.Integral):
             if key.step not in [None, -1, 1]:
                 if value in [0, 1]:
                     self.set(value, range(*key.indices(len(self))))
@@ -2890,7 +2895,7 @@ class BitArray(Bits):
         self._bitstore.__setitem__(key, value._bitstore)
 
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             self._setitem_int(key, value)
         else:
             self._setitem_slice(key, value)
@@ -3229,7 +3234,7 @@ class BitArray(Bits):
         if fmt is None or fmt == 0:
             # reverse all of the whole bytes.
             bytesizes = [(end_v - start_v) // 8]
-        elif isinstance(fmt, int):
+        elif isinstance(fmt, numbers.Integral):
             if fmt < 0:
                 raise ValueError(f"Improper byte length {fmt}.")
             bytesizes = [fmt]
@@ -3249,7 +3254,7 @@ class BitArray(Bits):
         elif isinstance(fmt, abc.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:
-                if not isinstance(bytesize, int) or bytesize < 0:
+                if not isinstance(bytesize, numbers.Integral) or bytesize < 0:
                     raise ValueError(f"Improper byte length {bytesize}.")
         else:
             raise TypeError("Format must be an integer, string or iterable.")

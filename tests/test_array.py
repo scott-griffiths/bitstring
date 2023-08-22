@@ -526,6 +526,35 @@ c040 3f80 4000
         12        100         99
 ]\n""")
 
+    def testPpBits(self):
+        a = Array('bits2', b'89')
+        s = io.StringIO()
+        a.pp(stream=s, width=0, show_offset=True)
+        self.assertEqual(s.getvalue(), """<Array fmt='bits2', length=8, itemsize=2 bits, total data size=2 bytes>
+[
+ 0: 0b00
+ 1: 0b11
+ 2: 0b10
+ 3: 0b00
+ 4: 0b00
+ 5: 0b11
+ 6: 0b10
+ 7: 0b01
+]\n""")
+
+    def testPpTwoFormats(self):
+        a = Array('float16', bytearray(20))
+        s = io.StringIO()
+        a.pp(stream=s, fmt='float8_152, bin')
+        self.assertEqual(s.getvalue(), """<Array fmt='float8_152, bin', length=20, itemsize=8 bits, total data size=20 bytes>
+[
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+                0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
+]\n""")
+
 class ArrayOperations(unittest.TestCase):
 
     def testInPlaceAdd(self):
