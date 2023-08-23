@@ -201,6 +201,12 @@ class Creation(unittest.TestCase):
         with self.assertRaises(bitstring.CreationError):
             _ = Bits(ba, length=-1)
 
+    def testCreationFromMemoryview(self):
+        x = bytes(bytearray(range(20)))
+        m = memoryview(x[10:15])
+        b = Bits(m)
+        self.assertEqual(b.unpack('5*u8'), [10, 11, 12, 13, 14])
+
 
 class Initialisation(unittest.TestCase):
     def testEmptyInit(self):

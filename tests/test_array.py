@@ -117,7 +117,11 @@ class Creation(unittest.TestCase):
         self.assertFalse(a.trailing_bits)
 
     def testCreationFromMemoryview(self):
-        pass
+        x = b'1234567890'
+        m = memoryview(x[2:5])
+        self.assertEqual(m, b'345')
+        a = Array('u8', m)
+        self.assertEqual(a.tolist(), [ord('3'), ord('4'), ord('5')])
 
     def testCreationFromBits(self):
         a = bitstring.pack('20*i19', *range(-10, 10))

@@ -1000,7 +1000,7 @@ class Bits:
         if isinstance(s, str):
             self._bitstore = _str_to_bitstore(s)
             return
-        if isinstance(s, (bytes, bytearray)):
+        if isinstance(s, (bytes, bytearray, memoryview)):
             self._bitstore = BitStore(frombytes=bytearray(s))
             return
         if isinstance(s, array.array):
