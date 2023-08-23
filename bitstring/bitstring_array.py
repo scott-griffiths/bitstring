@@ -397,13 +397,13 @@ class Array:
         temp = BitArray(token_length)
         try:
             getter_func(temp, 0)
-        except bitstring.InterpretError as e:
-            raise ValueError(f"Pretty print format not valied: {e.msg}")
+        except InterpretError as e:
+            raise ValueError(f"Pretty print format not valid: {e.msg}")
         if token_name2 is not None:
             try:
                 getter_func2(temp, 0)
-            except bitstring.InterpretError as e:
-                raise ValueError(f"Pretty print format not valied: {e.msg}")
+            except InterpretError as e:
+                raise ValueError(f"Pretty print format not valid: {e.msg}")
 
         trailing_bit_length = len(self.data) % token_length
         format_sep = " : "  # String to insert on each line between multiple formats
