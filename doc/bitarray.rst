@@ -339,12 +339,14 @@ floatne
 float8_143
 ^^^^^^^^^^
     .. attribute:: BitArray.float8_143
+       :noindex:
 
         Writable version of :attr:`Bits.float8_143`.
 
 float8_152
 ^^^^^^^^^^
     .. attribute:: BitArray.float8_152
+       :noindex:
 
         Writable version of :attr:`Bits.float8_152`.
 
