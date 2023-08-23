@@ -583,7 +583,11 @@ class Lsb0Setting(unittest.TestCase):
         self.assertEqual(a, '0x555abcab000')
 
     def testReverse(self):
-        pass
+        a = BitArray('0x0011223344')
+        a.reverse()
+        self.assertEqual(a, '0x22cc448800')
+        a.reverse(0, 16)
+        self.assertEqual(a, '0x22cc440011')
 
     def testRor(self):
         a = BitArray('0b111000')

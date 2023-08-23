@@ -706,9 +706,15 @@ class ArrayOperations(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = a << 1000
 
-
     def testInPlaceLshift(self):
-        pass
+        a = Array('u11', [0, 5, 10, 1, 2, 3])
+        a <<= 2
+        self.assertEqual(a.tolist(), [0, 20, 40, 4, 8, 12])
+        a <<= 0
+        self.assertEqual(a.tolist(), [0, 20, 40, 4, 8, 12])
+        with self.assertRaises(ValueError):
+            a <<= -1
+
 
 
 class CreationFromBits(unittest.TestCase):
