@@ -3376,3 +3376,28 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
 
 # Initialise the default behaviour
 _switch_lsb0_methods(False)
+
+
+class Dtype:
+    def __init__(self, fmt: str) -> None:
+        tokens = tokenparser(fmt)[1]
+        token_names_and_lengths = [(x[0], x[1]) for x in tokens]
+        if len(token_names_and_lengths) != 1:
+            raise ValueError(
+                f"Only a single token can be used in a Dtype - '{fmt}' has {len(token_names_and_lengths)} tokens.")
+        self.name, self.length = token_names_and_lengths[0]
+        try:
+            self.set = functools.partial(Bits._setfunc[self.name], length=self.length)
+        except KeyError:
+            raise ValueError(f"The token '{self.name}' can't be used to set Array elements.")
+        try:
+            self.get = functools.partial(Bits._name_to_read[self.name], length=self.length)
+        except KeyError:
+            raise ValueError(f"The token '{self.name}' can't be used to get Array elements.")
+        # Test if the length makes sense by trying out the getter.
+        if self.length is not None:
+            temp = BitArray(self.length)
+            try:
+                _ = self.get(temp, 0)
+            except InterpretError as e:
+                raise ValueError(f"Invalid Dtype: {e.msg}")
