@@ -186,7 +186,7 @@ Array
                 >>> a
                 Array('int5', [-5, 0, 10, 3, 2, 1, -1, 0, 2])
 
-        .. method:: fromfile(f: BinaryIO, n: int | None) -> None
+        .. method:: fromfile(f: BinaryIO, n: int | None = None) -> None
 
             Append items read from a file object.
 
@@ -200,7 +200,7 @@ Array
                 Array('float8_152', [-10.0, -5.0, -0.5, 0.5, 5.0, 10.0])
 
 
-        .. method:: pop(i: int | None) -> float | int | str | bytes
+        .. method:: pop(i: int | None = None) -> float | int | str | bytes
 
             Remove and return the item at position i.
 
@@ -215,7 +215,7 @@ Array
                 b'DEF'
 
 
-        .. method:: pp(fmt: str | None, width: int, show_offset: bool, stream: TextIO) -> None
+        .. method:: pp(fmt: str | None = None, width: int = 120, show_offset: bool = False, stream: TextIO = sys.stdout) -> None
 
             Pretty print the Array.
 
