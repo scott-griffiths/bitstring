@@ -332,7 +332,7 @@ class ConstBitStream(Bits):
         return value
 
     def readlist(self, fmt: Union[str, List[Union[int, str]]], **kwargs) \
-            -> List[Union[float, int, str, Bits]]:
+            -> List[Union[int, float, str, Bits, bool, bytes, None]]:
         """Interpret next bits according to format string(s) and return list.
 
         fmt -- A single string or list of strings with comma separated tokens
@@ -382,10 +382,10 @@ class ConstBitStream(Bits):
         ...
 
     @overload
-    def peek(self, fmt: str) -> Any:
+    def peek(self, fmt: str) -> Union[int, float, str, TConstBitStream, bool, bytes, None]:
         ...
 
-    def peek(self: TConstBitStream, fmt: Union[int, str]) -> Union[Any, TConstBitStream]:
+    def peek(self: TConstBitStream, fmt: Union[int, str]) -> Union[int, float, str, TConstBitStream, bool, bytes, None]:
         """Interpret next bits according to format string and return result.
 
         fmt -- Token string describing how to interpret the next bits.

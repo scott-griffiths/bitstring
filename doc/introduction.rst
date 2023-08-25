@@ -128,6 +128,17 @@ Integers won't be auto promoted, but instead will raise a ``TypeError``::
     >>> a += Bits(255)     # If you really want to do it then code it explicitly.
 
 
+``BitsType``
+""""""""""""
+
+.. class:: BitsType(Bits | str | Iterable[Any] | bool | BinaryIO | bytearray | bytes | memoryview | bitarray.bitarray)
+
+    The ``BitsType`` type is used in the documentation in a number of places where an object of any type that can be promoted to a bitstring is acceptable.
+
+    It's just a union of types rather than an actual class (though it's documented here as a class as I could find no alternative).
+    It's not user accessible, but is just a shorthand way of saying any of the above types.
+
+
 
 Keyword initialisers
 ^^^^^^^^^^^^^^^^^^^^

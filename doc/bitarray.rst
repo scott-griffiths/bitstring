@@ -1,9 +1,9 @@
 .. currentmodule:: bitstring
 
-BitArray Class
-==============
+BitArray
+========
 
-.. class:: BitArray([__auto, length, offset, **kwargs])
+.. class:: BitArray(__auto: BitsType | int | None, length: int | None = None, offset: int | None = None, **kwargs)
 
     The :class:`Bits` class is the base class for :class:`BitArray` and so (with the exception of :meth:`~Bits.__hash__`) all of its methods are also available for :class:`BitArray` objects. The initialiser is also the same as for :class:`Bits` and so won't be repeated here.
 
@@ -14,7 +14,7 @@ Methods
 
 append
 ^^^^^^
-    .. method:: BitArray.append(bs)
+    .. method:: BitArray.append(bs: BitsType) -> None
 
        Join a :class:`BitArray` to the end of the current :class:`BitArray`. ::
 
@@ -25,7 +25,7 @@ append
 
 byteswap
 ^^^^^^^^
-    .. method:: BitArray.byteswap([fmt, start, end, repeat=True])
+    .. method:: BitArray.byteswap(fmt: str | int | Iterable[int] | None = None, start: int | None = None, end: int | None = None, repeat: bool = True) -> int
     
        Change the endianness of the :class:`BitArray` in-place according to *fmt*. Return the number of swaps done.
        
@@ -56,7 +56,7 @@ byteswap
 
 clear
 ^^^^^
-    .. method:: BitArray.clear()
+    .. method:: BitArray.clear() -> None
 
         Removes all bits from the bitstring.
 
@@ -64,7 +64,7 @@ clear
 
 insert
 ^^^^^^
-    .. method:: BitArray.insert(bs, pos)
+    .. method:: BitArray.insert(bs: BitsType, pos: int) -> None
 
         Inserts *bs* at *pos*.
 
@@ -80,7 +80,7 @@ insert
 
 invert
 ^^^^^^
-    .. method:: BitArray.invert([pos])
+    .. method:: BitArray.invert(pos: int | Iterable[int] | None = None) -> None
     
         Inverts one or many bits from ``1`` to ``0`` or vice versa.
         
@@ -99,7 +99,7 @@ invert
 
 overwrite
 ^^^^^^^^^
-    .. method:: BitArray.overwrite(bs, pos)
+    .. method:: BitArray.overwrite(bs: BitsType, pos: int) -> None
 
         Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
 
@@ -114,7 +114,7 @@ overwrite
 
 prepend
 ^^^^^^^
-    .. method:: BitArray.prepend(bs)
+    .. method:: BitArray.prepend(bs: BitsType) -> None
 
         Inserts *bs* at the beginning of the current :class:`BitArray`. ::
 
@@ -125,7 +125,7 @@ prepend
 
 replace
 ^^^^^^^
-    .. method:: BitArray.replace(old, new[, start, end, count, bytealigned])
+    .. method:: BitArray.replace(old: BitsType, new: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> int
 
         Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 
@@ -143,7 +143,7 @@ replace
 
 reverse
 ^^^^^^^
-    .. method:: BitArray.reverse([start, end])
+    .. method:: BitArray.reverse(start: int | None = None, end: int | None = None) -> None
 
         Reverses bits in the :class:`BitArray` in-place.
 
@@ -159,7 +159,7 @@ reverse
 
 rol
 ^^^
-    .. method:: BitArray.rol(bits[, start, end])
+    .. method:: BitArray.rol(bits: int, start: int | None = None, end: int | None = None) -> None
 
         Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the left.
 
@@ -174,7 +174,7 @@ rol
 
 ror
 ^^^
-    .. method:: BitArray.ror(bits[, start, end])
+    .. method:: BitArray.ror(bits: int, start: int | None = None, end: int | None = None) -> None
 
         Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the right.
 
@@ -184,7 +184,7 @@ ror
 
 set
 ^^^
-    .. method:: BitArray.set(value[, pos])
+    .. method:: BitArray.set(value: bool, pos: int | Iterable[int] | None = None) -> None
 
         Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. The default is to set every bit in the :class:`BitArray`.
 
@@ -223,54 +223,66 @@ Properties can also have a length in bits appended to them to make properties su
 bin / b
 ^^^^^^^
     .. attribute:: BitArray.bin
-       :noindex:
+        :type: str
+        :noindex:
     .. attribute:: BitArray.b
-       :noindex:
+        :type: str
+        :noindex:
 
         Writable version of :attr:`Bits.bin`.
 
 bfloat / bfloatbe / bfloatle / bfloatne
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     .. attribute:: BitArray.bfloat
-       :noindex:
+        :type: float
+        :noindex:
     .. attribute:: BitArray.bfloatbe
-       :noindex:
+        :type: float
+        :noindex:
     .. attribute:: BitArray.bfloatle
-       :noindex:
+        :type: float
+        :noindex:
     .. attribute:: BitArray.bfloatne
-       :noindex:
+        :type: float
+        :noindex:
 
         Writable versions of :attr:`Bits.bfloat` / :attr:`Bits.bfloatbe` / :attr:`Bits.bfloatle` / :attr:`Bits.bfloatne`.
 
 bool
 ^^^^
     .. attribute:: BitArray.bool
-       :noindex:
+        :type: bool
+        :noindex:
 
         Writable version of :attr:`Bits.bool`.
 
 bytes
 ^^^^^
     .. attribute:: BitArray.bytes
-       :noindex:
+        :type: bytes
+        :noindex:
 
         Writable version of :attr:`Bits.bytes`.
 
 hex / h
 ^^^^^^^
     .. attribute:: BitArray.hex
-       :noindex:
+        :type: str
+        :noindex:
     .. attribute:: BitArray.h
-       :noindex:
+        :type: str
+        :noindex:
 
         Writable version of :attr:`Bits.hex`.
 
 int / i
 ^^^^^^^
     .. attribute:: BitArray.int
-       :noindex:
+        :type: int
+        :noindex:
     .. attribute:: BitArray.i
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.int`. The properties can have a bit length appended to it such as ``i32`` or ``int5`` to specify the new length of the bitstring. Using a length too small to contain the value given will raise a :exc:`CreationError`.
                 
@@ -285,7 +297,8 @@ int / i
 intbe
 ^^^^^
     .. attribute:: BitArray.intbe
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.intbe`.
         
@@ -294,7 +307,8 @@ intbe
 intle
 ^^^^^
     .. attribute:: BitArray.intle
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.intle`.
 
@@ -303,7 +317,8 @@ intle
 intne
 ^^^^^
     .. attribute:: BitArray.intne
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.intne`.
 
@@ -312,11 +327,14 @@ intne
 float / floatbe / f
 ^^^^^^^^^^^^^^^^^^^
     .. attribute:: BitArray.float
-       :noindex:
+        :type: float
+        :noindex:
     .. attribute:: BitArray.floatbe
-       :noindex:
+        :type: float
+        :noindex:
     .. attribute:: BitArray.f
-       :noindex:
+        :type: float
+        :noindex:
 
         Writable version of :attr:`Bits.float`. The standard ``float``, the big-endian ``floatbe`` and the shortened ``f`` are all equivalent.
 
@@ -325,74 +343,86 @@ float / floatbe / f
 floatle
 ^^^^^^^
     .. attribute:: BitArray.floatle
-       :noindex:
+        :type: float
+        :noindex:
 
         Writable version of :attr:`Bits.floatle`.
 
 floatne
 ^^^^^^^
     .. attribute:: BitArray.floatne
-       :noindex:
+        :type: float
+        :noindex:
 
         Writable version of :attr:`Bits.floatne`.
 
 float8_143
 ^^^^^^^^^^
     .. attribute:: BitArray.float8_143
-       :noindex:
+        :type: float
+        :noindex:
 
         Writable version of :attr:`Bits.float8_143`.
 
 float8_152
 ^^^^^^^^^^
     .. attribute:: BitArray.float8_152
-       :noindex:
+        :type: float
+        :noindex:
 
         Writable version of :attr:`Bits.float8_152`.
 
 oct / o
 ^^^^^^^
     .. attribute:: BitArray.oct
-       :noindex:
+        :type: str
+        :noindex:
     .. attribute:: BitArray.o
-       :noindex:
+        :type: str
+        :noindex:
 
         Writable version of :attr:`Bits.oct`.
 
 se
 ^^
     .. attribute:: BitArray.se
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.se`.
 
 ue
 ^^
     .. attribute:: BitArray.ue
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.uie`.
 
 sie
 ^^^
     .. attribute:: BitArray.sie
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.sie`.
 
 uie
 ^^^
     .. attribute:: BitArray.uie
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.ue`.
 
 uint / u
 ^^^^^^^^
     .. attribute:: BitArray.uint
-       :noindex:
+        :type: int
+        :noindex:
     .. attribute:: BitArray.u
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.uint`.
 
@@ -401,7 +431,8 @@ uint / u
 uintbe
 ^^^^^^
     .. attribute:: BitArray.uintbe
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.uintbe`.
 
@@ -410,7 +441,8 @@ uintbe
 uintle
 ^^^^^^
     .. attribute:: BitArray.uintle
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.uintle`.
         
@@ -419,7 +451,8 @@ uintle
 uintne
 ^^^^^^
     .. attribute:: BitArray.uintne
-       :noindex:
+        :type: int
+        :noindex:
 
         Writable version of :attr:`Bits.uintne`.
 

@@ -10,7 +10,7 @@
 Array
 =====
 
-.. class:: Array(fmt: str[, initializer[, trailing_bits]])
+.. class:: Array(fmt: str, initializer: Iterable | int | Array | array.array | Bits | bytes | bytearray | memoryview | BinaryIO | None = None, trailing_bits: BitsType | None = None)
 
     Create a new ``Array`` whose elements are set by the ``fmt`` string.
     This can be any format which has a fixed length.

@@ -22,7 +22,7 @@ from bitstring.fp8 import fp143_fmt, fp152_fmt
 from bitstring.bitstore import BitStore, _offset_slice_indices_lsb0
 
 # Things that can be converted to Bits when a Bits type is needed
-BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, bitarray.bitarray]
+BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
 
 TBits = TypeVar("TBits", bound='Bits')
 
@@ -1632,7 +1632,7 @@ class Bits:
     def _truncateright(self: TBits, bits: int) -> TBits:
         """Truncate bits from the end of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= self.len
-        if not bits:
+        if bits == 0:
             return self.__class__()
         truncated_bits = self._absolute_slice(self.length - bits, self.length)
         if bits == self.len:
@@ -1727,7 +1727,7 @@ class Bits:
             raise ValueError("end must not be less than start.")
         return start, end
 
-    def unpack(self, fmt: Union[str, List[Union[str, int]]], **kwargs) -> List[Union[float, int, str, None, Bits]]:
+    def unpack(self, fmt: Union[str, List[Union[str, int]]], **kwargs) -> List[Union[int, float, str, Bits, bool, bytes, None]]:
         """Interpret the whole bitstring using fmt and return list.
 
         fmt -- A single string or a list of strings with comma separated tokens
@@ -1745,7 +1745,7 @@ class Bits:
         return self._readlist(fmt, 0, **kwargs)[0]
 
     def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs: int) \
-            -> Tuple[List[Union[float, int, str, Bits]], int]:
+            -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
         tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]] = []
         if isinstance(fmt, str):
             fmt = [fmt]

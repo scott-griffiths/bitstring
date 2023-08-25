@@ -1,9 +1,9 @@
 .. currentmodule:: bitstring
 
-ConstBitStream Class
-====================
+ConstBitStream
+==============
 
-.. class:: ConstBitStream([__auto, length, offset, pos, **kwargs])
+.. class:: ConstBitStream(__auto: BitsType | int | None, length: int | None = None, offset: int | None = None, pos: int = 0, **kwargs)
 
     The :class:`Bits` class is the base class for :class:`ConstBitStream` and so all of its methods are also available for :class:`ConstBitStream` objects. The initialiser is the same as for :class:`Bits` except that an initial bit position :attr:`pos` can be given (defaults to 0).
 
@@ -68,7 +68,7 @@ Methods
 
 bytealign
 ^^^^^^^^^
-    .. method:: ConstBitStream.bytealign()
+    .. method:: ConstBitStream.bytealign() -> int
 
        Aligns to the start of the next byte (so that :attr:`pos` is a multiple of 8) and returns the number of bits skipped.
 
@@ -83,7 +83,7 @@ bytealign
 
 peek
 ^^^^
-    .. method:: ConstBitStream.peek(fmt)
+    .. method:: ConstBitStream.peek(fmt: str | int) -> int | float | str | Bits | bool | bytes | None
 
         Reads from the current bit position :attr:`pos` in the bitstring according to the *fmt* string or integer and returns the result.
 
@@ -99,7 +99,7 @@ peek
 
 peeklist
 ^^^^^^^^
-    .. method:: ConstBitStream.peeklist(fmt, **kwargs)
+    .. method:: ConstBitStream.peeklist(fmt: str | list[str | int], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results.
 
@@ -109,7 +109,7 @@ peeklist
 
 read
 ^^^^
-    .. method:: ConstBitStream.read(fmt)
+    .. method:: ConstBitStream.read(fmt: str | int) -> int | float | str | Bits | bool | bytes | None
 
         Reads from current bit position :attr:`pos` in the bitstring according the format string and returns a single result. If not enough bits are available then a :exc:`ReadError` is raised.
 
@@ -141,7 +141,7 @@ read
 
 readlist
 ^^^^^^^^
-    .. method:: ConstBitStream.readlist(fmt, **kwargs)
+    .. method:: ConstBitStream.readlist(fmt: str | list[str | int], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
 
         Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results. If not enough bits are available then a :exc:`ReadError` is raised.
 
@@ -162,7 +162,7 @@ readlist
 
 readto
 ^^^^^^
-    .. method:: ConstBitStream.readto(bs, bytealigned)
+    .. method:: ConstBitStream.readto(bs: BitsType, bytealigned: bool | None = None) -> ConstBitStream
 
         Reads up to and including the next occurrence of the bitstring *bs* and returns the results. If *bytealigned* is `True` it will look for the bitstring starting only at whole-byte positions.
 
@@ -170,11 +170,11 @@ readto
 
             >>> s = ConstBitStream('0x47000102034704050647')
             >>> s.readto('0x47', bytealigned=True)
-            BitStream('0x47')
+            ConstBitStream('0x47')
             >>> s.readto('0x47', bytealigned=True)
-            BitStream('0x0001020347')
+            ConstBitStream('0x0001020347')
             >>> s.readto('0x47', bytealigned=True)
-            BitStream('0x04050647')
+            ConstBitStream('0x04050647')
 
 Properties
 ----------
@@ -191,6 +191,7 @@ It also will be reset to zero if a bitstring is copied.
 bytepos
 ^^^^^^^
     .. attribute:: ConstBitStream.bytepos
+        :type: int
 
         Property for setting and getting the current byte position in the bitstring.
         The value of ``pos`` will always be ``bytepos * 8`` as the two values are not independent.
@@ -200,7 +201,9 @@ bytepos
 pos / bitpos
 ^^^^^^^^^^^^
     .. attribute:: ConstBitStream.pos
+        :type: int
     .. attribute:: ConstBitStream.bitpos
+        :type: int
 
         Read and write property for setting and getting the current bit position in the bitstring. Can be set to any value from ``0`` to ``len(s)``.
 

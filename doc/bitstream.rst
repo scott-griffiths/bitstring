@@ -1,9 +1,9 @@
 .. currentmodule:: bitstring
 
-BitStream Class
-===============
+BitStream
+=========
 
-.. class:: BitStream([__auto, length, offset, pos, **kwargs])
+.. class:: BitStream(__auto: BitsType | int | None, length: int | None = None, offset: int | None = None, pos: int = 0, **kwargs)
 
     Both the :class:`BitArray` and the :class:`ConstBitStream` classes are base classes for :class:`BitStream` and so all of their methods are also available for :class:`BitStream` objects. The initialiser is the same as for :class:`ConstBitStream`.
 

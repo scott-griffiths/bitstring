@@ -1,11 +1,11 @@
 .. currentmodule:: bitstring
 
-Bits Class
-==========
+Bits
+====
 
 The ``Bits`` class is the simplest type in the bitstring module, and represents an immutable sequence of bits. This is the best class to use if you will not need to modify the data after creation and don't need streaming methods.
 
-.. class:: Bits([__auto, length, offset, **kwargs])
+.. class:: Bits(__auto: BitsType | int | None, length: int | None = None, offset: int | None = None, **kwargs)
 
     Creates a new bitstring. You must specify either no initialiser, just an 'auto' value as the first parameter, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``float8_143``, ``float8_152``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
@@ -24,17 +24,20 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
            >>> s1 == s2 == s3 == s4 == s5 == s6
            True
 
-    See also :ref:`auto_init`. ::
+    See also :ref:`auto_init`, which allows many different types to be used to initialise a bitstring. ::
 
         >>> s = Bits('uint12=32, 0b110')
         >>> t = Bits('0o755, ue=12, int:3=-1')
+
+    In the methods below we use ``BitsType`` to indicate that any of the types that can auto initialise can be used.
+
 
 Methods
 -------
 
 all
 ^^^
-    .. method:: Bits.all(value[, pos])
+    .. method:: Bits.all(value: bool, pos: Iterable[int] | None = None) -> bool
 
        Returns ``True`` if all of the specified bits are all set to *value*, otherwise returns ``False``.
 
@@ -50,7 +53,7 @@ all
 
 any
 ^^^
-    .. method:: Bits.any(value[, pos])
+    .. method:: Bits.any(value: bool, pos: Iterable[int] | None = None) -> bool
 
        Returns ``True`` if any of the specified bits are set to *value*, otherwise returns ``False``.
 
@@ -66,7 +69,7 @@ any
 
 copy
 ^^^^
-    .. method:: Bits.copy()
+    .. method:: Bits.copy() -> Bits
 
         Returns a copy of the bitstring.
 
@@ -74,7 +77,7 @@ copy
 
 count
 ^^^^^
-    .. method:: Bits.count(value)
+    .. method:: Bits.count(value: bool) -> int
         
         Returns the number of bits set to *value*.
         
@@ -92,7 +95,7 @@ count
 
 cut
 ^^^
-    .. method:: Bits.cut(bits[, start, end, count])
+    .. method:: Bits.cut(bits: int, start: int | None = None, end: int | None = None, count: int | None = None) -> Iterator[Bits]
 
         Returns a generator for slices of the bitstring of length *bits*.
 
@@ -106,7 +109,7 @@ cut
 
 endswith
 ^^^^^^^^
-    .. method:: Bits.endswith(bs[, start, end])
+    .. method:: Bits.endswith(bs: BitsType, start: int | None = None, end: int | None = None) -> bool
 
         Returns ``True`` if the bitstring ends with the sub-string *bs*, otherwise returns ``False``.
 
@@ -120,7 +123,7 @@ endswith
 
 find
 ^^^^
-    .. method:: Bits.find(bs[, start, end, bytealigned])
+    .. method:: Bits.find(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> Tuple[int] | Tuple[()]
 
         Searches for *bs* in the current bitstring and sets :attr:`~ConstBitStream.pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
@@ -134,7 +137,7 @@ find
 
 findall
 ^^^^^^^
-    .. method:: Bits.findall(bs[, start, end, count, bytealigned])
+    .. method:: Bits.findall(bs: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> Iterable[int]
 
         Searches for all occurrences of *bs* (even overlapping ones) and returns a generator of their bit positions.
 
@@ -148,7 +151,7 @@ findall
 
 join
 ^^^^
-    .. method:: Bits.join(sequence)
+    .. method:: Bits.join(sequence: Iterable) -> Bits
 
         Returns the concatenation of the bitstrings in the iterable *sequence* joined with ``self`` as a separator. ::
 
@@ -162,7 +165,7 @@ join
 
 pp
 ^^
-    .. method:: Bits.pp([fmt, width, sep, show_offset, stream])
+    .. method:: Bits.pp(fmt: str | None = None, width: int = 120, sep: str = ' ', show_offset: bool = True, stream: TextIO = sys.stdout) -> None
 
         Pretty print the bitstring's value according to the *fmt*. Either a single, or two comma separated formats can be specified, together with options for setting the maximum display *width*, the number of bits to display in each group, and the separator to print between groups.
 
@@ -193,7 +196,7 @@ pp
 
 rfind
 ^^^^^
-    .. method:: Bits.rfind(bs[, start, end, bytealigned])
+    .. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> Tuple[int] | Tuple[()]
     
         Searches backwards for *bs* in the current bitstring and sets :attr:`~ConstBitStream.pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
         
@@ -211,7 +214,7 @@ rfind
 
 split
 ^^^^^
-    .. method:: Bits.split(delimiter[, start, end, count, bytealigned])
+    .. method:: Bits.split(delimiter: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> Iterable[Bits]
 
         Splits the bitstring into sections that start with *delimiter*. Returns a generator for bitstring objects.
 
@@ -225,7 +228,7 @@ split
 
 startswith
 ^^^^^^^^^^
-    .. method:: Bits.startswith(bs[, start, end])
+    .. method:: Bits.startswith(bs: BitsType, start: int | None = None, end: int | None = None) -> bool
 
         Returns ``True`` if the bitstring starts with the sub-string *bs*, otherwise returns ``False``.
 
@@ -237,7 +240,7 @@ startswith
 
 tobitarray
 ^^^^^^^^^^
-    .. method:: Bits.tobitarray()
+    .. method:: Bits.tobitarray() -> bitarray.bitarray
 
         Returns the bitstring as a ``bitarray`` object.
 
@@ -249,7 +252,7 @@ tobitarray
 
 tobytes
 ^^^^^^^
-    .. method:: Bits.tobytes()
+    .. method:: Bits.tobytes() -> bytes
 
         Returns the bitstring as a ``bytes`` object.
 
@@ -270,7 +273,7 @@ tobytes
 
 tofile
 ^^^^^^
-    .. method:: Bits.tofile(f)
+    .. method:: Bits.tofile(f: BinaryIO) -> None
 
         Writes the bitstring to the file object *f*, which should have been opened in binary write mode.
 
@@ -281,7 +284,7 @@ tofile
 
 unpack
 ^^^^^^
-    .. method:: Bits.unpack(fmt, **kwargs)
+    .. method:: Bits.unpack(fmt: str | list[str | int], **kwargs) -> list[float | int | str | None | Bits]
 
         Interprets the whole bitstring according to the *fmt* string or iterable and returns a list of bitstring objects.
         
@@ -308,7 +311,9 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
 bin / b
 ^^^^^^^
     .. attribute:: Bits.bin
+        :type: str
     .. attribute:: Bits.b
+        :type: str
 
         Property for the representation of the bitstring as a binary string.
 
@@ -316,7 +321,9 @@ bin / b
 bfloat / bfloatbe
 ^^^^^^^^^^^^^^^^^
     .. attribute:: Bits.bfloat
+        :type: float
     .. attribute:: Bits.bfloatbe
+        :type: float
 
         Property for the 2 byte bfloat floating point representation of the bitstring.
 
@@ -330,26 +337,30 @@ bfloat / bfloatbe
 bfloatle
 ^^^^^^^^
     .. attribute:: Bits.bfloatle
+        :type: float
 
         Property for the byte-wise little-endian 2 byte bfloat floating point representation of the bitstring.
 
 bfloatne
 ^^^^^^^^
     .. attribute:: Bits.bfloatne
+        :type: float
 
         Property for the byte-wise native-endian 2 byte bfloat floating point representation of the bitstring.
 
 bool
 ^^^^
     .. attribute:: Bits.bool
+        :type: bool
 
-       Property for representing the bitstring as a boolean (``True`` or ``False``).
-       
-       If the bitstring is not a single bit then the getter will raise an :exc:`InterpretError`.
+        Property for representing the bitstring as a boolean (``True`` or ``False``).
+
+        If the bitstring is not a single bit then the getter will raise an :exc:`InterpretError`.
 
 bytes
 ^^^^^
     .. attribute:: Bits.bytes
+        :type: bytes
 
         Property representing the underlying byte data that contains the bitstring.
 
@@ -364,7 +375,9 @@ bytes
 hex / h
 ^^^^^^^
     .. attribute:: Bits.hex
+        :type: str
     .. attribute:: Bits.h
+        :type: str
 
         Property representing the hexadecimal value of the bitstring.
 
@@ -377,13 +390,16 @@ hex / h
 int / i
 ^^^^^^^
     .. attribute:: Bits.int
+        :type: int
     .. attribute:: Bits.i
+        :type: int
 
         Property for the signed two’s complement integer representation of the bitstring.
 
 intbe
 ^^^^^
     .. attribute:: Bits.intbe
+        :type: int
 
         Property for the byte-wise big-endian signed two's complement integer representation of the bitstring.
 
@@ -392,6 +408,7 @@ intbe
 intle
 ^^^^^
     .. attribute:: Bits.intle
+        :type: int
 
         Property for the byte-wise little-endian signed two's complement integer representation of the bitstring.
 
@@ -400,6 +417,7 @@ intle
 intne
 ^^^^^
     .. attribute:: Bits.intne
+        :type: int
 
         Property for the byte-wise native-endian signed two's complement integer representation of the bitstring.
 
@@ -408,8 +426,11 @@ intne
 float / floatbe / f
 ^^^^^^^^^^^^^^^^^^^
     .. attribute:: Bits.float
+        :type: float
     .. attribute:: Bits.floatbe
+        :type: float
     .. attribute:: Bits.f
+        :type: float
 
         Property for the floating point representation of the bitstring.
 
@@ -422,18 +443,21 @@ float / floatbe / f
 floatle
 ^^^^^^^
     .. attribute:: Bits.floatle
+        :type: float
 
         Property for the byte-wise little-endian floating point representation of the bitstring.
 
 floatne
 ^^^^^^^
     .. attribute:: Bits.floatne
+        :type: float
 
         Property for the byte-wise native-endian floating point representation of the bitstring.
 
 float8_143
 ^^^^^^^^^^
     .. attribute:: Bits.float8_143
+        :type: float
 
         Property for an 8 bit floating point representation with 4 exponent bits and 3 mantissa bits.
         See :ref:`Exotic floats` for more information.
@@ -441,6 +465,7 @@ float8_143
 float8_152
 ^^^^^^^^^^
     .. attribute:: Bits.float8_152
+        :type: float
 
         Property for an 8 bit floating point representation with 5 exponent bits and 2 mantissa bits.
         See :ref:`Exotic floats` for more information.
@@ -448,7 +473,9 @@ float8_152
 len / length
 ^^^^^^^^^^^^
     .. attribute:: Bits.len
+        :type: int
     .. attribute:: Bits.length
+        :type: int
 
         Read-only property that give the length of the bitstring in bits (:attr:`len` and :attr:`length` are equivalent).
 
@@ -457,7 +484,9 @@ len / length
 oct / o
 ^^^^^^^
     .. attribute:: Bits.oct
+        :type: str
     .. attribute:: Bits.o
+        :type: str
 
         Property for the octal representation of the bitstring.
 
@@ -473,6 +502,7 @@ oct / o
 se
 ^^
     .. attribute:: Bits.se
+        :type: int
 
         Property for the signed exponential-Golomb code representation of the bitstring.
 
@@ -488,6 +518,7 @@ se
 ue
 ^^
     .. attribute:: Bits.ue
+        :type: int
 
         Property for the unsigned exponential-Golomb code representation of the bitstring.
 
@@ -496,6 +527,7 @@ ue
 sie
 ^^^
     .. attribute:: Bits.sie
+        :type: int
 
         Property for the signed interleaved exponential-Golomb code representation of the bitstring.
 
@@ -504,6 +536,7 @@ sie
 uie
 ^^^
     .. attribute:: Bits.uie
+        :type: int
 
         Property for the unsigned interleaved exponential-Golomb code representation of the bitstring.
 
@@ -512,25 +545,30 @@ uie
 uint / u
 ^^^^^^^^
     .. attribute:: Bits.uint
+        :type: int
     .. attribute:: Bits.u
+        :type: int
 
         Property for the unsigned base-2 integer representation of the bitstring.
 
 uintbe
 ^^^^^^
     .. attribute:: Bits.uintbe
+        :type: int
 
         Property for the byte-wise big-endian unsigned base-2 integer representation of the bitstring.
 
 uintle
 ^^^^^^
     .. attribute:: Bits.uintle
+        :type: int
 
         Property for the byte-wise little-endian unsigned base-2 integer representation of the bitstring.
 
 uintne
 ^^^^^^
     .. attribute:: Bits.uintne
+        :type: int
 
         Property for the byte-wise native-endian unsigned base-2 integer representation of the bitstring.
 
