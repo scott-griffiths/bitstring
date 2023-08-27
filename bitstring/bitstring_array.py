@@ -112,7 +112,7 @@ class Array:
     @fmt.setter
     def fmt(self, new_fmt: str) -> None:
         dtype = Dtype(new_fmt)
-        if dtype.length is None:
+        if dtype.length == 0:
             raise ValueError(f"A fixed length format is needed for an Array, received '{new_fmt}'.")
         self.dtype = dtype
         # We save the user's fmt string so that we can use it in __repr__ etc.

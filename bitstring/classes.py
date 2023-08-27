@@ -16,7 +16,7 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
-from bitstring.utils import tokenparser, STRUCT_PACK_RE, STRUCT_SPLIT_RE
+from bitstring.utils import tokenparser, STRUCT_PACK_RE, STRUCT_SPLIT_RE, parse_name_length_token
 from bitstring.exceptions import CreationError, InterpretError, ReadError, Error, ByteAlignError
 from bitstring.fp8 import fp143_fmt, fp152_fmt
 from bitstring.bitstore import BitStore, _offset_slice_indices_lsb0
@@ -3380,12 +3380,8 @@ _switch_lsb0_methods(False)
 
 class Dtype:
     def __init__(self, fmt: str) -> None:
-        tokens = tokenparser(fmt)[1]
-        token_names_and_lengths = [(x[0], x[1]) for x in tokens]
-        if len(token_names_and_lengths) != 1:
-            raise ValueError(
-                f"Only a single token can be used in a Dtype - '{fmt}' has {len(token_names_and_lengths)} tokens.")
-        self.name, self.length = token_names_and_lengths[0]
+
+        self.name, self.length = parse_name_length_token(fmt)
         try:
             self.set = functools.partial(Bits._setfunc[self.name], length=self.length)
         except KeyError:
@@ -3395,7 +3391,7 @@ class Dtype:
         except KeyError:
             raise ValueError(f"The token '{self.name}' can't be used to get Array elements.")
         # Test if the length makes sense by trying out the getter.
-        if self.length is not None:
+        if self.length != 0:
             temp = BitArray(self.length)
             try:
                 _ = self.get(temp, 0)

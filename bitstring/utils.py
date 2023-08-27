@@ -1,4 +1,5 @@
 from __future__ import annotations
+import itertools
 import functools
 import re
 from typing import Tuple, List, Optional, Pattern, Dict, Union
@@ -79,6 +80,71 @@ def structparser(token: str) -> List[str]:
             tokens = [REPLACEMENTS_BE[c] for c in fmt]
     return tokens
 
+@functools.lru_cache(CACHE_SIZE)
+def parse_name_length_token(fmt: str) -> Tuple[str, int]:
+    # Any single token with just a name and length
+
+    # TODO: Tidy up with new parsing.
+    fmt = structparser(fmt)[0]
+    name, length, value = parse_single_token(fmt)
+    try:
+        length = int(length)
+    except TypeError:
+        raise ValueError("Badly formatted type with length token.")
+    if name in ('se', 'ue', 'sie', 'uie'):
+        if length is not None:
+            raise ValueError(
+                f"Exponential-Golomb codes (se/ue/sie/uie) can't have fixed lengths. Length of {length} was given.")
+    if value is not None:
+        raise ValueError("Badly formatted type with length token.")
+    if isinstance(length, str):
+        raise ValueError
+    if length is None:
+        length = 0
+    return name, length
+
+@functools.lru_cache(CACHE_SIZE)
+def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
+    m1 = TOKEN_RE.match(token)
+    if m1:
+        name = m1.group('name')
+        length = m1.group('len')
+        value = m1.group('value')
+    else:
+        m1_short = SHORT_TOKEN_RE.match(token)
+        if m1_short:
+            name = m1_short.group('name')
+            name = {'u': 'uint',
+                    'i': 'int',
+                    'f': 'float',
+                    'b': 'bin',
+                    'o': 'oct',
+                    'h': 'hex'}[name]
+            length = m1_short.group('len')
+            value = m1_short.group('value')
+        else:
+            # If you don't specify a 'name' then the default is 'bits':
+            name = 'bits'
+            m2 = DEFAULT_BITS.match(token)
+            if not m2:
+                raise ValueError(f"Don't understand token '{token}'.")
+            length = m2.group('len')
+            value = m2.group('value')
+
+    if name == 'bool':
+        if length is not None and length != '1':
+            raise ValueError(f"bool tokens can only be 1 bit long, not {length} bits.")
+        length = '1'
+    if name == 'bfloat':
+        if length is not None and length != '16':
+            raise ValueError(f"bfloat tokens can only be 16 bits long, not {length} bits.")
+        length = '16'
+    if name in ['float8_143', 'float8_152']:
+        if length is not None and length != '8':
+            raise ValueError(f"float8 tokens can only be 8 bits long, not {length} bits.")
+        length = '8'
+    return name, length, value
+
 
 @functools.lru_cache(CACHE_SIZE)
 def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
@@ -95,12 +161,14 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
     tokens must be of the form: [factor*][initialiser][:][length][=value]
 
     """
-    # Very inefficient expanding of brackets.
+    # Remove whitespace
+    fmt = ''.join(fmt.split())
+    # Expand any brackets.
     fmt = expand_brackets(fmt)
     # Split tokens by ',' and remove whitespace
     # The meta_tokens can either be ordinary single tokens or multiple
     # struct-format token strings.
-    meta_tokens = (''.join(f.split()) for f in fmt.split(','))
+    meta_tokens = [f.strip() for f in fmt.split(',')]
     return_values: List[Tuple[str, Union[int, str, None], Optional[str]]] = []
     stretchy_token = False
     for meta_token in meta_tokens:
@@ -121,52 +189,15 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
                 continue
             if token == '':
                 continue
+
             # Match literal tokens of the form 0x... 0o... and 0b...
             m = LITERAL_RE.match(token)
             if m:
-                name: str = m.group('name')
-                value: str = m.group('value')
-                ret_vals.append((name, None, value))
+                ret_vals.append((m.group('name'), None, m.group('value')))
                 continue
-            # Match everything else:
-            m1 = TOKEN_RE.match(token)
-            if m1:
-                name = m1.group('name')
-                length = m1.group('len')
-                value = m1.group('value')
-            else:
-                m1_short = SHORT_TOKEN_RE.match(token)
-                if m1_short:
-                    name = m1_short.group('name')
-                    name = {'u': 'uint',
-                            'i': 'int',
-                            'f': 'float',
-                            'b': 'bin',
-                            'o': 'oct',
-                            'h': 'hex'}[name]
-                    length = m1_short.group('len')
-                    value = m1_short.group('value')
-                else:
-                    # If you don't specify a 'name' then the default is 'bits':
-                    name = 'bits'
-                    m2 = DEFAULT_BITS.match(token)
-                    if not m2:
-                        raise ValueError(f"Don't understand token '{token}'.")
-                    length = m2.group('len')
-                    value = m2.group('value')
 
-            if name == 'bool':
-                if length is not None and length != '1':
-                    raise ValueError(f"bool tokens can only be 1 bit long, not {length} bits.")
-                length = '1'
-            if name == 'bfloat':
-                if length is not None and length != '16':
-                    raise ValueError(f"bfloat tokens can only be 16 bits long, not {length} bits.")
-                length = '16'
-            if name in ['float8_143', 'float8_152']:
-                if length is not None and length != '8':
-                    raise ValueError(f"float8 tokens can only be 8 bits long, not {length} bits.")
-                length = '8'
+            name, length, value = parse_single_token(token)
+
             if name in ('se', 'ue', 'sie', 'uie'):
                 if length is not None:
                     raise ValueError(f"Exponential-Golomb codes (se/ue/sie/uie) can't have fixed lengths. Length of {length} was given.")
@@ -189,19 +220,14 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
                     if not keys or length not in keys:
                         raise ValueError(f"Don't understand length '{length}' of token.")
             ret_vals.append((name, length, value))
-        # This multiplies by the multiplicative factor, but this means that
-        # we can't allow keyword values as multipliers (e.g. n*uint:8).
-        # The only way to do this would be to return the factor in some fashion
-        # (we can't use the key's value here as it would mean that we couldn't
-        # sensibly continue to cache the function's results).
-        return_values.extend(tuple(ret_vals * factor))
-    return_values = [tuple(x) for x in return_values]
-    return stretchy_token, return_values
+        return_values.extend(itertools.repeat(ret_vals, factor))
+
+    return_values = itertools.chain.from_iterable(return_values)
+    return stretchy_token, list(return_values)
 
 
 def expand_brackets(s: str) -> str:
-    """Remove whitespace and expand all brackets."""
-    s = ''.join(s.split())
+    """Expand all brackets."""
     while True:
         start = s.find('(')
         if start == -1:
