@@ -2,7 +2,7 @@ from __future__ import annotations
 import itertools
 import functools
 import re
-from typing import Tuple, List, Optional, Pattern, Dict, Union
+from typing import Tuple, List, Optional, Pattern, Dict, Union, Match
 import sys
 from bitstring.exceptions import Error
 
@@ -29,7 +29,9 @@ MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
 LITERAL_RE: Pattern[str] = re.compile(r'^(?P<name>0([xob]))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
+STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=]){1}(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
+# The same as above, but it doesn't insist on an endianness as it's byteswapping anyway.
+BYTESWAP_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
 
 # A number followed by a single character struct.pack code
 STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQefd]')
@@ -56,28 +58,22 @@ REPLACEMENTS_NE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
                                    'e': 'floatne:16', 'f': 'floatne:32', 'd': 'floatne:64'}
 
 
-def structparser(token: str) -> List[str]:
+def structparser(m: Match[str]) -> List[str]:
     """Parse struct-like format string token into sub-token list."""
-    m = STRUCT_PACK_RE.match(token)
-    if not m:
-        return [token]
+    endian = m.group('endian')
+    # Split the format string into a list of 'q', '4h' etc.
+    formatlist = re.findall(STRUCT_SPLIT_RE, m.group('fmt'))
+    # Now deal with multiplicative factors, 4h -> hhhh etc.
+    fmt = ''.join([f[-1] * int(f[:-1]) if len(f) != 1 else
+                   f for f in formatlist])
+    if endian in '@=':
+        # Native endianness
+        tokens = [REPLACEMENTS_NE[c] for c in fmt]
+    elif endian == '<':
+        tokens = [REPLACEMENTS_LE[c] for c in fmt]
     else:
-        endian = m.group('endian')
-        if endian is None:
-            return [token]
-        # Split the format string into a list of 'q', '4h' etc.
-        formatlist = re.findall(STRUCT_SPLIT_RE, m.group('fmt'))
-        # Now deal with multiplicative factors, 4h -> hhhh etc.
-        fmt = ''.join([f[-1] * int(f[:-1]) if len(f) != 1 else
-                       f for f in formatlist])
-        if endian in '@=':
-            # Native endianness
-            tokens = [REPLACEMENTS_NE[c] for c in fmt]
-        elif endian == '<':
-            tokens = [REPLACEMENTS_LE[c] for c in fmt]
-        else:
-            assert endian == '>'
-            tokens = [REPLACEMENTS_BE[c] for c in fmt]
+        assert endian == '>'
+        tokens = [REPLACEMENTS_BE[c] for c in fmt]
     return tokens
 
 @functools.lru_cache(CACHE_SIZE)
@@ -85,7 +81,9 @@ def parse_name_length_token(fmt: str) -> Tuple[str, int]:
     # Any single token with just a name and length
 
     # TODO: Tidy up with new parsing.
-    fmt = structparser(fmt)[0]
+    m = STRUCT_PACK_RE.match(fmt)
+    if m:
+        fmt = structparser(m)[0]
     name, length, value = parse_single_token(fmt)
     try:
         length = int(length)
@@ -180,7 +178,11 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
             factor = int(m.group('factor'))
             meta_token = m.group('token')
         # See if it's a struct-like format
-        tokens = structparser(meta_token)
+        m = STRUCT_PACK_RE.match(meta_token)
+        if m:
+            tokens = structparser(m)
+        else:
+            tokens = [meta_token]
         ret_vals: List[Tuple[str, Union[str, int, None], Optional[str]]] = []
         for token in tokens:
             if keys and token in keys:

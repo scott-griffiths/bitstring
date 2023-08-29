@@ -16,7 +16,7 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
-from bitstring.utils import tokenparser, STRUCT_PACK_RE, STRUCT_SPLIT_RE, parse_name_length_token
+from bitstring.utils import tokenparser, BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE, parse_name_length_token
 from bitstring.exceptions import CreationError, InterpretError, ReadError, Error, ByteAlignError
 from bitstring.fp8 import fp143_fmt, fp152_fmt
 from bitstring.bitstore import BitStore, _offset_slice_indices_lsb0
@@ -3239,7 +3239,7 @@ class BitArray(Bits):
                 raise ValueError(f"Improper byte length {fmt}.")
             bytesizes = [fmt]
         elif isinstance(fmt, str):
-            m = STRUCT_PACK_RE.match(fmt)
+            m = BYTESWAP_STRUCT_PACK_RE.match(fmt)
             if not m:
                 raise ValueError(f"Cannot parse format string {fmt}.")
             # Split the format string into a list of 'q', '4h' etc.
