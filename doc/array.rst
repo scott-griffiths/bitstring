@@ -140,365 +140,372 @@ Array
     * The ``'b'`` and ``'B'`` type codes need to be preceded by an endianness character even though it makes no difference which one you use as they are only 1 byte long.
 
 
-        .. method:: append(x: float | int | str | bytes) -> None
+Methods
+-------
 
-            Add a new element with value `x` to the end of the Array.
-            The type of `x` should be appropriate for the type of the Array.
+.. method:: Array.append(x: float | int | str | bytes) -> None
 
-            Raises a ``ValueError`` if the Array's bit length is not a multiple of its format length (see :attr:`~Array.trailing_bits`).
+    Add a new element with value `x` to the end of the Array.
+    The type of `x` should be appropriate for the type of the Array.
 
-        .. method:: byteswap() -> None
+    Raises a ``ValueError`` if the Array's bit length is not a multiple of its format length (see :attr:`~Array.trailing_bits`).
 
-            Change the byte endianness of each element.
+.. method:: Array.byteswap() -> None
 
-            Raises a ``ValueError`` if the format is not an integer number of bytes long. ::
+    Change the byte endianness of each element.
 
-                >>> a = Array('uint32', [100, 1, 999])
-                >>> a.byteswap()
-                >>> a
-                Array('uint32', [1677721600, 16777216, 3875733504])
-                >>> a.fmt = 'uintle32'
-                >>> a
-                Array('uintle32', [100, 1, 999])
+    Raises a ``ValueError`` if the format is not an integer number of bytes long. ::
 
-        .. method:: count(value: float | int | str | bytes) -> int
+        >>> a = Array('uint32', [100, 1, 999])
+        >>> a.byteswap()
+        >>> a
+        Array('uint32', [1677721600, 16777216, 3875733504])
+        >>> a.fmt = 'uintle32'
+        >>> a
+        Array('uintle32', [100, 1, 999])
 
-            Returns the number of elements set to *value*. ::
+.. method:: Array.count(value: float | int | str | bytes) -> int
 
-                >>> a = Array('hex4')
-                >>> a.data += '0xdeadbeef'
-                >>> a
-                Array('hex4', ['d', 'e', 'a', 'd', 'b', 'e', 'e', 'f'])
-                >>> a.count('e')
-                3
+    Returns the number of elements set to *value*. ::
 
-            For floating point types using a `value` of ``float('nan')`` will count the number of elements for which ``math.isnan()`` returns ``True``.
+        >>> a = Array('hex4')
+        >>> a.data += '0xdeadbeef'
+        >>> a
+        Array('hex4', ['d', 'e', 'a', 'd', 'b', 'e', 'e', 'f'])
+        >>> a.count('e')
+        3
 
-        .. method:: extend(iterable: Iterable | Array) -> None
+    For floating point types using a `value` of ``float('nan')`` will count the number of elements for which ``math.isnan()`` returns ``True``.
 
-            Extend the Array by constructing new elements from the values in a list or other iterable.
+.. method:: Array.extend(iterable: Iterable | Array) -> None
 
-            The `iterable` can be another ``Array`` or an ``array.array``, but only if the format is the same. ::
+    Extend the Array by constructing new elements from the values in a list or other iterable.
 
-                >>> a = Array('int5', [-5, 0, 10])
-                >>> a.extend([3, 2, 1])
-                >>> a.extend(a[0:3] // 5)
-                >>> a
-                Array('int5', [-5, 0, 10, 3, 2, 1, -1, 0, 2])
+    The `iterable` can be another ``Array`` or an ``array.array``, but only if the format is the same. ::
 
-        .. method:: fromfile(f: BinaryIO, n: int | None) -> None
+        >>> a = Array('int5', [-5, 0, 10])
+        >>> a.extend([3, 2, 1])
+        >>> a.extend(a[0:3] // 5)
+        >>> a
+        Array('int5', [-5, 0, 10, 3, 2, 1, -1, 0, 2])
 
-            Append items read from a file object.
+.. method:: Array.fromfile(f: BinaryIO, n: int | None = None) -> None
 
-        .. method:: insert(i: int, x: float | int | str | bytes) -> None
+    Append items read from a file object.
 
-            Insert an item at a given position. ::
+.. method:: Array.insert(i: int, x: float | int | str | bytes) -> None
 
-                >>> a = Array('float8_152', [-10, -5, -0.5, 5, 10])
-                >>> a.insert(3, 0.5)
-                >>> a
-                Array('float8_152', [-10.0, -5.0, -0.5, 0.5, 5.0, 10.0])
+    Insert an item at a given position. ::
 
+        >>> a = Array('float8_152', [-10, -5, -0.5, 5, 10])
+        >>> a.insert(3, 0.5)
+        >>> a
+        Array('float8_152', [-10.0, -5.0, -0.5, 0.5, 5.0, 10.0])
 
-        .. method:: pop(i: int | None) -> float | int | str | bytes
 
-            Remove and return the item at position i.
+.. method:: Array.pop(i: int | None = None) -> float | int | str | bytes
 
-            If a position isn't specified the final item is returned and removed. ::
+    Remove and return the item at position i.
 
-                >>> Array('bytes3', [b'ABC', b'DEF', b'ZZZ'])
-                >>> a.pop(0)
-                b'ABC'
-                >>> a.pop()
-                b'ZZZ'
-                >>> a.pop()
-                b'DEF'
+    If a position isn't specified the final item is returned and removed. ::
 
+        >>> Array('bytes3', [b'ABC', b'DEF', b'ZZZ'])
+        >>> a.pop(0)
+        b'ABC'
+        >>> a.pop()
+        b'ZZZ'
+        >>> a.pop()
+        b'DEF'
 
-        .. method:: pp(fmt: str | None, width: int, show_offset: bool, stream: TextIO) -> None
 
-            Pretty print the Array.
+.. method:: Array.pp(fmt: str | None = None, width: int = 120, show_offset: bool = False, stream: TextIO = sys.stdout) -> None
 
-            `fmt` defaults to the Array's current format, but any other valid Array format string can be used.
+    Pretty print the Array.
 
-            A pair of comma-separated format strings can also be used - either only one format should specify a length or they both must specify the same length. For example ``'float32, hex'`` or ``'u4, i4'``.
+    `fmt` defaults to the Array's current format, but any other valid Array format string can be used.
 
-            The output will try to stay within `width` characters per line, but will always output at least one element value.
+    A pair of comma-separated format strings can also be used - either only one format should specify a length or they both must specify the same length. For example ``'float32, hex'`` or ``'u4, i4'``.
 
-            Setting `show_offset` to ``True`` will add a element index to each line of the output.
+    The output will try to stay within `width` characters per line, but will always output at least one element value.
 
-            An output `stream` can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
+    Setting `show_offset` to ``True`` will add a element index to each line of the output.
 
-                >>> a = Array('u20', bytearray(range(100)))
-                >>> a.pp(width=70)
-                <Array fmt='u20', length=40, itemsize=20 bits, total data size=100 bytes>
-                [
-                     16  131844   20576  460809   41136  789774   61697   70163
-                  82257  399128  102817  728093  123378    8482  143938  337447
-                 164498  666412  185058  995377  205619  275766  226179  604731
-                 246739  933696  267300  214085  287860  543050  308420  872015
-                 328981  152404  349541  481369  370101  810334  390662   90723
-                ]
+    An output `stream` can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
 
-                >>> a.pp('hex32', show_offset=True, width=70)
-                <Array fmt='hex32', length=25, itemsize=32 bits, total data size=100 bytes>
-                [
-                  0: 00010203 04050607 08090a0b 0c0d0e0f 10111213 14151617 18191a1b
-                  7: 1c1d1e1f 20212223 24252627 28292a2b 2c2d2e2f 30313233 34353637
-                 14: 38393a3b 3c3d3e3f 40414243 44454647 48494a4b 4c4d4e4f 50515253
-                 21: 54555657 58595a5b 5c5d5e5f 60616263
-                ]
+        >>> a = Array('u20', bytearray(range(100)))
+        >>> a.pp(width=70)
+        <Array fmt='u20', length=40, itemsize=20 bits, total data size=100 bytes>
+        [
+             16  131844   20576  460809   41136  789774   61697   70163
+          82257  399128  102817  728093  123378    8482  143938  337447
+         164498  666412  185058  995377  205619  275766  226179  604731
+         246739  933696  267300  214085  287860  543050  308420  872015
+         328981  152404  349541  481369  370101  810334  390662   90723
+        ]
 
-                >>> a.pp('i12, hex', width=70)
-                <Array fmt='i12, hex', length=114, itemsize=7 bits, total data size=100 bytes>
-                [
-                    0   258    48  1029    96  1800 : 000 102 030 405 060 708
-                  144 -1525   192  -754   241    17 : 090 a0b 0c0 d0e 0f1 011
-                  289   788   337  1559   385 -1766 : 121 314 151 617 181 91a
-                  433  -995   481  -224   530   547 : 1b1 c1d 1e1 f20 212 223
-                  578  1318   626 -2007   674 -1236 : 242 526 272 829 2a2 b2c
-                  722  -465   771   306   819  1077 : 2d2 e2f 303 132 333 435
-                  867  1848   915 -1477   963  -706 : 363 738 393 a3b 3c3 d3e
-                 1012    65  1060   836  1108  1607 : 3f4 041 424 344 454 647
-                 1156 -1718  1204  -947  1252  -176 : 484 94a 4b4 c4d 4e4 f50
-                 1301   595  1349  1366  1397 -1959 : 515 253 545 556 575 859
-                 1445 -1188  1493  -417  1542   354 : 5a5 b5c 5d5 e5f 606 162
-                ] + trailing_bits = 0x63
+        >>> a.pp('hex32', show_offset=True, width=70)
+        <Array fmt='hex32', length=25, itemsize=32 bits, total data size=100 bytes>
+        [
+          0: 00010203 04050607 08090a0b 0c0d0e0f 10111213 14151617 18191a1b
+          7: 1c1d1e1f 20212223 24252627 28292a2b 2c2d2e2f 30313233 34353637
+         14: 38393a3b 3c3d3e3f 40414243 44454647 48494a4b 4c4d4e4f 50515253
+         21: 54555657 58595a5b 5c5d5e5f 60616263
+        ]
 
-        .. method:: reverse() -> None
+        >>> a.pp('i12, hex', width=70)
+        <Array fmt='i12, hex', length=114, itemsize=7 bits, total data size=100 bytes>
+        [
+            0   258    48  1029    96  1800 : 000 102 030 405 060 708
+          144 -1525   192  -754   241    17 : 090 a0b 0c0 d0e 0f1 011
+          289   788   337  1559   385 -1766 : 121 314 151 617 181 91a
+          433  -995   481  -224   530   547 : 1b1 c1d 1e1 f20 212 223
+          578  1318   626 -2007   674 -1236 : 242 526 272 829 2a2 b2c
+          722  -465   771   306   819  1077 : 2d2 e2f 303 132 333 435
+          867  1848   915 -1477   963  -706 : 363 738 393 a3b 3c3 d3e
+         1012    65  1060   836  1108  1607 : 3f4 041 424 344 454 647
+         1156 -1718  1204  -947  1252  -176 : 484 94a 4b4 c4d 4e4 f50
+         1301   595  1349  1366  1397 -1959 : 515 253 545 556 575 859
+         1445 -1188  1493  -417  1542   354 : 5a5 b5c 5d5 e5f 606 162
+        ] + trailing_bits = 0x63
 
-            Reverse the order of all items in the Array. ::
+.. method:: Array.reverse() -> None
 
-                >>> a = Array('>L', [100, 200, 300])
-                >>> a.reverse()
-                >>> a
-                Array('>L', [300, 200, 100])
+    Reverse the order of all items in the Array. ::
 
-        .. method:: tobytes() -> bytes
+        >>> a = Array('>L', [100, 200, 300])
+        >>> a.reverse()
+        >>> a
+        Array('>L', [300, 200, 100])
 
-            Return Array data as bytes object, padding with zero bits at the end if needed. ::
+.. method:: Array.tobytes() -> bytes
 
-                >>> a = Array('i4', [3, -6, 2, -3, 2, -7])
-                >>> a.tobytes()
-                b':-)'
+    Return Array data as bytes object, padding with zero bits at the end if needed. ::
 
-        .. method:: tofile(f: BinaryIO) -> None
+        >>> a = Array('i4', [3, -6, 2, -3, 2, -7])
+        >>> a.tobytes()
+        b':-)'
 
-            Write Array data to a file, padding with zero bits at the end if needed.
+.. method:: Array.tofile(f: BinaryIO) -> None
 
-        .. method:: tolist() -> List[float | int | str | bytes]
+    Write Array data to a file, padding with zero bits at the end if needed.
 
-            Return Array items as a list.
+.. method:: Array.tolist() -> List[float | int | str | bytes]
 
-            Each packed element of the Array is converted to an ordinary Python object such as a ``float`` or an ``int`` depending on the Array's format, and returned in a Python list.
+    Return Array items as a list.
 
-            This can be helpful if you want to use an Array to create a new Array with a different format. ::
+    Each packed element of the Array is converted to an ordinary Python object such as a ``float`` or an ``int`` depending on the Array's format, and returned in a Python list.
 
-                >>> a = Array('float16', b'some_long_byte_data?')
-                >>> a
-                Array('float16', [15224.0, 5524.0, 475.0, 7608.0, 1887.0, 828.5, 18000.0, 473.0, 698.0, 671.5])
-                >>> b = Array('float8_152', a.tolist())
-                >>> b
-                Array('float8_152', [14336.0, 5120.0, 448.0, 7168.0, 1792.0, 768.0, 16384.0, 448.0, 640.0, 640.0])
-                >>> b.tobytes()
-                b'wqcskfxcee'
+    This can be helpful if you want to use an Array to create a new Array with a different format. ::
 
+        >>> a = Array('float16', b'some_long_byte_data?')
+        >>> a
+        Array('float16', [15224.0, 5524.0, 475.0, 7608.0, 1887.0, 828.5, 18000.0, 473.0, 698.0, 671.5])
+        >>> b = Array('float8_152', a.tolist())
+        >>> b
+        Array('float8_152', [14336.0, 5120.0, 448.0, 7168.0, 1792.0, 768.0, 16384.0, 448.0, 640.0, 640.0])
+        >>> b.tobytes()
+        b'wqcskfxcee'
 
 
-        .. method:: __len__(self) -> int
+Special Methods
+---------------
 
-            ``len(a)``
+.. method:: Array.__len__(self) -> int
 
-            Return the number of elements in the Array. ::
+    ``len(a)``
 
-                >>> a = Array('uint20', [1, 2, 3])
-                >>> len(a)
-                3
-                >>> a.fmt = 'uint1'
-                >>> len(a)
-                60
+    Return the number of elements in the Array. ::
 
+        >>> a = Array('uint20', [1, 2, 3])
+        >>> len(a)
+        3
+        >>> a.fmt = 'uint1'
+        >>> len(a)
+        60
 
-        .. method:: __eq__(self, other) -> bool
 
-            ``a1 == a2``
+.. method:: Array.__eq__(self, other) -> bool
 
-            Equality test - `other` can be either another bitstring Array or an ``array``.
-            To be equal the formats must be equivalent and the underlying bit data must be the same. ::
+    ``a1 == a2``
 
-                >>> a = Array('u8', [1, 2, 3, 2, 1])
-                >>> a[0:3] == a[-1:-4:-1]
-                True
+    Equality test - `other` can be either another bitstring Array or an ``array``.
+    To be equal the formats must be equivalent and the underlying bit data must be the same. ::
 
-            To compare only the values contained in the Array, extract them using :meth:`~Array.tolist` first.
+        >>> a = Array('u8', [1, 2, 3, 2, 1])
+        >>> a[0:3] == a[-1:-4:-1]
+        True
 
-        .. method:: __ne__(self, other) -> bool
+    To compare only the values contained in the Array, extract them using :meth:`~Array.tolist` first.
 
-            ``a1 != a2``
+.. method:: Array.__ne__(self, other) -> bool
 
+    ``a1 != a2``
 
-        .. method:: __getitem__(self, key: int | slice) -> float | int | str | bytes | Array
 
-            ``a[i]``
+.. method:: Array.__getitem__(self, key: int | slice) -> float | int | str | bytes | Array
 
-            ``a[start:end:step]``
+    ``a[i]``
 
-        .. method:: __add__(other: int | float) -> Array
+    ``a[start:end:step]``
 
-            ``a + x``
+.. method:: Array.__add__(other: int | float) -> Array
 
+    ``a + x``
 
-        .. method:: __sub__(self, other: int | float) -> Array
 
-            ``a - x``
+.. method:: Array.__sub__(self, other: int | float) -> Array
 
-        .. method:: __mul__(self, other: int | float) -> Array
+    ``a - x``
 
-            ``a * x``
+.. method:: Array.__mul__(self, other: int | float) -> Array
 
-        .. method:: __truediv__(self, other: int | float) -> Array
+    ``a * x``
 
-            ``a / x``
+.. method:: Array.__truediv__(self, other: int | float) -> Array
 
-        .. method:: __floordiv__(self, other: int | float) -> Array
+    ``a / x``
 
-            ``a // x``
+.. method:: Array.__floordiv__(self, other: int | float) -> Array
 
-        .. method:: __rshift__(self, other: int) -> Array
+    ``a // x``
 
-            ``a >> i``
+.. method:: Array.__rshift__(self, other: int) -> Array
 
-        .. method:: __lshift__(self, other: int) -> Array
+    ``a >> i``
 
-            ``a << i``
+.. method:: Array.__lshift__(self, other: int) -> Array
 
-        .. method:: __and__(self, other: Bits) -> Array
+    ``a << i``
 
-            ``a & bs``
+.. method:: Array.__and__(self, other: Bits) -> Array
 
-        .. method:: __or__(self, other: Bits) -> Array
+    ``a & bs``
 
-            ``a | bs``
+.. method:: Array.__or__(self, other: Bits) -> Array
 
-        .. method:: __xor__(self, other: Bits) -> Array
+    ``a | bs``
 
-            ``a ^ bs``
+.. method:: Array.__xor__(self, other: Bits) -> Array
 
-        .. method:: __setitem__(self, key: int | slice, value) -> None
+    ``a ^ bs``
 
-            ``a[i] = x``
+.. method:: Array.__setitem__(self, key: int | slice, value) -> None
 
-            ``a[start:end:step] = x``
+    ``a[i] = x``
 
-        .. method:: __delitem__(self, key: int | slice) -> None
+    ``a[start:end:step] = x``
 
-            ``del a[i]``
+.. method:: Array.__delitem__(self, key: int | slice) -> None
 
-            ``del[start:end:step]``
+    ``del a[i]``
 
-        .. method:: __iadd__(self, other: int | float) -> None
+    ``del[start:end:step]``
 
-            In-place version of :meth:`+ <Array.__add__>`. ::
+.. method:: Array.__iadd__(self, other: int | float) -> None
 
-                >>> a += 3
+    In-place version of :meth:`+ <Array.__add__>`. ::
 
+        >>> a += 3
 
-        .. method:: __isub__(self, other: int | float) -> None
 
-            In-place version of :meth:`- <Array.__sub__>`. ::
+.. method:: Array.__isub__(self, other: int | float) -> None
 
-                >>> a -= 9.4
+    In-place version of :meth:`- <Array.__sub__>`. ::
 
+        >>> a -= 9.4
 
-        .. method:: __imul__(self, other: int | float) -> None
 
-            In-place version of :meth:`* <Array.__mul__>`. ::
+.. method:: Array.__imul__(self, other: int | float) -> None
 
-                >>> a *= 2
+    In-place version of :meth:`* <Array.__mul__>`. ::
 
-        .. method:: __itruediv__(self, other: int | float) -> None
+        >>> a *= 2
 
-            In-place version of :meth:`/ <Array.__truediv__>`. ::
+.. method:: Array.__itruediv__(self, other: int | float) -> None
 
-                >>> a /= 5.1
+    In-place version of :meth:`/ <Array.__truediv__>`. ::
 
-        .. method:: __ifloordiv__(self, other: int | float) -> None
+        >>> a /= 5.1
 
-            In-place version of :meth:`// <Array.__floordiv__>`. ::
+.. method:: Array.__ifloordiv__(self, other: int | float) -> None
 
-                >>> a //= 8
+    In-place version of :meth:`// <Array.__floordiv__>`. ::
 
+        >>> a //= 8
 
-        .. method:: __irshift__(self, other: int) -> None
 
-            In-place version of :meth:`>> <Array.__rshift__>`. ::
+.. method:: Array.__irshift__(self, other: int) -> None
 
-                >>> a >>= 1
+    In-place version of :meth:`>> <Array.__rshift__>`. ::
 
-        .. method:: __ilshift__(self, other: int) -> None
+        >>> a >>= 1
 
-            In-place version of :meth:`\<\< <Array.__lshift__>`. ::
+.. method:: Array.__ilshift__(self, other: int) -> None
 
-                >>> a <<= 2
+    In-place version of :meth:`\<\< <Array.__lshift__>`. ::
 
+        >>> a <<= 2
 
-        .. method:: __iand__(self, other: Bits) -> None
 
-            In-place version of :meth:`& <Array.__and__>`. ::
+.. method:: Array.__iand__(self, other: Bits) -> None
 
-                >>> a &= '0b1110'
+    In-place version of :meth:`& <Array.__and__>`. ::
 
-        .. method:: __ior__(self, other: Bits) -> None
+        >>> a &= '0b1110'
 
-            In-place version of :meth:`| <Array.__or__>`. ::
+.. method:: Array.__ior__(self, other: Bits) -> None
 
-                >>> a |= '0x7fff'
+    In-place version of :meth:`| <Array.__or__>`. ::
 
-        .. method:: __ixor__(self, other: Bits) -> None
+        >>> a |= '0x7fff'
 
-            In-place version of :meth:`^ <Array.__xor__>`. ::
+.. method:: Array.__ixor__(self, other: Bits) -> None
 
-                >>> a ^= bytearray([56, 23])
+    In-place version of :meth:`^ <Array.__xor__>`. ::
 
+        >>> a ^= bytearray([56, 23])
 
-        .. attribute:: data
-            :type: BitArray
+Properties
+----------
 
-            The bit data of the ``Array``, as a ``BitArray``. Read and write, and can be freely manipulated with all of ``BitArray`` methods.
+.. attribute:: Array.data
+    :type: BitArray
 
-            Note that some ``Array`` methods such as ``append`` and ``extend`` require the  ``data`` to have a length that is a multiple of the ``Array``'s ``itemsize``.
+    The bit data of the ``Array``, as a ``BitArray``. Read and write, and can be freely manipulated with all of ``BitArray`` methods.
 
-        .. attribute:: fmt
-            :type: str
+    Note that some ``Array`` methods such as :meth:`~Array.append` and :meth:`~Array.extend` require the  :attr:`~Array.data` to have a length that is a multiple of the ``Array``'s :attr:`~Array.itemsize`.
 
-            The format string used to initialise the ``Array`` type. Read and write.
+.. attribute:: Array.fmt
+    :type: str
 
-            Changing the format for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
-            However, changing the format won't change the underlying bit data in any way.
+    The format string used to initialise the ``Array`` type. Read and write.
 
-            Note that some ``Array`` methods such as ``append`` and ``extend`` require the bit data to have a length that is a multiple of the ``Array``'s ``itemsize``.
+    Changing the format for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
+    However, changing the format won't change the underlying bit data in any way.
 
-        .. attribute:: itemsize
-            :type: int
+    Note that some ``Array`` methods such as :meth:`~Array.append` and :meth:`~Array.extend` require the bit data to have a length that is a multiple of the ``Array``'s :attr:`~Array.itemsize`.
 
-            The size *in bits* of each item in the ``Array``. Read-only.
+.. attribute:: Array.itemsize
+    :type: int
 
-            Note that this gives a value in bits, unlike the equivalent in the ``array`` module which gives a value in bytes. ::
+    The size *in bits* of each item in the ``Array``. Read-only.
 
-                >>> a = Array('>h')
-                >>> b = Array('bool')
-                >>> a.itemsize
-                16
-                >>> b.itemsize
-                1
+    Note that this gives a value in bits, unlike the equivalent in the ``array`` module which gives a value in bytes. ::
 
-        .. attribute:: trailing_bits
-            :type: BitArray
+        >>> a = Array('>h')
+        >>> b = Array('bool')
+        >>> a.itemsize
+        16
+        >>> b.itemsize
+        1
 
-            A ``BitArray`` object equal to the end of the ``data`` that is not a multiple of the ``itemsize``. Read only.
+.. attribute:: Array.trailing_bits
+    :type: BitArray
 
-            This will typically be an empty ``BitArray``, but if an the ``fmt`` or the ``data`` of an ``Array`` object has been altered after its creation then there may be left-over bits at the end of the data.
+    A ``BitArray`` object equal to the end of the ``data`` that is not a multiple of the ``itemsize``. Read only.
 
-            Note that any methods that append items to the ``Array`` will fail with a ``ValueError`` if there are any trailing bits.
+    This will typically be an empty ``BitArray``, but if an the ``fmt`` or the ``data`` of an ``Array`` object has been altered after its creation then there may be left-over bits at the end of the data.
+
+    Note that any methods that append items to the ``Array`` will fail with a ``ValueError`` if there are any trailing bits.
 
 

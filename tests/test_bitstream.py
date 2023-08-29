@@ -3739,10 +3739,12 @@ class Bugs(unittest.TestCase):
         self.assertEqual(be('(hello)'), 'hello')
         self.assertEqual(be('1*(hello)'), 'hello')
         self.assertEqual(be('2*(hello)'), 'hello,hello')
-        self.assertEqual(be('1*(a, b)'), 'a,b')
-        self.assertEqual(be('2*(a, b)'), 'a,b,a,b')
-        self.assertEqual(be('2*(a), 3*(b)'), 'a,a,b,b,b')
-        self.assertEqual(be('2*(a, b, 3*(c, d), e)'), 'a,b,c,d,c,d,c,d,e,a,b,c,d,c,d,c,d,e')
+        self.assertEqual(be('1*(a,b)'), 'a,b')
+        self.assertEqual(be('2*(a,b)'), 'a,b,a,b')
+        self.assertEqual(be('2*(a),3*(b)'), 'a,a,b,b,b')
+        self.assertEqual(be('2*(a,b,3*(c,d),e)'), 'a,b,c,d,c,d,c,d,e,a,b,c,d,c,d,c,d,e')
+        with self.assertRaises(ValueError):
+            _ = be('2*(x,y()')
 
     def testBracketTokens(self):
         s = BitStream('3*(0x0, 0b1)')

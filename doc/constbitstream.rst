@@ -66,115 +66,103 @@ In addition to the read methods there are matching peek methods. These are ident
 Methods
 -------
 
-bytealign
-^^^^^^^^^
-    .. method:: ConstBitStream.bytealign() -> int
+.. method:: ConstBitStream.bytealign() -> int
 
-       Aligns to the start of the next byte (so that :attr:`pos` is a multiple of 8) and returns the number of bits skipped.
+   Aligns to the start of the next byte (so that :attr:`pos` is a multiple of 8) and returns the number of bits skipped.
 
-       If the current position is already byte aligned then it is unchanged. ::
+   If the current position is already byte aligned then it is unchanged. ::
 
-            >>> s = ConstBitStream('0xabcdef')
-            >>> s.pos += 3
-            >>> s.bytealign()
-            5
-            >>> s.pos
-            8
+        >>> s = ConstBitStream('0xabcdef')
+        >>> s.pos += 3
+        >>> s.bytealign()
+        5
+        >>> s.pos
+        8
 
-peek
-^^^^
-    .. method:: ConstBitStream.peek(fmt: str | int) -> int | float | str | Bits | bool | bytes | None
+.. method:: ConstBitStream.peek(fmt: str | int) -> int | float | str | Bits | bool | bytes | None
 
-        Reads from the current bit position :attr:`pos` in the bitstring according to the *fmt* string or integer and returns the result.
+    Reads from the current bit position :attr:`pos` in the bitstring according to the *fmt* string or integer and returns the result.
 
-        The bit position is unchanged.
+    The bit position is unchanged.
 
-        For information on the format string see the entry for the :meth:`read` method. ::
-        
-            >>> s = ConstBitStream('0x123456')
-            >>> s.peek(16)
-            ConstBitStream('0x1234')
-            >>> s.peek('hex8')
-            '12'
+    For information on the format string see the entry for the :meth:`read` method. ::
 
-peeklist
-^^^^^^^^
-    .. method:: ConstBitStream.peeklist(fmt: str | list[str | int], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
+        >>> s = ConstBitStream('0x123456')
+        >>> s.peek(16)
+        ConstBitStream('0x1234')
+        >>> s.peek('hex8')
+        '12'
 
-        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results.
+.. method:: ConstBitStream.peeklist(fmt: str | list[str | int], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
 
-        A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is not advanced to after the read items.
+    Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results.
 
-        See the entries for :meth:`read` and :meth:`readlist` for more information.
+    A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is not advanced to after the read items.
 
-read
-^^^^
-    .. method:: ConstBitStream.read(fmt: str | int) -> int | float | str | Bits | bool | bytes | None
+    See the entries for :meth:`read` and :meth:`readlist` for more information.
 
-        Reads from current bit position :attr:`pos` in the bitstring according the format string and returns a single result. If not enough bits are available then a :exc:`ReadError` is raised.
+.. method:: ConstBitStream.read(fmt: str | int) -> int | float | str | Bits | bool | bytes | None
 
-        *fmt* is either a token string that describes how to interpret the next bits in the bitstring or an integer.
-        If it's an integer then that number of bits will be read, and returned as a new bitstring.
-        A full list of the tokens is given in :ref:`format_tokens`.
+    Reads from current bit position :attr:`pos` in the bitstring according the format string and returns a single result. If not enough bits are available then a :exc:`ReadError` is raised.
 
-        For example::
+    *fmt* is either a token string that describes how to interpret the next bits in the bitstring or an integer.
+    If it's an integer then that number of bits will be read, and returned as a new bitstring.
+    A full list of the tokens is given in :ref:`format_tokens`.
 
-            >>> s = ConstBitStream('0x23ef55302')
-            >>> s.read('hex12')
-            '23e'
-            >>> s.read('bin4')
-            '1111'
-            >>> s.read('u5')
-            10
-            >>> s.read('bits4')
-            ConstBitStream('0xa')
+    For example::
 
-        The :meth:`~ConstBitStream.read` method is useful for reading exponential-Golomb codes. ::
+        >>> s = ConstBitStream('0x23ef55302')
+        >>> s.read('hex12')
+        '23e'
+        >>> s.read('bin4')
+        '1111'
+        >>> s.read('u5')
+        10
+        >>> s.read('bits4')
+        ConstBitStream('0xa')
 
-            >>> s = ConstBitStream('se=-9, ue=4')
-            >>> s.read('se')
-            -9
-            >>> s.read('ue')
-            4
+    The :meth:`~ConstBitStream.read` method is useful for reading exponential-Golomb codes. ::
 
-        The ``pad`` token is not very useful when used in :meth:`~ConstBitStream.read` as it just skips a number of bits and returns ``None``. However when used within :meth:`~ConstBitStream.readlist` or :meth:`~Bits.unpack` it allows unimportant part of the bitstring to be simply ignored.
+        >>> s = ConstBitStream('se=-9, ue=4')
+        >>> s.read('se')
+        -9
+        >>> s.read('ue')
+        4
 
-readlist
-^^^^^^^^
-    .. method:: ConstBitStream.readlist(fmt: str | list[str | int], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
+    The ``pad`` token is not very useful when used in :meth:`~ConstBitStream.read` as it just skips a number of bits and returns ``None``. However when used within :meth:`~ConstBitStream.readlist` or :meth:`~Bits.unpack` it allows unimportant part of the bitstring to be simply ignored.
 
-        Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results. If not enough bits are available then a :exc:`ReadError` is raised.
+.. method:: ConstBitStream.readlist(fmt: str | list[str | int], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
 
-        A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is advanced to after the read items.
+    Reads from current bit position :attr:`pos` in the bitstring according to the *fmt* string or iterable and returns a list of results. If not enough bits are available then a :exc:`ReadError` is raised.
 
-        See :ref:`format_tokens` for information on the format strings.
+    A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string. The position is advanced to after the read items.
 
-        For multiple items you can separate using commas or given multiple parameters::
+    See :ref:`format_tokens` for information on the format strings.
 
-            >>> s = ConstBitStream('0x43fe01ff21')
-            >>> s.readlist('hex8, uint6')
-            ['43', 63]
-            >>> s.readlist(['bin3', 'intle16'])
-            ['100', -509]
-            >>> s.pos = 0
-            >>> s.readlist('hex:b, uint:d', b=8, d=6)
-            ['43', 63]
+    For multiple items you can separate using commas or given multiple parameters::
 
-readto
-^^^^^^
-    .. method:: ConstBitStream.readto(bs: BitsType, bytealigned: bool | None = None) -> ConstBitStream
+        >>> s = ConstBitStream('0x43fe01ff21')
+        >>> s.readlist('hex8, uint6')
+        ['43', 63]
+        >>> s.readlist(['bin3', 'intle16'])
+        ['100', -509]
+        >>> s.pos = 0
+        >>> s.readlist('hex:b, uint:d', b=8, d=6)
+        ['43', 63]
 
-        Reads up to and including the next occurrence of the bitstring *bs* and returns the results. If *bytealigned* is `True` it will look for the bitstring starting only at whole-byte positions.
+.. method:: ConstBitStream.readto(bs: BitsType, bytealigned: bool | None = None) -> ConstBitStream
 
-        Raises a :exc:`ReadError` if *bs* is not found, and :exc:`ValueError` if *bs* is empty.
+    Reads up to and including the next occurrence of the bitstring *bs* and returns the results. If *bytealigned* is `True` it will look for the bitstring starting only at whole-byte positions.
 
-            >>> s = ConstBitStream('0x47000102034704050647')
-            >>> s.readto('0x47', bytealigned=True)
-            ConstBitStream('0x47')
-            >>> s.readto('0x47', bytealigned=True)
-            ConstBitStream('0x0001020347')
-            >>> s.readto('0x47', bytealigned=True)
-            ConstBitStream('0x04050647')
+    Raises a :exc:`ReadError` if *bs* is not found, and :exc:`ValueError` if *bs* is empty.
+
+        >>> s = ConstBitStream('0x47000102034704050647')
+        >>> s.readto('0x47', bytealigned=True)
+        ConstBitStream('0x47')
+        >>> s.readto('0x47', bytealigned=True)
+        ConstBitStream('0x0001020347')
+        >>> s.readto('0x47', bytealigned=True)
+        ConstBitStream('0x04050647')
 
 Properties
 ----------
@@ -188,28 +176,25 @@ Note that the ``pos`` property isn’t considered a part of the bitstring's iden
 It also will be reset to zero if a bitstring is copied.
 
 
-bytepos
-^^^^^^^
-    .. attribute:: ConstBitStream.bytepos
-        :type: int
+.. attribute:: ConstBitStream.bytepos
+    :type: int
 
-        Property for setting and getting the current byte position in the bitstring.
-        The value of ``pos`` will always be ``bytepos * 8`` as the two values are not independent.
-        
-        When used as a getter will raise a :exc:`ByteAlignError` if the current position in not byte aligned.
+    Property for setting and getting the current byte position in the bitstring.
+    The value of ``pos`` will always be ``bytepos * 8`` as the two values are not independent.
 
-pos / bitpos
-^^^^^^^^^^^^
-    .. attribute:: ConstBitStream.pos
-        :type: int
-    .. attribute:: ConstBitStream.bitpos
-        :type: int
+    When used as a getter will raise a :exc:`ByteAlignError` if the current position in not byte aligned.
 
-        Read and write property for setting and getting the current bit position in the bitstring. Can be set to any value from ``0`` to ``len(s)``.
 
-        The :attr:`pos` and :attr:`bitpos` properties are exactly equivalent - you can use whichever you prefer. ::
+.. attribute:: ConstBitStream.pos
+    :type: int
+.. attribute:: ConstBitStream.bitpos
+    :type: int
 
-            if s.pos < 100:
-                s.pos += 10 
+    Read and write property for setting and getting the current bit position in the bitstring. Can be set to any value from ``0`` to ``len(s)``.
+
+    The :attr:`pos` and :attr:`bitpos` properties are exactly equivalent - you can use whichever you prefer. ::
+
+        if s.pos < 100:
+            s.pos += 10
 
 

@@ -43,7 +43,7 @@ Extensive documentation for the bitstring module is available.
 Some starting points are given below:
 
 * [Overview](https://bitstring.readthedocs.io/en/stable/index.html)
-* [Quick Reference](https://bitstring.readthedocs.io/en/stable/quick_ref.html)
+* [Quick Reference](https://bitstring.readthedocs.io/en/stable/quick_reference.html)
 * [Full Reference](https://bitstring.readthedocs.io/en/stable/reference.html)
 
 You can also try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).

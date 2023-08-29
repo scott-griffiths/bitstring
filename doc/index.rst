@@ -31,7 +31,7 @@ Overview
 * Powerful binary packing and unpacking functions.
 * Bit level slicing, joining, searching, replacing and more.
 * Read from and interpret bitstrings as streams of binary data.
-* Create arrays of any fixed-length formats.
+* Create arrays of any fixed-length format.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Supports Python 3.7 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
 * Open source software, released under the MIT licence.
@@ -137,7 +137,7 @@ Credits
 ^^^^^^^
 
 
-Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files. Maintained and expanded ever since as it became unexpectedly popular. Thanks to all those who have contributed ideas and code (and bug reports) over the years.
+Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files. Maintained and expanded ever since as it became unexpectedly popular. Thanks to all those who have contributed ideas, code and bug reports over the years.
 
 These docs are styled using the `Piccolo theme <https://github.com/piccolo-orm/piccolo_theme>`_.
 
