@@ -17,7 +17,7 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
 import bitarray
 import bitarray.util
 from bitstring.utils import tokenparser, BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE, parse_name_length_token
-from bitstring.exceptions import CreationError, InterpretError, ReadError, Error, ByteAlignError
+from bitstring.exceptions import CreationError, InterpretError, ReadError, Error
 from bitstring.fp8 import fp143_fmt, fp152_fmt
 from bitstring.bitstore import BitStore, _offset_slice_indices_lsb0
 
@@ -1224,7 +1224,7 @@ class Bits:
         except KeyError:
             raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
 
-        startbyte, offset = divmod(start, 8)
+        offset = start % 8
         if offset == 0:
             return struct.unpack(fmt, self._bitstore.getslice(slice(start, start + length, None)).tobytes())[0]
         else:
@@ -2224,12 +2224,12 @@ class Bits:
         return count if value else self.len - count
 
     @staticmethod
-    def _chars_in_pp_token(fmt: str) -> Tuple[str, Optional[int], Optional[int]]:
+    def _chars_in_pp_token(fmt: str) -> Tuple[str, Optional[int]]:
         """
-        bin8 -> 'bin', 8, 8
-        hex12 -> 'hex', 12, 3
-        o9 -> 'oct', 9, 3
-        b -> 'bin', None, None
+        bin8 -> 'bin', 8
+        hex12 -> 'hex', 3
+        o9 -> 'oct', 3
+        b -> 'bin', None
         """
         bpc_dict = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
         short_token: Pattern[str] = re.compile(r'(?P<name>bytes|bin|oct|hex|b|o|h):?(?P<len>\d+)$')
@@ -2250,11 +2250,10 @@ class Bits:
             raise ValueError(f"Pretty print formats only support {'/'.join(bpc_dict.keys())}. Received '{fmt}'.")
         bpc = bpc_dict[name]
         if length is None:
-            return name, None, None
+            return name, None
         if length % bpc != 0:
             raise ValueError(f"Bits per group must be a multiple of {bpc} for '{fmt}' format.")
-        chars = length // bpc
-        return name, chars, length
+        return name, length
 
     @staticmethod
     def _format_bits(bits: Bits, chars_per_group: int, bits_per_group: int, sep: str, fmt: str, getter_fn=None) -> str:
@@ -2415,9 +2414,9 @@ class Bits:
             raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}."
                              " Format string was {fmt}.")
 
-        name1, chars1, length1 = Bits._chars_in_pp_token(fmt1)
+        name1, length1 = Bits._chars_in_pp_token(fmt1)
         if fmt2 is not None:
-            name2, chars2, length2 = Bits._chars_in_pp_token(fmt2)
+            name2, length2 = Bits._chars_in_pp_token(fmt2)
 
         if fmt2 is not None and length2 is not None and length1 is not None:
             # Both lengths defined so must be equal

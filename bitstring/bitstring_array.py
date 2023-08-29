@@ -426,7 +426,7 @@ class Array:
 
     def __iter__(self) -> Iterable[ElementType]:
         start = 0
-        for i in range(len(self)):
+        for _ in range(len(self)):
             yield self.dtype.get(self.data, start=start)
             start += self.dtype.length
 
