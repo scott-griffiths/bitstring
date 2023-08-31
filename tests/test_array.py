@@ -70,7 +70,7 @@ class Creation(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.fmt = 'se'
         self.assertEqual(a[-1], 1.0)
-        self.assertEqual(a.fmt, '>d')
+        self.assertEqual(a.fmt, 'floatbe64')
 
     def testChangingFormatWithTrailingBits(self):
         a = Array('bool', 803)
@@ -674,7 +674,7 @@ class ArrayOperations(unittest.TestCase):
         a ^= '0b00, 0x0f'
 
     def testRshift(self):
-        a = Array(fmt='u8')
+        a = Array(dtype='u8')
         a.data = Bits('0x00010206')
         b = a >> 1
         self.assertEqual(a.tolist(), [0, 1, 2, 6])

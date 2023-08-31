@@ -88,7 +88,7 @@ def parse_name_length_token(fmt: str) -> Tuple[str, int]:
     try:
         length = int(length)
     except TypeError:
-        raise ValueError("Badly formatted type with length token.")
+        raise ValueError(f"Badly formatted fixed-length type '{fmt}'.")
     if name in ('se', 'ue', 'sie', 'uie'):
         if length is not None:
             raise ValueError(

@@ -1201,7 +1201,7 @@ class Bits:
         if length is None and hasattr(self, 'len') and self.len != 0:
             length = self.len
         if length is None or length == 0:
-            raise CreationError("A non-zero length must be specified with a uintle initialiser.")
+            raise CreationError("A non-zero length must be specified with an intle initialiser.")
         if _offset is not None:
             raise CreationError("An offset can't be specified with an integer initialiser.")
         self._bitstore = _intle2bitstore(intle, length)
@@ -3375,24 +3375,3 @@ def _switch_lsb0_methods(lsb0: bool) -> None:
 
 # Initialise the default behaviour
 _switch_lsb0_methods(False)
-
-
-class Dtype:
-    def __init__(self, fmt: str) -> None:
-
-        self.name, self.length = parse_name_length_token(fmt)
-        try:
-            self.set = functools.partial(Bits._setfunc[self.name], length=self.length)
-        except KeyError:
-            raise ValueError(f"The token '{self.name}' can't be used to set Array elements.")
-        try:
-            self.get = functools.partial(Bits._name_to_read[self.name], length=self.length)
-        except KeyError:
-            raise ValueError(f"The token '{self.name}' can't be used to get Array elements.")
-        # Test if the length makes sense by trying out the getter.
-        if self.length != 0:
-            temp = BitArray(self.length)
-            try:
-                _ = self.get(temp, 0)
-            except InterpretError as e:
-                raise ValueError(f"Invalid Dtype: {e.msg}")

@@ -5,7 +5,8 @@ import numbers
 from collections.abc import Sized
 from bitstring.exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
-from bitstring.classes import BitArray, Bits, BitsType, Dtype
+from bitstring.classes import BitArray, Bits, BitsType
+from bitstring.dtypes import Dtype
 from bitstring.utils import tokenparser
 import functools
 import copy
@@ -55,7 +56,7 @@ class Array:
     Properties:
 
     data -- The BitArray binary data of the Array. Can be freely modified.
-    fmt -- The format string or typecode. Can be freely modified.
+    dtype -- The format string or typecode. Can be freely modified.
     itemsize -- The length *in bits* of a single item. Read only.
     trailing_bits -- If the data length is not a multiple of the fmt length, this BitArray
                      gives the leftovers at the end of the data.
@@ -63,11 +64,13 @@ class Array:
 
     """
 
-    def __init__(self, fmt: str, initializer: Optional[Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview, BinaryIO]] = None,
+    def __init__(self, dtype: Union[str | Dtype], initializer: Optional[Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview, BinaryIO]] = None,
                  trailing_bits: Optional[BitsType] = None) -> None:
         self.data = BitArray()
+        if isinstance(dtype, str):
+            dtype = Dtype(dtype)
         try:
-            self.fmt = fmt
+            self.fmt = str(dtype)
         except ValueError as e:
             raise CreationError(e)
 
@@ -144,11 +147,11 @@ class Array:
                 d = BitArray()
                 for s in range(start * self.dtype.length, stop * self.dtype.length, step * self.dtype.length):
                     d.append(self.data[s: s + self.dtype.length])
-                a = Array(fmt=self._fmt)
+                a = Array(self._fmt)
                 a.data = d
                 return a
             else:
-                a = Array(fmt=self._fmt)
+                a = Array(self._fmt)
                 a.data = self.data[start * self.dtype.length: stop * self.dtype.length]
                 return a
         else:
@@ -225,7 +228,7 @@ class Array:
 
     def append(self, x: ElementType) -> None:
         if len(self.data) % self.dtype.length != 0:
-            raise ValueError(f"Cannot append to Array as its length is not a multiple of the format length.")
+            raise ValueError("Cannot append to Array as its length is not a multiple of the format length.")
         self.data += self._create_element(x)
 
     def extend(self, iterable: Union[Array, array.array, Iterable]) -> None:
@@ -246,7 +249,7 @@ class Array:
             self.data += iterable.tobytes()
         else:
             if isinstance(iterable, str):
-                raise TypeError(f"Can't extend an Array with a str.")
+                raise TypeError("Can't extend an Array with a str.")
             for item in iterable:
                 self.data += self._create_element(item)
 
@@ -312,7 +315,7 @@ class Array:
     def fromfile(self, f: BinaryIO, n: Optional[int] = None) -> None:
         trailing_bit_length = len(self.data) % self.dtype.length
         if trailing_bit_length != 0:
-            raise ValueError(f"Cannot extend Array as its length is not a multiple of the format length.")
+            raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self.dtype.length} bits).")
 
         new_data = Bits(f)
         max_items = len(new_data) // self.dtype.length
@@ -324,8 +327,7 @@ class Array:
     def reverse(self) -> None:
         trailing_bit_length = len(self.data) % self.dtype.length
         if trailing_bit_length != 0:
-            raise ValueError(
-                f"Cannot reverse the items in the Array as its length is not a multiple of the format length.")
+            raise ValueError(f"Cannot reverse the items in the Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self.dtype.length} bits).")
         for start_bit in range(0, len(self.data) // 2, self.dtype.length):
             start_swap_bit = len(self.data) - start_bit - self.dtype.length
             temp = self.data[start_bit: start_bit + self.dtype.length]
@@ -431,7 +433,7 @@ class Array:
             start += self.dtype.length
 
     def __copy__(self) -> Array:
-        a_copy = Array(fmt=self._fmt)
+        a_copy = Array(self._fmt)
         a_copy.data = copy.copy(self.data)
         return a_copy
 
@@ -443,14 +445,15 @@ class Array:
         """Apply op with value to each element of the Array in place."""
         # This isn't really being done in-place, but it's simpler and faster for now?
         new_data = BitArray()
-        failures = 0
+        failures = index = 0
+        msg = ''
         for i in range(len(self)):
             v = self.dtype.get(self.data, start=self.dtype.length * i)
             try:
                 new_data.append(self._create_element(op(v, value)))
             except CreationError as e:
                 if failures == 0:
-                    msg = e.msg
+                    msg = str(e.msg)
                     index = i
                 failures += 1
         if failures != 0:
