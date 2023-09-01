@@ -23,6 +23,9 @@ TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>' + '|'.join(INIT_NAMES) +
 SHORT_TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>[uifboh]):?(?P<len>\d+)?(=(?P<value>.*))?$')
 DEFAULT_BITS: Pattern[str] = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
+# A string followed by optional : then an integer number
+STR_INT_RE: Pattern[str] = re.compile(r'^(?P<string>.+?):?(?P<integer>\d*)$')
+
 MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
 
 # Hex, oct or binary literals
@@ -32,6 +35,8 @@ LITERAL_RE: Pattern[str] = re.compile(r'^(?P<name>0([xob]))(?P<value>.+)', re.IG
 STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=]){1}(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
 # The same as above, but it doesn't insist on an endianness as it's byteswapping anyway.
 BYTESWAP_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
+# An endianness indicator followed by exactly one struct.pack codes
+SINGLE_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=]){1}(?P<fmt>(?:[bBhHlLqQefd]))$')
 
 # A number followed by a single character struct.pack code
 STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQefd]')
@@ -79,24 +84,50 @@ def structparser(m: Match[str]) -> List[str]:
 @functools.lru_cache(CACHE_SIZE)
 def parse_name_length_token(fmt: str) -> Tuple[str, int]:
     # Any single token with just a name and length
-
-    # TODO: Tidy up with new parsing.
-    m = STRUCT_PACK_RE.match(fmt)
+    m = SINGLE_STRUCT_PACK_RE.match(fmt)
     if m:
-        fmt = structparser(m)[0]
-    name, length, value = parse_single_token(fmt)
-    try:
-        length = int(length)
-    except TypeError:
-        raise ValueError(f"Badly formatted fixed-length type '{fmt}'.")
+        endian = m.group('endian')
+        f = m.group('fmt')
+        if endian == '>':
+            fmt = REPLACEMENTS_BE[f]
+        elif endian == '<':
+            fmt = REPLACEMENTS_LE[f]
+        else:
+            assert endian in '=@'
+            fmt = REPLACEMENTS_NE[f]
+    m2 = STR_INT_RE.match(fmt)
+    if m2:
+        name = m2.group('string')
+        length_str = m2.group('integer')
+        length = 0 if length_str == '' else int(length_str)
+    else:
+        raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
+    if name in 'uifboh':
+        name = {'u': 'uint',
+                'i': 'int',
+                'f': 'float',
+                'b': 'bin',
+                'o': 'oct',
+                'h': 'hex'}[name]
     if name in ('se', 'ue', 'sie', 'uie'):
         if length is not None:
             raise ValueError(
                 f"Exponential-Golomb codes (se/ue/sie/uie) can't have fixed lengths. Length of {length} was given.")
-    if value is not None:
-        raise ValueError("Badly formatted type with length token.")
-    if isinstance(length, str):
-        raise ValueError
+    if name == 'bool':
+        if length not in [0, 1]:
+            raise ValueError(f"bool tokens can only be 1 bit long, not {length} bits.")
+        length = 1
+    if name == 'bfloat':
+        if length not in [0, 16]:
+            raise ValueError(f"bfloat tokens can only be 16 bits long, not {length} bits.")
+        length = 16
+    if name == 'float8_':
+        name += str(length)
+        length = 8
+    if name in ['float8_143', 'float8_152']:
+        if length not in [0, 8]:
+            raise ValueError(f"float8 tokens can only be 8 bits long, not {length} bits.")
+        length = 8
     if length is None:
         length = 0
     return name, length

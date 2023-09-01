@@ -22,7 +22,7 @@ You can try out an interactive walkthrough notebook on `binder <https://mybinder
 .. image:: https://mybinder.org/badge_logo.svg
  :target: https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb
 
-
+------
 
 Overview
 ========

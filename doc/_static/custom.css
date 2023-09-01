@@ -69,3 +69,8 @@ div.document table.docutils th {
     border: none;
     padding: 0.1rem 1rem;
 }
+
+div.document hr {
+    height: 0.25rem;
+    background-color: #d03434;
+}
