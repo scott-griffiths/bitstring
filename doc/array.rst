@@ -98,10 +98,10 @@ Array
     Note that the typecodes must include an endianness character to give the byte ordering.
     This is more like the ``struct`` module typecodes, and is different to the ``array.array`` typecodes which are always native-endian.
 
-    The correspondence between the big-endian type codes and bitstring format codes is given in the table below.
+    The correspondence between the big-endian type codes and bitstring dtype strings is given in the table below.
 
     =========   ===================
-    Type code   bitstring format
+    Type code   bitstring dtype
     =========   ===================
     ``'>b'``     ``'int8'``
     ``'>B'``     ``'uint8'``
@@ -117,10 +117,10 @@ Array
     =========   ===================
 
     The endianness character can be ``'>'`` for big-endian, ``'<'`` for little-endian or ``'='`` for native-endian (``'@'`` can also be used for native-endian).
-    In the bitstring formats the default is big-endian, but you can specify little or native endian using ``'le'`` or ``'ne'`` modifiers, for example:
+    In the bitstring dtypes the default is big-endian, but you can specify little or native endian using ``'le'`` or ``'ne'`` modifiers, for example:
 
     ============  =============================
-    Type code     bitstring format
+    Type code     bitstring dtype
     ============  =============================
     ``'>H'``      ``'uint16'`` / ``'uintbe16'``
     ``'=H'``      ``'uintne16'``
@@ -478,10 +478,10 @@ Properties
 .. attribute:: Array.dtype
     :type: str
 
-    The format string used to initialise the ``Array`` type. Read and write.
+    The data type string used to initialise the ``Array`` type. Read and write.
 
-    Changing the format for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
-    However, changing the format won't change the underlying bit data in any way.
+    Changing the ``dtype`` for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
+    However, changing the ``dtype`` won't change the underlying bit data in any way.
 
     Note that some ``Array`` methods such as :meth:`~Array.append` and :meth:`~Array.extend` require the bit data to have a length that is a multiple of the ``Array``'s :attr:`~Array.itemsize`.
 
@@ -504,7 +504,7 @@ Properties
 
     A ``BitArray`` object equal to the end of the ``data`` that is not a multiple of the ``itemsize``. Read only.
 
-    This will typically be an empty ``BitArray``, but if an the ``fmt`` or the ``data`` of an ``Array`` object has been altered after its creation then there may be left-over bits at the end of the data.
+    This will typically be an empty ``BitArray``, but if an the ``dtype`` or the ``data`` of an ``Array`` object has been altered after its creation then there may be left-over bits at the end of the data.
 
     Note that any methods that append items to the ``Array`` will fail with a ``ValueError`` if there are any trailing bits.
 

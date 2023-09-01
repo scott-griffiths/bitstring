@@ -132,6 +132,11 @@ To install just ``pip install bitstring``.
 
 To download the module, as well as for defect reports, enhancement requests and Git repository browsing go to `the project's home on GitHub. <https://github.com/scott-griffiths/bitstring/>`_
 
+Release Notes
+^^^^^^^^^^^^^
+
+To see what been added, improved or fixed, and possibly also to see what's coming in the next version, see the `release notes <https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt>`_ on GitHub.
+
 
 Credits
 ^^^^^^^
