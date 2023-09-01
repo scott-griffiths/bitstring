@@ -10,13 +10,14 @@ import bitstring
 import copy
 from collections import abc
 import sys
+from bitstring import __main__
 
 sys.path.insert(0, '..')
 
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '4.1.1')
+        self.assertEqual(bitstring.__version__, '4.1.2')
 
     def testAll(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',
@@ -90,48 +91,48 @@ class Main(unittest.TestCase):
     def testRunningModuleDirectlyHelp(self):
         with redirect_stdout(io.StringIO()) as f:
             with mock.patch('sys.argv', ['bitstring.py', '-h']):
-                bitstring.main()
+                bitstring.__main__.main()
         s = f.getvalue()
         self.assertTrue(s.find("command-line parameters") >= 0)
 
         with redirect_stdout(io.StringIO()) as f:
             with mock.patch('sys.argv', ['renamed.py']):
-                bitstring.main()
+                bitstring.__main__.main()
         s = f.getvalue()
         self.assertTrue(s.find("command-line parameters") >= 0)
 
     def testRunningModuleWithSingleParameter(self):
         with redirect_stdout(io.StringIO()) as f:
             with mock.patch('sys.argv', ['', 'uint:12=352']):
-                bitstring.main()
+                bitstring.__main__.main()
         s = f.getvalue()
         self.assertEqual(s, '0x160\n')
 
     def testRunningModuleWithSingleParameterAndInterpretation(self):
         with redirect_stdout(io.StringIO()) as f:
             with mock.patch('sys.argv', ['ignored', 'u12=352', 'i']):
-                bitstring.main()
+                bitstring.__main__.main()
         s = f.getvalue()
         self.assertEqual(s, '352\n')
 
     def testRunningModuleWithMultipleParameters(self):
         with redirect_stdout(io.StringIO()) as f:
             with mock.patch('sys.argv', ['b.py', 'uint12=352', '0b101', '0o321', 'f32=51', 'bool=1']):
-                bitstring.main()
+                bitstring.__main__.main()
         s = f.getvalue()
         self.assertEqual(s, '0x160ad1424c0000, 0b1\n')
 
     def testRunningModuleWithMultipleParametersAndInterpretation(self):
         with redirect_stdout(io.StringIO()) as f:
             with mock.patch('sys.argv', ['b.py', 'ue=1000', '0xff.bin']):
-                bitstring.main()
+                bitstring.__main__.main()
         s = f.getvalue()
         self.assertEqual(s, '000000000111110100111111111\n')
 
     def testShortInterpretations(self):
         with redirect_stdout(io.StringIO()) as f:
             with mock.patch('sys.argv', ['b.py', 'bin=001.b']):
-                bitstring.main()
+                bitstring.__main__.main()
         s = f.getvalue()
         self.assertEqual(s, '001\n')
 
