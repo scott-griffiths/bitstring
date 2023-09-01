@@ -10,11 +10,11 @@
 Array
 =====
 
-.. class:: Array(fmt: str, initializer: Iterable | int | Array | array.array | Bits | bytes | bytearray | memoryview | BinaryIO | None = None, trailing_bits: BitsType | None = None)
+.. class:: Array(dtype: str, initializer: Iterable | int | Array | array.array | Bits | bytes | bytearray | memoryview | BinaryIO | None = None, trailing_bits: BitsType | None = None)
 
-    Create a new ``Array`` whose elements are set by the ``fmt`` string.
+    Create a new ``Array`` whose elements are set by the `dtype` (data-type) string.
     This can be any format which has a fixed length.
-    See :ref:`format_tokens` and :ref:`compact_format` for details on allowed format strings, noting that only formats with well defined bit lengths are allowed.
+    See :ref:`format_tokens` and :ref:`compact_format` for details on allowed dtype strings, noting that only formats with well defined bit lengths are allowed.
 
     The ``Array`` class is a way to efficiently store data that has a single type with a set length.
     The ``bitstring.Array`` type is meant as a more flexible version of the standard ``array.array``, and can be used the same way. ::
@@ -31,9 +31,9 @@ Array
     The only difference is the explicit native endianness for the format string of the bitstring version.
     The bitstring Array's advantage lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
 
-    For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte formats can be properly specified.
+    For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte dtypes can be properly specified.
 
-    Each element in the ``Array`` must then be something that makes sense for the ``fmt``.
+    Each element in the ``Array`` must then be something that makes sense for the ``dtype``.
     Some examples will help illustrate::
 
         from bitstring import Array
@@ -56,7 +56,7 @@ Array
         a[0] = 2
         b.extend([0.0, -1.5])
 
-    Conversion between ``Array`` types can be done by creating a new one with the new format from the elements of the other one.
+    Conversion between ``Array`` types can be done by creating a new one with the new dtype from the elements of the other one.
     If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
 
         >>> x = Array('float64', [89.3, 1e34, -0.00000001, 34])
@@ -86,14 +86,14 @@ Array
     It can be directly accessed using the ``data`` property.
     You can freely manipulate the internal data using all of the methods available for the ``BitArray`` class.
 
-    The ``Array`` object also has a ``trailing_bits`` read-only data member, which consists of the end bits of the ``data`` ``BitArray`` that are left over when the ``Array`` is interpreted using ``fmt``.
-    Typically ``trailing_bits`` will be an empty ``BitArray`` but if you change the length of the ``data`` or change the ``fmt`` specification there may be some bits left over.
+    The ``Array`` object also has a ``trailing_bits`` read-only data member, which consists of the end bits of the ``data`` ``BitArray`` that are left over when the ``Array`` is interpreted using ``dtype``.
+    Typically ``trailing_bits`` will be an empty ``BitArray`` but if you change the length of the ``data`` or change the ``dtype`` specification there may be some bits left over.
 
     Some methods, such as ``append`` and ``extend`` will raise an exception if used when ``trailing_bits`` is not empty, as it not clear how these should behave in this case. You can however still use ``insert`` which will always leave the ``trailing_bits`` unchanged.
 
 
 
-    The ``fmt`` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
+    The ``dtype`` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
     Note that the typecodes must include an endianness character to give the byte ordering.
     This is more like the ``struct`` module typecodes, and is different to the ``array.array`` typecodes which are always native-endian.
@@ -148,7 +148,7 @@ Methods
     Add a new element with value `x` to the end of the Array.
     The type of `x` should be appropriate for the type of the Array.
 
-    Raises a ``ValueError`` if the Array's bit length is not a multiple of its format length (see :attr:`~Array.trailing_bits`).
+    Raises a ``ValueError`` if the Array's bit length is not a multiple of its dtype length (see :attr:`~Array.trailing_bits`).
 
 .. method:: Array.byteswap() -> None
 
@@ -181,7 +181,7 @@ Methods
 
     Extend the Array by constructing new elements from the values in a list or other iterable.
 
-    The `iterable` can be another ``Array`` or an ``array.array``, but only if the format is the same. ::
+    The `iterable` can be another ``Array`` or an ``array.array``, but only if the dtype is the same. ::
 
         >>> a = Array('int5', [-5, 0, 10])
         >>> a.extend([3, 2, 1])
@@ -222,7 +222,7 @@ Methods
 
     Pretty print the Array.
 
-    `fmt` defaults to the Array's current format, but any other valid Array format string can be used.
+    The format string `fmt` defaults to the Array's current ``dtype``, but any other valid Array format string can be used.
 
     A pair of comma-separated format strings can also be used - either only one format should specify a length or they both must specify the same length. For example ``'float32, hex'`` or ``'u4, i4'``.
 
@@ -319,7 +319,7 @@ Special Methods
         >>> a = Array('uint20', [1, 2, 3])
         >>> len(a)
         3
-        >>> a.fmt = 'uint1'
+        >>> a.dtype = 'uint1'
         >>> len(a)
         60
 
@@ -475,7 +475,7 @@ Properties
 
     Note that some ``Array`` methods such as :meth:`~Array.append` and :meth:`~Array.extend` require the  :attr:`~Array.data` to have a length that is a multiple of the ``Array``'s :attr:`~Array.itemsize`.
 
-.. attribute:: Array.fmt
+.. attribute:: Array.dtype
     :type: str
 
     The format string used to initialise the ``Array`` type. Read and write.

@@ -59,7 +59,7 @@ class Creation(unittest.TestCase):
     def testChangingFmt(self):
         a = Array('uint8', [255]*100)
         self.assertEqual(len(a), 100)
-        a.fmt = 'int4'
+        a.dtype = 'int4'
         self.assertEqual(len(a), 200)
         self.assertEqual(a.count(-1), 200)
         a.append(5)
@@ -68,17 +68,17 @@ class Creation(unittest.TestCase):
 
         a = Array('>d', [0, 0, 1])
         with self.assertRaises(ValueError):
-            a.fmt = 'se'
+            a.dtype = 'se'
         self.assertEqual(a[-1], 1.0)
-        self.assertEqual(a.fmt, '>d')
+        self.assertEqual(a.dtype, '>d')
 
     def testChangingFormatWithTrailingBits(self):
         a = Array('bool', 803)
         self.assertEqual(len(a), 803)
-        a.fmt = '>e'
+        a.dtype = '>e'
         self.assertEqual(len(a), 803 // 16)
         b = Array('>f', [0])
-        b.fmt = 'i3'
+        b.dtype = 'i3'
         self.assertEqual(b.tolist(), [0]*10)
 
     def testCreationWithTrailingBits(self):
@@ -89,7 +89,7 @@ class Creation(unittest.TestCase):
         b = Array('bin:3', ['111', '000', '111'])
         self.assertEqual(len(b), 3)
         self.assertEqual(b.data, '0b111000111')
-        b.fmt = 'h4'
+        b.dtype = 'h4'
         self.assertEqual(len(b), 2)
         with self.assertRaises(ValueError):
             b.append('f')
@@ -153,19 +153,19 @@ class Creation(unittest.TestCase):
     def testFormatChanges(self):
         a = Array('uint8', [5, 4, 3])
         with self.assertRaises(ValueError):
-            a.fmt = 'ue3'
+            a.dtype = 'ue3'
         b = a[:]
-        b.fmt = 'int8'
+        b.dtype = 'int8'
         self.assertEqual(a.tolist(), b.tolist())
         self.assertNotEqual(a, b)
         with self.assertRaises(ValueError):
-            b.fmt = 'hello_everyone'
+            b.dtype = 'hello_everyone'
         with self.assertRaises(ValueError):
-            b.fmt = 'float'
+            b.dtype = 'float'
         with self.assertRaises(ValueError):
-            b.fmt = 'uintle12'
+            b.dtype = 'uintle12'
         with self.assertRaises(ValueError):
-            b.fmt = 'float17'
+            b.dtype = 'float17'
 
 class ArrayMethods(unittest.TestCase):
 
@@ -177,7 +177,7 @@ class ArrayMethods(unittest.TestCase):
 
     def testCountNan(self):
         a = Array('uint8', [0, 10, 128, 128, 4, 2, 1])
-        a.fmt = 'float8_152'
+        a.dtype = 'float8_152'
         self.assertEqual(a.count(float('nan')), 2)
 
     def testFromBytes(self):
@@ -209,7 +209,7 @@ class ArrayMethods(unittest.TestCase):
         a = Array('uint20', [16, 32, 64, 128])
         b = Array('uint10', [0, 16, 0, 32, 0, 64, 0, 128])
         self.assertNotEqual(a, b)
-        b.fmt = 'u20'
+        b.dtype = 'u20'
         self.assertEqual(a, b)
         a.data += '0b1'
         self.assertNotEqual(a, b)
@@ -270,11 +270,11 @@ class ArrayMethods(unittest.TestCase):
 
         b = array.array('f', [54.2, -998, 411.9])
         self.assertEqual(a, b)
-        a.fmt = 'bool'
+        a.dtype = 'bool'
         self.assertNotEqual(a, b)
-        a.fmt = 'floatne16'
+        a.dtype = 'floatne16'
         self.assertNotEqual(a, b)
-        a.fmt = 'floatne32'
+        a.dtype = 'floatne32'
         a.data += '0x0'
         self.assertNotEqual(a, b)
         a.data += '0x0000000'
@@ -310,7 +310,7 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(a.tolist(), [1, 2, 3, 4, 5, 6])
         self.assertEqual(bp.tolist(), [4, 5, 6, 1, 2, 3])
 
-        a.fmt = 'int8'
+        a.dtype = 'int8'
         ap = Array('uint8', a.tolist())
         self.assertNotEqual(a, ap)
         self.assertEqual(a.tolist(), ap.tolist())
@@ -462,7 +462,7 @@ class ArrayMethods(unittest.TestCase):
         b = eval(a.__repr__())
         self.assertEqual(a, b)
 
-        a.fmt = 'float32'
+        a.dtype = 'float32'
         b = eval(a.__repr__())
         self.assertEqual(a, b)
 
@@ -506,7 +506,7 @@ class ArrayMethods(unittest.TestCase):
 
     def testPp(self):
         a = Array('bfloat', [-3, 1, 2])
-        a.fmt = 'hex16'
+        a.dtype = 'hex16'
         s = io.StringIO()
         a.pp(stream=s)
         self.assertEqual(s.getvalue(),  "<Array fmt='hex16', length=3, itemsize=16 bits, total data size=6 bytes>\n"
@@ -631,7 +631,7 @@ class ArrayOperations(unittest.TestCase):
         b = a & '0x0001'
         self.assertEqual(b.tolist(), [1, 0, 1])
         b = a & '0xffff'
-        self.assertEqual(b.fmt, 'int16')
+        self.assertEqual(b.dtype, 'int16')
         self.assertEqual(b.tolist(), [-1, 100, 9])
 
     def testInPlaceAnd(self):
@@ -674,7 +674,7 @@ class ArrayOperations(unittest.TestCase):
         a ^= '0b00, 0x0f'
 
     def testRshift(self):
-        a = Array(fmt='u8')
+        a = Array(dtype='u8')
         a.data = Bits('0x00010206')
         b = a >> 1
         self.assertEqual(a.tolist(), [0, 1, 2, 6])

@@ -241,13 +241,13 @@ A bitstring :class:`Array` is a contiguously allocated sequence of bitstrings of
 It is similar to the ``array`` type in the `array <https://docs.python.org/3/library/array.html>`_ module, except that it is far more flexible.
 
 
-``Array(fmt: str, initializer, trailing_bits)``
+``Array(dtype: str, initializer, trailing_bits)``
 
-The `fmt` can any single fixed-length token as described in :ref:`format_tokens` and :ref:`compact_format`.
+The `dtype` can any single fixed-length token as described in :ref:`format_tokens` and :ref:`compact_format`.
 
 The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
 
-The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the format `fmt`.
+The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the data type `dtype`.
 
 Both the format and the underlying bit data (stored as a ``BitArray``) can be freely modified after creation, and element-wise operations can be used on the ``Array``. Modifying the data or format after creation may cause the `trailing_bits` to not be empty.
 
@@ -335,9 +335,9 @@ Properties
 ^^^^^^^^^^
 
 * :attr:`~Array.data` -- The complete binary data in a ``BitArray`` object. Can be freely modified.
-* :attr:`~Array.fmt` -- The format string or typecode. Can be freely modified.
+* :attr:`~Array.dtype` -- The data type or typecode. Can be freely modified.
 * :attr:`~Array.itemsize` -- The length *in bits* of a single item. Read only.
-* :attr:`~Array.trailing_bits` -- If the data length is not a multiple of the fmt length, this ``BitArray`` gives the leftovers at the end of the data.
+* :attr:`~Array.trailing_bits` -- If the data length is not a multiple of the `dtype` length, this ``BitArray`` gives the leftovers at the end of the data.
 
 ----
 
