@@ -478,11 +478,73 @@ class Array:
             self.data[start: start + self._dtype.length] = op(self.data[start: start + self._dtype.length], value)
         return self
 
-    def __add__(self, other: Union[int, float]) -> Array:
+    def _apply_op_between_arrays(self, op, other: Array) -> Array:
+        if len(self) != len(other):
+            msg = f"Cannot operate element-wise on Arrays with different lengths ({len(self)} and {len(other)})."
+            if op == operator.add or op == operator.iadd:
+                msg += " Use extend() if you want to concatenate Arrays."
+            raise ValueError(msg)
+        new_type = self._promotetype(self._dtype, other._dtype)
+        new_array = Array(new_type)
+        new_data = BitArray()
+        failures = index = 0
+        msg = ''
+        for i in range(len(self)):
+            a = self._dtype.get(self.data, start=self._dtype.length * i)
+            b = other._dtype.get(other.data, start=other._dtype.length * i)
+            try:
+                new_data.append(new_array._create_element(op(a, b)))
+            except CreationError as e:
+                if failures == 0:
+                    msg = str(e.msg)
+                    index = i
+                failures += 1
+        if failures != 0:
+            raise ValueError(f'Applying operator \'{op.__name__}\' between Arrays caused {failures} errors. '
+                             f'First error at index {index} was: "{msg}"')
+        new_array.data = new_data
+        return new_array
+
+    @classmethod
+    def _promotetype(cls, type1: Dtype, type2: Dtype) -> Dtype:
+        """When combining types which one wins?
+
+        1. We only deal with types representing floats or integers.
+        2. One of the two types gets returned. We never create a new one.
+        3. Floating point types always win against integer types.
+        4. Signed integer types always win against unsigned integer types.
+        5. Longer types win against shorter types.
+        6. In a tie the first type wins against the second type.
+
+        """
+        if type1.is_float + type1.is_integer + type2.is_float + type2.is_integer != 2:
+            raise ValueError(f"Only integer and floating point types can be combined - not {type1} and {type2}.")
+        # If same type choose the widest
+        if type1.name == type2.name:
+            return type1 if type1.length > type2.length else type2
+        # We choose floats above integers, irrespective of the widths
+        if type1.is_float and type2.is_integer:
+            return type1
+        if type1.is_integer and type2.is_float:
+            return type2
+        if type1.is_float and type2.is_float:
+            return type2 if type2.length > type1.length else type1
+        assert type1.is_integer and type2.is_integer
+        if type1.is_signed and not type2.is_signed:
+            return type1
+        if type2.is_signed and not type1.is_signed:
+            return type2
+        return type2 if type2.length > type1.length else type1
+
+    def __add__(self, other: Union[int, float, Array]) -> Array:
         """Add int or float to all elements."""
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.add, other)
         return self._apply_op_to_all_elements(operator.add, other)
 
-    def __iadd__(self, other: Union[int, float]) -> Array:
+    def __iadd__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.add, other)
         return self._apply_op_to_all_elements_inplace(operator.add, other)
 
     def __isub__(self, other: Union[int, float]) -> Array:

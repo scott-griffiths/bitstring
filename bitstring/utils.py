@@ -10,10 +10,12 @@ byteorder: str = sys.byteorder
 
 CACHE_SIZE = 256
 
-INIT_NAMES: List[str] = ['uint', 'int', 'ue', 'se', 'sie', 'uie', 'hex', 'oct', 'bin', 'bits',
-                         'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne',
-                         'float', 'floatbe', 'floatle', 'floatne', 'bfloatbe', 'bfloatle', 'bfloatne', 'bfloat',
-                         'bytes', 'bool', 'pad', 'float8_143', 'float8_152']
+SIGNED_INTEGER_NAMES: List[str] = ['int', 'se', 'sie', 'intbe', 'intle', 'intne']
+UNSIGNED_INTEGER_NAMES: List[str] = ['uint', 'ue', 'uie', 'uintbe', 'uintle', 'uintne', 'bool']
+FLOAT_NAMES: List[str] = ['float', 'floatbe', 'floatle', 'floatne', 'bfloatbe', 'bfloatle', 'bfloatne', 'bfloat', 'float8_143', 'float8_152']
+STRING_NAMES: List[str] = ['hex', 'oct', 'bin']
+
+INIT_NAMES: List[str] = SIGNED_INTEGER_NAMES  + UNSIGNED_INTEGER_NAMES + FLOAT_NAMES + STRING_NAMES + ['bits', 'bytes', 'pad']
 # Sort longest first as we want to match them in that order (so floatne before float etc.).
 INIT_NAMES.sort(key=len, reverse=True)
 
@@ -62,6 +64,11 @@ REPLACEMENTS_NE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
                                    'q': 'intne:64', 'Q': 'uintne:64',
                                    'e': 'floatne:16', 'f': 'floatne:32', 'd': 'floatne:64'}
 
+# Tokens which are always the same length, so it doesn't need to be supplied.
+FIXED_LENGTH_TOKENS: Dict[str, int] = {'bool': 1,
+                                       'bfloat': 16,
+                                       'float8_143': 8,
+                                       'float8_152': 8}
 
 def structparser(m: Match[str]) -> List[str]:
     """Parse struct-like format string token into sub-token list."""
@@ -113,21 +120,17 @@ def parse_name_length_token(fmt: str) -> Tuple[str, int]:
         if length is not None:
             raise ValueError(
                 f"Exponential-Golomb codes (se/ue/sie/uie) can't have fixed lengths. Length of {length} was given.")
-    if name == 'bool':
-        if length not in [0, 1]:
-            raise ValueError(f"bool tokens can only be 1 bit long, not {length} bits.")
-        length = 1
-    if name == 'bfloat':
-        if length not in [0, 16]:
-            raise ValueError(f"bfloat tokens can only be 16 bits long, not {length} bits.")
-        length = 16
+
     if name == 'float8_':
         name += str(length)
         length = 8
-    if name in ['float8_143', 'float8_152']:
-        if length not in [0, 8]:
-            raise ValueError(f"float8 tokens can only be 8 bits long, not {length} bits.")
-        length = 8
+
+    if name in FIXED_LENGTH_TOKENS.keys():
+        token_length = FIXED_LENGTH_TOKENS[name]
+        if length not in [0, token_length]:
+            raise ValueError(f"{name} tokens can only be {token_length} bits long, not {length} bits.")
+        length = token_length
+
     if length is None:
         length = 0
     return name, length
@@ -160,18 +163,12 @@ def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
             length = m2.group('len')
             value = m2.group('value')
 
-    if name == 'bool':
-        if length is not None and length != '1':
-            raise ValueError(f"bool tokens can only be 1 bit long, not {length} bits.")
-        length = '1'
-    if name == 'bfloat':
-        if length is not None and length != '16':
-            raise ValueError(f"bfloat tokens can only be 16 bits long, not {length} bits.")
-        length = '16'
-    if name in ['float8_143', 'float8_152']:
-        if length is not None and length != '8':
-            raise ValueError(f"float8 tokens can only be 8 bits long, not {length} bits.")
-        length = '8'
+    if name in FIXED_LENGTH_TOKENS.keys():
+        token_length = str(FIXED_LENGTH_TOKENS[name])
+        if length is not None and length != token_length:
+            raise ValueError(f"{name} tokens can only be {token_length} bits long, not {length} bits.")
+        length = token_length
+
     return name, length, value
 
 

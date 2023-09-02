@@ -730,3 +730,45 @@ class CreationFromBits(unittest.TestCase):
         self.assertEqual(a[:], Array('bits:8', ['0b1111 1111', Bits('0x00')]))
         a.extend(['0b10101011'])
         self.assertEqual(a[-1].hex, 'ab')
+
+
+class SameSizeArrayOperations(unittest.TestCase):
+
+    def testAddingSameTypes(self):
+        a = Array('u8', [1, 2, 3, 4])
+        b = Array('u8', [5, 5, 5, 4])
+        c = a + b
+        self.assertEqual(c.tolist(), [6, 7, 8, 8])
+        self.assertEqual(c.dtype, 'uint8')
+
+    def testAddingDifferentTypes(self):
+        a = Array('u8', [1, 2, 3, 4])
+        b = Array('i6', [5, 5, 5, 4])
+        c = a + b
+        self.assertEqual(c.tolist(), [6, 7, 8, 8])
+        self.assertEqual(c.dtype, 'int6')
+        d = Array('float16', [-10, 0, 5, 2])
+        e = d + a
+        self.assertEqual(e.tolist(), [-9.0, 2.0, 8.0, 6.0])
+        self.assertEqual(e.dtype, 'float16')
+        e = a + d
+        self.assertEqual(e.tolist(), [-9.0, 2.0, 8.0, 6.0])
+        self.assertEqual(e.dtype, 'float16')
+        x1 = a[:]
+        x2 = a[:]
+        x1.dtype = 'float8_152'
+        x2.dtype = 'float8_143'
+        y = x1 + x2
+        self.assertEqual(y.dtype, x1.dtype)
+
+    def testAddingErrors(self):
+        a = Array('float16', [10, 100, 1000])
+        b = Array('i3', [-1, 2])
+        with self.assertRaises(ValueError):
+            _ = a + b
+        b.append(0)
+        c = a + b
+        self.assertEqual(c.tolist(), [9, 102, 1000])
+        a.dtype='hex16'
+        with self.assertRaises(ValueError):
+            _ = a + b
