@@ -494,7 +494,7 @@ class Array:
             b = other._dtype.get(other.data, start=other._dtype.length * i)
             try:
                 new_data.append(new_array._create_element(op(a, b)))
-            except CreationError as e:
+            except (CreationError, ValueError, ZeroDivisionError) as e:
                 if failures == 0:
                     msg = str(e.msg)
                     index = i
@@ -547,40 +547,64 @@ class Array:
             return self._apply_op_between_arrays(operator.add, other)
         return self._apply_op_to_all_elements_inplace(operator.add, other)
 
-    def __isub__(self, other: Union[int, float]) -> Array:
+    def __isub__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.sub, other)
         return self._apply_op_to_all_elements_inplace(operator.sub, other)
 
-    def __sub__(self, other: Union[int, float]) -> Array:
+    def __sub__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.sub, other)
         return self._apply_op_to_all_elements(operator.sub, other)
 
-    def __mul__(self, other: Union[int, float]) -> Array:
+    def __mul__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.mul, other)
         return self._apply_op_to_all_elements(operator.mul, other)
 
-    def __imul__(self, other: Union[int, float]) -> Array:
+    def __imul__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.mul, other)
         return self._apply_op_to_all_elements_inplace(operator.mul, other)
 
-    def __floordiv__(self, other: Union[int, float]) -> Array:
+    def __floordiv__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.floordiv, other)
         return self._apply_op_to_all_elements(operator.floordiv, other)
 
-    def __ifloordiv__(self, other: Union[int, float]) -> Array:
+    def __ifloordiv__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.floordiv, other)
         return self._apply_op_to_all_elements_inplace(operator.floordiv, other)
 
-    def __truediv__(self, other: Union[int, float]) -> Array:
+    def __truediv__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.truediv, other)
         return self._apply_op_to_all_elements(operator.truediv, other)
 
-    def __itruediv__(self, other: Union[int, float]) -> Array:
+    def __itruediv__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.truediv, other)
         return self._apply_op_to_all_elements_inplace(operator.truediv, other)
 
-    def __rshift__(self, other: int) -> Array:
+    def __rshift__(self, other: Union[int, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.rshift, other)
         return self._apply_op_to_all_elements(operator.rshift, other)
 
-    def __lshift__(self, other: int) -> Array:
+    def __lshift__(self, other: Union[int, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.lshift, other)
         return self._apply_op_to_all_elements(operator.lshift, other)
 
-    def __irshift__(self, other: int) -> Array:
+    def __irshift__(self, other: Union[int, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.rshift, other)
         return self._apply_op_to_all_elements_inplace(operator.rshift, other)
 
-    def __ilshift__(self, other: int) -> Array:
+    def __ilshift__(self, other: Union[int, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.lshift, other)
         return self._apply_op_to_all_elements_inplace(operator.lshift, other)
 
     def __and__(self, other: BitsType) -> Array:

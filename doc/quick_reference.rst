@@ -11,44 +11,49 @@ This section gives a summary of the bitstring module's classes, functions and at
 There are four classes that are bit containers, so that each element is a single bit.
 They differ based on whether they can be modified after creation and on whether they have the concept of a current bit position.
 
+.. |nbsp| unicode:: 0xa0
+   :trim:
+
 .. list-table::
-   :widths: 30 15 15 40
+   :widths: 20 15 15 50
    :header-rows: 1
 
    * - Class
      - Mutable?
      - Streaming methods?
      -
-   * - ``Bits``
-     - ✘
-     - ✘
+   * - :ref:`bits_quick_reference`
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
      - An efficient, immutable container of bits.
-   * - ``BitArray``
-     - ✔
-     - ✘
+   * - :ref:`bitarray_quick_reference`
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
      - Like ``Bits`` but it can be changed after creation.
-   * - ``ConstBitStream``
-     - ✘
-     - ✔
+   * - :ref:`constbitstream_quick_reference`
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
      - Immutable like ``Bits`` but with a bit position and reading methods.
-   * - ``BitStream``
-     - ✔
-     - ✔
+   * - :ref:`bitstream_quick_reference`
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
      - Mutable like ``BitArray`` but with a bit position and reading methods.
 
 
 The final class is a flexible container whose elements are fixed-length bitstrings.
 
 .. list-table::
-   :widths: 30 15 15 40
+   :widths: 20 15 15 50
 
-   * - ``Array``
-     - ✔
-     - ✘
+   * - :ref:`array_quick_reference`
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
+     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
      - An efficient list-like container where each item has a fixed-length binary format.
 
 ----
 
+
+.. _bits_quick_reference:
 
 Bits
 ----
@@ -142,6 +147,8 @@ Many require the bitstring to be specific lengths.
 
 ----
 
+.. _bitarray_quick_reference:
+
 
 BitArray
 --------
@@ -188,6 +195,9 @@ The special methods available for the ``Bits`` class are all available, plus som
 
 ----
 
+.. _constbitstream_quick_reference:
+
+
 ConstBitStream
 --------------
 
@@ -220,6 +230,9 @@ Additional properties
 
 ----
 
+.. _bitstream_quick_reference:
+
+
 BitStream
 ---------
 
@@ -233,6 +246,8 @@ It has all the methods, special methods and properties of the ``Bits``, ``BitArr
 It is the most general of the four classes, but it is usually best to choose the simplest class for your use case.
 
 ----
+
+.. _array_quick_reference:
 
 Array
 -----
