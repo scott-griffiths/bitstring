@@ -516,7 +516,7 @@ class Array:
                 new_data.append(new_array._create_element(op(a, b)))
             except (CreationError, ValueError, ZeroDivisionError) as e:
                 if failures == 0:
-                    msg = str(msg)
+                    msg = str(e)
                     index = i
                 failures += 1
         if failures != 0:
@@ -538,7 +538,7 @@ class Array:
 
         """
         if type1.is_float + type1.is_integer + type2.is_float + type2.is_integer != 2:
-            raise ValueError(f"Only integer and floating point types can be combined - not {type1} and {type2}.")
+            raise ValueError(f"Only integer and floating point types can be combined - not '{type1}' and '{type2}'.")
         # If same type choose the widest
         if type1.name == type2.name:
             return type1 if type1.length > type2.length else type2
@@ -665,12 +665,28 @@ class Array:
             return self._apply_op_between_arrays(operator.le, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.le, other, is_comparison=True)
 
-    def __eq__(self, other: Union[int, float, Array]) -> Array:
+    def __eq__(self, other: Union[int, float, str, BitsType, Array]) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.eq, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.eq, other, is_comparison=True)
 
-    def __ne__(self, other: Union[int, float, Array]) -> Array:
+    def __ne__(self, other: Union[int, float, str, BitsType, Array]) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.ne, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.ne, other, is_comparison=True)
+
+    def __mod__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.mod, other)
+        return self._apply_op_to_all_elements(operator.mod, other)
+
+    def __imod__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.mod, other)
+        return self._apply_op_to_all_elements_inplace(operator.mod, other)
+
+    def __neg__(self):
+        pass  # TODO
+
+    def __abs__(self):
+        pass  # TODO
