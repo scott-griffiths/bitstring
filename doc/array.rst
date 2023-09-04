@@ -177,6 +177,29 @@ Methods
 
     For floating point types using a `value` of ``float('nan')`` will count the number of elements for which ``math.isnan()`` returns ``True``.
 
+.. method:: Array.equals(other: Any) -> bool
+
+    Equality test - `other` can be either another bitstring Array or an ``array``.
+    Returns ``True`` if the dtypes are equivalent and the underlying bit data is the same, otherwise returns ``False``. ::
+
+        >>> a = Array('u8', [1, 2, 3, 2, 1])
+        >>> a[0:3].equals(a[-1:-4:-1])
+        True
+        >>> b = Array('i8', [1, 2, 3, 2, 1])
+        >>> a.equals(b)
+        False
+
+    To compare only the values contained in the Array, extract them using :meth:`~Array.tolist` first::
+
+        >>> a.tolist() == b.tolist()
+        True
+
+    Note that the ``==`` operator will perform an element-wise equality check and return a new ``Array`` of dtype ``bool`` (or raise an exception).
+
+        >>> a == b
+        Array('bool', [True, True, True, True, True])
+
+
 .. method:: Array.extend(iterable: Iterable | Array) -> None
 
     Extend the Array by constructing new elements from the values in a list or other iterable.
@@ -310,6 +333,32 @@ Methods
 Special Methods
 ---------------
 
+Type promotion
+""""""""""""""
+
+Many operations can be performed between two ``Array`` objects.
+For these to be valid the dtypes of the ``Array`` objects must be numerical, that is they must represent an integer or floating point value.
+Some operations have tighter restrictions, such as the shift operators ``<<`` and ``>>`` requiring integers only.
+
+The dtype of the resulting ``Array`` is calculated by following these rules:
+
+0. For comparison operators (``<``, ``>=``, ``==``, ``!=`` etc.) the result is always an ``Array`` of dtype ``'bool'``.
+   For other operators, one of the two input dtypes is used by applying these tests in order until a winner is found:
+1. Floating point types always win against integer types.
+2. Signed integer types always win against unsigned integer types.
+3. Longer types win against shorter types.
+4. In a tie the first type wins.
+
+Some examples should help illustrate:
+
+======= ================   ============ ================  ===    ==================
+Rule 0  ``'uint8'``             ``<=``    ``'float64'``    →        ``'bool'``
+Rule 1  ``'int32'``             ``+``      ``'float16'``   →        ``'float16'``
+Rule 2  ``'uint20'``            ``//``    ``'int10'``      →        ``'int10'``
+Rule 3  ``'int8'``              ``*``     ``'int16'``      →        ``'int16'``
+Rule 4  ``'float16'``           ``-=``    ``'bfloat'``     →         ``'float16'``
+======= ================   ============ ================  ===    ==================
+
 .. method:: Array.__len__(self) -> int
 
     ``len(a)``
@@ -328,14 +377,6 @@ Special Methods
 
     ``a1 == a2``
 
-    Equality test - `other` can be either another bitstring Array or an ``array``.
-    To be equal the formats must be equivalent and the underlying bit data must be the same. ::
-
-        >>> a = Array('u8', [1, 2, 3, 2, 1])
-        >>> a[0:3] == a[-1:-4:-1]
-        True
-
-    To compare only the values contained in the Array, extract them using :meth:`~Array.tolist` first.
 
 .. method:: Array.__ne__(self, other) -> bool
 

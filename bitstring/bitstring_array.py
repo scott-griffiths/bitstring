@@ -403,7 +403,7 @@ class Array:
             stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))
         stream.write("\n")
 
-    def __eq__(self, other: Any) -> bool:
+    def equals(self, other: Any) -> bool:
         """Return True if format and all Array items are equal."""
         if isinstance(other, Array):
             if self._dtype.length != other._dtype.length:
@@ -438,9 +438,26 @@ class Array:
         a_copy.data = copy.copy(self.data)
         return a_copy
 
-    def _apply_op_to_all_elements(self, op, value: Union[int, float]) -> Array:
+    def _apply_op_to_all_elements(self, op, value: Union[int, float], is_comparison: bool = False) -> Array:
         """Apply op with value to each element of the Array and return a new Array"""
-        return self[:]._apply_op_to_all_elements_inplace(op, value)
+        new_array = Array('bool' if is_comparison else self._dtype)
+        new_data = BitArray()
+        failures = index = 0
+        msg = ''
+        for i in range(len(self)):
+            v = self._dtype.get(self.data, start=self._dtype.length * i)
+            try:
+                new_data.append(new_array._create_element(op(v, value)))
+            except (CreationError, ZeroDivisionError, ValueError) as e:
+                if failures == 0:
+                    msg = str(e)
+                    index = i
+                failures += 1
+            if failures != 0:
+                raise ValueError(f"Applying operator '{op.__name__}' to Array caused {failures} errors. "
+                                 f'First error at index {index} was: "{msg}"')
+        new_array.data = new_data
+        return new_array
 
     def _apply_op_to_all_elements_inplace(self, op, value: Union[int, float]) -> Array:
         """Apply op with value to each element of the Array in place."""
@@ -452,13 +469,13 @@ class Array:
             v = self._dtype.get(self.data, start=self._dtype.length * i)
             try:
                 new_data.append(self._create_element(op(v, value)))
-            except CreationError as e:
+            except (CreationError, ZeroDivisionError, ValueError) as e:
                 if failures == 0:
-                    msg = str(e.msg)
+                    msg = str(e)
                     index = i
                 failures += 1
         if failures != 0:
-            raise ValueError(f'Applying operator \'{op.__name__}\' to Array caused {failures} errors. '
+            raise ValueError(f"Applying operator '{op.__name__}' to Array caused {failures} errors. "
                              f'First error at index {index} was: "{msg}"')
         self.data = new_data
         return self
@@ -478,13 +495,16 @@ class Array:
             self.data[start: start + self._dtype.length] = op(self.data[start: start + self._dtype.length], value)
         return self
 
-    def _apply_op_between_arrays(self, op, other: Array) -> Array:
+    def _apply_op_between_arrays(self, op, other: Array, is_comparison: bool = False) -> Array:
         if len(self) != len(other):
             msg = f"Cannot operate element-wise on Arrays with different lengths ({len(self)} and {len(other)})."
             if op == operator.add or op == operator.iadd:
                 msg += " Use extend() if you want to concatenate Arrays."
             raise ValueError(msg)
-        new_type = self._promotetype(self._dtype, other._dtype)
+        if is_comparison:
+            new_type = Dtype('bool')
+        else:
+            new_type = self._promotetype(self._dtype, other._dtype)
         new_array = Array(new_type)
         new_data = BitArray()
         failures = index = 0
@@ -496,11 +516,11 @@ class Array:
                 new_data.append(new_array._create_element(op(a, b)))
             except (CreationError, ValueError, ZeroDivisionError) as e:
                 if failures == 0:
-                    msg = str(e.msg)
+                    msg = str(msg)
                     index = i
                 failures += 1
         if failures != 0:
-            raise ValueError(f'Applying operator \'{op.__name__}\' between Arrays caused {failures} errors. '
+            raise ValueError(f"Applying operator '{op.__name__}' between Arrays caused {failures} errors. "
                              f'First error at index {index} was: "{msg}"')
         new_array.data = new_data
         return new_array
@@ -624,3 +644,33 @@ class Array:
 
     def __ixor__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements_inplace(operator.ixor, other)
+
+    def __lt__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.lt, other, is_comparison=True)
+        return self._apply_op_to_all_elements(operator.lt, other, is_comparison=True)
+
+    def __gt__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.gt, other, is_comparison=True)
+        return self._apply_op_to_all_elements(operator.gt, other, is_comparison=True)
+
+    def __ge__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.ge, other, is_comparison=True)
+        return self._apply_op_to_all_elements(operator.ge, other, is_comparison=True)
+
+    def __le__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.le, other, is_comparison=True)
+        return self._apply_op_to_all_elements(operator.le, other, is_comparison=True)
+
+    def __eq__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.eq, other, is_comparison=True)
+        return self._apply_op_to_all_elements(operator.eq, other, is_comparison=True)
+
+    def __ne__(self, other: Union[int, float, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.ne, other, is_comparison=True)
+        return self._apply_op_to_all_elements(operator.ne, other, is_comparison=True)

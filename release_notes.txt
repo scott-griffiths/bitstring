@@ -5,11 +5,15 @@ bitstring module version history
 -----------------------------------
 In development: version 4.1.2
 -----------------------------------
-Another maintenance release. Once again some changes to the 'beta' Array class.
+Another maintenance release. Once again some small changes to the 'beta' Array class,
+plus new Array functionality.
 
 * Fix for the module command-line usage. Bug #290.
 * Fix for when creating bitstrings from memoryview objects.
 * Renamed the 'fmt' parameter for Arrays to 'dtype'.
+* Added operators that act on two Arrays of the same size.
+* Added comparison operators for Arrays that return an Array of bools.
+* Added Array.equals method as == will now return an Array (see above item).
 
 -----------------------------------
 August 2023: version 4.1.1 released

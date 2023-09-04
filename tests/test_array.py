@@ -196,29 +196,29 @@ class ArrayMethods(unittest.TestCase):
     def testEquals(self):
         a = Array('hex:40')
         b = Array('h40')
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
         c = Array('bin:40')
-        self.assertNotEqual(a, c)
+        self.assertFalse(a.equals(c))
         v = ['1234567890']
         a.extend(v)
         b.extend(v)
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
         b.extend(v)
-        self.assertNotEqual(a, b)
+        self.assertFalse(a.equals(b))
 
         a = Array('uint20', [16, 32, 64, 128])
         b = Array('uint10', [0, 16, 0, 32, 0, 64, 0, 128])
-        self.assertNotEqual(a, b)
+        self.assertFalse(b.equals(a))
         b.dtype = 'u20'
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
         a.data += '0b1'
-        self.assertNotEqual(a, b)
+        self.assertFalse(a.equals(b))
         b.data += '0b1'
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
 
         c = Array('uint8', [1, 2])
-        self.assertNotEqual(c, 'hello')
-        self.assertNotEqual(c, array.array('B', [1, 3]))
+        self.assertFalse(c.equals('hello'))
+        self.assertFalse(c.equals(array.array('B', [1, 3])))
 
     def testEqualsWithTrailingBits(self):
         a = Array('hex4', ['a', 'b', 'c', 'd', 'e', 'f'])
@@ -444,27 +444,27 @@ class ArrayMethods(unittest.TestCase):
     def testRepr(self):
         a = Array('int5')
         b = eval(a.__repr__())
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
         a.data += '0b11'
 
         b = eval(a.__repr__())
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
 
         a.data += '0b000'
         b = eval(a.__repr__())
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
 
         a.extend([1]*9)
         b = eval(a.__repr__())
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
 
         a.extend([-4]*100)
         b = eval(a.__repr__())
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
 
         a.dtype = 'float32'
         b = eval(a.__repr__())
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
 
     def test__add__(self):
         a = Array('=B', [1, 2, 3])
@@ -486,9 +486,9 @@ class ArrayMethods(unittest.TestCase):
         a = Array('i4')
         a.data += '0x123451234561'
         b = copy.copy(a)
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
         a.data += '0b1010'
-        self.assertNotEqual(a, b)
+        self.assertFalse(a.equals(b))
 
     def test__iadd__(self):
         a = Array('uint999')
@@ -772,3 +772,19 @@ class SameSizeArrayOperations(unittest.TestCase):
         a.dtype='hex16'
         with self.assertRaises(ValueError):
             _ = a + b
+
+
+class ComparisonOperators(unittest.TestCase):
+
+    def testLessThanWithScalar(self):
+        a = Array('u16', [14, 16, 100, 2, 100])
+        b = a < 80
+        self.assertEqual(b.tolist(), [True, True, False, True, False])
+        self.assertEqual(b.dtype, 'bool')
+
+    def testLessThanWithArray(self):
+        a = Array('u16', [14, 16, 100, 2, 100])
+        b = Array('bfloat', [1000, -54, 0.2, 55, 9])
+        c = a < b
+        self.assertEqual(c.tolist(), [True, False, False, True, False])
+        self.assertEqual(c.dtype, 'bool')
