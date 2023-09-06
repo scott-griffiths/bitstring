@@ -11,6 +11,7 @@ plus new Array functionality.
 * Fix for the module command-line usage. Bug #290.
 * Fix for when creating bitstrings from memoryview objects.
 * Renamed the 'fmt' parameter for Arrays to 'dtype'.
+* More Array operator coverage.
 * Added operators that act on two Arrays of the same size.
 * Added comparison operators for Arrays that return an Array of bools.
 * Added Array.equals method as == will now return an Array (see above item).

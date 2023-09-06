@@ -264,7 +264,7 @@ The `inititalizer` will typically be an iterable such as a list, but can also be
 
 The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the data type `dtype`.
 
-Both the format and the underlying bit data (stored as a ``BitArray``) can be freely modified after creation, and element-wise operations can be used on the ``Array``. Modifying the data or format after creation may cause the `trailing_bits` to not be empty.
+Both the dtype and the underlying bit data (stored as a :class:`BitArray`) can be freely modified after creation, and element-wise operations can be used on the ``Array``. Modifying the data or format after creation may cause the :attr:`trailing_bits` to not be empty.
 
 Initialization examples::
 
@@ -302,11 +302,15 @@ These non-mutating special methods are available. Where appropriate they return 
 * :meth:`* <Array.__mul__>` -- Multiply each element by a value.
 * :meth:`/ <Array.__truediv__>` -- Divide each element by a value.
 * :meth:`// <Array.__floordiv__>` -- Floor divide each element by a value.
+* :meth:`% <Array.__mod__>` -- Take modulus of each element with a value.
 * :meth:`\<\< <Array.__lshift__>` -- Shift value of each element to the left.
 * :meth:`>> <Array.__rshift__>` -- Shift value of each element to the right.
 * :meth:`& <Array.__and__>` -- Bit-wise AND of each element.
 * :meth:`| <Array.__or__>` -- Bit-wise OR of each element.
 * :meth:`^ <Array.__xor__>` -- Bit-wise XOR of each element.
+* :meth:`- <Array.__neg__>` -- Unary minus of each element.
+* :meth:`abs() <Array.__abs__>` -- Absolute value of each element.
+
 
 For example::
 
@@ -323,16 +327,17 @@ Mutating versions of many of the methods are also available.
 
 * :meth:`[] <Array.__setitem__>` -- Set an element or slice.
 * :meth:`del <Array.__delitem__>` -- Delete an element or slice.
-* :meth:`+= <Array.__iadd__>` -- Concatenate Array, or add value to each element in-place.
-* :meth:`-= <Array.__isub__>` -- Subtract value from each element in-place.
-* :meth:`*= <Array.__imul__>` -- Multiply each element by a value in-place.
-* :meth:`/= <Array.__itruediv__>` -- Divide each element by a value in-place.
-* :meth:`//= <Array.__ifloordiv__>` -- Floor divide each element by a value in-place.
-* :meth:`\<\<= <Array.__ilshift__>` -- Shift bits of each element to the left in-place.
-* :meth:`>>= <Array.__irshift__>` -- Shift bits of each element to the right in-place.
-* :meth:`&= <Array.__iand__>` -- In-place bit-wise AND of each element.
-* :meth:`|= <Array.__ior__>` -- In-place bit-wise OR of each element.
-* :meth:`^= <Array.__ixor__>` -- In-place bit-wise XOR of each element.
+* :meth:`+= <Array.__add__>` -- Add value to each element in-place.
+* :meth:`-= <Array.__sub__>` -- Subtract value from each element in-place.
+* :meth:`*= <Array.__mul__>` -- Multiply each element by a value in-place.
+* :meth:`/= <Array.__truediv__>` -- Divide each element by a value in-place.
+* :meth:`//= <Array.__floordiv__>` -- Floor divide each element by a value in-place.
+* :meth:`%= <Array.__mod__>` -- Take modulus of each element with a value in-place.
+* :meth:`\<\<= <Array.__lshift__>` -- Shift bits of each element to the left in-place.
+* :meth:`>>= <Array.__rshift__>` -- Shift bits of each element to the right in-place.
+* :meth:`&= <Array.__and__>` -- In-place bit-wise AND of each element.
+* :meth:`|= <Array.__or__>` -- In-place bit-wise OR of each element.
+* :meth:`^= <Array.__xor__>` -- In-place bit-wise XOR of each element.
 
 Example::
 

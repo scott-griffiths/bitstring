@@ -348,8 +348,10 @@ class Array:
 
         """
         sep = ' '
+        fmt_is_dtype = False
         if fmt is None:
-            fmt = self._fmt
+            fmt = self.dtype
+            fmt_is_dtype = True
 
         tokens = tokenparser(fmt)[1]
         token_names_and_lengths = [(x[0], x[1]) for x in tokens]
@@ -396,7 +398,8 @@ class Array:
         else:
             data = self.data[0: -trailing_bit_length]
         length = len(self.data) // token_length
-        stream.write(f"<Array fmt='{fmt}', length={length}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
+        parameter_name = "dtype" if fmt_is_dtype else "fmt"
+        stream.write(f"<Array {parameter_name}='{fmt}', length={length}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
         data._pp(token_name, token_name2, token_length, width, sep, format_sep, show_offset, stream, False, token_length, getter_func, getter_func2)
         stream.write("]")
         if trailing_bit_length != 0:
@@ -438,24 +441,30 @@ class Array:
         a_copy.data = copy.copy(self.data)
         return a_copy
 
-    def _apply_op_to_all_elements(self, op, value: Union[int, float], is_comparison: bool = False) -> Array:
+    def _apply_op_to_all_elements(self, op, value: Union[int, float, None], is_comparison: bool = False) -> Array:
         """Apply op with value to each element of the Array and return a new Array"""
         new_array = Array('bool' if is_comparison else self._dtype)
         new_data = BitArray()
         failures = index = 0
         msg = ''
+        if value is not None:
+            def partial_op(a):
+                return op(a, value)
+        else:
+            def partial_op(a):
+                return op(a)
         for i in range(len(self)):
             v = self._dtype.get(self.data, start=self._dtype.length * i)
             try:
-                new_data.append(new_array._create_element(op(v, value)))
+                new_data.append(new_array._create_element(partial_op(v)))
             except (CreationError, ZeroDivisionError, ValueError) as e:
                 if failures == 0:
                     msg = str(e)
                     index = i
                 failures += 1
-            if failures != 0:
-                raise ValueError(f"Applying operator '{op.__name__}' to Array caused {failures} errors. "
-                                 f'First error at index {index} was: "{msg}"')
+        if failures != 0:
+            raise ValueError(f"Applying operator '{op.__name__}' to Array caused {failures} errors. "
+                             f'First error at index {index} was: "{msg}"')
         new_array.data = new_data
         return new_array
 
@@ -556,6 +565,8 @@ class Array:
             return type2
         return type2 if type2.length > type1.length else type1
 
+    # Operators between Arrays or an Array and scalar value
+
     def __add__(self, other: Union[int, float, Array]) -> Array:
         """Add int or float to all elements."""
         if isinstance(other, Array):
@@ -627,6 +638,18 @@ class Array:
             return self._apply_op_between_arrays(operator.lshift, other)
         return self._apply_op_to_all_elements_inplace(operator.lshift, other)
 
+    def __mod__(self, other: Union[int, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.mod, other)
+        return self._apply_op_to_all_elements(operator.mod, other)
+
+    def __imod__(self, other: Union[int, Array]) -> Array:
+        if isinstance(other, Array):
+            return self._apply_op_between_arrays(operator.mod, other)
+        return self._apply_op_to_all_elements_inplace(operator.mod, other)
+
+    # Bitwise operators
+
     def __and__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements(operator.iand, other)
 
@@ -644,6 +667,8 @@ class Array:
 
     def __ixor__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements_inplace(operator.ixor, other)
+
+    # Comparison operators
 
     def __lt__(self, other: Union[int, float, Array]) -> Array:
         if isinstance(other, Array):
@@ -675,18 +700,10 @@ class Array:
             return self._apply_op_between_arrays(operator.ne, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.ne, other, is_comparison=True)
 
-    def __mod__(self, other: Union[int, float, Array]) -> Array:
-        if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.mod, other)
-        return self._apply_op_to_all_elements(operator.mod, other)
-
-    def __imod__(self, other: Union[int, float, Array]) -> Array:
-        if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.mod, other)
-        return self._apply_op_to_all_elements_inplace(operator.mod, other)
+    # Unary operators
 
     def __neg__(self):
-        pass  # TODO
+        return self._apply_op_to_all_elements(operator.neg, None)
 
     def __abs__(self):
-        pass  # TODO
+        return self._apply_op_to_all_elements(operator.abs, None)

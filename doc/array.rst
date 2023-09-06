@@ -421,51 +421,17 @@ Numerical operators
 
     ``a << i``
 
-.. method:: Array.__iadd__(self, other: int | float | Array) -> None
+.. method:: Array.__mod__(self, other: int | Array) -> Array
 
-    In-place version of :meth:`+ <Array.__add__>`. ::
+    ``a % i``
 
-        >>> a += 3
+.. method:: Array.__neg__(self) -> Array
 
+    ``-a``
 
-.. method:: Array.__isub__(self, other: int | float | Array) -> None
+.. method:: Array.__abs__(self) -> Array
 
-    In-place version of :meth:`- <Array.__sub__>`. ::
-
-        >>> a -= 9.4
-
-
-.. method:: Array.__imul__(self, other: int | float | Array) -> None
-
-    In-place version of :meth:`* <Array.__mul__>`. ::
-
-        >>> a *= 2
-
-.. method:: Array.__itruediv__(self, other: int | float | Array) -> None
-
-    In-place version of :meth:`/ <Array.__truediv__>`. ::
-
-        >>> a /= 5.1
-
-.. method:: Array.__ifloordiv__(self, other: int | float | Array) -> None
-
-    In-place version of :meth:`// <Array.__floordiv__>`. ::
-
-        >>> a //= 8
-
-
-.. method:: Array.__irshift__(self, other: int | Array) -> None
-
-    In-place version of :meth:`>> <Array.__rshift__>`. ::
-
-        >>> a >>= 1
-
-.. method:: Array.__ilshift__(self, other: int | Array) -> None
-
-    In-place version of :meth:`\<\< <Array.__lshift__>`. ::
-
-        >>> a <<= 2
-
+    ``abs(a)``
 
 
 Bitwise operators
@@ -475,31 +441,20 @@ Bitwise operators
 
     ``a & bs``
 
+        >>> a &= '0b1110'
+
 .. method:: Array.__or__(self, other: Bits) -> Array
 
     ``a | bs``
+
+        >>> a |= '0x7fff'
 
 .. method:: Array.__xor__(self, other: Bits) -> Array
 
     ``a ^ bs``
 
-.. method:: Array.__iand__(self, other: Bits) -> None
-
-    In-place version of :meth:`& <Array.__and__>`. ::
-
-        >>> a &= '0b1110'
-
-.. method:: Array.__ior__(self, other: Bits) -> None
-
-    In-place version of :meth:`| <Array.__or__>`. ::
-
-        >>> a |= '0x7fff'
-
-.. method:: Array.__ixor__(self, other: Bits) -> None
-
-    In-place version of :meth:`^ <Array.__xor__>`. ::
-
         >>> a ^= bytearray([56, 23])
+
 
 Python language operators
 """""""""""""""""""""""""

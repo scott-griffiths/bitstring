@@ -509,14 +509,14 @@ class ArrayMethods(unittest.TestCase):
         a.dtype = 'hex16'
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(),  "<Array fmt='hex16', length=3, itemsize=16 bits, total data size=6 bytes>\n"
+        self.assertEqual(s.getvalue(),  "<Array dtype='hex16', length=3, itemsize=16 bits, total data size=6 bytes>\n"
                                         "[\n"
                                         "c040 3f80 4000\n"
                                         "]\n")
         a.data += '0b110'
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(),  """<Array fmt='hex16', length=3, itemsize=16 bits, total data size=7 bytes>
+        self.assertEqual(s.getvalue(),  """<Array dtype='hex16', length=3, itemsize=16 bits, total data size=7 bytes>
 [
 c040 3f80 4000
 ] + trailing_bits = 0b110\n""")
@@ -525,7 +525,7 @@ c040 3f80 4000
         a = Array('uint32', [12, 100, 99])
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(), """<Array fmt='uint32', length=3, itemsize=32 bits, total data size=12 bytes>
+        self.assertEqual(s.getvalue(), """<Array dtype='uint32', length=3, itemsize=32 bits, total data size=12 bytes>
 [
         12        100         99
 ]\n""")
@@ -534,7 +534,7 @@ c040 3f80 4000
         a = Array('bits2', b'89')
         s = io.StringIO()
         a.pp(stream=s, width=0, show_offset=True)
-        self.assertEqual(s.getvalue(), """<Array fmt='bits2', length=8, itemsize=2 bits, total data size=2 bytes>
+        self.assertEqual(s.getvalue(), """<Array dtype='bits2', length=8, itemsize=2 bits, total data size=2 bytes>
 [
  0: 0b00
  1: 0b11
@@ -715,6 +715,16 @@ class ArrayOperations(unittest.TestCase):
         with self.assertRaises(ValueError):
             a <<= -1
 
+    def testNeg(self):
+        a = Array('i92', [-1, 1, 0, 100, -100])
+        b = -a
+        self.assertEqual(b.tolist(), [1, -1, 0, -100, 100])
+        self.assertEqual(b.dtype, 'int92')
+
+    def testAbs(self):
+        a = Array('float16', [-2.0, 0, -0, 100, -5.5])
+        b = abs(a)
+        self.assertTrue(b.equals(Array('float16', [2.0, 0, 0, 100, 5.5])))
 
 
 class CreationFromBits(unittest.TestCase):
