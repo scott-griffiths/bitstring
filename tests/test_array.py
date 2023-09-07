@@ -42,7 +42,7 @@ class Creation(unittest.TestCase):
         a = Bits('0x000102030405')
         b = Array('bits:8', a)
         c = Array('bits:8', [Bits('0x00'), Bits('0x01'), Bits('0x02'), Bits('0x03'), Bits('0x04'), Bits('0x05')])
-        self.assertEqual(b, c)
+        self.assertTrue(b.equals(c))
 
     def testCreationFromFloat8(self):
         a = Array('float8_143')
@@ -50,7 +50,7 @@ class Creation(unittest.TestCase):
         self.assertEqual(a[0], 240.0)
         self.assertEqual(a[1], 0.0)
         b = Array('float8_143', [100000, -0.0])
-        self.assertEqual(a, b)
+        self.assertTrue(a.equals(b))
 
     def testCreationFromMultiple(self):
         with self.assertRaises(ValueError):
@@ -228,7 +228,7 @@ class ArrayMethods(unittest.TestCase):
         self.assertNotEqual(a, c)
         a.data.append('0b11')
         self.assertEqual(a.tolist(), c.tolist())
-        self.assertEqual(a, c)
+        self.assertTrue(a.equals(c))
 
     def testSetting(self):
         a = Array('bool')
@@ -402,12 +402,12 @@ class ArrayMethods(unittest.TestCase):
         with self.assertRaises(IndexError):
             _ = a[0]
         a.extend([1, 2, 3, 4])
-        self.assertEqual(a[:], Array('i17', [1, 2, 3, 4]))
-        self.assertEqual(a[:1], Array('i17', [1]))
-        self.assertEqual(a[1:3], Array('i17', [2, 3]))
-        self.assertEqual(a[-2:], Array('i17', [3, 4]))
-        self.assertEqual(a[::2], Array('i17', [1, 3]))
-        self.assertEqual(a[::-2], Array('i17', [4, 2]))
+        self.assertTrue(a[:].equals(Array('i17', [1, 2, 3, 4])))
+        self.assertTrue(a[:1].equals(Array('i17', [1])))
+        self.assertTrue(a[1:3].equals(Array('i17', [2, 3])))
+        self.assertTrue(a[-2:].equals(Array('i17', [3, 4])))
+        self.assertTrue(a[::2].equals(Array('i17', [1, 3])))
+        self.assertTrue(a[::-2].equals(Array('i17', [4, 2])))
 
     def testMoreSetting(self):
         a = Array('i1', [0, -1, -1, 0, 0, -1, 0])
@@ -471,11 +471,11 @@ class ArrayMethods(unittest.TestCase):
         b = Array('u8', [3, 4])
         c = a[:]
         c.extend(b)
-        self.assertEqual(a, Array('=B', [1, 2, 3]))
-        self.assertEqual(c, Array('=B', [1, 2, 3, 3, 4]))
+        self.assertTrue(a.equals(Array('=B', [1, 2, 3])))
+        self.assertTrue(c.equals(Array('=B', [1, 2, 3, 3, 4])))
         d = a[:]
         d.extend([10, 11, 12])
-        self.assertEqual(d, Array('uint:8', [1, 2, 3, 10, 11, 12]))
+        self.assertTrue(d.equals(Array('uint:8', [1, 2, 3, 10, 11, 12])))
 
     def test__contains__(self):
         a = Array('i9', [-1, 88, 3])
@@ -502,7 +502,7 @@ class ArrayMethods(unittest.TestCase):
         a = Array('float8_152', [0.0, 1.5])
         b = Array('float8_143')
         b[:] = a[:]
-        self.assertEqual(b[:], Array('float8_143', [0.0, 1.5]))
+        self.assertTrue(b[:].equals(Array('float8_143', [0.0, 1.5])))
 
     def testPp(self):
         a = Array('bfloat', [-3, 1, 2])
@@ -571,13 +571,13 @@ class ArrayOperations(unittest.TestCase):
         a = Array('>d')
         a.extend([1.0, -2.0, 100.5])
         b = a + 2
-        self.assertEqual(a, Array('>d', [1.0, -2.0, 100.5]))
-        self.assertEqual(b, Array('>d', [3.0, 0.0, 102.5]))
+        self.assertTrue(a.equals(Array('>d', [1.0, -2.0, 100.5])))
+        self.assertTrue(b.equals(Array('>d', [3.0, 0.0, 102.5])))
 
     def testSub(self):
         a = Array('uint44', [3, 7, 10])
         b = a - 3
-        self.assertEqual(b, Array('u44', [0, 4, 7]))
+        self.assertTrue(b.equals(Array('u44', [0, 4, 7])))
         with self.assertRaises(ValueError):
             _ = a - 4
 
@@ -611,18 +611,18 @@ class ArrayOperations(unittest.TestCase):
     def testInPlaceDiv(self):
         a = Array('i10', [-4, -3, -2, -1, 0, 1, 2])
         a //= 2
-        self.assertEqual(a, Array('i10', [-2, -2, -1, -1, 0, 0, 1]))
+        self.assertTrue(a.equals(Array('i10', [-2, -2, -1, -1, 0, 0, 1])))
 
     def testTrueDiv(self):
         a = Array('float16', [5, 10, -6])
         b = a / 4
-        self.assertEqual(a, Array('float16', [5.0, 10.0, -6.0]))
-        self.assertEqual(b, Array('float16', [1.25, 2.5, -1.5]))
+        self.assertTrue(a.equals(Array('float16', [5.0, 10.0, -6.0])))
+        self.assertTrue(b.equals(Array('float16', [1.25, 2.5, -1.5])))
 
     def testInPlaceTrueDiv(self):
         a = Array('int71', [-4, -3, -2, -1, 0, 1, 2])
         a /= 2
-        self.assertEqual(a, Array('int71', [-2, -1, -1, 0, 0, 0, 1]))
+        self.assertTrue(a.equals(Array('int71', [-2, -1, -1, 0, 0, 0, 1])))
 
     def testAnd(self):
         a = Array('int16', [-1, 100, 9])
@@ -737,7 +737,7 @@ class CreationFromBits(unittest.TestCase):
         with self.assertRaises(TypeError):
             a += 8
         a.append(Bits(8))
-        self.assertEqual(a[:], Array('bits:8', ['0b1111 1111', Bits('0x00')]))
+        self.assertTrue(a[:].equals(Array('bits:8', ['0b1111 1111', Bits('0x00')])))
         a.extend(['0b10101011'])
         self.assertEqual(a[-1].hex, 'ab')
 
@@ -799,6 +799,12 @@ class ComparisonOperators(unittest.TestCase):
         self.assertEqual(c.tolist(), [True, False, False, True, False])
         self.assertEqual(c.dtype, 'bool')
 
+    def testArrayEquals(self):
+        a = Array('i12', [1, 2, -3, 4, -5, 6])
+        b = Array('i12', [6, 5, 4, 3, 2, 1])
+        self.assertEqual(abs(a), b[::-1])
+        self.assertNotEqual(a, b)
+
 
 class AsType(unittest.TestCase):
 
@@ -813,3 +819,51 @@ class AsType(unittest.TestCase):
         b = a.astype('float16')
         self.assertEqual(a.tolist(), b.tolist())
         self.assertEqual(b.dtype, 'float16')
+
+
+class ReverseMethods(unittest.TestCase):
+
+    def testRadd(self):
+        a = Array('u6', [1,2,3])
+        b = 5 + a
+        self.assertTrue(b.equals(Array('uint:6', [6, 7, 8])))
+
+    def testRmul(self):
+        a = Array('bfloat', [4, 2, 8])
+        b = 0.5 * a
+        self.assertTrue(b.equals(Array('bfloat16', [2.0, 1.0, 4.0])))
+
+    def testRsub(self):
+        a = Array('i90', [-1, -10, -100])
+        b = 100 - a
+        self.assertTrue(b.equals(Array('int90', [101, 110, 200])))
+
+    def testRmod(self):
+        a = Array('i8', [1, 2, 4, 8, 10])
+        with self.assertRaises(TypeError):
+            _ = 15 % a
+
+    def testRfloordiv(self):
+        a = Array('>H', [1, 2, 3, 4, 5])
+        with self.assertRaises(TypeError):
+            _ = 100 // a
+
+    def testRtruediv(self):
+        a = Array('>H', [1, 2, 3, 4, 5])
+        with self.assertRaises(TypeError):
+            _ = 100 / a
+
+    def testRand(self):
+        a = Array('u8', [255, 8, 4, 2, 1, 0])
+        b = '0x0f' & a
+        self.assertEqual(b.tolist(), [15, 8, 4, 2, 1, 0])
+
+    def testRor(self):
+        a = Array('u8', [255, 8, 4, 2, 1, 0])
+        b = '0x0f' | a
+        self.assertEqual(b.tolist(), [255, 15, 15, 15, 15, 15])
+
+    def testRxor(self):
+        a = Array('u8', [255, 8, 4, 2, 1, 0])
+        b = '0x01' ^ a
+        self.assertEqual(b.tolist(), [254, 9, 5, 3, 0, 1])

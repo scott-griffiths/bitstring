@@ -673,6 +673,28 @@ class Array:
     def __ixor__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements_inplace(operator.ixor, other)
 
+    # Reverse operators between a scalar value and an Array
+
+    def __rmul__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements(operator.mul, other)
+
+    def __radd__(self, other: Union[int, float]) -> Array:
+        return self._apply_op_to_all_elements(operator.add, other)
+
+    def __rsub__(self, other: Union[int, float]) -> Array:
+        # i - A == (-A) + i
+        neg = self._apply_op_to_all_elements(operator.neg, None)
+        return neg._apply_op_to_all_elements(operator.add, other)
+
+    def __rand__(self, other: BitsType) -> Array:
+        return self._apply_bitwise_op_to_all_elements(operator.iand, other)
+
+    def __ror__(self, other: BitsType) -> Array:
+        return self._apply_bitwise_op_to_all_elements(operator.ior, other)
+
+    def __rxor__(self, other: BitsType) -> Array:
+        return self._apply_bitwise_op_to_all_elements(operator.ixor, other)
+
     # Comparison operators
 
     def __lt__(self, other: Union[int, float, Array]) -> Array:
