@@ -264,7 +264,7 @@ The `inititalizer` will typically be an iterable such as a list, but can also be
 
 The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the data type `dtype`.
 
-Both the dtype and the underlying bit data (stored as a :class:`BitArray`) can be freely modified after creation, and element-wise operations can be used on the ``Array``. Modifying the data or format after creation may cause the :attr:`trailing_bits` to not be empty.
+Both the dtype and the underlying bit data (stored as a :class:`BitArray`) can be freely modified after creation, and element-wise operations can be used on the ``Array``. Modifying the data or format after creation may cause the :attr:`~Array.trailing_bits` to not be empty.
 
 Initialization examples::
 
@@ -277,6 +277,7 @@ Methods
 ^^^^^^^
 
 * :meth:`~Array.append` -- Append a single item to the end of the Array.
+* :meth:`~Array.astype` -- Cast the Array to a new dtype.
 * :meth:`~Array.byteswap` -- Change byte endianness of all items.
 * :meth:`~Array.count` -- Count the number of occurences of a value.
 * :meth:`~Array.equals` -- Compare with another Array for exact equality.

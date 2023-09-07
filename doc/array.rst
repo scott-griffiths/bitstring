@@ -56,19 +56,19 @@ Array
         a[0] = 2
         b.extend([0.0, -1.5])
 
-    Conversion between ``Array`` types can be done by creating a new one with the new dtype from the elements of the other one.
+    Conversion between ``Array`` types can be done using the :meth:`astype` method.
     If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
 
         >>> x = Array('float64', [89.3, 1e34, -0.00000001, 34])
-        >>> y = Array('float16', x.tolist())
+        >>> y = x.astype('float16')
         >>> y
         Array('float16', [89.3125, inf, -0.0, 34.0])
-        >>> y = Array('float8_143', y.tolist())
+        >>> y = y.astype('float8_143')
         >>> y
         Array('float8_143', [88.0, 240.0, 0.0, 32.0])
-        >>> Array('uint8', y.tolist())
+        >>> y.astype('uint8')
         Array('uint8', [88, 240, 0, 32])
-        >>> Array('uint7', y.tolist())
+        >>> y.astype('uint7')
         bitstring.CreationError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
 
     You can also reinterpret the data by changing the :attr:`dtype` property directly.
@@ -149,6 +149,20 @@ Methods
     The type of `x` should be appropriate for the type of the Array.
 
     Raises a ``ValueError`` if the Array's bit length is not a multiple of its dtype length (see :attr:`~Array.trailing_bits`).
+
+.. method:: Array.astype(dtype: str) -> Array
+
+    Cast the ``Array`` to the new `dtype` and return the result. ::
+
+        >>> a = Array('float64', [-990, 34, 1, 0.25])
+        >>> a.data
+        BitArray('0xc08ef0000000000040410000000000003ff00000000000003fd0000000000000')
+        >>> b = a.astype('float16')
+        >>> b.data
+        BitArray('0xe3bc50403c003400')
+        >>> a == b
+        Array('bool', [True, True, True, True])
+
 
 .. method:: Array.byteswap() -> None
 
@@ -317,17 +331,6 @@ Methods
     Return Array items as a list.
 
     Each packed element of the Array is converted to an ordinary Python object such as a ``float`` or an ``int`` depending on the Array's format, and returned in a Python list.
-
-    This can be helpful if you want to use an Array to create a new Array with a different format. ::
-
-        >>> a = Array('float16', b'some_long_byte_data?')
-        >>> a
-        Array('float16', [15224.0, 5524.0, 475.0, 7608.0, 1887.0, 828.5, 18000.0, 473.0, 698.0, 671.5])
-        >>> b = Array('float8_152', a.tolist())
-        >>> b
-        Array('float8_152', [14336.0, 5120.0, 448.0, 7168.0, 1792.0, 768.0, 16384.0, 448.0, 640.0, 640.0])
-        >>> b.tobytes()
-        b'wqcskfxcee'
 
 
 Special Methods

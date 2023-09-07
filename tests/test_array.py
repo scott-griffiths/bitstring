@@ -798,3 +798,18 @@ class ComparisonOperators(unittest.TestCase):
         c = a < b
         self.assertEqual(c.tolist(), [True, False, False, True, False])
         self.assertEqual(c.dtype, 'bool')
+
+
+class AsType(unittest.TestCase):
+
+    def testSwitchingIntTypes(self):
+        a = Array('u8', [15, 42, 1])
+        b = a.astype('i8')
+        self.assertEqual(a.tolist(), b.tolist())
+        self.assertEqual(b.dtype, 'i8')
+
+    def testSwitchingFloatTypes(self):
+        a = Array('float64', [-990, 34, 1, 0.25])
+        b = a.astype('float16')
+        self.assertEqual(a.tolist(), b.tolist())
+        self.assertEqual(b.dtype, 'float16')

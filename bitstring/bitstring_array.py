@@ -223,6 +223,11 @@ class Array:
             self.data[-trailing_bit_length:])
         return f"Array('{self._fmt}', {list_str}{final_str})"
 
+    def astype(self, dtype: Union[str, Dtype]) -> Array:
+        """Return Array with elements of new dtype, initialised from current Array."""
+        new_array = Array(dtype, self.tolist())
+        return new_array
+
     def tolist(self) -> List[ElementType]:
         return [self._dtype.get(self.data, start=start)
                 for start in range(0, len(self.data) - self._dtype.length + 1, self._dtype.length)]

@@ -15,6 +15,7 @@ plus new Array functionality.
 * Added operators that act on two Arrays of the same size.
 * Added comparison operators for Arrays that return an Array of bools.
 * Added Array.equals method as == will now return an Array (see above item).
+* Added astype() method for Arrays to easily cast to a new dtype.
 
 -----------------------------------
 August 2023: version 4.1.1 released
