@@ -369,6 +369,12 @@ Rule 4  ``'float16'``           ``-=``    ``'bfloat'``     →         ``'float1
 Comparison operators
 """"""""""""""""""""
 
+Comparison operators can operate between two ``Array`` objects, or between an ``Array`` and a scalar quantity (usually a number).
+
+Note that they always produce an ``Array`` of :attr:`~Array.dtype` ``'bool'``, including the equality and inequality operators.
+
+To test the boolean equality of two Arrays use the :meth:`~Array.equals` method instead.
+
 .. method:: Array.__eq__(self, other: int | float | str | BitsType | Array) -> Array
 
     ``a1 == a2``

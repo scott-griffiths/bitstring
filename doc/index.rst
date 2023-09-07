@@ -95,7 +95,7 @@ Arrays of bitstrings
 ^^^^^^^^^^^^^^^^^^^^
 
 .. note ::
-    This class was introduced in version 4.1.0 of bitstring, and is a 'beta' feature that may have some small changes in future point releases.
+    This class was introduced in version 4.1 of bitstring, and is a 'beta' feature that may have some small changes in future point releases.
 
 If you are dealing with just one type of data but perhaps it's not one of the dozen or so supported in the ``array`` module in the standard library, then we have you covered with the :class:`Array` class.
 
@@ -109,7 +109,7 @@ You can also easily change the data's interpretation, convert to another format,
     >>> a = bitstring.Array('uint16', [0, 1, 4, 6, 11, 2, 8, 7])
     >>> a.data
     BitArray('0x0000000100040006000b000200080007')
-    >>> b = bitstring.Array('int5', a.tolist())
+    >>> b = a.astype('uint5')
     >>> b.data
     BitArray('0x0048658907')
     >>> a.tolist() == b.tolist()

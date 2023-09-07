@@ -2,9 +2,9 @@
 bitstring module version history
 --------------------------------
 
------------------------------------
-In development: version 4.1.2
------------------------------------
+--------------------------------------
+September 2023: version 4.1.2 released
+--------------------------------------
 Another maintenance release. Once again some small changes to the 'beta' Array class,
 plus new Array functionality.
 
