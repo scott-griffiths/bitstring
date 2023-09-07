@@ -368,11 +368,13 @@ class Array:
         getter_func2 = None
         if len(token_names_and_lengths) == 1:
             if token_length is None:
-                raise ValueError(f"The format '{fmt}' doesn't have a fixed length and so can't be used.")
+                token_length = self.itemsize
+                fmt += str(token_length)
         if len(token_names_and_lengths) == 2:
             token_name2, token_length2 = token_names_and_lengths[1]
             if token_length is None and token_length2 is None:
-                raise ValueError(f"At least one format must have a fixed length specified - none give by '{fmt}'.")
+                token_length = token_length2 = self.itemsize
+                fmt += str(token_length)
             if token_length is None:
                 token_length = token_length2
             if token_length2 is None:

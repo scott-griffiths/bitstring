@@ -506,14 +506,14 @@ class ArrayMethods(unittest.TestCase):
 
     def testPp(self):
         a = Array('bfloat', [-3, 1, 2])
-        a.dtype = 'hex16'
         s = io.StringIO()
-        a.pp(stream=s)
-        self.assertEqual(s.getvalue(),  "<Array dtype='hex16', length=3, itemsize=16 bits, total data size=6 bytes>\n"
+        a.pp('hex', stream=s)
+        self.assertEqual(s.getvalue(),  "<Array fmt='hex16', length=3, itemsize=16 bits, total data size=6 bytes>\n"
                                         "[\n"
                                         "c040 3f80 4000\n"
                                         "]\n")
         a.data += '0b110'
+        a.dtype='hex16'
         s = io.StringIO()
         a.pp(stream=s)
         self.assertEqual(s.getvalue(),  """<Array dtype='hex16', length=3, itemsize=16 bits, total data size=7 bytes>
@@ -558,6 +558,16 @@ c040 3f80 4000
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
 ]\n""")
+
+    def testPpTwoFormatsNoLength(self):
+        a = Array('float16', bytearray(range(50, 56)))
+        s = io.StringIO()
+        a.pp(stream=s, fmt='u, b')
+        self.assertEqual(s.getvalue(), """<Array fmt='u, b16', length=3, itemsize=16 bits, total data size=6 bytes>
+[
+12851 13365 13879 : 0011001000110011 0011010000110101 0011011000110111
+]\n""")
+
 
 class ArrayOperations(unittest.TestCase):
 

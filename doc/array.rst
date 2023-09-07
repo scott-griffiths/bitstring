@@ -261,7 +261,9 @@ Methods
 
     The format string `fmt` defaults to the Array's current :attr:`dtype`, but any other valid Array format string can be used.
 
-    A pair of comma-separated format strings can also be used - either only one format should specify a length or they both must specify the same length. For example ``'float32, hex'`` or ``'u4, i4'``.
+    If a `fmt` doesn't have an explicit length, the Array's :attr:`itemsize` will be used.
+
+    A pair of comma-separated format strings can also be used - if both formats specify a length they must be the same. For example ``'float, hex16'`` or ``'u4, b4'``.
 
     The output will try to stay within `width` characters per line, but will always output at least one element value.
 
