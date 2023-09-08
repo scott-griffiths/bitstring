@@ -296,7 +296,6 @@ Special methods
 
 These non-mutating special methods are available. Where appropriate they return a new ``Array``.
 
-* :meth:`== <Array.__eq__>` / :meth:`\!= <Array.__ne__>` -- Equality tests.
 * :meth:`[] <Array.__getitem__>` -- Get an element or slice.
 * :meth:`+ <Array.__add__>` -- Add value to each element.
 * :meth:`- <Array.__sub__>` -- Subtract value from each element.
@@ -322,6 +321,14 @@ For example::
     Array('i6', [31, -9, 2, 1])
     >>> b + b
     Array('i6', [30, -10, 1, 0, 30, -10, 1, 0])
+
+Comparison operators will output an ``Array`` with a ``dtype`` of ``'bool'``.
+
+* :meth:`== <Array.__eq__>` / :meth:`\!= <Array.__ne__>` -- Equality tests.
+* :meth:`\< <Array.__lt__>` -- Less than comparison.
+* :meth:`\<= <Array.__le__>` -- Less than or equal comparison.
+* :meth:`> <Array.__gt__>` -- Greater than comparison.
+* :meth:`>= <Array.__ge__>` -- Greater than or equal comparison.
 
 
 Mutating versions of many of the methods are also available.
