@@ -11,7 +11,7 @@ SIGNED_NAMES = SIGNED_INTEGER_NAMES + FLOAT_NAMES
 
 class Dtype:
 
-    # __slots__ = ('name', 'length', 'set', 'get', 'is_integer', 'is_signed', 'is_float', 'is_fixedlength')
+    __slots__ = ('name', 'length', 'set', 'get', 'is_integer', 'is_signed', 'is_float', 'is_fixedlength', 'min_value', 'max_value')
 
     def __init__(self, fmt: str) -> None:
         self.name, self.length = parse_name_length_token(fmt)

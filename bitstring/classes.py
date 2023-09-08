@@ -84,26 +84,19 @@ _tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'h
                                              'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat',
                                              'float8_143': 'float8_143', 'float8_152': 'float8_152'}
 
-
-def _str_to_bitstore(s: str, _str_to_bitstore_cache={}) -> BitStore:
+@functools.lru_cache(CACHE_SIZE)
+def _str_to_bitstore(s: str) -> BitStore:
     try:
-        return _str_to_bitstore_cache[s]
-    except KeyError:
-        try:
-            _, tokens = tokenparser(s)
-        except ValueError as e:
-            raise CreationError(*e.args)
-        bs = BitStore()
-        if tokens:
-            bs = bs + _bitstore_from_token(*tokens[0])
-            for token in tokens[1:]:
-                bs = bs + _bitstore_from_token(*token)
-        bs.immutable = True
-        _str_to_bitstore_cache[s] = bs
-        if len(_str_to_bitstore_cache) > CACHE_SIZE:
-            # Remove the oldest one. FIFO.
-            del _str_to_bitstore_cache[next(iter(_str_to_bitstore_cache))]
-        return bs
+        _, tokens = tokenparser(s)
+    except ValueError as e:
+        raise CreationError(*e.args)
+    bs = BitStore()
+    if tokens:
+        bs = bs + _bitstore_from_token(*tokens[0])
+        for token in tokens[1:]:
+            bs = bs + _bitstore_from_token(*token)
+    bs.immutable = True
+    return bs
 
 
 def _bin2bitstore(binstring: str) -> BitStore:
@@ -526,14 +519,16 @@ class Bits:
         return x
 
     @classmethod
+    def _create_empty_instance(cls):
+        x = object.__new__(cls)
+        x._bitstore = BitStore._create_empty_instance()
+        return x
+
+    @classmethod
     def _create_from_bitstype(cls: Type[TBits], auto: Optional[BitsType]) -> TBits:
-        b = cls()
+        b = cls._create_empty_instance()
         if auto is None:
             return b
-        if isinstance(auto, numbers.Integral):
-            raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
-                            f" Use '{cls.__name__}({auto})' instead of just '{auto}' as this makes it "
-                            f"clearer that a bitstring of {int(auto)} zero bits will be created.")
         b._setauto(auto, None, None)
         return b
 
@@ -543,6 +538,13 @@ class Bits:
         if offset is not None and offset < 0:
             raise CreationError("offset must be >= 0.")
         if __auto is not None:
+            if isinstance(__auto, numbers.Integral):
+                # Initialise with s zero bits.
+                if __auto < 0:
+                    raise CreationError(f"Can't create bitstring of negative length {__auto}.")
+                self._bitstore = BitStore(int(__auto))
+                self._bitstore.setall(0)
+                return
             self._setauto(__auto, length, offset)
             return
         k, v = kwargs.popitem()
@@ -913,7 +915,7 @@ class Bits:
     @classmethod
     def _init_with_token(cls: Type[TBits], name: str, token_length: Optional[int], value: Optional[str]) -> TBits:
         if token_length == 0:
-            return cls()
+            return cls._create_empty_instance()
         # For pad token just return the length in zero bits
         if name == 'pad':
             return cls(token_length)
@@ -951,8 +953,8 @@ class Bits:
         """Reset the bitstring to an empty state."""
         self._bitstore = BitStore()
 
-    def _setauto(self, s: Union[BitsType, int], length: Optional[int], offset: Optional[int]) -> None:
-        """Set bitstring from a bitstring, file, bool, integer, array, iterable or string."""
+    def _setauto(self, s: BitsType, length: Optional[int], offset: Optional[int]) -> None:
+        """Set bitstring from a bitstring, file, bool, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
         # So str must be checked before Iterable
@@ -1006,17 +1008,14 @@ class Bits:
         if isinstance(s, array.array):
             self._bitstore = BitStore(frombytes=bytearray(s.tobytes()))
             return
-        if isinstance(s, numbers.Integral):
-            # Initialise with s zero bits.
-            if s < 0:
-                raise CreationError(f"Can't create bitstring of negative length {s}.")
-            self._bitstore = BitStore(int(s))
-            self._bitstore.setall(0)
-            return
         if isinstance(s, abc.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
             return
+        if isinstance(s, numbers.Integral):
+            raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
+                            f" Use '{self.__class__.__name__}({s})' instead of just '{s}' as this makes it "
+                            f"clearer that a bitstring of {int(s)} zero bits will be created.")
         raise TypeError(f"Cannot initialise bitstring from {type(s)}.")
 
     def _setfile(self, filename: str, length: Optional[int], offset: Optional[int]) -> None:

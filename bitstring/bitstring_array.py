@@ -345,7 +345,7 @@ class Array:
            show_offset: bool = False, stream: TextIO = sys.stdout) -> None:
         """Pretty-print the Array contents.
 
-        fmt -- Data format string. Defaults to current Array fmt.
+        fmt -- Data format string. Defaults to current Array dtype.
         width -- Max width of printed lines in characters. Defaults to 120. A single group will always
                  be printed per line even if it exceeds the max width.
         show_offset -- If True shows the element offset in the first column of each line.

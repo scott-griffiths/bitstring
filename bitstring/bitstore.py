@@ -74,6 +74,10 @@ class BitStore(bitarray.bitarray):
         new_kwargs = {'buffer': kwargs.get('buffer', None)}
         return bitarray.bitarray.__new__(cls, *args, **new_kwargs)
 
+    @classmethod
+    def _create_empty_instance(cls):
+        return bitarray.bitarray()
+
     def __add__(self, other: bitarray.bitarray) -> BitStore:
         assert not self.immutable
         return BitStore(super().__add__(other))
