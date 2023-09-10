@@ -62,4 +62,5 @@ class _Options:
     def bytealigned(self, value: bool) -> None:
         self._bytealigned = bool(value)
 
+
 options: _Options = _Options()

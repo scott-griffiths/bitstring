@@ -3307,7 +3307,6 @@ class BitArray(Bits):
     o = oct
 
 
-from .options import _Options
-
-options: _Options = _Options()
+# This import at the end of the file to avoid circular import hell.
+from .options import options
 
