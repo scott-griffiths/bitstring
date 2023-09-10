@@ -11,7 +11,6 @@ import array
 import io
 from collections import abc
 import functools
-import types
 from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
 import bitarray
@@ -415,17 +414,6 @@ class Bits:
     len -- Length of the bitstring in bits.
 
     """
-
-    @classmethod
-    def _setlsb0methods(cls, lsb0: bool) -> None:
-        if lsb0:
-            cls._find = cls._find_lsb0  # type: ignore
-            cls._rfind = cls._rfind_lsb0  # type: ignore
-            cls._findall = cls._findall_lsb0  # type: ignore
-        else:
-            cls._find = cls._find_msb0  # type: ignore
-            cls._rfind = cls._rfind_msb0  # type: ignore
-            cls._findall = cls._findall_msb0  # type: ignore
 
     __slots__ = ('_bitstore')
 
@@ -2693,20 +2681,6 @@ class BitArray(Bits):
 
     """
 
-    @classmethod
-    def _setlsb0methods(cls, lsb0: bool) -> None:
-        if lsb0:
-            cls._ror = cls._rol_msb0  # type: ignore
-            cls._rol = cls._ror_msb0  # type: ignore
-            cls._append = cls._append_lsb0  # type: ignore
-            # An LSB0 prepend is an MSB0 append
-            cls._prepend = cls._append_msb0  # type: ignore
-        else:
-            cls._ror = cls._ror_msb0  # type: ignore
-            cls._rol = cls._rol_msb0  # type: ignore
-            cls._append = cls._append_msb0  # type: ignore
-            cls._prepend = cls._append_lsb0  # type: ignore
-
     __slots__ = ()
 
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
@@ -3335,6 +3309,7 @@ class BitArray(Bits):
 
 
 class _Options:
+    """Internal class to create effective singleton module options instance."""
 
     def __init__(self):
         self.set_lsb0(False)
@@ -3350,9 +3325,38 @@ class _Options:
 
     def set_lsb0(self, value: bool) -> None:
         self._lsb0 = bool(value)
-        Bits._setlsb0methods(self._lsb0)
-        BitArray._setlsb0methods(self._lsb0)
-        BitStore._setlsb0methods(self._lsb0)
+
+        if self._lsb0:
+            Bits._find = Bits._find_lsb0  # type: ignore
+            Bits._rfind = Bits._rfind_lsb0  # type: ignore
+            Bits._findall = Bits._findall_lsb0  # type: ignore
+
+            BitArray._ror = BitArray._rol_msb0  # type: ignore
+            BitArray._rol = BitArray._ror_msb0  # type: ignore
+            BitArray._append = BitArray._append_lsb0  # type: ignore
+            # An LSB0 prepend is an MSB0 append
+            BitArray._prepend = BitArray._append_msb0  # type: ignore
+
+            BitStore.__setitem__ = BitStore.setitem_lsb0
+            BitStore.__delitem__ = BitStore.delitem_lsb0
+            BitStore.getindex = BitStore.getindex_lsb0
+            BitStore.getslice = BitStore.getslice_lsb0
+            BitStore.invert = BitStore.invert_lsb0
+        else:
+            Bits._find = Bits._find_msb0  # type: ignore
+            Bits._rfind = Bits._rfind_msb0  # type: ignore
+            Bits._findall = Bits._findall_msb0  # type: ignore
+
+            BitArray._ror = BitArray._ror_msb0  # type: ignore
+            BitArray._rol = BitArray._rol_msb0  # type: ignore
+            BitArray._append = BitArray._append_msb0  # type: ignore
+            BitArray._prepend = BitArray._append_lsb0  # type: ignore
+
+            BitStore.__setitem__ = BitStore.setitem_msb0
+            BitStore.__delitem__ = BitStore.delitem_msb0
+            BitStore.getindex = BitStore.getindex_msb0
+            BitStore.getslice = BitStore.getslice_msb0
+            BitStore.invert = BitStore.invert_msb0
 
     @property
     def bytealigned(self) -> bool:
@@ -3364,27 +3368,3 @@ class _Options:
 
 options: _Options = _Options()
 
-# An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
-class _MyModuleType(types.ModuleType):
-    @property
-    def bytealigned(self) -> bool:
-        """Determines whether a number of methods default to working only on byte boundaries."""
-        return options.bytealigned
-
-    @bytealigned.setter
-    def bytealigned(self, value: bool) -> None:
-        """Determines whether a number of methods default to working only on byte boundaries."""
-        options.bytealigned = value
-
-    @property
-    def lsb0(self) -> bool:
-        """If True, the least significant bit (the final bit) is indexed as bit zero."""
-        return options.lsb0
-
-    @lsb0.setter
-    def lsb0(self, value: bool) -> None:
-        """If True, the least significant bit (the final bit) is indexed as bit zero."""
-        options.lsb0 = value
-
-
-sys.modules[__name__].__class__ = _MyModuleType

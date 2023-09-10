@@ -54,21 +54,6 @@ class BitStore(bitarray.bitarray):
                 raise CreationError(
                     f"Can't create bitstring with a length of {self.length} and an offset of {self.offset} from {super().__len__()} bits of data.")
 
-    @classmethod
-    def _setlsb0methods(cls, lsb0: bool = False) -> None:
-        if lsb0:
-            cls.__setitem__ = cls.setitem_lsb0
-            cls.__delitem__ = cls.delitem_lsb0
-            cls.getindex = cls.getindex_lsb0
-            cls.getslice = cls.getslice_lsb0
-            cls.invert = cls.invert_lsb0
-        else:
-            cls.__setitem__ = super().__setitem__
-            cls.__delitem__ = super().__delitem__
-            cls.getindex = cls.getindex_msb0
-            cls.getslice = cls.getslice_msb0
-            cls.invert = cls.invert_msb0
-
     def __new__(cls, *args, **kwargs) -> bitarray.bitarray:
         # Just pass on the buffer keyword, not the length, offset, filename and frombytes
         new_kwargs = {'buffer': kwargs.get('buffer', None)}
@@ -171,6 +156,8 @@ class BitStore(bitarray.bitarray):
             return self.length
         return super().__len__()
 
+    setitem_msb0 = bitarray.bitarray.__setitem__
+    delitem_msb0 = bitarray.bitarray.__delitem__
     # Default to the MSB0 methods (mainly to stop mypy from complaining)
     getslice = getslice_msb0
     getindex = getindex_msb0

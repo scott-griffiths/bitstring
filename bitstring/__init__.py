@@ -61,15 +61,37 @@ __author__ = "Scott Griffiths"
 
 import sys
 
-from bitstring.classes import Bits, BitArray, bytealigned, lsb0, _MyModuleType
+from bitstring.classes import Bits, BitArray, options
 from bitstring.bitstream import ConstBitStream, BitStream
 from bitstring.methods import pack
 from bitstring.bitstring_array import Array
 from bitstring.exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
+import types
 
+
+# An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
+class _MyModuleType(types.ModuleType):
+    @property
+    def bytealigned(self) -> bool:
+        """Determines whether a number of methods default to working only on byte boundaries."""
+        return options.bytealigned
+
+    @bytealigned.setter
+    def bytealigned(self, value: bool) -> None:
+        """Determines whether a number of methods default to working only on byte boundaries."""
+        options.bytealigned = value
+
+    @property
+    def lsb0(self) -> bool:
+        """If True, the least significant bit (the final bit) is indexed as bit zero."""
+        return options.lsb0
+
+    @lsb0.setter
+    def lsb0(self, value: bool) -> None:
+        """If True, the least significant bit (the final bit) is indexed as bit zero."""
+        options.lsb0 = value
 
 sys.modules[__name__].__class__ = _MyModuleType
-
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
