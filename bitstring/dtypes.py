@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import functools
-from bitstring.utils import parse_name_length_token, SIGNED_INTEGER_NAMES, UNSIGNED_INTEGER_NAMES, FLOAT_NAMES, FIXED_LENGTH_TOKENS
-from bitstring.exceptions import InterpretError
-from bitstring.classes import Bits, BitArray
+from .utils import parse_name_length_token, SIGNED_INTEGER_NAMES, UNSIGNED_INTEGER_NAMES, FLOAT_NAMES, FIXED_LENGTH_TOKENS
+from .exceptions import InterpretError
+from .classes import Bits, BitArray
 
 INTEGER_NAMES = SIGNED_INTEGER_NAMES + UNSIGNED_INTEGER_NAMES
 SIGNED_NAMES = SIGNED_INTEGER_NAMES + FLOAT_NAMES

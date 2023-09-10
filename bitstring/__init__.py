@@ -61,11 +61,11 @@ __author__ = "Scott Griffiths"
 
 import sys
 
-from bitstring.classes import Bits, BitArray, options
-from bitstring.bitstream import ConstBitStream, BitStream
-from bitstring.methods import pack
-from bitstring.bitstring_array import Array
-from bitstring.exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
+from .classes import Bits, BitArray, options
+from .bitstream import ConstBitStream, BitStream
+from .methods import pack
+from .bitstring_array import Array
+from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 import types
 
 

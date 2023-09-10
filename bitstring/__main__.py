@@ -1,5 +1,5 @@
 import sys
-from bitstring.classes import Bits
+from .classes import Bits
 
 
 def main() -> None:

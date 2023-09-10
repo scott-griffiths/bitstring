@@ -3,11 +3,11 @@ from __future__ import annotations
 import math
 import numbers
 from collections.abc import Sized
-from bitstring.exceptions import CreationError, InterpretError
+from .exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
-from bitstring.classes import BitArray, Bits, BitsType
-from bitstring.dtypes import Dtype
-from bitstring.utils import tokenparser
+from .classes import BitArray, Bits, BitsType
+from .dtypes import Dtype
+from .utils import tokenparser
 import functools
 import copy
 import array

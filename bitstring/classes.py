@@ -15,10 +15,10 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
-from bitstring.utils import tokenparser, BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE
-from bitstring.exceptions import CreationError, InterpretError, ReadError, Error
-from bitstring.fp8 import fp143_fmt, fp152_fmt
-from bitstring.bitstore import BitStore, _offset_slice_indices_lsb0
+from .utils import tokenparser, BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE
+from .exceptions import CreationError, InterpretError, ReadError, Error
+from .fp8 import fp143_fmt, fp152_fmt
+from .bitstore import BitStore, _offset_slice_indices_lsb0
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
