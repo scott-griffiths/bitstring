@@ -28,39 +28,10 @@ TBits = TypeVar("TBits", bound='Bits')
 
 byteorder: str = sys.byteorder
 
-# An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
-_bytealigned: bool = False
-_lsb0: bool = False
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
 
-
-class _MyModuleType(types.ModuleType):
-    @property
-    def bytealigned(self) -> bool:
-        """Determines whether a number of methods default to working only on byte boundaries."""
-        return globals()['_bytealigned']
-
-    @bytealigned.setter
-    def bytealigned(self, value: bool) -> None:
-        """Determines whether a number of methods default to working only on byte boundaries."""
-        globals()['_bytealigned'] = value
-
-    @property
-    def lsb0(self) -> bool:
-        """If True, the least significant bit (the final bit) is indexed as bit zero."""
-        return globals()['_lsb0']
-
-    @lsb0.setter
-    def lsb0(self, value: bool) -> None:
-        """If True, the least significant bit (the final bit) is indexed as bit zero."""
-        value = bool(value)
-        _switch_lsb0_methods(value)
-        globals()['_lsb0'] = value
-
-
-sys.modules[__name__].__class__ = _MyModuleType
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
@@ -134,7 +105,7 @@ def _oct2bitstore(octstring: str) -> BitStore:
 
 def _ue2bitstore(i: Union[str, int]) -> BitStore:
     i = int(i)
-    if _lsb0:
+    if options.lsb0:
         raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
     if i < 0:
         raise CreationError("Cannot use negative initialiser for unsigned exponential-Golomb.")
@@ -159,7 +130,7 @@ def _se2bitstore(i: Union[str, int]) -> BitStore:
 
 
 def _uie2bitstore(i: Union[str, int]) -> BitStore:
-    if _lsb0:
+    if options.lsb0:
         raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
     i = int(i)
     if i < 0:
@@ -169,7 +140,7 @@ def _uie2bitstore(i: Union[str, int]) -> BitStore:
 
 def _sie2bitstore(i: Union[str, int]) -> BitStore:
     i = int(i)
-    if _lsb0:
+    if options.lsb0:
         raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
     if i == 0:
         return BitStore('1')
@@ -928,7 +899,7 @@ class Bits:
             b = cls(**{_tokenname_to_initialiser[name]: value})
         except KeyError:
             if name in ('se', 'ue', 'sie', 'uie'):
-                if _lsb0:
+                if options.lsb0:
                     raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
                 b = cls(**{name: int(value)})
             elif name in ('uint', 'int', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne'):
@@ -1325,7 +1296,7 @@ class Bits:
 
         """
         # _length is ignored - it's only present to make the function signature consistent.
-        if _lsb0:
+        if options.lsb0:
             raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         oldpos = pos
         try:
@@ -1413,7 +1384,7 @@ class Bits:
 
         """
         # _length is ignored - it's only present to make the function signature consistent.
-        if _lsb0:
+        if options.lsb0:
             raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         try:
             codenum: int = 1
@@ -1842,14 +1813,14 @@ class Bits:
         if len(bs) == 0:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
-        ba = _bytealigned if bytealigned is None else bytealigned
+        ba = options.bytealigned if bytealigned is None else bytealigned
         p = self._find(bs, start, end, ba)
         return p
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A forward find in lsb0 is very like a reverse find in msb0.
         assert start <= end
-        assert _lsb0
+        assert options.lsb0
 
         new_slice = _offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
@@ -1893,7 +1864,7 @@ class Bits:
             raise ValueError("In findall, count must be >= 0.")
         bs = Bits._create_from_bitstype(bs)
         start, end = self._validate_slice(start, end)
-        ba = _bytealigned if bytealigned is None else bytealigned
+        ba = options.bytealigned if bytealigned is None else bytealigned
         return self._findall(bs, start, end, count, ba)
 
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
@@ -1914,7 +1885,7 @@ class Bits:
     def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Iterable[int]:
         assert start <= end
-        assert _lsb0
+        assert options.lsb0
 
         new_slice = _offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
@@ -1964,7 +1935,7 @@ class Bits:
         """
         bs = Bits._create_from_bitstype(bs)
         start, end = self._validate_slice(start, end)
-        ba = _bytealigned if bytealigned is None else bytealigned
+        ba = options.bytealigned if bytealigned is None else bytealigned
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         p = self._rfind(bs, start, end, ba)
@@ -1989,7 +1960,7 @@ class Bits:
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
         assert start <= end
-        assert _lsb0
+        assert options.lsb0
         new_slice = _offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
 
@@ -2050,7 +2021,7 @@ class Bits:
         if len(delimiter) == 0:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
-        bytealigned_: bool = _bytealigned if bytealigned is None else bytealigned
+        bytealigned_: bool = options.bytealigned if bytealigned is None else bytealigned
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
@@ -2353,7 +2324,7 @@ class Bits:
         first_fb_width = second_fb_width = None
         for bits in self.cut(max_bits_per_line):
             offset = bitpos // offset_factor
-            if _lsb0:
+            if options.lsb0:
                 offset_str = f'{offset_sep}{offset: >{offset_width - len(offset_sep)}}' if show_offset else ''
             else:
                 offset_str = f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
@@ -2361,7 +2332,7 @@ class Bits:
             if first_fb_width is None:
                 first_fb_width = len(fb)
             if len(fb) < first_fb_width:  # Pad final line with spaces to align it
-                if _lsb0:
+                if options.lsb0:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
@@ -2369,11 +2340,11 @@ class Bits:
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:
-                if _lsb0:
+                if options.lsb0:
                     fb2 = ' ' * (second_fb_width - len(fb2)) + fb2
                 else:
                     fb2 += ' ' * (second_fb_width - len(fb2))
-            if _lsb0 is True:
+            if options.lsb0 is True:
                 line_fmt = fb + fb2 + offset_str + '\n'
             else:
                 line_fmt = offset_str + fb + fb2 + '\n'
@@ -2443,7 +2414,7 @@ class Bits:
 
         format_sep = "   "  # String to insert on each line between multiple formats
 
-        self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset, stream, _lsb0, 1)
+        self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset, stream, options.lsb0, 1)
         return
 
     def copy(self: TBits) -> TBits:
@@ -2974,7 +2945,7 @@ class BitArray(Bits):
 
     def _replace(self, old: Bits, new: Bits, start: int, end: int, count: int, bytealigned: Optional[bool]) -> int:
         if bytealigned is None:
-            bytealigned = _bytealigned
+            bytealigned = options.bytealigned
         # First find all the places where we want to do the replacements
         starting_points: List[int] = []
         for x in self.findall(old, start, end, bytealigned=bytealigned):
@@ -2995,7 +2966,7 @@ class BitArray(Bits):
         # Final replacement
         replacement_list.append(new._bitstore)
         replacement_list.append(self._bitstore.getslice(slice(starting_points[-1] + old.len, None, None)))
-        if _lsb0:
+        if options.lsb0:
             # Addition of bitarray is always on the right, so assemble from other end
             replacement_list.reverse()
         self._bitstore.clear()
@@ -3362,15 +3333,58 @@ class BitArray(Bits):
     o = oct
 
 
-# Whether to label the Least Significant Bit as bit 0. Default is False.
 
-def _switch_lsb0_methods(lsb0: bool) -> None:
-    global _lsb0
-    _lsb0 = lsb0
-    Bits._setlsb0methods(lsb0)
-    BitArray._setlsb0methods(lsb0)
-    BitStore._setlsb0methods(lsb0)
+class _Options:
+
+    def __init__(self):
+        self.set_lsb0(False)
+        self._bytealigned = False
+
+    @property
+    def lsb0(self) -> bool:
+        return self._lsb0
+
+    @lsb0.setter
+    def lsb0(self, value: bool) -> None:
+        self.set_lsb0(value)
+
+    def set_lsb0(self, value: bool) -> None:
+        self._lsb0 = bool(value)
+        Bits._setlsb0methods(self._lsb0)
+        BitArray._setlsb0methods(self._lsb0)
+        BitStore._setlsb0methods(self._lsb0)
+
+    @property
+    def bytealigned(self) -> bool:
+        return self._bytealigned
+
+    @bytealigned.setter
+    def bytealigned(self, value: bool) -> None:
+        self._bytealigned = bool(value)
+
+options: _Options = _Options()
+
+# An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
+class _MyModuleType(types.ModuleType):
+    @property
+    def bytealigned(self) -> bool:
+        """Determines whether a number of methods default to working only on byte boundaries."""
+        return options.bytealigned
+
+    @bytealigned.setter
+    def bytealigned(self, value: bool) -> None:
+        """Determines whether a number of methods default to working only on byte boundaries."""
+        options.bytealigned = value
+
+    @property
+    def lsb0(self) -> bool:
+        """If True, the least significant bit (the final bit) is indexed as bit zero."""
+        return options.lsb0
+
+    @lsb0.setter
+    def lsb0(self, value: bool) -> None:
+        """If True, the least significant bit (the final bit) is indexed as bit zero."""
+        options.lsb0 = value
 
 
-# Initialise the default behaviour
-_switch_lsb0_methods(False)
+sys.modules[__name__].__class__ = _MyModuleType
