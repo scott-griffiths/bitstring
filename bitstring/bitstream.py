@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from .classes import BitArray, Bits, BitsType
+from .classes import Bits, BitsType
+from .bitarray import BitArray
 from .utils import tokenparser
 from .exceptions import ReadError, ByteAlignError, CreationError
 from typing import Union, List, Any, Optional, overload, TypeVar, Tuple

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from .classes import Bits, BitArray
+from .classes import Bits
+from .bitarray import BitArray
 from .bitstore import BitStore
 
 

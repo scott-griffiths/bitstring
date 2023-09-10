@@ -70,6 +70,11 @@ FIXED_LENGTH_TOKENS: Dict[str, int] = {'bool': 1,
                                        'float8_143': 8,
                                        'float8_152': 8}
 
+# Size in bytes of all the pack codes.
+PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
+                                  'q': 8, 'Q': 8, 'e': 2, 'f': 4, 'd': 8}
+
+
 def structparser(m: Match[str]) -> List[str]:
     """Parse struct-like format string token into sub-token list."""
     endian = m.group('endian')

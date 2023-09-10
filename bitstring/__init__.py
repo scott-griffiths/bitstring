@@ -61,13 +61,14 @@ __author__ = "Scott Griffiths"
 
 import sys
 
-from .classes import Bits, BitArray
-from .options import options
+from .classes import Bits, options
+from .bitarray import BitArray
 from .bitstream import ConstBitStream, BitStream
 from .methods import pack
 from .bitstring_array import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 import types
+
 
 
 # An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/

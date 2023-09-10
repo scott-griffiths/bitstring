@@ -3759,11 +3759,11 @@ class Bugs(unittest.TestCase):
         self.assertEqual(sorted(bitstring.utils.REPLACEMENTS_BE.keys()),
                          sorted(bitstring.utils.REPLACEMENTS_LE.keys()))
         self.assertEqual(sorted(bitstring.utils.REPLACEMENTS_BE.keys()),
-                         sorted(bitstring.classes.PACK_CODE_SIZE.keys()))
-        for key in bitstring.classes.PACK_CODE_SIZE:
+                         sorted(bitstring.utils.PACK_CODE_SIZE.keys()))
+        for key in bitstring.utils.PACK_CODE_SIZE:
             be = pack(bitstring.utils.REPLACEMENTS_BE[key], 0)
             le = pack(bitstring.utils.REPLACEMENTS_LE[key], 0)
-            self.assertEqual(be.len, bitstring.classes.PACK_CODE_SIZE[key] * 8)
+            self.assertEqual(be.len, bitstring.utils.PACK_CODE_SIZE[key] * 8)
             self.assertEqual(le.len, be.len)
 
     def testUnicode(self):
