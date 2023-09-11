@@ -71,7 +71,8 @@ from .exceptions import Error, ReadError, InterpretError, ByteAlignError, Creati
 import types
 
 options = _Options()
-
+Bits._initialise_options()
+BitArray._initialise_options()
 
 # An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
 class _MyModuleType(types.ModuleType):

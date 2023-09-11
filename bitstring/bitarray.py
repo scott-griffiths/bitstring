@@ -91,7 +91,14 @@ class BitArray(Bits):
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
 
-    def __init__(self, __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
+    options = None
+
+    @classmethod
+    def _initialise_options(cls):
+        from . import bitstring_options
+        cls.options = bitstring_options._Options()
+
+    def __init__(self, __auto: Optional[Union[classes.BitsType, int]] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, an integer, a file object,
@@ -324,7 +331,7 @@ class BitArray(Bits):
 
     def _replace(self, old: Bits, new: Bits, start: int, end: int, count: int, bytealigned: Optional[bool]) -> int:
         if bytealigned is None:
-            bytealigned = options.bytealigned
+            bytealigned = BitArray.options.bytealigned
         # First find all the places where we want to do the replacements
         starting_points: List[int] = []
         for x in self.findall(old, start, end, bytealigned=bytealigned):
@@ -345,7 +352,7 @@ class BitArray(Bits):
         # Final replacement
         replacement_list.append(new._bitstore)
         replacement_list.append(self._bitstore.getslice(slice(starting_points[-1] + old.len, None, None)))
-        if options.lsb0:
+        if BitArray.options.lsb0:
             # Addition of bitarray is always on the right, so assemble from other end
             replacement_list.reverse()
         self._bitstore.clear()
@@ -711,7 +718,5 @@ class BitArray(Bits):
     h = hex
     o = oct
 
-# Import at the end to avoid circular import hell.
-import bitstring.bitstring_options
-options = bitstring.bitstring_options._Options()
+
 
