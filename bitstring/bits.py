@@ -14,12 +14,12 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
-from .utils import tokenparser, STRUCT_SPLIT_RE
+from .utils import tokenparser
 from .exceptions import CreationError, InterpretError, ReadError, Error
 from .fp8 import fp143_fmt, fp152_fmt
 from .bitstore import BitStore, offset_slice_indices_lsb0
 
-from .classes import float2bitstore, uint2bitstore, ue2bitstore, str_to_bitstore, se2bitstore, bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, floatne2bitstore, uintne2bitstore, bfloatne2bitstore, oct2bitstore, sie2bitstore, uie2bitstore, intne2bitstore, tokenname_to_initialiser
+from .classes import float2bitstore, uint2bitstore, ue2bitstore, str_to_bitstore, se2bitstore, bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore, tokenname_to_initialiser
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
@@ -93,13 +93,13 @@ class Bits:
 
     __slots__ = ('_bitstore')
 
-    options: _Options = None
+    _options = None
 
     @classmethod
     def _initialise_options(cls):
         # To avoid circular imports this happens after all the classes are initialised.
-        from .bitstring_options import _Options
-        cls.options = _Options()
+        from .bitstring_options import Options
+        cls._options = Options()
 
     # Creates dictionaries to quickly reverse single bytes
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
@@ -571,7 +571,7 @@ class Bits:
             b = cls(**{tokenname_to_initialiser[name]: value})
         except KeyError:
             if name in ('se', 'ue', 'sie', 'uie'):
-                if Bits.options.lsb0:
+                if Bits._options.lsb0:
                     raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
                 b = cls(**{name: int(value)})
             elif name in ('uint', 'int', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne'):
@@ -958,7 +958,7 @@ class Bits:
         """
         if _length is not None or _offset is not None:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
-        if Bits.options.lsb0:
+        if Bits._options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = ue2bitstore(i)
 
@@ -970,7 +970,7 @@ class Bits:
 
         """
         # _length is ignored - it's only present to make the function signature consistent.
-        if Bits.options.lsb0:
+        if Bits._options.lsb0:
             raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         oldpos = pos
         try:
@@ -1008,7 +1008,7 @@ class Bits:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
         if _length is not None or _offset is not None:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
-        if Bits.options.lsb0:
+        if Bits._options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = se2bitstore(i)
 
@@ -1050,7 +1050,7 @@ class Bits:
         """
         if _length is not None or _offset is not None:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
-        if Bits.options.lsb0:
+        if Bits._options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = uie2bitstore(i)
 
@@ -1062,7 +1062,7 @@ class Bits:
 
         """
         # _length is ignored - it's only present to make the function signature consistent.
-        if Bits.options.lsb0:
+        if Bits._options.lsb0:
             raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         try:
             codenum: int = 1
@@ -1095,7 +1095,7 @@ class Bits:
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
         if _length is not None or _offset is not None:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
-        if Bits.options.lsb0:
+        if Bits._options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = sie2bitstore(i)
 
@@ -1493,14 +1493,14 @@ class Bits:
         if len(bs) == 0:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
-        ba = Bits.options.bytealigned if bytealigned is None else bytealigned
+        ba = Bits._options.bytealigned if bytealigned is None else bytealigned
         p = self._find(bs, start, end, ba)
         return p
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A forward find in lsb0 is very like a reverse find in msb0.
         assert start <= end
-        assert Bits.options.lsb0
+        assert Bits._options.lsb0
 
         new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
@@ -1544,7 +1544,7 @@ class Bits:
             raise ValueError("In findall, count must be >= 0.")
         bs = Bits._create_from_bitstype(bs)
         start, end = self._validate_slice(start, end)
-        ba = Bits.options.bytealigned if bytealigned is None else bytealigned
+        ba = Bits._options.bytealigned if bytealigned is None else bytealigned
         return self._findall(bs, start, end, count, ba)
 
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
@@ -1565,7 +1565,7 @@ class Bits:
     def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Iterable[int]:
         assert start <= end
-        assert Bits.options.lsb0
+        assert Bits._options.lsb0
 
         new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
@@ -1615,7 +1615,7 @@ class Bits:
         """
         bs = Bits._create_from_bitstype(bs)
         start, end = self._validate_slice(start, end)
-        ba = Bits.options.bytealigned if bytealigned is None else bytealigned
+        ba = Bits._options.bytealigned if bytealigned is None else bytealigned
         if not bs.len:
             raise ValueError("Cannot find an empty bitstring.")
         p = self._rfind(bs, start, end, ba)
@@ -1640,7 +1640,7 @@ class Bits:
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
         assert start <= end
-        assert Bits.options.lsb0
+        assert Bits._options.lsb0
         new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
 
@@ -1701,7 +1701,7 @@ class Bits:
         if len(delimiter) == 0:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
-        bytealigned_: bool = Bits.options.bytealigned if bytealigned is None else bytealigned
+        bytealigned_: bool = Bits._options.bytealigned if bytealigned is None else bytealigned
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
@@ -2004,7 +2004,7 @@ class Bits:
         first_fb_width = second_fb_width = None
         for bits in self.cut(max_bits_per_line):
             offset = bitpos // offset_factor
-            if Bits.options.lsb0:
+            if Bits._options.lsb0:
                 offset_str = f'{offset_sep}{offset: >{offset_width - len(offset_sep)}}' if show_offset else ''
             else:
                 offset_str = f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
@@ -2012,7 +2012,7 @@ class Bits:
             if first_fb_width is None:
                 first_fb_width = len(fb)
             if len(fb) < first_fb_width:  # Pad final line with spaces to align it
-                if Bits.options.lsb0:
+                if Bits._options.lsb0:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
@@ -2020,11 +2020,11 @@ class Bits:
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:
-                if Bits.options.lsb0:
+                if Bits._options.lsb0:
                     fb2 = ' ' * (second_fb_width - len(fb2)) + fb2
                 else:
                     fb2 += ' ' * (second_fb_width - len(fb2))
-            if Bits.options.lsb0 is True:
+            if Bits._options.lsb0 is True:
                 line_fmt = fb + fb2 + offset_str + '\n'
             else:
                 line_fmt = offset_str + fb + fb2 + '\n'
@@ -2094,7 +2094,7 @@ class Bits:
 
         format_sep = "   "  # String to insert on each line between multiple formats
 
-        self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset, stream, Bits.options.lsb0, 1)
+        self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset, stream, Bits._options.lsb0, 1)
         return
 
     def copy(self: TBits) -> TBits:

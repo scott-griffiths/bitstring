@@ -6,7 +6,7 @@ import functools
 from typing import Union, Optional, Dict, Callable
 import bitarray
 import bitarray.util
-from .utils import tokenparser, STRUCT_SPLIT_RE
+from .utils import tokenparser
 from .exceptions import CreationError, InterpretError
 from .fp8 import fp143_fmt, fp152_fmt
 from .bitstore import BitStore

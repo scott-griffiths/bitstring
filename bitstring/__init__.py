@@ -62,7 +62,7 @@ __author__ = "Scott Griffiths"
 import sys
 
 from .bits import Bits
-from .bitstring_options import _Options
+from .bitstring_options import Options
 from .bitarray import BitArray
 from .bitstream import ConstBitStream, BitStream
 from .methods import pack
@@ -70,7 +70,7 @@ from .bitstring_array import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 import types
 
-options = _Options()
+options = Options()
 Bits._initialise_options()
 BitArray._initialise_options()
 

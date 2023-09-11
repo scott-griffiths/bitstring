@@ -5,7 +5,7 @@ from .bitarray import BitArray
 from .bitstore import BitStore
 
 
-class _Options:
+class Options:
     """Internal class to create singleton module options instance."""
 
     def __init__(self):
@@ -65,6 +65,6 @@ class _Options:
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            cls.instance = super(_Options, cls).__new__(cls)
+            cls.instance = super(Options, cls).__new__(cls)
         return cls.instance
 
