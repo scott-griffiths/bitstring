@@ -6,7 +6,7 @@ from .bitstore import BitStore
 
 
 class _Options:
-    """Internal class to create effective singleton module options instance."""
+    """Internal class to create singleton module options instance."""
 
     def __init__(self):
         self.set_lsb0(False)
@@ -63,5 +63,8 @@ class _Options:
     def bytealigned(self, value: bool) -> None:
         self._bytealigned = bool(value)
 
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(_Options, cls).__new__(cls)
+        return cls.instance
 
-options: _Options = _Options()

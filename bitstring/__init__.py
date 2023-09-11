@@ -55,13 +55,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "4.1.2"
+__version__ = "4.1.3"
 
 __author__ = "Scott Griffiths"
 
 import sys
 
-from .classes import Bits, options
+from .classes import Bits
+from .bitstring_options import _Options
 from .bitarray import BitArray
 from .bitstream import ConstBitStream, BitStream
 from .methods import pack
@@ -69,6 +70,7 @@ from .bitstring_array import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 import types
 
+options = _Options()
 
 
 # An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/

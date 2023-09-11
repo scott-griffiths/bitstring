@@ -17,7 +17,7 @@ sys.path.insert(0, '..')
 
 class ModuleData(unittest.TestCase):
     def testVersion(self):
-        self.assertEqual(bitstring.__version__, '4.1.2')
+        self.assertEqual(bitstring.__version__, '4.1.3')
 
     def testAll(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',

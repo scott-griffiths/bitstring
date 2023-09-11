@@ -7,7 +7,8 @@ from collections import abc
 from typing import Union, List, Iterable, Any, Optional, Pattern, Dict, Callable
 from .utils import BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE, PACK_CODE_SIZE
 from .exceptions import CreationError, Error
-from .classes import Bits
+from .classes import Bits, BitsType, TBits
+
 
 
 class BitArray(Bits):
@@ -711,6 +712,7 @@ class BitArray(Bits):
     h = hex
     o = oct
 
-
 # Import at the end to avoid circular import hell.
-from .bitstring_options import options
+import bitstring.bitstring_options
+options = bitstring.bitstring_options._Options()
+

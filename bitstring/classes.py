@@ -2603,5 +2603,6 @@ class Bits:
 
 # This import at the end of the file to avoid circular import hell.
 from .bitarray import BitArray
-from .bitstring_options import options
+from .bitstring_options import _Options
+options = _Options()
 
