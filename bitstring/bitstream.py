@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .classes import Bits, BitsType
+from .bits import Bits, BitsType
 from .bitarray import BitArray
 from .utils import tokenparser
 from .exceptions import ReadError, ByteAlignError, CreationError

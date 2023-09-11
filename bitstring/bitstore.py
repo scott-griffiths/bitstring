@@ -5,7 +5,7 @@ from .exceptions import CreationError
 from typing import Union, Iterable, Optional, overload
 
 
-def _offset_slice_indices_lsb0(key: slice, length: int, offset: int) -> slice:
+def offset_slice_indices_lsb0(key: slice, length: int, offset: int) -> slice:
     # First convert slice to all integers
     # Length already should take account of the offset
     start, stop, step = key.indices(length)
@@ -15,7 +15,7 @@ def _offset_slice_indices_lsb0(key: slice, length: int, offset: int) -> slice:
     return slice(new_start, None if new_stop < 0 else new_stop, step)
 
 
-def _offset_slice_indices_msb0(key: slice, length: int, offset: int) -> slice:
+def offset_slice_indices_msb0(key: slice, length: int, offset: int) -> slice:
     # First convert slice to all integers
     # Length already should take account of the offset
     start, stop, step = key.indices(length)
@@ -86,7 +86,7 @@ class BitStore(bitarray.bitarray):
 
     def getslice_msb0(self, key: slice) -> BitStore:
         if self.modified:
-            key = _offset_slice_indices_msb0(key, len(self), self.offset)
+            key = offset_slice_indices_msb0(key, len(self), self.offset)
         return BitStore(super().__getitem__(key))
 
     def getindex_lsb0(self, index: int) -> bool:
@@ -96,9 +96,9 @@ class BitStore(bitarray.bitarray):
 
     def getslice_lsb0(self, key: slice) -> BitStore:
         if self.modified:
-            key = _offset_slice_indices_lsb0(key, len(self), self.offset)
+            key = offset_slice_indices_lsb0(key, len(self), self.offset)
         else:
-            key = _offset_slice_indices_lsb0(key, len(self), 0)
+            key = offset_slice_indices_lsb0(key, len(self), 0)
         return BitStore(super().__getitem__(key))
 
     @overload
@@ -112,7 +112,7 @@ class BitStore(bitarray.bitarray):
     def setitem_lsb0(self, key: Union[int, slice], value: Union[int, BitStore]) -> None:
         assert not self.immutable
         if isinstance(key, slice):
-            new_slice = _offset_slice_indices_lsb0(key, len(self), 0)
+            new_slice = offset_slice_indices_lsb0(key, len(self), 0)
             super().__setitem__(new_slice, value)
         else:
             super().__setitem__(-key - 1, value)
@@ -120,7 +120,7 @@ class BitStore(bitarray.bitarray):
     def delitem_lsb0(self, key: Union[int, slice]) -> None:
         assert not self.immutable
         if isinstance(key, slice):
-            new_slice = _offset_slice_indices_lsb0(key, len(self), 0)
+            new_slice = offset_slice_indices_lsb0(key, len(self), 0)
             super().__delitem__(new_slice)
         else:
             super().__delitem__(-key - 1)

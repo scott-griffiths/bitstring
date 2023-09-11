@@ -5,7 +5,7 @@ import numbers
 from collections.abc import Sized
 from .exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
-from .classes import Bits, BitsType
+from .bits import Bits, BitsType
 from .bitarray import BitArray
 from .dtypes import Dtype
 from .utils import tokenparser
