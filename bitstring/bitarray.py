@@ -10,7 +10,6 @@ from .exceptions import CreationError, Error
 from .classes import Bits, BitsType, TBits
 
 
-
 class BitArray(Bits):
     """A container holding a mutable sequence of bits.
 

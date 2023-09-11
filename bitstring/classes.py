@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import numbers
 import pathlib
 import sys
@@ -15,7 +14,7 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
-from .utils import tokenparser, BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE
+from .utils import tokenparser, STRUCT_SPLIT_RE
 from .exceptions import CreationError, InterpretError, ReadError, Error
 from .fp8 import fp143_fmt, fp152_fmt
 from .bitstore import BitStore, _offset_slice_indices_lsb0
