@@ -4,8 +4,7 @@ import unittest
 import sys
 sys.path.insert(0, '..')
 import bitstring
-from bitstring.classes import BitStore
-from bitstring.bitstore import offset_slice_indices_lsb0
+from bitstring.bitstore import BitStore, offset_slice_indices_lsb0
 import sys
 
 sys.path.insert(0, '..')

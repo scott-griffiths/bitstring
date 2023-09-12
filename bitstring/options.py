@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from .bits import Bits
-from .bitarray import BitArray
-from .bitstore import BitStore
+from bitstring.bits import Bits
+from bitstring.bitarray import BitArray
+from bitstring.bitstore import BitStore
 
 
 class Options:

@@ -5,9 +5,9 @@ import numbers
 import re
 from collections import abc
 from typing import Union, List, Iterable, Any, Optional, Pattern, Dict, Callable
-from .utils import BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE, PACK_CODE_SIZE
-from .exceptions import CreationError, Error
-from .bits import Bits, BitsType, TBits
+from bitstring.utils import BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE, PACK_CODE_SIZE
+from bitstring.exceptions import CreationError, Error
+from bitstring.bits import Bits, BitsType, TBits
 
 
 class BitArray(Bits):
@@ -91,13 +91,6 @@ class BitArray(Bits):
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
 
-    _options = None
-
-    @classmethod
-    def _initialise_options(cls):
-        # To avoid circular imports this happens after all the classes are initialised.
-        from .bitstring_options import Options
-        cls._options = Options()
 
     def __init__(self, __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:

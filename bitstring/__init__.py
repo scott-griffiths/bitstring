@@ -62,17 +62,22 @@ __author__ = "Scott Griffiths"
 import sys
 
 from .bits import Bits
-from .bitstring_options import Options
+from .options import Options
 from .bitarray import BitArray
 from .bitstream import ConstBitStream, BitStream
 from .methods import pack
-from .bitstring_array import Array
+from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 import types
 
+# We initialise the Options singleton after the base classes have been created.
+# This avoids a nasty circular import.
 options = Options()
 Bits._initialise_options()
-BitArray._initialise_options()
+
+# These get defined properly by the module magic below. This just stops mypy complaining about them.
+bytealigned = lsb0 = None
+
 
 # An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
 class _MyModuleType(types.ModuleType):
@@ -95,6 +100,7 @@ class _MyModuleType(types.ModuleType):
     def lsb0(self, value: bool) -> None:
         """If True, the least significant bit (the final bit) is indexed as bit zero."""
         options.lsb0 = value
+
 
 sys.modules[__name__].__class__ = _MyModuleType
 

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import functools
-from .utils import parse_name_length_token, SIGNED_INTEGER_NAMES, UNSIGNED_INTEGER_NAMES, FLOAT_NAMES, FIXED_LENGTH_TOKENS
-from .exceptions import InterpretError
-from .bits import Bits
-from .bitarray import BitArray
+from bitstring.utils import parse_name_length_token, SIGNED_INTEGER_NAMES, UNSIGNED_INTEGER_NAMES, FLOAT_NAMES, ALWAYS_FIXED_LENGTH_TOKENS
+from bitstring.exceptions import InterpretError
+from bitstring.bits import Bits
+from bitstring.bitarray import BitArray
 
 INTEGER_NAMES = SIGNED_INTEGER_NAMES + UNSIGNED_INTEGER_NAMES
 SIGNED_NAMES = SIGNED_INTEGER_NAMES + FLOAT_NAMES
@@ -37,7 +37,7 @@ class Dtype:
         self.is_integer = self.name in INTEGER_NAMES
         self.is_signed = self.name in SIGNED_NAMES
         self.is_float = self.name in FLOAT_NAMES
-        self.is_fixedlength = self.name in FIXED_LENGTH_TOKENS.keys()
+        self.is_fixedlength = self.name in ALWAYS_FIXED_LENGTH_TOKENS.keys()
 
         self.max_value = None
         self.min_value = None

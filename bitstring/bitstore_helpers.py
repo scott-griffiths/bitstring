@@ -6,10 +6,10 @@ import functools
 from typing import Union, Optional, Dict, Callable
 import bitarray
 import bitarray.util
-from .utils import tokenparser
-from .exceptions import CreationError, InterpretError
-from .fp8 import fp143_fmt, fp152_fmt
-from .bitstore import BitStore
+from bitstring.utils import tokenparser
+from bitstring.exceptions import CreationError, InterpretError
+from bitstring.fp8 import fp143_fmt, fp152_fmt
+from bitstring.bitstore import BitStore
 
 byteorder: str = sys.byteorder
 
@@ -25,11 +25,6 @@ def tidy_input_string(s: str) -> str:
         raise ValueError(f"Expected str object but received a {type(s)} with value {s}.")
     return ''.join(l).lower().replace('_', '')
 
-
-tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct', '0o': 'oct',
-                                             '0O': 'oct', 'bin': 'bin', '0b': 'bin', '0B': 'bin', 'bits': 'bits',
-                                             'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat',
-                                             'float8_143': 'float8_143', 'float8_152': 'float8_152'}
 
 @functools.lru_cache(CACHE_SIZE)
 def str_to_bitstore(s: str) -> BitStore:

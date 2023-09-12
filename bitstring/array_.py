@@ -3,12 +3,12 @@ from __future__ import annotations
 import math
 import numbers
 from collections.abc import Sized
-from .exceptions import CreationError, InterpretError
+from bitstring.exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
-from .bits import Bits, BitsType
-from .bitarray import BitArray
-from .dtypes import Dtype
-from .utils import tokenparser
+from bitstring.bits import Bits, BitsType
+from bitstring.bitarray import BitArray
+from bitstring.dtypes import Dtype
+from bitstring.utils import tokenparser
 import functools
 import copy
 import array
@@ -688,6 +688,8 @@ class Array:
         # i - A == (-A) + i
         neg = self._apply_op_to_all_elements(operator.neg, None)
         return neg._apply_op_to_all_elements(operator.add, other)
+
+    # Reverse operators between a scalar and something that can be a BitArray.
 
     def __rand__(self, other: BitsType) -> Array:
         return self._apply_bitwise_op_to_all_elements(operator.iand, other)

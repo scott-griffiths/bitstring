@@ -14,12 +14,11 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
-from .utils import tokenparser
-from .exceptions import CreationError, InterpretError, ReadError, Error
-from .fp8 import fp143_fmt, fp152_fmt
-from .bitstore import BitStore, offset_slice_indices_lsb0
-
-from .classes import float2bitstore, uint2bitstore, ue2bitstore, str_to_bitstore, se2bitstore, bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore, tokenname_to_initialiser
+from bitstring.utils import tokenparser, VARIABLE_LENGTH_TOKENS
+from bitstring.exceptions import CreationError, InterpretError, ReadError, Error
+from bitstring.fp8 import fp143_fmt, fp152_fmt
+from bitstring.bitstore import BitStore, offset_slice_indices_lsb0
+from bitstring.bitstore_helpers import float2bitstore, uint2bitstore, ue2bitstore, str_to_bitstore, se2bitstore, bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
@@ -30,6 +29,11 @@ byteorder: str = sys.byteorder
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
+
+tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct', '0o': 'oct',
+                                             '0O': 'oct', 'bin': 'bin', '0b': 'bin', '0B': 'bin', 'bits': 'bits',
+                                             'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat',
+                                             'float8_143': 'float8_143', 'float8_152': 'float8_152'}
 
 
 class Bits:
@@ -98,7 +102,7 @@ class Bits:
     @classmethod
     def _initialise_options(cls):
         # To avoid circular imports this happens after all the classes are initialised.
-        from .bitstring_options import Options
+        from .options import Options
         cls._options = Options()
 
     # Creates dictionaries to quickly reverse single bytes
@@ -570,9 +574,9 @@ class Bits:
         try:
             b = cls(**{tokenname_to_initialiser[name]: value})
         except KeyError:
-            if name in ('se', 'ue', 'sie', 'uie'):
+            if name in VARIABLE_LENGTH_TOKENS:
                 if Bits._options.lsb0:
-                    raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
+                    raise CreationError(f"Variable length tokens ('{name}') cannot be used in lsb0 mode.")
                 b = cls(**{name: int(value)})
             elif name in ('uint', 'int', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne'):
                 b = cls(**{name: int(value), 'length': token_length})
@@ -1443,13 +1447,13 @@ class Bits:
             name, length, _ = token
             length = convert_length_strings(length)
             if stretchy_token:
-                if name in ('se', 'ue', 'sie', 'uie'):
-                    raise Error("It's not possible to parse a variable length token after a 'filler' token.")
+                if name in VARIABLE_LENGTH_TOKENS:
+                    raise Error(f"It's not possible to parse a variable length token ('{name}') after a 'filler' token.")
                 else:
                     if length is None:
                         raise Error("It's not possible to have more than one 'filler' token.")
                     bits_after_stretchy_token += length
-            if length is None and name not in ('se', 'ue', 'sie', 'uie'):
+            if length is None and name not in VARIABLE_LENGTH_TOKENS:
                 assert not stretchy_token
                 stretchy_token = token
         bits_left = self.len - pos
@@ -2093,8 +2097,8 @@ class Bits:
                     bits_per_group //= 2
 
         format_sep = "   "  # String to insert on each line between multiple formats
-
-        self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset, stream, Bits._options.lsb0, 1)
+        self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset,
+                 stream, Bits._options.lsb0, 1)
         return
 
     def copy(self: TBits) -> TBits:

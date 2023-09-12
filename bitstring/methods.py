@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from .bitstream import BitStream
-from .utils import tokenparser
-from .exceptions import CreationError
+from bitstring.bitstream import BitStream
+from bitstring.utils import tokenparser
+from bitstring.exceptions import CreationError
 from typing import Union, List
 
 

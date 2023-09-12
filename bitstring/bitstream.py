@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from .bits import Bits, BitsType
-from .bitarray import BitArray
-from .utils import tokenparser
-from .exceptions import ReadError, ByteAlignError, CreationError
+from bitstring.bits import Bits, BitsType
+from bitstring.bitarray import BitArray
+from bitstring.utils import tokenparser
+from bitstring.exceptions import ReadError, ByteAlignError, CreationError
 from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
 import copy
 import numbers

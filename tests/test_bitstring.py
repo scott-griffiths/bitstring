@@ -16,8 +16,6 @@ sys.path.insert(0, '..')
 
 
 class ModuleData(unittest.TestCase):
-    def testVersion(self):
-        self.assertEqual(bitstring.__version__, '4.1.3')
 
     def testAll(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',
@@ -31,6 +29,16 @@ class ModuleData(unittest.TestCase):
             a = bitstring.Bits(uint=i, length=8)
             b = d[i]
             self.assertEqual(a.bin[::-1], bitstring.Bits(bytes=b).bin)
+
+    def testPyprojectVersion(self):
+        with open('../pyproject.toml', 'r') as pyprojectfile:
+            found = False
+            for line in pyprojectfile.readlines():
+                if line.startswith("version"):
+                    self.assertFalse(found)
+                    self.assertTrue(bitstring.__version__ in line)
+                    found = True
+        self.assertTrue(found)
 
 
 class Copy(unittest.TestCase):

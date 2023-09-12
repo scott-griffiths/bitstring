@@ -4,7 +4,7 @@ import functools
 import re
 from typing import Tuple, List, Optional, Pattern, Dict, Union, Match
 import sys
-from .exceptions import Error
+from bitstring.exceptions import Error
 
 byteorder: str = sys.byteorder
 
@@ -65,10 +65,13 @@ REPLACEMENTS_NE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
                                    'e': 'floatne:16', 'f': 'floatne:32', 'd': 'floatne:64'}
 
 # Tokens which are always the same length, so it doesn't need to be supplied.
-FIXED_LENGTH_TOKENS: Dict[str, int] = {'bool': 1,
+ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = {'bool': 1,
                                        'bfloat': 16,
                                        'float8_143': 8,
                                        'float8_152': 8}
+
+# Tokens which are variable length, so it must not be supplied.
+VARIABLE_LENGTH_TOKENS: List[str] = ['ue', 'se', 'uie', 'sie']
 
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
@@ -121,17 +124,17 @@ def parse_name_length_token(fmt: str) -> Tuple[str, int]:
                 'b': 'bin',
                 'o': 'oct',
                 'h': 'hex'}[name]
-    if name in ('se', 'ue', 'sie', 'uie'):
+    if name in VARIABLE_LENGTH_TOKENS:
         if length is not None:
             raise ValueError(
-                f"Exponential-Golomb codes (se/ue/sie/uie) can't have fixed lengths. Length of {length} was given.")
+                f"The token '{name}' has a variable length and can't be given the fixed length of {length}.")
 
     if name == 'float8_':
         name += str(length)
         length = 8
 
-    if name in FIXED_LENGTH_TOKENS.keys():
-        token_length = FIXED_LENGTH_TOKENS[name]
+    if name in ALWAYS_FIXED_LENGTH_TOKENS.keys():
+        token_length = ALWAYS_FIXED_LENGTH_TOKENS[name]
         if length not in [0, token_length]:
             raise ValueError(f"{name} tokens can only be {token_length} bits long, not {length} bits.")
         length = token_length
@@ -168,8 +171,8 @@ def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
             length = m2.group('len')
             value = m2.group('value')
 
-    if name in FIXED_LENGTH_TOKENS.keys():
-        token_length = str(FIXED_LENGTH_TOKENS[name])
+    if name in ALWAYS_FIXED_LENGTH_TOKENS.keys():
+        token_length = str(ALWAYS_FIXED_LENGTH_TOKENS[name])
         if length is not None and length != token_length:
             raise ValueError(f"{name} tokens can only be {token_length} bits long, not {length} bits.")
         length = token_length
@@ -233,9 +236,9 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
 
             name, length, value = parse_single_token(token)
 
-            if name in ('se', 'ue', 'sie', 'uie'):
+            if name in VARIABLE_LENGTH_TOKENS:
                 if length is not None:
-                    raise ValueError(f"Exponential-Golomb codes (se/ue/sie/uie) can't have fixed lengths. Length of {length} was given.")
+                    raise ValueError(f"The token '{name}' has a variable length and can't be given the fixed length of {length}.")
             else:
                 if length is None:
                     stretchy_token = True
