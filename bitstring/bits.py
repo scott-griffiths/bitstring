@@ -559,43 +559,6 @@ class Bits:
         """Return True if any bits are set to 1, otherwise return False."""
         return len(self) != 0
 
-    @classmethod
-    def _init_with_token(cls: Type[TBits], name: str, token_length: Optional[int], value: Optional[str]) -> TBits:
-        if token_length == 0:
-            return cls._create_empty_instance()
-        # For pad token just return the length in zero bits
-        if name == 'pad':
-            return cls(token_length)
-        if value is None:
-            if token_length is None:
-                raise ValueError(f"Token has no value ({name}=???).")
-            else:
-                raise ValueError(f"Token has no value ({name}:{token_length}=???).")
-        try:
-            b = cls(**{tokenname_to_initialiser[name]: value})
-        except KeyError:
-            if name in VARIABLE_LENGTH_TOKENS:
-                if Bits._options.lsb0:
-                    raise CreationError(f"Variable length tokens ('{name}') cannot be used in lsb0 mode.")
-                b = cls(**{name: int(value)})
-            elif name in ('uint', 'int', 'uintbe', 'intbe', 'uintle', 'intle', 'uintne', 'intne'):
-                b = cls(**{name: int(value), 'length': token_length})
-            elif name in ('float', 'floatbe', 'floatle', 'floatne'):
-                b = cls(**{name: float(value), 'length': token_length})
-            elif name == 'bool':
-                if value in (1, 'True', '1'):
-                    b = cls(bool=True)
-                elif value in (0, 'False', '0'):
-                    b = cls(bool=False)
-                else:
-                    raise CreationError("bool token can only be 'True' or 'False'.")
-            else:
-                raise CreationError(f"Can't parse token name {name}.")
-        if token_length is not None and b.len != token_length:
-            raise CreationError(f"Token with length {token_length} packed with value of length {b.len} "
-                                f"({name}:{token_length}={value}).")
-        return b
-
     def _clear(self) -> None:
         """Reset the bitstring to an empty state."""
         self._bitstore = BitStore()

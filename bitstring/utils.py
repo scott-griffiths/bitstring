@@ -66,9 +66,9 @@ REPLACEMENTS_NE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
 
 # Tokens which are always the same length, so it doesn't need to be supplied.
 ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = {'bool': 1,
-                                       'bfloat': 16,
-                                       'float8_143': 8,
-                                       'float8_152': 8}
+                                              'bfloat': 16,
+                                              'float8_143': 8,
+                                              'float8_152': 8}
 
 # Tokens which are variable length, so it must not be supplied.
 VARIABLE_LENGTH_TOKENS: List[str] = ['ue', 'se', 'uie', 'sie']

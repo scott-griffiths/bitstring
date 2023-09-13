@@ -25,7 +25,7 @@ def tidy_input_string(s: str) -> str:
         raise ValueError(f"Expected str object but received a {type(s)} with value {s}.")
     return ''.join(l).lower().replace('_', '')
 
-
+# TODO: Shouldn't this be different for LSB0? The bitstores should be reversed before concatenating and we can raise an error for variable length tokens.
 @functools.lru_cache(CACHE_SIZE)
 def str_to_bitstore(s: str) -> BitStore:
     try:
@@ -235,6 +235,10 @@ def floatle2bitstore(f: Union[str, float], length: int) -> BitStore:
     return BitStore(frombytes=b)
 
 
+def bytes2bitstore(b: bytes, length: int) -> BitStore:
+    return BitStore(frombytes=b[:length])
+
+
 # Create native-endian functions as aliases depending on the byteorder
 if byteorder == 'little':
     uintne2bitstore = uintle2bitstore
@@ -286,6 +290,7 @@ name2bitstore_func_with_length: Dict[str, Callable[..., BitStore]] = {
     'floatbe': float2bitstore,  # same as 'float'
     'floatle': floatle2bitstore,
     'floatne': floatne2bitstore,
+    'bytes': bytes2bitstore
 }
 
 

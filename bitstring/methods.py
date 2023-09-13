@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from bitstring.bitstream import BitStream
-from bitstring.utils import tokenparser
+from bitstring.utils import tokenparser, VARIABLE_LENGTH_TOKENS
 from bitstring.exceptions import CreationError
 from typing import Union, List
+from bitstring.bitstore import BitStore
+from bitstring.bitstore_helpers import bitstore_from_token, name2bitstore_func_with_length
 
 
 def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
@@ -52,6 +54,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
         raise CreationError(*e.args)
     value_iter = iter(values)
     s = BitStream()
+    bsl: List[BitStore] = []
     try:
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.
@@ -62,14 +65,33 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
                 length = kwargs[length]
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
-                s._append(kwargs[name])
+                bsl.append(BitStream(kwargs[name])._bitstore)
                 continue
             if length is not None:
                 length = int(length)
             if value is None and name != 'pad':
                 # Take the next value from the ones provided
                 value = next(value_iter)
-            s._append(BitStream._init_with_token(name, length, value))
+            if name == 'bits':
+                value = BitStream(value)
+                if length is not None and length != len(value):
+                    raise CreationError(f"Token with length {length} packed with value of length {len(value)}.")
+                bsl.append(value._bitstore)
+                continue
+            if length is None:
+                if name in name2bitstore_func_with_length:
+                    raise CreationError(f"Token '{name}' not supplied with a length.")
+            bsl.append(bitstore_from_token(name, length, value))
+
+        if BitStream._options.lsb0:
+            for name, _, _ in tokens:
+                if name in VARIABLE_LENGTH_TOKENS:
+                    raise CreationError(f"Variable length tokens ('{name}') cannot be used in lsb0 mode.")
+            for b in bsl[::-1]:
+                s._bitstore += b
+        else:
+            for b in bsl:
+                s._bitstore += b
     except StopIteration:
         raise CreationError(f"Not enough parameters present to pack according to the "
                             f"format. {len(tokens)} values are needed.")
@@ -78,5 +100,4 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     except StopIteration:
         # Good, we've used up all the *values.
         return s
-    raise CreationError(
-        f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")
+    raise CreationError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")
