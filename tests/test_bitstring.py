@@ -10,9 +10,11 @@ import bitstring
 import copy
 from collections import abc
 import sys
+import os
 from bitstring import __main__
 
 sys.path.insert(0, '..')
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class ModuleData(unittest.TestCase):
@@ -31,7 +33,8 @@ class ModuleData(unittest.TestCase):
             self.assertEqual(a.bin[::-1], bitstring.Bits(bytes=b).bin)
 
     def testPyprojectVersion(self):
-        with open('../pyproject.toml', 'r') as pyprojectfile:
+        filename = os.path.join(THIS_DIR, '../pyproject.toml')
+        with open(filename, 'r') as pyprojectfile:
             found = False
             for line in pyprojectfile.readlines():
                 if line.startswith("version"):
