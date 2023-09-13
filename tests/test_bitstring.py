@@ -32,16 +32,20 @@ class ModuleData(unittest.TestCase):
             b = d[i]
             self.assertEqual(a.bin[::-1], bitstring.Bits(bytes=b).bin)
 
+
     def testPyprojectVersion(self):
         filename = os.path.join(THIS_DIR, '../pyproject.toml')
-        with open(filename, 'r') as pyprojectfile:
-            found = False
-            for line in pyprojectfile.readlines():
-                if line.startswith("version"):
-                    self.assertFalse(found)
-                    self.assertTrue(bitstring.__version__ in line)
-                    found = True
-        self.assertTrue(found)
+        try:
+            with open(filename, 'r') as pyprojectfile:
+                found = False
+                for line in pyprojectfile.readlines():
+                    if line.startswith("version"):
+                        self.assertFalse(found)
+                        self.assertTrue(bitstring.__version__ in line)
+                        found = True
+            self.assertTrue(found)
+        except FileNotFoundError:
+            pass  # Doesn't run on CI.
 
 
 class Copy(unittest.TestCase):
