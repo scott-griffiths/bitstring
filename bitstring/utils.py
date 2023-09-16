@@ -70,7 +70,7 @@ ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = {'bool': 1,
                                               'float8_143': 8,
                                               'float8_152': 8}
 
-# Tokens which are variable length, so it must not be supplied.
+# Tokens which have an unknowable (in advance) length, so it must not be supplied.
 VARIABLE_LENGTH_TOKENS: List[str] = ['ue', 'se', 'uie', 'sie']
 
 # Size in bytes of all the pack codes.

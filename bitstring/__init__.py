@@ -55,7 +55,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "4.1.3"
+__version__ = "4.2.0"
 
 __author__ = "Scott Griffiths"
 
@@ -68,7 +68,9 @@ from .bitstream import ConstBitStream, BitStream
 from .methods import pack
 from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
+from .dtypes import MetaDtype, Register
 import types
+
 
 # We initialise the Options singleton after the base classes have been created.
 # This avoids a nasty circular import.
@@ -103,6 +105,36 @@ class _MyModuleType(types.ModuleType):
 
 
 sys.modules[__name__].__class__ = _MyModuleType
+
+
+dtypes = [
+    MetaDtype('uint', Bits._setuint, Bits._readuint, True, False, False, False, None),
+    MetaDtype('uintle', Bits._setuintle, Bits._readuintle, True, False, False, False, None),
+    MetaDtype('uintne', Bits._setuintne, Bits._readuintne, True, False, False, False, None),
+    MetaDtype('uintbe', Bits._setuintbe, Bits._readuintbe, True, False, False, False, None),
+    MetaDtype('int', Bits._setint, Bits._readint, True, False, True, False, None),
+    MetaDtype('intle', Bits._setintle, Bits._readintle, True, False, True, False, None),
+    MetaDtype('intne', Bits._setintne, Bits._readintne, True, False, True, False, None),
+    MetaDtype('intbe', Bits._setintbe, Bits._readintbe, True, False, True, False, None),
+    MetaDtype('float', Bits._setfloatbe, Bits._readfloatbe, False, True, True, False, None),
+    MetaDtype('float8_152', Bits._setfloat152, Bits._readfloat152, False, True, True, False, 8),
+    MetaDtype('hex', Bits._sethex, Bits._readhex, False, False, False, False, None),
+    MetaDtype('bin', Bits._setbin_unsafe, Bits._readbin, False, False, False, False, None),
+    MetaDtype('oct', Bits._setoct, Bits._readoct, False, False, False, False, None),
+    MetaDtype('bool', Bits._setbool, Bits._readbool, True, False, False, False, 1),
+    MetaDtype('float8_143', Bits._setfloat143, Bits._readfloat143, False, True, True, False, 8),
+    MetaDtype('floatne', Bits._setfloatne, Bits._readfloatne, False, True, True, False, None),
+    MetaDtype('floatle', Bits._setfloatle, Bits._readfloatle, False, True, True, False, None),
+    MetaDtype('bfloat', Bits._setbfloatbe, Bits._readbfloatbe, False, True, True, False, 16),
+    MetaDtype('bits', Bits._setbits, Bits._readbits, False, False, False, False, None),
+    MetaDtype('se', Bits._setse, Bits._readse, True, False, True, True, None),
+
+]
+
+register = Register()
+for dt in dtypes:
+    register.addType(dt)
+register.addAlias('float', 'floatbe')
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
