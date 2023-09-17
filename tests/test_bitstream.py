@@ -2264,35 +2264,7 @@ class Split2(unittest.TestCase):
 
     def testIntelligentRead9(self):
         a = BitStream('0xff')
-        self.assertEqual(a.read('intle'), -1)
-
-    def testFillerReads1(self):
-        s = BitStream('0x012345')
-        t = s.read('bits')
-        self.assertEqual(s, t)
-        s.pos = 0
-        a, b = s.readlist('hex:8, hex')
-        self.assertEqual(a, '01')
-        self.assertEqual(b, '2345')
-        self.assertTrue(isinstance(b, str))
-        s.bytepos = 0
-        a, b = s.readlist('bin, hex:20')
-        self.assertEqual(a, '0000')
-        self.assertEqual(b, '12345')
-        self.assertTrue(isinstance(a, str))
-
-    def testFillerReads2(self):
-        s = BitStream('0xabcdef')
-        with self.assertRaises(bitstring.Error):
-            s.readlist('bits, se')
-        with self.assertRaises(bitstring.Error):
-            s.readlist('hex:4, bits, ue, bin:4')
-        s.pos = 0
-        with self.assertRaises(bitstring.Error):
-            s.readlist('bin, bin')
-        s.pos = 0
-        with self.assertRaises(bitstring.Error):
-            s.readlist('bin, hex:4, bin')
+        self.assertEqual(a.read('intle8'), -1)
 
     def testIntelligentPeek(self):
         a = BitStream('0b01, 0x43, 0o4, uint:23=2, se=5, ue=3')
@@ -2447,9 +2419,9 @@ class Split2(unittest.TestCase):
         self.assertEqual(s, 'uint:32=1000')
         s = BitStream('intbe:8=2')
         self.assertEqual(s, 'int:8=2')
-        self.assertEqual(s.read('intbe'), 2)
+        self.assertEqual(s.read('intbe8'), 2)
         s.pos = 0
-        self.assertEqual(s.read('uintbe'), 2)
+        self.assertEqual(s.read('uintbe8'), 2)
 
     def testBigEndianSynonymErrors(self):
         with self.assertRaises(bitstring.CreationError):
@@ -2485,7 +2457,7 @@ class Split2(unittest.TestCase):
         s = pack('uintle:24', 1001)
         self.assertEqual(s.uintle, 1001)
         self.assertEqual(s.length, 24)
-        self.assertEqual(s.read('uintle'), 1001)
+        self.assertEqual(s.read('uintle24'), 1001)
 
     def testLittleEndianInt(self):
         s = BitStream(int=100, length=16)
@@ -2502,7 +2474,7 @@ class Split2(unittest.TestCase):
         s = pack('intle:24', 1001)
         self.assertEqual(s.intle, 1001)
         self.assertEqual(s.length, 24)
-        self.assertEqual(s.read('intle'), 1001)
+        self.assertEqual(s.read('intle24'), 1001)
 
     def testLittleEndianErrors(self):
         with self.assertRaises(bitstring.CreationError):

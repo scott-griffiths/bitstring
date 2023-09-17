@@ -70,6 +70,7 @@ from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 from .dtypes import MetaDtype, Register
 import types
+from typing import List, Tuple
 
 
 # We initialise the Options singleton after the base classes have been created.
@@ -137,11 +138,22 @@ dtypes = [
     MetaDtype('pad', None, Bits._readpad, False, False, False, False, None),
 ]
 
+aliases: List[Tuple[str, str]] = [('float', 'floatbe'),
+                                  ('bfloat', 'bfloatbe'),
+                                  ('int', 'i'),
+                                  ('uint', 'u'),
+                                  ('hex', 'h'),
+                                  ('oct', 'o'),
+                                  ('bin', 'b'),
+                                  ('float', 'f')
+                                  ]
+
 register = Register()
 for dt in dtypes:
     register.add_meta_dtype(dt)
-register.add_meta_dtype_alias('float', 'floatbe')
-register.add_meta_dtype_alias('bfloat', 'bfloatbe')
+for alias in aliases:
+    register.add_meta_dtype_alias(alias[0], alias[1])
+
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',

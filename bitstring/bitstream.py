@@ -328,7 +328,7 @@ class ConstBitStream(Bits):
                              "tokens - use readlist() instead.")
         name, length, _ = token[0]
         if length is None:
-            length = self.len - self._pos
+            length = 0
         value, self._pos = self._readtoken(name, self._pos, length)
         return value
 

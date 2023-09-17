@@ -13,7 +13,10 @@ class Dtype:
         self.name = name
         self.length = length
         self.get = functools.partial(get_fn, length=length)
-        self.set = functools.partial(set_fn, length=length)
+        if set_fn is None:
+            self.set = None
+        else:
+            self.set = functools.partial(set_fn, length=length)
         self.is_integer = is_integer
         self.is_signed = is_signed
         self.is_float = is_float
@@ -53,8 +56,10 @@ class MetaDtype:
 
     def getDtype(self, length: Optional[int] = None) -> Dtype:
         if length is None:
-            if not self.is_fixed_length:
-                raise ValueError("No length given for dtype, and meta type is not fixed length.")
+            length = 0
+        if length == 0:
+            if not self.is_fixed_length and not self.is_unknown_length:
+                raise ValueError(f"No length given for dtype '{self.name}', and meta type is not fixed length.")
             d = Dtype(self.name, None, self.set, self.get, self.is_integer, self.is_float, self.is_signed,
                              self.is_unknown_length, self.is_fixed_length)
             return d

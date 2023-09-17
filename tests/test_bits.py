@@ -379,7 +379,7 @@ class PadToken(unittest.TestCase):
 
     def testUnpackBug(self):
         t = Bits('0o755, ue=12, int3=-1')
-        a, b = t.unpack('pad:9, ue, int')
+        a, b = t.unpack('pad:9, ue, int3')
         self.assertEqual((a, b), (12, -1))
 
 

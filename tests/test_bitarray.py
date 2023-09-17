@@ -764,11 +764,8 @@ class NewProperties(unittest.TestCase):
         b = a.read('u8')
         self.assertEqual(b, 1)
         self.assertEqual(a.pos, 8)
-        c = a.read('i')
-        self.assertEqual(c, -1)
-        a.pos = 0
-        b, c = a.readlist(['b8', 'h'])
-        self.assertEqual([b, c], ['00000001', 'ff'])
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.read('i')
 
     def testLongerMoreGeneralNames(self):
         a = BitArray()
