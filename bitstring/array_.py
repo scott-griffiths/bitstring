@@ -118,7 +118,7 @@ class Array:
             self._dtype = new_dtype
             self._fmt = str(self._dtype)
         else:
-            dtype = dtype_register.create_dtype(*parse_name_length_token(new_dtype))
+            dtype = dtype_register.get_dtype(*parse_name_length_token(new_dtype))
             if dtype.length == 0:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
@@ -520,7 +520,7 @@ class Array:
                 msg += " Use extend() if you want to concatenate Arrays."
             raise ValueError(msg)
         if is_comparison:
-            new_type = dtype_register.create_dtype('bool', 1)
+            new_type = dtype_register.get_dtype('bool', 1)
         else:
             new_type = self._promotetype(self._dtype, other._dtype)
         new_array = Array(new_type)

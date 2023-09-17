@@ -116,25 +116,32 @@ dtypes = [
     MetaDtype('intle', Bits._setintle, Bits._readintle, True, False, True, False, None),
     MetaDtype('intne', Bits._setintne, Bits._readintne, True, False, True, False, None),
     MetaDtype('intbe', Bits._setintbe, Bits._readintbe, True, False, True, False, None),
-    MetaDtype('float', Bits._setfloatbe, Bits._readfloatbe, False, True, True, False, None),
-    MetaDtype('float8_152', Bits._setfloat152, Bits._readfloat152, False, True, True, False, 8),
     MetaDtype('hex', Bits._sethex, Bits._readhex, False, False, False, False, None),
     MetaDtype('bin', Bits._setbin_unsafe, Bits._readbin, False, False, False, False, None),
     MetaDtype('oct', Bits._setoct, Bits._readoct, False, False, False, False, None),
-    MetaDtype('bool', Bits._setbool, Bits._readbool, True, False, False, False, 1),
+    MetaDtype('float8_152', Bits._setfloat152, Bits._readfloat152, False, True, True, False, 8),
     MetaDtype('float8_143', Bits._setfloat143, Bits._readfloat143, False, True, True, False, 8),
+    MetaDtype('float', Bits._setfloatbe, Bits._readfloatbe, False, True, True, False, None),
     MetaDtype('floatne', Bits._setfloatne, Bits._readfloatne, False, True, True, False, None),
     MetaDtype('floatle', Bits._setfloatle, Bits._readfloatle, False, True, True, False, None),
     MetaDtype('bfloat', Bits._setbfloatbe, Bits._readbfloatbe, False, True, True, False, 16),
+    MetaDtype('bfloatle', Bits._setbfloatle, Bits._readbfloatle, False, True, True, False, 16),
+    MetaDtype('bfloatne', Bits._setbfloatne, Bits._readbfloatne, False, True, True, False, 16),
     MetaDtype('bits', Bits._setbits, Bits._readbits, False, False, False, False, None),
+    MetaDtype('bytes', Bits._setbytes, Bits._readbytes, False, False, False, False, None),
+    MetaDtype('bool', Bits._setbool, Bits._readbool, True, False, False, False, 1),
     MetaDtype('se', Bits._setse, Bits._readse, True, False, True, True, None),
-
+    MetaDtype('ue', Bits._setue, Bits._readue, True, False, False, True, None),
+    MetaDtype('sie', Bits._setsie, Bits._readsie, True, False, True, True, None),
+    MetaDtype('uie', Bits._setuie, Bits._readuie, True, False, False, True, None),
+    MetaDtype('pad', None, Bits._readpad, False, False, False, False, None),
 ]
 
 register = Register()
 for dt in dtypes:
-    register.addType(dt)
-register.addAlias('float', 'floatbe')
+    register.add_meta_dtype(dt)
+register.add_meta_dtype_alias('float', 'floatbe')
+register.add_meta_dtype_alias('bfloat', 'bfloatbe')
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',

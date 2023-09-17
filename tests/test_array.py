@@ -167,6 +167,7 @@ class Creation(unittest.TestCase):
         with self.assertRaises(ValueError):
             b.dtype = 'float17'
 
+
 class ArrayMethods(unittest.TestCase):
 
     def testCount(self):

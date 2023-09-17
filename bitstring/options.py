@@ -8,6 +8,8 @@ from bitstring.bitstore import BitStore
 class Options:
     """Internal class to create singleton module options instance."""
 
+    _instance = None
+
     def __init__(self):
         self.set_lsb0(False)
         self._bytealigned = False
@@ -64,7 +66,7 @@ class Options:
         self._bytealigned = bool(value)
 
     def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(Options, cls).__new__(cls)
-        return cls.instance
+        if cls._instance is None:
+            cls._instance = super(Options, cls).__new__(cls)
+        return cls._instance
 
