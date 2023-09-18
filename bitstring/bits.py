@@ -1083,7 +1083,7 @@ class Bits:
             raise InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
         return value
 
-    def _readsie(self, pos: int, _length: int = 0) -> Tuple[int, int]:
+    def _readsie(self, pos: int, length: int = 0) -> Tuple[int, int]:
         """Return interpretation of next bits as a signed interleaved exponential-Golomb code.
 
         Advances position to after the read code.
@@ -1216,8 +1216,9 @@ class Bits:
         if length is not None and length > self.length - pos:
             raise ReadError("Reading off the end of the data. "
                             f"Tried to read {length} bits when only {self.length - pos} available.")
+        dtype = Bits._register.get_dtype(name, length)
         try:
-            val = self._name_to_read[name](self, pos, length)
+            val = dtype.get(self, pos)
             if isinstance(val, tuple):
                 return val
             else:

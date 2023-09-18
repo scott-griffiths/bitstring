@@ -105,9 +105,9 @@ class PadToken(unittest.TestCase):
         self.assertEqual(s.pos, 1)
         a = s.read(3)
         self.assertEqual(a, CBS('0b000'))
-        a = s.read('pad:0')
+        a = s.read('pad:1')
         self.assertEqual(a, None)
-        self.assertEqual(s.pos, 4)
+        self.assertEqual(s.pos, 5)
 
     def testReadList(self):
         s = CBS('0b10001111001')

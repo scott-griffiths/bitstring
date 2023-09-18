@@ -3,7 +3,7 @@ from __future__ import annotations
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray import BitArray
 from bitstring.utils import tokenparser
-from bitstring.exceptions import ReadError, ByteAlignError, CreationError
+from bitstring.exceptions import ReadError, ByteAlignError, CreationError, InterpretError
 from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
 import copy
 import numbers
@@ -327,9 +327,10 @@ class ConstBitStream(Bits):
             raise ValueError(f"Format string should be a single token, not {len(token)} "
                              "tokens - use readlist() instead.")
         name, length, _ = token[0]
-        if length is None:
-            length = 0
-        value, self._pos = self._readtoken(name, self._pos, length)
+        try:
+            value, self._pos = self._readtoken(name, self._pos, length)
+        except ValueError as e:
+            raise InterpretError(e)
         return value
 
     def readlist(self, fmt: Union[str, List[Union[int, str]]], **kwargs) \

@@ -56,8 +56,6 @@ class MetaDtype:
 
     def getDtype(self, length: Optional[int] = None) -> Dtype:
         if length is None:
-            length = 0
-        if length == 0:
             if not self.is_fixed_length and not self.is_unknown_length:
                 raise ValueError(f"No length given for dtype '{self.name}', and meta type is not fixed length.")
             d = Dtype(self.name, None, self.set, self.get, self.is_integer, self.is_float, self.is_signed,
@@ -100,7 +98,7 @@ class Register:
             raise ValueError
         d = meta_type.getDtype(length)
         # Test if the length makes sense by trying out the getter.  # TODO: Optimise!
-        if length != 0:
+        if length != 0 and not d.is_unknown_length:
             temp = Bits(length)
             try:
                 _ = d.get(temp, 0)
