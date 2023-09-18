@@ -9,7 +9,6 @@ from bitstring.bits import Bits, BitsType
 from bitstring.bitarray import BitArray
 from bitstring.dtypes import Dtype, Register
 from bitstring.utils import tokenparser, parse_name_length_token
-import functools
 import copy
 import array
 import operator
@@ -383,9 +382,9 @@ class Array:
                 token_length2 = token_length
             if token_length != token_length2:
                 raise ValueError(f"Two different format lengths specified ('{fmt}'). Either specify just one, or two the same length.")
-            getter_func2 = functools.partial(Bits._name_to_read[token_name2], length=token_length2)
+            getter_func2 = dtype_register.get_dtype(token_name2, token_length2).get
 
-        getter_func = functools.partial(Bits._name_to_read[token_name], length=token_length)
+        getter_func = dtype_register.get_dtype(token_name, token_length).get
 
         # Check that the getter functions will work
         temp = BitArray(token_length)

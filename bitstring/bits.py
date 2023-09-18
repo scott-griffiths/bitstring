@@ -2100,45 +2100,6 @@ class Bits:
         _readintne = _readintbe
         _getintne = _getintbe
 
-    # Dictionary that maps token names to the function that reads them
-    _name_to_read: Dict[str, Callable[[Bits, int, int], Any]] = {
-        'uint': _readuint,
-        'u': _readuint,
-        'uintle': _readuintle,
-        'uintbe': _readuintbe,
-        'uintne': _readuintne,
-        'int': _readint,
-        'i': _readint,
-        'intle': _readintle,
-        'intbe': _readintbe,
-        'intne': _readintne,
-        'float': _readfloatbe,
-        'f': _readfloatbe,
-        'floatbe': _readfloatbe,  # floatbe is a synonym for float
-        'floatle': _readfloatle,
-        'floatne': _readfloatne,
-        'bfloat': _readbfloatbe,
-        'bfloatbe': _readbfloatbe,
-        'bfloatle': _readbfloatle,
-        'bfloatne': _readbfloatne,
-        'hex': _readhex,
-        'h': _readhex,
-        'oct': _readoct,
-        'o': _readoct,
-        'bin': _readbin,
-        'b': _readbin,
-        'bits': _readbits,
-        'bytes': _readbytes,
-        'ue': _readue,
-        'se': _readse,
-        'uie': _readuie,
-        'sie': _readsie,
-        'bool': _readbool,
-        'pad': _readpad,
-        'float8_143': _readfloat143,
-        'float8_152': _readfloat152
-    }
-
     # Mapping token names to the methods used to set them
     _setfunc: Dict[str, Callable[..., None]] = {
         'bin': _setbin_safe,

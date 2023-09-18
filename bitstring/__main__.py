@@ -1,5 +1,8 @@
 import sys
 from bitstring.bits import Bits
+from bitstring.dtypes import Register
+
+dtype_register = Register()
 
 
 def main() -> None:
@@ -26,14 +29,14 @@ $ python -m bitstring hex=01, uint:12=352.hex
 01160
         """)
         return
-    if fp in Bits._name_to_read.keys():
+    if fp in dtype_register.name_to_meta_dtype:
         # concatenate all other parameters and interpret using the final one
         b1 = Bits(','.join(sys.argv[1: -1]))
         print(b1._readtoken(fp, 0, b1.__len__())[0])
     else:
         # does final parameter end with a dot then an interpretation string?
         interp = fp[fp.rfind('.') + 1:]
-        if interp in Bits._name_to_read.keys():
+        if interp in dtype_register.name_to_meta_dtype:
             sys.argv[-1] = fp[:fp.rfind('.')]
             b1 = Bits(','.join(sys.argv[1:]))
             print(b1._readtoken(interp, 0, b1.__len__())[0])
