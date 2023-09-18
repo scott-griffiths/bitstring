@@ -118,7 +118,7 @@ dtypes = [
     MetaDtype('intne', Bits._setintne, Bits._readintne, True, False, True, False, None),
     MetaDtype('intbe', Bits._setintbe, Bits._readintbe, True, False, True, False, None),
     MetaDtype('hex', Bits._sethex, Bits._readhex, False, False, False, False, None),
-    MetaDtype('bin', Bits._setbin_unsafe, Bits._readbin, False, False, False, False, None),
+    MetaDtype('bin', Bits._setbin_safe, Bits._readbin, False, False, False, False, None),
     MetaDtype('oct', Bits._setoct, Bits._readoct, False, False, False, False, None),
     MetaDtype('float8_152', Bits._setfloat152, Bits._readfloat152, False, True, True, False, 8),
     MetaDtype('float8_143', Bits._setfloat143, Bits._readfloat143, False, True, True, False, 8),
@@ -138,15 +138,16 @@ dtypes = [
     MetaDtype('pad', None, Bits._readpad, False, False, False, False, None),
 ]
 
-aliases: List[Tuple[str, str]] = [('float', 'floatbe'),
-                                  ('bfloat', 'bfloatbe'),
-                                  ('int', 'i'),
-                                  ('uint', 'u'),
-                                  ('hex', 'h'),
-                                  ('oct', 'o'),
-                                  ('bin', 'b'),
-                                  ('float', 'f')
-                                  ]
+aliases: List[Tuple[str, str]] = [
+    ('float', 'floatbe'),
+    ('bfloat', 'bfloatbe'),
+    ('int', 'i'),
+    ('uint', 'u'),
+    ('hex', 'h'),
+    ('oct', 'o'),
+    ('bin', 'b'),
+    ('float', 'f')
+]
 
 register = Register()
 for dt in dtypes:

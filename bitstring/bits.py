@@ -199,9 +199,13 @@ class Bits:
             return
         k, v = kwargs.popitem()
         try:
-            setting_function = self._setfunc[k]
+            setting_function = Bits._register.name_to_meta_dtype[k].set
         except KeyError:
-            if k == 'auto':
+            if k == 'filename':
+                setting_function = Bits._setfile
+            elif k == 'bitarray':
+                setting_function = Bits._setbitarray
+            elif k == 'auto':
                 raise CreationError(f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
                                     f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
             else:
@@ -2100,39 +2104,6 @@ class Bits:
         _readintne = _readintbe
         _getintne = _getintbe
 
-    # Mapping token names to the methods used to set them
-    _setfunc: Dict[str, Callable[..., None]] = {
-        'bin': _setbin_safe,
-        'hex': _sethex,
-        'oct': _setoct,
-        'ue': _setue,
-        'se': _setse,
-        'uie': _setuie,
-        'sie': _setsie,
-        'bool': _setbool,
-        'uint': _setuint,
-        'int': _setint,
-        'float': _setfloatbe,
-        'bfloat': _setbfloatbe,
-        'bfloatbe': _setbfloatbe,
-        'bfloatle': _setbfloatle,
-        'bfloatne': _setbfloatne,
-        'uintbe': _setuintbe,
-        'intbe': _setintbe,
-        'floatbe': _setfloatbe,
-        'uintle': _setuintle,
-        'intle': _setintle,
-        'floatle': _setfloatle,
-        'uintne': _setuintne,
-        'intne': _setintne,
-        'floatne': _setfloatne,
-        'bytes': _setbytes,
-        'filename': _setfile,
-        'bitarray': _setbitarray,
-        'float8_152': _setfloat152,
-        'float8_143': _setfloat143,
-        'bits': _setbits
-    }
 
     len = property(_getlength,
                    doc="""The length of the bitstring in bits. Read only.
