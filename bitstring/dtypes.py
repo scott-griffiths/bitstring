@@ -12,11 +12,11 @@ class Dtype:
                  is_unknown_length, is_fixed_length) -> None:
         self.name = name
         self.length = length
-        self.get = functools.partial(get_fn, length=length)
+        self.get_fn = functools.partial(get_fn, length=length)
         if set_fn is None:
-            self.set = None
+            self.set_fn = None
         else:
-            self.set = functools.partial(set_fn, length=length)
+            self.set_fn = functools.partial(set_fn, length=length)
         self.is_integer = is_integer
         self.is_signed = is_signed
         self.is_float = is_float
@@ -35,7 +35,7 @@ class Dtype:
 class MetaDtype:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
-    def __init__(self, name: str, set_fn, get_fn, is_integer: bool, is_float: bool, is_signed: bool,
+    def __init__(self, name: str, description: str, set_fn, get_fn, is_integer: bool, is_float: bool, is_signed: bool,
                  is_unknown_length: bool, length: Optional[int] = None):
         # Consistency checks
         if is_unknown_length and length is not None:
@@ -51,15 +51,15 @@ class MetaDtype:
         self.is_unknown_length = is_unknown_length
         self.length = length
 
-        self.set = set_fn
-        self.get = get_fn
+        self.set_fn = set_fn
+        self.get_fn = get_fn
 
     def getDtype(self, length: Optional[int] = None) -> Dtype:
         if length is None:
             if not self.is_fixed_length and not self.is_unknown_length:
                 raise ValueError(f"No length given for dtype '{self.name}', and meta type is not fixed length.")
-            d = Dtype(self.name, None, self.set, self.get, self.is_integer, self.is_float, self.is_signed,
-                             self.is_unknown_length, self.is_fixed_length)
+            d = Dtype(self.name, None, self.set_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
+                      self.is_unknown_length, self.is_fixed_length)
             return d
         if self.is_unknown_length:
             raise ValueError("Length shouldn't be supplied for dtypes that are variable length.")
@@ -67,7 +67,7 @@ class MetaDtype:
             if length != 0 and length != self.length:
                 raise ValueError  # TODO
             length = self.length
-        d = Dtype(self.name, length, self.set, self.get, self.is_integer, self.is_float, self.is_signed,
+        d = Dtype(self.name, length, self.set_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
                   self.is_unknown_length, self.is_fixed_length)
         return d
 
@@ -101,7 +101,7 @@ class Register:
         if length != 0 and not d.is_unknown_length:
             temp = Bits(length)
             try:
-                _ = d.get(temp, 0)
+                _ = d.get_fn(temp, 0)
             except InterpretError as e:
                 raise ValueError(f"Invalid Dtype: {e.msg}")
         return d

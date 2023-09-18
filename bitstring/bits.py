@@ -199,7 +199,7 @@ class Bits:
             return
         k, v = kwargs.popitem()
         try:
-            setting_function = Bits._register.name_to_meta_dtype[k].set
+            setting_function = Bits._register.name_to_meta_dtype[k].set_fn
         except KeyError:
             if k == 'filename':
                 setting_function = Bits._setfile
@@ -1222,7 +1222,7 @@ class Bits:
                             f"Tried to read {length} bits when only {self.length - pos} available.")
         dtype = Bits._register.get_dtype(name, length)
         try:
-            val = dtype.get(self, pos)
+            val = dtype.get_fn(self, pos)
             if isinstance(val, tuple):
                 return val
             else:
