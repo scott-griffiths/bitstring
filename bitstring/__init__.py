@@ -163,9 +163,6 @@ dtypes = [
               Bits._setuie, Bits._readuie, Bits._getuie, True, False, False, True, None),
     MetaDtype('pad', 'a skipped section of padding',
               None, Bits._readpad, None, False, False, False, False, None),
-    MetaDtype('penguin', 'a penguin object',
-              Bits._setbytes, Bits._readbytes, Bits._getbytes, False, False, False, False, None),
-
 ]
 
 aliases: List[Tuple[str, str]] = [
@@ -194,6 +191,7 @@ for dt_name in register.name_to_meta_dtype:
     dt = register.name_to_meta_dtype[dt_name]
     if dt.get_fn is not None:
         setattr(Bits, dt_name, property(fget=dt.get_fn, doc=f"The bitstring as {dt.description}. Read only."))
+        setattr(BitArray, dt_name, property(fget=dt.get_fn, fset=dt.set_fn, doc=f"The bitstring as {dt.description}. Read and write."))
 
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
