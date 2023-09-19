@@ -110,59 +110,62 @@ sys.modules[__name__].__class__ = _MyModuleType
 
 dtypes = [
     MetaDtype('uint', "a two's complement unsigned int",
-              Bits._setuint, Bits._readuint, True, False, False, False, None),
+              Bits._setuint, Bits._readuint, Bits._getuint, True, False, False, False, None),
     MetaDtype('uintle', "a two's complement little-endian unsigned int",
-              Bits._setuintle, Bits._readuintle, True, False, False, False, None),
+              Bits._setuintle, Bits._readuintle, Bits._getuintle, True, False, False, False, None),
     MetaDtype('uintne', "a two's complement native-endian unsigned int",
-              Bits._setuintne, Bits._readuintne, True, False, False, False, None),
+              Bits._setuintne, Bits._readuintne, Bits._getuintne, True, False, False, False, None),
     MetaDtype('uintbe', "a two's complement big-endian unsigned int",
-              Bits._setuintbe, Bits._readuintbe, True, False, False, False, None),
+              Bits._setuintbe, Bits._readuintbe, Bits._getuintbe, True, False, False, False, None),
     MetaDtype('int', "a two's complement signed int",
-              Bits._setint, Bits._readint, True, False, True, False, None),
+              Bits._setint, Bits._readint, Bits._getint,True, False, True, False, None),
     MetaDtype('intle', "a two's complement little-endian signed int",
-              Bits._setintle, Bits._readintle, True, False, True, False, None),
+              Bits._setintle, Bits._readintle, Bits._getintle, True, False, True, False, None),
     MetaDtype('intne', "a two's complement native-endian signed int",
-              Bits._setintne, Bits._readintne, True, False, True, False, None),
+              Bits._setintne, Bits._readintne, Bits._getintne, True, False, True, False, None),
     MetaDtype('intbe', "a two's complement big-endian signed int",
-              Bits._setintbe, Bits._readintbe, True, False, True, False, None),
+              Bits._setintbe, Bits._readintbe, Bits._getintbe, True, False, True, False, None),
     MetaDtype('hex', 'a hexadecimal string',
-              Bits._sethex, Bits._readhex, False, False, False, False, None),
+              Bits._sethex, Bits._readhex, Bits._gethex, False, False, False, False, None),
     MetaDtype('bin', 'a binary string',
-              Bits._setbin_safe, Bits._readbin, False, False, False, False, None),
+              Bits._setbin_safe, Bits._readbin, Bits._getbin, False, False, False, False, None),
     MetaDtype('oct', 'an octal string',
-              Bits._setoct, Bits._readoct, False, False, False, False, None),
+              Bits._setoct, Bits._readoct, Bits._getoct,False, False, False, False, None),
     MetaDtype('float8_152', 'an 8 bit float with float8_152 format',
-              Bits._setfloat152, Bits._readfloat152, False, True, True, False, 8),
+              Bits._setfloat152, Bits._readfloat152, Bits._getfloat152, False, True, True, False, 8),
     MetaDtype('float8_143', 'an 8 bit float with float8_143 format',
-              Bits._setfloat143, Bits._readfloat143, False, True, True, False, 8),
+              Bits._setfloat143, Bits._readfloat143, Bits._getfloat143, False, True, True, False, 8),
     MetaDtype('float', 'a big-endian floating point number',
-              Bits._setfloatbe, Bits._readfloatbe, False, True, True, False, None),
+              Bits._setfloatbe, Bits._readfloatbe, Bits._getfloatbe, False, True, True, False, None),
     MetaDtype('floatne', 'a native-endian floating point number',
-              Bits._setfloatne, Bits._readfloatne, False, True, True, False, None),
+              Bits._setfloatne, Bits._readfloatne, Bits._getfloatne,  False, True, True, False, None),
     MetaDtype('floatle', 'a little-endian floating point number',
-              Bits._setfloatle, Bits._readfloatle, False, True, True, False, None),
+              Bits._setfloatle, Bits._readfloatle, Bits._getfloatle, False, True, True, False, None),
     MetaDtype('bfloat', 'a 16 bit big-endian bfloat floating point number',
-              Bits._setbfloatbe, Bits._readbfloatbe, False, True, True, False, 16),
+              Bits._setbfloatbe, Bits._readbfloatbe, Bits._getbfloatbe, False, True, True, False, 16),
     MetaDtype('bfloatle', 'a 16 bit little-endian bfloat floating point number',
-              Bits._setbfloatle, Bits._readbfloatle, False, True, True, False, 16),
+              Bits._setbfloatle, Bits._readbfloatle, Bits._getbfloatle, False, True, True, False, 16),
     MetaDtype('bfloatne', 'a 16 bit native-endian bfloat floating point number',
-              Bits._setbfloatne, Bits._readbfloatne, False, True, True, False, 16),
+              Bits._setbfloatne, Bits._readbfloatne, Bits._getbfloatne, False, True, True, False, 16),
     MetaDtype('bits', 'a bitstring object',
-              Bits._setbits, Bits._readbits, False, False, False, False, None),
+              Bits._setbits, Bits._readbits, None, False, False, False, False, None),
     MetaDtype('bytes', 'a bytes object',
-              Bits._setbytes, Bits._readbytes, False, False, False, False, None),
+              Bits._setbytes, Bits._readbytes, Bits._getbytes,False, False, False, False, None),
     MetaDtype('bool', 'a bool (True or False)',
-              Bits._setbool, Bits._readbool, True, False, False, False, 1),
+              Bits._setbool, Bits._readbool, Bits._getbool, True, False, False, False, 1),
     MetaDtype('se', 'a signed exponential-Golomb code',
-              Bits._setse, Bits._readse, True, False, True, True, None),
+              Bits._setse, Bits._readse, Bits._getse,True, False, True, True, None),
     MetaDtype('ue', 'an unsigned exponential-Golomb code',
-              Bits._setue, Bits._readue, True, False, False, True, None),
+              Bits._setue, Bits._readue, Bits._getue, True, False, False, True, None),
     MetaDtype('sie', 'a signed interleaved exponential-Golomb code',
-              Bits._setsie, Bits._readsie, True, False, True, True, None),
+              Bits._setsie, Bits._readsie, Bits._getsie, True, False, True, True, None),
     MetaDtype('uie', 'an unsigned interleaved exponential-Golomb code',
-              Bits._setuie, Bits._readuie, True, False, False, True, None),
+              Bits._setuie, Bits._readuie, Bits._getuie, True, False, False, True, None),
     MetaDtype('pad', 'a skipped section of padding',
-              None, Bits._readpad, False, False, False, False, None),
+              None, Bits._readpad, None, False, False, False, False, None),
+    MetaDtype('penguin', 'a penguin object',
+              Bits._setbytes, Bits._readbytes, Bits._getbytes, False, False, False, False, None),
+
 ]
 
 aliases: List[Tuple[str, str]] = [
@@ -181,6 +184,16 @@ for dt in dtypes:
     register.add_meta_dtype(dt)
 for alias in aliases:
     register.add_meta_dtype_alias(alias[0], alias[1])
+
+# TODO: We need to have both read and get functions.  We can make a get function from a read by reading from start=0 to length=self.length. The first
+# part of that can be done with a partial function, the second part not so much. Can we generate all of the current
+# _get_x functions from the _read_x functions, with a default to read the whole thing?
+# Some of our gets are more efficient than just a read, so maybe allow them to be specified, but auto generate them if not.
+
+for dt_name in register.name_to_meta_dtype:
+    dt = register.name_to_meta_dtype[dt_name]
+    if dt.get_fn is not None:
+        setattr(Bits, dt_name, property(fget=dt.get_fn, doc=f"The bitstring as {dt.description}. Read only."))
 
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',

@@ -161,7 +161,7 @@ class Array:
                 key += len(self)
             if key < 0 or key >= len(self):
                 raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
-            return self._dtype.get_fn(self.data, start=self._dtype.length * key)
+            return self._dtype.read_fn(self.data, start=self._dtype.length * key)
 
     @overload
     def __setitem__(self, key: slice, value: Iterable[ElementType]) -> None:
@@ -230,7 +230,7 @@ class Array:
         return new_array
 
     def tolist(self) -> List[ElementType]:
-        return [self._dtype.get_fn(self.data, start=start)
+        return [self._dtype.read_fn(self.data, start=start)
                 for start in range(0, len(self.data) - self._dtype.length + 1, self._dtype.length)]
 
     def append(self, x: ElementType) -> None:
@@ -382,9 +382,9 @@ class Array:
                 token_length2 = token_length
             if token_length != token_length2:
                 raise ValueError(f"Two different format lengths specified ('{fmt}'). Either specify just one, or two the same length.")
-            getter_func2 = dtype_register.get_dtype(token_name2, token_length2).get_fn
+            getter_func2 = dtype_register.get_dtype(token_name2, token_length2).read_fn
 
-        getter_func = dtype_register.get_dtype(token_name, token_length).get_fn
+        getter_func = dtype_register.get_dtype(token_name, token_length).read_fn
 
         # Check that the getter functions will work
         temp = BitArray(token_length)
@@ -441,7 +441,7 @@ class Array:
     def __iter__(self) -> Iterable[ElementType]:
         start = 0
         for _ in range(len(self)):
-            yield self._dtype.get_fn(self.data, start=start)
+            yield self._dtype.read_fn(self.data, start=start)
             start += self._dtype.length
 
     def __copy__(self) -> Array:
@@ -462,7 +462,7 @@ class Array:
             def partial_op(a):
                 return op(a)
         for i in range(len(self)):
-            v = self._dtype.get_fn(self.data, start=self._dtype.length * i)
+            v = self._dtype.read_fn(self.data, start=self._dtype.length * i)
             try:
                 new_data.append(new_array._create_element(partial_op(v)))
             except (CreationError, ZeroDivisionError, ValueError) as e:
@@ -483,7 +483,7 @@ class Array:
         failures = index = 0
         msg = ''
         for i in range(len(self)):
-            v = self._dtype.get_fn(self.data, start=self._dtype.length * i)
+            v = self._dtype.read_fn(self.data, start=self._dtype.length * i)
             try:
                 new_data.append(self._create_element(op(v, value)))
             except (CreationError, ZeroDivisionError, ValueError) as e:
@@ -527,8 +527,8 @@ class Array:
         failures = index = 0
         msg = ''
         for i in range(len(self)):
-            a = self._dtype.get_fn(self.data, start=self._dtype.length * i)
-            b = other._dtype.get_fn(other.data, start=other._dtype.length * i)
+            a = self._dtype.read_fn(self.data, start=self._dtype.length * i)
+            b = other._dtype.read_fn(other.data, start=other._dtype.length * i)
             try:
                 new_data.append(new_array._create_element(op(a, b)))
             except (CreationError, ValueError, ZeroDivisionError) as e:

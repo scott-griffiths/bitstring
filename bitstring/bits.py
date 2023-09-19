@@ -1222,7 +1222,7 @@ class Bits:
                             f"Tried to read {length} bits when only {self.length - pos} available.")
         dtype = Bits._register.get_dtype(name, length)
         try:
-            val = dtype.get_fn(self, pos)
+            val = dtype.read_fn(self, pos)
             if isinstance(val, tuple):
                 return val
             else:
@@ -2104,97 +2104,6 @@ class Bits:
         _readintne = _readintbe
         _getintne = _getintbe
 
+    len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")
 
-    len = property(_getlength,
-                   doc="""The length of the bitstring in bits. Read only.
-                      """)
-    length = property(_getlength,
-                      doc="""The length of the bitstring in bits. Read only.
-                      """)
-    bool = property(_getbool,
-                    doc="""The bitstring as a bool (True or False). Read only.
-                    """)
-    hex = property(_gethex,
-                   doc="""The bitstring as a hexadecimal string. Read only.
-                   """)
-    bin = property(_getbin,
-                   doc="""The bitstring as a binary string. Read only.
-                   """)
-    oct = property(_getoct,
-                   doc="""The bitstring as an octal string. Read only.
-                   """)
-    bytes = property(_getbytes,
-                     doc="""The bitstring as a bytes object. Read only.
-                      """)
-    int = property(_getint,
-                   doc="""The bitstring as a two's complement signed int. Read only.
-                      """)
-    uint = property(_getuint,
-                    doc="""The bitstring as a two's complement unsigned int. Read only.
-                      """)
-    float = property(_getfloatbe,
-                     doc="""The bitstring as a big-endian floating point number. Read only.
-                      """)
-    bfloat = property(_getbfloatbe,
-                      doc="""The bitstring as a 16 bit big-endian bfloat floating point number. Read only.
-                      """)
-    bfloatbe = property(_getbfloatbe,
-                        doc="""The bitstring as a 16 bit big-endian bfloat floating point number. Read only.
-                        """)
-    bfloatle = property(_getbfloatle,
-                        doc="""The bitstring as a 16 bit little-endian bfloat floating point number. Read only.
-                        """)
-    bfloatne = property(_getbfloatne,
-                        doc="""The bitstring as a 16 bit native-endian bfloat floating point number. Read only.
-                        """)
-    intbe = property(_getintbe,
-                     doc="""The bitstring as a two's complement big-endian signed int. Read only.
-                     """)
-    uintbe = property(_getuintbe,
-                      doc="""The bitstring as a two's complement big-endian unsigned int. Read only.
-                      """)
-    floatbe = property(_getfloatbe,
-                       doc="""The bitstring as a big-endian floating point number. Read only.
-                      """)
-    intle = property(_getintle,
-                     doc="""The bitstring as a two's complement little-endian signed int. Read only.
-                      """)
-    uintle = property(_getuintle,
-                      doc="""The bitstring as a two's complement little-endian unsigned int. Read only.
-                      """)
-    floatle = property(_getfloatle,
-                       doc="""The bitstring as a little-endian floating point number. Read only.
-                      """)
-    intne = property(_getintne,
-                     doc="""The bitstring as a two's complement native-endian signed int. Read only.
-                      """)
-    uintne = property(_getuintne,
-                      doc="""The bitstring as a two's complement native-endian unsigned int. Read only.
-                      """)
-    floatne = property(_getfloatne,
-                       doc="""The bitstring as a native-endian floating point number. Read only.
-                      """)
-    ue = property(_getue,
-                  doc="""The bitstring as an unsigned exponential-Golomb code. Read only.
-                      """)
-    se = property(_getse,
-                  doc="""The bitstring as a signed exponential-Golomb code. Read only.
-                      """)
-    uie = property(_getuie,
-                   doc="""The bitstring as an unsigned interleaved exponential-Golomb code. Read only.
-                      """)
-    sie = property(_getsie,
-                   doc="""The bitstring as a signed interleaved exponential-Golomb code. Read only.
-                      """)
-    float8_143 = property(_getfloat143,
-                          doc="""The bitstring as an 8 bit float with float8_143 format. Read only.""")
-    float8_152 = property(_getfloat152,
-                          doc="""The bitstring as an 8 bit float with float8_152 format. Read only.""")
 
-    # Some shortened aliases of the above properties
-    i = int
-    u = uint
-    f = float
-    b = bin
-    o = oct
-    h = hex
