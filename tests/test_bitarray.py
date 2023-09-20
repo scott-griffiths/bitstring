@@ -738,7 +738,8 @@ class NewProperties(unittest.TestCase):
         with self.assertRaises(bitstring.CreationError):
             a.u0 = 2
         with self.assertRaises(bitstring.CreationError):
-            a.h4 = '0xab'
+            a.hex4 = '0xab'
+        self.assertEqual(len(a), 64)
         with self.assertRaises(bitstring.CreationError):
             a.o3 = '0xab'
         with self.assertRaises(bitstring.CreationError):

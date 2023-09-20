@@ -144,7 +144,6 @@ class BitArray(Bits):
          'o': Bits._setoct,
          'h': Bits._sethex}
 
-    _short_token: Pattern[str] = re.compile(r'^(?P<name>[uifboh])(?P<len>\d+)$', re.IGNORECASE)
     _name_length_pattern: Pattern[str] = re.compile(r'^(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
 
     def __setattr__(self, attribute, value) -> None:
@@ -152,22 +151,6 @@ class BitArray(Bits):
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
         except AttributeError:
-            m1_short = BitArray._short_token.match(attribute)
-            if m1_short:
-                length = int(m1_short.group('len'))
-                name = m1_short.group('name')
-                f = BitArray._letter_to_setter[name]
-                try:
-                    f(self, value, length)
-                except AttributeError:
-                    raise AttributeError(f"Can't set attribute {attribute} with value {value}.")
-
-                if self.len != length:
-                    new_len = self.len
-                    raise CreationError(f"Can't initialise with value of length {new_len} bits, "
-                                        f"as attribute has length of {length} bits.")
-                return
-            # Try to split into [name][length], then try standard properties
             name_length = BitArray._name_length_pattern.match(attribute)
             if name_length:
                 name = name_length.group('name')
@@ -180,7 +163,11 @@ class BitArray(Bits):
                                 f"Wrong amount of byte data preset - {length} bytes needed, have {len(value)} bytes.")
                         length *= 8
                 try:
-                    self._initialise(None, length=length, offset=None, **{name: value})
+                    x = Bits(length=length, offset=None, **{name: value})
+                    if len(x) != length:
+                        raise CreationError(f"Can't initialise with value of length {len(x)} bits, "
+                                            f"as attribute has length of {length} bits.")
+                    self._bitstore = x._bitstore
                     return
                 except AttributeError:
                     pass
