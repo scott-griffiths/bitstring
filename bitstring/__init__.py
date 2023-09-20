@@ -71,6 +71,7 @@ from .exceptions import Error, ReadError, InterpretError, ByteAlignError, Creati
 from .dtypes import MetaDtype, Register
 import types
 from typing import List, Tuple
+from .utils import initialise_constants
 
 
 # We initialise the Options singleton after the base classes have been created.
@@ -182,17 +183,15 @@ for dt in dtypes:
 for alias in aliases:
     register.add_meta_dtype_alias(alias[0], alias[1])
 
-# TODO: We need to have both read and get functions.  We can make a get function from a read by reading from start=0 to length=self.length. The first
-# part of that can be done with a partial function, the second part not so much. Can we generate all of the current
-# _get_x functions from the _read_x functions, with a default to read the whole thing?
-# Some of our gets are more efficient than just a read, so maybe allow them to be specified, but auto generate them if not.
-
+# Create properties for those meta dtypes that have a 'get' function.
 for dt_name in register.name_to_meta_dtype:
     dt = register.name_to_meta_dtype[dt_name]
     if dt.get_fn is not None:
         setattr(Bits, dt_name, property(fget=dt.get_fn, doc=f"The bitstring as {dt.description}. Read only."))
         setattr(BitArray, dt_name, property(fget=dt.get_fn, fset=dt.set_fn, doc=f"The bitstring as {dt.description}. Read and write."))
 
+init_names = [dt_name for dt_name in register.name_to_meta_dtype]
+initialise_constants(init_names)
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',

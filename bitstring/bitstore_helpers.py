@@ -255,12 +255,15 @@ else:
 # _name2bitstore_func[name](value)
 name2bitstore_func: Dict[str, Callable[..., BitStore]] = {
     'hex': hex2bitstore,
+    'h': hex2bitstore,
     '0x': hex2bitstore,
     '0X': hex2bitstore,
     'bin': bin2bitstore,
+    'b': bin2bitstore,
     '0b': bin2bitstore,
     '0B': bin2bitstore,
     'oct': oct2bitstore,
+    'o': oct2bitstore,
     '0o': oct2bitstore,
     '0O': oct2bitstore,
     'se': se2bitstore,
@@ -280,6 +283,8 @@ name2bitstore_func: Dict[str, Callable[..., BitStore]] = {
 name2bitstore_func_with_length: Dict[str, Callable[..., BitStore]] = {
     'uint': uint2bitstore,
     'int': int2bitstore,
+    'u': uint2bitstore,
+    'i': int2bitstore,
     'uintbe': uintbe2bitstore,
     'intbe': intbe2bitstore,
     'uintle': uintle2bitstore,
@@ -287,6 +292,7 @@ name2bitstore_func_with_length: Dict[str, Callable[..., BitStore]] = {
     'uintne': uintne2bitstore,
     'intne': intne2bitstore,
     'float': float2bitstore,
+    'f': float2bitstore,
     'floatbe': float2bitstore,  # same as 'float'
     'floatle': floatle2bitstore,
     'floatne': floatne2bitstore,

@@ -2375,8 +2375,6 @@ class Split2(unittest.TestCase):
         self.assertEqual(tp('<H'), (False, [('uintle', 16, None)]))
         self.assertEqual(tp('=H'), (False, [('uintne', 16, None)]))
         self.assertEqual(tp('@H'), (False, [('uintne', 16, None)]))
-        with self.assertRaises(ValueError):
-            _ = tp('H')
         self.assertEqual(tp('>b'), (False, [('int', 8, None)]))
         self.assertEqual(tp('<b'), (False, [('int', 8, None)]))
 

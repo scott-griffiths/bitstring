@@ -5,22 +5,17 @@ import re
 from typing import Tuple, List, Optional, Pattern, Dict, Union, Match
 import sys
 from bitstring.exceptions import Error
-
 byteorder: str = sys.byteorder
+
+
+TOKEN_RE: Pattern[str] = None
+def initialise_constants(init_names: List[str]) -> None:
+    global TOKEN_RE
+    init_names.sort(key=len, reverse=True)
+    TOKEN_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
 CACHE_SIZE = 256
 
-SIGNED_INTEGER_NAMES: List[str] = ['int', 'se', 'sie', 'intbe', 'intle', 'intne']
-UNSIGNED_INTEGER_NAMES: List[str] = ['uint', 'ue', 'uie', 'uintbe', 'uintle', 'uintne', 'bool']
-FLOAT_NAMES: List[str] = ['float', 'floatbe', 'floatle', 'floatne', 'bfloatbe', 'bfloatle', 'bfloatne', 'bfloat', 'float8_143', 'float8_152']
-STRING_NAMES: List[str] = ['hex', 'oct', 'bin']
-
-INIT_NAMES: List[str] = SIGNED_INTEGER_NAMES  + UNSIGNED_INTEGER_NAMES + FLOAT_NAMES + STRING_NAMES + ['bits', 'bytes', 'pad']
-# Sort longest first as we want to match them in that order (so floatne before float etc.).
-INIT_NAMES.sort(key=len, reverse=True)
-
-TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>' + '|'.join(INIT_NAMES) +
-                                    r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 # Tokens such as 'u32', 'f64=4.5' or 'i6=-3'
 SHORT_TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>[uifboh]):?(?P<len>\d+)?(=(?P<value>.*))?$')
 DEFAULT_BITS: Pattern[str] = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)

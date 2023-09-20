@@ -18,7 +18,9 @@ from bitstring.utils import tokenparser, VARIABLE_LENGTH_TOKENS
 from bitstring.exceptions import CreationError, InterpretError, ReadError, Error
 from bitstring.fp8 import fp143_fmt, fp152_fmt
 from bitstring.bitstore import BitStore, offset_slice_indices_lsb0
-from bitstring.bitstore_helpers import float2bitstore, uint2bitstore, ue2bitstore, str_to_bitstore, se2bitstore, bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore
+from bitstring.bitstore_helpers import float2bitstore, uint2bitstore, ue2bitstore, str_to_bitstore, se2bitstore, \
+    bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, \
+    bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
@@ -29,11 +31,6 @@ byteorder: str = sys.byteorder
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
-
-tokenname_to_initialiser: Dict[str, str] = {'hex': 'hex', '0x': 'hex', '0X': 'hex', 'oct': 'oct', '0o': 'oct',
-                                             '0O': 'oct', 'bin': 'bin', '0b': 'bin', '0B': 'bin', 'bits': 'bits',
-                                             'bytes': 'bytes', 'pad': 'pad', 'bfloat': 'bfloat',
-                                             'float8_143': 'float8_143', 'float8_152': 'float8_152'}
 
 
 class Bits:
@@ -214,22 +211,6 @@ class Bits:
 
     def __getattr__(self, attribute: str) -> Any:
         # Support for arbitrary attributes like u16 or f64.
-        letter_to_getter: Dict[str, Callable[..., Union[int, float, str]]] = \
-            {'u': self._getuint,
-             'i': self._getint,
-             'f': self._getfloatbe,
-             'b': self._getbin,
-             'o': self._getoct,
-             'h': self._gethex}
-        short_token: Pattern[str] = re.compile(r'^(?P<name>[uifboh]):?(?P<len>\d+)$', re.IGNORECASE)
-        m1_short = short_token.match(attribute)
-        if m1_short:
-            length = int(m1_short.group('len'))
-            if length is not None and self.len != length:
-                raise InterpretError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
-            name = m1_short.group('name')
-            f = letter_to_getter[name]
-            return f()
         # Try to split into [name][length], then try standard properties
         name_length_pattern: Pattern[str] = re.compile(r'^(?P<name>[a-z]+):?(?P<len>\d+)$', re.IGNORECASE)
         name_length = name_length_pattern.match(attribute)
@@ -1906,22 +1887,23 @@ class Bits:
 
     @staticmethod
     def _chars_per_group(bits_per_group: int, fmt: Optional[str]):
+        # TODO: This method is very fragile, and should use the dtype register.
         if fmt is None:
             return 0
-        bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
+        bpc = {'bin': 1, 'b': 1, 'oct': 3, 'o': 3, 'hex': 4, 'h': 4, 'bytes': 8}  # bits represented by each printed character
         try:
             return bits_per_group // bpc[fmt]
         except KeyError:
             # Work out how many chars are needed for each format given the number of bits
-            if fmt in ['uint', 'uintne', 'uintbe', 'uintle']:
+            if fmt in ['u', 'uint', 'uintne', 'uintbe', 'uintle']:
                 # How many chars is largest uint?
                 chars_per_value = len(str((1 << bits_per_group) - 1))
-            elif fmt in ['int', 'intne', 'intbe', 'intle']:
+            elif fmt in ['i', 'int', 'intne', 'intbe', 'intle']:
                 # Use largest negative int so we get the '-' sign
                 chars_per_value = len(str((-1 << (bits_per_group - 1))))
             elif fmt in ['bfloat', 'bfloatne', 'bfloatbe', 'bfloatle']:
                 chars_per_value = 23  # Empirical value
-            elif fmt in ['float', 'floatne', 'floatbe', 'floatle']:
+            elif fmt in ['f', 'float', 'floatne', 'floatbe', 'floatle']:
                 if bits_per_group in [16, 32]:
                     chars_per_value = 23  # Empirical value
                 elif bits_per_group == 64:

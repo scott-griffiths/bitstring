@@ -12,8 +12,7 @@ from collections import abc
 import sys
 import os
 from bitstring import __main__
-from bitstring.utils import INIT_NAMES
-from bitstring.dtypes import Register
+
 
 sys.path.insert(0, '..')
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -177,7 +176,4 @@ class ABCs(unittest.TestCase):
 
 class DtypeRegister(unittest.TestCase):
 
-    def testAllTypesCovered(self):
-        register = Register()
-        for name in INIT_NAMES:
-            self.assertTrue(name in register.name_to_meta_dtype, name)
+    pass

@@ -53,6 +53,16 @@ class Fp8(unittest.TestCase):
         vp = a.readlist('5*float8_143')
         self.assertEqual(v, vp)
 
+    def testInterpretations(self):
+        a = BitArray('0x00')
+        self.assertEqual(a.float8_143, 0.0)
+        self.assertEqual(a.float8_152, 0.0)
+        a += '0b1'
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.float8_143
+        with self.assertRaises(bitstring.InterpretError):
+            _ = a.float8_152
+
 
 def createLUT_for_int8_to_float(exp_bits, bias) -> array.array[float]:
     """Create a LUT to convert an int in range 0-255 representing a float8 into a Python float"""

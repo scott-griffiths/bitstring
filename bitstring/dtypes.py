@@ -77,7 +77,7 @@ class MetaDtype:
 
 class Register:
 
-    _instance = None
+    _instance: Optional[Register] = None
 
     def __new__(cls) -> Register:
         if cls._instance is None:
