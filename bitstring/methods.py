@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from bitstring.bits import Bits
 from bitstring.bitstream import BitStream
-from bitstring.utils import tokenparser, VARIABLE_LENGTH_TOKENS
+from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
 from typing import Union, List
 from bitstring.bitstore import BitStore
@@ -93,7 +93,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
         s = BitStream()
         if Bits._options.lsb0:
             for name, _, _ in tokens:
-                if name in VARIABLE_LENGTH_TOKENS:
+                if name in Bits._register.unknowable_length_names():
                     raise CreationError(f"Variable length tokens ('{name}') cannot be used in lsb0 mode.")
             for b in bsl[::-1]:
                 s._bitstore += b

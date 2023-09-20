@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 from bitstring.exceptions import InterpretError
 from bitstring.bits import Bits
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 
 class Dtype:
@@ -109,6 +109,10 @@ class Register:
                 raise ValueError(f"Invalid Dtype: {e.msg}")
         return d
 
+    # TODO: This should be only calculated if the register has been altered since the last time it was called.
+    @classmethod
+    def unknowable_length_names(cls) -> List[str]:
+        return [dt_name for dt_name in cls.name_to_meta_dtype if cls.name_to_meta_dtype[dt_name].is_unknown_length]
 
 
 

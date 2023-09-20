@@ -191,7 +191,8 @@ for dt_name in register.name_to_meta_dtype:
         setattr(BitArray, dt_name, property(fget=dt.get_fn, fset=dt.set_fn, doc=f"The bitstring as {dt.description}. Read and write."))
 
 init_names = [dt_name for dt_name in register.name_to_meta_dtype]
-initialise_constants(init_names)
+unknowable_length_names = register.unknowable_length_names()
+initialise_constants(init_names, unknowable_length_names)
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',

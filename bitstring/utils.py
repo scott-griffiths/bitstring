@@ -9,15 +9,17 @@ byteorder: str = sys.byteorder
 
 
 TOKEN_RE: Pattern[str] = None
-def initialise_constants(init_names: List[str]) -> None:
-    global TOKEN_RE
+# Tokens which have an unknowable (in advance) length, so it must not be supplied.
+VARIABLE_LENGTH_TOKENS: List[str] = None
+
+def initialise_constants(init_names: List[str], unknowable_length_names: List[str]) -> None:
+    global TOKEN_RE, VARIABLE_LENGTH_TOKENS
     init_names.sort(key=len, reverse=True)
     TOKEN_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
+    VARIABLE_LENGTH_TOKENS  = unknowable_length_names
 
 CACHE_SIZE = 256
 
-# Tokens such as 'u32', 'f64=4.5' or 'i6=-3'
-SHORT_TOKEN_RE: Pattern[str] = re.compile(r'^(?P<name>[uifboh]):?(?P<len>\d+)?(=(?P<value>.*))?$')
 DEFAULT_BITS: Pattern[str] = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
 
 # A string followed by optional : then an integer number
@@ -64,9 +66,6 @@ ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = {'bool': 1,
                                               'bfloat': 16,
                                               'float8_143': 8,
                                               'float8_152': 8}
-
-# Tokens which have an unknowable (in advance) length, so it must not be supplied.
-VARIABLE_LENGTH_TOKENS: List[str] = ['ue', 'se', 'uie', 'sie']
 
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
@@ -146,25 +145,13 @@ def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
         length = m1.group('len')
         value = m1.group('value')
     else:
-        m1_short = SHORT_TOKEN_RE.match(token)
-        if m1_short:
-            name = m1_short.group('name')
-            name = {'u': 'uint',
-                    'i': 'int',
-                    'f': 'float',
-                    'b': 'bin',
-                    'o': 'oct',
-                    'h': 'hex'}[name]
-            length = m1_short.group('len')
-            value = m1_short.group('value')
-        else:
-            # If you don't specify a 'name' then the default is 'bits':
-            name = 'bits'
-            m2 = DEFAULT_BITS.match(token)
-            if not m2:
-                raise ValueError(f"Don't understand token '{token}'.")
-            length = m2.group('len')
-            value = m2.group('value')
+        # If you don't specify a 'name' then the default is 'bits':
+        name = 'bits'
+        m2 = DEFAULT_BITS.match(token)
+        if not m2:
+            raise ValueError(f"Don't understand token '{token}'.")
+        length = m2.group('len')
+        value = m2.group('value')
 
     if name in ALWAYS_FIXED_LENGTH_TOKENS.keys():
         token_length = str(ALWAYS_FIXED_LENGTH_TOKENS[name])

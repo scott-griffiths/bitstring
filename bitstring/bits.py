@@ -14,7 +14,7 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
-from bitstring.utils import tokenparser, VARIABLE_LENGTH_TOKENS
+from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError, InterpretError, ReadError, Error
 from bitstring.fp8 import fp143_fmt, fp152_fmt
 from bitstring.bitstore import BitStore, offset_slice_indices_lsb0
@@ -1399,13 +1399,13 @@ class Bits:
             name, length, _ = token
             length = convert_length_strings(length)
             if stretchy_token:
-                if name in VARIABLE_LENGTH_TOKENS:
+                if name in Bits._register.unknowable_length_names():
                     raise Error(f"It's not possible to parse a variable length token ('{name}') after a 'filler' token.")
                 else:
                     if length is None:
                         raise Error("It's not possible to have more than one 'filler' token.")
                     bits_after_stretchy_token += length
-            if length is None and name not in VARIABLE_LENGTH_TOKENS:
+            if length is None and name not in Bits._register.unknowable_length_names():
                 assert not stretchy_token
                 stretchy_token = token
         bits_left = self.len - pos
