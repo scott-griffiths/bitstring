@@ -9,21 +9,23 @@ byteorder: str = sys.byteorder
 
 
 TOKEN_RE: Pattern[str] = None
+
+# A token name followed by optional : then an integer number
+TOKEN_INT_RE: Pattern[str] = None
+
 # Tokens which have an unknowable (in advance) length, so it must not be supplied.
-VARIABLE_LENGTH_TOKENS: List[str] = None
+UNKNOWABLE_LENGTH_TOKENS: List[str] = None
 
 def initialise_constants(init_names: List[str], unknowable_length_names: List[str]) -> None:
-    global TOKEN_RE, VARIABLE_LENGTH_TOKENS
+    global TOKEN_RE, TOKEN_INT_RE, UNKNOWABLE_LENGTH_TOKENS
     init_names.sort(key=len, reverse=True)
     TOKEN_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
-    VARIABLE_LENGTH_TOKENS  = unknowable_length_names
+    TOKEN_INT_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<length>\d*)$')
+    UNKNOWABLE_LENGTH_TOKENS  = unknowable_length_names
 
 CACHE_SIZE = 256
 
 DEFAULT_BITS: Pattern[str] = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
-
-# A string followed by optional : then an integer number
-STR_INT_RE: Pattern[str] = re.compile(r'^(?P<string>.+?):?(?P<integer>\d*)$')
 
 MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
 
@@ -90,6 +92,7 @@ def structparser(m: Match[str]) -> List[str]:
         tokens = [REPLACEMENTS_BE[c] for c in fmt]
     return tokens
 
+
 @functools.lru_cache(CACHE_SIZE)
 def parse_name_length_token(fmt: str) -> Tuple[str, int]:
     # Any single token with just a name and length
@@ -104,28 +107,18 @@ def parse_name_length_token(fmt: str) -> Tuple[str, int]:
         else:
             assert endian in '=@'
             fmt = REPLACEMENTS_NE[f]
-    m2 = STR_INT_RE.match(fmt)
+    m2 = TOKEN_INT_RE.match(fmt)
     if m2:
-        name = m2.group('string')
-        length_str = m2.group('integer')
+        name = m2.group('name')
+        length_str = m2.group('length')
         length = 0 if length_str == '' else int(length_str)
     else:
         raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
-    if name in 'uifboh':
-        name = {'u': 'uint',
-                'i': 'int',
-                'f': 'float',
-                'b': 'bin',
-                'o': 'oct',
-                'h': 'hex'}[name]
-    if name in VARIABLE_LENGTH_TOKENS:
+
+    if name in UNKNOWABLE_LENGTH_TOKENS:
         if length is not None:
             raise ValueError(
                 f"The token '{name}' has a variable length and can't be given the fixed length of {length}.")
-
-    if name == 'float8_':
-        name += str(length)
-        length = 8
 
     if name in ALWAYS_FIXED_LENGTH_TOKENS.keys():
         token_length = ALWAYS_FIXED_LENGTH_TOKENS[name]
@@ -136,6 +129,7 @@ def parse_name_length_token(fmt: str) -> Tuple[str, int]:
     if length is None:
         length = 0
     return name, length
+
 
 @functools.lru_cache(CACHE_SIZE)
 def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
@@ -218,7 +212,7 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
 
             name, length, value = parse_single_token(token)
 
-            if name in VARIABLE_LENGTH_TOKENS:
+            if name in UNKNOWABLE_LENGTH_TOKENS:
                 if length is not None:
                     raise ValueError(f"The token '{name}' has a variable length and can't be given the fixed length of {length}.")
             else:
