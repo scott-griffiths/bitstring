@@ -19,9 +19,10 @@ UNKNOWABLE_LENGTH_TOKENS: List[str] = None
 def initialise_constants(init_names: List[str], unknowable_length_names: List[str]) -> None:
     global TOKEN_RE, TOKEN_INT_RE, UNKNOWABLE_LENGTH_TOKENS
     init_names.sort(key=len, reverse=True)
-    TOKEN_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
+    TOKEN_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$')
     TOKEN_INT_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<length>\d*)$')
-    UNKNOWABLE_LENGTH_TOKENS  = unknowable_length_names
+    UNKNOWABLE_LENGTH_TOKENS = unknowable_length_names
+
 
 CACHE_SIZE = 256
 
@@ -240,6 +241,8 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
     return stretchy_token, list(return_values)
 
 
+BRACKET_RE = re.compile(r'(?P<factor>\d+)\*\(')
+
 def expand_brackets(s: str) -> str:
     """Expand all brackets."""
     while True:
@@ -262,8 +265,7 @@ def expand_brackets(s: str) -> str:
             s = s[0:start] + s[start + 1:p] + s[p + 1:]
         else:
             # Looks for first number*(
-            bracket_re = re.compile(r'(?P<factor>\d+)\*\(')
-            m = bracket_re.search(s)
+            m = BRACKET_RE.search(s)
             if m:
                 factor = int(m.group('factor'))
                 matchstart = m.start('factor')

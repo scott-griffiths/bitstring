@@ -8,6 +8,8 @@ from bitstring import Array, Bits, BitArray
 import copy
 import itertools
 import io
+from bitstring.dtypes import Dtype
+
 
 sys.path.insert(0, '..')
 
@@ -70,7 +72,7 @@ class Creation(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.dtype = 'se'
         self.assertEqual(a[-1], 1.0)
-        self.assertEqual(a.dtype, '>d')
+        self.assertEqual(a.dtype, Dtype('>d'))
 
     def testChangingFormatWithTrailingBits(self):
         a = Array('bool', 803)
@@ -509,7 +511,7 @@ class ArrayMethods(unittest.TestCase):
         a = Array('bfloat', [-3, 1, 2])
         s = io.StringIO()
         a.pp('hex', stream=s)
-        self.assertEqual(s.getvalue(),  "<Array fmt='hex16', length=3, itemsize=16 bits, total data size=6 bytes>\n"
+        self.assertEqual(s.getvalue(),  "<Array fmt='hex', length=3, itemsize=16 bits, total data size=6 bytes>\n"
                                         "[\n"
                                         "c040 3f80 4000\n"
                                         "]\n")
@@ -564,7 +566,7 @@ c040 3f80 4000
         a = Array('float16', bytearray(range(50, 56)))
         s = io.StringIO()
         a.pp(stream=s, fmt='u, b')
-        self.assertEqual(s.getvalue(), """<Array fmt='u, b16', length=3, itemsize=16 bits, total data size=6 bytes>
+        self.assertEqual(s.getvalue(), """<Array fmt='u, b', length=3, itemsize=16 bits, total data size=6 bytes>
 [
 12851 13365 13879 : 0011001000110011 0011010000110101 0011011000110111
 ]\n""")
@@ -642,7 +644,7 @@ class ArrayOperations(unittest.TestCase):
         b = a & '0x0001'
         self.assertEqual(b.tolist(), [1, 0, 1])
         b = a & '0xffff'
-        self.assertEqual(b.dtype, 'int16')
+        self.assertEqual(b.dtype, Dtype('int16'))
         self.assertEqual(b.tolist(), [-1, 100, 9])
 
     def testInPlaceAnd(self):
@@ -730,7 +732,7 @@ class ArrayOperations(unittest.TestCase):
         a = Array('i92', [-1, 1, 0, 100, -100])
         b = -a
         self.assertEqual(b.tolist(), [1, -1, 0, -100, 100])
-        self.assertEqual(b.dtype, 'int92')
+        self.assertEqual(str(b.dtype), 'int92')
 
     def testAbs(self):
         a = Array('float16', [-2.0, 0, -0, 100, -5.5])
@@ -760,21 +762,21 @@ class SameSizeArrayOperations(unittest.TestCase):
         b = Array('u8', [5, 5, 5, 4])
         c = a + b
         self.assertEqual(c.tolist(), [6, 7, 8, 8])
-        self.assertEqual(c.dtype, 'uint8')
+        self.assertEqual(c.dtype, Dtype('uint8'))
 
     def testAddingDifferentTypes(self):
         a = Array('u8', [1, 2, 3, 4])
         b = Array('i6', [5, 5, 5, 4])
         c = a + b
         self.assertEqual(c.tolist(), [6, 7, 8, 8])
-        self.assertEqual(c.dtype, 'int6')
+        self.assertEqual(c.dtype, Dtype('int6'))
         d = Array('float16', [-10, 0, 5, 2])
         e = d + a
         self.assertEqual(e.tolist(), [-9.0, 2.0, 8.0, 6.0])
-        self.assertEqual(e.dtype, 'float16')
+        self.assertEqual(e.dtype, Dtype('float16'))
         e = a + d
         self.assertEqual(e.tolist(), [-9.0, 2.0, 8.0, 6.0])
-        self.assertEqual(e.dtype, 'float16')
+        self.assertEqual(e.dtype, Dtype('float16'))
         x1 = a[:]
         x2 = a[:]
         x1.dtype = 'float8_152'
@@ -801,14 +803,14 @@ class ComparisonOperators(unittest.TestCase):
         a = Array('u16', [14, 16, 100, 2, 100])
         b = a < 80
         self.assertEqual(b.tolist(), [True, True, False, True, False])
-        self.assertEqual(b.dtype, 'bool')
+        self.assertEqual(b.dtype, Dtype('bool'))
 
     def testLessThanWithArray(self):
         a = Array('u16', [14, 16, 100, 2, 100])
         b = Array('bfloat', [1000, -54, 0.2, 55, 9])
         c = a < b
         self.assertEqual(c.tolist(), [True, False, False, True, False])
-        self.assertEqual(c.dtype, 'bool')
+        self.assertEqual(c.dtype, Dtype('bool'))
 
     def testArrayEquals(self):
         a = Array('i12', [1, 2, -3, 4, -5, 6])
@@ -823,13 +825,13 @@ class AsType(unittest.TestCase):
         a = Array('u8', [15, 42, 1])
         b = a.astype('i8')
         self.assertEqual(a.tolist(), b.tolist())
-        self.assertEqual(b.dtype, 'i8')
+        self.assertEqual(b.dtype, Dtype('i8'))
 
     def testSwitchingFloatTypes(self):
         a = Array('float64', [-990, 34, 1, 0.25])
         b = a.astype('float16')
         self.assertEqual(a.tolist(), b.tolist())
-        self.assertEqual(b.dtype, 'float16')
+        self.assertEqual(b.dtype, Dtype('float16'))
 
 
 class ReverseMethods(unittest.TestCase):

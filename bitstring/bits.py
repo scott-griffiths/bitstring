@@ -11,7 +11,7 @@ import io
 from collections import abc
 import functools
 from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
-    BinaryIO, TextIO, Callable, overload, Iterator, Type, TypeVar
+    BinaryIO, TextIO, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
 from bitstring.utils import tokenparser

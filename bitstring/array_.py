@@ -108,8 +108,8 @@ class Array:
                                         'd': 'floatne64'}
 
     @property
-    def dtype(self) -> str:
-        return self._fmt
+    def dtype(self) -> Dtype:
+        return self._dtype
 
     @dtype.setter
     def dtype(self, new_dtype: Union[str, Dtype]) -> None:
@@ -354,28 +354,30 @@ class Array:
 
         """
         sep = ' '
-        fmt_is_dtype = False
-        if fmt is None:
-            fmt = self.dtype
-            fmt_is_dtype = True
+        number_of_fmts = 1
 
-        tokens = tokenparser(fmt)[1]
-        token_names_and_lengths = [(x[0], x[1]) for x in tokens]
-        if len(token_names_and_lengths) not in [1, 2]:
-            raise ValueError(
-                f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {len(token_names_and_lengths)} tokens.")
-        token_name, token_length = token_names_and_lengths[0]
+        if fmt is None:
+            token_name, token_length = self.dtype.name, self.dtype.length
+            parameter_str = f"dtype='{self.dtype}'"
+        else:
+            tokens = tokenparser(fmt)[1]
+            token_names_and_lengths = [(x[0], x[1]) for x in tokens]
+            number_of_fmts = len(token_names_and_lengths)
+            if number_of_fmts not in [1, 2]:
+                raise ValueError(
+                    f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {number_of_fmts} tokens.")
+            token_name, token_length = token_names_and_lengths[0]
+            parameter_str = f"fmt='{fmt}'"
+
         token_name2, token_length2 = None, None
         getter_func2 = None
-        if len(token_names_and_lengths) == 1:
+        if number_of_fmts == 1:
             if token_length is None:
                 token_length = self.itemsize
-                fmt += str(token_length)
-        if len(token_names_and_lengths) == 2:
+        if number_of_fmts == 2:
             token_name2, token_length2 = token_names_and_lengths[1]
             if token_length is None and token_length2 is None:
                 token_length = token_length2 = self.itemsize
-                fmt += str(token_length)
             if token_length is None:
                 token_length = token_length2
             if token_length2 is None:
@@ -406,8 +408,7 @@ class Array:
         else:
             data = self.data[0: -trailing_bit_length]
         length = len(self.data) // token_length
-        parameter_name = "dtype" if fmt_is_dtype else "fmt"
-        stream.write(f"<Array {parameter_name}='{fmt}', length={length}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
+        stream.write(f"<Array {parameter_str}, length={length}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
         data._pp(token_name, token_name2, token_length, width, sep, format_sep, show_offset, stream, False, token_length, getter_func, getter_func2)
         stream.write("]")
         if trailing_bit_length != 0:

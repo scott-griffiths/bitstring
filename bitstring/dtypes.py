@@ -3,26 +3,41 @@ from __future__ import annotations
 import functools
 from bitstring.exceptions import InterpretError
 from bitstring.bits import Bits
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
+from bitstring.utils import parse_name_length_token
 
 
 class Dtype:
 
-    def __init__(self, name: str, length: Optional[int], set_fn, read_fn, get_fn, is_integer, is_float, is_signed,
-                 is_unknown_length, is_fixed_length) -> None:
-        self.name = name
-        self.length = length
-        self.read_fn = functools.partial(read_fn, length=length)
-        if set_fn is None:
-            self.set_fn = None
+    __slots__ = ('name', 'length', 'read_fn', 'set_fn', 'get_fn', 'is_integer', 'is_signed', 'is_float', 'is_fixed_length', 'is_unknown_length')
+
+    def __new__(cls, token: Optional[str] = None) -> Dtype:
+        if token is not None:
+            register = Register()
+            name, length = parse_name_length_token(token)
+            d = register.get_dtype(name, length)
+            return d
         else:
-            self.set_fn = functools.partial(set_fn, length=length)
-        self.get_fn = get_fn
-        self.is_integer = is_integer
-        self.is_signed = is_signed
-        self.is_float = is_float
-        self.is_fixed_length = is_fixed_length
-        self.is_unknown_length = is_unknown_length
+            return super(Dtype, cls).__new__(cls)
+
+    @classmethod
+    def create(cls, name: str, length: Optional[int], set_fn, read_fn, get_fn, is_integer, is_float, is_signed,
+               is_unknown_length, is_fixed_length) -> Dtype:
+        x = cls.__new__(cls)
+        x.name = name
+        x.length = length
+        x.read_fn = functools.partial(read_fn, length=length)
+        if set_fn is None:
+            x.set_fn = None
+        else:
+            x.set_fn = functools.partial(set_fn, length=length)
+        x.get_fn = get_fn
+        x.is_integer = is_integer
+        x.is_signed = is_signed
+        x.is_float = is_float
+        x.is_fixed_length = is_fixed_length
+        x.is_unknown_length = is_unknown_length
+        return x
 
     def __str__(self) -> str:
         length_str = '' if (self.length == 0 or self.is_fixed_length) else str(self.length)
@@ -31,6 +46,11 @@ class Dtype:
     def __repr__(self) -> str:
         s = self.__str__()
         return f"{self.__class__.__name__}('{s}')"
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, Dtype):
+            return self.name == other.name and self.length == other.length
+        return False
 
 
 class MetaDtype:
@@ -61,8 +81,8 @@ class MetaDtype:
         if length is None:
             if not self.is_fixed_length and not self.is_unknown_length:
                 raise ValueError(f"No length given for dtype '{self.name}', and meta type is not fixed length.")
-            d = Dtype(self.name, None, self.set_fn, self.read_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
-                      self.is_unknown_length, self.is_fixed_length)
+            d = Dtype.create(self.name, None, self.set_fn, self.read_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
+                             self.is_unknown_length, self.is_fixed_length)
             return d
         if self.is_unknown_length:
             raise ValueError("Length shouldn't be supplied for dtypes that are variable length.")
@@ -70,8 +90,8 @@ class MetaDtype:
             if length != 0 and length != self.length:
                 raise ValueError  # TODO
             length = self.length
-        d = Dtype(self.name, length, self.set_fn, self.read_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
-                  self.is_unknown_length, self.is_fixed_length)
+        d = Dtype.create(self.name, length, self.set_fn, self.read_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
+                         self.is_unknown_length, self.is_fixed_length)
         return d
 
 
