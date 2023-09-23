@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import functools
-from bitstring.exceptions import InterpretError
+from bitstring.exceptions import InterpretError, CreationError
 from bitstring.bits import Bits
 from typing import Optional, Dict, List, Any
 from bitstring.utils import parse_name_length_token
@@ -9,7 +9,7 @@ from bitstring.utils import parse_name_length_token
 
 class Dtype:
 
-    __slots__ = ('name', 'length', 'read_fn', 'set_fn', 'get_fn', 'is_integer', 'is_signed', 'is_float', 'is_fixed_length', 'is_unknown_length')
+    __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'is_integer', 'is_signed', 'is_float', 'is_fixed_length', 'is_unknown_length')
 
     def __new__(cls, token: Optional[str] = None) -> Dtype:
         if token is not None:
@@ -20,17 +20,23 @@ class Dtype:
         else:
             return super(Dtype, cls).__new__(cls)
 
+    def __hash__(self) -> int:
+        return 0  # TODO: Optimise :)
+
     @classmethod
-    def create(cls, name: str, length: Optional[int], set_fn, read_fn, get_fn, is_integer, is_float, is_signed,
-               is_unknown_length, is_fixed_length) -> Dtype:
+    def create(cls, name: str, length: Optional[int], set_fn, read_fn, get_fn, is_integer: bool, is_float: bool, is_signed: bool,
+               is_unknown_length: bool, is_fixed_length: bool, length_multiplier: Optional[int]) -> Dtype:
         x = cls.__new__(cls)
         x.name = name
         x.length = length
-        x.read_fn = functools.partial(read_fn, length=length)
+        x.bitlength = length
+        if length_multiplier is not None:
+            x.bitlength *= length_multiplier
+        x.read_fn = functools.partial(read_fn, length=x.bitlength)
         if set_fn is None:
             x.set_fn = None
         else:
-            x.set_fn = functools.partial(set_fn, length=length)
+            x.set_fn = functools.partial(set_fn, length=x.bitlength)
         x.get_fn = get_fn
         x.is_integer = is_integer
         x.is_signed = is_signed
@@ -57,7 +63,7 @@ class MetaDtype:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
     def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, is_integer: bool, is_float: bool, is_signed: bool,
-                 is_unknown_length: bool, length: Optional[int] = None):
+                 is_unknown_length: bool, length: Optional[int] = None, length_multiplier: Optional[int] = None):
         # Consistency checks
         if is_unknown_length and length is not None:
             raise ValueError("Can't set is_unknown_length and give a value for length.")
@@ -72,6 +78,7 @@ class MetaDtype:
         self.is_fixed_length = length is not None
         self.is_unknown_length = is_unknown_length
         self.length = length
+        self.length_multiplier = length_multiplier
 
         self.set_fn = set_fn
         self.read_fn = read_fn  # With a start and usually a length
@@ -82,7 +89,7 @@ class MetaDtype:
             if not self.is_fixed_length and not self.is_unknown_length:
                 raise ValueError(f"No length given for dtype '{self.name}', and meta type is not fixed length.")
             d = Dtype.create(self.name, None, self.set_fn, self.read_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
-                             self.is_unknown_length, self.is_fixed_length)
+                             self.is_unknown_length, self.is_fixed_length, self.length_multiplier)
             return d
         if self.is_unknown_length:
             raise ValueError("Length shouldn't be supplied for dtypes that are variable length.")
@@ -91,7 +98,7 @@ class MetaDtype:
                 raise ValueError  # TODO
             length = self.length
         d = Dtype.create(self.name, length, self.set_fn, self.read_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
-                         self.is_unknown_length, self.is_fixed_length)
+                         self.is_unknown_length, self.is_fixed_length, self.length_multiplier)
         return d
 
 
@@ -100,6 +107,7 @@ class Register:
     _instance: Optional[Register] = None
 
     def __new__(cls) -> Register:
+        # Singleton. Only one Register instance can ever exist.
         if cls._instance is None:
             cls._instance = super(Register, cls).__new__(cls)
             cls.name_to_meta_dtype: Dict[str, MetaDtype] = {}
@@ -122,11 +130,16 @@ class Register:
         d = meta_type.getDtype(length)
         # Test if the length makes sense by trying out the getter.  # TODO: Optimise!
         if length != 0 and not d.is_unknown_length:
-            temp = Bits(length)
+            if meta_type.length_multiplier is not None:
+                length *= meta_type.length_multiplier
+            try:
+                temp = Bits(length)
+            except CreationError as e:
+                raise ValueError(f"Invalid Dtype: {e}")
             try:
                 _ = d.read_fn(temp, 0)
             except InterpretError as e:
-                raise ValueError(f"Invalid Dtype: {e.msg}")
+                raise ValueError(f"Invalid Dtype: {e}")
         return d
 
     # TODO: This should be only calculated if the register has been altered since the last time it was called.

@@ -68,7 +68,7 @@ from .bitstream import ConstBitStream, BitStream
 from .methods import pack
 from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
-from .dtypes import MetaDtype, Register
+from .dtypes import MetaDtype, Register, Dtype
 import types
 from typing import List, Tuple
 from .utils import initialise_constants
@@ -151,7 +151,7 @@ dtypes = [
     MetaDtype('bits', 'a bitstring object',
               Bits._setbits, Bits._readbits, None, False, False, False, False, None),
     MetaDtype('bytes', 'a bytes object',
-              Bits._setbytes, Bits._readbytes, Bits._getbytes,False, False, False, False, None),
+              Bits._setbytes, Bits._readbytes, Bits._getbytes,False, False, False, False, None, 8),
     MetaDtype('bool', 'a bool (True or False)',
               Bits._setbool, Bits._readbool, Bits._getbool, True, False, False, False, 1),
     MetaDtype('se', 'a signed exponential-Golomb code',
@@ -197,4 +197,4 @@ initialise_constants(init_names, unknowable_length_names)
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
-           'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0']
+           'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype']

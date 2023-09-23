@@ -11,6 +11,7 @@ from bitstring.exceptions import CreationError, InterpretError
 from bitstring.fp8 import fp143_fmt, fp152_fmt
 from bitstring.bitstore import BitStore
 
+
 byteorder: str = sys.byteorder
 
 # The size of various caches used to improve performance

@@ -94,8 +94,8 @@ class Bits:
 
     __slots__ = ('_bitstore')
 
-    _options = None
-    _register = None
+    _options: Optional[Options] = None
+    _register: Optional[Register] = None
 
     @classmethod
     def _initialise_options(cls):
@@ -669,7 +669,7 @@ class Bits:
     def _readbytes(self, start: int, length: int) -> bytes:
         """Read bytes and return them. Note that length is in bits."""
         assert length % 8 == 0
-        assert start + length <= self.len
+        # assert start + length <= self.len
         return self._bitstore.getslice(slice(start, start + length, None)).tobytes()
 
     def _getbytes(self) -> bytes:
@@ -1198,17 +1198,17 @@ class Bits:
 
     def _readtoken(self, name: str, pos: int, length: Optional[int]) -> Tuple[Union[float, int, str, None, Bits], int]:
         """Reads a token from the bitstring and returns the result."""
-        if length is not None and length > self.length - pos:
-            raise ReadError("Reading off the end of the data. "
-                            f"Tried to read {length} bits when only {self.length - pos} available.")
         dtype = Bits._register.get_dtype(name, length)
+        if dtype.bitlength is not None and dtype.bitlength > self.length - pos:
+            raise ReadError("Reading off the end of the data. "
+                            f"Tried to read {dtype.bitlength} bits when only {self.length - pos} available.")
         try:
             val = dtype.read_fn(self, pos)
             if isinstance(val, tuple):
                 return val
             else:
                 assert length is not None
-                return val, pos + length
+                return val, pos + dtype.bitlength
         except KeyError:
             raise ValueError(f"Can't parse token {name}:{length}")
 
@@ -1362,8 +1362,6 @@ class Bits:
             if isinstance(length_, str):
                 if length_ in kwargs:
                     int_length = kwargs[length_]
-                    if name == 'bytes':
-                        int_length *= 8
             else:
                 int_length = length_
             return int_length
@@ -1398,6 +1396,10 @@ class Bits:
         for token in tokens:
             name, length, _ = token
             length = convert_length_strings(length)
+            # TODO: Ugly. But not as ugly as the opposite bit of code later on. This converts currently just bytes lengths.
+            lm = Bits._register.name_to_meta_dtype[name].length_multiplier
+            if lm is not None and length is not None:
+                length *= lm
             if stretchy_token:
                 if name in Bits._register.unknowable_length_names():
                     raise Error(f"It's not possible to parse a variable length token ('{name}') after a 'filler' token.")
@@ -1415,7 +1417,12 @@ class Bits:
             if token is stretchy_token:
                 # Set length to the remaining bits
                 length = max(bits_left - bits_after_stretchy_token, 0)
+                # TODO: Very ugly. This converts our bitlength back to a token length (i.e. for bytes token where each length is a bytes)
+                lm = Bits._register.name_to_meta_dtype[name].length_multiplier
+                if lm is not None:
+                    length //= lm
             length = convert_length_strings(length)
+
             value, newpos = self._readtoken(name, pos, length)
             bits_left -= newpos - pos
             pos = newpos

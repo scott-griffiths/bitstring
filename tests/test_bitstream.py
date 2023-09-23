@@ -3266,12 +3266,12 @@ class AllAndAny(unittest.TestCase):
             a.rol(-1)
 
     def testBytesToken(self):
-        a = BitStream('0x010203')
+        a = BitStream('0x510203')
         b = a.read('bytes:1')
         self.assertTrue(isinstance(b, bytes))
-        self.assertEqual(b, b'\x01')
+        self.assertEqual(b, b'\x51')
         x, y, z = a.unpack('uint:4, bytes:2, uint')
-        self.assertEqual(x, 0)
+        self.assertEqual(x, 5)
         self.assertEqual(y, b'\x10\x20')
         self.assertEqual(z, 3)
         s = pack('bytes:4', b'abcd')
@@ -3770,7 +3770,7 @@ class UnpackWithDict(unittest.TestCase):
         a = pack('uint:p=33', p=12)
         with self.assertRaises(ValueError):
             a.unpack('uint:p')
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             a.unpack('uint:p', p='a_string')
 
 

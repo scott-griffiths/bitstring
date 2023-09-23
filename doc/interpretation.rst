@@ -11,6 +11,15 @@ Note that these properties can potentially be very expensive in terms of both co
 
 If you're in an interactive session then the pretty-print method :meth:`~Bits.pp` can be useful as it will only convert the bitstring one chunk at a time for display.
 
+Dtypes
+------
+
+A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to create, parse and present different bit interpretations.
+
+.. class:: Dtype(token: str | None = None)
+
+    Creates a :class:`Dtype` object based on the `token` string.
+
 
 Short Interpretations
 ---------------------

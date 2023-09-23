@@ -95,7 +95,7 @@ def structparser(m: Match[str]) -> List[str]:
 
 
 @functools.lru_cache(CACHE_SIZE)
-def parse_name_length_token(fmt: str) -> Tuple[str, int]:
+def parse_name_length_token(fmt: str) -> Tuple[str, Optional[int]]:
     # Any single token with just a name and length
     m = SINGLE_STRUCT_PACK_RE.match(fmt)
     if m:
@@ -127,8 +127,8 @@ def parse_name_length_token(fmt: str) -> Tuple[str, int]:
             raise ValueError(f"{name} tokens can only be {token_length} bits long, not {length} bits.")
         length = token_length
 
-    if length is None:
-        length = 0
+    # if length is None:
+    #     length = 0
     return name, length
 
 
@@ -226,9 +226,6 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
                     length = int(length)
                     if length < 0:
                         raise Error
-                    # For the 'bytes' token convert length to bits.
-                    if name == 'bytes':
-                        length *= 8
                 except Error:
                     raise ValueError("Can't read a token with a negative length.")
                 except ValueError:

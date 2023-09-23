@@ -4,6 +4,7 @@ from bitstring.bits import Bits, BitsType
 from bitstring.bitarray import BitArray
 from bitstring.utils import tokenparser
 from bitstring.exceptions import ReadError, ByteAlignError, CreationError, InterpretError
+from bitstring.dtypes import Dtype
 from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
 import copy
 import numbers
@@ -276,7 +277,7 @@ class ConstBitStream(Bits):
     def read(self, fmt: str) -> Any:
         ...
 
-    def read(self, fmt: Union[int, str]) -> Union[int, float, str, Bits, bool, bytes, None]:
+    def read(self, fmt: Union[int, str, Dtype]) -> Union[int, float, str, Bits, bool, bytes, None]:
         """Interpret next bits according to the format string and return result.
 
         fmt -- Token string describing how to interpret the next bits.
@@ -320,6 +321,7 @@ class ConstBitStream(Bits):
             bs = self._slice(self._pos, self._pos + fmt)
             self._pos += fmt
             return bs
+
         p = self._pos
         _, token = tokenparser(fmt)
         if len(token) != 1:
