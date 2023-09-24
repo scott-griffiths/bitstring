@@ -124,8 +124,8 @@ Many require the bitstring to be specific lengths.
 * :attr:`~Bits.float` / ``floatbe`` / ``f`` -- Interpret as a big-endian floating point number.
 * :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
 * :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
-* :attr:`~Bits.float8_143` -- Interpret as an 8 bit float with 1:4:3 format.
-* :attr:`~Bits.float8_152` -- Interpret as an 8 bit float with 1:5:2 format.
+* :attr:`~Bits.e4m3float` -- Interpret as an 8 bit float with 1:4:3 format.
+* :attr:`~Bits.e5m2float` -- Interpret as an 8 bit float with 1:5:2 format.
 * :attr:`~Bits.bfloat` / ``bfloatbe`` -- Interpret as a big-endian bfloat floating point number.
 * :attr:`~Bits.bfloatle` -- Interpret as a little-endian bfloat floating point number.
 * :attr:`~Bits.bfloatne` -- Interpret as a native-endian bfloat floating point number.
@@ -399,8 +399,8 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
 ``'bfloatbe[:16]'`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
 ``'bfloatle[:16]'`` 16 bits as a little-endian floating point number.
 ``'bfloatne[:16]'`` 16 bits as a native-endian floating point number.
-``'float8_143'``    8 bits as a 1:4:3 format floating point number.
-``'float8_152'``    8 bits as a 1:5:2 format floating point number.
+``'e4m3float'``    8 bits as a 1:4:3 format floating point number.
+``'e5m2float'``    8 bits as a 1:5:2 format floating point number.
 ``'hex:n'``         ``n`` bits as a hexadecimal string.
 ``'oct:n'``         ``n`` bits as an octal string.
 ``'bin:n'``         ``n`` bits as a binary string.

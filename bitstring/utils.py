@@ -66,8 +66,8 @@ REPLACEMENTS_NE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
 # Tokens which are always the same length, so it doesn't need to be supplied.
 ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = {'bool': 1,
                                               'bfloat': 16,
-                                              'float8_143': 8,
-                                              'float8_152': 8}
+                                              'e4m3float': 8,
+                                              'e5m2float': 8}
 
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,

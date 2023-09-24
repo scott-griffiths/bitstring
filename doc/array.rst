@@ -42,7 +42,7 @@ Array
         a = Array('uint4', [0, 5, 5, 3, 2])
 
         # Convert and store floats in 8 bits each
-        b = Array('float8_152', [-56.0, 0.123, 99.6])
+        b = Array('e5m2float', [-56.0, 0.123, 99.6])
 
         # Each element is a  7 bit signed integer
         c = Array('int7', [-3, 0, 120])
@@ -63,9 +63,9 @@ Array
         >>> y = x.astype('float16')
         >>> y
         Array('float16', [89.3125, inf, -0.0, 34.0])
-        >>> y = y.astype('float8_143')
+        >>> y = y.astype('e4m3float')
         >>> y
-        Array('float8_143', [88.0, 240.0, 0.0, 32.0])
+        Array('e4m3float', [88.0, 240.0, 0.0, 32.0])
         >>> y.astype('uint8')
         Array('uint8', [88, 240, 0, 32])
         >>> y.astype('uint7')
@@ -234,10 +234,10 @@ Methods
 
     Insert an item at a given position. ::
 
-        >>> a = Array('float8_152', [-10, -5, -0.5, 5, 10])
+        >>> a = Array('e5m2float', [-10, -5, -0.5, 5, 10])
         >>> a.insert(3, 0.5)
         >>> a
-        Array('float8_152', [-10.0, -5.0, -0.5, 0.5, 5.0, 10.0])
+        Array('e5m2float', [-10.0, -5.0, -0.5, 0.5, 5.0, 10.0])
 
 
 .. method:: Array.pop(i: int | None = None) -> float | int | str | bytes

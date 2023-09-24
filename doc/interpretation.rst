@@ -120,7 +120,7 @@ This is a specialised 16-bit floating point format that is essentially a truncat
 
 See :ref:`Exotic floats` for more information.
 
-float8_143 / float8_152
+e4m3float / e5m2float
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Specialised 8-bit floating point formats. See :ref:`Exotic floats` for more information.

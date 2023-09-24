@@ -8,7 +8,7 @@ import bitarray
 import bitarray.util
 from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError, InterpretError
-from bitstring.fp8 import fp143_fmt, fp152_fmt
+from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 from bitstring.bitstore import BitStore
 
 byteorder: str = sys.byteorder
@@ -133,15 +133,15 @@ def bfloatle2bitstore(f: Union[str, float]) -> BitStore:
     return BitStore(frombytes=b[2:4])
 
 
-def float8_143_2bitstore(f: Union[str, float]) -> BitStore:
+def e4m3float_2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    u = fp143_fmt.float_to_int8(f)
+    u = e4m3float_fmt.float_to_int8(f)
     return uint2bitstore(u, 8)
 
 
-def float8_152_2bitstore(f: Union[str, float]) -> BitStore:
+def e5m2float_2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    u = fp152_fmt.float_to_int8(f)
+    u = e5m2float_fmt.float_to_int8(f)
     return uint2bitstore(u, 8)
 
 
@@ -274,8 +274,8 @@ name2bitstore_func: Dict[str, Callable[..., BitStore]] = {
     'bfloatbe': bfloat2bitstore,
     'bfloatle': bfloatle2bitstore,
     'bfloatne': bfloatne2bitstore,
-    'float8_143': float8_143_2bitstore,
-    'float8_152': float8_152_2bitstore,
+    'e4m3float': e4m3float_2bitstore,
+    'e5m2float': e5m2float_2bitstore,
 }
 
 # Given a string of the format 'name[:]length=value' get a bitstore representing it by using
