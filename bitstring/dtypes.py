@@ -147,5 +147,13 @@ class Register:
     def unknowable_length_names(cls) -> List[str]:
         return [dt_name for dt_name in cls.name_to_meta_dtype if cls.name_to_meta_dtype[dt_name].is_unknown_length]
 
+    @classmethod
+    def always_fixed_length(cls) -> Dict[str, int]:
+        d: Dict[str, int] = {}
+        for mt in cls.name_to_meta_dtype:
+            if cls.name_to_meta_dtype[mt].is_fixed_length:
+                d[mt] = cls.name_to_meta_dtype[mt].length
+        return d
+
 
 

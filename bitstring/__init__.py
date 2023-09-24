@@ -193,7 +193,9 @@ for dt_name in register.name_to_meta_dtype:
 
 init_names = [dt_name for dt_name in register.name_to_meta_dtype]
 unknowable_length_names = register.unknowable_length_names()
-initialise_constants(init_names, unknowable_length_names)
+always_fixed_length = register.always_fixed_length()
+
+initialise_constants(init_names, unknowable_length_names, always_fixed_length)
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',

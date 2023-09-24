@@ -16,12 +16,16 @@ TOKEN_INT_RE: Pattern[str] = None
 # Tokens which have an unknowable (in advance) length, so it must not be supplied.
 UNKNOWABLE_LENGTH_TOKENS: List[str] = None
 
-def initialise_constants(init_names: List[str], unknowable_length_names: List[str]) -> None:
-    global TOKEN_RE, TOKEN_INT_RE, UNKNOWABLE_LENGTH_TOKENS
+# Tokens which are always the same length, so it doesn't need to be supplied.
+ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = None
+
+def initialise_constants(init_names: List[str], unknowable_length_names: List[str], always_fixed_length: Dict[str, int]) -> None:
+    global TOKEN_RE, TOKEN_INT_RE, UNKNOWABLE_LENGTH_TOKENS, ALWAYS_FIXED_LENGTH_TOKENS
     init_names.sort(key=len, reverse=True)
     TOKEN_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$')
     TOKEN_INT_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<length>\d*)$')
     UNKNOWABLE_LENGTH_TOKENS = unknowable_length_names
+    ALWAYS_FIXED_LENGTH_TOKENS = always_fixed_length
 
 
 CACHE_SIZE = 256
@@ -63,12 +67,6 @@ REPLACEMENTS_NE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
                                    'l': 'intne:32', 'L': 'uintne:32',
                                    'q': 'intne:64', 'Q': 'uintne:64',
                                    'e': 'floatne:16', 'f': 'floatne:32', 'd': 'floatne:64'}
-
-# Tokens which are always the same length, so it doesn't need to be supplied.
-ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = {'bool': 1,
-                                              'bfloat': 16,
-                                              'e4m3float': 8,
-                                              'e5m2float': 8}
 
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
