@@ -49,24 +49,24 @@ STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQefd]')
 
 # These replicate the struct.pack codes
 # Big-endian
-REPLACEMENTS_BE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
-                                   'h': 'intbe:16', 'H': 'uintbe:16',
-                                   'l': 'intbe:32', 'L': 'uintbe:32',
-                                   'q': 'intbe:64', 'Q': 'uintbe:64',
-                                   'e': 'floatbe:16', 'f': 'floatbe:32', 'd': 'floatbe:64'}
+REPLACEMENTS_BE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
+                                   'h': 'intbe16', 'H': 'uintbe16',
+                                   'l': 'intbe32', 'L': 'uintbe32',
+                                   'q': 'intbe64', 'Q': 'uintbe64',
+                                   'e': 'floatbe16', 'f': 'floatbe32', 'd': 'floatbe64'}
 # Little-endian
-REPLACEMENTS_LE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
-                                   'h': 'intle:16', 'H': 'uintle:16',
-                                   'l': 'intle:32', 'L': 'uintle:32',
-                                   'q': 'intle:64', 'Q': 'uintle:64',
-                                   'e': 'floatle:16', 'f': 'floatle:32', 'd': 'floatle:64'}
+REPLACEMENTS_LE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
+                                   'h': 'intle16', 'H': 'uintle16',
+                                   'l': 'intle32', 'L': 'uintle32',
+                                   'q': 'intle64', 'Q': 'uintle64',
+                                   'e': 'floatle16', 'f': 'floatle32', 'd': 'floatle64'}
 
 # Native-endian
-REPLACEMENTS_NE: Dict[str, str] = {'b': 'int:8', 'B': 'uint:8',
-                                   'h': 'intne:16', 'H': 'uintne:16',
-                                   'l': 'intne:32', 'L': 'uintne:32',
-                                   'q': 'intne:64', 'Q': 'uintne:64',
-                                   'e': 'floatne:16', 'f': 'floatne:32', 'd': 'floatne:64'}
+REPLACEMENTS_NE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
+                                   'h': 'intne16', 'H': 'uintne16',
+                                   'l': 'intne32', 'L': 'uintne32',
+                                   'q': 'intne64', 'Q': 'uintne64',
+                                   'e': 'floatne16', 'f': 'floatne32', 'd': 'floatne64'}
 
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
@@ -91,21 +91,9 @@ def structparser(m: Match[str]) -> List[str]:
         tokens = [REPLACEMENTS_BE[c] for c in fmt]
     return tokens
 
-
 @functools.lru_cache(CACHE_SIZE)
 def parse_name_length_token(fmt: str) -> Tuple[str, Optional[int]]:
     # Any single token with just a name and length
-    m = SINGLE_STRUCT_PACK_RE.match(fmt)
-    if m:
-        endian = m.group('endian')
-        f = m.group('fmt')
-        if endian == '>':
-            fmt = REPLACEMENTS_BE[f]
-        elif endian == '<':
-            fmt = REPLACEMENTS_LE[f]
-        else:
-            assert endian in '=@'
-            fmt = REPLACEMENTS_NE[f]
     m2 = TOKEN_INT_RE.match(fmt)
     if m2:
         name = m2.group('name')
@@ -124,10 +112,24 @@ def parse_name_length_token(fmt: str) -> Tuple[str, Optional[int]]:
         if length not in [0, token_length]:
             raise ValueError(f"{name} tokens can only be {token_length} bits long, not {length} bits.")
         length = token_length
-
-    # if length is None:
-    #     length = 0
     return name, length
+
+
+def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
+    m = SINGLE_STRUCT_PACK_RE.match(fmt)
+    if m:
+        endian = m.group('endian')
+        f = m.group('fmt')
+        if endian == '>':
+            fmt = REPLACEMENTS_BE[f]
+        elif endian == '<':
+            fmt = REPLACEMENTS_LE[f]
+        else:
+            assert endian in '=@'
+            fmt = REPLACEMENTS_NE[f]
+        return parse_name_length_token(fmt)
+    else:
+        return None
 
 
 @functools.lru_cache(CACHE_SIZE)

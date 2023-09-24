@@ -72,7 +72,7 @@ class Creation(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.dtype = 'se'
         self.assertEqual(a[-1], 1.0)
-        self.assertEqual(a.dtype, Dtype('>d'))
+        self.assertEqual(a.dtype, Dtype('float64'))
 
     def testChangingFormatWithTrailingBits(self):
         a = Array('bool', 803)

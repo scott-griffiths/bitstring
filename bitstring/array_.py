@@ -8,7 +8,7 @@ from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, Tex
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray import BitArray
 from bitstring.dtypes import Dtype, Register
-from bitstring.utils import tokenparser, parse_name_length_token
+from bitstring.utils import tokenparser, parse_name_length_token, parse_single_struct_token
 import copy
 import array
 import operator
@@ -117,7 +117,13 @@ class Array:
             self._dtype = new_dtype
             self._fmt = str(self._dtype)
         else:
-            dtype = dtype_register.get_dtype(*parse_name_length_token(new_dtype))
+            try:
+                name_value = parse_name_length_token(new_dtype)
+            except ValueError as e:
+                name_value = parse_single_struct_token(new_dtype)
+                if name_value is None:
+                    raise ValueError(e)
+            dtype = dtype_register.get_dtype(*name_value)
             if dtype.length == 0:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
