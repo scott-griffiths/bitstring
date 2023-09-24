@@ -47,11 +47,11 @@ class Creation(unittest.TestCase):
         self.assertTrue(b.equals(c))
 
     def testCreationFromFloat8(self):
-        a = Array('float8_143')
+        a = Array('e4m3float')
         a.data.bytes = b'\x7f\x00'
         self.assertEqual(a[0], 240.0)
         self.assertEqual(a[1], 0.0)
-        b = Array('float8_143', [100000, -0.0])
+        b = Array('e4m3float', [100000, -0.0])
         self.assertTrue(a.equals(b))
 
     def testCreationFromMultiple(self):
@@ -180,7 +180,7 @@ class ArrayMethods(unittest.TestCase):
 
     def testCountNan(self):
         a = Array('uint8', [0, 10, 128, 128, 4, 2, 1])
-        a.dtype = 'float8_152'
+        a.dtype = 'e5m2float'
         self.assertEqual(a.count(float('nan')), 2)
 
     def testFromBytes(self):
@@ -502,10 +502,10 @@ class ArrayMethods(unittest.TestCase):
         self.assertEqual(a.tolist(), [9, 9])
 
     def testFloat8Bug(self):
-        a = Array('float8_152', [0.0, 1.5])
-        b = Array('float8_143')
+        a = Array('e5m2float', [0.0, 1.5])
+        b = Array('e4m3float')
         b[:] = a[:]
-        self.assertTrue(b[:].equals(Array('float8_143', [0.0, 1.5])))
+        self.assertTrue(b[:].equals(Array('e4m3float', [0.0, 1.5])))
 
     def testPp(self):
         a = Array('bfloat', [-3, 1, 2])
@@ -552,8 +552,8 @@ c040 3f80 4000
     def testPpTwoFormats(self):
         a = Array('float16', bytearray(20))
         s = io.StringIO()
-        a.pp(stream=s, fmt='float8_152, bin')
-        self.assertEqual(s.getvalue(), """<Array fmt='float8_152, bin', length=20, itemsize=8 bits, total data size=20 bytes>
+        a.pp(stream=s, fmt='e5m2float, bin')
+        self.assertEqual(s.getvalue(), """<Array fmt='e5m2float, bin', length=20, itemsize=8 bits, total data size=20 bytes>
 [
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
@@ -662,7 +662,7 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(a.data, '0b 0000000001 0000000001 0000000001')
 
     def testOr(self):
-        a = Array('float8_143', [-4, 2.5, -9, 0.25])
+        a = Array('e4m3float', [-4, 2.5, -9, 0.25])
         b = a | '0b10000000'
         self.assertEqual(a.tolist(), [-4,  2.5, -9,  0.25])
         self.assertEqual(b.tolist(), [-4, -2.5, -9, -0.25])
@@ -709,7 +709,7 @@ class ArrayOperations(unittest.TestCase):
         self.assertEqual(a.tolist(), [-1, -1, 0, 0, 0])
 
     def testLshift(self):
-        a = Array('float8_152', [0.3, 1.2])
+        a = Array('e5m2float', [0.3, 1.2])
         with self.assertRaises(TypeError):
             _ = a << 3
         a = Array('int16', [-2, -1, 0, 128])
@@ -779,8 +779,8 @@ class SameSizeArrayOperations(unittest.TestCase):
         self.assertEqual(e.dtype, Dtype('float16'))
         x1 = a[:]
         x2 = a[:]
-        x1.dtype = 'float8_152'
-        x2.dtype = 'float8_143'
+        x1.dtype = 'e5m2float'
+        x2.dtype = 'e4m3float'
         y = x1 + x2
         self.assertEqual(y.dtype, x1.dtype)
 

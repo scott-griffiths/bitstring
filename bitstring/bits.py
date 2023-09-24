@@ -16,7 +16,7 @@ import bitarray
 import bitarray.util
 from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError, InterpretError, ReadError, Error
-from bitstring.fp8 import fp143_fmt, fp152_fmt
+from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 from bitstring.bitstore import BitStore, offset_slice_indices_lsb0
 from bitstring.bitstore_helpers import float2bitstore, uint2bitstore, ue2bitstore, str_to_bitstore, se2bitstore, \
     bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, \
@@ -641,12 +641,12 @@ class Bits:
         bs = Bits._create_from_bitstype(bs)
         self._bitstore = bs._bitstore
 
-    def _setfloat152(self, f: float, length: None = None, _offset: None = None):
-        u = fp152_fmt.float_to_int8(f)
+    def _sete5m2float(self, f: float, length: None = None, _offset: None = None):
+        u = e5m2float_fmt.float_to_int8(f)
         self._bitstore = uint2bitstore(u, 8)
 
-    def _setfloat143(self, f: float, length: None = None, _offset: None = None):
-        u = fp143_fmt.float_to_int8(f)
+    def _sete4m3float(self, f: float, length: None = None, _offset: None = None):
+        u = e4m3float_fmt.float_to_int8(f)
         self._bitstore = uint2bitstore(u, 8)
 
     def _setbytes(self, data: Union[bytearray, bytes],
@@ -827,25 +827,25 @@ class Bits:
         else:
             return struct.unpack(fmt, self._readbytes(start, length))[0]
 
-    def _readfloat143(self, start: int, length: int = 0) -> float:
+    def _reade4m3float(self, start: int, length: int = 0) -> float:
         # length is ignored - it's only present to make the function signature consistent.
         u = self._readuint(start, length=8)
-        return fp143_fmt.lut_int8_to_float[u]
+        return e4m3float_fmt.lut_int8_to_float[u]
 
-    def _getfloat143(self) -> float:
+    def _gete4m3float(self) -> float:
         if len(self) != 8:
-            raise InterpretError(f"A float8_143 must be 8 bits long, not {len(self)} bits.")
-        return self._readfloat143(0)
+            raise InterpretError(f"A e4m3float must be 8 bits long, not {len(self)} bits.")
+        return self._reade4m3float(0)
 
-    def _readfloat152(self, start: int, length: int = 0) -> float:
+    def _reade5m2float(self, start: int, length: int = 0) -> float:
         # length is ignored - it's only present to make the function signature consistent.
         u = self._readuint(start, length=8)
-        return fp152_fmt.lut_int8_to_float[u]
+        return e5m2float_fmt.lut_int8_to_float[u]
 
-    def _getfloat152(self) -> float:
+    def _gete5m2float(self) -> float:
         if len(self) != 8:
-            raise InterpretError(f"A float8_152 must be 8 bits long, not {len(self)} bits.")
-        return self._readfloat152(start=0)
+            raise InterpretError(f"A e5m2float must be 8 bits long, not {len(self)} bits.")
+        return self._reade5m2float(start=0)
 
     def _setfloatbe(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
         if length is None and hasattr(self, 'len') and self.len != 0:
@@ -1915,9 +1915,9 @@ class Bits:
                     chars_per_value = 23  # Empirical value
                 elif bits_per_group == 64:
                     chars_per_value = 24  # Empirical value
-            elif fmt == 'float8_143':
+            elif fmt == 'e4m3float':
                 chars_per_value = 13  # Empirical value
-            elif fmt == 'float8_152':
+            elif fmt == 'e5m2float':
                 chars_per_value = 19  # Empirical value
             elif fmt == 'bool':
                 chars_per_value = 1   # '0' or '1'

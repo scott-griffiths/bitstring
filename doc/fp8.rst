@@ -76,8 +76,8 @@ There is no standardised format for these but there are a few candidates.
 The formats supported by bitstring are from the proposal by `Graphcore, AMD and Qualcomm <https://www.graphcore.ai/posts/graphcore-and-amd-propose-8-bit-fp-ai-standard-with-qualcomm-support>`_ in `this paper <https://arxiv.org/abs/2206.02915>`_, and there is some useful information `here <https://github.com/openxla/stablehlo/blob/2fcdf9b25d622526f81cd1575c65d01a6db319d2/rfcs/20230321-fp8_fnuz.md>`_ too.
 
 The 8-bit formats are named after how the byte is split between the sign-exponent-mantissa parts.
-So ``float8_143`` has a single sign bit, 4 bits for the exponent and 3 bits for the mantissa.
-For a bit more range and less precision you can use ``float8_152`` which has 5 bits for the exponent and only 2 for the mantissa.
+So ``e4m3float`` has a single sign bit, 4 bits for the exponent and 3 bits for the mantissa.
+For a bit more range and less precision you can use ``e5m2float`` which has 5 bits for the exponent and only 2 for the mantissa.
 
 .. list-table::
    :header-rows: 1
@@ -90,12 +90,12 @@ For a bit more range and less precision you can use ``float8_152`` which has 5 b
    * - Float8E4M3FNUZ
      - 1 + 4 + 3
      - 10\ :sup:`-3` → 240
-     - ``'float8_143'``
+     - ``'e4m3float'``
 
    * - Float8E5M2FNUZ
      - 1 + 5 + 2
      - 8×10\ :sup:`-6` → 57344
-     - ``'float8_152'``
+     - ``'e5m2float'``
 
 
 As there are just 256 possible values, both the range and precision of these formats are extremely limited.
@@ -103,12 +103,12 @@ It's remarkable that any useful calculations can be performed, but both inferenc
 
 You can easily examine every possible value that these formats can represent using a line like this::
 
-    >>> [Bits(uint=x, length=8).float8_152 for x in range(256)]
+    >>> [Bits(uint=x, length=8).e5m2float for x in range(256)]
 
 or using the :class:`Array` type it's even more concise - we can create an Array and pretty print all the values with this line::
 
-    >>> Array('float8_143', bytearray(range(256))).pp(width=90, show_offset=True)
-    <Array fmt='float8_143', length=256, itemsize=8 bits, total data size=256 bytes>
+    >>> Array('e4m3float', bytearray(range(256))).pp(width=90, show_offset=True)
+    <Array fmt='e4m3float', length=256, itemsize=8 bits, total data size=256 bytes>
     [
        0:           0.0  0.0009765625   0.001953125  0.0029296875    0.00390625  0.0048828125
        6:   0.005859375  0.0068359375     0.0078125  0.0087890625   0.009765625  0.0107421875
@@ -162,11 +162,11 @@ When converting from a Python float (which will typically be stored in 64-bits) 
 The formats have no code for infinity, instead using the largest positive and negative values, so anything larger than the largest representable value (including infinity) will get rounded to it. ::
 
 
-    >>> a = BitArray(float8_152=70)
+    >>> a = BitArray(e5m2float=70)
     >>> print(a.bin)
     01011000
-    >>> print(a.float8_152)
+    >>> print(a.e5m2float)
     64.0
-    >>> a.float8_152 = 1000000.0
-    >>> print(a.float8_152)
+    >>> a.e5m2float = 1000000.0
+    >>> print(a.e5m2float)
     57344.0

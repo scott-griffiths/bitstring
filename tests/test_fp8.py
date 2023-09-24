@@ -7,7 +7,7 @@ import struct
 import math
 import bitstring
 from bitstring import Bits, BitArray, BitStream
-from bitstring.fp8 import fp143_fmt, fp152_fmt
+from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 
 sys.path.insert(0, '..')
 
@@ -15,53 +15,53 @@ sys.path.insert(0, '..')
 class Fp8(unittest.TestCase):
 
     def testCreation(self):
-        a = Bits(float8_143=-14.0)
-        self.assertEqual(a.float8_143, -14.0)
-        b = Bits('float8_152=3.0')
-        self.assertEqual(b.float8_152, 3.0)
+        a = Bits(e4m3float=-14.0)
+        self.assertEqual(a.e4m3float, -14.0)
+        b = Bits('e5m2float=3.0')
+        self.assertEqual(b.e5m2float, 3.0)
         self.assertEqual(len(b), 8)
-        c = Bits('float8_143=1000000000')
+        c = Bits('e4m3float=1000000000')
         self.assertEqual(c.hex, '7f')
-        d = Bits('float8_152=-1e15774')
+        d = Bits('e5m2float=-1e15774')
         self.assertEqual(d.hex, 'ff')
-        e = Bits(float8_152=float('nan'))
+        e = Bits(e5m2float=float('nan'))
         self.assertEqual(e.hex, '80')
 
     def testReassignment(self):
         a = BitArray()
-        a.float8_143 = -0.25
-        self.assertEqual(a.float8_143, -0.25)
-        a.float8_152 = float('inf')
+        a.e4m3float = -0.25
+        self.assertEqual(a.e4m3float, -0.25)
+        a.e5m2float = float('inf')
         self.assertEqual(a.hex, '7f')
-        a.float8_143 = -9000.0
+        a.e4m3float = -9000.0
         self.assertEqual(a.hex, 'ff')
-        a.float8_152 = -0.00000000001
-        self.assertEqual(a.float8_152, 0.0)
+        a.e5m2float = -0.00000000001
+        self.assertEqual(a.e5m2float, 0.0)
 
     def testReading(self):
         a = BitStream('0x00fff')
-        x = a.read('float8_152')
+        x = a.read('e5m2float')
         self.assertEqual(x, 0.0)
         self.assertEqual(a.pos, 8)
-        x = a.read('float8_143')
+        x = a.read('e4m3float')
         self.assertEqual(x, -240.0)
         self.assertEqual(a.pos, 16)
 
     def testReadList(self):
         v = [-6, -2, 0.125, 7, 10]
-        a = bitstring.pack('5*float8_143', *v)
-        vp = a.readlist('5*float8_143')
+        a = bitstring.pack('5*e4m3float', *v)
+        vp = a.readlist('5*e4m3float')
         self.assertEqual(v, vp)
 
     def testInterpretations(self):
         a = BitArray('0x00')
-        self.assertEqual(a.float8_143, 0.0)
-        self.assertEqual(a.float8_152, 0.0)
+        self.assertEqual(a.e4m3float, 0.0)
+        self.assertEqual(a.e5m2float, 0.0)
         a += '0b1'
         with self.assertRaises(bitstring.InterpretError):
-            _ = a.float8_143
+            _ = a.e4m3float
         with self.assertRaises(bitstring.InterpretError):
-            _ = a.float8_152
+            _ = a.e5m2float
 
 
 def createLUT_for_int8_to_float(exp_bits, bias) -> array.array[float]:
@@ -119,8 +119,8 @@ def slow_float_to_int8(lut_int8_to_float, f: float) -> int:
 
 class CheckLUTs(unittest.TestCase):
 
-    def testLUT_int8_to_float8_143(self):
-        lut_stored = fp143_fmt.lut_int8_to_float
+    def testLUT_int8_to_e4m3float(self):
+        lut_stored = e4m3float_fmt.lut_int8_to_float
         self.assertEqual(len(lut_stored), 256)
         lut_calculated = createLUT_for_int8_to_float(4, 8)
         for i in range(len(lut_stored)):
@@ -129,8 +129,8 @@ class CheckLUTs(unittest.TestCase):
                 self.assertTrue(math.isnan(lut_stored[i]))
                 self.assertTrue(math.isnan(lut_calculated[i]))
 
-    def testLUT_int8_to_float8_152(self):
-        lut_stored = fp152_fmt.lut_int8_to_float
+    def testLUT_int8_to_e5m2float(self):
+        lut_stored = e5m2float_fmt.lut_int8_to_float
         self.assertEqual(len(lut_stored), 256)
         lut_calculated = createLUT_for_int8_to_float(5, 16)
         for i in range(len(lut_stored)):
@@ -139,54 +139,54 @@ class CheckLUTs(unittest.TestCase):
                 self.assertTrue(math.isnan(lut_stored[i]))
                 self.assertTrue(math.isnan(lut_calculated[i]))
 
-    def testLUT_float16_to_float8_143(self):
-        lut_float16_to_float8_143 = createLUT_for_float16_to_float8(fp143_fmt.lut_int8_to_float)
-        self.assertEqual(len(lut_float16_to_float8_143), 65536)
-        self.assertEqual(lut_float16_to_float8_143, fp143_fmt.lut_float16_to_float8)
+    def testLUT_float16_to_e4m3float(self):
+        lut_float16_to_e4m3float = createLUT_for_float16_to_float8(e4m3float_fmt.lut_int8_to_float)
+        self.assertEqual(len(lut_float16_to_e4m3float), 65536)
+        self.assertEqual(lut_float16_to_e4m3float, e4m3float_fmt.lut_float16_to_float8)
 
-    def testLUT_float16_to_float8_152(self):
-        lut_float16_to_float8_152 = createLUT_for_float16_to_float8(fp152_fmt.lut_int8_to_float)
-        self.assertEqual(len(lut_float16_to_float8_152), 65536)
-        self.assertEqual(lut_float16_to_float8_152, fp152_fmt.lut_float16_to_float8)
+    def testLUT_float16_to_e5m2float(self):
+        lut_float16_to_e5m2float = createLUT_for_float16_to_float8(e5m2float_fmt.lut_int8_to_float)
+        self.assertEqual(len(lut_float16_to_e5m2float), 65536)
+        self.assertEqual(lut_float16_to_e5m2float, e5m2float_fmt.lut_float16_to_float8)
 
 
 class ConversionToFP8(unittest.TestCase):
 
     def testSome143Values(self):
         zero = bitstring.Bits('0b0000 0000')
-        self.assertEqual(fp143_fmt.lut_int8_to_float[zero.uint], 0.0)
+        self.assertEqual(e4m3float_fmt.lut_int8_to_float[zero.uint], 0.0)
         max_normal = bitstring.Bits('0b0111 1111')
-        self.assertEqual(fp143_fmt.lut_int8_to_float[max_normal.uint], 240.0)
+        self.assertEqual(e4m3float_fmt.lut_int8_to_float[max_normal.uint], 240.0)
         max_normal_neg = bitstring.Bits('0b1111 1111')
-        self.assertEqual(fp143_fmt.lut_int8_to_float[max_normal_neg.uint], -240.0)
+        self.assertEqual(e4m3float_fmt.lut_int8_to_float[max_normal_neg.uint], -240.0)
         min_normal = bitstring.Bits('0b0000 1000')
-        self.assertEqual(fp143_fmt.lut_int8_to_float[min_normal.uint], 2**-7)
+        self.assertEqual(e4m3float_fmt.lut_int8_to_float[min_normal.uint], 2**-7)
         min_subnormal = bitstring.Bits('0b0000 0001')
-        self.assertEqual(fp143_fmt.lut_int8_to_float[min_subnormal.uint], 2**-10)
+        self.assertEqual(e4m3float_fmt.lut_int8_to_float[min_subnormal.uint], 2**-10)
         max_subnormal = bitstring.Bits('0b0000 0111')
-        self.assertEqual(fp143_fmt.lut_int8_to_float[max_subnormal.uint], 0.875 * 2**-7)
+        self.assertEqual(e4m3float_fmt.lut_int8_to_float[max_subnormal.uint], 0.875 * 2**-7)
         nan = bitstring.Bits('0b1000 0000')
-        self.assertTrue(math.isnan(fp143_fmt.lut_int8_to_float[nan.uint]))
+        self.assertTrue(math.isnan(e4m3float_fmt.lut_int8_to_float[nan.uint]))
 
     def testSome152Values(self):
         zero = bitstring.Bits('0b0000 0000')
-        self.assertEqual(fp152_fmt.lut_int8_to_float[zero.uint], 0.0)
+        self.assertEqual(e5m2float_fmt.lut_int8_to_float[zero.uint], 0.0)
         max_normal = bitstring.Bits('0b0111 1111')
-        self.assertEqual(fp152_fmt.lut_int8_to_float[max_normal.uint], 57344.0)
+        self.assertEqual(e5m2float_fmt.lut_int8_to_float[max_normal.uint], 57344.0)
         max_normal_neg = bitstring.Bits('0b1111 1111')
-        self.assertEqual(fp152_fmt.lut_int8_to_float[max_normal_neg.uint], -57344.0)
+        self.assertEqual(e5m2float_fmt.lut_int8_to_float[max_normal_neg.uint], -57344.0)
         min_normal = bitstring.Bits('0b0000 0100')
-        self.assertEqual(fp152_fmt.lut_int8_to_float[min_normal.uint], 2**-15)
+        self.assertEqual(e5m2float_fmt.lut_int8_to_float[min_normal.uint], 2**-15)
         min_subnormal = bitstring.Bits('0b0000 0001')
-        self.assertEqual(fp152_fmt.lut_int8_to_float[min_subnormal.uint], 0.25 * 2**-15)
+        self.assertEqual(e5m2float_fmt.lut_int8_to_float[min_subnormal.uint], 0.25 * 2**-15)
         max_subnormal = bitstring.Bits('0b0000 0011')
-        self.assertEqual(fp152_fmt.lut_int8_to_float[max_subnormal.uint], 0.75 * 2**-15)
+        self.assertEqual(e5m2float_fmt.lut_int8_to_float[max_subnormal.uint], 0.75 * 2**-15)
         nan = bitstring.Bits('0b1000 0000')
-        self.assertTrue(math.isnan(fp152_fmt.lut_int8_to_float[nan.uint]))
+        self.assertTrue(math.isnan(e5m2float_fmt.lut_int8_to_float[nan.uint]))
 
     def testRoundTrip(self):
         # For each possible 8bit int, convert to float, then convert that float back to an int
-        for fmt in [fp143_fmt, fp152_fmt]:
+        for fmt in [e4m3float_fmt, e5m2float_fmt]:
             for i in range(256):
                 f = fmt.lut_int8_to_float[i]
                 ip = fmt.float_to_int8(f)
@@ -196,7 +196,7 @@ class ConversionToFP8(unittest.TestCase):
         # Convert a float16 to a float8, then convert that to a Python float. Then convert back to a float16.
         # This value should have been rounded towards zero. Convert back to a float8 again - should be the
         # same value as before or the adjacent smaller value
-        for fmt in [fp143_fmt, fp152_fmt]:
+        for fmt in [e4m3float_fmt, e5m2float_fmt]:
             # Keeping sign bit == 0 so only positive numbers
             previous_value = 0.0
             for i in range(1 << 15):

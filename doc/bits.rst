@@ -7,7 +7,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
 .. class:: Bits(__auto: BitsType | int | None, length: int | None = None, offset: int | None = None, **kwargs)
 
-    Creates a new bitstring. You must specify either no initialiser, just an 'auto' value as the first parameter, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``float8_143``, ``float8_152``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    Creates a new bitstring. You must specify either no initialiser, just an 'auto' value as the first parameter, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``e4m3float``, ``e5m2float``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`, :class:`BitStream` and :class:`ConstBitStream`.
 
@@ -409,13 +409,13 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
 
     Property for the byte-wise native-endian floating point representation of the bitstring.
 
-.. attribute:: Bits.float8_143
+.. attribute:: Bits.e4m3float
     :type: float
 
     Property for an 8 bit floating point representation with 4 exponent bits and 3 mantissa bits.
     See :ref:`Exotic floats` for more information.
 
-.. attribute:: Bits.float8_152
+.. attribute:: Bits.e5m2float
     :type: float
 
     Property for an 8 bit floating point representation with 5 exponent bits and 2 mantissa bits.
