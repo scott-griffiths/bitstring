@@ -6,7 +6,7 @@ from collections.abc import Sized
 from bitstring.exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.bits import Bits, BitsType
-from bitstring.bitarray import BitArray
+from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, Register
 from bitstring.utils import tokenparser, parse_name_length_token, parse_single_struct_token
 import copy

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from bitstring.bits import Bits
-from bitstring.bitarray import BitArray
+from bitstring.bitarray_ import BitArray
 from bitstring.bitstore import BitStore
 
 

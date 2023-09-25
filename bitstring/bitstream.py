@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from bitstring.bits import Bits, BitsType
-from bitstring.bitarray import BitArray
+from bitstring.bitarray_ import BitArray
 from bitstring.utils import tokenparser
 from bitstring.exceptions import ReadError, ByteAlignError, CreationError, InterpretError
 from bitstring.dtypes import Dtype

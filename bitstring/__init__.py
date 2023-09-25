@@ -63,7 +63,7 @@ import sys
 
 from .bits import Bits
 from .options import Options
-from .bitarray import BitArray
+from .bitarray_ import BitArray
 from .bitstream import ConstBitStream, BitStream
 from .methods import pack
 from .array_ import Array
