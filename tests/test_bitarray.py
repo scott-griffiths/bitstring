@@ -814,6 +814,10 @@ class BFloats(unittest.TestCase):
             self.assertAlmostEqual(f, fp, delta=max(f/100, -f/100))
         a = BitArray(bfloat=13)
         self.assertEqual(a.bfloat, 13)
+        c = BitArray()
+        with self.assertRaises(ValueError):
+            _ = c.bfloat
+
 
     def testCreationErrors(self):
         a = BitArray(bfloat=-0.25, length=16)
@@ -838,6 +842,11 @@ class BFloats(unittest.TestCase):
 
         with self.assertRaises(bitstring.CreationError):
             _ = BitArray(bfloatle=-5, length=15)
+        c = BitArray()
+        with self.assertRaises(bitstring.InterpretError):
+            _ = c.bfloatle
+        with self.assertRaises(bitstring.InterpretError):
+            _ = c.bfloatne
 
     def testMoreCreation(self):
         a = BitArray('bfloat:16=1.0, bfloat16=2.0, bfloat=3.0')
@@ -885,7 +894,7 @@ class BFloats(unittest.TestCase):
         self.assertEqual(a.bfloatbe, 4.5)
         self.assertEqual(b.bfloatbe, -2.25)
 
-    def testLilleEndianStringInitialisers(self):
+    def testLitteEndianStringInitialisers(self):
         a = BitArray('bfloatle=4.5')
         b = BitArray('bfloatle:16=-2.25')
         self.assertEqual(a.bfloatle, 4.5)

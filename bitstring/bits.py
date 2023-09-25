@@ -896,6 +896,8 @@ class Bits:
         return self._readbfloatle(0, self.len)
 
     def _readbfloatle(self, start: int, length: int) -> float:
+        if length != 16:
+            raise InterpretError(f"bfloats must be length 16, received a length of {length} bits.")
         two_bytes = self._slice(start, start + 16)
         zero_padded = Bits(16) + two_bytes
         return zero_padded._getfloatle()
