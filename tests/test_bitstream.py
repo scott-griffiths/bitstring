@@ -7,7 +7,7 @@ import bitstring
 import copy
 import os
 import collections
-from bitstring import Bits, BitStream, ConstBitStream, pack
+from bitstring import Bits, BitStream, ConstBitStream, pack, Dtype
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -3168,7 +3168,8 @@ class AllAndAny(unittest.TestCase):
         self.assertAlmostEqual(z / 3e33, 1.0)
         a = BitStream('0b11, floatle:64=12, 0xfffff')
         a.pos = 2
-        self.assertEqual(a.read('floatle:64'), 12.0)
+        floatle64 = Dtype('floatle64')
+        self.assertEqual(a.read(floatle64), 12.0)
         b = BitStream(floatle=20, length=32)
         b.floatle = 10.0
         b = [0] + b

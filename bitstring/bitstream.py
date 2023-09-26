@@ -313,6 +313,7 @@ class ConstBitStream(Bits):
         Raises ValueError if the format is not understood.
 
         """
+        p = self._pos
         if isinstance(fmt, numbers.Integral):
             if fmt < 0:
                 raise ValueError("Cannot read negative amount.")
@@ -321,19 +322,17 @@ class ConstBitStream(Bits):
             bs = self._slice(self._pos, self._pos + fmt)
             self._pos += fmt
             return bs
-
-        p = self._pos
-        _, token = tokenparser(fmt)
-        if len(token) != 1:
+        dtype = Dtype(fmt)
+        val = dtype.read_fn(self, self._pos)
+        if isinstance(val, tuple):
+            self._pos = val[1]
+            val = val[0]
+        else:
+            self._pos += dtype.bitlength
+        if self._pos > len(self):
             self._pos = p
-            raise ValueError(f"Format string should be a single token, not {len(token)} "
-                             "tokens - use readlist() instead.")
-        name, length, _ = token[0]
-        try:
-            value, self._pos = self._readtoken(name, self._pos, length)
-        except ValueError as e:
-            raise InterpretError(e)
-        return value
+            raise ReadError(f"Reading off end of bitstring with fmt '{fmt}'. Only {len(self) - p} bits available.")
+        return val
 
     def readlist(self, fmt: Union[str, List[Union[int, str]]], **kwargs) \
             -> List[Union[int, float, str, Bits, bool, bytes, None]]:

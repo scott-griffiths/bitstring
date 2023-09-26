@@ -669,7 +669,6 @@ class Bits:
     def _readbytes(self, start: int, length: int) -> bytes:
         """Read bytes and return them. Note that length is in bits."""
         assert length % 8 == 0
-        # assert start + length <= self.len
         return self._bitstore.getslice(slice(start, start + length, None)).tobytes()
 
     def _getbytes(self) -> bytes:

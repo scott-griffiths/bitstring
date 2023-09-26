@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 from bitstring.exceptions import InterpretError, CreationError
 from bitstring.bits import Bits
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Union
 from bitstring.utils import parse_name_length_token
 
 
@@ -11,9 +11,12 @@ class Dtype:
 
     __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'is_integer', 'is_signed', 'is_float', 'is_fixed_length', 'is_unknown_length')
 
-    def __new__(cls, token: Optional[str] = None) -> Dtype:
+    def __new__(cls, token: Union[str, Dtype, None] = None) -> Dtype:
+        if isinstance(token, Dtype):
+            return token
         if token is not None:
             register = Register()
+            token = ''.join(token.split())
             name, length = parse_name_length_token(token)
             d = register.get_dtype(name, length)
             return d
