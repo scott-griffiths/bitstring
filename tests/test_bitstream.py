@@ -2217,7 +2217,7 @@ class Split2(unittest.TestCase):
         a = BitStream('0x123') + '0b11101'
         h = a.read('hex:12')
         self.assertEqual(h, '123')
-        b = a.read('bin: 5')
+        b = a.read(' bin : 5 ')
         self.assertEqual(b, '11101')
         c = '0b' + b + a
         b, h = c.readlist('bin:5, hex:12')

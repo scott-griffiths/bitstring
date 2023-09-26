@@ -124,7 +124,7 @@ class Array:
                 if name_value is None:
                     raise ValueError(e)
             dtype = dtype_register.get_dtype(*name_value)
-            if dtype.length == 0:
+            if dtype.length is None:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
             self._fmt = new_dtype

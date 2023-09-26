@@ -98,7 +98,7 @@ def parse_name_length_token(fmt: str) -> Tuple[str, Optional[int]]:
     if m2:
         name = m2.group('name')
         length_str = m2.group('length')
-        length = 0 if length_str == '' else int(length_str)
+        length = None if length_str == '' else int(length_str)
     else:
         raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
 
@@ -109,7 +109,7 @@ def parse_name_length_token(fmt: str) -> Tuple[str, Optional[int]]:
 
     if name in ALWAYS_FIXED_LENGTH_TOKENS.keys():
         token_length = ALWAYS_FIXED_LENGTH_TOKENS[name]
-        if length not in [0, token_length]:
+        if length not in [None, token_length]:
             raise ValueError(f"{name} tokens can only be {token_length} bits long, not {length} bits.")
         length = token_length
     return name, length

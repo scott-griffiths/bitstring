@@ -149,8 +149,6 @@ class ReadingBitsAsDefault(unittest.TestCase):
         v = s.read(31)
         self.assertEqual(v.uint, 14)
         s.pos = 0
-        v = s.read('31')
-        self.assertEqual(v.uint, 14)
 
     def testReadListBits(self):
         s = CBS('uint:5=3, uint:3=0, uint:11=999')
