@@ -21,7 +21,17 @@ class BasicFunctionality(unittest.TestCase):
     def testReading(self):
         b = Dtype('u8')
         a = bs.BitStream('0xff00ff')
-        # x = a.read(b)
-        # self.assertEqual(x, 255)
-        # x = a.read(b)
-        # self.assertEqual(x, 0)
+        x = a.read(b)
+        self.assertEqual(x, 255)
+        x = a.read(b)
+        self.assertEqual(x, 0)
+
+    def testSettingWithLength(self):
+        d = Dtype('uint', 12)
+        self.assertEqual(str(d), 'uint12')
+        self.assertEqual(d.length, 12)
+        self.assertEqual(d.name, 'uint')
+
+    def testSettingWithLengthErrors(self):
+        with self.assertRaises(ValueError):
+            _ = Dtype('float', 14)

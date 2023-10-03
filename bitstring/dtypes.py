@@ -11,13 +11,16 @@ class Dtype:
 
     __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'is_integer', 'is_signed', 'is_float', 'is_fixed_length', 'is_unknown_length')
 
-    def __new__(cls, token: Union[str, Dtype, None] = None) -> Dtype:
+    def __new__(cls, token: Union[str, Dtype, None] = None, length: Optional[int] = None) -> Dtype:
         if isinstance(token, Dtype):
             return token
         if token is not None:
             register = Register()
             token = ''.join(token.split())
-            name, length = parse_name_length_token(token)
+            if length is None:
+                name, length = parse_name_length_token(token)
+            else:
+                name = token
             d = register.get_dtype(name, length)
             return d
         else:

@@ -11,7 +11,7 @@ byteorder: str = sys.byteorder
 TOKEN_RE: Pattern[str] = None
 
 # A token name followed by optional : then an integer number
-TOKEN_INT_RE: Pattern[str] = None
+TOKEN_INT_RE: Pattern[str] = re.compile(r'^([a-zA-Z0-9_]+?):?(\d*)$')
 
 # Tokens which have an unknowable (in advance) length, so it must not be supplied.
 UNKNOWABLE_LENGTH_TOKENS: List[str] = None
@@ -20,10 +20,9 @@ UNKNOWABLE_LENGTH_TOKENS: List[str] = None
 ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = None
 
 def initialise_constants(init_names: List[str], unknowable_length_names: List[str], always_fixed_length: Dict[str, int]) -> None:
-    global TOKEN_RE, TOKEN_INT_RE, UNKNOWABLE_LENGTH_TOKENS, ALWAYS_FIXED_LENGTH_TOKENS
+    global TOKEN_RE, UNKNOWABLE_LENGTH_TOKENS, ALWAYS_FIXED_LENGTH_TOKENS
     init_names.sort(key=len, reverse=True)
     TOKEN_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$')
-    TOKEN_INT_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<length>\d*)$')
     UNKNOWABLE_LENGTH_TOKENS = unknowable_length_names
     ALWAYS_FIXED_LENGTH_TOKENS = always_fixed_length
 
@@ -96,8 +95,8 @@ def parse_name_length_token(fmt: str) -> Tuple[str, Optional[int]]:
     # Any single token with just a name and length
     m2 = TOKEN_INT_RE.match(fmt)
     if m2:
-        name = m2.group('name')
-        length_str = m2.group('length')
+        name = m2.group(1)
+        length_str = m2.group(2)
         length = None if length_str == '' else int(length_str)
     else:
         raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
