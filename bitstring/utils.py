@@ -155,6 +155,32 @@ def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
 
     return name, length, value
 
+def preprocess_tokens(fmt: str) -> List[str]:
+    # Remove whitespace
+    fmt = ''.join(fmt.split())
+    # Expand any brackets.
+    fmt = expand_brackets(fmt)
+    # Split tokens by ',' and remove whitespace
+    # The meta_tokens can either be ordinary single tokens or multiple
+    # struct-format token strings.
+    meta_tokens = [f.strip() for f in fmt.split(',')]
+    single_tokens = []
+    for meta_token in meta_tokens:
+        # See if it has a multiplicative factor
+        m = MULTIPLICATIVE_RE.match(meta_token)
+        if not m:
+            factor = 1
+        else:
+            factor = int(m.group('factor'))
+            meta_token = m.group('token')
+        # See if it's a struct-like format
+        m = STRUCT_PACK_RE.match(meta_token)
+        if m:
+            tokens = structparser(m)
+        else:
+            tokens = [meta_token]
+        single_tokens.extend(tokens * factor)  # TODO: This is inefficient as the same token will be parsed multiple times.
+    return single_tokens
 
 @functools.lru_cache(CACHE_SIZE)
 def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
@@ -171,70 +197,41 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
     tokens must be of the form: [factor*][initialiser][:][length][=value]
 
     """
-    # Remove whitespace
-    fmt = ''.join(fmt.split())
-    # Expand any brackets.
-    fmt = expand_brackets(fmt)
-    # Split tokens by ',' and remove whitespace
-    # The meta_tokens can either be ordinary single tokens or multiple
-    # struct-format token strings.
-    meta_tokens = [f.strip() for f in fmt.split(',')]
-    return_values: List[Tuple[str, Union[int, str, None], Optional[str]]] = []
+    tokens = preprocess_tokens(fmt)
     stretchy_token = False
-    for meta_token in meta_tokens:
-        # See if it has a multiplicative factor
-        m = MULTIPLICATIVE_RE.match(meta_token)
-        if not m:
-            factor = 1
-        else:
-            factor = int(m.group('factor'))
-            meta_token = m.group('token')
-        # See if it's a struct-like format
-        m = STRUCT_PACK_RE.match(meta_token)
+    ret_vals: List[Tuple[str, Union[str, int, None], Optional[str]]] = []
+    for token in tokens:
+        if keys and token in keys:
+            # Don't bother parsing it, it's a keyword argument
+            ret_vals.append((token, None, None))
+            continue
+        if token == '':
+            continue
+        # Match literal tokens of the form 0x... 0o... and 0b...
+        m = LITERAL_RE.match(token)
         if m:
-            tokens = structparser(m)
-        else:
-            tokens = [meta_token]
-        ret_vals: List[Tuple[str, Union[str, int, None], Optional[str]]] = []
-        for token in tokens:
-            if keys and token in keys:
-                # Don't bother parsing it, it's a keyword argument
-                ret_vals.append((token, None, None))
-                continue
-            if token == '':
-                continue
-
-            # Match literal tokens of the form 0x... 0o... and 0b...
-            m = LITERAL_RE.match(token)
-            if m:
-                ret_vals.append((m.group('name'), None, m.group('value')))
-                continue
-
-            name, length, value = parse_single_token(token)
-
-            if name in UNKNOWABLE_LENGTH_TOKENS:
-                if length is not None:
-                    raise ValueError(f"The token '{name}' has a variable length and can't be given the fixed length of {length}.")
-            else:
-                if length is None:
-                    stretchy_token = True
-
+            ret_vals.append((m.group('name'), None, m.group('value')))
+            continue
+        name, length, value = parse_single_token(token)
+        if name in UNKNOWABLE_LENGTH_TOKENS:
             if length is not None:
-                # Try converting length to int, otherwise check it's a key.
-                try:
-                    length = int(length)
-                    if length < 0:
-                        raise Error
-                except Error:
-                    raise ValueError("Can't read a token with a negative length.")
-                except ValueError:
-                    if not keys or length not in keys:
-                        raise ValueError(f"Don't understand length '{length}' of token.")
-            ret_vals.append((name, length, value))
-        return_values.extend(itertools.repeat(ret_vals, factor))
-
-    return_values = itertools.chain.from_iterable(return_values)
-    return stretchy_token, list(return_values)
+                raise ValueError(f"The token '{name}' has a variable length and can't be given the fixed length of {length}.")
+        else:
+            if length is None:
+                stretchy_token = True
+        if length is not None:
+            # Try converting length to int, otherwise check it's a key.
+            try:
+                length = int(length)
+                if length < 0:
+                    raise Error
+            except Error:
+                raise ValueError("Can't read a token with a negative length.")
+            except ValueError:
+                if not keys or length not in keys:
+                    raise ValueError(f"Don't understand length '{length}' of token.")
+        ret_vals.append((name, length, value))
+    return stretchy_token, ret_vals
 
 
 BRACKET_RE = re.compile(r'(?P<factor>\d+)\*\(')
