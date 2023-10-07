@@ -23,7 +23,7 @@ News
 * New Array class for homogeneous data.
 * Support for 8-bit floating point values.
 
-See the [release notes](release_notes.txt) for details. Please let me know if you encounter any problems.
+See the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt) for details. Please let me know if you encounter any problems.
 
 
 Overview
@@ -52,7 +52,7 @@ You can also try out the interactive walkthrough notebook on [binder](https://my
 Release Notes
 -------------
 
-To see what been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](release_notes.txt).
+To see what been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt).
 
 Examples
 --------
