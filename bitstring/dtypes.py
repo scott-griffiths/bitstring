@@ -11,16 +11,16 @@ class Dtype:
 
     __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'is_integer', 'is_signed', 'is_float', 'is_fixed_length', 'is_unknown_length')
 
-    def __new__(cls, token: Union[str, Dtype, None] = None, length: Optional[int] = None) -> Dtype:
-        if isinstance(token, Dtype):
-            return token
-        if token is not None:
+    def __new__(cls, __token: Union[str, Dtype, None] = None, length: Optional[int] = None) -> Dtype:
+        if isinstance(__token, Dtype):
+            return __token
+        if __token is not None:
             register = Register()
-            token = ''.join(token.split())
+            __token = ''.join(__token.split())
             if length is None:
-                name, length = parse_name_length_token(token)
+                name, length = parse_name_length_token(__token)
             else:
-                name = token
+                name = __token
             d = register.get_dtype(name, length)
             return d
         else:
@@ -134,18 +134,9 @@ class Register:
         except KeyError:
             raise ValueError
         d = meta_type.getDtype(length)
-        # Test if the length makes sense by trying out the getter.  # TODO: Optimise!
         if length != 0 and not d.is_unknown_length:
             if meta_type.length_multiplier is not None:
                 length *= meta_type.length_multiplier
-            try:
-                temp = Bits(length)
-            except CreationError as e:
-                raise ValueError(f"Invalid Dtype: {e}")
-            try:
-                _ = d.read_fn(temp, 0)
-            except InterpretError as e:
-                raise ValueError(f"Invalid Dtype: {e}")
         return d
 
     # TODO: This should be only calculated if the register has been altered since the last time it was called.

@@ -2,6 +2,15 @@
 bitstring module version history
 --------------------------------
 
+-----------------------------
+In preparation: version 4.2.0
+-----------------------------
+
+* Array class no longer 'beta'.
+* The 8-bit float formats have been renamed 'e4m3float' and 'e5m2float'.
+* New Dtype class can be optionally used to specify types.
+
+
 --------------------------------------
 September 2023: version 4.1.2 released
 --------------------------------------

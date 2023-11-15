@@ -8,7 +8,7 @@ from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, Tex
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, Register
-from bitstring.utils import tokenparser, parse_name_length_token, parse_single_struct_token
+from bitstring.utils import tokenparser, parse_name_length_token, parse_single_struct_token, preprocess_tokens, parse_single_token
 import copy
 import array
 import operator
@@ -128,6 +128,15 @@ class Array:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
             self._fmt = new_dtype
+        try:
+            temp = Bits(self._dtype.bitlength)
+        except CreationError as e:
+            raise ValueError(f"Invalid Dtype: {e}")
+        try:
+            _ = self._dtype.read_fn(temp, 0)
+        except InterpretError as e:
+            raise ValueError(f"Invalid Dtype: {e}")
+
 
     def _create_element(self, value: ElementType) -> Bits:
         """Create Bits from value according to the token_name and token_length"""
@@ -255,8 +264,8 @@ class Array:
             self.data.append(iterable.data)
         elif isinstance(iterable, array.array):
             other_fmt = Array._array_typecodes.get(iterable.typecode, iterable.typecode)
-            token_name, token_length, _ = tokenparser(other_fmt)[1][0]
-            if self._dtype.name != token_name or self._dtype.length != token_length:
+            token_name, token_length, _ = parse_single_token(preprocess_tokens(other_fmt)[0])
+            if self._dtype.name != token_name or self._dtype.length != int(token_length):
                 raise ValueError(
                     f"Cannot extend an Array with format '{self._fmt}' from an array with typecode '{iterable.typecode}'.")
             self.data += iterable.tobytes()

@@ -102,8 +102,9 @@ class Bits:
         # To avoid circular imports this happens after all the classes are initialised.
         from .options import Options
         cls._options = Options()
-        from .dtypes import Register
+        from .dtypes import Register, Dtype
         cls._register = Register()
+        cls.Dtype = Dtype
 
     # Creates dictionaries to quickly reverse single bytes
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
@@ -211,21 +212,13 @@ class Bits:
 
     def __getattr__(self, attribute: str) -> Any:
         # Support for arbitrary attributes like u16 or f64.
-        # Try to split into [name][length], then try standard properties
-        name_length_pattern: Pattern[str] = re.compile(r'^(?P<name>[a-z]+):?(?P<len>\d+)$', re.IGNORECASE)
-        name_length = name_length_pattern.match(attribute)
-        if name_length:
-            name = name_length.group('name')
-            length = int(name_length.group('len'))
-            if name == 'bytes' and length is not None:
-                length *= 8
-            if length is not None and self.len != int(length):
-                raise InterpretError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
-            try:
-                return getattr(self, name)
-            except AttributeError:
-                pass
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'.")
+        try:
+            d = Bits.Dtype(attribute)
+        except ValueError as e:
+            raise AttributeError(e)
+        if d.bitlength is not None and self.len != d.bitlength:
+            raise ValueError(f"bitstring length {self.len} doesn't match length of property {attribute}.")
+        return d.read_fn(self, 0)
 
     def __iter__(self) -> Iterable[bool]:
         return iter(self._bitstore)
@@ -1351,7 +1344,31 @@ class Bits:
         """
         return self._readlist(fmt, 0, **kwargs)[0]
 
-    def _readlist(self, fmt: Union[str, List[Union[str, int]]], pos: int, **kwargs: int) \
+
+    # """Perhaps this should all be rewritten from scratch.
+    #
+    # We should have a version without any stretchy tokens in it.
+    # We scan to find stretchy tokens, if we don't find any, then can just call that
+    # new function. If we do, then we call it twice, once for the start and once for the
+    # end, and sandwich in the stretchy token in the middle.
+    #
+    # The kwargs are also a pain. Let's do it without them - they can be another special case.
+    # """
+    #
+    # def _read_dtypes(self, dtypes: List[Dtype], start: int) -> List[Union[int, float, str, Bits, bool, bytes, None]]:
+    #     ret_vals = []
+    #     for dtype in dtypes:
+    #         val = dtype.read_fn(self, start)
+    #         if isinstance(val, tuple):
+    #             ret_vals.append(val[0])
+    #             start += val[1]
+    #         else:
+    #             ret_vals.append(val)
+    #             start += dtype.bitlength
+    #     return ret_vals
+
+
+    def _readlist(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int, **kwargs: int) \
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
         tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]] = []
         if isinstance(fmt, str):

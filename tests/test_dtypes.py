@@ -31,7 +31,3 @@ class BasicFunctionality(unittest.TestCase):
         self.assertEqual(str(d), 'uint12')
         self.assertEqual(d.length, 12)
         self.assertEqual(d.name, 'uint')
-
-    def testSettingWithLengthErrors(self):
-        with self.assertRaises(ValueError):
-            _ = Dtype('float', 14)

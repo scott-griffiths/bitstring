@@ -59,9 +59,10 @@ class Creation(unittest.TestCase):
             _ = Array('2*float16')
 
     def testChangingFmt(self):
-        a = Array('uint8', [255]*100)
+        d = Dtype('u', 8)
+        a = Array(d, [255]*100)
         self.assertEqual(len(a), 100)
-        a.dtype = 'int4'
+        a.dtype = Dtype('int', 4)
         self.assertEqual(len(a), 200)
         self.assertEqual(a.count(-1), 200)
         a.append(5)
