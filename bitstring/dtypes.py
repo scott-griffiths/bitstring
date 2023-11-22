@@ -117,15 +117,20 @@ class Register:
         if cls._instance is None:
             cls._instance = super(Register, cls).__new__(cls)
             cls.name_to_meta_dtype: Dict[str, MetaDtype] = {}
+            cls._unknowable_length_names_cache: Tuple[str] = tuple()
+            cls._always_fixed_length_cache: Dict[str, int] = {}
+            cls._modified_flag: bool = False
         return cls._instance
 
     @classmethod
     def add_meta_dtype(cls, meta_dtype: MetaDtype):
         cls.name_to_meta_dtype[meta_dtype.name] = meta_dtype
+        cls._modified_flag = True
 
     @classmethod
     def add_meta_dtype_alias(cls, name: str, alias: str):
         cls.name_to_meta_dtype[alias] = cls.name_to_meta_dtype[name]
+        cls._modified_flag = True
 
     @classmethod
     def get_dtype(cls, name: str, length: Optional[int]) -> Dtype:
@@ -139,18 +144,25 @@ class Register:
                 length *= meta_type.length_multiplier
         return d
 
-    # TODO: This should be only calculated if the register has been altered since the last time it was called.
     @classmethod
-    def unknowable_length_names(cls) -> List[str]:
-        return [dt_name for dt_name in cls.name_to_meta_dtype if cls.name_to_meta_dtype[dt_name].is_unknown_length]
+    def unknowable_length_names(cls) -> Tuple[str]:
+        if cls._modified_flag:
+            cls.refresh()
+        return cls._unknowable_length_names_cache
 
     @classmethod
     def always_fixed_length(cls) -> Dict[str, int]:
+        if cls._modified_flag:
+            cls.refresh()
+        return cls._always_fixed_length_cache
+
+    @classmethod
+    def refresh(cls) -> None:
+        cls._unknowable_length_names_cache = tuple(dt_name for dt_name in cls.name_to_meta_dtype if cls.name_to_meta_dtype[dt_name].is_unknown_length)
         d: Dict[str, int] = {}
         for mt in cls.name_to_meta_dtype:
             if cls.name_to_meta_dtype[mt].is_fixed_length:
                 d[mt] = cls.name_to_meta_dtype[mt].length
-        return d
-
-
+        cls._always_fixed_length_cache = d
+        cls._modified_flag = False
 
