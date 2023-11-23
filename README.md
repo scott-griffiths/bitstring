@@ -17,11 +17,11 @@ It has been maintained since 2006 and now has many millions of downloads per yea
 
 News
 ----
-**7th September 2023**: bitstring 4.1.2 released. Version 4.1 is a large update in terms of how much of the code has changed.
+**22nd November 2023**: bitstring 4.1.3 released. Version 4.1 is a large update in terms of how much of the code has changed.
 
-* Speed increased with bitarray dependency.
 * New Array class for homogeneous data.
 * Support for 8-bit floating point values.
+* Speed increased with bitarray dependency.
 
 See the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt) for details. Please let me know if you encounter any problems.
 
