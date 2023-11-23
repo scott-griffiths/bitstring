@@ -322,12 +322,12 @@ class ConstBitStream(Bits):
             self._pos += fmt
             return bs
         dtype = Dtype(fmt)
-        val = dtype.read_fn(self, self._pos)
-        if isinstance(val, tuple):
-            self._pos = val[1]
-            val = val[0]
-        else:
+        if dtype.bitlength is not None:
+            val = dtype.read_fn(self, self._pos)
             self._pos += dtype.bitlength
+        else:
+            val, self._pos = dtype.read_fn(self, self._pos)
+
         if self._pos > len(self):
             self._pos = p
             raise ReadError(f"Reading off end of bitstring with fmt '{fmt}'. Only {len(self) - p} bits available.")

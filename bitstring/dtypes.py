@@ -9,7 +9,7 @@ from bitstring.utils import parse_name_length_token
 
 class Dtype:
 
-    __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'is_integer', 'is_signed', 'is_float', 'is_fixed_length', 'is_unknown_length')
+    __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'return_type', 'is_integer', 'is_signed', 'is_float', 'is_fixed_length', 'is_unknown_length')
 
     def __new__(cls, __token: Union[str, Dtype, None] = None, length: Optional[int] = None) -> Dtype:
         if isinstance(__token, Dtype):
@@ -30,7 +30,7 @@ class Dtype:
         return 0  # TODO: Optimise :)
 
     @classmethod
-    def create(cls, name: str, length: Optional[int], set_fn, read_fn, get_fn, is_integer: bool, is_float: bool, is_signed: bool,
+    def create(cls, name: str, length: Optional[int], set_fn, read_fn, get_fn, return_type: Any, is_integer: bool, is_float: bool, is_signed: bool,
                is_unknown_length: bool, is_fixed_length: bool, length_multiplier: Optional[int]) -> Dtype:
         x = cls.__new__(cls)
         x.name = name
@@ -44,6 +44,7 @@ class Dtype:
         else:
             x.set_fn = functools.partial(set_fn, length=x.bitlength)
         x.get_fn = get_fn
+        x.return_type = return_type
         x.is_integer = is_integer
         x.is_signed = is_signed
         x.is_float = is_float
@@ -68,7 +69,7 @@ class Dtype:
 class MetaDtype:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
-    def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, is_integer: bool, is_float: bool, is_signed: bool,
+    def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, return_type: Any, is_integer: bool, is_float: bool, is_signed: bool,
                  is_unknown_length: bool, length: Optional[int] = None, length_multiplier: Optional[int] = None):
         # Consistency checks
         if is_unknown_length and length is not None:
@@ -78,6 +79,7 @@ class MetaDtype:
 
         self.name = name
         self.description = description
+        self.return_type = return_type
         self.is_float = is_float
         self.is_integer = is_integer
         self.is_signed = is_signed
@@ -94,7 +96,7 @@ class MetaDtype:
         if length is None:
             if not self.is_fixed_length and not self.is_unknown_length:
                 raise ValueError(f"No length given for dtype '{self.name}', and meta type is not fixed length.")
-            d = Dtype.create(self.name, None, self.set_fn, self.read_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
+            d = Dtype.create(self.name, None, self.set_fn, self.read_fn, self.get_fn, self.return_type, self.is_integer, self.is_float, self.is_signed,
                              self.is_unknown_length, self.is_fixed_length, self.length_multiplier)
             return d
         if self.is_unknown_length:
@@ -103,7 +105,7 @@ class MetaDtype:
             if length != 0 and length != self.length:
                 raise ValueError  # TODO
             length = self.length
-        d = Dtype.create(self.name, length, self.set_fn, self.read_fn, self.get_fn, self.is_integer, self.is_float, self.is_signed,
+        d = Dtype.create(self.name, length, self.set_fn, self.read_fn, self.get_fn, self.return_type, self.is_integer, self.is_float, self.is_signed,
                          self.is_unknown_length, self.is_fixed_length, self.length_multiplier)
         return d
 
