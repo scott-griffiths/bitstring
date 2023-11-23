@@ -98,6 +98,9 @@ jobs:
           - name: CPython 3.11
             major_dot_minor: '3.11'
             action: '3.11'
+          - name: CPython 3.12
+            major_dot_minor: '3.12'
+            action: '3.12'
 # Failing due to error using temporary file in a unittest. I think it's a PyPy bug, not a bitstring one!
 #           - name: PyPy 3.7
 #             major_dot_minor: '3.7'
