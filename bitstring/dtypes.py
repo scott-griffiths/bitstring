@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import functools
-from bitstring.exceptions import InterpretError, CreationError
-from bitstring.bits import Bits
-from typing import Optional, Dict, List, Any, Union
+from typing import Optional, Dict, Any, Union, Tuple
 from bitstring.utils import parse_name_length_token
 
 

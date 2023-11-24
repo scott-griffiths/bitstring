@@ -1,5 +1,4 @@
 from __future__ import annotations
-import itertools
 import functools
 import re
 from typing import Tuple, List, Optional, Pattern, Dict, Union, Match
