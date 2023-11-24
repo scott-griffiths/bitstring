@@ -202,7 +202,7 @@ class BitArray(Bits):
             value = self._create_from_bitstype(value)
         except TypeError:
             raise TypeError(f"Bitstring, integer or string expected. Got {type(value)}.")
-        positive_key = key + self.len if key < 0 else key
+        positive_key = key + len(self) if key < 0 else key
         if positive_key < 0 or positive_key >= len(self._bitstore):
             raise IndexError(f"Bit position {key} out of range.")
         self._bitstore[positive_key: positive_key + 1] = value._bitstore
@@ -256,11 +256,11 @@ class BitArray(Bits):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if not self.len:
+        if not len(self):
             raise ValueError("Cannot shift an empty bitstring.")
         if not n:
             return self
-        n = min(n, self.len)
+        n = min(n, len(self))
         return self._ilshift(n)
 
     def __irshift__(self: TBits, n: int) -> TBits:
@@ -271,11 +271,11 @@ class BitArray(Bits):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if not self.len:
+        if not len(self):
             raise ValueError("Cannot shift an empty bitstring.")
         if not n:
             return self
-        n = min(n, self.len)
+        n = min(n, len(self))
         return self._irshift(n)
 
     def __imul__(self: TBits, n: int) -> TBits:
@@ -291,21 +291,21 @@ class BitArray(Bits):
 
     def __ior__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        if self.len != bs.len:
+        if len(self) != len(bs):
             raise ValueError("Bitstrings must have the same length for |= operator.")
         self._bitstore |= bs._bitstore
         return self
 
     def __iand__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        if self.len != bs.len:
+        if len(self) != len(bs):
             raise ValueError("Bitstrings must have the same length for &= operator.")
         self._bitstore &= bs._bitstore
         return self
 
     def __ixor__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        if self.len != bs.len:
+        if len(self) != len(bs):
             raise ValueError("Bitstrings must have the same length for ^= operator.")
         self._bitstore ^= bs._bitstore
         return self
@@ -318,7 +318,7 @@ class BitArray(Bits):
         for x in self.findall(old, start, end, bytealigned=bytealigned):
             if not starting_points:
                 starting_points.append(x)
-            elif x >= starting_points[-1] + old.len:
+            elif x >= starting_points[-1] + len(old):
                 # Can only replace here if it hasn't already been replaced!
                 starting_points.append(x)
             if count != 0 and len(starting_points) == count:
@@ -329,10 +329,10 @@ class BitArray(Bits):
         for i in range(len(starting_points) - 1):
             replacement_list.append(new._bitstore)
             replacement_list.append(
-                self._bitstore.getslice(slice(starting_points[i] + old.len, starting_points[i + 1], None)))
+                self._bitstore.getslice(slice(starting_points[i] + len(old), starting_points[i + 1], None)))
         # Final replacement
         replacement_list.append(new._bitstore)
-        replacement_list.append(self._bitstore.getslice(slice(starting_points[-1] + old.len, None, None)))
+        replacement_list.append(self._bitstore.getslice(slice(starting_points[-1] + len(old), None, None)))
         if BitArray._options.lsb0:
             # Addition of bitarray is always on the right, so assemble from other end
             replacement_list.reverse()
@@ -366,7 +366,7 @@ class BitArray(Bits):
             return 0
         old = self._create_from_bitstype(old)
         new = self._create_from_bitstype(new)
-        if not old.len:
+        if len(old) == 0:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
 
@@ -385,13 +385,13 @@ class BitArray(Bits):
 
         """
         bs = self._create_from_bitstype(bs)
-        if not bs.len:
+        if len(bs) == 0:
             return
         if bs is self:
             bs = self._copy()
         if pos < 0:
-            pos += self._getlength()
-        if not 0 <= pos <= self._getlength():
+            pos += len(self)
+        if not 0 <= pos <= len(self):
             raise ValueError("Invalid insert position.")
         self._insert(bs, pos)
 
@@ -405,11 +405,11 @@ class BitArray(Bits):
 
         """
         bs = self._create_from_bitstype(bs)
-        if not bs.len:
+        if len(bs) == 0:
             return
         if pos < 0:
-            pos += self._getlength()
-        if pos < 0 or pos > self.len:
+            pos += len(self)
+        if pos < 0 or pos > len(self):
             raise ValueError("Overwrite starts outside boundary of bitstring.")
         self._overwrite(bs, pos)
 
@@ -449,7 +449,7 @@ class BitArray(Bits):
 
         """
         start, end = self._validate_slice(start, end)
-        if start == 0 and end == self.len:
+        if start == 0 and end == len(self):
             self._bitstore.reverse()
             return
         s = self._slice(start, end)
@@ -494,7 +494,7 @@ class BitArray(Bits):
             return
         if not isinstance(pos, abc.Iterable):
             pos = (pos,)
-        length = self.len
+        length = len(self)
 
         for p in pos:
             if p < 0:
@@ -513,7 +513,7 @@ class BitArray(Bits):
         Raises ValueError if bits < 0.
 
         """
-        if not self.len:
+        if not len(self):
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")
@@ -538,7 +538,7 @@ class BitArray(Bits):
         Raises ValueError if bits < 0.
 
         """
-        if not self.len:
+        if not len(self):
             raise Error("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")

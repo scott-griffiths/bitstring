@@ -143,7 +143,7 @@ class ConstBitStream(Bits):
         """Move to absolute position bit in bitstream."""
         if pos < 0:
             raise ValueError("Bit position cannot be negative.")
-        if pos > self.len:
+        if pos > len(self):
             raise ValueError("Cannot seek past the end of the data.")
         self._pos = pos
 
@@ -205,16 +205,16 @@ class ConstBitStream(Bits):
 
         """
         bs = Bits._create_from_bitstype(bs)
-        if not bs.len:
+        if len(bs) == 0:
             return
         if pos is None:
             pos = self._pos
         if pos < 0:
-            pos += self._getlength()
-        if pos < 0 or pos > self.len:
+            pos += len(self)
+        if pos < 0 or pos > len(self):
             raise ValueError("Overwrite starts outside boundary of bitstring.")
         self._overwrite(bs, pos)
-        self._pos = pos + bs.len
+        self._pos = pos + len(bs)
 
     def find(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
@@ -316,8 +316,8 @@ class ConstBitStream(Bits):
         if isinstance(fmt, numbers.Integral):
             if fmt < 0:
                 raise ValueError("Cannot read negative amount.")
-            if fmt > self.len - self._pos:
-                raise ReadError(f"Cannot read {fmt} bits, only {self.len - self._pos} available.")
+            if fmt > len(self) - self._pos:
+                raise ReadError(f"Cannot read {fmt} bits, only {len(self) - self._pos} available.")
             bs = self._slice(self._pos, self._pos + fmt)
             self._pos += fmt
             return bs
@@ -376,7 +376,7 @@ class ConstBitStream(Bits):
         p = self.find(bs, self._pos, bytealigned=bytealigned)
         if not p:
             raise ReadError("Substring not found")
-        self._pos += bs.len
+        self._pos += len(bs)
         return self._slice(oldpos, self._pos)
 
     @overload
@@ -645,8 +645,8 @@ class BitStream(ConstBitStream, BitArray):
         if pos is None:
             pos = self._pos
         if pos < 0:
-            pos += self._getlength()
-        if not 0 <= pos <= self._getlength():
+            pos += len(self)
+        if not 0 <= pos <= len(self):
             raise ValueError("Invalid insert position.")
         self._insert(bs, pos)
         self._pos = pos + len(bs)
@@ -676,7 +676,7 @@ class BitStream(ConstBitStream, BitArray):
             return 0
         old = Bits._create_from_bitstype(old)
         new = Bits._create_from_bitstype(new)
-        if not old.len:
+        if len(old) == 0:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
         if new is self:

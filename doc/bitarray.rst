@@ -113,7 +113,7 @@ Methods
 
     Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 
-    If *bytealigned* is ``True`` then replacements will only be made on byte boundaries. *start* and *end* give the search range and default to ``0`` and :attr:`~Bits.len` respectively. If *count* is specified then no more than this many replacements will be made. ::
+    If *bytealigned* is ``True`` then replacements will only be made on byte boundaries. *start* and *end* give the search range and default to the start and end of the bitstring. If *count* is specified then no more than this many replacements will be made. ::
 
         >>> s = BitArray('0b0011001')
         >>> s.replace('0b1', '0xf')
@@ -129,7 +129,7 @@ Methods
 
     Reverses bits in the :class:`BitArray` in-place.
 
-    *start* and *end* give the range of bits to reverse and default to ``0`` and :attr:`~Bits.len` respectively. ::
+    *start* and *end* give the range of bits to reverse and default to the start and end of the bitstring. ::
 
         >>> a = BitArray('0b000001101')
         >>> a.reverse()
@@ -143,7 +143,7 @@ Methods
 
     Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the left.
 
-    *start* and *end* define the slice to use and default to ``0`` and :attr:`~Bits.len` respectively.
+    *start* and *end* define the slice to use and default to the start and end of the bitstring.
 
     Raises :exc:`ValueError` if ``bits < 0``. ::
 
@@ -156,7 +156,7 @@ Methods
 
     Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the right.
 
-    *start* and *end* define the slice to use and default to ``0`` and :attr:`~Bits.len` respectively.
+    *start* and *end* define the slice to use and default to the start and end of the bitstring.
 
     Raises :exc:`ValueError` if ``bits < 0``.
 
