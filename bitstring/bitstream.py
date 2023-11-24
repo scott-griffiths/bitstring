@@ -81,7 +81,7 @@ class ConstBitStream(Bits):
 
     __slots__ = ('_pos')
 
-    def __init__(self, __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
+    def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                  offset: Optional[int] = None, pos: int = 0, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, an integer, a file object,
@@ -532,7 +532,7 @@ class BitStream(ConstBitStream, BitArray):
 
     __slots__ = ()
 
-    def __init__(self, __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
+    def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                  offset: Optional[int] = None, pos: int = 0, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, an integer, a file object,
@@ -573,7 +573,7 @@ class BitStream(ConstBitStream, BitArray):
         pos -- Initial bit position, defaults to 0.
 
         """
-        ConstBitStream.__init__(self, __auto, length, offset, pos, **kwargs)
+        ConstBitStream.__init__(self, auto, length, offset, pos, **kwargs)
         if self._bitstore.immutable:
             self._bitstore = self._bitstore.copy()
             self._bitstore.immutable = False

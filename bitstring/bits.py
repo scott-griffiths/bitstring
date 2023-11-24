@@ -110,7 +110,7 @@ class Bits:
     _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
     _byteReversalDict: Dict[int, bytes] = {i: bytes([int("{0:08b}".format(i)[::-1], 2)]) for i in range(0x100)}
 
-    def __init__(self, __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
+    def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, an integer, a file object,
@@ -152,10 +152,10 @@ class Bits:
         """
         self._bitstore.immutable = True
 
-    def __new__(cls: Type[TBits], __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
+    def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
         x = object.__new__(cls)
-        if __auto is None and not kwargs:
+        if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
                 x._bitstore = BitStore(length)
@@ -163,7 +163,7 @@ class Bits:
             else:
                 x._bitstore = BitStore()
             return x
-        x._initialise(__auto, length, offset, **kwargs)
+        x._initialise(auto, length, offset, **kwargs)
         return x
 
     @classmethod
@@ -180,20 +180,20 @@ class Bits:
         b._setauto(auto, None, None)
         return b
 
-    def _initialise(self, __auto: Any, length: Optional[int], offset: Optional[int], **kwargs) -> None:
+    def _initialise(self, auto: Any, /, length: Optional[int], offset: Optional[int], **kwargs) -> None:
         if length is not None and length < 0:
             raise CreationError("bitstring length cannot be negative.")
         if offset is not None and offset < 0:
             raise CreationError("offset must be >= 0.")
-        if __auto is not None:
-            if isinstance(__auto, numbers.Integral):
+        if auto is not None:
+            if isinstance(auto, numbers.Integral):
                 # Initialise with s zero bits.
-                if __auto < 0:
-                    raise CreationError(f"Can't create bitstring of negative length {__auto}.")
-                self._bitstore = BitStore(int(__auto))
+                if auto < 0:
+                    raise CreationError(f"Can't create bitstring of negative length {auto}.")
+                self._bitstore = BitStore(int(auto))
                 self._bitstore.setall(0)
                 return
-            self._setauto(__auto, length, offset)
+            self._setauto(auto, length, offset)
             return
         k, v = kwargs.popitem()
         try:

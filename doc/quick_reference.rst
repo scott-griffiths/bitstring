@@ -61,7 +61,7 @@ Bits
 :class:`Bits` is the most basic class and is just a container of bits. It is immutable, so once created its value cannot change.
 
 
-``Bits(__auto, length: Optional[int], offset: Optional[int], **kwargs)``
+``Bits(auto, /, length: Optional[int], offset: Optional[int], **kwargs)``
 
 The first parameter (usually referred to as `auto`) can be many different types, including parsable strings, a file handle, a bytes or bytearray object, an integer or an iterable.
 

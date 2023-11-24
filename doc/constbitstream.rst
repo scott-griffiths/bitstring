@@ -3,7 +3,7 @@
 ConstBitStream
 ==============
 
-.. class:: ConstBitStream(__auto: BitsType | int | None, length: int | None = None, offset: int | None = None, pos: int = 0, **kwargs)
+.. class:: ConstBitStream(auto: BitsType | int | None, /, length: int | None = None, offset: int | None = None, pos: int = 0, **kwargs)
 
     The :class:`Bits` class is the base class for :class:`ConstBitStream` and so all of its methods are also available for :class:`ConstBitStream` objects. The initialiser is the same as for :class:`Bits` except that an initial bit position :attr:`pos` can be given (defaults to 0).
 

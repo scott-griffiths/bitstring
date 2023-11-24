@@ -92,7 +92,7 @@ class BitArray(Bits):
     __hash__: None = None
 
 
-    def __init__(self, __auto: Optional[Union[BitsType, int]] = None, length: Optional[int] = None,
+    def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, an integer, a file object,

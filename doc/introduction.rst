@@ -35,7 +35,7 @@ The :class:`Bits` class is the base class of the other three class. This means t
 Creating bitstrings
 -------------------
 
-``Bits(__auto, length: Optional[int], offset: Optional[int], **kwargs)``
+``Bits(auto, /, length: Optional[int], offset: Optional[int], **kwargs)``
 
 When initialising a bitstring you need to specify at most one initialiser.
 This can either be the first parameter in the constructor ('auto' initialisation, described below), or using one of the following keywords:
