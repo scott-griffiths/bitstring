@@ -1376,13 +1376,7 @@ class Bits:
         keys: Tuple[str, ...] = tuple(sorted(kwargs.keys()))
 
         def convert_length_strings(length_: Optional[Union[str, int]]) -> Optional[int]:
-            int_length: Optional[int] = None
-            if isinstance(length_, str):
-                if length_ in kwargs:
-                    int_length = kwargs[length_]
-            else:
-                int_length = length_
-            return int_length
+            return kwargs.get(length_) if isinstance(length_, str) else length_
 
         has_stretchy_token = False
         for f_item in fmt:
