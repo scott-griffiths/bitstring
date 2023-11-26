@@ -33,7 +33,7 @@ Overview
 * Read from and interpret bitstrings as streams of binary data.
 * Create arrays of any fixed-length format.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
-* Supports Python 3.7 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
+* Supports Python 3.8 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
 * Open source software, released under the MIT licence.
 
 It is not difficult to manipulate binary data in Python, for example using the ``struct`` and ``array`` modules, but it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing with whole-byte data.
@@ -93,9 +93,6 @@ See the reference documentation for full details.
 
 Arrays of bitstrings
 ^^^^^^^^^^^^^^^^^^^^
-
-.. note ::
-    This class was introduced in version 4.1 of bitstring, and is a 'beta' feature that may have some small changes in future point releases.
 
 If you are dealing with just one type of data but perhaps it's not one of the dozen or so supported in the ``array`` module in the standard library, then we have you covered with the :class:`Array` class.
 

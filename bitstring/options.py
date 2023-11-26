@@ -14,6 +14,9 @@ class Options:
         self.set_lsb0(False)
         self._bytealigned = False
 
+    def __repr__(self) -> str:
+        return f"bytealigned: {self._bytealigned}\nlsb0: {self._lsb0}"
+
     @property
     def lsb0(self) -> bool:
         return self._lsb0

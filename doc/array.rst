@@ -1,11 +1,5 @@
 .. currentmodule:: bitstring
 
-.. note::
-    The Array class is new in version 4.1 of bitstring, and is considered a 'beta' feature for now.
-    There may be some small changes in future point releases and it hasn't been tested as well as the rest of the library.
-
-    This documentation may also be a bit 'beta'.
-
 
 Array
 =====
@@ -406,7 +400,6 @@ Numerical operators
 .. method:: Array.__add__(other: int | float | Array) -> Array
 
     ``a + x``
-
 
 .. method:: Array.__sub__(self, other: int | float | Array) -> Array
 

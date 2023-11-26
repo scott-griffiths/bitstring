@@ -173,7 +173,7 @@ class Bits:
         return x
 
     @classmethod
-    def _create_from_bitstype(cls: Type[TBits], auto: Optional[BitsType]) -> TBits:
+    def _create_from_bitstype(cls: Type[TBits], auto: Optional[BitsType], /) -> TBits:
         b = cls._create_empty_instance()
         if auto is None:
             return b
@@ -268,14 +268,14 @@ class Bits:
         return bs.__add__(self)
 
     @overload
-    def __getitem__(self: TBits, key: slice) -> TBits:
+    def __getitem__(self: TBits, key: slice, /) -> TBits:
         ...
 
     @overload
-    def __getitem__(self, key: int) -> bool:
+    def __getitem__(self, key: int, /) -> bool:
         ...
 
-    def __getitem__(self: TBits, key: Union[slice, int]) -> Union[TBits, bool]:
+    def __getitem__(self: TBits, key: Union[slice, int], /) -> Union[TBits, bool]:
         """Return a new bitstring representing a slice of the current bitstring.
 
         Indices are in units of the step parameter (default 1 bit).
@@ -348,7 +348,7 @@ class Bits:
         """
         return self._repr(self.__class__.__name__, len(self), self._bitstore.offset, self._bitstore.filename, 0)
 
-    def __eq__(self, bs: Any) -> bool:
+    def __eq__(self, bs: Any, /) -> bool:
         """Return True if two bitstrings have the same binary representation.
 
         >>> BitArray('0b1110') == '0xe'
@@ -361,7 +361,7 @@ class Bits:
             return False
         return self._bitstore == bs._bitstore
 
-    def __ne__(self, bs: Any) -> bool:
+    def __ne__(self, bs: Any, /) -> bool:
         """Return False if two bitstrings have the same binary representation.
 
         >>> BitArray('0b111') == '0x7'
@@ -382,7 +382,7 @@ class Bits:
         s._invert_all()
         return s
 
-    def __lshift__(self: TBits, n: int) -> TBits:
+    def __lshift__(self: TBits, n: int, /) -> TBits:
         """Return bitstring with bits shifted by n to the left.
 
         n -- the number of bits to shift. Must be >= 0.
@@ -397,7 +397,7 @@ class Bits:
         s._addright(Bits(n))
         return s
 
-    def __rshift__(self: TBits, n: int) -> TBits:
+    def __rshift__(self: TBits, n: int, /) -> TBits:
         """Return bitstring with bits shifted by n to the right.
 
         n -- the number of bits to shift. Must be >= 0.
@@ -414,7 +414,7 @@ class Bits:
         s._addright(self._absolute_slice(0, len(self) - n))
         return s
 
-    def __mul__(self: TBits, n: int) -> TBits:
+    def __mul__(self: TBits, n: int, /) -> TBits:
         """Return bitstring consisting of n concatenations of self.
 
         Called for expression of the form 'a = b*3'.
@@ -429,7 +429,7 @@ class Bits:
         s._imul(n)
         return s
 
-    def __rmul__(self: TBits, n: int) -> TBits:
+    def __rmul__(self: TBits, n: int, /) -> TBits:
         """Return bitstring consisting of n concatenations of self.
 
         Called for expressions of the form 'a = 3*b'.
@@ -438,7 +438,7 @@ class Bits:
         """
         return self.__mul__(n)
 
-    def __and__(self: TBits, bs: BitsType) -> TBits:
+    def __and__(self: TBits, bs: BitsType, /) -> TBits:
         """Bit-wise 'and' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '&' with.
@@ -453,7 +453,7 @@ class Bits:
         s._bitstore &= bs._bitstore
         return s
 
-    def __rand__(self: TBits, bs: BitsType) -> TBits:
+    def __rand__(self: TBits, bs: BitsType, /) -> TBits:
         """Bit-wise 'and' between two bitstrings. Returns new bitstring.
 
         bs -- the bitstring to '&' with.
@@ -463,7 +463,7 @@ class Bits:
         """
         return self.__and__(bs)
 
-    def __or__(self: TBits, bs: BitsType) -> TBits:
+    def __or__(self: TBits, bs: BitsType, /) -> TBits:
         """Bit-wise 'or' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '|' with.
@@ -478,7 +478,7 @@ class Bits:
         s._bitstore |= bs._bitstore
         return s
 
-    def __ror__(self: TBits, bs: BitsType) -> TBits:
+    def __ror__(self: TBits, bs: BitsType, /) -> TBits:
         """Bit-wise 'or' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '|' with.
@@ -488,7 +488,7 @@ class Bits:
         """
         return self.__or__(bs)
 
-    def __xor__(self: TBits, bs: BitsType) -> TBits:
+    def __xor__(self: TBits, bs: BitsType, /) -> TBits:
         """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '^' with.
@@ -503,7 +503,7 @@ class Bits:
         s._bitstore ^= bs._bitstore
         return s
 
-    def __rxor__(self: TBits, bs: BitsType) -> TBits:
+    def __rxor__(self: TBits, bs: BitsType, /) -> TBits:
         """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
 
         bs -- The bitstring to '^' with.
@@ -513,7 +513,7 @@ class Bits:
         """
         return self.__xor__(bs)
 
-    def __contains__(self, bs: BitsType) -> bool:
+    def __contains__(self, bs: BitsType, /) -> bool:
         """Return whether bs is contained in the current bitstring.
 
         bs -- The bitstring to search for.
@@ -544,7 +544,7 @@ class Bits:
         """Reset the bitstring to an empty state."""
         self._bitstore = BitStore()
 
-    def _setauto(self, s: BitsType, length: Optional[int], offset: Optional[int]) -> None:
+    def _setauto(self, s: BitsType, length: Optional[int], offset: Optional[int], /) -> None:
         """Set bitstring from a bitstring, file, bool, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
@@ -630,7 +630,7 @@ class Bits:
                     f"Offset of {offset} and length of {length} too large for bitarray of length {len(ba)}.")
             self._bitstore = BitStore(ba[offset: offset + length])
 
-    def _setbits(self, bs: BitsType, length: None = None, offset: None = None) -> None:
+    def _setbits(self, bs: BitsType, length: None = None, _offset: None = None) -> None:
         bs = Bits._create_from_bitstype(bs)
         self._bitstore = bs._bitstore
 
@@ -1206,18 +1206,18 @@ class Bits:
         except KeyError:
             raise ValueError(f"Can't parse token {name}:{length}")
 
-    def _addright(self, bs: Bits) -> None:
+    def _addright(self, /, bs: Bits) -> None:
         """Add a bitstring to the RHS of the current bitstring."""
         self._bitstore += bs._bitstore
 
-    def _addleft(self, bs: Bits) -> None:
+    def _addleft(self, /, bs: Bits) -> None:
         """Prepend a bitstring to the current bitstring."""
         if bs._bitstore.immutable:
             self._bitstore = bs._bitstore.copy() + self._bitstore
         else:
             self._bitstore = bs._bitstore + self._bitstore
 
-    def _truncateleft(self: TBits, bits: int) -> TBits:
+    def _truncateleft(self: TBits, /, bits: int) -> TBits:
         """Truncate bits from the start of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= len(self)
         if not bits:
@@ -1229,7 +1229,7 @@ class Bits:
         self._bitstore = self._bitstore.getslice_msb0(slice(bits, None, None))
         return truncated_bits
 
-    def _truncateright(self: TBits, bits: int) -> TBits:
+    def _truncateright(self: TBits, /, bits: int) -> TBits:
         """Truncate bits from the end of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= len(self)
         if bits == 0:
@@ -1241,13 +1241,13 @@ class Bits:
         self._bitstore = self._bitstore.getslice_msb0(slice(None, -bits, None))
         return truncated_bits
 
-    def _insert(self, bs: Bits, pos: int) -> None:
+    def _insert(self, /, bs: Bits, pos: int) -> None:
         """Insert bs at pos."""
         assert 0 <= pos <= len(self)
         self._bitstore[pos: pos] = bs._bitstore
         return
 
-    def _overwrite(self, bs: Bits, pos: int) -> None:
+    def _overwrite(self, /, bs: Bits, pos: int) -> None:
         """Overwrite with bs at pos."""
         assert 0 <= pos <= len(self)
         if bs is self:
@@ -1256,7 +1256,7 @@ class Bits:
             return
         self._bitstore[pos: pos + len(bs)] = bs._bitstore
 
-    def _delete(self, bits: int, pos: int) -> None:
+    def _delete(self, /, bits: int, pos: int) -> None:
         """Delete bits at pos."""
         assert 0 <= pos <= len(self)
         assert pos + bits <= len(self), f"pos={pos}, bits={bits}, len={len(self)}"
@@ -1268,7 +1268,7 @@ class Bits:
         assert (end - start) % 8 == 0
         self._bitstore[start:end] = BitStore(frombytes=self._bitstore.getslice(slice(start, end, None)).tobytes()[::-1])
 
-    def _invert(self, pos: int) -> None:
+    def _invert(self, /, pos: int) -> None:
         """Flip bit at pos 1<->0."""
         assert 0 <= pos < len(self)
         self._bitstore.invert(pos)
@@ -1277,21 +1277,21 @@ class Bits:
         """Invert every bit."""
         self._bitstore.invert()
 
-    def _ilshift(self: TBits, n: int) -> TBits:
+    def _ilshift(self: TBits, /, n: int) -> TBits:
         """Shift bits by n to the left in place. Return self."""
         assert 0 < n <= len(self)
         self._addright(Bits(n))
         self._truncateleft(n)
         return self
 
-    def _irshift(self: TBits, n: int) -> TBits:
+    def _irshift(self: TBits, /, n: int) -> TBits:
         """Shift bits by n to the right in place. Return self."""
         assert 0 < n <= len(self)
         self._addleft(Bits(n))
         self._truncateright(n)
         return self
 
-    def _imul(self: TBits, n: int) -> TBits:
+    def _imul(self: TBits, /, n: int) -> TBits:
         """Concatenate n copies of self in place. Return self."""
         assert n >= 0
         if not n:

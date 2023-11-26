@@ -674,11 +674,10 @@ class BitStream(ConstBitStream, BitArray):
         """
         if count == 0:
             return 0
-        old = Bits._create_from_bitstype(old)
-        new = Bits._create_from_bitstype(new)
-        if len(old) == 0:
+        if len(old := Bits._create_from_bitstype(old)) == 0:
             raise ValueError("Empty bitstring cannot be replaced.")
         start, end = self._validate_slice(start, end)
+        new = Bits._create_from_bitstype(new)
         if new is self:
             # Prevent self assignment woes
             new = copy.copy(self)
