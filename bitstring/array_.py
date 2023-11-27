@@ -399,21 +399,6 @@ class Array:
                 token_length2 = token_length
             if token_length != token_length2:
                 raise ValueError(f"Two different format lengths specified ('{fmt}'). Either specify just one, or two the same length.")
-            getter_func2 = dtype_register.get_dtype(token_name2, token_length2).read_fn
-
-        getter_func = dtype_register.get_dtype(token_name, token_length).read_fn
-
-        # Check that the getter functions will work
-        temp = BitArray(token_length)
-        try:
-            getter_func(temp, 0)
-        except InterpretError as e:
-            raise ValueError(f"Pretty print format not valid: {e.msg}")
-        if token_name2 is not None:
-            try:
-                getter_func2(temp, 0)
-            except InterpretError as e:
-                raise ValueError(f"Pretty print format not valid: {e.msg}")
 
         trailing_bit_length = len(self.data) % token_length
         format_sep = " : "  # String to insert on each line between multiple formats
@@ -424,7 +409,7 @@ class Array:
             data = self.data[0: -trailing_bit_length]
         length = len(self.data) // token_length
         stream.write(f"<Array {parameter_str}, length={length}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
-        data._pp(token_name, token_name2, token_length, width, sep, format_sep, show_offset, stream, False, token_length, getter_func, getter_func2)
+        data._pp(token_name, token_name2, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
         stream.write("]")
         if trailing_bit_length != 0:
             stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))

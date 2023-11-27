@@ -1916,7 +1916,7 @@ class Bits:
         return bitlength2chars_fn(bits_per_group)
 
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
-            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int, getter_fn=None, getter_fn2=None) -> None:
+            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
         """Internal pretty print method."""
 
         bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
@@ -1949,6 +1949,9 @@ class Bits:
                 if max_bits_per_line == 0:
                     max_bits_per_line = 24  # We can't fit into the width asked for. Show something small.
         assert max_bits_per_line > 0
+
+        getter_fn = Bits._register.get_dtype(name1, bits_per_group).read_fn
+        getter_fn2 = None if name2 is None else Bits._register.get_dtype(name2, bits_per_group).read_fn
 
         bitpos = 0
         first_fb_width = second_fb_width = None
