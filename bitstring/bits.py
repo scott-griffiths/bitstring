@@ -1367,7 +1367,6 @@ class Bits:
     #             start += dtype.bitlength
     #     return ret_vals
 
-
     def _readlist(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int, **kwargs: int) \
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
         tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]] = []
@@ -1906,40 +1905,15 @@ class Bits:
 
     @staticmethod
     def _chars_per_group(bits_per_group: int, fmt: Optional[str]):
-        # TODO: This method is very fragile, and should use the dtype register.
+        """How many characters are needed to represent a number of bits with a given format."""
         if fmt is None:
             return 0
-        bpc = {'bin': 1, 'b': 1, 'oct': 3, 'o': 3, 'hex': 4, 'h': 4, 'bytes': 8}  # bits represented by each printed character
-        try:
-            return bits_per_group // bpc[fmt]
-        except KeyError:
-            # Work out how many chars are needed for each format given the number of bits
-            if fmt in ['u', 'uint', 'uintne', 'uintbe', 'uintle']:
-                # How many chars is largest uint?
-                chars_per_value = len(str((1 << bits_per_group) - 1))
-            elif fmt in ['i', 'int', 'intne', 'intbe', 'intle']:
-                # Use largest negative int so we get the '-' sign
-                chars_per_value = len(str((-1 << (bits_per_group - 1))))
-            elif fmt in ['bfloat', 'bfloatne', 'bfloatbe', 'bfloatle']:
-                chars_per_value = 23  # Empirical value
-            elif fmt in ['f', 'float', 'floatne', 'floatbe', 'floatle']:
-                if bits_per_group in [16, 32]:
-                    chars_per_value = 23  # Empirical value
-                elif bits_per_group == 64:
-                    chars_per_value = 24  # Empirical value
-            elif fmt == 'e4m3float':
-                chars_per_value = 13  # Empirical value
-            elif fmt == 'e5m2float':
-                chars_per_value = 19  # Empirical value
-            elif fmt == 'bool':
-                chars_per_value = 1   # '0' or '1'
-            elif fmt == 'bits':
-                temp = Bits(bits_per_group)
-                chars_per_value = len(str(temp))
-            else:
-                assert False, f"Unsupported format string {fmt}."
-                raise ValueError(f"Unsupported format string {fmt}.")
-            return chars_per_value
+
+        bitlength2chars_fn = Bits._register.name_to_meta_dtype[fmt].bitlength2chars_fn
+        if bitlength2chars_fn is None:
+            assert False, f"Unsupported format string {fmt}."
+            raise ValueError(f"Unsupported format string {fmt}.")
+        return bitlength2chars_fn(bits_per_group)
 
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int, getter_fn=None, getter_fn2=None) -> None:

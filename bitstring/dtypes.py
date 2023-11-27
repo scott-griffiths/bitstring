@@ -67,7 +67,7 @@ class Dtype:
 class MetaDtype:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
-    def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, return_type: Any, is_integer: bool, is_float: bool, is_signed: bool,
+    def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, return_type: Any, bitlength2chars_fn, is_integer: bool, is_float: bool, is_signed: bool,
                  is_unknown_length: bool, length: Optional[int] = None, length_multiplier: Optional[int] = None):
         # Consistency checks
         if is_unknown_length and length is not None:
@@ -89,6 +89,8 @@ class MetaDtype:
         self.set_fn = set_fn
         self.read_fn = read_fn  # With a start and usually a length
         self.get_fn = get_fn    # Interpret everything
+
+        self.bitlength2chars_fn = bitlength2chars_fn
 
     def getDtype(self, length: Optional[int] = None) -> Dtype:
         if length is None:

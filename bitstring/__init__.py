@@ -70,7 +70,7 @@ from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 from .dtypes import MetaDtype, Register, Dtype
 import types
-from typing import List, Tuple
+from typing import List, Tuple, Literal
 from .utils import initialise_constants
 
 
@@ -108,62 +108,141 @@ class _MyModuleType(types.ModuleType):
 
 sys.modules[__name__].__class__ = _MyModuleType
 
+"""These methods convert a bit length to the number of characters needed to print it for different interpretations."""
+def hex_bits2chars(bitlength: int):
+    # One character for every 4 bits
+    return bitlength // 4
+
+def oct_bits2chars(bitlength: int):
+    # One character for every 3 bits
+    return bitlength // 3
+
+def bin_bits2chars(bitlength: int):
+    # One character for each bit
+    return bitlength
+
+def bytes_bits2chars(bitlength: int):
+    # One character for every 8 bits
+    return bitlength // 8
+
+def uint_bits2chars(bitlength: int):
+    # How many characters is largest possible int of this length?
+    return len(str((1 << bitlength) - 1))
+
+def int_bits2chars(bitlength: int):
+    # How many characters is largest negative int of this length? (To include minus sign).
+    return len(str((-1 << (bitlength - 1))))
+
+def float_bits2chars(bitlength: Literal[16, 32, 64]):
+    # These bit lengths were found by looking at lots of possible values
+    if bitlength in [16, 32]:
+        return 23  # Empirical value
+    else:
+        assert bitlength == 64
+        return 24  # Empirical value
+
+def e5m2float_bits2chars(bitlength: Literal[8]):
+    return 19  # Empirical value
+
+def e4m3float_bits2chars(bitlength: Literal[8]):
+    # Found by looking at all the possible values
+    return 13  # Empirical value
+
+def bfloat_bits2chars(bitlength: Literal[16]):
+    # Found by looking at all the possible values
+    return 23  # Empirical value
+
+def bits_bits2chars(bitlength: int):
+    # For bits type we can see how long it needs to be printed by trying any value
+    temp = Bits(bitlength)
+    return len(str(temp))
+
+def bool_bits2chars(bitlength: Literal[1]):
+    # Bools are printed as 1 or 0, not True or False, so one character each
+    return 1
 
 dtypes = [
     MetaDtype('uint', "a two's complement unsigned int",
-              Bits._setuint, Bits._readuint, Bits._getuint, int, True, False, False, False, None),
+              Bits._setuint, Bits._readuint, Bits._getuint, int, uint_bits2chars,
+              True, False, False, False, None),
     MetaDtype('uintle', "a two's complement little-endian unsigned int",
-              Bits._setuintle, Bits._readuintle, Bits._getuintle, int, True, False, False, False, None),
+              Bits._setuintle, Bits._readuintle, Bits._getuintle, int, uint_bits2chars,
+              True, False, False, False, None),
     MetaDtype('uintne', "a two's complement native-endian unsigned int",
-              Bits._setuintne, Bits._readuintne, Bits._getuintne, int, True, False, False, False, None),
+              Bits._setuintne, Bits._readuintne, Bits._getuintne, int, uint_bits2chars,
+              True, False, False, False, None),
     MetaDtype('uintbe', "a two's complement big-endian unsigned int",
-              Bits._setuintbe, Bits._readuintbe, Bits._getuintbe, int, True, False, False, False, None),
+              Bits._setuintbe, Bits._readuintbe, Bits._getuintbe, int, uint_bits2chars,
+              True, False, False, False, None),
     MetaDtype('int', "a two's complement signed int",
-              Bits._setint, Bits._readint, Bits._getint, int, True, False, True, False, None),
+              Bits._setint, Bits._readint, Bits._getint, int, int_bits2chars,
+              True, False, True, False, None),
     MetaDtype('intle', "a two's complement little-endian signed int",
-              Bits._setintle, Bits._readintle, Bits._getintle, int, True, False, True, False, None),
+              Bits._setintle, Bits._readintle, Bits._getintle, int, int_bits2chars,
+              True, False, True, False, None),
     MetaDtype('intne', "a two's complement native-endian signed int",
-              Bits._setintne, Bits._readintne, Bits._getintne, int, True, False, True, False, None),
+              Bits._setintne, Bits._readintne, Bits._getintne, int, int_bits2chars,
+              True, False, True, False, None),
     MetaDtype('intbe', "a two's complement big-endian signed int",
-              Bits._setintbe, Bits._readintbe, Bits._getintbe, int, True, False, True, False, None),
+              Bits._setintbe, Bits._readintbe, Bits._getintbe, int, int_bits2chars,
+              True, False, True, False, None),
     MetaDtype('hex', 'a hexadecimal string',
-              Bits._sethex, Bits._readhex, Bits._gethex, str, False, False, False, False, None),
+              Bits._sethex, Bits._readhex, Bits._gethex, str, hex_bits2chars,
+              False, False, False, False, None),
     MetaDtype('bin', 'a binary string',
-              Bits._setbin_safe, Bits._readbin, Bits._getbin, str, False, False, False, False, None),
+              Bits._setbin_safe, Bits._readbin, Bits._getbin, str, bin_bits2chars,
+              False, False, False, False, None),
     MetaDtype('oct', 'an octal string',
-              Bits._setoct, Bits._readoct, Bits._getoct, str, False, False, False, False, None),
+              Bits._setoct, Bits._readoct, Bits._getoct, str, oct_bits2chars,
+              False, False, False, False, None),
     MetaDtype('e5m2float', 'an 8 bit float with e5m2float format',
-              Bits._sete5m2float, Bits._reade5m2float, Bits._gete5m2float, float, False, True, True, False, 8),
+              Bits._sete5m2float, Bits._reade5m2float, Bits._gete5m2float, float, e5m2float_bits2chars,
+              False, True, True, False, 8),
     MetaDtype('e4m3float', 'an 8 bit float with e4m3float format',
-              Bits._sete4m3float, Bits._reade4m3float, Bits._gete4m3float, float, False, True, True, False, 8),
+              Bits._sete4m3float, Bits._reade4m3float, Bits._gete4m3float, float, e4m3float_bits2chars,
+              False, True, True, False, 8),
     MetaDtype('float', 'a big-endian floating point number',
-              Bits._setfloatbe, Bits._readfloatbe, Bits._getfloatbe, float, False, True, True, False, None),
+              Bits._setfloatbe, Bits._readfloatbe, Bits._getfloatbe, float, float_bits2chars,
+              False, True, True, False, None),
     MetaDtype('floatne', 'a native-endian floating point number',
-              Bits._setfloatne, Bits._readfloatne, Bits._getfloatne, float,  False, True, True, False, None),
+              Bits._setfloatne, Bits._readfloatne, Bits._getfloatne, float, float_bits2chars,
+              False, True, True, False, None),
     MetaDtype('floatle', 'a little-endian floating point number',
-              Bits._setfloatle, Bits._readfloatle, Bits._getfloatle, float, False, True, True, False, None),
+              Bits._setfloatle, Bits._readfloatle, Bits._getfloatle, float, float_bits2chars,
+              False, True, True, False, None),
     MetaDtype('bfloat', 'a 16 bit big-endian bfloat floating point number',
-              Bits._setbfloatbe, Bits._readbfloatbe, Bits._getbfloatbe, float, False, True, True, False, 16),
+              Bits._setbfloatbe, Bits._readbfloatbe, Bits._getbfloatbe, float, bfloat_bits2chars,
+              False, True, True, False, 16),
     MetaDtype('bfloatle', 'a 16 bit little-endian bfloat floating point number',
-              Bits._setbfloatle, Bits._readbfloatle, Bits._getbfloatle, float, False, True, True, False, 16),
+              Bits._setbfloatle, Bits._readbfloatle, Bits._getbfloatle, float, bfloat_bits2chars,
+              False, True, True, False, 16),
     MetaDtype('bfloatne', 'a 16 bit native-endian bfloat floating point number',
-              Bits._setbfloatne, Bits._readbfloatne, Bits._getbfloatne, float, False, True, True, False, 16),
+              Bits._setbfloatne, Bits._readbfloatne, Bits._getbfloatne, float, bfloat_bits2chars,
+              False, True, True, False, 16),
     MetaDtype('bits', 'a bitstring object',
-              Bits._setbits, Bits._readbits, None, Bits,False, False, False, False, None),
+              Bits._setbits, Bits._readbits, None, Bits, bits_bits2chars,
+              False, False, False, False, None),
     MetaDtype('bytes', 'a bytes object',
-              Bits._setbytes, Bits._readbytes, Bits._getbytes, bytes,False, False, False, False, None, 8),
+              Bits._setbytes, Bits._readbytes, Bits._getbytes, bytes, bytes_bits2chars,
+              False, False, False, False, None, 8),
     MetaDtype('bool', 'a bool (True or False)',
-              Bits._setbool, Bits._readbool, Bits._getbool, bool, True, False, False, False, 1),
+              Bits._setbool, Bits._readbool, Bits._getbool, bool, bool_bits2chars,
+              True, False, False, False, 1),
     MetaDtype('se', 'a signed exponential-Golomb code',
-              Bits._setse, Bits._readse, Bits._getse, int,True, False, True, True, None),
+              Bits._setse, Bits._readse, Bits._getse, int, None,
+              True, False, True, True, None),
     MetaDtype('ue', 'an unsigned exponential-Golomb code',
-              Bits._setue, Bits._readue, Bits._getue, int, True, False, False, True, None),
+              Bits._setue, Bits._readue, Bits._getue, int, None,
+              True, False, False, True, None),
     MetaDtype('sie', 'a signed interleaved exponential-Golomb code',
-              Bits._setsie, Bits._readsie, Bits._getsie, int, True, False, True, True, None),
+              Bits._setsie, Bits._readsie, Bits._getsie, int, None,
+              True, False, True, True, None),
     MetaDtype('uie', 'an unsigned interleaved exponential-Golomb code',
-              Bits._setuie, Bits._readuie, Bits._getuie, int, True, False, False, True, None),
+              Bits._setuie, Bits._readuie, Bits._getuie, int, None,
+              True, False, False, True, None),
     MetaDtype('pad', 'a skipped section of padding',
-              None, Bits._readpad, None, None, False, False, False, False, None),
+              None, Bits._readpad, None, None, None,
+              False, False, False, False, None),
 ]
 
 
