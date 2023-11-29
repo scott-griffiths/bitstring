@@ -184,6 +184,8 @@ class NoFixedLengthPackingBug(unittest.TestCase):
     def testPackingBytesWithNoLength(self):
         a = bitstring.pack('bytes', b'abcd')
         self.assertEqual(a.bytes, b'abcd')
+        b = bitstring.pack('u12, bytes, bool', 0, b'deadbeef', True)
+        self.assertEqual(b.unpack('u12, bytes, bool'), [0, b'deadbeef', True])
 
     def testPackingBinWithNoLength(self):
         a = bitstring.pack('bin', '0001')
@@ -197,6 +199,11 @@ class NoFixedLengthPackingBug(unittest.TestCase):
         a = bitstring.BitStream(b'hello')
         b = a.read('bytes')
         self.assertEqual(b, b'hello')
+        c = bitstring.BitStream('0xabc, u13=99')
+        c += b'123abc'
+        c += bitstring.Bits('bfloat=4')
+        c.pos = 0
+        self.assertEqual(c.readlist('h12, u13, bytes, bfloat'), ['abc', 99, b'123abc', 4.0])
 
     def testReadingBinWithNoLength(self):
         a = bitstring.BitStream('0b1101')
