@@ -82,9 +82,6 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
                     raise CreationError(f"Token with length {length} packed with value of length {len(value)}.")
                 bsl.append(value._bitstore)
                 continue
-            if length is None:
-                if name in name2bitstore_func_with_length:
-                    raise CreationError(f"Token '{name}' not supplied with a length.")
             bsl.append(bitstore_from_token(name, length, value))
     except StopIteration:
         raise CreationError(f"Not enough parameters present to pack according to the "

@@ -17,7 +17,7 @@ It has been maintained since 2006 and now has many millions of downloads per yea
 
 News
 ----
-**22nd November 2023**: bitstring 4.1.3 released. Version 4.1 is a large update in terms of how much of the code has changed.
+**29th November 2023**: bitstring 4.1.4 released. Version 4.1 is a large update in terms of how much of the code has changed.
 
 * New Array class for homogeneous data.
 * Support for 8-bit floating point values.
@@ -122,9 +122,9 @@ The 700+ unit tests should all pass. They can be run from the root of the projec
 Credits
 -------
 
-Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files.
-Maintained and expanded ever since as it became unexpectedly popular. Thanks to all those who have contributed ideas
-and code (and bug reports) over the years.
+Created in 2006 to help with ad hoc parsing and creation of compressed video files.
+Maintained and expanded ever since as it became unexpectedly popular.
+Thanks to all those who have contributed ideas and code (and bug reports) over the years.
 
 
 <sub>Copyright (c) 2006 - 2023 Scott Griffiths</sub>

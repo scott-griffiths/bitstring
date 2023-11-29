@@ -149,6 +149,8 @@ def e5m2float_2bitstore(f: Union[str, float]) -> BitStore:
 def uint2bitstore(uint: Union[str, int], length: int) -> BitStore:
     uint = int(uint)
     try:
+        if length is None:
+            raise ValueError("No bit length provided when initialising from unsigned int.")
         x = BitStore(bitarray.util.int2ba(uint, length=length, endian='big', signed=False))
     except OverflowError as e:
         if uint >= (1 << length):
@@ -164,6 +166,8 @@ def uint2bitstore(uint: Union[str, int], length: int) -> BitStore:
 def int2bitstore(i: Union[str, int], length: int) -> BitStore:
     i = int(i)
     try:
+        if length is None:
+            raise ValueError("No bit length provided when initialising from signed int.")
         x = BitStore(bitarray.util.int2ba(i, length=length, endian='big', signed=True))
     except OverflowError as e:
         if i >= (1 << (length - 1)) or i < -(1 << (length - 1)):
