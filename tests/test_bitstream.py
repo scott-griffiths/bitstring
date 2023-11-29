@@ -486,13 +486,15 @@ class Pack(unittest.TestCase):
         s = bitstring.pack('uint:6, bin, hex, int:6, se, ue, oct', 10, '0b110', 'ff', -1, -6, 6, '54')
         t = BitStream('uint:6=10, 0b110, 0xff, int:6=-1, se=-6, ue=6, oct=54')
         self.assertEqual(s, t)
-        with self.assertRaises(bitstring.CreationError):
+        with self.assertRaises(ValueError):
             pack('tomato', '0')
-        with self.assertRaises(bitstring.CreationError):
+        with self.assertRaises(ValueError):
             pack('uint', 12)
-        with self.assertRaises(bitstring.CreationError):
+        with self.assertRaises(ValueError):
+            pack('int', 12)
+        with self.assertRaises(ValueError):
             pack('hex', 'penguin')
-        with self.assertRaises(bitstring.CreationError):
+        with self.assertRaises(ValueError):
             pack('hex12', '0x12')
 
     def testPackWithLiterals(self):

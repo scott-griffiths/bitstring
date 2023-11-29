@@ -177,3 +177,38 @@ class ABCs(unittest.TestCase):
 class DtypeRegister(unittest.TestCase):
 
     pass
+
+
+class NoFixedLengthPackingBug(unittest.TestCase):
+
+    def testPackingBytesWithNoLength(self):
+        a = bitstring.pack('bytes', b'abcd')
+        self.assertEqual(a.bytes, b'abcd')
+
+    def testPackingBinWithNoLength(self):
+        a = bitstring.pack('bin', '0001')
+        self.assertEqual(a.bin, '0001')
+
+    def testPackingHexWithNoLength(self):
+        a = bitstring.pack('hex', 'abcd')
+        self.assertEqual(a.hex, 'abcd')
+
+    def testReadingBytesWithNoLength(self):
+        a = bitstring.BitStream(b'hello')
+        b = a.read('bytes')
+        self.assertEqual(b, b'hello')
+
+    def testReadingBinWithNoLength(self):
+        a = bitstring.BitStream('0b1101')
+        b = a.read('bin')
+        self.assertEqual(b, '1101')
+
+    def testReadingUintWithNoLength(self):
+        a = bitstring.BitStream('0b1101')
+        b = a.read('uint')
+        self.assertEqual(b, 13)
+
+    def testReadingFloatWithNoLength(self):
+        a = bitstring.BitStream(float=14, length=16)
+        b = a.read('float')
+        self.assertEqual(b, 14.0)

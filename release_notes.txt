@@ -3,6 +3,13 @@ bitstring module version history
 --------------------------------
 
 ----------------------------
+November 2023: version 4.1.4
+----------------------------
+Fixing a regression introduced in 4.1.3
+
+* 'bytes' token can't be used without explicit length. Bug #303.
+
+----------------------------
 November 2023: version 4.1.3
 ----------------------------
 A maintenance release, with some changes to the beta features introduced in 4.1.

@@ -1201,6 +1201,10 @@ class Bits:
         if length is not None and length > self.length - pos:
             raise ReadError("Reading off the end of the data. "
                             f"Tried to read {length} bits when only {self.length - pos} available.")
+        if length is None:
+            meta_type = Bits._register.name_to_meta_dtype[name]
+            if not meta_type.is_fixed_length and not meta_type.is_unknown_length:
+                length = len(self) - pos
         dtype = Bits._register.get_dtype(name, length)
         try:
             val = dtype.read_fn(self, pos)
