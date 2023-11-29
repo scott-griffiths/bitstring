@@ -220,7 +220,7 @@ dtypes = [
               Bits._setbfloatne, Bits._readbfloatne, Bits._getbfloatne, float, bfloat_bits2chars,
               False, True, True, False, 16),
     MetaDtype('bits', 'a bitstring object',
-              Bits._setbits, Bits._readbits, None, Bits, bits_bits2chars,
+              Bits._setbits, Bits._readbits, Bits._getbits, Bits, bits_bits2chars,
               False, False, False, False, None),
     MetaDtype('bytes', 'a bytes object',
               Bits._setbytes, Bits._readbytes, Bits._getbytes, bytes, bytes_bits2chars,

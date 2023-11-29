@@ -1309,6 +1309,9 @@ class Bits:
         """Read some bits from the bitstring and return newly constructed bitstring."""
         return self._slice(start, start + length)
 
+    def _getbits(self: TBits):
+        return self._readbits(0, len(self))
+
     def _validate_slice(self, start: Optional[int], end: Optional[int]) -> Tuple[int, int]:
         """Validate start and end and return them as positive bit positions."""
         if start is None:
@@ -1880,40 +1883,21 @@ class Bits:
         return name, length
 
     @staticmethod
-    def _format_bits(bits: Bits, chars_per_group: int, bits_per_group: int, sep: str, fmt: str, getter_fn=None) -> str:
-        if fmt in ['bin', 'oct', 'hex', 'bytes']:
-            raw = {'bin': bits._getbin,
-                   'oct': bits._getoct,
-                   'hex': bits._gethex,
-                   'bytes': bits._getbytes_printable}[fmt]()
-            if chars_per_group == 0:
-                return raw
-            formatted = sep.join(raw[i: i + chars_per_group] for i in range(0, len(raw), chars_per_group))
-            return formatted
-
-        else:
-            if fmt == 'bits':
-                formatted = sep.join(str(getter_fn(b, 0)) for b in bits.cut(bits_per_group))
-                return formatted
-            else:
-                values = []
-                for i in range(0, len(bits), bits_per_group):
-                    b = bits[i: i + bits_per_group]
-                    values.append(f"{getter_fn(b, 0): >{chars_per_group}}")
-                formatted = sep.join(values)
-                return formatted
+    def _format_bits(bits: Bits, bits_per_group: int, sep: str, fmt: str) -> str:
+        get_fn = Bits._getbytes_printable if fmt == 'bytes' else Bits._register.get_dtype(fmt, bits_per_group).get_fn
+        if bits_per_group == 0:
+            return str(get_fn(bits))
+        # Left-align for fixed width types when msb0, otherwise right-align.
+        align = '<' if fmt in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not Bits._options.lsb0 else '>'
+        chars_per_group = Bits._register.name_to_meta_dtype[fmt].bitlength2chars_fn(bits_per_group)
+        return sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
 
     @staticmethod
     def _chars_per_group(bits_per_group: int, fmt: Optional[str]):
         """How many characters are needed to represent a number of bits with a given format."""
         if fmt is None:
             return 0
-
-        bitlength2chars_fn = Bits._register.name_to_meta_dtype[fmt].bitlength2chars_fn
-        if bitlength2chars_fn is None:
-            assert False, f"Unsupported format string {fmt}."
-            raise ValueError(f"Unsupported format string {fmt}.")
-        return bitlength2chars_fn(bits_per_group)
+        return Bits._register.name_to_meta_dtype[fmt].bitlength2chars_fn(bits_per_group)
 
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
@@ -1938,7 +1922,6 @@ class Bits:
             max_bits_per_line = groups_per_line * bits_per_group  # Number of bits represented on each line
         else:
             assert bits_per_group == 0  # Don't divide into groups
-            group_chars1 = group_chars2 = 0
             width_available = width - offset_width - len(format_sep) * (name2 is not None)
             width_available = max(width_available, 1)
             if name2 is None:
@@ -1950,9 +1933,6 @@ class Bits:
                     max_bits_per_line = 24  # We can't fit into the width asked for. Show something small.
         assert max_bits_per_line > 0
 
-        getter_fn = Bits._register.get_dtype(name1, bits_per_group).read_fn
-        getter_fn2 = None if name2 is None else Bits._register.get_dtype(name2, bits_per_group).read_fn
-
         bitpos = 0
         first_fb_width = second_fb_width = None
         for bits in self.cut(max_bits_per_line):
@@ -1961,7 +1941,7 @@ class Bits:
                 offset_str = f'{offset_sep}{offset: >{offset_width - len(offset_sep)}}' if show_offset else ''
             else:
                 offset_str = f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
-            fb = Bits._format_bits(bits, group_chars1, bits_per_group, sep, name1, getter_fn)
+            fb = Bits._format_bits(bits, bits_per_group, sep, name1)
             if first_fb_width is None:
                 first_fb_width = len(fb)
             if len(fb) < first_fb_width:  # Pad final line with spaces to align it
@@ -1969,7 +1949,7 @@ class Bits:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
-            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, group_chars2, bits_per_group, sep, name2, getter_fn2)
+            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, bits_per_group, sep, name2)
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:

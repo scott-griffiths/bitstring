@@ -641,11 +641,11 @@ class PrettyPrinting(unittest.TestCase):
         a = Bits('0b101011110000')
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(), ' 0: 10101111 0000   af 0\n')
+        self.assertEqual(s.getvalue(), ' 0: 10101111 0000       af 0 \n')
 
         s = io.StringIO()
         a.pp('hex', stream=s)
-        self.assertEqual(s.getvalue(), ' 0: af 0\n')
+        self.assertEqual(s.getvalue(), ' 0: af 0 \n')
 
         s = io.StringIO()
         a.pp('oct', stream=s)
@@ -663,7 +663,7 @@ class PrettyPrinting(unittest.TestCase):
         a = Bits('0x0f0f')*9
         s = io.StringIO()
         a.pp('hex:32', sep='!-!', stream=s)
-        self.assertEqual(s.getvalue(), '  0: 0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f\n')
+        self.assertEqual(s.getvalue(), '  0: 0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f    \n')
 
     def testMultiLine(self):
         a = Bits(100)
@@ -679,7 +679,7 @@ class PrettyPrinting(unittest.TestCase):
         self.assertEqual(s.getvalue(), ' 0: 11110000 11110000   f0 f0\n')
         s = io.StringIO()
         a.pp(stream=s, fmt='hex, bin:12')
-        self.assertEqual(s.getvalue(), ' 0: f0f 0   111100001111 0000\n')
+        self.assertEqual(s.getvalue(), ' 0: f0f 0     111100001111 0000        \n')
 
     def testMultiLineMultiFormat(self):
         a = Bits(int=-1, length=112)
