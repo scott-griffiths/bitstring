@@ -325,7 +325,7 @@ class ConstBitStream(Bits):
             dtype = Dtype(fmt)
         except ValueError:
             # Perhaps it failed as it has no length specified? Try again, but read to end.
-            dtype = Dtype(fmt, length=len(self) - self._pos)
+            dtype = Dtype(fmt, length=len(self) - self._pos, length_is_in_bits=True)
         if dtype.bitlength is not None:
             val = dtype.read_fn(self, self._pos)
             self._pos += dtype.bitlength
