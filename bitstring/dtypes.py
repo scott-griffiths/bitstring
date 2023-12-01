@@ -7,7 +7,7 @@ from bitstring.utils import parse_name_length_token
 
 class Dtype:
 
-    __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'return_type', 'is_integer', 'is_signed', 'is_float', 'is_unknown_length')
+    __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'is_unknown_length')
 
     def __new__(cls, __token: Union[str, Dtype, None] = None, length: Optional[int] = None, length_is_in_bits: bool = False) -> Dtype:
         if isinstance(__token, Dtype):
@@ -27,6 +27,14 @@ class Dtype:
     def __hash__(self) -> int:
         return 0  # TODO: Optimise :)
 
+    @property
+    def is_integer(self) -> bool:
+        return self.return_type == int
+
+    @property
+    def is_float(self) -> bool:
+        return self.return_type == float
+
     @classmethod
     def create(cls, meta_dtype: MetaDtype, length: Optional[int]) -> Dtype:
         x = cls.__new__(cls)
@@ -42,9 +50,7 @@ class Dtype:
             x.set_fn = functools.partial(meta_dtype.set_fn, length=x.bitlength)
         x.get_fn = meta_dtype.get_fn
         x.return_type = meta_dtype.return_type
-        x.is_integer = meta_dtype.is_integer
         x.is_signed = meta_dtype.is_signed
-        x.is_float = meta_dtype.is_float
         x.is_unknown_length = meta_dtype.is_unknown_length
         return x
 
@@ -65,21 +71,16 @@ class Dtype:
 class MetaDtype:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
-    def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, return_type: Any, bitlength2chars_fn, is_integer: bool, is_float: bool, is_signed: bool,
+    def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, return_type: Any, bitlength2chars_fn, is_signed: bool,
                  is_unknown_length: bool, fixed_length: Optional[int] = None, length_multiplier: Optional[int] = None):
         # Consistency checks
         if is_unknown_length and fixed_length is not None:
             raise ValueError("Can't set is_unknown_length and give a value for length.")
-        if is_float and is_integer:
-            raise ValueError("Can't have type that is both float and integer.")
 
         self.name = name
         self.description = description
         self.return_type = return_type
-        self.is_float = is_float
-        self.is_integer = is_integer
         self.is_signed = is_signed
-        self.is_fixed_length = fixed_length is not None
         self.is_unknown_length = is_unknown_length
         self.fixed_length = fixed_length
         self.length_multiplier = length_multiplier
@@ -92,13 +93,13 @@ class MetaDtype:
 
     def getDtype(self, length: Optional[int] = None) -> Dtype:
         if length is None:
-            if not self.is_fixed_length and not self.is_unknown_length:
+            if self.fixed_length is None and not self.is_unknown_length:
                 raise ValueError(f"No length given for dtype '{self.name}', and meta type is not fixed length.")
             d = Dtype.create(self, None)
             return d
         if self.is_unknown_length:
             raise ValueError("Length shouldn't be supplied for dtypes that are variable length.")
-        if self.is_fixed_length:
+        if self.fixed_length is not None:
             if length != 0 and length != self.fixed_length:
                 raise ValueError  # TODO
             length = self.fixed_length
@@ -164,7 +165,7 @@ class Register:
         cls._unknowable_length_names_cache = tuple(dt_name for dt_name in cls.name_to_meta_dtype if cls.name_to_meta_dtype[dt_name].is_unknown_length)
         d: Dict[str, int] = {}
         for mt in cls.name_to_meta_dtype:
-            if cls.name_to_meta_dtype[mt].is_fixed_length:
+            if cls.name_to_meta_dtype[mt].fixed_length is not None:
                 d[mt] = cls.name_to_meta_dtype[mt].fixed_length
         cls._always_fixed_length_cache = d
         cls._modified_flag = False
