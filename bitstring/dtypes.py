@@ -39,9 +39,8 @@ class Dtype:
     def create(cls, meta_dtype: MetaDtype, length: Optional[int]) -> Dtype:
         x = cls.__new__(cls)
         x.name = meta_dtype.name
-        x.length = length
-        x.bitlength = length
-        if meta_dtype.length_multiplier is not None:
+        x.bitlength = x.length = length
+        if x.bitlength is not None:
             x.bitlength *= meta_dtype.length_multiplier
         x.read_fn = functools.partial(meta_dtype.read_fn, length=x.bitlength)
         if meta_dtype.set_fn is None:
@@ -72,7 +71,7 @@ class MetaDtype:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
     def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, return_type: Any, bitlength2chars_fn, is_signed: bool,
-                 is_unknown_length: bool, fixed_length: Optional[int] = None, length_multiplier: Optional[int] = None):
+                 is_unknown_length: bool, fixed_length: Optional[int] = None, length_multiplier: int = 1):
         # Consistency checks
         if is_unknown_length and fixed_length is not None:
             raise ValueError("Can't set is_unknown_length and give a value for length.")
@@ -137,7 +136,7 @@ class Register:
             meta_type = cls.name_to_meta_dtype[name]
         except KeyError:
             raise ValueError
-        if length_is_in_bits and meta_type.length_multiplier is not None:
+        if length_is_in_bits and meta_type.length_multiplier != 1:
             # We have a bit length for a type which must be a multiple of bits long
             new_length, remainder = divmod(length, meta_type.length_multiplier)
             if remainder != 0:
@@ -146,7 +145,6 @@ class Register:
             return meta_type.getDtype(new_length)
         else:
             return meta_type.getDtype(length)
-
 
     @classmethod
     def unknowable_length_names(cls) -> Tuple[str]:
