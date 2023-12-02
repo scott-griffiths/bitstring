@@ -92,8 +92,7 @@ def structparser(m: Match[str]) -> List[str]:
 @functools.lru_cache(CACHE_SIZE)
 def parse_name_length_token(fmt: str) -> Tuple[str, Optional[int]]:
     # Any single token with just a name and length
-    m2 = TOKEN_INT_RE.match(fmt)
-    if m2:
+    if m2 := TOKEN_INT_RE.match(fmt):
         name = m2.group(1)
         length_str = m2.group(2)
         length = None if length_str == '' else int(length_str)
@@ -114,8 +113,7 @@ def parse_name_length_token(fmt: str) -> Tuple[str, Optional[int]]:
 
 
 def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
-    m = SINGLE_STRUCT_PACK_RE.match(fmt)
-    if m:
+    if m := SINGLE_STRUCT_PACK_RE.match(fmt):
         endian = m.group('endian')
         f = m.group('fmt')
         if endian == '>':
@@ -132,16 +130,14 @@ def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
 
 @functools.lru_cache(CACHE_SIZE)
 def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
-    m1 = TOKEN_RE.match(token)
-    if m1:
+    if m1 := TOKEN_RE.match(token):
         name = m1.group('name')
         length = m1.group('len')
         value = m1.group('value')
     else:
         # If you don't specify a 'name' then the default is 'bits':
         name = 'bits'
-        m2 = DEFAULT_BITS.match(token)
-        if not m2:
+        if not (m2 := DEFAULT_BITS.match(token)):
             raise ValueError(f"Don't understand token '{token}'.")
         length = m2.group('len')
         value = m2.group('value')
@@ -166,15 +162,13 @@ def preprocess_tokens(fmt: str) -> List[str]:
     single_tokens = []
     for meta_token in meta_tokens:
         # See if it has a multiplicative factor
-        m = MULTIPLICATIVE_RE.match(meta_token)
-        if not m:
+        if not (m := MULTIPLICATIVE_RE.match(meta_token)):
             factor = 1
         else:
             factor = int(m.group('factor'))
             meta_token = m.group('token')
         # See if it's a struct-like format
-        m = STRUCT_PACK_RE.match(meta_token)
-        if m:
+        if m := STRUCT_PACK_RE.match(meta_token):
             tokens = structparser(m)
         else:
             tokens = [meta_token]
@@ -207,8 +201,7 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
         if token == '':
             continue
         # Match literal tokens of the form 0x... 0o... and 0b...
-        m = LITERAL_RE.match(token)
-        if m:
+        if m := LITERAL_RE.match(token):
             ret_vals.append((m.group('name'), None, m.group('value')))
             continue
         name, length, value = parse_single_token(token)

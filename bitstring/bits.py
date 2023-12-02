@@ -1861,8 +1861,7 @@ class Bits:
         bpc_dict = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
         short_token: Pattern[str] = re.compile(r'(?P<name>bytes|bin|oct|hex|b|o|h):?(?P<len>\d+)$')
 
-        m1 = short_token.match(fmt)
-        if m1:
+        if m1 := short_token.match(fmt):
             length = int(m1.group('len'))
             name = m1.group('name')
         else:

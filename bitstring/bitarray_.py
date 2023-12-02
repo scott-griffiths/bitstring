@@ -151,8 +151,7 @@ class BitArray(Bits):
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
         except AttributeError:
-            name_length = BitArray._name_length_pattern.match(attribute)
-            if name_length:
+            if name_length := BitArray._name_length_pattern.match(attribute):
                 name = name_length.group('name')
                 length = name_length.group('len')
                 if length is not None:
@@ -575,8 +574,7 @@ class BitArray(Bits):
                 raise ValueError(f"Improper byte length {fmt}.")
             bytesizes = [fmt]
         elif isinstance(fmt, str):
-            m = BYTESWAP_STRUCT_PACK_RE.match(fmt)
-            if not m:
+            if not (m := BYTESWAP_STRUCT_PACK_RE.match(fmt)):
                 raise ValueError(f"Cannot parse format string {fmt}.")
             # Split the format string into a list of 'q', '4h' etc.
             formatlist = re.findall(STRUCT_SPLIT_RE, m.group('fmt'))
