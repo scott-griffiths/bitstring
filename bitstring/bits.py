@@ -447,8 +447,6 @@ class Bits:
 
         """
         bs = Bits._create_from_bitstype(bs)
-        if len(self) != len(bs):
-            raise ValueError("Bitstrings must have the same length for & operator.")
         s = self._copy()
         s._bitstore &= bs._bitstore
         return s
@@ -472,8 +470,6 @@ class Bits:
 
         """
         bs = Bits._create_from_bitstype(bs)
-        if len(self) != len(bs):
-            raise ValueError("Bitstrings must have the same length for | operator.")
         s = self._copy()
         s._bitstore |= bs._bitstore
         return s
@@ -497,8 +493,6 @@ class Bits:
 
         """
         bs = Bits._create_from_bitstype(bs)
-        if len(self) != len(bs):
-            raise ValueError("Bitstrings must have the same length for ^ operator.")
         s = self._copy()
         s._bitstore ^= bs._bitstore
         return s

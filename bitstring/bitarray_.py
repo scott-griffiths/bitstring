@@ -290,22 +290,16 @@ class BitArray(Bits):
 
     def __ior__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        if len(self) != len(bs):
-            raise ValueError("Bitstrings must have the same length for |= operator.")
         self._bitstore |= bs._bitstore
         return self
 
     def __iand__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        if len(self) != len(bs):
-            raise ValueError("Bitstrings must have the same length for &= operator.")
         self._bitstore &= bs._bitstore
         return self
 
     def __ixor__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        if len(self) != len(bs):
-            raise ValueError("Bitstrings must have the same length for ^= operator.")
         self._bitstore ^= bs._bitstore
         return self
 
