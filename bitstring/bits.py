@@ -174,6 +174,8 @@ class Bits:
 
     @classmethod
     def _create_from_bitstype(cls: Type[TBits], auto: Optional[BitsType], /) -> TBits:
+        if isinstance(auto, Bits):
+            return auto
         b = cls._create_empty_instance()
         if auto is None:
             return b
@@ -610,6 +612,9 @@ class Bits:
                 offset = 0
             m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
             self._bitstore = BitStore(buffer=m, offset=offset, length=length, filename=source.name, immutable=True)
+            if offset != 0:
+                # If offset is given then always read into memory.
+                self._bitstore = self._bitstore._copy()
 
     def _setbitarray(self, ba: bitarray.bitarray, length: Optional[int], offset: Optional[int]) -> None:
         if offset is None:
@@ -696,7 +701,7 @@ class Bits:
         """Return data as an unsigned int."""
         if len(self) == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        bs = self._bitstore.copy() if self._bitstore.modified else self._bitstore
+        bs = self._bitstore._copy() if self._bitstore.modified else self._bitstore
         return bitarray.util.ba2int(bs, signed=False)
 
     def _setint(self, int_: int, length: Optional[int] = None, _offset: None = None) -> None:
@@ -721,7 +726,7 @@ class Bits:
         """Return data as a two's complement signed int."""
         if len(self) == 0:
             raise InterpretError("Cannot interpret bitstring without a length as an integer.")
-        bs = self._bitstore.copy() if self._bitstore.modified else self._bitstore
+        bs = self._bitstore._copy() if self._bitstore.modified else self._bitstore
         return bitarray.util.ba2int(bs, signed=True)
 
     def _setuintbe(self, uintbe: int, length: Optional[int] = None, _offset: None = None) -> None:
@@ -1133,7 +1138,7 @@ class Bits:
         """Return interpretation as an octal string."""
         if len(self) % 3:
             raise InterpretError("Cannot convert to octal unambiguously - not multiple of 3 bits long.")
-        ba = self._bitstore.copy() if self._bitstore.modified else self._bitstore
+        ba = self._bitstore._copy() if self._bitstore.modified else self._bitstore
         return bitarray.util.ba2base(8, ba)
 
     def _sethex(self, hexstring: str, length: None = None, _offset: None = None) -> None:
@@ -1154,7 +1159,7 @@ class Bits:
         """
         if len(self) % 4:
             raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
-        ba = self._bitstore.copy() if self._bitstore.modified else self._bitstore
+        ba = self._bitstore._copy() if self._bitstore.modified else self._bitstore
         return bitarray.util.ba2hex(ba)
 
     def _getlength(self) -> int:
@@ -1165,7 +1170,7 @@ class Bits:
         """Create and return a new copy of the Bits (always in memory)."""
         # Note that __copy__ may choose to return self if it's immutable. This method always makes a copy.
         s_copy = self.__class__()
-        s_copy._bitstore = self._bitstore.copy()
+        s_copy._bitstore = self._bitstore._copy()
         return s_copy
 
     def _slice(self: TBits, start: int, end: int) -> TBits:
@@ -1207,7 +1212,7 @@ class Bits:
     def _addleft(self, /, bs: Bits) -> None:
         """Prepend a bitstring to the current bitstring."""
         if bs._bitstore.immutable:
-            self._bitstore = bs._bitstore.copy() + self._bitstore
+            self._bitstore = bs._bitstore._copy() + self._bitstore
         else:
             self._bitstore = bs._bitstore + self._bitstore
 
@@ -1735,7 +1740,7 @@ class Bits:
         """Convert the bitstring to a bitarray object."""
         if self._bitstore.modified:
             # Removes the offset and truncates to length
-            return bitarray.bitarray(self._bitstore.copy())
+            return bitarray.bitarray(self._bitstore._copy())
         else:
             return bitarray.bitarray(self._bitstore)
 

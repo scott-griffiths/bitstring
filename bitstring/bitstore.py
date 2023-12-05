@@ -71,7 +71,13 @@ class BitStore(bitarray.bitarray):
         for i in range(len(self)):
             yield self.getindex(i)
 
+    def _copy(self) -> BitStore:
+        """Always creates a copy, even if instance is immutable."""
+        return BitStore(self.getslice(slice(None, None, None)))
+
     def copy(self) -> BitStore:
+        if self.immutable:
+            return self
         x = BitStore(self.getslice(slice(None, None, None)))
         return x
 

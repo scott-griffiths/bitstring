@@ -133,7 +133,7 @@ class BitArray(Bits):
 
         """
         if self._bitstore.immutable:
-            self._bitstore = self._bitstore.copy()
+            self._bitstore = self._bitstore._copy()
             self._bitstore.immutable = False
 
     _letter_to_setter: Dict[str, Callable[..., None]] = \
@@ -184,7 +184,7 @@ class BitArray(Bits):
     def __copy__(self) -> BitArray:
         """Return a new copy of the BitArray."""
         s_copy = BitArray()
-        s_copy._bitstore = self._bitstore.copy()
+        s_copy._bitstore = self._bitstore._copy()
         assert s_copy._bitstore.immutable is False
         return s_copy
 

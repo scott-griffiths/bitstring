@@ -579,7 +579,7 @@ class BitStream(ConstBitStream, BitArray):
         """
         ConstBitStream.__init__(self, auto, length, offset, pos, **kwargs)
         if self._bitstore.immutable:
-            self._bitstore = self._bitstore.copy()
+            self._bitstore = self._bitstore._copy()
             self._bitstore.immutable = False
 
     def __copy__(self) -> BitStream:
