@@ -50,7 +50,7 @@ class BitStore:
     def _create_empty_instance(cls):
         return bitarray.bitarray()
 
-    def setall(self, /, value: int) -> None:
+    def setall(self, value: int, /) -> None:
         self._bitarray.setall(value)
 
     def tobytes(self) -> bytes:
@@ -71,47 +71,46 @@ class BitStore:
     def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
         return bitarray.util.ba2base(8, self.getslice(slice(start, end, None))._bitarray)
 
-    def __iadd__(self, /, other: BitStore) -> BitStore:
-        # assert not self.immutable
+    def __iadd__(self, other: BitStore, /) -> BitStore:
         self._bitarray += other._bitarray
         return self
 
-    def __add__(self, /, other: BitStore) -> BitStore:
+    def __add__(self, other: BitStore, /) -> BitStore:
         bs = self._copy()
         bs += other
         return bs
 
-    def __eq__(self, /, other: Any) -> bool:
+    def __eq__(self, other: Any, /) -> bool:
         return self._bitarray == other._bitarray
 
-    def __and__(self, /, other: BitStore) -> BitStore:
+    def __and__(self, other: BitStore, /) -> BitStore:
         return BitStore(self._bitarray & other._bitarray)
 
-    def __or__(self, /, other: BitStore) -> BitStore:
+    def __or__(self, other: BitStore, /) -> BitStore:
         return BitStore(self._bitarray | other._bitarray)
 
-    def __xor__(self, /, other: BitStore) -> BitStore:
+    def __xor__(self, other: BitStore, /) -> BitStore:
         return BitStore(self._bitarray ^ other._bitarray)
 
-    def __iand__(self, /, other: BitStore) -> BitStore:
+    def __iand__(self, other: BitStore, /) -> BitStore:
         self._bitarray &= other._bitarray
         return self
 
-    def __ior__(self, /, other: BitStore) -> BitStore:
+    def __ior__(self, other: BitStore, /) -> BitStore:
         self._bitarray |= other._bitarray
         return self
 
-    def __ixor__(self, /, other: BitStore) -> BitStore:
+    def __ixor__(self, other: BitStore, /) -> BitStore:
         self._bitarray ^= other._bitarray
         return self
 
-    def find(self, /, bs, start, stop) -> int:
+    def find(self, bs, start, stop, /) -> int:
         return self._bitarray.find(bs._bitarray, start, stop)
 
-    def itersearch(self, /, bs) -> Iterator[int]:
+    def itersearch(self, bs, /) -> Iterator[int]:
         return self._bitarray.itersearch(bs._bitarray)
 
-    def count(self, /, value) -> int:
+    def count(self, value, /) -> int:
         return self._bitarray.count(value)
 
     def clear(self) -> None:
@@ -134,35 +133,34 @@ class BitStore:
         x = BitStore(self._bitarray)
         return x
 
-    def __getitem__(self, item: Union[int, slice]) -> Union[int, BitStore]:
+    def __getitem__(self, item: Union[int, slice], /) -> Union[int, BitStore]:
         # Use getindex or getslice instead
         raise NotImplementedError
 
-    def getindex_msb0(self, /, index: int) -> bool:
+    def getindex_msb0(self, index: int, /) -> bool:
         return bool(self._bitarray.__getitem__(index))
 
-    def getslice_msb0(self, /, key: slice) -> BitStore:
+    def getslice_msb0(self, key: slice, /) -> BitStore:
         if self.modified:
             key = slice(*key.indices(len(self)))
         return BitStore(self._bitarray.__getitem__(key))
 
-    def getindex_lsb0(self, /, index: int) -> bool:
+    def getindex_lsb0(self, index: int, /) -> bool:
         return bool(self._bitarray.__getitem__(-index - 1))
 
-    def getslice_lsb0(self, /, key: slice) -> BitStore:
+    def getslice_lsb0(self, key: slice, /) -> BitStore:
         key = offset_slice_indices_lsb0(key, len(self))
         return BitStore(self._bitarray.__getitem__(key))
 
     @overload
-    def setitem_lsb0(self, /, key: int, value: int) -> None:
+    def setitem_lsb0(self, key: int, value: int, /) -> None:
         ...
 
     @overload
-    def setitem_lsb0(self, /, key: slice, value: BitStore) -> None:
+    def setitem_lsb0(self, key: slice, value: BitStore, /) -> None:
         ...
 
-    def setitem_lsb0(self, /, key: Union[int, slice], value: Union[int, BitStore]) -> None:
-        assert not self.immutable
+    def setitem_lsb0(self, key: Union[int, slice], value: Union[int, BitStore], /) -> None:
         if isinstance(key, slice):
             new_slice = offset_slice_indices_lsb0(key, len(self))
             if isinstance(value, BitStore):
@@ -172,23 +170,20 @@ class BitStore:
         else:
             self._bitarray.__setitem__(-key - 1, value)
 
-    def delitem_lsb0(self, /, key: Union[int, slice]) -> None:
-        assert not self.immutable
+    def delitem_lsb0(self, key: Union[int, slice], /) -> None:
         if isinstance(key, slice):
             new_slice = offset_slice_indices_lsb0(key, len(self))
             self._bitarray.__delitem__(new_slice)
         else:
             self._bitarray.__delitem__(-key - 1)
 
-    def invert_msb0(self, /, index: Optional[int] = None) -> None:
-        assert not self.immutable
+    def invert_msb0(self, index: Optional[int] = None, /) -> None:
         if index is not None:
             self._bitarray.invert(index)
         else:
             self._bitarray.invert()
 
-    def invert_lsb0(self, /, index: Optional[int] = None) -> None:
-        assert not self.immutable
+    def invert_lsb0(self, index: Optional[int] = None, /) -> None:
         if index is not None:
             self._bitarray.invert(-index - 1)
         else:
@@ -203,11 +198,11 @@ class BitStore:
     def __len__(self) -> int:
         return self.length if self.length is not None else len(self._bitarray)
 
-    def setitem_msb0(self, /, key, value):
+    def setitem_msb0(self, key, value, /):
         if isinstance(value, BitStore):
             self._bitarray.__setitem__(key, value._bitarray)
         else:
             self._bitarray.__setitem__(key, value)
 
-    def delitem_msb0(self, /, key):
+    def delitem_msb0(self, key, /):
         self._bitarray.__delitem__(key)

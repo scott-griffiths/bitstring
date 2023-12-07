@@ -1208,18 +1208,18 @@ class Bits:
         except KeyError:
             raise ValueError(f"Can't parse token {name}:{length}")
 
-    def _addright(self, /, bs: Bits) -> None:
+    def _addright(self, bs: Bits, /) -> None:
         """Add a bitstring to the RHS of the current bitstring."""
         self._bitstore += bs._bitstore
 
-    def _addleft(self, /, bs: Bits) -> None:
+    def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
         if bs._bitstore.immutable:
             self._bitstore = bs._bitstore._copy() + self._bitstore
         else:
             self._bitstore = bs._bitstore + self._bitstore
 
-    def _truncateleft(self: TBits, /, bits: int) -> TBits:
+    def _truncateleft(self: TBits, bits: int, /) -> TBits:
         """Truncate bits from the start of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= len(self)
         if not bits:
@@ -1231,7 +1231,7 @@ class Bits:
         self._bitstore = self._bitstore.getslice_msb0(slice(bits, None, None))
         return truncated_bits
 
-    def _truncateright(self: TBits, /, bits: int) -> TBits:
+    def _truncateright(self: TBits, bits: int, /) -> TBits:
         """Truncate bits from the end of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= len(self)
         if bits == 0:
@@ -1243,13 +1243,13 @@ class Bits:
         self._bitstore = self._bitstore.getslice_msb0(slice(None, -bits, None))
         return truncated_bits
 
-    def _insert(self, /, bs: Bits, pos: int) -> None:
+    def _insert(self, bs: Bits, pos: int, /) -> None:
         """Insert bs at pos."""
         assert 0 <= pos <= len(self)
         self._bitstore[pos: pos] = bs._bitstore
         return
 
-    def _overwrite(self, /, bs: Bits, pos: int) -> None:
+    def _overwrite(self, bs: Bits, pos: int, /) -> None:
         """Overwrite with bs at pos."""
         assert 0 <= pos <= len(self)
         if bs is self:
@@ -1258,7 +1258,7 @@ class Bits:
             return
         self._bitstore[pos: pos + len(bs)] = bs._bitstore
 
-    def _delete(self, /, bits: int, pos: int) -> None:
+    def _delete(self, bits: int, pos: int, /) -> None:
         """Delete bits at pos."""
         assert 0 <= pos <= len(self)
         assert pos + bits <= len(self), f"pos={pos}, bits={bits}, len={len(self)}"
@@ -1270,7 +1270,7 @@ class Bits:
         assert (end - start) % 8 == 0
         self._bitstore[start:end] = BitStore(frombytes=self._bitstore.getslice(slice(start, end, None)).tobytes()[::-1])
 
-    def _invert(self, /, pos: int) -> None:
+    def _invert(self, pos: int, /) -> None:
         """Flip bit at pos 1<->0."""
         assert 0 <= pos < len(self)
         self._bitstore.invert(pos)
@@ -1279,21 +1279,21 @@ class Bits:
         """Invert every bit."""
         self._bitstore.invert()
 
-    def _ilshift(self: TBits, /, n: int) -> TBits:
+    def _ilshift(self: TBits, n: int, /) -> TBits:
         """Shift bits by n to the left in place. Return self."""
         assert 0 < n <= len(self)
         self._addright(Bits(n))
         self._truncateleft(n)
         return self
 
-    def _irshift(self: TBits, /, n: int) -> TBits:
+    def _irshift(self: TBits, n: int, /) -> TBits:
         """Shift bits by n to the right in place. Return self."""
         assert 0 < n <= len(self)
         self._addleft(Bits(n))
         self._truncateright(n)
         return self
 
-    def _imul(self: TBits, /, n: int) -> TBits:
+    def _imul(self: TBits, n: int, /) -> TBits:
         """Concatenate n copies of self in place. Return self."""
         assert n >= 0
         if not n:
