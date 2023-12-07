@@ -4,6 +4,7 @@ import functools
 from typing import Optional, Dict, Any, Union, Tuple
 from bitstring.utils import parse_name_length_token
 
+CACHE_SIZE = 256
 
 class Dtype:
 
@@ -36,6 +37,7 @@ class Dtype:
         return self.return_type == float
 
     @classmethod
+    @functools.lru_cache(CACHE_SIZE)
     def create(cls, meta_dtype: MetaDtype, length: Optional[int]) -> Dtype:
         x = cls.__new__(cls)
         x.name = meta_dtype.name
