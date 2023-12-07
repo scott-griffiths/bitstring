@@ -566,8 +566,7 @@ class Bits:
             return
 
         if isinstance(s, io.BufferedReader):
-            m = mmap.mmap(s.fileno(), 0, access=mmap.ACCESS_READ)
-            self._bitstore = BitStore(buffer=m, offset=offset, length=length, filename=s.name, immutable=True)
+            self._setfile(s.name, length, offset)
             return
 
         if isinstance(s, bitarray.bitarray):
@@ -611,10 +610,19 @@ class Bits:
             if offset is None:
                 offset = 0
             m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
-            self._bitstore = BitStore(buffer=m, offset=offset, length=length, filename=source.name, immutable=True)
-            if offset != 0:
+            if offset == 0:
+                self._bitstore = BitStore(buffer=m, length=length, filename=source.name, immutable=True)
+            else:
                 # If offset is given then always read into memory.
-                self._bitstore = self._bitstore._copy()
+                temp = BitStore(buffer=m, filename=source.name, immutable=True)
+                if length is None:
+                    if offset > len(temp):
+                        raise CreationError
+                    self._bitstore = temp.getslice(slice(offset, None, None))
+                else:
+                    self._bitstore = temp.getslice(slice(offset, offset + length, None))
+                    if len(self) != length:
+                        raise CreationError
 
     def _setbitarray(self, ba: bitarray.bitarray, length: Optional[int], offset: Optional[int]) -> None:
         if offset is None:
@@ -694,7 +702,7 @@ class Bits:
         """Read bits and interpret as an unsigned int."""
         if length == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        ip = bitarray.util.ba2int(self._bitstore.getslice(slice(start, start + length, None)), signed=False)
+        ip = self._bitstore.slice_to_uint(start, start + length)
         return ip
 
     def _getuint(self) -> int:
@@ -702,7 +710,7 @@ class Bits:
         if len(self) == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
         bs = self._bitstore._copy() if self._bitstore.modified else self._bitstore
-        return bitarray.util.ba2int(bs, signed=False)
+        return bs.slice_to_uint()
 
     def _setint(self, int_: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given signed int interpretation."""
@@ -719,7 +727,7 @@ class Bits:
         """Read bits and interpret as a signed int"""
         if length == 0:
             raise InterpretError("Cannot interpret bitstring without a length as an integer.")
-        ip = bitarray.util.ba2int(self._bitstore.getslice(slice(start, start + length, None)), signed=True)
+        ip = self._bitstore.slice_to_int(start, start + length)
         return ip
 
     def _getint(self) -> int:
@@ -727,7 +735,7 @@ class Bits:
         if len(self) == 0:
             raise InterpretError("Cannot interpret bitstring without a length as an integer.")
         bs = self._bitstore._copy() if self._bitstore.modified else self._bitstore
-        return bitarray.util.ba2int(bs, signed=True)
+        return bs.slice_to_int()
 
     def _setuintbe(self, uintbe: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Set the bitstring to a big-endian unsigned int interpretation."""
@@ -779,7 +787,7 @@ class Bits:
         if length % 8:
             raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
         bs = BitStore(frombytes=self._bitstore.getslice(slice(start, start + length, None)).tobytes()[::-1])
-        val = bitarray.util.ba2int(bs, signed=False)
+        val = bs.slice_to_uint()
         return val
 
     def _getuintle(self) -> int:
@@ -799,7 +807,7 @@ class Bits:
         if length % 8:
             raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
         bs = BitStore(frombytes=self._bitstore.getslice(slice(start, start + length, None)).tobytes()[::-1])
-        val = bitarray.util.ba2int(bs, signed=True)
+        val = bs.slice_to_int()
         return val
 
     def _getintle(self) -> int:
@@ -1117,7 +1125,7 @@ class Bits:
         """Read bits and interpret as a binary string."""
         if length == 0:
             return ''
-        return self._bitstore.getslice(slice(start, start + length, None)).to01()
+        return self._bitstore.slice_to_bin(start, start + length)
 
     def _getbin(self) -> str:
         """Return interpretation as a binary string."""
@@ -1131,7 +1139,7 @@ class Bits:
         """Read bits and interpret as an octal string."""
         if length % 3:
             raise InterpretError("Cannot convert to octal unambiguously - not multiple of 3 bits long.")
-        s = bitarray.util.ba2base(8, self._bitstore.getslice(slice(start, start + length, None)))
+        s = self._bitstore.slice_to_oct(start, start + length)
         return s
 
     def _getoct(self) -> str:
@@ -1139,7 +1147,7 @@ class Bits:
         if len(self) % 3:
             raise InterpretError("Cannot convert to octal unambiguously - not multiple of 3 bits long.")
         ba = self._bitstore._copy() if self._bitstore.modified else self._bitstore
-        return bitarray.util.ba2base(8, ba)
+        return ba.slice_to_oct()
 
     def _sethex(self, hexstring: str, length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in hexstring."""
@@ -1149,7 +1157,7 @@ class Bits:
         """Read bits and interpret as a hex string."""
         if length % 4:
             raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
-        return bitarray.util.ba2hex(self._bitstore.getslice(slice(start, start + length, None)))
+        return self._bitstore.slice_to_hex(start, start + length)
 
     def _gethex(self) -> str:
         """Return the hexadecimal representation as a string.
@@ -1160,7 +1168,7 @@ class Bits:
         if len(self) % 4:
             raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
         ba = self._bitstore._copy() if self._bitstore.modified else self._bitstore
-        return bitarray.util.ba2hex(ba)
+        return ba.slice_to_hex()
 
     def _getlength(self) -> int:
         """Return the length of the bitstring in bits."""
@@ -1740,9 +1748,9 @@ class Bits:
         """Convert the bitstring to a bitarray object."""
         if self._bitstore.modified:
             # Removes the offset and truncates to length
-            return bitarray.bitarray(self._bitstore._copy())
+            return self._bitstore.getslice(slice(0, len(self), None))._bitarray
         else:
-            return bitarray.bitarray(self._bitstore)
+            return self._bitstore._bitarray
 
     def tofile(self, f: BinaryIO) -> None:
         """Write the bitstring to a file object, padding with zero bits if needed.

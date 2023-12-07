@@ -63,9 +63,9 @@ class BasicLSB0Functionality(unittest.TestCase):
     def testSettingInt(self):
         a = BitStore('00000')
         a[0] = 1
-        self.assertEqual(a.to01(), '00001')
+        self.assertEqual(a.slice_to_bin(), '00001')
         a[-1] = 1
-        self.assertEqual(a.to01(), '10001')
+        self.assertEqual(a.slice_to_bin(), '10001')
         with self.assertRaises(IndexError):
             a[5] = 1
         with self.assertRaises(IndexError):
