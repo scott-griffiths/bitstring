@@ -192,7 +192,7 @@ class ConstBitStream(Bits):
         If the returned string is too long it will be truncated. See __str__().
 
         """
-        return self._repr(self.__class__.__name__, len(self), self._bitstore.offset, self._bitstore.filename, self._pos)
+        return self._repr(self.__class__.__name__, len(self), self._bitstore.filename, self._pos)
 
     def overwrite(self, bs: BitsType, pos: Optional[int] = None) -> None:
         """Overwrite with bs at bit position pos.

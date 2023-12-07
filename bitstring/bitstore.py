@@ -2,36 +2,26 @@ from __future__ import annotations
 
 import bitarray
 from bitstring.exceptions import CreationError
-from typing import Union, Iterable, Optional, overload
+from typing import Union, Iterable, Optional, overload, Iterator
 
 
-def offset_slice_indices_lsb0(key: slice, length: int, offset: int) -> slice:
+def offset_slice_indices_lsb0(key: slice, length: int) -> slice:
     # First convert slice to all integers
     # Length already should take account of the offset
     start, stop, step = key.indices(length)
-    new_start = length - stop - offset
-    new_stop = length - start - offset
+    new_start = length - stop
+    new_stop = length - start
     # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
     return slice(new_start, None if new_stop < 0 else new_stop, step)
-
-
-def offset_slice_indices_msb0(key: slice, length: int, offset: int) -> slice:
-    # First convert slice to all integers
-    # Length already should take account of the offset
-    start, stop, step = key.indices(length)
-    start += offset
-    stop += offset
-    # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
-    return slice(start, None if stop < 0 else stop, step)
 
 
 class BitStore:
     """A light wrapper around bitarray that does the LSB0 stuff"""
 
-    __slots__ = ('_bitarray', 'modified', 'length', 'offset', 'filename', 'immutable')
+    __slots__ = ('_bitarray', 'modified', 'length', 'filename', 'immutable')
 
-    def __init__(self, initializer: Union[int, str, Iterable, None] = None, buffer = None, immutable: bool = False, frombytes: Optional[Union[bytes, bytearray]] = None,
-                 offset: int = 0, filename: str = '', length: Optional[int] = None) -> None:
+    def __init__(self, initializer: Union[int, str, Iterable, None] = None, buffer = None, immutable: bool = False,
+                 frombytes: Optional[Union[bytes, bytearray]] = None, filename: str = '', length: Optional[int] = None) -> None:
         if buffer is None:
             self._bitarray = bitarray.bitarray(initializer)
         else:
@@ -40,31 +30,21 @@ class BitStore:
             self._bitarray = bitarray.bitarray()
             self._bitarray.frombytes(frombytes)
         self.immutable = immutable
-        self.offset = offset
-
-        self.offset = 0  # TODO: Can we remove the offset altogether?
         self.length = None
         self.filename = filename
         # Here 'modified' means that it isn't just the underlying bitarray. It could have a different start and end, and be from a file.
         # This also means that it shouldn't be changed further, so setting deleting etc. are disallowed.
-        self.modified = offset != 0 or length is not None or filename != ''
+        self.modified = length is not None or filename != ''
         if self.modified:
             assert immutable is True
-            # These class variable only exist if modified is True.
 
-            self.length = self._bitarray.__len__() - self.offset if length is None else length
+            self.length = len(self._bitarray) if length is None else length
 
             if self.length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
-            if self.length + self.offset > self._bitarray.__len__():
-                self.length = self._bitarray.__len__() - self.offset
+            if self.length > len(self._bitarray):
                 raise CreationError(
-                    f"Can't create bitstring with a length of {self.length} and an offset of {self.offset} from {self._bitarray.__len__()} bits of data.")
-
-    # def __new__(cls, *args, **kwargs) -> bitarray.bitarray:
-    #     # Just pass on the buffer keyword, not the length, offset, filename and frombytes
-    #     new_kwargs = {'buffer': kwargs.get('buffer', None)}
-    #     return bitarray.bitarray.__new__(cls, *args, **new_kwargs)
+                    f"Can't create bitstring with a length of {self.length} from {self._bitarray.__len__()} bits of data.")
 
     @classmethod
     def _create_empty_instance(cls):
@@ -149,25 +129,18 @@ class BitStore:
         raise NotImplementedError
 
     def getindex_msb0(self, index: int) -> bool:
-        if self.modified and index >= 0:
-            index += self.offset
         return bool(self._bitarray.__getitem__(index))
 
     def getslice_msb0(self, key: slice) -> BitStore:
         if self.modified:
-            key = offset_slice_indices_msb0(key, len(self), self.offset)
+            key = slice(*key.indices(len(self)))
         return BitStore(self._bitarray.__getitem__(key))
 
     def getindex_lsb0(self, index: int) -> bool:
-        if self.modified and index >= 0:
-            index += self.offset
         return bool(self._bitarray.__getitem__(-index - 1))
 
     def getslice_lsb0(self, key: slice) -> BitStore:
-        if self.modified:
-            key = offset_slice_indices_lsb0(key, len(self), self.offset)
-        else:
-            key = offset_slice_indices_lsb0(key, len(self), 0)
+        key = offset_slice_indices_lsb0(key, len(self))
         return BitStore(self._bitarray.__getitem__(key))
 
     @overload
@@ -181,7 +154,7 @@ class BitStore:
     def setitem_lsb0(self, key: Union[int, slice], value: Union[int, BitStore]) -> None:
         assert not self.immutable
         if isinstance(key, slice):
-            new_slice = offset_slice_indices_lsb0(key, len(self), 0)
+            new_slice = offset_slice_indices_lsb0(key, len(self))
             if isinstance(value, BitStore):
                 self._bitarray.__setitem__(new_slice, value._bitarray)
             else:
@@ -192,7 +165,7 @@ class BitStore:
     def delitem_lsb0(self, key: Union[int, slice]) -> None:
         assert not self.immutable
         if isinstance(key, slice):
-            new_slice = offset_slice_indices_lsb0(key, len(self), 0)
+            new_slice = offset_slice_indices_lsb0(key, len(self))
             self._bitarray.__delitem__(new_slice)
         else:
             self._bitarray.__delitem__(-key - 1)
@@ -212,21 +185,13 @@ class BitStore:
             self._bitarray.invert()
 
     def any_set(self) -> bool:
-        if self.modified:
-            return self._bitarray.__getitem__(slice(self.offset, self.offset + self.length, None)).any()
-        else:
-            return self._bitarray.any()
+        return self._bitarray.any()
 
     def all_set(self) -> bool:
-        if self.modified:
-            return self._bitarray.__getitem__(slice(self.offset, self.offset + self.length, None)).all()
-        else:
-            return self._bitarray.all()
+        return self._bitarray.all()
 
     def __len__(self) -> int:
-        if self.modified:
-            return self.length
-        return len(self._bitarray)
+        return self.length if self.length is not None else len(self._bitarray)
 
     def setitem_msb0(self, key, value):
         if isinstance(value, BitStore):

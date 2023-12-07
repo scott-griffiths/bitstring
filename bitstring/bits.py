@@ -330,11 +330,10 @@ class Bits:
                         ', ', '0b',
                         self._readbin(length - bits_at_end, bits_at_end)))
 
-    def _repr(self, classname: str, length: int, offset: int, filename: str, pos: int):
+    def _repr(self, classname: str, length: int, filename: str, pos: int):
         pos_string = f', pos={pos}' if pos else ''
         if filename:
-            offsetstring = f', offset={offset}' if offset else ''
-            return f"{classname}(filename={repr(filename)}, length={length}{offsetstring}{pos_string})"
+            return f"{classname}(filename={repr(filename)}, length={length}{pos_string})"
         else:
             s = self.__str__()
             lengthstring = ''
@@ -348,7 +347,7 @@ class Bits:
         If the returned string is too long it will be truncated. See __str__().
 
         """
-        return self._repr(self.__class__.__name__, len(self), self._bitstore.offset, self._bitstore.filename, 0)
+        return self._repr(self.__class__.__name__, len(self), self._bitstore.filename, 0)
 
     def __eq__(self, bs: Any, /) -> bool:
         """Return True if two bitstrings have the same binary representation.
@@ -617,12 +616,12 @@ class Bits:
                 temp = BitStore(buffer=m, filename=source.name, immutable=True)
                 if length is None:
                     if offset > len(temp):
-                        raise CreationError
+                        raise CreationError(f"The offset of {offset} bits is greater than the file length ({len(temp)} bits).")
                     self._bitstore = temp.getslice(slice(offset, None, None))
                 else:
                     self._bitstore = temp.getslice(slice(offset, offset + length, None))
                     if len(self) != length:
-                        raise CreationError
+                        raise CreationError(f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {len(temp)} bits.")
 
     def _setbitarray(self, ba: bitarray.bitarray, length: Optional[int], offset: Optional[int]) -> None:
         if offset is None:
@@ -709,8 +708,7 @@ class Bits:
         """Return data as an unsigned int."""
         if len(self) == 0:
             raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        bs = self._bitstore._copy() if self._bitstore.modified else self._bitstore
-        return bs.slice_to_uint()
+        return self._bitstore.slice_to_uint()
 
     def _setint(self, int_: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Reset the bitstring to have given signed int interpretation."""
@@ -734,8 +732,7 @@ class Bits:
         """Return data as a two's complement signed int."""
         if len(self) == 0:
             raise InterpretError("Cannot interpret bitstring without a length as an integer.")
-        bs = self._bitstore._copy() if self._bitstore.modified else self._bitstore
-        return bs.slice_to_int()
+        return self._bitstore.slice_to_int()
 
     def _setuintbe(self, uintbe: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Set the bitstring to a big-endian unsigned int interpretation."""
@@ -1146,8 +1143,7 @@ class Bits:
         """Return interpretation as an octal string."""
         if len(self) % 3:
             raise InterpretError("Cannot convert to octal unambiguously - not multiple of 3 bits long.")
-        ba = self._bitstore._copy() if self._bitstore.modified else self._bitstore
-        return ba.slice_to_oct()
+        return self._bitstore.slice_to_oct()
 
     def _sethex(self, hexstring: str, length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in hexstring."""
@@ -1167,8 +1163,7 @@ class Bits:
         """
         if len(self) % 4:
             raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
-        ba = self._bitstore._copy() if self._bitstore.modified else self._bitstore
-        return ba.slice_to_hex()
+        return self._bitstore.slice_to_hex()
 
     def _getlength(self) -> int:
         """Return the length of the bitstring in bits."""
@@ -1486,7 +1481,7 @@ class Bits:
         assert start <= end
         assert Bits._options.lsb0
 
-        new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
+        new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self))
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
         p = self._rfind_msb0(bs, msb0_start, msb0_end, bytealigned)
 
@@ -1551,7 +1546,7 @@ class Bits:
         assert start <= end
         assert Bits._options.lsb0
 
-        new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
+        new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self))
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
 
         # Search chunks starting near the end and then moving back.
@@ -1625,7 +1620,7 @@ class Bits:
         # A reverse find in lsb0 is very like a forward find in msb0.
         assert start <= end
         assert Bits._options.lsb0
-        new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self), 0)
+        new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self))
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
 
         p = self._find_msb0(bs, msb0_start, msb0_end, bytealigned)

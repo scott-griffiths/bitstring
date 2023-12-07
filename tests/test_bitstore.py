@@ -89,6 +89,6 @@ class GettingSlices(unittest.TestCase):
                 lsb0 = a.getslice(slice(start_option, end_option, None))
                 bitstring.lsb0 = False
                 msb0 = a.getslice(slice(start_option, end_option, None))
-                new_slice = offset_slice_indices_lsb0(slice(start_option, end_option, None), len(a), 0)
+                new_slice = offset_slice_indices_lsb0(slice(start_option, end_option, None), len(a))
                 new_start, new_end = new_slice.start, new_slice.stop
                 self.assertEqual(len(msb0), len(lsb0), f"[{start_option}: {end_option}] -> [{new_start}: {new_end}]  len(msb0)={len(msb0)}, len(lsb0)={len(lsb0)}")
