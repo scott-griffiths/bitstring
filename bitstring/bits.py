@@ -1492,14 +1492,8 @@ class Bits:
 
     def _find_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         """Find first occurrence of a binary string."""
-        while True:
-            p = self._bitstore.find(bs._bitstore, start, end)
-            if p == -1:
-                return ()
-            if not bytealigned or (p % 8) == 0:
-                return (p,)
-            # Advance to just beyond the non-byte-aligned match and try again...
-            start = p + 1
+        p = self._bitstore.find(bs._bitstore, start, end, bytealigned)
+        return () if p == -1 else (p,)
 
     def findall(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
                 bytealigned: Optional[bool] = None) -> Iterable[int]:
@@ -1529,16 +1523,11 @@ class Bits:
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Iterable[int]:
         c = 0
-        for i in self._bitstore.findall_msb0(bs._bitstore, start, end):
+        for i in self._bitstore.findall_msb0(bs._bitstore, start, end, bytealigned):
             if count is not None and c >= count:
                 return
-            if bytealigned:
-                if (start + i) % 8 == 0:
-                    c += 1
-                    yield start + i
-            else:
-                c += 1
-                yield start + i
+            c += 1
+            yield i
         return
 
     def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
@@ -1602,19 +1591,8 @@ class Bits:
 
     def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         """Find final occurrence of a binary string."""
-        increment = max(4096, len(bs) * 64)
-        buffersize = increment + len(bs)
-        p = end
-        while p > start:
-            start_pos = max(start, p - buffersize)
-            ps = list(self._findall_msb0(bs, start_pos, p, count=None, bytealigned=False))
-            if ps:
-                while ps:
-                    if not bytealigned or (ps[-1] % 8 == 0):
-                        return (ps[-1],)
-                    ps.pop()
-            p -= increment
-        return ()
+        p = self._bitstore.rfind(bs._bitstore, start, end, bytealigned)
+        return () if p == -1 else (p,)
 
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
