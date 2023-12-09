@@ -104,11 +104,11 @@ class BitStore:
         self._bitarray ^= other._bitarray
         return self
 
-    def find(self, bs, start, stop, /) -> int:
-        return self._bitarray.find(bs._bitarray, start, stop)
+    def find(self, bs: BitStore, start: int, end: int, /) -> int:
+        return self._bitarray.find(bs._bitarray, start, end)
 
-    def itersearch(self, bs, /) -> Iterator[int]:
-        return self._bitarray.itersearch(bs._bitarray)
+    def findall_msb0(self, bs: BitStore, start: int, end: int, /) -> Iterator[int]:
+        return self._bitarray[start:end].itersearch(bs._bitarray)
 
     def count(self, value, /) -> int:
         return self._bitarray.count(value)

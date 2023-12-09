@@ -1529,7 +1529,7 @@ class Bits:
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Iterable[int]:
         c = 0
-        for i in self._bitstore.getslice_msb0(slice(start, end, None)).itersearch(bs._bitstore):
+        for i in self._bitstore.findall_msb0(bs._bitstore, start, end):
             if count is not None and c >= count:
                 return
             if bytealigned:
