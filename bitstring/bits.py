@@ -1413,7 +1413,7 @@ class Bits:
             name, length, _ = token
             length = convert_length_strings(length)
             # TODO: Ugly. But not as ugly as the opposite bit of code later on. This converts currently just bytes lengths.
-            lm = Bits._register.name_to_meta_dtype[name].length_multiplier
+            lm = Bits._register.name_to_meta_dtype[name].multiplier
             if lm is not None and length is not None:
                 length *= lm
             if stretchy_token:
@@ -1434,7 +1434,7 @@ class Bits:
                 # Set length to the remaining bits
                 length = max(bits_left - bits_after_stretchy_token, 0)
                 # TODO: Very ugly. This converts our bitlength back to a token length (i.e. for bytes token where each length is a bytes)
-                lm = Bits._register.name_to_meta_dtype[name].length_multiplier
+                lm = Bits._register.name_to_meta_dtype[name].multiplier
                 if lm is not None:
                     length //= lm
             length = convert_length_strings(length)

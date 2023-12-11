@@ -43,7 +43,7 @@ class Dtype:
         x.name = meta_dtype.name
         x.bitlength = x.length = length
         if x.bitlength is not None:
-            x.bitlength *= meta_dtype.length_multiplier
+            x.bitlength *= meta_dtype.multiplier
         x.read_fn = functools.partial(meta_dtype.read_fn, length=x.bitlength)
         if meta_dtype.set_fn is None:
             x.set_fn = None
@@ -73,7 +73,7 @@ class MetaDtype:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
     def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, return_type: Any, bitlength2chars_fn, is_signed: bool,
-                 is_unknown_length: bool, fixed_length: Optional[int] = None, length_multiplier: int = 1):
+                 is_unknown_length: bool, fixed_length: Optional[int] = None, multiplier: int = 1):
         # Consistency checks
         if is_unknown_length and fixed_length is not None:
             raise ValueError("Can't set is_unknown_length and give a value for length.")
@@ -84,7 +84,7 @@ class MetaDtype:
         self.is_signed = is_signed
         self.is_unknown_length = is_unknown_length
         self.fixed_length = fixed_length
-        self.length_multiplier = length_multiplier
+        self.multiplier = multiplier
 
         self.set_fn = set_fn
         self.read_fn = read_fn  # With a start and usually a length
@@ -107,6 +107,10 @@ class MetaDtype:
         d = Dtype.create(self, length)
         return d
 
+    def __str__(self) -> str:
+        s = f"{self.name} -> {self.return_type.__name__}:  # {self.description}\n"
+        s += f"is_signed={self.is_signed}, is_unknown_length={self.is_unknown_length}, fixed_length={self.fixed_length}, multiplier={self.multiplier}"
+        return s
 
 class Register:
 
@@ -138,11 +142,11 @@ class Register:
             meta_type = cls.name_to_meta_dtype[name]
         except KeyError:
             raise ValueError
-        if length_is_in_bits and meta_type.length_multiplier != 1:
+        if length_is_in_bits and meta_type.multiplier != 1:
             # We have a bit length for a type which must be a multiple of bits long
-            new_length, remainder = divmod(length, meta_type.length_multiplier)
+            new_length, remainder = divmod(length, meta_type.multiplier)
             if remainder != 0:
-                raise ValueError(f"The '{name}' type must have a bit length that is a multiple of {meta_type.length_multiplier}"
+                raise ValueError(f"The '{name}' type must have a bit length that is a multiple of {meta_type.multiplier}"
                                  f" so cannot be created from {length} bits.")
             return meta_type.getDtype(new_length)
         else:
@@ -170,3 +174,12 @@ class Register:
         cls._always_fixed_length_cache = d
         cls._modified_flag = False
 
+    def __str__(self) -> str:
+        s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'unknown_length':^16}{'fixed_length':^13}{'multiplier':^12}{'return_type':<13}"]
+        s.append('-' * 85)
+        for key in self.name_to_meta_dtype:
+            m = self.name_to_meta_dtype[key]
+            fixed = '' if m.fixed_length is None else m.fixed_length
+            ret = 'None' if m.return_type is None else m.return_type.__name__
+            s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.is_unknown_length:^16}{fixed:^13}{m.multiplier:^12}{ret:<13} # {m.description}")
+        return '\n'.join(s)

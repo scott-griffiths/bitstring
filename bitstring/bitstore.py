@@ -20,7 +20,7 @@ class BitStore:
 
     __slots__ = ('_bitarray', 'modified', 'length', 'filename', 'immutable')
 
-    def __init__(self, initializer: Union[int, str, Iterable, None] = None, buffer=None, immutable: bool = False,
+    def __init__(self, initializer: Union[int, bitarray.bitarray, str, None] = None, buffer=None, immutable: bool = False,
                  frombytes: Optional[Union[bytes, bytearray]] = None, filename: str = '', length: Optional[int] = None) -> None:
         if buffer is None:
             self._bitarray = bitarray.bitarray(initializer)
@@ -212,10 +212,7 @@ class BitStore:
     def setitem_lsb0(self, key: Union[int, slice], value: Union[int, BitStore], /) -> None:
         if isinstance(key, slice):
             new_slice = offset_slice_indices_lsb0(key, len(self))
-            if isinstance(value, BitStore):
-                self._bitarray.__setitem__(new_slice, value._bitarray)
-            else:
-                self._bitarray.__setitem__(new_slice, value)
+            self._bitarray.__setitem__(new_slice, value._bitarray)
         else:
             self._bitarray.__setitem__(-key - 1, value)
 

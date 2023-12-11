@@ -215,10 +215,6 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
             # Try converting length to int, otherwise check it's a key.
             try:
                 length = int(length)
-                if length < 0:
-                    raise Error
-            except Error:
-                raise ValueError("Can't read a token with a negative length.")
             except ValueError:
                 if not keys or length not in keys:
                     raise ValueError(f"Don't understand length '{length}' of token.")

@@ -70,7 +70,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
             if length is not None:
                 length = int(length)
                 # TODO: ugly
-                lm = Bits._register.name_to_meta_dtype[name].length_multiplier
+                lm = Bits._register.name_to_meta_dtype[name].multiplier
                 if lm is not None:
                     length *= lm
             if value is None and name != 'pad':
