@@ -263,13 +263,6 @@ for dt in dtypes:
 for alias in aliases:
     register.add_meta_dtype_alias(alias[0], alias[1])
 
-# Create properties for those meta dtypes that have a 'get' function.
-for dt_name in register.name_to_meta_dtype:
-    dt = register.name_to_meta_dtype[dt_name]
-    if dt.get_fn is not None:
-        setattr(Bits, dt_name, property(fget=dt.get_fn, doc=f"The bitstring as {dt.description}. Read only."))
-        setattr(BitArray, dt_name, property(fget=dt.get_fn, fset=dt.set_fn, doc=f"The bitstring as {dt.description}. Read and write."))
-
 init_names = [dt_name for dt_name in register.name_to_meta_dtype]
 unknowable_length_names = register.unknowable_length_names()
 always_fixed_length = register.always_fixed_length()

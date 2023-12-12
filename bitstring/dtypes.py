@@ -4,6 +4,8 @@ import functools
 from typing import Optional, Dict, Any, Union, Tuple
 from bitstring.utils import parse_name_length_token
 from collections.abc import Iterable
+from bitstring.bits import Bits
+from bitstring.bitarray_ import BitArray
 
 CACHE_SIZE = 256
 
@@ -142,11 +144,18 @@ class Register:
     def add_meta_dtype(cls, meta_dtype: MetaDtype):
         cls.name_to_meta_dtype[meta_dtype.name] = meta_dtype
         cls._modified_flag = True
+        if meta_dtype.get_fn is not None:
+            setattr(Bits, meta_dtype.name, property(fget=meta_dtype.get_fn, doc=f"The bitstring as {meta_dtype.description}. Read only."))
+            setattr(BitArray, meta_dtype.name, property(fget=meta_dtype.get_fn, fset=meta_dtype.set_fn, doc=f"The bitstring as {meta_dtype.description}. Read and write."))
 
     @classmethod
     def add_meta_dtype_alias(cls, name: str, alias: str):
         cls.name_to_meta_dtype[alias] = cls.name_to_meta_dtype[name]
+        meta_dtype = cls.name_to_meta_dtype[alias]
         cls._modified_flag = True
+        if meta_dtype.get_fn is not None:
+            setattr(Bits, alias, property(fget=meta_dtype.get_fn, doc=f"An alias for '{name}'. Read only."))
+            setattr(BitArray, alias, property(fget=meta_dtype.get_fn, fset=meta_dtype.set_fn, doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod
     def get_dtype(cls, name: str, length: Optional[int], length_is_in_bits: bool = False) -> Dtype:
@@ -187,7 +196,7 @@ class Register:
         cls._always_fixed_length_cache = d
         cls._modified_flag = False
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'unknown_length':^16}{'fixed_length':^13}{'multiplier':^12}{'return_type':<13}"]
         s.append('-' * 85)
         for key in self.name_to_meta_dtype:
