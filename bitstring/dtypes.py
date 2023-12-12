@@ -3,14 +3,16 @@ from __future__ import annotations
 import functools
 from typing import Optional, Dict, Any, Union, Tuple
 from bitstring.utils import parse_name_length_token
+from collections.abc import Iterable
 
 CACHE_SIZE = 256
+
 
 class Dtype:
 
     __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'is_unknown_length')
 
-    def __new__(cls, __token: Union[str, Dtype, None] = None, length: Optional[int] = None, length_is_in_bits: bool = False) -> Dtype:
+    def __new__(cls, __token: Union[str, Dtype, None] = None, /, length: Optional[int] = None, length_is_in_bits: bool = False) -> Dtype:
         if isinstance(__token, Dtype):
             return __token
         if __token is not None:
@@ -73,7 +75,7 @@ class MetaDtype:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
     def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, return_type: Any, bitlength2chars_fn, is_signed: bool,
-                 is_unknown_length: bool, fixed_length: Optional[int] = None, multiplier: int = 1):
+                 is_unknown_length: bool, fixed_length: Union[int, Tuple[int, ...], None] = None, multiplier: int = 1):
         # Consistency checks
         if is_unknown_length and fixed_length is not None:
             raise ValueError("Can't set is_unknown_length and give a value for length.")
@@ -83,7 +85,12 @@ class MetaDtype:
         self.return_type = return_type
         self.is_signed = is_signed
         self.is_unknown_length = is_unknown_length
-        self.fixed_length = fixed_length
+        if isinstance(fixed_length, Iterable):
+            self.fixed_length = tuple(fixed_length)
+        elif fixed_length is not None:
+            self.fixed_length = (fixed_length,)
+        else:
+            self.fixed_length = tuple()
         self.multiplier = multiplier
 
         self.set_fn = set_fn
@@ -94,22 +101,27 @@ class MetaDtype:
 
     def getDtype(self, length: Optional[int] = None) -> Dtype:
         if length is None:
-            if self.fixed_length is None and not self.is_unknown_length:
+            if len(self.fixed_length) != 1 and not self.is_unknown_length:
                 raise ValueError(f"No length given for dtype '{self.name}', and meta type is not fixed length.")
             d = Dtype.create(self, None)
             return d
         if self.is_unknown_length:
             raise ValueError("Length shouldn't be supplied for dtypes that are variable length.")
-        if self.fixed_length is not None:
-            if length != 0 and length != self.fixed_length:
-                raise ValueError  # TODO
-            length = self.fixed_length
+        if self.fixed_length:
+            if length == 0:
+                if len(self.fixed_length) == 1:
+                    length = self.fixed_length[0]
+                else:
+                    raise ValueError  # TODO
+            else:
+                if length not in self.fixed_length:
+                    raise ValueError  # TODO
         d = Dtype.create(self, length)
         return d
 
     def __str__(self) -> str:
         s = f"{self.name} -> {self.return_type.__name__}:  # {self.description}\n"
-        s += f"is_signed={self.is_signed}, is_unknown_length={self.is_unknown_length}, fixed_length={self.fixed_length}, multiplier={self.multiplier}"
+        s += f"is_signed={self.is_signed}, is_unknown_length={self.is_unknown_length}, fixed_length={self.fixed_length!s}, multiplier={self.multiplier}"
         return s
 
 class Register:
@@ -169,8 +181,9 @@ class Register:
         cls._unknowable_length_names_cache = tuple(dt_name for dt_name in cls.name_to_meta_dtype if cls.name_to_meta_dtype[dt_name].is_unknown_length)
         d: Dict[str, int] = {}
         for mt in cls.name_to_meta_dtype:
-            if cls.name_to_meta_dtype[mt].fixed_length is not None:
-                d[mt] = cls.name_to_meta_dtype[mt].fixed_length
+            if (fixed_length := cls.name_to_meta_dtype[mt].fixed_length):
+                if len(fixed_length) == 1:
+                    d[mt] = fixed_length[0]
         cls._always_fixed_length_cache = d
         cls._modified_flag = False
 
@@ -179,7 +192,7 @@ class Register:
         s.append('-' * 85)
         for key in self.name_to_meta_dtype:
             m = self.name_to_meta_dtype[key]
-            fixed = '' if m.fixed_length is None else m.fixed_length
+            fixed = '' if not m.fixed_length else m.fixed_length
             ret = 'None' if m.return_type is None else m.return_type.__name__
-            s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.is_unknown_length:^16}{fixed:^13}{m.multiplier:^12}{ret:<13} # {m.description}")
+            s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.is_unknown_length:^16}{fixed!s:^13}{m.multiplier:^12}{ret:<13} # {m.description}")
         return '\n'.join(s)
