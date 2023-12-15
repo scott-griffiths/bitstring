@@ -1372,7 +1372,13 @@ class Bits:
     #             start += dtype.bitlength
     #     return ret_vals
 
-    def _readlist(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int, **kwargs: int) \
+    # @classmethod
+    # def _convert_readlist_to_dtype_list(cls, fmt: Union[str, List[Union[str, int, Dtype]]], **kwargs) \
+    #         -> List[Dtype]:
+    #     dtype_list: List[Dtype] = []
+    #
+
+    def _readlist(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int, **kwargs) \
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
         tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]] = []
         if isinstance(fmt, str):

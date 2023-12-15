@@ -31,3 +31,14 @@ class BasicFunctionality(unittest.TestCase):
         self.assertEqual(str(d), 'uint12')
         self.assertEqual(d.length, 12)
         self.assertEqual(d.name, 'uint')
+
+
+class CreatingNewDtypes(unittest.TestCase):
+
+    def testNewAlias(self):
+        bs.Bits._register.add_meta_dtype_alias('bin', 'cat')
+        a = bs.BitStream('0b110110')
+        self.assertEqual(a.cat, '110110')
+        self.assertEqual(a.read('cat4'), '1101')
+        a.cat = '11110000'
+        # self.assertEqual(a.unpack('cat'), '11110000')
