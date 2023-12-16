@@ -8,7 +8,7 @@ from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, Tex
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, register
-from bitstring.utils import tokenparser, parse_name_length_token, parse_single_struct_token, preprocess_tokens, parse_single_token
+from bitstring.utils import tokenparser, parse_name_length_token, parse_single_struct_token
 import copy
 import array
 import operator
@@ -68,7 +68,7 @@ class Array:
                  trailing_bits: Optional[BitsType] = None) -> None:
         self.data = BitArray()
         try:
-            self.dtype = dtype
+            self._set_dtype(dtype)
         except ValueError as e:
             raise CreationError(e)
 
@@ -112,6 +112,9 @@ class Array:
 
     @dtype.setter
     def dtype(self, new_dtype: Union[str, Dtype]) -> None:
+        self._set_dtype(new_dtype)
+
+    def _set_dtype(self, new_dtype: Union[str, Dtype]) -> None:
         if isinstance(new_dtype, Dtype):
             self._dtype = new_dtype
             self._fmt = str(self._dtype)
@@ -262,9 +265,11 @@ class Array:
             # No need to iterate over the elements, we can just append the data
             self.data.append(iterable.data)
         elif isinstance(iterable, array.array):
-            other_fmt = Array._array_typecodes.get(iterable.typecode, iterable.typecode)
-            token_name, token_length, _ = parse_single_token(preprocess_tokens(other_fmt)[0])
-            if self._dtype.name != token_name or self._dtype.length != int(token_length):
+            name_value = parse_single_struct_token('='+iterable.typecode)
+            if name_value is None:
+                raise ValueError(f"Cannot extend from array with typecode {iterable.typecode}.")
+            other_dtype = register.get_dtype(*name_value)
+            if self._dtype.name != other_dtype.name or self._dtype.length != other_dtype.length:
                 raise ValueError(
                     f"Cannot extend an Array with format '{self._fmt}' from an array with typecode '{iterable.typecode}'.")
             self.data += iterable.tobytes()

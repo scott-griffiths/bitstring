@@ -40,7 +40,7 @@ STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=]){1}(?P<fmt>(?:\d*
 # The same as above, but it doesn't insist on an endianness as it's byteswapping anyway.
 BYTESWAP_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
 # An endianness indicator followed by exactly one struct.pack codes
-SINGLE_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=]){1}(?P<fmt>(?:[bBhHlLqQefd]))$')
+SINGLE_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=]){1}(?P<fmt>[bBhHlLqQefd])$')
 
 # A number followed by a single character struct.pack code
 STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQefd]')
