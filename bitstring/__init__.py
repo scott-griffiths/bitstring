@@ -68,7 +68,7 @@ from .bitstream import ConstBitStream, BitStream
 from .methods import pack
 from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
-from .dtypes import MetaDtype, Register, Dtype
+from .dtypes import MetaDtype, register, Dtype
 import types
 from typing import List, Tuple, Literal
 from .utils import initialise_constants
@@ -257,7 +257,6 @@ aliases: List[Tuple[str, str]] = [
     ('float', 'f')
 ]
 
-register = Register()
 for dt in dtypes:
     register.add_meta_dtype(dt)
 for alias in aliases:

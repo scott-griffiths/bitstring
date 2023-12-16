@@ -22,6 +22,7 @@ from bitstring.bitstore_helpers import float2bitstore, uint2bitstore, ue2bitstor
     bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, \
     bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore
 
+
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
 
@@ -102,8 +103,8 @@ class Bits:
         # To avoid circular imports this happens after all the classes are initialised.
         from .options import Options
         cls._options = Options()
-        from .dtypes import Register, Dtype
-        cls._register = Register()
+        from .dtypes import Dtype, register
+        cls._register = register
         cls.Dtype = Dtype
 
     # Creates dictionaries to quickly reverse single bytes

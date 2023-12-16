@@ -7,7 +7,7 @@ from bitstring.exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
-from bitstring.dtypes import Dtype, Register
+from bitstring.dtypes import Dtype, register
 from bitstring.utils import tokenparser, parse_name_length_token, parse_single_struct_token, preprocess_tokens, parse_single_token
 import copy
 import array
@@ -18,7 +18,6 @@ import sys
 # The possible types stored in each element of the Array
 ElementType = Union[float, str, int, bytes, bool, Bits]
 
-dtype_register = Register()
 
 class Array:
     """Return an Array whose elements are initialised according to the fmt string.
@@ -123,7 +122,7 @@ class Array:
                 name_value = parse_single_struct_token(new_dtype)
                 if name_value is None:
                     raise ValueError(e)
-            dtype = dtype_register.get_dtype(*name_value)
+            dtype = register.get_dtype(*name_value)
             if dtype.length is None:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
@@ -520,7 +519,7 @@ class Array:
                 msg += " Use extend() if you want to concatenate Arrays."
             raise ValueError(msg)
         if is_comparison:
-            new_type = dtype_register.get_dtype('bool', 1)
+            new_type = register.get_dtype('bool', 1)
         else:
             new_type = self._promotetype(self._dtype, other._dtype)
         new_array = Array(new_type)

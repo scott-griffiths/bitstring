@@ -18,7 +18,6 @@ class Dtype:
         if isinstance(__token, Dtype):
             return __token
         if __token is not None:
-            register = Register()
             __token = ''.join(__token.split())
             if length is None:
                 name, length = parse_name_length_token(__token)
@@ -205,3 +204,7 @@ class Register:
             ret = 'None' if m.return_type is None else m.return_type.__name__
             s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.is_unknown_length:^16}{fixed!s:^13}{m.multiplier:^12}{ret:<13} # {m.description}")
         return '\n'.join(s)
+
+
+# Create the Register singleton
+register = Register()
