@@ -23,7 +23,7 @@ class Dtype:
                 name, length = parse_name_length_token(__token)
             else:
                 name = __token
-            d = register.get_dtype(name, length, length_is_in_bits)
+            d = dtype_register.get_dtype(name, length, length_is_in_bits)
             return d
         else:
             return super(Dtype, cls).__new__(cls)
@@ -207,4 +207,4 @@ class Register:
 
 
 # Create the Register singleton
-register = Register()
+dtype_register = Register()

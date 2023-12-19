@@ -10,6 +10,14 @@ from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
 
 
+options = None
+
+def _initialise_bitarray_class() -> None:
+    from .options import Options
+    global options
+    options = Options()
+
+
 class BitArray(Bits):
     """A container holding a mutable sequence of bits.
 
@@ -305,7 +313,7 @@ class BitArray(Bits):
 
     def _replace(self, old: Bits, new: Bits, start: int, end: int, count: int, bytealigned: Optional[bool]) -> int:
         if bytealigned is None:
-            bytealigned = BitArray._options.bytealigned
+            bytealigned = options.bytealigned
         # First find all the places where we want to do the replacements
         starting_points: List[int] = []
         for x in self.findall(old, start, end, bytealigned=bytealigned):
@@ -326,7 +334,7 @@ class BitArray(Bits):
         # Final replacement
         replacement_list.append(new._bitstore)
         replacement_list.append(self._bitstore.getslice(slice(starting_points[-1] + len(old), None, None)))
-        if BitArray._options.lsb0:
+        if options.lsb0:
             # Addition of bitarray is always on the right, so assemble from other end
             replacement_list.reverse()
         self._bitstore.clear()

@@ -61,14 +61,14 @@ __author__ = "Scott Griffiths"
 
 import sys
 
-from .bits import Bits
+from .bits import Bits, _initialise_bits_class
 from .options import Options
-from .bitarray_ import BitArray
+from .bitarray_ import BitArray, _initialise_bitarray_class
 from .bitstream import ConstBitStream, BitStream
 from .methods import pack
 from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
-from .dtypes import MetaDtype, register, Dtype
+from .dtypes import MetaDtype, dtype_register, Dtype
 import types
 from typing import List, Tuple, Literal
 from .utils import initialise_constants
@@ -77,7 +77,8 @@ from .utils import initialise_constants
 # We initialise the Options singleton after the base classes have been created.
 # This avoids a nasty circular import.
 options = Options()
-Bits._initialise_options()
+_initialise_bits_class()
+_initialise_bitarray_class()
 
 # These get defined properly by the module magic below. This just stops mypy complaining about them.
 bytealigned = lsb0 = None
@@ -258,13 +259,13 @@ aliases: List[Tuple[str, str]] = [
 ]
 
 for dt in dtypes:
-    register.add_meta_dtype(dt)
+    dtype_register.add_meta_dtype(dt)
 for alias in aliases:
-    register.add_meta_dtype_alias(alias[0], alias[1])
+    dtype_register.add_meta_dtype_alias(alias[0], alias[1])
 
-init_names = [dt_name for dt_name in register.name_to_meta_dtype]
-unknowable_length_names = register.unknowable_length_names()
-always_fixed_length = register.always_fixed_length()
+init_names = [dt_name for dt_name in dtype_register.name_to_meta_dtype]
+unknowable_length_names = dtype_register.unknowable_length_names()
+always_fixed_length = dtype_register.always_fixed_length()
 
 initialise_constants(init_names, unknowable_length_names, always_fixed_length)
 

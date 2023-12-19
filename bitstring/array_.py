@@ -7,7 +7,7 @@ from bitstring.exceptions import CreationError, InterpretError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
-from bitstring.dtypes import Dtype, register
+from bitstring.dtypes import Dtype, dtype_register
 from bitstring.utils import tokenparser, parse_name_length_token, parse_single_struct_token
 import copy
 import array
@@ -125,7 +125,7 @@ class Array:
                 name_value = parse_single_struct_token(new_dtype)
                 if name_value is None:
                     raise ValueError(e)
-            dtype = register.get_dtype(*name_value)
+            dtype = dtype_register.get_dtype(*name_value)
             if dtype.length is None:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
@@ -268,7 +268,7 @@ class Array:
             name_value = parse_single_struct_token('='+iterable.typecode)
             if name_value is None:
                 raise ValueError(f"Cannot extend from array with typecode {iterable.typecode}.")
-            other_dtype = register.get_dtype(*name_value)
+            other_dtype = dtype_register.get_dtype(*name_value)
             if self._dtype.name != other_dtype.name or self._dtype.length != other_dtype.length:
                 raise ValueError(
                     f"Cannot extend an Array with format '{self._fmt}' from an array with typecode '{iterable.typecode}'.")
@@ -524,7 +524,7 @@ class Array:
                 msg += " Use extend() if you want to concatenate Arrays."
             raise ValueError(msg)
         if is_comparison:
-            new_type = register.get_dtype('bool', 1)
+            new_type = dtype_register.get_dtype('bool', 1)
         else:
             new_type = self._promotetype(self._dtype, other._dtype)
         new_array = Array(new_type)

@@ -6,8 +6,11 @@ from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
 from typing import Union, List
 from bitstring.bitstore import BitStore
-from bitstring.bitstore_helpers import bitstore_from_token, name2bitstore_func_with_length
+from bitstring.bitstore_helpers import bitstore_from_token
+from bitstring.dtypes import dtype_register
+from bitstring.options import Options
 
+options = Options()
 
 def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     """Pack the values according to the format string and return a new BitStream.
@@ -70,7 +73,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
             if length is not None:
                 length = int(length)
                 # TODO: ugly
-                lm = Bits._register.name_to_meta_dtype[name].multiplier
+                lm = dtype_register.name_to_meta_dtype[name].multiplier
                 if lm is not None:
                     length *= lm
             if value is None and name != 'pad':
@@ -92,9 +95,9 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     except StopIteration:
         # Good, we've used up all the *values.
         s = BitStream()
-        if Bits._options.lsb0:
+        if options.lsb0:
             for name, _, _ in tokens:
-                if name in Bits._register.unknowable_length_names():
+                if name in dtype_register.unknowable_length_names():
                     raise CreationError(f"Variable length tokens ('{name}') cannot be used in lsb0 mode.")
             for b in bsl[::-1]:
                 s._bitstore += b
