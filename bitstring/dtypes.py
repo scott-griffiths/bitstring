@@ -59,7 +59,10 @@ class Dtype:
         return x
 
     def __str__(self) -> str:
-        length_str = '' if (self.length == 0) else str(self.length)
+        hide_length = self.is_unknown_length
+        if self.name in dtype_register._always_fixed_length_cache.keys():
+            hide_length = True
+        length_str = '' if hide_length else str(self.length)
         return f"{self.name}{length_str}"
 
     def __repr__(self) -> str:

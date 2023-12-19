@@ -10,7 +10,7 @@ class BasicFunctionality(unittest.TestCase):
 
     def testSettingBool(self):
         b = Dtype('bool')
-        self.assertEqual(str(b), 'bool1')
+        self.assertEqual(str(b), 'bool')
         self.assertEqual(b.name, 'bool')
         self.assertEqual(b.length, 1)
 
