@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Simple construction, analysis and modification of binary data."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -26,7 +26,7 @@ classifiers = [
 ]
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
-  "bitarray >= 2.8.0, < 3.0.0",
+  "bitarray >= 2.9.0, < 3.0.0",
 ]
 
 [project.urls]
