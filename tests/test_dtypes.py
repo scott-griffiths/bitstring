@@ -1,6 +1,9 @@
 
 import unittest
 import sys
+
+import bitstring
+
 sys.path.insert(0, '..')
 import bitstring as bs
 from bitstring import Dtype
@@ -32,6 +35,24 @@ class BasicFunctionality(unittest.TestCase):
         self.assertEqual(d.length, 12)
         self.assertEqual(d.name, 'uint')
 
+
+class ChangingTheRegister(unittest.TestCase):
+
+    def testRetrievingMetaDtype(self):
+        r = bitstring.dtype_register
+        u = r['uint']
+        u2 = r['u']
+        self.assertEqual(u, u2)
+        with self.assertRaises(KeyError):
+            i = r['integer']
+
+    def testRemovingType(self):
+        r = bitstring.dtype_register
+        del r['bfloat']
+        with self.assertRaises(KeyError):
+            i = r['bfloat']
+        with self.assertRaises(KeyError):
+            del r['penguin']
 
 # class CreatingNewDtypes(unittest.TestCase):
 

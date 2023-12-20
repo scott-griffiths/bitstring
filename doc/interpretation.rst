@@ -16,7 +16,7 @@ Dtypes
 
 A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to create, parse and present different bit interpretations.
 
-.. class:: Dtype(__token: str | Dtype | None = None, length: int | None = None)
+.. class:: Dtype(token: str | Dtype | None = None, /, length: int | None = None)
 
     Creates a :class:`Dtype` object.
 

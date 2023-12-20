@@ -265,7 +265,8 @@ class Array:
             # No need to iterate over the elements, we can just append the data
             self.data.append(iterable.data)
         elif isinstance(iterable, array.array):
-            name_value = parse_single_struct_token('='+iterable.typecode)
+            # array.array types are always native-endian, hence the '='
+            name_value = parse_single_struct_token('=' + iterable.typecode)
             if name_value is None:
                 raise ValueError(f"Cannot extend from array with typecode {iterable.typecode}.")
             other_dtype = dtype_register.get_dtype(*name_value)

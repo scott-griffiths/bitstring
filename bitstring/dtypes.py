@@ -14,15 +14,15 @@ class Dtype:
 
     __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'is_unknown_length')
 
-    def __new__(cls, __token: Union[str, Dtype, None] = None, /, length: Optional[int] = None, length_is_in_bits: bool = False) -> Dtype:
-        if isinstance(__token, Dtype):
-            return __token
-        if __token is not None:
-            __token = ''.join(__token.split())
+    def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None, length_is_in_bits: bool = False) -> Dtype:  # TODO: length_is_in_bits is a hack.
+        if isinstance(token, Dtype):
+            return token
+        if token is not None:
+            token = ''.join(token.split())
             if length is None:
-                name, length = parse_name_length_token(__token)
+                name, length = parse_name_length_token(token)
             else:
-                name = __token
+                name = token
             d = dtype_register.get_dtype(name, length, length_is_in_bits)
             return d
         else:
@@ -59,9 +59,7 @@ class Dtype:
         return x
 
     def __str__(self) -> str:
-        hide_length = self.is_unknown_length
-        if self.name in dtype_register._always_fixed_length_cache.keys():
-            hide_length = True
+        hide_length = self.is_unknown_length or self.name in dtype_register.always_fixed_length().keys()
         length_str = '' if hide_length else str(self.length)
         return f"{self.name}{length_str}"
 
@@ -174,6 +172,14 @@ class Register:
             return meta_type.getDtype(new_length)
         else:
             return meta_type.getDtype(length)
+
+    @classmethod
+    def __getitem__(cls, name: str) -> MetaDtype:
+        return cls.name_to_meta_dtype[name]
+
+    @classmethod
+    def __delitem__(cls, name: str) -> None:
+        del cls.name_to_meta_dtype[name]
 
     @classmethod
     def unknowable_length_names(cls) -> Tuple[str]:
