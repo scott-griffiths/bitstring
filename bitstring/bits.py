@@ -1351,45 +1351,14 @@ class Bits:
         """
         return self._readlist(fmt, 0, **kwargs)[0]
 
-
-    # """Perhaps this should all be rewritten from scratch.
-    #
-    # We should have a version without any stretchy tokens in it.
-    # We scan to find stretchy tokens, if we don't find any, then can just call that
-    # new function. If we do, then we call it twice, once for the start and once for the
-    # end, and sandwich in the stretchy token in the middle.
-    #
-    # The kwargs are also a pain. Let's do it without them - they can be another special case.
-    # """
-    #
-    # def _read_dtypes(self, dtypes: List[Dtype], start: int) -> List[Union[int, float, str, Bits, bool, bytes, None]]:
-    #     ret_vals = []
-    #     for dtype in dtypes:
-    #         val = dtype.read_fn(self, start)
-    #         if isinstance(val, tuple):
-    #             ret_vals.append(val[0])
-    #             start += val[1]
-    #         else:
-    #             ret_vals.append(val)
-    #             start += dtype.bitlength
-    #     return ret_vals
-
-    # @classmethod
-    # def _convert_readlist_to_dtype_list(cls, fmt: Union[str, List[Union[str, int, Dtype]]], **kwargs) \
-    #         -> List[Dtype]:
-    #     dtype_list: List[Dtype] = []
-    #
-
     def _readlist(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int, **kwargs) \
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
         if not kwargs:
             return self._readlist_nokwargs(fmt, pos)
         return self._readlist_kwargs(fmt, pos, **kwargs)
 
-
     def _readlist_nokwargs(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int) \
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
-        tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]] = []
         if isinstance(fmt, str):
             fmt = [fmt]
 
@@ -1407,9 +1376,12 @@ class Bits:
                         dtype_list.append(Dtype(t))
                     except ValueError:
                         dtype_list.append(Dtype('bits', int(t)))
+        return self._read_dtype_list(dtype_list, pos)
+
+    def _read_dtype_list(self, dtypes: List[Dtype], pos: int) -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
         has_stretchy_token = False
         bits_after_stretchy_token = 0
-        for dtype in dtype_list:
+        for dtype in dtypes:
             stretchy = dtype.bitlength is None and dtype.is_unknown_length is False
             if stretchy:
                 if has_stretchy_token:
@@ -1422,7 +1394,7 @@ class Bits:
 
         # We should have precisely zero or one stretchy token
         vals = []
-        for dtype in dtype_list:
+        for dtype in dtypes:
             stretchy = dtype.bitlength is None and dtype.is_unknown_length is False
             if stretchy:
                 bits_remaining = len(self) - pos
@@ -1437,7 +1409,6 @@ class Bits:
             if val is not None:  # Don't append pad tokens
                 vals.append(val)
         return vals, pos
-
 
     def _readlist_kwargs(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int, **kwargs) \
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
