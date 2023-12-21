@@ -1353,15 +1353,14 @@ class Bits:
 
     def _readlist(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int, **kwargs) \
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
+        if isinstance(fmt, str):
+            fmt = [fmt]
         if not kwargs:
             return self._readlist_nokwargs(fmt, pos)
         return self._readlist_kwargs(fmt, pos, **kwargs)
 
-    def _readlist_nokwargs(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int) \
+    def _readlist_nokwargs(self, fmt: List[Union[str, int, Dtype]], pos: int) \
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
-        if isinstance(fmt, str):
-            fmt = [fmt]
-
         # Convert to a flat list of Dtypes
         dtype_list = []
         for f_item in fmt:
@@ -1410,11 +1409,9 @@ class Bits:
                 vals.append(val)
         return vals, pos
 
-    def _readlist_kwargs(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int, **kwargs) \
+    def _readlist_kwargs(self, fmt: List[Union[str, int, Dtype]], pos: int, **kwargs) \
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
         tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]] = []
-        if isinstance(fmt, str):
-            fmt = [fmt]
         keys: Tuple[str, ...] = tuple(sorted(kwargs.keys()))
 
         def convert_length_strings(length_: Optional[Union[str, int]]) -> Optional[int]:
@@ -1436,11 +1433,6 @@ class Bits:
             lst = []
             for name, length, _ in tokens:
                 length = convert_length_strings(length)
-                if name in kwargs and length is None:
-                    # Using default 'bits' - the name is really the length.
-                    value, pos = self._readtoken('bits', pos, kwargs[name])
-                    lst.append(value)
-                    continue
                 value, pos = self._readtoken(name, pos, length)
                 if value is not None:  # Don't append pad tokens
                     lst.append(value)

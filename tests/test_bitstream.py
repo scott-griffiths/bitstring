@@ -3747,8 +3747,7 @@ class Bugs(unittest.TestCase):
 class UnpackWithDict(unittest.TestCase):
     def testLengthKeywords(self):
         a = ConstBitStream('2*int:13=100, 0b111')
-        x, y, z = a.unpack('n, '
-                           'int:m, bin:q', n=13, m=13, q=3)
+        x, y, z = a.unpack('13, int:m, bin:q', m=13, q=3)
         self.assertEqual(x, 'uint:13=100')
         self.assertEqual(y, 100)
         self.assertEqual(z, '111')
@@ -3774,7 +3773,7 @@ class UnpackWithDict(unittest.TestCase):
 class ReadWithDict(unittest.TestCase):
     def testLengthKeywords(self):
         s = BitStream('0x0102')
-        x, y = s.readlist('a, hex:b', a=8, b=4)
+        x, y = s.readlist('bits8, hex:b', b=4)
         self.assertEqual((x, y), ('0x01', '0'))
         self.assertEqual(s.pos, 12)
 
@@ -3791,7 +3790,7 @@ class ReadWithDict(unittest.TestCase):
 class PeekWithDict(unittest.TestCase):
     def testLengthKeywords(self):
         s = BitStream('0x0102')
-        x, y = s.peeklist('a, hex:b', a=8, b=4)
+        x, y = s.peeklist('8, hex:b', b=4)
         self.assertEqual((x, y), ('0x01', '0'))
         self.assertEqual(s.pos, 0)
 
