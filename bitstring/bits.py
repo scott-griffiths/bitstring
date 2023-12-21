@@ -293,7 +293,7 @@ class Bits:
         """
         if isinstance(key, numbers.Integral):
             return bool(self._bitstore.getindex(key))
-        x = self._bitstore.getslice(key)
+        x = self._bitstore.getslice_withstep(key)
         bs = self.__class__()
         bs._bitstore = x
         return bs
@@ -552,7 +552,7 @@ class Bits:
         if isinstance(s, Bits):
             if length is None:
                 length = len(s) - offset
-            self._bitstore = s._bitstore.getslice(slice(offset, offset + length, None))
+            self._bitstore = s._bitstore.getslice(offset, offset + length)
             return
 
         if isinstance(s, io.BytesIO):
@@ -563,7 +563,7 @@ class Bits:
             if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
                 raise CreationError("BytesIO object is not long enough for specified length and offset.")
             self._bitstore = BitStore(frombytes=s.getvalue()[byteoffset: byteoffset + bytelength]).getslice(
-                slice(offset, offset + length))
+                offset, offset + length)
             return
 
         if isinstance(s, io.BufferedReader):
@@ -619,9 +619,9 @@ class Bits:
                 if length is None:
                     if offset > len(temp):
                         raise CreationError(f"The offset of {offset} bits is greater than the file length ({len(temp)} bits).")
-                    self._bitstore = temp.getslice(slice(offset, None, None))
+                    self._bitstore = temp.getslice(offset, None)
                 else:
-                    self._bitstore = temp.getslice(slice(offset, offset + length, None))
+                    self._bitstore = temp.getslice(offset, offset + length)
                     if len(self) != length:
                         raise CreationError(f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {len(temp)} bits.")
 
@@ -665,12 +665,12 @@ class Bits:
         else:
             if length + offset > len(data) * 8:
                 raise CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
-        self._bitstore = BitStore(buffer=data).getslice_msb0(slice(offset, offset + length, None))
+        self._bitstore = BitStore(buffer=data).getslice_msb0(offset, offset + length)
 
     def _readbytes(self, start: int, length: int) -> bytes:
         """Read bytes and return them. Note that length is in bits."""
         assert length % 8 == 0
-        return self._bitstore.getslice(slice(start, start + length, None)).tobytes()
+        return self._bitstore.getslice(start, start + length).tobytes()
 
     def _getbytes(self) -> bytes:
         """Return the data as an ordinary bytes object."""
@@ -785,7 +785,7 @@ class Bits:
         """Read bits and interpret as a little-endian unsigned int."""
         if length % 8:
             raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
-        bs = BitStore(frombytes=self._bitstore.getslice(slice(start, start + length, None)).tobytes()[::-1])
+        bs = BitStore(frombytes=self._bitstore.getslice(start, start + length).tobytes()[::-1])
         val = bs.slice_to_uint()
         return val
 
@@ -805,7 +805,7 @@ class Bits:
         """Read bits and interpret as a little-endian signed int."""
         if length % 8:
             raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
-        bs = BitStore(frombytes=self._bitstore.getslice(slice(start, start + length, None)).tobytes()[::-1])
+        bs = BitStore(frombytes=self._bitstore.getslice(start, start + length).tobytes()[::-1])
         val = bs.slice_to_int()
         return val
 
@@ -821,7 +821,7 @@ class Bits:
 
         offset = start % 8
         if offset == 0:
-            return struct.unpack(fmt, self._bitstore.getslice(slice(start, start + length, None)).tobytes())[0]
+            return struct.unpack(fmt, self._bitstore.getslice(start, start + length).tobytes())[0]
         else:
             return struct.unpack(fmt, self._readbytes(start, length))[0]
 
@@ -1181,7 +1181,7 @@ class Bits:
     def _slice(self: TBits, start: int, end: int) -> TBits:
         """Used internally to get a slice, without error checking."""
         bs = self.__class__()
-        bs._bitstore = self._bitstore.getslice(slice(start, end, None))
+        bs._bitstore = self._bitstore.getslice(start, end)
         return bs
 
     def _absolute_slice(self: TBits, start: int, end: int) -> TBits:
@@ -1191,7 +1191,7 @@ class Bits:
             return self.__class__()
         assert start < end, f"start={start}, end={end}"
         bs = self.__class__()
-        bs._bitstore = self._bitstore.getslice_msb0(slice(start, end, None))
+        bs._bitstore = self._bitstore.getslice_msb0(start, end)
         return bs
 
     def _readtoken(self, name: str, pos: int, length: Optional[int]) -> Tuple[Union[float, int, str, None, Bits], int]:
@@ -1230,7 +1230,7 @@ class Bits:
         if bits == len(self):
             self._clear()
             return truncated_bits
-        self._bitstore = self._bitstore.getslice_msb0(slice(bits, None, None))
+        self._bitstore = self._bitstore.getslice_msb0(bits, None)
         return truncated_bits
 
     def _truncateright(self: TBits, bits: int, /) -> TBits:
@@ -1242,7 +1242,7 @@ class Bits:
         if bits == len(self):
             self._clear()
             return truncated_bits
-        self._bitstore = self._bitstore.getslice_msb0(slice(None, -bits, None))
+        self._bitstore = self._bitstore.getslice_msb0(None, -bits)
         return truncated_bits
 
     def _insert(self, bs: Bits, pos: int, /) -> None:
@@ -1270,7 +1270,7 @@ class Bits:
     def _reversebytes(self, start: int, end: int) -> None:
         """Reverse bytes in-place."""
         assert (end - start) % 8 == 0
-        self._bitstore[start:end] = BitStore(frombytes=self._bitstore.getslice(slice(start, end, None)).tobytes()[::-1])
+        self._bitstore[start:end] = BitStore(frombytes=self._bitstore.getslice(start, end).tobytes()[::-1])
 
     def _invert(self, pos: int, /) -> None:
         """Flip bit at pos 1<->0."""
@@ -1679,7 +1679,7 @@ class Bits:
         """Convert the bitstring to a bitarray object."""
         if self._bitstore.modified:
             # Removes the offset and truncates to length
-            return self._bitstore.getslice(slice(0, len(self), None))._bitarray
+            return self._bitstore.getslice(0, len(self))._bitarray
         else:
             return self._bitstore._bitarray
 

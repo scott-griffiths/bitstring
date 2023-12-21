@@ -223,7 +223,7 @@ class BitArray(Bits):
                 else:
                     raise ValueError("Can't assign an integer except 0 or 1 to a slice with a step value.")
             # To find the length we first get the slice
-            s = self._bitstore.getslice(key)
+            s = self._bitstore.getslice(key.start, key.stop)
             length = len(s)
             # Now create an int of the correct length
             if value >= 0:
@@ -326,14 +326,14 @@ class BitArray(Bits):
                 break
         if not starting_points:
             return 0
-        replacement_list = [self._bitstore.getslice(slice(0, starting_points[0], None))]
+        replacement_list = [self._bitstore.getslice(0, starting_points[0])]
         for i in range(len(starting_points) - 1):
             replacement_list.append(new._bitstore)
             replacement_list.append(
-                self._bitstore.getslice(slice(starting_points[i] + len(old), starting_points[i + 1], None)))
+                self._bitstore.getslice(starting_points[i] + len(old), starting_points[i + 1]))
         # Final replacement
         replacement_list.append(new._bitstore)
-        replacement_list.append(self._bitstore.getslice(slice(starting_points[-1] + len(old), None, None)))
+        replacement_list.append(self._bitstore.getslice(starting_points[-1] + len(old), None))
         if options.lsb0:
             # Addition of bitarray is always on the right, so assemble from other end
             replacement_list.reverse()

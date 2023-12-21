@@ -43,6 +43,7 @@ class Options:
             BitStore.__delitem__ = BitStore.delitem_lsb0  # type: ignore
             BitStore.getindex = BitStore.getindex_lsb0
             BitStore.getslice = BitStore.getslice_lsb0
+            BitStore.getslice_withstep = BitStore.getslice_withstep_lsb0
             BitStore.invert = BitStore.invert_lsb0  # type: ignore
         else:
             Bits._find = Bits._find_msb0  # type: ignore
@@ -58,6 +59,7 @@ class Options:
             BitStore.__delitem__ = BitStore.delitem_msb0  # type: ignore
             BitStore.getindex = BitStore.getindex_msb0
             BitStore.getslice = BitStore.getslice_msb0
+            BitStore.getslice_withstep = BitStore.getslice_withstep_msb0
             BitStore.invert = BitStore.invert_msb0  # type: ignore
 
     @property

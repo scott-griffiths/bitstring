@@ -14,6 +14,13 @@ def offset_slice_indices_lsb0(key: slice, length: int) -> slice:
     # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
     return slice(new_start, None if new_stop < 0 else new_stop, step)
 
+def offset_start_stop_lsb0(start: Optional[int], stop: Optional[int], length: int) -> slice:
+    # First convert slice to all integers
+    # Length already should take account of the offset
+    start, stop, step = slice(start, stop, None).indices(length)
+    new_start = length - stop
+    new_stop = length - start
+    return new_start, new_stop
 
 class BitStore:
     """A light wrapper around bitarray that does the LSB0 stuff"""
@@ -57,19 +64,19 @@ class BitStore:
         return self._bitarray.tobytes()
 
     def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return bitarray.util.ba2int(self.getslice(slice(start, end, None))._bitarray, signed=False)
+        return bitarray.util.ba2int(self.getslice(start, end)._bitarray, signed=False)
 
     def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return bitarray.util.ba2int(self.getslice(slice(start, end, None))._bitarray, signed=True)
+        return bitarray.util.ba2int(self.getslice(start, end)._bitarray, signed=True)
 
     def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return bitarray.util.ba2hex(self.getslice(slice(start, end, None))._bitarray)
+        return bitarray.util.ba2hex(self.getslice(start, end)._bitarray)
 
     def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self.getslice(slice(start, end, None))._bitarray.to01()
+        return self.getslice(start, end)._bitarray.to01()
 
     def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return bitarray.util.ba2base(8, self.getslice(slice(start, end, None))._bitarray)
+        return bitarray.util.ba2base(8, self.getslice(start, end)._bitarray)
 
     def __iadd__(self, other: BitStore, /) -> BitStore:
         self._bitarray += other._bitarray
@@ -155,7 +162,7 @@ class BitStore:
 
     def _copy(self) -> BitStore:
         """Always creates a copy, even if instance is immutable."""
-        return self.getslice(slice(None, self.length, None))
+        return self.getslice(None, self.length)
 
     def copy(self) -> BitStore:
         if self.immutable:
@@ -170,17 +177,29 @@ class BitStore:
     def getindex_msb0(self, index: int, /) -> bool:
         return bool(self._bitarray.__getitem__(index))
 
-    def getslice_msb0(self, key: slice, /) -> BitStore:
+    def getslice_withstep_msb0(self, key: slice, /) -> BitStore:
         if self.modified:
             key = slice(*key.indices(len(self)))
         return BitStore(self._bitarray.__getitem__(key))
 
+    def getslice_withstep_lsb0(self, key: slice, /) -> BitStore:
+        key = offset_slice_indices_lsb0(key, len(self))
+        return BitStore(self._bitarray.__getitem__(key))
+
+    def getslice_msb0(self, start: Optional[int], stop: Optional[int], /) -> BitStore:
+        if self.modified:
+            key = slice(*slice(start, stop, None).indices(len(self)))
+            start = key.start
+            stop = key.stop
+        return BitStore(self._bitarray[start:stop])
+
+    def getslice_lsb0(self, start: Optional[int], stop: Optional[int], /) -> BitStore:
+        start, stop = offset_start_stop_lsb0(start, stop, len(self))
+        return BitStore(self._bitarray[start:stop])
+
     def getindex_lsb0(self, index: int, /) -> bool:
         return bool(self._bitarray.__getitem__(-index - 1))
 
-    def getslice_lsb0(self, key: slice, /) -> BitStore:
-        key = offset_slice_indices_lsb0(key, len(self))
-        return BitStore(self._bitarray.__getitem__(key))
 
     @overload
     def setitem_lsb0(self, key: int, value: int, /) -> None:

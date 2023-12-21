@@ -55,10 +55,10 @@ class BasicLSB0Functionality(unittest.TestCase):
 
     def testGettingSlice(self):
         a = BitStore(buffer=b'12345678')
-        self.assertEqual(a.getslice(slice(None, None, None)).tobytes(), b'12345678')
-        self.assertEqual(a.getslice(slice(None, -8, None)).tobytes(), b'2345678')
-        self.assertEqual(a.getslice(slice(8, None, None)).tobytes(), b'1234567')
-        self.assertEqual(a.getslice(slice(16, 24, None)).tobytes(), b'6')
+        self.assertEqual(a.getslice(None, None).tobytes(), b'12345678')
+        self.assertEqual(a.getslice(None, -8).tobytes(), b'2345678')
+        self.assertEqual(a.getslice(8, None).tobytes(), b'1234567')
+        self.assertEqual(a.getslice(16, 24).tobytes(), b'6')
 
     def testSettingInt(self):
         a = BitStore('00000')
@@ -86,9 +86,9 @@ class GettingSlices(unittest.TestCase):
         for start_option in options:
             for end_option in options:
                 bitstring.lsb0 = True
-                lsb0 = a.getslice(slice(start_option, end_option, None))
+                lsb0 = a.getslice(start_option, end_option)
                 bitstring.lsb0 = False
-                msb0 = a.getslice(slice(start_option, end_option, None))
+                msb0 = a.getslice(start_option, end_option)
                 new_slice = offset_slice_indices_lsb0(slice(start_option, end_option, None), len(a))
                 new_start, new_end = new_slice.start, new_slice.stop
                 self.assertEqual(len(msb0), len(lsb0), f"[{start_option}: {end_option}] -> [{new_start}: {new_end}]  len(msb0)={len(msb0)}, len(lsb0)={len(lsb0)}")
