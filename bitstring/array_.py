@@ -390,7 +390,6 @@ class Array:
             parameter_str = f"fmt='{fmt}'"
 
         token_name2, token_length2 = None, None
-        getter_func2 = None
         if number_of_fmts == 1:
             if token_length is None:
                 token_length = self.itemsize

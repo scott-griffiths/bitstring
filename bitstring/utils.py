@@ -3,7 +3,6 @@ import functools
 import re
 from typing import Tuple, List, Optional, Pattern, Dict, Union, Match
 import sys
-from bitstring.exceptions import Error
 byteorder: str = sys.byteorder
 
 
