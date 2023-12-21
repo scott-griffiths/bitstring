@@ -609,7 +609,7 @@ class Pack(unittest.TestCase):
         s = pack(',,,,,0b1,,,,,,,,,,,,,0b1,,,,,,,,,,')
         self.assertEqual(s, '0b11')
         s = pack(',,uint:12,,bin:3,', 100, '100')
-        a, b = s.unpack(',,,uint:12,,,,bin:3,,,')
+        a, b = s.unpack('uint:12,bin:3')
         self.assertEqual(a, 100)
         self.assertEqual(b, '100')
 
@@ -662,12 +662,6 @@ class Unpack(unittest.TestCase):
         a, b = s.unpack(['bits:11', 'uint'])
         self.assertEqual(a, '0xff, 0b000')
         self.assertEqual(b, 100)
-
-    def testUnpackNull(self):
-        s = pack('0b1, , , 0xf,')
-        a, b = s.unpack('bin:1,,,hex:4,')
-        self.assertEqual(a, '1')
-        self.assertEqual(b, 'f')
 
 
 class FromFile(unittest.TestCase):

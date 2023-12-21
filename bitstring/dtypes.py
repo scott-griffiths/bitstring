@@ -103,10 +103,9 @@ class MetaDtype:
 
         self.bitlength2chars_fn = bitlength2chars_fn
 
+
     def getDtype(self, length: Optional[int] = None) -> Dtype:
         if length is None:
-            if len(self.fixed_length) != 1 and not self.is_unknown_length:
-                raise ValueError(f"No length given for dtype '{self.name}', and meta type is not fixed length.")
             d = Dtype.create(self, None)
             return d
         if self.is_unknown_length:
