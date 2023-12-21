@@ -105,59 +105,40 @@ class BitStore:
         return self
 
     def find(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> int:
-        i = self.findall_msb0(bs, start, end)
-        while True:
-            try:
-                p = next(i)
-                if not bytealigned or (p % 8) == 0:
-                    return p
-            except StopIteration:
-                return -1
+        if not bytealigned:
+            return self._bitarray.find(bs._bitarray, start, end)
+        try:
+            return next(self.findall_msb0(bs, start, end, bytealigned))
+        except StopIteration:
+            return -1
 
     def rfind(self, bs: BitStore, start: int, end: int, bytealigned: bool = False):
-        i = self.rfindall_msb0(bs, start, end, None, bytealigned)
+        if not bytealigned:
+            return self._bitarray.find(bs._bitarray, start, end, right=True)
         try:
-            return next(i)
+            return next(self.rfindall_msb0(bs, start, end, bytealigned))
         except StopIteration:
             return -1
 
     def findall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        i = self._bitarray[start:end].itersearch(bs._bitarray)
-        while True:
-            try:
-                p = next(i) + start
-            except StopIteration:
-                return
-            if bytealigned:
+        i = self._bitarray.itersearch(bs._bitarray, start, end)
+        if not bytealigned:
+            for p in i:
+                yield p
+        else:
+            for p in i:
                 if (p % 8) == 0:
                     yield p
-            else:
+
+    def rfindall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+        i = self._bitarray.itersearch(bs._bitarray, start, end, right=True)
+        if not bytealigned:
+            for p in i:
                 yield p
-
-    def rfindall_msb0(self, bs: BitStore, start: int, end: int, count: Optional[int] = None, bytealigned: bool = False) -> Iterator[int]:
-        # Search chunks starting near the end and then moving back.
-        c = 0
-        increment = max(8192, len(bs) * 80)
-        buffersize = min(increment + len(bs), end - start)
-        pos = max(start, end - buffersize)
-        while True:
-            found = list(self.findall_msb0(bs, pos, pos + buffersize))
-            if not found:
-                if pos == start:
-                    return
-                pos = max(start, pos - increment)
-                continue
-            while found:
-                if count is not None and c >= count:
-                    return
-                c += 1
-                final_pos = found.pop()
-                if not bytealigned or final_pos % 8 == 0:
-                    yield final_pos
-
-            pos = max(start, pos - increment)
-            if pos == start:
-                return
+        else:
+            for p in i:
+                if (p % 8) == 0:
+                    yield p
 
     def count(self, value, /) -> int:
         return self._bitarray.count(value)
