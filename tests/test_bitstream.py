@@ -3766,7 +3766,7 @@ class UnpackWithDict(unittest.TestCase):
         a = pack('uint:p=33', p=12)
         with self.assertRaises(ValueError):
             a.unpack('uint:p')
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             a.unpack('uint:p', p='a_string')
 
 

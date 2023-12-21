@@ -12,6 +12,10 @@ TOKEN_RE: Pattern[str] = None
 # A token name followed by optional : then an integer number
 TOKEN_INT_RE: Pattern[str] = re.compile(r'^([a-zA-Z0-9_]+?):?(\d*)$')
 
+# A token name followed by optional : then an arbitrary keyword
+TOKEN_KWARG_RE: Pattern[str] = re.compile(r'^([a-zA-Z0-9_]+?):?([a-zA-Z0-9_]+)$')
+
+
 # Tokens which have an unknowable (in advance) length, so it must not be supplied.
 UNKNOWABLE_LENGTH_TOKENS: List[str] = None
 
@@ -90,14 +94,23 @@ def structparser(m: Match[str]) -> List[str]:
     return tokens
 
 @functools.lru_cache(CACHE_SIZE)
-def parse_name_length_token(fmt: str) -> Tuple[str, Optional[int]]:
+def parse_name_length_token(fmt: str, **kwargs) -> Tuple[str, Optional[int]]:
     # Any single token with just a name and length
     if m2 := TOKEN_INT_RE.match(fmt):
         name = m2.group(1)
         length_str = m2.group(2)
         length = None if length_str == '' else int(length_str)
     else:
-        raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
+        # Maybe the length is in the kwargs?
+        if m := TOKEN_KWARG_RE.match(fmt):
+            name = m.group(1)
+            try:
+                length_str = kwargs[m.group(2)]
+            except KeyError:
+                raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
+            length = int(length_str)
+        else:
+            raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
 
     if name in UNKNOWABLE_LENGTH_TOKENS:
         if length is not None:

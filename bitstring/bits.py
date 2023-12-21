@@ -14,7 +14,7 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
     BinaryIO, TextIO, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
-from bitstring.utils import tokenparser, preprocess_tokens
+from bitstring.utils import preprocess_tokens, parse_name_length_token
 from bitstring.exceptions import CreationError, InterpretError, ReadError, Error
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 from bitstring.bitstore import BitStore, offset_slice_indices_lsb0
@@ -1355,12 +1355,6 @@ class Bits:
             -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
         if isinstance(fmt, str):
             fmt = [fmt]
-        if not kwargs:
-            return self._readlist_nokwargs(fmt, pos)
-        return self._readlist_kwargs(fmt, pos, **kwargs)
-
-    def _readlist_nokwargs(self, fmt: List[Union[str, int, Dtype]], pos: int) \
-            -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
         # Convert to a flat list of Dtypes
         dtype_list = []
         for f_item in fmt:
@@ -1371,8 +1365,9 @@ class Bits:
             else:
                 token_list = preprocess_tokens(f_item)
                 for t in token_list:
+                    name, length = parse_name_length_token(t, **kwargs)
                     try:
-                        dtype_list.append(Dtype(t))
+                        dtype_list.append(Dtype(name, length))
                     except ValueError:
                         dtype_list.append(Dtype('bits', int(t)))
         return self._read_dtype_list(dtype_list, pos)
@@ -1408,73 +1403,6 @@ class Bits:
             if val is not None:  # Don't append pad tokens
                 vals.append(val)
         return vals, pos
-
-    def _readlist_kwargs(self, fmt: List[Union[str, int, Dtype]], pos: int, **kwargs) \
-            -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
-        tokens: List[Tuple[str, Optional[Union[str, int]], Optional[str]]] = []
-        keys: Tuple[str, ...] = tuple(sorted(kwargs.keys()))
-
-        def convert_length_strings(length_: Optional[Union[str, int]]) -> Optional[int]:
-            return kwargs.get(length_) if isinstance(length_, str) else length_
-
-        has_stretchy_token = False
-        for f_item in fmt:
-            # Replace integers with 'bits' tokens
-            if isinstance(f_item, numbers.Integral):
-                tokens.append(('bits', f_item, None))
-            else:
-                stretchy, tkns = tokenparser(f_item, keys)
-                if stretchy:
-                    if has_stretchy_token:
-                        raise Error("It's not possible to have more than one 'filler' token.")
-                    has_stretchy_token = True
-                tokens.extend(tkns)
-        if not has_stretchy_token:
-            lst = []
-            for name, length, _ in tokens:
-                length = convert_length_strings(length)
-                value, pos = self._readtoken(name, pos, length)
-                if value is not None:  # Don't append pad tokens
-                    lst.append(value)
-            return lst, pos
-        stretchy_token: Optional[tuple] = None
-        bits_after_stretchy_token = 0
-        for token in tokens:
-            name, length, _ = token
-            length = convert_length_strings(length)
-            # TODO: Ugly. But not as ugly as the opposite bit of code later on. This converts currently just bytes lengths.
-            lm = dtype_register.name_to_meta_dtype[name].multiplier
-            if lm is not None and length is not None:
-                length *= lm
-            if stretchy_token:
-                if name in dtype_register.unknowable_length_names():
-                    raise Error(f"It's not possible to parse a variable length token ('{name}') after a 'filler' token.")
-                else:
-                    if length is None:
-                        raise Error("It's not possible to have more than one 'filler' token.")
-                    bits_after_stretchy_token += length
-            if length is None and name not in dtype_register.unknowable_length_names():
-                assert not stretchy_token
-                stretchy_token = token
-        bits_left = len(self) - pos
-        return_values = []
-        for token in tokens:
-            name, length, _ = token
-            if token is stretchy_token:
-                # Set length to the remaining bits
-                length = max(bits_left - bits_after_stretchy_token, 0)
-                # TODO: Very ugly. This converts our bitlength back to a token length (i.e. for bytes token where each length is a bytes)
-                lm = dtype_register.name_to_meta_dtype[name].multiplier
-                if lm is not None:
-                    length //= lm
-            length = convert_length_strings(length)
-
-            value, newpos = self._readtoken(name, pos, length)
-            bits_left -= newpos - pos
-            pos = newpos
-            if value is not None:
-                return_values.append(value)
-        return return_values, pos
 
     def find(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
