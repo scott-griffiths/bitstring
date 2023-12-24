@@ -1365,11 +1365,12 @@ class Bits:
             else:
                 token_list = preprocess_tokens(f_item)
                 for t in token_list:
-                    name, length = parse_name_length_token(t, **kwargs)
                     try:
-                        dtype_list.append(Dtype(name, length))
+                        name, length = parse_name_length_token(t, **kwargs)
                     except ValueError:
                         dtype_list.append(Dtype('bits', int(t)))
+                    else:
+                        dtype_list.append(Dtype(name, length))
         return self._read_dtype_list(dtype_list, pos)
 
     def _read_dtype_list(self, dtypes: List[Dtype], pos: int) -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
