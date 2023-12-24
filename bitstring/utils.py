@@ -13,14 +13,13 @@ NAME_INT_RE: Pattern[str] = re.compile(r'^([a-zA-Z][a-zA-Z0-9_]*?):?(\d*)$')
 NAME_KWARG_RE: Pattern[str] = re.compile(r'^([a-zA-Z][a-zA-Z0-9_]*?):?([a-zA-Z0-9_]+)$')
 
 # Tokens which have an unknowable (in advance) length, so it must not be supplied.
-UNKNOWABLE_LENGTH_TOKENS: List[str] = None
+UNKNOWABLE_LENGTH_TOKENS: Tuple[str] = ()
 
 # Tokens which are always the same length, so it doesn't need to be supplied.
 ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = None
 
-def initialise_constants(init_names: List[str], unknowable_length_names: List[str], always_fixed_length: Dict[str, int]) -> None:
+def initialise_constants(unknowable_length_names: Tuple[str], always_fixed_length: Dict[str, int]) -> None:
     global UNKNOWABLE_LENGTH_TOKENS, ALWAYS_FIXED_LENGTH_TOKENS
-    init_names.sort(key=len, reverse=True)
     UNKNOWABLE_LENGTH_TOKENS = unknowable_length_names
     ALWAYS_FIXED_LENGTH_TOKENS = always_fixed_length
 

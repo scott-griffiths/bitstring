@@ -263,11 +263,10 @@ for dt in dtypes:
 for alias in aliases:
     dtype_register.add_meta_dtype_alias(alias[0], alias[1])
 
-init_names = [dt_name for dt_name in dtype_register.name_to_meta_dtype]
 unknowable_length_names = dtype_register.unknowable_length_names()
 always_fixed_length = dtype_register.always_fixed_length()
 
-initialise_constants(init_names, unknowable_length_names, always_fixed_length)
+initialise_constants(unknowable_length_names, always_fixed_length)
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
