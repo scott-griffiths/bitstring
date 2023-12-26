@@ -38,15 +38,16 @@ Dtype = None
 options = None
 
 def _initialise_bits_class() -> None:
-    from .dtypes import dtype_register as _dtype_register
+    from bitstring.dtypes import dtype_register as _dtype_register
     global dtype_register
     dtype_register = _dtype_register
-    from .dtypes import Dtype as _Dtype
+    from bitstring.dtypes import Dtype as _Dtype
     global Dtype
     Dtype = _Dtype
-    from .options import Options
+    from bitstring.options import Options
     global options
     options = Options()
+
 
 class Bits:
     """A container holding an immutable sequence of bits.

@@ -71,7 +71,6 @@ from .exceptions import Error, ReadError, InterpretError, ByteAlignError, Creati
 from .dtypes import MetaDtype, dtype_register, Dtype
 import types
 from typing import List, Tuple, Literal
-from .utils import initialise_constants
 
 
 # We initialise the Options singleton after the base classes have been created.
@@ -262,11 +261,6 @@ for dt in dtypes:
     dtype_register.add_meta_dtype(dt)
 for alias in aliases:
     dtype_register.add_meta_dtype_alias(alias[0], alias[1])
-
-unknowable_length_names = dtype_register.unknowable_length_names()
-always_fixed_length = dtype_register.always_fixed_length()
-
-initialise_constants(unknowable_length_names, always_fixed_length)
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
