@@ -11,7 +11,6 @@ from bitstring.exceptions import CreationError, InterpretError
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 from bitstring.bitstore import BitStore
 
-
 byteorder: str = sys.byteorder
 
 # The size of various caches used to improve performance
@@ -34,10 +33,8 @@ def str_to_bitstore(s: str) -> BitStore:
     except ValueError as e:
         raise CreationError(*e.args)
     bs = BitStore()
-    if tokens:
-        bs = bs + bitstore_from_token(*tokens[0])
-        for token in tokens[1:]:
-            bs = bs + bitstore_from_token(*token)
+    for token in tokens:
+        bs += bitstore_from_token(*token)
     bs.immutable = True
     return bs
 

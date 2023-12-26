@@ -162,13 +162,10 @@ class BitStore:
 
     def _copy(self) -> BitStore:
         """Always creates a copy, even if instance is immutable."""
-        return self.getslice(None, self.length)
+        return BitStore(self._bitarray)
 
     def copy(self) -> BitStore:
-        if self.immutable:
-            return self
-        x = BitStore(self._bitarray)
-        return x
+        return self if self.immutable else self._copy()
 
     def __getitem__(self, item: Union[int, slice], /) -> Union[int, BitStore]:
         # Use getindex or getslice instead
