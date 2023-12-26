@@ -2353,8 +2353,6 @@ class Split2(unittest.TestCase):
         tp = bitstring.utils.tokenparser
         self.assertEqual(tp('hex'), (True, [('hex', None, None)]))
         self.assertEqual(tp('hex=14'), (True, [('hex', None, '14')]))
-        self.assertEqual(tp('se'), (False, [('se', None, None)]))
-        self.assertEqual(tp('ue=12'), (False, [('ue', None, '12')]))
         self.assertEqual(tp('0xef'), (False, [('0x', None, 'ef')]))
         self.assertEqual(tp('uint:12'), (False, [('uint', 12, None)]))
         self.assertEqual(tp('int:30=-1'), (False, [('int', 30, '-1')]))

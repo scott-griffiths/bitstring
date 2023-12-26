@@ -6,28 +6,11 @@ import sys
 byteorder: str = sys.byteorder
 
 
-TOKEN_RE: Pattern[str] = None
-
 # A token name followed by optional : then an integer number
-TOKEN_INT_RE: Pattern[str] = re.compile(r'^([a-zA-Z0-9_]+?):?(\d*)$')
+NAME_INT_RE: Pattern[str] = re.compile(r'^([a-zA-Z][a-zA-Z0-9_]*?):?(\d*)$')
 
 # A token name followed by optional : then an arbitrary keyword
-TOKEN_KWARG_RE: Pattern[str] = re.compile(r'^([a-zA-Z0-9_]+?):?([a-zA-Z0-9_]+)$')
-
-
-# Tokens which have an unknowable (in advance) length, so it must not be supplied.
-UNKNOWABLE_LENGTH_TOKENS: List[str] = None
-
-# Tokens which are always the same length, so it doesn't need to be supplied.
-ALWAYS_FIXED_LENGTH_TOKENS: Dict[str, int] = None
-
-def initialise_constants(init_names: List[str], unknowable_length_names: List[str], always_fixed_length: Dict[str, int]) -> None:
-    global TOKEN_RE, UNKNOWABLE_LENGTH_TOKENS, ALWAYS_FIXED_LENGTH_TOKENS
-    init_names.sort(key=len, reverse=True)
-    TOKEN_RE = re.compile(r'^(?P<name>' + '|'.join(init_names) + r'):?(?P<len>[^=]+)?(=(?P<value>.*))?$')
-    UNKNOWABLE_LENGTH_TOKENS = unknowable_length_names
-    ALWAYS_FIXED_LENGTH_TOKENS = always_fixed_length
-
+NAME_KWARG_RE: Pattern[str] = re.compile(r'^([a-zA-Z][a-zA-Z0-9_]*?):?([a-zA-Z0-9_]+)$')
 
 CACHE_SIZE = 256
 
@@ -95,13 +78,13 @@ def structparser(m: Match[str]) -> List[str]:
 @functools.lru_cache(CACHE_SIZE)
 def parse_name_length_token(fmt: str, **kwargs) -> Tuple[str, Optional[int]]:
     # Any single token with just a name and length
-    if m2 := TOKEN_INT_RE.match(fmt):
+    if m2 := NAME_INT_RE.match(fmt):
         name = m2.group(1)
         length_str = m2.group(2)
         length = None if length_str == '' else int(length_str)
     else:
         # Maybe the length is in the kwargs?
-        if m := TOKEN_KWARG_RE.match(fmt):
+        if m := NAME_KWARG_RE.match(fmt):
             name = m.group(1)
             try:
                 length_str = kwargs[m.group(2)]
@@ -110,17 +93,6 @@ def parse_name_length_token(fmt: str, **kwargs) -> Tuple[str, Optional[int]]:
             length = int(length_str)
         else:
             raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
-
-    if name in UNKNOWABLE_LENGTH_TOKENS:
-        if length is not None:
-            raise ValueError(
-                f"The token '{name}' has a variable length and can't be given the fixed length of {length}.")
-
-    if name in ALWAYS_FIXED_LENGTH_TOKENS.keys():
-        token_length = ALWAYS_FIXED_LENGTH_TOKENS[name]
-        if length not in [None, token_length]:
-            raise ValueError(f"{name} tokens can only be {token_length} bits long, not {length} bits.")
-        length = token_length
     return name, length
 
 
@@ -142,24 +114,24 @@ def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
 
 @functools.lru_cache(CACHE_SIZE)
 def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
-    if m1 := TOKEN_RE.match(token):
-        name = m1.group('name')
-        length = m1.group('len')
-        value = m1.group('value')
+    if (equals_pos := token.find('=')) == -1:
+        value = None
     else:
-        # If you don't specify a 'name' then the default is 'bits':
+        value = token[equals_pos + 1:]
+        token = token[:equals_pos]
+
+    if m2 := NAME_INT_RE.match(token):
+        name = m2.group(1)
+        length_str = m2.group(2)
+        length = None if length_str == '' else length_str
+    elif m3 := NAME_KWARG_RE.match(token):
+        # name then a keyword for a length
+        name = m3.group(1)
+        length = m3.group(2)
+    else:
+        # If you don't specify a 'name' then the default is 'bits'
         name = 'bits'
-        if not (m2 := DEFAULT_BITS.match(token)):
-            raise ValueError(f"Don't understand token '{token}'.")
-        length = m2.group('len')
-        value = m2.group('value')
-
-    if name in ALWAYS_FIXED_LENGTH_TOKENS.keys():
-        token_length = str(ALWAYS_FIXED_LENGTH_TOKENS[name])
-        if length is not None and length != token_length:
-            raise ValueError(f"{name} tokens can only be {token_length} bits long, not {length} bits.")
-        length = token_length
-
+        length = token
     return name, length, value
 
 def preprocess_tokens(fmt: str) -> List[str]:
@@ -217,12 +189,8 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
             ret_vals.append((m.group('name'), None, m.group('value')))
             continue
         name, length, value = parse_single_token(token)
-        if name in UNKNOWABLE_LENGTH_TOKENS:
-            if length is not None:
-                raise ValueError(f"The token '{name}' has a variable length and can't be given the fixed length of {length}.")
-        else:
-            if length is None:
-                stretchy_token = True
+        if length is None:
+            stretchy_token = True
         if length is not None:
             # Try converting length to int, otherwise check it's a key.
             try:

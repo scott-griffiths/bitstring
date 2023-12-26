@@ -8,7 +8,7 @@ from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, Tex
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, dtype_register
-from bitstring.utils import tokenparser, parse_name_length_token, parse_single_struct_token
+from bitstring.utils import parse_name_length_token, parse_single_struct_token, preprocess_tokens
 import copy
 import array
 import operator
@@ -377,24 +377,25 @@ class Array:
         number_of_fmts = 1
 
         if fmt is None:
-            token_name, token_length = self.dtype.name, self.dtype.length
+            dtypes = [self.dtype]
             parameter_str = f"dtype='{self.dtype}'"
         else:
-            tokens = tokenparser(fmt)[1]
-            token_names_and_lengths = [(x[0], x[1]) for x in tokens]
-            number_of_fmts = len(token_names_and_lengths)
-            if number_of_fmts not in [1, 2]:
-                raise ValueError(
-                    f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {number_of_fmts} tokens.")
-            token_name, token_length = token_names_and_lengths[0]
+            token_list = preprocess_tokens(fmt)
+            if len(token_list) not in [1, 2]:
+                raise ValueError(f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {len(token_list)} tokens.")
+            dtypes = [Dtype(*parse_name_length_token(t)) for t in token_list]
             parameter_str = f"fmt='{fmt}'"
 
-        token_name2, token_length2 = None, None
-        if number_of_fmts == 1:
+        token_name, token_length = dtypes[0].name, dtypes[0].bitlength
+        token_name2 = dtypes[1].name if len(dtypes) > 1 else None
+        if len(dtypes) == 1:
+            # Only one type, so use its length, or if not present the current itemsize
             if token_length is None:
                 token_length = self.itemsize
-        if number_of_fmts == 2:
-            token_name2, token_length2 = token_names_and_lengths[1]
+        else:
+            # For two types we're OK as long as they don't have different lengths given.
+            assert len(dtypes) == 2
+            token_length2 = dtypes[1].bitlength
             if token_length is None and token_length2 is None:
                 token_length = token_length2 = self.itemsize
             if token_length is None:

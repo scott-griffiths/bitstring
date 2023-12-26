@@ -38,15 +38,16 @@ Dtype = None
 options = None
 
 def _initialise_bits_class() -> None:
-    from .dtypes import dtype_register as _dtype_register
+    from bitstring.dtypes import dtype_register as _dtype_register
     global dtype_register
     dtype_register = _dtype_register
-    from .dtypes import Dtype as _Dtype
+    from bitstring.dtypes import Dtype as _Dtype
     global Dtype
     Dtype = _Dtype
-    from .options import Options
+    from bitstring.options import Options
     global options
     options = Options()
+
 
 class Bits:
     """A container holding an immutable sequence of bits.
@@ -1365,11 +1366,12 @@ class Bits:
             else:
                 token_list = preprocess_tokens(f_item)
                 for t in token_list:
-                    name, length = parse_name_length_token(t, **kwargs)
                     try:
-                        dtype_list.append(Dtype(name, length))
+                        name, length = parse_name_length_token(t, **kwargs)
                     except ValueError:
                         dtype_list.append(Dtype('bits', int(t)))
+                    else:
+                        dtype_list.append(Dtype(name, length))
         return self._read_dtype_list(dtype_list, pos)
 
     def _read_dtype_list(self, dtypes: List[Dtype], pos: int) -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:

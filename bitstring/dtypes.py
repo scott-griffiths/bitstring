@@ -101,22 +101,22 @@ class MetaDtype:
 
         self.bitlength2chars_fn = bitlength2chars_fn
 
-
     def getDtype(self, length: Optional[int] = None) -> Dtype:
+        if self.fixed_length:
+            if length is None:
+                if len(self.fixed_length) == 1:
+                    length = self.fixed_length[0]
+            else:
+                if length not in self.fixed_length:
+                    if len(self.fixed_length) == 1:
+                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but its only allowed length is {self.fixed_length[0]}.")
+                    else:
+                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype which is not one of its possible lengths (must be one of {self.fixed_length}).")
         if length is None:
             d = Dtype.create(self, None)
             return d
         if self.is_unknown_length:
             raise ValueError("Length shouldn't be supplied for dtypes that are variable length.")
-        if self.fixed_length:
-            if length == 0:
-                if len(self.fixed_length) == 1:
-                    length = self.fixed_length[0]
-                else:
-                    raise ValueError  # TODO
-            else:
-                if length not in self.fixed_length:
-                    raise ValueError  # TODO
         d = Dtype.create(self, length)
         return d
 
