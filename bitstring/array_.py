@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import numbers
 from collections.abc import Sized
-from bitstring.exceptions import CreationError, InterpretError
+from bitstring.exceptions import CreationError
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
@@ -120,25 +120,17 @@ class Array:
             self._fmt = str(self._dtype)
         else:
             try:
-                name_value = parse_name_length_token(new_dtype)
-            except ValueError as e:
-                name_value = parse_single_struct_token(new_dtype)
-                if name_value is None:
-                    raise ValueError(e)
-            dtype = dtype_register.get_dtype(*name_value)
+                dtype = Dtype(new_dtype)
+            except ValueError:
+                name_length = parse_single_struct_token(new_dtype)
+                if name_length is not None:
+                    dtype = Dtype(*name_length)
+                else:
+                    raise ValueError(f"Inappropriate Dtype for Array: '{new_dtype}'.")
             if dtype.length is None:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
             self._fmt = new_dtype
-        try:
-            temp = Bits(self._dtype.bitlength)
-        except CreationError as e:
-            raise ValueError(f"Invalid Dtype: {e}")
-        try:
-            _ = self._dtype.read_fn(temp, 0)
-        except InterpretError as e:
-            raise ValueError(f"Invalid Dtype: {e}")
-
 
     def _create_element(self, value: ElementType) -> Bits:
         """Create Bits from value according to the token_name and token_length"""
@@ -206,7 +198,7 @@ class Array:
                 for s, v in zip(range(start, stop, step), value):
                     self.data.overwrite(self._create_element(v), s * self._dtype.length)
             else:
-                raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {stop - start}.")
+                raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {items_in_slice}.")
         else:
             if key < 0:
                 key += len(self)
@@ -340,14 +332,14 @@ class Array:
         self.data.tofile(f)
 
     def fromfile(self, f: BinaryIO, n: Optional[int] = None) -> None:
-        trailing_bit_length = len(self.data) % self._dtype.length
+        trailing_bit_length = len(self.data) % self._dtype.bitlength
         if trailing_bit_length != 0:
-            raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.length} bits).")
+            raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.bitlength} bits).")
 
         new_data = Bits(f)
         max_items = len(new_data) // self._dtype.length
         items_to_append = max_items if n is None else min(n, max_items)
-        self.data += new_data[0: items_to_append * self._dtype.length]
+        self.data += new_data[0: items_to_append * self._dtype.bitlength]
         if n is not None and items_to_append < n:
             raise EOFError(f"Only {items_to_append} were appended, not the {n} items requested.")
 

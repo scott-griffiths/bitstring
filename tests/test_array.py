@@ -167,6 +167,7 @@ class Creation(unittest.TestCase):
             b.dtype = 'float'
         with self.assertRaises(ValueError):
             b.dtype = 'uintle12'
+            _ = b[0]
         with self.assertRaises(ValueError):
             b.dtype = 'float17'
 
@@ -881,3 +882,25 @@ class ReverseMethods(unittest.TestCase):
         a = Array('u8', [255, 8, 4, 2, 1, 0])
         b = '0x01' ^ a
         self.assertEqual(b.tolist(), [254, 9, 5, 3, 0, 1])
+
+
+class Misc(unittest.TestCase):
+
+    def testInvalidTypeAssignment(self):
+        a = Array('u8', [1,2,3])
+        with self.assertRaises(ValueError):
+            a.dtype = 'penguin'
+
+    def testSetExtendedSlice(self):
+        a = Array('bool', [0,1,1,1,0])
+        with self.assertRaises(ValueError):
+            a[0:5:2] = [1, 0]
+
+    def testSetOutOfRangeElement(self):
+        a = Array(Dtype('float', 16), [1, 2, 3, 4.5])
+        a[3] = 100.0
+        a[-4] = 100.0
+        with self.assertRaises(IndexError):
+            a[4] = 100.0
+        with self.assertRaises(IndexError):
+            a[-5] = 100.0
