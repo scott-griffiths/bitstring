@@ -53,10 +53,6 @@ class BitStore:
                 raise CreationError(
                     f"Can't create bitstring with a length of {self.length} from {len(self._bitarray)} bits of data.")
 
-    @classmethod
-    def _create_empty_instance(cls):
-        return bitarray.bitarray()
-
     def setall(self, value: int, /) -> None:
         self._bitarray.setall(value)
 

@@ -154,6 +154,10 @@ class BitArray(Bits):
 
     _name_length_pattern: Pattern[str] = re.compile(r'^(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
 
+    def copy(self: TBits) -> TBits:
+        """Return a copy of the bitstring."""
+        return self.__copy__()
+
     def __setattr__(self, attribute, value) -> None:
         try:
             # First try the ordinary attribute setter

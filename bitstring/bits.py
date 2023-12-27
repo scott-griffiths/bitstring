@@ -170,16 +170,10 @@ class Bits:
         return x
 
     @classmethod
-    def _create_empty_instance(cls):
-        x = object.__new__(cls)
-        x._bitstore = BitStore._create_empty_instance()
-        return x
-
-    @classmethod
     def _create_from_bitstype(cls: Type[TBits], auto: Optional[BitsType], /) -> TBits:
         if isinstance(auto, Bits):
             return auto
-        b = cls._create_empty_instance()
+        b = object.__new__(cls)
         if auto is None:
             return b
         b._setauto(auto, None, None)
@@ -450,9 +444,11 @@ class Bits:
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
+        if bs is self:
+            return self.copy()
         bs = Bits._create_from_bitstype(bs)
-        s = self._copy()
-        s._bitstore &= bs._bitstore
+        s = object.__new__(self.__class__)
+        s._bitstore = self._bitstore & bs._bitstore
         return s
 
     def __rand__(self: TBits, bs: BitsType, /) -> TBits:
@@ -473,9 +469,11 @@ class Bits:
         Raises ValueError if the two bitstrings have differing lengths.
 
         """
+        if bs is self:
+            return self.copy()
         bs = Bits._create_from_bitstype(bs)
-        s = self._copy()
-        s._bitstore |= bs._bitstore
+        s = object.__new__(self.__class__)
+        s._bitstore = self._bitstore | bs._bitstore
         return s
 
     def __ror__(self: TBits, bs: BitsType, /) -> TBits:
@@ -497,8 +495,8 @@ class Bits:
 
         """
         bs = Bits._create_from_bitstype(bs)
-        s = self._copy()
-        s._bitstore ^= bs._bitstore
+        s = object.__new__(self.__class__)
+        s._bitstore = self._bitstore ^ bs._bitstore
         return s
 
     def __rxor__(self: TBits, bs: BitsType, /) -> TBits:
@@ -1971,7 +1969,9 @@ class Bits:
 
     def copy(self: TBits) -> TBits:
         """Return a copy of the bitstring."""
-        return self._copy()
+        # Note that if you want a new copy (different ID), use _copy instead.
+        # The copy can return self as it's immutable.
+        return self
 
     # Create native-endian functions as aliases depending on the byteorder
     if byteorder == 'little':

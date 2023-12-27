@@ -165,6 +165,42 @@ class ConstBitStream(Bits):
         s._pos = 0
         return s
 
+    def __and__(self: TConstBitStream, bs: BitsType, /) -> TConstBitStream:
+        """Bit-wise 'and' between two bitstrings. Returns new bitstring.
+
+        bs -- The bitstring to '&' with.
+
+        Raises ValueError if the two bitstrings have differing lengths.
+
+        """
+        s = Bits.__and__(self, bs)
+        s._pos = 0
+        return s
+
+    def __or__(self: TConstBitStream, bs: BitsType, /) -> TConstBitStream:
+        """Bit-wise 'or' between two bitstrings. Returns new bitstring.
+
+        bs -- The bitstring to '|' with.
+
+        Raises ValueError if the two bitstrings have differing lengths.
+
+        """
+        s = Bits.__or__(self, bs)
+        s._pos = 0
+        return s
+
+    def __xor__(self: TConstBitStream, bs: BitsType, /) -> TConstBitStream:
+        """Bit-wise 'xor' between two bitstrings. Returns new bitstring.
+
+        bs -- The bitstring to '^' with.
+
+        Raises ValueError if the two bitstrings have differing lengths.
+
+        """
+        s = Bits.__xor__(self, bs)
+        s._pos = 0
+        return s
+
     def __add__(self: TConstBitStream, bs: BitsType) -> TConstBitStream:
         """Concatenate bitstrings and return new bitstring.
 
@@ -584,7 +620,7 @@ class BitStream(ConstBitStream, BitArray):
 
     def __copy__(self) -> BitStream:
         """Return a new copy of the BitStream."""
-        s_copy = BitStream()
+        s_copy = object.__new__(BitStream)
         s_copy._pos = 0
         s_copy._bitstore = self._bitstore.copy()
         return s_copy
