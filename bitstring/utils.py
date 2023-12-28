@@ -95,7 +95,7 @@ def parse_name_length_token(fmt: str, **kwargs) -> Tuple[str, Optional[int]]:
             raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
     return name, length
 
-
+@functools.lru_cache(CACHE_SIZE)
 def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
     if m := SINGLE_STRUCT_PACK_RE.match(fmt):
         endian = m.group('endian')
@@ -110,7 +110,6 @@ def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
         return parse_name_length_token(fmt)
     else:
         return None
-
 
 @functools.lru_cache(CACHE_SIZE)
 def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
@@ -134,6 +133,7 @@ def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
         length = token
     return name, length, value
 
+@functools.lru_cache(CACHE_SIZE)
 def preprocess_tokens(fmt: str) -> List[str]:
     # Remove whitespace
     fmt = ''.join(fmt.split())

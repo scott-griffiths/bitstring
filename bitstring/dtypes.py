@@ -15,18 +15,22 @@ class Dtype:
     __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'is_unknown_length')
 
     def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None, length_is_in_bits: bool = False) -> Dtype:  # TODO: length_is_in_bits is a hack.
-        if isinstance(token, Dtype):
+        if isinstance(token, cls):
             return token
         if token is not None:
-            token = ''.join(token.split())
-            if length is None:
-                name, length = parse_name_length_token(token)
-            else:
-                name = token
-            d = dtype_register.get_dtype(name, length, length_is_in_bits)
-            return d
+            return cls._new_from_token(token, length, length_is_in_bits)
+        return super(Dtype, cls).__new__(cls)
+
+    @classmethod
+    @functools.lru_cache(CACHE_SIZE)
+    def _new_from_token(cls, token: str, length: Optional[int] = None, length_is_in_bits: bool = False) -> Dtype:
+        token = ''.join(token.split())
+        if length is None:
+            name, length = parse_name_length_token(token)
         else:
-            return super(Dtype, cls).__new__(cls)
+            name = token
+        d = dtype_register.get_dtype(name, length, length_is_in_bits)
+        return d
 
     def __hash__(self) -> int:
         return 0  # TODO: Optimise :)
