@@ -360,8 +360,13 @@ class ConstBitStream(Bits):
         dtype = Dtype(fmt)
         if dtype.bitlength is None and dtype.is_unknown_length is False:
             # No length specified? Try again, but read to end.
-            dtype = Dtype(fmt, length=len(self) - self._pos, length_is_in_bits=True)
-
+            bitlength = len(self) - self._pos
+            items, remainder = divmod(bitlength, dtype.bits_per_item)
+            if remainder != 0:
+                raise ValueError(
+                    f"The '{dtype.name}' type must have a bit length that is a multiple of {dtype.bits_per_item}"
+                    f" so cannot be read from the {bitlength} bits that are available.")
+            dtype = Dtype(fmt, items)
         if dtype.bitlength is not None:
             val = dtype.read_fn(self, self._pos)
             self._pos += dtype.bitlength

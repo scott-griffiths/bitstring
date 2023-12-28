@@ -12,24 +12,24 @@ CACHE_SIZE = 256
 
 class Dtype:
 
-    __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'is_unknown_length')
+    # __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'is_unknown_length')
 
-    def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None, length_is_in_bits: bool = False) -> Dtype:  # TODO: length_is_in_bits is a hack.
+    def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None) -> Dtype:
         if isinstance(token, cls):
             return token
         if token is not None:
-            return cls._new_from_token(token, length, length_is_in_bits)
+            return cls._new_from_token(token, length)
         return super(Dtype, cls).__new__(cls)
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
-    def _new_from_token(cls, token: str, length: Optional[int] = None, length_is_in_bits: bool = False) -> Dtype:
+    def _new_from_token(cls, token: str, length: Optional[int] = None) -> Dtype:
         token = ''.join(token.split())
         if length is None:
             name, length = parse_name_length_token(token)
         else:
             name = token
-        d = dtype_register.get_dtype(name, length, length_is_in_bits)
+        d = dtype_register.get_dtype(name, length)
         return d
 
     def __hash__(self) -> int:
@@ -49,8 +49,9 @@ class Dtype:
         x = cls.__new__(cls)
         x.name = meta_dtype.name
         x.bitlength = x.length = length
+        x.bits_per_item = meta_dtype.multiplier
         if x.bitlength is not None:
-            x.bitlength *= meta_dtype.multiplier
+            x.bitlength *= x.bits_per_item
         x.read_fn = functools.partial(meta_dtype.read_fn, length=x.bitlength)
         if meta_dtype.set_fn is None:
             x.set_fn = None
@@ -161,18 +162,11 @@ class Register:
             setattr(BitArray, alias, property(fget=meta_dtype.get_fn, fset=meta_dtype.set_fn, doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod
-    def get_dtype(cls, name: str, length: Optional[int], length_is_in_bits: bool = False) -> Dtype:
+    def get_dtype(cls, name: str, length: Optional[int]) -> Dtype:
         try:
             meta_type = cls.name_to_meta_dtype[name]
         except KeyError:
             raise ValueError
-        if length_is_in_bits and meta_type.multiplier != 1:
-            # We have a bit length for a type which must be a multiple of bits long
-            new_length, remainder = divmod(length, meta_type.multiplier)
-            if remainder != 0:
-                raise ValueError(f"The '{name}' type must have a bit length that is a multiple of {meta_type.multiplier}"
-                                 f" so cannot be created from {length} bits.")
-            return meta_type.getDtype(new_length)
         else:
             return meta_type.getDtype(length)
 

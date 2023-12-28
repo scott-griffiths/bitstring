@@ -1396,8 +1396,13 @@ class Bits:
             if stretchy:
                 bits_remaining = len(self) - pos
                 # Set length to the remaining bits
-                length = max(bits_remaining - bits_after_stretchy_token, 0)
-                dtype = Dtype(dtype.name, length, length_is_in_bits=True)
+                bitlength = max(bits_remaining - bits_after_stretchy_token, 0)
+                items, remainder = divmod(bitlength, dtype.bits_per_item)
+                if remainder != 0:
+                    raise ValueError(
+                        f"The '{dtype.name}' type must have a bit length that is a multiple of {dtype.bits_per_item}"
+                        f" so cannot be created from the {bitlength} bits that are available for this stretchy token.")
+                dtype = Dtype(dtype.name, items)
             if dtype.bitlength is not None:
                 val = dtype.read_fn(self, pos)
                 pos += dtype.bitlength
