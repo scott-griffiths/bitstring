@@ -7,7 +7,7 @@ from typing import Union, Optional, Dict, Callable
 import bitarray
 import bitarray.util
 from bitstring.utils import tokenparser
-from bitstring.exceptions import CreationError, InterpretError
+from bitstring.exceptions import CreationError
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 from bitstring.bitstore import BitStore
 
@@ -203,10 +203,7 @@ def intle2bitstore(i: int, length: int) -> BitStore:
 
 def float2bitstore(f: Union[str, float], length: int) -> BitStore:
     f = float(f)
-    try:
-        fmt = {16: '>e', 32: '>f', 64: '>d'}[length]
-    except KeyError:
-        raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
+    fmt = {16: '>e', 32: '>f', 64: '>d'}[length]
     try:
         b = struct.pack(fmt, f)
         assert len(b) * 8 == length
@@ -221,10 +218,7 @@ def float2bitstore(f: Union[str, float], length: int) -> BitStore:
 
 def floatle2bitstore(f: Union[str, float], length: int) -> BitStore:
     f = float(f)
-    try:
-        fmt = {16: '<e', 32: '<f', 64: '<d'}[length]
-    except KeyError:
-        raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
+    fmt = {16: '<e', 32: '<f', 64: '<d'}[length]
     try:
         b = struct.pack(fmt, f)
         assert len(b) * 8 == length
@@ -241,7 +235,7 @@ def bytes2bitstore(b: bytes, length: int) -> BitStore:
     return BitStore(frombytes=b[:length])
 
 
-name2bitstore_func: Dict[str, Callable[..., BitStore]] = {
+literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {
     '0x': hex2bitstore,
     '0X': hex2bitstore,
     '0b': bin2bitstore,
@@ -255,15 +249,15 @@ def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[
     from bitstring.bits import Bits
     try:
         d = Dtype(name, token_length)
-    except ValueError:
-        if name in name2bitstore_func:
-            bs = name2bitstore_func[name](value)
+    except ValueError as e:
+        if name in literal_bit_funcs:
+            bs = literal_bit_funcs[name](value)
         else:
-            raise CreationError(f"Can't parse token name {name}.")
+            raise CreationError(f"Can't parse token: {e}")
     else:
         b = Bits()
         if value is None and name != 'pad':
-            # 'pad' is a special case - the only dtype that is allowed to have a length but no value.
+            # 'pad' is a special case - the only dtype that can be constructed from a length with no value.
             raise ValueError
         d.set_fn(b, value)
         bs = b._bitstore
