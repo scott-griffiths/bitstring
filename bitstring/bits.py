@@ -20,7 +20,8 @@ from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 from bitstring.bitstore import BitStore, offset_slice_indices_lsb0
 from bitstring.bitstore_helpers import float2bitstore, uint2bitstore, ue2bitstore, str_to_bitstore, se2bitstore, \
     bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, \
-    bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore
+    bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore, \
+    e5m2float2bitstore, e4m3float2bitstore
 
 
 # Things that can be converted to Bits when a Bits type is needed
@@ -175,6 +176,7 @@ class Bits:
             return auto
         b = object.__new__(cls)
         if auto is None:
+            b._bitstore = BitStore()
             return b
         b._setauto(auto, None, None)
         return b
@@ -642,12 +644,10 @@ class Bits:
         self._bitstore = bs._bitstore
 
     def _sete5m2float(self, f: float, length: None = None, _offset: None = None):
-        u = e5m2float_fmt.float_to_int8(f)
-        self._bitstore = uint2bitstore(u, 8)
+        self._bitstore = e5m2float2bitstore(f)
 
     def _sete4m3float(self, f: float, length: None = None, _offset: None = None):
-        u = e4m3float_fmt.float_to_int8(f)
-        self._bitstore = uint2bitstore(u, 8)
+        self._bitstore = e4m3float2bitstore(f)
 
     def _setbytes(self, data: Union[bytearray, bytes],
                   length: Optional[int] = None, offset: Optional[int] = None) -> None:
@@ -904,13 +904,13 @@ class Bits:
             raise CreationError(f"bfloats must be length 16, received a length of {length} bits.")
         self._bitstore = bfloatle2bitstore(f)
 
-    def _setue(self, i: int, _length: None = None, _offset: None = None) -> None:
+    def _setue(self, i: int, length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
 
         Raises CreationError if i < 0.
 
         """
-        if _length is not None or _offset is not None:
+        if length is not None or _offset is not None:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
         if options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
@@ -958,9 +958,9 @@ class Bits:
             raise InterpretError("Bitstring is not a single exponential-Golomb code.")
         return value
 
-    def _setse(self, i: int, _length: None = None, _offset: None = None) -> None:
+    def _setse(self, i: int, length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
-        if _length is not None or _offset is not None:
+        if length is not None or _offset is not None:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
         if options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
@@ -996,13 +996,13 @@ class Bits:
         else:
             return m, pos
 
-    def _setuie(self, i: int, _length: None = None, _offset: None = None) -> None:
+    def _setuie(self, i: int, length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with unsigned interleaved exponential-Golomb code for integer i.
 
         Raises CreationError if i < 0.
 
         """
-        if _length is not None or _offset is not None:
+        if length is not None or _offset is not None:
             raise CreationError("Cannot specify a length of offset for exponential-Golomb codes.")
         if options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
@@ -1092,9 +1092,9 @@ class Bits:
         # If we did then it would be difficult to deal with the 'False' string.
         if length is not None and length != 1:
             raise CreationError(f"bools must be length 1, received a length of {length} bits.")
-        if value in (1, 'True'):
+        if value in (1, 'True', '1'):
             self._bitstore = BitStore('1')
-        elif value in (0, 'False'):
+        elif value in (0, 'False', '0'):
             self._bitstore = BitStore('0')
         else:
             raise CreationError(f"Cannot initialise boolean with {value}.")
@@ -1110,6 +1110,9 @@ class Bits:
 
     def _readpad(self, pos, length) -> None:
         return None
+
+    def _setpad(self, value: None, length: int) -> None:
+        self._bitstore = BitStore(length)
 
     def _setbin_safe(self, binstring: str, length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to the value given in binstring."""

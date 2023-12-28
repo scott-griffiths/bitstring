@@ -361,7 +361,7 @@ class PadToken(unittest.TestCase):
         self.assertEqual(c, Bits('0b110111'))
 
     def testPack(self):
-        s = bitstring.pack('0b11, pad:3=5, 0b1')
+        s = bitstring.pack('0b11, pad:3, 0b1')
         self.assertEqual(s.bin, '110001')
         d = bitstring.pack('pad:c', c=12)
         self.assertEqual(d, Bits(12))

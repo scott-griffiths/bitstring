@@ -241,7 +241,7 @@ dtypes = [
               Bits._setuie, Bits._readuie, Bits._getuie, int, None,
               False, True, None),
     MetaDtype('pad', 'a skipped section of padding',
-              None, Bits._readpad, None, None, None,
+              Bits._setpad, Bits._readpad, None, None, None,
               False, False, None),
 ]
 

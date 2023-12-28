@@ -125,8 +125,6 @@ class NoPosAttribute(unittest.TestCase):
 class Bugs(unittest.TestCase):
     def testAddingNonsense(self):
         a = BitArray([0])
-        a += '0'  # a uint of length 0 - so nothing gets added.
-        self.assertEqual(a, [0])
         with self.assertRaises(ValueError):
             a += '3'
         with self.assertRaises(ValueError):

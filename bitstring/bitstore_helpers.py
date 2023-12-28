@@ -25,7 +25,7 @@ def tidy_input_string(s: str) -> str:
         raise ValueError(f"Expected str object but received a {type(s)} with value {s}.")
     return ''.join(l).lower().replace('_', '')
 
-# TODO: Shouldn't this be different for LSB0? The bitstores should be reversed before concatenating and we can raise an error for variable length tokens.
+
 @functools.lru_cache(CACHE_SIZE)
 def str_to_bitstore(s: str) -> BitStore:
     try:
@@ -131,13 +131,13 @@ def bfloatle2bitstore(f: Union[str, float]) -> BitStore:
     return BitStore(frombytes=b[2:4])
 
 
-def e4m3float_2bitstore(f: Union[str, float]) -> BitStore:
+def e4m3float2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     u = e4m3float_fmt.float_to_int8(f)
     return uint2bitstore(u, 8)
 
 
-def e5m2float_2bitstore(f: Union[str, float]) -> BitStore:
+def e5m2float2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     u = e5m2float_fmt.float_to_int8(f)
     return uint2bitstore(u, 8)
@@ -241,95 +241,33 @@ def bytes2bitstore(b: bytes, length: int) -> BitStore:
     return BitStore(frombytes=b[:length])
 
 
-# Create native-endian functions as aliases depending on the byteorder
-if byteorder == 'little':
-    uintne2bitstore = uintle2bitstore
-    intne2bitstore = intle2bitstore
-    bfloatne2bitstore = bfloatle2bitstore
-    floatne2bitstore = floatle2bitstore
-else:
-    uintne2bitstore = uintbe2bitstore
-    intne2bitstore = intbe2bitstore
-    bfloatne2bitstore = bfloat2bitstore
-    floatne2bitstore = float2bitstore
-
-# Given a string of the format 'name=value' get a bitstore representing it by using
-# _name2bitstore_func[name](value)
 name2bitstore_func: Dict[str, Callable[..., BitStore]] = {
-    'hex': hex2bitstore,
-    'h': hex2bitstore,
     '0x': hex2bitstore,
     '0X': hex2bitstore,
-    'bin': bin2bitstore,
-    'b': bin2bitstore,
     '0b': bin2bitstore,
     '0B': bin2bitstore,
-    'oct': oct2bitstore,
-    'o': oct2bitstore,
     '0o': oct2bitstore,
     '0O': oct2bitstore,
-    'se': se2bitstore,
-    'ue': ue2bitstore,
-    'sie': sie2bitstore,
-    'uie': uie2bitstore,
-    'bfloat': bfloat2bitstore,
-    'bfloatbe': bfloat2bitstore,
-    'bfloatle': bfloatle2bitstore,
-    'bfloatne': bfloatne2bitstore,
-    'e4m3float': e4m3float_2bitstore,
-    'e5m2float': e5m2float_2bitstore,
 }
-
-# Given a string of the format 'name[:]length=value' get a bitstore representing it by using
-# _name2bitstore_func_with_length[name](value, length)
-name2bitstore_func_with_length: Dict[str, Callable[..., BitStore]] = {
-    'uint': uint2bitstore,
-    'int': int2bitstore,
-    'u': uint2bitstore,
-    'i': int2bitstore,
-    'uintbe': uintbe2bitstore,
-    'intbe': intbe2bitstore,
-    'uintle': uintle2bitstore,
-    'intle': intle2bitstore,
-    'uintne': uintne2bitstore,
-    'intne': intne2bitstore,
-    'float': float2bitstore,
-    'f': float2bitstore,
-    'floatbe': float2bitstore,  # same as 'float'
-    'floatle': floatle2bitstore,
-    'floatne': floatne2bitstore,
-    'bytes': bytes2bitstore
-}
-
 
 def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[str]) -> BitStore:
-    if token_length == 0:
-        return BitStore()
-    # For pad token just return the length in zero bits
-    if name == 'pad':
-        bs = BitStore(token_length)
-        bs.setall(0)
-        return bs
-    if value is None:
-        if token_length is None:
-            raise ValueError(f"Token has no value ({name}=???).")
+    from bitstring.dtypes import Dtype
+    from bitstring.bits import Bits
+    try:
+        d = Dtype(name, token_length)
+    except ValueError:
+        if name in name2bitstore_func:
+            bs = name2bitstore_func[name](value)
         else:
-            raise ValueError(f"Token has no value ({name}:{token_length}=???).")
-
-    if name in name2bitstore_func:
-        bs = name2bitstore_func[name](value)
-    elif name in name2bitstore_func_with_length:
-        bs = name2bitstore_func_with_length[name](value, token_length)
-    elif name == 'bool':
-        if value in (1, 'True', '1'):
-            bs = BitStore('1')
-        elif value in (0, 'False', '0'):
-            bs = BitStore('0')
-        else:
-            raise CreationError("bool token can only be 'True' or 'False'.")
+            raise CreationError(f"Can't parse token name {name}.")
     else:
-        raise CreationError(f"Can't parse token name {name}.")
-    if token_length is not None and len(bs) != token_length:
-        raise CreationError(f"Token with length {token_length} packed with value of length {len(bs)} "
-                            f"({name}:{token_length}={value}).")
+        b = Bits()
+        if value is None and name != 'pad':
+            # 'pad' is a special case - the only dtype that is allowed to have a length but no value.
+            raise ValueError
+        d.set_fn(b, value)
+        bs = b._bitstore
+        if token_length is not None and len(bs) != d.bitlength:
+            raise CreationError(f"Token with length {token_length} packed with value of length {len(bs)} "
+                                f"({name}:{token_length}={value}).")
     return bs

@@ -72,10 +72,6 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
                 continue
             if length is not None:
                 length = int(length)
-                # TODO: ugly
-                lm = dtype_register.name_to_meta_dtype[name].multiplier
-                if lm is not None:
-                    length *= lm
             if value is None and name != 'pad':
                 # Take the next value from the ones provided
                 value = next(value_iter)
