@@ -1,12 +1,10 @@
 
 import unittest
 import sys
-
-import bitstring
+import bitstring as bs
+from bitstring import Dtype, MetaDtype
 
 sys.path.insert(0, '..')
-import bitstring as bs
-from bitstring import Dtype
 
 
 class BasicFunctionality(unittest.TestCase):
@@ -39,7 +37,7 @@ class BasicFunctionality(unittest.TestCase):
 class ChangingTheRegister(unittest.TestCase):
 
     def testRetrievingMetaDtype(self):
-        r = bitstring.dtype_register
+        r = bs.dtype_register
         u = r['uint']
         u2 = r['u']
         self.assertEqual(u, u2)
@@ -47,19 +45,42 @@ class ChangingTheRegister(unittest.TestCase):
             i = r['integer']
 
     def testRemovingType(self):
-        r = bitstring.dtype_register
+        r = bs.dtype_register
         del r['bfloat']
         with self.assertRaises(KeyError):
             i = r['bfloat']
         with self.assertRaises(KeyError):
             del r['penguin']
 
-# class CreatingNewDtypes(unittest.TestCase):
 
-    # def testNewAlias(self):
-    #     bs.Bits._register.add_meta_dtype_alias('bin', 'cat')
-    #     a = bs.BitStream('0b110110')
-    #     self.assertEqual(a.cat, '110110')
-    #     self.assertEqual(a.read('cat4'), '1101')
-    #     a.cat = '11110000'
-    #     # self.assertEqual(a.unpack('cat'), '11110000')
+class CreatingNewDtypes(unittest.TestCase):
+
+    def testNewAlias(self):
+        bs.dtype_register.add_meta_dtype_alias('bin', 'cat')
+        a = bs.BitStream('0b110110')
+        self.assertEqual(a.cat, '110110')
+        self.assertEqual(a.read('cat4'), '1101')
+        a.cat = '11110000'
+        self.assertEqual(a.unpack('cat'), ['11110000'])
+
+    def testNewType(self):
+        md = MetaDtype('uint_r', "a two's complement unsigned int", bs.Bits._setuint, bs.Bits._getuint, int, None,
+                  False, False, None)
+        bs.dtype_register.add_meta_dtype(md)
+        a = bs.BitArray('0xf')
+        self.assertEqual(a.uint_r, 15)
+        a.uint_r = 1
+        self.assertEqual(a, '0x1')
+        a += 'uint_r100=0'
+        self.assertEqual(a, '0x1, 0b' + '0'*100)
+
+    def testNewTypeWithGetter(self):
+        def get_fn(bs):
+            return bs.count(1)
+        md = MetaDtype('counter', "For some reason this counts the number of set bits", None, get_fn, int, None, False, False, None)
+        bs.dtype_register.add_meta_dtype(md)
+        a = bs.BitStream('0x010f')
+        c = a.counter
+        self.assertEqual(c, 5)
+        self.assertEqual(a.readlist('2*counter8'), [1, 4])
+        self.assertEqual(a.unpack('counter7, counter'), [0, 5])
