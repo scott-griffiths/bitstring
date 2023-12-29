@@ -6,6 +6,7 @@ from bitstring.utils import parse_name_length_token
 from collections.abc import Iterable
 from bitstring.bits import Bits
 from bitstring.bitarray_ import BitArray
+from bitstring.exceptions import ReadError, InterpretError
 
 CACHE_SIZE = 256
 
@@ -52,7 +53,11 @@ class Dtype:
         x.bits_per_item = meta_dtype.multiplier
         if x.bitlength is not None:
             x.bitlength *= x.bits_per_item
-        x.read_fn = functools.partial(meta_dtype.read_fn, length=x.bitlength)
+        x.is_unknown_length = meta_dtype.is_unknown_length
+        if x.is_unknown_length:
+            x.read_fn = meta_dtype.read_fn
+        else:
+            x.read_fn = functools.partial(meta_dtype.read_fn, length=x.bitlength)
         if meta_dtype.set_fn is None:
             x.set_fn = None
         else:
@@ -60,7 +65,6 @@ class Dtype:
         x.get_fn = meta_dtype.get_fn
         x.return_type = meta_dtype.return_type
         x.is_signed = meta_dtype.is_signed
-        x.is_unknown_length = meta_dtype.is_unknown_length
         return x
 
     def __str__(self) -> str:
@@ -81,7 +85,7 @@ class Dtype:
 class MetaDtype:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
-    def __init__(self, name: str, description: str, set_fn, read_fn, get_fn, return_type: Any, bitlength2chars_fn, is_signed: bool,
+    def __init__(self, name: str, description: str, set_fn, get_fn, return_type: Any, bitlength2chars_fn, is_signed: bool,
                  is_unknown_length: bool, fixed_length: Union[int, Tuple[int, ...], None] = None, multiplier: int = 1):
         # Consistency checks
         if is_unknown_length and fixed_length is not None:
@@ -101,8 +105,29 @@ class MetaDtype:
         self.multiplier = multiplier
 
         self.set_fn = set_fn
-        self.read_fn = read_fn  # With a start and usually a length
         self.get_fn = get_fn    # Interpret everything
+
+        if not self.is_unknown_length:
+            # TODO: Move the length logic out of the function
+            def read_fn(bs, start, length):
+                if length is None:
+                    assert len(self.fixed_length) == 1
+                    return self.get_fn(bs[start:start + self.fixed_length[0]])
+                else:
+                    return self.get_fn(bs[start:start + length])
+            self.read_fn = read_fn
+        else:
+            # For unknown lengths we get a reading function instead of a getter, so switch them around...
+            self.read_fn = get_fn
+            def new_get_fn(bs):
+                try:
+                    value, length = self.read_fn(bs, 0)
+                except ReadError:
+                    raise InterpretError
+                if length != len(bs):
+                    raise ValueError  # TODO
+                return value
+            self.get_fn = new_get_fn
 
         self.bitlength2chars_fn = bitlength2chars_fn
 

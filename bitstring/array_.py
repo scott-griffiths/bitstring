@@ -366,7 +366,6 @@ class Array:
 
         """
         sep = ' '
-        number_of_fmts = 1
 
         if fmt is None:
             dtypes = [self.dtype]

@@ -218,7 +218,7 @@ class Bits:
         except ValueError as e:
             raise AttributeError(e)
         if d.bitlength is not None and len(self) != d.bitlength:
-            raise ValueError(f"bitstring length {len(self)} doesn't match length of property {attribute}.")
+            raise ValueError(f"bitstring length {len(self)} doesn't match length {d.bitlength} of property '{attribute}'.")
         return d.read_fn(self, 0)
 
     def __iter__(self) -> Iterable[bool]:
@@ -824,25 +824,17 @@ class Bits:
         else:
             return struct.unpack(fmt, self._readbytes(start, length))[0]
 
-    def _reade4m3float(self, start: int, length: int = 0) -> float:
-        # length is ignored - it's only present to make the function signature consistent.
-        u = self._readuint(start, length=8)
-        return e4m3float_fmt.lut_int8_to_float[u]
-
     def _gete4m3float(self) -> float:
         if len(self) != 8:
             raise InterpretError(f"A e4m3float must be 8 bits long, not {len(self)} bits.")
-        return self._reade4m3float(0)
-
-    def _reade5m2float(self, start: int, length: int = 0) -> float:
-        # length is ignored - it's only present to make the function signature consistent.
-        u = self._readuint(start, length=8)
-        return e5m2float_fmt.lut_int8_to_float[u]
+        u = self._readuint(0, length=8)
+        return e4m3float_fmt.lut_int8_to_float[u]
 
     def _gete5m2float(self) -> float:
         if len(self) != 8:
             raise InterpretError(f"A e5m2float must be 8 bits long, not {len(self)} bits.")
-        return self._reade5m2float(start=0)
+        u = self._readuint(0, length=8)
+        return e5m2float_fmt.lut_int8_to_float[u]
 
     def _setfloatbe(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
@@ -916,7 +908,7 @@ class Bits:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = ue2bitstore(i)
 
-    def _readue(self, pos: int, length: int = 0) -> Tuple[int, int]:
+    def _readue(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned exponential-Golomb code.
 
         Raises ReadError if the end of the bitstring is encountered while
@@ -944,20 +936,6 @@ class Bits:
             pos += 1
         return codenum, pos
 
-    def _getue(self) -> int:
-        """Return data as unsigned exponential-Golomb code.
-
-        Raises InterpretError if bitstring is not a single exponential-Golomb code.
-
-        """
-        try:
-            value, newpos = self._readue(0)
-            if value is None or newpos != len(self):
-                raise ReadError
-        except ReadError:
-            raise InterpretError("Bitstring is not a single exponential-Golomb code.")
-        return value
-
     def _setse(self, i: int, length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
         if length is not None or _offset is not None:
@@ -966,21 +944,7 @@ class Bits:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = se2bitstore(i)
 
-    def _getse(self) -> int:
-        """Return data as signed exponential-Golomb code.
-
-        Raises InterpretError if bitstring is not a single exponential-Golomb code.
-
-        """
-        try:
-            value, newpos = self._readse(0)
-            if value is None or newpos != len(self):
-                raise ReadError
-        except ReadError:
-            raise InterpretError("Bitstring is not a single exponential-Golomb code.")
-        return value
-
-    def _readse(self, pos: int, length: int = 0) -> Tuple[int, int]:
+    def _readse(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as a signed exponential-Golomb code.
 
         Advances position to after the read code.
@@ -1008,7 +972,7 @@ class Bits:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = uie2bitstore(i)
 
-    def _readuie(self, pos: int, length: int = 0) -> Tuple[int, int]:
+    def _readuie(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned interleaved exponential-Golomb code.
 
         Raises ReadError if the end of the bitstring is encountered while
@@ -1031,20 +995,6 @@ class Bits:
         codenum -= 1
         return codenum, pos
 
-    def _getuie(self) -> int:
-        """Return data as unsigned interleaved exponential-Golomb code.
-
-        Raises InterpretError if bitstring is not a single exponential-Golomb code.
-
-        """
-        try:
-            value, newpos = self._readuie(0)
-            if value is None or newpos != len(self):
-                raise ReadError
-        except ReadError:
-            raise InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
-        return value
-
     def _setsie(self, i: int, length: None = None, _offset: None = None) -> None:
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
         if length is not None or _offset is not None:
@@ -1053,21 +1003,7 @@ class Bits:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = sie2bitstore(i)
 
-    def _getsie(self) -> int:
-        """Return data as signed interleaved exponential-Golomb code.
-
-        Raises InterpretError if bitstring is not a single exponential-Golomb code.
-
-        """
-        try:
-            value, newpos = self._readsie(0)
-            if value is None or newpos != len(self):
-                raise ReadError
-        except ReadError:
-            raise InterpretError("Bitstring is not a single interleaved exponential-Golomb code.")
-        return value
-
-    def _readsie(self, pos: int, length: int = 0) -> Tuple[int, int]:
+    def _readsie(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as a signed interleaved exponential-Golomb code.
 
         Advances position to after the read code.
@@ -1104,11 +1040,7 @@ class Bits:
             raise InterpretError(f"For a bool interpretation a bitstring must be 1 bit long, not {len(self)} bits.")
         return self[0]
 
-    def _readbool(self, start: int, length: int = 0) -> int:
-        # length is ignored - it's only present to make the function signature consistent.
-        return self[start]
-
-    def _readpad(self, pos, length) -> None:
+    def _getpad(self) -> None:
         return None
 
     def _setpad(self, value: None, length: int) -> None:

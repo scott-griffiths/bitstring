@@ -17,7 +17,7 @@ def offset_slice_indices_lsb0(key: slice, length: int) -> slice:
 def offset_start_stop_lsb0(start: Optional[int], stop: Optional[int], length: int) -> slice:
     # First convert slice to all integers
     # Length already should take account of the offset
-    start, stop, step = slice(start, stop, None).indices(length)
+    start, stop, _ = slice(start, stop, None).indices(length)
     new_start = length - stop
     new_stop = length - start
     return new_start, new_stop
