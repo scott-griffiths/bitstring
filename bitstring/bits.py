@@ -698,13 +698,6 @@ class Bits:
             raise CreationError("An offset can't be specified with an integer initialiser.")
         self._bitstore = uint2bitstore(uint, length)
 
-    def _readuint(self, start: int, length: int) -> int:
-        """Read bits and interpret as an unsigned int."""
-        if length == 0:
-            raise InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        ip = self._bitstore.slice_to_uint(start, start + length)
-        return ip
-
     def _getuint(self) -> int:
         """Return data as an unsigned int."""
         if len(self) == 0:
@@ -722,13 +715,6 @@ class Bits:
             raise CreationError("An offset can't be specified with an integer initialiser.")
         self._bitstore = int2bitstore(int_, length)
 
-    def _readint(self, start: int, length: int) -> int:
-        """Read bits and interpret as a signed int"""
-        if length == 0:
-            raise InterpretError("Cannot interpret bitstring without a length as an integer.")
-        ip = self._bitstore.slice_to_int(start, start + length)
-        return ip
-
     def _getint(self) -> int:
         """Return data as a two's complement signed int."""
         if len(self) == 0:
@@ -743,15 +729,11 @@ class Bits:
             raise CreationError("A non-zero length must be specified with a uintbe initialiser.")
         self._bitstore = uintbe2bitstore(uintbe, length)
 
-    def _readuintbe(self, start: int, length: int) -> int:
-        """Read bits and interpret as a big-endian unsigned int."""
-        if length % 8:
-            raise InterpretError(f"Big-endian integers must be whole-byte. Length = {length} bits.")
-        return self._readuint(start, length)
-
     def _getuintbe(self) -> int:
         """Return data as a big-endian two's complement unsigned int."""
-        return self._readuintbe(0, len(self))
+        if len(self) % 8:
+            raise InterpretError(f"Big-endian integers must be whole-byte. Length = {len(self)} bits.")
+        return self._getuint()
 
     def _setintbe(self, intbe: int, length: Optional[int] = None, _offset: None = None) -> None:
         """Set bitstring to a big-endian signed int interpretation."""
@@ -761,15 +743,11 @@ class Bits:
             raise CreationError("A non-zero length must be specified with a intbe initialiser.")
         self._bitstore = intbe2bitstore(intbe, length)
 
-    def _readintbe(self, start: int, length: int) -> int:
-        """Read bits and interpret as a big-endian signed int."""
-        if length % 8:
-            raise InterpretError(f"Big-endian integers must be whole-byte. Length = {length} bits.")
-        return self._readint(start, length)
-
     def _getintbe(self) -> int:
         """Return data as a big-endian two's complement signed int."""
-        return self._readintbe(0, len(self))
+        if len(self) % 8:
+            raise InterpretError(f"Big-endian integers must be whole-byte. Length = {len(self)} bits.")
+        return self._getint()
 
     def _setuintle(self, uintle: int, length: Optional[int] = None, _offset: None = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
@@ -780,16 +758,12 @@ class Bits:
             raise CreationError("An offset can't be specified with an integer initialiser.")
         self._bitstore = uintle2bitstore(uintle, length)
 
-    def _readuintle(self, start: int, length: int) -> int:
-        """Read bits and interpret as a little-endian unsigned int."""
-        if length % 8:
-            raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
-        bs = BitStore(frombytes=self._bitstore.getslice(start, start + length).tobytes()[::-1])
-        val = bs.slice_to_uint()
-        return val
-
     def _getuintle(self) -> int:
-        return self._readuintle(0, len(self))
+        """Interpret as a little-endian unsigned int."""
+        if len(self) % 8:
+            raise InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
+        bs = BitStore(frombytes=self._bitstore.tobytes()[::-1])
+        return bs.slice_to_uint()
 
     def _setintle(self, intle: int, length: Optional[int] = None, _offset: None = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
@@ -800,16 +774,12 @@ class Bits:
             raise CreationError("An offset can't be specified with an integer initialiser.")
         self._bitstore = intle2bitstore(intle, length)
 
-    def _readintle(self, start: int, length: int) -> int:
-        """Read bits and interpret as a little-endian signed int."""
-        if length % 8:
-            raise InterpretError(f"Little-endian integers must be whole-byte. Length = {length} bits.")
-        bs = BitStore(frombytes=self._bitstore.getslice(start, start + length).tobytes()[::-1])
-        val = bs.slice_to_int()
-        return val
-
     def _getintle(self) -> int:
-        return self._readintle(0, len(self))
+        """Interpret as a little-endian signed int."""
+        if len(self) % 8:
+            raise InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
+        bs = BitStore(frombytes=self._bitstore.tobytes()[::-1])
+        return bs.slice_to_int()
 
     def _readfloat(self, start: int, length: int, struct_dict: Dict[int, str]) -> float:
         """Read bits and interpret as a float."""
@@ -827,13 +797,13 @@ class Bits:
     def _gete4m3float(self) -> float:
         if len(self) != 8:
             raise InterpretError(f"A e4m3float must be 8 bits long, not {len(self)} bits.")
-        u = self._readuint(0, length=8)
+        u = self._getuint()
         return e4m3float_fmt.lut_int8_to_float[u]
 
     def _gete5m2float(self) -> float:
         if len(self) != 8:
             raise InterpretError(f"A e5m2float must be 8 bits long, not {len(self)} bits.")
-        u = self._readuint(0, length=8)
+        u = self._getuint()
         return e5m2float_fmt.lut_int8_to_float[u]
 
     def _setfloatbe(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
@@ -929,7 +899,7 @@ class Bits:
         if leadingzeros > 0:
             if pos + leadingzeros + 1 > len(self):
                 raise ReadError("Read off end of bitstring trying to read code.")
-            codenum += self._readuint(pos + 1, leadingzeros)
+            codenum += self[pos + 1:pos + 1 + leadingzeros]._getuint()
             pos += leadingzeros + 1
         else:
             assert codenum == 0
@@ -1224,12 +1194,8 @@ class Bits:
         self._addright(self[0:(n - m) * old_len])
         return self
 
-    def _readbits(self: TBits, start: int, length: int) -> TBits:
-        """Read some bits from the bitstring and return newly constructed bitstring."""
-        return self._slice(start, start + length)
-
     def _getbits(self: TBits):
-        return self._readbits(0, len(self))
+        return self._copy()
 
     def _validate_slice(self, start: Optional[int], end: Optional[int]) -> Tuple[int, int]:
         """Validate start and end and return them as positive bit positions."""
@@ -1897,29 +1863,21 @@ class Bits:
     # Create native-endian functions as aliases depending on the byteorder
     if byteorder == 'little':
         _setfloatne = _setfloatle
-        _readfloatne = _readfloatle
         _getfloatne = _getfloatle
         _setbfloatne = _setbfloatle
-        _readbfloatne = _readbfloatle
         _getbfloatne = _getbfloatle
         _setuintne = _setuintle
-        _readuintne = _readuintle
         _getuintne = _getuintle
         _setintne = _setintle
-        _readintne = _readintle
         _getintne = _getintle
     else:
         _setfloatne = _setfloatbe
-        _readfloatne = _readfloatbe
         _getfloatne = _getfloatbe
         _setbfloatne = _setbfloatbe
-        _readbfloatne = _readbfloatbe
         _getbfloatne = _getbfloatbe
         _setuintne = _setuintbe
-        _readuintne = _readuintbe
         _getuintne = _getuintbe
         _setintne = _setintbe
-        _readintne = _readintbe
         _getintne = _getintbe
 
     len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")
