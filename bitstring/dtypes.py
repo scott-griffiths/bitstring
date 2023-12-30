@@ -66,7 +66,7 @@ class Dtype:
         return x
 
     def __str__(self) -> str:
-        hide_length = self.is_unknown_length or self.name in dtype_register.always_fixed_length().keys()
+        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].fixed_length) == 1
         length_str = '' if hide_length else str(self.length)
         return f"{self.name}{length_str}"
 
@@ -164,7 +164,6 @@ class Register:
             cls._instance = super(Register, cls).__new__(cls)
             cls.names: Dict[str, DtypeDefinition] = {}
             cls._unknowable_length_names_cache: Tuple[str] = tuple()
-            cls._always_fixed_length_cache: Dict[str, int] = {}
             cls._modified_flag: bool = False
         return cls._instance
 
@@ -209,20 +208,9 @@ class Register:
         return cls._unknowable_length_names_cache
 
     @classmethod
-    def always_fixed_length(cls) -> Dict[str, int]:
-        if cls._modified_flag:
-            cls.refresh()
-        return cls._always_fixed_length_cache
-
-    @classmethod
     def refresh(cls) -> None:
         cls._unknowable_length_names_cache = tuple(dt_name for dt_name in cls.names if cls.names[dt_name].is_unknown_length)
         d: Dict[str, int] = {}
-        for mt in cls.names:
-            if (fixed_length := cls.names[mt].fixed_length):
-                if len(fixed_length) == 1:
-                    d[mt] = fixed_length[0]
-        cls._always_fixed_length_cache = d
         cls._modified_flag = False
 
     def __repr__(self) -> str:
