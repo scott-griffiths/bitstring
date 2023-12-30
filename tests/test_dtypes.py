@@ -79,7 +79,8 @@ class CreatingNewDtypes(unittest.TestCase):
         md = DtypeDefinition('counter', None, get_fn)
         bs.dtype_register.add_dtype(md)
         a = bs.BitStream('0x010f')
-        c = a.counter
-        self.assertEqual(c, 5)
+        self.assertEqual(a.counter, 5)
         self.assertEqual(a.readlist('2*counter8'), [1, 4])
         self.assertEqual(a.unpack('counter7, counter'), [0, 5])
+        with self.assertRaises(AttributeError):
+            a.counter = 4

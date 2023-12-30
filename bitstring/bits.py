@@ -209,6 +209,9 @@ class Bits:
                                     f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
             else:
                 raise CreationError(f"Unrecognised keyword '{k}' used to initialise.")
+        if k == 'bytes':
+            # Special case for bytes as we want to allow offsets and lengths to work on creation.
+            setting_function = Bits._setbytes_with_truncation
         setting_function(self, v, length, offset)
 
     def __getattr__(self, attribute: str) -> Any:
@@ -649,12 +652,15 @@ class Bits:
     def _sete4m3float(self, f: float, length: None = None, _offset: None = None):
         self._bitstore = e4m3float2bitstore(f)
 
-    def _setbytes(self, data: Union[bytearray, bytes],
-                  length: Optional[int] = None, offset: Optional[int] = None) -> None:
+    def _setbytes(self, data: Union[bytearray, bytes], length:None = None, _offset: None = None) -> None:
         """Set the data from a bytes or bytearray object."""
+        self._bitstore = BitStore(frombytes=bytearray(data))
+        return
+
+    def _setbytes_with_truncation(self, data: Union[bytearray, bytes], length: Optional[int] = None, offset: Optional[int] = None) -> None:
+        """Set the data from a bytes or bytearray object, with optional offset and length truncations."""
         if offset is None and length is None:
-            self._bitstore = BitStore(frombytes=bytearray(data))
-            return
+            return self._setbytes(data)
         data = bytearray(data)
         if offset is None:
             offset = 0

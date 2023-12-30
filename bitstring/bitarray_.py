@@ -163,26 +163,17 @@ class BitArray(Bits):
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
         except AttributeError:
-            if name_length := BitArray._name_length_pattern.match(attribute):
-                name = name_length.group('name')
-                length = name_length.group('len')
-                if length is not None:
-                    length = int(length)
-                    if name == 'bytes':
-                        if len(value) != length:
-                            raise CreationError(
-                                f"Wrong amount of byte data preset - {length} bytes needed, have {len(value)} bytes.")
-                        length *= 8
-                try:
-                    x = Bits(length=length, offset=None, **{name: value})
-                    if len(x) != length:
-                        raise CreationError(f"Can't initialise with value of length {len(x)} bits, "
-                                            f"as attribute has length of {length} bits.")
-                    self._bitstore = x._bitstore
-                    return
-                except AttributeError:
-                    pass
-            raise AttributeError(f"Can't set attribute {attribute} with value {value}.")
+            from bitstring.dtypes import Dtype
+            dtype = Dtype(attribute)
+            x = object.__new__(Bits)
+            if (set_fn := dtype.set_fn) is None:
+                raise AttributeError(f"Cannot set attribute '{attribute}' as it does not have a set_fn.")
+            set_fn(x, value)
+            if len(x) != dtype.bitlength:
+                raise CreationError(f"Can't initialise with value of length {len(x)} bits, "
+                                    f"as attribute has length of {dtype.bitlength} bits.")
+            self._bitstore = x._bitstore
+            return
 
     def __iadd__(self, bs: BitsType) -> BitArray:
         """Append bs to current bitstring. Return self.
