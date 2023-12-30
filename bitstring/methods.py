@@ -94,7 +94,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
         if options.lsb0:
             for name, _, _ in tokens:
                 if name in dtype_register.unknowable_length_names():
-                    raise CreationError(f"Variable length tokens ('{name}') cannot be used in lsb0 mode.")
+                    raise CreationError(f"Unknown length tokens ('{name}') cannot be used in lsb0 mode.")
             for b in bsl[::-1]:
                 s._bitstore += b
         else:

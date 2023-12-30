@@ -198,7 +198,7 @@ class Bits:
             return
         k, v = kwargs.popitem()
         try:
-            setting_function = dtype_register.name_to_meta_dtype[k].set_fn
+            setting_function = dtype_register.names[k].set_fn
         except KeyError:
             if k == 'filename':
                 setting_function = Bits._setfile
@@ -1766,7 +1766,7 @@ class Bits:
             return str(get_fn(bits))
         # Left-align for fixed width types when msb0, otherwise right-align.
         align = '<' if fmt in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not options.lsb0 else '>'
-        chars_per_group = dtype_register.name_to_meta_dtype[fmt].bitlength2chars_fn(bits_per_group)
+        chars_per_group = dtype_register.names[fmt].bitlength2chars_fn(bits_per_group)
         return sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
 
     @staticmethod
@@ -1774,7 +1774,7 @@ class Bits:
         """How many characters are needed to represent a number of bits with a given format."""
         if fmt is None:
             return 0
-        return dtype_register.name_to_meta_dtype[fmt].bitlength2chars_fn(bits_per_group)
+        return dtype_register.names[fmt].bitlength2chars_fn(bits_per_group)
 
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:

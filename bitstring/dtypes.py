@@ -13,8 +13,6 @@ CACHE_SIZE = 256
 
 class Dtype:
 
-    # __slots__ = ('name', 'length', 'bitlength', 'read_fn', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'is_unknown_length')
-
     def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None) -> Dtype:
         if isinstance(token, cls):
             return token
@@ -46,25 +44,25 @@ class Dtype:
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
-    def create(cls, meta_dtype: DtypeDefinition, length: Optional[int]) -> Dtype:
+    def create(cls, definition: DtypeDefinition, length: Optional[int]) -> Dtype:
         x = cls.__new__(cls)
-        x.name = meta_dtype.name
+        x.name = definition.name
         x.bitlength = x.length = length
-        x.bits_per_item = meta_dtype.multiplier
+        x.bits_per_item = definition.multiplier
         if x.bitlength is not None:
             x.bitlength *= x.bits_per_item
-        x.is_unknown_length = meta_dtype.is_unknown_length
+        x.is_unknown_length = definition.is_unknown_length
         if x.is_unknown_length:
-            x.read_fn = meta_dtype.read_fn
+            x.read_fn = definition.read_fn
         else:
-            x.read_fn = functools.partial(meta_dtype.read_fn, length=x.bitlength)
-        if meta_dtype.set_fn is None:
+            x.read_fn = functools.partial(definition.read_fn, length=x.bitlength)
+        if definition.set_fn is None:
             x.set_fn = None
         else:
-            x.set_fn = functools.partial(meta_dtype.set_fn, length=x.bitlength)
-        x.get_fn = meta_dtype.get_fn
-        x.return_type = meta_dtype.return_type
-        x.is_signed = meta_dtype.is_signed
+            x.set_fn = functools.partial(definition.set_fn, length=x.bitlength)
+        x.get_fn = definition.get_fn
+        x.return_type = definition.return_type
+        x.is_signed = definition.is_signed
         return x
 
     def __str__(self) -> str:
@@ -164,45 +162,45 @@ class Register:
         # Singleton. Only one Register instance can ever exist.
         if cls._instance is None:
             cls._instance = super(Register, cls).__new__(cls)
-            cls.name_to_meta_dtype: Dict[str, DtypeDefinition] = {}
+            cls.names: Dict[str, DtypeDefinition] = {}
             cls._unknowable_length_names_cache: Tuple[str] = tuple()
             cls._always_fixed_length_cache: Dict[str, int] = {}
             cls._modified_flag: bool = False
         return cls._instance
 
     @classmethod
-    def add_dtype(cls, meta_dtype: DtypeDefinition):
-        cls.name_to_meta_dtype[meta_dtype.name] = meta_dtype
+    def add_dtype(cls, definition: DtypeDefinition):
+        cls.names[definition.name] = definition
         cls._modified_flag = True
-        if meta_dtype.get_fn is not None:
-            setattr(Bits, meta_dtype.name, property(fget=meta_dtype.get_fn, doc=f"The bitstring as {meta_dtype.description}. Read only."))
-            setattr(BitArray, meta_dtype.name, property(fget=meta_dtype.get_fn, fset=meta_dtype.set_fn, doc=f"The bitstring as {meta_dtype.description}. Read and write."))
+        if definition.get_fn is not None:
+            setattr(Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
+            setattr(BitArray, definition.name, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"The bitstring as {definition.description}. Read and write."))
 
     @classmethod
     def add_dtype_alias(cls, name: str, alias: str):
-        cls.name_to_meta_dtype[alias] = cls.name_to_meta_dtype[name]
-        meta_dtype = cls.name_to_meta_dtype[alias]
+        cls.names[alias] = cls.names[name]
+        definition = cls.names[alias]
         cls._modified_flag = True
-        if meta_dtype.get_fn is not None:
-            setattr(Bits, alias, property(fget=meta_dtype.get_fn, doc=f"An alias for '{name}'. Read only."))
-            setattr(BitArray, alias, property(fget=meta_dtype.get_fn, fset=meta_dtype.set_fn, doc=f"An alias for '{name}'. Read and write."))
+        if definition.get_fn is not None:
+            setattr(Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
+            setattr(BitArray, alias, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod
     def get_dtype(cls, name: str, length: Optional[int]) -> Dtype:
         try:
-            meta_type = cls.name_to_meta_dtype[name]
+            definition = cls.names[name]
         except KeyError:
             raise ValueError
         else:
-            return meta_type.getDtype(length)
+            return definition.getDtype(length)
 
     @classmethod
     def __getitem__(cls, name: str) -> DtypeDefinition:
-        return cls.name_to_meta_dtype[name]
+        return cls.names[name]
 
     @classmethod
     def __delitem__(cls, name: str) -> None:
-        del cls.name_to_meta_dtype[name]
+        del cls.names[name]
 
     @classmethod
     def unknowable_length_names(cls) -> Tuple[str]:
@@ -218,10 +216,10 @@ class Register:
 
     @classmethod
     def refresh(cls) -> None:
-        cls._unknowable_length_names_cache = tuple(dt_name for dt_name in cls.name_to_meta_dtype if cls.name_to_meta_dtype[dt_name].is_unknown_length)
+        cls._unknowable_length_names_cache = tuple(dt_name for dt_name in cls.names if cls.names[dt_name].is_unknown_length)
         d: Dict[str, int] = {}
-        for mt in cls.name_to_meta_dtype:
-            if (fixed_length := cls.name_to_meta_dtype[mt].fixed_length):
+        for mt in cls.names:
+            if (fixed_length := cls.names[mt].fixed_length):
                 if len(fixed_length) == 1:
                     d[mt] = fixed_length[0]
         cls._always_fixed_length_cache = d
@@ -230,8 +228,8 @@ class Register:
     def __repr__(self) -> str:
         s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'unknown_length':^16}{'fixed_length':^13}{'multiplier':^12}{'return_type':<13}"]
         s.append('-' * 85)
-        for key in self.name_to_meta_dtype:
-            m = self.name_to_meta_dtype[key]
+        for key in self.names:
+            m = self.names[key]
             fixed = '' if not m.fixed_length else m.fixed_length
             ret = 'None' if m.return_type is None else m.return_type.__name__
             s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.is_unknown_length:^16}{fixed!s:^13}{m.multiplier:^12}{ret:<13} # {m.description}")
