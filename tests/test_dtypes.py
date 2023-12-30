@@ -2,7 +2,7 @@
 import unittest
 import sys
 import bitstring as bs
-from bitstring import Dtype, MetaDtype
+from bitstring import Dtype, DtypeDefinition
 
 sys.path.insert(0, '..')
 
@@ -56,7 +56,7 @@ class ChangingTheRegister(unittest.TestCase):
 class CreatingNewDtypes(unittest.TestCase):
 
     def testNewAlias(self):
-        bs.dtype_register.add_meta_dtype_alias('bin', 'cat')
+        bs.dtype_register.add_dtype_alias('bin', 'cat')
         a = bs.BitStream('0b110110')
         self.assertEqual(a.cat, '110110')
         self.assertEqual(a.read('cat4'), '1101')
@@ -64,9 +64,8 @@ class CreatingNewDtypes(unittest.TestCase):
         self.assertEqual(a.unpack('cat'), ['11110000'])
 
     def testNewType(self):
-        md = MetaDtype('uint_r', "a two's complement unsigned int", bs.Bits._setuint, bs.Bits._getuint, int, None,
-                  False, False, None)
-        bs.dtype_register.add_meta_dtype(md)
+        md = DtypeDefinition('uint_r', bs.Bits._setuint, bs.Bits._getuint)
+        bs.dtype_register.add_dtype(md)
         a = bs.BitArray('0xf')
         self.assertEqual(a.uint_r, 15)
         a.uint_r = 1
@@ -77,8 +76,8 @@ class CreatingNewDtypes(unittest.TestCase):
     def testNewTypeWithGetter(self):
         def get_fn(bs):
             return bs.count(1)
-        md = MetaDtype('counter', "For some reason this counts the number of set bits", None, get_fn, int, None, False, False, None)
-        bs.dtype_register.add_meta_dtype(md)
+        md = DtypeDefinition('counter', None, get_fn)
+        bs.dtype_register.add_dtype(md)
         a = bs.BitStream('0x010f')
         c = a.counter
         self.assertEqual(c, 5)

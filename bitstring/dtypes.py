@@ -46,7 +46,7 @@ class Dtype:
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
-    def create(cls, meta_dtype: MetaDtype, length: Optional[int]) -> Dtype:
+    def create(cls, meta_dtype: DtypeDefinition, length: Optional[int]) -> Dtype:
         x = cls.__new__(cls)
         x.name = meta_dtype.name
         x.bitlength = x.length = length
@@ -82,11 +82,12 @@ class Dtype:
         return False
 
 
-class MetaDtype:
+class DtypeDefinition:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
-    def __init__(self, name: str, description: str, set_fn, get_fn, return_type: Any, bitlength2chars_fn, is_signed: bool,
-                 is_unknown_length: bool, fixed_length: Union[int, Tuple[int, ...], None] = None, multiplier: int = 1):
+    def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn = None,
+                 is_unknown_length: bool = False, fixed_length: Union[int, Tuple[int, ...], None] = None, multiplier: int = 1, description: str = ''):
+
         # Consistency checks
         if is_unknown_length and fixed_length is not None:
             raise ValueError("Can't set is_unknown_length and give a value for length.")
@@ -163,14 +164,14 @@ class Register:
         # Singleton. Only one Register instance can ever exist.
         if cls._instance is None:
             cls._instance = super(Register, cls).__new__(cls)
-            cls.name_to_meta_dtype: Dict[str, MetaDtype] = {}
+            cls.name_to_meta_dtype: Dict[str, DtypeDefinition] = {}
             cls._unknowable_length_names_cache: Tuple[str] = tuple()
             cls._always_fixed_length_cache: Dict[str, int] = {}
             cls._modified_flag: bool = False
         return cls._instance
 
     @classmethod
-    def add_meta_dtype(cls, meta_dtype: MetaDtype):
+    def add_dtype(cls, meta_dtype: DtypeDefinition):
         cls.name_to_meta_dtype[meta_dtype.name] = meta_dtype
         cls._modified_flag = True
         if meta_dtype.get_fn is not None:
@@ -178,7 +179,7 @@ class Register:
             setattr(BitArray, meta_dtype.name, property(fget=meta_dtype.get_fn, fset=meta_dtype.set_fn, doc=f"The bitstring as {meta_dtype.description}. Read and write."))
 
     @classmethod
-    def add_meta_dtype_alias(cls, name: str, alias: str):
+    def add_dtype_alias(cls, name: str, alias: str):
         cls.name_to_meta_dtype[alias] = cls.name_to_meta_dtype[name]
         meta_dtype = cls.name_to_meta_dtype[alias]
         cls._modified_flag = True
@@ -196,7 +197,7 @@ class Register:
             return meta_type.getDtype(length)
 
     @classmethod
-    def __getitem__(cls, name: str) -> MetaDtype:
+    def __getitem__(cls, name: str) -> DtypeDefinition:
         return cls.name_to_meta_dtype[name]
 
     @classmethod

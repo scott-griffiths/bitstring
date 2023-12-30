@@ -68,7 +68,7 @@ from .bitstream import ConstBitStream, BitStream
 from .methods import pack
 from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
-from .dtypes import MetaDtype, dtype_register, Dtype
+from .dtypes import DtypeDefinition, dtype_register, Dtype
 import types
 from typing import List, Tuple, Literal
 
@@ -158,91 +158,70 @@ def bits_bits2chars(bitlength: int):
     return len(str(temp))
 
 def bool_bits2chars(bitlength: Literal[1]):
-    # Bools are printed as 1 or 0, not True or False, so one character each
+    # Bools are printed as 1 or 0, not True or False, so are one character each
     return 1
 
 dtypes = [
-    MetaDtype('uint', "a two's complement unsigned int",
-              Bits._setuint, Bits._getuint, int, uint_bits2chars,
-               False, False, None),
-    MetaDtype('uintle', "a two's complement little-endian unsigned int",
-              Bits._setuintle, Bits._getuintle, int, uint_bits2chars,
-              False, False, None),
-    MetaDtype('uintne', "a two's complement native-endian unsigned int",
-              Bits._setuintne, Bits._getuintne, int, uint_bits2chars,
-              False, False, None),
-    MetaDtype('uintbe', "a two's complement big-endian unsigned int",
-              Bits._setuintbe, Bits._getuintbe, int, uint_bits2chars,
-              False, False, None),
-    MetaDtype('int', "a two's complement signed int",
-              Bits._setint, Bits._getint, int, int_bits2chars,
-              True, False, None),
-    MetaDtype('intle', "a two's complement little-endian signed int",
-              Bits._setintle, Bits._getintle, int, int_bits2chars,
-              True, False, None),
-    MetaDtype('intne', "a two's complement native-endian signed int",
-              Bits._setintne, Bits._getintne, int, int_bits2chars,
-              True, False, None),
-    MetaDtype('intbe', "a two's complement big-endian signed int",
-              Bits._setintbe, Bits._getintbe, int, int_bits2chars,
-              True, False, None),
-    MetaDtype('hex', 'a hexadecimal string',
-              Bits._sethex, Bits._gethex, str, hex_bits2chars,
-              False, False, None),
-    MetaDtype('bin', 'a binary string',
-              Bits._setbin_safe, Bits._getbin, str, bin_bits2chars,
-              False, False, None),
-    MetaDtype('oct', 'an octal string',
-              Bits._setoct, Bits._getoct, str, oct_bits2chars,
-              False, False, None),
-    MetaDtype('e5m2float', 'an 8 bit float with e5m2float format',
-              Bits._sete5m2float, Bits._gete5m2float, float, e5m2float_bits2chars,
-              True, False, 8),
-    MetaDtype('e4m3float', 'an 8 bit float with e4m3float format',
-              Bits._sete4m3float, Bits._gete4m3float, float, e4m3float_bits2chars,
-              True, False, 8),
-    MetaDtype('float', 'a big-endian floating point number',
-              Bits._setfloatbe, Bits._getfloatbe, float, float_bits2chars,
-              True, False, (16, 32, 64)),
-    MetaDtype('floatne', 'a native-endian floating point number',
-              Bits._setfloatne, Bits._getfloatne, float, float_bits2chars,
-              True, False, (16, 32, 64)),
-    MetaDtype('floatle', 'a little-endian floating point number',
-              Bits._setfloatle, Bits._getfloatle, float, float_bits2chars,
-              True, False, (16, 32, 64)),
-    MetaDtype('bfloat', 'a 16 bit big-endian bfloat floating point number',
-              Bits._setbfloatbe, Bits._getbfloatbe, float, bfloat_bits2chars,
-              True, False, 16),
-    MetaDtype('bfloatle', 'a 16 bit little-endian bfloat floating point number',
-              Bits._setbfloatle, Bits._getbfloatle, float, bfloat_bits2chars,
-              True, False, 16),
-    MetaDtype('bfloatne', 'a 16 bit native-endian bfloat floating point number',
-              Bits._setbfloatne, Bits._getbfloatne, float, bfloat_bits2chars,
-              True, False, 16),
-    MetaDtype('bits', 'a bitstring object',
-              Bits._setbits, Bits._getbits, Bits, bits_bits2chars,
-              False, False, None),
-    MetaDtype('bytes', 'a bytes object',
-              Bits._setbytes, Bits._getbytes, bytes, bytes_bits2chars,
-              False, False, None, 8),
-    MetaDtype('bool', 'a bool (True or False)',
-              Bits._setbool, Bits._getbool, bool, bool_bits2chars,
-              False, False, 1),
-    MetaDtype('se', 'a signed exponential-Golomb code',
-              Bits._setse, Bits._readse, int, None,
-              True, True, None),
-    MetaDtype('ue', 'an unsigned exponential-Golomb code',
-              Bits._setue, Bits._readue, int, None,
-              False, True, None),
-    MetaDtype('sie', 'a signed interleaved exponential-Golomb code',
-              Bits._setsie, Bits._readsie, int, None,
-              True, True, None),
-    MetaDtype('uie', 'an unsigned interleaved exponential-Golomb code',
-              Bits._setuie, Bits._readuie, int, None,
-              False, True, None),
-    MetaDtype('pad', 'a skipped section of padding',
-              Bits._setpad, Bits._getpad, None, None,
-              False, False, None),
+    # Integer types
+    DtypeDefinition('uint', Bits._setuint, Bits._getuint, int, False, uint_bits2chars,
+                    description="a two's complement unsigned int"),
+    DtypeDefinition('uintle', Bits._setuintle, Bits._getuintle, int, False, uint_bits2chars,
+                    description="a two's complement little-endian unsigned int"),
+    DtypeDefinition('uintne', Bits._setuintne, Bits._getuintne, int, False, uint_bits2chars,
+                    description="a two's complement native-endian unsigned int"),
+    DtypeDefinition('uintbe', Bits._setuintbe, Bits._getuintbe, int, False, uint_bits2chars,
+                    description="a two's complement big-endian unsigned int"),
+    DtypeDefinition('int', Bits._setint, Bits._getint, int, True, int_bits2chars,
+                    description="a two's complement signed int"),
+    DtypeDefinition('intle', Bits._setintle, Bits._getintle, int, True, int_bits2chars,
+                    description="a two's complement little-endian signed int"),
+    DtypeDefinition('intne', Bits._setintne, Bits._getintne, int, True, int_bits2chars,
+                    description="a two's complement native-endian signed int"),
+    DtypeDefinition('intbe', Bits._setintbe, Bits._getintbe, int, True, int_bits2chars,
+                    description="a two's complement big-endian signed int"),
+    # String types
+    DtypeDefinition('hex', Bits._sethex, Bits._gethex, str, False, hex_bits2chars,
+                    description="a hexadecimal string"),
+    DtypeDefinition('bin', Bits._setbin_safe, Bits._getbin, str, False, bin_bits2chars,
+                    description="a binary string"),
+    DtypeDefinition('oct',Bits._setoct, Bits._getoct, str, False, oct_bits2chars,
+                    description="an octal string"),
+    # Float types
+    DtypeDefinition('e5m2float', Bits._sete5m2float, Bits._gete5m2float, float, True, e5m2float_bits2chars,
+                    fixed_length=8, description="an 8 bit float with e5m2float format"),
+    DtypeDefinition('e4m3float', Bits._sete4m3float, Bits._gete4m3float, float, True, e4m3float_bits2chars,
+                    fixed_length=8, description="an 8 bit float with e4m3float format"),
+    DtypeDefinition('float', Bits._setfloatbe, Bits._getfloatbe, float, True, float_bits2chars,
+                    fixed_length=(16, 32, 64), description="a big-endian floating point number"),
+    DtypeDefinition('floatne', Bits._setfloatne, Bits._getfloatne, float, True, float_bits2chars,
+                    fixed_length=(16, 32, 64), description="a native-endian floating point number"),
+    DtypeDefinition('floatle', Bits._setfloatle, Bits._getfloatle, float, True, float_bits2chars,
+                    fixed_length=(16, 32, 64), description="a little-endian floating point number"),
+    DtypeDefinition('bfloat', Bits._setbfloatbe, Bits._getbfloatbe, float, True, bfloat_bits2chars,
+                    fixed_length=16, description="a 16 bit big-endian bfloat floating point number"),
+    DtypeDefinition('bfloatle', Bits._setbfloatle, Bits._getbfloatle, float, True, bfloat_bits2chars,
+                    fixed_length=16, description="a 16 bit little-endian bfloat floating point number"),
+    DtypeDefinition('bfloatne', Bits._setbfloatne, Bits._getbfloatne, float, True, bfloat_bits2chars,
+                    fixed_length=16, description="a 16 bit native-endian bfloat floating point number"),
+    # Other known length types
+    DtypeDefinition('bits', Bits._setbits, Bits._getbits, Bits, False, bits_bits2chars,
+                    description="a bitstring object"),
+    DtypeDefinition('bool', Bits._setbool, Bits._getbool, bool, False, bool_bits2chars,
+                    fixed_length=1, description="a bool (True or False)"),
+    DtypeDefinition('bytes', Bits._setbytes, Bits._getbytes, bytes, False, bytes_bits2chars,
+                    multiplier=8, description="a bytes object"),
+    # Unknown length types
+    DtypeDefinition('se', Bits._setse, Bits._readse, int, True, None,
+                    is_unknown_length=True, description="a signed exponential-Golomb code"),
+    DtypeDefinition('ue', Bits._setue, Bits._readue, int, False, None,
+                    is_unknown_length=True, description="an unsigned exponential-Golomb code"),
+    DtypeDefinition('sie', Bits._setsie, Bits._readsie, int, True, None,
+                    is_unknown_length=True, description="a signed interleaved exponential-Golomb code"),
+    DtypeDefinition('uie', Bits._setuie, Bits._readuie, int, False, None,
+                    is_unknown_length=True, description="an unsigned interleaved exponential-Golomb code"),
+    # Special case pad type
+    DtypeDefinition('pad', Bits._setpad, Bits._getpad, None, False, None,
+                    description="a skipped section of padding"),
 ]
 
 
@@ -258,9 +237,9 @@ aliases: List[Tuple[str, str]] = [
 ]
 
 for dt in dtypes:
-    dtype_register.add_meta_dtype(dt)
+    dtype_register.add_dtype(dt)
 for alias in aliases:
-    dtype_register.add_meta_dtype_alias(alias[0], alias[1])
+    dtype_register.add_dtype_alias(alias[0], alias[1])
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
