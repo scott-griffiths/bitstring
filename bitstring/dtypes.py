@@ -34,14 +34,6 @@ class Dtype:
     def __hash__(self) -> int:
         return 0  # TODO: Optimise :)
 
-    @property
-    def is_integer(self) -> bool:
-        return self.return_type == int
-
-    @property
-    def is_float(self) -> bool:
-        return self.return_type == float
-
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
     def create(cls, definition: DtypeDefinition, length: Optional[int]) -> Dtype:
@@ -52,7 +44,7 @@ class Dtype:
         if x.bitlength is not None:
             x.bitlength *= x.bits_per_item
         x.is_unknown_length = definition.is_unknown_length
-        if x.is_unknown_length:
+        if x.is_unknown_length or len(dtype_register.names[x.name].fixed_length) == 1:
             x.read_fn = definition.read_fn
         else:
             x.read_fn = functools.partial(definition.read_fn, length=x.bitlength)
@@ -88,7 +80,9 @@ class DtypeDefinition:
 
         # Consistency checks
         if is_unknown_length and fixed_length is not None:
-            raise ValueError("Can't set is_unknown_length and give a value for length.")
+            raise ValueError("Can't set is_unknown_length and give a value for fixed_length.")
+        if int(multiplier) != multiplier or multiplier <= 0:
+            raise ValueError("multiplier must be an positive integer")
 
         self.name = name
         self.description = description
@@ -106,17 +100,9 @@ class DtypeDefinition:
         self.set_fn = set_fn
         self.get_fn = get_fn    # Interpret everything
 
-        if not self.is_unknown_length:
-            # TODO: Move the length logic out of the function
-            def read_fn(bs, start, length):
-                if length is None:
-                    assert len(self.fixed_length) == 1
-                    return self.get_fn(bs[start:start + self.fixed_length[0]])
-                else:
-                    return self.get_fn(bs[start:start + length])
-            self.read_fn = read_fn
-        else:
-            # For unknown lengths we get a reading function instead of a getter, so switch them around...
+        # Create a reading function from the get_fn.
+        if self.is_unknown_length:
+            # For unknown lengths the get_fn is really a reading function, so switch them around and create a new get_fn
             self.read_fn = get_fn
             def new_get_fn(bs):
                 try:
@@ -127,6 +113,14 @@ class DtypeDefinition:
                     raise ValueError  # TODO
                 return value
             self.get_fn = new_get_fn
+        else:
+            if len(self.fixed_length) == 1:
+                def read_fn(bs, start):
+                    return self.get_fn(bs[start:start + self.fixed_length[0]])
+            else:
+                def read_fn(bs, start, length):
+                    return self.get_fn(bs[start:start + length])
+            self.read_fn = read_fn
 
         self.bitlength2chars_fn = bitlength2chars_fn
 
@@ -173,6 +167,7 @@ class Register:
         cls._modified_flag = True
         if definition.get_fn is not None:
             setattr(Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
+        if definition.set_fn is not None:
             setattr(BitArray, definition.name, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"The bitstring as {definition.description}. Read and write."))
 
     @classmethod
@@ -182,6 +177,7 @@ class Register:
         cls._modified_flag = True
         if definition.get_fn is not None:
             setattr(Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
+        if definition.set_fn is not None:
             setattr(BitArray, alias, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod

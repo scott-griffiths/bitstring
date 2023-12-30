@@ -551,19 +551,21 @@ class Array:
         6. In a tie the first type wins against the second type.
 
         """
-        if type1.is_float + type1.is_integer + type2.is_float + type2.is_integer != 2:
+        def is_float(x): return x.return_type is float
+        def is_int(x): return x.return_type is int
+        if is_float(type1) + is_int(type1) + is_float(type2) + is_int(type2) != 2:
             raise ValueError(f"Only integer and floating point types can be combined - not '{type1}' and '{type2}'.")
         # If same type choose the widest
         if type1.name == type2.name:
             return type1 if type1.length > type2.length else type2
         # We choose floats above integers, irrespective of the widths
-        if type1.is_float and type2.is_integer:
+        if is_float(type1) and is_int(type2):
             return type1
-        if type1.is_integer and type2.is_float:
+        if is_int(type1) and is_float(type2):
             return type2
-        if type1.is_float and type2.is_float:
+        if is_float(type1) and is_float(type2):
             return type2 if type2.length > type1.length else type1
-        assert type1.is_integer and type2.is_integer
+        assert is_int(type1) and is_int(type2)
         if type1.is_signed and not type2.is_signed:
             return type1
         if type2.is_signed and not type1.is_signed:
