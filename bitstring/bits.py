@@ -318,7 +318,7 @@ class Bits:
             return ''
         if length > MAX_CHARS * 4:
             # Too long for hex. Truncate...
-            return ''.join(('0x', self._readhex(0, MAX_CHARS * 4), '...'))
+            return ''.join(('0x', self[0:MAX_CHARS*4]._gethex(), '...'))
         # If it's quite short and we can't do hex then use bin
         if length < 32 and length % 4 != 0:
             return '0b' + self.bin
@@ -328,9 +328,8 @@ class Bits:
         # Otherwise first we do as much as we can in hex
         # then add on 1, 2 or 3 bits on at the end
         bits_at_end = length % 4
-        return ''.join(('0x', self._readhex(0, length - bits_at_end),
-                        ', ', '0b',
-                        self._readbin(length - bits_at_end, bits_at_end)))
+        return ''.join(('0x', self[0:length - bits_at_end]._gethex(),
+                        ', ', '0b', self[length - bits_at_end:]._getbin()))
 
     def _repr(self, classname: str, length: int, filename: str, pos: int):
         pos_string = f', pos={pos}' if pos else ''
@@ -672,16 +671,11 @@ class Bits:
                 raise CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
         self._bitstore = BitStore(buffer=data).getslice_msb0(offset, offset + length)
 
-    def _readbytes(self, start: int, length: int) -> bytes:
-        """Read bytes and return them. Note that length is in bits."""
-        assert length % 8 == 0
-        return self._bitstore.getslice(start, start + length).tobytes()
-
     def _getbytes(self) -> bytes:
         """Return the data as an ordinary bytes object."""
         if len(self) % 8:
             raise InterpretError("Cannot interpret as bytes unambiguously - not multiple of 8 bits.")
-        return self._readbytes(0, len(self))
+        return self._bitstore.tobytes()
 
     _unprintable = list(range(0x00, 0x20))  # ASCII control characters
     _unprintable.extend(range(0x7f, 0xff))  # DEL char + non-ASCII
@@ -828,7 +822,7 @@ class Bits:
         if offset == 0:
             return struct.unpack(fmt, self._bitstore.getslice(start, start + length).tobytes())[0]
         else:
-            return struct.unpack(fmt, self._readbytes(start, length))[0]
+            return struct.unpack(fmt, self[start:start + length]._getbytes())[0]
 
     def _gete4m3float(self) -> float:
         if len(self) != 8:
@@ -1060,26 +1054,13 @@ class Bits:
         """Same as _setbin_safe, but input isn't sanity checked. binstring mustn't start with '0b'."""
         self._bitstore = bin2bitstore_unsafe(binstring)
 
-    def _readbin(self, start: int, length: int) -> str:
-        """Read bits and interpret as a binary string."""
-        if length == 0:
-            return ''
-        return self._bitstore.slice_to_bin(start, start + length)
-
     def _getbin(self) -> str:
         """Return interpretation as a binary string."""
-        return self._readbin(0, len(self))
+        return self._bitstore.slice_to_bin()
 
     def _setoct(self, octstring: str, length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in octstring."""
         self._bitstore = oct2bitstore(octstring)
-
-    def _readoct(self, start: int, length: int) -> str:
-        """Read bits and interpret as an octal string."""
-        if length % 3:
-            raise InterpretError("Cannot convert to octal unambiguously - not multiple of 3 bits long.")
-        s = self._bitstore.slice_to_oct(start, start + length)
-        return s
 
     def _getoct(self) -> str:
         """Return interpretation as an octal string."""
@@ -1090,12 +1071,6 @@ class Bits:
     def _sethex(self, hexstring: str, length: None = None, _offset: None = None) -> None:
         """Reset the bitstring to have the value given in hexstring."""
         self._bitstore = hex2bitstore(hexstring)
-
-    def _readhex(self, start: int, length: int) -> str:
-        """Read bits and interpret as a hex string."""
-        if length % 4:
-            raise InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
-        return self._bitstore.slice_to_hex(start, start + length)
 
     def _gethex(self) -> str:
         """Return the hexadecimal representation as a string.
