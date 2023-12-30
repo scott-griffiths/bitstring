@@ -3313,7 +3313,8 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(a._readbfloatbe(3, 16), -5.25)
 
         a = BitStream('0b111, floatle:64=9.9998, 0b111')
-        self.assertEqual(a._readfloatle(3, 64), 9.9998)
+        a.pos = 3
+        self.assertEqual(a.read('floatle64'), 9.9998)
 
     def testAutoInitWithInt(self):
         a = BitStream(0)

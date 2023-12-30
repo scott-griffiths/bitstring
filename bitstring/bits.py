@@ -781,19 +781,6 @@ class Bits:
         bs = BitStore(frombytes=self._bitstore.tobytes()[::-1])
         return bs.slice_to_int()
 
-    def _readfloat(self, start: int, length: int, struct_dict: Dict[int, str]) -> float:
-        """Read bits and interpret as a float."""
-        try:
-            fmt = struct_dict[length]
-        except KeyError:
-            raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {length} bits")
-
-        offset = start % 8
-        if offset == 0:
-            return struct.unpack(fmt, self._bitstore.getslice(start, start + length).tobytes())[0]
-        else:
-            return struct.unpack(fmt, self[start:start + length]._getbytes())[0]
-
     def _gete4m3float(self) -> float:
         if len(self) != 8:
             raise InterpretError(f"A e4m3float must be 8 bits long, not {len(self)} bits.")
@@ -813,13 +800,13 @@ class Bits:
             raise CreationError("A length of 16, 32, or 64 must be specified with a float initialiser.")
         self._bitstore = float2bitstore(f, length)
 
-    def _readfloatbe(self, start: int, length: int) -> float:
-        """Read bits and interpret as a big-endian float."""
-        return self._readfloat(start, length, {16: '>e', 32: '>f', 64: '>d'})
-
     def _getfloatbe(self) -> float:
         """Interpret the whole bitstring as a big-endian float."""
-        return self._readfloatbe(0, len(self))
+        try:
+            fmt = {16: '>e', 32: '>f', 64: '>d'}[len(self)]
+        except KeyError:
+            raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {len(self)} bits")
+        return struct.unpack(fmt, self._bitstore.tobytes())[0]
 
     def _setfloatle(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
@@ -828,13 +815,13 @@ class Bits:
             raise CreationError("A length of 16, 32, or 64 must be specified with a float initialiser.")
         self._bitstore = floatle2bitstore(f, length)
 
-    def _readfloatle(self, start: int, length: int) -> float:
-        """Read bits and interpret as a little-endian float."""
-        return self._readfloat(start, length, {16: '<e', 32: '<f', 64: '<d'})
-
     def _getfloatle(self) -> float:
         """Interpret the whole bitstring as a little-endian float."""
-        return self._readfloatle(0, len(self))
+        try:
+            fmt = {16: '<e', 32: '<f', 64: '<d'}[len(self)]
+        except KeyError:
+            raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {len(self)} bits")
+        return struct.unpack(fmt, self._bitstore.tobytes())[0]
 
     def _getbfloatbe(self) -> float:
         return self._readbfloatbe(0, len(self))
