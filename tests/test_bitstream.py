@@ -3310,7 +3310,8 @@ class AllAndAny(unittest.TestCase):
         self.assertEqual(b.read(Dtype('intle', length=200)), 918019283740918263512351235)
 
         a = BitStream('0b111, bfloat:16=-5.25, 0xffffffff')
-        self.assertEqual(a._readbfloatbe(3, 16), -5.25)
+        a.pos = 3
+        self.assertEqual(a.read('bfloatbe'), -5.25)
 
         a = BitStream('0b111, floatle:64=9.9998, 0b111')
         a.pos = 3
