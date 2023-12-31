@@ -29,8 +29,6 @@ BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, m
 
 TBits = TypeVar("TBits", bound='Bits')
 
-byteorder: str = sys.byteorder
-
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
 
@@ -1838,26 +1836,6 @@ class Bits:
         # Note that if you want a new copy (different ID), use _copy instead.
         # The copy can return self as it's immutable.
         return self
-
-    # Create native-endian functions as aliases depending on the byteorder
-    if byteorder == 'little':
-        _setfloatne = _setfloatle
-        _getfloatne = _getfloatle
-        _setbfloatne = _setbfloatle
-        _getbfloatne = _getbfloatle
-        _setuintne = _setuintle
-        _getuintne = _getuintle
-        _setintne = _setintle
-        _getintne = _getintle
-    else:
-        _setfloatne = _setfloatbe
-        _getfloatne = _getfloatbe
-        _setbfloatne = _setbfloatbe
-        _getbfloatne = _getbfloatbe
-        _setuintne = _setuintbe
-        _getuintne = _getuintbe
-        _setintne = _setintbe
-        _getintne = _getintbe
 
     len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")
 

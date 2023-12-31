@@ -167,16 +167,12 @@ dtypes = [
                     description="a two's complement unsigned int"),
     DtypeDefinition('uintle', Bits._setuintle, Bits._getuintle, int, False, uint_bits2chars,
                     description="a two's complement little-endian unsigned int"),
-    DtypeDefinition('uintne', Bits._setuintne, Bits._getuintne, int, False, uint_bits2chars,
-                    description="a two's complement native-endian unsigned int"),
     DtypeDefinition('uintbe', Bits._setuintbe, Bits._getuintbe, int, False, uint_bits2chars,
                     description="a two's complement big-endian unsigned int"),
     DtypeDefinition('int', Bits._setint, Bits._getint, int, True, int_bits2chars,
                     description="a two's complement signed int"),
     DtypeDefinition('intle', Bits._setintle, Bits._getintle, int, True, int_bits2chars,
                     description="a two's complement little-endian signed int"),
-    DtypeDefinition('intne', Bits._setintne, Bits._getintne, int, True, int_bits2chars,
-                    description="a two's complement native-endian signed int"),
     DtypeDefinition('intbe', Bits._setintbe, Bits._getintbe, int, True, int_bits2chars,
                     description="a two's complement big-endian signed int"),
     # String types
@@ -193,16 +189,12 @@ dtypes = [
                     fixed_length=8, description="an 8 bit float with e4m3float format"),
     DtypeDefinition('float', Bits._setfloatbe, Bits._getfloatbe, float, True, float_bits2chars,
                     fixed_length=(16, 32, 64), description="a big-endian floating point number"),
-    DtypeDefinition('floatne', Bits._setfloatne, Bits._getfloatne, float, True, float_bits2chars,
-                    fixed_length=(16, 32, 64), description="a native-endian floating point number"),
     DtypeDefinition('floatle', Bits._setfloatle, Bits._getfloatle, float, True, float_bits2chars,
                     fixed_length=(16, 32, 64), description="a little-endian floating point number"),
     DtypeDefinition('bfloat', Bits._setbfloatbe, Bits._getbfloatbe, float, True, bfloat_bits2chars,
                     fixed_length=16, description="a 16 bit big-endian bfloat floating point number"),
     DtypeDefinition('bfloatle', Bits._setbfloatle, Bits._getbfloatle, float, True, bfloat_bits2chars,
                     fixed_length=16, description="a 16 bit little-endian bfloat floating point number"),
-    DtypeDefinition('bfloatne', Bits._setbfloatne, Bits._getbfloatne, float, True, bfloat_bits2chars,
-                    fixed_length=16, description="a 16 bit native-endian bfloat floating point number"),
     # Other known length types
     DtypeDefinition('bits', Bits._setbits, Bits._getbits, Bits, False, bits_bits2chars,
                     description="a bitstring object"),
@@ -226,15 +218,36 @@ dtypes = [
 
 
 aliases: List[Tuple[str, str]] = [
+    # Floats default to big endian
     ('float', 'floatbe'),
     ('bfloat', 'bfloatbe'),
+
+    # Some single letter aliases for popular types
     ('int', 'i'),
     ('uint', 'u'),
     ('hex', 'h'),
     ('oct', 'o'),
     ('bin', 'b'),
-    ('float', 'f')
+    ('float', 'f'),
 ]
+
+# Create native-endian aliases depending on the byteorder of the system
+byteorder: str = sys.byteorder
+if byteorder == 'little':
+    aliases.extend([
+        ('uintle', 'uintne'),
+        ('intle', 'intne'),
+        ('floatle', 'floatne'),
+        ('bfloatle', 'bfloatne'),
+    ])
+else:
+    aliases.extend([
+        ('uintbe', 'uintne'),
+        ('intbe', 'intne'),
+        ('floatbe', 'floatne'),
+        ('bfloatbe', 'bfloatne'),
+    ])
+
 
 for dt in dtypes:
     dtype_register.add_dtype(dt)
