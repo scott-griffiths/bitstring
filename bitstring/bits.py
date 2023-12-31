@@ -176,7 +176,7 @@ class Bits:
         if auto is None:
             b._bitstore = BitStore()
             return b
-        b._setauto(auto, None, None)
+        b._setauto_no_length_or_offset(auto)
         return b
 
     def _initialise(self, auto: Any, /, length: Optional[int], offset: Optional[int], **kwargs) -> None:
@@ -542,19 +542,47 @@ class Bits:
         """Reset the bitstring to an empty state."""
         self._bitstore = BitStore()
 
+    def _setauto_no_length_or_offset(self, s: BitsType, /) -> None:
+        """Set bitstring from a bitstring, file, bool, array, iterable or string."""
+        if isinstance(s, str):
+            self._bitstore = str_to_bitstore(s)
+            return
+        if isinstance(s, Bits):
+            self._bitstore = s._bitstore.copy()
+            return
+        if isinstance(s, (bytes, bytearray, memoryview)):
+            self._bitstore = BitStore(frombytes=bytearray(s))
+            return
+        if isinstance(s, io.BytesIO):
+            self._bitstore = BitStore(frombytes=s.getvalue())
+            return
+        if isinstance(s, io.BufferedReader):
+            self._setfile(s.name)
+            return
+        if isinstance(s, bitarray.bitarray):
+            self._bitstore = BitStore(s)
+            return
+        if isinstance(s, array.array):
+            self._bitstore = BitStore(frombytes=bytearray(s.tobytes()))
+            return
+        if isinstance(s, abc.Iterable):
+            # Evaluate each item as True or False and set bits to 1 or 0.
+            self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
+            return
+        if isinstance(s, numbers.Integral):
+            raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
+                            f" Use '{self.__class__.__name__}({s})' instead of just '{s}' as this makes it "
+                            f"clearer that a bitstring of {int(s)} zero bits will be created.")
+        raise TypeError(f"Cannot initialise bitstring from type '{type(s)}'.")
+
     def _setauto(self, s: BitsType, length: Optional[int], offset: Optional[int], /) -> None:
         """Set bitstring from a bitstring, file, bool, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
-        # So str must be checked before Iterable
-        # and bytes/bytearray before Iterable but after str!
+        if offset is None and length is None:
+            return self._setauto_no_length_or_offset(s)
         if offset is None:
             offset = 0
-        if isinstance(s, Bits):
-            if length is None:
-                length = len(s) - offset
-            self._bitstore = s._bitstore.getslice(offset, offset + length)
-            return
 
         if isinstance(s, io.BytesIO):
             if length is None:
@@ -571,42 +599,12 @@ class Bits:
             self._setfile(s.name, length, offset)
             return
 
-        if isinstance(s, bitarray.bitarray):
-            if length is None:
-                if offset > len(s):
-                    raise CreationError(f"Offset of {offset} too large for bitarray of length {len(s)}.")
-                self._bitstore = BitStore(s[offset:])
-            else:
-                if offset + length > len(s):
-                    raise CreationError(
-                        f"Offset of {offset} and length of {length} too large for bitarray of length {len(s)}.")
-                self._bitstore = BitStore(s[offset: offset + length])
-            return
+        if isinstance(s, (str, Bits, bytes, bytearray, memoryview, io.BytesIO, io.BufferedReader,
+                          bitarray.bitarray, array.array, abc.Iterable)):
+            raise CreationError(f"Cannot initialise bitstring from type '{type(s)}' when using explicit lengths or offsets.")
+        raise TypeError(f"Cannot initialise bitstring from type '{type(s)}'.")
 
-        if length is not None:
-            raise CreationError("The length keyword isn't applicable to this initialiser.")
-        if offset > 0:
-            raise CreationError("The offset keyword isn't applicable to this initialiser.")
-        if isinstance(s, str):
-            self._bitstore = str_to_bitstore(s)
-            return
-        if isinstance(s, (bytes, bytearray, memoryview)):
-            self._bitstore = BitStore(frombytes=bytearray(s))
-            return
-        if isinstance(s, array.array):
-            self._bitstore = BitStore(frombytes=bytearray(s.tobytes()))
-            return
-        if isinstance(s, abc.Iterable):
-            # Evaluate each item as True or False and set bits to 1 or 0.
-            self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
-            return
-        if isinstance(s, numbers.Integral):
-            raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
-                            f" Use '{self.__class__.__name__}({s})' instead of just '{s}' as this makes it "
-                            f"clearer that a bitstring of {int(s)} zero bits will be created.")
-        raise TypeError(f"Cannot initialise bitstring from {type(s)}.")
-
-    def _setfile(self, filename: str, length: Optional[int], offset: Optional[int]) -> None:
+    def _setfile(self, filename: str, length: Optional[int] = None, offset: Optional[int] = None) -> None:
         """Use file as source of bits."""
         with open(pathlib.Path(filename), 'rb') as source:
             if offset is None:

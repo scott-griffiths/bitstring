@@ -176,8 +176,6 @@ class Creation(unittest.TestCase):
         ba = bitarray.bitarray('0010')
         bs = Bits(ba)
         self.assertEqual(bs.bin, '0010')
-        bs = Bits(ba, length=2)
-        self.assertEqual(bs.bin, '00')
         bs2 = Bits(bitarray=ba)
         self.assertEqual(bs2.bin, '0010')
 

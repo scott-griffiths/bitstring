@@ -1421,11 +1421,6 @@ class Adding(unittest.TestCase):
         with self.assertRaises(bitstring.CreationError):
             _ = BitStream('hello')
         s1 = BitStream(bytes=b'\xf5', length=3, offset=5)
-        s2 = BitStream(s1, length=1, offset=1)
-        self.assertEqual(s2, '0b0')
-        s = BitStream(bytes=b'\xff', offset=2)
-        t = BitStream(s, offset=2)
-        self.assertEqual(t, '0b1111')
         with self.assertRaises(TypeError):
             _ = BitStream(1.2)
 
