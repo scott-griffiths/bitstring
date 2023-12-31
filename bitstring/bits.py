@@ -535,7 +535,7 @@ class Bits:
             return hash(((self[:800] + self[-800:]).tobytes(), len(self)))
 
     def __bool__(self) -> bool:
-        """Return True if any bits are set to 1, otherwise return False."""
+        """Return False if bitstring is empty, otherwise return True."""
         return len(self) != 0
 
     def _clear(self) -> None:
