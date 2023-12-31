@@ -824,13 +824,9 @@ class Bits:
         return struct.unpack(fmt, self._bitstore.tobytes())[0]
 
     def _getbfloatbe(self) -> float:
-        return self._readbfloatbe(0, len(self))
-
-    def _readbfloatbe(self, start: int, length: int) -> float:
-        if length != 16:
-            raise InterpretError(f"bfloats must be length 16, received a length of {length} bits.")
-        two_bytes = self._slice(start, start + 16)
-        zero_padded = two_bytes + Bits(16)
+        if len(self) != 16:
+            raise InterpretError(f"bfloats must be length 16, received a length of {len(self)} bits.")
+        zero_padded = self + Bits(16)
         return zero_padded._getfloatbe()
 
     def _setbfloatbe(self, f: Union[float, str], length: Optional[int] = None, _offset: None = None) -> None:
@@ -839,13 +835,9 @@ class Bits:
         self._bitstore = bfloat2bitstore(f)
 
     def _getbfloatle(self) -> float:
-        return self._readbfloatle(0, len(self))
-
-    def _readbfloatle(self, start: int, length: int) -> float:
-        if length != 16:
-            raise InterpretError(f"bfloats must be length 16, received a length of {length} bits.")
-        two_bytes = self._slice(start, start + 16)
-        zero_padded = Bits(16) + two_bytes
+        if len(self) != 16:
+            raise InterpretError(f"bfloats must be length 16, received a length of {len(self)} bits.")
+        zero_padded = Bits(16) + self
         return zero_padded._getfloatle()
 
     def _setbfloatle(self, f: Union[float, str], length: Optional[int] = None, _offset: None = None) -> None:
