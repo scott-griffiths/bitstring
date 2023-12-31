@@ -98,7 +98,21 @@ class DtypeDefinition:
         self.multiplier = multiplier
 
         self.set_fn = set_fn
-        self.get_fn = get_fn    # Interpret everything
+
+        if self.fixed_length:
+            if len(self.fixed_length) == 1:
+                def length_checked_get_fn(bs):
+                    if len(bs) != self.fixed_length[0]:
+                        raise InterpretError(f"'{self.name}' dtypes must have a length of {self.fixed_length[0]}, but received a length of {len(bs)}.")
+                    return get_fn(bs)
+            else:
+                def length_checked_get_fn(bs):
+                    if len(bs) not in self.fixed_length:
+                        raise InterpretError(f"'{self.name}' dtypes must have one of the lengths {self.fixed_length}, but received a length of {len(bs)}.")
+                    return get_fn(bs)
+            self.get_fn = length_checked_get_fn  # Interpret everything and check the length
+        else:
+            self.get_fn = get_fn  # Interpret everything
 
         # Create a reading function from the get_fn.
         if self.is_unknown_length:
@@ -121,7 +135,6 @@ class DtypeDefinition:
                 def read_fn(bs, start, length):
                     return self.get_fn(bs[start:start + length])
             self.read_fn = read_fn
-
         self.bitlength2chars_fn = bitlength2chars_fn
 
     def getDtype(self, length: Optional[int] = None) -> Dtype:

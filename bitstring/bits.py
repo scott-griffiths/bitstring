@@ -780,14 +780,10 @@ class Bits:
         return bs.slice_to_int()
 
     def _gete4m3float(self) -> float:
-        if len(self) != 8:
-            raise InterpretError(f"A e4m3float must be 8 bits long, not {len(self)} bits.")
         u = self._getuint()
         return e4m3float_fmt.lut_int8_to_float[u]
 
     def _gete5m2float(self) -> float:
-        if len(self) != 8:
-            raise InterpretError(f"A e5m2float must be 8 bits long, not {len(self)} bits.")
         u = self._getuint()
         return e5m2float_fmt.lut_int8_to_float[u]
 
@@ -800,10 +796,7 @@ class Bits:
 
     def _getfloatbe(self) -> float:
         """Interpret the whole bitstring as a big-endian float."""
-        try:
-            fmt = {16: '>e', 32: '>f', 64: '>d'}[len(self)]
-        except KeyError:
-            raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {len(self)} bits")
+        fmt = {16: '>e', 32: '>f', 64: '>d'}[len(self)]
         return struct.unpack(fmt, self._bitstore.tobytes())[0]
 
     def _setfloatle(self, f: float, length: Optional[int] = None, _offset: None = None) -> None:
@@ -815,15 +808,10 @@ class Bits:
 
     def _getfloatle(self) -> float:
         """Interpret the whole bitstring as a little-endian float."""
-        try:
-            fmt = {16: '<e', 32: '<f', 64: '<d'}[len(self)]
-        except KeyError:
-            raise InterpretError(f"Floats can only be 16, 32 or 64 bits long, not {len(self)} bits")
+        fmt = {16: '<e', 32: '<f', 64: '<d'}[len(self)]
         return struct.unpack(fmt, self._bitstore.tobytes())[0]
 
     def _getbfloatbe(self) -> float:
-        if len(self) != 16:
-            raise InterpretError(f"bfloats must be length 16, received a length of {len(self)} bits.")
         zero_padded = self + Bits(16)
         return zero_padded._getfloatbe()
 
@@ -833,8 +821,6 @@ class Bits:
         self._bitstore = bfloat2bitstore(f)
 
     def _getbfloatle(self) -> float:
-        if len(self) != 16:
-            raise InterpretError(f"bfloats must be length 16, received a length of {len(self)} bits.")
         zero_padded = Bits(16) + self
         return zero_padded._getfloatle()
 
@@ -983,8 +969,6 @@ class Bits:
             raise CreationError(f"Cannot initialise boolean with {value}.")
 
     def _getbool(self) -> bool:
-        if len(self) != 1:
-            raise InterpretError(f"For a bool interpretation a bitstring must be 1 bit long, not {len(self)} bits.")
         return self[0]
 
     def _getpad(self) -> None:
