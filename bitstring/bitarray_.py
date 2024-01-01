@@ -137,16 +137,6 @@ class BitArray(Bits):
             self._bitstore = self._bitstore._copy()
             self._bitstore.immutable = False
 
-    _letter_to_setter: Dict[str, Callable[..., None]] = \
-        {'u': Bits._setuint,
-         'i': Bits._setint,
-         'f': Bits._setfloatbe,
-         'b': Bits._setbin_safe,
-         'o': Bits._setoct,
-         'h': Bits._sethex}
-
-    _name_length_pattern: Pattern[str] = re.compile(r'^(?P<name>[a-z]+)(?P<len>\d+)$', re.IGNORECASE)
-
     def copy(self: TBits) -> TBits:
         """Return a copy of the bitstring."""
         return self.__copy__()
