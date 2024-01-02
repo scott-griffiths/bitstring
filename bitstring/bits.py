@@ -23,6 +23,7 @@ from bitstring.bitstore_helpers import float2bitstore, uint2bitstore, ue2bitstor
     bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore, \
     e5m2float2bitstore, e4m3float2bitstore
 
+import bitstring
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
@@ -31,21 +32,6 @@ TBits = TypeVar("TBits", bound='Bits')
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
-
-dtype_register = None
-Dtype = None
-options = None
-
-def _initialise_bits_class() -> None:
-    from bitstring.dtypes import dtype_register as _dtype_register
-    global dtype_register
-    dtype_register = _dtype_register
-    from bitstring.dtypes import Dtype as _Dtype
-    global Dtype
-    Dtype = _Dtype
-    from bitstring.options import Options
-    global options
-    options = Options()
 
 
 class Bits:
@@ -193,7 +179,7 @@ class Bits:
             self._setbytes_with_truncation(v, length, offset)
             return
         try:
-            setting_function = dtype_register[k].set_fn
+            setting_function = bitstring.dtypes.dtype_register[k].set_fn
         except KeyError:
             if k == 'filename':
                 self._setfile(v, length, offset)
@@ -213,7 +199,7 @@ class Bits:
     def __getattr__(self, attribute: str) -> Any:
         # Support for arbitrary attributes like u16 or f64.
         try:
-            d = Dtype(attribute)
+            d = bitstring.dtypes.Dtype(attribute)
         except ValueError as e:
             raise AttributeError(e)
         if d.bitlength is not None and len(self) != d.bitlength:
@@ -825,7 +811,7 @@ class Bits:
         """
         if length is not None:
             raise CreationError("Cannot specify a length for exponential-Golomb codes.")
-        if options.lsb0:
+        if bitstring.options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = ue2bitstore(i)
 
@@ -837,7 +823,7 @@ class Bits:
 
         """
         # _length is ignored - it's only present to make the function signature consistent.
-        if options.lsb0:
+        if bitstring.options.lsb0:
             raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         oldpos = pos
         try:
@@ -861,7 +847,7 @@ class Bits:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
         if length is not None:
             raise CreationError("Cannot specify a length for exponential-Golomb codes.")
-        if options.lsb0:
+        if bitstring.options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = se2bitstore(i)
 
@@ -889,7 +875,7 @@ class Bits:
         """
         if length is not None:
             raise CreationError("Cannot specify a length for exponential-Golomb codes.")
-        if options.lsb0:
+        if bitstring.options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = uie2bitstore(i)
 
@@ -900,7 +886,7 @@ class Bits:
         reading the code.
 
         """
-        if options.lsb0:
+        if bitstring.options.lsb0:
             raise ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         try:
             codenum: int = 1
@@ -919,7 +905,7 @@ class Bits:
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
         if length is not None:
             raise CreationError("Cannot specify a length for exponential-Golomb codes.")
-        if options.lsb0:
+        if bitstring.options.lsb0:
             raise CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = sie2bitstore(i)
 
@@ -1029,7 +1015,7 @@ class Bits:
 
     def _readtoken(self, name: str, pos: int, length: Optional[int]) -> Tuple[Union[float, int, str, None, Bits], int]:
         """Reads a token from the bitstring and returns the result."""
-        dtype = dtype_register.get_dtype(name, length)
+        dtype = bitstring.dtypes.dtype_register.get_dtype(name, length)
         if dtype.bitlength is not None and dtype.bitlength > len(self) - pos:
             raise ReadError("Reading off the end of the data. "
                             f"Tried to read {dtype.bitlength} bits when only {len(self) - pos} available.")
@@ -1188,8 +1174,8 @@ class Bits:
         dtype_list = []
         for f_item in fmt:
             if isinstance(f_item, numbers.Integral):
-                dtype_list.append(Dtype('bits', f_item))
-            elif isinstance(f_item, Dtype):
+                dtype_list.append(bitstring.dtypes.Dtype('bits', f_item))
+            elif isinstance(f_item, bitstring.dtypes.Dtype):
                 dtype_list.append(f_item)
             else:
                 token_list = preprocess_tokens(f_item)
@@ -1197,9 +1183,9 @@ class Bits:
                     try:
                         name, length = parse_name_length_token(t, **kwargs)
                     except ValueError:
-                        dtype_list.append(Dtype('bits', int(t)))
+                        dtype_list.append(bitstring.dtypes.Dtype('bits', int(t)))
                     else:
-                        dtype_list.append(Dtype(name, length))
+                        dtype_list.append(bitstring.dtypes.Dtype(name, length))
         return self._read_dtype_list(dtype_list, pos)
 
     def _read_dtype_list(self, dtypes: List[Dtype], pos: int) -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
@@ -1229,7 +1215,7 @@ class Bits:
                     raise ValueError(
                         f"The '{dtype.name}' type must have a bit length that is a multiple of {dtype.bits_per_item}"
                         f" so cannot be created from the {bitlength} bits that are available for this stretchy token.")
-                dtype = Dtype(dtype.name, items)
+                dtype = bitstring.dtypes.Dtype(dtype.name, items)
             if dtype.bitlength is not None:
                 val = dtype.read_fn(self, pos)
                 pos += dtype.bitlength
@@ -1265,14 +1251,14 @@ class Bits:
         if len(bs) == 0:
             raise ValueError("Cannot find an empty bitstring.")
         start, end = self._validate_slice(start, end)
-        ba = options.bytealigned if bytealigned is None else bytealigned
+        ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
         p = self._find(bs, start, end, ba)
         return p
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A forward find in lsb0 is very like a reverse find in msb0.
         assert start <= end
-        assert options.lsb0
+        assert bitstring.options.lsb0
 
         new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self))
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
@@ -1310,7 +1296,7 @@ class Bits:
             raise ValueError("In findall, count must be >= 0.")
         bs = Bits._create_from_bitstype(bs)
         start, end = self._validate_slice(start, end)
-        ba = options.bytealigned if bytealigned is None else bytealigned
+        ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
         return self._findall(bs, start, end, count, ba)
 
     def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
@@ -1326,7 +1312,7 @@ class Bits:
     def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Iterable[int]:
         assert start <= end
-        assert options.lsb0
+        assert bitstring.options.lsb0
 
         new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self))
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
@@ -1376,7 +1362,7 @@ class Bits:
         """
         bs = Bits._create_from_bitstype(bs)
         start, end = self._validate_slice(start, end)
-        ba = options.bytealigned if bytealigned is None else bytealigned
+        ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
         if len(bs) == 0:
             raise ValueError("Cannot find an empty bitstring.")
         p = self._rfind(bs, start, end, ba)
@@ -1390,7 +1376,7 @@ class Bits:
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
         assert start <= end
-        assert options.lsb0
+        assert bitstring.options.lsb0
         new_slice = offset_slice_indices_lsb0(slice(start, end, None), len(self))
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
 
@@ -1451,7 +1437,7 @@ class Bits:
         if len(delimiter) == 0:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
-        bytealigned_: bool = options.bytealigned if bytealigned is None else bytealigned
+        bytealigned_: bool = bitstring.options.bytealigned if bytealigned is None else bytealigned
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
@@ -1656,12 +1642,12 @@ class Bits:
 
     @staticmethod
     def _format_bits(bits: Bits, bits_per_group: int, sep: str, fmt: str) -> str:
-        get_fn = Bits._getbytes_printable if fmt == 'bytes' else dtype_register.get_dtype(fmt, bits_per_group).get_fn
+        get_fn = Bits._getbytes_printable if fmt == 'bytes' else bitstring.dtypes.dtype_register.get_dtype(fmt, bits_per_group).get_fn
         if bits_per_group == 0:
             return str(get_fn(bits))
         # Left-align for fixed width types when msb0, otherwise right-align.
-        align = '<' if fmt in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not options.lsb0 else '>'
-        chars_per_group = dtype_register[fmt].bitlength2chars_fn(bits_per_group)
+        align = '<' if fmt in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not bitstring.options.lsb0 else '>'
+        chars_per_group = bitstring.dtypes.dtype_register[fmt].bitlength2chars_fn(bits_per_group)
         return sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
 
     @staticmethod
@@ -1669,7 +1655,7 @@ class Bits:
         """How many characters are needed to represent a number of bits with a given format."""
         if fmt is None:
             return 0
-        return dtype_register[fmt].bitlength2chars_fn(bits_per_group)
+        return bitstring.dtypes.dtype_register[fmt].bitlength2chars_fn(bits_per_group)
 
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
@@ -1709,7 +1695,7 @@ class Bits:
         first_fb_width = second_fb_width = None
         for bits in self.cut(max_bits_per_line):
             offset = bitpos // offset_factor
-            if options.lsb0:
+            if bitstring.options.lsb0:
                 offset_str = f'{offset_sep}{offset: >{offset_width - len(offset_sep)}}' if show_offset else ''
             else:
                 offset_str = f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
@@ -1717,7 +1703,7 @@ class Bits:
             if first_fb_width is None:
                 first_fb_width = len(fb)
             if len(fb) < first_fb_width:  # Pad final line with spaces to align it
-                if options.lsb0:
+                if bitstring.options.lsb0:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
@@ -1725,11 +1711,11 @@ class Bits:
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:
-                if options.lsb0:
+                if bitstring.options.lsb0:
                     fb2 = ' ' * (second_fb_width - len(fb2)) + fb2
                 else:
                     fb2 += ' ' * (second_fb_width - len(fb2))
-            if options.lsb0 is True:
+            if bitstring.options.lsb0 is True:
                 line_fmt = fb + fb2 + offset_str + '\n'
             else:
                 line_fmt = offset_str + fb + fb2 + '\n'
@@ -1799,7 +1785,7 @@ class Bits:
 
         format_sep = "   "  # String to insert on each line between multiple formats
         self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset,
-                 stream, options.lsb0, 1)
+                 stream, bitstring.options.lsb0, 1)
         return
 
     def copy(self: TBits) -> TBits:

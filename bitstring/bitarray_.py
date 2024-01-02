@@ -9,14 +9,7 @@ from bitstring.utils import BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE, PACK_CODE_
 from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
 
-
-options = None
-
-def _initialise_bitarray_class() -> None:
-    from .options import Options
-    global options
-    options = Options()
-
+import bitstring.dtypes
 
 class BitArray(Bits):
     """A container holding a mutable sequence of bits.
@@ -163,8 +156,7 @@ class BitArray(Bits):
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
         except AttributeError:
-            from bitstring.dtypes import Dtype
-            dtype = Dtype(attribute)
+            dtype = bitstring.dtypes.Dtype(attribute)
             x = object.__new__(Bits)
             if (set_fn := dtype.set_fn) is None:
                 raise AttributeError(f"Cannot set attribute '{attribute}' as it does not have a set_fn.")
@@ -308,7 +300,7 @@ class BitArray(Bits):
 
     def _replace(self, old: Bits, new: Bits, start: int, end: int, count: int, bytealigned: Optional[bool]) -> int:
         if bytealigned is None:
-            bytealigned = options.bytealigned
+            bytealigned = bitstring.options.bytealigned
         # First find all the places where we want to do the replacements
         starting_points: List[int] = []
         for x in self.findall(old, start, end, bytealigned=bytealigned):
@@ -329,7 +321,7 @@ class BitArray(Bits):
         # Final replacement
         replacement_list.append(new._bitstore)
         replacement_list.append(self._bitstore.getslice(starting_points[-1] + len(old), None))
-        if options.lsb0:
+        if bitstring.options.lsb0:
             # Addition of bitarray is always on the right, so assemble from other end
             replacement_list.reverse()
         self._bitstore.clear()

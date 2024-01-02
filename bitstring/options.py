@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from bitstring.bits import Bits
-from bitstring.bitarray_ import BitArray
+import bitstring.bits
+import bitstring.bitarray_
 from bitstring.bitstore import BitStore
 
 
@@ -29,15 +29,15 @@ class Options:
         self._lsb0 = bool(value)
 
         if self._lsb0:
-            Bits._find = Bits._find_lsb0  # type: ignore
-            Bits._rfind = Bits._rfind_lsb0  # type: ignore
-            Bits._findall = Bits._findall_lsb0  # type: ignore
+            bitstring.bits.Bits._find = bitstring.bits.Bits._find_lsb0  # type: ignore
+            bitstring.bits.Bits._rfind = bitstring.bits.Bits._rfind_lsb0  # type: ignore
+            bitstring.bits.Bits._findall = bitstring.bits.Bits._findall_lsb0  # type: ignore
 
-            BitArray._ror = BitArray._rol_msb0  # type: ignore
-            BitArray._rol = BitArray._ror_msb0  # type: ignore
-            BitArray._append = BitArray._append_lsb0  # type: ignore
+            bitstring.bitarray_.BitArray._ror = bitstring.bitarray_.BitArray._rol_msb0  # type: ignore
+            bitstring.bitarray_.BitArray._rol = bitstring.bitarray_.BitArray._ror_msb0  # type: ignore
+            bitstring.bitarray_.BitArray._append = bitstring.bitarray_.BitArray._append_lsb0  # type: ignore
             # An LSB0 prepend is an MSB0 append
-            BitArray._prepend = BitArray._append_msb0  # type: ignore
+            bitstring.bitarray_.BitArray._prepend = bitstring.bitarray_.BitArray._append_msb0  # type: ignore
 
             BitStore.__setitem__ = BitStore.setitem_lsb0  # type: ignore
             BitStore.__delitem__ = BitStore.delitem_lsb0  # type: ignore
@@ -46,14 +46,14 @@ class Options:
             BitStore.getslice_withstep = BitStore.getslice_withstep_lsb0
             BitStore.invert = BitStore.invert_lsb0  # type: ignore
         else:
-            Bits._find = Bits._find_msb0  # type: ignore
-            Bits._rfind = Bits._rfind_msb0  # type: ignore
-            Bits._findall = Bits._findall_msb0  # type: ignore
+            bitstring.bits.Bits._find = bitstring.bits.Bits._find_msb0  # type: ignore
+            bitstring.bits.Bits._rfind = bitstring.bits.Bits._rfind_msb0  # type: ignore
+            bitstring.bits.Bits._findall = bitstring.bits.Bits._findall_msb0  # type: ignore
 
-            BitArray._ror = BitArray._ror_msb0  # type: ignore
-            BitArray._rol = BitArray._rol_msb0  # type: ignore
-            BitArray._append = BitArray._append_msb0  # type: ignore
-            BitArray._prepend = BitArray._append_lsb0  # type: ignore
+            bitstring.bitarray_.BitArray._ror = bitstring.bitarray_.BitArray._ror_msb0  # type: ignore
+            bitstring.bitarray_.BitArray._rol = bitstring.bitarray_.BitArray._rol_msb0  # type: ignore
+            bitstring.bitarray_.BitArray._append = bitstring.bitarray_.BitArray._append_msb0  # type: ignore
+            bitstring.bitarray_.BitArray._prepend = bitstring.bitarray_.BitArray._append_lsb0  # type: ignore
 
             BitStore.__setitem__ = BitStore.setitem_msb0  # type: ignore
             BitStore.__delitem__ = BitStore.delitem_msb0  # type: ignore

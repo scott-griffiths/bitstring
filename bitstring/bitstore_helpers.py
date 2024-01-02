@@ -10,6 +10,8 @@ from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 from bitstring.bitstore import BitStore
+import bitstring
+
 
 byteorder: str = sys.byteorder
 
@@ -245,17 +247,15 @@ literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {
 }
 
 def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[str]) -> BitStore:
-    from bitstring.dtypes import Dtype
-    from bitstring.bits import Bits
     try:
-        d = Dtype(name, token_length)
+        d = bitstring.dtypes.Dtype(name, token_length)
     except ValueError as e:
         if name in literal_bit_funcs:
             bs = literal_bit_funcs[name](value)
         else:
             raise CreationError(f"Can't parse token: {e}")
     else:
-        b = Bits()
+        b = bitstring.bits.Bits()
         if value is None and name != 'pad':
             # 'pad' is a special case - the only dtype that can be constructed from a length with no value.
             raise ValueError

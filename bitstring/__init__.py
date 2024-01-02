@@ -61,9 +61,9 @@ __author__ = "Scott Griffiths"
 
 import sys
 
-from .bits import Bits, _initialise_bits_class
+from .bits import Bits
 from .options import Options
-from .bitarray_ import BitArray, _initialise_bitarray_class
+from .bitarray_ import BitArray
 from .bitstream import ConstBitStream, BitStream
 from .methods import pack
 from .array_ import Array
@@ -72,12 +72,8 @@ from .dtypes import DtypeDefinition, dtype_register, Dtype
 import types
 from typing import List, Tuple, Literal
 
-
-# We initialise the Options singleton after the base classes have been created.
-# This avoids a nasty circular import.
+# The Options class returns a singleton.
 options = Options()
-_initialise_bits_class()
-_initialise_bitarray_class()
 
 # These get defined properly by the module magic below. This just stops mypy complaining about them.
 bytealigned = lsb0 = None
@@ -161,7 +157,7 @@ def bool_bits2chars(bitlength: Literal[1]):
     # Bools are printed as 1 or 0, not True or False, so are one character each
     return 1
 
-dtypes = [
+dtype_definitions = [
     # Integer types
     DtypeDefinition('uint', Bits._setuint, Bits._getuint, int, False, uint_bits2chars,
                     description="a two's complement unsigned int"),
@@ -249,7 +245,7 @@ else:
     ])
 
 
-for dt in dtypes:
+for dt in dtype_definitions:
     dtype_register.add_dtype(dt)
 for alias in aliases:
     dtype_register.add_dtype_alias(alias[0], alias[1])

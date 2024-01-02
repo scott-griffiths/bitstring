@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import functools
 from typing import Optional, Dict, Any, Union, Tuple
-from bitstring.utils import parse_name_length_token
+import bitstring as bs
 from collections.abc import Iterable
-from bitstring.bits import Bits
-from bitstring.bitarray_ import BitArray
 from bitstring.exceptions import ReadError, InterpretError
 
 CACHE_SIZE = 256
@@ -25,7 +23,7 @@ class Dtype:
     def _new_from_token(cls, token: str, length: Optional[int] = None) -> Dtype:
         token = ''.join(token.split())
         if length is None:
-            name, length = parse_name_length_token(token)
+            name, length = bs.utils.parse_name_length_token(token)
         else:
             name = token
         d = dtype_register.get_dtype(name, length)
@@ -179,9 +177,9 @@ class Register:
         cls.names[definition.name] = definition
         cls._modified_flag = True
         if definition.get_fn is not None:
-            setattr(Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
+            setattr(bs.bits.Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
         if definition.set_fn is not None:
-            setattr(BitArray, definition.name, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"The bitstring as {definition.description}. Read and write."))
+            setattr(bs.bitarray_.BitArray, definition.name, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"The bitstring as {definition.description}. Read and write."))
 
     @classmethod
     def add_dtype_alias(cls, name: str, alias: str):
@@ -189,9 +187,9 @@ class Register:
         definition = cls.names[alias]
         cls._modified_flag = True
         if definition.get_fn is not None:
-            setattr(Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
+            setattr(bs.bits.Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
         if definition.set_fn is not None:
-            setattr(BitArray, alias, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"An alias for '{name}'. Read and write."))
+            setattr(bs.bitarray_.BitArray, alias, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod
     def get_dtype(cls, name: str, length: Optional[int]) -> Dtype:
