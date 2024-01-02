@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import functools
 from typing import Optional, Dict, Any, Union, Tuple
-import bitstring as bs
 from collections.abc import Iterable
-from bitstring.exceptions import ReadError, InterpretError
+import bitstring
 
 CACHE_SIZE = 256
 
@@ -23,7 +22,7 @@ class Dtype:
     def _new_from_token(cls, token: str, length: Optional[int] = None) -> Dtype:
         token = ''.join(token.split())
         if length is None:
-            name, length = bs.utils.parse_name_length_token(token)
+            name, length = bitstring.utils.parse_name_length_token(token)
         else:
             name = token
         d = dtype_register.get_dtype(name, length)
@@ -101,12 +100,12 @@ class DtypeDefinition:
             if len(self.fixed_length) == 1:
                 def length_checked_get_fn(bs):
                     if len(bs) != self.fixed_length[0]:
-                        raise InterpretError(f"'{self.name}' dtypes must have a length of {self.fixed_length[0]}, but received a length of {len(bs)}.")
+                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length of {self.fixed_length[0]}, but received a length of {len(bs)}.")
                     return get_fn(bs)
             else:
                 def length_checked_get_fn(bs):
                     if len(bs) not in self.fixed_length:
-                        raise InterpretError(f"'{self.name}' dtypes must have one of the lengths {self.fixed_length}, but received a length of {len(bs)}.")
+                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have one of the lengths {self.fixed_length}, but received a length of {len(bs)}.")
                     return get_fn(bs)
             self.get_fn = length_checked_get_fn  # Interpret everything and check the length
         else:
@@ -119,8 +118,8 @@ class DtypeDefinition:
             def new_get_fn(bs):
                 try:
                     value, length = self.read_fn(bs, 0)
-                except ReadError:
-                    raise InterpretError
+                except bitstring.ReadError:
+                    raise bitstring.InterpretError
                 if length != len(bs):
                     raise ValueError  # TODO
                 return value
@@ -177,9 +176,9 @@ class Register:
         cls.names[definition.name] = definition
         cls._modified_flag = True
         if definition.get_fn is not None:
-            setattr(bs.bits.Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
+            setattr(bitstring.bits.Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
         if definition.set_fn is not None:
-            setattr(bs.bitarray_.BitArray, definition.name, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"The bitstring as {definition.description}. Read and write."))
+            setattr(bitstring.bitarray_.BitArray, definition.name, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"The bitstring as {definition.description}. Read and write."))
 
     @classmethod
     def add_dtype_alias(cls, name: str, alias: str):
@@ -187,9 +186,9 @@ class Register:
         definition = cls.names[alias]
         cls._modified_flag = True
         if definition.get_fn is not None:
-            setattr(bs.bits.Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
+            setattr(bitstring.bits.Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
         if definition.set_fn is not None:
-            setattr(bs.bitarray_.BitArray, alias, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"An alias for '{name}'. Read and write."))
+            setattr(bitstring.bitarray_.BitArray, alias, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod
     def get_dtype(cls, name: str, length: Optional[int]) -> Dtype:

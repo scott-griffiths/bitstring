@@ -1,18 +1,10 @@
 from __future__ import annotations
 
-from bitstring.bits import Bits
-from bitstring.bitstream import BitStream
-from bitstring.utils import tokenparser
-from bitstring.exceptions import CreationError
 from typing import Union, List
-from bitstring.bitstore import BitStore
-from bitstring.bitstore_helpers import bitstore_from_token
-from bitstring.dtypes import dtype_register
-from bitstring.options import Options
+import bitstring
 
-options = Options()
 
-def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
+def pack(fmt: Union[str, List[str]], *values, **kwargs) -> bitstring.BitStream:
     """Pack the values according to the format string and return a new BitStream.
 
     fmt -- A single string or a list of strings with comma separated tokens
@@ -52,12 +44,12 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
         fmt = [fmt]
     try:
         for f_item in fmt:
-            _, tkns = tokenparser(f_item, tuple(sorted(kwargs.keys())))
+            _, tkns = bitstring.utils.tokenparser(f_item, tuple(sorted(kwargs.keys())))
             tokens.extend(tkns)
     except ValueError as e:
-        raise CreationError(*e.args)
+        raise bitstring.CreationError(*e.args)
     value_iter = iter(values)
-    bsl: List[BitStore] = []
+    bsl: List[bitstring.BitStore] = []
     try:
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.
@@ -68,7 +60,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
                 length = kwargs[length]
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
-                bsl.append(BitStream(kwargs[name])._bitstore)
+                bsl.append(bitstring.BitStream(kwargs[name])._bitstore)
                 continue
             if length is not None:
                 length = int(length)
@@ -76,25 +68,25 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
                 # Take the next value from the ones provided
                 value = next(value_iter)
             if name == 'bits':
-                value = Bits(value)
+                value = bitstring.Bits(value)
                 if length is not None and length != len(value):
-                    raise CreationError(f"Token with length {length} packed with value of length {len(value)}.")
+                    raise bitstring.CreationError(f"Token with length {length} packed with value of length {len(value)}.")
                 bsl.append(value._bitstore)
                 continue
-            bsl.append(bitstore_from_token(name, length, value))
+            bsl.append(bitstring.bitstore_helpers.bitstore_from_token(name, length, value))
     except StopIteration:
-        raise CreationError(f"Not enough parameters present to pack according to the "
+        raise bitstring.CreationError(f"Not enough parameters present to pack according to the "
                             f"format. {len(tokens)} values are needed.")
 
     try:
         next(value_iter)
     except StopIteration:
         # Good, we've used up all the *values.
-        s = BitStream()
-        if options.lsb0:
+        s = bitstring.BitStream()
+        if bitstring.options.lsb0:
             for name, _, _ in tokens:
-                if name in dtype_register.unknowable_length_names():
-                    raise CreationError(f"Unknown length tokens ('{name}') cannot be used in lsb0 mode.")
+                if name in bitstring.dtypes.dtype_register.unknowable_length_names():
+                    raise bitstring.CreationError(f"Unknown length tokens ('{name}') cannot be used in lsb0 mode.")
             for b in bsl[::-1]:
                 s._bitstore += b
         else:
@@ -102,4 +94,4 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
                 s._bitstore += b
         return s
 
-    raise CreationError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")
+    raise bitstring.CreationError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")

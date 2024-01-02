@@ -1,9 +1,8 @@
 from __future__ import annotations
+
 import functools
 import re
 from typing import Tuple, List, Optional, Pattern, Dict, Union, Match
-import sys
-byteorder: str = sys.byteorder
 
 
 # A token name followed by optional : then an integer number

@@ -10,14 +10,15 @@ class Error(Exception):
 class ReadError(Error, IndexError):
     """Reading or peeking past the end of a bitstring."""
 
-"""Inappropriate interpretation of binary data."""
+
 InterpretError = ValueError
+"""Inappropriate interpretation of binary data."""
 
 
 class ByteAlignError(Error):
     """Whole-byte position or length needed."""
 
 
-"""Inappropriate argument during bitstring creation."""
 CreationError = ValueError
+"""Inappropriate argument during bitstring creation."""
 

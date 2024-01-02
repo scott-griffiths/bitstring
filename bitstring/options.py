@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import bitstring.bits
-import bitstring.bitarray_
-from bitstring.bitstore import BitStore
+import bitstring
 
 
 class Options:
@@ -27,39 +25,41 @@ class Options:
 
     def set_lsb0(self, value: bool) -> None:
         self._lsb0 = bool(value)
-
+        Bits = bitstring.bits.Bits
+        BitArray = bitstring.bitarray_.BitArray
+        BitStore = bitstring.bitstore.BitStore
         if self._lsb0:
-            bitstring.bits.Bits._find = bitstring.bits.Bits._find_lsb0  # type: ignore
-            bitstring.bits.Bits._rfind = bitstring.bits.Bits._rfind_lsb0  # type: ignore
-            bitstring.bits.Bits._findall = bitstring.bits.Bits._findall_lsb0  # type: ignore
+            Bits._find = Bits._find_lsb0  # type: ignore
+            Bits._rfind = Bits._rfind_lsb0  # type: ignore
+            Bits._findall = Bits._findall_lsb0  # type: ignore
 
-            bitstring.bitarray_.BitArray._ror = bitstring.bitarray_.BitArray._rol_msb0  # type: ignore
-            bitstring.bitarray_.BitArray._rol = bitstring.bitarray_.BitArray._ror_msb0  # type: ignore
-            bitstring.bitarray_.BitArray._append = bitstring.bitarray_.BitArray._append_lsb0  # type: ignore
+            BitArray._ror = BitArray._rol_msb0  # type: ignore
+            BitArray._rol = BitArray._ror_msb0  # type: ignore
+            BitArray._append = BitArray._append_lsb0  # type: ignore
             # An LSB0 prepend is an MSB0 append
-            bitstring.bitarray_.BitArray._prepend = bitstring.bitarray_.BitArray._append_msb0  # type: ignore
+            BitArray._prepend = BitArray._append_msb0  # type: ignore
 
             BitStore.__setitem__ = BitStore.setitem_lsb0  # type: ignore
             BitStore.__delitem__ = BitStore.delitem_lsb0  # type: ignore
-            BitStore.getindex = BitStore.getindex_lsb0
-            BitStore.getslice = BitStore.getslice_lsb0
-            BitStore.getslice_withstep = BitStore.getslice_withstep_lsb0
+            BitStore.getindex = BitStore.getindex_lsb0  # type: ignore
+            BitStore.getslice = BitStore.getslice_lsb0  # type: ignore
+            BitStore.getslice_withstep = BitStore.getslice_withstep_lsb0  # type: ignore
             BitStore.invert = BitStore.invert_lsb0  # type: ignore
         else:
-            bitstring.bits.Bits._find = bitstring.bits.Bits._find_msb0  # type: ignore
-            bitstring.bits.Bits._rfind = bitstring.bits.Bits._rfind_msb0  # type: ignore
-            bitstring.bits.Bits._findall = bitstring.bits.Bits._findall_msb0  # type: ignore
+            Bits._find = Bits._find_msb0  # type: ignore
+            Bits._rfind = Bits._rfind_msb0  # type: ignore
+            Bits._findall = Bits._findall_msb0  # type: ignore
 
-            bitstring.bitarray_.BitArray._ror = bitstring.bitarray_.BitArray._ror_msb0  # type: ignore
-            bitstring.bitarray_.BitArray._rol = bitstring.bitarray_.BitArray._rol_msb0  # type: ignore
-            bitstring.bitarray_.BitArray._append = bitstring.bitarray_.BitArray._append_msb0  # type: ignore
-            bitstring.bitarray_.BitArray._prepend = bitstring.bitarray_.BitArray._append_lsb0  # type: ignore
+            BitArray._ror = BitArray._ror_msb0  # type: ignore
+            BitArray._rol = BitArray._rol_msb0  # type: ignore
+            BitArray._append = BitArray._append_msb0  # type: ignore
+            BitArray._prepend = BitArray._append_lsb0  # type: ignore
 
             BitStore.__setitem__ = BitStore.setitem_msb0  # type: ignore
             BitStore.__delitem__ = BitStore.delitem_msb0  # type: ignore
-            BitStore.getindex = BitStore.getindex_msb0
-            BitStore.getslice = BitStore.getslice_msb0
-            BitStore.getslice_withstep = BitStore.getslice_withstep_msb0
+            BitStore.getindex = BitStore.getindex_msb0  # type: ignore
+            BitStore.getslice = BitStore.getslice_msb0  # type: ignore
+            BitStore.getslice_withstep = BitStore.getslice_withstep_msb0  # type: ignore
             BitStore.invert = BitStore.invert_msb0  # type: ignore
 
     @property
