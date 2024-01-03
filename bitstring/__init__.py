@@ -15,10 +15,10 @@ Functions:
 
 pack -- Create a BitStream from a format string.
 
-Module Properties:
-
-bytealigned -- Determines whether a number of methods default to working only on byte boundaries.
-lsb0 -- If True, the least significant bit (the final bit) is indexed as bit zero.
+Data:
+options -- A container for module-wide options:
+    bytealigned -- Determines whether a number of methods default to working only on byte boundaries.
+    lsb0 -- If True, the least significant bit (the final bit) is indexed as bit zero.
 
 Exceptions:
 
@@ -252,4 +252,4 @@ for alias in aliases:
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
-           'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype']
+           'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype', 'options']

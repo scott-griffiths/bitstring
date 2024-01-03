@@ -17,7 +17,7 @@ import bitarray.util
 import bitstring
 from bitstring.bitstore import BitStore
 from bitstring import bitstore_helpers
-
+from bitstring.dtypes import Dtype, dtype_register
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
@@ -173,7 +173,7 @@ class Bits:
             self._setbytes_with_truncation(v, length, offset)
             return
         try:
-            setting_function = bitstring.dtypes.dtype_register[k].set_fn
+            setting_function = dtype_register[k].set_fn
         except KeyError:
             if k == 'filename':
                 self._setfile(v, length, offset)
@@ -193,7 +193,7 @@ class Bits:
     def __getattr__(self, attribute: str) -> Any:
         # Support for arbitrary attributes like u16 or f64.
         try:
-            d = bitstring.dtypes.Dtype(attribute)
+            d = Dtype(attribute)
         except ValueError as e:
             raise AttributeError(e)
         if d.bitlength is not None and len(self) != d.bitlength:
@@ -1009,7 +1009,7 @@ class Bits:
 
     def _readtoken(self, name: str, pos: int, length: Optional[int]) -> Tuple[Union[float, int, str, None, Bits], int]:
         """Reads a token from the bitstring and returns the result."""
-        dtype = bitstring.dtypes.dtype_register.get_dtype(name, length)
+        dtype = dtype_register.get_dtype(name, length)
         if dtype.bitlength is not None and dtype.bitlength > len(self) - pos:
             raise bitstring.ReadError("Reading off the end of the data. "
                             f"Tried to read {dtype.bitlength} bits when only {len(self) - pos} available.")
@@ -1168,8 +1168,8 @@ class Bits:
         dtype_list = []
         for f_item in fmt:
             if isinstance(f_item, numbers.Integral):
-                dtype_list.append(bitstring.dtypes.Dtype('bits', f_item))
-            elif isinstance(f_item, bitstring.dtypes.Dtype):
+                dtype_list.append(Dtype('bits', f_item))
+            elif isinstance(f_item, Dtype):
                 dtype_list.append(f_item)
             else:
                 token_list = bitstring.utils.preprocess_tokens(f_item)
@@ -1177,9 +1177,9 @@ class Bits:
                     try:
                         name, length = bitstring.utils.parse_name_length_token(t, **kwargs)
                     except ValueError:
-                        dtype_list.append(bitstring.dtypes.Dtype('bits', int(t)))
+                        dtype_list.append(Dtype('bits', int(t)))
                     else:
-                        dtype_list.append(bitstring.dtypes.Dtype(name, length))
+                        dtype_list.append(Dtype(name, length))
         return self._read_dtype_list(dtype_list, pos)
 
     def _read_dtype_list(self, dtypes: List[Dtype], pos: int) -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
@@ -1209,7 +1209,7 @@ class Bits:
                     raise ValueError(
                         f"The '{dtype.name}' type must have a bit length that is a multiple of {dtype.bits_per_item}"
                         f" so cannot be created from the {bitlength} bits that are available for this stretchy token.")
-                dtype = bitstring.dtypes.Dtype(dtype.name, items)
+                dtype = Dtype(dtype.name, items)
             if dtype.bitlength is not None:
                 val = dtype.read_fn(self, pos)
                 pos += dtype.bitlength
@@ -1636,12 +1636,12 @@ class Bits:
 
     @staticmethod
     def _format_bits(bits: Bits, bits_per_group: int, sep: str, fmt: str) -> str:
-        get_fn = Bits._getbytes_printable if fmt == 'bytes' else bitstring.dtypes.dtype_register.get_dtype(fmt, bits_per_group).get_fn
+        get_fn = Bits._getbytes_printable if fmt == 'bytes' else dtype_register.get_dtype(fmt, bits_per_group).get_fn
         if bits_per_group == 0:
             return str(get_fn(bits))
         # Left-align for fixed width types when msb0, otherwise right-align.
         align = '<' if fmt in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not bitstring.options.lsb0 else '>'
-        chars_per_group = bitstring.dtypes.dtype_register[fmt].bitlength2chars_fn(bits_per_group)
+        chars_per_group = dtype_register[fmt].bitlength2chars_fn(bits_per_group)
         return sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
 
     @staticmethod
@@ -1649,7 +1649,7 @@ class Bits:
         """How many characters are needed to represent a number of bits with a given format."""
         if fmt is None:
             return 0
-        return bitstring.dtypes.dtype_register[fmt].bitlength2chars_fn(bits_per_group)
+        return dtype_register[fmt].bitlength2chars_fn(bits_per_group)
 
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:

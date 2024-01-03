@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bitstring.bits import Bits
+import bitstring
 from bitstring.bitstream import BitStream
 from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
@@ -8,9 +8,7 @@ from typing import Union, List
 from bitstring.bitstore import BitStore
 from bitstring.bitstore_helpers import bitstore_from_token
 from bitstring.dtypes import dtype_register
-from bitstring.bitstring_options import Options
 
-options = Options()
 
 def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     """Pack the values according to the format string and return a new BitStream.
@@ -76,7 +74,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
                 # Take the next value from the ones provided
                 value = next(value_iter)
             if name == 'bits':
-                value = Bits(value)
+                value = bitstring.bits.Bits(value)
                 if length is not None and length != len(value):
                     raise CreationError(f"Token with length {length} packed with value of length {len(value)}.")
                 bsl.append(value._bitstore)
@@ -91,7 +89,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     except StopIteration:
         # Good, we've used up all the *values.
         s = BitStream()
-        if options.lsb0:
+        if bitstring.options.lsb0:
             for name, _, _ in tokens:
                 if name in dtype_register.unknowable_length_names():
                     raise CreationError(f"Unknown length tokens ('{name}') cannot be used in lsb0 mode.")
