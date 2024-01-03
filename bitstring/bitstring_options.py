@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import bitstring
 
-
 class Options:
     """Internal class to create singleton module options instance."""
 

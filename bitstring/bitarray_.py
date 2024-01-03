@@ -4,8 +4,8 @@ import copy
 import numbers
 import re
 from collections import abc
-from typing import Union, List, Iterable, Any, Optional, Pattern, Dict, Callable
-from bitstring.utils import BYTESWAP_STRUCT_PACK_RE, STRUCT_SPLIT_RE, PACK_CODE_SIZE
+from typing import Union, List, Iterable, Any, Optional
+from bitstring import utils
 from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
 
@@ -553,17 +553,17 @@ class BitArray(Bits):
                 raise ValueError(f"Improper byte length {fmt}.")
             bytesizes = [fmt]
         elif isinstance(fmt, str):
-            if not (m := BYTESWAP_STRUCT_PACK_RE.match(fmt)):
+            if not (m := utils.BYTESWAP_STRUCT_PACK_RE.match(fmt)):
                 raise ValueError(f"Cannot parse format string {fmt}.")
             # Split the format string into a list of 'q', '4h' etc.
-            formatlist = re.findall(STRUCT_SPLIT_RE, m.group('fmt'))
+            formatlist = re.findall(utils.STRUCT_SPLIT_RE, m.group('fmt'))
             # Now deal with multiplicative factors, 4h -> hhhh etc.
             bytesizes = []
             for f in formatlist:
                 if len(f) == 1:
-                    bytesizes.append(PACK_CODE_SIZE[f])
+                    bytesizes.append(utils.PACK_CODE_SIZE[f])
                 else:
-                    bytesizes.extend([PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
+                    bytesizes.extend([utils.PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
         elif isinstance(fmt, abc.Iterable):
             bytesizes = fmt
             for bytesize in bytesizes:

@@ -62,7 +62,7 @@ __author__ = "Scott Griffiths"
 import sys
 
 from .bits import Bits
-from .options import Options
+from .bitstring_options import Options
 from .bitarray_ import BitArray
 from .bitstream import ConstBitStream, BitStream
 from .methods import pack

@@ -16,10 +16,7 @@ import bitarray
 import bitarray.util
 import bitstring
 from bitstring.bitstore import BitStore
-from bitstring.bitstore_helpers import float2bitstore, uint2bitstore, ue2bitstore, str_to_bitstore, se2bitstore, \
-    bfloat2bitstore, floatle2bitstore, uintbe2bitstore, uintle2bitstore, intbe2bitstore, intle2bitstore, bfloatle2bitstore, \
-    bin2bitstore, bin2bitstore_unsafe, hex2bitstore, int2bitstore, oct2bitstore, sie2bitstore, uie2bitstore, \
-    e5m2float2bitstore, e4m3float2bitstore
+from bitstring import bitstore_helpers
 
 
 # Things that can be converted to Bits when a Bits type is needed
@@ -526,7 +523,7 @@ class Bits:
     def _setauto_no_length_or_offset(self, s: BitsType, /) -> None:
         """Set bitstring from a bitstring, file, bool, array, iterable or string."""
         if isinstance(s, str):
-            self._bitstore = str_to_bitstore(s)
+            self._bitstore = bitstore_helpers.str_to_bitstore(s)
             return
         if isinstance(s, Bits):
             self._bitstore = s._bitstore.copy()
@@ -623,10 +620,10 @@ class Bits:
         self._bitstore = bs._bitstore
 
     def _sete5m2float(self, f: float, length: None = None) -> None:
-        self._bitstore = e5m2float2bitstore(f)
+        self._bitstore = bitstore_helpers.e5m2float2bitstore(f)
 
     def _sete4m3float(self, f: float, length: None = None) -> None:
-        self._bitstore = e4m3float2bitstore(f)
+        self._bitstore = bitstore_helpers.e4m3float2bitstore(f)
 
     def _setbytes(self, data: Union[bytearray, bytes], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
@@ -671,7 +668,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a uint initialiser.")
-        self._bitstore = uint2bitstore(uint, length)
+        self._bitstore = bitstore_helpers.uint2bitstore(uint, length)
 
     def _getuint(self) -> int:
         """Return data as an unsigned int."""
@@ -686,7 +683,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with an int initialiser.")
-        self._bitstore = int2bitstore(int_, length)
+        self._bitstore = bitstore_helpers.int2bitstore(int_, length)
 
     def _getint(self) -> int:
         """Return data as a two's complement signed int."""
@@ -700,7 +697,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a uintbe initialiser.")
-        self._bitstore = uintbe2bitstore(uintbe, length)
+        self._bitstore = bitstore_helpers.uintbe2bitstore(uintbe, length)
 
     def _getuintbe(self) -> int:
         """Return data as a big-endian two's complement unsigned int."""
@@ -714,7 +711,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a intbe initialiser.")
-        self._bitstore = intbe2bitstore(intbe, length)
+        self._bitstore = bitstore_helpers.intbe2bitstore(intbe, length)
 
     def _getintbe(self) -> int:
         """Return data as a big-endian two's complement signed int."""
@@ -727,7 +724,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a uintle initialiser.")
-        self._bitstore = uintle2bitstore(uintle, length)
+        self._bitstore = bitstore_helpers.uintle2bitstore(uintle, length)
 
     def _getuintle(self) -> int:
         """Interpret as a little-endian unsigned int."""
@@ -741,7 +738,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with an intle initialiser.")
-        self._bitstore = intle2bitstore(intle, length)
+        self._bitstore = bitstore_helpers.intle2bitstore(intle, length)
 
     def _getintle(self) -> int:
         """Interpret as a little-endian signed int."""
@@ -763,7 +760,7 @@ class Bits:
             length = len(self)
         if length is None or length not in [16, 32, 64]:
             raise bitstring.CreationError("A length of 16, 32, or 64 must be specified with a float initialiser.")
-        self._bitstore = float2bitstore(f, length)
+        self._bitstore = bitstore_helpers.float2bitstore(f, length)
 
     def _getfloatbe(self) -> float:
         """Interpret the whole bitstring as a big-endian float."""
@@ -775,7 +772,7 @@ class Bits:
             length = len(self)
         if length is None or length not in [16, 32, 64]:
             raise bitstring.CreationError("A length of 16, 32, or 64 must be specified with a float initialiser.")
-        self._bitstore = floatle2bitstore(f, length)
+        self._bitstore = bitstore_helpers.floatle2bitstore(f, length)
 
     def _getfloatle(self) -> float:
         """Interpret the whole bitstring as a little-endian float."""
@@ -789,7 +786,7 @@ class Bits:
     def _setbfloatbe(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
             raise bitstring.CreationError(f"bfloats must be length 16, received a length of {length} bits.")
-        self._bitstore = bfloat2bitstore(f)
+        self._bitstore = bitstore_helpers.bfloat2bitstore(f)
 
     def _getbfloatle(self) -> float:
         zero_padded = Bits(16) + self
@@ -798,7 +795,7 @@ class Bits:
     def _setbfloatle(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
             raise bitstring.CreationError(f"bfloats must be length 16, received a length of {length} bits.")
-        self._bitstore = bfloatle2bitstore(f)
+        self._bitstore = bitstore_helpers.bfloatle2bitstore(f)
 
     def _setue(self, i: int, length: None = None) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
@@ -810,7 +807,7 @@ class Bits:
             raise bitstring.CreationError("Cannot specify a length for exponential-Golomb codes.")
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = ue2bitstore(i)
+        self._bitstore = bitstore_helpers.ue2bitstore(i)
 
     def _readue(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned exponential-Golomb code.
@@ -846,7 +843,7 @@ class Bits:
             raise bitstring.CreationError("Cannot specify a length for exponential-Golomb codes.")
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = se2bitstore(i)
+        self._bitstore = bitstore_helpers.se2bitstore(i)
 
     def _readse(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as a signed exponential-Golomb code.
@@ -874,7 +871,7 @@ class Bits:
             raise bitstring.CreationError("Cannot specify a length for exponential-Golomb codes.")
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = uie2bitstore(i)
+        self._bitstore = bitstore_helpers.uie2bitstore(i)
 
     def _readuie(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned interleaved exponential-Golomb code.
@@ -904,7 +901,7 @@ class Bits:
             raise bitstring.CreationError("Cannot specify a length for exponential-Golomb codes.")
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = sie2bitstore(i)
+        self._bitstore = bitstore_helpers.sie2bitstore(i)
 
     def _readsie(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as a signed interleaved exponential-Golomb code.
@@ -949,11 +946,11 @@ class Bits:
 
     def _setbin_safe(self, binstring: str, length: None = None) -> None:
         """Reset the bitstring to the value given in binstring."""
-        self._bitstore = bin2bitstore(binstring)
+        self._bitstore = bitstore_helpers.bin2bitstore(binstring)
 
     def _setbin_unsafe(self, binstring: str, length: None = None) -> None:
         """Same as _setbin_safe, but input isn't sanity checked. binstring mustn't start with '0b'."""
-        self._bitstore = bin2bitstore_unsafe(binstring)
+        self._bitstore = bitstore_helpers.bin2bitstore_unsafe(binstring)
 
     def _getbin(self) -> str:
         """Return interpretation as a binary string."""
@@ -961,7 +958,7 @@ class Bits:
 
     def _setoct(self, octstring: str, length: None = None) -> None:
         """Reset the bitstring to have the value given in octstring."""
-        self._bitstore = oct2bitstore(octstring)
+        self._bitstore = bitstore_helpers.oct2bitstore(octstring)
 
     def _getoct(self) -> str:
         """Return interpretation as an octal string."""
@@ -971,7 +968,7 @@ class Bits:
 
     def _sethex(self, hexstring: str, length: None = None) -> None:
         """Reset the bitstring to have the value given in hexstring."""
-        self._bitstore = hex2bitstore(hexstring)
+        self._bitstore = bitstore_helpers.hex2bitstore(hexstring)
 
     def _gethex(self) -> str:
         """Return the hexadecimal representation as a string.

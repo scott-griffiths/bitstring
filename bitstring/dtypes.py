@@ -4,6 +4,7 @@ import functools
 from typing import Optional, Dict, Any, Union, Tuple
 from collections.abc import Iterable
 import bitstring
+from bitstring import utils
 
 CACHE_SIZE = 256
 
@@ -22,7 +23,7 @@ class Dtype:
     def _new_from_token(cls, token: str, length: Optional[int] = None) -> Dtype:
         token = ''.join(token.split())
         if length is None:
-            name, length = bitstring.utils.parse_name_length_token(token)
+            name, length = utils.parse_name_length_token(token)
         else:
             name = token
         d = dtype_register.get_dtype(name, length)
