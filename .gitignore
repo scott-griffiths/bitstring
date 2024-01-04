@@ -6,3 +6,4 @@ build
 dist
 manifest
 *egg-info
+doc/_build
