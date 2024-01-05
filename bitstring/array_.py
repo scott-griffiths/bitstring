@@ -366,46 +366,37 @@ class Array:
 
         """
         sep = ' '
-
+        dtype2 = None
         if fmt is None:
-            dtypes = [self.dtype]
+            fmt = self.dtype
+            dtype1 = self.dtype
             parameter_str = f"dtype='{self.dtype}'"
         else:
             token_list = utils.preprocess_tokens(fmt)
             if len(token_list) not in [1, 2]:
                 raise ValueError(f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {len(token_list)} tokens.")
-            dtypes = [Dtype(*utils.parse_name_length_token(t)) for t in token_list]
+            dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
             parameter_str = f"fmt='{fmt}'"
+            if len(token_list) == 2:
+                dtype2 = Dtype(*utils.parse_name_length_token(token_list[1]))
 
-        token_name, token_length = dtypes[0].name, dtypes[0].bitlength
-        token_name2 = dtypes[1].name if len(dtypes) > 1 else None
-        if len(dtypes) == 1:
-            # Only one type, so use its length, or if not present the current itemsize
-            if token_length is None:
-                token_length = self.itemsize
-        else:
+        token_length = dtype1.bitlength
+        if dtype2 is not None:
             # For two types we're OK as long as they don't have different lengths given.
-            assert len(dtypes) == 2
-            token_length2 = dtypes[1].bitlength
-            if token_length is None and token_length2 is None:
-                token_length = token_length2 = self.itemsize
-            if token_length is None:
-                token_length = token_length2
-            if token_length2 is None:
-                token_length2 = token_length
-            if token_length != token_length2:
+            if dtype1.bitlength is not None and dtype2.bitlength is not None and dtype1.bitlength != dtype2.bitlength:
                 raise ValueError(f"Two different format lengths specified ('{fmt}'). Either specify just one, or two the same length.")
+            if token_length is None:
+                token_length = dtype2.bitlength
+        if token_length is None:
+            token_length = self.itemsize
 
         trailing_bit_length = len(self.data) % token_length
         format_sep = " : "  # String to insert on each line between multiple formats
 
-        if trailing_bit_length == 0:
-            data = self.data
-        else:
-            data = self.data[0: -trailing_bit_length]
+        data = self.data if trailing_bit_length == 0 else self.data[0: -trailing_bit_length]
         length = len(self.data) // token_length
         stream.write(f"<Array {parameter_str}, length={length}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
-        data._pp(token_name, token_name2, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
+        data._pp(dtype1.name, dtype2.name if dtype2 is not None else None, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
         stream.write("]")
         if trailing_bit_length != 0:
             stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))

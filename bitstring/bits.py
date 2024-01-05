@@ -16,7 +16,7 @@ import bitarray
 import bitarray.util
 import bitstring
 from bitstring.bitstore import BitStore
-from bitstring import bitstore_helpers
+from bitstring import bitstore_helpers, utils
 from bitstring.dtypes import Dtype, dtype_register
 
 # Things that can be converted to Bits when a Bits type is needed
@@ -1172,10 +1172,10 @@ class Bits:
             elif isinstance(f_item, Dtype):
                 dtype_list.append(f_item)
             else:
-                token_list = bitstring.utils.preprocess_tokens(f_item)
+                token_list = utils.preprocess_tokens(f_item)
                 for t in token_list:
                     try:
-                        name, length = bitstring.utils.parse_name_length_token(t, **kwargs)
+                        name, length = utils.parse_name_length_token(t, **kwargs)
                     except ValueError:
                         dtype_list.append(Dtype('bits', int(t)))
                     else:
@@ -1604,35 +1604,12 @@ class Bits:
         return count if value else len(self) - count
 
     @staticmethod
-    def _chars_in_pp_token(fmt: str) -> Tuple[str, Optional[int]]:
-        """
-        bin8 -> 'bin', 8
-        hex12 -> 'hex', 3
-        o9 -> 'oct', 3
-        b -> 'bin', None
-        """
-        bpc_dict = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
-        short_token: Pattern[str] = re.compile(r'(?P<name>bytes|bin|oct|hex|b|o|h):?(?P<len>\d+)$')
-
-        if m1 := short_token.match(fmt):
-            length = int(m1.group('len'))
-            name = m1.group('name')
-        else:
-            length = None
-            name = fmt
-        aliases = {'hex': 'hex', 'oct': 'oct', 'bin': 'bin', 'bytes': 'bytes', 'b': 'bin', 'o': 'oct', 'h': 'hex'}
-        try:
-            name = aliases[name]
-        except KeyError:
-            pass  # Should be dealt with in the next check
-        if name not in bpc_dict.keys():
-            raise ValueError(f"Pretty print formats only support {'/'.join(bpc_dict.keys())}. Received '{fmt}'.")
-        bpc = bpc_dict[name]
-        if length is None:
-            return name, None
-        if length % bpc != 0:
+    def _chars_in_token(fmt:str) -> Tuple[str, Optional[int]]:
+        dtype = Dtype(fmt)
+        bpc = Bits._bits_per_char(dtype.name)
+        if dtype.bitlength is not None and dtype.bitlength % bpc != 0:
             raise ValueError(f"Bits per group must be a multiple of {bpc} for '{fmt}' format.")
-        return name, length
+        return dtype.name, dtype.bitlength
 
     @staticmethod
     def _format_bits(bits: Bits, bits_per_group: int, sep: str, fmt: str) -> str:
@@ -1651,11 +1628,16 @@ class Bits:
             return 0
         return dtype_register[fmt].bitlength2chars_fn(bits_per_group)
 
+    @staticmethod
+    def _bits_per_char(fmt: str):
+        """How many bits are represented by each character of a given format."""
+        if fmt not in ['bin', 'oct', 'hex', 'bytes']:
+            raise ValueError
+        return 24 // dtype_register[fmt].bitlength2chars_fn(24)
+
     def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
         """Internal pretty print method."""
-
-        bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
 
         offset_width = 0
         offset_sep = ' :' if lsb0 else ': '
@@ -1677,9 +1659,9 @@ class Bits:
             width_available = width - offset_width - len(format_sep) * (name2 is not None)
             width_available = max(width_available, 1)
             if name2 is None:
-                max_bits_per_line = width_available * bpc[name1]
+                max_bits_per_line = width_available * Bits._bits_per_char(name1)
             else:
-                chars_per_24_bits = 24 // bpc[name1] + 24 // bpc[name2]
+                chars_per_24_bits = dtype_register[name1].bitlength2chars_fn(24) + dtype_register[name2].bitlength2chars_fn(24)
                 max_bits_per_line = 24 * (width_available // chars_per_24_bits)
                 if max_bits_per_line == 0:
                     max_bits_per_line = 24  # We can't fit into the width asked for. Show something small.
@@ -1736,49 +1718,34 @@ class Bits:
 
         """
         if fmt is None:
-            fmt = 'bin' if len(self) % 4 != 0 else 'bin, hex'
-
-        bpc = {'bin': 1, 'oct': 3, 'hex': 4, 'bytes': 8}  # bits represented by each printed character
-
-        formats = [f.strip() for f in fmt.split(',')]
-        if len(formats) == 1:
-            fmt1, fmt2 = formats[0], None
-        elif len(formats) == 2:
-            fmt1, fmt2 = formats[0], formats[1]
-        else:
-            raise ValueError(f"Either 1 or 2 comma separated formats must be specified, not {len(formats)}."
-                             " Format string was {fmt}.")
-
-        name1, length1 = Bits._chars_in_pp_token(fmt1)
-        if fmt2 is not None:
-            name2, length2 = Bits._chars_in_pp_token(fmt2)
-
-        if fmt2 is not None and length2 is not None and length1 is not None:
-            # Both lengths defined so must be equal
-            if length1 != length2:
-                raise ValueError(f"Differing bit lengths of {length1} and {length2} in format string '{fmt}'.")
-
-        bits_per_group = None
-        if fmt2 is not None and length2 is not None:
-            bits_per_group = length2
-        elif length1 is not None:
-            bits_per_group = length1
-
-        if bits_per_group is None:
-            if fmt2 is None:
+            fmt = 'bin8' if len(self) % 4 != 0 else 'bin8, hex'
+        token_list = utils.preprocess_tokens(fmt)
+        if len(token_list) not in [1, 2]:
+            raise ValueError(f"Only one or two tokens can be used in an pp() format - '{fmt}' has {len(token_list)} tokens.")
+        dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
+        dtype2 = None
+        if len(token_list) == 1:
+            bits_per_group = dtype1.bitlength
+            if bits_per_group is None:
                 bits_per_group = 8  # Default for 'bin' and 'hex'
-                if name1 == 'oct':
+                if dtype1.name == 'oct':
                     bits_per_group = 12
-                elif name1 == 'bytes':
+                elif dtype1.name == 'bytes':
                     bits_per_group = 32
-            else:
+        else:
+            dtype2 = Dtype(*utils.parse_name_length_token(token_list[1]))
+            if dtype1.bitlength is not None and dtype2.bitlength is not None and dtype1.bitlength != dtype2.bitlength:
+                raise ValueError(
+                    f"Differing bit lengths of {dtype1.bitlength} and {dtype2.bitlength} in format string '{fmt}'.")
+            bits_per_group = dtype1.bitlength if dtype1.bitlength is not None else dtype2.bitlength
+            if bits_per_group is None:
                 # Rule of thumb seems to work OK for all combinations.
-                bits_per_group = 2 * bpc[name1] * bpc[name2]
+                bits_per_group = 2 * self._bits_per_char(dtype1.name) * self._bits_per_char(dtype2.name)
                 if bits_per_group >= 24:
                     bits_per_group //= 2
 
         format_sep = "   "  # String to insert on each line between multiple formats
-        self._pp(name1, name2 if fmt2 is not None else None, bits_per_group, width, sep, format_sep, show_offset,
+        self._pp(dtype1.name, dtype2.name if dtype2 is not None else None, bits_per_group, width, sep, format_sep, show_offset,
                  stream, bitstring.options.lsb0, 1)
         return
 
