@@ -56,13 +56,14 @@ class Dtype:
         return x
 
     def __str__(self) -> str:
-        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].fixed_length) == 1
+        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].fixed_length) == 1 or self.length is None
         length_str = '' if hide_length else str(self.length)
         return f"{self.name}{length_str}"
 
     def __repr__(self) -> str:
-        s = self.__str__()
-        return f"{self.__class__.__name__}('{s}')"
+        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].fixed_length) == 1 or self.length is None
+        length_str = '' if hide_length else ', ' + str(self.length)
+        return f"{self.__class__.__name__}('{self.name}{length_str}')"
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Dtype):
@@ -196,7 +197,7 @@ class Register:
         try:
             definition = cls.names[name]
         except KeyError:
-            raise ValueError
+            raise ValueError(f"Unknown Dtype name '{name}'.")
         else:
             return definition.getDtype(length)
 

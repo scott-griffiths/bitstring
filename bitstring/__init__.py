@@ -134,7 +134,6 @@ def float_bits2chars(bitlength: Literal[16, 32, 64]):
     if bitlength in [16, 32]:
         return 23  # Empirical value
     else:
-        assert bitlength == 64
         return 24  # Empirical value
 
 def e5m2float_bits2chars(bitlength: Literal[8]):

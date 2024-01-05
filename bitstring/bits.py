@@ -1619,13 +1619,16 @@ class Bits:
             return str(get_fn(bits))
         # Left-align for fixed width types when msb0, otherwise right-align.
         align = '<' if fmt in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not bitstring.options.lsb0 else '>'
-        chars_per_group = dtype_register[fmt].bitlength2chars_fn(bits_per_group)
+        if dtype_register[fmt].bitlength2chars_fn is not None:
+            chars_per_group = dtype_register[fmt].bitlength2chars_fn(bits_per_group)
+        else:
+            chars_per_group = 0
         return sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
 
     @staticmethod
     def _chars_per_group(bits_per_group: int, fmt: Optional[str]):
         """How many characters are needed to represent a number of bits with a given format."""
-        if fmt is None:
+        if fmt is None or dtype_register[fmt].bitlength2chars_fn is None:
             return 0
         return dtype_register[fmt].bitlength2chars_fn(bits_per_group)
 
@@ -1641,6 +1644,10 @@ class Bits:
         """Internal pretty print method."""
         name1 = dtype1.name
         name2 = dtype2.name if dtype2 is not None else None
+        if dtype1.is_unknown_length:
+            raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has an unknown length.")
+        if dtype2 is not None and dtype2.is_unknown_length:
+            raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has an unknown length.")
         offset_width = 0
         offset_sep = ' :' if lsb0 else ': '
         if show_offset:
@@ -1729,11 +1736,14 @@ class Bits:
         if len(token_list) == 1:
             bits_per_group = dtype1.bitlength
             if bits_per_group is None:
-                bits_per_group = 8  # Default for 'bin' and 'hex'
-                if dtype1.name == 'oct':
+                if dtype1.name in ['bin', 'hex']:
+                    bits_per_group = 8
+                elif dtype1.name == 'oct':
                     bits_per_group = 12
                 elif dtype1.name == 'bytes':
                     bits_per_group = 32
+                else:
+                    raise ValueError(f"No length or default length available for pp() format '{fmt}'.")
         else:
             dtype2 = Dtype(*utils.parse_name_length_token(token_list[1]))
             if dtype1.bitlength is not None and dtype2.bitlength is not None and dtype1.bitlength != dtype2.bitlength:
@@ -1742,7 +1752,10 @@ class Bits:
             bits_per_group = dtype1.bitlength if dtype1.bitlength is not None else dtype2.bitlength
             if bits_per_group is None:
                 # Rule of thumb seems to work OK for all combinations.
-                bits_per_group = 2 * self._bits_per_char(dtype1.name) * self._bits_per_char(dtype2.name)
+                try:
+                    bits_per_group = 2 * self._bits_per_char(dtype1.name) * self._bits_per_char(dtype2.name)
+                except ValueError:
+                    raise ValueError(f"Can't find a default bitlength to use for pp() format '{fmt}'.")
                 if bits_per_group >= 24:
                     bits_per_group //= 2
 
