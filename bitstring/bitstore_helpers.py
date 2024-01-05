@@ -7,6 +7,7 @@ from typing import Union, Optional, Dict, Callable
 import bitarray
 from bitstring.bitstore import BitStore
 import bitstring
+from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 
 
 byteorder: str = sys.byteorder
@@ -131,13 +132,13 @@ def bfloatle2bitstore(f: Union[str, float]) -> BitStore:
 
 def e4m3float2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    u = bitstring.fp8.e4m3float_fmt.float_to_int8(f)
+    u = e4m3float_fmt.float_to_int8(f)
     return uint2bitstore(u, 8)
 
 
 def e5m2float2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    u = bitstring.fp8.e5m2float_fmt.float_to_int8(f)
+    u = e5m2float_fmt.float_to_int8(f)
     return uint2bitstore(u, 8)
 
 

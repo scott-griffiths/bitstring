@@ -10,7 +10,7 @@ import array
 import io
 from collections import abc
 import functools
-from typing import Tuple, Union, List, Iterable, Any, Optional, Pattern, Dict, \
+from typing import Tuple, Union, List, Iterable, Any, Optional, Dict, \
     BinaryIO, TextIO, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
@@ -18,6 +18,7 @@ import bitstring
 from bitstring.bitstore import BitStore
 from bitstring import bitstore_helpers, utils
 from bitstring.dtypes import Dtype, dtype_register
+from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
@@ -749,11 +750,11 @@ class Bits:
 
     def _gete4m3float(self) -> float:
         u = self._getuint()
-        return bitstring.fp8.e4m3float_fmt.lut_int8_to_float[u]
+        return e4m3float_fmt.lut_int8_to_float[u]
 
     def _gete5m2float(self) -> float:
         u = self._getuint()
-        return bitstring.fp8.e5m2float_fmt.lut_int8_to_float[u]
+        return e5m2float_fmt.lut_int8_to_float[u]
 
     def _setfloatbe(self, f: float, length: Optional[int] = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
@@ -1635,10 +1636,11 @@ class Bits:
             raise ValueError
         return 24 // dtype_register[fmt].bitlength2chars_fn(24)
 
-    def _pp(self, name1: str, name2: Optional[str], bits_per_group: int, width: int, sep: str, format_sep: str,
+    def _pp(self, dtype1: Dtype, dtype2: Optional[Dtype], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
         """Internal pretty print method."""
-
+        name1 = dtype1.name
+        name2 = dtype2.name if dtype2 is not None else None
         offset_width = 0
         offset_sep = ' :' if lsb0 else ': '
         if show_offset:
@@ -1745,7 +1747,7 @@ class Bits:
                     bits_per_group //= 2
 
         format_sep = "   "  # String to insert on each line between multiple formats
-        self._pp(dtype1.name, dtype2.name if dtype2 is not None else None, bits_per_group, width, sep, format_sep, show_offset,
+        self._pp(dtype1, dtype2, bits_per_group, width, sep, format_sep, show_offset,
                  stream, bitstring.options.lsb0, 1)
         return
 

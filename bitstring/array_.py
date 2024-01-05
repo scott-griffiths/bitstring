@@ -396,7 +396,7 @@ class Array:
         data = self.data if trailing_bit_length == 0 else self.data[0: -trailing_bit_length]
         length = len(self.data) // token_length
         stream.write(f"<Array {parameter_str}, length={length}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
-        data._pp(dtype1.name, dtype2.name if dtype2 is not None else None, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
+        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
         stream.write("]")
         if trailing_bit_length != 0:
             stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))
