@@ -641,8 +641,8 @@ class PrettyPrinting(unittest.TestCase):
         a.pp(stream=s)
         self.assertEqual(s.getvalue(), """<Bits, fmt='bin8, hex', length=12 bits>
 [
- 0: 10101111 0000     : af 0 
-]
+0: 10101111 : af
+] + trailing_bits = 0x0
 """)
 
         s = io.StringIO()
@@ -679,8 +679,8 @@ class PrettyPrinting(unittest.TestCase):
         a.pp('hex:32', sep='!-!', stream=s)
         self.assertEqual(s.getvalue(), """<Bits, fmt='hex32', length=144 bits>
 [
-  0: 0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f    
-]
+  0: 0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f!-!0f0f0f0f
+] + trailing_bits = 0x0f0f
 """)
 
     def testMultiLine(self):
@@ -707,8 +707,8 @@ class PrettyPrinting(unittest.TestCase):
         a.pp(stream=s, fmt='hex, bin:12')
         self.assertEqual(s.getvalue(), """<Bits, fmt='hex, bin12', length=16 bits>
 [
- 0: f0f 0   : 111100001111 0000        
-]
+ 0: f0f : 111100001111
+] + trailing_bits = 0x0
 """)
 
     def testMultiLineMultiFormat(self):
@@ -939,6 +939,16 @@ class PrettyPrinting_NewFormats(unittest.TestCase):
 576:   88   89   90   91   92   93   94   95   96   97   98   99 : 058 059 05a 05b 05c 05d 05e 05f 060 061 062 063
 720:  100  101  102  103  104                                    : 064 065 066 067 068                            
 ]
+""")
+
+    def testFloat(self):
+        a = BitArray(float=76.25, length=64) + '0b11111'
+        s = io.StringIO()
+        a.pp('i64, float', stream=s)
+        self.assertEqual(s.getvalue(), """<BitArray, fmt='int64, float', length=69 bits>
+[
+ 0:  4635066033680416768 :                    76.25
+] + trailing_bits = 0b11111
 """)
 
 class Copy(unittest.TestCase):

@@ -1727,15 +1727,17 @@ class Bits:
 
         """
         if fmt is None:
-            fmt = 'bin8' if len(self) % 4 != 0 else 'bin8, hex'
+            fmt = 'bin8, hex'
         token_list = utils.preprocess_tokens(fmt)
         if len(token_list) not in [1, 2]:
             raise ValueError(f"Only one or two tokens can be used in an pp() format - '{fmt}' has {len(token_list)} tokens.")
         dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
         dtype2 = None
+        has_length_in_fmt = True
         if len(token_list) == 1:
             bits_per_group = dtype1.bitlength
             if bits_per_group is None:
+                has_length_in_fmt = False
                 if dtype1.name in ['bin', 'hex']:
                     bits_per_group = 8
                 elif dtype1.name == 'oct':
@@ -1751,6 +1753,7 @@ class Bits:
                     f"Differing bit lengths of {dtype1.bitlength} and {dtype2.bitlength} in format string '{fmt}'.")
             bits_per_group = dtype1.bitlength if dtype1.bitlength is not None else dtype2.bitlength
             if bits_per_group is None:
+                has_length_in_fmt = False
                 # Rule of thumb seems to work OK for all combinations.
                 try:
                     bits_per_group = 2 * self._bits_per_char(dtype1.name) * self._bits_per_char(dtype2.name)
@@ -1758,16 +1761,22 @@ class Bits:
                     raise ValueError(f"Can't find a default bitlength to use for pp() format '{fmt}'.")
                 if bits_per_group >= 24:
                     bits_per_group //= 2
+
+        trailing_bit_length = 0
+        if has_length_in_fmt and bits_per_group != 0:
+            trailing_bit_length = len(self) % bits_per_group
+        data = self if trailing_bit_length == 0 else self[0: -trailing_bit_length]
         format_sep = " : "  # String to insert on each line between multiple formats
         tidy_fmt = str(dtype1)
         if dtype2 is not None:
             tidy_fmt += ', ' + str(dtype2)
         stream.write(f"<{self.__class__.__name__}, fmt='{tidy_fmt}', length={len(self)} bits>\n[\n")
-        self._pp(dtype1, dtype2, bits_per_group, width, sep, format_sep, show_offset,
+        data._pp(dtype1, dtype2, bits_per_group, width, sep, format_sep, show_offset,
                  stream, bitstring.options.lsb0, 1)
         stream.write("]")
+        if trailing_bit_length != 0:
+            stream.write(" + trailing_bits = " + str(self[-trailing_bit_length:]))
         stream.write("\n")
-
         return
 
     def copy(self: TBits) -> TBits:
