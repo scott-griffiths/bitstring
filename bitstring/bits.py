@@ -1758,10 +1758,16 @@ class Bits:
                     raise ValueError(f"Can't find a default bitlength to use for pp() format '{fmt}'.")
                 if bits_per_group >= 24:
                     bits_per_group //= 2
-
-        format_sep = "   "  # String to insert on each line between multiple formats
+        format_sep = " : "  # String to insert on each line between multiple formats
+        tidy_fmt = str(dtype1)
+        if dtype2 is not None:
+            tidy_fmt += ', ' + str(dtype2)
+        stream.write(f"<{self.__class__.__name__}, fmt='{tidy_fmt}', length={len(self)} bits>\n[\n")
         self._pp(dtype1, dtype2, bits_per_group, width, sep, format_sep, show_offset,
                  stream, bitstring.options.lsb0, 1)
+        stream.write("]")
+        stream.write("\n")
+
         return
 
     def copy(self: TBits) -> TBits:
