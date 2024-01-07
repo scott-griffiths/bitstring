@@ -42,7 +42,7 @@ class Dtype:
         if x.bitlength is not None:
             x.bitlength *= x.bits_per_item
         x.is_unknown_length = definition.is_unknown_length
-        if x.is_unknown_length or len(dtype_register.names[x.name].fixed_length) == 1:
+        if x.is_unknown_length or len(dtype_register.names[x.name].allowed_lengths) == 1:
             x.read_fn = definition.read_fn
         else:
             x.read_fn = functools.partial(definition.read_fn, length=x.bitlength)
@@ -56,12 +56,12 @@ class Dtype:
         return x
 
     def __str__(self) -> str:
-        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].fixed_length) == 1 or self.length is None
+        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
         length_str = '' if hide_length else str(self.length)
         return f"{self.name}{length_str}"
 
     def __repr__(self) -> str:
-        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].fixed_length) == 1 or self.length is None
+        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
         length_str = '' if hide_length else ', ' + str(self.length)
         return f"{self.__class__.__name__}('{self.name}{length_str}')"
 
@@ -71,15 +71,39 @@ class Dtype:
         return False
 
 
+class AllowedLengths:
+    def __init__(self, value: Tuple[int, ...] = tuple()) -> None:
+        if len(value) >= 3 and value[-1] is Ellipsis:
+            step = value[1] - value[0]
+            for i in range(1, len(value) - 1):
+                if value[i] - value[i - 1] != step:
+                    raise ValueError(f"Allowed length tuples must be equally spaced when final element is Ellipsis, but got {value}.")
+            infinity = 1_000_000_000_000_000  # Rough approximation.
+            self.value = range(value[0], infinity, step)
+        else:
+            self.value = value
+
+    def __str__(self) -> str:
+        if isinstance(self.value, range):
+            return f"({self.value[0]}, {self.value[1]}, {self.value[2]}, {self.value[3]}, ...)"
+        return str(self.value)
+
+    def __contains__(self, other: Any) -> bool:
+        return other in self.value
+
+    def __len__(self) -> int:
+        return len(self.value)
+
+
 class DtypeDefinition:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn = None,
-                 is_unknown_length: bool = False, fixed_length: Union[int, Tuple[int, ...], None] = None, multiplier: int = 1, granularity: int = 1, description: str = ''):
+                 is_unknown_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
 
         # Consistency checks
-        if is_unknown_length and fixed_length is not None:
-            raise ValueError("Can't set is_unknown_length and give a value for fixed_length.")
+        if is_unknown_length and allowed_lengths:
+            raise ValueError("Can't set is_unknown_length and give a value for allowed_lengths.")
         if int(multiplier) != multiplier or multiplier <= 0:
             raise ValueError("multiplier must be an positive integer")
 
@@ -88,27 +112,22 @@ class DtypeDefinition:
         self.return_type = return_type
         self.is_signed = is_signed
         self.is_unknown_length = is_unknown_length
-        if isinstance(fixed_length, Iterable):
-            self.fixed_length = tuple(fixed_length)
-        elif fixed_length is not None:
-            self.fixed_length = (fixed_length,)
-        else:
-            self.fixed_length = tuple()
-        self.granularity = granularity
+        self.allowed_lengths = AllowedLengths(allowed_lengths)
+
         self.multiplier = multiplier
 
         self.set_fn = set_fn
 
-        if self.fixed_length:
-            if len(self.fixed_length) == 1:
+        if self.allowed_lengths:
+            if len(self.allowed_lengths) == 1:
                 def length_checked_get_fn(bs):
-                    if len(bs) != self.fixed_length[0]:
-                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length of {self.fixed_length[0]}, but received a length of {len(bs)}.")
+                    if len(bs) != self.allowed_lengths.value[0]:
+                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length of {self.allowed_lengths.value[0]}, but received a length of {len(bs)}.")
                     return get_fn(bs)
             else:
                 def length_checked_get_fn(bs):
-                    if len(bs) not in self.fixed_length:
-                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have one of the lengths {self.fixed_length}, but received a length of {len(bs)}.")
+                    if len(bs) not in self.allowed_lengths:
+                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have one of the lengths {self.allowed_lengths}, but received a length of {len(bs)}.")
                     return get_fn(bs)
             self.get_fn = length_checked_get_fn  # Interpret everything and check the length
         else:
@@ -128,9 +147,9 @@ class DtypeDefinition:
                 return value
             self.get_fn = new_get_fn
         else:
-            if len(self.fixed_length) == 1:
+            if len(self.allowed_lengths) == 1:
                 def read_fn(bs, start):
-                    return self.get_fn(bs[start:start + self.fixed_length[0]])
+                    return self.get_fn(bs[start:start + self.allowed_lengths.value[0]])
             else:
                 def read_fn(bs, start, length):
                     return self.get_fn(bs[start:start + length])
@@ -138,19 +157,16 @@ class DtypeDefinition:
         self.bitlength2chars_fn = bitlength2chars_fn
 
     def getDtype(self, length: Optional[int] = None) -> Dtype:
-        if self.fixed_length:
+        if self.allowed_lengths:
             if length is None:
-                if len(self.fixed_length) == 1:
-                    length = self.fixed_length[0]
+                if len(self.allowed_lengths) == 1:
+                    length = self.allowed_lengths.value[0]
             else:
-                if length not in self.fixed_length:
-                    if len(self.fixed_length) == 1:
-                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but its only allowed length is {self.fixed_length[0]}.")
+                if length not in self.allowed_lengths:
+                    if len(self.allowed_lengths) == 1:
+                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but its only allowed length is {self.allowed_lengths}.")
                     else:
-                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype which is not one of its possible lengths (must be one of {self.fixed_length}).")
-        if self.granularity != 1 and length is not None:
-            if length % self.granularity != 0:
-                raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but it must be a multiple of {self.granularity}.")
+                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype which is not one of its possible lengths (must be one of {self.allowed_lengths}).")
         if length is None:
             d = Dtype.create(self, None)
             return d
@@ -161,7 +177,7 @@ class DtypeDefinition:
 
     def __str__(self) -> str:
         s = f"{self.name} -> {self.return_type.__name__}:  # {self.description}\n"
-        s += f"is_signed={self.is_signed}, is_unknown_length={self.is_unknown_length}, fixed_length={self.fixed_length!s}, multiplier={self.multiplier}"
+        s += f"is_signed={self.is_signed}, is_unknown_length={self.is_unknown_length}, fixed_length={self.allowed_lengths!s}, multiplier={self.multiplier}"
         return s
 
 class Register:
@@ -230,7 +246,7 @@ class Register:
         s.append('-' * 85)
         for key in self.names:
             m = self.names[key]
-            fixed = '' if not m.fixed_length else m.fixed_length
+            fixed = '' if not m.allowed_lengths else m.allowed_lengths
             ret = 'None' if m.return_type is None else m.return_type.__name__
             s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.is_unknown_length:^16}{fixed!s:^13}{m.multiplier:^12}{ret:<13} # {m.description}")
         return '\n'.join(s)
