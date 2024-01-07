@@ -11,23 +11,23 @@ CACHE_SIZE = 256
 
 class Dtype:
 
+    __slots__ = ('read_fn', 'name', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'is_unknown_length', 'bitlength', 'bits_per_item', 'length')
+
     def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None) -> Dtype:
         if isinstance(token, cls):
             return token
         if token is not None:
-            return cls._new_from_token(token, length)
+            if length is None:
+                return cls._new_from_token(token)
+            else:
+                return dtype_register.get_dtype(token, length)
         return super(Dtype, cls).__new__(cls)
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
-    def _new_from_token(cls, token: str, length: Optional[int] = None) -> Dtype:
+    def _new_from_token(cls, token: str) -> Dtype:
         token = ''.join(token.split())
-        if length is None:
-            name, length = utils.parse_name_length_token(token)
-        else:
-            name = token
-        d = dtype_register.get_dtype(name, length)
-        return d
+        return dtype_register.get_dtype(*utils.parse_name_length_token(token))
 
     def __hash__(self) -> int:
         return 0  # TODO: Optimise :)
@@ -183,20 +183,17 @@ class DtypeDefinition:
 class Register:
 
     _instance: Optional[Register] = None
+    names: Dict[str, DtypeDefinition] = {}
 
     def __new__(cls) -> Register:
         # Singleton. Only one Register instance can ever exist.
         if cls._instance is None:
             cls._instance = super(Register, cls).__new__(cls)
-            cls.names: Dict[str, DtypeDefinition] = {}
-            cls._unknowable_length_names_cache: Tuple[str] = tuple()
-            cls._modified_flag: bool = False
         return cls._instance
 
     @classmethod
     def add_dtype(cls, definition: DtypeDefinition):
         cls.names[definition.name] = definition
-        cls._modified_flag = True
         if definition.get_fn is not None:
             setattr(bitstring.bits.Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
         if definition.set_fn is not None:
@@ -206,7 +203,6 @@ class Register:
     def add_dtype_alias(cls, name: str, alias: str):
         cls.names[alias] = cls.names[name]
         definition = cls.names[alias]
-        cls._modified_flag = True
         if definition.get_fn is not None:
             setattr(bitstring.bits.Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
         if definition.set_fn is not None:
@@ -228,18 +224,6 @@ class Register:
     @classmethod
     def __delitem__(cls, name: str) -> None:
         del cls.names[name]
-
-    @classmethod
-    def unknowable_length_names(cls) -> Tuple[str]:
-        if cls._modified_flag:
-            cls.refresh()
-        return cls._unknowable_length_names_cache
-
-    @classmethod
-    def refresh(cls) -> None:
-        cls._unknowable_length_names_cache = tuple(dt_name for dt_name in cls.names if cls.names[dt_name].is_unknown_length)
-        d: Dict[str, int] = {}
-        cls._modified_flag = False
 
     def __repr__(self) -> str:
         s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'unknown_length':^16}{'allowed_lengths':^16}{'multiplier':^12}{'return_type':<13}"]
