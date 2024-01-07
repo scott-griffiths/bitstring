@@ -85,7 +85,7 @@ class AllowedLengths:
 
     def __str__(self) -> str:
         if isinstance(self.value, range):
-            return f"({self.value[0]}, {self.value[1]}, {self.value[2]}, {self.value[3]}, ...)"
+            return f"({self.value[0]}, {self.value[1]}, ...)"
         return str(self.value)
 
     def __contains__(self, other: Any) -> bool:
@@ -175,9 +175,9 @@ class DtypeDefinition:
         d = Dtype.create(self, length)
         return d
 
-    def __str__(self) -> str:
-        s = f"{self.name} -> {self.return_type.__name__}:  # {self.description}\n"
-        s += f"is_signed={self.is_signed}, is_unknown_length={self.is_unknown_length}, fixed_length={self.allowed_lengths!s}, multiplier={self.multiplier}"
+    def __repr__(self) -> str:
+        s = f"{self.__class__.__name__}(name='{self.name}', description='{self.description}', return_type={self.return_type.__name__}, "
+        s += f"is_signed={self.is_signed}, is_unknown_length={self.is_unknown_length}, allowed_lengths={self.allowed_lengths!s}, multiplier={self.multiplier})"
         return s
 
 class Register:
@@ -242,13 +242,13 @@ class Register:
         cls._modified_flag = False
 
     def __repr__(self) -> str:
-        s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'unknown_length':^16}{'fixed_length':^13}{'multiplier':^12}{'return_type':<13}"]
+        s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'unknown_length':^16}{'allowed_lengths':^16}{'multiplier':^12}{'return_type':<13}"]
         s.append('-' * 85)
         for key in self.names:
             m = self.names[key]
-            fixed = '' if not m.allowed_lengths else m.allowed_lengths
+            allowed = '' if not m.allowed_lengths else m.allowed_lengths
             ret = 'None' if m.return_type is None else m.return_type.__name__
-            s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.is_unknown_length:^16}{fixed!s:^13}{m.multiplier:^12}{ret:<13} # {m.description}")
+            s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.is_unknown_length:^16}{allowed!s:^16}{m.multiplier:^12}{ret:<13} # {m.description}")
         return '\n'.join(s)
 
 
