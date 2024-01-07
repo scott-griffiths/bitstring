@@ -75,7 +75,7 @@ class DtypeDefinition:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn = None,
-                 is_unknown_length: bool = False, fixed_length: Union[int, Tuple[int, ...], None] = None, multiplier: int = 1, description: str = ''):
+                 is_unknown_length: bool = False, fixed_length: Union[int, Tuple[int, ...], None] = None, multiplier: int = 1, granularity: int = 1, description: str = ''):
 
         # Consistency checks
         if is_unknown_length and fixed_length is not None:
@@ -94,6 +94,7 @@ class DtypeDefinition:
             self.fixed_length = (fixed_length,)
         else:
             self.fixed_length = tuple()
+        self.granularity = granularity
         self.multiplier = multiplier
 
         self.set_fn = set_fn
@@ -147,6 +148,9 @@ class DtypeDefinition:
                         raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but its only allowed length is {self.fixed_length[0]}.")
                     else:
                         raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype which is not one of its possible lengths (must be one of {self.fixed_length}).")
+        if self.granularity != 1 and length is not None:
+            if length % self.granularity != 0:
+                raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but it must be a multiple of {self.granularity}.")
         if length is None:
             d = Dtype.create(self, None)
             return d

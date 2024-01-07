@@ -174,8 +174,11 @@ class Bits:
             self._setbytes_with_truncation(v, length, offset)
             return
         try:
-            setting_function = dtype_register[k].set_fn
-        except KeyError:
+            Dtype(k, length).set_fn(self, v)
+            if offset is not None:
+                raise bitstring.CreationError("offset cannot be used when initialising with '{k}'.")
+            return
+        except ValueError:
             if k == 'filename':
                 self._setfile(v, length, offset)
                 return
@@ -187,9 +190,6 @@ class Bits:
                                     f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
             else:
                 raise bitstring.CreationError(f"Unrecognised keyword '{k}' used to initialise.")
-        if offset is not None:
-            raise bitstring.CreationError("offset cannot be used when initialising with '{k}'.")
-        setting_function(self, v, length)
 
     def __getattr__(self, attribute: str) -> Any:
         # Support for arbitrary attributes like u16 or f64.
@@ -963,8 +963,6 @@ class Bits:
 
     def _getoct(self) -> str:
         """Return interpretation as an octal string."""
-        if len(self) % 3:
-            raise bitstring.InterpretError("Cannot convert to octal unambiguously - not multiple of 3 bits long.")
         return self._bitstore.slice_to_oct()
 
     def _sethex(self, hexstring: str, length: None = None) -> None:
@@ -977,8 +975,6 @@ class Bits:
         Raises an InterpretError if the bitstring's length is not a multiple of 4.
 
         """
-        if len(self) % 4:
-            raise bitstring.InterpretError("Cannot convert to hex unambiguously - not a multiple of 4 bits long.")
         return self._bitstore.slice_to_hex()
 
     def _getlength(self) -> int:

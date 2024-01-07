@@ -709,7 +709,7 @@ class NewProperties(unittest.TestCase):
             _ = a.h16
         with self.assertRaises(bitstring.InterpretError):
             _ = a.b3317777766
-        with self.assertRaises(bitstring.InterpretError):
+        with self.assertRaises(AttributeError):
             _ = a.o2
         with self.assertRaises(bitstring.InterpretError):
             _ = a.f
