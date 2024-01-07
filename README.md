@@ -10,10 +10,12 @@ It has been maintained since 2006 and now has many millions of downloads per yea
 
 
 [![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)](https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/readthedocs/bitstring)](https://bitstring.readthedocs.io/en/latest/)
-[![Codacy Badge](https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4)](https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![Downloads](https://img.shields.io/pypi/dm/bitstring?color=blue)](https://pypistats.org/packages/bitstring) &nbsp; &nbsp; 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb)
+[![Docs](https://img.shields.io/readthedocs/bitstring?logo=readthedocs&logoColor=white)](https://bitstring.readthedocs.io/en/latest/)
+[![Codacy Badge](https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4?logo=codacy)](https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+&nbsp; &nbsp;
+[![Pepy Total Downlods](https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=purple&color=blue)](https://pypistats.org/packages/bitstring)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/bitstring?label=%40&labelColor=blue&color=blue)](https://pypistats.org/packages/bitstring)
+
 
 News
 ----
