@@ -1766,13 +1766,15 @@ class Bits:
         tidy_fmt = str(dtype1)
         if dtype2 is not None:
             tidy_fmt += ', ' + str(dtype2)
-        stream.write(f"<{self.__class__.__name__}, fmt='{tidy_fmt}', length={len(self)} bits>\n[\n")
+        output_stream = io.StringIO()
+        output_stream.write(f"<{self.__class__.__name__}, fmt='{tidy_fmt}', length={len(self)} bits>\n[\n")
         data._pp(dtype1, dtype2, bits_per_group, width, sep, format_sep, show_offset,
-                 stream, bitstring.options.lsb0, 1)
-        stream.write("]")
+                 output_stream, bitstring.options.lsb0, 1)
+        output_stream.write("]")
         if trailing_bit_length != 0:
-            stream.write(" + trailing_bits = " + str(self[-trailing_bit_length:]))
-        stream.write("\n")
+            output_stream.write(" + trailing_bits = " + str(self[-trailing_bit_length:]))
+        output_stream.write("\n")
+        stream.write(output_stream.getvalue())
         return
 
     def copy(self: TBits) -> TBits:
