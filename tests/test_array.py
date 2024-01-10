@@ -9,13 +9,16 @@ import copy
 import itertools
 import io
 from bitstring.dtypes import Dtype
-
+import re
 
 sys.path.insert(0, '..')
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
+def remove_unprintable(s: str) -> str:
+    colour_escape = re.compile(r'(?:\x1B[@-_])[0-?]*[ -/]*[@-~]')
+    return colour_escape.sub('', s)
 
 class Creation(unittest.TestCase):
 
@@ -513,34 +516,30 @@ class ArrayMethods(unittest.TestCase):
         a = Array('bfloat', [-3, 1, 2])
         s = io.StringIO()
         a.pp('hex', stream=s)
-        self.assertEqual(s.getvalue(),  "<Array fmt='hex', length=3, itemsize=16 bits, total data size=6 bytes>\n"
-                                        "[\n"
-                                        "c040 3f80 4000\n"
+        self.assertEqual(remove_unprintable(s.getvalue()),  "<Array fmt='hex', length=3, itemsize=16 bits, total data size=6 bytes> [\n"
+                                        " 0: c040 3f80 4000\n"
                                         "]\n")
         a.data += '0b110'
         a.dtype='hex16'
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(),  """<Array dtype='hex16', length=3, itemsize=16 bits, total data size=7 bytes>
-[
-c040 3f80 4000
+        self.assertEqual(remove_unprintable(s.getvalue()),  """<Array dtype='hex16', length=3, itemsize=16 bits, total data size=7 bytes> [
+ 0: c040 3f80 4000
 ] + trailing_bits = 0b110\n""")
 
     def testPpUint(self):
         a = Array('uint32', [12, 100, 99])
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(s.getvalue(), """<Array dtype='uint32', length=3, itemsize=32 bits, total data size=12 bytes>
-[
-        12        100         99
+        self.assertEqual(remove_unprintable(s.getvalue()), """<Array dtype='uint32', length=3, itemsize=32 bits, total data size=12 bytes> [
+ 0:         12        100         99
 ]\n""")
 
     def testPpBits(self):
         a = Array('bits2', b'89')
         s = io.StringIO()
         a.pp(stream=s, width=0, show_offset=True)
-        self.assertEqual(s.getvalue(), """<Array dtype='bits2', length=8, itemsize=2 bits, total data size=2 bytes>
-[
+        self.assertEqual(remove_unprintable(s.getvalue()), """<Array dtype='bits2', length=8, itemsize=2 bits, total data size=2 bytes> [
  0: 0b00
  1: 0b11
  2: 0b10
@@ -554,9 +553,8 @@ c040 3f80 4000
     def testPpTwoFormats(self):
         a = Array('float16', bytearray(20))
         s = io.StringIO()
-        a.pp(stream=s, fmt='e5m2float, bin')
-        self.assertEqual(s.getvalue(), """<Array fmt='e5m2float, bin', length=20, itemsize=8 bits, total data size=20 bytes>
-[
+        a.pp(stream=s, fmt='e5m2float, bin', show_offset=False)
+        self.assertEqual(remove_unprintable(s.getvalue()), """<Array fmt='e5m2float, bin', length=20, itemsize=8 bits, total data size=20 bytes> [
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
@@ -568,9 +566,8 @@ c040 3f80 4000
         a = Array('float16', bytearray(range(50, 56)))
         s = io.StringIO()
         a.pp(stream=s, fmt='u, b')
-        self.assertEqual(s.getvalue(), """<Array fmt='u, b', length=3, itemsize=16 bits, total data size=6 bytes>
-[
-12851 13365 13879 : 0011001000110011 0011010000110101 0011011000110111
+        self.assertEqual(remove_unprintable(s.getvalue()), """<Array fmt='uint, bin', length=3, itemsize=16 bits, total data size=6 bytes> [
+ 0: 12851 13365 13879 : 0011001000110011 0011010000110101 0011011000110111
 ]\n""")
 
 

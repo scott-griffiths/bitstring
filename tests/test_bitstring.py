@@ -26,14 +26,6 @@ class ModuleData(unittest.TestCase):
                     'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype', 'options']
         self.assertEqual(set(bitstring.__all__), set(exported))
 
-    def testReverseDict(self):
-        d = bitstring.Bits._byteReversalDict
-        for i in range(256):
-            a = bitstring.Bits(uint=i, length=8)
-            b = d[i]
-            self.assertEqual(a.bin[::-1], bitstring.Bits(bytes=b).bin)
-
-
     def testPyprojectVersion(self):
         filename = os.path.join(THIS_DIR, '../pyproject.toml')
         try:

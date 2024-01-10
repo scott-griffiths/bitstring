@@ -3,7 +3,6 @@ from __future__ import annotations
 import numbers
 import pathlib
 import sys
-import re
 import mmap
 import struct
 import array
@@ -19,6 +18,7 @@ from bitstring.bitstore import BitStore
 from bitstring import bitstore_helpers, utils
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
+from bitstring.bitstring_options import  Colour
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
@@ -27,7 +27,6 @@ TBits = TypeVar("TBits", bound='Bits')
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
-
 
 class Bits:
     """A container holding an immutable sequence of bits.
@@ -87,11 +86,7 @@ class Bits:
     len -- Length of the bitstring in bits.
 
     """
-    __slots__ = ('_bitstore')
-
-    # Creates dictionaries to quickly reverse single bytes
-    _int8ReversalDict: Dict[int, int] = {i: int("{0:08b}".format(i)[::-1], 2) for i in range(0x100)}
-    _byteReversalDict: Dict[int, bytes] = {i: bytes([int("{0:08b}".format(i)[::-1], 2)]) for i in range(0x100)}
+    __slots__ = ('_bitstore',)
 
     def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
@@ -1638,6 +1633,7 @@ class Bits:
     def _pp(self, dtype1: Dtype, dtype2: Optional[Dtype], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
         """Internal pretty print method."""
+        colour = Colour(bitstring.options.colourful_prettyprinting)
         name1 = dtype1.name
         name2 = dtype2.name if dtype2 is not None else None
         if dtype1.is_unknown_length:
@@ -1677,10 +1673,10 @@ class Bits:
         for bits in self.cut(max_bits_per_line):
             offset = bitpos // offset_factor
             if bitstring.options.lsb0:
-                offset_str = f'{offset_sep}{offset: >{offset_width - len(offset_sep)}}' if show_offset else ''
+                offset_str = f'{offset_sep}' + colour.green + f'{offset: >{offset_width - len(offset_sep)}}' + colour.off if show_offset else ''
             else:
-                offset_str = f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' if show_offset else ''
-            fb = Bits._format_bits(bits, bits_per_group, sep, name1)
+                offset_str = colour.green + f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' + colour.off if show_offset else ''
+            fb = colour.blue + Bits._format_bits(bits, bits_per_group, sep, name1) + colour.off
             if first_fb_width is None:
                 first_fb_width = len(fb)
             if len(fb) < first_fb_width:  # Pad final line with spaces to align it
@@ -1688,7 +1684,7 @@ class Bits:
                     fb = ' ' * (first_fb_width - len(fb)) + fb
                 else:
                     fb += ' ' * (first_fb_width - len(fb))
-            fb2 = '' if name2 is None else format_sep + Bits._format_bits(bits, bits_per_group, sep, name2)
+            fb2 = '' if name2 is None else format_sep + colour.purple + Bits._format_bits(bits, bits_per_group, sep, name2) + colour.off
             if second_fb_width is None:
                 second_fb_width = len(fb2)
             if len(fb2) < second_fb_width:
@@ -1722,6 +1718,7 @@ class Bits:
         >>> s.pp('b, h', sep='_', show_offset=False)
 
         """
+        colour = Colour(bitstring.options.colourful_prettyprinting)
         if fmt is None:
             fmt = 'bin8, hex'
         token_list = utils.preprocess_tokens(fmt)
@@ -1763,11 +1760,12 @@ class Bits:
             trailing_bit_length = len(self) % bits_per_group
         data = self if trailing_bit_length == 0 else self[0: -trailing_bit_length]
         format_sep = " : "  # String to insert on each line between multiple formats
-        tidy_fmt = str(dtype1)
+        tidy_fmt = colour.blue + str(dtype1) + colour.off
         if dtype2 is not None:
-            tidy_fmt += ', ' + str(dtype2)
+            tidy_fmt += ', ' + colour.purple + str(dtype2) + colour.off
         output_stream = io.StringIO()
-        output_stream.write(f"<{self.__class__.__name__}, fmt='{tidy_fmt}', length={len(self)} bits>\n[\n")
+        len_str = colour.green + str(len(self)) + colour.off
+        output_stream.write(f"<{self.__class__.__name__}, fmt='{tidy_fmt}', length={len_str} bits> [\n")
         data._pp(dtype1, dtype2, bits_per_group, width, sep, format_sep, show_offset,
                  output_stream, bitstring.options.lsb0, 1)
         output_stream.write("]")

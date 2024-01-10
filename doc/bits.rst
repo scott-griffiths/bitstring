@@ -159,28 +159,35 @@ Methods
 
     Pretty print the bitstring's value according to the *fmt*. Either a single, or two comma separated formats can be specified, together with options for setting the maximum display *width*, the number of bits to display in each group, and the separator to print between groups.
 
-        >>> s = Bits(int=-98987987293452, length=200)
+        >>> s = Bits('0b10111100101101001')*20
         >>> s.pp(width=80)
-          0: 11111111 11111111 11111111 11111111 11111111 11111111   ff ff ff ff ff ff
-         48: 11111111 11111111 11111111 11111111 11111111 11111111   ff ff ff ff ff ff
-         96: 11111111 11111111 11111111 11111111 11111111 11111111   ff ff ff ff ff ff
-        144: 11111111 10100101 11111000 10010000 00101110 00101010   ff a5 f8 90 2e 2a
-        192: 11110100                                                f4
+        <Bits, fmt='bin8, hex', length=340 bits> [
+          0: 10111100 10110100 11011110 01011010 01101111 00101101 : bc b4 de 5a 6f 2d
+         48: 00110111 10010110 10011011 11001011 01001101 11100101 : 37 96 9b cb 4d e5
+         96: 10100110 11110010 11010011 01111001 01101001 10111100 : a6 f2 d3 79 69 bc
+        144: 10110100 11011110 01011010 01101111 00101101 00110111 : b4 de 5a 6f 2d 37
+        192: 10010110 10011011 11001011 01001101 11100101 10100110 : 96 9b cb 4d e5 a6
+        240: 11110010 11010011 01111001 01101001 10111100 10110100 : f2 d3 79 69 bc b4
+        288: 11011110 01011010 01101111 00101101 00110111 10010110 : de 5a 6f 2d 37 96
+        ] + trailing_bits = 0x9
 
-        >>> s.pp('h16, b', width=80, show_offset=False, sep=' / ')
-        ffff / ffff / ffff   1111111111111111 / 1111111111111111 / 1111111111111111
-        ffff / ffff / ffff   1111111111111111 / 1111111111111111 / 1111111111111111
-        ffff / ffff / ffff   1111111111111111 / 1111111111111111 / 1111111111111111
-        ffa5 / f890 / 2e2a   1111111110100101 / 1111100010010000 / 0010111000101010
-        f4                   11110100
 
-    The available formats are ``'bin'``, ``'oct'``, ``'hex'`` and ``'bytes'``. A bit length can be specified after the format (with an optional `:`) to give the number of bits represented by each group, otherwise the default is based on the format or formats selected. Using a length of zero removes all separators and displays one block of characters per line for each format in *fmt* (e.g. ``'hex0'``).
+        >>> s.pp('int20, hex', width=80, show_offset=False, sep=' / ')
+        <Bits, fmt='int20, hex', length=340 bits> [
+        -275635 / -107921 /  185209 /  433099 : bcb4d / e5a6f / 2d379 / 69bcb
+         319066 /  455379 /  497307 / -215842 : 4de5a / 6f2d3 / 7969b / cb4de
+         370418 / -182378 / -410444 / -137818 : 5a6f2 / d3796 / 9bcb4 / de5a6
+         -53961 / -431684 / -307739 / -364755 : f2d37 / 969bc / b4de5 / a6f2d
+         227689                               : 37969
+        ]
 
-    The ``'hex'``, ``'oct'`` and ``'bin'`` format string can be replaced with just their initial letter.
+
+    The available formats are any fixed-length dtypes, for example ``'bin'``, ``'oct'``, ``'hex'`` and ``'bytes'`` together with types with explicit lengths such as ``'uint5'`` and ``'float16'``.
+    A bit length can be specified after the format (with an optional `:`) to give the number of bits represented by each group, otherwise the default is based on the format or formats selected.
 
     For the ``'bytes'`` format, characters from the 'Latin Extended-A' unicode block are used for non-ASCII and unprintable characters.
 
-    If the bitstring cannot be represented in a format due to it's length not being a multiple of the number of bits represented by each character then an :exc:`InterpretError` will be raised.
+    If the bitstring cannot be represented in a format due to its length not being a multiple of the number of bits represented by each character then an :exc:`InterpretError` will be raised.
 
     An output *stream* can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
 

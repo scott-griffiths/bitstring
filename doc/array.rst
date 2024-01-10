@@ -249,7 +249,7 @@ Methods
         b'DEF'
 
 
-.. method:: Array.pp(fmt: str | None = None, width: int = 120, show_offset: bool = False, stream: TextIO = sys.stdout) -> None
+.. method:: Array.pp(fmt: str | None = None, width: int = 120, show_offset: bool = True, stream: TextIO = sys.stdout) -> None
 
     Pretty print the Array.
 
@@ -261,14 +261,13 @@ Methods
 
     The output will try to stay within `width` characters per line, but will always output at least one element value.
 
-    Setting `show_offset` to ``True`` will add a element index to each line of the output.
+    Setting `show_offset` to ``False`` will hide the element index on each line of the output.
 
     An output `stream` can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
 
         >>> a = Array('u20', bytearray(range(100)))
-        >>> a.pp(width=70)
-        <Array fmt='u20', length=40, itemsize=20 bits, total data size=100 bytes>
-        [
+        >>> a.pp(width=70, show_offset=False)
+        <Array fmt='u20', length=40, itemsize=20 bits, total data size=100 bytes> [
              16  131844   20576  460809   41136  789774   61697   70163
           82257  399128  102817  728093  123378    8482  143938  337447
          164498  666412  185058  995377  205619  275766  226179  604731
@@ -276,18 +275,16 @@ Methods
          328981  152404  349541  481369  370101  810334  390662   90723
         ]
 
-        >>> a.pp('hex32', show_offset=True, width=70)
-        <Array fmt='hex32', length=25, itemsize=32 bits, total data size=100 bytes>
-        [
+        >>> a.pp('hex32', width=70)
+        <Array fmt='hex32', length=25, itemsize=32 bits, total data size=100 bytes> [
           0: 00010203 04050607 08090a0b 0c0d0e0f 10111213 14151617 18191a1b
           7: 1c1d1e1f 20212223 24252627 28292a2b 2c2d2e2f 30313233 34353637
          14: 38393a3b 3c3d3e3f 40414243 44454647 48494a4b 4c4d4e4f 50515253
          21: 54555657 58595a5b 5c5d5e5f 60616263
         ]
 
-        >>> a.pp('i12, hex', width=70)
-        <Array fmt='i12, hex', length=66, itemsize=12 bits, total data size=100 bytes>
-        [
+        >>> a.pp('i12, hex', show_offset=False, width=70)
+        <Array fmt='i12, hex', length=66, itemsize=12 bits, total data size=100 bytes> [
             0   258    48  1029    96  1800 : 000 102 030 405 060 708
           144 -1525   192  -754   241    17 : 090 a0b 0c0 d0e 0f1 011
           289   788   337  1559   385 -1766 : 121 314 151 617 181 91a

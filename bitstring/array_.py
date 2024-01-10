@@ -9,6 +9,7 @@ from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring import utils
+from bitstring.bitstring_options import Options, Colour
 import copy
 import array
 import operator
@@ -17,6 +18,8 @@ import sys
 
 # The possible types stored in each element of the Array
 ElementType = Union[float, str, int, bytes, bool, Bits]
+
+options = Options()
 
 
 class Array:
@@ -355,7 +358,7 @@ class Array:
             self.data[start_swap_bit: start_swap_bit + self._dtype.length] = temp
 
     def pp(self, fmt: Optional[str] = None, width: int = 120,
-           show_offset: bool = False, stream: TextIO = sys.stdout) -> None:
+           show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty-print the Array contents.
 
         fmt -- Data format string. Defaults to current Array dtype.
@@ -365,12 +368,14 @@ class Array:
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
         """
+        colour = Colour(options.colourful_prettyprinting)
         sep = ' '
         dtype2 = None
+        tidy_fmt = None
         if fmt is None:
             fmt = self.dtype
             dtype1 = self.dtype
-            parameter_str = f"dtype='{self.dtype}'"
+            tidy_fmt = "dtype='" + colour.blue + str(self.dtype) + "'" + colour.off
         else:
             token_list = utils.preprocess_tokens(fmt)
             if len(token_list) not in [1, 2]:
@@ -392,10 +397,15 @@ class Array:
 
         trailing_bit_length = len(self.data) % token_length
         format_sep = " : "  # String to insert on each line between multiple formats
-
+        if tidy_fmt is None:
+            tidy_fmt = colour.blue + str(dtype1) + colour.off
+            if dtype2 is not None:
+                tidy_fmt += ', ' + colour.purple + str(dtype2) + colour.off
+            tidy_fmt = "fmt='" + tidy_fmt + "'"
         data = self.data if trailing_bit_length == 0 else self.data[0: -trailing_bit_length]
         length = len(self.data) // token_length
-        stream.write(f"<Array {parameter_str}, length={length}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes>\n[\n")
+        len_str = colour.green + str(length) + colour.off
+        stream.write(f"<Array {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes> [\n")
         data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
         stream.write("]")
         if trailing_bit_length != 0:

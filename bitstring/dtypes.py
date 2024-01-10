@@ -119,16 +119,10 @@ class DtypeDefinition:
         self.set_fn = set_fn
 
         if self.allowed_lengths:
-            if len(self.allowed_lengths) == 1:
-                def length_checked_get_fn(bs):
-                    if len(bs) != self.allowed_lengths.value[0]:
-                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length of {self.allowed_lengths.value[0]}, but received a length of {len(bs)}.")
-                    return get_fn(bs)
-            else:
-                def length_checked_get_fn(bs):
-                    if len(bs) not in self.allowed_lengths:
-                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have one of the lengths {self.allowed_lengths}, but received a length of {len(bs)}.")
-                    return get_fn(bs)
+            def length_checked_get_fn(bs):
+                if len(bs) not in self.allowed_lengths:
+                    raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length in {self.allowed_lengths}, but received a length of {len(bs)}.")
+                return get_fn(bs)
             self.get_fn = length_checked_get_fn  # Interpret everything and check the length
         else:
             self.get_fn = get_fn  # Interpret everything
@@ -164,7 +158,7 @@ class DtypeDefinition:
             else:
                 if length not in self.allowed_lengths:
                     if len(self.allowed_lengths) == 1:
-                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but its only allowed length is {self.allowed_lengths}.")
+                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but its only allowed length is {self.allowed_lengths.value[0]}.")
                     else:
                         raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype which is not one of its possible lengths (must be one of {self.allowed_lengths}).")
         if length is None:

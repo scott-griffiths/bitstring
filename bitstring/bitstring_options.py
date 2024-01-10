@@ -10,6 +10,7 @@ class Options:
     def __init__(self):
         self.set_lsb0(False)
         self._bytealigned = False
+        self.colourful_prettyprinting = True
 
     def __repr__(self) -> str:
         return f"bytealigned: {self._bytealigned}\nlsb0: {self._lsb0}"
@@ -74,3 +75,15 @@ class Options:
             cls._instance = super(Options, cls).__new__(cls)
         return cls._instance
 
+
+class Colour:
+    def __new__(cls, use_colour: bool) -> Colour:
+        x = super().__new__(cls)
+        if use_colour:
+            cls.blue = '\033[34m'
+            cls.purple = '\033[35m'
+            cls.green = '\033[32m'
+            cls.off = '\033[0m'
+        else:
+            cls.blue = cls.purple = cls.green = cls.off = ''
+        return x
