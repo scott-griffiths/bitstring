@@ -643,9 +643,9 @@ class PrettyPrinting(unittest.TestCase):
         a = Bits('0b101011110000')
         s = io.StringIO()
         a.pp(stream=s)
-        self.assertEqual(remove_unprintable(s.getvalue()), """<Bits, fmt='bin8, hex', length=12 bits> [
-0: 10101111 : af
-] + trailing_bits = 0x0
+        self.assertEqual(remove_unprintable(s.getvalue()), """<Bits, fmt='bin', length=12 bits> [
+ 0: 10101111 0000    
+]
 """)
 
         s = io.StringIO()

@@ -1720,7 +1720,10 @@ class Bits:
         """
         colour = Colour(bitstring.options.colourful_prettyprinting)
         if fmt is None:
-            fmt = 'bin8, hex'
+            if len(self) % 8 == 0 and len(self) >= 8:
+                fmt = 'bin8, hex'
+            else:
+                fmt = 'bin'
         token_list = utils.preprocess_tokens(fmt)
         if len(token_list) not in [1, 2]:
             raise ValueError(f"Only one or two tokens can be used in an pp() format - '{fmt}' has {len(token_list)} tokens.")
