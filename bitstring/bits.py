@@ -168,23 +168,22 @@ class Bits:
             # Special case for bytes as we want to allow offsets and lengths to work only on creation.
             self._setbytes_with_truncation(v, length, offset)
             return
+        if k == 'filename':
+            self._setfile(v, length, offset)
+            return
+        if k == 'bitarray':
+            self._setbitarray(v, length, offset)
+            return
+        if k == 'auto':
+            raise bitstring.CreationError(
+                f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
+                f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
+        if offset is not None:
+            raise bitstring.CreationError("offset cannot be used when initialising with '{k}'.")
         try:
             Dtype(k, length).set_fn(self, v)
-            if offset is not None:
-                raise bitstring.CreationError("offset cannot be used when initialising with '{k}'.")
-            return
-        except ValueError:
-            if k == 'filename':
-                self._setfile(v, length, offset)
-                return
-            if k == 'bitarray':
-                self._setbitarray(v, length, offset)
-                return
-            if k == 'auto':
-                raise bitstring.CreationError(f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
-                                    f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
-            else:
-                raise bitstring.CreationError(f"Unrecognised keyword '{k}' used to initialise.")
+        except ValueError as e:
+            raise bitstring.CreationError(e)
 
     def __getattr__(self, attribute: str) -> Any:
         # Support for arbitrary attributes like u16 or f64.
@@ -799,8 +798,6 @@ class Bits:
         Raises CreationError if i < 0.
 
         """
-        if length is not None:
-            raise bitstring.CreationError("Cannot specify a length for exponential-Golomb codes.")
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = bitstore_helpers.ue2bitstore(i)
@@ -835,8 +832,6 @@ class Bits:
 
     def _setse(self, i: int, length: None = None) -> None:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
-        if length is not None:
-            raise bitstring.CreationError("Cannot specify a length for exponential-Golomb codes.")
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = bitstore_helpers.se2bitstore(i)
@@ -863,8 +858,6 @@ class Bits:
         Raises CreationError if i < 0.
 
         """
-        if length is not None:
-            raise bitstring.CreationError("Cannot specify a length for exponential-Golomb codes.")
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = bitstore_helpers.uie2bitstore(i)
@@ -893,8 +886,6 @@ class Bits:
 
     def _setsie(self, i: int, length: None = None) -> None:
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
-        if length is not None:
-            raise bitstring.CreationError("Cannot specify a length for exponential-Golomb codes.")
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = bitstore_helpers.sie2bitstore(i)
@@ -922,8 +913,6 @@ class Bits:
     def _setbool(self, value: Union[bool, str], length: Optional[int] = None) -> None:
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
-        if length is not None and length != 1:
-            raise bitstring.CreationError(f"bools must be length 1, received a length of {length} bits.")
         if value in (1, 'True', '1'):
             self._bitstore = BitStore('1')
         elif value in (0, 'False', '0'):
@@ -1029,7 +1018,7 @@ class Bits:
     def _truncateleft(self: TBits, bits: int, /) -> TBits:
         """Truncate bits from the start of the bitstring. Return the truncated bits."""
         assert 0 <= bits <= len(self)
-        if not bits:
+        if bits == 0:
             return self.__class__()
         truncated_bits = self._absolute_slice(0, bits)
         if bits == len(self):

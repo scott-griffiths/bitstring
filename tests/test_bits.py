@@ -126,6 +126,8 @@ class Creation(unittest.TestCase):
         for i in range(-100, 10):
             s = Bits(se=i)
             self.assertEqual(s.se, i)
+        with self.assertRaises(bitstring.CreationError):
+            _ = Bits(se=10, length=40)
 
     def testCreationFromSeWithOffset(self):
         with self.assertRaises(bitstring.CreationError):

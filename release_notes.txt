@@ -9,7 +9,12 @@ In preparation: version 4.2.0
 * Array class no longer 'beta'.
 * New Dtype class can be optionally used to specify types.
 * Dropped support for Python 3.7. Minimum version is now 3.8.
-* The options object is now preferred method for changing module options.
+* The bitstring.options object is now preferred method for changing module options.
+* Performance improvements.
+* More types can be pretty printed.
+* Pretty printing is now prettier - terminal colours added.
+
+
 
 ----------------------------
 November 2023: version 4.1.4

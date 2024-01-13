@@ -165,7 +165,7 @@ class DtypeDefinition:
             d = Dtype.create(self, None)
             return d
         if self.is_unknown_length:
-            raise ValueError("Length shouldn't be supplied for dtypes that are variable length.")
+            raise ValueError(f"A length ({length}) shouldn't be supplied for the dtype '{self.name}' as it has unknown length.")
         d = Dtype.create(self, length)
         return d
 
