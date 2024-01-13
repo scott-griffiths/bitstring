@@ -11,7 +11,7 @@ CACHE_SIZE = 256
 
 class Dtype:
 
-    __slots__ = ('read_fn', 'name', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'is_unknown_length', 'bitlength', 'bits_per_item', 'length')
+    __slots__ = ('read_fn', 'name', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'length_defined_by_value', 'bitlength', 'bits_per_item', 'length')
 
     def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None) -> Dtype:
         if isinstance(token, cls):
@@ -41,15 +41,15 @@ class Dtype:
         x.bits_per_item = definition.multiplier
         if x.bitlength is not None:
             x.bitlength *= x.bits_per_item
-        x.is_unknown_length = definition.is_unknown_length
-        if x.is_unknown_length or len(dtype_register.names[x.name].allowed_lengths) == 1:
+        x.length_defined_by_value = definition.length_defined_by_value
+        if x.length_defined_by_value or len(dtype_register.names[x.name].allowed_lengths) == 1:
             x.read_fn = definition.read_fn
         else:
             x.read_fn = functools.partial(definition.read_fn, length=x.bitlength)
         if definition.set_fn is None:
             x.set_fn = None
         else:
-            if x.is_unknown_length or len(dtype_register.names[x.name].allowed_lengths) == 1:
+            if x.length_defined_by_value or len(dtype_register.names[x.name].allowed_lengths) == 1:
                 x.set_fn = definition.set_fn
             else:
                 x.set_fn = functools.partial(definition.set_fn, length=x.bitlength)
@@ -59,12 +59,12 @@ class Dtype:
         return x
 
     def __str__(self) -> str:
-        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
+        hide_length = self.length_defined_by_value or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
         length_str = '' if hide_length else str(self.length)
         return f"{self.name}{length_str}"
 
     def __repr__(self) -> str:
-        hide_length = self.is_unknown_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
+        hide_length = self.length_defined_by_value or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
         length_str = '' if hide_length else ', ' + str(self.length)
         return f"{self.__class__.__name__}('{self.name}{length_str}')"
 
@@ -102,11 +102,11 @@ class DtypeDefinition:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn = None,
-                 is_unknown_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
+                 length_defined_by_value: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
 
         # Consistency checks
-        if is_unknown_length and allowed_lengths:
-            raise ValueError("Can't set is_unknown_length and give a value for allowed_lengths.")
+        if length_defined_by_value and allowed_lengths:
+            raise ValueError("Can't set 'length_defined_by_value' and give a value for 'allowed_lengths'.")
         if int(multiplier) != multiplier or multiplier <= 0:
             raise ValueError("multiplier must be an positive integer")
 
@@ -114,7 +114,7 @@ class DtypeDefinition:
         self.description = description
         self.return_type = return_type
         self.is_signed = is_signed
-        self.is_unknown_length = is_unknown_length
+        self.length_defined_by_value = length_defined_by_value
         self.allowed_lengths = AllowedLengths(allowed_lengths)
 
         self.multiplier = multiplier
@@ -131,7 +131,7 @@ class DtypeDefinition:
             self.get_fn = get_fn  # Interpret everything
 
         # Create a reading function from the get_fn.
-        if self.is_unknown_length:
+        if self.length_defined_by_value:
             # For unknown lengths the get_fn is really a reading function, so switch them around and create a new get_fn
             self.read_fn = get_fn
             def new_get_fn(bs):
@@ -167,14 +167,14 @@ class DtypeDefinition:
         if length is None:
             d = Dtype.create(self, None)
             return d
-        if self.is_unknown_length:
+        if self.length_defined_by_value:
             raise ValueError(f"A length ({length}) shouldn't be supplied for the dtype '{self.name}' as it has unknown length.")
         d = Dtype.create(self, length)
         return d
 
     def __repr__(self) -> str:
         s = f"{self.__class__.__name__}(name='{self.name}', description='{self.description}', return_type={self.return_type.__name__}, "
-        s += f"is_signed={self.is_signed}, is_unknown_length={self.is_unknown_length}, allowed_lengths={self.allowed_lengths!s}, multiplier={self.multiplier})"
+        s += f"is_signed={self.is_signed}, length_defined_by_value={self.length_defined_by_value}, allowed_lengths={self.allowed_lengths!s}, multiplier={self.multiplier})"
         return s
 
 class Register:
@@ -223,13 +223,13 @@ class Register:
         del cls.names[name]
 
     def __repr__(self) -> str:
-        s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'unknown_length':^16}{'allowed_lengths':^16}{'multiplier':^12}{'return_type':<13}"]
+        s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'length_defined_by_value':^23}{'allowed_lengths':^16}{'multiplier':^12}{'return_type':<13}"]
         s.append('-' * 85)
         for key in self.names:
             m = self.names[key]
             allowed = '' if not m.allowed_lengths else m.allowed_lengths
             ret = 'None' if m.return_type is None else m.return_type.__name__
-            s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.is_unknown_length:^16}{allowed!s:^16}{m.multiplier:^12}{ret:<13} # {m.description}")
+            s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.length_defined_by_value:^16}{allowed!s:^16}{m.multiplier:^12}{ret:<13} # {m.description}")
         return '\n'.join(s)
 
 

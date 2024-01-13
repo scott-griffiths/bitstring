@@ -1167,20 +1167,20 @@ class Bits:
         has_stretchy_token = False
         bits_after_stretchy_token = 0
         for dtype in dtypes:
-            stretchy = dtype.bitlength is None and dtype.is_unknown_length is False
+            stretchy = dtype.bitlength is None and dtype.length_defined_by_value is False
             if stretchy:
                 if has_stretchy_token:
                     raise bitstring.Error("It's not possible to have more than one 'filler' token.")
                 has_stretchy_token = True
             elif has_stretchy_token:
-                if dtype.is_unknown_length:
+                if dtype.length_defined_by_value:
                     raise bitstring.Error(f"It's not possible to parse a variable length token '{dtype}' after a 'filler' token.")
                 bits_after_stretchy_token += dtype.bitlength
 
         # We should have precisely zero or one stretchy token
         vals = []
         for dtype in dtypes:
-            stretchy = dtype.bitlength is None and dtype.is_unknown_length is False
+            stretchy = dtype.bitlength is None and dtype.length_defined_by_value is False
             if stretchy:
                 bits_remaining = len(self) - pos
                 # Set length to the remaining bits
@@ -1636,9 +1636,9 @@ class Bits:
         colour = Colour(bitstring.options.colourful_prettyprinting)
         name1 = dtype1.name
         name2 = dtype2.name if dtype2 is not None else None
-        if dtype1.is_unknown_length:
+        if dtype1.length_defined_by_value:
             raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has an unknown length.")
-        if dtype2 is not None and dtype2.is_unknown_length:
+        if dtype2 is not None and dtype2.length_defined_by_value:
             raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has an unknown length.")
         offset_width = 0
         offset_sep = ' :' if lsb0 else ': '
