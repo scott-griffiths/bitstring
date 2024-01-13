@@ -356,7 +356,7 @@ class ConstBitStream(Bits):
             self._pos += fmt
             return bs
         dtype = bitstring.dtypes.Dtype(fmt)
-        if dtype.bitlength is None and dtype.length_defined_by_value is False:
+        if dtype.bitlength is None and dtype.creation_needs_length:
             # No length specified? Try again, but read to end.
             bitlength = len(self) - self._pos
             items, remainder = divmod(bitlength, dtype.bits_per_item)
