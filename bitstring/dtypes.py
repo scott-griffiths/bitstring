@@ -49,7 +49,10 @@ class Dtype:
         if definition.set_fn is None:
             x.set_fn = None
         else:
-            x.set_fn = functools.partial(definition.set_fn, length=x.bitlength)
+            if x.is_unknown_length or len(dtype_register.names[x.name].allowed_lengths) == 1:
+                x.set_fn = definition.set_fn
+            else:
+                x.set_fn = functools.partial(definition.set_fn, length=x.bitlength)
         x.get_fn = definition.get_fn
         x.return_type = definition.return_type
         x.is_signed = definition.is_signed

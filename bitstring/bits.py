@@ -9,7 +9,7 @@ import array
 import io
 from collections import abc
 import functools
-from typing import Tuple, Union, List, Iterable, Any, Optional, Dict, \
+from typing import Tuple, Union, List, Iterable, Any, Optional, \
     BinaryIO, TextIO, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
@@ -614,10 +614,10 @@ class Bits:
         bs = Bits._create_from_bitstype(bs)
         self._bitstore = bs._bitstore
 
-    def _sete5m2float(self, f: float, length: None = None) -> None:
+    def _sete5m2float(self, f: float) -> None:
         self._bitstore = bitstore_helpers.e5m2float2bitstore(f)
 
-    def _sete4m3float(self, f: float, length: None = None) -> None:
+    def _sete4m3float(self, f: float) -> None:
         self._bitstore = bitstore_helpers.e4m3float2bitstore(f)
 
     def _setbytes(self, data: Union[bytearray, bytes], length:None = None) -> None:
@@ -792,7 +792,7 @@ class Bits:
             raise bitstring.CreationError(f"bfloats must be length 16, received a length of {length} bits.")
         self._bitstore = bitstore_helpers.bfloatle2bitstore(f)
 
-    def _setue(self, i: int, length: None = None) -> None:
+    def _setue(self, i: int) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
 
         Raises CreationError if i < 0.
@@ -830,7 +830,7 @@ class Bits:
             pos += 1
         return codenum, pos
 
-    def _setse(self, i: int, length: None = None) -> None:
+    def _setse(self, i: int) -> None:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
@@ -852,7 +852,7 @@ class Bits:
         else:
             return m, pos
 
-    def _setuie(self, i: int, length: None = None) -> None:
+    def _setuie(self, i: int) -> None:
         """Initialise bitstring with unsigned interleaved exponential-Golomb code for integer i.
 
         Raises CreationError if i < 0.
@@ -884,7 +884,7 @@ class Bits:
         codenum -= 1
         return codenum, pos
 
-    def _setsie(self, i: int, length: None = None) -> None:
+    def _setsie(self, i: int, ) -> None:
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
@@ -910,7 +910,7 @@ class Bits:
         except IndexError:
             raise bitstring.ReadError("Read off end of bitstring trying to read code.")
 
-    def _setbool(self, value: Union[bool, str], length: Optional[int] = None) -> None:
+    def _setbool(self, value: Union[bool, str]) -> None:
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
         if value in (1, 'True', '1'):
