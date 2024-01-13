@@ -375,7 +375,7 @@ class Array:
         if fmt is None:
             fmt = self.dtype
             dtype1 = self.dtype
-            tidy_fmt = "dtype='" + colour.blue + str(self.dtype) + "'" + colour.off
+            tidy_fmt = "dtype='" + colour.purple + str(self.dtype) + "'" + colour.off
         else:
             token_list = utils.preprocess_tokens(fmt)
             if len(token_list) not in [1, 2]:
@@ -398,9 +398,9 @@ class Array:
         trailing_bit_length = len(self.data) % token_length
         format_sep = " : "  # String to insert on each line between multiple formats
         if tidy_fmt is None:
-            tidy_fmt = colour.blue + str(dtype1) + colour.off
+            tidy_fmt = colour.purple + str(dtype1) + colour.off
             if dtype2 is not None:
-                tidy_fmt += ', ' + colour.purple + str(dtype2) + colour.off
+                tidy_fmt += ', ' + colour.blue + str(dtype2) + colour.off
             tidy_fmt = "fmt='" + tidy_fmt + "'"
         data = self.data if trailing_bit_length == 0 else self.data[0: -trailing_bit_length]
         length = len(self.data) // token_length

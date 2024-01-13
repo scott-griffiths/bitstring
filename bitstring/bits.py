@@ -1604,17 +1604,28 @@ class Bits:
         return dtype.name, dtype.bitlength
 
     @staticmethod
-    def _format_bits(bits: Bits, bits_per_group: int, sep: str, fmt: str) -> str:
+    def _format_bits(bits: Bits, bits_per_group: int, sep: str, fmt: str,
+                     colour_start: str, colour_end: str, width: Optional[int]=None) -> Tuple[str, int]:
         get_fn = Bits._getbytes_printable if fmt == 'bytes' else dtype_register.get_dtype(fmt, bits_per_group).get_fn
         if bits_per_group == 0:
-            return str(get_fn(bits))
-        # Left-align for fixed width types when msb0, otherwise right-align.
-        align = '<' if fmt in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not bitstring.options.lsb0 else '>'
-        if dtype_register[fmt].bitlength2chars_fn is not None:
-            chars_per_group = dtype_register[fmt].bitlength2chars_fn(bits_per_group)
+            x = str(get_fn(bits))
         else:
-            chars_per_group = 0
-        return sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
+            # Left-align for fixed width types when msb0, otherwise right-align.
+            align = '<' if fmt in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not bitstring.options.lsb0 else '>'
+            if dtype_register[fmt].bitlength2chars_fn is not None:
+                chars_per_group = dtype_register[fmt].bitlength2chars_fn(bits_per_group)
+            else:
+                chars_per_group = 0
+            x = sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
+        chars_used = len(x)
+        padding_spaces = 0 if width is None else max(width - len(x), 0)
+        x = colour_start + x + colour_end
+        # Pad final line with spaces to align it
+        if bitstring.options.lsb0:
+            x = ' ' * padding_spaces + x
+        else:
+            x += ' ' * padding_spaces
+        return x, chars_used
 
     @staticmethod
     def _chars_per_group(bits_per_group: int, fmt: Optional[str]):
@@ -1671,33 +1682,31 @@ class Bits:
         bitpos = 0
         first_fb_width = second_fb_width = None
         for bits in self.cut(max_bits_per_line):
-            offset = bitpos // offset_factor
-            if bitstring.options.lsb0:
-                offset_str = f'{offset_sep}' + colour.green + f'{offset: >{offset_width - len(offset_sep)}}' + colour.off if show_offset else ''
-            else:
-                offset_str = colour.green + f'{offset: >{offset_width - len(offset_sep)}}{offset_sep}' + colour.off if show_offset else ''
-            fb = colour.blue + Bits._format_bits(bits, bits_per_group, sep, name1) + colour.off
+            offset_str = ''
+            if show_offset:
+                offset = bitpos // offset_factor
+                bitpos += len(bits)
+                if bitstring.options.lsb0:
+                    offset_str = colour.green + offset_sep + f'{offset: <{offset_width - len(offset_sep)}}' + colour.off
+                else:
+                    offset_str = colour.green + f'{offset: >{offset_width - len(offset_sep)}}' + offset_sep + colour.off
+
+            fb1, chars_used = Bits._format_bits(bits, bits_per_group, sep, name1, colour.purple, colour.off, first_fb_width)
             if first_fb_width is None:
-                first_fb_width = len(fb)
-            if len(fb) < first_fb_width:  # Pad final line with spaces to align it
-                if bitstring.options.lsb0:
-                    fb = ' ' * (first_fb_width - len(fb)) + fb
-                else:
-                    fb += ' ' * (first_fb_width - len(fb))
-            fb2 = '' if name2 is None else format_sep + colour.purple + Bits._format_bits(bits, bits_per_group, sep, name2) + colour.off
-            if second_fb_width is None:
-                second_fb_width = len(fb2)
-            if len(fb2) < second_fb_width:
-                if bitstring.options.lsb0:
-                    fb2 = ' ' * (second_fb_width - len(fb2)) + fb2
-                else:
-                    fb2 += ' ' * (second_fb_width - len(fb2))
+                first_fb_width = chars_used
+
+            fb2 = ''
+            if name2 is not None:
+                fb2, chars_used = Bits._format_bits(bits, bits_per_group, sep, name2, colour.blue, colour.off, second_fb_width)
+                if second_fb_width is None:
+                    second_fb_width = chars_used
+                fb2 = format_sep + fb2
+
             if bitstring.options.lsb0 is True:
-                line_fmt = fb + fb2 + offset_str + '\n'
+                line_fmt = fb1 + fb2 + offset_str + '\n'
             else:
-                line_fmt = offset_str + fb + fb2 + '\n'
+                line_fmt = offset_str + fb1 + fb2 + '\n'
             stream.write(line_fmt)
-            bitpos += len(bits)
         return
 
     def pp(self, fmt: Optional[str] = None, width: int = 120, sep: str = ' ',
@@ -1721,7 +1730,7 @@ class Bits:
         colour = Colour(bitstring.options.colourful_prettyprinting)
         if fmt is None:
             if len(self) % 8 == 0 and len(self) >= 8:
-                fmt = 'bin8, hex'
+                fmt = 'bin, hex'
             else:
                 fmt = 'bin'
         token_list = utils.preprocess_tokens(fmt)
@@ -1763,9 +1772,9 @@ class Bits:
             trailing_bit_length = len(self) % bits_per_group
         data = self if trailing_bit_length == 0 else self[0: -trailing_bit_length]
         format_sep = " : "  # String to insert on each line between multiple formats
-        tidy_fmt = colour.blue + str(dtype1) + colour.off
+        tidy_fmt = colour.purple + str(dtype1) + colour.off
         if dtype2 is not None:
-            tidy_fmt += ', ' + colour.purple + str(dtype2) + colour.off
+            tidy_fmt += ', ' + colour.blue + str(dtype2) + colour.off
         output_stream = io.StringIO()
         len_str = colour.green + str(len(self)) + colour.off
         output_stream.write(f"<{self.__class__.__name__}, fmt='{tidy_fmt}', length={len_str} bits> [\n")

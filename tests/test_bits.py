@@ -886,8 +886,8 @@ class PrettyPrinting_LSB0(unittest.TestCase):
         s = io.StringIO()
         a.pp('bin', stream=s, width=5)
         self.assertEqual(remove_unprintable(s.getvalue()), """<Bits, fmt='bin', length=20 bits> [
-11111010 : 0
-00000000 : 8
+11111010 :0 
+00000000 :8 
     1111 :16
 ]
 """)
