@@ -249,6 +249,15 @@ for dt in dtype_definitions:
 for alias in aliases:
     dtype_register.add_dtype_alias(alias[0], alias[1])
 
+property_docstrings = [f'{name} -- Interpret as {dtype_register[name].description}.' for name in dtype_register.names]
+property_docstring = '\n    '.join(property_docstrings)
+
+Bits.__doc__ = Bits.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
+BitArray.__doc__ = BitArray.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
+ConstBitStream.__doc__ = ConstBitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
+BitStream.__doc__ = BitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
+
+
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
            'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype', 'options']

@@ -59,29 +59,7 @@ class BitArray(Bits):
 
     Properties:
 
-    bin -- The bitstring as a binary string.
-    hex -- The bitstring as a hexadecimal string.
-    oct -- The bitstring as an octal string.
-    bytes -- The bitstring as a bytes object.
-    int -- Interpret as a two's complement signed integer.
-    uint -- Interpret as a two's complement unsigned integer.
-    float / floatbe -- Interpret as a big-endian floating point number.
-    bool -- For single bit bitstrings, interpret as True or False.
-    se -- Interpret as a signed exponential-Golomb code.
-    ue -- Interpret as an unsigned exponential-Golomb code.
-    sie -- Interpret as a signed interleaved exponential-Golomb code.
-    uie -- Interpret as an unsigned interleaved exponential-Golomb code.
-    floatle -- Interpret as a little-endian floating point number.
-    floatne -- Interpret as a native-endian floating point number.
-    bfloat / bfloatbe -- Interpret as a big-endian 16-bit bfloat type.
-    bfloatle -- Interpret as a little-endian 16-bit bfloat type.
-    bfloatne -- Interpret as a native-endian 16-bit bfloat type.
-    intbe -- Interpret as a big-endian signed integer.
-    intle -- Interpret as a little-endian signed integer.
-    intne -- Interpret as a native-endian signed integer.
-    uintbe -- Interpret as a big-endian unsigned integer.
-    uintle -- Interpret as a little-endian unsigned integer.
-    uintne -- Interpret as a native-endian unsigned integer.
+    [GENERATED_PROPERTY_DESCRIPTIONS]
 
     len -- Length of the bitstring in bits.
 
