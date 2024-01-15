@@ -143,17 +143,20 @@ class DtypeDefinition:
                     return self.get_fn(bs[start:start + length])
             self.read_fn = read_fn
         else:
-            # For unknown lengths the get_fn is really a reading function, so switch them around and create a new get_fn
-            self.read_fn = get_fn
-            def new_get_fn(bs):
-                try:
-                    value, length = self.read_fn(bs, 0)
-                except bitstring.ReadError:
-                    raise bitstring.InterpretError
+            # We only find out the length when we read/get.
+            def length_checked_get_fn(bs):
+                x, length = get_fn(bs)
                 if length != len(bs):
-                    raise ValueError  # TODO
-                return value
-            self.get_fn = new_get_fn
+                    raise ValueError
+                return x
+            self.get_fn = length_checked_get_fn
+            def read_fn(bs, start):
+                try:
+                    x, length = get_fn(bs[start:])
+                except bitstring.InterpretError:
+                    raise bitstring.ReadError
+                return x, start + length
+            self.read_fn = read_fn
         self.bitlength2chars_fn = bitlength2chars_fn
 
     def getDtype(self, length: Optional[int] = None) -> Dtype:

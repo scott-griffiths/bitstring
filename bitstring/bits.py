@@ -830,6 +830,30 @@ class Bits:
             pos += 1
         return codenum, pos
 
+    def _getue(self) -> Tuple[int, int]:
+        try:
+            return self._readue(0)
+        except bitstring.ReadError:
+            raise bitstring.InterpretError
+
+    def _getse(self) -> Tuple[int, int]:
+        try:
+            return self._readse(0)
+        except bitstring.ReadError:
+            raise bitstring.InterpretError
+
+    def _getuie(self) -> Tuple[int, int]:
+        try:
+            return self._readuie(0)
+        except bitstring.ReadError:
+            raise bitstring.InterpretError
+
+    def _getsie(self) -> Tuple[int, int]:
+        try:
+            return self._readsie(0)
+        except bitstring.ReadError:
+            raise bitstring.InterpretError
+
     def _setse(self, i: int) -> None:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
         if bitstring.options.lsb0:
