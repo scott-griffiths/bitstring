@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 from typing import Optional, Dict, Any, Union, Tuple
-from collections.abc import Iterable
+import inspect
 import bitstring
 from bitstring import utils
 
@@ -103,7 +103,7 @@ class DtypeDefinition:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn = None,
-                 set_fn_needs_length: bool = True, get_fn_needs_length: bool = True, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
+                 get_fn_needs_length: bool = True, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
 
         # Consistency checks
         # if not set_fn_needs_length and allowed_lengths:
@@ -115,13 +115,14 @@ class DtypeDefinition:
         self.description = description
         self.return_type = return_type
         self.is_signed = is_signed
-        self.set_fn_needs_length = set_fn_needs_length
         self.get_fn_needs_length = get_fn_needs_length
         self.allowed_lengths = AllowedLengths(allowed_lengths)
 
         self.multiplier = multiplier
 
         self.set_fn = set_fn
+        # Can work out if set_fn needs length based on its signature.
+        self.set_fn_needs_length = self.set_fn is not None and 'length' in inspect.signature(self.set_fn).parameters
 
         if self.allowed_lengths:
             def length_checked_get_fn(bs):
