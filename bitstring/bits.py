@@ -1191,20 +1191,20 @@ class Bits:
         has_stretchy_token = False
         bits_after_stretchy_token = 0
         for dtype in dtypes:
-            stretchy = dtype.bitlength is None and dtype.read_fn_needs_length
+            stretchy = dtype.bitlength is None and not dtype.variable_length
             if stretchy:
                 if has_stretchy_token:
                     raise bitstring.Error("It's not possible to have more than one 'filler' token.")
                 has_stretchy_token = True
             elif has_stretchy_token:
-                if not dtype.read_fn_needs_length:
+                if dtype.variable_length:
                     raise bitstring.Error(f"It's not possible to parse a variable length token '{dtype}' after a 'filler' token.")
                 bits_after_stretchy_token += dtype.bitlength
 
         # We should have precisely zero or one stretchy token
         vals = []
         for dtype in dtypes:
-            stretchy = dtype.bitlength is None and dtype.read_fn_needs_length
+            stretchy = dtype.bitlength is None and not dtype.variable_length
             if stretchy:
                 bits_remaining = len(self) - pos
                 # Set length to the remaining bits
@@ -1660,10 +1660,10 @@ class Bits:
         colour = Colour(bitstring.options.colourful_prettyprinting)
         name1 = dtype1.name
         name2 = dtype2.name if dtype2 is not None else None
-        if not dtype1.read_fn_needs_length:
-            raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has an unknown length.")
-        if dtype2 is not None and not dtype2.read_fn_needs_length:
-            raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has an unknown length.")
+        if dtype1.variable_length:
+            raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has a variable length.")
+        if dtype2 is not None and dtype2.variable_length:
+            raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has a variable length.")
         offset_width = 0
         offset_sep = ' :' if lsb0 else ': '
         if show_offset:

@@ -11,7 +11,7 @@ CACHE_SIZE = 256
 
 class Dtype:
 
-    __slots__ = ('read_fn', 'name', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'set_fn_needs_length', 'read_fn_needs_length', 'bitlength', 'bits_per_item', 'length')
+    __slots__ = ('read_fn', 'name', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'set_fn_needs_length', 'variable_length', 'bitlength', 'bits_per_item', 'length')
 
     def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None) -> Dtype:
         if isinstance(token, cls):
@@ -42,8 +42,8 @@ class Dtype:
         if x.bitlength is not None:
             x.bitlength *= x.bits_per_item
         x.set_fn_needs_length = definition.set_fn_needs_length
-        x.read_fn_needs_length = definition.read_fn_needs_length
-        if not x.read_fn_needs_length or len(dtype_register.names[x.name].allowed_lengths) == 1:
+        x.variable_length = definition.variable_length
+        if x.variable_length or len(dtype_register.names[x.name].allowed_lengths) == 1:
             x.read_fn = definition.read_fn
         else:
             x.read_fn = functools.partial(definition.read_fn, length=x.bitlength)
@@ -60,12 +60,12 @@ class Dtype:
         return x
 
     def __str__(self) -> str:
-        hide_length = not self.read_fn_needs_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
+        hide_length = self.variable_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
         length_str = '' if hide_length else str(self.length)
         return f"{self.name}{length_str}"
 
     def __repr__(self) -> str:
-        hide_length = not self.read_fn_needs_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
+        hide_length = self.variable_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
         length_str = '' if hide_length else ', ' + str(self.length)
         return f"{self.__class__.__name__}('{self.name}{length_str}')"
 
@@ -103,7 +103,7 @@ class DtypeDefinition:
     # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn = None,
-                 read_fn_needs_length: bool = True, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
+                 variable_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
 
         # Consistency checks
         # if not set_fn_needs_length and allowed_lengths:
@@ -115,7 +115,7 @@ class DtypeDefinition:
         self.description = description
         self.return_type = return_type
         self.is_signed = is_signed
-        self.read_fn_needs_length = read_fn_needs_length
+        self.variable_length = variable_length
         self.allowed_lengths = AllowedLengths(allowed_lengths)
 
         self.multiplier = multiplier
@@ -134,7 +134,7 @@ class DtypeDefinition:
             self.get_fn = get_fn  # Interpret everything
 
         # Create a reading function from the get_fn.
-        if self.read_fn_needs_length:
+        if not self.variable_length:
             if len(self.allowed_lengths) == 1:
                 def read_fn(bs, start):
                     return self.get_fn(bs[start:start + self.allowed_lengths.value[0]])
@@ -173,8 +173,8 @@ class DtypeDefinition:
         if length is None:
             d = Dtype.create(self, None)
             return d
-        if not self.read_fn_needs_length:
-            raise ValueError(f"A length ({length}) shouldn't be supplied for the dtype '{self.name}'.")
+        if self.variable_length:
+            raise ValueError(f"A length ({length}) shouldn't be supplied for the variable length dtype '{self.name}'.")
         d = Dtype.create(self, length)
         return d
 
