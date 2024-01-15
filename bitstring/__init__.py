@@ -199,13 +199,13 @@ dtype_definitions = [
                     multiplier=8, description="a bytes object"),
     # Unknown length types
     DtypeDefinition('se', Bits._setse, Bits._getse, int, True, None,
-                    get_fn_needs_length=False, description="a signed exponential-Golomb code"),
+                    read_fn_needs_length=False, description="a signed exponential-Golomb code"),
     DtypeDefinition('ue', Bits._setue, Bits._getue, int, False, None,
-                    get_fn_needs_length=False, description="an unsigned exponential-Golomb code"),
+                    read_fn_needs_length=False, description="an unsigned exponential-Golomb code"),
     DtypeDefinition('sie', Bits._setsie, Bits._getsie, int, True, None,
-                    get_fn_needs_length=False, description="a signed interleaved exponential-Golomb code"),
+                    read_fn_needs_length=False, description="a signed interleaved exponential-Golomb code"),
     DtypeDefinition('uie', Bits._setuie, Bits._getuie, int, False, None,
-                    get_fn_needs_length=False, description="an unsigned interleaved exponential-Golomb code"),
+                    read_fn_needs_length=False, description="an unsigned interleaved exponential-Golomb code"),
     # Special case pad type
     DtypeDefinition('pad', Bits._setpad, Bits._getpad, None, False, None,
                     description="a skipped section of padding"),
