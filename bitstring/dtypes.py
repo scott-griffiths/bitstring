@@ -67,7 +67,7 @@ class Dtype:
     def __repr__(self) -> str:
         hide_length = self.variable_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
         length_str = '' if hide_length else ', ' + str(self.length)
-        return f"{self.__class__.__name__}('{self.name}{length_str}')"
+        return f"{self.__class__.__name__}('{self.name}'{length_str})"
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Dtype):
@@ -120,9 +120,10 @@ class DtypeDefinition:
 
         self.multiplier = multiplier
 
-        self.set_fn = set_fn
         # Can work out if set_fn needs length based on its signature.
-        self.set_fn_needs_length = self.set_fn is not None and 'length' in inspect.signature(self.set_fn).parameters
+        self.set_fn_needs_length = set_fn is not None and 'length' in inspect.signature(set_fn).parameters
+        self.set_fn = set_fn
+
 
         if self.allowed_lengths:
             def length_checked_get_fn(bs):

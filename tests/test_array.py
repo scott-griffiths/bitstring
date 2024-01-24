@@ -901,3 +901,15 @@ class Misc(unittest.TestCase):
             a[4] = 100.0
         with self.assertRaises(IndexError):
             a[-5] = 100.0
+
+    def testBytes(self):
+        a = Array('bytes8', 5)
+        self.assertEqual(a.data, b'\x00'*40)
+
+        b = Array('bytes1', 5)
+        self.assertEqual(b.data, b'\x00'*5)
+
+    def testBytesTrailingBits(self):
+        b = Bits('0x000000, 0b111')
+        a = Array('bytes1', b)
+        self.assertEqual(a.trailing_bits, '0b111')

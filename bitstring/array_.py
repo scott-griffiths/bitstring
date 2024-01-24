@@ -76,7 +76,7 @@ class Array:
             raise CreationError(e)
 
         if isinstance(initializer, numbers.Integral):
-            self.data = BitArray(initializer * self._dtype.length)
+            self.data = BitArray(initializer * self._dtype.bitlength)
         elif isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
             self.data += initializer
         elif isinstance(initializer, io.BufferedReader):
@@ -93,7 +93,7 @@ class Array:
 
     @property
     def trailing_bits(self) -> BitArray:
-        trailing_bit_length = len(self.data) % self._dtype.length
+        trailing_bit_length = len(self.data) % self._dtype.bitlength
         return BitArray() if trailing_bit_length == 0 else self.data[-trailing_bit_length:]
 
     # Converting array.array typecodes to our equivalents.
