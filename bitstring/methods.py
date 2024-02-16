@@ -7,7 +7,6 @@ from bitstring.exceptions import CreationError
 from typing import Union, List
 from bitstring.bitstore import BitStore
 from bitstring.bitstore_helpers import bitstore_from_token
-from bitstring.dtypes import dtype_register
 
 
 def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:

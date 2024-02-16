@@ -30,7 +30,7 @@ class Dtype:
         return dtype_register.get_dtype(*utils.parse_name_length_token(token))
 
     def __hash__(self) -> int:
-        return 0  # TODO: Optimise :)
+        return hash((self.name, self.length))
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)

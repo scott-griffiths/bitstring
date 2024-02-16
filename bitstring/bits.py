@@ -18,7 +18,7 @@ from bitstring.bitstore import BitStore
 from bitstring import bitstore_helpers, utils
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
-from bitstring.bitstring_options import  Colour
+from bitstring.bitstring_options import Colour
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
@@ -27,6 +27,7 @@ TBits = TypeVar("TBits", bound='Bits')
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
+
 
 class Bits:
     """A container holding an immutable sequence of bits.

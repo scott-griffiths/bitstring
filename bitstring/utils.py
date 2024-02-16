@@ -134,29 +134,28 @@ def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
 
 @functools.lru_cache(CACHE_SIZE)
 def preprocess_tokens(fmt: str) -> List[str]:
-    # Remove whitespace
-    fmt = ''.join(fmt.split())
-    # Expand any brackets.
-    fmt = expand_brackets(fmt)
+    # Remove whitespace and expand brackets
+    fmt = expand_brackets(''.join(fmt.split()))
+
     # Split tokens by ',' and remove whitespace
-    # The meta_tokens can either be ordinary single tokens or multiple
-    # struct-format token strings.
+    # The meta_tokens can either be ordinary single tokens or multiple struct-format token strings.
     meta_tokens = [f.strip() for f in fmt.split(',')]
-    single_tokens = []
+    final_tokens = []
+
     for meta_token in meta_tokens:
-        # See if it has a multiplicative factor
-        if not (m := MULTIPLICATIVE_RE.match(meta_token)):
-            factor = 1
-        else:
+        # Extract factor and actual token if a multiplicative factor exists
+        factor = 1
+        if m := MULTIPLICATIVE_RE.match(meta_token):
             factor = int(m.group('factor'))
             meta_token = m.group('token')
-        # See if it's a struct-like format
-        if m := STRUCT_PACK_RE.match(meta_token):
-            tokens = structparser(m)
-        else:
-            tokens = [meta_token]
-        single_tokens.extend(tokens * factor)  # TODO: This is inefficient as the same token will be parsed multiple times.
-    return single_tokens
+
+        # Parse struct-like format into sub-tokens or treat as single token
+        tokens = structparser(m) if (m := STRUCT_PACK_RE.match(meta_token)) else [meta_token]
+
+        # Extend final tokens list with parsed tokens, repeated by the factor
+        final_tokens.extend(tokens * factor)
+    return final_tokens
+
 
 @functools.lru_cache(CACHE_SIZE)
 def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \

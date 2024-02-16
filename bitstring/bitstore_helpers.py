@@ -232,21 +232,18 @@ literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {
 }
 
 def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[str]) -> BitStore:
+    if name in literal_bit_funcs:
+        return literal_bit_funcs[name](value)
     try:
         d = bitstring.dtypes.Dtype(name, token_length)
     except ValueError as e:
-        if name in literal_bit_funcs:
-            bs = literal_bit_funcs[name](value)
-        else:
-            raise bitstring.CreationError(f"Can't parse token: {e}")
-    else:
-        b = bitstring.bits.Bits()
-        if value is None and name != 'pad':
-            # 'pad' is a special case - the only dtype that can be constructed from a length with no value.
-            raise ValueError
-        d.set_fn(b, value)
-        bs = b._bitstore
-        if token_length is not None and len(bs) != d.bitlength:
-            raise bitstring.CreationError(f"Token with length {token_length} packed with value of length {len(bs)} "
-                                f"({name}:{token_length}={value}).")
+        raise bitstring.CreationError(f"Can't parse token: {e}")
+    if value is None and name != 'pad':
+        raise ValueError
+    b = bitstring.bits.Bits()
+    d.set_fn(b, value)
+    bs = b._bitstore
+    if token_length is not None and len(bs) != d.bitlength:
+        raise bitstring.CreationError(f"Token with length {token_length} packed with value of length {len(bs)} "
+                            f"({name}:{token_length}={value}).")
     return bs
