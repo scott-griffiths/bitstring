@@ -107,7 +107,7 @@ You can easily examine every possible value that these formats can represent usi
 
 or using the :class:`Array` type it's even more concise - we can create an Array and pretty print all the values with this line::
 
-    >>> Array('e4m3float', bytearray(range(256))).pp(width=90, show_offset=True)
+    >>> Array('e4m3float', bytearray(range(256))).pp(width=90)
     <Array fmt='e4m3float', length=256, itemsize=8 bits, total data size=256 bytes>
     [
        0:           0.0  0.0009765625   0.001953125  0.0029296875    0.00390625  0.0048828125

@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;600&display=swap');
+
 
 
 :root {
@@ -34,12 +35,16 @@ div.document div.highlight {
     background-color: var(--mainBackgroundColor);
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
     font-family: 'Lato', sans-serif;
 }
 
 h1 {
     color: #2980b9;
+}
+
+h3, h4 {
+    text-decoration: underline;
 }
 
 div.document div.admonition.attention, div.document div.admonition.caution, div.document div.admonition.warning {
