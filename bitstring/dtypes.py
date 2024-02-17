@@ -59,6 +59,17 @@ class Dtype:
         x.is_signed = definition.is_signed
         return x
 
+    def build(self, value: Any) -> bitstring.Bits:
+        """Create a bitstring from a value."""
+        b = bitstring.Bits()
+        self.set_fn(b, value)
+        return b
+
+    def parse(self, b: BitsType) -> Any:
+        """Parse a bitstring into a value."""
+        b = bitstring.Bits._create_from_bitstype(b)
+        return self.get_fn(bitstring.Bits(b))
+
     def __str__(self) -> str:
         hide_length = self.variable_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
         length_str = '' if hide_length else str(self.length)

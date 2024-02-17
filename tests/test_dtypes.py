@@ -2,7 +2,7 @@
 import unittest
 import sys
 import bitstring as bs
-from bitstring import Dtype, DtypeDefinition
+from bitstring import Dtype, DtypeDefinition, Bits
 
 sys.path.insert(0, '..')
 
@@ -32,6 +32,23 @@ class BasicFunctionality(unittest.TestCase):
         self.assertEqual(str(d), 'uint12')
         self.assertEqual(d.length, 12)
         self.assertEqual(d.name, 'uint')
+
+    def testBuildErrors(self):
+        dtype = Dtype('uint8')
+        value = 'not_an_integer'
+        with self.assertRaises(ValueError):
+            dtype.build(value)
+
+    def testBuild(self):
+        dtype = Dtype('se')
+        x = dtype.build(10001)
+        self.assertEqual(x.se, 10001)
+
+    def testParse(self):
+        dtype = Dtype('uint:12')
+        x = dtype.parse('0x3ff')
+        self.assertEqual(x, 1023)
+
 
 
 class ChangingTheRegister(unittest.TestCase):
