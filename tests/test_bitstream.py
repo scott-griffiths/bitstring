@@ -130,7 +130,7 @@ class Find(unittest.TestCase):
         self.assertTrue(s.find('0b1', start=s.pos))
 
     def testFindBytes(self):
-        s = BitStream('0x010203040102ff')
+        s = BitStream.fromstring('0x010203040102ff')
         self.assertFalse(s.find('0x05', bytealigned=True))
         self.assertTrue(s.find('0x02', bytealigned=True))
         self.assertEqual(s.read(16).hex, '0203')
@@ -227,7 +227,7 @@ class Rfind(unittest.TestCase):
 
 class Shift(unittest.TestCase):
     def testShiftLeft(self):
-        s = BitStream('0b1010')
+        s = BitStream.fromstring('0b1010')
         t = s << 1
         self.assertEqual(s.bin, '1010')
         self.assertEqual(t.bin, '0100')
@@ -264,7 +264,7 @@ class Shift(unittest.TestCase):
             s >> -1
 
     def testShiftRightInPlace(self):
-        s = BitStream('0xffff')[4:12]
+        s = BitStream.fromstring('0xffff')[4:12]
         s >>= 1
         self.assertEqual(s, '0b01111111')
         s = BitStream('0b11011')
@@ -358,9 +358,9 @@ class Replace(unittest.TestCase):
         self.assertEqual(a.hex, 'fff23ef3234')
 
     def testReplace5(self):
-        a = BitStream('0xab')
-        b = BitStream('0xcd')
-        c = BitStream('0xabef')
+        a = BitStream.fromstring('0xab')
+        b = BitStream.fromstring('0xcd')
+        c = BitStream.fromstring('0xabef')
         c.replace(a, b)
         self.assertEqual(c, '0xcdef')
         self.assertEqual(a, '0xab')

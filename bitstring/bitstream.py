@@ -461,6 +461,13 @@ class ConstBitStream(Bits):
         self.pos += skipped
         return skipped
 
+    @classmethod
+    def fromstring(cls: TBits, s: str, /) -> TBits:
+        x = super().fromstring(s)
+        x._pos = 0
+        x._bitstore.immutable = True
+        return x
+
     pos = property(_getbitpos, _setbitpos,
                    doc="""The position in the bitstring in bits. Read and write.
                       """)

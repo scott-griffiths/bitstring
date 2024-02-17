@@ -278,7 +278,7 @@ class InterleavedExpGolomb(unittest.TestCase):
 
     def testErrors(self):
         for f in ['sie=100, 0b1001', '0b00', 'uie=100, 0b1001']:
-            s = Bits(f)
+            s = Bits.fromstring(f)
             with self.assertRaises(bitstring.InterpretError):
                 _ = s.sie
             with self.assertRaises(bitstring.InterpretError):
@@ -357,7 +357,7 @@ class LongBoolConversion(unittest.TestCase):
 class PadToken(unittest.TestCase):
 
     def testCreation(self):
-        a = Bits('pad:10')
+        a = Bits.fromstring('pad:10')
         self.assertEqual(a, Bits(10))
         b = Bits('pad:0')
         self.assertEqual(b, Bits())
@@ -608,7 +608,7 @@ class Lsb0Interpretations(unittest.TestCase):
             _ = Bits(sie=2)
 
     def testBytes(self):
-        a = Bits('0xabcdef')
+        a = Bits.fromstring('0xabcdef')
         b = a.bytes
         self.assertEqual(b, b'\xab\xcd\xef')
         b = a.bytes3
@@ -626,7 +626,7 @@ class UnderscoresInLiterals(unittest.TestCase):
     def testBinaryCreation(self):
         a = Bits(bin='0000_0001_0010')
         self.assertEqual(a.bin, '000000010010')
-        b = Bits('0b0011_1100_1111_0000')
+        b = Bits.fromstring('0b0011_1100_1111_0000')
         self.assertEqual(b.bin, '0011110011110000')
         v = 0b1010_0000
         c = Bits(uint=0b1010_0000, length=8)

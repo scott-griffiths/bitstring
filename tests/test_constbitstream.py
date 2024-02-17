@@ -110,7 +110,7 @@ class PadToken(unittest.TestCase):
         self.assertEqual(s.pos, 5)
 
     def testReadList(self):
-        s = CBS('0b10001111001')
+        s = CBS.fromstring('0b10001111001')
         t = s.readlist('pad:1, uint:3, pad:4, uint:3')
         self.assertEqual(t, [0, 1])
         s.pos = 0

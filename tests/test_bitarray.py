@@ -350,7 +350,7 @@ class Copy(unittest.TestCase):
 class ModifiedByAddingBug(unittest.TestCase):
 
     def testAdding(self):
-        a = BitArray('0b0')
+        a = BitArray.fromstring('0b0')
         b = BitArray('0b11')
         c = a + b
         self.assertEqual(c, '0b011')
@@ -759,7 +759,7 @@ class NewProperties(unittest.TestCase):
         self.assertEqual(b, ['ff', 352, 288])
 
     def testReading(self):
-        a = bitstring.BitStream('0x01ff')
+        a = bitstring.BitStream.fromstring('0x01ff')
         b = a.read('u8')
         self.assertEqual(b, 1)
         self.assertEqual(a.pos, 8)
@@ -825,7 +825,7 @@ class BFloats(unittest.TestCase):
             _ = BitArray('bfloat:1=0.5')
 
     def testLittleEndian(self):
-        a = BitArray('f32=1000')
+        a = BitArray.fromstring('f32=1000')
         b = BitArray(bfloat=a.f)
         self.assertEqual(a[0:16], b[0:16])
 

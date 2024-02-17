@@ -1789,6 +1789,13 @@ class Bits:
         # The copy can return self as it's immutable.
         return self
 
+    @classmethod
+    def fromstring(cls: TBits, s: str, /) -> TBits:
+        """Create a new bitstring from a formatted string."""
+        x = super().__new__(cls)
+        x._bitstore = bitstore_helpers.str_to_bitstore(s)
+        return x
+
     len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")
 
 
