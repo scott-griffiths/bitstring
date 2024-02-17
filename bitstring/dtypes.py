@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Optional, Dict, Any, Union, Tuple
+from typing import Optional, Dict, Any, Union, Tuple, Callable
 import inspect
 import bitstring
 from bitstring import utils
@@ -12,6 +12,18 @@ CACHE_SIZE = 256
 class Dtype:
 
     __slots__ = ('read_fn', 'name', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'set_fn_needs_length', 'variable_length', 'bitlength', 'bits_per_item', 'length')
+
+    name: str
+    read_fn: Callable
+    set_fn: Callable
+    get_fn: Callable
+    return_type: Any
+    is_signed: bool
+    set_fn_needs_length: bool
+    variable_length: bool
+    bitlength: Optional[int]
+    bits_per_item: int
+    length: Optional[int]
 
     def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None) -> Dtype:
         if isinstance(token, cls):
@@ -117,10 +129,12 @@ class DtypeDefinition:
                  variable_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
 
         # Consistency checks
-        # if not set_fn_needs_length and allowed_lengths:
-        #     raise ValueError("Can't set 'length_defined_by_value' and give a value for 'allowed_lengths'.")
         if int(multiplier) != multiplier or multiplier <= 0:
             raise ValueError("multiplier must be an positive integer")
+        if variable_length and allowed_lengths:
+            raise ValueError("A variable length dtype can't have allowed lengths.")
+        if variable_length and set_fn is not None and 'length' in inspect.signature(set_fn).parameters:
+            raise ValueError("A variable length dtype can't have a set_fn which takes a length.")
 
         self.name = name
         self.description = description
@@ -162,6 +176,7 @@ class DtypeDefinition:
                     raise ValueError
                 return x
             self.get_fn = length_checked_get_fn
+
             def read_fn(bs, start):
                 try:
                     x, length = get_fn(bs[start:])
@@ -171,7 +186,7 @@ class DtypeDefinition:
             self.read_fn = read_fn
         self.bitlength2chars_fn = bitlength2chars_fn
 
-    def getDtype(self, length: Optional[int] = None) -> Dtype:
+    def get_dtype(self, length: Optional[int] = None) -> Dtype:
         if self.allowed_lengths:
             if length is None:
                 if len(self.allowed_lengths) == 1:
@@ -194,6 +209,7 @@ class DtypeDefinition:
         s = f"{self.__class__.__name__}(name='{self.name}', description='{self.description}', return_type={self.return_type.__name__}, "
         s += f"is_signed={self.is_signed}, set_fn_needs_length={self.set_fn_needs_length}, allowed_lengths={self.allowed_lengths!s}, multiplier={self.multiplier})"
         return s
+
 
 class Register:
 
@@ -230,7 +246,7 @@ class Register:
         except KeyError:
             raise ValueError(f"Unknown Dtype name '{name}'.")
         else:
-            return definition.getDtype(length)
+            return definition.get_dtype(length)
 
     @classmethod
     def __getitem__(cls, name: str) -> DtypeDefinition:
