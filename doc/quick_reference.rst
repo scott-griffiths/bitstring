@@ -8,7 +8,7 @@ Quick Reference
 
 This section gives a summary of the bitstring module's classes, functions and attributes.
 
-There are four classes that are bit containers, so that each element is a single bit.
+There are four main classes that are bit containers, so that each element is a single bit.
 They differ based on whether they can be modified after creation and on whether they have the concept of a current bit position.
 
 .. |nbsp| unicode:: 0xa0
@@ -369,6 +369,26 @@ Properties
 * :attr:`~Array.trailing_bits` -- If the data length is not a multiple of the `dtype` length, this ``BitArray`` gives the leftovers at the end of the data.
 
 ----
+
+.. _dtype_quick_reference:
+
+Dtype
+-----
+
+A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to create, parse and present different bit interpretations.
+
+.. class:: Dtype(token: str | Dtype | None = None, /, length: int | None = None)
+
+Creates a :class:`Dtype` object.
+
+    .. method:: build(value: Any, /) -> Bits
+
+        Create a bitstring from a value.
+
+    .. method:: parse(bits: BitsType, /) -> Any
+
+        Parse a bitstring to a value.
+
 
 General Information
 -------------------

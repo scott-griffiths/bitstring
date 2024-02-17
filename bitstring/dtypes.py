@@ -46,7 +46,7 @@ class Dtype:
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
-    def create(cls, definition: DtypeDefinition, length: Optional[int]) -> Dtype:
+    def _create(cls, definition: DtypeDefinition, length: Optional[int]) -> Dtype:
         x = cls.__new__(cls)
         x.name = definition.name
         x.bitlength = x.length = length
@@ -71,13 +71,13 @@ class Dtype:
         x.is_signed = definition.is_signed
         return x
 
-    def build(self, value: Any) -> bitstring.Bits:
+    def build(self, value: Any, /) -> bitstring.Bits:
         """Create a bitstring from a value."""
         b = bitstring.Bits()
         self.set_fn(b, value)
         return b
 
-    def parse(self, b: BitsType) -> Any:
+    def parse(self, b: BitsType, /) -> Any:
         """Parse a bitstring into a value."""
         b = bitstring.Bits._create_from_bitstype(b)
         return self.get_fn(bitstring.Bits(b))
@@ -198,11 +198,11 @@ class DtypeDefinition:
                     else:
                         raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype which is not one of its possible lengths (must be one of {self.allowed_lengths}).")
         if length is None:
-            d = Dtype.create(self, None)
+            d = Dtype._create(self, None)
             return d
         if self.variable_length:
             raise ValueError(f"A length ({length}) shouldn't be supplied for the variable length dtype '{self.name}'.")
-        d = Dtype.create(self, length)
+        d = Dtype._create(self, length)
         return d
 
     def __repr__(self) -> str:
