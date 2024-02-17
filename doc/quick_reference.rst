@@ -85,6 +85,7 @@ Methods
 * :meth:`~Bits.endswith` -- Return whether the bitstring ends with a sub-bitstring.
 * :meth:`~Bits.find` -- Find a sub-bitstring in the current bitstring.
 * :meth:`~Bits.findall` -- Find all occurrences of a sub-bitstring in the current bitstring.
+* :meth:`~Bits.fromstring` -- Create a bitstring from a formatted string.
 * :meth:`~Bits.join` -- Join bitstrings together using current bitstring.
 * :meth:`~Bits.pp` -- Pretty print the bitstring.
 * :meth:`~Bits.rfind` -- Seek backwards to find a sub-bitstring.

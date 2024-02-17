@@ -142,6 +142,18 @@ Methods
         [8, 40, 72, 104, 136]
 
 
+.. classmethod:: Bits.fromstring(s: str, /) -> Bits
+
+    Creates a new bitstring from the formatted string *s*.
+    It is equivalent to creating a new bitstring using *s* as the first parameters, but can be clearer to write and will be slightly faster.
+
+
+        >>> b1 = Bits('int16=91')
+        >>> b2 = Bits.fromstring('int16=91')
+        >>> b1 == b2
+        True
+
+
 .. method:: Bits.join(sequence: Iterable) -> Bits
 
     Returns the concatenation of the bitstrings in the iterable *sequence* joined with ``self`` as a separator. ::
