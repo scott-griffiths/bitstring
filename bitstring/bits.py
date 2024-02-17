@@ -1608,7 +1608,11 @@ class Bits:
                 chars_per_group = dtype_register[fmt].bitlength2chars_fn(bits_per_group)
             else:
                 chars_per_group = 0
-            x = sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
+            if fmt == 'bool':  # Special case for bool, we display 0 or 1, not False or True.
+                x = sep.join(f"{str(int(get_fn(b))): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
+            else:
+                x = sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
+
         chars_used = len(x)
         padding_spaces = 0 if width is None else max(width - len(x), 0)
         x = colour_start + x + colour_end

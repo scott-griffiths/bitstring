@@ -855,6 +855,16 @@ oworld!!helloworld!!
         )
         self.assertEqual(remove_unprintable(s.getvalue()), expected_output)
 
+    def testBool(self):
+        a = Bits('0b1100')
+        s = io.StringIO()
+        a.pp(stream=s, fmt='bool', show_offset=False, width=20)
+        expected_output = """<Bits, fmt='bool', length=4 bits> [
+1 1 0 0
+]
+"""
+        self.assertEqual(remove_unprintable(s.getvalue()), expected_output)
+
 
 class PrettyPrintingErrors(unittest.TestCase):
 
