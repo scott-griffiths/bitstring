@@ -58,11 +58,9 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     try:
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.
-            if value in kwargs:
-                value = kwargs[value]
+            value = kwargs.get(value, value)
             # If the length is in the kwd dictionary then use that too.
-            if length in kwargs:
-                length = kwargs[length]
+            length = kwargs.get(length, length)
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
                 bsl.append(BitStream(kwargs[name])._bitstore)

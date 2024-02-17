@@ -250,7 +250,7 @@ class Array:
             raise ValueError("Cannot append to Array as its length is not a multiple of the format length.")
         self.data += self._create_element(x)
 
-    def extend(self, iterable: Union[Array, array.array, Iterable]) -> None:
+    def extend(self, iterable: Union[Array, array.array, Iterable[Any]]) -> None:
         if len(self.data) % self._dtype.length != 0:
             raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.length} bits).")
         if isinstance(iterable, Array):

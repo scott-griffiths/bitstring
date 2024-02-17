@@ -211,14 +211,11 @@ def expand_brackets(s: str) -> str:
         count = 1  # Number of hanging open brackets
         p = start + 1
         while p < len(s):
-            if s[p] == '(':
-                count += 1
-            if s[p] == ')':
-                count -= 1
-            if not count:
+            count += (s[p] == '(') - (s[p] == ')')
+            if count == 0:
                 break
             p += 1
-        if count:
+        if count != 0:
             raise ValueError(f"Unbalanced parenthesis in '{s}'.")
         if start == 0 or s[start - 1] != '*':
             s = s[0:start] + s[start + 1:p] + s[p + 1:]

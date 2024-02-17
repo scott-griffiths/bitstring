@@ -28,39 +28,27 @@ class Options:
         Bits = bitstring.bits.Bits
         BitArray = bitstring.bitarray_.BitArray
         BitStore = bitstring.bitstore.BitStore
-        if self._lsb0:
-            Bits._find = Bits._find_lsb0  # type: ignore
-            Bits._rfind = Bits._rfind_lsb0  # type: ignore
-            Bits._findall = Bits._findall_lsb0  # type: ignore
 
-            BitArray._ror = BitArray._rol_msb0  # type: ignore
-            BitArray._rol = BitArray._ror_msb0  # type: ignore
-            BitArray._append = BitArray._append_lsb0  # type: ignore
-            # An LSB0 prepend is an MSB0 append
-            BitArray._prepend = BitArray._append_msb0  # type: ignore
-
-            BitStore.__setitem__ = BitStore.setitem_lsb0  # type: ignore
-            BitStore.__delitem__ = BitStore.delitem_lsb0  # type: ignore
-            BitStore.getindex = BitStore.getindex_lsb0  # type: ignore
-            BitStore.getslice = BitStore.getslice_lsb0  # type: ignore
-            BitStore.getslice_withstep = BitStore.getslice_withstep_lsb0  # type: ignore
-            BitStore.invert = BitStore.invert_lsb0  # type: ignore
-        else:
-            Bits._find = Bits._find_msb0  # type: ignore
-            Bits._rfind = Bits._rfind_msb0  # type: ignore
-            Bits._findall = Bits._findall_msb0  # type: ignore
-
-            BitArray._ror = BitArray._ror_msb0  # type: ignore
-            BitArray._rol = BitArray._rol_msb0  # type: ignore
-            BitArray._append = BitArray._append_msb0  # type: ignore
-            BitArray._prepend = BitArray._append_lsb0  # type: ignore
-
-            BitStore.__setitem__ = BitStore.setitem_msb0  # type: ignore
-            BitStore.__delitem__ = BitStore.delitem_msb0  # type: ignore
-            BitStore.getindex = BitStore.getindex_msb0  # type: ignore
-            BitStore.getslice = BitStore.getslice_msb0  # type: ignore
-            BitStore.getslice_withstep = BitStore.getslice_withstep_msb0  # type: ignore
-            BitStore.invert = BitStore.invert_msb0  # type: ignore
+        lsb0_methods = {
+            Bits: {'_find': Bits._find_lsb0, '_rfind': Bits._rfind_lsb0, '_findall': Bits._findall_lsb0},
+            BitArray: {'_ror': BitArray._rol_msb0, '_rol': BitArray._ror_msb0, '_append': BitArray._append_lsb0,
+                       '_prepend': BitArray._append_msb0},
+            BitStore: {'__setitem__': BitStore.setitem_lsb0, '__delitem__': BitStore.delitem_lsb0,
+                       'getindex': BitStore.getindex_lsb0, 'getslice': BitStore.getslice_lsb0,
+                       'getslice_withstep': BitStore.getslice_withstep_lsb0, 'invert': BitStore.invert_lsb0}
+        }
+        msb0_methods = {
+            Bits: {'_find': Bits._find_msb0, '_rfind': Bits._rfind_msb0, '_findall': Bits._findall_msb0},
+            BitArray: {'_ror': BitArray._ror_msb0, '_rol': BitArray._rol_msb0, '_append': BitArray._append_msb0,
+                       '_prepend': BitArray._append_lsb0},
+            BitStore: {'__setitem__': BitStore.setitem_msb0, '__delitem__': BitStore.delitem_msb0,
+                       'getindex': BitStore.getindex_msb0, 'getslice': BitStore.getslice_msb0,
+                       'getslice_withstep': BitStore.getslice_withstep_msb0, 'invert': BitStore.invert_msb0}
+        }
+        methods = lsb0_methods if self._lsb0 else msb0_methods
+        for cls, method_dict in methods.items():
+            for attr, method in method_dict.items():
+                setattr(cls, attr, method)
 
     @property
     def bytealigned(self) -> bool:

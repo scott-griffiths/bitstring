@@ -44,9 +44,7 @@ class BitStore:
         self.modified = length is not None or filename != ''
         if self.modified:
             assert immutable is True
-
             self.length = len(self._bitarray) if length is None else length
-
             if self.length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
             if self.length > len(self._bitarray):
