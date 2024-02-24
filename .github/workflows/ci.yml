@@ -141,7 +141,7 @@ jobs:
 
       - name: Run unittest
         run: |
-          python -m pytest
+          python -m pytest tests/
 
   all:
     name: All successful
