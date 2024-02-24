@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import pytest
-import unittest
 import sys
 import bitstring
 import io

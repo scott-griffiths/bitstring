@@ -3,7 +3,6 @@
 Module-level unit tests.
 """
 import io
-import unittest
 from unittest import mock
 from contextlib import redirect_stdout
 import bitstring

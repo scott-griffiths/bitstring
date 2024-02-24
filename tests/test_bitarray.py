@@ -4,7 +4,6 @@ Unit tests for the bitarray module.
 """
 
 import pytest
-import unittest
 import sys
 import os
 import bitarray

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 import sys
-import unittest
 import array
 import struct
 import math

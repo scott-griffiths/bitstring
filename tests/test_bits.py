@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import pytest
 import io
-import unittest
 import sys
 import bitarray
 import bitstring
@@ -9,6 +8,9 @@ import array
 import os
 import re
 from bitstring import InterpretError, Bits, BitArray
+from hypothesis import given, assume
+import hypothesis.strategies as st
+
 
 sys.path.insert(0, '..')
 
@@ -24,6 +26,11 @@ class TestCreation:
         assert (s.len, s.hex) == (16, 'a0ff')
         s = Bits(bytes=b'abc', length=0)
         assert s == ''
+
+    @given(st.binary())
+    def test_creation_from_bytes_roundtrip(self, data):
+        s = Bits(bytes=data)
+        assert s.bytes == data
 
     def test_creation_from_bytes_errors(self):
         with pytest.raises(bitstring.CreationError):
@@ -421,8 +428,9 @@ class TestWrongTypeBug:
 
 class TestInitFromArray:
 
-    def test_empty_array(self):
-        a = array.array('B')
+    @given(st.sampled_from(['B', 'H', 'I', 'L', 'Q', 'f', 'd']))
+    def test_empty_array(self, t):
+        a = array.array(t)
         b = Bits(a)
         assert b.length == 0
 
@@ -475,14 +483,6 @@ class TestContainsBug:
 
 
 class TestByteStoreImmutablity:
-    
-    # def testBitsDataStoreType(self):
-    #     a = Bits('0b1')
-    #     b = Bits('0b111')
-    #     c = a + b
-    #     self.assertEqual(type(a._datastore), ByteStore)
-    #     self.assertEqual(type(b._datastore), ByteStore)
-    #     self.assertEqual(type(c._datastore), ByteStore)
 
     def test_immutability_bug_append(self):
         a = Bits('0b111')
@@ -492,7 +492,6 @@ class TestByteStoreImmutablity:
         assert c.bin == '101000'
         assert a.b3 == '111'
         assert b.bin == '111000'
-        # self.assertEqual(type(b._datastore), ByteStore)
 
     def test_immutability_bug_prepend(self):
         a = Bits('0b111')
@@ -501,10 +500,6 @@ class TestByteStoreImmutablity:
         c[1] = 1
         assert b.bin == '000111'
         assert c.bin == '010111'
-
-    def test_immutability_bug_creation(self):
-        a = Bits()
-        # self.assertEqual(type(a._datastore), ByteStore)
 
 
 class TestLsb0Indexing:

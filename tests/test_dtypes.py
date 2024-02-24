@@ -1,6 +1,5 @@
 
 import pytest
-import unittest
 import sys
 import bitstring as bs
 from bitstring import Dtype, DtypeDefinition, Bits
