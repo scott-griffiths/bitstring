@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import pytest
 import unittest
 import sys
 sys.path.insert(0, '..')
@@ -10,74 +11,74 @@ import sys
 sys.path.insert(0, '..')
 
 
-class BasicFunctionality(unittest.TestCase):
+class TestBasicFunctionality:
 
-    def testGettingInt(self):
+    def test_getting_int(self):
         a = BitStore('001')
-        self.assertEqual(a.getindex(0), 0)
-        self.assertEqual(a.getindex(1), 0)
-        self.assertEqual(a.getindex(2), 1)
+        assert a.getindex(0) == 0
+        assert a.getindex(1) == 0
+        assert a.getindex(2) == 1
 
-        self.assertEqual(a.getindex(-1), 1)
-        self.assertEqual(a.getindex(-2), 0)
-        self.assertEqual(a.getindex(-3), 0)
+        assert a.getindex(-1) == 1
+        assert a.getindex(-2) == 0
+        assert a.getindex(-3) == 0
 
-        with self.assertRaises(IndexError):
+        with pytest.raises(IndexError):
             _ = a.getindex(3)
-        with self.assertRaises(IndexError):
+        with pytest.raises(IndexError):
             _ = a.getindex(-4)
 
 
-class BasicLSB0Functionality(unittest.TestCase):
+class TestBasicLSB0Functionality:
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         bitstring.lsb0 = True
 
     @classmethod
-    def tearDownClass(cls):
+    def teardown_class(cls):
         bitstring.lsb0 = False
 
-    def testGettingInt(self):
+    def test_getting_int(self):
         a = BitStore('001')
-        self.assertEqual(a.getindex(0), 1)
-        self.assertEqual(a.getindex(1), 0)
-        self.assertEqual(a.getindex(2), 0)
+        assert a.getindex(0) == 1
+        assert a.getindex(1) == 0
+        assert a.getindex(2) == 0
 
-        self.assertEqual(a.getindex(-1), 0)
-        self.assertEqual(a.getindex(-2), 0)
-        self.assertEqual(a.getindex(-3), 1)
+        assert a.getindex(-1) == 0
+        assert a.getindex(-2) == 0
+        assert a.getindex(-3) == 1
 
-        with self.assertRaises(IndexError):
+        with pytest.raises(IndexError):
             _ = a.getindex(3)
-        with self.assertRaises(IndexError):
+        with pytest.raises(IndexError):
             _ = a.getindex(-4)
 
-    def testGettingSlice(self):
+    def test_getting_slice(self):
         a = BitStore(buffer=b'12345678')
-        self.assertEqual(a.getslice(None, None).tobytes(), b'12345678')
-        self.assertEqual(a.getslice(None, -8).tobytes(), b'2345678')
-        self.assertEqual(a.getslice(8, None).tobytes(), b'1234567')
-        self.assertEqual(a.getslice(16, 24).tobytes(), b'6')
+        assert a.getslice(None, None).tobytes() == b'12345678'
+        assert a.getslice(None, -8).tobytes() == b'2345678'
+        assert a.getslice(8, None).tobytes() == b'1234567'
+        assert a.getslice(16, 24).tobytes() == b'6'
 
-    def testSettingInt(self):
+    def test_setting_int(self):
         a = BitStore('00000')
         a[0] = 1
-        self.assertEqual(a.slice_to_bin(), '00001')
+        assert a.slice_to_bin() == '00001'
         a[-1] = 1
-        self.assertEqual(a.slice_to_bin(), '10001')
-        with self.assertRaises(IndexError):
+        assert a.slice_to_bin() == '10001'
+        with pytest.raises(IndexError):
             a[5] = 1
-        with self.assertRaises(IndexError):
+        with pytest.raises(IndexError):
             a[-6] = 0
 
 
-class GettingSlices(unittest.TestCase):
+class TestGettingSlices:
 
-    def tearDown(self) -> None:
+    def teardown_method(self) -> None:
         bitstring.lsb0 = False
 
-    def testEverything(self):
+    def test_everything(self):
         a = BitStore('010010001000110111001111101101001111')
 
         # Try combination of start and stop for msb0 and get the result.
@@ -91,4 +92,4 @@ class GettingSlices(unittest.TestCase):
                 msb0 = a.getslice(start_option, end_option)
                 new_slice = offset_slice_indices_lsb0(slice(start_option, end_option, None), len(a))
                 new_start, new_end = new_slice.start, new_slice.stop
-                self.assertEqual(len(msb0), len(lsb0), f"[{start_option}: {end_option}] -> [{new_start}: {new_end}]  len(msb0)={len(msb0)}, len(lsb0)={len(lsb0)}")
+                assert len(msb0) == len(lsb0), f"[{start_option}: {end_option}] -> [{new_start}: {new_end}]  len(msb0)={len(msb0)}, len(lsb0)={len(lsb0)}"
