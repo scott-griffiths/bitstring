@@ -146,21 +146,8 @@ def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     return x
 
 
-def uintbe2bitstore(i: int, length: int) -> BitStore:
-    return int2bitstore(i, length, False)
-
-
-def intbe2bitstore(i: int, length: int) -> BitStore:
-    return int2bitstore(i, length, True)
-
-
-def uintle2bitstore(i: int, length: int) -> BitStore:
-    x = int2bitstore(i, length, False).tobytes()
-    return BitStore(frombytes=x[::-1])
-
-
-def intle2bitstore(i: int, length: int) -> BitStore:
-    x = int2bitstore(i, length, True).tobytes()
+def intle2bitstore(i: int, length: int, signed: bool) -> BitStore:
+    x = int2bitstore(i, length, signed).tobytes()
     return BitStore(frombytes=x[::-1])
 
 

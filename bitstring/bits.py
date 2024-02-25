@@ -661,7 +661,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a uintbe initialiser.")
-        self._bitstore = bitstore_helpers.uintbe2bitstore(uintbe, length)
+        self._bitstore = bitstore_helpers.int2bitstore(uintbe, length, False)
 
     def _getuintbe(self) -> int:
         """Return data as a big-endian two's complement unsigned int."""
@@ -675,7 +675,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a intbe initialiser.")
-        self._bitstore = bitstore_helpers.intbe2bitstore(intbe, length)
+        self._bitstore = bitstore_helpers.int2bitstore(intbe, length, True)
 
     def _getintbe(self) -> int:
         """Return data as a big-endian two's complement signed int."""
@@ -688,7 +688,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a uintle initialiser.")
-        self._bitstore = bitstore_helpers.uintle2bitstore(uintle, length)
+        self._bitstore = bitstore_helpers.intle2bitstore(uintle, length, False)
 
     def _getuintle(self) -> int:
         """Interpret as a little-endian unsigned int."""
@@ -702,7 +702,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with an intle initialiser.")
-        self._bitstore = bitstore_helpers.intle2bitstore(intle, length)
+        self._bitstore = bitstore_helpers.intle2bitstore(intle, length, True)
 
     def _getintle(self) -> int:
         """Interpret as a little-endian signed int."""
