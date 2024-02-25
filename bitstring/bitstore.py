@@ -22,17 +22,17 @@ def offset_start_stop_lsb0(start: Optional[int], stop: Optional[int], length: in
     new_stop = length - start
     return new_start, new_stop
 
+
 class BitStore:
     """A light wrapper around bitarray that does the LSB0 stuff"""
 
-    __slots__ = ('_bitarray', 'modified', 'length', 'immutable')
+    __slots__ = ('_bitarray', 'modified_length', 'immutable')
 
     def __init__(self, initializer: Union[int, bitarray.bitarray, str, None] = None,
                  immutable: bool = False) -> None:
         self._bitarray = bitarray.bitarray(initializer)
         self.immutable = immutable
-        self.length = None
-        self.modified = False
+        self.modified_length = None
 
     @classmethod
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> BitStore:
@@ -40,8 +40,7 @@ class BitStore:
         x._bitarray = bitarray.bitarray()
         x._bitarray.frombytes(b)
         x.immutable = False
-        x.length = None
-        x.modified = False
+        x.modified_length = None
         return x
 
     @classmethod
@@ -49,16 +48,14 @@ class BitStore:
         x = super().__new__(cls)
         x._bitarray = bitarray.bitarray(buffer=buffer)
         x.immutable = True
-        x.length = None
+        x.modified_length = length
         # Here 'modified' means it shouldn't be changed further, so setting, deleting etc. are disallowed.
-        x.modified = length is not None
-        if x.modified:
-            x.length = length
-            if x.length < 0:
+        if x.modified_length is not None:
+            if x.modified_length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
-            if x.length > len(x._bitarray):
+            if x.modified_length > len(x._bitarray):
                 raise CreationError(
-                    f"Can't create bitstring with a length of {x.length} from {len(x._bitarray)} bits of data.")
+                    f"Can't create bitstring with a length of {x.modified_length} from {len(x._bitarray)} bits of data.")
         return x
 
     def setall(self, value: int, /) -> None:
@@ -179,8 +176,8 @@ class BitStore:
         return bool(self._bitarray.__getitem__(index))
 
     def getslice_withstep_msb0(self, key: slice, /) -> BitStore:
-        if self.modified:
-            key = slice(*key.indices(len(self)))
+        if self.modified_length is not None:
+            key = slice(*key.indices(self.modified_length))
         return BitStore(self._bitarray.__getitem__(key))
 
     def getslice_withstep_lsb0(self, key: slice, /) -> BitStore:
@@ -188,8 +185,8 @@ class BitStore:
         return BitStore(self._bitarray.__getitem__(key))
 
     def getslice_msb0(self, start: Optional[int], stop: Optional[int], /) -> BitStore:
-        if self.modified:
-            key = slice(*slice(start, stop, None).indices(len(self)))
+        if self.modified_length is not None:
+            key = slice(*slice(start, stop, None).indices(self.modified_length))
             start = key.start
             stop = key.stop
         return BitStore(self._bitarray[start:stop])
@@ -243,7 +240,7 @@ class BitStore:
         return self._bitarray.all()
 
     def __len__(self) -> int:
-        return self.length if self.length is not None else len(self._bitarray)
+        return self.modified_length if self.modified_length is not None else len(self._bitarray)
 
     def setitem_msb0(self, key, value, /):
         if isinstance(value, BitStore):

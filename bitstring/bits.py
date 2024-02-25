@@ -1450,7 +1450,7 @@ class Bits:
 
     def tobitarray(self) -> bitarray.bitarray:
         """Convert the bitstring to a bitarray object."""
-        if self._bitstore.modified:
+        if self._bitstore.modified_length is not None:
             # Removes the offset and truncates to length
             return self._bitstore.getslice(0, len(self))._bitarray
         else:
