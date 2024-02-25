@@ -468,6 +468,15 @@ class ConstBitStream(Bits):
         x._bitstore.immutable = True
         return x
 
+    def __getitem__(self: TBits, key: Union[slice, int], /) -> Union[TBits, bool]:
+        """Return a new bitstring representing a slice of the current bitstring."""
+        if isinstance(key, numbers.Integral):
+            return bool(self._bitstore.getindex(key))
+        bs = super().__new__(self.__class__)
+        bs._bitstore = self._bitstore.getslice_withstep(key)
+        bs._pos = 0
+        return bs
+
     pos = property(_getbitpos, _setbitpos,
                    doc="""The position in the bitstring in bits. Read and write.
                       """)

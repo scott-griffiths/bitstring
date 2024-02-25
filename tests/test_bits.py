@@ -315,6 +315,9 @@ class TestFileBased:
         assert (x & self.c).hex == self.c.hex
         assert self.c ^ self.b[4:20] == Bits(16)
         assert self.a[23:36] | self.c[3:] == self.c[3:]
+        y = x & self.b[4:20]
+        assert y == self.c
+        assert repr(y) == repr(self.c)
 
     def test_addition(self):
         _ = self.d + '0x1'

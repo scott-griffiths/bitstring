@@ -62,6 +62,8 @@ class BitStore:
         self._bitarray.setall(value)
 
     def tobytes(self) -> bytes:
+        if self.modified_length is not None:
+            return self._bitarray[:self.modified_length].tobytes()
         return self._bitarray.tobytes()
 
     def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:

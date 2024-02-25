@@ -112,7 +112,6 @@ class Bits:
     def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
         x = super().__new__(cls)
-        x._filename = ''
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
@@ -242,9 +241,8 @@ class Bits:
         """
         if isinstance(key, numbers.Integral):
             return bool(self._bitstore.getindex(key))
-        x = self._bitstore.getslice_withstep(key)
-        bs = self.__class__()
-        bs._bitstore = x
+        bs = super().__new__(self.__class__)
+        bs._bitstore = self._bitstore.getslice_withstep(key)
         return bs
 
     def __len__(self) -> int:
@@ -282,7 +280,7 @@ class Bits:
 
     def _repr(self, classname: str, length: int, pos: int):
         pos_string = f', pos={pos}' if pos else ''
-        if self._filename:
+        if hasattr(self, '_filename') and self._filename:
             return f"{classname}(filename={self._filename!r}, length={length}{pos_string})"
         else:
             s = self.__str__()
