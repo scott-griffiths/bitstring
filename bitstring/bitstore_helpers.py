@@ -112,7 +112,7 @@ def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> BitStore:
     except OverflowError:
         # For consistency we overflow to 'inf'.
         b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
-    return BitStore(frombytes=b[0:2]) if big_endian else BitStore(frombytes=b[2:4])
+    return BitStore.frombytes(b[0:2]) if big_endian else BitStore.frombytes(b[2:4])
 
 
 def e4m3float2bitstore(f: Union[str, float]) -> BitStore:
@@ -148,7 +148,7 @@ def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
 
 def intle2bitstore(i: int, length: int, signed: bool) -> BitStore:
     x = int2bitstore(i, length, signed).tobytes()
-    return BitStore(frombytes=x[::-1])
+    return BitStore.frombytes(x[::-1])
 
 
 def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> BitStore:
@@ -159,7 +159,7 @@ def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> BitSt
     except OverflowError:
         # If float64 doesn't fit it automatically goes to 'inf'. This reproduces that behaviour for other types.
         b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
-    return BitStore(frombytes=b)
+    return BitStore.frombytes(b)
 
 
 literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {

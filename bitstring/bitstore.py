@@ -27,20 +27,17 @@ class BitStore:
 
     __slots__ = ('_bitarray', 'modified', 'length', 'filename', 'immutable')
 
-    def __init__(self, initializer: Union[int, bitarray.bitarray, str, None] = None, buffer=None, immutable: bool = False,
-                 frombytes: Optional[Union[bytes, bytearray]] = None, filename: str = '', length: Optional[int] = None) -> None:
+    def __init__(self, initializer: Union[int, bitarray.bitarray, str, None] = None, buffer=None,
+                 immutable: bool = False, filename: str = '', length: Optional[int] = None) -> None:
         if buffer is None:
             self._bitarray = bitarray.bitarray(initializer)
         else:
             self._bitarray = bitarray.bitarray(buffer=buffer)
-        if frombytes is not None:
-            self._bitarray = bitarray.bitarray()
-            self._bitarray.frombytes(frombytes)
         self.immutable = immutable
         self.length = None
         self.filename = filename
         # Here 'modified' means that it isn't just the underlying bitarray. It could have a different start and end, and be from a file.
-        # This also means that it shouldn't be changed further, so setting deleting etc. are disallowed.
+        # This also means that it shouldn't be changed further, so setting, deleting etc. are disallowed.
         self.modified = length is not None or filename != ''
         if self.modified:
             assert immutable is True
@@ -50,6 +47,17 @@ class BitStore:
             if self.length > len(self._bitarray):
                 raise CreationError(
                     f"Can't create bitstring with a length of {self.length} from {len(self._bitarray)} bits of data.")
+
+    @classmethod
+    def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> BitStore:
+        x = super().__new__(cls)
+        x._bitarray = bitarray.bitarray()
+        x._bitarray.frombytes(b)
+        x.immutable = False
+        x.length = None
+        x.filename = ''
+        x.modified = False
+        return x
 
     def setall(self, value: int, /) -> None:
         self._bitarray.setall(value)

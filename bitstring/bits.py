@@ -498,15 +498,15 @@ class Bits:
         elif isinstance(s, Bits):
             self._bitstore = s._bitstore.copy()
         elif isinstance(s, (bytes, bytearray, memoryview)):
-            self._bitstore = BitStore(frombytes=bytearray(s))
+            self._bitstore = BitStore.frombytes(bytearray(s))
         elif isinstance(s, io.BytesIO):
-            self._bitstore = BitStore(frombytes=s.getvalue())
+            self._bitstore = BitStore.frombytes(s.getvalue())
         elif isinstance(s, io.BufferedReader):
             self._setfile(s.name)
         elif isinstance(s, bitarray.bitarray):
             self._bitstore = BitStore(s)
         elif isinstance(s, array.array):
-            self._bitstore = BitStore(frombytes=bytearray(s.tobytes()))
+            self._bitstore = BitStore.frombytes(s.tobytes())
         elif isinstance(s, abc.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
@@ -533,7 +533,7 @@ class Bits:
             bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
             if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
                 raise bitstring.CreationError("BytesIO object is not long enough for specified length and offset.")
-            self._bitstore = BitStore(frombytes=s.getvalue()[byteoffset: byteoffset + bytelength]).getslice(
+            self._bitstore = BitStore.frombytes(s.getvalue()[byteoffset: byteoffset + bytelength]).getslice(
                 offset, offset + length)
             return
 
@@ -591,7 +591,7 @@ class Bits:
 
     def _setbytes(self, data: Union[bytearray, bytes], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
-        self._bitstore = BitStore(frombytes=bytearray(data))
+        self._bitstore = BitStore.frombytes(data)
         return
 
     def _setbytes_with_truncation(self, data: Union[bytearray, bytes], length: Optional[int] = None, offset: Optional[int] = None) -> None:
@@ -694,7 +694,7 @@ class Bits:
         """Interpret as a little-endian unsigned int."""
         if len(self) % 8:
             raise bitstring.InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
-        bs = BitStore(frombytes=self._bitstore.tobytes()[::-1])
+        bs = BitStore.frombytes(self._bitstore.tobytes()[::-1])
         return bs.slice_to_uint()
 
     def _setintle(self, intle: int, length: Optional[int] = None) -> None:
@@ -708,7 +708,7 @@ class Bits:
         """Interpret as a little-endian signed int."""
         if len(self) % 8:
             raise bitstring.InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
-        bs = BitStore(frombytes=self._bitstore.tobytes()[::-1])
+        bs = BitStore.frombytes(self._bitstore.tobytes()[::-1])
         return bs.slice_to_int()
 
     def _gete4m3float(self) -> float:
@@ -1049,7 +1049,7 @@ class Bits:
     def _reversebytes(self, start: int, end: int) -> None:
         """Reverse bytes in-place."""
         assert (end - start) % 8 == 0
-        self._bitstore[start:end] = BitStore(frombytes=self._bitstore.getslice(start, end).tobytes()[::-1])
+        self._bitstore[start:end] = BitStore.frombytes(self._bitstore.getslice(start, end).tobytes()[::-1])
 
     def _invert(self, pos: int, /) -> None:
         """Flip bit at pos 1<->0."""
