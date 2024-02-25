@@ -553,10 +553,10 @@ class Bits:
                 offset = 0
             m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
             if offset == 0:
-                self._bitstore = BitStore(buffer=m, length=length, filename=source.name, immutable=True)
+                self._bitstore = BitStore.frombuffer(m, length=length, filename=source.name)
             else:
                 # If offset is given then always read into memory.
-                temp = BitStore(buffer=m, filename=source.name, immutable=True)
+                temp = BitStore.frombuffer(m, filename=source.name)
                 if length is None:
                     if offset > len(temp):
                         raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({len(temp)} bits).")
@@ -607,7 +607,7 @@ class Bits:
         else:
             if length + offset > len(data) * 8:
                 raise bitstring.CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
-        self._bitstore = BitStore(buffer=data).getslice_msb0(offset, offset + length)
+        self._bitstore = BitStore.frombytes(data).getslice_msb0(offset, offset + length)
 
     def _getbytes(self) -> bytes:
         """Return the data as an ordinary bytes object."""

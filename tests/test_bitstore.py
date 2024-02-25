@@ -54,7 +54,7 @@ class TestBasicLSB0Functionality:
             _ = a.getindex(-4)
 
     def test_getting_slice(self):
-        a = BitStore(buffer=b'12345678')
+        a = BitStore.frombytes(b'12345678')
         assert a.getslice(None, None).tobytes() == b'12345678'
         assert a.getslice(None, -8).tobytes() == b'2345678'
         assert a.getslice(8, None).tobytes() == b'1234567'

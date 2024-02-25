@@ -27,26 +27,15 @@ class BitStore:
 
     __slots__ = ('_bitarray', 'modified', 'length', 'filename', 'immutable')
 
-    def __init__(self, initializer: Union[int, bitarray.bitarray, str, None] = None, buffer=None,
+    def __init__(self, initializer: Union[int, bitarray.bitarray, str, None] = None,
                  immutable: bool = False, filename: str = '', length: Optional[int] = None) -> None:
-        if buffer is None:
-            self._bitarray = bitarray.bitarray(initializer)
-        else:
-            self._bitarray = bitarray.bitarray(buffer=buffer)
+        self._bitarray = bitarray.bitarray(initializer)
         self.immutable = immutable
         self.length = None
         self.filename = filename
         # Here 'modified' means that it isn't just the underlying bitarray. It could have a different start and end, and be from a file.
         # This also means that it shouldn't be changed further, so setting, deleting etc. are disallowed.
         self.modified = length is not None or filename != ''
-        if self.modified:
-            assert immutable is True
-            self.length = len(self._bitarray) if length is None else length
-            if self.length < 0:
-                raise CreationError("Can't create bitstring with a negative length.")
-            if self.length > len(self._bitarray):
-                raise CreationError(
-                    f"Can't create bitstring with a length of {self.length} from {len(self._bitarray)} bits of data.")
 
     @classmethod
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> BitStore:
@@ -57,6 +46,23 @@ class BitStore:
         x.length = None
         x.filename = ''
         x.modified = False
+        return x
+
+    @classmethod
+    def frombuffer(cls, buffer, /, length: Optional[int] = None, filename: str = '') -> BitStore:
+        x = super().__new__(cls)
+        x._bitarray = bitarray.bitarray(buffer=buffer)
+        x.immutable = True
+        x.length = None
+        x.filename = filename
+        x.modified = length is not None or filename != ''
+        if x.modified:
+            x.length = len(x._bitarray) if length is None else length
+            if x.length < 0:
+                raise CreationError("Can't create bitstring with a negative length.")
+            if x.length > len(x._bitarray):
+                raise CreationError(
+                    f"Can't create bitstring with a length of {x.length} from {len(x._bitarray)} bits of data.")
         return x
 
     def setall(self, value: int, /) -> None:
