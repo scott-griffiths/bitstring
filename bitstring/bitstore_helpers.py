@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 import struct
 import functools
 from typing import Union, Optional, Dict, Callable
@@ -9,8 +8,6 @@ from bitstring.bitstore import BitStore
 import bitstring
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 
-
-byteorder: str = sys.byteorder
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
@@ -27,10 +24,7 @@ def tidy_input_string(s: str) -> str:
 
 @functools.lru_cache(CACHE_SIZE)
 def str_to_bitstore(s: str) -> BitStore:
-    try:
-        _, tokens = bitstring.utils.tokenparser(s)
-    except ValueError as e:
-        raise bitstring.CreationError(*e.args)
+    _, tokens = bitstring.utils.tokenparser(s)
     bs = BitStore()
     for token in tokens:
         bs += bitstore_from_token(*token)
@@ -41,14 +35,14 @@ def str_to_bitstore(s: str) -> BitStore:
 def bin2bitstore(binstring: str) -> BitStore:
     binstring = tidy_input_string(binstring)
     binstring = binstring.replace('0b', '')
-    return bin2bitstore_unsafe(binstring)
-
-
-def bin2bitstore_unsafe(binstring: str) -> BitStore:
     try:
         return BitStore(binstring)
     except ValueError:
         raise bitstring.CreationError(f"Invalid character in bin initialiser {binstring}.")
+
+
+def bin2bitstore_unsafe(binstring: str) -> BitStore:
+    return BitStore(binstring)
 
 
 def hex2bitstore(hexstring: str) -> BitStore:
@@ -83,7 +77,7 @@ def ue2bitstore(i: Union[str, int]) -> BitStore:
         tmp >>= 1
         leadingzeros += 1
     remainingpart = i + 1 - (1 << leadingzeros)
-    return BitStore('0' * leadingzeros + '1') + uint2bitstore(remainingpart, leadingzeros)
+    return BitStore('0' * leadingzeros + '1') + int2bitstore(remainingpart, leadingzeros, False)
 
 
 def se2bitstore(i: Union[str, int]) -> BitStore:
@@ -110,116 +104,75 @@ def sie2bitstore(i: Union[str, int]) -> BitStore:
         return uie2bitstore(abs(i)) + (BitStore('1') if i < 0 else BitStore('0'))
 
 
-def bfloat2bitstore(f: Union[str, float]) -> BitStore:
+def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> BitStore:
     f = float(f)
+    fmt = '>f' if big_endian else '<f'
     try:
-        b = struct.pack('>f', f)
+        b = struct.pack(fmt, f)
     except OverflowError:
         # For consistency we overflow to 'inf'.
-        b = struct.pack('>f', float('inf') if f > 0 else float('-inf'))
-    return BitStore(frombytes=b[0:2])
-
-
-def bfloatle2bitstore(f: Union[str, float]) -> BitStore:
-    f = float(f)
-    try:
-        b = struct.pack('<f', f)
-    except OverflowError:
-        # For consistency we overflow to 'inf'.
-        b = struct.pack('<f', float('inf') if f > 0 else float('-inf'))
-    return BitStore(frombytes=b[2:4])
+        b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
+    return BitStore(frombytes=b[0:2]) if big_endian else BitStore(frombytes=b[2:4])
 
 
 def e4m3float2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     u = e4m3float_fmt.float_to_int8(f)
-    return uint2bitstore(u, 8)
+    return int2bitstore(u, 8, False)
 
 
 def e5m2float2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     u = e5m2float_fmt.float_to_int8(f)
-    return uint2bitstore(u, 8)
+    return int2bitstore(u, 8, False)
 
 
-def uint2bitstore(uint: Union[str, int], length: int) -> BitStore:
-    uint = int(uint)
+def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
+    i = int(i)
     try:
-        x = BitStore(bitarray.util.int2ba(uint, length=length, endian='big', signed=False))
+        x = BitStore(bitarray.util.int2ba(i, length=length, endian='big', signed=signed))
     except OverflowError as e:
-        if uint >= (1 << length):
-            msg = f"{uint} is too large an unsigned integer for a bitstring of length {length}. " \
-                  f"The allowed range is [0, {(1 << length) - 1}]."
-            raise bitstring.CreationError(msg)
-        if uint < 0:
-            raise bitstring.CreationError("uint cannot be initialised with a negative number.")
+        if signed:
+            if i >= (1 << (length - 1)) or i < -(1 << (length - 1)):
+                raise bitstring.CreationError(f"{i} is too large a signed integer for a bitstring of length {length}. "
+                                    f"The allowed range is [{-(1 << (length - 1))}, {(1 << (length - 1)) - 1}].")
+        else:
+            if i >= (1 << length):
+                raise bitstring.CreationError(f"{i} is too large an unsigned integer for a bitstring of length {length}. "
+                                    f"The allowed range is [0, {(1 << length) - 1}].")
+            if i < 0:
+                raise bitstring.CreationError("uint cannot be initialised with a negative number.")
         raise e
     return x
 
 
-def int2bitstore(i: Union[str, int], length: int) -> BitStore:
-    i = int(i)
-    try:
-        x = BitStore(bitarray.util.int2ba(i, length=length, endian='big', signed=True))
-    except OverflowError as e:
-        if i >= (1 << (length - 1)) or i < -(1 << (length - 1)):
-            raise bitstring.CreationError(f"{i} is too large a signed integer for a bitstring of length {length}. "
-                                f"The allowed range is [{-(1 << (length - 1))}, {(1 << (length - 1)) - 1}].")
-        else:
-            raise e
-    return x
-
-
-def uintbe2bitstore(i: Union[str, int], length: int) -> BitStore:
-    return uint2bitstore(i, length)
+def uintbe2bitstore(i: int, length: int) -> BitStore:
+    return int2bitstore(i, length, False)
 
 
 def intbe2bitstore(i: int, length: int) -> BitStore:
-    return int2bitstore(i, length)
+    return int2bitstore(i, length, True)
 
 
 def uintle2bitstore(i: int, length: int) -> BitStore:
-    x = uint2bitstore(i, length).tobytes()
+    x = int2bitstore(i, length, False).tobytes()
     return BitStore(frombytes=x[::-1])
 
 
 def intle2bitstore(i: int, length: int) -> BitStore:
-    x = int2bitstore(i, length).tobytes()
+    x = int2bitstore(i, length, True).tobytes()
     return BitStore(frombytes=x[::-1])
 
 
-def float2bitstore(f: Union[str, float], length: int) -> BitStore:
+def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> BitStore:
     f = float(f)
-    fmt = {16: '>e', 32: '>f', 64: '>d'}[length]
+    fmt = {16: '>e', 32: '>f', 64: '>d'}[length] if big_endian else {16: '<e', 32: '<f', 64: '<d'}[length]
     try:
         b = struct.pack(fmt, f)
-        assert len(b) * 8 == length
-    except (OverflowError, struct.error) as e:
+    except OverflowError:
         # If float64 doesn't fit it automatically goes to 'inf'. This reproduces that behaviour for other types.
-        if length in [16, 32]:
-            b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
-        else:
-            raise e
+        b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
     return BitStore(frombytes=b)
-
-
-def floatle2bitstore(f: Union[str, float], length: int) -> BitStore:
-    f = float(f)
-    fmt = {16: '<e', 32: '<f', 64: '<d'}[length]
-    try:
-        b = struct.pack(fmt, f)
-        assert len(b) * 8 == length
-    except (OverflowError, struct.error) as e:
-        # If float64 doesn't fit it automatically goes to 'inf'. This reproduces that behaviour for other types.
-        if length in [16, 32]:
-            b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
-        else:
-            raise e
-    return BitStore(frombytes=b)
-
-
-def bytes2bitstore(b: bytes, length: int) -> BitStore:
-    return BitStore(frombytes=b[:length])
 
 
 literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {
@@ -230,6 +183,7 @@ literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {
     '0o': oct2bitstore,
     '0O': oct2bitstore,
 }
+
 
 def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[str]) -> BitStore:
     if name in literal_bit_funcs:

@@ -204,7 +204,10 @@ class Bits:
         """
         bs = self.__class__._create_from_bitstype(bs)
         s = self._copy() if len(bs) <= len(self) else bs._copy()
-        s._addright(bs) if len(bs) <= len(self) else s._addleft(self)
+        if len(bs) <= len(self):
+            s._addright(bs)
+        else:
+            s._addleft(self)
         return s
 
     def __radd__(self: TBits, bs: BitsType) -> TBits:
@@ -629,7 +632,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a uint initialiser.")
-        self._bitstore = bitstore_helpers.uint2bitstore(uint, length)
+        self._bitstore = bitstore_helpers.int2bitstore(uint, length, False)
 
     def _getuint(self) -> int:
         """Return data as an unsigned int."""
@@ -644,7 +647,7 @@ class Bits:
             length = len(self)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with an int initialiser.")
-        self._bitstore = bitstore_helpers.int2bitstore(int_, length)
+        self._bitstore = bitstore_helpers.int2bitstore(int_, length, True)
 
     def _getint(self) -> int:
         """Return data as a two's complement signed int."""
@@ -721,7 +724,7 @@ class Bits:
             length = len(self)
         if length is None or length not in [16, 32, 64]:
             raise bitstring.CreationError("A length of 16, 32, or 64 must be specified with a float initialiser.")
-        self._bitstore = bitstore_helpers.float2bitstore(f, length)
+        self._bitstore = bitstore_helpers.float2bitstore(f, length, True)
 
     def _getfloatbe(self) -> float:
         """Interpret the whole bitstring as a big-endian float."""
@@ -733,7 +736,7 @@ class Bits:
             length = len(self)
         if length is None or length not in [16, 32, 64]:
             raise bitstring.CreationError("A length of 16, 32, or 64 must be specified with a float initialiser.")
-        self._bitstore = bitstore_helpers.floatle2bitstore(f, length)
+        self._bitstore = bitstore_helpers.float2bitstore(f, length, False)
 
     def _getfloatle(self) -> float:
         """Interpret the whole bitstring as a little-endian float."""
@@ -747,7 +750,7 @@ class Bits:
     def _setbfloatbe(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
             raise bitstring.CreationError(f"bfloats must be length 16, received a length of {length} bits.")
-        self._bitstore = bitstore_helpers.bfloat2bitstore(f)
+        self._bitstore = bitstore_helpers.bfloat2bitstore(f, True)
 
     def _getbfloatle(self) -> float:
         zero_padded = Bits(16) + self
@@ -756,7 +759,7 @@ class Bits:
     def _setbfloatle(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
             raise bitstring.CreationError(f"bfloats must be length 16, received a length of {length} bits.")
-        self._bitstore = bitstore_helpers.bfloatle2bitstore(f)
+        self._bitstore = bitstore_helpers.bfloat2bitstore(f, False)
 
     def _setue(self, i: int) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
