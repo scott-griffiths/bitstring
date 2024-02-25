@@ -65,7 +65,7 @@ class Bits:
     len -- Length of the bitstring in bits.
 
     """
-    __slots__ = ('_bitstore',)
+    __slots__ = ('_bitstore', '_filename')
 
     def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
@@ -112,6 +112,7 @@ class Bits:
     def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
         x = super().__new__(cls)
+        x._filename = ''
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
@@ -279,10 +280,10 @@ class Bits:
         return ''.join(('0x', self[0:length - bits_at_end]._gethex(),
                         ', ', '0b', self[length - bits_at_end:]._getbin()))
 
-    def _repr(self, classname: str, length: int, filename: str, pos: int):
+    def _repr(self, classname: str, length: int, pos: int):
         pos_string = f', pos={pos}' if pos else ''
-        if filename:
-            return f"{classname}(filename={repr(filename)}, length={length}{pos_string})"
+        if self._filename:
+            return f"{classname}(filename={self._filename!r}, length={length}{pos_string})"
         else:
             s = self.__str__()
             lengthstring = ''
@@ -296,7 +297,7 @@ class Bits:
         If the returned string is too long it will be truncated. See __str__().
 
         """
-        return self._repr(self.__class__.__name__, len(self), self._bitstore.filename, 0)
+        return self._repr(self.__class__.__name__, len(self), 0)
 
     def __eq__(self, bs: Any, /) -> bool:
         """Return True if two bitstrings have the same binary representation.
@@ -553,10 +554,11 @@ class Bits:
                 offset = 0
             m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
             if offset == 0:
-                self._bitstore = BitStore.frombuffer(m, length=length, filename=source.name)
+                self._filename = source.name
+                self._bitstore = BitStore.frombuffer(m, length=length)
             else:
                 # If offset is given then always read into memory.
-                temp = BitStore.frombuffer(m, filename=source.name)
+                temp = BitStore.frombuffer(m)
                 if length is None:
                     if offset > len(temp):
                         raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({len(temp)} bits).")

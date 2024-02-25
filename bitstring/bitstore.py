@@ -25,17 +25,14 @@ def offset_start_stop_lsb0(start: Optional[int], stop: Optional[int], length: in
 class BitStore:
     """A light wrapper around bitarray that does the LSB0 stuff"""
 
-    __slots__ = ('_bitarray', 'modified', 'length', 'filename', 'immutable')
+    __slots__ = ('_bitarray', 'modified', 'length', 'immutable')
 
     def __init__(self, initializer: Union[int, bitarray.bitarray, str, None] = None,
-                 immutable: bool = False, filename: str = '', length: Optional[int] = None) -> None:
+                 immutable: bool = False) -> None:
         self._bitarray = bitarray.bitarray(initializer)
         self.immutable = immutable
         self.length = None
-        self.filename = filename
-        # Here 'modified' means that it isn't just the underlying bitarray. It could have a different start and end, and be from a file.
-        # This also means that it shouldn't be changed further, so setting, deleting etc. are disallowed.
-        self.modified = length is not None or filename != ''
+        self.modified = False
 
     @classmethod
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> BitStore:
@@ -44,20 +41,19 @@ class BitStore:
         x._bitarray.frombytes(b)
         x.immutable = False
         x.length = None
-        x.filename = ''
         x.modified = False
         return x
 
     @classmethod
-    def frombuffer(cls, buffer, /, length: Optional[int] = None, filename: str = '') -> BitStore:
+    def frombuffer(cls, buffer, /, length: Optional[int] = None) -> BitStore:
         x = super().__new__(cls)
         x._bitarray = bitarray.bitarray(buffer=buffer)
         x.immutable = True
         x.length = None
-        x.filename = filename
-        x.modified = length is not None or filename != ''
+        # Here 'modified' means it shouldn't be changed further, so setting, deleting etc. are disallowed.
+        x.modified = length is not None
         if x.modified:
-            x.length = len(x._bitarray) if length is None else length
+            x.length = length
             if x.length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
             if x.length > len(x._bitarray):

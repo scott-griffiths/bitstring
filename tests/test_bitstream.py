@@ -1949,7 +1949,8 @@ class TestSplit2:
                   ConstBitStream(filename=filename, length=17),
                   ConstBitStream(filename=filename, length=23, offset=23102)]:
             f2 = eval(f.__repr__())
-            assert f._bitstore.filename == f2._bitstore.filename
+            assert f._filename == f2._filename
+
             assert f2.tobytes() == f.tobytes()
         a = BitStream('0b1')
         assert repr(a) == "BitStream('0b1')"
