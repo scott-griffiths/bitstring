@@ -163,7 +163,7 @@ class TestCreation:
         b = a[:]
         b.dtype = 'int8'
         assert a.tolist() == b.tolist()
-        assert a != b
+        assert not a.equals(b)
         with pytest.raises(ValueError):
             b.dtype = 'hello_everyone'
         with pytest.raises(ValueError):
@@ -277,18 +277,18 @@ class TestArrayMethods:
         assert a.data == b.data
 
         b = array.array('f', [54.2, -998, 411.9])
-        assert a == b
+        assert a.equals(b)
         a.dtype = 'bool'
-        assert a != b
+        assert not a.equals(b)
         a.dtype = 'floatne16'
-        assert a != b
+        assert not a.equals(b)
         a.dtype = 'floatne32'
         a.data += '0x0'
-        assert a != b
+        assert not a.equals(b)
         a.data += '0x0000000'
-        assert a != b
+        assert not a.equals(b)
         b.append(0.0)
-        assert a == b
+        assert a.equals(b)
 
     def test_extend(self):
         a = Array('uint:3', (1, 2, 3))
@@ -320,7 +320,7 @@ class TestArrayMethods:
 
         a.dtype = 'int8'
         ap = Array('uint8', a.tolist())
-        assert a != ap
+        assert not a.equals(ap)
         assert a.tolist() == ap.tolist()
 
     def test_insert(self):
@@ -814,9 +814,17 @@ class TestComparisonOperators:
     def test_array_equals(self):
         a = Array('i12', [1, 2, -3, 4, -5, 6])
         b = Array('i12', [6, 5, 4, 3, 2, 1])
-        assert abs(a) == b[::-1]
-        assert a != b
-
+        assert abs(a).equals(b[::-1])
+        assert (a == b) == [False, False, False, False, False, False]
+        assert (a != b) == [True, True, True, True, True, True]
+        with pytest.raises(ValueError):
+            _ = a == b[:-1]
+        with pytest.raises(ValueError):
+            _ = a == [1, 2, 3]
+        with pytest.raises(ValueError):
+            _ = [1, 2, 3] == a
+        with pytest.raises(ValueError):
+            _ = a == [1, 2, 3, 4, 5, 6, 7]
 
 class TestAsType:
 

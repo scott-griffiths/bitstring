@@ -722,15 +722,17 @@ class Array:
             return self._apply_op_between_arrays(operator.le, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.le, other, is_comparison=True)
 
-    def __eq__(self, other: Union[int, float, str, BitsType, Array]) -> Array:
-        if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.eq, other, is_comparison=True)
-        return self._apply_op_to_all_elements(operator.eq, other, is_comparison=True)
+    def __eq__(self, other: Union[int, float, str, Array]) -> Array:
+        if isinstance(other, (int, float, str, Bits)):
+            return self._apply_op_to_all_elements(operator.eq, other, is_comparison=True)
+        other = Array(self.dtype, other)
+        return self._apply_op_between_arrays(operator.eq, other, is_comparison=True)
 
-    def __ne__(self, other: Union[int, float, str, BitsType, Array]) -> Array:
-        if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.ne, other, is_comparison=True)
-        return self._apply_op_to_all_elements(operator.ne, other, is_comparison=True)
+    def __ne__(self, other: Union[int, float, str, Array]) -> Array:
+        if isinstance(other, (int, float, str, Bits)):
+            return self._apply_op_to_all_elements(operator.ne, other, is_comparison=True)
+        other = Array(self.dtype, other)
+        return self._apply_op_between_arrays(operator.ne, other, is_comparison=True)
 
     # Unary operators
 
