@@ -7,7 +7,7 @@ import bitarray
 from bitstring.bitstore import BitStore
 import bitstring
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
-
+from bitstring.mxfp import MXFPFormat
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
@@ -126,6 +126,11 @@ def e5m2float2bitstore(f: Union[str, float]) -> BitStore:
     u = e5m2float_fmt.float_to_int8(f)
     return int2bitstore(u, 8, False)
 
+def e3m2float2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    e3m2float_fmt = MXFPFormat(3, 2, 3)
+    u = e3m2float_fmt.slow_float_to_int(f)
+    return int2bitstore(u, 6, False)
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     i = int(i)

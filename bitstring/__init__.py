@@ -143,6 +143,10 @@ def e4m3float_bits2chars(bitlength: Literal[8]):
     # Found by looking at all the possible values
     return 13  # Empirical value
 
+def e3m2float_bits2chars(bitlength: Literal[6]):
+    # Not sure what the best value is here. It's 7 without considering the scale that could be applied.
+    return 7
+
 def bfloat_bits2chars(bitlength: Literal[16]):
     # Found by looking at all the possible values
     return 23  # Empirical value
@@ -209,6 +213,9 @@ dtype_definitions = [
     # Special case pad type
     DtypeDefinition('pad', Bits._setpad, Bits._getpad, None, False, None,
                     description="a skipped section of padding"),
+
+    DtypeDefinition('e3m2float', Bits._sete3m2float, Bits._gete3m2float, float, True, e3m2float_bits2chars,
+                    allowed_lengths=(6,), description="a 6 bit float with e3m2float format"),
 ]
 
 
