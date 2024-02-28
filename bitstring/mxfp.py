@@ -8,7 +8,6 @@ class MXFPFormat:
         self.exp_bits = exp_bits
         self.mantissa_bits = mantissa_bits
         self.bias = bias
-
         self.lut_int_to_float = self.createLUT_for_int_to_float()
 
     def slow_float_to_int(self, f: float) -> int:

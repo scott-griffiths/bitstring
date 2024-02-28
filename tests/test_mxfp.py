@@ -31,45 +31,53 @@ def test_getting_e3m2float_values():
 def test_setting_e3m2float_values():
     x = BitArray('0b000000')
     x.e3m2float = 0.0
-    assert x.e3m2float == 0.0
-    x.e3m2float = 0.0625
-    assert x.e3m2float == 0.0625
-    x.e3m2float = 0.1875
-    assert x.e3m2float == 0.1875
-    x.e3m2float = 0.25
-    assert x.e3m2float == 0.25
-    x.e3m2float = 28.0
-    assert x.e3m2float == 28.0
+    assert x == '0b000000'
+    x.e3m2float = -0.0625
+    assert x == '0b100001'
+    x.e3m2float = -0.1875
+    assert x == '0b100011'
+    x.e3m2float = -0.25
+    assert x == '0b100100'
+    x.e3m2float = -28.0
+    assert x == '0b111111'
 
+def test_getting_e2m3float_values():
+    assert BitArray('0b000000').e2m3float == 0.0
+    assert BitArray('0b000001').e2m3float == 0.125
+    assert BitArray('0b000111').e2m3float == 0.875
+    assert BitArray('0b001000').e2m3float == 1.0
+    assert BitArray('0b011111').e2m3float == 7.5
 
-def createLUT_for_int6_to_float(exp_bits, mantissa_bits, bias) -> array.array[float]:
-    """Create a LUT to convert an int in range 0-255 representing a float8 into a Python float"""
-    i2f = []
-    for i in range(64):
-        b = BitArray(uint=i, length=6)
-        sign = b[0]
-        exponent = b[1:1 + exp_bits].u
-        significand = b[1 + exp_bits:]
-        if exponent == 0:
-            significand.prepend([0])
-            exponent = -bias + 1
-        else:
-            significand.prepend([1])
-            exponent -= bias
-        f = float(significand.u) / (2.0 ** mantissa_bits)
-        f *= 2 ** exponent
-        i2f.append(f if not sign else -f)
-    # One special case for minus zero
-    # i2f[0b10000000] = float('nan')
-    return array.array('f', i2f)
+def test_setting_e2m3float_values():
+    x = BitArray('0b000000')
+    x.e2m3float = 0.0
+    assert x == '0b000000'
+    x.e2m3float = -0.125
+    assert x == '0b100001'
+    x.e2m3float = -0.875
+    assert x == '0b100111'
+    x.e2m3float = -1.0
+    assert x == '0b101000'
+    x.e2m3float = -7.5
+    assert x == '0b111111'
 
-def test_lut_int6_to_e3m2float():
-    lut_calculated = createLUT_for_int6_to_float(3, 2, 3)
-    assert lut_calculated[0b000000] == 0.0
-    assert lut_calculated[0b100100] == -0.25
-    assert lut_calculated[0b000001] == 0.0625
-    assert lut_calculated[0b111111] == -28.0
-    assert lut_calculated[0b000011] == 0.1875
+def test_getting_e2m1float_values():
+    assert BitArray('0b0000').e2m1float == 0.0
+    assert BitArray('0b0001').e2m1float == 0.5
+    assert BitArray('0b0010').e2m1float == 1.0
+    assert BitArray('0b0111').e2m1float == 6.0
+
+def test_setting_e2m1float_values():
+    x = BitArray('0b0000')
+    x.e2m1float = 0.0
+    assert x == '0b0000'
+    x.e2m1float = -0.5
+    assert x == '0b1001'
+    x.e2m1float = -1.0
+    assert x == '0b1010'
+    x.e2m1float = -6.0
+    assert x == '0b1111'
+
 
 
 

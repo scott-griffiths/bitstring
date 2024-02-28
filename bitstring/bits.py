@@ -593,6 +593,12 @@ class Bits:
     def _sete3m2float(self, f: float) -> None:
         self._bitstore = bitstore_helpers.e3m2float2bitstore(f)
 
+    def _sete2m3float(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e2m3float2bitstore(f)
+
+    def _sete2m1float(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e2m1float2bitstore(f)
+
     def _setbytes(self, data: Union[bytearray, bytes], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
         self._bitstore = BitStore.frombytes(data)
@@ -727,6 +733,17 @@ class Bits:
         u = self._getuint()
         e3m2float_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3)
         return e3m2float_fmt.lut_int_to_float[u]
+
+    def _gete2m3float(self) -> float:
+        u = self._getuint()
+        e2m3float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
+        return e2m3float_fmt.lut_int_to_float[u]
+
+    def _gete2m1float(self) -> float:
+        u = self._getuint()
+        e2m1float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
+        return e2m1float_fmt.lut_int_to_float[u]
+
 
     def _setfloatbe(self, f: float, length: Optional[int] = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:

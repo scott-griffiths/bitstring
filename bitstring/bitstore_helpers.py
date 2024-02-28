@@ -132,6 +132,18 @@ def e3m2float2bitstore(f: Union[str, float]) -> BitStore:
     u = e3m2float_fmt.slow_float_to_int(f)
     return int2bitstore(u, 6, False)
 
+def e2m3float2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    e2m3float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
+    u = e2m3float_fmt.slow_float_to_int(f)
+    return int2bitstore(u, 6, False)
+
+def e2m1float2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    e2m1float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
+    u = e2m1float_fmt.slow_float_to_int(f)
+    return int2bitstore(u, 4, False)
+
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     i = int(i)
     try:

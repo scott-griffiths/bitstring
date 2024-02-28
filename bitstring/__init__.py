@@ -147,6 +147,15 @@ def e3m2float_bits2chars(bitlength: Literal[6]):
     # Not sure what the best value is here. It's 7 without considering the scale that could be applied.
     return 7
 
+def e2m3float_bits2chars(bitlength: Literal[6]):
+    # Not sure what the best value is here.
+    return 7
+
+def e2m1float_bits2chars(bitlength: Literal[4]):
+    # Not sure what the best value is here.
+    return 7
+
+
 def bfloat_bits2chars(bitlength: Literal[16]):
     # Found by looking at all the possible values
     return 23  # Empirical value
@@ -216,6 +225,10 @@ dtype_definitions = [
 
     DtypeDefinition('e3m2float', Bits._sete3m2float, Bits._gete3m2float, float, True, e3m2float_bits2chars,
                     allowed_lengths=(6,), description="a 6 bit float with e3m2float format"),
+    DtypeDefinition('e2m3float', Bits._sete2m3float, Bits._gete2m3float, float, True, e2m3float_bits2chars,
+                    allowed_lengths=(6,), description="a 6 bit float with e2m3float format"),
+    DtypeDefinition('e2m1float', Bits._sete2m1float, Bits._gete2m1float, float, True, e2m1float_bits2chars,
+                    allowed_lengths=(4,), description="a 4 bit float with e2m1float format"),
 ]
 
 
