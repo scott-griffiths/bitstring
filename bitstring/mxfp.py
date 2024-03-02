@@ -1,5 +1,8 @@
 import array
 import math
+import struct
+import bitarray
+
 
 class MXFPFormat:
     """Defining an MXFP floating point format"""
@@ -9,6 +12,7 @@ class MXFPFormat:
         self.mantissa_bits = mantissa_bits
         self.bias = bias
         self.lut_int_to_float = self.createLUT_for_int_to_float()
+        self.lut_float16_to_mxfp = self.createLUT_for_float16_to_mxfp()
 
     def slow_float_to_int(self, f: float) -> int:
         # Slow, but easier to follow than the faster version.
@@ -30,28 +34,52 @@ class MXFPFormat:
             # Clip to negative max
             return (1 << length) - 1
         if math.isnan(f):
-            raise ValueError("nan is not supported in MXFP values, only in the scale.")
+            return 0  # Nan isn't supported so what value should this be? (TODO)
 
+    def float_to_int(self, f: float) -> int:
+        """Given a Python float convert to the best float8 (expressed as an integer in 0-255 range)."""
+        # First convert the float to a float16, then a 16 bit uint
+        try:
+            b = struct.pack('>e', f)
+        except (OverflowError, struct.error):
+            # Return the largest representable positive or negative value
+            return (1 << (1 + self.exp_bits + self.mantissa_bits)) - 1 if f > 0 else (1 << (2 + self.exp_bits + self.mantissa_bits)) - 1
+            # return 0b01111111 if f > 0 else 0b11111111
+        f16_int = int.from_bytes(b, byteorder='big')
+        # Then use this as an index to our large LUT
+        return self.lut_float16_to_mxfp[f16_int]
 
     def createLUT_for_int_to_float(self) -> array.array:
         """Create a LUT to convert an int in representing a MXFP float into a Python float"""
-        from bitstring import BitArray
         i2f = []
         length = 1 + self.exp_bits + self.mantissa_bits
         for i in range(1 << length):
-            b = BitArray(uint=i, length=length)
+            b = bitarray.util.int2ba(i, length=length, endian='big', signed=False)
             sign = b[0]
-            exponent = b[1:1 + self.exp_bits].u
+            exponent = bitarray.util.ba2int(b[1:1 + self.exp_bits])
             significand = b[1 + self.exp_bits:]
             if exponent == 0:
-                significand.prepend([0])
+                significand = bitarray.bitarray('0') + significand
                 exponent = -self.bias + 1
             else:
-                significand.prepend([1])
+                significand = bitarray.bitarray('1') + significand
                 exponent -= self.bias
-            f = float(significand.u) / (2.0 ** self.mantissa_bits)
+            f = float(bitarray.util.ba2int(significand)) / (2.0 ** self.mantissa_bits)
             f *= 2 ** exponent
             i2f.append(f if not sign else -f)
         return array.array('f', i2f)
 
+    def createLUT_for_float16_to_mxfp(self) -> bytes:
+        """Create a LUT to convert a float16 into a MXFP format"""
+        # Used to create the LUT that was compressed and stored for the fp8 code
+        fp16_to_fp8 = bytearray(1 << 16)
+        for i in range(1 << 16):
+            b = struct.pack('>H', i)
+            f, = struct.unpack('>e', b)
+            fp8_i = self.slow_float_to_int(f)
+            fp16_to_fp8[i] = fp8_i
+        return bytes(fp16_to_fp8)
 
+e2m3float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
+e3m2float_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3)
+e2m1float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)

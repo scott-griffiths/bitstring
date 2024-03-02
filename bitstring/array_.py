@@ -137,8 +137,7 @@ class Array:
 
     def _create_element(self, value: ElementType) -> Bits:
         """Create Bits from value according to the token_name and token_length"""
-        b = Bits()
-        self._dtype.set_fn(b, value)
+        b = self._dtype.build(value)
         if len(b) != self._dtype.length:
             raise ValueError(f"The value {value!r} has the wrong length for the format '{self._fmt}'.")
         return b
@@ -161,11 +160,11 @@ class Array:
                 d = BitArray()
                 for s in range(start * self._dtype.length, stop * self._dtype.length, step * self._dtype.length):
                     d.append(self.data[s: s + self._dtype.length])
-                a = Array(self._dtype)
+                a = self.__class__(self._dtype)
                 a.data = d
                 return a
             else:
-                a = Array(self._dtype)
+                a = self.__class__(self._dtype)
                 a.data = self.data[start * self._dtype.length: stop * self._dtype.length]
                 return a
         else:
@@ -173,7 +172,7 @@ class Array:
                 key += len(self)
             if key < 0 or key >= len(self):
                 raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
-            return self._dtype.read_fn(self.data, start=self._dtype.length * key)
+            return self._dtype.parse(self.data[self._dtype.length * key:self._dtype.length * (key + 1)])
 
     @overload
     def __setitem__(self, key: slice, value: Iterable[ElementType]) -> None:
@@ -242,7 +241,7 @@ class Array:
         return new_array
 
     def tolist(self) -> List[ElementType]:
-        return [self._dtype.read_fn(self.data, start=start)
+        return [self._dtype.parse(self.data[start:start + self._dtype.length])
                 for start in range(0, len(self.data) - self._dtype.length + 1, self._dtype.length)]
 
     def append(self, x: ElementType) -> None:
@@ -439,7 +438,7 @@ class Array:
     def __iter__(self) -> Iterable[ElementType]:
         start = 0
         for _ in range(len(self)):
-            yield self._dtype.read_fn(self.data, start=start)
+            yield self._dtype.parse(self.data[start:start + self._dtype.length])
             start += self._dtype.length
 
     def __copy__(self) -> Array:
@@ -460,7 +459,7 @@ class Array:
             def partial_op(a):
                 return op(a)
         for i in range(len(self)):
-            v = self._dtype.read_fn(self.data, start=self._dtype.length * i)
+            v = self._dtype.parse(self.data[self._dtype.length * i:self._dtype.length * (i + 1)])
             try:
                 new_data.append(new_array._create_element(partial_op(v)))
             except (CreationError, ZeroDivisionError, ValueError) as e:
@@ -481,7 +480,7 @@ class Array:
         failures = index = 0
         msg = ''
         for i in range(len(self)):
-            v = self._dtype.read_fn(self.data, start=self._dtype.length * i)
+            v = self._dtype.parse(self.data[self._dtype.length * i:self._dtype.length * (i + 1)])
             try:
                 new_data.append(self._create_element(op(v, value)))
             except (CreationError, ZeroDivisionError, ValueError) as e:
@@ -525,8 +524,8 @@ class Array:
         failures = index = 0
         msg = ''
         for i in range(len(self)):
-            a = self._dtype.read_fn(self.data, start=self._dtype.length * i)
-            b = other._dtype.read_fn(other.data, start=other._dtype.length * i)
+            a = self._dtype.parse(self.data[self._dtype.length * i:self._dtype.length * (i + 1)])
+            b = other._dtype.parse(other.data[other._dtype.length * i:other._dtype.length * (i + 1)])
             try:
                 new_data.append(new_array._create_element(op(a, b)))
             except (CreationError, ValueError, ZeroDivisionError) as e:

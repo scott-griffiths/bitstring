@@ -21,7 +21,7 @@ class TestModuleData:
 
     def test_all(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',
-                    'Bits', 'pack', 'Error', 'ReadError', 'Array',
+                    'Bits', 'pack', 'Error', 'ReadError', 'Array', 'ScaledArray',
                     'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype', 'options']
         assert set(bitstring.__all__) == set(exported)
 

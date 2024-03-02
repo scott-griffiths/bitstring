@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import struct
+import math
 import functools
 from typing import Union, Optional, Dict, Callable
 import bitarray
 from bitstring.bitstore import BitStore
 import bitstring
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
-from bitstring.mxfp import MXFPFormat
+from bitstring.mxfp import e3m2float_fmt, e2m3float_fmt, e2m1float_fmt
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
@@ -128,21 +129,24 @@ def e5m2float2bitstore(f: Union[str, float]) -> BitStore:
 
 def e3m2float2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    e3m2float_fmt = MXFPFormat(3, 2, 3)
-    u = e3m2float_fmt.slow_float_to_int(f)
+    u = e3m2float_fmt.float_to_int(f)
     return int2bitstore(u, 6, False)
 
 def e2m3float2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    e2m3float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
-    u = e2m3float_fmt.slow_float_to_int(f)
+    u = e2m3float_fmt.float_to_int(f)
     return int2bitstore(u, 6, False)
 
 def e2m1float2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    e2m1float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
-    u = e2m1float_fmt.slow_float_to_int(f)
+    u = e2m1float_fmt.float_to_int(f)
     return int2bitstore(u, 4, False)
+
+def e8m0float2bitstore(f: Union[str, int]) -> BitStore:
+    if math.isnan(f):
+        return BitStore('11111111')
+    u = int(f) + 127
+    return int2bitstore(u, 8, False)
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     i = int(i)

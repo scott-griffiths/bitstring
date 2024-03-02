@@ -18,7 +18,7 @@ from bitstring.bitstore import BitStore
 from bitstring import bitstore_helpers, utils
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
-from bitstring.mxfp import MXFPFormat
+from bitstring.mxfp import e3m2float_fmt, e2m3float_fmt, e2m1float_fmt
 from bitstring.bitstring_options import Colour
 
 # Things that can be converted to Bits when a Bits type is needed
@@ -599,6 +599,9 @@ class Bits:
     def _sete2m1float(self, f: float) -> None:
         self._bitstore = bitstore_helpers.e2m1float2bitstore(f)
 
+    def _sete8m0float(self, f: int) -> None:
+        self._bitstore = bitstore_helpers.e8m0float2bitstore(f)
+
     def _setbytes(self, data: Union[bytearray, bytes], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
         self._bitstore = BitStore.frombytes(data)
@@ -731,19 +734,21 @@ class Bits:
 
     def _gete3m2float(self) -> float:
         u = self._getuint()
-        e3m2float_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3)
         return e3m2float_fmt.lut_int_to_float[u]
 
     def _gete2m3float(self) -> float:
         u = self._getuint()
-        e2m3float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
         return e2m3float_fmt.lut_int_to_float[u]
 
     def _gete2m1float(self) -> float:
         u = self._getuint()
-        e2m1float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
         return e2m1float_fmt.lut_int_to_float[u]
 
+    def _gete8m0float(self) -> int:
+        u = self._getuint()
+        if u == 255:
+            return float('nan')
+        return u - 127
 
     def _setfloatbe(self, f: float, length: Optional[int] = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:

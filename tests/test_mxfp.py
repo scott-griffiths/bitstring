@@ -6,7 +6,7 @@ import array
 import struct
 import math
 import bitstring
-from bitstring import Bits, BitArray, BitStream, Array, Dtype
+from bitstring import Bits, BitArray, BitStream, Array, Dtype, ScaledArray
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
 from hypothesis import given
 import hypothesis.strategies as st
@@ -78,6 +78,30 @@ def test_setting_e2m1float_values():
     x.e2m1float = -6.0
     assert x == '0b1111'
 
+
+def test_e8m0float_value():
+    x = BitArray('0x00')
+    x.e8m0float = -127
+    assert x == '0b00000000'
+    x.e8m0float = 0
+    assert x == '0b01111111'
+    x.e8m0float = 127
+    assert x == '0b11111110'
+    x.e8m0float = float('nan')
+    assert x == '0b11111111'
+    assert math.isnan(x.e8m0float)
+
+
+def test_scaled_array():
+    sa = ScaledArray('uint8', 1, [100, 200, 300, 400, 500])
+    assert sa.scale == 1
+    assert sa[0] == 100
+    assert sa[:] == [100, 200, 300, 400, 500]
+    sa.scale = 2
+    assert sa.scale == 2
+    assert sa[0] == 200
+    sa.scale = -2
+    assert sa.tolist() == [12.5, 25.0, 37.5, 50.0, 62.5]
 
 
 
