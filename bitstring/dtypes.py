@@ -11,7 +11,7 @@ CACHE_SIZE = 256
 
 class Dtype:
 
-    __slots__ = ('read_fn', 'name', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'set_fn_needs_length', 'variable_length', 'bitlength', 'bits_per_item', 'length', 'scale')
+    __slots__ = ('read_fn', 'name', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'set_fn_needs_length', 'variable_length', 'bitlength', 'bits_per_item', 'length')
 
     name: str
     read_fn: Callable
@@ -24,7 +24,6 @@ class Dtype:
     bitlength: Optional[int]
     bits_per_item: int
     length: Optional[int]
-    scale: int
 
     def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None) -> Dtype:
         if isinstance(token, cls):
@@ -70,24 +69,18 @@ class Dtype:
         x.get_fn = definition.get_fn
         x.return_type = definition.return_type
         x.is_signed = definition.is_signed
-        x.scale = 0
         return x
 
     def build(self, value: Any, /) -> bitstring.Bits:
         """Create a bitstring from a value."""
         b = bitstring.Bits()
-        if self.scale == 0:
-            self.set_fn(b, value)
-        else:
-            self.set_fn(b, value / (1 << self.scale))
+        self.set_fn(b, value)
         return b
 
     def parse(self, b: BitsType, /) -> Any:
         """Parse a bitstring into a value."""
         b = bitstring.Bits._create_from_bitstype(b)
-        if self.scale == 0:
-            return self.get_fn(bitstring.Bits(b))
-        return self.get_fn(bitstring.Bits(b)) * (2 ** self.scale)
+        return self.get_fn(bitstring.Bits(b))
 
     def __str__(self) -> str:
         hide_length = self.variable_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
