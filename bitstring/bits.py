@@ -744,11 +744,11 @@ class Bits:
         u = self._getuint()
         return e2m1float_fmt.lut_int_to_float[u]
 
-    def _gete8m0float(self) -> int:
-        u = self._getuint()
-        if u == 255:
+    def _gete8m0float(self) -> float:
+        u = self._getuint() - 127
+        if u == 128:
             return float('nan')
-        return u - 127
+        return 2.0 ** u
 
     def _setfloatbe(self, f: float, length: Optional[int] = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:

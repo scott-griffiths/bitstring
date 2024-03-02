@@ -157,8 +157,8 @@ def e2m1float_bits2chars(bitlength: Literal[4]):
     return 7
 
 def e8m0float_bits2chars(bitlength: Literal[8]):
-    # Can range from -127 to 127.
-    return 4
+    # Can range same as float32
+    return 23
 
 
 def bfloat_bits2chars(bitlength: Literal[16]):
@@ -234,7 +234,7 @@ dtype_definitions = [
                     allowed_lengths=(6,), description="a 6 bit float with e2m3float format"),
     DtypeDefinition('e2m1float', Bits._sete2m1float, Bits._gete2m1float, float, True, e2m1float_bits2chars,
                     allowed_lengths=(4,), description="a 4 bit float with e2m1float format"),
-    DtypeDefinition('e8m0float', Bits._sete8m0float, Bits._gete8m0float, float, True, e8m0float_bits2chars,
+    DtypeDefinition('e8m0float', Bits._sete8m0float, Bits._gete8m0float, float, False, e8m0float_bits2chars,
                     allowed_lengths=(8,), description="an 8 bit integer with e8m0float format"),
 ]
 

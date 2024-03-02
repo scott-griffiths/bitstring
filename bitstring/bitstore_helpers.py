@@ -142,11 +142,13 @@ def e2m1float2bitstore(f: Union[str, float]) -> BitStore:
     u = e2m1float_fmt.float_to_int(f)
     return int2bitstore(u, 4, False)
 
-def e8m0float2bitstore(f: Union[str, int]) -> BitStore:
+def e8m0float2bitstore(f: Union[str, float]) -> BitStore:
     if math.isnan(f):
         return BitStore('11111111')
-    u = int(f) + 127
-    return int2bitstore(u, 8, False)
+    f = float(f)
+    f = struct.pack('>e', f)
+    b = float2bitstore(f, 32, True)
+    return b[1:9]
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     i = int(i)

@@ -1,15 +1,8 @@
 from __future__ import annotations
 
-import pytest
 import sys
-import array
-import struct
 import math
-import bitstring
-from bitstring import Bits, BitArray, BitStream, Array, Dtype, ScaledArray
-from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
-from hypothesis import given
-import hypothesis.strategies as st
+from bitstring import BitArray, ScaledArray
 
 sys.path.insert(0, '..')
 
@@ -81,19 +74,17 @@ def test_setting_e2m1float_values():
 
 def test_e8m0float_value():
     x = BitArray('0x00')
-    x.e8m0float = -127
-    assert x == '0b00000000'
-    x.e8m0float = 0
-    assert x == '0b01111111'
-    x.e8m0float = 127
-    assert x == '0b11111110'
-    x.e8m0float = float('nan')
-    assert x == '0b11111111'
+    assert x.e8m0float == 2.0 ** -127
+    x.uint = 127
+    assert x.e8m0float == 1.0
+    x.uint = 254
+    assert x.e8m0float == 2.0 ** 127
+    x.bin = '11111111'
     assert math.isnan(x.e8m0float)
 
 
 def test_scaled_array():
-    sa = ScaledArray('uint8', 1, [100, 200, 300, 400, 500])
+    sa = ScaledArray('uint8',[100, 200, 300, 400, 500], scale=1)
     assert sa.scale == 1
     assert sa[0] == 100
     assert sa[:] == [100, 200, 300, 400, 500]
@@ -103,5 +94,21 @@ def test_scaled_array():
     sa.scale = -2
     assert sa.tolist() == [12.5, 25.0, 37.5, 50.0, 62.5]
 
+def test_setting_scaled_array():
+    sa = ScaledArray('e3m2float')
+    sa.append(4.0)
+    assert sa[0] == 4.0
+    assert sa.scale == 0
+    sa.scale = -1
+    assert sa[0] == 2.0
+    sa.append(6.0)
+    assert sa[1] == 6.0
+    assert sa[:] == [2.0, 6.0]
+    sa *= 2
+    assert sa[:] == [4.0, 12.0]
+    sa[:] = [0.0, 0.5, 1.0]
+    assert sa[:] == [0.0, 0.5, 1.0]
+    sa.scale = 0
+    assert sa[:] == [0.0, 1.0, 2.0]
 
 

@@ -21,7 +21,7 @@ class ScaledArray(Array):
     """An experimental version of Array that includes a scale factor.
     This is a work in progress and may change or be removed in the future."""
 
-    def __init__(self, dtype, scale: int = 0, initializer=None, trailing_bits=None):
+    def __init__(self, dtype, initializer=None, trailing_bits=None, scale: int = 0):
         self.scaled_dtype = Dtype(dtype)
         self.unscaled_get_fn = self.scaled_dtype.get_fn
         self.unscaled_set_fn = self.scaled_dtype.set_fn
