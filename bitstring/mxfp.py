@@ -37,14 +37,13 @@ class MXFPFormat:
             return 0  # Nan isn't supported so what value should this be? (TODO)
 
     def float_to_int(self, f: float) -> int:
-        """Given a Python float convert to the best float8 (expressed as an integer in 0-255 range)."""
+        """Given a Python float convert to the best mxfp float (expressed as an int) that represents it."""
         # First convert the float to a float16, then a 16 bit uint
         try:
             b = struct.pack('>e', f)
         except (OverflowError, struct.error):
             # Return the largest representable positive or negative value
-            return (1 << (1 + self.exp_bits + self.mantissa_bits)) - 1 if f > 0 else (1 << (2 + self.exp_bits + self.mantissa_bits)) - 1
-            # return 0b01111111 if f > 0 else 0b11111111
+            return (1 << (self.exp_bits + self.mantissa_bits)) - 1 if f > 0 else (1 << (1 + self.exp_bits + self.mantissa_bits)) - 1
         f16_int = int.from_bytes(b, byteorder='big')
         # Then use this as an index to our large LUT
         return self.lut_float16_to_mxfp[f16_int]

@@ -122,3 +122,16 @@ def test_multiple_scaled_arrays():
     assert s3.scale == -10
     assert s1[0] * 2**10 == s2[0]
     assert s1[0] * 2**-10 == s3[0]
+
+def test_setting_from_outside_range():
+    b = BitArray(e2m1float=0.0)
+    b.e2m1float = 6.0
+    assert b.e2m1float == 6.0
+    b.e2m1float = 7.0
+    assert b.e2m1float == 6.0
+    b.e2m1float = 10000000000.0
+    assert b.e2m1float == 6.0
+    s = ScaledArray('e2m1float', [-1000.0, 6.0, 7.0, 10000.0], scale=0)
+    assert s.tolist() == [-6.0, 6.0, 6.0, 6.0]
+    s = ScaledArray('e2m1float', [-1000.0, 6.0, 7.0, 10000000000.0], scale=1)
+    assert s.tolist() == [-12.0, 6.0, 6.0, 12.0]
