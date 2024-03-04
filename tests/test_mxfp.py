@@ -111,4 +111,14 @@ def test_setting_scaled_array():
     sa.scale = 0
     assert sa[:] == [0.0, 1.0, 2.0]
 
-
+def test_multiple_scaled_arrays():
+    d = bytes(b'hello_everyone!')
+    s1 = ScaledArray('e2m1float', d, scale=0)
+    s2 = ScaledArray('e2m1float', d, scale=10)
+    s3 = ScaledArray('e2m1float', d, scale=-10)
+    assert s1[:] == s2[:] == s3[:]
+    assert s1.scale == 0
+    assert s2.scale == 10
+    assert s3.scale == -10
+    assert s1[0] * 2**10 == s2[0]
+    assert s1[0] * 2**-10 == s3[0]

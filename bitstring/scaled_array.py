@@ -1,28 +1,32 @@
 from bitstring.array_ import Array, ElementType
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.dtypes import Dtype
+import copy
 
-def scaled_get_fn(get_fn, scale: int):
-    def wrapper(*args, **kwargs):
+def scaled_get_fn(get_fn, s: int):
+    def wrapper(*args, scale=s, **kwargs):
         return get_fn(*args, **kwargs) * (2 ** scale)
     return wrapper
 
-def scaled_set_fn(set_fn, scale: int):
-    def wrapper(bs, value, *args, **kwargs):
+def scaled_set_fn(set_fn, s: int):
+    def wrapper(bs, value, *args, scale=s, **kwargs):
         return set_fn(bs, value / (2 ** scale), *args, **kwargs)
     return wrapper
 
-def scaled_read_fn(read_fn, scale: int):
-    def wrapper(*args, **kwargs):
+def scaled_read_fn(read_fn, s: int):
+    def wrapper(*args, scale=s, **kwargs):
         return read_fn(*args, **kwargs) * (2 ** scale)
     return wrapper
+
+
 
 class ScaledArray(Array):
     """An experimental version of Array that includes a scale factor.
     This is a work in progress and may change or be removed in the future."""
 
     def __init__(self, dtype, initializer=None, trailing_bits=None, scale: int = 0):
-        self.scaled_dtype = Dtype(dtype)
+        dtype = Dtype(dtype)
+        self.scaled_dtype = copy.copy(dtype)
         self.unscaled_get_fn = self.scaled_dtype.get_fn
         self.unscaled_set_fn = self.scaled_dtype.set_fn
         self.unscaled_read_fn = self.scaled_dtype.read_fn
