@@ -135,3 +135,9 @@ def test_setting_from_outside_range():
     assert s.tolist() == [-6.0, 6.0, 6.0, 6.0]
     s = ScaledArray('e2m1float', [-1000.0, 6.0, 7.0, 10000000000.0], scale=1)
     assert s.tolist() == [-12.0, 6.0, 6.0, 12.0]
+
+def test_ops():
+    s = ScaledArray('e8m0float', [0.5, 1.0, 2.0, 4.0, 8.0], scale=0)
+    t = s * 2
+    assert type(t) is ScaledArray
+    assert t.tolist() == [1.0, 2.0, 4.0, 8.0, 16.0]

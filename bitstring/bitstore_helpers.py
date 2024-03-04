@@ -146,9 +146,8 @@ def e8m0float2bitstore(f: Union[str, float]) -> BitStore:
     if math.isnan(f):
         return BitStore('11111111')
     f = float(f)
-    f = struct.pack('>e', f)
     b = float2bitstore(f, 32, True)
-    return b[1:9]
+    return b.getslice_msb0(1, 9)
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     i = int(i)

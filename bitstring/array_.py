@@ -237,7 +237,7 @@ class Array:
 
     def astype(self, dtype: Union[str, Dtype]) -> Array:
         """Return Array with elements of new dtype, initialised from current Array."""
-        new_array = Array(dtype, self.tolist())
+        new_array = self.__class__(dtype, self.tolist())
         return new_array
 
     def tolist(self) -> List[ElementType]:
@@ -442,13 +442,13 @@ class Array:
             start += self._dtype.length
 
     def __copy__(self) -> Array:
-        a_copy = Array(self._fmt)
+        a_copy = self.__class__(self._fmt)
         a_copy.data = copy.copy(self.data)
         return a_copy
 
     def _apply_op_to_all_elements(self, op, value: Union[int, float, None], is_comparison: bool = False) -> Array:
         """Apply op with value to each element of the Array and return a new Array"""
-        new_array = Array('bool' if is_comparison else self._dtype)
+        new_array = self.__class__('bool' if is_comparison else self._dtype)
         new_data = BitArray()
         failures = index = 0
         msg = ''
@@ -519,7 +519,7 @@ class Array:
             new_type = dtype_register.get_dtype('bool', 1)
         else:
             new_type = self._promotetype(self._dtype, other._dtype)
-        new_array = Array(new_type)
+        new_array = self.__class__(new_type)
         new_data = BitArray()
         failures = index = 0
         msg = ''
@@ -724,13 +724,13 @@ class Array:
     def __eq__(self, other: Union[int, float, str, Array]) -> Array:
         if isinstance(other, (int, float, str, Bits)):
             return self._apply_op_to_all_elements(operator.eq, other, is_comparison=True)
-        other = Array(self.dtype, other)
+        other = self.__class__(self.dtype, other)
         return self._apply_op_between_arrays(operator.eq, other, is_comparison=True)
 
     def __ne__(self, other: Union[int, float, str, Array]) -> Array:
         if isinstance(other, (int, float, str, Bits)):
             return self._apply_op_to_all_elements(operator.ne, other, is_comparison=True)
-        other = Array(self.dtype, other)
+        other = self.__class__(self.dtype, other)
         return self._apply_op_between_arrays(operator.ne, other, is_comparison=True)
 
     # Unary operators
