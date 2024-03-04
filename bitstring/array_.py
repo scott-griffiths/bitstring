@@ -380,7 +380,6 @@ class Array:
             if len(token_list) not in [1, 2]:
                 raise ValueError(f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {len(token_list)} tokens.")
             dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
-            parameter_str = f"fmt='{fmt}'"
             if len(token_list) == 2:
                 dtype2 = Dtype(*utils.parse_name_length_token(token_list[1]))
 
@@ -404,7 +403,7 @@ class Array:
         data = self.data if trailing_bit_length == 0 else self.data[0: -trailing_bit_length]
         length = len(self.data) // token_length
         len_str = colour.green + str(length) + colour.off
-        stream.write(f"<Array {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes> [\n")
+        stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes> [\n")
         data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
         stream.write("]")
         if trailing_bit_length != 0:

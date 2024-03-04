@@ -2,6 +2,7 @@ from bitstring.array_ import Array, ElementType
 from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
 from bitstring.dtypes import Dtype
 import copy
+import io
 
 def scaled_get_fn(get_fn, s: int):
     def wrapper(*args, scale=s, **kwargs):
@@ -25,13 +26,13 @@ class ScaledArray(Array):
     This is a work in progress and may change or be removed in the future."""
 
     def __init__(self, dtype, initializer=None, trailing_bits=None, scale: int = 0):
-        dtype = Dtype(dtype)
-        self.scaled_dtype = copy.copy(dtype)
-        self.unscaled_get_fn = self.scaled_dtype.get_fn
-        self.unscaled_set_fn = self.scaled_dtype.set_fn
-        self.unscaled_read_fn = self.scaled_dtype.read_fn
+        d = Dtype(dtype)
+        self.dtype = copy.copy(d)
+        self.unscaled_get_fn = self.dtype.get_fn
+        self.unscaled_set_fn = self.dtype.set_fn
+        self.unscaled_read_fn = self.dtype.read_fn
         self.scale = scale
-        super().__init__(self.scaled_dtype, initializer, trailing_bits)
+        super().__init__(self.dtype, initializer, trailing_bits)
 
     @property
     def scale(self) -> int:
@@ -40,9 +41,9 @@ class ScaledArray(Array):
     @scale.setter
     def scale(self, value: int) -> None:
         self._scale = value
-        self.scaled_dtype.get_fn = scaled_get_fn(self.unscaled_get_fn, self._scale)
-        self.scaled_dtype.set_fn = scaled_set_fn(self.unscaled_set_fn, self._scale)
-        self.scaled_dtype.read_fn = scaled_read_fn(self.unscaled_read_fn, self._scale)
+        self.dtype.get_fn = scaled_get_fn(self.unscaled_get_fn, self._scale)
+        self.dtype.set_fn = scaled_set_fn(self.unscaled_set_fn, self._scale)
+        self.dtype.read_fn = scaled_read_fn(self.unscaled_read_fn, self._scale)
 
     def __repr__(self) -> str:
         r = super().__repr__()
@@ -55,3 +56,8 @@ class ScaledArray(Array):
         if isinstance(val, ScaledArray):
             val._scale = scale
         return val
+
+    def pp(self):
+        s = io.StringIO()
+        super().pp(stream=s)
+        print(s.getvalue() + f" scale={self.scale}")

@@ -123,6 +123,19 @@ def test_multiple_scaled_arrays():
     assert s1[0] * 2**10 == s2[0]
     assert s1[0] * 2**-10 == s3[0]
 
+def test_multiple_scaled_arrays2():
+    b = BitArray('0b011111')
+    assert b.e3m2float == 28.0
+    s1 = ScaledArray('e3m2float', [28], scale=0)
+    assert s1[0] == 28.0
+    assert b.e3m2float == 28.0
+    s2 = ScaledArray('e3m2float', [28], scale=0)
+    s2.scale = 4
+    assert s1[0] == 28.0
+    assert s2[0] == 28.0 * 2 ** 4
+    assert b.e3m2float == 28.0
+
+
 def test_setting_from_outside_range():
     b = BitArray(e2m1float=0.0)
     b.e2m1float = 6.0
@@ -141,3 +154,7 @@ def test_ops():
     t = s * 2
     assert type(t) is ScaledArray
     assert t.tolist() == [1.0, 2.0, 4.0, 8.0, 16.0]
+
+
+
+
