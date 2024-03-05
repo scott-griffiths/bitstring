@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from bitstring.array_ import Array, ElementType
-from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
+from typing import Union
 from bitstring.dtypes import Dtype
 import copy
 import io
@@ -61,3 +63,15 @@ class ScaledArray(Array):
         s = io.StringIO()
         super().pp(stream=s)
         print(s.getvalue() + f" scale={self.scale}")
+
+    def _apply_op_between_arrays(self, op, other: Array, is_comparison: bool = False) -> ScaledArray:
+        result = super()._apply_op_between_arrays(op, other, is_comparison)
+        result = ScaledArray(result.dtype, result, scale=0)
+        result._scale = self.scale  # We want to fix the scale without causing another rescale.
+        return result
+
+    def _apply_op_to_all_elements(self, op, value: Union[int, float, None], is_comparison: bool = False) -> ScaledArray:
+        result = super()._apply_op_to_all_elements(op, value, is_comparison)
+        result =ScaledArray(result.dtype, result, scale=0)
+        result._scale = self.scale  # We want to fix the scale without causing another rescale.
+        return result
