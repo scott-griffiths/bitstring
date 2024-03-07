@@ -599,8 +599,11 @@ class Bits:
     def _sete2m1mxfp(self, f: float) -> None:
         self._bitstore = bitstore_helpers.e2m1mxfp2bitstore(f)
 
-    def _sete8m0mxfp(self, f: int) -> None:
+    def _sete8m0mxfp(self, f: float) -> None:
         self._bitstore = bitstore_helpers.e8m0mxfp2bitstore(f)
+
+    def _setmxint(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.mxint2bitstore(f)
 
     def _setbytes(self, data: Union[bytearray, bytes], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
@@ -749,6 +752,10 @@ class Bits:
         if u == 128:
             return float('nan')
         return 2.0 ** u
+
+    def _getmxint(self) -> float:
+        u = self._getint()
+        return float(u) * 2 ** -6
 
     def _setfloatbe(self, f: float, length: Optional[int] = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:

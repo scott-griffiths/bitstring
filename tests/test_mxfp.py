@@ -82,6 +82,25 @@ def test_e8m0mxfp_value():
     x.bin = '11111111'
     assert math.isnan(x.e8m0mxfp)
 
+def test_getting_mxint_values():
+    assert BitArray('0b00000000').mxint == 0.0
+    assert BitArray('0b00000001').mxint == 1 * 2 ** -6
+    assert BitArray('0b00000011').mxint == 3 * 2 ** -6
+    assert BitArray('0b01111111').mxint == 127 * 2 ** -6
+    assert BitArray('0b10000000').mxint == -2.0
+    assert BitArray('0b11111111').mxint == -1 * 2 ** -6
+    assert BitArray('0b11111110').mxint == -2 * 2 ** -6
+    assert BitArray('0b10000001').mxint == -127 * 2 ** -6
+
+def test_setting_mxint_values():
+    x = BitArray('0b00000000')
+    x.mxint = 0.0
+    assert x == '0b00000000'
+    x.mxint = 1 * 2 ** -6
+    assert x == '0b00000001'
+    x.mxint = -1 * 2 ** -6
+    assert x == '0b11111111'
+
 
 def test_scaled_array():
     sa = ScaledArray('uint8',[100, 200, 300, 400, 500], scale=1)

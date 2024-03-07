@@ -161,6 +161,10 @@ def e8m0mxfp_bits2chars(bitlength: Literal[8]):
     # Can range same as float32
     return 23
 
+def mxint_bits2chars(bitlength: Literal[8]):
+    # Not sure what the best value is here.
+    return 10
+
 
 def bfloat_bits2chars(bitlength: Literal[16]):
     # Found by looking at all the possible values
@@ -236,7 +240,9 @@ dtype_definitions = [
     DtypeDefinition('e2m1mxfp', Bits._sete2m1mxfp, Bits._gete2m1mxfp, float, True, e2m1mxfp_bits2chars,
                     allowed_lengths=(4,), description="a 4 bit float with e2m1mxfp format"),
     DtypeDefinition('e8m0mxfp', Bits._sete8m0mxfp, Bits._gete8m0mxfp, float, False, e8m0mxfp_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit integer with e8m0mxfp format"),
+                    allowed_lengths=(8,), description="an 8 bit float with e8m0mxfp format"),
+    DtypeDefinition('mxint', Bits._setmxint, Bits._getmxint, float, True, mxint_bits2chars,
+                    allowed_lengths=(8,), description="an 8 bit float with mxint format"),
 ]
 
 

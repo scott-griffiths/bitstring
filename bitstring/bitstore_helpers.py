@@ -143,11 +143,22 @@ def e2m1mxfp2bitstore(f: Union[str, float]) -> BitStore:
     return int2bitstore(u, 4, False)
 
 def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
     if math.isnan(f):
         return BitStore('11111111')
-    f = float(f)
+    # We can convert to a float32 then just grab the bits we need!
     b = float2bitstore(f, 32, True)
     return b.getslice_msb0(1, 9)
+
+def mxint2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    f *= 2 ** 6  # Remove the implicit scaling factor
+    if f > 127:  # 1 + 63/64
+        return BitStore('01111111')
+    if f <= -128:  # -2
+        return BitStore('10000000')
+    i = int(f)  # TODO: Does this need rounding?
+    return int2bitstore(i, 8, True)
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     i = int(i)

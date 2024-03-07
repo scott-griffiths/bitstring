@@ -23,7 +23,7 @@ class MXFPFormat:
                 if f < self.lut_int_to_float[i]:
                     return i - 1
             # Clip to positive max
-            return (1 << (length -1)) - 1
+            return (1 << (length - 1)) - 1
         if f < 0:
             if f > self.lut_int_to_float[values // 2 + 1]:
                 # Rounding upwards to zero
@@ -82,3 +82,5 @@ class MXFPFormat:
 e2m3mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
 e3m2mxfp_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3)
 e2m1mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
+
+# TODO: Where is e8m0mxfp_fmt defined?
