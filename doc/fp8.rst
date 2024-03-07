@@ -60,24 +60,16 @@ An example of creation and interpretation of a bfloat::
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note::
-    The 8-bit float formats used here are from a proposal supported by Graphcore, AMD and Qualcomm.
-    There is a different but similar proposal from other companies, and there is an ongoing standardisation process.
-
-    I (Scott Griffiths) currently work at Graphcore, but I have not been involved in the low-precision float work.
-    This implementation is not part of my work at Graphcore (this counts as fun for me).
-    I have been careful to only base my work here on public sources, and any misunderstandings or errors are my own.
+    The 8-bit float formats described here are part of an ongoing IEEE standardisation process.
+    This implementation is based on a publically available draft of the standard.
 
     This is an experimental feature and may be modified in future point releases.
 
-Two 8-bit floating point formats are supported as an experimental feature in bitstring 4.1.
-These are also mainly of use in machine learning and have very limited ranges and precision.
-There is no standardised format for these but there are a few candidates.
+These formats also mainly of use in machine learning and have very limited ranges and precision.
 
-The formats supported by bitstring are from the proposal by `Graphcore, AMD and Qualcomm <https://www.graphcore.ai/posts/graphcore-and-amd-propose-8-bit-fp-ai-standard-with-qualcomm-support>`_ in `this paper <https://arxiv.org/abs/2206.02915>`_, and there is some useful information `here <https://github.com/openxla/stablehlo/blob/2fcdf9b25d622526f81cd1575c65d01a6db319d2/rfcs/20230321-fp8_fnuz.md>`_ too.
+The ``p4binary8`` has a single sign bit, 4 bits for the exponent and 3 bits for the mantissa.
+For a bit more range and less precision you can use ``p3binary8`` which has 5 bits for the exponent and only 2 for the mantissa.
 
-The 8-bit formats are named after how the byte is split between the sign-exponent-mantissa parts.
-So ``e4m3float`` has a single sign bit, 4 bits for the exponent and 3 bits for the mantissa.
-For a bit more range and less precision you can use ``e5m2float`` which has 5 bits for the exponent and only 2 for the mantissa.
 
 .. list-table::
    :header-rows: 1
@@ -87,15 +79,21 @@ For a bit more range and less precision you can use ``e5m2float`` which has 5 bi
      - Range
      - bitstring format
 
-   * - Float8E4M3FNUZ
+   * - binary8p4
      - 1 + 4 + 3
-     - 10\ :sup:`-3` → 240
-     - ``'e4m3float'``
+     - 10\ :sup:`-3` → 224
+     - ``'p4binary8'``
 
-   * - Float8E5M2FNUZ
+   * - binary8p3
      - 1 + 5 + 2
-     - 8×10\ :sup:`-6` → 57344
-     - ``'e5m2float'``
+     - 8×10\ :sup:`-6` → 49152
+     - ``'p3binary8'``
+
+.. note::
+    In bitstring prior to version 4.2 the `p4binary8` and `p3binary8` formats were called `e4m3float` and `e5m2float` respectively.
+    The two formats are almost identical, the difference being the addition of `inf` values that replace the largest positive and negative values that were previously available.
+
+    Neither should be confused with the `e4m3mxfp` and `e5m2mxfp` formats from the Open Compute Project described below.
 
 
 As there are just 256 possible values, both the range and precision of these formats are extremely limited.
@@ -103,12 +101,12 @@ It's remarkable that any useful calculations can be performed, but both inferenc
 
 You can easily examine every possible value that these formats can represent using a line like this::
 
-    >>> [Bits(uint=x, length=8).e5m2float for x in range(256)]
+    >>> [Bits(uint=x, length=8).p3binary8 for x in range(256)]
 
 or using the :class:`Array` type it's even more concise - we can create an Array and pretty print all the values with this line::
 
-    >>> Array('e4m3float', bytearray(range(256))).pp(width=90)
-    <Array fmt='e4m3float', length=256, itemsize=8 bits, total data size=256 bytes>
+    >>> Array('p4binary8', bytearray(range(256))).pp(width=90)
+    <Array fmt='p4binary', length=256, itemsize=8 bits, total data size=256 bytes>
     [
        0:           0.0  0.0009765625   0.001953125  0.0029296875    0.00390625  0.0048828125
        6:   0.005859375  0.0068359375     0.0078125  0.0087890625   0.009765625  0.0107421875
@@ -131,7 +129,7 @@ or using the :class:`Array` type it's even more concise - we can create an Array
      108:          48.0          52.0          56.0          60.0          64.0          72.0
      114:          80.0          88.0          96.0         104.0         112.0         120.0
      120:         128.0         144.0         160.0         176.0         192.0         208.0
-     126:         224.0         240.0           nan -0.0009765625  -0.001953125 -0.0029296875
+     126:         224.0           inf           nan -0.0009765625  -0.001953125 -0.0029296875
      132:   -0.00390625 -0.0048828125  -0.005859375 -0.0068359375    -0.0078125 -0.0087890625
      138:  -0.009765625 -0.0107421875   -0.01171875 -0.0126953125  -0.013671875 -0.0146484375
      144:     -0.015625  -0.017578125   -0.01953125  -0.021484375    -0.0234375  -0.025390625
@@ -152,21 +150,61 @@ or using the :class:`Array` type it's even more concise - we can create an Array
      234:         -40.0         -44.0         -48.0         -52.0         -56.0         -60.0
      240:         -64.0         -72.0         -80.0         -88.0         -96.0        -104.0
      246:        -112.0        -120.0        -128.0        -144.0        -160.0        -176.0
-     252:        -192.0        -208.0        -224.0        -240.0
+     252:        -192.0        -208.0        -224.0          -inf
     ]
 
 
-You'll see that there is only 1 zero value, no 'inf' values and only one 'nan' value.
+You'll see that there is only 1 zero value and only one 'nan' value.
 
 When converting from a Python float (which will typically be stored in 64-bits) unrepresentable values are rounded towards zero.
-The formats have no code for infinity, instead using the largest positive and negative values, so anything larger than the largest representable value (including infinity) will get rounded to it. ::
+
+Similar (but inferior) 8-bit floats are available from the OCP:
 
 
-    >>> a = BitArray(e5m2float=70)
-    >>> print(a.bin)
-    01011000
-    >>> print(a.e5m2float)
-    64.0
-    >>> a.e5m2float = 1000000.0
-    >>> print(a.e5m2float)
-    57344.0
+Open Compute Project Floating Point Types
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A range of formats from the OCP are supported. These are sometimes referred to as 'micro-scaling' formats, and will usually have an external scale factor associated with them.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type
+     - # bits
+     - Range
+     - bitstring format
+
+   * - E5M2
+     - 1 + 5 + 2
+     - 10\ :sup:`-6` → 57344
+     - ``'e5m2mxfp'``
+
+   * - E4M3
+     - 1 + 4 + 3
+     - 2×10\ :sup:`-3` → 448
+     - ``'e4m3mxfp'``
+
+   * - E3M2
+     - 1 + 3 + 2
+     - 0.0625 → 28
+     - ``'e3m2mxfp'``
+
+   * - E2M3
+     - 1 + 2 + 3
+     - 0.125 → 7.5
+     - ``'e2m3mxfp'``
+
+   * - E2M1
+     - 1 + 2 + 1
+     - 0.5 → 6
+     - ``'e2m1mxfp'``
+
+   * - E8M0
+     - 0 + 8 + 0
+     - 10\ :sup:`-38` → 10\ :sup:`38`
+     - ``'e8m0mxfp'``
+
+   * - INT8
+     - 8
+     - 0.015625 → 1.984375
+     - ``'mxint'``

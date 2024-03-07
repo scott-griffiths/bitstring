@@ -18,7 +18,7 @@ from bitstring.bitstore import BitStore
 from bitstring import bitstore_helpers, utils
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
-from bitstring.mxfp import e3m2float_fmt, e2m3float_fmt, e2m1float_fmt
+from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt
 from bitstring.bitstring_options import Colour
 
 # Things that can be converted to Bits when a Bits type is needed
@@ -590,17 +590,17 @@ class Bits:
     def _sete4m3float(self, f: float) -> None:
         self._bitstore = bitstore_helpers.e4m3float2bitstore(f)
 
-    def _sete3m2float(self, f: float) -> None:
-        self._bitstore = bitstore_helpers.e3m2float2bitstore(f)
+    def _sete3m2mxfp(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e3m2mxfp2bitstore(f)
 
-    def _sete2m3float(self, f: float) -> None:
-        self._bitstore = bitstore_helpers.e2m3float2bitstore(f)
+    def _sete2m3mxfp(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e2m3mxfp2bitstore(f)
 
-    def _sete2m1float(self, f: float) -> None:
-        self._bitstore = bitstore_helpers.e2m1float2bitstore(f)
+    def _sete2m1mxfp(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e2m1mxfp2bitstore(f)
 
-    def _sete8m0float(self, f: int) -> None:
-        self._bitstore = bitstore_helpers.e8m0float2bitstore(f)
+    def _sete8m0mxfp(self, f: int) -> None:
+        self._bitstore = bitstore_helpers.e8m0mxfp2bitstore(f)
 
     def _setbytes(self, data: Union[bytearray, bytes], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
@@ -732,19 +732,19 @@ class Bits:
         u = self._getuint()
         return e5m2float_fmt.lut_int8_to_float[u]
 
-    def _gete3m2float(self) -> float:
+    def _gete3m2mxfp(self) -> float:
         u = self._getuint()
-        return e3m2float_fmt.lut_int_to_float[u]
+        return e3m2mxfp_fmt.lut_int_to_float[u]
 
-    def _gete2m3float(self) -> float:
+    def _gete2m3mxfp(self) -> float:
         u = self._getuint()
-        return e2m3float_fmt.lut_int_to_float[u]
+        return e2m3mxfp_fmt.lut_int_to_float[u]
 
-    def _gete2m1float(self) -> float:
+    def _gete2m1mxfp(self) -> float:
         u = self._getuint()
-        return e2m1float_fmt.lut_int_to_float[u]
+        return e2m1mxfp_fmt.lut_int_to_float[u]
 
-    def _gete8m0float(self) -> float:
+    def _gete8m0mxfp(self) -> float:
         u = self._getuint() - 127
         if u == 128:
             return float('nan')

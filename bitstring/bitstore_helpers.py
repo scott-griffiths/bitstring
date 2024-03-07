@@ -8,7 +8,7 @@ import bitarray
 from bitstring.bitstore import BitStore
 import bitstring
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
-from bitstring.mxfp import e3m2float_fmt, e2m3float_fmt, e2m1float_fmt
+from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
@@ -127,22 +127,22 @@ def e5m2float2bitstore(f: Union[str, float]) -> BitStore:
     u = e5m2float_fmt.float_to_int8(f)
     return int2bitstore(u, 8, False)
 
-def e3m2float2bitstore(f: Union[str, float]) -> BitStore:
+def e3m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    u = e3m2float_fmt.float_to_int(f)
+    u = e3m2mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 6, False)
 
-def e2m3float2bitstore(f: Union[str, float]) -> BitStore:
+def e2m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    u = e2m3float_fmt.float_to_int(f)
+    u = e2m3mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 6, False)
 
-def e2m1float2bitstore(f: Union[str, float]) -> BitStore:
+def e2m1mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    u = e2m1float_fmt.float_to_int(f)
+    u = e2m1mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 4, False)
 
-def e8m0float2bitstore(f: Union[str, float]) -> BitStore:
+def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
     if math.isnan(f):
         return BitStore('11111111')
     f = float(f)

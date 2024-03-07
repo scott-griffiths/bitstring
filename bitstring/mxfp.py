@@ -79,6 +79,6 @@ class MXFPFormat:
             fp16_to_fp8[i] = fp8_i
         return bytes(fp16_to_fp8)
 
-e2m3float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
-e3m2float_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3)
-e2m1float_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
+e2m3mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
+e3m2mxfp_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3)
+e2m1mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
