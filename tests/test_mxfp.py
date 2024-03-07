@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 import math
-from bitstring import BitArray, ScaledArray
+from bitstring import BitArray, ScaledArray, ScaledDtype, Array
 
 sys.path.insert(0, '..')
 
@@ -94,6 +94,18 @@ def test_scaled_array():
     sa.scale = -2
     assert sa.tolist() == [12.5, 25.0, 37.5, 50.0, 62.5]
 
+def test_scaleddtype_array():
+    d = ScaledDtype('uint8', scale=1)
+    sa = Array(d, [100, 200, 300, 400, 500])
+    assert sa.dtype.scale == 1
+    assert sa[0] == 100
+    assert sa[:] == [100, 200, 300, 400, 500]
+    sa.dtype.scale = 2
+    assert sa.dtype.scale == 2
+    assert sa[0] == 200
+    sa.dtype.scale = -2
+    assert sa.tolist() == [12.5, 25.0, 37.5, 50.0, 62.5]
+
 def test_setting_scaled_array():
     sa = ScaledArray('e3m2float')
     sa.append(4.0)
@@ -155,7 +167,6 @@ def test_ops():
     assert type(t) is ScaledArray
     assert t.tolist() == [1.0, 2.0, 4.0, 8.0, 16.0]
     assert t.scale == 2
-
 
 
 

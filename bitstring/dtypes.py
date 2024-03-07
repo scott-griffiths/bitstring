@@ -33,7 +33,7 @@ class Dtype:
                 return cls._new_from_token(token)
             else:
                 return dtype_register.get_dtype(token, length)
-        return super(Dtype, cls).__new__(cls)
+        return super().__new__(cls)
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)

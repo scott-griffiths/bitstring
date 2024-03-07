@@ -120,7 +120,6 @@ class Array:
     def _set_dtype(self, new_dtype: Union[str, Dtype]) -> None:
         if isinstance(new_dtype, Dtype):
             self._dtype = new_dtype
-            self._fmt = str(self._dtype)
         else:
             try:
                 dtype = Dtype(new_dtype)
@@ -133,13 +132,12 @@ class Array:
             if dtype.length is None:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
-            self._fmt = new_dtype
 
     def _create_element(self, value: ElementType) -> Bits:
         """Create Bits from value according to the token_name and token_length"""
         b = self._dtype.build(value)
         if len(b) != self._dtype.length:
-            raise ValueError(f"The value {value!r} has the wrong length for the format '{self._fmt}'.")
+            raise ValueError(f"The value {value!r} has the wrong length for the format '{self._dtype}'.")
         return b
 
     def __len__(self) -> int:
@@ -233,7 +231,7 @@ class Array:
         trailing_bit_length = len(self.data) % self._dtype.length
         final_str = "" if trailing_bit_length == 0 else ", trailing_bits=" + repr(
             self.data[-trailing_bit_length:])
-        return f"Array('{self._fmt}', {list_str}{final_str})"
+        return f"Array('{self._dtype}', {list_str}{final_str})"
 
     def astype(self, dtype: Union[str, Dtype]) -> Array:
         """Return Array with elements of new dtype, initialised from current Array."""
@@ -255,7 +253,7 @@ class Array:
         if isinstance(iterable, Array):
             if self._dtype.name != iterable._dtype.name or self._dtype.length != iterable._dtype.length:
                 raise TypeError(
-                    f"Cannot extend an Array with format '{self._fmt}' from an Array of format '{iterable._fmt}'.")
+                    f"Cannot extend an Array with format '{self._dtype}' from an Array of format '{iterable._dtype}'.")
             # No need to iterate over the elements, we can just append the data
             self.data.append(iterable.data)
         elif isinstance(iterable, array.array):
@@ -266,7 +264,7 @@ class Array:
             other_dtype = dtype_register.get_dtype(*name_value)
             if self._dtype.name != other_dtype.name or self._dtype.length != other_dtype.length:
                 raise ValueError(
-                    f"Cannot extend an Array with format '{self._fmt}' from an array with typecode '{iterable.typecode}'.")
+                    f"Cannot extend an Array with format '{self._dtype}' from an array with typecode '{iterable.typecode}'.")
             self.data += iterable.tobytes()
         else:
             if isinstance(iterable, str):
@@ -301,7 +299,7 @@ class Array:
         """
         if self._dtype.length % 8 != 0:
             raise ValueError(
-                f"byteswap can only be used for whole-byte elements. The '{self._fmt}' format is {self._dtype.length} bits long.")
+                f"byteswap can only be used for whole-byte elements. The '{self._dtype}' format is {self._dtype.length} bits long.")
         self.data.byteswap(self.itemsize // 8)
 
     def count(self, value: ElementType) -> int:
@@ -441,7 +439,7 @@ class Array:
             start += self._dtype.length
 
     def __copy__(self) -> Array:
-        a_copy = self.__class__(self._fmt)
+        a_copy = self.__class__(self._dtype)
         a_copy.data = copy.copy(self.data)
         return a_copy
 
@@ -503,7 +501,7 @@ class Array:
         """Apply op with value to each element of the Array as an unsigned integer in place."""
         value = BitArray._create_from_bitstype(value)
         if len(value) != self._dtype.length:
-            raise ValueError(f"Bitwise op needs a bitstring of length {self._dtype.length} to match format {self._fmt}.")
+            raise ValueError(f"Bitwise op needs a bitstring of length {self._dtype.length} to match format {self._dtype}.")
         for start in range(0, len(self) * self._dtype.length, self._dtype.length):
             self.data[start: start + self._dtype.length] = op(self.data[start: start + self._dtype.length], value)
         return self
