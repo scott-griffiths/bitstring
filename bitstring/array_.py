@@ -261,7 +261,7 @@ class Array:
             name_value = utils.parse_single_struct_token('=' + iterable.typecode)
             if name_value is None:
                 raise ValueError(f"Cannot extend from array with typecode {iterable.typecode}.")
-            other_dtype = dtype_register.get_dtype(*name_value)
+            other_dtype = dtype_register.get_dtype(*name_value, scale=None)
             if self._dtype.name != other_dtype.name or self._dtype.length != other_dtype.length:
                 raise ValueError(
                     f"Cannot extend an Array with format '{self._dtype}' from an array with typecode '{iterable.typecode}'.")

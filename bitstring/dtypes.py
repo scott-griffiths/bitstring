@@ -9,92 +9,171 @@ from bitstring import utils
 CACHE_SIZE = 256
 
 
+def scaled_get_fn(get_fn, s: Union[int, float]):
+    def wrapper(*args, scale=s, **kwargs):
+        return get_fn(*args, **kwargs) * scale
+    return wrapper
+
+
+def scaled_set_fn(set_fn, s: Union[int, float]):
+    def wrapper(bs, value, *args, scale=s, **kwargs):
+        return set_fn(bs, value / scale, *args, **kwargs)
+    return wrapper
+
+
+def scaled_read_fn(read_fn, s: Union[int, float]):
+    def wrapper(*args, scale=s, **kwargs):
+        return read_fn(*args, **kwargs) * scale
+    return wrapper
+
+
 class Dtype:
+    _name: str
+    _read_fn: Callable
+    _set_fn: Callable
+    _get_fn: Callable
+    _return_type: Any
+    _is_signed: bool
+    _set_fn_needs_length: bool
+    _variable_length: bool
+    _bitlength: Optional[int]
+    _bits_per_item: int
+    _length: Optional[int]
+    _scale: Union[None, float, int]
 
-    __slots__ = ('read_fn', 'name', 'set_fn', 'get_fn', 'return_type', 'is_signed', 'set_fn_needs_length', 'variable_length', 'bitlength', 'bits_per_item', 'length')
 
-    name: str
-    read_fn: Callable
-    set_fn: Callable
-    get_fn: Callable
-    return_type: Any
-    is_signed: bool
-    set_fn_needs_length: bool
-    variable_length: bool
-    bitlength: Optional[int]
-    bits_per_item: int
-    length: Optional[int]
-
-    def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None) -> Dtype:
+    def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None, scale: Union[None, float, int] = None) -> Dtype:
         if isinstance(token, cls):
             return token
         if token is not None:
             if length is None:
-                return cls._new_from_token(token)
+                x = cls._new_from_token(token, scale)
+                return x
             else:
-                return dtype_register.get_dtype(token, length)
+                x = dtype_register.get_dtype(token, length, scale)
+                return x
         return super().__new__(cls)
 
+    @property
+    def scale(self) -> int:
+        return self._scale
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def length(self) -> int:
+        return self._length
+
+    @property
+    def bitlength(self) -> int:
+        return self._bitlength
+
+    @property
+    def bits_per_item(self) -> int:
+        return self._bits_per_item
+
+    @property
+    def variable_length(self) -> bool:
+        return self._variable_length
+
+    @property
+    def return_type(self) -> Any:
+        return self._return_type
+
+    @property
+    def is_signed(self) -> bool:
+        return self._is_signed
+
+    @property
+    def set_fn(self) -> Optional[Callable]:
+        return self._set_fn
+
+    @property
+    def get_fn(self) -> Callable:
+        return self._get_fn
+
+    @property
+    def read_fn(self) -> Callable:
+        return self._read_fn
+
+    def _set_scale(self, value: Union[None, float, int]) -> None:
+        self._scale = value
+        if self._scale is None:
+            return
+        if not hasattr(self, 'unscaled_get_fn'):
+            self.unscaled_get_fn = self._get_fn
+            self.unscaled_set_fn = self._set_fn
+            self.unscaled_read_fn = self._read_fn
+        self._get_fn = scaled_get_fn(self.unscaled_get_fn, self._scale)
+        self._set_fn = scaled_set_fn(self.unscaled_set_fn, self._scale)
+        self._read_fn = scaled_read_fn(self.unscaled_read_fn, self._scale)
+
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
-    def _new_from_token(cls, token: str) -> Dtype:
+    def _new_from_token(cls, token: str, scale: Union[None, float, int] = None) -> Dtype:
         token = ''.join(token.split())
-        return dtype_register.get_dtype(*utils.parse_name_length_token(token))
+        return dtype_register.get_dtype(*utils.parse_name_length_token(token), scale=scale)
 
     def __hash__(self) -> int:
-        return hash((self.name, self.length))
+        return hash((self._name, self._length))
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
-    def _create(cls, definition: DtypeDefinition, length: Optional[int]) -> Dtype:
+    def _create(cls, definition: DtypeDefinition, length: Optional[int], scale: Union[None, float, int]) -> Dtype:
         x = cls.__new__(cls)
-        x.name = definition.name
-        x.bitlength = x.length = length
-        x.bits_per_item = definition.multiplier
-        if x.bitlength is not None:
-            x.bitlength *= x.bits_per_item
-        x.set_fn_needs_length = definition.set_fn_needs_length
-        x.variable_length = definition.variable_length
-        if x.variable_length or len(dtype_register.names[x.name].allowed_lengths) == 1:
-            x.read_fn = definition.read_fn
+        x._name = definition.name
+        x._bitlength = x._length = length
+        x._bits_per_item = definition.multiplier
+        if x._bitlength is not None:
+            x._bitlength *= x._bits_per_item
+        x._set_fn_needs_length = definition.set_fn_needs_length
+        x._variable_length = definition.variable_length
+        if x._variable_length or len(dtype_register.names[x._name].allowed_lengths) == 1:
+            x._read_fn = definition.read_fn
         else:
-            x.read_fn = functools.partial(definition.read_fn, length=x.bitlength)
+            x._read_fn = functools.partial(definition.read_fn, length=x._bitlength)
         if definition.set_fn is None:
-            x.set_fn = None
+            x._set_fn = None
         else:
-            if x.set_fn_needs_length:
-                x.set_fn = functools.partial(definition.set_fn, length=x.bitlength)
+            if x._set_fn_needs_length:
+                x._set_fn = functools.partial(definition.set_fn, length=x._bitlength)
             else:
-                x.set_fn = definition.set_fn
-        x.get_fn = definition.get_fn
-        x.return_type = definition.return_type
-        x.is_signed = definition.is_signed
+                x._set_fn = definition.set_fn
+        x._get_fn = definition.get_fn
+        x._return_type = definition.return_type
+        x._is_signed = definition.is_signed
+        x._set_scale(scale)
         return x
 
     def build(self, value: Any, /) -> bitstring.Bits:
         """Create a bitstring from a value."""
         b = bitstring.Bits()
-        self.set_fn(b, value)
+        self._set_fn(b, value)
         return b
 
     def parse(self, b: BitsType, /) -> Any:
         """Parse a bitstring into a value."""
         b = bitstring.Bits._create_from_bitstype(b)
-        return self.get_fn(bitstring.Bits(b))
+        return self._get_fn(bitstring.Bits(b))
 
     def __str__(self) -> str:
-        hide_length = self.variable_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
-        length_str = '' if hide_length else str(self.length)
-        return f"{self.name}{length_str}"
+        if self._scale is not None:
+            return self.__repr__()
+        hide_length = self._variable_length or len(dtype_register.names[self._name].allowed_lengths) == 1 or self._length is None
+        length_str = '' if hide_length else str(self._length)
+        return f"{self._name}{length_str}"
 
     def __repr__(self) -> str:
-        hide_length = self.variable_length or len(dtype_register.names[self.name].allowed_lengths) == 1 or self.length is None
-        length_str = '' if hide_length else ', ' + str(self.length)
-        return f"{self.__class__.__name__}('{self.name}'{length_str})"
+        hide_length = self._variable_length or len(dtype_register.names[self._name].allowed_lengths) == 1 or self._length is None
+        length_str = '' if hide_length else ', ' + str(self._length)
+        scale_str = '' if self._scale is None else f', scale={self._scale}'
+        return f"{self.__class__.__name__}('{self._name}'{length_str}{scale_str})"
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Dtype):
-            return self.name == other.name and self.length == other.length
+            return self._name == other._name and self._length == other._length
         return False
 
 
@@ -186,7 +265,7 @@ class DtypeDefinition:
             self.read_fn = read_fn
         self.bitlength2chars_fn = bitlength2chars_fn
 
-    def get_dtype(self, length: Optional[int] = None) -> Dtype:
+    def get_dtype(self, length: Optional[int] = None, scale: Union[None, float, int] = None) -> Dtype:
         if self.allowed_lengths:
             if length is None:
                 if len(self.allowed_lengths) == 1:
@@ -198,11 +277,11 @@ class DtypeDefinition:
                     else:
                         raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype which is not one of its possible lengths (must be one of {self.allowed_lengths}).")
         if length is None:
-            d = Dtype._create(self, None)
+            d = Dtype._create(self, None, scale)
             return d
         if self.variable_length:
             raise ValueError(f"A length ({length}) shouldn't be supplied for the variable length dtype '{self.name}'.")
-        d = Dtype._create(self, length)
+        d = Dtype._create(self, length, scale)
         return d
 
     def __repr__(self) -> str:
@@ -240,13 +319,13 @@ class Register:
             setattr(bitstring.bitarray_.BitArray, alias, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod
-    def get_dtype(cls, name: str, length: Optional[int]) -> Dtype:
+    def get_dtype(cls, name: str, length: Optional[int], scale: Union[None, float, int] = None) -> Dtype:
         try:
             definition = cls.names[name]
         except KeyError:
             raise ValueError(f"Unknown Dtype name '{name}'.")
         else:
-            return definition.get_dtype(length)
+            return definition.get_dtype(length, scale)
 
     @classmethod
     def __getitem__(cls, name: str) -> DtypeDefinition:

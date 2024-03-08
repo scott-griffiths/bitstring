@@ -67,8 +67,6 @@ from .bitarray_ import BitArray
 from .bitstream import ConstBitStream, BitStream
 from .methods import pack
 from .array_ import Array
-from .scaled_array import ScaledArray
-from .scaled_dtypes import ScaledDtype
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 from .dtypes import DtypeDefinition, dtype_register, Dtype
 import types
@@ -292,6 +290,6 @@ ConstBitStream.__doc__ = ConstBitStream.__doc__.replace('[GENERATED_PROPERTY_DES
 BitStream.__doc__ = BitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
 
 
-__all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array', 'ScaledArray', 'ScaledDtype',
+__all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
            'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype', 'options']
