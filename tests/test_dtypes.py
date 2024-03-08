@@ -49,6 +49,16 @@ class TestBasicFunctionality:
         x = dtype.parse('0x3ff')
         assert x == 1023
 
+    def test_immutability(self):
+        d = Dtype('e3m2mxfp')
+        with pytest.raises(AttributeError):
+            d.length = 8
+        with pytest.raises(AttributeError):
+            d.name = 'uint8'
+        with pytest.raises(AttributeError):
+            d.scale = 2
+
+
 
 
 class TestChangingTheRegister:

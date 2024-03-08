@@ -8,6 +8,7 @@ import math
 import bitstring
 from bitstring import Bits, BitArray, BitStream
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
+import gfloat
 
 sys.path.insert(0, '..')
 
@@ -215,3 +216,20 @@ class TestConversionToFP8:
                 assert f >= previous_value
                 if f > previous_value:
                     previous_value = f
+
+class TestComparisonWithGfloat:
+
+    def test_e4m3_and_e5m2(self):
+        for fi, lut in [(gfloat.formats.format_info_p3109(4), e4m3float_fmt.lut_int8_to_float),
+                        (gfloat.formats.format_info_p3109(3), e5m2float_fmt.lut_int8_to_float)]:
+            for i in range(256):
+                f = lut[i]
+                g = gfloat.decode_float(fi, i).fval
+                if math.isinf(g):  # TODO: This should work once I change the float format to include inf.
+                    continue
+                if math.isnan(g):
+                    assert math.isnan(f)
+                else:
+                    # The floats should be bitwise equal.
+                    assert f == g
+

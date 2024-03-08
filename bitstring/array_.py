@@ -120,7 +120,6 @@ class Array:
     def _set_dtype(self, new_dtype: Union[str, Dtype]) -> None:
         if isinstance(new_dtype, Dtype):
             self._dtype = new_dtype
-            self._fmt = str(self._dtype)
         else:
             try:
                 dtype = Dtype(new_dtype)
@@ -133,14 +132,12 @@ class Array:
             if dtype.length is None:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
-            self._fmt = new_dtype
 
     def _create_element(self, value: ElementType) -> Bits:
         """Create Bits from value according to the token_name and token_length"""
-        b = Bits()
-        self._dtype.set_fn(b, value)
+        b = self._dtype.build(value)
         if len(b) != self._dtype.length:
-            raise ValueError(f"The value {value!r} has the wrong length for the format '{self._fmt}'.")
+            raise ValueError(f"The value {value!r} has the wrong length for the format '{self._dtype}'.")
         return b
 
     def __len__(self) -> int:
@@ -161,11 +158,11 @@ class Array:
                 d = BitArray()
                 for s in range(start * self._dtype.length, stop * self._dtype.length, step * self._dtype.length):
                     d.append(self.data[s: s + self._dtype.length])
-                a = Array(self._dtype)
+                a = self.__class__(self._dtype)
                 a.data = d
                 return a
             else:
-                a = Array(self._dtype)
+                a = self.__class__(self._dtype)
                 a.data = self.data[start * self._dtype.length: stop * self._dtype.length]
                 return a
         else:
@@ -234,15 +231,15 @@ class Array:
         trailing_bit_length = len(self.data) % self._dtype.length
         final_str = "" if trailing_bit_length == 0 else ", trailing_bits=" + repr(
             self.data[-trailing_bit_length:])
-        return f"Array('{self._fmt}', {list_str}{final_str})"
+        return f"Array('{self._dtype}', {list_str}{final_str})"
 
     def astype(self, dtype: Union[str, Dtype]) -> Array:
         """Return Array with elements of new dtype, initialised from current Array."""
-        new_array = Array(dtype, self.tolist())
+        new_array = self.__class__(dtype, self.tolist())
         return new_array
 
     def tolist(self) -> List[ElementType]:
-        return [self._dtype.read_fn(self.data, start=start)
+        return  [self._dtype.read_fn(self.data, start=start)
                 for start in range(0, len(self.data) - self._dtype.length + 1, self._dtype.length)]
 
     def append(self, x: ElementType) -> None:
@@ -256,7 +253,7 @@ class Array:
         if isinstance(iterable, Array):
             if self._dtype.name != iterable._dtype.name or self._dtype.length != iterable._dtype.length:
                 raise TypeError(
-                    f"Cannot extend an Array with format '{self._fmt}' from an Array of format '{iterable._fmt}'.")
+                    f"Cannot extend an Array with format '{self._dtype}' from an Array of format '{iterable._dtype}'.")
             # No need to iterate over the elements, we can just append the data
             self.data.append(iterable.data)
         elif isinstance(iterable, array.array):
@@ -264,10 +261,10 @@ class Array:
             name_value = utils.parse_single_struct_token('=' + iterable.typecode)
             if name_value is None:
                 raise ValueError(f"Cannot extend from array with typecode {iterable.typecode}.")
-            other_dtype = dtype_register.get_dtype(*name_value)
+            other_dtype = dtype_register.get_dtype(*name_value, scale=None)
             if self._dtype.name != other_dtype.name or self._dtype.length != other_dtype.length:
                 raise ValueError(
-                    f"Cannot extend an Array with format '{self._fmt}' from an array with typecode '{iterable.typecode}'.")
+                    f"Cannot extend an Array with format '{self._dtype}' from an array with typecode '{iterable.typecode}'.")
             self.data += iterable.tobytes()
         else:
             if isinstance(iterable, str):
@@ -302,7 +299,7 @@ class Array:
         """
         if self._dtype.length % 8 != 0:
             raise ValueError(
-                f"byteswap can only be used for whole-byte elements. The '{self._fmt}' format is {self._dtype.length} bits long.")
+                f"byteswap can only be used for whole-byte elements. The '{self._dtype}' format is {self._dtype.length} bits long.")
         self.data.byteswap(self.itemsize // 8)
 
     def count(self, value: ElementType) -> int:
@@ -381,7 +378,6 @@ class Array:
             if len(token_list) not in [1, 2]:
                 raise ValueError(f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {len(token_list)} tokens.")
             dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
-            parameter_str = f"fmt='{fmt}'"
             if len(token_list) == 2:
                 dtype2 = Dtype(*utils.parse_name_length_token(token_list[1]))
 
@@ -405,7 +401,7 @@ class Array:
         data = self.data if trailing_bit_length == 0 else self.data[0: -trailing_bit_length]
         length = len(self.data) // token_length
         len_str = colour.green + str(length) + colour.off
-        stream.write(f"<Array {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes> [\n")
+        stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes> [\n")
         data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
         stream.write("]")
         if trailing_bit_length != 0:
@@ -443,13 +439,13 @@ class Array:
             start += self._dtype.length
 
     def __copy__(self) -> Array:
-        a_copy = Array(self._fmt)
+        a_copy = self.__class__(self._dtype)
         a_copy.data = copy.copy(self.data)
         return a_copy
 
     def _apply_op_to_all_elements(self, op, value: Union[int, float, None], is_comparison: bool = False) -> Array:
         """Apply op with value to each element of the Array and return a new Array"""
-        new_array = Array('bool' if is_comparison else self._dtype)
+        new_array = self.__class__('bool' if is_comparison else self._dtype)
         new_data = BitArray()
         failures = index = 0
         msg = ''
@@ -505,7 +501,7 @@ class Array:
         """Apply op with value to each element of the Array as an unsigned integer in place."""
         value = BitArray._create_from_bitstype(value)
         if len(value) != self._dtype.length:
-            raise ValueError(f"Bitwise op needs a bitstring of length {self._dtype.length} to match format {self._fmt}.")
+            raise ValueError(f"Bitwise op needs a bitstring of length {self._dtype.length} to match format {self._dtype}.")
         for start in range(0, len(self) * self._dtype.length, self._dtype.length):
             self.data[start: start + self._dtype.length] = op(self.data[start: start + self._dtype.length], value)
         return self
@@ -520,7 +516,7 @@ class Array:
             new_type = dtype_register.get_dtype('bool', 1)
         else:
             new_type = self._promotetype(self._dtype, other._dtype)
-        new_array = Array(new_type)
+        new_array = self.__class__(new_type)
         new_data = BitArray()
         failures = index = 0
         msg = ''
@@ -725,13 +721,13 @@ class Array:
     def __eq__(self, other: Union[int, float, str, Array]) -> Array:
         if isinstance(other, (int, float, str, Bits)):
             return self._apply_op_to_all_elements(operator.eq, other, is_comparison=True)
-        other = Array(self.dtype, other)
+        other = self.__class__(self.dtype, other)
         return self._apply_op_between_arrays(operator.eq, other, is_comparison=True)
 
     def __ne__(self, other: Union[int, float, str, Array]) -> Array:
         if isinstance(other, (int, float, str, Bits)):
             return self._apply_op_to_all_elements(operator.ne, other, is_comparison=True)
-        other = Array(self.dtype, other)
+        other = self.__class__(self.dtype, other)
         return self._apply_op_between_arrays(operator.ne, other, is_comparison=True)
 
     # Unary operators

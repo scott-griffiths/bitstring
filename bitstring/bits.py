@@ -18,6 +18,7 @@ from bitstring.bitstore import BitStore
 from bitstring import bitstore_helpers, utils
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
+from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt
 from bitstring.bitstring_options import Colour
 
 # Things that can be converted to Bits when a Bits type is needed
@@ -589,6 +590,21 @@ class Bits:
     def _sete4m3float(self, f: float) -> None:
         self._bitstore = bitstore_helpers.e4m3float2bitstore(f)
 
+    def _sete3m2mxfp(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e3m2mxfp2bitstore(f)
+
+    def _sete2m3mxfp(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e2m3mxfp2bitstore(f)
+
+    def _sete2m1mxfp(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e2m1mxfp2bitstore(f)
+
+    def _sete8m0mxfp(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e8m0mxfp2bitstore(f)
+
+    def _setmxint(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.mxint2bitstore(f)
+
     def _setbytes(self, data: Union[bytearray, bytes], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
         self._bitstore = BitStore.frombytes(data)
@@ -718,6 +734,28 @@ class Bits:
     def _gete5m2float(self) -> float:
         u = self._getuint()
         return e5m2float_fmt.lut_int8_to_float[u]
+
+    def _gete3m2mxfp(self) -> float:
+        u = self._getuint()
+        return e3m2mxfp_fmt.lut_int_to_float[u]
+
+    def _gete2m3mxfp(self) -> float:
+        u = self._getuint()
+        return e2m3mxfp_fmt.lut_int_to_float[u]
+
+    def _gete2m1mxfp(self) -> float:
+        u = self._getuint()
+        return e2m1mxfp_fmt.lut_int_to_float[u]
+
+    def _gete8m0mxfp(self) -> float:
+        u = self._getuint() - 127
+        if u == 128:
+            return float('nan')
+        return 2.0 ** u
+
+    def _getmxint(self) -> float:
+        u = self._getint()
+        return float(u) * 2 ** -6
 
     def _setfloatbe(self, f: float, length: Optional[int] = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
@@ -1546,21 +1584,21 @@ class Bits:
         return dtype.name, dtype.bitlength
 
     @staticmethod
-    def _format_bits(bits: Bits, bits_per_group: int, sep: str, fmt: str,
+    def _format_bits(bits: Bits, bits_per_group: int, sep: str, dtype: Dtype,
                      colour_start: str, colour_end: str, width: Optional[int]=None) -> Tuple[str, int]:
-        get_fn = dtype_register.get_dtype(fmt, bits_per_group).get_fn
-        if fmt == 'bytes':  # Special case for bytes to print one character each.
+        get_fn = dtype.get_fn
+        if dtype.name == 'bytes':  # Special case for bytes to print one character each.
             get_fn = Bits._getbytes_printable
-        if fmt == 'bool':  # Special case for bool to print '1' or '0' instead of `True` or `False`.
+        if dtype.name == 'bool':  # Special case for bool to print '1' or '0' instead of `True` or `False`.
             get_fn = dtype_register.get_dtype('uint', bits_per_group).get_fn
         if bits_per_group == 0:
             x = str(get_fn(bits))
         else:
             # Left-align for fixed width types when msb0, otherwise right-align.
-            align = '<' if fmt in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not bitstring.options.lsb0 else '>'
+            align = '<' if dtype.name in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not bitstring.options.lsb0 else '>'
             chars_per_group = 0
-            if dtype_register[fmt].bitlength2chars_fn is not None:
-                chars_per_group = dtype_register[fmt].bitlength2chars_fn(bits_per_group)
+            if dtype_register[dtype.name].bitlength2chars_fn is not None:
+                chars_per_group = dtype_register[dtype.name].bitlength2chars_fn(bits_per_group)
             x = sep.join(f"{str(get_fn(b)): {align}{chars_per_group}}" for b in bits.cut(bits_per_group))
 
         chars_used = len(x)
@@ -1637,13 +1675,13 @@ class Bits:
                 else:
                     offset_str = colour.green + f'{offset: >{offset_width - len(offset_sep)}}' + offset_sep + colour.off
 
-            fb1, chars_used = Bits._format_bits(bits, bits_per_group, sep, name1, colour.purple, colour.off, first_fb_width)
+            fb1, chars_used = Bits._format_bits(bits, bits_per_group, sep, dtype1, colour.purple, colour.off, first_fb_width)
             if first_fb_width is None:
                 first_fb_width = chars_used
 
             fb2 = ''
-            if name2 is not None:
-                fb2, chars_used = Bits._format_bits(bits, bits_per_group, sep, name2, colour.blue, colour.off, second_fb_width)
+            if dtype2 is not None:
+                fb2, chars_used = Bits._format_bits(bits, bits_per_group, sep, dtype2, colour.blue, colour.off, second_fb_width)
                 if second_fb_width is None:
                     second_fb_width = chars_used
                 fb2 = format_sep + fb2

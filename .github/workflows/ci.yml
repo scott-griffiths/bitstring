@@ -5,6 +5,7 @@ on:
     branches:
       - stable
       - main
+      - mxfp
       - 4.1-update
     tags:
       - v*
@@ -134,12 +135,12 @@ jobs:
           # make sure we test the installed code
           cp -R repo/tests/ tests/
           python -m pip install --upgrade pip
-          python -m pip install pytest hypothesis
+          python -m pip install -r tests/requirements.txt
           python -m pip install ./dist/*.whl
           # show the directory contents for diagnostics
           ls -la
 
-      - name: Run unittest
+      - name: Run pytest
         run: |
           python -m pytest tests/
 

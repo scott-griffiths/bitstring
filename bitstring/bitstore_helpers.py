@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import struct
+import math
 import functools
 from typing import Union, Optional, Dict, Callable
 import bitarray
 from bitstring.bitstore import BitStore
 import bitstring
 from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
-
+from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
@@ -126,6 +127,38 @@ def e5m2float2bitstore(f: Union[str, float]) -> BitStore:
     u = e5m2float_fmt.float_to_int8(f)
     return int2bitstore(u, 8, False)
 
+def e3m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    u = e3m2mxfp_fmt.float_to_int(f)
+    return int2bitstore(u, 6, False)
+
+def e2m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    u = e2m3mxfp_fmt.float_to_int(f)
+    return int2bitstore(u, 6, False)
+
+def e2m1mxfp2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    u = e2m1mxfp_fmt.float_to_int(f)
+    return int2bitstore(u, 4, False)
+
+def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    if math.isnan(f):
+        return BitStore('11111111')
+    # We can convert to a float32 then just grab the bits we need!
+    b = float2bitstore(f, 32, True)
+    return b.getslice_msb0(1, 9)
+
+def mxint2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    f *= 2 ** 6  # Remove the implicit scaling factor
+    if f > 127:  # 1 + 63/64
+        return BitStore('01111111')
+    if f <= -128:  # -2
+        return BitStore('10000000')
+    i = int(f)  # TODO: Does this need rounding?
+    return int2bitstore(i, 8, True)
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     i = int(i)

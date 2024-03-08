@@ -55,7 +55,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "4.2.0b1"
+__version__ = "4.2.0b2"
 
 __author__ = "Scott Griffiths"
 
@@ -143,6 +143,27 @@ def e4m3float_bits2chars(bitlength: Literal[8]):
     # Found by looking at all the possible values
     return 13  # Empirical value
 
+def e3m2mxfp_bits2chars(bitlength: Literal[6]):
+    # Not sure what the best value is here. It's 7 without considering the scale that could be applied.
+    return 7
+
+def e2m3mxfp_bits2chars(bitlength: Literal[6]):
+    # Not sure what the best value is here.
+    return 7
+
+def e2m1mxfp_bits2chars(bitlength: Literal[4]):
+    # Not sure what the best value is here.
+    return 7
+
+def e8m0mxfp_bits2chars(bitlength: Literal[8]):
+    # Can range same as float32
+    return 23
+
+def mxint_bits2chars(bitlength: Literal[8]):
+    # Not sure what the best value is here.
+    return 10
+
+
 def bfloat_bits2chars(bitlength: Literal[16]):
     # Found by looking at all the possible values
     return 23  # Empirical value
@@ -209,6 +230,17 @@ dtype_definitions = [
     # Special case pad type
     DtypeDefinition('pad', Bits._setpad, Bits._getpad, None, False, None,
                     description="a skipped section of padding"),
+
+    DtypeDefinition('e3m2mxfp', Bits._sete3m2mxfp, Bits._gete3m2mxfp, float, True, e3m2mxfp_bits2chars,
+                    allowed_lengths=(6,), description="a 6 bit float with e3m2mxfp format"),
+    DtypeDefinition('e2m3mxfp', Bits._sete2m3mxfp, Bits._gete2m3mxfp, float, True, e2m3mxfp_bits2chars,
+                    allowed_lengths=(6,), description="a 6 bit float with e2m3mxfp format"),
+    DtypeDefinition('e2m1mxfp', Bits._sete2m1mxfp, Bits._gete2m1mxfp, float, True, e2m1mxfp_bits2chars,
+                    allowed_lengths=(4,), description="a 4 bit float with e2m1mxfp format"),
+    DtypeDefinition('e8m0mxfp', Bits._sete8m0mxfp, Bits._gete8m0mxfp, float, False, e8m0mxfp_bits2chars,
+                    allowed_lengths=(8,), description="an 8 bit float with e8m0mxfp format"),
+    DtypeDefinition('mxint', Bits._setmxint, Bits._getmxint, float, True, mxint_bits2chars,
+                    allowed_lengths=(8,), description="an 8 bit float with mxint format"),
 ]
 
 
