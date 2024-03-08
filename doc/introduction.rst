@@ -48,7 +48,7 @@ This can either be the first parameter in the constructor ('auto' initialisation
 * ``intne``, ``uintne``: Signed or unsigned byte-wise native-endian binary integers.
 * ``float`` / ``floatbe``, ``floatle``, ``floatne``: Big, little and native endian floating point numbers.
 * ``bfloat`` / ``bfloatbe``, ``bfloatle``, ``bfloatne``: Big, little and native endian 16 bit 'bfloat' numbers.
-* ``e4m3float``, ``e5m2float``: Two formats of 8-bit floating point numbers.
+* ``p4binary``, ``p3binary``: Two formats of 8-bit floating point numbers.
 * ``se``, ``ue`` : Signed or unsigned exponential-Golomb coded integers.
 * ``sie``, ``uie`` : Signed or unsigned interleaved exponential-Golomb coded integers.
 * ``bool`` : A boolean (i.e. True or False).

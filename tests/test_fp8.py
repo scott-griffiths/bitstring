@@ -7,7 +7,7 @@ import struct
 import math
 import bitstring
 from bitstring import Bits, BitArray, BitStream
-from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
+from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 import gfloat
 
 sys.path.insert(0, '..')
@@ -16,53 +16,53 @@ sys.path.insert(0, '..')
 class TestFp8:
 
     def test_creation(self):
-        a = Bits(e4m3float=-14.0)
-        assert a.e4m3float == -14.0
-        b = Bits('e5m2float=3.0')
-        assert b.e5m2float == 3.0
+        a = Bits(p4binary=-14.0)
+        assert a.p4binary == -14.0
+        b = Bits('p3binary=3.0')
+        assert b.p3binary == 3.0
         assert len(b) == 8
-        c = Bits('e4m3float=1000000000')
+        c = Bits('p4binary=1000000000')
         assert c.hex == '7f'
-        d = Bits('e5m2float=-1e15774')
+        d = Bits('p3binary=-1e15774')
         assert d.hex == 'ff'
-        e = Bits(e5m2float=float('nan'))
+        e = Bits(p3binary=float('nan'))
         assert e.hex == '80'
 
     def test_reassignment(self):
         a = BitArray()
-        a.e4m3float = -0.25
-        assert a.e4m3float == -0.25
-        a.e5m2float = float('inf')
+        a.p4binary = -0.25
+        assert a.p4binary == -0.25
+        a.p3binary = float('inf')
         assert a.hex == '7f'
-        a.e4m3float = -9000.0
+        a.p4binary = -9000.0
         assert a.hex == 'ff'
-        a.e5m2float = -0.00000000001
-        assert a.e5m2float == 0.0
+        a.p3binary = -0.00000000001
+        assert a.p3binary == 0.0
 
     def test_reading(self):
         a = BitStream('0x00fff')
-        x = a.read('e5m2float')
+        x = a.read('p3binary')
         assert x == 0.0
         assert a.pos == 8
-        x = a.read('e4m3float')
+        x = a.read('p4binary')
         assert x == -240.0
         assert a.pos == 16
 
     def test_read_list(self):
         v = [-6, -2, 0.125, 7, 10]
-        a = bitstring.pack('5*e4m3float', *v)
-        vp = a.readlist('5*e4m3float')
+        a = bitstring.pack('5*p4binary', *v)
+        vp = a.readlist('5*p4binary')
         assert v == vp
 
     def test_interpretations(self):
         a = BitArray('0x00')
-        assert a.e4m3float == 0.0
-        assert a.e5m2float == 0.0
+        assert a.p4binary == 0.0
+        assert a.p3binary == 0.0
         a += '0b1'
         with pytest.raises(bitstring.InterpretError):
-            _ = a.e4m3float
+            _ = a.p4binary
         with pytest.raises(bitstring.InterpretError):
-            _ = a.e5m2float
+            _ = a.p3binary
 
 
 def createLUT_for_int8_to_float(exp_bits, bias) -> array.array[float]:
@@ -120,8 +120,8 @@ def slow_float_to_int8(lut_int8_to_float, f: float) -> int:
 
 class TestCheckLUTs:
 
-    def test_lut_int8_to_e4m3float(self):
-        lut_stored = e4m3float_fmt.lut_int8_to_float
+    def test_lut_int8_to_p4binary(self):
+        lut_stored = p4binary_fmt.lut_int8_to_float
         assert len(lut_stored) == 256
         lut_calculated = createLUT_for_int8_to_float(4, 8)
         for i in range(len(lut_stored)):
@@ -130,8 +130,8 @@ class TestCheckLUTs:
                 assert math.isnan(lut_stored[i])
                 assert math.isnan(lut_calculated[i])
 
-    def test_lut_int8_to_e5m2float(self):
-        lut_stored = e5m2float_fmt.lut_int8_to_float
+    def test_lut_int8_to_p3binary(self):
+        lut_stored = p3binary_fmt.lut_int8_to_float
         assert len(lut_stored) == 256
         lut_calculated = createLUT_for_int8_to_float(5, 16)
         for i in range(len(lut_stored)):
@@ -140,54 +140,54 @@ class TestCheckLUTs:
                 assert math.isnan(lut_stored[i])
                 assert math.isnan(lut_calculated[i])
 
-    def test_lut_float16_to_e4m3float(self):
-        lut_float16_to_e4m3float = createLUT_for_float16_to_float8(e4m3float_fmt.lut_int8_to_float)
-        assert len(lut_float16_to_e4m3float) == 65536
-        assert lut_float16_to_e4m3float == e4m3float_fmt.lut_float16_to_float8
+    def test_lut_float16_to_p4binary(self):
+        lut_float16_to_p4binary = createLUT_for_float16_to_float8(p4binary_fmt.lut_int8_to_float)
+        assert len(lut_float16_to_p4binary) == 65536
+        assert lut_float16_to_p4binary == p4binary_fmt.lut_float16_to_float8
 
-    def test_lut_float16_to_e5m2float(self):
-        lut_float16_to_e5m2float = createLUT_for_float16_to_float8(e5m2float_fmt.lut_int8_to_float)
-        assert len(lut_float16_to_e5m2float) == 65536
-        assert lut_float16_to_e5m2float == e5m2float_fmt.lut_float16_to_float8
+    def test_lut_float16_to_p3binary(self):
+        lut_float16_to_p3binary = createLUT_for_float16_to_float8(p3binary_fmt.lut_int8_to_float)
+        assert len(lut_float16_to_p3binary) == 65536
+        assert lut_float16_to_p3binary == p3binary_fmt.lut_float16_to_float8
 
 
 class TestConversionToFP8:
 
     def test_some143_values(self):
         zero = bitstring.Bits('0b0000 0000')
-        assert e4m3float_fmt.lut_int8_to_float[zero.uint] == 0.0
+        assert p4binary_fmt.lut_int8_to_float[zero.uint] == 0.0
         max_normal = bitstring.Bits('0b0111 1111')
-        assert e4m3float_fmt.lut_int8_to_float[max_normal.uint] == 240.0
+        assert p4binary_fmt.lut_int8_to_float[max_normal.uint] == 240.0
         max_normal_neg = bitstring.Bits('0b1111 1111')
-        assert e4m3float_fmt.lut_int8_to_float[max_normal_neg.uint] == -240.0
+        assert p4binary_fmt.lut_int8_to_float[max_normal_neg.uint] == -240.0
         min_normal = bitstring.Bits('0b0000 1000')
-        assert e4m3float_fmt.lut_int8_to_float[min_normal.uint] == 2**-7
+        assert p4binary_fmt.lut_int8_to_float[min_normal.uint] == 2**-7
         min_subnormal = bitstring.Bits('0b0000 0001')
-        assert e4m3float_fmt.lut_int8_to_float[min_subnormal.uint] == 2**-10
+        assert p4binary_fmt.lut_int8_to_float[min_subnormal.uint] == 2**-10
         max_subnormal = bitstring.Bits('0b0000 0111')
-        assert e4m3float_fmt.lut_int8_to_float[max_subnormal.uint] == 0.875 * 2**-7
+        assert p4binary_fmt.lut_int8_to_float[max_subnormal.uint] == 0.875 * 2**-7
         nan = bitstring.Bits('0b1000 0000')
-        assert math.isnan(e4m3float_fmt.lut_int8_to_float[nan.uint])
+        assert math.isnan(p4binary_fmt.lut_int8_to_float[nan.uint])
 
     def test_some152_values(self):
         zero = bitstring.Bits('0b0000 0000')
-        assert e5m2float_fmt.lut_int8_to_float[zero.uint] == 0.0
+        assert p3binary_fmt.lut_int8_to_float[zero.uint] == 0.0
         max_normal = bitstring.Bits('0b0111 1111')
-        assert e5m2float_fmt.lut_int8_to_float[max_normal.uint] == 57344.0
+        assert p3binary_fmt.lut_int8_to_float[max_normal.uint] == 57344.0
         max_normal_neg = bitstring.Bits('0b1111 1111')
-        assert e5m2float_fmt.lut_int8_to_float[max_normal_neg.uint] == -57344.0
+        assert p3binary_fmt.lut_int8_to_float[max_normal_neg.uint] == -57344.0
         min_normal = bitstring.Bits('0b0000 0100')
-        assert e5m2float_fmt.lut_int8_to_float[min_normal.uint] == 2**-15
+        assert p3binary_fmt.lut_int8_to_float[min_normal.uint] == 2**-15
         min_subnormal = bitstring.Bits('0b0000 0001')
-        assert e5m2float_fmt.lut_int8_to_float[min_subnormal.uint] == 0.25 * 2**-15
+        assert p3binary_fmt.lut_int8_to_float[min_subnormal.uint] == 0.25 * 2**-15
         max_subnormal = bitstring.Bits('0b0000 0011')
-        assert e5m2float_fmt.lut_int8_to_float[max_subnormal.uint] == 0.75 * 2**-15
+        assert p3binary_fmt.lut_int8_to_float[max_subnormal.uint] == 0.75 * 2**-15
         nan = bitstring.Bits('0b1000 0000')
-        assert math.isnan(e5m2float_fmt.lut_int8_to_float[nan.uint])
+        assert math.isnan(p3binary_fmt.lut_int8_to_float[nan.uint])
 
     def test_round_trip(self):
         # For each possible 8bit int, convert to float, then convert that float back to an int
-        for fmt in [e4m3float_fmt, e5m2float_fmt]:
+        for fmt in [p4binary_fmt, p3binary_fmt]:
             for i in range(256):
                 f = fmt.lut_int8_to_float[i]
                 ip = fmt.float_to_int8(f)
@@ -197,7 +197,7 @@ class TestConversionToFP8:
         # Convert a float16 to a float8, then convert that to a Python float. Then convert back to a float16.
         # This value should have been rounded towards zero. Convert back to a float8 again - should be the
         # same value as before or the adjacent smaller value
-        for fmt in [e4m3float_fmt, e5m2float_fmt]:
+        for fmt in [p4binary_fmt, p3binary_fmt]:
             # Keeping sign bit == 0 so only positive numbers
             previous_value = 0.0
             for i in range(1 << 15):
@@ -220,8 +220,8 @@ class TestConversionToFP8:
 class TestComparisonWithGfloat:
 
     def test_e4m3_and_e5m2(self):
-        for fi, lut in [(gfloat.formats.format_info_p3109(4), e4m3float_fmt.lut_int8_to_float),
-                        (gfloat.formats.format_info_p3109(3), e5m2float_fmt.lut_int8_to_float)]:
+        for fi, lut in [(gfloat.formats.format_info_p3109(4), p4binary_fmt.lut_int8_to_float),
+                        (gfloat.formats.format_info_p3109(3), p3binary_fmt.lut_int8_to_float)]:
             for i in range(256):
                 f = lut[i]
                 g = gfloat.decode_float(fi, i).fval

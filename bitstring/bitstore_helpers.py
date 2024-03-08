@@ -7,7 +7,7 @@ from typing import Union, Optional, Dict, Callable
 import bitarray
 from bitstring.bitstore import BitStore
 import bitstring
-from bitstring.fp8 import e4m3float_fmt, e5m2float_fmt
+from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt
 
 # The size of various caches used to improve performance
@@ -116,15 +116,15 @@ def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> BitStore:
     return BitStore.frombytes(b[0:2]) if big_endian else BitStore.frombytes(b[2:4])
 
 
-def e4m3float2bitstore(f: Union[str, float]) -> BitStore:
+def p4binary2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    u = e4m3float_fmt.float_to_int8(f)
+    u = p4binary_fmt.float_to_int8(f)
     return int2bitstore(u, 8, False)
 
 
-def e5m2float2bitstore(f: Union[str, float]) -> BitStore:
+def p3binary2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
-    u = e5m2float_fmt.float_to_int8(f)
+    u = p3binary_fmt.float_to_int8(f)
     return int2bitstore(u, 8, False)
 
 def e3m2mxfp2bitstore(f: Union[str, float]) -> BitStore:

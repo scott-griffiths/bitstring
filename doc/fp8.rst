@@ -76,7 +76,7 @@ For a bit more range and less precision you can use ``p3binary8`` which has 5 bi
 
    * - Type
      - # bits
-     - Range
+     - +ive Range
      - bitstring format
 
    * - binary8p4
@@ -171,7 +171,7 @@ A range of formats from the OCP are supported. These are sometimes referred to a
 
    * - Type
      - # bits
-     - Range
+     - +ive Range
      - bitstring format
 
    * - E5M2
@@ -211,9 +211,7 @@ A range of formats from the OCP are supported. These are sometimes referred to a
 
 
 * The E8M0 format is unsigned and designed to use as a scaling for blocks of the other formats.
-* The INT8 format is like a signed 8-bit integer but with a scaling factor of 2**-16. So despite its name it is actually a float.
-The standard doesn't specify whether the largest negative value (-2.0) is a supported number or not.
-This implementation allows it.
+* The INT8 format is like a signed 8-bit integer but with a scaling factor of 2**-16. So despite its name it is actually a float. The standard doesn't specify whether the largest negative value (-2.0) is a supported number or not. This implementation allows it.
 
 The OCP formats are designed to work with an external scaling factor.
 This can be specified in bitstring as part of the `Dtype`, and is very useful inside an ``Array``. ::

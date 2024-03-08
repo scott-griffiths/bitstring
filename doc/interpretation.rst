@@ -129,7 +129,7 @@ This is a specialised 16-bit floating point format that is essentially a truncat
 
 See :ref:`Exotic floats` for more information.
 
-e4m3float / e5m2float
+p4binary / p3binary
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Specialised 8-bit floating point formats. See :ref:`Exotic floats` for more information.
