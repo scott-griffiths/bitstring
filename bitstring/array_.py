@@ -96,19 +96,6 @@ class Array:
         trailing_bit_length = len(self.data) % self._dtype.bitlength
         return BitArray() if trailing_bit_length == 0 else self.data[-trailing_bit_length:]
 
-    # Converting array.array typecodes to our equivalents.
-    _array_typecodes: dict[str, str] = {'b': 'int8',
-                                        'B': 'uint8',
-                                        'h': 'intne16',
-                                        'H': 'uintne16',
-                                        'l': 'intne32',
-                                        'L': 'uintne32',
-                                        'q': 'intne64',
-                                        'Q': 'uintne64',
-                                        'e': 'floatne16',
-                                        'f': 'floatne32',
-                                        'd': 'floatne64'}
-
     @property
     def dtype(self) -> Dtype:
         return self._dtype

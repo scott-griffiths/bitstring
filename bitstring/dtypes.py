@@ -228,13 +228,15 @@ class DtypeDefinition:
         self.set_fn_needs_length = set_fn is not None and 'length' in inspect.signature(set_fn).parameters
         self.set_fn = set_fn
 
-
         if self.allowed_lengths:
-            def length_checked_get_fn(bs):
+            def allowed_length_checked_get_fn(bs):
                 if len(bs) not in self.allowed_lengths:
-                    raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length in {self.allowed_lengths}, but received a length of {len(bs)}.")
+                    if len(self.allowed_lengths) == 1:
+                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length of {self.allowed_lengths.value[0]}, but received a length of {len(bs)}.")
+                    else:
+                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length in {self.allowed_lengths}, but received a length of {len(bs)}.")
                 return get_fn(bs)
-            self.get_fn = length_checked_get_fn  # Interpret everything and check the length
+            self.get_fn = allowed_length_checked_get_fn  # Interpret everything and check the length
         else:
             self.get_fn = get_fn  # Interpret everything
 

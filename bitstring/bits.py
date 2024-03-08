@@ -757,12 +757,16 @@ class Bits:
         u = self._getint()
         return float(u) * 2 ** -6
 
-    def _setfloatbe(self, f: float, length: Optional[int] = None) -> None:
+
+    def _setfloat(self, f: float, length: Optional[int], big_endian: bool) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
             length = len(self)
         if length is None or length not in [16, 32, 64]:
             raise bitstring.CreationError("A length of 16, 32, or 64 must be specified with a float initialiser.")
-        self._bitstore = bitstore_helpers.float2bitstore(f, length, True)
+        self._bitstore = bitstore_helpers.float2bitstore(f, length, big_endian)
+
+    def _setfloatbe(self, f: float, length: Optional[int] = None) -> None:
+        self._setfloat(f, length, True)
 
     def _getfloatbe(self) -> float:
         """Interpret the whole bitstring as a big-endian float."""
@@ -770,11 +774,7 @@ class Bits:
         return struct.unpack(fmt, self._bitstore.tobytes())[0]
 
     def _setfloatle(self, f: float, length: Optional[int] = None) -> None:
-        if length is None and hasattr(self, 'len') and len(self) != 0:
-            length = len(self)
-        if length is None or length not in [16, 32, 64]:
-            raise bitstring.CreationError("A length of 16, 32, or 64 must be specified with a float initialiser.")
-        self._bitstore = bitstore_helpers.float2bitstore(f, length, False)
+        self._setfloat(f, length, False)
 
     def _getfloatle(self) -> float:
         """Interpret the whole bitstring as a little-endian float."""
@@ -1213,7 +1213,7 @@ class Bits:
                 vals.append(val)
         return vals, pos
 
-    def find(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
+    def find(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
         """Find first occurrence of substring bs.
 
@@ -1329,7 +1329,7 @@ class Bits:
             if pos == msb0_start:
                 return
 
-    def rfind(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None,
+    def rfind(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
               bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
         """Find final occurrence of substring bs.
 

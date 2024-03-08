@@ -22,7 +22,7 @@ The more bits in the mantissa, the greater the precision (~significant figures) 
    * - Type
      - # bits
      - Standard
-     - Range
+     - +ive Range
      - bitstring / struct format
    * - Double precision
      - 1 + 11 + 52
@@ -65,6 +65,11 @@ An example of creation and interpretation of a bfloat::
 
     This is an experimental feature and may be modified in future point releases.
 
+    In bitstring prior to version 4.2 the `p4binary8` and `p3binary8` formats were called `e4m3float` and `e5m2float` respectively.
+    The two formats are almost identical, the difference being the addition of `inf` values that replace the largest positive and negative values that were previously available.
+
+    Neither should be confused with the `e4m3mxfp` and `e5m2mxfp` formats from the Open Compute Project described below.
+
 These formats also mainly of use in machine learning and have very limited ranges and precision.
 
 The ``p4binary8`` has a single sign bit, 4 bits for the exponent and 3 bits for the mantissa.
@@ -88,12 +93,6 @@ For a bit more range and less precision you can use ``p3binary8`` which has 5 bi
      - 1 + 5 + 2
      - 8×10\ :sup:`-6` → 49152
      - ``'p3binary8'``
-
-.. note::
-    In bitstring prior to version 4.2 the `p4binary8` and `p3binary8` formats were called `e4m3float` and `e5m2float` respectively.
-    The two formats are almost identical, the difference being the addition of `inf` values that replace the largest positive and negative values that were previously available.
-
-    Neither should be confused with the `e4m3mxfp` and `e5m2mxfp` formats from the Open Compute Project described below.
 
 
 As there are just 256 possible values, both the range and precision of these formats are extremely limited.
