@@ -136,10 +136,10 @@ def float_bits2chars(bitlength: Literal[16, 32, 64]):
     else:
         return 24  # Empirical value
 
-def e5m2float_bits2chars(bitlength: Literal[8]):
+def p3binary_bits2chars(bitlength: Literal[8]):
     return 19  # Empirical value
 
-def e4m3float_bits2chars(bitlength: Literal[8]):
+def p4binary_bits2chars(bitlength: Literal[8]):
     # Found by looking at all the possible values
     return 13  # Empirical value
 
@@ -199,10 +199,10 @@ dtype_definitions = [
     DtypeDefinition('oct',Bits._setoct, Bits._getoct, str, False, oct_bits2chars,
                     allowed_lengths=(0, 3, 6, ...), description="an octal string"),
     # Float types
-    DtypeDefinition('e5m2float', Bits._sete5m2float, Bits._gete5m2float, float, True, e5m2float_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with e5m2float format"),
-    DtypeDefinition('e4m3float', Bits._sete4m3float, Bits._gete4m3float, float, True, e4m3float_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with e4m3float format"),
+    DtypeDefinition('p3binary', Bits._setp3binary, Bits._getp3binary, float, True, p3binary_bits2chars,
+                    allowed_lengths=(8,), description="an 8 bit float with p3binary format"),
+    DtypeDefinition('p4binary', Bits._setp4binary, Bits._getp4binary, float, True, p4binary_bits2chars,
+                    allowed_lengths=(8,), description="an 8 bit float with p4binary format"),
     DtypeDefinition('float', Bits._setfloatbe, Bits._getfloatbe, float, True, float_bits2chars,
                     allowed_lengths=(16, 32, 64), description="a big-endian floating point number"),
     DtypeDefinition('floatle', Bits._setfloatle, Bits._getfloatle, float, True, float_bits2chars,

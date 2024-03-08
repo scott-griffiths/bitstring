@@ -309,17 +309,17 @@ Properties can also have a length in bits appended to them to make properties su
 
     Writable version of :attr:`Bits.floatne`.
 
-.. attribute:: BitArray.e4m3float
+.. attribute:: BitArray.p4binary
     :type: float
     :noindex:
 
-    Writable version of :attr:`Bits.e4m3float`.
+    Writable version of :attr:`Bits.p4binary`.
 
-.. attribute:: BitArray.e5m2float
+.. attribute:: BitArray.p3binary
     :type: float
     :noindex:
 
-    Writable version of :attr:`Bits.e5m2float`.
+    Writable version of :attr:`Bits.p3binary`.
 
 .. attribute:: BitArray.oct
     :type: str

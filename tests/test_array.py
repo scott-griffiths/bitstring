@@ -50,11 +50,11 @@ class TestCreation:
         assert b.equals(c)
 
     def test_creation_from_float8(self):
-        a = Array('e4m3float')
+        a = Array('p4binary')
         a.data.bytes = b'\x7f\x00'
         assert a[0] == 240.0
         assert a[1] == 0.0
-        b = Array('e4m3float', [100000, -0.0])
+        b = Array('p4binary', [100000, -0.0])
         assert a.equals(b)
 
     def test_creation_from_multiple(self):
@@ -185,7 +185,7 @@ class TestArrayMethods:
 
     def test_count_nan(self):
         a = Array('uint8', [0, 10, 128, 128, 4, 2, 1])
-        a.dtype = 'e5m2float'
+        a.dtype = 'p3binary'
         assert a.count(float('nan')) == 2
 
     def test_from_bytes(self):
@@ -507,10 +507,10 @@ class TestArrayMethods:
         assert a.tolist() == [9, 9]
 
     def test_float8_bug(self):
-        a = Array('e5m2float', [0.0, 1.5])
-        b = Array('e4m3float')
+        a = Array('p3binary', [0.0, 1.5])
+        b = Array('p4binary')
         b[:] = a[:]
-        assert b[:].equals(Array('e4m3float', [0.0, 1.5]))
+        assert b[:].equals(Array('p4binary', [0.0, 1.5]))
 
     def test_pp(self):
         a = Array('bfloat', [-3, 1, 2])
@@ -553,8 +553,8 @@ class TestArrayMethods:
     def test_pp_two_formats(self):
         a = Array('float16', bytearray(20))
         s = io.StringIO()
-        a.pp(stream=s, fmt='e5m2float, bin', show_offset=False)
-        assert remove_unprintable(s.getvalue()) == """<Array fmt='e5m2float, bin', length=20, itemsize=8 bits, total data size=20 bytes> [
+        a.pp(stream=s, fmt='p3binary, bin', show_offset=False)
+        assert remove_unprintable(s.getvalue()) == """<Array fmt='p3binary, bin', length=20, itemsize=8 bits, total data size=20 bytes> [
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
                 0.0                 0.0                 0.0                 0.0 : 00000000 00000000 00000000 00000000
@@ -661,7 +661,7 @@ class TestArrayOperations:
         assert a.data == '0b 0000000001 0000000001 0000000001'
 
     def test_or(self):
-        a = Array('e4m3float', [-4, 2.5, -9, 0.25])
+        a = Array('p4binary', [-4, 2.5, -9, 0.25])
         b = a | '0b10000000'
         assert a.tolist() == [-4,  2.5, -9,  0.25]
         assert b.tolist() == [-4, -2.5, -9, -0.25]
@@ -708,7 +708,7 @@ class TestArrayOperations:
         assert a.tolist() == [-1, -1, 0, 0, 0]
 
     def test_lshift(self):
-        a = Array('e5m2float', [0.3, 1.2])
+        a = Array('p3binary', [0.3, 1.2])
         with pytest.raises(TypeError):
             _ = a << 3
         a = Array('int16', [-2, -1, 0, 128])
@@ -778,8 +778,8 @@ class TestSameSizeArrayOperations:
         assert e.dtype == Dtype('float16')
         x1 = a[:]
         x2 = a[:]
-        x1.dtype = 'e5m2float'
-        x2.dtype = 'e4m3float'
+        x1.dtype = 'p3binary'
+        x2.dtype = 'p4binary'
         y = x1 + x2
         assert y.dtype == x1.dtype
 
