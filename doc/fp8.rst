@@ -208,3 +208,21 @@ A range of formats from the OCP are supported. These are sometimes referred to a
      - 8
      - 0.015625 → 1.984375
      - ``'mxint'``
+
+
+* The E8M0 format is unsigned and designed to use as a scaling for blocks of the other formats.
+* The INT8 format is like a signed 8-bit integer but with a scaling factor of 2**-16. So despite its name it is actually a float.
+The standard doesn't specify whether the largest negative value (-2.0) is a supported number or not.
+This implementation allows it.
+
+The OCP formats are designed to work with an external scaling factor.
+This can be specified in bitstring as part of the `Dtype`, and is very useful inside an ``Array``. ::
+
+        >>> d = b'some_byte_data'
+        >>> a = Array(Dtype('e2m1mxfp', scale=2**10), d)
+        >>> a.pp()
+        <Array dtype='Dtype('e2m1mxfp', scale=1024)', length=28, itemsize=4 bits, total data size=14 bytes> [
+          0:  6144.0  1536.0  4096.0 -6144.0  4096.0 -3072.0  4096.0  3072.0  3072.0 -6144.0  4096.0  1024.0  6144.0  -512.0
+         14:  6144.0  2048.0  4096.0  3072.0  3072.0 -6144.0  4096.0  2048.0  4096.0   512.0  6144.0  2048.0  4096.0   512.0
+        ]
+
