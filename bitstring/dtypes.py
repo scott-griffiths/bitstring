@@ -42,7 +42,7 @@ class Dtype:
     _scale: Union[None, float, int]
 
 
-    def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None, scale: Union[None, float, int] = None) -> Dtype:
+    def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None, scale: Union[None, float, int, str] = None) -> Dtype:
         if isinstance(token, cls):
             return token
         if token is not None:
@@ -55,7 +55,7 @@ class Dtype:
         return super().__new__(cls)
 
     @property
-    def scale(self) -> int:
+    def scale(self) -> Union[int, float, str]:
         return self._scale
 
     @property

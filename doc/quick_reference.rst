@@ -378,11 +378,14 @@ Dtype
 
 A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to create, parse and present different bit interpretations.
 
-.. class:: Dtype(token: str | None = None, /, length: int | None = None, scale: float | int | None = None)
+``Dtype(token, /, length, scale)``
 
 Creates a :class:`Dtype` object. Dtypes are immutable and cannot be changed after creation.
 
-The first parameter is a format token that can optionally include a length. For example ``'int'`` or ``'float16'``.
+The first parameter is a format token string that can optionally include a length. For example ``'int'`` or ``'float16'``.
+In most situations this string can be used instead of `Dtype` object when it is needed, and the `Dtype` will be constructed automatically.
+This is why the `Dtype` object is rarely used directly in this documentation.
+It can be advantageous to to create `Dtype` objects directly for efficiency reasons, and is neccessary if you need to use the `scale` parameter.
 
 If appropriate, the `length` parameter can be used to specify the length of the bitstring.
 
@@ -403,12 +406,12 @@ All properties are read-only.
 
 * :attr:`~Dtype.scale` -- The multiplicative scale applied when interpreting the data.
 * :attr:`~Dtype.name` -- A string giving the name of the data type.
-* :attr:`~Dtype.length` -- The length of the data tyoe in units of `bits_per_item`.
+* :attr:`~Dtype.length` -- The length of the data type in units of `bits_per_item`.
 * :attr:`~Dtype.bitlength` -- The number of bits needed to represent a single instance of the data type.
 * :attr:`~Dtype.bits_per_item` -- The number of bits for each unit of length. Ususally 1, but equals 8 for `bytes` type.
 * :attr:`~Dtype.variable_length` -- If True then the length of the data type varies, and shouldn't be specified.
 * :attr:`~Dtype.return_type` -- The type of the value returned by the `parse` method.
-* :attr:`~Dtype.is_signed` -- If True then the data type is signed.
+* :attr:`~Dtype.is_signed` -- If True then the data type represents a signed quantity.
 * :attr:`~Dtype.set_fn` -- A function to set the value of the data type.
 * :attr:`~Dtype.get_fn` -- A function to get the value of the data type.
 * :attr:`~Dtype.read_fn` -- A function to read the value of the data type.

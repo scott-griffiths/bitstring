@@ -75,6 +75,10 @@ class Array:
         except ValueError as e:
             raise CreationError(e)
 
+        if self._dtype.scale == 'auto':
+            auto_scale = self._calculate_auto_scale(initializer, self._dtype.name, self._dtype.length)
+            self._set_dtype(Dtype(self._dtype.name, self._dtype.length, scale=auto_scale))
+
         if isinstance(initializer, numbers.Integral):
             self.data = BitArray(initializer * self._dtype.bitlength)
         elif isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
@@ -86,6 +90,35 @@ class Array:
 
         if trailing_bits is not None:
             self.data += BitArray._create_from_bitstype(trailing_bits)
+
+    _largest_values = None
+    @staticmethod
+    def _calculate_auto_scale(initializer: Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview, BinaryIO], name:str, length: Optional[int]) -> float:
+        temp_array = Array('float64', initializer)
+        float_values = temp_array.tolist()
+        max_float_value = max(float_values)
+        log2 = int(math.log2(max_float_value))
+        # Now need to find the largest power of 2 representable with this format.
+        if Array._largest_values is None:
+            Array._largest_values = {
+                'mxint8': Bits('0b01111111').mxint8,  # 1.0 + 63.0/64.0,
+                'e2m3mxfp6': Bits('0b011111').e2m3mxfp6,  # 7.5
+                'e3m2mxfp6': Bits('0b011111').e3m2mxfp6,  # 28.0
+                # 'e4m3mxfp8': Bits('0b0???????').e4m3mxfp8,  # TODO
+                # 'e5m2mxfp8': Bits('0b0???????').e5m2mxfp8,  # TODO
+                'e2m1mxfp4': Bits('0b0111').e2m1mxfp4,  # 6.0
+                'p3binary8': Bits('0b01111110').p3binary8,  # 49152.0
+                'p4binary8': Bits('0b01111110').p4binary8,  # 224.0
+                'bfloat16': Bits('0x7f7f').bfloat16,  # 3.38953139e38,
+                'float16': Bits('0x7bff').float16,  # 65504.0
+            }
+
+        if f'{name}{length}' in Array._largest_values.keys():
+            lp2 = int(math.log2(Array._largest_values[f'{name}{length}']))
+        else:
+            raise ValueError(f"Can't calculate auto scale for format '{name}{length}'. "
+                             f"This feature is only available for these formats: {list(Array._largest_values.keys())}.")
+        return 2 ** (log2 - lp2)
 
     @property
     def itemsize(self) -> int:

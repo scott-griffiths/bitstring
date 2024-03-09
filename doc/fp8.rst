@@ -153,7 +153,7 @@ or using the :class:`Array` type it's even more concise - we can create an Array
     ]
 
 
-You'll see that there is only 1 zero value and only one 'nan' value.
+You'll see that there is only 1 zero value and only one 'nan' value, together with positive and negative 'inf' values.
 
 When converting from a Python float (which will typically be stored in 64-bits) unrepresentable values are rounded towards zero.
 
@@ -211,8 +211,11 @@ A range of formats from the OCP are supported. These are sometimes referred to a
 
 * The E8M0 format is unsigned and designed to use as a scaling for blocks of the other formats.
 * The INT8 format is like a signed 8-bit integer but with a scaling factor of 2**-16. So despite its name it is actually a float. The standard doesn't specify whether the largest negative value (-2.0) is a supported number or not. This implementation allows it.
+* The E4M3 format is similar to the `p4binary8` format but with a different exponent bias and it wastes some values. It has no 'inf' values, instead opting to have two 'nan' values and two zero values.
+* The E5M2 format is similar to the `p3binary8` format but wastes even more values. It does have positive and negative 'inf' values, but also no less than six 'nan' values and two zero values.
 
 The OCP formats are designed to work with an external scaling factor.
+This should be in the E8M0 format, which just uses a byte to encode the powers of two from 2\ :sup:`-127` to 2\ :sup:`127`, plus a 'nan' value.
 This can be specified in bitstring as part of the `Dtype`, and is very useful inside an ``Array``. ::
 
         >>> d = b'some_byte_data'
@@ -223,3 +226,6 @@ This can be specified in bitstring as part of the `Dtype`, and is very useful in
          14:  6144.0  2048.0  4096.0  3072.0  3072.0 -6144.0  4096.0  2048.0  4096.0   512.0  6144.0  2048.0  4096.0   512.0
         ]
 
+To change the scale, replace the dtype in the `Array`::
+
+        >>> a.dtype = Dtype('e2m1mxfp', scale=2**6)

@@ -142,17 +142,17 @@ def test_multiple_scaled_arrays():
     assert s1[0] * 2**10 == s2[0]
     assert s1[0] * 2**-10 == s3[0]
 
-# def test_multiple_scaled_arrays2():
-#     b = BitArray('0b011111')
-#     assert b.e3m2mxfp == 28.0
-#     s1 = ScaledArray('e3m2mxfp', [28], scale=0)
-#     assert s1[0] == 28.0
-#     assert b.e3m2mxfp == 28.0
-#     s2 = ScaledArray('e3m2mxfp', [28], scale=0)
-#     s2.scale = 4
-#     assert s1[0] == 28.0
-#     assert s2[0] == 28.0 * 2 ** 4
-#     assert b.e3m2mxfp == 28.0
+def test_multiple_scaled_arrays2():
+    b = BitArray('0b011111')
+    assert b.e3m2mxfp == 28.0
+    s1 = Array('e3m2mxfp', [28])
+    assert s1[0] == 28.0
+    assert b.e3m2mxfp == 28.0
+    s2 = Array('e3m2mxfp', [28])
+    s2.dtype = Dtype('e3m2mxfp', scale=2**4)
+    assert s1[0] == 28.0
+    assert s2[0] == 28.0 * 2 ** 4
+    assert b.e3m2mxfp == 28.0
 
 def test_setting_from_outside_range():
     b = BitArray(e2m1mxfp=0.0)
@@ -168,12 +168,17 @@ def test_setting_from_outside_range():
     x = s.tolist()
     assert x == [-12.0, 6.0, 6.0, 12.0]
 
-# def test_ops():
-#     s = ScaledArray('e8m0mxfp', [0.5, 1.0, 2.0, 4.0, 8.0], scale=2)
-#     t = s * 2
-#     assert type(t) is ScaledArray
-#     assert t.tolist() == [1.0, 2.0, 4.0, 8.0, 16.0]
-#     assert t.scale == 2
-#
-#
+def test_ops():
+    s = Array(Dtype('e8m0mxfp', scale=2**2), [0.5, 1.0, 2.0, 4.0, 8.0])
+    t = s * 2
+    assert type(t) is Array
+    assert t.tolist() == [1.0, 2.0, 4.0, 8.0, 16.0]
+    assert t.dtype.scale == 2 ** 2
+
+def test_auto_scaling():
+    f = [0.0, 100.0, 256.0, -150.0]
+    for dtype in ['e3m2mxfp', 'e2m3mxfp', 'e2m1mxfp', 'mxint8', 'p3binary', 'p4binary']:
+        d = Dtype(dtype, scale='auto')
+        a = Array(d, f)
+        assert a[2] == 256.0
 
