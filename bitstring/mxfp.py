@@ -5,7 +5,7 @@ import bitarray
 
 
 class MXFPFormat:
-    """Defining an MXFP floating point format"""
+    """Defining an MXFP micro-scaling floating point format"""
 
     def __init__(self, exp_bits: int, mantissa_bits: int, bias: int):
         self.exp_bits = exp_bits
@@ -65,6 +65,16 @@ class MXFPFormat:
                 exponent -= self.bias
             f = float(bitarray.util.ba2int(significand)) / (2.0 ** self.mantissa_bits)
             f *= 2 ** exponent
+            if length == 8:
+                # Some special cases
+                if self.exp_bits == 5:
+                    if i in [0b01111100, 0b11111100]:
+                        f = float('inf')
+                    if i in [0b01111101, 0b11111101, 0b01111110, 0b11111110, 0b01111111, 0b11111111]:
+                        f = float('nan')
+                if self.exp_bits == 4:
+                    if i in [0b01111111, 0b11111111]:
+                        f = float('nan')
             i2f.append(f if not sign else -f)
         return array.array('f', i2f)
 
@@ -79,8 +89,9 @@ class MXFPFormat:
             fp16_to_fp8[i] = fp8_i
         return bytes(fp16_to_fp8)
 
+
+e2m1mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
 e2m3mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
 e3m2mxfp_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3)
-e2m1mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
-
-# TODO: Where is e8m0mxfp_fmt defined?
+e4m3mxfp_fmt = MXFPFormat(exp_bits=4, mantissa_bits=3, bias=7)
+e5m2mxfp_fmt = MXFPFormat(exp_bits=5, mantissa_bits=2, bias=15)

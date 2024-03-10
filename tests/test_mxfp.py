@@ -14,6 +14,38 @@ def test_creation_e3m2mxfp():
     assert x.e3m2mxfp == 0.0
     assert len(x) == 6
 
+def test_getting_e4m3mxfp_values():
+    assert BitArray('0b00000000').e4m3mxfp == 0.0
+    assert BitArray('0b01111110').e4m3mxfp == 448.0
+    assert BitArray('0b11111110').e4m3mxfp == -448.0
+    assert BitArray('0b00001000').e4m3mxfp == 2**-6
+    assert math.isnan(BitArray('0b01111111').e4m3mxfp)
+    assert math.isnan(BitArray('0b11111111').e4m3mxfp)
+
+def test_setting_e4m3mxfp_values():
+    x = BitArray('0b00000000')
+    x.e4m3mxfp = 0.0
+    assert x == '0b00000000'
+    x.e4m3mxfp = -(2 ** -9)
+    assert x == '0b10000001'
+
+def test_getting_e5m2mxfp_values():
+    assert BitArray('0b00000000').e5m2mxfp == 0.0
+    assert BitArray('0b01111011').e5m2mxfp == 57344
+    for b in ['0b01111101', '0b11111101', '0b01111110', '0b11111110', '0b01111111', '0b11111111']:
+        assert math.isnan(BitArray(b).e5m2mxfp)
+    assert BitArray('0b01111100').e5m2mxfp == float('inf')
+    assert BitArray('0b11111100').e5m2mxfp == float('-inf')
+    assert BitArray('0b00000001').e5m2mxfp == 2 ** -16
+    assert BitArray('0b00000100').e5m2mxfp == 2 ** -14
+
+def test_setting_e5m2mxfp_values():
+    x = BitArray('0b00000000')
+    x.e5m2mxfp = 0.0
+    assert x == '0b00000000'
+    x.e5m2mxfp = -(2 ** -16)
+    assert x == '0b10000001'
+
 def test_getting_e3m2mxfp_values():
     assert BitArray('0b000000').e3m2mxfp == 0.0
     assert BitArray('0b000001').e3m2mxfp == 0.0625
@@ -182,3 +214,7 @@ def test_auto_scaling():
         a = Array(d, f)
         assert a[2] == 256.0
 
+def test_auto_scaling2():
+    some_floats = [-4, 100.0, -9999, 0.5, 42, 666]
+    a = Array(Dtype('float16', scale='auto'), some_floats)
+    assert a[2] == -10000.0

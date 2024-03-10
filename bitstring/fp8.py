@@ -88,6 +88,6 @@ class FP8Format:
         return self.lut_float16_to_float8[f16_int]
 
 
-# We create the 1.5.2 and 1.4.3 formats. The proposed 1.3.4 format isn't supported here.
+# We create the 1.5.2 and 1.4.3 formats.
 p4binary_fmt = FP8Format(exp_bits=4, bias=8)
 p3binary_fmt = FP8Format(exp_bits=5, bias=16)

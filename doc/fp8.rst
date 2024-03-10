@@ -210,7 +210,7 @@ A range of formats from the OCP are supported. These are sometimes referred to a
 
 
 * The E8M0 format is unsigned and designed to use as a scaling for blocks of the other formats.
-* The INT8 format is like a signed 8-bit integer but with a scaling factor of 2**-16. So despite its name it is actually a float. The standard doesn't specify whether the largest negative value (-2.0) is a supported number or not. This implementation allows it.
+* The INT8 format is like a signed 8-bit integer but with a scaling factor of 2**-6. So despite its name it is actually a float. The standard doesn't specify whether the largest negative value (-2.0) is a supported number or not. This implementation allows it.
 * The E4M3 format is similar to the `p4binary8` format but with a different exponent bias and it wastes some values. It has no 'inf' values, instead opting to have two 'nan' values and two zero values.
 * The E5M2 format is similar to the `p3binary8` format but wastes even more values. It does have positive and negative 'inf' values, but also no less than six 'nan' values and two zero values.
 
@@ -229,3 +229,14 @@ This can be specified in bitstring as part of the `Dtype`, and is very useful in
 To change the scale, replace the dtype in the `Array`::
 
         >>> a.dtype = Dtype('e2m1mxfp', scale=2**6)
+
+When used initialising an `Array` you can also use the string ``'auto'`` as the scale, and an appropriate scale will be calculated based on the data. ::
+
+        >>> a = Array(Dtype('e2m1mxfp', scale='auto'), [0.0, 0.5, 40.5, 106.25, -52.0, -8.0])
+        >>> a.pp()
+        <Array dtype='Dtype('e2m1mxfp', scale=16)', length=6, itemsize=4 bits, total data size=3 bytes> [
+         0:     0.0     0.0    32.0    96.0   -48.0    -8.0
+        ]
+
+The scale is calculated based on the maximum absolute value of the data and the maximum representable value of the format.
+For more details on this and the formats in general see the `OCP Microscaling formats specification. <https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf>`_

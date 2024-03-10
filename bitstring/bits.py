@@ -18,7 +18,7 @@ from bitstring.bitstore import BitStore
 from bitstring import bitstore_helpers, utils
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
-from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt
+from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_fmt, e5m2mxfp_fmt
 from bitstring.bitstring_options import Colour
 
 # Things that can be converted to Bits when a Bits type is needed
@@ -590,6 +590,12 @@ class Bits:
     def _setp4binary(self, f: float) -> None:
         self._bitstore = bitstore_helpers.p4binary2bitstore(f)
 
+    def _sete4m3mxfp(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e4m3mxfp2bitstore(f)
+
+    def _sete5m2mxfp(self, f: float) -> None:
+        self._bitstore = bitstore_helpers.e5m2mxfp2bitstore(f)
+
     def _sete3m2mxfp(self, f: float) -> None:
         self._bitstore = bitstore_helpers.e3m2mxfp2bitstore(f)
 
@@ -734,6 +740,14 @@ class Bits:
     def _getp3binary(self) -> float:
         u = self._getuint()
         return p3binary_fmt.lut_int8_to_float[u]
+
+    def _gete4m3mxfp(self) -> float:
+        u = self._getuint()
+        return e4m3mxfp_fmt.lut_int_to_float[u]
+
+    def _gete5m2mxfp(self) -> float:
+        u = self._getuint()
+        return e5m2mxfp_fmt.lut_int_to_float[u]
 
     def _gete3m2mxfp(self) -> float:
         u = self._getuint()

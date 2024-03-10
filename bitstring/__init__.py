@@ -143,6 +143,12 @@ def p4binary_bits2chars(bitlength: Literal[8]):
     # Found by looking at all the possible values
     return 13  # Empirical value
 
+def e4m3mxfp_bits2chars(bitlength: Literal[8]):
+    return 13
+
+def e5m2mxfp_bits2chars(bitlength: Literal[8]):
+    return 19
+
 def e3m2mxfp_bits2chars(bitlength: Literal[6]):
     # Not sure what the best value is here. It's 7 without considering the scale that could be applied.
     return 7
@@ -199,10 +205,6 @@ dtype_definitions = [
     DtypeDefinition('oct',Bits._setoct, Bits._getoct, str, False, oct_bits2chars,
                     allowed_lengths=(0, 3, 6, ...), description="an octal string"),
     # Float types
-    DtypeDefinition('p3binary', Bits._setp3binary, Bits._getp3binary, float, True, p3binary_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with p3binary format"),
-    DtypeDefinition('p4binary', Bits._setp4binary, Bits._getp4binary, float, True, p4binary_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with p4binary format"),
     DtypeDefinition('float', Bits._setfloatbe, Bits._getfloatbe, float, True, float_bits2chars,
                     allowed_lengths=(16, 32, 64), description="a big-endian floating point number"),
     DtypeDefinition('floatle', Bits._setfloatle, Bits._getfloatle, float, True, float_bits2chars,
@@ -231,6 +233,15 @@ dtype_definitions = [
     DtypeDefinition('pad', Bits._setpad, Bits._getpad, None, False, None,
                     description="a skipped section of padding"),
 
+    # MXFP and IEEE 8-bit float types
+    DtypeDefinition('p3binary', Bits._setp3binary, Bits._getp3binary, float, True, p3binary_bits2chars,
+                    allowed_lengths=(8,), description="an 8 bit float with p3binary format"),
+    DtypeDefinition('p4binary', Bits._setp4binary, Bits._getp4binary, float, True, p4binary_bits2chars,
+                    allowed_lengths=(8,), description="an 8 bit float with p4binary format"),
+    DtypeDefinition('e4m3mxfp', Bits._sete4m3mxfp, Bits._gete4m3mxfp, float, True, e4m3mxfp_bits2chars,
+                    allowed_lengths=(8,), description="an 8 bit float with e4m3mxfp format"),
+    DtypeDefinition('e5m2mxfp', Bits._sete5m2mxfp, Bits._gete5m2mxfp, float, True, e5m2mxfp_bits2chars,
+                    allowed_lengths=(8,), description="an 8 bit float with e5m2mxfp format"),
     DtypeDefinition('e3m2mxfp', Bits._sete3m2mxfp, Bits._gete3m2mxfp, float, True, e3m2mxfp_bits2chars,
                     allowed_lengths=(6,), description="a 6 bit float with e3m2mxfp format"),
     DtypeDefinition('e2m3mxfp', Bits._sete2m3mxfp, Bits._gete2m3mxfp, float, True, e2m3mxfp_bits2chars,

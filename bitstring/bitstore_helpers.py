@@ -8,7 +8,7 @@ import bitarray
 from bitstring.bitstore import BitStore
 import bitstring
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
-from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt
+from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_fmt, e5m2mxfp_fmt
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
@@ -125,6 +125,16 @@ def p4binary2bitstore(f: Union[str, float]) -> BitStore:
 def p3binary2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     u = p3binary_fmt.float_to_int8(f)
+    return int2bitstore(u, 8, False)
+
+def e4m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    u = e4m3mxfp_fmt.float_to_int(f)
+    return int2bitstore(u, 8, False)
+
+def e5m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
+    f = float(f)
+    u = e5m2mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 8, False)
 
 def e3m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
