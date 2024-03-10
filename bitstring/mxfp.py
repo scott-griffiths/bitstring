@@ -43,6 +43,11 @@ class MXFPFormat:
             b = struct.pack('>e', f)
         except (OverflowError, struct.error):
             # Return the largest representable positive or negative value
+            # Special cases for e4m3 and e5m2
+            if self.exp_bits == 4 and self.mantissa_bits == 3:
+                return 0b01111110 if f > 0 else 0b11111110
+            if self.exp_bits == 5 and self.mantissa_bits == 2:
+                return 0b01111011 if f > 0 else 0b11111011
             return (1 << (self.exp_bits + self.mantissa_bits)) - 1 if f > 0 else (1 << (1 + self.exp_bits + self.mantissa_bits)) - 1
         f16_int = int.from_bytes(b, byteorder='big')
         # Then use this as an index to our large LUT

@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import math
 from bitstring import BitArray, Dtype, Array
+import pytest
 
 sys.path.insert(0, '..')
 
@@ -28,6 +29,8 @@ def test_setting_e4m3mxfp_values():
     assert x == '0b00000000'
     x.e4m3mxfp = -(2 ** -9)
     assert x == '0b10000001'
+    x.e4m3mxfp = 99999
+    assert x.e4m3mxfp == 448.0
 
 def test_getting_e5m2mxfp_values():
     assert BitArray('0b00000000').e5m2mxfp == 0.0
@@ -45,6 +48,9 @@ def test_setting_e5m2mxfp_values():
     assert x == '0b00000000'
     x.e5m2mxfp = -(2 ** -16)
     assert x == '0b10000001'
+    x.e5m2mxfp = 99999
+    assert x.e5m2mxfp == 57344.0
+
 
 def test_getting_e3m2mxfp_values():
     assert BitArray('0b000000').e3m2mxfp == 0.0
@@ -218,3 +224,15 @@ def test_auto_scaling2():
     some_floats = [-4, 100.0, -9999, 0.5, 42, 666]
     a = Array(Dtype('float16', scale='auto'), some_floats)
     assert a[2] == -10000.0
+
+def test_scaled_array_errors():
+    with pytest.raises(ValueError):
+        _ = Array(Dtype('bfloat', scale='auto'), [0.0, 100.0, 256.0, -150.0])
+    with pytest.raises(ValueError):
+        _ = Array(Dtype('uint9', scale='auto'), [0.0, 100.0, 256.0, -150.0])
+    with pytest.raises(ValueError):
+        _ = Dtype('e3m2mxfp', scale=0)
+
+# def test_rounding_to_even():
+#
+#

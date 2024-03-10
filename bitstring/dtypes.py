@@ -102,6 +102,8 @@ class Dtype:
         self._scale = value
         if self._scale is None:
             return
+        if self._scale == 0:
+            raise ValueError("A Dtype's scale factor must not be zero.")
         if not hasattr(self, 'unscaled_get_fn'):
             self.unscaled_get_fn = self._get_fn
             self.unscaled_set_fn = self._set_fn
