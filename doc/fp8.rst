@@ -56,13 +56,10 @@ An example of creation and interpretation of a bfloat::
     4.486248158726163e+23  # Converted to Python float
 
 
-8-bit Floating Point Types
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+IEEE 8-bit Floating Point Types
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note::
-    The 8-bit float formats described here are part of an ongoing IEEE standardisation process.
-    This implementation is based on a publically available draft of the standard.
-
     This is an experimental feature and may be modified in future point releases.
 
     In bitstring prior to version 4.2 the `p4binary8` and `p3binary8` formats were called `e4m3float` and `e5m2float` respectively.
@@ -70,7 +67,11 @@ An example of creation and interpretation of a bfloat::
 
     Neither should be confused with the `e4m3mxfp` and `e5m2mxfp` formats from the Open Compute Project described below.
 
-These formats also mainly of use in machine learning and have very limited ranges and precision.
+
+The 'binary8' formats are part of an ongoing IEEE standardisation process.
+This implementation here is based on a publically available draft of the standard.
+There are seven formats defined in the draft standard, but only two are supported here.
+If you'd like the other precisions supported then raise a feature request!
 
 The ``p4binary8`` has a single sign bit, 4 bits for the exponent and 3 bits for the mantissa.
 For a bit more range and less precision you can use ``p3binary8`` which has 5 bits for the exponent and only 2 for the mantissa.
@@ -163,6 +164,9 @@ Similar (but inferior) 8-bit floats are available from the OCP:
 Open Compute Project Floating Point Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. note::
+    This is an experimental feature and may be modified in future point releases.
+
 A range of formats from the OCP are supported. These are sometimes referred to as 'micro-scaling' formats, and will usually have an external scale factor associated with them.
 
 .. list-table::
@@ -209,10 +213,10 @@ A range of formats from the OCP are supported. These are sometimes referred to a
      - ``'mxint'``
 
 
-* The E8M0 format is unsigned and designed to use as a scaling for blocks of the other formats.
-* The INT8 format is like a signed 8-bit integer but with a scaling factor of 2**-6. So despite its name it is actually a float. The standard doesn't specify whether the largest negative value (-2.0) is a supported number or not. This implementation allows it.
+* The E8M0 format is unsigned and designed to use as a scaling factor for blocks of the other formats.
+* The INT8 format is like a signed two's complement 8-bit integer but with a scaling factor of 2\ :sup:`-6`. So despite its name it is actually a float. The standard doesn't specify whether the largest negative value (-2.0) is a supported number or not. This implementation allows it.
 * The E4M3 format is similar to the `p4binary8` format but with a different exponent bias and it wastes some values. It has no 'inf' values, instead opting to have two 'nan' values and two zero values.
-* The E5M2 format is similar to the `p3binary8` format but wastes even more values. It does have positive and negative 'inf' values, but also no less than six 'nan' values and two zero values.
+* The E5M2 format is similar to the `p3binary8` format but wastes even more values. It does have positive and negative 'inf' values, but also six 'nan' values and two zero values.
 
 The OCP formats are designed to work with an external scaling factor.
 This should be in the E8M0 format, which just uses a byte to encode the powers of two from 2\ :sup:`-127` to 2\ :sup:`127`, plus a 'nan' value.

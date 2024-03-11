@@ -16,21 +16,45 @@ class MXFPFormat:
 
     def slow_float_to_int(self, f: float) -> int:
         # Slow, but easier to follow than the faster version.
+        # The output int has the binary sequence needed for the float.
         length = 1 + self.exp_bits + self.mantissa_bits
         values = 1 << length
         if f >= 0:
-            for i in range(values // 2):
-                if f < self.lut_int_to_float[i]:
-                    return i - 1
+            # Positive, so top bit is not set
+            for i in range(values // 2 - 1):
+                lower = self.lut_int_to_float[i]
+                upper = self.lut_int_to_float[i + 1]
+                if f == lower:
+                    return i
+                if f == upper:
+                    return i + 1
+                if lower < f < upper:
+                    d1 = f - lower
+                    d2 = upper - f
+                    if d1 < d2:
+                        return i
+                    if d2 < d1:
+                        return i + 1
+                    return i if i % 2 == 0 else i + 1
             # Clip to positive max
             return (1 << (length - 1)) - 1
         if f < 0:
-            if f > self.lut_int_to_float[values // 2 + 1]:
-                # Rounding upwards to zero
-                return 0b000000  # There's no negative zero so this is a special case
-            for i in range(values // 2 + 2, values):
-                if f > self.lut_int_to_float[i]:
-                    return i - 1
+            # Negative, so top bit is set
+            for i in range(values // 2, values - 1):
+                upper = self.lut_int_to_float[i]
+                lower = self.lut_int_to_float[i + 1]
+                if f == lower:
+                    return i + 1
+                if f == upper:
+                    return i
+                if lower < f < upper:
+                    d1 = f - lower
+                    d2 = upper - f
+                    if d1 < d2:
+                        return i + 1
+                    if d2 < d1:
+                        return i
+                    return i if i % 2 == 0 else i + 1
             # Clip to negative max
             return (1 << length) - 1
         if math.isnan(f):
@@ -91,6 +115,9 @@ class MXFPFormat:
             b = struct.pack('>H', i)
             f, = struct.unpack('>e', b)
             fp8_i = self.slow_float_to_int(f)
+            if fp8_i == 1 << (self.exp_bits + self.mantissa_bits):
+                # Got back int representing binary digits for negative zero. Just convert to positive zero instead.
+                fp8_i = 0
             fp16_to_fp8[i] = fp8_i
         return bytes(fp16_to_fp8)
 

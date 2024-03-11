@@ -204,7 +204,7 @@ def test_setting_from_outside_range():
     assert s.tolist() == [-6.0, 6.0, 6.0, 6.0]
     s = Array(Dtype('e2m1mxfp', scale=2), [-1000.0, 6.0, 7.0, 10000000000.0])
     x = s.tolist()
-    assert x == [-12.0, 6.0, 6.0, 12.0]
+    assert x == [-12.0, 6.0, 8.0, 12.0]
 
 def test_ops():
     s = Array(Dtype('e8m0mxfp', scale=2**2), [0.5, 1.0, 2.0, 4.0, 8.0])
@@ -257,7 +257,27 @@ def test_conversion_to_e8m0():
         _ = BitArray(e8m0mxfp=1.1)
 
 
+def test_rounding_to_even():
+    # When rounding to even, the value chosen when two are equidistant should end in a zero bit.
+    x = BitArray(e4m3mxfp=21.0)
+    assert x.e4m3mxfp == 20.0
+    a = BitArray(e4m3mxfp=20.0).bin
+    b = BitArray(e4m3mxfp=22.0).bin
+    assert a[:-1] == b[:-1]
+    assert a[-1] == '0'
+    assert b[-1] == '1'
+    x = BitArray(e4m3mxfp=22.0)
+    assert x.e4m3mxfp == 22.0
+    x = BitArray(e4m3mxfp=23.0)
+    assert x.e4m3mxfp == 24.0
+    x = BitArray(e4m3mxfp=24.0)
+    assert x.e4m3mxfp == 24.0
 
-# def test_rounding_to_even():
-#
-#
+    x = BitArray(e4m3mxfp=-50)  # Midway between -48 and -52
+    assert x.e4m3mxfp == -48.0  # Rounds towards zero
+    assert x.bin[-1] == '0'
+    x = BitArray(e4m3mxfp=-54)  # Midway between -52 and -56
+    assert x.e4m3mxfp == -56.0  # Rounds away from zero
+    assert x.bin[-1] == '0'
+
+
