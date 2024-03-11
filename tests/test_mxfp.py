@@ -233,6 +233,11 @@ def test_scaled_array_errors():
     with pytest.raises(ValueError):
         _ = Dtype('e3m2mxfp', scale=0)
 
+def test_changing_to_auto_scaled_array():
+    a = Array('int16', [0, 2003, -43, 104, 6, 1, 99])
+    with pytest.raises(ValueError):
+        a.dtype = Dtype('e3m2mxfp', scale='auto')
+
 def test_conversion_to_e8m0():
     x = BitArray(e8m0mxfp=1.0)
     assert x.e8m0mxfp == 1.0

@@ -70,14 +70,13 @@ class Array:
     def __init__(self, dtype: Union[str, Dtype], initializer: Optional[Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview, BinaryIO]] = None,
                  trailing_bits: Optional[BitsType] = None) -> None:
         self.data = BitArray()
+        if isinstance(dtype, Dtype) and dtype.scale == 'auto':
+            auto_scale = self._calculate_auto_scale(initializer, dtype.name, dtype.length)
+            dtype = Dtype(dtype.name, dtype.length, scale=auto_scale)
         try:
             self._set_dtype(dtype)
         except ValueError as e:
             raise CreationError(e)
-
-        if self._dtype.scale == 'auto':
-            auto_scale = self._calculate_auto_scale(initializer, self._dtype.name, self._dtype.length)
-            self._set_dtype(Dtype(self._dtype.name, self._dtype.length, scale=auto_scale))
 
         if isinstance(initializer, numbers.Integral):
             self.data = BitArray(initializer * self._dtype.bitlength)
@@ -93,7 +92,7 @@ class Array:
 
     _largest_values = None
     @staticmethod
-    def _calculate_auto_scale(initializer: Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview, BinaryIO], name:str, length: Optional[int]) -> float:
+    def _calculate_auto_scale(initializer, name: str, length: Optional[int]) -> float:
         # Now need to find the largest power of 2 representable with this format.
         if Array._largest_values is None:
             Array._largest_values = {
@@ -151,6 +150,8 @@ class Array:
             if dtype.length is None:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
+        if self._dtype.scale == 'auto':
+            raise ValueError("A Dtype with an 'auto' scale factor can only be used when creating a new Array.")
 
     def _create_element(self, value: ElementType) -> Bits:
         """Create Bits from value according to the token_name and token_length"""
