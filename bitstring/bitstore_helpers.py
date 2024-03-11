@@ -152,13 +152,18 @@ def e2m1mxfp2bitstore(f: Union[str, float]) -> BitStore:
     u = e2m1mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 4, False)
 
+
+e8m0mxfp_allowed_values = [float(2 ** x) for x in range(-127, 128)]
 def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     if math.isnan(f):
         return BitStore('11111111')
-    # We can convert to a float32 then just grab the bits we need!
-    b = float2bitstore(f, 32, True)
-    return b.getslice_msb0(1, 9)
+    try:
+        i = e8m0mxfp_allowed_values.index(f)
+    except ValueError:
+        raise ValueError(f"{f} is not a valid e8m0mxfp value. It must be exactly 2 ** i, for -127 <= i <= 127 or float('nan') as no rounding will be done.")
+    return int2bitstore(i, 8, False)
+
 
 def mxint2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)

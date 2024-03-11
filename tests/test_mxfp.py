@@ -233,6 +233,26 @@ def test_scaled_array_errors():
     with pytest.raises(ValueError):
         _ = Dtype('e3m2mxfp', scale=0)
 
+def test_conversion_to_e8m0():
+    x = BitArray(e8m0mxfp=1.0)
+    assert x.e8m0mxfp == 1.0
+    x = BitArray(e8m0mxfp=2**127)
+    assert x.e8m0mxfp == 2**127
+    x = BitArray(e8m0mxfp=2**-127)
+    assert x.e8m0mxfp == 2**-127
+    x = BitArray(e8m0mxfp=float('nan'))
+    assert math.isnan(x.e8m0mxfp)
+    with pytest.raises(ValueError):
+        _ = BitArray(e8m0mxfp=2**128)
+    with pytest.raises(ValueError):
+        _ = BitArray(e8m0mxfp=-2**128)
+    with pytest.raises(ValueError):
+        _ = BitArray(e8m0mxfp=0.0)
+    with pytest.raises(ValueError):
+        _ = BitArray(e8m0mxfp=1.1)
+
+
+
 # def test_rounding_to_even():
 #
 #
