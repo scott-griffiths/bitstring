@@ -6,15 +6,15 @@ bitstring module version history
 In preparation: version 4.2.0
 -----------------------------
 
+* Dropped support for Python 3.7. Minimum version is now 3.8.
 * Array class no longer 'beta'.
 * New Dtype class can be optionally used to specify types.
-* Dropped support for Python 3.7. Minimum version is now 3.8.
 * The bitstring.options object is now preferred method for changing module options.
-* Performance improvements.
 * New fromstring method as another way to create bitstrings from strings.
-* More types can be pretty printed.
-* Pretty printing is now prettier - terminal colours added.
-
+* More types can now be pretty printed.
+* Pretty printing is now prettier - optional terminal colours added.
+* A range of 8-bit, 6-bit and even 4-bit float formats added.
+* Performance improvements.
 
 
 ----------------------------
