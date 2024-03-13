@@ -74,6 +74,13 @@ def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: 
                     return i + 1
                 return i if i % 2 == 0 else i + 1
         # Clip to positive max
+        if exp_bits == 5:
+            if math.isinf(f):
+                return 0b01111100  # e5m2 +inf
+            else:
+                return 0b01111011  # e5m2 max value of 57344
+        if exp_bits == 4:
+            return 0b01111110  # e4m3 max value of 448 (no +inf available)
         return (1 << (length - 1)) - 1
     if f < 0:
         # Negative, so top bit is set
@@ -93,9 +100,19 @@ def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: 
                     return i
                 return i if i % 2 == 0 else i + 1
         # Clip to negative max
+        if exp_bits == 5:
+            if math.isinf(f):
+                return 0b11111100  # e5m2 -inf
+            else:
+                return 0b11111011  # e5m2 max value of -57344
+        if exp_bits == 4:
+            return 0b11111110  # e4m3 max value of -448 (no -inf available)
         return (1 << length) - 1
     if math.isnan(f):
-        return 0  # Nan isn't supported so what value should this be? (TODO)
+        if length == 8:
+            return 0xff  # Works for both e5m2 and e4m3
+        # For smaller lengths, NaN isn't supported so we instead return an invalid value
+        return 0xff
 
 
 class MXFPFormat:

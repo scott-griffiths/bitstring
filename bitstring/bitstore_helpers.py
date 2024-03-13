@@ -139,16 +139,22 @@ def e5m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
 
 def e3m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
+    if math.isnan(f):
+        raise ValueError("Cannot convert float('nan') to e3m2mxfp format as it has no representation for it.")
     u = e3m2mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 6, False)
 
 def e2m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
+    if math.isnan(f):
+        raise ValueError("Cannot convert float('nan') to e2m3mxfp format as it has no representation for it.")
     u = e2m3mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 6, False)
 
 def e2m1mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
+    if math.isnan(f):
+        raise ValueError("Cannot convert float('nan') to e2m1mxfp format as it has no representation for it.")
     u = e2m1mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 4, False)
 
@@ -167,6 +173,8 @@ def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
 
 def mxint2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
+    if math.isnan(f):
+        raise ValueError("Cannot convert float('nan') to mxint format as it has no representation for it.")
     f *= 2 ** 6  # Remove the implicit scaling factor
     if f > 127:  # 1 + 63/64
         return BitStore('01111111')

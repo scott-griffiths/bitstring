@@ -303,3 +303,66 @@ def test_lut_are_consistent():
             else:
                 assert lut_int_to_float[i] == lut_int_to_float2[i]
         assert lut_float16_to_mxfp == lut_float16_to_mxfp2
+
+def test_conversion_from_nan():
+    x = BitArray(e4m3mxfp=float('nan'))
+    assert x == '0b11111111'
+    x = BitArray(e5m2mxfp=float('nan'))
+    assert x == '0b11111111'
+    with pytest.raises(ValueError):
+        _ = BitArray(e3m2mxfp=float('nan'))
+    with pytest.raises(ValueError):
+        _ = BitArray(e2m3mxfp=float('nan'))
+    with pytest.raises(ValueError):
+        _ = BitArray(e2m1mxfp=float('nan'))
+    with pytest.raises(ValueError):
+        _ = BitArray(mxint=float('nan'))
+    x = BitArray(e8m0mxfp=float('nan'))
+    assert x == '0b11111111'
+
+def test_conversion_from_inf():
+    x = BitArray(e5m2mxfp=float('inf'))
+    assert x == '0b01111100'
+    x = BitArray(e5m2mxfp=float('-inf'))
+    assert x == '0b11111100'
+    x = BitArray(e4m3mxfp=float('inf'))
+    assert x.e4m3mxfp == 448.0
+    x = BitArray(e4m3mxfp=float('-inf'))
+    assert x.e4m3mxfp == -448.0
+
+    x = BitArray(e5m2mxfp=float('inf'))
+    assert math.isinf(x.e5m2mxfp)
+    assert x.e5m2mxfp > 0
+    x = BitArray(e5m2mxfp=float('-inf'))
+    assert x.e5m2mxfp < 0
+    assert math.isinf(x.e5m2mxfp)
+
+    x = BitArray(e5m2mxfp=1e10)
+    assert x.e5m2mxfp == 57344.0
+    x = BitArray(e5m2mxfp=-1e10)
+    assert x.e5m2mxfp == -57344.0
+
+    x = BitArray(e3m2mxfp=float('inf'))
+    assert x.e3m2mxfp == 28.0
+    x = BitArray(e3m2mxfp=float('-inf'))
+    assert x.e3m2mxfp == -28.0
+
+    x = BitArray(e2m3mxfp=float('inf'))
+    assert x.e2m3mxfp == 7.5
+    x = BitArray(e2m3mxfp=float('-inf'))
+    assert x.e2m3mxfp == -7.5
+
+    x = BitArray(e2m1mxfp=float('inf'))
+    assert x.e2m1mxfp == 6.0
+    x = BitArray(e2m1mxfp=float('-inf'))
+    assert x.e2m1mxfp == -6.0
+
+    x = BitArray(mxint=float('inf'))
+    assert x.mxint == 1.984375
+    x = BitArray(mxint=float('-inf'))
+    assert x.mxint == -2.0
+
+    with pytest.raises(ValueError):
+        _ = BitArray(e8m0mxfp=float('inf'))
+    with pytest.raises(ValueError):
+        _ = BitArray(e8m0mxfp=float('-inf'))

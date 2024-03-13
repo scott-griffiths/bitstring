@@ -221,9 +221,7 @@ class TestConversionToFP8:
                 if f > previous_value:
                     previous_value = f
 
-class TestComparisonWithGfloat:
-
-    def test_8bitfloats(self):
+    def test_compare_8bit_floats_with_gfloat(self):
         for fi, lut in [(gfloat.formats.format_info_p3109(4), p4binary_fmt.lut_binary8_to_float),
                         (gfloat.formats.format_info_p3109(3), p3binary_fmt.lut_binary8_to_float),
                         (gfloat.formats.format_info_ocp_e4m3, e4m3mxfp_fmt.lut_int_to_float),
@@ -237,4 +235,23 @@ class TestComparisonWithGfloat:
                     # The floats should be bitwise equal.
                     assert f == g
 
+    def test_conversion_from_nan(self):
+        x = BitArray(p4binary8=float('nan'))
+        assert x == '0x80'
+        x = BitArray(p3binary8=float('nan'))
+        assert x == '0x80'
+
+    def test_conversion_from_inf(self):
+        x = BitArray(p4binary8=float('inf'))
+        assert x == '0x7f'
+        x = BitArray(p3binary8=float('inf'))
+        assert x == '0x7f'
+        x = BitArray(p4binary8=float('-inf'))
+        assert x == '0xff'
+        x = BitArray(p3binary8=float('-inf'))
+        assert x == '0xff'
+
+        # TODO: Should this round to inf or to the max value?
+        # x = BitArray(p3binary=1e10)
+        # assert x == '0x7e'
 
