@@ -71,6 +71,8 @@ class Array:
                  trailing_bits: Optional[BitsType] = None) -> None:
         self.data = BitArray()
         if isinstance(dtype, Dtype) and dtype.scale == 'auto':
+            if isinstance(initializer, (int, Bits, bytes, bytearray, memoryview, BinaryIO)):
+                raise TypeError("An Array with an 'auto' scale factor can only be created from an iterable of values.")
             auto_scale = self._calculate_auto_scale(initializer, dtype.name, dtype.length)
             dtype = Dtype(dtype.name, dtype.length, scale=auto_scale)
         try:
@@ -111,6 +113,9 @@ class Array:
         if f'{name}{length}' in Array._largest_values.keys():
             float_values = Array('float64', initializer).tolist()
             max_float_value = max(abs(x) for x in float_values)
+            if max_float_value == 0:
+                # This special case isn't covered in the standard. I'm choosing to return no scale.
+                return 1.0
             log2 = int(math.log2(max_float_value))
             lp2 = int(math.log2(Array._largest_values[f'{name}{length}']))
             lg_scale = log2 - lp2

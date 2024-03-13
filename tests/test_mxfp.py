@@ -232,6 +232,8 @@ def test_auto_scaling2():
     assert a.dtype.scale == 2 ** 127
     a = Array(Dtype('e2m1mxfp', scale='auto'), [1e-200])
     assert a.dtype.scale == 2 ** -127
+    a = Array(Dtype('e2m1mxfp', scale='auto'), [0, 0, 0, 0])
+    assert a.dtype.scale == 1
 
 
 def test_scaled_array_errors():
@@ -241,6 +243,11 @@ def test_scaled_array_errors():
         _ = Array(Dtype('uint9', scale='auto'), [0.0, 100.0, 256.0, -150.0])
     with pytest.raises(ValueError):
         _ = Dtype('e3m2mxfp', scale=0)
+    with pytest.raises(TypeError):
+        _ = Array(Dtype('e3m2mxfp', scale='auto'), b'hello')
+    with pytest.raises(TypeError):
+        _ = Array(Dtype('e3m2mxfp', scale='auto'), 100)
+
 
 def test_changing_to_auto_scaled_array():
     a = Array('int16', [0, 2003, -43, 104, 6, 1, 99])
