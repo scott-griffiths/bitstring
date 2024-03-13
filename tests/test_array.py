@@ -52,7 +52,7 @@ class TestCreation:
     def test_creation_from_float8(self):
         a = Array('p4binary')
         a.data.bytes = b'\x7f\x00'
-        assert a[0] == 240.0
+        assert a[0] == float('inf')
         assert a[1] == 0.0
         b = Array('p4binary', [100000, -0.0])
         assert a.equals(b)

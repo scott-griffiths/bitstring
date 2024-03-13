@@ -234,7 +234,7 @@ To change the scale, replace the dtype in the `Array`::
 
         >>> a.dtype = Dtype('e2m1mxfp', scale=2**6)
 
-When used initialising an `Array` you can also use the string ``'auto'`` as the scale, and an appropriate scale will be calculated based on the data. ::
+When initialising an `Array` you can also use the string ``'auto'`` as the scale, and an appropriate scale will be calculated based on the data. ::
 
         >>> a = Array(Dtype('e2m1mxfp', scale='auto'), [0.0, 0.5, 40.5, 106.25, -52.0, -8.0])
         >>> a.pp()

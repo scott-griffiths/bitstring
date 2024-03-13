@@ -735,11 +735,11 @@ class Bits:
 
     def _getp4binary(self) -> float:
         u = self._getuint()
-        return p4binary_fmt.lut_int8_to_float[u]
+        return p4binary_fmt.lut_binary8_to_float[u]
 
     def _getp3binary(self) -> float:
         u = self._getuint()
-        return p3binary_fmt.lut_int8_to_float[u]
+        return p3binary_fmt.lut_binary8_to_float[u]
 
     def _gete4m3mxfp(self) -> float:
         u = self._getuint()
