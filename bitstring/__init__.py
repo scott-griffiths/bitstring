@@ -235,23 +235,23 @@ dtype_definitions = [
 
     # MXFP and IEEE 8-bit float types
     DtypeDefinition('p3binary', Bits._setp3binary, Bits._getp3binary, float, True, p3binary_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with p3binary format"),
+                    allowed_lengths=(8,), description="an 8 bit float with binary8p3 format"),
     DtypeDefinition('p4binary', Bits._setp4binary, Bits._getp4binary, float, True, p4binary_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with p4binary format"),
+                    allowed_lengths=(8,), description="an 8 bit float with binary8p4 format"),
     DtypeDefinition('e4m3mxfp', Bits._sete4m3mxfp, Bits._gete4m3mxfp, float, True, e4m3mxfp_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with e4m3mxfp format"),
+                    allowed_lengths=(8,), description="an 8 bit float with MXFP E4M3 format"),
     DtypeDefinition('e5m2mxfp', Bits._sete5m2mxfp, Bits._gete5m2mxfp, float, True, e5m2mxfp_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with e5m2mxfp format"),
+                    allowed_lengths=(8,), description="an 8 bit float with MXFP E5M2 format"),
     DtypeDefinition('e3m2mxfp', Bits._sete3m2mxfp, Bits._gete3m2mxfp, float, True, e3m2mxfp_bits2chars,
-                    allowed_lengths=(6,), description="a 6 bit float with e3m2mxfp format"),
+                    allowed_lengths=(6,), description="a 6 bit float with MXFP E3M2 format"),
     DtypeDefinition('e2m3mxfp', Bits._sete2m3mxfp, Bits._gete2m3mxfp, float, True, e2m3mxfp_bits2chars,
-                    allowed_lengths=(6,), description="a 6 bit float with e2m3mxfp format"),
+                    allowed_lengths=(6,), description="a 6 bit float with MXFP E2M3 format"),
     DtypeDefinition('e2m1mxfp', Bits._sete2m1mxfp, Bits._gete2m1mxfp, float, True, e2m1mxfp_bits2chars,
-                    allowed_lengths=(4,), description="a 4 bit float with e2m1mxfp format"),
+                    allowed_lengths=(4,), description="a 4 bit float with MXFP E2M1 format"),
     DtypeDefinition('e8m0mxfp', Bits._sete8m0mxfp, Bits._gete8m0mxfp, float, False, e8m0mxfp_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with e8m0mxfp format"),
+                    allowed_lengths=(8,), description="an 8 bit float with MXFP E8M0 format"),
     DtypeDefinition('mxint', Bits._setmxint, Bits._getmxint, float, True, mxint_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with mxint format"),
+                    allowed_lengths=(8,), description="an 8 bit float with MXFP INT8 format"),
 ]
 
 

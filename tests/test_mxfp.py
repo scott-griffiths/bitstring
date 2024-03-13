@@ -228,6 +228,11 @@ def test_auto_scaling2():
     some_floats = [-4, 100.0, -9999, 0.5, 42, 666]
     a = Array(Dtype('float16', scale='auto'), some_floats)
     assert a[2] == -10000.0
+    a = Array(Dtype('e2m1mxfp', scale='auto'), [1e200])
+    assert a.dtype.scale == 2 ** 127
+    a = Array(Dtype('e2m1mxfp', scale='auto'), [1e-200])
+    assert a.dtype.scale == 2 ** -127
+
 
 def test_scaled_array_errors():
     with pytest.raises(ValueError):

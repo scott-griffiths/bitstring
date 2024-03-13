@@ -113,7 +113,13 @@ class Array:
             max_float_value = max(abs(x) for x in float_values)
             log2 = int(math.log2(max_float_value))
             lp2 = int(math.log2(Array._largest_values[f'{name}{length}']))
-            return 2 ** (log2 - lp2)
+            lg_scale = log2 - lp2
+            # Saturate at values representable in E8M0 format.
+            if lg_scale > 127:
+                lg_scale = 127
+            elif lg_scale < -127:
+                lg_scale = -127
+            return 2 ** lg_scale
         else:
             raise ValueError(f"Can't calculate auto scale for format '{name}{length}'. "
                              f"This feature is only available for these formats: {list(Array._largest_values.keys())}.")
