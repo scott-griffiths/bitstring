@@ -11,6 +11,18 @@ class Options:
         self.set_lsb0(False)
         self._bytealigned = False
         self.colourful_prettyprinting = True
+        self._mxfp_overflow = 'saturate'
+
+    @property
+    def mxfp_overflow(self) -> str:
+        return self._mxfp_overflow
+
+    @mxfp_overflow.setter
+    def mxfp_overflow(self, value: str) -> None:
+        allowed_values = ('saturate', 'overflow')
+        if value not in allowed_values:
+            raise ValueError(f"mxfp_overflow must be one of {allowed_values}, not {value}.")
+        self._mxfp_overflow = value
 
     def __repr__(self) -> str:
         return f"bytealigned: {self._bytealigned}\nlsb0: {self._lsb0}"

@@ -36,22 +36,21 @@ def createLUT_for_int_to_float(exp_bits: int, mantissa_bits: int, bias: int) -> 
         i2f.append(f if not sign else -f)
     return array.array('f', i2f)
 
-
-def createLUT_for_float16_to_mxfp(lut_int_to_float, exp_bits: int, mantissa_bits: int, bias: int) -> bytes:
+def createLUT_for_float16_to_mxfp(lut_int_to_float, exp_bits: int, mantissa_bits: int, mxfp_overflow: str) -> bytes:
     """Create a LUT to convert a float16 into a MXFP format"""
     # Used to create the LUT that was compressed and stored for the fp8 code
     fp16_to_fp8 = bytearray(1 << 16)
     for i in range(1 << 16):
         b = struct.pack('>H', i)
         f, = struct.unpack('>e', b)
-        fp8_i = slow_float_to_int(f, lut_int_to_float, exp_bits, mantissa_bits, bias)
+        fp8_i = slow_float_to_int(f, lut_int_to_float, exp_bits, mantissa_bits, mxfp_overflow)
         if fp8_i == 1 << (exp_bits + mantissa_bits):
             # Got back int representing binary digits for negative zero. Just convert to positive zero instead.
             fp8_i = 0
         fp16_to_fp8[i] = fp8_i
     return bytes(fp16_to_fp8)
 
-def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: int, bias: int) -> int:
+def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: int, mxfp_overflow: str) -> int:
     # Slow, but easier to follow than the faster version.
     # The output int has the binary sequence needed for the float.
     length = 1 + exp_bits + mantissa_bits
@@ -75,12 +74,17 @@ def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: 
                 return i if i % 2 == 0 else i + 1
         # Clip to positive max
         if exp_bits == 5:
-            if math.isinf(f):
-                return 0b01111100  # e5m2 +inf
-            else:
+            if mxfp_overflow == 'saturate':
                 return 0b01111011  # e5m2 max value of 57344
+            else:
+                assert mxfp_overflow == 'overflow'
+                return 0b01111100  # e5m2 +inf
         if exp_bits == 4:
-            return 0b01111110  # e4m3 max value of 448 (no +inf available)
+            if mxfp_overflow == 'saturate':
+                return 0b01111110  # e4m3 max value of 448 (no +inf available)
+            else:
+                assert mxfp_overflow == 'overflow'
+                return 0xff  # NaN
         return (1 << (length - 1)) - 1
     if f < 0:
         # Negative, so top bit is set
@@ -101,12 +105,17 @@ def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: 
                 return i if i % 2 == 0 else i + 1
         # Clip to negative max
         if exp_bits == 5:
-            if math.isinf(f):
-                return 0b11111100  # e5m2 -inf
-            else:
+            if mxfp_overflow == 'saturate':
                 return 0b11111011  # e5m2 max value of -57344
+            else:
+                assert mxfp_overflow == 'overflow'
+                return 0b11111100  # e5m2 -inf
         if exp_bits == 4:
-            return 0b11111110  # e4m3 max value of -448 (no -inf available)
+            if mxfp_overflow == 'saturate':
+                return 0b11111110  # e4m3 max value of -448 (no -inf available)
+            else:
+                assert mxfp_overflow == 'overflow'
+                return 0xff  # NaN
         return (1 << length) - 1
     if math.isnan(f):
         if length == 8:

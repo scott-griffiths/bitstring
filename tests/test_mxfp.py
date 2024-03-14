@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 import math
-from bitstring import BitArray, Dtype, Array
+from bitstring import BitArray, Dtype, Array, options
 from bitstring.mxfp import createLUT_for_int_to_float, createLUT_for_float16_to_mxfp
 import pytest
 from bitstring.luts import mxfp_luts_compressed
@@ -300,7 +300,7 @@ def test_lut_are_consistent():
     for (exp_bits, mantissa_bits, bias) in [(2, 1, 1), (2, 3, 1), (3, 2, 3), (4, 3, 7), (5, 2, 15)]:
         # First calculate the LUT the long way
         lut_int_to_float = createLUT_for_int_to_float(exp_bits, mantissa_bits, bias)
-        lut_float16_to_mxfp = createLUT_for_float16_to_mxfp(lut_int_to_float, exp_bits, mantissa_bits, bias)
+        lut_float16_to_mxfp = createLUT_for_float16_to_mxfp(lut_int_to_float, exp_bits, mantissa_bits)
 
         # Then get the LUTs from the compressed data
         int_to_float_compressed, float16_to_mxfp_compressed = mxfp_luts_compressed[(exp_bits, mantissa_bits, bias)]
@@ -333,27 +333,6 @@ def test_conversion_from_nan():
     assert x == '0b11111111'
 
 def test_conversion_from_inf():
-    x = BitArray(e5m2mxfp=float('inf'))
-    assert x == '0b01111100'
-    x = BitArray(e5m2mxfp=float('-inf'))
-    assert x == '0b11111100'
-    x = BitArray(e4m3mxfp=float('inf'))
-    assert x.e4m3mxfp == 448.0
-    x = BitArray(e4m3mxfp=float('-inf'))
-    assert x.e4m3mxfp == -448.0
-
-    x = BitArray(e5m2mxfp=float('inf'))
-    assert math.isinf(x.e5m2mxfp)
-    assert x.e5m2mxfp > 0
-    x = BitArray(e5m2mxfp=float('-inf'))
-    assert x.e5m2mxfp < 0
-    assert math.isinf(x.e5m2mxfp)
-
-    x = BitArray(e5m2mxfp=1e10)
-    assert x.e5m2mxfp == 57344.0
-    x = BitArray(e5m2mxfp=-1e10)
-    assert x.e5m2mxfp == -57344.0
-
     x = BitArray(e3m2mxfp=float('inf'))
     assert x.e3m2mxfp == 28.0
     x = BitArray(e3m2mxfp=float('-inf'))
@@ -378,3 +357,49 @@ def test_conversion_from_inf():
         _ = BitArray(e8m0mxfp=float('inf'))
     with pytest.raises(ValueError):
         _ = BitArray(e8m0mxfp=float('-inf'))
+
+def test_conversion_to_8bit_with_saturate():
+    assert options.mxfp_overflow == 'saturate'
+    x = BitArray(e5m2mxfp=float('inf'))
+    assert x.e5m2mxfp == 57344.0
+    x = BitArray(e5m2mxfp=float('-inf'))
+    assert x.e5m2mxfp == -57344.0
+
+    x = BitArray(e5m2mxfp=1e10)
+    assert x.e5m2mxfp == 57344.0
+    x = BitArray(e5m2mxfp=-1e10)
+    assert x.e5m2mxfp == -57344.0
+
+    x = BitArray(e4m3mxfp=float('inf'))
+    assert x.e4m3mxfp == 448.0
+    x = BitArray(e4m3mxfp=float('-inf'))
+    assert x.e4m3mxfp == -448.0
+
+    x = BitArray(e4m3mxfp=1e10)
+    assert x.e4m3mxfp == 448.0
+    x = BitArray(e4m3mxfp=-1e10)
+    assert x.e4m3mxfp == -448.0
+
+def test_conversion_to_8bit_with_overflow():
+    options.mxfp_overflow = 'overflow'
+    x = BitArray(e5m2mxfp=float('inf'))
+    assert x.e5m2mxfp == float('inf')
+    x = BitArray(e5m2mxfp=float('-inf'))
+    assert x.e5m2mxfp == float('-inf')
+
+    x = BitArray(e5m2mxfp=1e10)
+    assert x.e5m2mxfp == float('inf')
+    x = BitArray(e5m2mxfp=-1e10)
+    assert x.e5m2mxfp == float('-inf')
+
+    x = BitArray(e4m3mxfp=float('inf'))
+    assert math.isnan(x.e4m3mxfp)
+    x = BitArray(e4m3mxfp=float('-inf'))
+    assert math.isnan(x.e4m3mxfp)
+
+    x = BitArray(e4m3mxfp=1e10)
+    assert math.isnan(x.e4m3mxfp)
+    x = BitArray(e4m3mxfp=-1e10)
+    assert math.isnan(x.e4m3mxfp)
+
+    options.mxfp_overflow = 'saturate'
