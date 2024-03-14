@@ -137,8 +137,24 @@ class MXFPFormat:
         self.bias = bias
         self.mxfp_overflow = mxfp_overflow
 
-        # TODO: Store values for Nan, inf, max_value, etc here to use later for better clarity.
-        #
+        self.pos_clamp_value = (1 << (self.exp_bits + self.mantissa_bits)) - 1
+        self.neg_clamp_value = (1 << (1 + self.exp_bits + self.mantissa_bits)) - 1
+
+        # Special cases for e4m3 and e5m2
+        if self.exp_bits == 4 and self.mantissa_bits == 3:
+            if self.mxfp_overflow == 'saturate':
+                self.pos_clamp_value = 0b01111110  # 448
+                self.neg_clamp_value = 0b11111110  # -448
+            else:
+                self.pos_clamp_value = self.neg_clamp_value = 0b11111111  # NaN
+        if self.exp_bits == 5 and self.mantissa_bits == 2:
+            if self.mxfp_overflow == 'saturate':
+                self.pos_clamp_value = 0b01111011  # 57344
+                self.neg_clamp_value = 0b11111011  # -57344
+            else:
+                self.pos_clamp_value = 0b01111100  # +inf
+                self.neg_clamp_value = 0b11111100  # -inf
+
         int_to_float_compressed, float16_to_mxfp_compressed = mxfp_luts_compressed[(exp_bits, mantissa_bits, bias, mxfp_overflow)]
         self.lut_float16_to_mxfp = zlib.decompress(float16_to_mxfp_compressed)
         dec = zlib.decompress(int_to_float_compressed)
@@ -151,18 +167,8 @@ class MXFPFormat:
             b = struct.pack('>e', f)
         except (OverflowError, struct.error):
             # Return the largest representable positive or negative value
-            # Special cases for e4m3 and e5m2
-            if self.exp_bits == 4 and self.mantissa_bits == 3:
-                if self.mxfp_overflow == 'saturate':
-                    return 0b01111110 if f > 0 else 0b11111110  # +- 448
-                else:
-                    return 0b11111111  # NaN
-            if self.exp_bits == 5 and self.mantissa_bits == 2:
-                if self.mxfp_overflow == 'saturate':
-                    return 0b01111011 if f > 0 else 0b11111011  # +- 57344
-                else:
-                    return 0b01111100 if f > 0 else 0b11111100  # +- inf
-            return (1 << (self.exp_bits + self.mantissa_bits)) - 1 if f > 0 else (1 << (1 + self.exp_bits + self.mantissa_bits)) - 1
+            return self.pos_clamp_value if f > 0 else self.neg_clamp_value
+
         f16_int = int.from_bytes(b, byteorder='big')
         # Then use this as an index to our large LUT
         return self.lut_float16_to_mxfp[f16_int]
