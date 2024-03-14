@@ -15,12 +15,17 @@ You can try out an interactive walkthrough notebook on `binder <https://mybinder
  :target: https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml
 
 .. image:: https://img.shields.io/readthedocs/bitstring
+    :target: https://bitstring.readthedocs.io/en/latest/
 
-.. image:: https://img.shields.io/pypi/dm/bitstring?color=blue
+.. image:: https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4?logo=codacy
+    :target: https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
+
+.. image:: https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue
+ :target: https://www.pepy.tech/projects/bitstring
+
+.. image:: https://img.shields.io/pypi/dm/bitstring?label=%40&labelColor=blue&color=blue)
  :target: https://pypistats.org/packages/bitstring
 
-.. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb
 
 ------
 

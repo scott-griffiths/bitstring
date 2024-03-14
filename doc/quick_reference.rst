@@ -125,8 +125,6 @@ Many require the bitstring to be specific lengths.
 * :attr:`~Bits.float` / ``floatbe`` / ``f`` -- Interpret as a big-endian floating point number.
 * :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
 * :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
-* :attr:`~Bits.p4binary` -- Interpret as an 8 bit float with 1:4:3 format.
-* :attr:`~Bits.p3binary` -- Interpret as an 8 bit float with 1:5:2 format.
 * :attr:`~Bits.bfloat` / ``bfloatbe`` -- Interpret as a big-endian bfloat floating point number.
 * :attr:`~Bits.bfloatle` -- Interpret as a little-endian bfloat floating point number.
 * :attr:`~Bits.bfloatne` -- Interpret as a native-endian bfloat floating point number.
@@ -145,6 +143,9 @@ Many require the bitstring to be specific lengths.
 * :attr:`~Bits.uintbe` -- Interpret as a big-endian unsigned integer.
 * :attr:`~Bits.uintle` -- Interpret as a little-endian unsigned integer.
 * :attr:`~Bits.uintne` -- Interpret as a native-endian unsigned integer.
+
+Several flavours of 8-bit and smaller floating point interpretations are also available.
+See :ref:`Exotic floats` for more information.
 
 ----
 
@@ -404,17 +405,17 @@ Properties
 
 All properties are read-only.
 
-* :attr:`~Dtype.scale` -- The multiplicative scale applied when interpreting the data.
-* :attr:`~Dtype.name` -- A string giving the name of the data type.
-* :attr:`~Dtype.length` -- The length of the data type in units of `bits_per_item`.
 * :attr:`~Dtype.bitlength` -- The number of bits needed to represent a single instance of the data type.
 * :attr:`~Dtype.bits_per_item` -- The number of bits for each unit of length. Ususally 1, but equals 8 for `bytes` type.
-* :attr:`~Dtype.variable_length` -- If True then the length of the data type varies, and shouldn't be specified.
-* :attr:`~Dtype.return_type` -- The type of the value returned by the `parse` method.
-* :attr:`~Dtype.is_signed` -- If True then the data type represents a signed quantity.
-* :attr:`~Dtype.set_fn` -- A function to set the value of the data type.
 * :attr:`~Dtype.get_fn` -- A function to get the value of the data type.
+* :attr:`~Dtype.is_signed` -- If True then the data type represents a signed quantity.
+* :attr:`~Dtype.length` -- The length of the data type in units of `bits_per_item`.
+* :attr:`~Dtype.name` -- A string giving the name of the data type.
 * :attr:`~Dtype.read_fn` -- A function to read the value of the data type.
+* :attr:`~Dtype.return_type` -- The type of the value returned by the `parse` method.
+* :attr:`~Dtype.scale` -- The multiplicative scale applied when interpreting the data.
+* :attr:`~Dtype.set_fn` -- A function to set the value of the data type.
+* :attr:`~Dtype.variable_length` -- If True then the length of the data type varies, and shouldn't be specified.
 
 
 General Information
@@ -446,8 +447,6 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
 ``'bfloatbe[:16]'`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
 ``'bfloatle[:16]'`` 16 bits as a little-endian floating point number.
 ``'bfloatne[:16]'`` 16 bits as a native-endian floating point number.
-``'p4binary'``    8 bits as a 1:4:3 format floating point number.
-``'p3binary'``    8 bits as a 1:5:2 format floating point number.
 ``'hex:n'``         ``n`` bits as a hexadecimal string.
 ``'oct:n'``         ``n`` bits as an octal string.
 ``'bin:n'``         ``n`` bits as a binary string.
@@ -464,6 +463,9 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
 The ``':'`` before the length is optional, and is mostly omitted in the documentation, except where it improves readability.
 
 The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can all be shortened to just their initial letter.
+
+Several flavours of 8-bit and smaller floating point interpretations are also available.
+See :ref:`Exotic floats` for more information.
 
 Bitstring literals
 ^^^^^^^^^^^^^^^^^^
@@ -543,8 +545,11 @@ Exceptions
 * :class:`~bitstring.ByteAlignError` -- Whole-byte position or length needed.
 * :class:`~bitstring.CreationError` -- Inappropriate argument during bitstring creation.
 
-Module variables
-^^^^^^^^^^^^^^^^
-* :data:`~bitstring.bytealigned` -- Determines whether a number of methods default to working only on byte boundaries.
-* :data:`~bitstring.lsb0` -- If True, index bits with the least significant bit (the final bit) as bit zero.
+Options
+^^^^^^^
 
+The `bitstring.options` object contains module level options that can be changed to affect the behaviour of the module.
+
+* :data:`~bitstring.options.bytealigned` -- Determines whether a number of methods default to working only on byte boundaries.
+* :data:`~bitstring.options.lsb0` -- If True, index bits with the least significant bit (the final bit) as bit zero.
+* :data:`~bitstring.options.mxfp_overflow` -- Determines how values are converted to 8-bit MX floats. Can be either ``'saturate'`` (the default) or ``'overflow'``. See :ref:`Exotic floats`.

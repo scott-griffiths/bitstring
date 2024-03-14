@@ -85,18 +85,19 @@ Finally it is also possible just to use a keyword as a token::
     s = bitstring.pack('hello, world', world='0x123', hello='0b110')
 
 
-Module Variables
-----------------
+Options
+-------
+The bitstring module has an ``options`` object that allows certain module-wide behaviours to be set.
 
 lsb0
 ^^^^
 
-.. data:: lsb0
+.. data:: bitstring.options.lsb0 : bool
 
 By default bit numbering in the bitstring module is done from 'left' to 'right'. That is, from bit ``0`` at the start of the data to bit ``n - 1`` at the end. This allows bitstrings to be treated like an ordinary Python container that is only allowed to contain single bits.
 
 
-The ``lsb0`` module variable allows bitstrings to use Least Significant Bit Zero
+The ``lsb0`` option allows bitstrings to use Least Significant Bit Zero
 (LSB0) bit numbering; that is the right-most bit in the bitstring will
 be bit 0, and the left-most bit will be bit (n-1), rather than the
 other way around. LSB0 is a more natural numbering
@@ -162,9 +163,9 @@ When bitstrings (or slices of bitstrings) are interpreted as integers and other 
 
 To illustrate this, for the example above this means that the bin and int representations would be ``010001111`` and ``143`` respectively for both MSB0 and LSB0 bit numbering.
 
-To switch from the default MSB0, use the module level attribute ``bitstring.lsb0``. This defaults to ``False`` and unless explicitly stated all examples and documentation related to the bitstring module use the default MSB0 indexing.
+To switch from the default MSB0, use ``bitstring.options.lsb0``. This defaults to ``False`` and unless explicitly stated all examples and documentation related to the bitstring module use the default MSB0 indexing.
 
-    >>> bitstring.lsb0 = True
+    >>> bitstring.options.lsb0 = True
 
 Slicing is still done with the start bit smaller than the end bit.
 For example:
@@ -185,11 +186,10 @@ Reading, peeking and unpacking of bitstrings are also affected by the ``lsb0`` f
 
 For ``BitStream`` and ``ConstBitStream`` objects changing the value of ``bitstring.lsb0`` invalidates the current position in the bitstring, unless that value is ``0``, and future results are undefined. Basically don't perform reads or change the current bit position before switching the bit numbering system!
 
-
 bytealigned
 ^^^^^^^^^^^
 
-.. data:: bytealigned
+.. data:: bitstring.options.bytealigned : bool
 
 A number of methods take a bytealigned parameter to indicate that they should only work on byte boundaries (e.g. :meth:`~Bits.find`, :meth:`~Bits.findall`, :meth:`~Bits.split` and :meth:`~BitArray.replace`). This parameter defaults to ``bitstring.bytealigned``, which itself defaults to ``False``, but can be changed to modify the default behaviour of the methods. For example::
 
@@ -198,7 +198,7 @@ A number of methods take a bytealigned parameter to indicate that they should on
     (4,)    # found first not on a byte boundary
     >>> a.find('0x0f', bytealigned=True)
     (16,)   # forced looking only on byte boundaries
-    >>> bitstring.bytealigned = True  # Change default behaviour
+    >>> bitstring.options.bytealigned = True  # Change default behaviour
     >>> a.find('0x0f')
     (16,)
     >>> a.find('0x0f', bytealigned=False)
@@ -206,6 +206,13 @@ A number of methods take a bytealigned parameter to indicate that they should on
 
 If you’re only working with bytes then this can help avoid some errors and save some typing.
 
+mxfp_overflow
+^^^^^^^^^^^^^
+.. data:: bitstring.options.mxfp_overflow : str
+
+This option can be used to change the out-of-range behaviour of some 8-bit floating point types.
+The default value is ``'saturate'`` but it can also be set to ``'overflow'``.
+See :ref:`Exotic floats` for details.
 
 Command Line Usage
 ------------------
