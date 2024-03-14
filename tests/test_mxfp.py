@@ -300,10 +300,10 @@ def test_lut_are_consistent():
     for (exp_bits, mantissa_bits, bias) in [(2, 1, 1), (2, 3, 1), (3, 2, 3), (4, 3, 7), (5, 2, 15)]:
         # First calculate the LUT the long way
         lut_int_to_float = createLUT_for_int_to_float(exp_bits, mantissa_bits, bias)
-        lut_float16_to_mxfp = createLUT_for_float16_to_mxfp(lut_int_to_float, exp_bits, mantissa_bits)
+        lut_float16_to_mxfp = createLUT_for_float16_to_mxfp(lut_int_to_float, exp_bits, mantissa_bits, 'saturate')
 
         # Then get the LUTs from the compressed data
-        int_to_float_compressed, float16_to_mxfp_compressed = mxfp_luts_compressed[(exp_bits, mantissa_bits, bias)]
+        int_to_float_compressed, float16_to_mxfp_compressed = mxfp_luts_compressed[(exp_bits, mantissa_bits, bias, 'saturate')]
         lut_float16_to_mxfp2 = zlib.decompress(float16_to_mxfp_compressed)
         dec = zlib.decompress(int_to_float_compressed)
         lut_int_to_float2 = struct.unpack(f'<{len(dec) // 4}f', dec)
@@ -380,8 +380,14 @@ def test_conversion_to_8bit_with_saturate():
     x = BitArray(e4m3mxfp=-1e10)
     assert x.e4m3mxfp == -448.0
 
-def test_conversion_to_8bit_with_overflow():
+@pytest.fixture
+def switch_to_overflow():
     options.mxfp_overflow = 'overflow'
+    yield
+    options.mxfp_overflow = 'saturate'
+
+@pytest.mark.usefixtures('switch_to_overflow')
+def test_conversion_to_8bit_with_overflow():
     x = BitArray(e5m2mxfp=float('inf'))
     assert x.e5m2mxfp == float('inf')
     x = BitArray(e5m2mxfp=float('-inf'))
@@ -401,5 +407,3 @@ def test_conversion_to_8bit_with_overflow():
     assert math.isnan(x.e4m3mxfp)
     x = BitArray(e4m3mxfp=-1e10)
     assert math.isnan(x.e4m3mxfp)
-
-    options.mxfp_overflow = 'saturate'

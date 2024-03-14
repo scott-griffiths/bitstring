@@ -8,7 +8,7 @@ import math
 import bitstring
 from bitstring import Bits, BitArray, BitStream
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
-from bitstring.mxfp import e4m3mxfp_fmt, e5m2mxfp_fmt
+from bitstring.mxfp import e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt
 import gfloat
 
 sys.path.insert(0, '..')
@@ -224,8 +224,8 @@ class TestConversionToFP8:
     def test_compare_8bit_floats_with_gfloat(self):
         for fi, lut in [(gfloat.formats.format_info_p3109(4), p4binary_fmt.lut_binary8_to_float),
                         (gfloat.formats.format_info_p3109(3), p3binary_fmt.lut_binary8_to_float),
-                        (gfloat.formats.format_info_ocp_e4m3, e4m3mxfp_fmt.lut_int_to_float),
-                        (gfloat.formats.format_info_ocp_e5m2, e5m2mxfp_fmt.lut_int_to_float)]:
+                        (gfloat.formats.format_info_ocp_e4m3, e4m3mxfp_saturate_fmt.lut_int_to_float),
+                        (gfloat.formats.format_info_ocp_e5m2, e5m2mxfp_saturate_fmt.lut_int_to_float)]:
             for i in range(256):
                 f = lut[i]
                 g = gfloat.decode_float(fi, i).fval

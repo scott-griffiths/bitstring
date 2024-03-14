@@ -11,7 +11,7 @@ class Options:
         self.set_lsb0(False)
         self._bytealigned = False
         self.colourful_prettyprinting = True
-        self._mxfp_overflow = 'saturate'
+        self.mxfp_overflow = 'saturate'
 
     @property
     def mxfp_overflow(self) -> str:

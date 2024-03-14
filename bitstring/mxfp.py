@@ -60,6 +60,8 @@ def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: 
         for i in range(values // 2 - 1):
             lower = lut_int_to_float[i]
             upper = lut_int_to_float[i + 1]
+            if upper == float('inf'):
+                break
             if f == lower:
                 return i
             if f == upper:
@@ -91,6 +93,8 @@ def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: 
         for i in range(values // 2, values - 1):
             upper = lut_int_to_float[i]
             lower = lut_int_to_float[i + 1]
+            if lower == float('-inf'):
+                break
             if f == lower:
                 return i + 1
             if f == upper:
@@ -127,12 +131,15 @@ def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: 
 class MXFPFormat:
     """Defining an MXFP micro-scaling floating point format"""
 
-    def __init__(self, exp_bits: int, mantissa_bits: int, bias: int):
+    def __init__(self, exp_bits: int, mantissa_bits: int, bias: int, mxfp_overflow: str = 'saturate'):
         self.exp_bits = exp_bits
         self.mantissa_bits = mantissa_bits
         self.bias = bias
+        self.mxfp_overflow = mxfp_overflow
 
-        int_to_float_compressed, float16_to_mxfp_compressed = mxfp_luts_compressed[(exp_bits, mantissa_bits, bias)]
+        # TODO: Store values for Nan, inf, max_value, etc here to use later for better clarity.
+        #
+        int_to_float_compressed, float16_to_mxfp_compressed = mxfp_luts_compressed[(exp_bits, mantissa_bits, bias, mxfp_overflow)]
         self.lut_float16_to_mxfp = zlib.decompress(float16_to_mxfp_compressed)
         dec = zlib.decompress(int_to_float_compressed)
         self.lut_int_to_float = struct.unpack(f'<{len(dec) // 4}f', dec)
@@ -146,9 +153,15 @@ class MXFPFormat:
             # Return the largest representable positive or negative value
             # Special cases for e4m3 and e5m2
             if self.exp_bits == 4 and self.mantissa_bits == 3:
-                return 0b01111110 if f > 0 else 0b11111110
+                if self.mxfp_overflow == 'saturate':
+                    return 0b01111110 if f > 0 else 0b11111110  # +- 448
+                else:
+                    return 0b11111111  # NaN
             if self.exp_bits == 5 and self.mantissa_bits == 2:
-                return 0b01111011 if f > 0 else 0b11111011
+                if self.mxfp_overflow == 'saturate':
+                    return 0b01111011 if f > 0 else 0b11111011  # +- 57344
+                else:
+                    return 0b01111100 if f > 0 else 0b11111100  # +- inf
             return (1 << (self.exp_bits + self.mantissa_bits)) - 1 if f > 0 else (1 << (1 + self.exp_bits + self.mantissa_bits)) - 1
         f16_int = int.from_bytes(b, byteorder='big')
         # Then use this as an index to our large LUT
@@ -158,5 +171,8 @@ class MXFPFormat:
 e2m1mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
 e2m3mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
 e3m2mxfp_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3)
-e4m3mxfp_fmt = MXFPFormat(exp_bits=4, mantissa_bits=3, bias=7)
-e5m2mxfp_fmt = MXFPFormat(exp_bits=5, mantissa_bits=2, bias=15)
+e4m3mxfp_saturate_fmt = MXFPFormat(exp_bits=4, mantissa_bits=3, bias=7, mxfp_overflow='saturate')
+e5m2mxfp_saturate_fmt = MXFPFormat(exp_bits=5, mantissa_bits=2, bias=15, mxfp_overflow='saturate')
+e4m3mxfp_overflow_fmt = MXFPFormat(exp_bits=4, mantissa_bits=3, bias=7, mxfp_overflow='overflow')
+e5m2mxfp_overflow_fmt = MXFPFormat(exp_bits=5, mantissa_bits=2, bias=15, mxfp_overflow='overflow')
+
