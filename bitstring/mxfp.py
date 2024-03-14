@@ -4,6 +4,7 @@ import struct
 import bitarray
 from bitstring.luts import mxfp_luts_compressed
 import zlib
+from typing import Optional
 
 
 def createLUT_for_int_to_float(exp_bits: int, mantissa_bits: int, bias: int) -> array.array:
@@ -50,6 +51,27 @@ def createLUT_for_float16_to_mxfp(lut_int_to_float, exp_bits: int, mantissa_bits
         fp16_to_fp8[i] = fp8_i
     return bytes(fp16_to_fp8)
 
+def round_to_nearest_ties_to_even(lut_int_to_float, lower: int, f: float) -> Optional[int]:
+    upper = lower + 1
+    lower_float = lut_int_to_float[lower]
+    upper_float = lut_int_to_float[upper]
+    if upper_float < lower_float:
+        lower, upper = upper, lower
+        lower_float, upper_float = upper_float, lower_float
+    if f == lower_float:
+        return lower
+    if f == upper_float:
+        return upper
+    if lower_float < f < upper_float:
+        d1 = f - lower_float
+        d2 = upper_float - f
+        if d1 < d2:
+            return lower
+        if d2 < d1:
+            return upper
+        return lower if lower % 2 == 0 else upper
+    return None
+
 def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: int, mxfp_overflow: str) -> int:
     # Slow, but easier to follow than the faster version.
     # The output int has the binary sequence needed for the float.
@@ -58,22 +80,12 @@ def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: 
     if f >= 0:
         # Positive, so top bit is not set
         for i in range(values // 2 - 1):
-            lower = lut_int_to_float[i]
             upper = lut_int_to_float[i + 1]
             if upper == float('inf'):
                 break
-            if f == lower:
-                return i
-            if f == upper:
-                return i + 1
-            if lower < f < upper:
-                d1 = f - lower
-                d2 = upper - f
-                if d1 < d2:
-                    return i
-                if d2 < d1:
-                    return i + 1
-                return i if i % 2 == 0 else i + 1
+            x = round_to_nearest_ties_to_even(lut_int_to_float, i, f)
+            if x is not None:
+                return x
         # Clip to positive max
         if exp_bits == 5:
             if mxfp_overflow == 'saturate':
@@ -91,22 +103,12 @@ def slow_float_to_int(f: float, lut_int_to_float, exp_bits: int, mantissa_bits: 
     if f < 0:
         # Negative, so top bit is set
         for i in range(values // 2, values - 1):
-            upper = lut_int_to_float[i]
             lower = lut_int_to_float[i + 1]
             if lower == float('-inf'):
                 break
-            if f == lower:
-                return i + 1
-            if f == upper:
-                return i
-            if lower < f < upper:
-                d1 = f - lower
-                d2 = upper - f
-                if d1 < d2:
-                    return i + 1
-                if d2 < d1:
-                    return i
-                return i if i % 2 == 0 else i + 1
+            x = round_to_nearest_ties_to_even(lut_int_to_float, i, f)
+            if x is not None:
+                return x
         # Clip to negative max
         if exp_bits == 5:
             if mxfp_overflow == 'saturate':
