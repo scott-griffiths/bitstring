@@ -75,7 +75,7 @@ If you'd like the other precisions supported then raise a feature request!
 
 The ``p4binary8`` has a single sign bit, 4 bits for the exponent and 3 bits for the mantissa.
 For a bit more range and less precision you can use ``p3binary8`` which has 5 bits for the exponent and only 2 for the mantissa.
-
+Note that in the standard they are called `binary8p4` and `binary8p3`, but for bitstring types any final digits should be the length of the type, so these slightly modified names were chosen.
 
 .. list-table::
    :header-rows: 1
@@ -156,9 +156,8 @@ or using the :class:`Array` type it's even more concise - we can create an Array
 
 You'll see that there is only 1 zero value and only one 'nan' value, together with positive and negative 'inf' values.
 
-When converting from a Python float (which will typically be stored in 64-bits) unrepresentable values are rounded towards zero.
-
-Similar (but inferior) 8-bit floats are available from the OCP:
+When converting from a Python float (which will typically be stored in 64-bits) unrepresented values are rounded to nearest, with ties-to-even.
+This is the standard method used in IEEE 754.
 
 
 Microscaling Formats
@@ -168,6 +167,10 @@ Microscaling Formats
     This is an experimental feature and may be modified in future point releases.
 
 A range of formats from the Microscaling Formats (MX) Alliance are supported. These are part of the Open Compute Project, and will usually have an external scale factor associated with them.
+
+Eight-bit floats similar to the IEEE `p3binary8` and `p4binary8`  are available, though these seem rather arbitrary and ugly in places in comparison to the IEEE definitions.
+There is also a format to use for the scaling factor, an int-like format which is really a float, and some sensible six and four bit float formats.
+
 
 .. list-table::
    :header-rows: 1
@@ -219,7 +222,7 @@ A range of formats from the Microscaling Formats (MX) Alliance are supported. Th
 * The E5M2 format is similar to the `p3binary8` format but wastes even more values. It does have positive and negative 'inf' values, but also six 'nan' values and two zero values.
 
 The MX formats are designed to work with an external scaling factor.
-This should be in the E8M0 format, which just uses a byte to encode the powers of two from 2\ :sup:`-127` to 2\ :sup:`127`, plus a 'nan' value.
+This should be in the E8M0 format, which uses a byte to encode the powers of two from 2\ :sup:`-127` to 2\ :sup:`127`, plus a 'nan' value.
 This can be specified in bitstring as part of the `Dtype`, and is very useful inside an ``Array``. ::
 
         >>> d = b'some_byte_data'
@@ -234,7 +237,7 @@ To change the scale, replace the dtype in the `Array`::
 
         >>> a.dtype = Dtype('e2m1mxfp', scale=2**6)
 
-When initialising an `Array` you can also use the string ``'auto'`` as the scale, and an appropriate scale will be calculated based on the data. ::
+When initialising an `Array` from a list of values, you can also use the string ``'auto'`` as the scale, and an appropriate scale will be calculated based on the data. ::
 
         >>> a = Array(Dtype('e2m1mxfp', scale='auto'), [0.0, 0.5, 40.5, 106.25, -52.0, -8.0])
         >>> a.pp()
@@ -243,7 +246,9 @@ When initialising an `Array` you can also use the string ``'auto'`` as the scale
         ]
 
 The scale is calculated based on the maximum absolute value of the data and the maximum representable value of the format.
-For more details on this and the formats in general see the `OCP Microscaling formats specification. <https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf>`_
+The auto-scale feature is only available for 8-bit and smaller floating point formats, plus the IEEE 16-bit format.
+If all of the data is zero, then the scale is set to 1.
+For more details on this and these formats in general see the `OCP Microscaling formats specification. <https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf>`_
 
 Conversion
 ^^^^^^^^^^
@@ -252,9 +257,9 @@ When converting from a Python float to an any of the 8-or-fewer bit formats, the
 This is the same as is used in the IEEE 754 standard.
 
 When converting to the 8-bit MX floating point formats, the behaviour of out-of-range values is determined by the ``bitstring.options.mxfp_overflow`` setting.
-By default, this equals ``'saturate'``, which means that values out of the representable range (including infinities) are set to the largest postive or negative representable value, as appropriate.
+By default, this equals ``'saturate'``, which means that values out of the representable range (including infinities) are set to the largest postive or negative finite representable value, as appropriate.
 The option can also be set to ``'overflow'``, which for the ``e4m3mxfp`` format sets out of range value to  ``nan``, and for the ``e5m2mxfp`` format sets them to ``+inf`` or ``-inf``.
 
 The other MX formats all behave like the ``'saturate'`` option (as they don't have infinities).
-The exception is the ``e8m0mxfp`` format, for which no rounding of any kind is done, and a ``ValueError`` will be raised.
+The exception is the ``e8m0mxfp`` format, for which no rounding of any kind is done in this implementation, and a ``ValueError`` will be raised if you try to convert a non-representable value.
 This is because the format is designed as a scaling factor, so it should generally be specified exactly.
