@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import bitstring
+import os
 
 class Options:
     """Internal class to create singleton module options instance."""
@@ -10,8 +11,10 @@ class Options:
     def __init__(self):
         self.set_lsb0(False)
         self._bytealigned = False
-        self.colourful_prettyprinting = True
         self.mxfp_overflow = 'saturate'
+
+        no_color = os.getenv('NO_COLOR')
+        self.no_color = False if no_color is None else bool(int(no_color))
 
     @property
     def mxfp_overflow(self) -> str:
@@ -25,7 +28,8 @@ class Options:
         self._mxfp_overflow = value
 
     def __repr__(self) -> str:
-        return f"bytealigned: {self._bytealigned}\nlsb0: {self._lsb0}"
+        attributes = {attr: getattr(self, attr) for attr in dir(self) if not attr.startswith('_') and not callable(getattr(self, attr))}
+        return '\n'.join(f"{attr}: {value!r}" for attr, value in attributes.items())
 
     @property
     def lsb0(self) -> bool:

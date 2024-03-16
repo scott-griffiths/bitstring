@@ -396,7 +396,7 @@ class Array:
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
         """
-        colour = Colour(options.colourful_prettyprinting)
+        colour = Colour(not options.no_color)
         sep = ' '
         dtype2 = None
         tidy_fmt = None

@@ -1642,7 +1642,7 @@ class Bits:
     def _pp(self, dtype1: Dtype, dtype2: Optional[Dtype], bits_per_group: int, width: int, sep: str, format_sep: str,
             show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
         """Internal pretty print method."""
-        colour = Colour(bitstring.options.colourful_prettyprinting)
+        colour = Colour(not bitstring.options.no_color)
         name1 = dtype1.name
         name2 = dtype2.name if dtype2 is not None else None
         if dtype1.variable_length:
@@ -1725,7 +1725,7 @@ class Bits:
         >>> s.pp('b, h', sep='_', show_offset=False)
 
         """
-        colour = Colour(bitstring.options.colourful_prettyprinting)
+        colour = Colour(not bitstring.options.no_color)
         if fmt is None:
             if len(self) % 8 == 0 and len(self) >= 8:
                 fmt = 'bin, hex'

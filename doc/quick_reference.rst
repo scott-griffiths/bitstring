@@ -406,7 +406,7 @@ Properties
 All properties are read-only.
 
 * :attr:`~Dtype.bitlength` -- The number of bits needed to represent a single instance of the data type.
-* :attr:`~Dtype.bits_per_item` -- The number of bits for each unit of length. Ususally 1, but equals 8 for `bytes` type.
+* :attr:`~Dtype.bits_per_item` -- The number of bits for each unit of length. Usually 1, but equals 8 for `bytes` type.
 * :attr:`~Dtype.get_fn` -- A function to get the value of the data type.
 * :attr:`~Dtype.is_signed` -- If True then the data type represents a signed quantity.
 * :attr:`~Dtype.length` -- The length of the data type in units of `bits_per_item`.
