@@ -13,8 +13,12 @@ class Options:
         self._bytealigned = False
         self.mxfp_overflow = 'saturate'
 
+        self.no_color = False
         no_color = os.getenv('NO_COLOR')
-        self.no_color = False if no_color is None else bool(int(no_color))
+        try:
+            self.no_color = False if no_color is None else bool(int(no_color))
+        except ValueError:
+            pass
 
     @property
     def mxfp_overflow(self) -> str:
