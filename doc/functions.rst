@@ -214,6 +214,18 @@ This option can be used to change the out-of-range behaviour of some 8-bit float
 The default value is ``'saturate'`` but it can also be set to ``'overflow'``.
 See :ref:`Exotic floats` for details.
 
+no_color
+^^^^^^^^
+
+.. data:: bitstring.options.no_color : bool
+
+The bitstring module can use ANSI escape codes to colourise the output of the :meth:`Bits.pp` and :meth:`Array.pp` methods.
+If a ``NO_COLOR`` environment variable is found and is set to ``1`` value then this option will be set to ``True``, otherwise it defaults to ``False``.
+See https://no-color.org for more information.
+
+The terminal colours can also be turned off by setting ``bitstring.options.no_color`` to ``True``.
+
+
 Command Line Usage
 ------------------
 

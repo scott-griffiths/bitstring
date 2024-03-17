@@ -553,3 +553,4 @@ The `bitstring.options` object contains module level options that can be changed
 * :data:`~bitstring.options.bytealigned` -- Determines whether a number of methods default to working only on byte boundaries.
 * :data:`~bitstring.options.lsb0` -- If True, index bits with the least significant bit (the final bit) as bit zero.
 * :data:`~bitstring.options.mxfp_overflow` -- Determines how values are converted to 8-bit MX floats. Can be either ``'saturate'`` (the default) or ``'overflow'``. See :ref:`Exotic floats`.
+* :data:`~bitstring.options.no_color` -- If True, don't use ANSI color codes in the pretty print methods. Defaults to False unless the NO_COLOR environment variable is set.

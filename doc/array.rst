@@ -338,14 +338,14 @@ Some operations have tighter restrictions, such as the shift operators ``<<`` an
 
 The dtype of the resulting ``Array`` is calculated by applying these rules:
 
-0. For comparison operators (``<``, ``>=``, ``==``, ``!=`` etc.) the result is always an ``Array`` of dtype ``'bool'``.
+Rule 0. For comparison operators (``<``, ``>=``, ``==``, ``!=`` etc.) the result is always an ``Array`` of dtype ``'bool'``.
 
 For other operators, one of the two input ``Array`` dtypes is used as the ouput dtype by applying the remaining rules in order until a winner is found:
 
-1. Floating point types always win against integer types.
-2. Signed integer types always win against unsigned integer types.
-3. Longer types win against shorter types.
-4. In a tie the first type wins.
+Rule 1. Floating point types always win against integer types.
+Rule 2. Signed integer types always win against unsigned integer types.
+Rule 3. Longer types win against shorter types.
+Rule 4. In a tie the first type wins.
 
 Some examples should help illustrate:
 
@@ -500,14 +500,14 @@ Properties
 .. attribute:: Array.data
     :type: BitArray
 
-    The bit data of the ``Array``, as a ``BitArray``. Read and write, and can be freely manipulated with all of ``BitArray`` methods.
+    The bit data of the ``Array``, as a ``BitArray``. Read and write, and can be freely manipulated with all ``BitArray`` methods.
 
     Note that some ``Array`` methods such as :meth:`~Array.append` and :meth:`~Array.extend` require the  :attr:`~Array.data` to have a length that is a multiple of the ``Array``'s :attr:`~Array.itemsize`.
 
 .. attribute:: Array.dtype
-    :type: str
+    :type: Dtype
 
-    The data type string used to initialise the ``Array`` type. Read and write.
+    The data type used to initialise the ``Array`` type. Read and write.
 
     Changing the ``dtype`` for an already formed ``Array`` will cause all of the bit data to be reinterpreted and can change the length of the ``Array``.
     However, changing the ``dtype`` won't change the underlying bit data in any way.
