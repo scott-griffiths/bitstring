@@ -1648,7 +1648,7 @@ class Bits:
         if dtype1.variable_length:
             raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has a variable length.")
         if dtype2 is not None and dtype2.variable_length:
-            raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has a variable length.")
+            raise ValueError(f"Can't use Dtype '{dtype2}' in pp() as it has a variable length.")
         offset_width = 0
         offset_sep = ' :' if lsb0 else ': '
         if show_offset:
@@ -1707,6 +1707,38 @@ class Bits:
             stream.write(line_fmt)
         return
 
+    @staticmethod
+    def _process_pp_tokens(token_list, fmt):
+        has_length_in_fmt = True
+        if len(token_list) == 1:
+            dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
+            dtype2 = None
+            bits_per_group = dtype1.bitlength
+            if bits_per_group is None:
+                has_length_in_fmt = False
+                bits_per_group = {'bin': 8, 'hex': 8, 'oct': 12, 'bytes': 32}.get(dtype1.name)
+                if bits_per_group is None:
+                    raise ValueError(f"No length or default length available for pp() format '{fmt}'.")
+        elif len(token_list) == 2:
+            dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
+            dtype2 = Dtype(*utils.parse_name_length_token(token_list[1]))
+            if dtype1.bitlength is not None and dtype2.bitlength is not None and dtype1.bitlength != dtype2.bitlength:
+                raise ValueError(
+                    f"Differing bit lengths of {dtype1.bitlength} and {dtype2.bitlength} in format string '{fmt}'.")
+            bits_per_group = dtype1.bitlength if dtype1.bitlength is not None else dtype2.bitlength
+            if bits_per_group is None:
+                has_length_in_fmt = False
+                try:
+                    bits_per_group = 2 * Bits._bits_per_char(dtype1.name) * Bits._bits_per_char(dtype2.name)
+                except ValueError:
+                    raise ValueError(f"Can't find a default bitlength to use for pp() format '{fmt}'.")
+                if bits_per_group >= 24:
+                    bits_per_group //= 2
+        else:
+            raise ValueError(
+                f"Only one or two tokens can be used in an pp() format - '{fmt}' has {len(token_list)} tokens.")
+        return dtype1, dtype2, bits_per_group, has_length_in_fmt
+
     def pp(self, fmt: Optional[str] = None, width: int = 120, sep: str = ' ',
            show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty print the bitstring's value.
@@ -1727,42 +1759,10 @@ class Bits:
         """
         colour = Colour(not bitstring.options.no_color)
         if fmt is None:
-            if len(self) % 8 == 0 and len(self) >= 8:
-                fmt = 'bin, hex'
-            else:
-                fmt = 'bin'
+            fmt = 'bin, hex' if len(self) % 8 == 0 and len(self) >= 8 else 'bin'
         token_list = utils.preprocess_tokens(fmt)
-        if len(token_list) not in [1, 2]:
-            raise ValueError(f"Only one or two tokens can be used in an pp() format - '{fmt}' has {len(token_list)} tokens.")
-        dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
-        dtype2 = None
-        has_length_in_fmt = True
-        if len(token_list) == 1:
-            bits_per_group = dtype1.bitlength
-            if bits_per_group is None:
-                has_length_in_fmt = False
-                bits_per_group = {'bin': 8, 'hex': 8, 'oct': 12, 'bytes': 32}.get(dtype1.name)
-                if bits_per_group is None:
-                    raise ValueError(f"No length or default length available for pp() format '{fmt}'.")
-        else:
-            dtype2 = Dtype(*utils.parse_name_length_token(token_list[1]))
-            if dtype1.bitlength is not None and dtype2.bitlength is not None and dtype1.bitlength != dtype2.bitlength:
-                raise ValueError(
-                    f"Differing bit lengths of {dtype1.bitlength} and {dtype2.bitlength} in format string '{fmt}'.")
-            bits_per_group = dtype1.bitlength if dtype1.bitlength is not None else dtype2.bitlength
-            if bits_per_group is None:
-                has_length_in_fmt = False
-                # Rule of thumb seems to work OK for all combinations.
-                try:
-                    bits_per_group = 2 * self._bits_per_char(dtype1.name) * self._bits_per_char(dtype2.name)
-                except ValueError:
-                    raise ValueError(f"Can't find a default bitlength to use for pp() format '{fmt}'.")
-                if bits_per_group >= 24:
-                    bits_per_group //= 2
-
-        trailing_bit_length = 0
-        if has_length_in_fmt and bits_per_group != 0:
-            trailing_bit_length = len(self) % bits_per_group
+        dtype1, dtype2, bits_per_group, has_length_in_fmt = Bits._process_pp_tokens(token_list, fmt)
+        trailing_bit_length = len(self) % bits_per_group if has_length_in_fmt and bits_per_group else 0
         data = self if trailing_bit_length == 0 else self[0: -trailing_bit_length]
         format_sep = " : "  # String to insert on each line between multiple formats
         tidy_fmt = colour.purple + str(dtype1) + colour.off
