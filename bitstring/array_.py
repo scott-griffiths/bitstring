@@ -580,7 +580,7 @@ class Array:
 
         """
         def is_float(x): return x.return_type is float
-        def is_int(x): return x.return_type is int
+        def is_int(x): return x.return_type is int or x.return_type is bool
         if is_float(type1) + is_int(type1) + is_float(type2) + is_int(type2) != 2:
             raise ValueError(f"Only integer and floating point types can be combined - not '{type1}' and '{type2}'.")
         # If same type choose the widest

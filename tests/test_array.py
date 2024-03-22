@@ -921,3 +921,9 @@ class TestMisc:
         b = Bits('0x000000, 0b111')
         a = Array('bytes1', b)
         assert a.trailing_bits == '0b111'
+
+    def test_operation_with_bool(self):
+        x = Array('int4', [1, 2, 3, 4])
+        y = Array('float16', [100, 2.0, 0.0, 4])
+        x = x + (y == 0.0)
+        assert x.tolist() == [1, 2, 4, 4]
