@@ -58,6 +58,21 @@ class TestBasicFunctionality:
         with pytest.raises(AttributeError):
             d.scale = 2
 
+    def test_variable_lengths(self):
+        d = Dtype('ue')
+        a = bs.BitStream().join([d.build(v) for v in [1, 100, 3, 17, 4]])
+        assert a.read(d) == 1
+        assert a.read(d) == 100
+        assert a.read(d) == 3
+        assert a.read(d) == 17
+        assert a.read(d) == 4
+        a.pos = 0
+        ds = Dtype('ue', scale=-3)
+        assert a.read(ds) == -3
+        assert a.read(ds) == -300
+        assert a.read(ds) == -9
+        assert a.read(ds) == -51
+        assert a.read(ds) == -12
 
 
 

@@ -23,7 +23,11 @@ def scaled_set_fn(set_fn, s: Union[int, float]):
 
 def scaled_read_fn(read_fn, s: Union[int, float]):
     def wrapper(*args, scale=s, **kwargs):
-        return read_fn(*args, **kwargs) * scale
+        val = read_fn(*args, **kwargs)
+        if isinstance(val, tuple):
+            val, pos = val
+            return val * scale, pos
+        return val * scale
     return wrapper
 
 
@@ -217,7 +221,8 @@ class AllowedLengths:
 
 
 class DtypeDefinition:
-    # Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
+    """Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
+    Not (yet) part of the public interface."""
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn = None,
                  variable_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
@@ -308,6 +313,7 @@ class DtypeDefinition:
 
 
 class Register:
+    """A singleton class that holds all the DtypeDefinitions. Not (yet) part of the public interface."""
 
     _instance: Optional[Register] = None
     names: Dict[str, DtypeDefinition] = {}
