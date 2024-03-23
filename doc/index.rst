@@ -8,7 +8,7 @@
 `bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a Python module that makes the creation and analysis of binary data as simple and efficient as possible.
 
 It has been maintained since 2006 and now has many millions of downloads per year.
-You can try out an interactive walkthrough notebook on `binder <https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb>`_ (or the non-interactive version `here <https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb>`_).
+You can try out walkthrough notebook `here <https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb>`_).
 
 
 .. image:: https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg
@@ -36,9 +36,8 @@ Overview
 * Powerful binary packing and unpacking functions.
 * Bit level slicing, joining, searching, replacing and more.
 * Read from and interpret bitstrings as streams of binary data.
-* Create arrays of any fixed-length format.
+* Create efficently stored arrays of any fixed-length format.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
-* Supports Python 3.8 and later. Use bitstring version 3 for Python 2.7 and 3.x support.
 * Open source software, released under the MIT licence.
 
 It is not difficult to manipulate binary data in Python, for example using the ``struct`` and ``array`` modules, but it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing with whole-byte data.
@@ -46,13 +45,18 @@ It is not difficult to manipulate binary data in Python, for example using the `
 The bitstring module provides support many different bit formats, allowing easy and efficient storage, interpretation and construction.
 
 
-Documentation
-^^^^^^^^^^^^^
+Documentation Quick Start
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
-The :ref:`quick_reference` provides a basic list of the classes and their methods.
+The :ref:`quick_reference` provides a summary of the classes and their methods.
 
 The :ref:`reference` section has a complete list of all the classes, methods, properties and functions of the bitstring module, together with short examples for many items.
+
+    * :class:`Bits` - an immutable container of bits.
+    * :class:`BitArray` - adds mutating methods to ``Bits``.
+    * :class:`BitStream` - adds a bit position and read methods.
+    * :class:`Array` - an array of bitstrings of the same type.
+
 
 .. toctree::
    :hidden:

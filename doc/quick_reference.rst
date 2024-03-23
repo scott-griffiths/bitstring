@@ -383,15 +383,12 @@ A data type (or 'dtype') concept is used in the bitstring module to encapsulate 
 
 Creates a :class:`Dtype` object. Dtypes are immutable and cannot be changed after creation.
 
-The first parameter is a format token string that can optionally include a length. For example ``'int'`` or ``'float16'``.
-In most situations this string can be used instead of `Dtype` object when it is needed, and the `Dtype` will be constructed automatically.
-This is why the `Dtype` object is rarely used directly in this documentation.
-It can be advantageous to to create `Dtype` objects directly for efficiency reasons, and is neccessary if you need to use the `scale` parameter.
+The first parameter is a format token string that can optionally include a length.
 
 If appropriate, the `length` parameter can be used to specify the length of the bitstring.
 
 The `scale` parameter can be used to specify a multiplicative scaling factor for the interpretation of the data.
-This is primarily inteded for use with some floating point formats of 8 bits or less, but can be used on other types.
+
 
 Methods
 ^^^^^^^
