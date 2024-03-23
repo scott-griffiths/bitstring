@@ -153,6 +153,7 @@ class MXFPFormat:
         # Used to create the LUT that was compressed and stored for the fp8 code
         length = 1 + self.exp_bits + self.mantissa_bits
         if length == 8:
+            import gfloat
             fi = gfloat.formats.format_info_ocp_e5m2 if self.exp_bits == 5 else gfloat.formats.format_info_ocp_e4m3
 
             fp16_to_fp8 = bytearray(1 << 16)
