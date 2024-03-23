@@ -8,7 +8,8 @@ from typing import Optional
 
 def round_to_nearest_ties_to_even(lut_int_to_float, lower: int, f: float) -> Optional[int]:
     upper = lower + 1
-    lower_float = lut_int_to_float[lower]
+    # Special case for LUTs without a negative zero.
+    lower_float = 0.0 if lower == 128 else lut_int_to_float[lower]
     upper_float = lut_int_to_float[upper]
     if upper_float < lower_float:
         lower, upper = upper, lower
@@ -31,7 +32,7 @@ def round_to_nearest_ties_to_even(lut_int_to_float, lower: int, f: float) -> Opt
 class MXFPFormat:
     """Defining an MXFP micro-scaling floating point format"""
 
-    def __init__(self, exp_bits: int, mantissa_bits: int, bias: int, mxfp_overflow: str = 'saturate'):
+    def __init__(self, exp_bits: int, mantissa_bits: int, bias: int, mxfp_overflow: str):
         self.exp_bits = exp_bits
         self.mantissa_bits = mantissa_bits
         self.bias = bias
@@ -58,6 +59,9 @@ class MXFPFormat:
         # If we calculate these LUTs now now it creates a bootstrap problem in generate_luts.py.
         self.lut_float16_to_mxfp = None
         self.lut_int_to_float = None
+
+    def __str__(self):
+        return f"MXFPFormat(exp_bits={self.exp_bits}, mantissa_bits={self.mantissa_bits}, bias={self.bias}, mxfp_overflow='{self.mxfp_overflow}')"
 
     def decompress_luts(self):
         int_to_float_compressed, float16_to_mxfp_compressed = mxfp_luts_compressed[(self.exp_bits, self.mantissa_bits, self.bias, self.mxfp_overflow)]
@@ -147,31 +151,49 @@ class MXFPFormat:
     def createLUT_for_float16_to_mxfp(self) -> bytes:
         """Create a LUT to convert a float16 into a MXFP format"""
         # Used to create the LUT that was compressed and stored for the fp8 code
-        fp16_to_fp8 = bytearray(1 << 16)
-        for i in range(1 << 16):
-            b = struct.pack('>H', i)
-            f, = struct.unpack('>e', b)
-            fp8_i = self.slow_float_to_int(f)
-            if fp8_i == 1 << (self.exp_bits + self.mantissa_bits):
-                # Got back int representing binary digits for negative zero. Just convert to positive zero instead.
-                fp8_i = 0
-            fp16_to_fp8[i] = fp8_i
-        return bytes(fp16_to_fp8)
+        length = 1 + self.exp_bits + self.mantissa_bits
+        if length == 8:
+            fi = gfloat.formats.format_info_ocp_e5m2 if self.exp_bits == 5 else gfloat.formats.format_info_ocp_e4m3
+
+            fp16_to_fp8 = bytearray(1 << 16)
+            for i in range(1 << 16):
+                b = struct.pack('>H', i)
+                f, = struct.unpack('>e', b)
+                fp = gfloat.round_float(fi, f, sat=self.mxfp_overflow == 'saturate')
+                if math.isnan(fp):
+                    fp8_i = 0b11111111
+                else:
+                    fp8_i = self.lut_int_to_float.index(fp)
+                fp16_to_fp8[i] = fp8_i
+            return bytes(fp16_to_fp8)
+        else:
+            assert length in [4, 6]
+            fp16_to_fp8 = bytearray(1 << 16)
+            for i in range(1 << 16):
+                b = struct.pack('>H', i)
+                f, = struct.unpack('>e', b)
+                fp8_i = self.slow_float_to_int(f)
+                if fp8_i == 1 << (self.exp_bits + self.mantissa_bits):
+                    # Got back int representing binary digits for negative zero. Just convert to positive zero instead.
+                    fp8_i = 0
+                fp16_to_fp8[i] = fp8_i
+            return bytes(fp16_to_fp8)
 
 
-e2m1mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1)
-e2m3mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1)
-e3m2mxfp_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3)
+e2m1mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1, mxfp_overflow='saturate')
+e2m3mxfp_fmt = MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1, mxfp_overflow='saturate')
+e3m2mxfp_fmt = MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3, mxfp_overflow='saturate')
 e4m3mxfp_saturate_fmt = MXFPFormat(exp_bits=4, mantissa_bits=3, bias=7, mxfp_overflow='saturate')
 e5m2mxfp_saturate_fmt = MXFPFormat(exp_bits=5, mantissa_bits=2, bias=15, mxfp_overflow='saturate')
 e4m3mxfp_overflow_fmt = MXFPFormat(exp_bits=4, mantissa_bits=3, bias=7, mxfp_overflow='overflow')
 e5m2mxfp_overflow_fmt = MXFPFormat(exp_bits=5, mantissa_bits=2, bias=15, mxfp_overflow='overflow')
 
-# These assume that the compressed LUTs have been created by generate_luts.py
-e2m1mxfp_fmt.decompress_luts()
-e2m3mxfp_fmt.decompress_luts()
-e3m2mxfp_fmt.decompress_luts()
-e4m3mxfp_saturate_fmt.decompress_luts()
-e5m2mxfp_saturate_fmt.decompress_luts()
-e4m3mxfp_overflow_fmt.decompress_luts()
-e5m2mxfp_overflow_fmt.decompress_luts()
+
+def decompress_luts():
+    e2m1mxfp_fmt.decompress_luts()
+    e2m3mxfp_fmt.decompress_luts()
+    e3m2mxfp_fmt.decompress_luts()
+    e4m3mxfp_saturate_fmt.decompress_luts()
+    e5m2mxfp_saturate_fmt.decompress_luts()
+    e4m3mxfp_overflow_fmt.decompress_luts()
+    e5m2mxfp_overflow_fmt.decompress_luts()

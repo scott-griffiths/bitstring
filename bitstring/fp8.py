@@ -9,16 +9,20 @@ import zlib
 import array
 import bitarray
 from bitstring.luts import binary8_luts_compressed
+import math
 
 
 class Binary8Format:
     """8-bit floating point formats based on draft IEEE binary8"""
 
     def __init__(self, exp_bits: int, bias: int):
-        # We use look up tables to go from an IEEE float16 to the best float8 representation.
-        # For startup efficiency they've been precalculated and zipped up
         self.exp_bits = exp_bits
         self.bias = bias
+        self.pos_clamp_value = 0b01111111
+        self.neg_clamp_value = 0b11111111
+
+    def __str__(self):
+        return f"Binary8Format(exp_bits={self.exp_bits}, bias={self.bias})"
 
     def decompress_luts(self):
         binary8_to_float_compressed, float16_to_binary8_compressed = binary8_luts_compressed[(self.exp_bits, self.bias)]
@@ -37,18 +41,24 @@ class Binary8Format:
             b = struct.pack('>e', f)
         except (OverflowError, struct.error):
             # Return the largest representable positive or negative value
-            return 0b01111111 if f > 0 else 0b11111111
+            return self.pos_clamp_value if f > 0 else self.neg_clamp_value
         f16_int = int.from_bytes(b, byteorder='big')
         # Then use this as an index to our large LUT
         return self.lut_float16_to_binary8[f16_int]
 
     def createLUT_for_float16_to_binary8(self) -> bytes:
         # Used to create the LUT that was compressed and stored for the fp8 code
+        import gfloat
+        fi = gfloat.formats.format_info_p3109(8 - self.exp_bits)
         fp16_to_fp8 = bytearray(1 << 16)
         for i in range(1 << 16):
             b = struct.pack('>H', i)
             f, = struct.unpack('>e', b)
-            fp8_i = self.slow_float_to_int8(f)
+            fp = gfloat.round_float(fi, f)
+            if math.isnan(fp):
+                fp8_i = 0b10000000
+            else:
+                fp8_i = self.lut_binary8_to_float.index(fp)
             fp16_to_fp8[i] = fp8_i
         return bytes(fp16_to_fp8)
 
@@ -76,29 +86,12 @@ class Binary8Format:
         i2f[0b11111111] = float('-inf')
         return array.array('f', i2f)
 
-    def slow_float_to_int8(self, f: float) -> int:
-        # Slow, but easier to follow than the faster version. Used only for validation.
-        if f >= 0:
-            for i in range(128):
-                if f < self.lut_binary8_to_float[i]:
-                    return i - 1
-            # Clip to positive max
-            return 0b01111111
-        if f < 0:
-            if f > self.lut_binary8_to_float[129]:
-                # Rounding upwards to zero
-                return 0b00000000  # There's no negative zero so this is a special case
-            for i in range(130, 256):
-                if f > self.lut_binary8_to_float[i]:
-                    return i - 1
-            # Clip to negative max
-            return 0b11111111
-        # We only have one nan value
-        return 0b10000000
 
 # We create the 1.5.2 and 1.4.3 formats.
 p4binary_fmt = Binary8Format(exp_bits=4, bias=8)
 p3binary_fmt = Binary8Format(exp_bits=5, bias=16)
 
-p4binary_fmt.decompress_luts()
-p3binary_fmt.decompress_luts()
+
+def decompress_luts():
+    p4binary_fmt.decompress_luts()
+    p3binary_fmt.decompress_luts()

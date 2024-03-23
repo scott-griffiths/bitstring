@@ -11,9 +11,9 @@ from bitstring.fp8 import Binary8Format
 
 if __name__ == '__main__':
 
-    mxfps = [MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1),
-             MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1),
-             MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3),
+    mxfps = [MXFPFormat(exp_bits=2, mantissa_bits=1, bias=1, mxfp_overflow='saturate'),
+             MXFPFormat(exp_bits=2, mantissa_bits=3, bias=1, mxfp_overflow='saturate'),
+             MXFPFormat(exp_bits=3, mantissa_bits=2, bias=3, mxfp_overflow='saturate'),
              MXFPFormat(exp_bits=4, mantissa_bits=3, bias=7, mxfp_overflow='saturate'),
              MXFPFormat(exp_bits=5, mantissa_bits=2, bias=15, mxfp_overflow='saturate'),
              MXFPFormat(exp_bits=4, mantissa_bits=3, bias=7, mxfp_overflow='overflow'),
@@ -28,6 +28,7 @@ if __name__ == '__main__':
 
         mxfp_luts_compressed = {}
         for mxfp in mxfps:
+            print(f"generating LUT for {mxfp}")
             mxfp.create_luts()
             lut_int_to_float_compressed = zlib.compress(mxfp.lut_int_to_float, 1)
             lut_float16_to_mxfp_compressed = zlib.compress(mxfp.lut_float16_to_mxfp, 1)
@@ -37,6 +38,7 @@ if __name__ == '__main__':
 
         binary8_luts_compressed = {}
         for binary8 in binary8s:
+            print(f"generating LUT for {binary8}")
             binary8.create_luts()
             lut_binary8_to_float_compressed = zlib.compress(binary8.lut_binary8_to_float, 1)
             lut_float16_to_binary8_compressed = zlib.compress(binary8.lut_float16_to_binary8, 1)

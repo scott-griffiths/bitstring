@@ -71,6 +71,12 @@ from .exceptions import Error, ReadError, InterpretError, ByteAlignError, Creati
 from .dtypes import DtypeDefinition, dtype_register, Dtype
 import types
 from typing import List, Tuple, Literal
+from .mxfp import decompress_luts as mxfp_decompress_luts
+from .fp8 import decompress_luts as binary8_decompress_luts
+
+# Decompress the LUTs for the exotic floating point formats
+mxfp_decompress_luts()
+binary8_decompress_luts()
 
 # The Options class returns a singleton.
 options = Options()

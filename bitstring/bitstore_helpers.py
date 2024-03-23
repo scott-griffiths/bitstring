@@ -121,7 +121,6 @@ def p4binary2bitstore(f: Union[str, float]) -> BitStore:
     u = p4binary_fmt.float_to_int8(f)
     return int2bitstore(u, 8, False)
 
-
 def p3binary2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     u = p3binary_fmt.float_to_int8(f)

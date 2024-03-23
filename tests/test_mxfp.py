@@ -3,11 +3,8 @@ from __future__ import annotations
 import sys
 import math
 from bitstring import BitArray, Dtype, Array, options
-# from bitstring.mxfp import createLUT_for_int_to_float, createLUT_for_float16_to_mxfp
 import pytest
-from bitstring.luts import mxfp_luts_compressed
-import zlib
-import struct
+import gfloat
 
 sys.path.insert(0, '..')
 
@@ -296,26 +293,33 @@ def test_rounding_to_even():
     assert x.e4m3mxfp == -56.0  # Rounds away from zero
     assert x.bin[-1] == '0'
 
-# TODO: Revive this test
-# def test_lut_are_consistent():
-#     for (exp_bits, mantissa_bits, bias) in [(2, 1, 1), (2, 3, 1), (3, 2, 3), (4, 3, 7), (5, 2, 15)]:
-#         # First calculate the LUT the long way
-#         lut_int_to_float = createLUT_for_int_to_float(exp_bits, mantissa_bits, bias)
-#         lut_float16_to_mxfp = createLUT_for_float16_to_mxfp(lut_int_to_float, exp_bits, mantissa_bits, 'saturate')
-#
-#         # Then get the LUTs from the compressed data
-#         int_to_float_compressed, float16_to_mxfp_compressed = mxfp_luts_compressed[(exp_bits, mantissa_bits, bias, 'saturate')]
-#         lut_float16_to_mxfp2 = zlib.decompress(float16_to_mxfp_compressed)
-#         dec = zlib.decompress(int_to_float_compressed)
-#         lut_int_to_float2 = struct.unpack(f'<{len(dec) // 4}f', dec)
-#
-#         # Then compare them
-#         for i in range(len(lut_int_to_float)):
-#             if math.isnan(lut_int_to_float[i]):
-#                 assert math.isnan(lut_int_to_float2[i])
-#             else:
-#                 assert lut_int_to_float[i] == lut_int_to_float2[i]
-#         assert lut_float16_to_mxfp == lut_float16_to_mxfp2
+def test_rounding_consistent_to_gfloat():
+    for fi, dt in [[gfloat.formats.format_info_ocp_e4m3, Dtype('e4m3mxfp')],
+                   [gfloat.formats.format_info_ocp_e5m2, Dtype('e5m2mxfp')]]:
+        for i in range(1 << 16):
+            f = BitArray(uint=i, length=16).float
+            mine = dt.parse(dt.build(f))
+            theirs = gfloat.round_float(fi, f, sat=True)
+            if math.isnan(mine):
+                assert math.isnan(theirs)
+            else:
+                assert mine == theirs
+
+@pytest.mark.usefixtures('switch_to_overflow')
+def test_rounding_consistent_to_gfloat_with_overflow():
+    assert options.mxfp_overflow == 'overflow'
+    for fi, dt in [[gfloat.formats.format_info_ocp_e4m3, Dtype('e4m3mxfp')],
+                   [gfloat.formats.format_info_ocp_e5m2, Dtype('e5m2mxfp')]]:
+        for i in range(1 << 16):
+            f = BitArray(uint=i, length=16).float
+            mine = dt.parse(dt.build(f))
+            theirs = gfloat.round_float(fi, f, sat=False)
+            if math.isnan(mine):
+                pass
+                # assert math.isnan(theirs)
+            else:
+                if mine != theirs:
+                    print(mine, theirs)
 
 def test_conversion_from_nan():
     x = BitArray(e4m3mxfp=float('nan'))

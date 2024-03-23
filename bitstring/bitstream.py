@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import bitstring
 from bitstring.bits import Bits, BitsType
+from bitstring.dtypes import Dtype
 from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
 import copy
 import numbers
@@ -354,7 +355,7 @@ class ConstBitStream(Bits):
             raise bitstring.ReadError(f"Reading off end of bitstring with fmt '{fmt}'. Only {len(self) - p} bits available.")
         return val
 
-    def readlist(self, fmt: Union[str, List[Union[int, str]]], **kwargs) \
+    def readlist(self, fmt: Union[str, List[Union[int, str, Dtype]]], **kwargs) \
             -> List[Union[int, float, str, Bits, bool, bytes, None]]:
         """Interpret next bits according to format string(s) and return list.
 

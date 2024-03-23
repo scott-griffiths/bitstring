@@ -9,8 +9,7 @@ import array
 import io
 from collections import abc
 import functools
-from typing import Tuple, Union, List, Iterable, Any, Optional, \
-    BinaryIO, TextIO, overload, Iterator, Type, TypeVar
+from typing import Tuple, Union, List, Iterable, Any, Optional, BinaryIO, TextIO, overload, Iterator, Type, TypeVar
 import bitarray
 import bitarray.util
 import bitstring
