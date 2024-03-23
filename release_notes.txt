@@ -13,7 +13,17 @@ In preparation: version 4.2.0
 * New fromstring method as another way to create bitstrings from strings.
 * More types can now be pretty printed.
 * Pretty printing is now prettier - optional terminal colours added.
-* A range of 8-bit, 6-bit and even 4-bit float formats added.
+* A range of 8-bit, 6-bit and even 4-bit float formats added:
+  p3binary8: IEEE 8-bit floating point with 3 bit precision.
+  p4binary8: IEEE 8-bit floating point with 4 bit precision.
+  e5m2mxfp: OCP 8-bit floating point with 3 bit precision.
+  e4m3mxfp: OCP 8-bit floating point with 4 bit precision.
+  e2m3mxfp: OCP 6-bit floatinf point with 4 bit precision.
+  e3m2mxfp: OCP 6-bit floating point with 3 bit precision.
+  e2m1mxfp: OCP 4-bit floating point with 2 bit precision.
+  e8m0mxfp: OCP 8-bit unsigned floating point designed to scale the other formats.
+  mxint: OCP 8-bit floating point that is a scaled integer representation.
+* The previous e4m3float and e5m2float formats have become the slightly modified p4binary8 and p3binary8 formats.
 * Performance improvements.
 
 
