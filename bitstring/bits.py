@@ -168,8 +168,8 @@ class Bits:
         # Support for arbitrary attributes like u16 or f64.
         try:
             d = Dtype(attribute)
-        except ValueError as e:
-            raise AttributeError(e)
+        except ValueError:
+            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'.")
         if d.bitlength is not None and len(self) != d.bitlength:
             raise ValueError(f"bitstring length {len(self)} doesn't match length {d.bitlength} of property '{attribute}'.")
         return d.read_fn(self, 0)
