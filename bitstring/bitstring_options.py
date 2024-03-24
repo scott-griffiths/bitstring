@@ -15,10 +15,7 @@ class Options:
 
         self.no_color = False
         no_color = os.getenv('NO_COLOR')
-        try:
-            self.no_color = False if no_color is None else bool(int(no_color))
-        except ValueError:
-            pass
+        self.no_color = True if no_color else False
 
     @property
     def mxfp_overflow(self) -> str:
