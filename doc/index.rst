@@ -8,7 +8,7 @@
 `bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a Python module that makes the creation and analysis of binary data as simple and efficient as possible.
 
 It has been maintained since 2006 and now has many millions of downloads per year.
-You can try out walkthrough notebook `here <https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb>`_).
+You can try out the walkthrough notebook `here <https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb>`_.
 
 
 .. image:: https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg

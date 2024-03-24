@@ -231,9 +231,10 @@ Properties
 All properties are read-only.
 
 .. attribute:: Dtype.bitlength
-    :type: int
+    :type: int | None
 
 The number of bits needed to represent a single instance of the data type.
+Will be set to ``None`` for variable length dtypes.
 
 .. attribute:: Dtype.bits_per_item
     :type: int
@@ -251,9 +252,10 @@ A function to get the value of the data type.
 If True then the data type represents a signed quantity.
 
 .. attribute:: Dtype.length
-    :type: int
+    :type: int | None
 
 The length of the data type in units of `bits_per_item`.
+Will be set to ``None`` for variable length dtypes.
 
 .. attribute:: Dtype.name
     :type: str
@@ -268,10 +270,10 @@ A function to read the value of the data type.
 .. attribute:: Dtype.return_type
     :type: type
 
-The type of the value returned by the `parse` method.
+The type of the value returned by the `parse` method, such as ``int``, ``float`` or ``str``.
 
 .. attribute:: Dtype.scale
-    :type: int | float
+    :type: int | float | None
 
 The multiplicative scale applied when interpreting the data.
 

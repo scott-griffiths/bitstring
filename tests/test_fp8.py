@@ -280,15 +280,8 @@ class TestConversionToFP8:
         assert x.p3binary == 64.0
         assert x.bin[-1] == '0'
 
-@pytest.fixture
-def switch_to_overflow():
-    options.binary8_overflow = 'overflow'
-    yield
-    options.binary8_overflow = 'saturate'
 
-@pytest.mark.usefixtures('switch_to_overflow')
 def test_rounding_consistent_to_gfloat():
-    assert bitstring.options.binary8_overflow == 'overflow'
     for fi, dt in [[gfloat.formats.format_info_p3109(4), Dtype('p4binary')],
                    [gfloat.formats.format_info_p3109(3), Dtype('p3binary')]]:
         for i in range(0, 1 << 16):

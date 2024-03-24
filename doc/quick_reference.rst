@@ -258,7 +258,7 @@ A bitstring :class:`Array` is a contiguously allocated sequence of bitstrings of
 It is similar to the ``array`` type in the `array <https://docs.python.org/3/library/array.html>`_ module, except that it is far more flexible.
 
 
-``Array(dtype: str, initializer, trailing_bits)``
+``Array(dtype: str | Dtype, initializer, trailing_bits)``
 
 The `dtype` can any single fixed-length token as described in :ref:`format_tokens` and :ref:`compact_format`.
 
@@ -379,7 +379,7 @@ Dtype
 
 A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to create, parse and present different bit interpretations.
 
-``Dtype(token, /, length, scale)``
+``Dtype(token: str, /, length: int | None, scale: int | float | None = None)``
 
 Creates a :class:`Dtype` object. Dtypes are immutable and cannot be changed after creation.
 
@@ -388,6 +388,8 @@ The first parameter is a format token string that can optionally include a lengt
 If appropriate, the `length` parameter can be used to specify the length of the bitstring.
 
 The `scale` parameter can be used to specify a multiplicative scaling factor for the interpretation of the data.
+
+
 
 
 Methods
@@ -473,7 +475,7 @@ For example::
     s = BitArray('float32=10.125, int7=-9')
     s.append('hex:abc')
 
-You can also create binary, octal and hexadecimal literals by starting a string with ``'0b'``, ``'0o'`` and ``'0ox'`` respectively::
+You can also create binary, octal and hexadecimal literals by starting a string with ``'0b'``, ``'0o'`` and ``'0x'`` respectively::
 
     t = BitArray('0b101')
     t += '0x001f'

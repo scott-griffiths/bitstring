@@ -256,10 +256,23 @@ Conversion
 When converting from a Python float to an any of the 8-or-fewer bit formats, the 'rounds to nearest, ties to even' rule is used.
 This is the same as is used in the IEEE 754 standard.
 
-When converting to the 8-bit MX floating point formats, the behaviour of out-of-range values is determined by the ``bitstring.options.mxfp_overflow`` setting.
-By default, this equals ``'saturate'``, which means that values out of the representable range (including infinities) are set to the largest postive or negative finite representable value, as appropriate.
-The option can also be set to ``'overflow'``, which for the ``e4m3mxfp`` format sets out of range value to  ``nan``, and for the ``e5m2mxfp`` format sets them to ``+inf`` or ``-inf``.
+Note that for efficiency reasons Python floats are converted to 16-bit IEEE floats before being converted to their final destination.
+This can mean that in edge cases the rounding to the 16-bit float will cause the next rounding to go in the other direction.
+The 16-bit float has 11 bits of precision, whereas the final format has at most 4 bits of precision, so this shouldn't be a real-world problem, but it could cause discrepancies when comparing with other methods.
+I could add a slower, more accurate mode if this is a problem (add a bug report).
 
-The other MX formats all behave like the ``'saturate'`` option (as they don't have infinities).
-The exception is the ``e8m0mxfp`` format, for which no rounding of any kind is done in this implementation, and a ``ValueError`` will be raised if you try to convert a non-representable value.
-This is because the format is designed as a scaling factor, so it should generally be specified exactly.
+Values that are out of range after rounding are dealt with as follows:
+
+- ``p3binary8`` - Out of range values are set to ``+inf`` or ``-inf``.
+- ``p4binary8`` - Out of range values are set to ``+inf`` or ``-inf``.
+- ``e5m2mxfp`` - Out of range values are dealt with according to the ``bitstring.options.mxfp_overflow`` setting:
+    - ``'saturate'`` (the default): values are set to the largest positive or negative finite value, as appropriate. Infinities will also be set to the largest finite value, despite the fact that the format has infinities.
+    - ``'overflow'``: Out of range values are set to ``+inf`` or ``-inf``.
+- ``e4m3mxfp`` - Out of range values are dealt with according to the ``bitstring.options.mxfp_overflow`` setting:
+    - ``'saturate'`` (the default): values are set to the largest positive or negative value, as appropriate.
+    - ``'overflow'``: Out of range values are set to ``nan``.
+- ``e3m2mxfp`` - Out of range values are saturated to the largest positive or negative value.
+- ``e2m3mxfp`` - Out of range values are saturated to the largest positive or negative value.
+- ``e2m1mxfp`` - Out of range values are saturated to the largest positive or negative value.
+- ``mxint`` - Out of range values are saturated to the largest positive or negative value. Note that the most negative value in this case is ``-2.0``, which it is optional for an implementation to support.
+- ``e8m0mxfp`` - No rounding is done. A ``ValueError`` will be raised if you try to convert a non-representable value. This is because the format is designed as a scaling factor, so it should generally be specified exactly.

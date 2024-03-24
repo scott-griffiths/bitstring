@@ -71,7 +71,7 @@ class Dtype:
         return self._length
 
     @property
-    def bitlength(self) -> int:
+    def bitlength(self) -> Optional[int]:
         return self._bitlength
 
     @property
