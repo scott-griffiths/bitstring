@@ -46,17 +46,15 @@ class Dtype:
     _scale: Union[None, float, int]
 
 
-    def __new__(cls, token: Union[str, Dtype, None] = None, /, length: Optional[int] = None, scale: Union[None, float, int, str] = None) -> Dtype:
+    def __new__(cls, token: Union[str, Dtype], /, length: Optional[int] = None, scale: Union[None, float, int, str] = None) -> Dtype:
         if isinstance(token, cls):
             return token
-        if token is not None:
-            if length is None:
-                x = cls._new_from_token(token, scale)
-                return x
-            else:
-                x = dtype_register.get_dtype(token, length, scale)
-                return x
-        return super().__new__(cls)
+        if length is None:
+            x = cls._new_from_token(token, scale)
+            return x
+        else:
+            x = dtype_register.get_dtype(token, length, scale)
+            return x
 
     @property
     def scale(self) -> Union[int, float, str]:
@@ -128,7 +126,7 @@ class Dtype:
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
     def _create(cls, definition: DtypeDefinition, length: Optional[int], scale: Union[None, float, int]) -> Dtype:
-        x = cls.__new__(cls)
+        x = super().__new__(cls)
         x._name = definition.name
         x._bitlength = x._length = length
         x._bits_per_item = definition.multiplier
@@ -346,7 +344,7 @@ class Register:
         try:
             definition = cls.names[name]
         except KeyError:
-            raise ValueError(f"Unknown Dtype name '{name}'.")
+            raise ValueError(f"Unknown Dtype name '{name}'. Names available: {list(cls.names.keys())}.")
         else:
             return definition.get_dtype(length, scale)
 

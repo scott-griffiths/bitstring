@@ -245,3 +245,15 @@ class TestCreationWithPos:
         assert s.__repr__() == f"ConstBitStream(filename={repr(str(filename))}, length=1002400, pos=2001)"
         s.pos = 0
         assert s.__repr__() == f"ConstBitStream(filename={repr(str(filename))}, length=1002400)"
+
+
+def test_windows_file_lock_bug():
+    path = os.path.join(THIS_DIR, 'temp_unit_test_file')
+    # Create the file
+    with open(path, mode='w') as f:
+        f.write('Hello')
+    # Will this lock it?
+    s = CBS(filename=path)
+
+    with open(path, mode='w') as f:
+        f.write('Will this work?')

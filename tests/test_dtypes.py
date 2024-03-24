@@ -126,3 +126,9 @@ class TestCreatingNewDtypes:
         assert a.unpack('counter7, counter') == [0, 5]
         with pytest.raises(AttributeError):
             a.counter = 4
+
+    def test_invalid_dtypes(self):
+        with pytest.raises(TypeError):
+            _ = Dtype()
+        with pytest.raises(ValueError):
+            _ = Dtype('float17')
