@@ -37,12 +37,13 @@ Exercise: Using the table above decode this sequence of unsigned Exponential Gol
 
 The answer is that it decodes to 3, 0, 0, 2, 2, 1, 0, 0, 8, 4. Note how you don’t need to know how many bits are used for each code in advance - there’s only one way to decode it. To create this bitstring you could have written something like::
 
- a = BitStream().join([BitArray(ue=i) for i in [3,0,0,2,2,1,0,0,8,4]])
+    >>> a = Bits().join(f'ue={i}' for i in [3,0,0,2,2,1,0,0,8,4])
 
-and to read it back::
+and to unpack it again::
 
- while a.pos != len(a):
-     print(a.read('ue'))
+    >>> a.unpack('10*ue')
+    [3, 0, 0, 2, 2, 1, 0, 0, 8, 4]
+
 
 The notation ``ue`` and ``se`` for the exponential-Golomb code properties comes from the H.264 video standard, which uses these types of code a lot. There are other ways to map the bitstrings to integers:
 

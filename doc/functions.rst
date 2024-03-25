@@ -220,7 +220,7 @@ no_color
 .. data:: bitstring.options.no_color : bool
 
 The bitstring module can use ANSI escape codes to colourise the output of the :meth:`Bits.pp` and :meth:`Array.pp` methods.
-If a ``NO_COLOR`` environment variable is found and is set to ``1`` then this option will be set to ``True``, otherwise it defaults to ``False``.
+If a ``NO_COLOR`` environment variable is found and is not an empty string then this option will be set to ``True``, otherwise it defaults to ``False``.
 See https://no-color.org for more information.
 
 The terminal colours can also be turned off by setting ``bitstring.options.no_color`` to ``True``.

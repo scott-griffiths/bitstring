@@ -10,15 +10,15 @@ BitArray -- A mutable container for binary data.
 ConstBitStream -- An immutable container with streaming methods.
 BitStream -- A mutable container with streaming methods.
 Array -- An efficient list-like container where each item has a fixed-length binary format.
+Dtype -- Encapsulate the data types used in the other classes.
 
 Functions:
 
 pack -- Create a BitStream from a format string.
 
 Data:
-options -- A container for module-wide options:
-    bytealigned -- Determines whether a number of methods default to working only on byte boundaries.
-    lsb0 -- If True, the least significant bit (the final bit) is indexed as bit zero.
+
+options -- Module-wide options.
 
 Exceptions:
 

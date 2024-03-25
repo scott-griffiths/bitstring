@@ -35,7 +35,7 @@ The :class:`Bits` class is the base class of the other three class. This means t
 ``Bits(auto, /, length: Optional[int], offset: Optional[int], **kwargs)``
 
 When initialising a bitstring you need to specify at most one initialiser.
-This can either be the first parameter in the constructor ('auto' initialisation, described below), or using one of the following keywords:
+This can either be the first parameter in the constructor ('auto' initialisation, described below), or using a keyword argument for a data type:
 
 * ``bytes`` : A ``bytes`` object, for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
@@ -44,20 +44,23 @@ This can either be the first parameter in the constructor ('auto' initialisation
 * ``intbe``, ``uintbe``: Signed or unsigned byte-wise big-endian binary integers.
 * ``intne``, ``uintne``: Signed or unsigned byte-wise native-endian binary integers.
 * ``float`` / ``floatbe``, ``floatle``, ``floatne``: Big, little and native endian floating point numbers.
-* ``bfloat`` / ``bfloatbe``, ``bfloatle``, ``bfloatne``: Big, little and native endian 16 bit 'bfloat' numbers.
-* ``p4binary``, ``p3binary``: Two formats of 8-bit floating point numbers.
-* ``se``, ``ue`` : Signed or unsigned exponential-Golomb coded integers.
-* ``sie``, ``uie`` : Signed or unsigned interleaved exponential-Golomb coded integers.
 * ``bool`` : A boolean (i.e. True or False).
 * ``filename`` : Directly from a file, without reading into memory if using :class:`Bits` or :class:`ConstBitStream`.
+
+There are also various other flavours of 16-bit, 8-bit and smaller floating point types (see :ref:`Exotic floats`) and exponential-Golomb integer types (see :ref:`exp-golomb`).
+
+The ``hex``, ``oct``, ``bin``, ``float``, ``int`` and ``uint`` can all be shortened to just their initial letters.
+The data type name can be combined with its length if appropriate, or the length can be specified separately.
 
 For example::
 
    a = Bits(hex='deadbeef')
-   b = BitArray(float=100.25, length=32)
+   b = BitArray(float32=100.25)  # or = BitArray(float=100.25, length=32)
    c = ConstBitStream(filename='a_big_file')
+   d = Bits(u12=105)
+   e = BitArray(bool=True)
 
-Note that some types need a length to be specified and others can infer the length.
+Note that some types need a length to be specified, some don't need one, and others can infer the length from the value.
 
 Another way to create a bitstring is via the ``pack`` function, which packs multiple values accoring to a given format.
 See the entry on :func:`pack` for more information.
@@ -246,7 +249,7 @@ As with other initialisers you can also 'auto' initialise, as demonstrated with 
     >>> little_endian = BitArray(floatle=0.0, length=64)
     >>> native_endian = BitArray('floatne:32=-6.3')
 
-See also :ref:`Exotic floats` for information on non IEEE 754 floating point representations that are supported (bfloat and different 8-bit float formats).
+See also :ref:`Exotic floats` for information on other floating point representations that are supported (bfloat and different 8-bit and smaller float formats).
 
 From exponential-Golomb codes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
