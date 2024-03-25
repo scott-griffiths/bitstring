@@ -254,7 +254,7 @@ def test_windows_file_lock_bug():
     with open(path, mode='w') as f:
         f.write('Hello')
     # Will this lock it?
-    s = CBS(filename=path)
+    _ = CBS(filename=path)
 
     try:
         with open(path, mode='w') as _:

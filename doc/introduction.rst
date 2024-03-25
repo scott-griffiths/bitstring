@@ -12,10 +12,10 @@ The bitstring classes
 
 Five classes are provided by the bitstring module, four are simple containers of bits:
 
-* ``Bits``: This is the most basic class. It is immutable and so its contents can't be changed after creation.
-* ``BitArray(Bits)``: This adds mutating methods to its base class.
-* ``ConstBitStream(Bits)``: This adds methods and properties to allow the bits to be treated as a stream of bits, with a bit position and reading/parsing methods.
-* ``BitStream(BitArray, ConstBitStream)``: This is the most versatile class, having both the bitstream methods and the mutating methods.
+* :class:`Bits`: This is the most basic class. It is immutable and so its contents can't be changed after creation.
+* :class:`BitArray`: This adds mutating methods to its base class.
+* :class:`ConstBitStream`: This adds methods and properties to allow the bits to be treated as a stream of bits, with a bit position and reading/parsing methods.
+* :class:`BitStream`: This is the most versatile class, having both the bitstream methods and the mutating methods.
 
 The fifth class is :class:`Array` which is a container of fixed-length bitstrings. The rest of this introduction mostly concerns the more basic types - for more details on :class:`Array` you can go directly to the reference documentation, but understanding how bit format strings are specified will be helpful.
 
@@ -31,9 +31,6 @@ To summarise when to use each class:
 
 The :class:`Bits` class is the base class of the other three class. This means that ``isinstance(s, Bits)`` will be true if ``s`` is an instance of any of the four classes.
 
-
-Creating bitstrings
--------------------
 
 ``Bits(auto, /, length: Optional[int], offset: Optional[int], **kwargs)``
 
@@ -68,7 +65,7 @@ See the entry on :func:`pack` for more information.
 .. _auto_init:
 
 The auto initialiser
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 The first parameter when creating a bitstring is a positional only parameter, referred to as 'auto', that can be a variety of types:
 
@@ -95,7 +92,7 @@ Parentheses and multiplicative factors can also be used, for example ``'2*(0b10,
 The multiplying factor must come before the thing it is being used to repeat.
 
 Promotion to bitstrings
-"""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Almost anywhere that a bitstring is expected you can substitute something that will get 'auto' promoted to a bitstring.
 For example::
@@ -129,7 +126,7 @@ Integers won't be auto promoted, but instead will raise a ``TypeError``::
 
 
 ``BitsType``
-""""""""""""
+^^^^^^^^^^^^
 
 .. class:: BitsType(Bits | str | Iterable[Any] | bool | BinaryIO | bytearray | bytes | memoryview | bitarray.bitarray)
 
@@ -141,13 +138,13 @@ Integers won't be auto promoted, but instead will raise a ``TypeError``::
 
 
 Keyword initialisers
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 If the 'auto' initialiser isn't used then at most one keyword initialiser can be used.
 
 
 From a hexadecimal string
-"""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
     >>> c = BitArray(hex='0x000001b3')
     >>> c.hex
@@ -160,7 +157,7 @@ If you include the initial ``0x`` then you can use the 'auto' initialiser instea
     c = BitArray('0x000001b3')
 
 From a binary string
-""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^
 
     >>> d = BitArray(bin='0011 00')
     >>> d.bin
@@ -173,7 +170,7 @@ As with ``hex``, the 'auto' initialiser will work if the binary string is prefix
     >>> d = BitArray('0b001100')
 
 From an octal string
-""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^
 
     >>> o = BitArray(oct='34100')
     >>> o.oct
@@ -187,7 +184,7 @@ As with ``hex`` and ``bin``, the 'auto' initialiser will work if the octal strin
 
 
 From an integer
-"""""""""""""""
+^^^^^^^^^^^^^^^
 
     >>> e = BitArray(uint=45, length=12)
     >>> f = BitArray(int=-1, length=7)
@@ -213,7 +210,7 @@ The ``uint`` and ``int`` names can be shortened to just ``u`` and ``i`` respecti
 The plain ``int`` and ``uint`` initialisers are bit-wise big-endian. That is to say that the most significant bit comes first and the least significant bit comes last, so the unsigned number one will have a ``1`` as its final bit with all other bits set to ``0``. These can be any number of bits long. For whole-byte bitstring objects there are more options available with different endiannesses.
 
 Big and little-endian integers
-""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     >>> big_endian = BitArray(uintbe=1, length=16)
     >>> little_endian = BitArray(uintle=1, length=16)
@@ -233,7 +230,7 @@ The second, ``little_endian``, is interpreted as least significant byte first, i
 Finally we have ``native_endian``, which will equal either ``big_endian`` or ``little_endian``, depending on whether you are running on a big or little-endian machine (if you really need to check then use ``import sys; sys.byteorder``).
 
 From a floating point number
-""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     >>> f1 = BitArray(float=10.3, length=32)
     >>> f2 = BitArray('float64=5.4e31')
@@ -252,7 +249,7 @@ As with other initialisers you can also 'auto' initialise, as demonstrated with 
 See also :ref:`Exotic floats` for information on non IEEE 754 floating point representations that are supported (bfloat and different 8-bit float formats).
 
 From exponential-Golomb codes
-"""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Initialisation with integers represented by exponential-Golomb codes is also possible. ``ue`` is an unsigned code while ``se`` is a signed code. Interleaved exponential-Golomb codes are also supported via ``uie`` and ``sie``::
 
@@ -273,7 +270,7 @@ The 'auto' initialiser may also be used by giving an equals sign and the value i
 You may wonder why you would bother doing this in this case as the syntax is slightly longer. Hopefully all will become clear in the next section.
 
 From raw byte data
-""""""""""""""""""
+^^^^^^^^^^^^^^^^^^
 
 Using the length and offset parameters to specify the length in bits and an offset at the start to be ignored is particularly useful when initialising from raw data or from a file. ::
 
@@ -289,7 +286,7 @@ You can also use a ``bytearray`` or a ``bytes`` object, either explicitly with a
 
 
 From a file
-"""""""""""
+^^^^^^^^^^^
 
 Using the ``filename`` initialiser allows a file to be analysed without the need to read it all into memory. The way to create a file-based bitstring is::
 
@@ -304,4 +301,11 @@ It's also possible to use the 'auto' initialiser for file objects. It's as simpl
     f = open('my200GBfile', 'rb')
     p = Bits(f)
 
+.. note::
 
+    For the immutable types ``Bits`` and ``ConstBitstream`` the file is memory mapped (mmap) in a read-only mode for efficiency.
+
+    This behaves slightly differently depending on the platform; in particular Windows will lock the file against any further writing whereas Unix-like systems will not.
+    This means that you won't be able to write to the file from Windows OS while the ``Bits`` or ``ConstBitStream`` object exists.
+
+    The work-arounds for this are to either (i) Delete the object before opening the file for writing, (ii) Use either ``BitArray`` or ``BitStream`` which will read the whole file into memory or (iii) Stop using Windows (or run in WSL).
