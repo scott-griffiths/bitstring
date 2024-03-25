@@ -6,6 +6,7 @@ import bitstring
 import io
 import os
 from bitstring import ConstBitStream as CBS
+import platform
 
 sys.path.insert(0, '..')
 
@@ -253,7 +254,12 @@ def test_windows_file_lock_bug():
     with open(path, mode='w') as f:
         f.write('Hello')
     # Will this lock it?
-    # s = CBS(filename=path)
+    s = CBS(filename=path)
 
-    with open(path, mode='w') as f:
-        f.write('Will this work?')
+    try:
+        with open(path, mode='w') as _:
+            pass
+    except OSError:
+        if platform.system() == 'Windows':
+            # Expected failure. See bug #308
+            pass
