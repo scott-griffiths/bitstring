@@ -15,6 +15,7 @@ This section gives more information and usually examples.
 
    introduction
    interpretation
+   dtypes
    bits
    bitarray
    constbitstream
