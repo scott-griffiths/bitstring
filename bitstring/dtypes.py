@@ -32,6 +32,16 @@ def scaled_read_fn(read_fn, s: Union[int, float]):
 
 
 class Dtype:
+    """A data type class, representing a concrete interpretation of binary data.
+
+    Dtype instances are immutable. They are often created implicitly elsewhere via a token string.
+
+    >>> u12 = Dtype('uint', 12)  # length separate from token string.
+    >>> float16 = Dtype('float16')  # length part of token string.
+    >>> mxfp = Dtype('e3m2mxfp', scale=2 ** 6)  # dtype with scaling factor
+
+    """
+
     _name: str
     _read_fn: Callable
     _set_fn: Callable
@@ -46,7 +56,7 @@ class Dtype:
     _scale: Union[None, float, int]
 
 
-    def __new__(cls, token: Union[str, Dtype], /, length: Optional[int] = None, scale: Union[None, float, int, str] = None) -> Dtype:
+    def __new__(cls, token: Union[str, Dtype], /, length: Optional[int] = None, scale: Union[None, float, int] = None) -> Dtype:
         if isinstance(token, cls):
             return token
         if length is None:
@@ -57,47 +67,58 @@ class Dtype:
             return x
 
     @property
-    def scale(self) -> Union[int, float, str]:
+    def scale(self) -> Union[int, float, None]:
+        """The multiplicative scale applied when interpreting the data."""
         return self._scale
 
     @property
     def name(self) -> str:
+        """A string giving the name of the data type."""
         return self._name
 
-    @property
+    @property q
     def length(self) -> int:
+        """The length of the data type in units of bits_per_item. Set to None for variable length dtypes."""
         return self._length
 
     @property
     def bitlength(self) -> Optional[int]:
+        """The number of bits needed to represent a single instance of the data type. Set to None for variable length dtypes."""
         return self._bitlength
 
     @property
     def bits_per_item(self) -> int:
+        """The number of bits for each unit of length. Usually 1, but equals 8 for bytes type."""
         return self._bits_per_item
 
     @property
     def variable_length(self) -> bool:
+        """If True then the length of the data type depends on the data being interpreted, and must not be specified."""
         return self._variable_length
 
     @property
     def return_type(self) -> Any:
+        """The type of the value returned by the parse method, such as int, float or str."""
         return self._return_type
 
     @property
     def is_signed(self) -> bool:
+        """If True then the data type represents a signed quantity."""
         return self._is_signed
 
     @property
     def set_fn(self) -> Optional[Callable]:
+        """A function to set the value of the data type."""
         return self._set_fn
 
     @property
     def get_fn(self) -> Callable:
+        """A function to get the value of the data type."""
         return self._get_fn
 
     @property
     def read_fn(self) -> Callable:
+        """A function to read the value of the data type."""
         return self._read_fn
 
     def _set_scale(self, value: Union[None, float, int]) -> None:
@@ -152,13 +173,18 @@ class Dtype:
         return x
 
     def build(self, value: Any, /) -> bitstring.Bits:
-        """Create a bitstring from a value."""
+        """Create a bitstring from a value.
+
+        The value parameter should be of a type appropriate to the dtype.
+        """
         b = bitstring.Bits()
         self._set_fn(b, value)
         return b
 
     def parse(self, b: BitsType, /) -> Any:
-        """Parse a bitstring into a value."""
+        """Parse a bitstring to find its value.
+
+        The b parameter should be a bitstring of the appropriate length, or an object that can be converted to a bitstring."""
         b = bitstring.Bits._create_from_bitstype(b)
         return self._get_fn(bitstring.Bits(b))
 

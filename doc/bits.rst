@@ -203,6 +203,8 @@ Methods
 
     An output *stream* can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
 
+    By default the output will have colours added in the terminal. This can be disabled - see :data:`bitstring.options.no_color` for more information.
+
 
 .. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> Tuple[int] | Tuple[()]
 

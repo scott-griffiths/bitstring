@@ -298,6 +298,9 @@ Methods
          1445 -1188  1493  -417  1542   354 : 5a5 b5c 5d5 e5f 606 162
         ] + trailing_bits = 0x63
 
+    By default the output will have colours added in the terminal. This can be disabled - see :data:`bitstring.options.no_color` for more information.
+
+
 .. method:: Array.reverse() -> None
 
     Reverse the order of all items in the Array. ::

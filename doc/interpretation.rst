@@ -12,10 +12,12 @@ Note that these properties can potentially be very expensive in terms of both co
 If you're in an interactive session then the pretty-print method :meth:`~Bits.pp` can be useful as it will only convert the bitstring one chunk at a time for display.
 
 
-Short Interpretations
----------------------
+Properties
+----------
 
-Many of the more commonly used interpretations have single letter equivalents. The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can be shortened to ``h``, ``b``, ``o``, ``i``, ``u`` and ``f`` respectively. Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32`` or ``floatle32``.
+Many of the more commonly used interpretations have single letter equivalents.
+The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can be shortened to ``h``, ``b``, ``o``, ``i``, ``u`` and ``f`` respectively.
+Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32`` or ``floatle32``.
 
 When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
 
@@ -23,17 +25,14 @@ When used as a getter these just add an extra check on the bitstring's length - 
     s.f32 = 101.5   # New length is 32 bits, representing a float
 
 
-Properties
-----------
-
 For the properties described below we will use these::
 
     >>> a = BitArray('0x123')
     >>> b = BitArray('0b111')
 
 
-bin / b
-^^^^^^^
+bin / hex / oct
+---------------
 
 The most fundamental interpretation is perhaps as a binary string (a ‘bitstring’). The :attr:`~Bits.bin` property returns a string of the binary representation of the bitstring. All bitstrings can use this property and it is used to test equality between bitstrings. ::
 
@@ -44,9 +43,6 @@ The most fundamental interpretation is perhaps as a binary string (a ‘bitstrin
 
 Note that the initial zeros are significant; for bitstrings the zeros are just as important as the ones!
 
-hex / h
-^^^^^^^
-
 For whole-byte bitstrings the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits.
 
 If the bitstring does not have a length that is a multiple of four bits then an :exc:`InterpretError` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code. ::
@@ -55,9 +51,6 @@ If the bitstring does not have a length that is a multiple of four bits then an 
     '123'
     >>> b.h
     ValueError: Cannot convert to hex unambiguously - not multiple of 4 bits.
-
-oct / o
-^^^^^^^
 
 For an octal interpretation use the :attr:`~Bits.oct` property.
 
@@ -70,8 +63,8 @@ If the bitstring does not have a length that is a multiple of three then an :exc
     >>> (b + '0b0').oct
     ValueError: Cannot convert to octal unambiguously - not multiple of 3 bits.
 
-uint / u / uintbe / uintle / uintne
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Integer types
+-------------
 
 To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the :attr:`~Bits.uint` property.
 
@@ -91,9 +84,7 @@ For byte-wise big-endian, little-endian and native-endian interpretations use :a
     65536
     >>> s.uintne   # byte-wise native-endian (will be 1 on a big-endian platform!)
     65536
- 
-int / i / intbe / intle / intne
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 For a two's complement interpretation as a base-2 signed integer use the :attr:`~Bits.int` property. If the first bit of the bitstring is zero then the :attr:`~Bits.int` and :attr:`~Bits.uint` interpretations will be equal, otherwise the :attr:`~Bits.int` will represent a negative number. ::
 
@@ -104,29 +95,8 @@ For a two's complement interpretation as a base-2 signed integer use the :attr:`
 
 For byte-wise big, little and native endian signed integer interpretations use :attr:`~Bits.intbe`, :attr:`~Bits.intle` and :attr:`~Bits.intne` respectively. These work in the same manner as their unsigned counterparts described above.
 
-float / f / floatbe / floatle / floatne
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For a floating point interpretation use the :attr:`~Bits.float` property. This uses the IEEE 754 floating point representation and will only work if the bitstring is 16, 32 or 64 bits long.
-
-Different endiannesses are provided via :attr:`~Bits.floatle` and :attr:`~Bits.floatne`. Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian :attr:`~Bits.float` and the byte-wise big-endian :attr:`~Bits.floatbe`.
-
-Note also that standard floating point numbers in Python are stored in 64 bits, so use this size if you wish to avoid rounding errors.
-
-bfloat / bfloatbe / bfloatle / bfloatne
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This is a specialised 16-bit floating point format that is essentially a truncated version of the 32-bit IEEE float. It is used mainly in machine learning. As only one length is permitted it doesn't need to be specified on creation or interpretation.
-
-See :ref:`Exotic floats` for more information.
-
-p4binary / p3binary
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Specialised 8-bit floating point formats. See :ref:`Exotic floats` for more information.
-
 bytes
-^^^^^
+-----
 
 A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the :py:attr:`~Bits.bytes` interpretation, which returns a ``bytes`` object.
 
@@ -143,39 +113,34 @@ If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError
 
 Note that the :meth:`~Bits.tobytes` method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the :attr:`~Bits.bytes` property.
 
-ue
-^^
 
-The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function or unpack with a ``ue`` format string. See :ref:`exp-golomb` for a short explanation of this type of integer representation. ::
+Floating point types
+--------------------
 
-    >>> s = BitStream(ue=12)
-    >>> s.bin
-    '0001101'
-    >>> s.append('ue=3')
-    >>> print(s.unpack('2*ue'))
-    [12, 3]
+For a floating point interpretation use the :attr:`~Bits.float` property. This uses the IEEE 754 floating point representation and will only work if the bitstring is 16, 32 or 64 bits long.
 
-se
-^^
+Different endiannesses are provided via :attr:`~Bits.floatle` and :attr:`~Bits.floatne`.
+Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian :attr:`~Bits.float` and the byte-wise big-endian :attr:`~Bits.floatbe`.
 
-The :attr:`~Bits.se` property does much the same as ``ue`` and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned - see :ref:`exp-golomb` for more information. ::
-
-    >>> s = BitStream('0x164b')
-    >>> s.se
-    InterpretError: Bitstring is not a single exponential-Golomb code.
-    >>> while s.pos < len(s):
-    ...     print(s.read('se'))
-    -5
-    2
-    0
-    -1
- 
+Note also that standard floating point numbers in Python are stored in 64 bits, so use this size if you wish to avoid rounding errors.
 
 
-uie / sie
-^^^^^^^^^
+Other floating point types
+--------------------------
 
-A slightly different type, interleaved exponential-Golomb codes are also supported. The principles are the same as with ``ue`` and ``se`` - see :ref:`exp-golomb` for detail of the differences.
+A range of floating point types that are mostly used in machine learning are also availabe.
+They include ``bfloat16`` which is a truncated ``float32``, together with IEEE 8-bit formats and a range of OCP Microscaling 8-bit, 6-bit and 4-bit formats.
+
+See :ref:`Exotic floats` for more information.
+
+
+Exponential-Golomb types
+------------------------
+
+Some variable length integer types are supported.
+The lengths of these types depends upon the data being read and they are mainly used in video codecs.
+
+see :ref:`exp-golomb` for more information.
 
 
 Dtypes
@@ -197,7 +162,6 @@ This is primarily inteded for use with floating point formats of 8 bits or less,
 
 In most situations the token string can be used instead of `Dtype` object when it is needed, and the `Dtype` will be constructed automatically,
 which is why the `Dtype` object is rarely used directly in this documentation.
-
 It can however be advantageous to to create `Dtype` objects directly for efficiency reasons, or for using dtypes programmatically.
 
 If you need to use the `scale` parameter then there is no way to specify this in the format token string, so you must directly use a `Dtype` object.
