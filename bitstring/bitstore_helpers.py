@@ -185,7 +185,18 @@ def mxint2bitstore(f: Union[str, float]) -> BitStore:
         return BitStore('01111111')
     if f <= -128:  # -2
         return BitStore('10000000')
-    i = int(f)  # TODO: Does this need rounding?
+    # Want to round to nearest, so move by 0.5 away from zero and round down by converting to int
+    if f >= 0.0:
+        f += 0.5
+        i = int(f)
+        # For ties-round-to-even
+        if f - i == 0.0 and i % 2:
+            i -= 1
+    else:
+        f -= 0.5
+        i = int(f)
+        if f - i == 0.0 and i % 2:
+            i += 1
     return int2bitstore(i, 8, True)
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:

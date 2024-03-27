@@ -412,3 +412,30 @@ def test_conversion_to_8bit_with_overflow():
     assert math.isnan(x.e4m3mxfp)
     x = BitArray(e4m3mxfp=-1e10)
     assert math.isnan(x.e4m3mxfp)
+
+def test_mxint_rounding():
+    x = BitArray('mxint=0.0')
+    assert x == '0x00'
+    x.mxint = -2.0
+    assert x.mxint == -2.0
+    x.mxint = 1.0/64
+    assert x.mxint == 1.0/64
+    assert x == '0x01'
+    x.mxint = 1000
+    assert x.mxint == 1.0 + 63.0/64.0
+    x.mxint = 1.4 / 64.0
+    assert x.mxint == 1.0 / 64.0
+    x.mxint = 1.6 / 64.0
+    assert x.mxint == 2.0 / 64.0
+    x.mxint = 1.5 / 64.0
+    assert x.mxint == 2.0 / 64.0  # Round to even
+    x.mxint = 2.5 / 64.0
+    assert x.mxint == 2.0 / 64.0  # Round to even
+    x.mxint = -2.5
+    assert x.mxint == -2.0
+    x.mxint = -1.5 / 64.0
+    assert x.mxint == -2.0 / 64.0
+    x.mxint = -2.5 / 64.0
+    assert x.mxint == -2.0 / 64.0
+    x.mxint = -3.5 / 64.0
+    assert x.mxint == -4.0 / 64.0
