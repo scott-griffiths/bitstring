@@ -19,11 +19,19 @@ It has been actively maintained since 2006.
 
 News
 ----
-**29th November 2023**: bitstring 4.1.4 released. Version 4.1 is a large update in terms of how much of the code has changed.
+**March 2024**: bitstring 4.2.0.b2 released. This is the final beta release before 4.2. 
 
-* New Array class for homogeneous data.
-* Support for 8-bit floating point values.
-* Speed increased with bitarray dependency.
+Install the beta with `pip install bitstring==4.2.0.b2`, or use `pip install bitstring` for the latest stable version.
+
+New in 4.2:
+
+* Dropped support for Python 3.7. Minimum version is now 3.8.
+* A new `Dtype` class can be optionally used to specify types.
+* The `bitstring.options` object is now the preferred method for changing module options.
+* New `fromstring` method as another way to create bitstrings from formatted strings.
+* More types can now be pretty printed.
+* A range of 8-bit, 6-bit and even 4-bit float formats added (beta):
+* Performance improvements.
 
 See the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt) for details. Please let me know if you encounter any problems.
 
@@ -113,13 +121,6 @@ Examples
      Array('uint7', [45, 100, 15, 1])
 
 
-Unit Tests
-----------
-
-The 700+ unit tests should all pass. They can be run from the root of the project with
-
-     python -m unittest
-
 
 Credits
 -------
@@ -129,4 +130,4 @@ Maintained and expanded ever since as it became unexpectedly popular.
 Thanks to all those who have contributed ideas and code (and bug reports) over the years.
 
 
-<sub>Copyright (c) 2006 - 2023 Scott Griffiths</sub>
+<sub>Copyright (c) 2006 - 2024 Scott Griffiths</sub>
