@@ -749,17 +749,21 @@ class Array:
             return self._apply_op_between_arrays(operator.le, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.le, other, is_comparison=True)
 
-    def __eq__(self, other: Union[int, float, str, Array]) -> Array:
+    def _eq_ne(self, op, other: Any) -> Array:
         if isinstance(other, (int, float, str, Bits)):
-            return self._apply_op_to_all_elements(operator.eq, other, is_comparison=True)
-        other = self.__class__(self.dtype, other)
-        return self._apply_op_between_arrays(operator.eq, other, is_comparison=True)
+            return self._apply_op_to_all_elements(op, other, is_comparison=True)
+        try:
+            other = self.__class__(self.dtype, other)
+        except:
+            return NotImplemented
+        finally:
+            return self._apply_op_between_arrays(op, other, is_comparison=True)
 
-    def __ne__(self, other: Union[int, float, str, Array]) -> Array:
-        if isinstance(other, (int, float, str, Bits)):
-            return self._apply_op_to_all_elements(operator.ne, other, is_comparison=True)
-        other = self.__class__(self.dtype, other)
-        return self._apply_op_between_arrays(operator.ne, other, is_comparison=True)
+    def __eq__(self, other: Any) -> Array:
+        return self._eq_ne(operator.eq, other)
+
+    def __ne__(self, other: Any) -> Array:
+        return self._eq_ne(operator.ne, other)
 
     # Unary operators
 

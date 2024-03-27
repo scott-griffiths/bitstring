@@ -2,28 +2,44 @@
 bitstring module version history
 --------------------------------
 
------------------------------
-In preparation: version 4.2.0
------------------------------
+-------------------------
+March 2024: version 4.2.0
+-------------------------
+
+This release contains a fairly large refactor of how different types are managed. This
+shouldn't affect the end user, and the main noticable change should be the new Dtype
+class, which is optional to use.
+
+Support for 8-bit and smaller floats has been reworked and expanded. These are still
+a 'beta' feature.
+
+Backwardly incompatible changes:
 
 * Dropped support for Python 3.7. Minimum version is now 3.8.
-* Array class no longer 'beta'.
-* New Dtype class can be optionally used to specify types.
-* The bitstring.options object is now preferred method for changing module options.
-* New fromstring method as another way to create bitstrings from strings.
+* For tokens that use a non-numeric length, a ':' is now compulsory rather than
+  recommended. For example use 'uint:foo' instead of 'uintfoo'.
+* The previous e4m3float and e5m2float formats have become the slightly modified
+  p4binary8 and p3binary8 formats.
+* Some parameters are now enforced as positional only, such as `auto` in constructors.
+
+Other changes:
+
+* The Array class is no longer 'beta'.
+* A new Dtype class can be optionally used to specify types.
+* The bitstring.options object is now the preferred method for changing module options.
+* New fromstring method as another way to create bitstrings from formatted strings.
 * More types can now be pretty printed.
 * Pretty printing is now prettier - optional terminal colours added.
-* A range of 8-bit, 6-bit and even 4-bit float formats added:
+* A range of 8-bit, 6-bit and even 4-bit float formats added (beta):
   p3binary8: IEEE 8-bit floating point with 3 bit precision.
   p4binary8: IEEE 8-bit floating point with 4 bit precision.
   e5m2mxfp: OCP 8-bit floating point with 3 bit precision.
   e4m3mxfp: OCP 8-bit floating point with 4 bit precision.
-  e2m3mxfp: OCP 6-bit floatinf point with 4 bit precision.
+  e2m3mxfp: OCP 6-bit floating point with 4 bit precision.
   e3m2mxfp: OCP 6-bit floating point with 3 bit precision.
   e2m1mxfp: OCP 4-bit floating point with 2 bit precision.
   e8m0mxfp: OCP 8-bit unsigned floating point designed to scale the other formats.
   mxint: OCP 8-bit floating point that is a scaled integer representation.
-* The previous e4m3float and e5m2float formats have become the slightly modified p4binary8 and p3binary8 formats.
 * Performance improvements.
 
 

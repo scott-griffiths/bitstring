@@ -208,7 +208,7 @@ dtype_definitions = [
                     allowed_lengths=(0, 4, 8, ...), description="a hexadecimal string"),
     DtypeDefinition('bin', Bits._setbin_safe, Bits._getbin, str, False, bin_bits2chars,
                     description="a binary string"),
-    DtypeDefinition('oct',Bits._setoct, Bits._getoct, str, False, oct_bits2chars,
+    DtypeDefinition('oct', Bits._setoct, Bits._getoct, str, False, oct_bits2chars,
                     allowed_lengths=(0, 3, 6, ...), description="an octal string"),
     # Float types
     DtypeDefinition('float', Bits._setfloatbe, Bits._getfloatbe, float, True, float_bits2chars,
