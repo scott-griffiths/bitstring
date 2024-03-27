@@ -19,9 +19,9 @@ It has been actively maintained since 2006.
 
 News
 ----
-**March 2024**: bitstring 4.2.0.b2 released. This is the final beta release before 4.2. 
+**March 2024**: bitstring 4.2.0b2 released. This is the final beta release before 4.2. 
 
-Install the beta with `pip install bitstring==4.2.0.b2`, or use `pip install bitstring` for the latest stable version.
+Install the beta with `pip install bitstring==4.2.0b2`, or use `pip install bitstring` for the latest stable version.
 
 New in 4.2:
 
