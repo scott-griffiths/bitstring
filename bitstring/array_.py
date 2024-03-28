@@ -540,8 +540,10 @@ class Array:
     def _apply_op_between_arrays(self, op, other: Array, is_comparison: bool = False) -> Array:
         if len(self) != len(other):
             msg = f"Cannot operate element-wise on Arrays with different lengths ({len(self)} and {len(other)})."
-            if op == operator.add or op == operator.iadd:
-                msg += " Use extend() if you want to concatenate Arrays."
+            if op in [operator.add, operator.iadd]:
+                msg += " Use extend() method to concatenate Arrays."
+            if op in [operator.eq, operator.ne]:
+                msg += " Use equals() method to compare Arrays for a single boolean result."
             raise ValueError(msg)
         if is_comparison:
             new_type = dtype_register.get_dtype('bool', 1)
