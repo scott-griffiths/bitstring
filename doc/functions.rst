@@ -184,7 +184,7 @@ bit being ``s[-1]`` and the final stored bit being ``s[-n]``.
 
 Reading, peeking and unpacking of bitstrings are also affected by the ``lsb0`` flag, so reading always increments the bit position, and will move from right to left if ``lsb0`` is ``True``. Because of the way that exponential-Golomb codes are read (with the left-most bits determining the length of the code) these interpretations are not available in LSB0 mode, and using them will raise an exception.
 
-For ``BitStream`` and ``ConstBitStream`` objects changing the value of ``bitstring.lsb0`` invalidates the current position in the bitstring, unless that value is ``0``, and future results are undefined. Basically don't perform reads or change the current bit position before switching the bit numbering system!
+For ``BitStream`` and ``ConstBitStream`` objects changing the value of ``bitstring.options.lsb0`` invalidates the current position in the bitstring, unless that value is ``0``, and future results are undefined. Basically don't perform reads or change the current bit position before switching the bit numbering system!
 
 bytealigned
 ^^^^^^^^^^^

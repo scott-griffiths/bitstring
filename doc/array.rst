@@ -144,7 +144,7 @@ Methods
 
     Raises a ``ValueError`` if the Array's bit length is not a multiple of its dtype length (see :attr:`~Array.trailing_bits`).
 
-.. method:: Array.astype(dtype: str) -> Array
+.. method:: Array.astype(dtype: Dtype | str) -> Array
 
     Cast the ``Array`` to the new `dtype` and return the result. ::
 
@@ -183,7 +183,7 @@ Methods
         >>> a.count('e')
         3
 
-    For floating point types using a `value` of ``float('nan')`` will count the number of elements for which ``math.isnan()`` returns ``True``.
+    For floating point types, using a `value` of ``float('nan')`` will count the number of elements for which ``math.isnan()`` returns ``True``.
 
 .. method:: Array.equals(other: Any) -> bool
 
@@ -341,24 +341,24 @@ Some operations have tighter restrictions, such as the shift operators ``<<`` an
 
 The dtype of the resulting ``Array`` is calculated by applying these rules:
 
-Rule 0. For comparison operators (``<``, ``>=``, ``==``, ``!=`` etc.) the result is always an ``Array`` of dtype ``'bool'``.
+**Rule 0**: For comparison operators (``<``, ``>=``, ``==``, ``!=`` etc.) the result is always an ``Array`` of dtype ``'bool'``.
 
 For other operators, one of the two input ``Array`` dtypes is used as the ouput dtype by applying the remaining rules in order until a winner is found:
 
-Rule 1. Floating point types always win against integer types.
-Rule 2. Signed integer types always win against unsigned integer types.
-Rule 3. Longer types win against shorter types.
-Rule 4. In a tie the first type wins.
+* **Rule 1**: Floating point types always win against integer types.
+* **Rule 2**: Signed integer types always win against unsigned integer types.
+* **Rule 3**: Longer types win against shorter types.
+* **Rule 4**: In a tie the first type wins.
 
 Some examples should help illustrate:
 
-======= ================   ============ ================  ===    ==================
-Rule 0  ``'uint8'``             ``<=``    ``'float64'``    →        ``'bool'``
-Rule 1  ``'int32'``             ``+``      ``'float16'``   →        ``'float16'``
-Rule 2  ``'uint20'``            ``//``    ``'int10'``      →        ``'int10'``
-Rule 3  ``'int8'``              ``*``     ``'int16'``      →        ``'int16'``
-Rule 4  ``'float16'``           ``-=``    ``'bfloat'``     →         ``'float16'``
-======= ================   ============ ================  ===    ==================
+=========== ================   ============ ================  ===    ==================
+**Rule 0**  ``'uint8'``             ``<=``    ``'float64'``    →        ``'bool'``
+**Rule 1**  ``'int32'``             ``+``      ``'float16'``   →        ``'float16'``
+**Rule 2**  ``'uint20'``            ``//``    ``'int10'``      →        ``'int10'``
+**Rule 3**  ``'int8'``              ``*``     ``'int16'``      →        ``'int16'``
+**Rule 4**  ``'float16'``           ``-=``    ``'bfloat'``     →         ``'float16'``
+=========== ================   ============ ================  ===    ==================
 
 Comparison operators
 """"""""""""""""""""

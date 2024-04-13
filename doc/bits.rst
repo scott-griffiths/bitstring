@@ -307,39 +307,23 @@ Methods
 Properties
 ----------
 
-Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter. Properties can also have a length in bits appended to them to such as ``u8`` or ``f64`` (for the ``bytes`` property the length is interpreted in bytes instead of bits). These properties with lengths will cause an :exc:`InterpretError` to be raised if the bitstring is not of the specified length.
+The many ways to interpret bitstrings can be accessed via properties.
+These properties will be read-only for a ``Bits`` object, but are also writable for derived mutable types such as ``BitArray`` and ``BitStream``.
+
+Properties can also have a length in bits appended to them to such as ``u8`` or ``f64`` (for the ``bytes`` property the length is interpreted in bytes instead of bits).
+These properties with lengths will cause an :exc:`InterpretError` to be raised if the bitstring is not of the specified length.
+
+This list isn't exhaustive - see for example :ref:`Exotic floats` for information on bfloats and many 8-bit and smaller floating point formats.
+Also see :ref:`exp-golomb` for some interesting variable length integer formats.
+
+Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter.
+
 
 .. attribute:: Bits.bin
     :type: str
-.. attribute:: Bits.b
-    :type: str
-    :noindex:
 
     Property for the representation of the bitstring as a binary string.
-
-.. attribute:: Bits.bfloat
-    :type: float
-.. attribute:: Bits.bfloatbe
-    :type: float
-
-    Property for the 2 byte bfloat floating point representation of the bitstring.
-
-    The bitstring must be 16 bits long to support this floating point interpretation, otherwise an :exc:`InterpretError` will be raised.
-
-    The :attr:`bfloat` property is bit-wise big-endian, which as all floats must be whole-byte is exactly equivalent to the byte-wise big-endian :attr:`bfloatbe`.
-
-    The ``bfloat`` properties are specialised representations mainly used in machine learning. They are essentially the first half of the IEEE 32-bit floats, so have the same range but with less accuracy. If you don't know what a bfloat is then you almost certainly want to use the ``float`` properties instead. See :ref:`Exotic floats` for more information.
-
-
-.. attribute:: Bits.bfloatle
-    :type: float
-
-    Property for the byte-wise little-endian 2 byte bfloat floating point representation of the bitstring.
-
-.. attribute:: Bits.bfloatne
-    :type: float
-
-    Property for the byte-wise native-endian 2 byte bfloat floating point representation of the bitstring.
+    Can be shortend to just ``b``.
 
 .. attribute:: Bits.bool
     :type: bool
@@ -363,11 +347,9 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
 
 .. attribute:: Bits.hex
     :type: str
-.. attribute:: Bits.h
-    :type: str
-    :noindex:
 
     Property representing the hexadecimal value of the bitstring.
+    Can be shortend to just ``h``.
 
     If the bitstring is not a multiple of four bits long then getting its hex value will raise an :exc:`InterpretError`. ::
 
@@ -377,11 +359,9 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
 
 .. attribute:: Bits.int
     :type: int
-.. attribute:: Bits.i
-    :type: int
-    :noindex:
 
     Property for the signed two’s complement integer representation of the bitstring.
+    Can be shortend to just ``i``.
 
 .. attribute:: Bits.intbe
     :type: int
@@ -408,11 +388,9 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
     :type: float
 .. attribute:: Bits.floatbe
     :type: float
-.. attribute:: Bits.f
-    :type: float
-    :noindex:
 
     Property for the floating point representation of the bitstring.
+    Can be shortend to just ``f``.
 
     The bitstring must be 16, 32 or 64 bits long to support the floating point interpretations, otherwise an :exc:`InterpretError` will be raised.
 
@@ -430,18 +408,6 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
 
     Property for the byte-wise native-endian floating point representation of the bitstring.
 
-.. attribute:: Bits.p4binary
-    :type: float
-
-    Property for an 8 bit floating point representation with 4 exponent bits and 3 mantissa bits.
-    See :ref:`Exotic floats` for more information.
-
-.. attribute:: Bits.p3binary
-    :type: float
-
-    Property for an 8 bit floating point representation with 5 exponent bits and 2 mantissa bits.
-    See :ref:`Exotic floats` for more information.
-
 .. attribute:: Bits.len
     :type: int
 .. attribute:: Bits.length
@@ -454,11 +420,9 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
 
 .. attribute:: Bits.oct
     :type: str
-.. attribute:: Bits.o
-    :type: str
-    :noindex:
 
     Property for the octal representation of the bitstring.
+    Can be shortend to just ``o``.
 
     If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`InterpretError`. ::
 
@@ -469,48 +433,12 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
         >>> s.oct
         '01234567'
 
-.. attribute:: Bits.se
-    :type: int
-
-    Property for the signed exponential-Golomb code representation of the bitstring.
-
-    When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code. ::
-
-        >>> s = BitArray(se=-40)
-        >>> s.bin
-        0000001010001
-        >>> s += '0b1'
-        >>> s.se
-        Error: BitString is not a single exponential-Golomb code.
-
-.. attribute:: Bits.ue
-    :type: int
-
-    Property for the unsigned exponential-Golomb code representation of the bitstring.
-
-    When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
-
-.. attribute:: Bits.sie
-    :type: int
-
-    Property for the signed interleaved exponential-Golomb code representation of the bitstring.
-
-    When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
-
-.. attribute:: Bits.uie
-    :type: int
-
-    Property for the unsigned interleaved exponential-Golomb code representation of the bitstring.
-
-    When used as a getter an :exc:`InterpretError` will be raised if the bitstring is not a single code.
 
 .. attribute:: Bits.uint
     :type: int
-.. attribute:: Bits.u
-    :type: int
-    :noindex:
 
     Property for the unsigned base-2 integer representation of the bitstring.
+    Can be shortend to just ``u``.
 
 .. attribute:: Bits.uintbe
     :type: int
