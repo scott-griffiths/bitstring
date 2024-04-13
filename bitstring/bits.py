@@ -1589,14 +1589,6 @@ class Bits:
         return count if value else len(self) - count
 
     @staticmethod
-    def _chars_in_token(fmt:str) -> Tuple[str, Optional[int]]:
-        dtype = Dtype(fmt)
-        bpc = Bits._bits_per_char(dtype.name)
-        if dtype.bitlength is not None and dtype.bitlength % bpc != 0:
-            raise ValueError(f"Bits per group must be a multiple of {bpc} for '{fmt}' format.")
-        return dtype.name, dtype.bitlength
-
-    @staticmethod
     def _format_bits(bits: Bits, bits_per_group: int, sep: str, dtype: Dtype,
                      colour_start: str, colour_end: str, width: Optional[int]=None) -> Tuple[str, int]:
         get_fn = dtype.get_fn
