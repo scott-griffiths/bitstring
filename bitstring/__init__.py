@@ -55,7 +55,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "4.2.0b2"
+__version__ = "4.2.0"
 
 __author__ = "Scott Griffiths"
 
@@ -86,6 +86,7 @@ bytealigned = lsb0 = None
 
 
 # An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
+# This is now deprecated. Use the options object directly instead.
 class _MyModuleType(types.ModuleType):
     @property
     def bytealigned(self) -> bool:
