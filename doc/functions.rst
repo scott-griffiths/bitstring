@@ -62,7 +62,9 @@ Note how you can use some tokens without sizes (such as ``bin`` and ``bits`` in 
 If the size had been specified then a :exc:`ValueError` would be raised if the parameter given was the wrong length.
 Note also how bitstring literals can be used (the ``0b110`` in the bitstring returned by ``foo``) and these don't consume any of the items in ``*values``.
 
-You can also include keyword, value pairs (or an equivalent dictionary) as the final parameter(s). The values are then packed according to the positions of the keywords in the format string. This is most easily explained with some examples. Firstly the format string needs to contain parameter names::
+You can also include keyword, value pairs (or an equivalent dictionary) as the final parameter(s).
+The values are then packed according to the positions of the keywords in the format string.
+This is most easily explained with some examples. Firstly the format string needs to contain parameter names::
 
     format = 'hex32=start_code, uint12=width, uint12=height'
 

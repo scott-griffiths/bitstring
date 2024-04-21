@@ -69,7 +69,7 @@ IEEE 8-bit Floating Point Types
 
 
 The 'binary8' formats are part of an ongoing IEEE standardisation process.
-This implementation here is based on a publically available draft of the standard.
+This implementation here is based on a publicly available draft of the standard.
 There are seven formats defined in the draft standard, but only two are supported here.
 If you'd like the other precisions supported then raise a feature request!
 

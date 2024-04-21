@@ -172,7 +172,7 @@ This position will be set to zero by default on construction, and will be modifi
 
 Using :meth:`~Bits.find` or :meth:`~Bits.rfind` will move ``pos`` to the start of the substring if it is found.
 
-Note that the ``pos`` property isn’t considered a part of the bitstring's identity; this allows it to vary for immutable ``ConstBitStream`` objects and means that it doesn’t affect equality or hash values.
+Note that the ``pos`` property isn’t considered a part of the bitstring's identity; this allows it to vary for immutable ``ConstBitStream`` objects and means that it doesn't affect equality or hash values.
 It also will be reset to zero if a bitstring is copied.
 
 

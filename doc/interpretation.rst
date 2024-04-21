@@ -3,11 +3,16 @@
 Interpreting Bitstrings
 =======================
 
-Bitstrings don't know or care how they were created; they are just collections of bits. This means that you are quite free to interpret them in any way that makes sense.
+Bitstrings don't know or care how they were created; they are just collections of bits.
+This means that you are quite free to interpret them in any way that makes sense.
 
-Several Python properties are used to create interpretations for the bitstring. These properties call private functions which will calculate and return the appropriate interpretation. These don’t change the bitstring in any way and it remains just a collection of bits. If you use the property again then the calculation will be repeated.
+Several Python properties are used to create interpretations for the bitstring.
+These properties call private functions which will calculate and return the appropriate interpretation.
+These don’t change the bitstring in any way and it remains just a collection of bits.
+If you use the property again then the calculation will be repeated.
 
-Note that these properties can potentially be very expensive in terms of both computation and memory requirements. For example if you have initialised a bitstring from a 10 GiB file object and ask for its binary string representation then that string will be around 80 GiB in size!
+Note that these properties can potentially be very expensive in terms of both computation and memory requirements.
+For example if you have initialised a bitstring from a 10 GiB file object and ask for its binary string representation then that string will be around 80 GiB in size!
 
 If you're in an interactive session then the pretty-print method :meth:`~Bits.pp` can be useful as it will only convert the bitstring one chunk at a time for display.
 

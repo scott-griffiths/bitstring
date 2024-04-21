@@ -343,7 +343,7 @@ The dtype of the resulting ``Array`` is calculated by applying these rules:
 
 **Rule 0**: For comparison operators (``<``, ``>=``, ``==``, ``!=`` etc.) the result is always an ``Array`` of dtype ``'bool'``.
 
-For other operators, one of the two input ``Array`` dtypes is used as the ouput dtype by applying the remaining rules in order until a winner is found:
+For other operators, one of the two input ``Array`` dtypes is used as the output dtype by applying the remaining rules in order until a winner is found:
 
 * **Rule 1**: Floating point types always win against integer types.
 * **Rule 2**: Signed integer types always win against unsigned integer types.

@@ -15,7 +15,7 @@ The first parameter is a format token string that can optionally include a lengt
 If the first parameter doesn't include a length and one is appropriate, the `length` parameter can be used to specify the length of the dtype.
 
 The `scale` parameter can be used to specify a multiplicative scaling factor for the interpretation of the data.
-This is primarily inteded for use with floating point formats of 8 bits or less, but can be used on other types.
+This is primarily intended for use with floating point formats of 8 bits or less, but can be used on other types.
 
 In most situations the token string can be used instead of `Dtype` object when it is needed, and the `Dtype` will be constructed automatically,
 which is why the `Dtype` object is rarely used directly in this documentation.

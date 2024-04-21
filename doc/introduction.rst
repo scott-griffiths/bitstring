@@ -64,7 +64,7 @@ For example::
 
 Note that some types need a length to be specified, some don't need one, and others can infer the length from the value.
 
-Another way to create a bitstring is via the ``pack`` function, which packs multiple values accoring to a given format.
+Another way to create a bitstring is via the ``pack`` function, which packs multiple values according to a given format.
 See the entry on :func:`pack` for more information.
 
 .. _auto_init:
@@ -198,7 +198,9 @@ From an integer
     >>> f.bin
     '1111111'
 
-For initialisation with signed and unsigned binary integers (``int`` and ``uint`` respectively) the ``length`` parameter is mandatory, and must be large enough to contain the integer. So for example if ``length`` is 8 then ``uint`` can be in the range 0 to 255, while ``int`` can range from -128 to 127. Two's complement is used to represent negative numbers.
+For initialisation with signed and unsigned binary integers (``int`` and ``uint`` respectively) the ``length`` parameter is mandatory, and must be large enough to contain the integer.
+So for example if ``length`` is 8 then ``uint`` can be in the range 0 to 255, while ``int`` can range from -128 to 127.
+Two's complement is used to represent negative numbers.
 
 The 'auto' initialiser can be used by giving the length in bits immediately after the ``int`` or ``uint`` token, followed by an equals sign then the value::
 

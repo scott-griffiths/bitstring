@@ -273,7 +273,7 @@ Methods
 * :meth:`~Array.append` -- Append a single item to the end of the Array.
 * :meth:`~Array.astype` -- Cast the Array to a new dtype.
 * :meth:`~Array.byteswap` -- Change byte endianness of all items.
-* :meth:`~Array.count` -- Count the number of occurences of a value.
+* :meth:`~Array.count` -- Count the number of occurrences of a value.
 * :meth:`~Array.equals` -- Compare with another Array for exact equality.
 * :meth:`~Array.extend` -- Append multiple items to the end of the Array from an iterable.
 * :meth:`~Array.fromfile` -- Append items read from a file object.

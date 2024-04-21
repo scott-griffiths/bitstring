@@ -21,14 +21,14 @@ News
 ----
 **April 2024**: bitstring 4.2.0 released.
 
-New in 4.2:
+New in version 4.2:
 
 * Dropped support for Python 3.7. Minimum version is now 3.8.
 * A new `Dtype` class can be optionally used to specify types.
 * The `bitstring.options` object is now the preferred method for changing module options.
 * New `fromstring` method as another way to create bitstrings from formatted strings.
 * More types can now be pretty printed.
-* A range of 8-bit, 6-bit and even 4-bit float formats added (beta):
+* A range of 8-bit, 6-bit and even 4-bit floating point formats added (beta):
 * Performance improvements.
 
 See the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt) for details. Please let me know if you encounter any problems.

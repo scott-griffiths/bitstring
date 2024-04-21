@@ -328,7 +328,7 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
     :type: str
 
     Property for the representation of the bitstring as a binary string.
-    Can be shortend to just ``b``.
+    Can be shortened to just ``b``.
 
 .. attribute:: Bits.bool
     :type: bool
@@ -354,7 +354,7 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
     :type: str
 
     Property representing the hexadecimal value of the bitstring.
-    Can be shortend to just ``h``.
+    Can be shortened to just ``h``.
 
     If the bitstring is not a multiple of four bits long then getting its hex value will raise an :exc:`InterpretError`. ::
 
@@ -366,7 +366,7 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
     :type: int
 
     Property for the signed two’s complement integer representation of the bitstring.
-    Can be shortend to just ``i``.
+    Can be shortened to just ``i``.
 
 .. attribute:: Bits.intbe
     :type: int
@@ -395,7 +395,7 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
     :type: float
 
     Property for the floating point representation of the bitstring.
-    Can be shortend to just ``f``.
+    Can be shortened to just ``f``.
 
     The bitstring must be 16, 32 or 64 bits long to support the floating point interpretations, otherwise an :exc:`InterpretError` will be raised.
 
@@ -427,7 +427,7 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
     :type: str
 
     Property for the octal representation of the bitstring.
-    Can be shortend to just ``o``.
+    Can be shortened to just ``o``.
 
     If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`InterpretError`. ::
 
@@ -443,7 +443,7 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
     :type: int
 
     Property for the unsigned base-2 integer representation of the bitstring.
-    Can be shortend to just ``u``.
+    Can be shortened to just ``u``.
 
 .. attribute:: Bits.uintbe
     :type: int

@@ -12,7 +12,7 @@ BitStream
 
 The ``pos`` will also used as a default for the :meth:`BitArray.overwrite` and :meth:`BitArray.insert` methods.
 
-The bit position is modifed by methods that read bits, as described in :attr:`~ConstBitStream.pos`, but for the mutable ``BitStream`` it is also modified by other methods:
+The bit position is modified by methods that read bits, as described in :attr:`~ConstBitStream.pos`, but for the mutable ``BitStream`` it is also modified by other methods:
 
 * If a methods extends the bitstring (``+=``, ``append``) the ``pos`` will move to the end of the bitstring.
 * If a method otherwise changes the length of the bitstring (``prepend``, ``insert``, sometimes ``replace``) the ``pos`` becomes invalid and will be reset to ``0``.

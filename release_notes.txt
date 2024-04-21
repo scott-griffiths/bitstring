@@ -7,7 +7,7 @@ April 2024: version 4.2.0
 -------------------------
 
 This release contains a fairly large refactor of how different types are managed. This
-shouldn't affect the end user, and the main noticable change should be the new Dtype
+shouldn't affect the end user, and the main noticeable change should be the new Dtype
 class, which is optional to use.
 
 Support for 8-bit and smaller floats has been reworked and expanded. These are still
@@ -101,7 +101,7 @@ A maintenance release, with some changes to the Array class which is still in 'b
 August 2023: version 4.1.0 released
 -----------------------------------
 
-This has turned into a suprisingly big release, with a major refactor and a brand new
+This has turned into a surprisingly big release, with a major refactor and a brand new
 class (the first for 12 years!) There are also a couple of small possibly breaking changes
 detailed below, in particular 'auto' initialising bitstrings from integers is now disallowed.
 
@@ -156,7 +156,7 @@ Other changes:
   >>> a.float8_143
   16.0
 
-* Auto initialistion from ints has been removed and now raises a TypeError. Creating a
+* Auto initialization from ints has been removed and now raises a TypeError. Creating a
   bitstring from an int still creates a zeroed bitstring of that length but ints won't
   be promoted to bitstrings as that has been a constant source of errors and confusion.
 
