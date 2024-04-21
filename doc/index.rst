@@ -5,26 +5,25 @@
    :width: 400px
 
 
-`bitstring <https://github.com/scott-griffiths/bitstring/>`_ is a Python module that makes the creation and analysis of binary data as simple and efficient as possible.
+`bitstring <https://github.com/scott-griffiths/bitstring/>`_  is a Python module to help make the creation and analysis of all types of bit-level binary data as simple and efficient as possible.
 
-It has been maintained since 2006 and now has many millions of downloads per year.
-You can try out the walkthrough notebook `here <https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb>`_.
+It has been maintained since 2006.
 
 
 .. image:: https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg
- :target: https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml
+   :target: https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml
 
 .. image:: https://img.shields.io/readthedocs/bitstring
-    :target: https://bitstring.readthedocs.io/en/latest/
+   :target: https://bitstring.readthedocs.io/en/latest/
 
 .. image:: https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4?logo=codacy
-    :target: https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
+   :target: https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
 
 .. image:: https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue
- :target: https://www.pepy.tech/projects/bitstring
+   :target: https://www.pepy.tech/projects/bitstring
 
 .. image:: https://img.shields.io/pypi/dm/bitstring?label=%40&labelColor=blue&color=blue)
- :target: https://pypistats.org/packages/bitstring
+   :target: https://pypistats.org/packages/bitstring
 
 
 ------
@@ -32,11 +31,12 @@ You can try out the walkthrough notebook `here <https://github.com/scott-griffit
 Overview
 ========
 
+* Efficiently store and manipulate binary data in idiomatic Python.
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
 * Powerful binary packing and unpacking functions.
 * Bit level slicing, joining, searching, replacing and more.
 * Read from and interpret bitstrings as streams of binary data.
-* Create efficently stored arrays of any fixed-length format.
+* Create efficiently stored arrays of any fixed-length format.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Open source software, released under the MIT licence.
 
@@ -47,6 +47,8 @@ The bitstring module provides support many different bit formats, allowing easy 
 
 Documentation Quick Start
 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can take a look at the introductory walkthrough notebook `here <https://github.com/scott-griffiths/bitstring/blob/main/doc/walkthrough.ipynb>`_.
 
 The :ref:`quick_reference` provides a summary of the classes and their methods.
 
@@ -69,6 +71,7 @@ The :ref:`reference` section has a complete list of all the classes, methods, pr
     quick_reference
     reference
     appendices
+
 
 Mixed format bitstrings
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -146,7 +149,6 @@ To see what been added, improved or fixed, and possibly also to see what's comin
 
 Credits
 ^^^^^^^
-
 
 Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files. Maintained and expanded ever since as it became unexpectedly popular. Thanks to all those who have contributed ideas, code and bug reports over the years.
 

@@ -7,13 +7,19 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
 .. class:: Bits(auto: BitsType | int | None, /, length: int | None = None, offset: int | None = None, **kwargs)
 
-    Creates a new bitstring. You must specify either no initialiser, just an 'auto' value as the first parameter, or one of the keyword arguments ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``uintbe``, ``intbe``, ``uintle``, ``intle``, ``uintne``, ``intne``, ``se``, ``ue``, ``sie``, ``uie``, ``float``, ``floatbe``, ``floatle``, ``floatne``, ``p4binary``, ``p3binary``, ``bfloat``, ``bfloatbe``, ``bfloatle``, ``bfloatne``, ``bool`` or ``filename``. If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    Creates a new bitstring.
+    You must specify either no initialiser, just an 'auto' value as the first parameter, or a keyword argument such as ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``float``, ``bool`` or ``filename`` (for example) to indicate the data type.
+    If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`, :class:`BitStream` and :class:`ConstBitStream`.
 
-    ``offset`` is available when using the ``bytes`` or ``filename`` initialisers. It gives a number of bits to ignore at the start of the bitstring.
+    ``offset`` is available when using the ``bytes`` or ``filename`` initialisers.
+    It gives a number of bits to ignore at the start of the bitstring.
 
-    Specifying ``length`` is mandatory when using the various integer initialisers. It must be large enough that a bitstring can contain the integer in ``length`` bits. It must also be specified for the float initialisers (the only valid values are 16, 32 and 64). It is optional for the ``bytes`` and ``filename`` initialisers and can be used to truncate data from the end of the input value. ::
+    Specifying ``length`` is mandatory when using the various integer initialisers.
+    It must be large enough that a bitstring can contain the integer in ``length`` bits.
+    It must also be specified for the float initialisers (the only valid values are 16, 32 and 64).
+    It is optional for the ``bytes`` and ``filename`` initialisers and can be used to truncate data from the end of the input value. ::
 
            >>> s1 = Bits(hex='0x934')
            >>> s2 = Bits(oct='0o4464')
@@ -34,7 +40,6 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
 Methods
 -------
-
 
 .. method:: Bits.all(value: bool, pos: Iterable[int] | None = None) -> bool
 

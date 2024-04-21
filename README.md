@@ -19,9 +19,7 @@ It has been actively maintained since 2006.
 
 News
 ----
-**March 2024**: bitstring 4.2.0b2 released. This is the final beta release before 4.2. 
-
-Install the beta with `pip install bitstring==4.2.0b2`, or use `pip install bitstring` for the latest stable version.
+**April 2024**: bitstring 4.2.0 released.
 
 New in 4.2:
 
@@ -57,7 +55,7 @@ Some starting points are given below:
 * [Quick Reference](https://bitstring.readthedocs.io/en/stable/quick_reference.html)
 * [Full Reference](https://bitstring.readthedocs.io/en/stable/reference.html)
 
-You can also try out the interactive walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
+There is also an introductory walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
 
 Release Notes
 -------------
@@ -120,14 +118,6 @@ Examples
      >>> a
      Array('uint7', [45, 100, 15, 1])
 
-
-
-Credits
--------
-
-Created in 2006 to help with ad hoc parsing and creation of compressed video files.
-Maintained and expanded ever since as it became unexpectedly popular.
-Thanks to all those who have contributed ideas and code (and bug reports) over the years.
 
 
 <sub>Copyright (c) 2006 - 2024 Scott Griffiths</sub>

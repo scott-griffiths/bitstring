@@ -197,198 +197,24 @@ Properties can also have a length in bits appended to them to make properties su
     '1111111'
 
 
-.. attribute:: BitArray.bin
-    :type: str
-    :noindex:
-.. attribute:: BitArray.b
-    :type: str
-    :noindex:
+The binary interpretation properties of the :class:`Bits` class all become writable in the :class:`BitArray` class.
 
-    Writable version of :attr:`Bits.bin`.
+For integer types, the properties can have a bit length appended to it such as ``u32`` or ``int5`` to specify the new length of the bitstring.
+Using a length too small to contain the value given will raise a :exc:`CreationError`.
 
-.. attribute:: BitArray.bfloat
-    :type: float
-    :noindex:
-.. attribute:: BitArray.bfloatbe
-    :type: float
-    :noindex:
-.. attribute:: BitArray.bfloatle
-    :type: float
-    :noindex:
-.. attribute:: BitArray.bfloatne
-    :type: float
-    :noindex:
+When used  as a setter without a new length the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
 
-    Writable versions of :attr:`Bits.bfloat` / :attr:`Bits.bfloatbe` / :attr:`Bits.bfloatle` / :attr:`Bits.bfloatne`.
-
-.. attribute:: BitArray.bool
-    :type: bool
-    :noindex:
-
-    Writable version of :attr:`Bits.bool`.
-
-.. attribute:: BitArray.bytes
-    :type: bytes
-    :noindex:
-
-    Writable version of :attr:`Bits.bytes`.
-
-.. attribute:: BitArray.hex
-    :type: str
-    :noindex:
-.. attribute:: BitArray.h
-    :type: str
-    :noindex:
-
-    Writable version of :attr:`Bits.hex`.
-
-.. attribute:: BitArray.int
-    :type: int
-    :noindex:
-.. attribute:: BitArray.i
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.int`. The properties can have a bit length appended to it such as ``i32`` or ``int5`` to specify the new length of the bitstring. Using a length too small to contain the value given will raise a :exc:`CreationError`.
-
-    When used  as a setter without a new length the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
-
-        >>> s = BitArray('0xf3')
-        >>> s.int
-        -13
-        >>> s.int = 1232
-        ValueError: int 1232 is too large for a BitArray of length 8.
+    >>> s = BitArray('0xf3')
+    >>> s.int
+    -13
+    >>> s.int = 1232
+    ValueError: int 1232 is too large for a BitArray of length 8.
 
 
-.. attribute:: BitArray.intbe
-    :type: int
-    :noindex:
+Other types also have restrictions on their lengths, and using an invalid length will raise a :exc:`CreationError`.
+For example trying to create a 20 bit floating point number or a two bit bool will raise this exception.
 
-    Writable version of :attr:`Bits.intbe`.
 
-    When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
-
-.. attribute:: BitArray.intle
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.intle`.
-
-    When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
-
-.. attribute:: BitArray.intne
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.intne`.
-
-    When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
-
-.. attribute:: BitArray.float
-    :type: float
-    :noindex:
-.. attribute:: BitArray.floatbe
-    :type: float
-    :noindex:
-.. attribute:: BitArray.f
-    :type: float
-    :noindex:
-
-    Writable version of :attr:`Bits.float`. The standard ``float``, the big-endian ``floatbe`` and the shortened ``f`` are all equivalent.
-
-    The properties can have a bit length appended to them such as ``f16`` or ``floatle64`` to specify the new length of the bitstring. Using a length that doesn't support any floating point types will raise a :exc:`CreationError`.
-
-.. attribute:: BitArray.floatle
-    :type: float
-    :noindex:
-
-    Writable version of :attr:`Bits.floatle`.
-
-.. attribute:: BitArray.floatne
-    :type: float
-    :noindex:
-
-    Writable version of :attr:`Bits.floatne`.
-
-.. attribute:: BitArray.p4binary
-    :type: float
-    :noindex:
-
-    Writable version of :attr:`Bits.p4binary`.
-
-.. attribute:: BitArray.p3binary
-    :type: float
-    :noindex:
-
-    Writable version of :attr:`Bits.p3binary`.
-
-.. attribute:: BitArray.oct
-    :type: str
-    :noindex:
-.. attribute:: BitArray.o
-    :type: str
-    :noindex:
-
-    Writable version of :attr:`Bits.oct`.
-
-.. attribute:: BitArray.se
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.se`.
-
-.. attribute:: BitArray.ue
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.uie`.
-
-.. attribute:: BitArray.sie
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.sie`.
-
-.. attribute:: BitArray.uie
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.ue`.
-
-.. attribute:: BitArray.uint
-    :type: int
-    :noindex:
-.. attribute:: BitArray.u
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.uint`.
-
-    When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
-
-.. attribute:: BitArray.uintbe
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.uintbe`.
-
-    When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
-
-.. attribute:: BitArray.uintle
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.uintle`.
-
-    When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
-
-.. attribute:: BitArray.uintne
-    :type: int
-    :noindex:
-
-    Writable version of :attr:`Bits.uintne`.
-
-    When used as a setter the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised.
 
 Special Methods
 ---------------

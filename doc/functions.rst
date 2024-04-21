@@ -191,7 +191,7 @@ bytealigned
 
 .. data:: bitstring.options.bytealigned : bool
 
-A number of methods take a bytealigned parameter to indicate that they should only work on byte boundaries (e.g. :meth:`~Bits.find`, :meth:`~Bits.findall`, :meth:`~Bits.split` and :meth:`~BitArray.replace`). This parameter defaults to ``bitstring.bytealigned``, which itself defaults to ``False``, but can be changed to modify the default behaviour of the methods. For example::
+A number of methods take a bytealigned parameter to indicate that they should only work on byte boundaries (e.g. :meth:`~Bits.find`, :meth:`~Bits.findall`, :meth:`~Bits.split` and :meth:`~BitArray.replace`). This parameter defaults to ``bitstring.options.bytealigned``, which itself defaults to ``False``, but can be changed to modify the default behaviour of the methods. For example::
 
     >>> a = BitArray('0x00 ff 0f ff')
     >>> a.find('0x0f')

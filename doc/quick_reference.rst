@@ -125,9 +125,6 @@ Many require the bitstring to be specific lengths.
 * :attr:`~Bits.float` / ``floatbe`` / ``f`` -- Interpret as a big-endian floating point number.
 * :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
 * :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
-* :attr:`~Bits.bfloat` / ``bfloatbe`` -- Interpret as a big-endian bfloat floating point number.
-* :attr:`~Bits.bfloatle` -- Interpret as a little-endian bfloat floating point number.
-* :attr:`~Bits.bfloatne` -- Interpret as a native-endian bfloat floating point number.
 * :attr:`~Bits.hex` / ``h`` -- The bitstring as a hexadecimal string.
 * :attr:`~Bits.int` / ``i`` -- Interpret as a two's complement signed integer.
 * :attr:`~Bits.intbe` -- Interpret as a big-endian signed integer.
@@ -135,17 +132,12 @@ Many require the bitstring to be specific lengths.
 * :attr:`~Bits.intne` -- Interpret as a native-endian signed integer.
 * :attr:`~Bits.len` -- Length of the bitstring in bits.
 * :attr:`~Bits.oct` / ``o`` -- The bitstring as an octal string.
-* :attr:`~Bits.se` -- Interpret as a signed exponential-Golomb code.
-* :attr:`~Bits.ue` -- Interpret as an unsigned exponential-Golomb code.
-* :attr:`~Bits.sie` -- Interpret as a signed interleaved exponential-Golomb code.
-* :attr:`~Bits.uie` -- Interpret as an unsigned interleaved exponential-Golomb code.
 * :attr:`~Bits.uint` / ``u`` -- Interpret as a two's complement unsigned integer.
 * :attr:`~Bits.uintbe` -- Interpret as a big-endian unsigned integer.
 * :attr:`~Bits.uintle` -- Interpret as a little-endian unsigned integer.
 * :attr:`~Bits.uintne` -- Interpret as a native-endian unsigned integer.
 
-Several flavours of 8-bit and smaller floating point interpretations are also available.
-See :ref:`Exotic floats` for more information.
+There are also various other flavours of 16-bit, 8-bit and smaller floating point types (see :ref:`Exotic floats`) and exponential-Golomb integer types (see :ref:`exp-golomb`) that are not listed here for brevity.
 
 ----
 
@@ -442,19 +434,11 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
 ``'floatbe:n'``     ``n`` bits as a big-endian floating point number (same as ``float``).
 ``'floatle:n'``     ``n`` bits as a little-endian floating point number.
 ``'floatne:n'``     ``n`` bits as a native-endian floating point number.
-``'bfloat[:16]'``   16 bits as a big-endian bfloat floating point number (same as ``bfloatbe``).
-``'bfloatbe[:16]'`` 16 bits as a big-endian bfloat floating point number (same as ``bfloat``).
-``'bfloatle[:16]'`` 16 bits as a little-endian floating point number.
-``'bfloatne[:16]'`` 16 bits as a native-endian floating point number.
 ``'hex:n'``         ``n`` bits as a hexadecimal string.
 ``'oct:n'``         ``n`` bits as an octal string.
 ``'bin:n'``         ``n`` bits as a binary string.
 ``'bits:n'``        ``n`` bits as a new bitstring.
 ``'bytes:n'``       ``n`` bytes as a ``bytes`` object.
-``'ue'``            next bits as an unsigned exponential-Golomb code.
-``'se'``            next bits as a signed exponential-Golomb code.
-``'uie'``           next bits as an interleaved unsigned exponential-Golomb code.
-``'sie'``           next bits as an interleaved signed exponential-Golomb code.
 ``'bool[:1]'``      next bit as a boolean (True or False).
 ``'pad:n'``         next ``n`` bits will be ignored (padding). Only applicable when reading, not creating.
 =================== ===============================================================================
@@ -463,8 +447,7 @@ The ``':'`` before the length is optional, and is mostly omitted in the document
 
 The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can all be shortened to just their initial letter.
 
-Several flavours of 8-bit and smaller floating point interpretations are also available.
-See :ref:`Exotic floats` for more information.
+See also :ref:`Exotic floats` and :ref:`exp-golomb` for other types that can be used in format token strings.
 
 Bitstring literals
 ^^^^^^^^^^^^^^^^^^
@@ -547,7 +530,7 @@ Exceptions
 Options
 ^^^^^^^
 
-The `bitstring.options` object contains module level options that can be changed to affect the behaviour of the module.
+The ``bitstring.options`` object contains module level options that can be changed to affect the behaviour of the module.
 
 * :data:`~bitstring.options.bytealigned` -- Determines whether a number of methods default to working only on byte boundaries.
 * :data:`~bitstring.options.lsb0` -- If True, index bits with the least significant bit (the final bit) as bit zero.

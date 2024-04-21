@@ -4,7 +4,7 @@
 Appendices
 ###########
 
-Gathered together here are a few odds and ends that didn't fit well into either the user manual or the reference section. The only unifying theme is that none of them provide any vital knowledge about :mod:`bitstring`, and so they can all be safely ignored.
+This section contains supplementary information about the library, including details of some of the more specialist data types that are supported.
 
 .. toctree:: 
    :maxdepth: 2

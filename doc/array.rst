@@ -4,9 +4,9 @@
 Array
 =====
 
-.. class:: Array(dtype: str, initializer: Iterable | int | Array | array.array | Bits | bytes | bytearray | memoryview | BinaryIO | None = None, trailing_bits: BitsType | None = None)
+.. class:: Array(dtype: str | Dtype, initializer: Iterable | int | Array | array.array | Bits | bytes | bytearray | memoryview | BinaryIO | None = None, trailing_bits: BitsType | None = None)
 
-    Create a new ``Array`` whose elements are set by the `dtype` (data-type) string.
+    Create a new ``Array`` whose elements are set by the `dtype` (data-type) string or :class:`Dtype`.
     This can be any format which has a fixed length.
     See :ref:`format_tokens` and :ref:`compact_format` for details on allowed dtype strings, noting that only formats with well defined bit lengths are allowed.
 
