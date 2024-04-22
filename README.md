@@ -21,6 +21,8 @@ News
 ----
 **April 2024**: bitstring 4.2.0 released.
 
+**Note:** (22nd April) There is a known failure on import with 32-bit Python (Bug #317). This will be fixed in the next day or so.
+
 New in version 4.2:
 
 * Dropped support for Python 3.7. Minimum version is now 3.8.
