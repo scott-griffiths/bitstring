@@ -155,7 +155,7 @@ class Dtype:
             x._bitlength *= x._bits_per_item
         x._set_fn_needs_length = definition.set_fn_needs_length
         x._variable_length = definition.variable_length
-        if x._variable_length or len(dtype_register.names[x._name].allowed_lengths) == 1:
+        if x._variable_length or dtype_register.names[x._name].allowed_lengths.only_one_value():
             x._read_fn = definition.read_fn
         else:
             x._read_fn = functools.partial(definition.read_fn, length=x._bitlength)
@@ -191,12 +191,12 @@ class Dtype:
     def __str__(self) -> str:
         if self._scale is not None:
             return self.__repr__()
-        hide_length = self._variable_length or len(dtype_register.names[self._name].allowed_lengths) == 1 or self._length is None
+        hide_length = self._variable_length or dtype_register.names[self._name].allowed_lengths.only_one_value() or self._length is None
         length_str = '' if hide_length else str(self._length)
         return f"{self._name}{length_str}"
 
     def __repr__(self) -> str:
-        hide_length = self._variable_length or len(dtype_register.names[self._name].allowed_lengths) == 1 or self._length is None
+        hide_length = self._variable_length or dtype_register.names[self._name].allowed_lengths.only_one_value() or self._length is None
         length_str = '' if hide_length else ', ' + str(self._length)
         if self._scale is None:
             scale_str = ''
@@ -227,21 +227,24 @@ class AllowedLengths:
             for i in range(1, len(value) - 1):
                 if value[i] - value[i - 1] != step:
                     raise ValueError(f"Allowed length tuples must be equally spaced when final element is Ellipsis, but got {value}.")
-            infinity = 1_000_000_000_000_000  # Rough approximation.
-            self.value = range(value[0], infinity, step)
+            self.values = (value[0], value[1], Ellipsis)
         else:
-            self.value = value
+            self.values = value
 
     def __str__(self) -> str:
-        if isinstance(self.value, range):
-            return f"({self.value[0]}, {self.value[1]}, ...)"
-        return str(self.value)
+        if self.values and self.values[-1] is Ellipsis:
+            return f"({self.values[0]}, {self.values[1]}, ...)"
+        return str(self.values)
 
     def __contains__(self, other: Any) -> bool:
-        return other in self.value
+        if not self.values:
+            return True
+        if self.values[-1] is Ellipsis:
+            return (other - self.values[0]) % (self.values[1] - self.values[0]) == 0
+        return other in self.values
 
-    def __len__(self) -> int:
-        return len(self.value)
+    def only_one_value(self) -> bool:
+        return self.values and len(self.values) == 1
 
 
 class DtypeDefinition:
@@ -275,8 +278,8 @@ class DtypeDefinition:
         if self.allowed_lengths:
             def allowed_length_checked_get_fn(bs):
                 if len(bs) not in self.allowed_lengths:
-                    if len(self.allowed_lengths) == 1:
-                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length of {self.allowed_lengths.value[0]}, but received a length of {len(bs)}.")
+                    if self.allowed_lengths.only_one_value():
+                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length of {self.allowed_lengths.values[0]}, but received a length of {len(bs)}.")
                     else:
                         raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length in {self.allowed_lengths}, but received a length of {len(bs)}.")
                 return get_fn(bs)
@@ -286,9 +289,9 @@ class DtypeDefinition:
 
         # Create a reading function from the get_fn.
         if not self.variable_length:
-            if len(self.allowed_lengths) == 1:
+            if self.allowed_lengths.only_one_value():
                 def read_fn(bs, start):
-                    return self.get_fn(bs[start:start + self.allowed_lengths.value[0]])
+                    return self.get_fn(bs[start:start + self.allowed_lengths.values[0]])
             else:
                 def read_fn(bs, start, length):
                     return self.get_fn(bs[start:start + length])
@@ -314,12 +317,12 @@ class DtypeDefinition:
     def get_dtype(self, length: Optional[int] = None, scale: Union[None, float, int] = None) -> Dtype:
         if self.allowed_lengths:
             if length is None:
-                if len(self.allowed_lengths) == 1:
-                    length = self.allowed_lengths.value[0]
+                if self.allowed_lengths.only_one_value():
+                    length = self.allowed_lengths.values[0]
             else:
                 if length not in self.allowed_lengths:
-                    if len(self.allowed_lengths) == 1:
-                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but its only allowed length is {self.allowed_lengths.value[0]}.")
+                    if self.allowed_lengths.only_one_value():
+                        raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but its only allowed length is {self.allowed_lengths.values[0]}.")
                     else:
                         raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype which is not one of its possible lengths (must be one of {self.allowed_lengths}).")
         if length is None:
