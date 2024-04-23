@@ -19,9 +19,7 @@ It has been actively maintained since 2006.
 
 News
 ----
-**April 2024**: bitstring 4.2.0 released.
-
-**Note:** (22nd April) There is a known failure on import with 32-bit Python (Bug #317). This will be fixed in the next day or so.
+**April 2024**: bitstring 4.2.1 released.
 
 New in version 4.2:
 

@@ -977,3 +977,16 @@ class TestNumpy:
     def test_creation(self):
         a = BitArray(np.longlong(12))
         assert a.hex == '000'
+
+
+def test_bytes_from_list():
+    s = Bits(bytes=[1, 2])
+    assert s == '0x0102'
+    s = Bits(bytes=bytearray([1, 2]))
+    assert s == '0x0102'
+    s = BitArray(bytes=[1, 2])
+    assert s == '0x0102'
+    s = BitArray(bytes=bytearray([1, 2]))
+    assert s == '0x0102'
+    s.bytes = [10, 20]
+    assert s == '0x0a14'

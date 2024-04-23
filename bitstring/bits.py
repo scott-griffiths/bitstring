@@ -611,10 +611,9 @@ class Bits:
     def _setmxint(self, f: float) -> None:
         self._bitstore = bitstore_helpers.mxint2bitstore(f)
 
-    def _setbytes(self, data: Union[bytearray, bytes], length:None = None) -> None:
+    def _setbytes(self, data: Union[bytearray, bytes, List], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
-        self._bitstore = BitStore.frombytes(data)
-        return
+        self._bitstore = BitStore.frombytes(bytes(data))
 
     def _setbytes_with_truncation(self, data: Union[bytearray, bytes], length: Optional[int] = None, offset: Optional[int] = None) -> None:
         """Set the data from a bytes or bytearray object, with optional offset and length truncations."""
