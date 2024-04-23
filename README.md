@@ -20,7 +20,7 @@ It has been actively maintained since 2006.
 News
 ----
 **April 2024**: bitstring 4.2.1 released.
-
+ 
 New in version 4.2:
 
 * Dropped support for Python 3.7. Minimum version is now 3.8.
