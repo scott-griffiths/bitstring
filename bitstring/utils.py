@@ -143,6 +143,8 @@ def preprocess_tokens(fmt: str) -> List[str]:
     final_tokens = []
 
     for meta_token in meta_tokens:
+        if  meta_token == '':
+            continue
         # Extract factor and actual token if a multiplicative factor exists
         factor = 1
         if m := MULTIPLICATIVE_RE.match(meta_token):

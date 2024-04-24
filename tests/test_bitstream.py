@@ -4170,3 +4170,9 @@ class TestCacheingIssues:
         y = BitStream('0xdeadbeef002')
         with pytest.raises(bitstring.CreationError):
             x = BitStream('0xdeadbeef002', length=16)
+
+
+def test_unpack_error():
+    format_with_commas = ',bytes:2,,bytes:1,'
+    dp = BitStream(hex='010203').unpack(fmt=format_with_commas)
+    assert dp == [b'\x01\x02', b'\x03']
