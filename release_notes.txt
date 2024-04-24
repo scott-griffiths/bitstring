@@ -5,11 +5,12 @@ bitstring module version history
 -------------------------
 April 2024: version 4.2.1
 -------------------------
-Fixing a couple of regressions introduced in 4.2.0.
+Fixing a few regressions introduced in 4.2.0.
 
 * Module crashes on import with 32-bit Python. Bug #317.
 * Lists of integers not converted to bytes when using the bytes constructor. Bug #318.
 * Empty comma separated tokens not handled correctly. Bug #319.
+* Crash on import when docstrings not present due to optimize flag. Bug #321.
 
 -------------------------
 April 2024: version 4.2.0
