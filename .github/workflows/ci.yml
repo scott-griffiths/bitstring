@@ -71,6 +71,8 @@ jobs:
           if-no-files-found: error
 
   test:
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: 1
     name: Test ${{ matrix.os.name }} ${{ matrix.python.name }}
     needs:
       - build
