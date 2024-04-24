@@ -470,6 +470,14 @@ class ConstBitStream(Bits):
         x._bitstore.immutable = True
         return x
 
+    @overload
+    def __getitem__(self: TBits, key: slice, /) -> TBits:
+        ...
+
+    @overload
+    def __getitem__(self: TBits, key: int, /) -> bool:
+        ...
+
     def __getitem__(self: TBits, key: Union[slice, int], /) -> Union[TBits, bool]:
         """Return a new bitstring representing a slice of the current bitstring."""
         if isinstance(key, numbers.Integral):
