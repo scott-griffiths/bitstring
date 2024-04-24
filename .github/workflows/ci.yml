@@ -23,8 +23,6 @@ defaults:
 
 jobs:
   build:
-    env:
-      PIP_DISABLE_PIP_VERSION_CHECK: 1
     name: Build ${{ matrix.os.name }} ${{ matrix.python.name }}
     runs-on: ${{ matrix.os.runs-on }}
     strategy:
@@ -38,9 +36,9 @@ jobs:
             major_dot_minor: '3.10'
             action: '3.10'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           # This allows the matrix to specify just the major.minor version while still
           # expanding it to get the latest patch version including alpha releases.
@@ -64,15 +62,13 @@ jobs:
 
       - name: Publish package files
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: packages
           path: dist/*
           if-no-files-found: error
 
   test:
-    env:
-      PIP_DISABLE_PIP_VERSION_CHECK: 1
     name: Test ${{ matrix.os.name }} ${{ matrix.python.name }}
     needs:
       - build
@@ -110,17 +106,17 @@ jobs:
 
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: repo
 
       - name: Download package files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: packages
           path: dist
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           # This allows the matrix to specify just the major.minor version while still
           # expanding it to get the latest patch version including alpha releases.
@@ -138,6 +134,7 @@ jobs:
           python --version --version
           # make sure we test the installed code
           cp -R repo/tests/ tests/
+          python -m pip install --upgrade pip
           python -m pip install -r tests/requirements.txt
           python -m pip install ./dist/*.whl
           # show the directory contents for diagnostics
