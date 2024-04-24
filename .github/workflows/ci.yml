@@ -23,6 +23,8 @@ defaults:
 
 jobs:
   build:
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: 1
     name: Build ${{ matrix.os.name }} ${{ matrix.python.name }}
     runs-on: ${{ matrix.os.runs-on }}
     strategy:
