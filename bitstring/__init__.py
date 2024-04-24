@@ -302,10 +302,15 @@ for alias in aliases:
 property_docstrings = [f'{name} -- Interpret as {dtype_register[name].description}.' for name in dtype_register.names]
 property_docstring = '\n    '.join(property_docstrings)
 
-Bits.__doc__ = Bits.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
-BitArray.__doc__ = BitArray.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
-ConstBitStream.__doc__ = ConstBitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
-BitStream.__doc__ = BitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
+# We can't be sure the docstrings are present, as it might be compiled without docstrings.
+if Bits.__doc__ is not None:
+    Bits.__doc__ = Bits.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
+if BitArray.__doc__ is not None:
+    BitArray.__doc__ = BitArray.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
+if ConstBitStream.__doc__ is not None:
+    ConstBitStream.__doc__ = ConstBitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
+if BitStream.__doc__ is not None:
+    BitStream.__doc__ = BitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
 
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
