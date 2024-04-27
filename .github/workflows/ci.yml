@@ -82,7 +82,7 @@ jobs:
           - name: 🐧
             runs-on: ubuntu-latest
           - name: 🍎
-            runs-on: macos-latest
+            runs-on: macos-12
           - name: 🪟
             runs-on: windows-latest
         python:
