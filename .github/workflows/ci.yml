@@ -73,6 +73,8 @@ jobs:
     needs:
       - build
     runs-on: ${{ matrix.os.runs-on }}
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: 1
     strategy:
       fail-fast: false
       matrix:
@@ -100,9 +102,9 @@ jobs:
             major_dot_minor: '3.12'
             action: '3.12'
 # Failing due to error using temporary file in a unittest. I think it's a PyPy bug, not a bitstring one!
-#          - name: PyPy 3.8
-#            major_dot_minor: '3.8'
-#            action: 'pypy-3.8'
+          - name: PyPy 3.8
+            major_dot_minor: '3.8'
+            action: 'pypy-3.8'
 
 
     steps:
@@ -134,7 +136,6 @@ jobs:
           python --version --version
           # make sure we test the installed code
           cp -R repo/tests/ tests/
-          python -m pip install --upgrade pip
           python -m pip install -r tests/requirements.txt
           python -m pip install ./dist/*.whl
           # show the directory contents for diagnostics
