@@ -5,7 +5,6 @@ on:
     branches:
       - stable
       - main
-      - mxfp
       - 4.1-update
     tags:
       - v*
@@ -25,6 +24,8 @@ jobs:
   build:
     name: Build ${{ matrix.os.name }} ${{ matrix.python.name }}
     runs-on: ${{ matrix.os.runs-on }}
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: 1
     strategy:
       fail-fast: false
       matrix:
@@ -39,8 +40,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
-        env:
-          PIP_DISABLE_PIP_VERSION_CHECK: 1
         with:
           # This allows the matrix to specify just the major.minor version while still
           # expanding it to get the latest patch version including alpha releases.
@@ -55,7 +54,6 @@ jobs:
 
       - name: Setup environment
         run: |
-          python -m pip install --upgrade pip
           python -m pip install build
 
       - name: Build sdist and wheel
