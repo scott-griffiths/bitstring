@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
-        with:
+        # with:
           # This allows the matrix to specify just the major.minor version while still
           # expanding it to get the latest patch version including alpha releases.
           # This avoids the need to update for each new alpha, beta, release candidate,
@@ -49,8 +49,8 @@ jobs:
           #
           # CPython -> 3.9.0-alpha - 3.9.X
           # PyPy    -> pypy-3.7
-          python-version: ${{ fromJSON(format('["{0}", "{1}"]', format('{0}.0-alpha - {0}.X', matrix.python.action), matrix.python.action))[startsWith(matrix.python.action, 'pypy')] }}
-          architecture: x64
+          # python-version: ${{ fromJSON(format('["{0}", "{1}"]', format('{0}.0-alpha - {0}.X', matrix.python.action), matrix.python.action))[startsWith(matrix.python.action, 'pypy')] }}
+          # architecture: x64
 
       - name: Setup environment
         run: |
