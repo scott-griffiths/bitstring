@@ -24,8 +24,6 @@ jobs:
   build:
     name: Build ${{ matrix.os.name }} ${{ matrix.python.name }}
     runs-on: ${{ matrix.os.runs-on }}
-    env:
-      PIP_DISABLE_PIP_VERSION_CHECK: 1
     strategy:
       fail-fast: false
       matrix:
@@ -73,8 +71,6 @@ jobs:
     needs:
       - build
     runs-on: ${{ matrix.os.runs-on }}
-    env:
-      PIP_DISABLE_PIP_VERSION_CHECK: 1
     strategy:
       fail-fast: false
       matrix:
@@ -82,6 +78,7 @@ jobs:
           - name: 🐧
             runs-on: ubuntu-latest
           - name: 🍎
+            # This would preferably be macos-latest, but it has pip updating bugs right now.
             runs-on: macos-12
           - name: 🪟
             runs-on: windows-latest
@@ -102,9 +99,9 @@ jobs:
             major_dot_minor: '3.12'
             action: '3.12'
 # Failing due to error using temporary file in a unittest. I think it's a PyPy bug, not a bitstring one!
-          - name: PyPy 3.8
-            major_dot_minor: '3.8'
-            action: 'pypy-3.8'
+          # - name: PyPy 3.8
+            # major_dot_minor: '3.8'
+            # action: 'pypy-3.8'
 
 
     steps:
