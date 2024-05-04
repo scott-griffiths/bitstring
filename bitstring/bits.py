@@ -770,7 +770,6 @@ class Bits:
         u = self._getint()
         return float(u) * 2 ** -6
 
-
     def _setfloat(self, f: float, length: Optional[int], big_endian: bool) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
             length = len(self)

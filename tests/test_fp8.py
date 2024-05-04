@@ -3,12 +3,13 @@ from __future__ import annotations
 import pytest
 import sys
 import array
-import struct
 import math
 import bitstring
-from bitstring import Bits, BitArray, BitStream, Dtype, options
+from bitstring import Bits, BitArray, BitStream, Dtype
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
-from bitstring.mxfp import e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt
+from bitstring.mxfp import e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt, e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt
+from gfloat.formats import (format_info_ocp_e4m3, format_info_ocp_e5m2, format_info_p3109, format_info_ocp_e3m2,
+                            format_info_ocp_e2m3, format_info_ocp_e2m1, format_info_ocp_int8, format_info_ocp_e8m0)
 import gfloat
 
 sys.path.insert(0, '..')
@@ -225,17 +226,18 @@ class TestConversionToFP8:
     def test_round_trip(self):
         # For each possible 8bit int, convert to float, then convert that float back to an int
         for fmt in [p4binary_fmt, p3binary_fmt]:
-            for i in range(256):
+            for i in range(1 << 8):
                 f = fmt.lut_binary8_to_float[i]
                 ip = fmt.float_to_int8(f)
                 assert ip == i
 
     def test_compare_8bit_floats_with_gfloat(self):
-        for fi, lut in [(gfloat.formats.format_info_p3109(4), p4binary_fmt.lut_binary8_to_float),
-                        (gfloat.formats.format_info_p3109(3), p3binary_fmt.lut_binary8_to_float),
-                        (gfloat.formats.format_info_ocp_e4m3, e4m3mxfp_saturate_fmt.lut_int_to_float),
-                        (gfloat.formats.format_info_ocp_e5m2, e5m2mxfp_saturate_fmt.lut_int_to_float)]:
-            for i in range(256):
+        for fi, lut in [(format_info_p3109(4), p4binary_fmt.lut_binary8_to_float),
+                        (format_info_p3109(3), p3binary_fmt.lut_binary8_to_float),
+                        (format_info_ocp_e4m3, e4m3mxfp_saturate_fmt.lut_int_to_float),
+                        (format_info_ocp_e5m2, e5m2mxfp_saturate_fmt.lut_int_to_float),
+                        ]:
+            for i in range(1 << 8):
                 f = lut[i]
                 g = gfloat.decode_float(fi, i).fval
                 if math.isnan(g):
@@ -280,10 +282,48 @@ class TestConversionToFP8:
         assert x.p3binary == 64.0
         assert x.bin[-1] == '0'
 
+def test_compare_mxint8_with_gfloat():
+    for i in range(1 << 8):
+        f = Dtype('mxint8').parse(BitArray(uint=i, length=8))
+        g = gfloat.decode_float(format_info_ocp_int8, i).fval
+        assert f == g
+
+def test_compare_e8m0_with_gfloat():
+    for i in range(1 << 8):
+        f = Dtype('e8m0mxfp').parse(BitArray(uint=i, length=8))
+        g = gfloat.decode_float(format_info_ocp_e8m0, i).fval
+        if math.isnan(g):
+            assert math.isnan(f)
+        else:
+            assert f == g
+
+def test_compare_6bit_floats_with_gfloat():
+    for fi, lut in [(format_info_ocp_e3m2, e3m2mxfp_fmt.lut_int_to_float),
+                    (format_info_ocp_e2m3, e2m3mxfp_fmt.lut_int_to_float)]:
+        for i in range(1 << 6):
+            f = lut[i]
+            g = gfloat.decode_float(fi, i).fval
+            if math.isnan(g):
+                assert math.isnan(f)
+            else:
+                assert f == g
+
+def test_compare_4bit_floats_with_gfloat():
+    fi = format_info_ocp_e2m1
+    lut = e2m1mxfp_fmt.lut_int_to_float
+
+    for i in range(1 << 4):
+        f = lut[i]
+        g = gfloat.decode_float(fi, i).fval
+        if math.isnan(g):
+            assert math.isnan(f)
+        else:
+            assert f == g
+
 
 def test_rounding_consistent_to_gfloat():
-    for fi, dt in [[gfloat.formats.format_info_p3109(4), Dtype('p4binary')],
-                   [gfloat.formats.format_info_p3109(3), Dtype('p3binary')]]:
+    for fi, dt in [[format_info_p3109(4), Dtype('p4binary')],
+                   [format_info_p3109(3), Dtype('p3binary')]]:
         for i in range(0, 1 << 16):
             f = BitArray(uint=i, length=16).float
             mine = dt.parse(dt.build(f))

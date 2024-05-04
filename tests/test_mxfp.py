@@ -315,8 +315,7 @@ def test_rounding_consistent_to_gfloat_with_overflow():
             mine = dt.parse(dt.build(f))
             theirs = gfloat.round_float(fi, f, sat=False)
             if math.isnan(mine):
-                pass
-                # assert math.isnan(theirs)
+                assert math.isnan(theirs)
             else:
                 if mine != theirs:
                     print(mine, theirs)
