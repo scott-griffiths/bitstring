@@ -179,6 +179,8 @@ class Dtype:
         """
         b = bitstring.Bits()
         self._set_fn(b, value)
+        if self.bitlength is not None and len(b) != self.bitlength:
+            raise ValueError(f"Dtype has a length of {self.bitlength} bits, but value '{value}' has {len(b)} bits.")
         return b
 
     def parse(self, b: BitsType, /) -> Any:

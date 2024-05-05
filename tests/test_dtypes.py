@@ -74,6 +74,26 @@ class TestBasicFunctionality:
         assert a.read(ds) == -51
         assert a.read(ds) == -12
 
+    def test_building_bits(self):
+        d = Dtype('bits3')
+        a = d.build('0b101')
+        assert a == '0b101'
+        with pytest.raises(ValueError):
+            d.build('0b1010')
+
+    def test_building_bin(self):
+        d = Dtype('bin9')
+        a = d.build('0b000111000')
+        assert a == '0b000111000'
+        with pytest.raises(ValueError):
+            d.build('0b0001110000')
+
+    def test_building_ints(self):
+        d = Dtype('i3')
+        a = d.build(-3)
+        assert a == '0b101'
+        with pytest.raises(ValueError):
+            d.build(4)
 
 
 class TestChangingTheRegister:
