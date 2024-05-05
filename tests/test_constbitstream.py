@@ -263,3 +263,12 @@ def test_windows_file_lock_bug():
         if platform.system() == 'Windows':
             # Expected failure. See bug #308
             pass
+
+def test_readerrors():
+    s = CBS('0b110')
+    s.read(3)
+    with pytest.raises(bitstring.ReadError):
+        _ = s.read(1)
+    s.pos = 1
+    with pytest.raises(bitstring.ReadError):
+        _ = s.read('u3')

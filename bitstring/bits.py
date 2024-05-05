@@ -173,7 +173,7 @@ class Bits:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'.")
         if d.bitlength is not None and len(self) != d.bitlength:
             raise ValueError(f"bitstring length {len(self)} doesn't match length {d.bitlength} of property '{attribute}'.")
-        return d.read_fn(self, 0)
+        return d.get_fn(self)
 
     def __iter__(self) -> Iterable[bool]:
         return iter(self._bitstore)

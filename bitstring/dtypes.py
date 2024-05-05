@@ -296,6 +296,8 @@ class DtypeDefinition:
                     return self.get_fn(bs[start:start + self.allowed_lengths.values[0]])
             else:
                 def read_fn(bs, start, length):
+                    if len(bs) < start + length:
+                        raise bitstring.ReadError(f"Needed a length of at least {length} bits, but only {len(bs) - start} bits were available.")
                     return self.get_fn(bs[start:start + length])
             self.read_fn = read_fn
         else:
