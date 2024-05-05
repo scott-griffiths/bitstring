@@ -86,6 +86,7 @@ Finally it is also possible just to use a keyword as a token::
 
     s = bitstring.pack('hello, world', world='0x123', hello='0b110')
 
+----
 
 Options
 -------
@@ -227,6 +228,7 @@ See https://no-color.org for more information.
 
 The terminal colours can also be turned off by setting ``bitstring.options.no_color`` to ``True``.
 
+----
 
 Command Line Usage
 ------------------
@@ -247,6 +249,7 @@ The bitstring module can be called from the command line to perform simple opera
 
 Command-line parameters are concatenated and a bitstring created from them. If the final parameter is either an interpretation string or ends with a ``.`` followed by an interpretation string then that interpretation of the bitstring will be used when printing it. If no interpretation is given then the bitstring is just printed.
 
+----
 
 Exceptions
 ----------

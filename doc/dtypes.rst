@@ -23,6 +23,7 @@ It can however be advantageous to to create `Dtype` objects directly for efficie
 
 If you need to use the `scale` parameter then there is no way to specify this in the format token string, so you must directly use a `Dtype` object.
 
+----
 
 Methods
 -------
@@ -45,6 +46,7 @@ Parse a bitstring to find its value. The *b* parameter should be a bitstring of 
     >>> d.parse('0b0001010101')  # Equivalent to: Bits('0b0001010101').u10
     85
 
+----
 
 Properties
 ----------

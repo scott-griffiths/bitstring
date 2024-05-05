@@ -33,11 +33,17 @@ To summarise when to use each class:
 
 The :class:`Bits` class is the base class of the other three class. This means that ``isinstance(s, Bits)`` will be true if ``s`` is an instance of any of the four classes.
 
+----
+
+Constructing bitstrings
+-----------------------
+
+When initialising a bitstring you need to specify at most one initialiser.
+This can either be the first parameter in the constructor ('auto' initialisation, described below), or using a keyword argument for a data type.
 
 ``Bits(auto, /, length: Optional[int], offset: Optional[int], **kwargs)``
 
-When initialising a bitstring you need to specify at most one initialiser.
-This can either be the first parameter in the constructor ('auto' initialisation, described below), or using a keyword argument for a data type:
+Some of the keyword arguments that can be used are:
 
 * ``bytes`` : A ``bytes`` object, for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
@@ -57,7 +63,7 @@ The data type name can be combined with its length if appropriate, or the length
 For example::
 
    a = Bits(hex='deadbeef')
-   b = BitArray(float32=100.25)  # or = BitArray(float=100.25, length=32)
+   b = BitArray(f32=100.25)  # or = BitArray(float=100.25, length=32)
    c = ConstBitStream(filename='a_big_file')
    d = Bits(u12=105)
    e = BitArray(bool=True)
@@ -66,6 +72,8 @@ Note that some types need a length to be specified, some don't need one, and oth
 
 Another way to create a bitstring is via the ``pack`` function, which packs multiple values according to a given format.
 See the entry on :func:`pack` for more information.
+
+----
 
 .. _auto_init:
 
@@ -140,7 +148,7 @@ Integers won't be auto promoted, but instead will raise a ``TypeError``::
     It's just a union of types rather than an actual class (though it's documented here as a class as I could find no alternative).
     It's not user accessible, but is just a shorthand way of saying any of the above types.
 
-
+----
 
 Keyword initialisers
 --------------------

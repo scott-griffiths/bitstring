@@ -9,6 +9,8 @@ ConstBitStream
 
     A :class:`ConstBitStream` is a :class:`Bits` with added methods and properties that allow it to be parsed as a stream of bits.
 
+----
+
 Reading and parsing
 ---------------------
 
@@ -62,6 +64,7 @@ In addition to the read methods there are matching peek methods. These are ident
         s.find('0x47')
 
 
+----
 
 Methods
 -------
@@ -163,6 +166,8 @@ Methods
         ConstBitStream('0x0001020347')
         >>> s.readto('0x47', bytealigned=True)
         ConstBitStream('0x04050647')
+
+----
 
 Properties
 ----------

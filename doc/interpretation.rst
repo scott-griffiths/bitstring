@@ -16,6 +16,7 @@ For example if you have initialised a bitstring from a 10 GiB file object and as
 
 If you're in an interactive session then the pretty-print method :meth:`~Bits.pp` can be useful as it will only convert the bitstring one chunk at a time for display.
 
+----
 
 Properties
 ----------

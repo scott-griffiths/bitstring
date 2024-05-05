@@ -10,6 +10,8 @@ BitArray
 
     A :class:`BitArray` is a mutable :class:`Bits`, and so the one thing all of the methods listed here have in common is that  they can modify the contents of the bitstring.
 
+----
+
 Methods
 -------
 
@@ -181,6 +183,7 @@ Methods
         >>> s.bin
         '1010101010101010'
 
+----
 
 Properties
 ----------
@@ -214,7 +217,7 @@ When used  as a setter without a new length the value must fit into the current 
 Other types also have restrictions on their lengths, and using an invalid length will raise a :exc:`CreationError`.
 For example trying to create a 20 bit floating point number or a two bit bool will raise this exception.
 
-
+----
 
 Special Methods
 ---------------

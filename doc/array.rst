@@ -133,6 +133,7 @@ Array
 
     * The ``'b'`` and ``'B'`` type codes need to be preceded by an endianness character even though it makes no difference which one you use as they are only 1 byte long.
 
+----
 
 Methods
 -------
@@ -328,6 +329,7 @@ Methods
 
     Each packed element of the Array is converted to an ordinary Python object such as a ``float`` or an ``int`` depending on the Array's format, and returned in a Python list.
 
+----
 
 Special Methods
 ---------------
@@ -496,6 +498,7 @@ Python language operators
 
     ``del[start:end:step]``
 
+----
 
 Properties
 ----------

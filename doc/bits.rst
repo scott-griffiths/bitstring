@@ -37,6 +37,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
     In the methods below we use ``BitsType`` to indicate that any of the types that can auto initialise can be used.
 
+----
 
 Methods
 -------
@@ -308,6 +309,7 @@ Methods
         s = bitstring.pack('uint10, hex, int13, 0b11', 130, '3d', -23)
         a, b, c, d = s.unpack('uint10, hex, int13, bin2')
 
+----
 
 Properties
 ----------
@@ -460,6 +462,7 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
 
     Property for the byte-wise native-endian unsigned base-2 integer representation of the bitstring.
 
+----
 
 Special Methods
 ---------------
