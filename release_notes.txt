@@ -10,6 +10,7 @@ A couple more minor bug fixes.
 * Sometimes a ValueError was being raised instead of a ReadError. Bug #325.
 * Initialising a bitstring from None now raises a TypeError rather than generating
   an empty bitstring. Bug #323.
+* Fixed performance regression for find/findall in some situations. Bug #326.
 
 -------------------------
 April 2024: version 4.2.1

@@ -131,10 +131,10 @@ class TestFind:
 
     def test_find_bytes(self):
         s = BitStream.fromstring('0x010203040102ff')
-        assert not s.find('0x05', bytealigned=True)
-        assert s.find('0x02', bytealigned=True)
+        assert s.find('0x05', bytealigned=True) ==()
+        assert s.find('0x02', bytealigned=True) == (8,)
         assert s.read(16).hex == '0203'
-        assert s.find('0x02', start=s.bitpos, bytealigned=True)
+        assert s.find('0x02', start=s.bitpos, bytealigned=True) == (40,)
         s.read(1)
         assert not s.find('0x02', start=s.bitpos, bytealigned=True)
 

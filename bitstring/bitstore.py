@@ -131,6 +131,24 @@ class BitStore:
             return -1
 
     def findall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+        if bytealigned is True and len(bs) % 8 == 0:
+            # Special case, looking for whole bytes on whole byte boundaries
+            bytes_ = bs.tobytes()
+            # Round up start byte to next byte, and round end byte down.
+            # We're only looking for whole bytes, so can ignore bits at either end.
+            start_byte = (start + 7) // 8
+            end_byte = end // 8
+            b = self._bitarray[start_byte * 8: end_byte * 8].tobytes()
+            byte_pos = 0
+            bytes_to_search = end_byte - start_byte
+            while byte_pos < bytes_to_search:
+                byte_pos = b.find(bytes_, byte_pos)
+                if byte_pos == -1:
+                    break
+                yield (byte_pos + start_byte) * 8
+                byte_pos = byte_pos + 1
+            return
+        # General case
         i = self._bitarray.itersearch(bs._bitarray, start, end)
         if not bytealigned:
             for p in i:
