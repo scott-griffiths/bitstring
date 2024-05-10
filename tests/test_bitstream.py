@@ -4176,3 +4176,21 @@ def test_unpack_error():
     format_with_commas = ',bytes:2,,bytes:1,'
     dp = BitStream(hex='010203').unpack(fmt=format_with_commas)
     assert dp == [b'\x01\x02', b'\x03']
+
+
+def test_add_pos_issue():
+    x = BitStream()
+    y = x + Bits('0xff')
+    assert x.pos == 0
+    assert y == '0xff'
+    z = x + bitstring.BitArray('0xff')
+    assert z == '0xff'
+    q = x + ConstBitStream('0xff')
+    assert q == '0xff'
+
+    xx = ConstBitStream()
+    yy = xx + Bits('0xff')
+    zz = xx + bitstring.BitArray('0xff')
+    qq = xx + BitStream('0xff')
+    assert yy == zz == qq == '0xff'
+

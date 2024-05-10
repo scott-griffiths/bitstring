@@ -126,7 +126,7 @@ class Bits:
 
     @classmethod
     def _create_from_bitstype(cls: Type[TBits], auto: BitsType, /) -> TBits:
-        if isinstance(auto, Bits):
+        if isinstance(auto, cls):
             return auto
         b = super().__new__(cls)
         b._setauto_no_length_or_offset(auto)

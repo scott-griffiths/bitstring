@@ -11,6 +11,7 @@ A couple more minor bug fixes.
 * Initialising a bitstring from None now raises a TypeError rather than generating
   an empty bitstring. Bug #323.
 * Fixed performance regression for find/findall in some situations. Bug #326.
+* Fix for AttributeError bug when combining Bits with BitStream. Bug #329.
 
 -------------------------
 April 2024: version 4.2.1
