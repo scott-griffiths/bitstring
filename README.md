@@ -19,7 +19,7 @@ It has been actively maintained since 2006.
 
 News
 ----
-**April 2024**: bitstring 4.2.1 released.
+**May 2024**: bitstring 4.2.2 released.
  
 New in version 4.2:
 
