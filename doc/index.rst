@@ -144,7 +144,7 @@ To download the module, as well as for defect reports, enhancement requests and 
 Release Notes
 ^^^^^^^^^^^^^
 
-To see what been added, improved or fixed, and possibly also to see what's coming in the next version, see the `release notes <https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt>`_ on GitHub.
+To see what been added, improved or fixed, and possibly also to see what's coming in the next version, see the `release notes <https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md>`_ on GitHub.
 
 
 Credits
