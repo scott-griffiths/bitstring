@@ -31,7 +31,7 @@ New in version 4.2:
 * A range of 8-bit, 6-bit and even 4-bit floating point formats added (beta):
 * Performance improvements.
 
-See the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt) for details. Please let me know if you encounter any problems.
+See the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md) for details. Please let me know if you encounter any problems.
 
 
 Overview
@@ -60,7 +60,7 @@ There is also an introductory walkthrough notebook on [binder](https://mybinder.
 Release Notes
 -------------
 
-To see what been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt).
+To see what been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
 
 Examples
 --------

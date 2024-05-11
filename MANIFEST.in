@@ -1,7 +1,7 @@
 include tests/test.m1v
 include tests/smalltestfile
 include tests/__init__.py
-include release_notes.txt
+include release_notes.md
 include README.md
 include bitstring/py.typed
 prune doc
