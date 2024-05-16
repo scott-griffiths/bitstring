@@ -314,7 +314,7 @@ For example::
     >>> b + 1
     Array('i6', [31, -9, 2, 1])
     >>> b + b
-    Array('i6', [30, -10, 1, 0, 30, -10, 1, 0])
+    Array('i6', [60, -20, 2, 0])
 
 Comparison operators will output an ``Array`` with a ``dtype`` of ``'bool'``.
 
