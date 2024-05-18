@@ -242,7 +242,7 @@ class TestArrayMethods:
         a = Array('bool')
         a.data += b'\x00'
         a[0] = 1
-        assert a[0] == True
+        assert a[0] is True
 
         b = Array('h12')
         with pytest.raises(ValueError):
