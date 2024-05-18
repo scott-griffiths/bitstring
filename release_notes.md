@@ -1,6 +1,13 @@
 
 # Release Notes
 
+### Upcoming: version 4.2.3
+
+#### More small bug fixes related to some of the new (beta) float formats.
+
+* Some codes representing exotic float negative zero converted to positive zero. Bug #333.
+* Auto-scaling rounding the wrong way on occasion. Bug #334.
+
 ### May 2024: version 4.2.2
 #### A couple more minor bug fixes.
 
