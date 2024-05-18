@@ -447,3 +447,16 @@ def test_mxint_rounding():
     assert x.mxint == -2.0 / 64.0
     x.mxint = -3.5 / 64.0
     assert x.mxint == -4.0 / 64.0
+
+@pytest.mark.usefixtures('switch_to_overflow')
+@pytest.mark.parametrize("fmt", [Dtype(x) for x in ['e5m2mxfp', 'e4m3mxfp', 'e2m3mxfp', 'e3m2mxfp', 'e2m1mxfp', 'e8m0mxfp', 'mxint', 'p3binary', 'p4binary']])
+def test_roundtrips(fmt):
+    # Note that e5m2mxfp in saturate mode will not pass this test, as inf -> inf -> max_value.
+    for i in range(1 << fmt.bitlength):
+        b = BitArray(u=i, length=fmt.bitlength)
+        v = fmt.parse(b)
+        b2 = fmt.build(v)
+        if math.isnan(fmt.parse(b)):
+            assert math.isnan(fmt.parse(b2))
+        else:
+            assert b == b2
