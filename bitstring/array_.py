@@ -116,8 +116,9 @@ class Array:
             if max_float_value == 0:
                 # This special case isn't covered in the standard. I'm choosing to return no scale.
                 return 1.0
-            log2 = int(math.log2(max_float_value))
-            lp2 = int(math.log2(Array._largest_values[f'{name}{length}']))
+            # We need to find the largest power of 2 that is less than the max value
+            log2 = math.floor(math.log2(max_float_value))
+            lp2 = math.floor(math.log2(Array._largest_values[f'{name}{length}']))
             lg_scale = log2 - lp2
             # Saturate at values representable in E8M0 format.
             if lg_scale > 127:

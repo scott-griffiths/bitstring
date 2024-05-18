@@ -233,6 +233,15 @@ def test_auto_scaling2():
     assert a.dtype.scale == 1
 
 
+def test_auto_scaling_error():
+    a = Array(Dtype('e3m2mxfp', scale='auto'), [0.3])
+    expected_scale = 0.25 / 16.0
+    assert a.dtype.scale == expected_scale
+    b = Array(Dtype('e2m1mxfp', scale='auto'), [-0.9, 0.6, 0.0001])
+    expected_scale = 0.5 / 4.0
+    assert b.dtype.scale == expected_scale
+
+
 def test_scaled_array_errors():
     with pytest.raises(ValueError):
         _ = Array(Dtype('bfloat', scale='auto'), [0.0, 100.0, 256.0, -150.0])
