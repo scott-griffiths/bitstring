@@ -112,6 +112,8 @@ class Array:
             }
         if f'{name}{length}' in Array._largest_values.keys():
             float_values = Array('float64', initializer).tolist()
+            if not float_values:
+                raise ValueError("Can't calculate an 'auto' scale with an empty Array initializer.")
             max_float_value = max(abs(x) for x in float_values)
             if max_float_value == 0:
                 # This special case isn't covered in the standard. I'm choosing to return no scale.
