@@ -21,4 +21,3 @@ class ByteAlignError(Error):
 
 CreationError = ValueError
 """Inappropriate argument during bitstring creation."""
-

@@ -16,26 +16,13 @@ It has been actively maintained since 2006.
 [![Pepy Total Downlods](https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue)](https://www.pepy.tech/projects/bitstring)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/bitstring?label=%40&labelColor=blue&color=blue)](https://pypistats.org/packages/bitstring)
 
-
-News
 ----
-**May 2024**: bitstring 4.2.2 released.
- 
-New in version 4.2:
 
-* Dropped support for Python 3.7. Minimum version is now 3.8.
-* A new `Dtype` class can be optionally used to specify types.
-* The `bitstring.options` object is now the preferred method for changing module options.
-* New `fromstring` method as another way to create bitstrings from formatted strings.
-* More types can now be pretty printed.
-* A range of 8-bit, 6-bit and even 4-bit floating point formats added (beta):
-* Performance improvements.
-
-See the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt) for details. Please let me know if you encounter any problems.
+> [!NOTE]
+> To see what been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
 
 
-Overview
---------
+# Overview
 
 * Efficiently store and manipulate binary data in idiomatic Python.
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
@@ -46,8 +33,8 @@ Overview
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Open source software, released under the MIT licence.
 
-Documentation
--------------
+# Documentation
+
 Extensive documentation for the bitstring module is available.
 Some starting points are given below:
 
@@ -57,67 +44,66 @@ Some starting points are given below:
 
 There is also an introductory walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
 
-Release Notes
--------------
-
-To see what been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.txt).
-
-Examples
---------
+# Examples
 
 ### Installation
-
-    $ pip install bitstring
+```
+$ pip install bitstring
+```
 
 ### Creation
-
-     >>> from bitstring import Bits, BitArray, BitStream, pack
-     >>> a = BitArray(bin='00101')
-     >>> b = Bits(a_file_object)
-     >>> c = BitArray('0xff, 0b101, 0o65, uint6=22')
-     >>> d = pack('intle16, hex=a, 0b1', 100, a='0x34f')
-     >>> e = pack('<16h', *range(16))
+```pycon
+>>> from bitstring import Bits, BitArray, BitStream, pack
+>>> a = BitArray(bin='00101')
+>>> b = Bits(a_file_object)
+>>> c = BitArray('0xff, 0b101, 0o65, uint6=22')
+>>> d = pack('intle16, hex=a, 0b1', 100, a='0x34f')
+>>> e = pack('<16h', *range(16))
+```
 
 ### Different interpretations, slicing and concatenation
-
-     >>> a = BitArray('0x3348')
-     >>> a.hex, a.bin, a.uint, a.float, a.bytes
-     ('3348', '0011001101001000', 13128, 0.2275390625, b'3H')
-     >>> a[10:3:-1].bin
-     '0101100'
-     >>> '0b100' + 3*a
-     BitArray('0x866906690669, 0b000')
+```pycon
+>>> a = BitArray('0x3348')
+>>> a.hex, a.bin, a.uint, a.float, a.bytes
+('3348', '0011001101001000', 13128, 0.2275390625, b'3H')
+>>> a[10:3:-1].bin
+'0101100'
+>>> '0b100' + 3*a
+BitArray('0x866906690669, 0b000')
+```
 
 ### Reading data sequentially
-
-     >>> b = BitStream('0x160120f')
-     >>> b.read(12).hex
-     '160'
-     >>> b.pos = 0
-     >>> b.read('uint12')
-     352
-     >>> b.readlist('uint12, bin3')
-     [288, '111']
+```pycon
+>>> b = BitStream('0x160120f')
+>>> b.read(12).hex
+'160'
+>>> b.pos = 0
+>>> b.read('uint12')
+352
+>>> b.readlist('uint12, bin3')
+[288, '111']
+```
 
 ### Searching, inserting and deleting
-
-     >>> c = BitArray('0b00010010010010001111')   # c.hex == '0x1248f'
-     >>> c.find('0x48')
-     (8,)
-     >>> c.replace('0b001', '0xabc')
-     >>> c.insert('0b0000', pos=3)
-     >>> del c[12:16]
+```pycon
+>>> c = BitArray('0b00010010010010001111')   # c.hex == '0x1248f'
+>>> c.find('0x48')
+(8,)
+>>> c.replace('0b001', '0xabc')
+>>> c.insert('0b0000', pos=3)
+>>> del c[12:16]
+```
 
 ### Arrays of fixed-length formats
-
-     >>> from bitstring import Array
-     >>> a = Array('uint7', [9, 100, 3, 1])
-     >>> a.data
-     BitArray('0x1390181')
-     >>> a[::2] *= 5
-     >>> a
-     Array('uint7', [45, 100, 15, 1])
-
+```pycon
+>>> from bitstring import Array
+>>> a = Array('uint7', [9, 100, 3, 1])
+>>> a.data
+BitArray('0x1390181')
+>>> a[::2] *= 5
+>>> a
+Array('uint7', [45, 100, 15, 1])
+```
 
 
 <sub>Copyright (c) 2006 - 2024 Scott Griffiths</sub>

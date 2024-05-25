@@ -255,6 +255,7 @@ It is similar to the ``array`` type in the `array <https://docs.python.org/3/lib
 The `dtype` can any single fixed-length token as described in :ref:`format_tokens` and :ref:`compact_format`.
 
 The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
+It can also be an integer, in which case the ``Array`` will be zero-initialised with that many items.
 
 The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the data type `dtype`.
 
@@ -314,7 +315,7 @@ For example::
     >>> b + 1
     Array('i6', [31, -9, 2, 1])
     >>> b + b
-    Array('i6', [30, -10, 1, 0, 30, -10, 1, 0])
+    Array('i6', [60, -20, 2, 0])
 
 Comparison operators will output an ``Array`` with a ``dtype`` of ``'bool'``.
 

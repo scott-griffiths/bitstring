@@ -8,7 +8,8 @@ import bitarray
 from bitstring.bitstore import BitStore
 import bitstring
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
-from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt, e4m3mxfp_overflow_fmt, e5m2mxfp_overflow_fmt
+from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt,
+                            e5m2mxfp_saturate_fmt, e4m3mxfp_overflow_fmt, e5m2mxfp_overflow_fmt)
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
@@ -121,10 +122,12 @@ def p4binary2bitstore(f: Union[str, float]) -> BitStore:
     u = p4binary_fmt.float_to_int8(f)
     return int2bitstore(u, 8, False)
 
+
 def p3binary2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     u = p3binary_fmt.float_to_int8(f)
     return int2bitstore(u, 8, False)
+
 
 def e4m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
@@ -134,6 +137,7 @@ def e4m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
         u = e4m3mxfp_overflow_fmt.float_to_int(f)
     return int2bitstore(u, 8, False)
 
+
 def e5m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     if bitstring.options.mxfp_overflow == 'saturate':
@@ -142,6 +146,7 @@ def e5m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
         u = e5m2mxfp_overflow_fmt.float_to_int(f)
     return int2bitstore(u, 8, False)
 
+
 def e3m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     if math.isnan(f):
@@ -149,12 +154,14 @@ def e3m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
     u = e3m2mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 6, False)
 
+
 def e2m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     if math.isnan(f):
         raise ValueError("Cannot convert float('nan') to e2m3mxfp format as it has no representation for it.")
     u = e2m3mxfp_fmt.float_to_int(f)
     return int2bitstore(u, 6, False)
+
 
 def e2m1mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
@@ -165,6 +172,8 @@ def e2m1mxfp2bitstore(f: Union[str, float]) -> BitStore:
 
 
 e8m0mxfp_allowed_values = [float(2 ** x) for x in range(-127, 128)]
+
+
 def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     if math.isnan(f):
@@ -198,6 +207,7 @@ def mxint2bitstore(f: Union[str, float]) -> BitStore:
         if f - i == 0.0 and i % 2:
             i += 1
     return int2bitstore(i, 8, True)
+
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     i = int(i)

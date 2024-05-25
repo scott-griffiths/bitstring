@@ -140,7 +140,7 @@ jobs:
 
       - name: Run pytest
         run: |
-          python -m pytest tests/
+          python -m pytest tests/ --benchmark-disable
 
   all:
     name: All successful

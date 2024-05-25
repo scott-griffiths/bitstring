@@ -962,9 +962,9 @@ class TestNumpy:
     def test_getting(self):
         a = BitArray('0b110')
         p = np.int_(1)
-        assert a[p] == True
+        assert a[p] is True
         p = np.short(0)
-        assert a[p] == True
+        assert a[p] is True
 
     @pytest.mark.skipif(not numpy_installed, reason="numpy not installed.")
     def test_setting(self):

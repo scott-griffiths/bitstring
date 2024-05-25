@@ -55,7 +55,6 @@ class Dtype:
     _length: Optional[int]
     _scale: Union[None, float, int]
 
-
     def __new__(cls, token: Union[str, Dtype], /, length: Optional[int] = None, scale: Union[None, float, int] = None) -> Dtype:
         if isinstance(token, cls):
             return token
@@ -253,7 +252,7 @@ class DtypeDefinition:
     """Represents a class of dtypes, such as uint or float, rather than a concrete dtype such as uint8.
     Not (yet) part of the public interface."""
 
-    def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn = None,
+    def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn=None,
                  variable_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
 
         # Consistency checks
@@ -277,7 +276,7 @@ class DtypeDefinition:
         self.set_fn_needs_length = set_fn is not None and 'length' in inspect.signature(set_fn).parameters
         self.set_fn = set_fn
 
-        if self.allowed_lengths:
+        if self.allowed_lengths.values:
             def allowed_length_checked_get_fn(bs):
                 if len(bs) not in self.allowed_lengths:
                     if self.allowed_lengths.only_one_value():

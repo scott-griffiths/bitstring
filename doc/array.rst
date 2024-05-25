@@ -10,128 +10,136 @@ Array
     This can be any format which has a fixed length.
     See :ref:`format_tokens` and :ref:`compact_format` for details on allowed dtype strings, noting that only formats with well defined bit lengths are allowed.
 
-    The ``Array`` class is a way to efficiently store data that has a single type with a set length.
-    The ``bitstring.Array`` type is meant as a more flexible version of the standard ``array.array``, and can be used the same way. ::
+    The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
+    It can also be an integer, in which case the ``Array`` will be zero-initialised with that many items. ::
 
-        import array
-        import bitstring
+        >>> bitstring.Array('i4', 8)
+        Array('int4', [0, 0, 0, 0, 0, 0, 0, 0])
 
-        x = array.array('f', [1.0, 2.0, 3.14])
-        y = bitstring.Array('=f', [1.0, 2.0, 3.14])
-
-        assert x.tobytes() == y.tobytes()
-
-    This example packs three 32-bit floats into objects using both libraries.
-    The only difference is the explicit native endianness for the format string of the bitstring version.
-    The bitstring Array's advantage lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
-
-    For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte dtypes can be properly specified.
-
-    Each element in the ``Array`` must then be something that makes sense for the ``dtype``.
-    Some examples will help illustrate::
-
-        from bitstring import Array
-
-        # Each unsigned int is stored in 4 bits
-        a = Array('uint4', [0, 5, 5, 3, 2])
-
-        # Convert and store floats in 8 bits each
-        b = Array('p3binary', [-56.0, 0.123, 99.6])
-
-        # Each element is a  7 bit signed integer
-        c = Array('int7', [-3, 0, 120])
-
-    You can then access and modify the ``Array`` with the usual notation::
-
-        a[1:4]  # Array('uint4', [5, 5, 3])
-        b[0]    # -56.0
-        c[-1]   # 120
-
-        a[0] = 2
-        b.extend([0.0, -1.5])
-
-    Conversion between ``Array`` types can be done using the :meth:`astype` method.
-    If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
-
-        >>> x = Array('float64', [89.3, 1e34, -0.00000001, 34])
-        >>> y = x.astype('float16')
-        >>> y
-        Array('float16', [89.3125, inf, -0.0, 34.0])
-        >>> y = y.astype('p4binary')
-        >>> y
-        Array('p4binary', [88.0, 240.0, 0.0, 32.0])
-        >>> y.astype('uint8')
-        Array('uint8', [88, 240, 0, 32])
-        >>> y.astype('uint7')
-        bitstring.CreationError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
-
-    You can also reinterpret the data by changing the :attr:`dtype` property directly.
-    This will not copy any data but will cause the current data to be shown differently. ::
-
-        >>> x = Array('int16', [-5, 100, -4])
-        >>> x
-        Array('int16', [-5, 100, -4])
-        >>> x.dtype = 'int8'
-        >>> x
-        Array('int8', [-1, -5, 0, 100, -1, -4])
+    The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the data type `dtype`.
 
 
-    The data for the array is stored internally as a :class:`BitArray` object.
-    It can be directly accessed using the :attr:`data` property.
-    You can freely manipulate the internal data using all of the methods available for the :class:`BitArray` class.
+The ``Array`` class is a way to efficiently store data that has a single type with a set length.
+The ``bitstring.Array`` type is meant as a more flexible version of the standard ``array.array``, and can be used the same way. ::
 
-    The :class:`Array` object also has a :attr:`trailing_bits` read-only data member, which consists of the end bits of the :attr:`data` that are left over when the :class:`Array` is interpreted using the :attr:`dtype`.
-    Typically :attr:`trailing_bits` will be an empty :class:`BitArray` but if you change the length of the :attr:`data` or change the :attr:`dtype` specification there may be some bits left over.
+    import array
+    import bitstring
 
-    Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`trailing_bits` is not empty, as it not clear how these should behave in this case. You can however still use :meth:`~Array.insert` which will always leave the :attr:`trailing_bits` unchanged.
+    x = array.array('f', [1.0, 2.0, 3.14])
+    y = bitstring.Array('=f', [1.0, 2.0, 3.14])
+
+    assert x.tobytes() == y.tobytes()
+
+This example packs three 32-bit floats into objects using both libraries.
+The only difference is the explicit native endianness for the format string of the bitstring version.
+The bitstring Array's advantage lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
+
+For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte dtypes can be properly specified.
+
+Each element in the ``Array`` must then be something that makes sense for the ``dtype``.
+Some examples will help illustrate::
+
+    from bitstring import Array
+
+    # Each unsigned int is stored in 4 bits
+    a = Array('uint4', [0, 5, 5, 3, 2])
+
+    # Convert and store floats in 8 bits each
+    b = Array('p3binary', [-56.0, 0.123, 99.6])
+
+    # Each element is a  7 bit signed integer
+    c = Array('int7', [-3, 0, 120])
+
+You can then access and modify the ``Array`` with the usual notation::
+
+    a[1:4]  # Array('uint4', [5, 5, 3])
+    b[0]    # -56.0
+    c[-1]   # 120
+
+    a[0] = 2
+    b.extend([0.0, -1.5])
+
+Conversion between ``Array`` types can be done using the :meth:`astype` method.
+If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
+
+    >>> x = Array('float64', [89.3, 1e34, -0.00000001, 34])
+    >>> y = x.astype('float16')
+    >>> y
+    Array('float16', [89.3125, inf, -0.0, 34.0])
+    >>> y = y.astype('p4binary')
+    >>> y
+    Array('p4binary', [88.0, 240.0, 0.0, 32.0])
+    >>> y.astype('uint8')
+    Array('uint8', [88, 240, 0, 32])
+    >>> y.astype('uint7')
+    bitstring.CreationError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
+
+You can also reinterpret the data by changing the :attr:`dtype` property directly.
+This will not copy any data but will cause the current data to be shown differently. ::
+
+    >>> x = Array('int16', [-5, 100, -4])
+    >>> x
+    Array('int16', [-5, 100, -4])
+    >>> x.dtype = 'int8'
+    >>> x
+    Array('int8', [-1, -5, 0, 100, -1, -4])
 
 
+The data for the array is stored internally as a :class:`BitArray` object.
+It can be directly accessed using the :attr:`data` property.
+You can freely manipulate the internal data using all of the methods available for the :class:`BitArray` class.
 
-    The :attr:`dtype` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
+The :class:`Array` object also has a :attr:`trailing_bits` read-only data member, which consists of the end bits of the :attr:`data` that are left over when the :class:`Array` is interpreted using the :attr:`dtype`.
+Typically :attr:`trailing_bits` will be an empty :class:`BitArray` but if you change the length of the :attr:`data` or change the :attr:`dtype` specification there may be some bits left over.
 
-    Note that the typecodes must include an endianness character to give the byte ordering.
-    This is more like the ``struct`` module typecodes, and is different to the ``array.array`` typecodes which are always native-endian.
+Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`trailing_bits` is not empty, as it not clear how these should behave in this case.
+You can however still use :meth:`~Array.insert` which will always leave the :attr:`trailing_bits` unchanged.
 
-    The correspondence between the big-endian type codes and bitstring dtype strings is given in the table below.
+The :attr:`dtype` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
-    =========   ===================
-    Type code   bitstring dtype
-    =========   ===================
-    ``'>b'``     ``'int8'``
-    ``'>B'``     ``'uint8'``
-    ``'>h'``     ``'int16'``
-    ``'>H'``     ``'uint16'``
-    ``'>l'``     ``'int32'``
-    ``'>L'``     ``'uint32'``
-    ``'>q'``     ``'int64'``
-    ``'>Q'``     ``'uint64'``
-    ``'>e'``     ``'float16'``
-    ``'>f'``     ``'float32'``
-    ``'>d'``     ``'float64'``
-    =========   ===================
+Note that the typecodes must include an endianness character to give the byte ordering.
+This is more like the ``struct`` module typecodes, and is different to the ``array.array`` typecodes which are always native-endian.
 
-    The endianness character can be ``'>'`` for big-endian, ``'<'`` for little-endian or ``'='`` for native-endian (``'@'`` can also be used for native-endian).
-    In the bitstring dtypes the default is big-endian, but you can specify little or native endian using ``'le'`` or ``'ne'`` modifiers, for example:
+The correspondence between the big-endian type codes and bitstring dtype strings is given in the table below.
 
-    ============  =============================
-    Type code     bitstring dtype
-    ============  =============================
-    ``'>H'``      ``'uint16'`` / ``'uintbe16'``
-    ``'=H'``      ``'uintne16'``
-    ``'<H'``      ``'uintle16'``
-    ============  =============================
+=========   ===================
+Type code   bitstring dtype
+=========   ===================
+``'>b'``     ``'int8'``
+``'>B'``     ``'uint8'``
+``'>h'``     ``'int16'``
+``'>H'``     ``'uint16'``
+``'>l'``     ``'int32'``
+``'>L'``     ``'uint32'``
+``'>q'``     ``'int64'``
+``'>Q'``     ``'uint64'``
+``'>e'``     ``'float16'``
+``'>f'``     ``'float32'``
+``'>d'``     ``'float64'``
+=========   ===================
+
+The endianness character can be ``'>'`` for big-endian, ``'<'`` for little-endian or ``'='`` for native-endian (``'@'`` can also be used for native-endian).
+In the bitstring dtypes the default is big-endian, but you can specify little or native endian using ``'le'`` or ``'ne'`` modifiers, for example:
+
+============  =============================
+Type code     bitstring dtype
+============  =============================
+``'>H'``      ``'uint16'`` / ``'uintbe16'``
+``'=H'``      ``'uintne16'``
+``'<H'``      ``'uintle16'``
+============  =============================
 
 
-    Note that:
+Note that:
 
-    * The ``array`` module's native endianness means that different packed binary data will be created on different types of machines.
-      Users may find that behaviour unexpected which is why endianness must be explicitly given as in the rest of the bitstring module.
+* The ``array`` module's native endianness means that different packed binary data will be created on different types of machines.
+  Users may find that behaviour unexpected which is why endianness must be explicitly given as in the rest of the bitstring module.
 
-    * The ``'u'`` type code from the ``array`` module isn't supported as its length is platform dependent.
+* The ``'u'`` type code from the ``array`` module isn't supported as its length is platform dependent.
 
-    * The ``'e'`` type code isn't one of the ``array`` supported types, but it is used in the ``struct`` module and we support it here.
+* The ``'e'`` type code isn't one of the ``array`` supported types, but it is used in the ``struct`` module and we support it here.
 
-    * The ``'b'`` and ``'B'`` type codes need to be preceded by an endianness character even though it makes no difference which one you use as they are only 1 byte long.
+* The ``'b'`` and ``'B'`` type codes need to be preceded by an endianness character even though it makes no difference which one you use as they are only 1 byte long.
 
 ----
 

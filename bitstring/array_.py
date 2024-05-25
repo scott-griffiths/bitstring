@@ -93,6 +93,7 @@ class Array:
             self.data += BitArray._create_from_bitstype(trailing_bits)
 
     _largest_values = None
+
     @staticmethod
     def _calculate_auto_scale(initializer, name: str, length: Optional[int]) -> float:
         # Now need to find the largest power of 2 representable with this format.
@@ -112,12 +113,15 @@ class Array:
             }
         if f'{name}{length}' in Array._largest_values.keys():
             float_values = Array('float64', initializer).tolist()
+            if not float_values:
+                raise ValueError("Can't calculate an 'auto' scale with an empty Array initializer.")
             max_float_value = max(abs(x) for x in float_values)
             if max_float_value == 0:
                 # This special case isn't covered in the standard. I'm choosing to return no scale.
                 return 1.0
-            log2 = int(math.log2(max_float_value))
-            lp2 = int(math.log2(Array._largest_values[f'{name}{length}']))
+            # We need to find the largest power of 2 that is less than the max value
+            log2 = math.floor(math.log2(max_float_value))
+            lp2 = math.floor(math.log2(Array._largest_values[f'{name}{length}']))
             lg_scale = log2 - lp2
             # Saturate at values representable in E8M0 format.
             if lg_scale > 127:
@@ -155,7 +159,7 @@ class Array:
             except ValueError:
                 name_length = utils.parse_single_struct_token(new_dtype)
                 if name_length is not None:
-                    dtype = Dtype(*name_length)
+                    dtype = Dtype(name_length[0], name_length[1])
                 else:
                     raise ValueError(f"Inappropriate Dtype for Array: '{new_dtype}'.")
             if dtype.length is None:
@@ -270,7 +274,7 @@ class Array:
         return new_array
 
     def tolist(self) -> List[ElementType]:
-        return  [self._dtype.read_fn(self.data, start=start)
+        return [self._dtype.read_fn(self.data, start=start)
                 for start in range(0, len(self.data) - self._dtype.length + 1, self._dtype.length)]
 
     def append(self, x: ElementType) -> None:
@@ -408,9 +412,11 @@ class Array:
             token_list = utils.preprocess_tokens(fmt)
             if len(token_list) not in [1, 2]:
                 raise ValueError(f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {len(token_list)} tokens.")
-            dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
+            name1, length1 = utils.parse_name_length_token(token_list[0])
+            dtype1 = Dtype(name1, length1)
             if len(token_list) == 2:
-                dtype2 = Dtype(*utils.parse_name_length_token(token_list[1]))
+                name2, length2 = utils.parse_name_length_token(token_list[1])
+                dtype2 = Dtype(name2, length2)
 
         token_length = dtype1.bitlength
         if dtype2 is not None:

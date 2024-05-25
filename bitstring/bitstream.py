@@ -57,7 +57,7 @@ class ConstBitStream(Bits):
     pos -- The current bit position in the bitstring.
     """
 
-    __slots__ = ('_pos')
+    __slots__ = ('_pos',)
 
     def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                  offset: Optional[int] = None, pos: int = 0, **kwargs) -> None:

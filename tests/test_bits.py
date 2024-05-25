@@ -53,15 +53,10 @@ class TestCreation:
         s = Bits(hex='  \n0 X a  4e       \r3  \n')
         assert s.hex == 'a4e3'
 
-    def test_creation_from_hex_errors(self):
+    @pytest.mark.parametrize("bad_val", ['0xx0', '0xX0', '0Xx0', '-2e'])
+    def test_creation_from_hex_errors(self, bad_val: str):
         with pytest.raises(bitstring.CreationError):
-            Bits(hex='0xx0')
-        with pytest.raises(bitstring.CreationError):
-            Bits(hex='0xX0')
-        with pytest.raises(bitstring.CreationError):
-            Bits(hex='0Xx0')
-        with pytest.raises(bitstring.CreationError):
-            Bits(hex='-2e')
+            Bits(hex=bad_val)
         with pytest.raises(bitstring.CreationError):
             Bits('0x2', length=2)
         with pytest.raises(bitstring.CreationError):
@@ -104,7 +99,6 @@ class TestCreation:
 
     def test_creation_from_int(self):
         s = Bits(int=0, length=4)
-        temp = s.hex
         assert s.bin == '0000'
         s = Bits(int=1, length=2)
         assert s.bin == '01'
@@ -120,15 +114,10 @@ class TestCreation:
                 assert (s.int, s.length) == (value, length)
         _ = Bits(int=10, length=8)
 
-    def test_creation_from_int_errors(self):
+    @pytest.mark.parametrize("int_, length", [[-1, 0], [12, None], [4, 3], [-5, 3]])
+    def test_creation_from_int_errors(self, int_, length):
         with pytest.raises(bitstring.CreationError):
-            _ = Bits(int=-1, length=0)
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(int=12)
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(int=4, length=3)
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(int=-5, length=3)
+            _ = Bits(int=int_, length=length)
 
     def test_creation_from_se(self):
         for i in range(-100, 10):
@@ -517,16 +506,16 @@ class TestLsb0Indexing:
 
     def test_get_single_bit(self):
         a = Bits('0b000001111')
-        assert a[0] == True
-        assert a[3] == True
-        assert a[4] == False
-        assert a[8] == False
+        assert a[0] is True
+        assert a[3] is True
+        assert a[4] is False
+        assert a[8] is False
         with pytest.raises(IndexError):
             _ = a[9]
-        assert a[-1] == False
-        assert a[-5] == False
-        assert a[-6] == True
-        assert a[-9] == True
+        assert a[-1] is False
+        assert a[-5] is False
+        assert a[-6] is True
+        assert a[-9] is True
         with pytest.raises(IndexError):
             _ = a[-10]
 
@@ -582,7 +571,7 @@ class TestLsb0Interpretations:
         a = Bits('0x01')
         assert a == '0b00000001'
         assert a.uint == 1
-        assert a[0] == True
+        assert a[0] is True
 
     def test_float(self):
         a = Bits(float=0.25, length=32)
@@ -736,7 +725,7 @@ class TestPrettyPrinting:
         b = Bits(bytes=a)
         s = io.StringIO()
         b.pp(stream=s, fmt='bytes')
-        assert remove_unprintable(s.getvalue()) == """<Bits, fmt='bytes', length=2048 bits> [
+        assert remove_unprintable(s.getvalue()) == r"""<Bits, fmt='bytes', length=2048 bits> [
    0: ĀāĂă ĄąĆć ĈĉĊċ ČčĎď ĐđĒē ĔĕĖė ĘęĚě ĜĝĞğ  !"# $%&' ()*+ ,-./ 0123 4567 89:; <=>? @ABC DEFG HIJK LMNO PQRS TUVW XYZ[
  736: \]^_ `abc defg hijk lmno pqrs tuvw xyz{ |}~ſ ƀƁƂƃ ƄƅƆƇ ƈƉƊƋ ƌƍƎƏ ƐƑƒƓ ƔƕƖƗ Ƙƙƚƛ ƜƝƞƟ ƠơƢƣ ƤƥƦƧ ƨƩƪƫ ƬƭƮƯ ưƱƲƳ ƴƵƶƷ
 1472: Ƹƹƺƻ Ƽƽƾƿ ǀǁǂǃ ǄǅǆǇ ǈǉǊǋ ǌǍǎǏ ǐǑǒǓ ǔǕǖǗ ǘǙǚǛ ǜǝǞǟ ǠǡǢǣ ǤǥǦǧ ǨǩǪǫ ǬǭǮǯ ǰǱǲǳ ǴǵǶǷ ǸǹǺǻ ǼǽǾÿ                         

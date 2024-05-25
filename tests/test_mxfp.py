@@ -233,6 +233,15 @@ def test_auto_scaling2():
     assert a.dtype.scale == 1
 
 
+def test_auto_scaling_error():
+    a = Array(Dtype('e3m2mxfp', scale='auto'), [0.3])
+    expected_scale = 0.25 / 16.0
+    assert a.dtype.scale == expected_scale
+    b = Array(Dtype('e2m1mxfp', scale='auto'), [-0.9, 0.6, 0.0001])
+    expected_scale = 0.5 / 4.0
+    assert b.dtype.scale == expected_scale
+
+
 def test_scaled_array_errors():
     with pytest.raises(ValueError):
         _ = Array(Dtype('bfloat', scale='auto'), [0.0, 100.0, 256.0, -150.0])
@@ -250,6 +259,10 @@ def test_changing_to_auto_scaled_array():
     a = Array('int16', [0, 2003, -43, 104, 6, 1, 99])
     with pytest.raises(ValueError):
         a.dtype = Dtype('e3m2mxfp', scale='auto')
+    with pytest.raises(ValueError):
+        _ = Array(Dtype('e3m2mxfp', scale='auto'))
+    with pytest.raises(ValueError):
+        _ = Array(Dtype('e3m2mxfp', scale='auto'), [])
 
 def test_conversion_to_e8m0():
     x = BitArray(e8m0mxfp=1.0)
@@ -438,3 +451,16 @@ def test_mxint_rounding():
     assert x.mxint == -2.0 / 64.0
     x.mxint = -3.5 / 64.0
     assert x.mxint == -4.0 / 64.0
+
+@pytest.mark.usefixtures('switch_to_overflow')
+@pytest.mark.parametrize("fmt", [Dtype(x) for x in ['e5m2mxfp', 'e4m3mxfp', 'e2m3mxfp', 'e3m2mxfp', 'e2m1mxfp', 'e8m0mxfp', 'mxint', 'p3binary', 'p4binary']])
+def test_roundtrips(fmt):
+    # Note that e5m2mxfp in saturate mode will not pass this test, as inf -> inf -> max_value.
+    for i in range(1 << fmt.bitlength):
+        b = BitArray(u=i, length=fmt.bitlength)
+        v = fmt.parse(b)
+        b2 = fmt.build(v)
+        if math.isnan(fmt.parse(b)):
+            assert math.isnan(fmt.parse(b2))
+        else:
+            assert b == b2

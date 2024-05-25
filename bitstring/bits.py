@@ -1699,34 +1699,37 @@ class Bits:
 
     @staticmethod
     def _process_pp_tokens(token_list, fmt):
+        if len(token_list) not in [1, 2]:
+            raise ValueError(
+                f"Only one or two tokens can be used in an pp() format - '{fmt}' has {len(token_list)} tokens.")
         has_length_in_fmt = True
-        if len(token_list) == 1:
-            dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
-            dtype2 = None
-            bits_per_group = dtype1.bitlength
+        name1, length1 = utils.parse_name_length_token(token_list[0])
+        dtype1 = Dtype(name1, length1)
+        bits_per_group = dtype1.bitlength
+        dtype2 = None
+
+        if len(token_list) == 2:
+            name2, length2 = utils.parse_name_length_token(token_list[1])
+            dtype2 = Dtype(name2, length2)
+            if None not in {dtype1.bitlength, dtype2.bitlength} and dtype1.bitlength != dtype2.bitlength:
+                raise ValueError(
+                    f"Differing bit lengths of {dtype1.bitlength} and {dtype2.bitlength} in format string '{fmt}'.")
             if bits_per_group is None:
-                has_length_in_fmt = False
+                bits_per_group = dtype2.bitlength
+
+        if bits_per_group is None:
+            has_length_in_fmt = False
+            if len(token_list) == 1:
                 bits_per_group = {'bin': 8, 'hex': 8, 'oct': 12, 'bytes': 32}.get(dtype1.name)
                 if bits_per_group is None:
                     raise ValueError(f"No length or default length available for pp() format '{fmt}'.")
-        elif len(token_list) == 2:
-            dtype1 = Dtype(*utils.parse_name_length_token(token_list[0]))
-            dtype2 = Dtype(*utils.parse_name_length_token(token_list[1]))
-            if dtype1.bitlength is not None and dtype2.bitlength is not None and dtype1.bitlength != dtype2.bitlength:
-                raise ValueError(
-                    f"Differing bit lengths of {dtype1.bitlength} and {dtype2.bitlength} in format string '{fmt}'.")
-            bits_per_group = dtype1.bitlength if dtype1.bitlength is not None else dtype2.bitlength
-            if bits_per_group is None:
-                has_length_in_fmt = False
+            else:
                 try:
                     bits_per_group = 2 * Bits._bits_per_char(dtype1.name) * Bits._bits_per_char(dtype2.name)
                 except ValueError:
                     raise ValueError(f"Can't find a default bitlength to use for pp() format '{fmt}'.")
                 if bits_per_group >= 24:
                     bits_per_group //= 2
-        else:
-            raise ValueError(
-                f"Only one or two tokens can be used in an pp() format - '{fmt}' has {len(token_list)} tokens.")
         return dtype1, dtype2, bits_per_group, has_length_in_fmt
 
     def pp(self, fmt: Optional[str] = None, width: int = 120, sep: str = ' ',

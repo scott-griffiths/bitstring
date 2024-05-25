@@ -6,6 +6,7 @@ from bitstring.luts import mxfp_luts_compressed
 import zlib
 from typing import Optional
 
+
 def round_to_nearest_ties_to_even(lut_int_to_float, lower: int, f: float) -> Optional[int]:
     upper = lower + 1
     # Special case for LUTs without a negative zero.
@@ -56,7 +57,7 @@ class MXFPFormat:
                 self.pos_clamp_value = 0b01111100  # +inf
                 self.neg_clamp_value = 0b11111100  # -inf
 
-        # If we calculate these LUTs now now it creates a bootstrap problem in generate_luts.py.
+        # If we calculate these LUTs now it creates a bootstrap problem in generate_luts.py.
         self.lut_float16_to_mxfp = None
         self.lut_int_to_float = None
 
@@ -91,7 +92,15 @@ class MXFPFormat:
         # The output int has the binary sequence needed for the float.
         length = 1 + self.exp_bits + self.mantissa_bits
         values = 1 << length
-        if f >= 0:
+        # First get the NaN case out of the way
+        if math.isnan(f):
+            if length == 8:
+                return 0xff  # Works for both e5m2 and e4m3
+            # For smaller lengths, NaN isn't supported so we instead return an invalid value to detect later
+            return 0xff
+        # This is so we can distinguish between 0.0 and -0.0
+        is_positive = math.copysign(1.0, f) == 1.0
+        if is_positive:
             # Positive, so top bit is not set
             for i in range(values // 2 - 1):
                 upper = self.lut_int_to_float[i + 1]
@@ -101,7 +110,7 @@ class MXFPFormat:
                 if x is not None:
                     return x
             return self.pos_clamp_value
-        if f < 0:
+        else:
             # Negative, so top bit is set
             for i in range(values // 2, values - 1):
                 lower = self.lut_int_to_float[i + 1]
@@ -112,11 +121,6 @@ class MXFPFormat:
                     return x
             # Clip to negative max
             return self.neg_clamp_value
-        assert math.isnan(f)
-        if length == 8:
-            return 0xff  # Works for both e5m2 and e4m3
-        # For smaller lengths, NaN isn't supported so we instead return an invalid value to detect later
-        return 0xff
 
     def createLUT_for_int_to_float(self) -> array.array:
         """Create a LUT to convert an int in representing a MXFP float into a Python float"""
@@ -154,7 +158,8 @@ class MXFPFormat:
         length = 1 + self.exp_bits + self.mantissa_bits
         if length == 8:
             import gfloat
-            fi = gfloat.formats.format_info_ocp_e5m2 if self.exp_bits == 5 else gfloat.formats.format_info_ocp_e4m3
+            from gfloat.formats import format_info_ocp_e5m2, format_info_ocp_e4m3
+            fi = format_info_ocp_e5m2 if self.exp_bits == 5 else format_info_ocp_e4m3
 
             fp16_to_fp8 = bytearray(1 << 16)
             for i in range(1 << 16):
@@ -164,7 +169,11 @@ class MXFPFormat:
                 if math.isnan(fp):
                     fp8_i = 0b11111111
                 else:
-                    fp8_i = self.lut_int_to_float.index(fp)
+                    # Special case for negative zero
+                    if fp == 0.0 and math.copysign(1.0, fp) == -1.0:
+                        fp8_i = 0b10000000
+                    else:
+                        fp8_i = self.lut_int_to_float.index(fp)
                 fp16_to_fp8[i] = fp8_i
             return bytes(fp16_to_fp8)
         else:
@@ -174,9 +183,6 @@ class MXFPFormat:
                 b = struct.pack('>H', i)
                 f, = struct.unpack('>e', b)
                 fp8_i = self.slow_float_to_int(f)
-                if fp8_i == 1 << (self.exp_bits + self.mantissa_bits):
-                    # Got back int representing binary digits for negative zero. Just convert to positive zero instead.
-                    fp8_i = 0
                 fp16_to_fp8[i] = fp8_i
             return bytes(fp16_to_fp8)
 
