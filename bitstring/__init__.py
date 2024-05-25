@@ -111,30 +111,37 @@ class _MyModuleType(types.ModuleType):
 
 sys.modules[__name__].__class__ = _MyModuleType
 
-"""These methods convert a bit length to the number of characters needed to print it for different interpretations."""
+
+# These methods convert a bit length to the number of characters needed to print it for different interpretations.
 def hex_bits2chars(bitlength: int):
     # One character for every 4 bits
     return bitlength // 4
+
 
 def oct_bits2chars(bitlength: int):
     # One character for every 3 bits
     return bitlength // 3
 
+
 def bin_bits2chars(bitlength: int):
     # One character for each bit
     return bitlength
+
 
 def bytes_bits2chars(bitlength: int):
     # One character for every 8 bits
     return bitlength // 8
 
+
 def uint_bits2chars(bitlength: int):
     # How many characters is largest possible int of this length?
     return len(str((1 << bitlength) - 1))
 
+
 def int_bits2chars(bitlength: int):
     # How many characters is largest negative int of this length? (To include minus sign).
     return len(str((-1 << (bitlength - 1))))
+
 
 def float_bits2chars(bitlength: Literal[16, 32, 64]):
     # These bit lengths were found by looking at lots of possible values
@@ -143,52 +150,64 @@ def float_bits2chars(bitlength: Literal[16, 32, 64]):
     else:
         return 24  # Empirical value
 
-def p3binary_bits2chars(bitlength: Literal[8]):
+
+def p3binary_bits2chars(_: Literal[8]):
     return 19  # Empirical value
 
-def p4binary_bits2chars(bitlength: Literal[8]):
+
+def p4binary_bits2chars(_: Literal[8]):
     # Found by looking at all the possible values
     return 13  # Empirical value
 
-def e4m3mxfp_bits2chars(bitlength: Literal[8]):
+
+def e4m3mxfp_bits2chars(_: Literal[8]):
     return 13
 
-def e5m2mxfp_bits2chars(bitlength: Literal[8]):
+
+def e5m2mxfp_bits2chars(_: Literal[8]):
     return 19
 
-def e3m2mxfp_bits2chars(bitlength: Literal[6]):
+
+def e3m2mxfp_bits2chars(_: Literal[6]):
     # Not sure what the best value is here. It's 7 without considering the scale that could be applied.
     return 7
 
-def e2m3mxfp_bits2chars(bitlength: Literal[6]):
+
+def e2m3mxfp_bits2chars(_: Literal[6]):
     # Not sure what the best value is here.
     return 7
 
-def e2m1mxfp_bits2chars(bitlength: Literal[4]):
+
+def e2m1mxfp_bits2chars(_: Literal[4]):
     # Not sure what the best value is here.
     return 7
 
-def e8m0mxfp_bits2chars(bitlength: Literal[8]):
-    # Can range same as float32
+
+def e8m0mxfp_bits2chars(_: Literal[8]):
+    # Has same range as float32
     return 23
 
-def mxint_bits2chars(bitlength: Literal[8]):
+
+def mxint_bits2chars(_: Literal[8]):
     # Not sure what the best value is here.
     return 10
 
 
-def bfloat_bits2chars(bitlength: Literal[16]):
+def bfloat_bits2chars(_: Literal[16]):
     # Found by looking at all the possible values
     return 23  # Empirical value
+
 
 def bits_bits2chars(bitlength: int):
     # For bits type we can see how long it needs to be printed by trying any value
     temp = Bits(bitlength)
     return len(str(temp))
 
-def bool_bits2chars(bitlength: Literal[1]):
+
+def bool_bits2chars(_: Literal[1]):
     # Bools are printed as 1 or 0, not True or False, so are one character each
     return 1
+
 
 dtype_definitions = [
     # Integer types

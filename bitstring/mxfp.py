@@ -6,6 +6,7 @@ from bitstring.luts import mxfp_luts_compressed
 import zlib
 from typing import Optional
 
+
 def round_to_nearest_ties_to_even(lut_int_to_float, lower: int, f: float) -> Optional[int]:
     upper = lower + 1
     # Special case for LUTs without a negative zero.

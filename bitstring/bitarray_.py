@@ -11,6 +11,7 @@ from bitstring.bits import Bits, BitsType, TBits
 
 import bitstring.dtypes
 
+
 class BitArray(Bits):
     """A container holding a mutable sequence of bits.
 
@@ -70,7 +71,6 @@ class BitArray(Bits):
 
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
-
 
     def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                  offset: Optional[int] = None, **kwargs) -> None:
@@ -172,6 +172,7 @@ class BitArray(Bits):
 
     def _setitem_slice(self, key: slice, value: BitsType) -> None:
         if isinstance(value, numbers.Integral):
+            value = int(value)
             if key.step not in [None, -1, 1]:
                 if value in [0, 1]:
                     self.set(value, range(*key.indices(len(self))))
@@ -195,7 +196,7 @@ class BitArray(Bits):
 
     def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
         if isinstance(key, numbers.Integral):
-            self._setitem_int(key, value)
+            self._setitem_int(int(key), value)
         else:
             self._setitem_slice(key, value)
 
@@ -573,5 +574,3 @@ class BitArray(Bits):
     def clear(self) -> None:
         """Remove all bits, reset to zero length."""
         self._clear()
-
-

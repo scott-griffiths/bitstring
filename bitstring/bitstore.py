@@ -14,7 +14,8 @@ def offset_slice_indices_lsb0(key: slice, length: int) -> slice:
     # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
     return slice(new_start, None if new_stop < 0 else new_stop, step)
 
-def offset_start_stop_lsb0(start: Optional[int], stop: Optional[int], length: int) -> slice:
+
+def offset_start_stop_lsb0(start: Optional[int], stop: Optional[int], length: int) -> tuple[int, int]:
     # First convert slice to all integers
     # Length already should take account of the offset
     start, stop, _ = slice(start, stop, None).indices(length)
@@ -217,7 +218,6 @@ class BitStore:
 
     def getindex_lsb0(self, index: int, /) -> bool:
         return bool(self._bitarray.__getitem__(-index - 1))
-
 
     @overload
     def setitem_lsb0(self, key: int, value: int, /) -> None:

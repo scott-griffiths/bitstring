@@ -21,11 +21,11 @@ MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
 LITERAL_RE: Pattern[str] = re.compile(r'^(?P<name>0([xob]))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=]){1}(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
+STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
 # The same as above, but it doesn't insist on an endianness as it's byteswapping anyway.
 BYTESWAP_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
 # An endianness indicator followed by exactly one struct.pack codes
-SINGLE_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=]){1}(?P<fmt>[bBhHlLqQefd])$')
+SINGLE_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])(?P<fmt>[bBhHlLqQefd])$')
 
 # A number followed by a single character struct.pack code
 STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQefd]')
@@ -74,6 +74,7 @@ def structparser(m: Match[str]) -> List[str]:
         tokens = [REPLACEMENTS_BE[c] for c in fmt]
     return tokens
 
+
 @functools.lru_cache(CACHE_SIZE)
 def parse_name_length_token(fmt: str, **kwargs) -> Tuple[str, Optional[int]]:
     # Any single token with just a name and length
@@ -94,6 +95,7 @@ def parse_name_length_token(fmt: str, **kwargs) -> Tuple[str, Optional[int]]:
             raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
     return name, length
 
+
 @functools.lru_cache(CACHE_SIZE)
 def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
     if m := SINGLE_STRUCT_PACK_RE.match(fmt):
@@ -109,6 +111,7 @@ def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
         return parse_name_length_token(fmt)
     else:
         return None
+
 
 @functools.lru_cache(CACHE_SIZE)
 def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
@@ -132,6 +135,7 @@ def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
         length = token
     return name, length, value
 
+
 @functools.lru_cache(CACHE_SIZE)
 def preprocess_tokens(fmt: str) -> List[str]:
     # Remove whitespace and expand brackets
@@ -143,7 +147,7 @@ def preprocess_tokens(fmt: str) -> List[str]:
     final_tokens = []
 
     for meta_token in meta_tokens:
-        if  meta_token == '':
+        if meta_token == '':
             continue
         # Extract factor and actual token if a multiplicative factor exists
         factor = 1
@@ -203,6 +207,7 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
 
 
 BRACKET_RE = re.compile(r'(?P<factor>\d+)\*\(')
+
 
 def expand_brackets(s: str) -> str:
     """Expand all brackets."""
