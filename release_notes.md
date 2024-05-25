@@ -1,7 +1,7 @@
 
 # Release Notes
 
-### Upcoming: version 4.2.3
+### May 2024: version 4.2.3
 
 #### More small bug fixes related to some of the new (beta) float formats.
 
@@ -1155,7 +1155,7 @@ initialise a bitstring.
 
 #### Improved efficiency.
 
-More methods have been speeded up, in particular some deletions and insertions.
+More methods have been sped up, in particular some deletions and insertions.
 
 #### Bug fixes.
 
