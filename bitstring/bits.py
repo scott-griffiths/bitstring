@@ -231,13 +231,8 @@ class Bits:
     def __getitem__(self: TBits, key: Union[slice, int], /) -> Union[TBits, bool]:
         """Return a new bitstring representing a slice of the current bitstring.
 
-        Indices are in units of the step parameter (default 1 bit).
-        Stepping is used to specify the number of bits in each item.
-
-        >>> print(BitArray('0b00110')[1:4])
+        >>> print(Bits('0b00110')[1:4])
         '0b011'
-        >>> print(BitArray('0x00112233')[1:3:8])
-        '0x1122'
 
         """
         if isinstance(key, numbers.Integral):
