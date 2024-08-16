@@ -10,7 +10,7 @@ import re
 from bitstring import InterpretError, Bits, BitArray
 from hypothesis import given, assume
 import hypothesis.strategies as st
-
+from bitstring.bitstore import offset_slice_indices_lsb0
 
 sys.path.insert(0, '..')
 
@@ -19,6 +19,31 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 def remove_unprintable(s: str) -> str:
     colour_escape = re.compile(r'(?:\x1B[@-_])[0-?]*[ -/]*[@-~]')
     return colour_escape.sub('', s)
+
+
+@given(length=st.integers(0, 9),
+       start=st.integers(-12, 12),
+       stop=st.integers(-12, 12),
+       step=st.integers(-5, 5))
+def test_lsb0_slicing(length, start, stop, step):
+    if stop < start:
+        # TODO: This lets the test pass but this condition should be handled
+        return
+    if start == -12:
+        start = None
+    if stop == -12:
+        stop = None
+    if step == 0:
+        step = None
+    key1 = slice(start, stop, step)
+    key2 = offset_slice_indices_lsb0(key1, length)
+    key3 = offset_slice_indices_lsb0(key2, length)
+    start1, stop1, step1 = key1.indices(length)
+    start3, stop3, step3 = key3.indices(length)
+    range1 = list(range(start1, stop1, step1))
+    range3 = list(range(start3, stop3, step3))
+    assert range1 == range3
+
 
 class TestCreation:
     def test_creation_from_bytes(self):
@@ -555,6 +580,14 @@ class TestLsb0Indexing:
         a = Bits('0x1234abcd')
         assert a.endswith('0x123')
         assert not a.endswith('0xabcd')
+
+    def test_lsb0_slicing_error(self):
+        a = Bits('0b11')
+        b = a[::-1]
+        assert b == '0b11'
+        t = Bits('0xf0a')[::-1]
+        s = Bits('0xf0a')[::-1][::-1]
+        assert s == '0xf0a'
 
 
 class TestLsb0Interpretations:

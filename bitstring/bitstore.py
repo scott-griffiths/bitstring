@@ -6,18 +6,27 @@ from typing import Union, Iterable, Optional, overload, Iterator, Any
 
 
 def offset_slice_indices_lsb0(key: slice, length: int) -> slice:
-    # First convert slice to all integers
-    # Length already should take account of the offset
-    start, stop, step = key.indices(length)
+    r = range(length)[key]
+    start, stop, step = r.start, r.stop, r.step
+    # A couple of special cases for empty and single item slices
+    if len(r) == 0:
+        return slice(length - start, length - start, 1)
+    if len(r) == 1:
+        return slice(length - r[0] - 1, length - r[0], 1)
+
     new_start = length - stop
     new_stop = length - start
-    # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
-    return slice(new_start, None if new_stop < 0 else new_stop, step)
+
+    if key.start is None:
+        new_stop = None
+    if key.stop is None:
+        new_start = None
+
+    return slice(new_start, new_stop, step)
 
 
 def offset_start_stop_lsb0(start: Optional[int], stop: Optional[int], length: int) -> tuple[int, int]:
     # First convert slice to all integers
-    # Length already should take account of the offset
     start, stop, _ = slice(start, stop, None).indices(length)
     new_start = length - stop
     new_stop = length - start
