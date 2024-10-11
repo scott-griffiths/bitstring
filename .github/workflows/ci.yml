@@ -78,8 +78,7 @@ jobs:
           - name: 🐧
             runs-on: ubuntu-latest
           - name: 🍎
-            # This would preferably be macos-latest, but it has pip updating bugs right now.
-            runs-on: macos-12
+            runs-on: macos-latest
           - name: 🪟
             runs-on: windows-latest
         python:
@@ -98,11 +97,9 @@ jobs:
           - name: CPython 3.12
             major_dot_minor: '3.12'
             action: '3.12'
-# Failing due to error using temporary file in a unittest. I think it's a PyPy bug, not a bitstring one!
-          # - name: PyPy 3.8
-            # major_dot_minor: '3.8'
-            # action: 'pypy-3.8'
-
+          - name: CPython 3.13
+            major_dot_minor: '3.13'
+            action: '3.13'
 
     steps:
       - uses: actions/checkout@v4
