@@ -4,6 +4,8 @@ import bitarray
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
 
+if bitarray.__version__.startswith("2."):
+    raise ImportError(f"bitstring version 4.3 requires bitarray version 3 or higher. Found version {bitarray.__version__}.")
 
 def offset_slice_indices_lsb0(key: slice, length: int) -> slice:
     r = range(length)[key]
