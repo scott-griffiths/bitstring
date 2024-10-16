@@ -159,7 +159,7 @@ class BitStore:
                 byte_pos = byte_pos + 1
             return
         # General case
-        i = self._bitarray.itersearch(bs._bitarray, start, end)
+        i = self._bitarray.search(bs._bitarray, start, end)
         if not bytealigned:
             for p in i:
                 yield p
@@ -169,7 +169,7 @@ class BitStore:
                     yield p
 
     def rfindall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        i = self._bitarray.itersearch(bs._bitarray, start, end, right=True)
+        i = self._bitarray.search(bs._bitarray, start, end, right=True)
         if not bytealigned:
             for p in i:
                 yield p
