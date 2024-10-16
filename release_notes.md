@@ -1,6 +1,12 @@
 
 # Release Notes
 
+### October 2024: version 4.3.0
+
+* Upgraded bitarray dependency to >= 3.0.0.
+* Explicit support for Python 3.13.
+* Fix for LSB0 slicing issue. Bug #343.
+
 ### May 2024: version 4.2.3
 
 #### More small bug fixes related to some of the new (beta) float formats.
