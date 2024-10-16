@@ -52,7 +52,6 @@ jobs:
 
       - name: Setup environment
         run: |
-          apt install python3.10 python3.10-dev python3.10-venv
           python -m pip install build
 
       - name: Build sdist and wheel
