@@ -2,9 +2,9 @@
 
 ![bitstring](https://raw.githubusercontent.com/scott-griffiths/bitstring/main/doc/bitstring_logo_small.png "bitstring")
 
-**bitstring** is a Python module to help make the creation and analysis of all types of bit-level binary data as simple and efficient as possible.
+**bitstring** is a Python library to help make the creation and analysis of all types of bit-level binary data as simple and efficient as possible. It has been actively maintained since 2006.
 
-It has been actively maintained since 2006.
+The library has has now been downloaded over 100 million times! :tada: [![Pepy Total Downlods](https://img.shields.io/pepy/dt/bitstring?labelColor=orange&color=orange)](https://www.pepy.tech/projects/bitstring) :tada:
 
 
 
@@ -35,7 +35,7 @@ It has been actively maintained since 2006.
 
 # Documentation
 
-Extensive documentation for the bitstring module is available.
+Extensive documentation for the bitstring library is available.
 Some starting points are given below:
 
 * [Overview](https://bitstring.readthedocs.io/en/stable/index.html)
