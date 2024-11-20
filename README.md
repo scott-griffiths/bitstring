@@ -4,7 +4,7 @@
 
 **bitstring** is a Python library to help make the creation and analysis of all types of bit-level binary data as simple and efficient as possible. It has been actively maintained since 2006.
 
-The library has has now been downloaded over 100 million times! :tada: [![Pepy Total Downlods](https://img.shields.io/pepy/dt/bitstring?labelColor=orange&color=orange)](https://www.pepy.tech/projects/bitstring) :tada:
+The library has has now been downloaded over 100 million times! :tada: [![Pepy Total Downloads](https://img.shields.io/pepy/dt/bitstring?label=Downloads:&labelColor=orange&color=orange)](https://www.pepy.tech/projects/bitstring) :tada:
 
 
 
@@ -13,7 +13,7 @@ The library has has now been downloaded over 100 million times! :tada: [![Pepy T
 [![Codacy Badge](https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4?logo=codacy)](https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/pypi/bitstring?logo=libraries.io&logoColor=white)](https://libraries.io/pypi/bitstring)
 &nbsp; &nbsp;
-[![Pepy Total Downlods](https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue)](https://www.pepy.tech/projects/bitstring)
+[![Pepy Total Downloads](https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue)](https://www.pepy.tech/projects/bitstring)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/bitstring?label=%40&labelColor=blue&color=blue)](https://pypistats.org/packages/bitstring)
 
 ----
