@@ -4,7 +4,7 @@
 
 **bitstring** is a Python library to help make the creation and analysis of all types of bit-level binary data as simple and efficient as possible. It has been actively maintained since 2006.
 
-The library has has now been downloaded over 100 million times! :tada: [![Pepy Total Downloads](https://img.shields.io/pepy/dt/bitstring?label=Downloads:&labelColor=orange&color=orange)](https://www.pepy.tech/projects/bitstring) :tada:
+The library has has now been downloaded over 100 million times! &nbsp; &nbsp; ✨ [![Pepy Total Downloads](https://img.shields.io/pepy/dt/bitstring?label=Downloads:&labelColor=orange&color=orange)](https://www.pepy.tech/projects/bitstring) ✨
 
 
 
