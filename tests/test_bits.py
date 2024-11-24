@@ -8,7 +8,7 @@ import array
 import os
 import re
 from bitstring import InterpretError, Bits, BitArray
-from hypothesis import given, assume
+from hypothesis import given, assume, reproduce_failure, settings
 import hypothesis.strategies as st
 from bitstring.bitstore import offset_slice_indices_lsb0
 
@@ -21,28 +21,30 @@ def remove_unprintable(s: str) -> str:
     return colour_escape.sub('', s)
 
 
+@settings(max_examples=500)
 @given(length=st.integers(0, 9),
-       start=st.integers(-12, 12),
-       stop=st.integers(-12, 12),
-       step=st.integers(-5, 5))
+       start=st.integers(-20, 20),
+       stop=st.integers(-20, 20),
+       step=st.integers(0, 7))
 def test_lsb0_slicing(length, start, stop, step):
-    if stop < start:
-        # TODO: This lets the test pass but this condition should be handled
-        return
-    if start == -12:
+    if start == -20:
         start = None
-    if stop == -12:
+    if stop == -20:
         stop = None
     if step == 0:
         step = None
-    key1 = slice(start, stop, step)
-    key2 = offset_slice_indices_lsb0(key1, length)
-    key3 = offset_slice_indices_lsb0(key2, length)
-    start1, stop1, step1 = key1.indices(length)
-    start3, stop3, step3 = key3.indices(length)
-    range1 = list(range(start1, stop1, step1))
-    range3 = list(range(start3, stop3, step3))
-    assert range1 == range3
+    values_fwd = list(range(0, length))
+    values_bwd = list(range(0, length))
+    values_bwd.reverse()
+
+    # Convert the start, stop, step to a range over the length
+    start1, stop1, step1 = slice(start, stop, step).indices(length)
+    values1 = values_fwd[start1:stop1:step1]
+
+    lsb0key = offset_slice_indices_lsb0(slice(start, stop, step), length)
+    values2 = values_bwd[lsb0key.start:lsb0key.stop:lsb0key.step]
+    values2.reverse()
+    assert values1 == values2
 
 
 class TestCreation:
@@ -555,7 +557,7 @@ class TestLsb0Indexing:
         assert a[:-8] == '0xcdef'
 
     def test_extended_slicing(self):
-        a = Bits('0b100000100100100')
+        a = Bits('0b0100000100100100')
         assert a[2::3] == '0b10111'
 
     def test_all(self):
@@ -582,10 +584,11 @@ class TestLsb0Indexing:
         assert not a.endswith('0xabcd')
 
     def test_lsb0_slicing_error(self):
-        a = Bits('0b11')
+        a = Bits('0b01')
         b = a[::-1]
-        assert b == '0b11'
+        assert b == '0b10'
         t = Bits('0xf0a')[::-1]
+        assert t == '0x50f'
         s = Bits('0xf0a')[::-1][::-1]
         assert s == '0xf0a'
 

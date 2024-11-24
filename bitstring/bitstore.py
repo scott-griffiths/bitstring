@@ -7,32 +7,15 @@ from typing import Union, Iterable, Optional, overload, Iterator, Any
 if bitarray.__version__.startswith("2."):
     raise ImportError(f"bitstring version 4.3 requires bitarray version 3 or higher. Found version {bitarray.__version__}.")
 
+
 def offset_slice_indices_lsb0(key: slice, length: int) -> slice:
-    r = range(length)[key]
-    start, stop, step = r.start, r.stop, r.step
-    # A couple of special cases for empty and single item slices
-    if len(r) == 0:
-        return slice(length - start, length - start, 1)
-    if len(r) == 1:
-        return slice(length - r[0] - 1, length - r[0], 1)
-
-    new_start = length - stop
-    new_stop = length - start
-
-    if key.start is None:
-        new_stop = None
-    if key.stop is None:
-        new_start = None
-
-    return slice(new_start, new_stop, step)
-
-
-def offset_start_stop_lsb0(start: Optional[int], stop: Optional[int], length: int) -> tuple[int, int]:
-    # First convert slice to all integers
-    start, stop, _ = slice(start, stop, None).indices(length)
-    new_start = length - stop
-    new_stop = length - start
-    return new_start, new_stop
+    start, stop, step = key.indices(length)
+    first_element = start
+    # The last element will usually be stop - 1, but needs to be adjusted if step != 1.
+    last_element = start + ((stop - 1 - start) // step) * step
+    new_start = length - last_element - 1
+    new_stop = length - first_element
+    return slice(new_start, new_stop, key.step)
 
 
 class BitStore:
@@ -224,8 +207,8 @@ class BitStore:
         return BitStore(self._bitarray[start:stop])
 
     def getslice_lsb0(self, start: Optional[int], stop: Optional[int], /) -> BitStore:
-        start, stop = offset_start_stop_lsb0(start, stop, len(self))
-        return BitStore(self._bitarray[start:stop])
+        s = offset_slice_indices_lsb0(slice(start, stop, None), len(self))
+        return BitStore(self._bitarray[s.start:s.stop])
 
     def getindex_lsb0(self, index: int, /) -> bool:
         return bool(self._bitarray.__getitem__(-index - 1))
