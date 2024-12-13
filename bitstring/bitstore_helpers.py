@@ -3,7 +3,7 @@ from __future__ import annotations
 import struct
 import math
 import functools
-from typing import Union, Optional, Dict, Callable
+from typing import Union, Optional, Callable
 import bitarray
 from bitstring.bitstore import BitStore
 import bitstring
@@ -244,7 +244,7 @@ def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> BitSt
     return BitStore.frombytes(b)
 
 
-literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {
+literal_bit_funcs: dict[str, Callable[..., BitStore]] = {
     '0x': hex2bitstore,
     '0X': hex2bitstore,
     '0b': bin2bitstore,

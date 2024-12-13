@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import bitarray
 from bitstring.exceptions import CreationError
-from typing import Union, Iterable, Optional, overload, Iterator, Any
+from typing import Union, Optional, overload, Any
+from collections.abc import Iterable, Iterator
 
 
 def offset_slice_indices_lsb0(key: slice, length: int) -> slice:

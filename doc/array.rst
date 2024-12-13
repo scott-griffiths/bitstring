@@ -331,7 +331,7 @@ Methods
 
     Write Array data to a file, padding with zero bits at the end if needed.
 
-.. method:: Array.tolist() -> List[float | int | str | bytes]
+.. method:: Array.tolist() -> list[float | int | str | bytes]
 
     Return Array items as a list.
 

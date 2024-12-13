@@ -70,7 +70,7 @@ from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 from .dtypes import DtypeDefinition, dtype_register, Dtype
 import types
-from typing import List, Tuple, Literal
+from typing import Literal
 from .mxfp import decompress_luts as mxfp_decompress_luts
 from .fp8 import decompress_luts as binary8_decompress_luts
 
@@ -281,7 +281,7 @@ dtype_definitions = [
 ]
 
 
-aliases: List[Tuple[str, str]] = [
+aliases: list[tuple[str, str]] = [
     # Floats default to big endian
     ('float', 'floatbe'),
     ('bfloat', 'bfloatbe'),

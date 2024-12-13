@@ -82,9 +82,6 @@ jobs:
           - name: 🪟
             runs-on: windows-latest
         python:
-          - name: CPython 3.8
-            major_dot_minor: '3.8'
-            action: '3.8'
           - name: CPython 3.9
             major_dot_minor: '3.9'
             action: '3.9'

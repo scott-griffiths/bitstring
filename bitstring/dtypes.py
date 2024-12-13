@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Optional, Dict, Any, Union, Tuple, Callable
+from typing import Optional, Any, Union, Callable
 import inspect
 import bitstring
 from bitstring import utils
@@ -222,7 +222,7 @@ class Dtype:
 
 
 class AllowedLengths:
-    def __init__(self, value: Tuple[int, ...] = tuple()) -> None:
+    def __init__(self, value: tuple[int, ...] = tuple()) -> None:
         if len(value) >= 3 and value[-1] is Ellipsis:
             step = value[1] - value[0]
             for i in range(1, len(value) - 1):
@@ -253,7 +253,7 @@ class DtypeDefinition:
     Not (yet) part of the public interface."""
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn=None,
-                 variable_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
+                 variable_length: bool = False, allowed_lengths: tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
 
         # Consistency checks
         if int(multiplier) != multiplier or multiplier <= 0:
@@ -346,7 +346,7 @@ class Register:
     """A singleton class that holds all the DtypeDefinitions. Not (yet) part of the public interface."""
 
     _instance: Optional[Register] = None
-    names: Dict[str, DtypeDefinition] = {}
+    names: dict[str, DtypeDefinition] = {}
 
     def __new__(cls) -> Register:
         # Singleton. Only one Register instance can ever exist.

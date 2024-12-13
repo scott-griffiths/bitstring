@@ -4,7 +4,8 @@ import copy
 import numbers
 import re
 from collections import abc
-from typing import Union, List, Iterable, Any, Optional
+from typing import Union, Any, Optional
+from collections.abc import Iterable
 from bitstring import utils
 from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
@@ -272,7 +273,7 @@ class BitArray(Bits):
         if bytealigned is None:
             bytealigned = bitstring.options.bytealigned
         # First find all the places where we want to do the replacements
-        starting_points: List[int] = []
+        starting_points: list[int] = []
         for x in self.findall(old, start, end, bytealigned=bytealigned):
             if not starting_points:
                 starting_points.append(x)

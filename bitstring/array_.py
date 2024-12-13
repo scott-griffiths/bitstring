@@ -4,7 +4,8 @@ import math
 import numbers
 from collections.abc import Sized
 from bitstring.exceptions import CreationError
-from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
+from typing import Union, Any, Optional, BinaryIO, overload, TextIO
+from collections.abc import Iterable
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, dtype_register
@@ -273,7 +274,7 @@ class Array:
         new_array = self.__class__(dtype, self.tolist())
         return new_array
 
-    def tolist(self) -> List[ElementType]:
+    def tolist(self) -> list[ElementType]:
         return [self._dtype.read_fn(self.data, start=start)
                 for start in range(0, len(self.data) - self._dtype.length + 1, self._dtype.length)]
 

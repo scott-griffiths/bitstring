@@ -122,7 +122,7 @@ Methods
         False
 
 
-.. method:: Bits.find(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> Tuple[int] | Tuple[()]
+.. method:: Bits.find(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> tuple[int] | tuple[()]
 
     Searches for *bs* in the current bitstring and sets :attr:`~ConstBitStream.pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
 
@@ -212,7 +212,7 @@ Methods
     By default the output will have colours added in the terminal. This can be disabled - see :data:`bitstring.options.no_color` for more information.
 
 
-.. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> Tuple[int] | Tuple[()]
+.. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> tuple[int] | tuple[()]
 
     Searches backwards for *bs* in the current bitstring and sets :attr:`~ConstBitStream.pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
 

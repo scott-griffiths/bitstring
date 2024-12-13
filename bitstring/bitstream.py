@@ -3,7 +3,7 @@ from __future__ import annotations
 import bitstring
 from bitstring.bits import Bits, BitsType
 from bitstring.dtypes import Dtype
-from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
+from typing import Union, Any, Optional, overload, TypeVar
 import copy
 import numbers
 
@@ -231,7 +231,7 @@ class ConstBitStream(Bits):
         self._pos = pos + len(bs)
 
     def find(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
-             bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
+             bytealigned: Optional[bool] = None) -> Union[tuple[int], tuple[()]]:
         """Find first occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -259,7 +259,7 @@ class ConstBitStream(Bits):
         return p
 
     def rfind(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
-              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
+              bytealigned: Optional[bool] = None) -> Union[tuple[int], tuple[()]]:
         """Find final occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -356,8 +356,8 @@ class ConstBitStream(Bits):
             raise bitstring.ReadError(f"Reading off end of bitstring with fmt '{fmt}'. Only {len(self) - p} bits available.")
         return val
 
-    def readlist(self, fmt: Union[str, List[Union[int, str, Dtype]]], **kwargs) \
-            -> List[Union[int, float, str, Bits, bool, bytes, None]]:
+    def readlist(self, fmt: Union[str, list[Union[int, str, Dtype]]], **kwargs) \
+            -> list[Union[int, float, str, Bits, bool, bytes, None]]:
         """Interpret next bits according to format string(s) and return list.
 
         fmt -- A single string or list of strings with comma separated tokens
@@ -429,8 +429,8 @@ class ConstBitStream(Bits):
         self._pos = pos_before
         return value
 
-    def peeklist(self, fmt: Union[str, List[Union[int, str]]], **kwargs) \
-            -> List[Union[int, float, str, Bits, None]]:
+    def peeklist(self, fmt: Union[str, list[Union[int, str]]], **kwargs) \
+            -> list[Union[int, float, str, Bits, None]]:
         """Interpret next bits according to format string(s) and return list.
 
         fmt -- One or more integers or strings with comma separated tokens describing

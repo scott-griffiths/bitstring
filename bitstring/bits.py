@@ -9,7 +9,8 @@ import array
 import io
 from collections import abc
 import functools
-from typing import Tuple, Union, List, Iterable, Any, Optional, BinaryIO, TextIO, overload, Iterator, Type, TypeVar
+from typing import Union, Any, Optional, BinaryIO, TextIO, overload, Type, TypeVar
+from collections.abc import Iterable, Iterator
 import bitarray
 import bitarray.util
 import bitstring
@@ -110,7 +111,7 @@ class Bits:
         """
         self._bitstore.immutable = True
 
-    def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
+    def __new__(cls: type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
         x = super().__new__(cls)
         if auto is None and not kwargs:
@@ -125,7 +126,7 @@ class Bits:
         return x
 
     @classmethod
-    def _create_from_bitstype(cls: Type[TBits], auto: BitsType, /) -> TBits:
+    def _create_from_bitstype(cls: type[TBits], auto: BitsType, /) -> TBits:
         if isinstance(auto, cls):
             return auto
         b = super().__new__(cls)
@@ -606,7 +607,7 @@ class Bits:
     def _setmxint(self, f: float) -> None:
         self._bitstore = bitstore_helpers.mxint2bitstore(f)
 
-    def _setbytes(self, data: Union[bytearray, bytes, List], length:None = None) -> None:
+    def _setbytes(self, data: Union[bytearray, bytes, list], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
         self._bitstore = BitStore.frombytes(bytes(data))
 
@@ -816,7 +817,7 @@ class Bits:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = bitstore_helpers.ue2bitstore(i)
 
-    def _readue(self, pos: int) -> Tuple[int, int]:
+    def _readue(self, pos: int) -> tuple[int, int]:
         """Return interpretation of next bits as unsigned exponential-Golomb code.
 
         Raises ReadError if the end of the bitstring is encountered while
@@ -843,25 +844,25 @@ class Bits:
             pos += 1
         return codenum, pos
 
-    def _getue(self) -> Tuple[int, int]:
+    def _getue(self) -> tuple[int, int]:
         try:
             return self._readue(0)
         except bitstring.ReadError:
             raise bitstring.InterpretError
 
-    def _getse(self) -> Tuple[int, int]:
+    def _getse(self) -> tuple[int, int]:
         try:
             return self._readse(0)
         except bitstring.ReadError:
             raise bitstring.InterpretError
 
-    def _getuie(self) -> Tuple[int, int]:
+    def _getuie(self) -> tuple[int, int]:
         try:
             return self._readuie(0)
         except bitstring.ReadError:
             raise bitstring.InterpretError
 
-    def _getsie(self) -> Tuple[int, int]:
+    def _getsie(self) -> tuple[int, int]:
         try:
             return self._readsie(0)
         except bitstring.ReadError:
@@ -873,7 +874,7 @@ class Bits:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = bitstore_helpers.se2bitstore(i)
 
-    def _readse(self, pos: int) -> Tuple[int, int]:
+    def _readse(self, pos: int) -> tuple[int, int]:
         """Return interpretation of next bits as a signed exponential-Golomb code.
 
         Advances position to after the read code.
@@ -896,7 +897,7 @@ class Bits:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = bitstore_helpers.uie2bitstore(i)
 
-    def _readuie(self, pos: int) -> Tuple[int, int]:
+    def _readuie(self, pos: int) -> tuple[int, int]:
         """Return interpretation of next bits as unsigned interleaved exponential-Golomb code.
 
         Raises ReadError if the end of the bitstring is encountered while
@@ -923,7 +924,7 @@ class Bits:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = bitstore_helpers.sie2bitstore(i)
 
-    def _readsie(self, pos: int) -> Tuple[int, int]:
+    def _readsie(self, pos: int) -> tuple[int, int]:
         """Return interpretation of next bits as a signed interleaved exponential-Golomb code.
 
         Advances position to after the read code.
@@ -1018,7 +1019,7 @@ class Bits:
         bs._bitstore = self._bitstore.getslice_msb0(start, end)
         return bs
 
-    def _readtoken(self, name: str, pos: int, length: Optional[int]) -> Tuple[Union[float, int, str, None, Bits], int]:
+    def _readtoken(self, name: str, pos: int, length: Optional[int]) -> tuple[Union[float, int, str, None, Bits], int]:
         """Reads a token from the bitstring and returns the result."""
         dtype = dtype_register.get_dtype(name, length)
         if dtype.bitlength is not None and dtype.bitlength > len(self) - pos:
@@ -1136,7 +1137,7 @@ class Bits:
     def _getbits(self: TBits):
         return self._copy()
 
-    def _validate_slice(self, start: Optional[int], end: Optional[int]) -> Tuple[int, int]:
+    def _validate_slice(self, start: Optional[int], end: Optional[int]) -> tuple[int, int]:
         """Validate start and end and return them as positive bit positions."""
         start = 0 if start is None else (start + len(self) if start < 0 else start)
         end = len(self) if end is None else (end + len(self) if end < 0 else end)
@@ -1144,7 +1145,7 @@ class Bits:
             raise ValueError(f"Invalid slice positions for bitstring length {len(self)}: start={start}, end={end}.")
         return start, end
 
-    def unpack(self, fmt: Union[str, List[Union[str, int]]], **kwargs) -> List[Union[int, float, str, Bits, bool, bytes, None]]:
+    def unpack(self, fmt: Union[str, list[Union[str, int]]], **kwargs) -> list[Union[int, float, str, Bits, bool, bytes, None]]:
         """Interpret the whole bitstring using fmt and return list.
 
         fmt -- A single string or a list of strings with comma separated tokens
@@ -1161,8 +1162,8 @@ class Bits:
         """
         return self._readlist(fmt, 0, **kwargs)[0]
 
-    def _readlist(self, fmt: Union[str, List[Union[str, int, Dtype]]], pos: int, **kwargs) \
-            -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
+    def _readlist(self, fmt: Union[str, list[Union[str, int, Dtype]]], pos: int, **kwargs) \
+            -> tuple[list[Union[int, float, str, Bits, bool, bytes, None]], int]:
         if isinstance(fmt, str):
             fmt = [fmt]
         # Convert to a flat list of Dtypes
@@ -1183,7 +1184,7 @@ class Bits:
                         dtype_list.append(Dtype(name, length))
         return self._read_dtype_list(dtype_list, pos)
 
-    def _read_dtype_list(self, dtypes: List[Dtype], pos: int) -> Tuple[List[Union[int, float, str, Bits, bool, bytes, None]], int]:
+    def _read_dtype_list(self, dtypes: list[Dtype], pos: int) -> tuple[list[Union[int, float, str, Bits, bool, bytes, None]], int]:
         has_stretchy_token = False
         bits_after_stretchy_token = 0
         for dtype in dtypes:
@@ -1221,7 +1222,7 @@ class Bits:
         return vals, pos
 
     def find(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
-             bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
+             bytealigned: Optional[bool] = None) -> Union[tuple[int], tuple[()]]:
         """Find first occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -1250,7 +1251,7 @@ class Bits:
         p = self._find(bs, start, end, ba)
         return p
 
-    def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[tuple[int], tuple[()]]:
         # A forward find in lsb0 is very like a reverse find in msb0.
         assert start <= end
         assert bitstring.options.lsb0
@@ -1264,7 +1265,7 @@ class Bits:
         else:
             return ()
 
-    def _find_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _find_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[tuple[int], tuple[()]]:
         """Find first occurrence of a binary string."""
         p = self._bitstore.find(bs._bitstore, start, end, bytealigned)
         return () if p == -1 else (p,)
@@ -1337,7 +1338,7 @@ class Bits:
                 return
 
     def rfind(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
-              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
+              bytealigned: Optional[bool] = None) -> Union[tuple[int], tuple[()]]:
         """Find final occurrence of substring bs.
 
         Returns a single item tuple with the bit position if found, or an
@@ -1363,12 +1364,12 @@ class Bits:
         p = self._rfind(bs, start, end, ba)
         return p
 
-    def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[tuple[int], tuple[()]]:
         """Find final occurrence of a binary string."""
         p = self._bitstore.rfind(bs._bitstore, start, end, bytealigned)
         return () if p == -1 else (p,)
 
-    def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[tuple[int], tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
         assert start <= end
         assert bitstring.options.lsb0
@@ -1584,7 +1585,7 @@ class Bits:
 
     @staticmethod
     def _format_bits(bits: Bits, bits_per_group: int, sep: str, dtype: Dtype,
-                     colour_start: str, colour_end: str, width: Optional[int]=None) -> Tuple[str, int]:
+                     colour_start: str, colour_end: str, width: Optional[int]=None) -> tuple[str, int]:
         get_fn = dtype.get_fn
         if dtype.name == 'bytes':  # Special case for bytes to print one character each.
             get_fn = Bits._getbytes_printable
