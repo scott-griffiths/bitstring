@@ -1210,11 +1210,28 @@ class TestAdding:
         del s[4:1004]
         assert s.bin == '0001'
 
+    def test_delete_bits_func(self):
+        s = BitStream(bin='000111100000')
+        s.bitpos = 4
+        s.delete(4)
+        assert s.bin == '00010000'
+        assert s.bitpos == 4
+        s.delete(1000)
+        assert s.bin == '0001'
+        assert s.bitpos == 4
+
     def test_delete_bits_with_position(self):
         s = BitStream(bin='000111100000')
         del s[4:8]
         assert s.bin == '00010000'
         assert s.bitpos == 0
+
+    def test_delete_bits_with_position_func(self):
+        s = BitStream(bin='000111100000')
+        s.read("bits:4")
+        s.delete(4)
+        assert s.bin == '00010000'
+        assert s.bitpos == 4
 
     def test_delete_bytes(self):
         s = BitStream('0x00112233')
@@ -1227,6 +1244,19 @@ class TestAdding:
         del s[:24]
         assert not s
         assert s.pos == 0
+
+    def test_delete_bytes_func(self):
+        s = BitStream('0x00112233')
+        s.read("uint:8")
+        s.delete(0)
+        assert s.hex == '00112233'
+        assert s.pos == 8
+        s.delete(8)
+        assert s.hex == '002233'
+        assert s.bytepos == 1
+        s.delete(24)
+        assert s.hex == '00'
+        assert s.pos == 8
 
     def test_get_item_with_positive_position(self):
         s = BitStream(bin='0b1011')

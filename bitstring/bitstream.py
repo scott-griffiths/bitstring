@@ -653,6 +653,21 @@ class BitStream(ConstBitStream, bitstring.BitArray):
         if len(self) != length_before:
             self._pos = 0
 
+
+    def delete(self, num_bits: int) -> None:
+        """Delete bits at current position
+
+        The current bit position will remain unchanged.
+
+        >>> a = BitStream('0x001122')
+        >>> a.read("uint:8")
+        >>> a.delete(8)
+        >>> print a
+        0x0022
+
+        """
+        self._bitstore.__delitem__(slice(self.pos, self.pos + num_bits))
+
     def insert(self, bs: BitsType, /, pos: Optional[int] = None) -> None:
         """Insert bitstring at bit position pos.
 
