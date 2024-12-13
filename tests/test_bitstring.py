@@ -28,7 +28,7 @@ class TestModuleData:
     def test_pyproject_version(self):
         filename = os.path.join(THIS_DIR, '../pyproject.toml')
         try:
-            with open(filename, 'r') as pyprojectfile:
+            with open(filename) as pyprojectfile:
                 found = False
                 for line in pyprojectfile.readlines():
                     if line.startswith("version"):

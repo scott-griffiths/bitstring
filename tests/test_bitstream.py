@@ -1551,7 +1551,7 @@ class TestAdding:
         s6 = BitStream('0b111')
         assert s5 == s6
 
-        class A(object):
+        class A:
             pass
         assert not s5 == A()
 
@@ -3730,14 +3730,14 @@ class TestBugs:
             assert le.len == be.len
 
     def test_unicode(self):
-        a = ConstBitStream(u'uint:12=34')
+        a = ConstBitStream('uint:12=34')
         assert a.uint == 34
-        a += u'0xfe'
+        a += '0xfe'
         assert a[12:] == '0xfe'
         a = BitStream('0x1122')
-        c = a.byteswap(u'h')
+        c = a.byteswap('h')
         assert c == 1
-        assert a == u'0x2211'
+        assert a == '0x2211'
 
 
 class TestUnpackWithDict:

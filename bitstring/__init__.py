@@ -140,7 +140,7 @@ def uint_bits2chars(bitlength: int):
 
 def int_bits2chars(bitlength: int):
     # How many characters is largest negative int of this length? (To include minus sign).
-    return len(str((-1 << (bitlength - 1))))
+    return len(str(-1 << (bitlength - 1)))
 
 
 def float_bits2chars(bitlength: Literal[16, 32, 64]):

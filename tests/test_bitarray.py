@@ -306,7 +306,7 @@ class TestSliceAssignment:
         with pytest.raises(ValueError):
             a[::3] = [1]
 
-        class A(object):
+        class A:
             pass
         with pytest.raises(TypeError):
             a[1:2] = A()

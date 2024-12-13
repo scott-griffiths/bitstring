@@ -351,7 +351,7 @@ class Register:
     def __new__(cls) -> Register:
         # Singleton. Only one Register instance can ever exist.
         if cls._instance is None:
-            cls._instance = super(Register, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     @classmethod
