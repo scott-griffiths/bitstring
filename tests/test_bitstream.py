@@ -1208,12 +1208,13 @@ class TestAdding:
         del s[4:8]
         assert s.bin == '00010000'
         del s[4:1004]
-        assert s.bin, '0001'
+        assert s.bin == '0001'
 
     def test_delete_bits_with_position(self):
         s = BitStream(bin='000111100000')
         del s[4:8]
         assert s.bin == '00010000'
+        assert s.bitpos == 0
 
     def test_delete_bytes(self):
         s = BitStream('0x00112233')
