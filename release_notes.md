@@ -1,7 +1,7 @@
 
 # Release Notes
 
-### November 2024: version 4.3.0
+### January 2025: version 4.3.0
 
 * Upgraded bitarray dependency to >= 3.0.0.
 * Explicit support for Python 3.13.

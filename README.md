@@ -106,4 +106,4 @@ Array('uint7', [45, 100, 15, 1])
 ```
 
 
-<sub>Copyright (c) 2006 - 2024 Scott Griffiths</sub>
+<sub>Copyright (c) 2006 - 2025 Scott Griffiths</sub>
