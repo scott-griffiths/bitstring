@@ -129,8 +129,8 @@ Methods that need another bitstring as a parameter will also 'auto' promote, for
 
 which illustrates a variety of methods promoting strings, iterables and a bytes object to bitstrings.
 
-Anything that can be used as the first parameter of the ``Bits`` constructor can be auto promoted to a bitstring where one is expected, with the exception of integers.
-Integers won't be auto promoted, but instead will raise a ``TypeError``::
+Anything that can be used as the first parameter of the ``Bits`` constructor can be automatically promoted to a bitstring where one is expected, with the exception of integers.
+Integers won't be promoted, but instead will raise a ``TypeError``::
 
     >>> a = BitArray(100)  # Create bitstring with 100 zeroed bits.
     >>> a += 0xff          # TypeError - 0xff is the same as the integer 255.
