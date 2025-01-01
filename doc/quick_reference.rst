@@ -492,8 +492,8 @@ This is followed by at least one of these format characters:
 ``'B'``   8 bit unsigned integer
 ``'h'``   16 bit signed integer
 ``'H'``   16 bit unsigned integer
-``'l'``   32 bit signed integer
-``'L'``   32 bit unsigned integer
+``'i' / 'l'``   32 bit signed integer
+``'I' / 'L'``   32 bit unsigned integer
 ``'q'``   64 bit signed integer
 ``'Q'``   64 bit unsigned integer
 ``'e'``   16 bit floating point number
