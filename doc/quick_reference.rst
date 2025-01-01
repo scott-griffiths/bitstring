@@ -487,7 +487,7 @@ The endianness character must start the format string:
 
 This is followed by at least one of these format characters:
 
-=======         ===============================
+=============== ===============================
 ``'b'``         8 bit signed integer
 ``'B'``         8 bit unsigned integer
 ``'h'``         16 bit signed integer
@@ -499,7 +499,7 @@ This is followed by at least one of these format characters:
 ``'e'``         16 bit floating point number
 ``'f'``         32 bit floating point number
 ``'d'``         64 bit floating point number
-=======         ===============================
+=============== ===============================
 
 The exact type is determined by combining the endianness character with the format character, but rather than give an exhaustive list a single example should explain:
 
