@@ -329,7 +329,10 @@ Methods
 
 .. method:: Array.tofile(f: BinaryIO) -> None
 
-    Write Array data to a file, padding with zero bits at the end if needed.
+    Writes the Array data to the file object *f*, which should have been opened in binary write mode.
+
+    The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
+    The file object remains open so the user must call `.close()` on it once they are finished.::
 
 .. method:: Array.tolist() -> List[float | int | str | bytes]
 
