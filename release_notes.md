@@ -3,10 +3,13 @@
 
 ### January 2025: version 4.3.0
 
+#### A minor update.
+
 * Upgraded bitarray dependency to >= 3.0.0.
 * Explicit support for Python 3.13.
+* Added `i` and `I` struct codes for 32-bit ints. Bug #340.
 * Removed the 'experimental feature' label from the new exotic floating point types.
-* Fix for LSB0 slicing issue. Bug #343.
+* Fix for negative index LSB0 slicing issue. Bug #343.
 
 ### May 2024: version 4.2.3
 
