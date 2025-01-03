@@ -159,7 +159,7 @@ class Bits:
                 f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
                 f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
         if offset is not None:
-            raise bitstring.CreationError("offset cannot be used when initialising with '{k}'.")
+            raise bitstring.CreationError(f"offset cannot be used when initialising with '{k}'.")
         try:
             Dtype(k, length).set_fn(self, v)
         except ValueError as e:
