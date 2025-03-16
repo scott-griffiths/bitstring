@@ -1,6 +1,10 @@
 
 # Release Notes
 
+### March 2025: version 4.3.1
+
+* Updated bitarray dependency to allow for v3.x.
+
 ### January 2025: version 4.3.0
 
 #### A minor update.
