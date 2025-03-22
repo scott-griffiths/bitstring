@@ -65,7 +65,7 @@ Bits
 
 The first parameter (usually referred to as `auto`) can be many different types, including parsable strings, a file handle, a bytes or bytearray object, an integer or an iterable.
 
-A single initialiser from `kwargs` can be used instead of `auto`, including  ``bin``, ``hex``, ``oct``, ``bool``, ``uint``, ``int``, ``float``, ``bytes`` and ``filename``.
+A single initialiser from `kwargs` can be used instead of ``auto``, including  ``bin``, ``hex``, ``oct``, ``bool``, ``uint``, ``int``, ``float``, ``bytes`` and ``filename``.
 
 Examples::
 
@@ -487,19 +487,19 @@ The endianness character must start the format string:
 
 This is followed by at least one of these format characters:
 
-=======   ===============================
-``'b'``   8 bit signed integer
-``'B'``   8 bit unsigned integer
-``'h'``   16 bit signed integer
-``'H'``   16 bit unsigned integer
-``'l'``   32 bit signed integer
-``'L'``   32 bit unsigned integer
-``'q'``   64 bit signed integer
-``'Q'``   64 bit unsigned integer
-``'e'``   16 bit floating point number
-``'f'``   32 bit floating point number
-``'d'``   64 bit floating point number
-=======   ===============================
+=============== ===============================
+``'b'``         8 bit signed integer
+``'B'``         8 bit unsigned integer
+``'h'``         16 bit signed integer
+``'H'``         16 bit unsigned integer
+``'i' / 'l'``   32 bit signed integer
+``'I' / 'L'``   32 bit unsigned integer
+``'q'``         64 bit signed integer
+``'Q'``         64 bit unsigned integer
+``'e'``         16 bit floating point number
+``'f'``         32 bit floating point number
+``'d'``         64 bit floating point number
+=============== ===============================
 
 The exact type is determined by combining the endianness character with the format character, but rather than give an exhaustive list a single example should explain:
 

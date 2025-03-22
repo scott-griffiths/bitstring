@@ -42,7 +42,7 @@ Overview
 
 It is not difficult to manipulate binary data in Python, for example using the ``struct`` and ``array`` modules, but it can be quite fiddly and time consuming even for quite small tasks, especially if you are not dealing with whole-byte data.
 
-The bitstring module provides support many different bit formats, allowing easy and efficient storage, interpretation and construction.
+The bitstring module provides support for many different bit formats, allowing easy and efficient storage, interpretation and construction.
 
 
 Documentation Quick Start
@@ -100,7 +100,7 @@ Bitstrings are designed to be as lightweight as possible and can be considered t
 
 The different views or interpretations on the data are accessed through properties such as :attr:`~Bits.hex`, :attr:`~Bits.bin` and :attr:`~Bits.int`, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.
 
-There are also a companion classes called :class:`Bits` and :class:`ConstBitStream` which are immutable versions of :class:`BitArray` and :class:`BitStream` respectively.
+There are also companion classes called :class:`Bits` and :class:`ConstBitStream` which are immutable versions of :class:`BitArray` and :class:`BitStream` respectively.
 See the reference documentation for full details.
 
 Arrays of bitstrings

@@ -60,8 +60,6 @@ IEEE 8-bit Floating Point Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note::
-    This is an experimental feature and may be modified in future point releases.
-
     In bitstring prior to version 4.2 the `p4binary8` and `p3binary8` formats were called `e4m3float` and `e5m2float` respectively.
     The two formats are almost identical, the difference being the addition of `inf` values that replace the largest positive and negative values that were previously available.
 
@@ -163,9 +161,6 @@ This is the standard method used in IEEE 754.
 Microscaling Formats
 ^^^^^^^^^^^^^^^^^^^^
 
-.. note::
-    This is an experimental feature and may be modified in future point releases.
-
 A range of formats from the Microscaling Formats (MX) Alliance are supported. These are part of the Open Compute Project, and will usually have an external scale factor associated with them.
 
 Eight-bit floats similar to the IEEE `p3binary8` and `p4binary8`  are available, though these seem rather arbitrary and ugly in places in comparison to the IEEE definitions.
@@ -259,7 +254,7 @@ This is the same as is used in the IEEE 754 standard.
 Note that for efficiency reasons Python floats are converted to 16-bit IEEE floats before being converted to their final destination.
 This can mean that in edge cases the rounding to the 16-bit float will cause the next rounding to go in the other direction.
 The 16-bit float has 11 bits of precision, whereas the final format has at most 4 bits of precision, so this shouldn't be a real-world problem, but it could cause discrepancies when comparing with other methods.
-I could add a slower, more accurate mode if this is a problem (add a bug report).
+I plan to add a slower, more accurate mode - see Issue #342.
 
 Values that are out of range after rounding are dealt with as follows:
 

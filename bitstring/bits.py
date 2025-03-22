@@ -159,7 +159,7 @@ class Bits:
                 f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
                 f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
         if offset is not None:
-            raise bitstring.CreationError("offset cannot be used when initialising with '{k}'.")
+            raise bitstring.CreationError(f"offset cannot be used when initialising with '{k}'.")
         try:
             Dtype(k, length).set_fn(self, v)
         except ValueError as e:
@@ -231,13 +231,8 @@ class Bits:
     def __getitem__(self: TBits, key: Union[slice, int], /) -> Union[TBits, bool]:
         """Return a new bitstring representing a slice of the current bitstring.
 
-        Indices are in units of the step parameter (default 1 bit).
-        Stepping is used to specify the number of bits in each item.
-
-        >>> print(BitArray('0b00110')[1:4])
+        >>> print(Bits('0b00110')[1:4])
         '0b011'
-        >>> print(BitArray('0x00112233')[1:3:8])
-        '0x1122'
 
         """
         if isinstance(key, numbers.Integral):

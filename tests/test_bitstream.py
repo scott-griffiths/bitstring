@@ -2488,6 +2488,8 @@ class TestSplit2:
         assert pack('<H', 23) == BitStream('uintle:16=23')
         assert pack('<l', 23) == BitStream('intle:32=23')
         assert pack('<L', 23) == BitStream('uintle:32=23')
+        assert pack('<i', 23) == BitStream('intle:32=23')
+        assert pack('<I', 23) == BitStream('uintle:32=23')
         assert pack('<q', 23) == BitStream('intle:64=23')
         assert pack('<Q', 23) == BitStream('uintle:64=23')
         assert pack('>b', 23) == BitStream('intbe:8=23')
@@ -2496,6 +2498,8 @@ class TestSplit2:
         assert pack('>H', 23) == BitStream('uintbe:16=23')
         assert pack('>l', 23) == BitStream('intbe:32=23')
         assert pack('>L', 23) == BitStream('uintbe:32=23')
+        assert pack('>i', 23) == BitStream('intbe:32=23')
+        assert pack('>I', 23) == BitStream('uintbe:32=23')
         assert pack('>q', 23) == BitStream('intbe:64=23')
         assert pack('>Q', 23) == BitStream('uintbe:64=23')
         with pytest.raises(bitstring.CreationError):
@@ -2517,6 +2521,8 @@ class TestSplit2:
             assert pack('=H', 23) == BitStream('uintle:16=23')
             assert pack('@l', 23) == BitStream('intle:32=23')
             assert pack('@L', 23) == BitStream('uintle:32=23')
+            assert pack('@i', 23) == BitStream('intle:32=23')
+            assert pack('@I', 23) == BitStream('uintle:32=23')
             assert pack('@q', 23) == BitStream('intle:64=23')
             assert pack('@Q', 23) == BitStream('uintle:64=23')
         else:
@@ -2526,23 +2532,25 @@ class TestSplit2:
             assert pack('@H', 23) == BitStream('uintbe:16=23')
             assert pack('@l', 23) == BitStream('intbe:32=23')
             assert pack('@L', 23) == BitStream('uintbe:32=23')
+            assert pack('@i', 23) == BitStream('intbe:32=23')
+            assert pack('@I', 23) == BitStream('uintbe:32=23')
             assert pack('@q', 23) == BitStream('intbe:64=23')
             assert pack('@Q', 23) == BitStream('uintbe:64=23')
 
     def test_native_endianness(self):
-        s = pack('=2L', 40, 40)
+        s = pack('=2i', 40, 40)
         if sys.byteorder == 'little':
-            assert s == pack('<2L', 40, 40)
+            assert s == pack('<2i', 40, 40)
         else:
             assert sys.byteorder == 'big'
-            assert s == pack('>2L', 40, 40)
+            assert s == pack('>2i', 40, 40)
 
     def test_struct_tokens3(self):
         s = pack('>hhl', 1, 2, 3)
         a, b, c = s.unpack('>hhl')
         assert (a, b, c) == (1, 2, 3)
         s = pack('<QL, >Q \tL', 1001, 43, 21, 9999)
-        assert s.unpack('<QL, >QL') == [1001, 43, 21, 9999]
+        assert s.unpack('<QI, >QL') == [1001, 43, 21, 9999]
 
     def test_struct_tokens_multiplicative_factors(self):
         s = pack('<2h', 1, 2)

@@ -285,7 +285,8 @@ Methods
 
     Writes the bitstring to the file object *f*, which should have been opened in binary write mode.
 
-    The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned. ::
+    The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
+    The file object remains open so the user must call `.close()` on it once they are finished.::
 
         >>> f = open('newfile', 'wb')
         >>> Bits('0x1234').tofile(f)

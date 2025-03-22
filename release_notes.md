@@ -1,6 +1,20 @@
 
 # Release Notes
 
+### March 2025: version 4.3.1
+
+* Updated bitarray dependency to allow for v3.x.
+
+### January 2025: version 4.3.0
+
+#### A minor update.
+
+* Upgraded bitarray dependency to >= 3.0.0.
+* Explicit support for Python 3.13.
+* Added `i` and `I` struct codes for 32-bit ints. Bug #340.
+* Removed the 'experimental feature' label from the new exotic floating point types.
+* Fix for negative index LSB0 slicing issue. Bug #343.
+
 ### May 2024: version 4.2.3
 
 #### More small bug fixes related to some of the new (beta) float formats.

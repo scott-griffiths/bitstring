@@ -8,9 +8,9 @@ import array
 import os
 import re
 from bitstring import InterpretError, Bits, BitArray
-from hypothesis import given, assume
+from hypothesis import given, assume, reproduce_failure, settings
 import hypothesis.strategies as st
-
+from bitstring.bitstore import offset_slice_indices_lsb0
 
 sys.path.insert(0, '..')
 
@@ -19,6 +19,33 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 def remove_unprintable(s: str) -> str:
     colour_escape = re.compile(r'(?:\x1B[@-_])[0-?]*[ -/]*[@-~]')
     return colour_escape.sub('', s)
+
+
+@settings(max_examples=500)
+@given(length=st.integers(0, 9),
+       start=st.integers(-20, 20),
+       stop=st.integers(-20, 20),
+       step=st.integers(0, 7))
+def test_lsb0_slicing(length, start, stop, step):
+    if start == -20:
+        start = None
+    if stop == -20:
+        stop = None
+    if step == 0:
+        step = None
+    values_fwd = list(range(0, length))
+    values_bwd = list(range(0, length))
+    values_bwd.reverse()
+
+    # Convert the start, stop, step to a range over the length
+    start1, stop1, step1 = slice(start, stop, step).indices(length)
+    values1 = values_fwd[start1:stop1:step1]
+
+    lsb0key = offset_slice_indices_lsb0(slice(start, stop, step), length)
+    values2 = values_bwd[lsb0key.start:lsb0key.stop:lsb0key.step]
+    values2.reverse()
+    assert values1 == values2
+
 
 class TestCreation:
     def test_creation_from_bytes(self):
@@ -530,7 +557,7 @@ class TestLsb0Indexing:
         assert a[:-8] == '0xcdef'
 
     def test_extended_slicing(self):
-        a = Bits('0b100000100100100')
+        a = Bits('0b0100000100100100')
         assert a[2::3] == '0b10111'
 
     def test_all(self):
@@ -555,6 +582,15 @@ class TestLsb0Indexing:
         a = Bits('0x1234abcd')
         assert a.endswith('0x123')
         assert not a.endswith('0xabcd')
+
+    def test_lsb0_slicing_error(self):
+        a = Bits('0b01')
+        b = a[::-1]
+        assert b == '0b10'
+        t = Bits('0xf0a')[::-1]
+        assert t == '0x50f'
+        s = Bits('0xf0a')[::-1][::-1]
+        assert s == '0xf0a'
 
 
 class TestLsb0Interpretations:

@@ -21,26 +21,28 @@ MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
 LITERAL_RE: Pattern[str] = re.compile(r'^(?P<name>0([xob]))(?P<value>.+)', re.IGNORECASE)
 
 # An endianness indicator followed by one or more struct.pack codes
-STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
+STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])(?P<fmt>(?:\d*[bBhHlLiIqQefd])+)$')
 # The same as above, but it doesn't insist on an endianness as it's byteswapping anyway.
-BYTESWAP_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])?(?P<fmt>(?:\d*[bBhHlLqQefd])+)$')
+BYTESWAP_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])?(?P<fmt>(?:\d*[bBhHlLiIqQefd])+)$')
 # An endianness indicator followed by exactly one struct.pack codes
-SINGLE_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])(?P<fmt>[bBhHlLqQefd])$')
+SINGLE_STRUCT_PACK_RE: Pattern[str] = re.compile(r'^(?P<endian>[<>@=])(?P<fmt>[bBhHlLiIqQefd])$')
 
 # A number followed by a single character struct.pack code
-STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLqQefd]')
+STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLiIqQefd]')
 
 # These replicate the struct.pack codes
 # Big-endian
 REPLACEMENTS_BE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
                                    'h': 'intbe16', 'H': 'uintbe16',
                                    'l': 'intbe32', 'L': 'uintbe32',
+                                   'i': 'intbe32', 'I': 'uintbe32',
                                    'q': 'intbe64', 'Q': 'uintbe64',
                                    'e': 'floatbe16', 'f': 'floatbe32', 'd': 'floatbe64'}
 # Little-endian
 REPLACEMENTS_LE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
                                    'h': 'intle16', 'H': 'uintle16',
                                    'l': 'intle32', 'L': 'uintle32',
+                                   'i': 'intle32', 'I': 'uintle32',
                                    'q': 'intle64', 'Q': 'uintle64',
                                    'e': 'floatle16', 'f': 'floatle32', 'd': 'floatle64'}
 
@@ -48,11 +50,12 @@ REPLACEMENTS_LE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
 REPLACEMENTS_NE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
                                    'h': 'intne16', 'H': 'uintne16',
                                    'l': 'intne32', 'L': 'uintne32',
+                                   'i': 'intne32', 'I': 'uintne32',
                                    'q': 'intne64', 'Q': 'uintne64',
                                    'e': 'floatne16', 'f': 'floatne32', 'd': 'floatne64'}
 
 # Size in bytes of all the pack codes.
-PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4,
+PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4, 'i': 4, 'I': 4,
                                   'q': 8, 'Q': 8, 'e': 2, 'f': 4, 'd': 8}
 
 

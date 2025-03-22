@@ -4,24 +4,38 @@ import bitarray
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
 
+if bitarray.__version__.startswith("2."):
+    raise ImportError(f"bitstring version 4.3 requires bitarray version 3 or higher. Found version {bitarray.__version__}.")
+
+def indices(s: slice, length: int) -> tuple[int, int | None, int]:
+    """A better implementation of slice.indices such that a
+    slice made from [start:stop:step] will actually equal the original slice."""
+    if s.step is None or s.step > 0:
+        return s.indices(length)
+    assert s.step < 0
+    start, stop, step = s.indices(length)
+    if stop < 0:
+        stop = None
+    return start, stop, step
 
 def offset_slice_indices_lsb0(key: slice, length: int) -> slice:
-    # First convert slice to all integers
-    # Length already should take account of the offset
-    start, stop, step = key.indices(length)
-    new_start = length - stop
-    new_stop = length - start
-    # For negative step we sometimes get a negative stop, which can't be used correctly in a new slice
-    return slice(new_start, None if new_stop < 0 else new_stop, step)
-
-
-def offset_start_stop_lsb0(start: Optional[int], stop: Optional[int], length: int) -> tuple[int, int]:
-    # First convert slice to all integers
-    # Length already should take account of the offset
-    start, stop, _ = slice(start, stop, None).indices(length)
-    new_start = length - stop
-    new_stop = length - start
-    return new_start, new_stop
+    start, stop, step = indices(key, length)
+    if step is not None and step < 0:
+        if stop is None:
+            new_start = start + 1
+            new_stop = None
+        else:
+            first_element = start
+            last_element = start + ((stop + 1 - start) // step) * step
+            new_start = length - last_element
+            new_stop = length - first_element - 1
+    else:
+        first_element = start
+        # The last element will usually be stop - 1, but needs to be adjusted if step != 1.
+        last_element = start + ((stop - 1 - start) // step) * step
+        new_start = length - last_element - 1
+        new_stop = length - first_element
+    return slice(new_start, new_stop, key.step)
 
 
 class BitStore:
@@ -150,7 +164,7 @@ class BitStore:
                 byte_pos = byte_pos + 1
             return
         # General case
-        i = self._bitarray.itersearch(bs._bitarray, start, end)
+        i = self._bitarray.search(bs._bitarray, start, end)
         if not bytealigned:
             for p in i:
                 yield p
@@ -160,7 +174,7 @@ class BitStore:
                     yield p
 
     def rfindall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        i = self._bitarray.itersearch(bs._bitarray, start, end, right=True)
+        i = self._bitarray.search(bs._bitarray, start, end, right=True)
         if not bytealigned:
             for p in i:
                 yield p
@@ -213,8 +227,8 @@ class BitStore:
         return BitStore(self._bitarray[start:stop])
 
     def getslice_lsb0(self, start: Optional[int], stop: Optional[int], /) -> BitStore:
-        start, stop = offset_start_stop_lsb0(start, stop, len(self))
-        return BitStore(self._bitarray[start:stop])
+        s = offset_slice_indices_lsb0(slice(start, stop, None), len(self))
+        return BitStore(self._bitarray[s.start:s.stop])
 
     def getindex_lsb0(self, index: int, /) -> bool:
         return bool(self._bitarray.__getitem__(-index - 1))

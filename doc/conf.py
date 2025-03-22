@@ -12,7 +12,7 @@ year = datetime.datetime.utcfromtimestamp(
 project = 'bitstring'
 copyright = f'2006 - {year}, Scott Griffiths'
 author = 'Scott Griffiths'
-release = '4.2'
+release = '4.3'
 
 extensions = []
 
@@ -31,7 +31,7 @@ html_css_files = ["custom.css"]
 html_theme = 'piccolo_theme'
 
 html_theme_options = {
-    "banner_text": "New requirement of Python 3.8 or later - see release notes for full details.",
+    # "banner_text": "New requirement of Python 3.8 or later - see release notes for full details.",
     "banner_hiding": "permanent",
     "show_theme_credit": False,
     "globaltoc_maxdepth": 2,

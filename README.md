@@ -2,9 +2,9 @@
 
 ![bitstring](https://raw.githubusercontent.com/scott-griffiths/bitstring/main/doc/bitstring_logo_small.png "bitstring")
 
-**bitstring** is a Python module to help make the creation and analysis of all types of bit-level binary data as simple and efficient as possible.
+**bitstring** is a Python library to help make the creation and analysis of all types of bit-level binary data as simple and efficient as possible. It has been actively maintained since 2006.
 
-It has been actively maintained since 2006.
+The library has has now been downloaded over 100 million times! &nbsp; &nbsp; ✨ [![Pepy Total Downloads](https://img.shields.io/pepy/dt/bitstring?label=Downloads:&labelColor=orange&color=orange)](https://www.pepy.tech/projects/bitstring) ✨
 
 
 
@@ -13,7 +13,7 @@ It has been actively maintained since 2006.
 [![Codacy Badge](https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4?logo=codacy)](https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/pypi/bitstring?logo=libraries.io&logoColor=white)](https://libraries.io/pypi/bitstring)
 &nbsp; &nbsp;
-[![Pepy Total Downlods](https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue)](https://www.pepy.tech/projects/bitstring)
+[![Pepy Total Downloads](https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue)](https://www.pepy.tech/projects/bitstring)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/bitstring?label=%40&labelColor=blue&color=blue)](https://pypistats.org/packages/bitstring)
 
 ----
@@ -35,7 +35,7 @@ It has been actively maintained since 2006.
 
 # Documentation
 
-Extensive documentation for the bitstring module is available.
+Extensive documentation for the bitstring library is available.
 Some starting points are given below:
 
 * [Overview](https://bitstring.readthedocs.io/en/stable/index.html)
@@ -106,4 +106,4 @@ Array('uint7', [45, 100, 15, 1])
 ```
 
 
-<sub>Copyright (c) 2006 - 2024 Scott Griffiths</sub>
+<sub>Copyright (c) 2006 - 2025 Scott Griffiths</sub>
