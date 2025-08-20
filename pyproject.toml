@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bitstring"
-version = "4.3.1"
+version = "4.4.0"
 license = { text = "MIT" }
 authors = [
   { name="Scott Griffiths", email="dr.scottgriffiths@gmail.com" },
@@ -28,7 +28,8 @@ classifiers = [
 ]
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
-  "bitarray >= 3.0.0, < 4.0"
+  "bitarray >= 3.0.0, < 4.0",
+  "bitformat >= 0.6.0, < 0.8; python_version >= '3.11'",
 ]
 
 [project.urls]
