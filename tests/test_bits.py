@@ -10,7 +10,7 @@ import re
 from bitstring import InterpretError, Bits, BitArray
 from hypothesis import given, assume, reproduce_failure, settings
 import hypothesis.strategies as st
-from bitstring.bitstore import offset_slice_indices_lsb0
+from bitstring.bitstore_bitarray import offset_slice_indices_lsb0
 
 sys.path.insert(0, '..')
 

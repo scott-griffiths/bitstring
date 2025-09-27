@@ -5,7 +5,7 @@ import math
 import functools
 from typing import Union, Optional, Dict, Callable
 import bitarray
-from bitstring.bitstore import BitStore
+from bitstring.bitstore_bitarray import BitStore
 import bitstring
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt,

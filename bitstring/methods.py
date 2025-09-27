@@ -5,8 +5,8 @@ from bitstring.bitstream import BitStream
 from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
 from typing import Union, List
-from bitstring.bitstore import BitStore
-from bitstring.bitstore_helpers import bitstore_from_token
+from bitstring.bitstore_bitarray import BitStore
+from bitstring.bitstore_bitarray_helpers import bitstore_from_token
 
 
 def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
