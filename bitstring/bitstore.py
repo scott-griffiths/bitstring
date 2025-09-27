@@ -50,6 +50,14 @@ class BitStore:
         self.modified_length = None
 
     @classmethod
+    def from_binary_string(cls, s: str) -> BitStore:
+        x = super().__new__(cls)
+        x._bitarray = bitarray.bitarray(s)
+        x.immutable = False
+        x.modified_length = None
+        return x
+
+    @classmethod
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> BitStore:
         x = super().__new__(cls)
         x._bitarray = bitarray.bitarray()

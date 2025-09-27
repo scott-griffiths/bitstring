@@ -152,6 +152,10 @@ class TestByteAligned:
         assert not bitstring.bytealigned
 
     def test_not_byte_aligned(self):
+        a = BitArray('0xff00ff')
+        s = a.split('0xff')
+        s = list(s)
+        assert s == ['', '0xff00', '0xff']
         a = BitArray('0x00 ff 0f f')
         li = list(a.findall('0xff'))
         assert li == [8, 20]

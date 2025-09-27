@@ -13,7 +13,7 @@ sys.path.insert(0, '..')
 class TestBasicFunctionality:
 
     def test_getting_int(self):
-        a = BitStore('001')
+        a = BitStore.from_binary_string('001')
         assert a.getindex(0) == 0
         assert a.getindex(1) == 0
         assert a.getindex(2) == 1
@@ -39,7 +39,7 @@ class TestBasicLSB0Functionality:
         bitstring.lsb0 = False
 
     def test_getting_int(self):
-        a = BitStore('001')
+        a = BitStore.from_binary_string('001')
         assert a.getindex(0) == 1
         assert a.getindex(1) == 0
         assert a.getindex(2) == 0
@@ -61,7 +61,7 @@ class TestBasicLSB0Functionality:
         assert a.getslice(16, 24).tobytes() == b'6'
 
     def test_setting_int(self):
-        a = BitStore('00000')
+        a = BitStore.from_binary_string('00000')
         a[0] = 1
         assert a.slice_to_bin() == '00001'
         a[-1] = 1
@@ -78,7 +78,7 @@ class TestGettingSlices:
         bitstring.lsb0 = False
 
     def test_everything(self):
-        a = BitStore('010010001000110111001111101101001111')
+        a = BitStore.from_binary_string('010010001000110111001111101101001111')
 
         # Try combination of start and stop for msb0 and get the result.
         # Convert to start and stop needed for lsb0
