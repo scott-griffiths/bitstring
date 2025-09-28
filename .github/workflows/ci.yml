@@ -67,7 +67,7 @@ jobs:
           if-no-files-found: error
 
   test:
-    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }}
+    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }} ${{ matrix.rust.name }}
     needs:
       - build
     runs-on: ${{ matrix.os.runs-on }}
@@ -100,6 +100,11 @@ jobs:
           - name: CPython 3.13
             major_dot_minor: '3.13'
             action: '3.13'
+        rust:
+          - name: with Rust
+            env_var: '1'
+          - name: without Rust
+            env_var: '0'
 
     steps:
       - uses: actions/checkout@v4
@@ -136,6 +141,8 @@ jobs:
           ls -la
 
       - name: Run pytest
+        env:
+          BITSTRING_USE_RUST_CORE: ${{ matrix.rust.env_var }}
         run: |
           python -m pytest tests/ --benchmark-disable
 
