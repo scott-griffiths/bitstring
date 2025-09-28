@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import bitformat
-from bitformat import MutableBits
 
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
@@ -84,6 +83,13 @@ class BitStore:
 
     def set(self, value, pos) -> None:
         self._mutablebits.set(value, pos)
+
+    @staticmethod
+    def using_rust_core() -> bool:
+        return True
+
+    def tobitarray(self):
+        raise TypeError("tobitarray() is not available when using the Rust core option.")
 
     def tobytes(self) -> bytes:
         if self.modified_length is not None:
@@ -301,7 +307,9 @@ class BitStore:
         if isinstance(value, BitStore):
             self._mutablebits.__setitem__(key, value._mutablebits)
         else:
-            self._mutablebits.__setitem__(key, bool(value))
+            if isinstance(key, slice):
+                key = range(*key.indices(len(self)))
+            self._mutablebits.set(value, key)
 
     def delitem_msb0(self, key, /):
         self._mutablebits.__delitem__(key)

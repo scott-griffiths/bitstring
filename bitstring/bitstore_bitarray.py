@@ -81,8 +81,15 @@ class BitStore:
                     f"Can't create bitstring with a length of {x.modified_length} from {len(x._bitarray)} bits of data.")
         return x
 
+    @staticmethod
+    def using_rust_core() -> bool:
+        return False
+
     def setall(self, value: int, /) -> None:
         self._bitarray.setall(value)
+
+    def tobitarray(self) -> bitarray.bitarray:
+        return self._bitarray
 
     def tobytes(self) -> bytes:
         if self.modified_length is not None:

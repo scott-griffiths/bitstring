@@ -1497,9 +1497,9 @@ class Bits:
         """Convert the bitstring to a bitarray object."""
         if self._bitstore.modified_length is not None:
             # Removes the offset and truncates to length
-            return self._bitstore.getslice(0, len(self))._bitarray
+            return self._bitstore.getslice(0, len(self)).tobitarray()
         else:
-            return self._bitstore._bitarray
+            return self._bitstore.tobitarray()
 
     def tofile(self, f: BinaryIO) -> None:
         """Write the bitstring to a file object, padding with zero bits if needed.
