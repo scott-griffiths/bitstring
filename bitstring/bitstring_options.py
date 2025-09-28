@@ -3,6 +3,7 @@ from __future__ import annotations
 import bitstring
 import os
 
+BitStore = bitstring.bitstore.BitStore
 
 class Options:
     """Internal class to create singleton module options instance."""
@@ -45,7 +46,6 @@ class Options:
         self._lsb0 = bool(value)
         Bits = bitstring.bits.Bits
         BitArray = bitstring.bitarray_.BitArray
-        BitStore = bitstring.bitstore_bitarray.BitStore
 
         lsb0_methods = {
             Bits: {'_find': Bits._find_lsb0, '_rfind': Bits._rfind_lsb0, '_findall': Bits._findall_lsb0},

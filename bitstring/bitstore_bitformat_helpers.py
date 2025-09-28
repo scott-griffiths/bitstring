@@ -4,13 +4,12 @@ import struct
 import math
 import functools
 from typing import Union, Optional, Dict, Callable
-import bitarray
+import bitformat
+from bitstring.bitstore import BitStore
 import bitstring
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt,
                             e5m2mxfp_saturate_fmt, e4m3mxfp_overflow_fmt, e5m2mxfp_overflow_fmt)
-
-BitStore = bitstring.bitstore.BitStore
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
@@ -38,34 +37,26 @@ def str_to_bitstore(s: str) -> BitStore:
 def bin2bitstore(binstring: str) -> BitStore:
     binstring = tidy_input_string(binstring)
     binstring = binstring.replace('0b', '')
-    try:
-        return BitStore(binstring)
-    except ValueError:
-        raise bitstring.CreationError(f"Invalid character in bin initialiser {binstring}.")
+    mb = bitformat.MutableBits.from_dtype('bin', binstring)
+    return BitStore(mb)
 
 
 def bin2bitstore_unsafe(binstring: str) -> BitStore:
-    return BitStore(binstring)
+    mb = bitformat.MutableBits.from_dtype('bin', binstring)
+    return BitStore(mb)
 
 
 def hex2bitstore(hexstring: str) -> BitStore:
     hexstring = tidy_input_string(hexstring)
     hexstring = hexstring.replace('0x', '')
-    try:
-        ba = bitarray.util.hex2ba(hexstring)
-    except ValueError:
-        raise bitstring.CreationError("Invalid symbol in hex initialiser.")
-    return BitStore(ba)
-
+    mb = bitformat.MutableBits.from_dtype('hex', hexstring)
+    return BitStore(mb)
 
 def oct2bitstore(octstring: str) -> BitStore:
     octstring = tidy_input_string(octstring)
     octstring = octstring.replace('0o', '')
-    try:
-        ba = bitarray.util.base2ba(8, octstring)
-    except ValueError:
-        raise bitstring.CreationError("Invalid symbol in oct initialiser.")
-    return BitStore(ba)
+    mb = bitformat.MutableBits.from_dtype('oct', octstring)
+    return BitStore(mb)
 
 
 def ue2bitstore(i: Union[str, int]) -> BitStore:
@@ -73,7 +64,7 @@ def ue2bitstore(i: Union[str, int]) -> BitStore:
     if i < 0:
         raise bitstring.CreationError("Cannot use negative initialiser for unsigned exponential-Golomb.")
     if i == 0:
-        return BitStore('1')
+        return BitStore('0b1')
     tmp = i + 1
     leadingzeros = -1
     while tmp > 0:
@@ -96,15 +87,15 @@ def uie2bitstore(i: Union[str, int]) -> BitStore:
     i = int(i)
     if i < 0:
         raise bitstring.CreationError("Cannot use negative initialiser for unsigned interleaved exponential-Golomb.")
-    return BitStore('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
+    return BitStore('0b1' if i == 0 else '0b0' + '0'.join(bin(i + 1)[3:]) + '1')
 
 
 def sie2bitstore(i: Union[str, int]) -> BitStore:
     i = int(i)
     if i == 0:
-        return BitStore('1')
+        return BitStore('0b1')
     else:
-        return uie2bitstore(abs(i)) + (BitStore('1') if i < 0 else BitStore('0'))
+        return uie2bitstore(abs(i)) + (BitStore('0b1') if i < 0 else BitStore('0b0'))
 
 
 def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> BitStore:
@@ -178,7 +169,7 @@ e8m0mxfp_allowed_values = [float(2 ** x) for x in range(-127, 128)]
 def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     if math.isnan(f):
-        return BitStore('11111111')
+        return BitStore('0b11111111')
     try:
         i = e8m0mxfp_allowed_values.index(f)
     except ValueError:
@@ -192,9 +183,9 @@ def mxint2bitstore(f: Union[str, float]) -> BitStore:
         raise ValueError("Cannot convert float('nan') to mxint format as it has no representation for it.")
     f *= 2 ** 6  # Remove the implicit scaling factor
     if f > 127:  # 1 + 63/64
-        return BitStore('01111111')
+        return BitStore('0b01111111')
     if f <= -128:  # -2
-        return BitStore('10000000')
+        return BitStore('0b10000000')
     # Want to round to nearest, so move by 0.5 away from zero and round down by converting to int
     if f >= 0.0:
         f += 0.5
@@ -211,22 +202,11 @@ def mxint2bitstore(f: Union[str, float]) -> BitStore:
 
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
-    i = int(i)
-    try:
-        x = BitStore(bitarray.util.int2ba(i, length=length, endian='big', signed=signed))
-    except OverflowError as e:
-        if signed:
-            if i >= (1 << (length - 1)) or i < -(1 << (length - 1)):
-                raise bitstring.CreationError(f"{i} is too large a signed integer for a bitstring of length {length}. "
-                                    f"The allowed range is [{-(1 << (length - 1))}, {(1 << (length - 1)) - 1}].")
-        else:
-            if i >= (1 << length):
-                raise bitstring.CreationError(f"{i} is too large an unsigned integer for a bitstring of length {length}. "
-                                    f"The allowed range is [0, {(1 << length) - 1}].")
-            if i < 0:
-                raise bitstring.CreationError("uint cannot be initialised with a negative number.")
-        raise e
-    return x
+    if signed:
+        mb = bitformat.MutableBits.from_dtype(f'i{length}', i)
+    else:
+        mb = bitformat.MutableBits.from_dtype(f'u{length}', i)
+    return BitStore(mb)
 
 
 def intle2bitstore(i: int, length: int, signed: bool) -> BitStore:

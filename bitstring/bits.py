@@ -13,12 +13,14 @@ from typing import Tuple, Union, List, Iterable, Any, Optional, BinaryIO, TextIO
 import bitarray
 import bitarray.util
 import bitstring
-from bitstring.bitstore_bitarray import BitStore
 from bitstring import bitstore_bitarray_helpers, utils
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt
 from bitstring.bitstring_options import Colour
+
+BitStore = bitstring.bitstore.BitStore
+
 
 # Things that can be converted to Bits when a Bits type is needed
 BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
