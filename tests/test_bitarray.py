@@ -1018,3 +1018,9 @@ def test_bytes_from_list():
     assert s == '0x0102'
     s.bytes = [10, 20]
     assert s == '0x0a14'
+
+
+def test_slice_bug():
+    a = BitArray('0xffff')
+    a[0:8] = '0x1234'
+    assert a == '0x1234ff'

@@ -4,8 +4,9 @@ import pytest
 import sys
 sys.path.insert(0, '..')
 import bitstring
-from bitstring.bitstore_bitarray import BitStore, offset_slice_indices_lsb0
 import sys
+BitStore = bitstring.bitstore.BitStore
+offset_slice_indices_lsb0 = bitstring.bitstore.offset_slice_indices_lsb0
 
 sys.path.insert(0, '..')
 

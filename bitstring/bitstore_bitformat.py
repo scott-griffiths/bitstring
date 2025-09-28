@@ -78,6 +78,14 @@ class BitStore:
                     f"Can't create bitstring with a length of {x.modified_length} from {len(x._mutablebits)} bits of data.")
         return x
 
+    @classmethod
+    def from_binary_string(cls, s: str) -> BitStore:
+        x = super().__new__(cls)
+        x._mutablebits = bitformat.MutableBits.from_dtype('bin', s)
+        x.immutable = False
+        x.modified_length = None
+        return x
+
     def setall(self, value: int, /) -> None:
         self._mutablebits.set(value, range(len(self)))
 
@@ -98,11 +106,9 @@ class BitStore:
 
     def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
         return self.getslice(start, end)._mutablebits.u
-        # return bitarray.util.ba2int(self.getslice(start, end)._mutablebits, signed=False)
 
     def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
         return self.getslice(start, end)._mutablebits.i
-        # return bitarray.util.ba2int(self.getslice(start, end)._mutablebits, signed=True)
 
     def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
         return self.getslice(start, end)._mutablebits.hex

@@ -141,7 +141,7 @@ class Bits:
                 if auto < 0:
                     raise bitstring.CreationError(f"Can't create bitstring of negative length {auto}.")
                 self._bitstore = BitStore(int(auto))
-                self._bitstore.setall(0)
+                self._bitstore.setall(0)  # TODO: This shouldn't be needed
                 return
             self._setauto(auto, length, offset)
             return
