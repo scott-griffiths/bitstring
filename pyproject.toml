@@ -23,13 +23,14 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
   "bitarray >= 3.0.0, < 4.0",
-  "bitformat >= 0.6.0, < 0.8; python_version >= '3.11'",
+  "bitformat >= 0.8.0, < 0.9; python_version >= '3.11'",
 ]
 
 [project.urls]

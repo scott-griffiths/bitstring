@@ -67,7 +67,7 @@ jobs:
           if-no-files-found: error
 
   test-standard:
-    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }} (standard)
+    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }}
     needs:
       - build
     runs-on: ${{ matrix.os.runs-on }}
@@ -100,6 +100,9 @@ jobs:
           - name: CPython 3.13
             major_dot_minor: '3.13'
             action: '3.13'
+          - name: CPython 3.14
+            major_dot_minor: '3.14'
+            action: '3.14'
 
     steps:
       - uses: actions/checkout@v4
@@ -142,7 +145,7 @@ jobs:
           python -m pytest tests/ --benchmark-disable
 
   test-rust:
-    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }} (experimental Rust core)
+    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }} (Rust core)
     needs:
       - test-standard
     runs-on: ${{ matrix.os.runs-on }}
