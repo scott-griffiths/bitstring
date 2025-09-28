@@ -66,8 +66,8 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
-  test:
-    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }} ${{ matrix.rust.name }}
+  test-standard:
+    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }} (standard)
     needs:
       - build
     runs-on: ${{ matrix.os.runs-on }}
@@ -100,11 +100,6 @@ jobs:
           - name: CPython 3.13
             major_dot_minor: '3.13'
             action: '3.13'
-        rust:
-          - name: with Rust
-            env_var: '1'
-          - name: without Rust
-            env_var: '0'
 
     steps:
       - uses: actions/checkout@v4
@@ -146,6 +141,67 @@ jobs:
         run: |
           python -m pytest tests/ --benchmark-disable
 
+  test-rust:
+    name: Test ${{ matrix.os.name }} ${{ matrix.python.name }} (experimental Rust core)
+    needs:
+      - test-standard
+    runs-on: ${{ matrix.os.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - name: 🐧
+            runs-on: ubuntu-latest
+          - name: 🍎
+            runs-on: macos-13
+          - name: 🪟
+            runs-on: windows-latest
+        python:
+          - name: CPython 3.11
+            major_dot_minor: '3.11'
+            action: '3.11'
+          - name: CPython 3.12
+            major_dot_minor: '3.12'
+            action: '3.12'
+          - name: CPython 3.13
+            major_dot_minor: '3.13'
+            action: '3.13'
+          - name: CPython 3.14
+            major_dot_minor: '3.14'
+            action: '3.14'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: repo
+
+      - name: Download package files
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: dist
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ fromJSON(format('["{0}", "{1}"]', format('{0}.0-alpha - {0}.X', matrix.python.action), matrix.python.action))[startsWith(matrix.python.action, 'pypy')] }}
+          architecture: x64
+
+      - name: Setup environment
+        run: |
+          python --version --version
+          # make sure we test the installed code
+          cp -R repo/tests/ tests/
+          python -m pip install -r tests/requirements.txt
+          python -m pip install ./dist/*.whl
+          # show the directory contents for diagnostics
+          ls -la
+
+      - name: Run pytest
+        env:
+          BITSTRING_USE_RUST_CORE: '1'
+        run: |
+          python -m pytest tests/ --benchmark-disable
+
   all:
     name: All successful
     runs-on: ubuntu-latest
@@ -156,7 +212,8 @@ jobs:
       # This is the list of CI job that we are interested to be green before
       # a merge.
       - build
-      - test
+      - test-standard
+      - test-rust
     steps:
       - name: Require all successes
         uses: re-actors/alls-green@v1.2.2
