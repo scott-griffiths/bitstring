@@ -19,6 +19,10 @@ class Options:
         no_color = os.getenv('NO_COLOR')
         self.no_color = True if no_color else False
 
+    def using_rust_core(self):
+        x = BitStore()
+        return x.using_rust_core()
+
     @property
     def mxfp_overflow(self) -> str:
         return self._mxfp_overflow

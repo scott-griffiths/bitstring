@@ -1,6 +1,24 @@
 
 # Release Notes
 
+### Unreleased: version 4.4.0
+
+This version adds a new optional Rust based backend. This is turned off by default so
+shouldn't affect users. The new backend uses the `bitformat` library, which is written
+by the same author as `bitstring` and should allow some nice optimisations in future.
+
+For now the interface with `bitstring` is functional but not optimised so it's not 
+recommended for general use yet. If you do want to try it then you'll need to be using
+at least Python 3.11 and set the `BITSTRING_USE_RUST_CORE` environment variable.
+
+You can check which backend is being used using `bitstring.options.using_rust_core()` which
+should return `False` unless you've enabled it as detailed above.
+
+The only other change is explicit support for Python 3.14.
+
+The `bitformat` dependency is a bit experimental and difficult to test on every possible platform.
+If you experience any issues with installation then please file a bug report.
+
 ### March 2025: version 4.3.1
 
 * Updated bitarray dependency to allow for v3.x.
