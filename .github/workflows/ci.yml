@@ -146,6 +146,7 @@ jobs:
 
   test-rust:
     name: Test ${{ matrix.os.name }} ${{ matrix.python.name }} (Rust core)
+    if: always()
     needs:
       - test-standard
     runs-on: ${{ matrix.os.runs-on }}
