@@ -86,9 +86,6 @@ class BitStore:
         x.modified_length = None
         return x
 
-    def setall(self, value: int, /) -> None:
-        self._mutablebits.set(value, range(len(self)))
-
     def set(self, value, pos) -> None:
         self._mutablebits.set(value, pos)
 

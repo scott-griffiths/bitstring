@@ -85,9 +85,6 @@ class BitStore:
     def using_rust_core() -> bool:
         return False
 
-    def setall(self, value: int, /) -> None:
-        self._bitarray.setall(value)
-
     def tobitarray(self) -> bitarray.bitarray:
         return self._bitarray
 
