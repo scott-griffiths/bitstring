@@ -68,16 +68,15 @@ import importlib
 # is not recommended for general use yet, and is only available for Python 3.11 or later.
 _env_core = os.getenv('BITSTRING_USE_RUST_CORE', '').strip().lower()
 _USE_RUST_CORE = _env_core in ('1', 'true', 'yes', 'on')
-_core_module = 'bitstring.bitstore_bitarray'
 if _USE_RUST_CORE:
     try:
-        importlib.import_module('bitstring.bitstore_bitformat')
+        bitstore = importlib.import_module('bitstring.bitstore_bitformat')
+        bitstore_helpers = importlib.import_module('bitstring.bitstore_bitformat_helpers')
     except Exception as e:
         raise ImportError("BITSTRING_USE_RUST_CORE is set, but the bitformat library is unavailable. Needs Python >= 3.11.") from e
-    else:
-        _core_module = 'bitstring.bitstore_bitformat'
-
-bitstore = importlib.import_module(_core_module)
+else:
+    bitstore = importlib.import_module('bitstring.bitstore_bitarray')
+    bitstore_helpers = importlib.import_module('bitstring.bitstore_bitarray_helpers')
 
 from .bits import Bits
 from .bitstring_options import Options

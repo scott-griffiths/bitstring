@@ -5,10 +5,9 @@ from bitstring.bitstream import BitStream
 from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
 from typing import Union, List
-from bitstring.bitstore_bitarray_helpers import bitstore_from_token
 
 BitStore = bitstring.bitstore.BitStore
-
+helpers = bitstring.bitstore_helpers
 
 def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     """Pack the values according to the format string and return a new BitStream.
@@ -77,7 +76,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
                     raise CreationError(f"Token with length {length} packed with value of length {len(value)}.")
                 bsl.append(value._bitstore)
                 continue
-            bsl.append(bitstore_from_token(name, length, value))
+            bsl.append(helpers.bitstore_from_token(name, length, value))
     except StopIteration:
         raise CreationError(f"Not enough parameters present to pack according to the "
                             f"format. {len(tokens)} values are needed.")

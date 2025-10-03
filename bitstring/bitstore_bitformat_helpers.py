@@ -5,11 +5,11 @@ import math
 import functools
 from typing import Union, Optional, Dict, Callable
 import bitformat
-from bitstring.bitstore import BitStore
 import bitstring
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt,
                             e5m2mxfp_saturate_fmt, e4m3mxfp_overflow_fmt, e5m2mxfp_overflow_fmt)
+BitStore = bitstring.bitstore.BitStore
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
