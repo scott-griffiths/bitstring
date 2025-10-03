@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import bitarray
+import bitarray.util
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
 

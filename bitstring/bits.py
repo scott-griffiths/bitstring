@@ -11,7 +11,6 @@ from collections import abc
 import functools
 from typing import Tuple, Union, List, Iterable, Any, Optional, BinaryIO, TextIO, overload, Iterator, Type, TypeVar
 import bitarray
-import bitarray.util
 import bitstring
 from bitstring import utils
 from bitstring.dtypes import Dtype, dtype_register
