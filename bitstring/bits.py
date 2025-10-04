@@ -504,7 +504,7 @@ class Bits:
             self._bitstore = BitStore.frombytes(s.tobytes())
         elif isinstance(s, abc.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
-            self._setbin_unsafe(''.join(str(int(bool(x))) for x in s))
+            self._setbin(''.join(str(int(bool(x))) for x in s))
         elif isinstance(s, numbers.Integral):
             raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
                             f" Use '{self.__class__.__name__}({s})' instead of just '{s}' as this makes it "
@@ -959,13 +959,9 @@ class Bits:
     def _setpad(self, value: None, length: int) -> None:
         self._bitstore = BitStore(length)
 
-    def _setbin_safe(self, binstring: str, length: None = None) -> None:
+    def _setbin(self, binstring: str, length: None = None) -> None:
         """Reset the bitstring to the value given in binstring."""
         self._bitstore = helpers.bin2bitstore(binstring)
-
-    def _setbin_unsafe(self, binstring: str, length: None = None) -> None:
-        """Same as _setbin_safe, but input isn't sanity checked. binstring mustn't start with '0b'."""
-        self._bitstore = helpers.bin2bitstore_unsafe(binstring)
 
     def _getbin(self) -> str:
         """Return interpretation as a binary string."""

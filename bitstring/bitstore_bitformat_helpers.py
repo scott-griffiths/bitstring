@@ -35,27 +35,16 @@ def str_to_bitstore(s: str) -> BitStore:
 
 
 def bin2bitstore(binstring: str) -> BitStore:
-    binstring = tidy_input_string(binstring)
-    binstring = binstring.replace('0b', '')
-    mb = bitformat.Bits._from_bin(binstring)
-    return BitStore(mb)
-
-
-def bin2bitstore_unsafe(binstring: str) -> BitStore:
     mb = bitformat.Bits._from_bin(binstring)
     return BitStore(mb)
 
 
 def hex2bitstore(hexstring: str) -> BitStore:
-    hexstring = tidy_input_string(hexstring)
-    hexstring = hexstring.replace('0x', '')
     mb = bitformat.Bits._from_hex(hexstring)
     return BitStore(mb)
 
 
 def oct2bitstore(octstring: str) -> BitStore:
-    octstring = tidy_input_string(octstring)
-    octstring = octstring.replace('0o', '')
     mb = bitformat.Bits._from_oct(octstring)
     return BitStore(mb)
 

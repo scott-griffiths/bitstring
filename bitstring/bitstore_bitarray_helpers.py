@@ -44,10 +44,6 @@ def bin2bitstore(binstring: str) -> BitStore:
         raise bitstring.CreationError(f"Invalid character in bin initialiser {binstring}.")
 
 
-def bin2bitstore_unsafe(binstring: str) -> BitStore:
-    return BitStore(binstring)
-
-
 def hex2bitstore(hexstring: str) -> BitStore:
     hexstring = tidy_input_string(hexstring)
     hexstring = hexstring.replace('0x', '')

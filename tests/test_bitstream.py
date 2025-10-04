@@ -804,7 +804,7 @@ class TestCreationErrors:
     def test_incorrect_bin_assignment(self):
         s = BitStream()
         with pytest.raises(bitstring.CreationError):
-            s._setbin_safe('0010020')
+            s._setbin('0010020')
 
     def test_incorrect_hex_assignment(self):
         s = BitStream()
