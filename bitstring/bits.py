@@ -1251,7 +1251,7 @@ class Bits:
         assert start <= end
         assert bitstring.options.lsb0
 
-        new_slice = bitstring.bitstore_bitarray.offset_slice_indices_lsb0(slice(start, end, None), len(self))
+        new_slice = bitstring.helpers.offset_slice_indices_lsb0(slice(start, end, None), len(self))
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
         p = self._rfind_msb0(bs, msb0_start, msb0_end, bytealigned)
 
@@ -1305,7 +1305,7 @@ class Bits:
         assert start <= end
         assert bitstring.options.lsb0
 
-        new_slice = bitstring.bitstore_bitarray.offset_slice_indices_lsb0(slice(start, end, None), len(self))
+        new_slice = bitstring.helpers.offset_slice_indices_lsb0(slice(start, end, None), len(self))
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
 
         # Search chunks starting near the end and then moving back.
@@ -1368,7 +1368,7 @@ class Bits:
         # A reverse find in lsb0 is very like a forward find in msb0.
         assert start <= end
         assert bitstring.options.lsb0
-        new_slice = bitstring.bitstore_bitarray.offset_slice_indices_lsb0(slice(start, end, None), len(self))
+        new_slice = bitstring.helpers.offset_slice_indices_lsb0(slice(start, end, None), len(self))
         msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
 
         p = self._find_msb0(bs, msb0_start, msb0_end, bytealigned)

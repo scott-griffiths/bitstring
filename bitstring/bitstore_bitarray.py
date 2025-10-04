@@ -4,39 +4,10 @@ import bitarray
 import bitarray.util
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
+from bitstring.helpers import offset_slice_indices_lsb0
 
 if bitarray.__version__.startswith("2."):
     raise ImportError(f"bitstring version 4.3 requires bitarray version 3 or higher. Found version {bitarray.__version__}.")
-
-def indices(s: slice, length: int) -> tuple[int, int | None, int]:
-    """A better implementation of slice.indices such that a
-    slice made from [start:stop:step] will actually equal the original slice."""
-    if s.step is None or s.step > 0:
-        return s.indices(length)
-    assert s.step < 0
-    start, stop, step = s.indices(length)
-    if stop < 0:
-        stop = None
-    return start, stop, step
-
-def offset_slice_indices_lsb0(key: slice, length: int) -> slice:
-    start, stop, step = indices(key, length)
-    if step is not None and step < 0:
-        if stop is None:
-            new_start = start + 1
-            new_stop = None
-        else:
-            first_element = start
-            last_element = start + ((stop + 1 - start) // step) * step
-            new_start = length - last_element
-            new_stop = length - first_element - 1
-    else:
-        first_element = start
-        # The last element will usually be stop - 1, but needs to be adjusted if step != 1.
-        last_element = start + ((stop - 1 - start) // step) * step
-        new_start = length - last_element - 1
-        new_stop = length - first_element
-    return slice(new_start, new_stop, key.step)
 
 
 class BitStore:

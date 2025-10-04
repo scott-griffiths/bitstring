@@ -6,7 +6,7 @@ sys.path.insert(0, '..')
 import bitstring
 import sys
 BitStore = bitstring.bitstore.BitStore
-offset_slice_indices_lsb0 = bitstring.bitstore.offset_slice_indices_lsb0
+offset_slice_indices_lsb0 = bitstring.helpers.offset_slice_indices_lsb0
 
 sys.path.insert(0, '..')
 

@@ -9,21 +9,12 @@ import bitstring
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt,
                             e5m2mxfp_saturate_fmt, e4m3mxfp_overflow_fmt, e5m2mxfp_overflow_fmt)
+from bitstring.helpers import tidy_input_string
 
 BitStore = bitstring.bitstore.BitStore
 
 # The size of various caches used to improve performance
 CACHE_SIZE = 256
-
-
-def tidy_input_string(s: str) -> str:
-    """Return string made lowercase and with all whitespace and underscores removed."""
-    try:
-        t = s.split()
-    except (AttributeError, TypeError):
-        raise ValueError(f"Expected str object but received a {type(s)} with value {s}.")
-    return ''.join(t).lower().replace('_', '')
-
 
 @functools.lru_cache(CACHE_SIZE)
 def str_to_bitstore(s: str) -> BitStore:

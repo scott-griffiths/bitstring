@@ -64,7 +64,8 @@ import os
 import importlib
 
 # Experimental ability to use bitformat for core operations instead of bitarray.
-# Bitformat's core is written in Rust and is still in beta. Use of the environment variable
+# Bitformat's core is written in Rust and is still in beta. Use the environment variable
+# BITSTRING_USE_RUST_CORE=1 before importing the module to turn it on. The Rust core
 # is not recommended for general use yet, and is only available for Python 3.11 or later.
 _env_core = os.getenv('BITSTRING_USE_RUST_CORE', '').strip().lower()
 _USE_RUST_CORE = _env_core in ('1', 'true', 'yes', 'on')
