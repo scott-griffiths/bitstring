@@ -30,7 +30,7 @@ def bin2bitstore(binstring: str) -> BitStore:
     binstring = tidy_input_string(binstring)
     binstring = binstring.replace('0b', '')
     try:
-        return BitStore(binstring)
+        return BitStore.from_binary_string(binstring)
     except ValueError:
         raise bitstring.CreationError(f"Invalid character in bin initialiser {binstring}.")
 
@@ -60,14 +60,14 @@ def ue2bitstore(i: Union[str, int]) -> BitStore:
     if i < 0:
         raise bitstring.CreationError("Cannot use negative initialiser for unsigned exponential-Golomb.")
     if i == 0:
-        return BitStore('1')
+        return BitStore.from_binary_string('1')
     tmp = i + 1
     leadingzeros = -1
     while tmp > 0:
         tmp >>= 1
         leadingzeros += 1
     remainingpart = i + 1 - (1 << leadingzeros)
-    return BitStore('0' * leadingzeros + '1') + int2bitstore(remainingpart, leadingzeros, False)
+    return BitStore.from_binary_string('0' * leadingzeros + '1') + int2bitstore(remainingpart, leadingzeros, False)
 
 
 def se2bitstore(i: Union[str, int]) -> BitStore:
@@ -83,15 +83,15 @@ def uie2bitstore(i: Union[str, int]) -> BitStore:
     i = int(i)
     if i < 0:
         raise bitstring.CreationError("Cannot use negative initialiser for unsigned interleaved exponential-Golomb.")
-    return BitStore('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
+    return BitStore.from_binary_string('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
 
 
 def sie2bitstore(i: Union[str, int]) -> BitStore:
     i = int(i)
     if i == 0:
-        return BitStore('1')
+        return BitStore.from_binary_string('1')
     else:
-        return uie2bitstore(abs(i)) + (BitStore('1') if i < 0 else BitStore('0'))
+        return uie2bitstore(abs(i)) + (BitStore.from_binary_string('1') if i < 0 else BitStore.from_binary_string('0'))
 
 
 def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> BitStore:
@@ -165,7 +165,7 @@ e8m0mxfp_allowed_values = [float(2 ** x) for x in range(-127, 128)]
 def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
     f = float(f)
     if math.isnan(f):
-        return BitStore('11111111')
+        return BitStore.from_binary_string('11111111')
     try:
         i = e8m0mxfp_allowed_values.index(f)
     except ValueError:
@@ -179,9 +179,9 @@ def mxint2bitstore(f: Union[str, float]) -> BitStore:
         raise ValueError("Cannot convert float('nan') to mxint format as it has no representation for it.")
     f *= 2 ** 6  # Remove the implicit scaling factor
     if f > 127:  # 1 + 63/64
-        return BitStore('01111111')
+        return BitStore.from_binary_string('01111111')
     if f <= -128:  # -2
-        return BitStore('10000000')
+        return BitStore.from_binary_string('10000000')
     # Want to round to nearest, so move by 0.5 away from zero and round down by converting to int
     if f >= 0.0:
         f += 0.5

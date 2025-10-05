@@ -11,19 +11,24 @@ class BitStore:
 
     __slots__ = ('_mutablebits', 'modified_length', 'immutable')
 
-    def __init__(self, initializer: Union[int, str, bitformat.MutableBits, None] = None,
+    def __init__(self, initializer: Union[bitformat.MutableBits, None] = None,
                  immutable: bool = False) -> None:
-        if isinstance(initializer, int):
-            self._mutablebits = bitformat.MutableBits.from_zeros(initializer)
-        elif isinstance(initializer, str):
-            self._mutablebits = bitformat.MutableBits.from_dtype('bin', initializer)
-        elif initializer is not None:
+        if initializer is not None:
+            assert isinstance(initializer, bitformat.MutableBits)
             self._mutablebits = bitformat.MutableBits()
             self._mutablebits += initializer
         else:
             self._mutablebits = bitformat.MutableBits()
         self.immutable = immutable
         self.modified_length = None
+
+    @classmethod
+    def from_int(cls, i: int):
+        x = super().__new__(cls)
+        x._mutablebits = bitformat.MutableBits.from_zeros(i)
+        x.immutable = False
+        x.modified_length = None
+        return x
 
     @classmethod
     def from_mutablebits(cls, mb: bitformat.MutableBits):

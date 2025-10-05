@@ -118,7 +118,7 @@ class Bits:
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
-                x._bitstore = BitStore(length)
+                x._bitstore = BitStore.from_int(length)
             else:
                 x._bitstore = BitStore()
             return x
@@ -139,7 +139,7 @@ class Bits:
                 # Initialise with s zero bits.
                 if auto < 0:
                     raise bitstring.CreationError(f"Can't create bitstring of negative length {auto}.")
-                self._bitstore = BitStore(int(auto))
+                self._bitstore = BitStore.from_int(int(auto))
                 return
             self._setauto(auto, length, offset)
             return
@@ -944,9 +944,9 @@ class Bits:
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
         if value in (1, 'True', '1'):
-            self._bitstore = BitStore('1')
+            self._bitstore = BitStore.from_binary_string('1')
         elif value in (0, 'False', '0'):
-            self._bitstore = BitStore('0')
+            self._bitstore = BitStore.from_binary_string('0')
         else:
             raise bitstring.CreationError(f"Cannot initialise boolean with {value}.")
 
@@ -957,7 +957,7 @@ class Bits:
         return None
 
     def _setpad(self, value: None, length: int) -> None:
-        self._bitstore = BitStore(length)
+        self._bitstore = BitStore.from_int(length)
 
     def _setbin(self, binstring: str, length: None = None) -> None:
         """Reset the bitstring to the value given in binstring."""

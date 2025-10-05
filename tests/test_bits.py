@@ -203,6 +203,7 @@ class TestCreation:
         with pytest.raises(bitstring.CreationError):
             Bits(squirrel=5)
 
+    @pytest.mark.skipif(os.environ.get('BITSTRING_USE_RUST_CORE'), reason="bitarray not supported with Rust backend")
     def test_creation_from_bitarray(self):
         ba = bitarray.bitarray('0010')
         bs = Bits(ba)
@@ -210,6 +211,7 @@ class TestCreation:
         bs2 = Bits(bitarray=ba)
         assert bs2.bin == '0010'
 
+    @pytest.mark.skipif(os.environ.get('BITSTRING_USE_RUST_CORE'), reason="bitarray not supported with Rust backend")
     def test_creation_from_frozen_bitarray(self):
         fba = bitarray.frozenbitarray('111100001')
         ba = Bits(fba)

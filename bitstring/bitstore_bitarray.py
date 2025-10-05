@@ -15,11 +15,22 @@ class BitStore:
 
     __slots__ = ('_bitarray', 'modified_length', 'immutable')
 
-    def __init__(self, initializer: Union[int, bitarray.bitarray, str, None] = None,
+    def __init__(self, initializer: Union[bitarray.bitarray, None] = None,
                  immutable: bool = False) -> None:
+        if isinstance(initializer, str):
+            assert False
         self._bitarray = bitarray.bitarray(initializer)
         self.immutable = immutable
         self.modified_length = None
+
+    @classmethod
+    def from_int(cls, i: int) -> BitStore:
+        x = super().__new__(cls)
+        x._bitarray = bitarray.bitarray(i)
+        x.immutable = False
+        x.modified_length = None
+        return x
+
 
     @classmethod
     def from_binary_string(cls, s: str) -> BitStore:
