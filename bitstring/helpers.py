@@ -1,6 +1,7 @@
-from typing import Union
+from typing import Union, Tuple
 
-def _indices(s: slice, length: int) -> tuple[int, Union[int, None], int]:
+
+def _indices(s: slice, length: int) -> Tuple[int, Union[int, None], int]:
     """A better implementation of slice.indices such that a
     slice made from [start:stop:step] will actually equal the original slice."""
     if s.step is None or s.step > 0:
