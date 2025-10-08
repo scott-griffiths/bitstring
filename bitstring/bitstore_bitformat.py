@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import bitformat
-
+from bitformat import MutableBits
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
 from bitstring.helpers import offset_slice_indices_lsb0
@@ -11,27 +10,27 @@ class BitStore:
 
     __slots__ = ('_mutablebits', 'modified_length', 'immutable')
 
-    def __init__(self, initializer: Union[bitformat.MutableBits, None] = None,
+    def __init__(self, initializer: Union[MutableBits, None] = None,
                  immutable: bool = False) -> None:
         if initializer is not None:
-            assert isinstance(initializer, bitformat.MutableBits)
-            self._mutablebits = bitformat.MutableBits()
+            assert isinstance(initializer, MutableBits)
+            self._mutablebits = MutableBits()
             self._mutablebits += initializer
         else:
-            self._mutablebits = bitformat.MutableBits()
+            self._mutablebits = MutableBits()
         self.immutable = immutable
         self.modified_length = None
 
     @classmethod
     def from_int(cls, i: int):
         x = super().__new__(cls)
-        x._mutablebits = bitformat.MutableBits.from_zeros(i)
+        x._mutablebits = MutableBits.from_zeros(i)
         x.immutable = False
         x.modified_length = None
         return x
 
     @classmethod
-    def from_mutablebits(cls, mb: bitformat.MutableBits):
+    def from_mutablebits(cls, mb: MutableBits):
         x = super().__new__(cls)
         x._mutablebits = mb
         x.immutable = False
@@ -41,7 +40,7 @@ class BitStore:
     @classmethod
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> BitStore:
         x = super().__new__(cls)
-        x._mutablebits = bitformat.MutableBits.from_bytes(b)
+        x._mutablebits = MutableBits.from_bytes(b)
         x.immutable = False
         x.modified_length = None
         return x
@@ -49,7 +48,7 @@ class BitStore:
     @classmethod
     def frombuffer(cls, buffer, /, length: Optional[int] = None) -> BitStore:
         x = super().__new__(cls)
-        x._mutablebits = bitformat.MutableBits.from_bytes(bytes(buffer))
+        x._mutablebits = MutableBits.from_bytes(bytes(buffer))
         x.immutable = True
         x.modified_length = length
         # Here 'modified' means it shouldn't be changed further, so setting, deleting etc. are disallowed.
@@ -64,7 +63,7 @@ class BitStore:
     @classmethod
     def from_binary_string(cls, s: str) -> BitStore:
         x = super().__new__(cls)
-        x._mutablebits = bitformat.MutableBits.from_dtype('bin', s)
+        x._mutablebits = MutableBits.from_dtype('bin', s)
         x.immutable = False
         x.modified_length = None
         return x
