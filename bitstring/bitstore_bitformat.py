@@ -1,9 +1,17 @@
 from __future__ import annotations
 
-from bitformat import MutableBits
+from bitformat import MutableBits, DtypeSingle
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
 from bitstring.helpers import offset_slice_indices_lsb0
+
+
+u_dtype = DtypeSingle('u')
+i_dtype = DtypeSingle('i')
+bin_dtype = DtypeSingle('bin')
+oct_dtype = DtypeSingle('oct')
+hex_dtype = DtypeSingle('hex')
+
 
 class BitStore:
     """A light wrapper around bitformat.MutableBits that does the LSB0 stuff"""
@@ -84,19 +92,19 @@ class BitStore:
         return self._mutablebits.to_bytes()
 
     def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self.getslice(start, end)._mutablebits.u
+        return u_dtype.unpack(self.getslice(start, end)._mutablebits)
 
     def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self.getslice(start, end)._mutablebits.i
+        return i_dtype.unpack(self.getslice(start, end)._mutablebits)
 
     def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self.getslice(start, end)._mutablebits.hex
+        return hex_dtype.unpack(self.getslice(start, end)._mutablebits)
 
     def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self.getslice(start, end)._mutablebits.bin
+        return bin_dtype.unpack(self.getslice(start, end)._mutablebits)
 
     def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self.getslice(start, end)._mutablebits.oct
+        return oct_dtype.unpack(self.getslice(start, end)._mutablebits)
 
     def __iadd__(self, other: BitStore, /) -> BitStore:
         self._mutablebits += other._mutablebits
@@ -111,13 +119,13 @@ class BitStore:
         return self._mutablebits == other._mutablebits
 
     def __and__(self, other: BitStore, /) -> BitStore:
-        return BitStore(self._mutablebits & other._mutablebits)
+        return BitStore.from_mutablebits(self._mutablebits & other._mutablebits)
 
     def __or__(self, other: BitStore, /) -> BitStore:
-        return BitStore(self._mutablebits | other._mutablebits)
+        return BitStore.from_mutablebits(self._mutablebits | other._mutablebits)
 
     def __xor__(self, other: BitStore, /) -> BitStore:
-        return BitStore(self._mutablebits ^ other._mutablebits)
+        return BitStore.from_mutablebits(self._mutablebits ^ other._mutablebits)
 
     def __iand__(self, other: BitStore, /) -> BitStore:
         self._mutablebits &= other._mutablebits
@@ -159,24 +167,6 @@ class BitStore:
 
 
     def findall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        if bytealigned is True and len(bs) % 8 == 0:
-            # Special case, looking for whole bytes on whole byte boundaries
-            bytes_ = bs.tobytes()
-            # Round up start byte to next byte, and round end byte down.
-            # We're only looking for whole bytes, so can ignore bits at either end.
-            start_byte = (start + 7) // 8
-            end_byte = end // 8
-            b = self._mutablebits[start_byte * 8: end_byte * 8].to_bytes()
-            byte_pos = 0
-            bytes_to_search = end_byte - start_byte
-            while byte_pos < bytes_to_search:
-                byte_pos = b.find(bytes_, byte_pos)
-                if byte_pos == -1:
-                    break
-                yield (byte_pos + start_byte) * 8
-                byte_pos = byte_pos + 1
-            return
-        # General case
         if bytealigned:
             byte_offset = start % 8
             if byte_offset != 0:
@@ -210,7 +200,7 @@ class BitStore:
 
     def _copy(self) -> BitStore:
         """Always creates a copy, even if instance is immutable."""
-        return BitStore(self._mutablebits.__copy__())
+        return BitStore.from_mutablebits(self._mutablebits.__copy__())
 
     def copy(self) -> BitStore:
         return self if self.immutable else self._copy()
