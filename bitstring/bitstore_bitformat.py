@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from bitformat import MutableBits, DtypeSingle
+from bitformat import MutableBits, Bits, DtypeSingle
+
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
 from bitstring.helpers import offset_slice_indices_lsb0
@@ -18,16 +19,14 @@ class BitStore:
 
     __slots__ = ('_mutablebits', 'modified_length', 'immutable')
 
-    def __init__(self, initializer: Union[MutableBits, None] = None,
-                 immutable: bool = False) -> None:
+    def __init__(self, initializer: Union[MutableBits, Bits, None] = None, immutable: bool = False) -> None:
         if initializer is not None:
-            assert isinstance(initializer, MutableBits)
-            self._mutablebits = MutableBits()
-            self._mutablebits += initializer
+            # assert isinstance(initializer, MutableBits)
+            self._mutablebits = initializer
         else:
             self._mutablebits = MutableBits()
-        self.immutable = immutable
         self.modified_length = None
+        self.immutable = immutable
 
     @classmethod
     def from_int(cls, i: int):
@@ -56,6 +55,7 @@ class BitStore:
     @classmethod
     def frombuffer(cls, buffer, /, length: Optional[int] = None) -> BitStore:
         x = super().__new__(cls)
+        # TODO: bitformat needs a Bits.from_buffer method.
         x._mutablebits = MutableBits.from_bytes(bytes(buffer))
         x.immutable = True
         x.modified_length = length
@@ -71,7 +71,7 @@ class BitStore:
     @classmethod
     def from_binary_string(cls, s: str) -> BitStore:
         x = super().__new__(cls)
-        x._mutablebits = MutableBits.from_dtype('bin', s)
+        x._mutablebits = MutableBits.from_dtype(bin_dtype, s)
         x.immutable = False
         x.modified_length = None
         return x
@@ -141,30 +141,13 @@ class BitStore:
 
     def find(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> int:
         assert start >= 0
-        if bytealigned:
-            # We need to take the slice on a byte boundary for the find to work properly.
-            byte_offset = start % 8
-            if byte_offset != 0:
-                start += (8 - byte_offset)
-        x = self._mutablebits[start:end].find(bs._mutablebits, byte_aligned=bytealigned)
-        if x is None:
-            return -1
-        else:
-            return x + start
-
+        x = self._mutablebits.find(bs._mutablebits, start, end, byte_aligned=bytealigned)
+        return -1 if x is None else x
 
     def rfind(self, bs: BitStore, start: int, end: int, bytealigned: bool = False):
         assert start >= 0
-        if bytealigned:
-            byte_offset = start % 8
-            if byte_offset != 0:
-                start += (8 - byte_offset)
-        x = self._mutablebits[start:end].rfind(bs._mutablebits, byte_aligned=bytealigned)
-        if x is None:
-            return -1
-        else:
-            return x + start
-
+        x = self._mutablebits.rfind(bs._mutablebits, start, end, byte_aligned=bytealigned)
+        return -1 if x is None else x
 
     def findall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         if bytealigned:
