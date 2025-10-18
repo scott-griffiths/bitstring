@@ -581,31 +581,31 @@ class Bits:
         self._bitstore = bs._bitstore
 
     def _setp3binary(self, f: float) -> None:
-        self._bitstore = helpers.p3binary2bitstore(f)
+        self._bitstore = common_helpers.p3binary2bitstore(f)
 
     def _setp4binary(self, f: float) -> None:
-        self._bitstore = helpers.p4binary2bitstore(f)
+        self._bitstore = common_helpers.p4binary2bitstore(f)
 
     def _sete4m3mxfp(self, f: float) -> None:
-        self._bitstore = helpers.e4m3mxfp2bitstore(f)
+        self._bitstore = common_helpers.e4m3mxfp2bitstore(f)
 
     def _sete5m2mxfp(self, f: float) -> None:
-        self._bitstore = helpers.e5m2mxfp2bitstore(f)
+        self._bitstore = common_helpers.e5m2mxfp2bitstore(f)
 
     def _sete3m2mxfp(self, f: float) -> None:
-        self._bitstore = helpers.e3m2mxfp2bitstore(f)
+        self._bitstore = common_helpers.e3m2mxfp2bitstore(f)
 
     def _sete2m3mxfp(self, f: float) -> None:
-        self._bitstore = helpers.e2m3mxfp2bitstore(f)
+        self._bitstore = common_helpers.e2m3mxfp2bitstore(f)
 
     def _sete2m1mxfp(self, f: float) -> None:
-        self._bitstore = helpers.e2m1mxfp2bitstore(f)
+        self._bitstore = common_helpers.e2m1mxfp2bitstore(f)
 
     def _sete8m0mxfp(self, f: float) -> None:
-        self._bitstore = helpers.e8m0mxfp2bitstore(f)
+        self._bitstore = common_helpers.e8m0mxfp2bitstore(f)
 
     def _setmxint(self, f: float) -> None:
-        self._bitstore = helpers.mxint2bitstore(f)
+        self._bitstore = common_helpers.mxint2bitstore(f)
 
     def _setbytes(self, data: Union[bytearray, bytes, List], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
@@ -796,7 +796,7 @@ class Bits:
     def _setbfloatbe(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
             raise bitstring.CreationError(f"bfloats must be length 16, received a length of {length} bits.")
-        self._bitstore = helpers.bfloat2bitstore(f, True)
+        self._bitstore = common_helpers.bfloat2bitstore(f, True)
 
     def _getbfloatle(self) -> float:
         zero_padded = Bits(16) + self
@@ -805,7 +805,7 @@ class Bits:
     def _setbfloatle(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
             raise bitstring.CreationError(f"bfloats must be length 16, received a length of {length} bits.")
-        self._bitstore = helpers.bfloat2bitstore(f, False)
+        self._bitstore = common_helpers.bfloat2bitstore(f, False)
 
     def _setue(self, i: int) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
