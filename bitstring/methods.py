@@ -8,6 +8,8 @@ from typing import Union, List
 
 BitStore = bitstring.bitstore.BitStore
 helpers = bitstring.bitstore_helpers
+common_helpers = bitstring.bitstore_common_helpers
+
 
 def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     """Pack the values according to the format string and return a new BitStream.
@@ -76,7 +78,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
                     raise CreationError(f"Token with length {length} packed with value of length {len(value)}.")
                 bsl.append(value._bitstore)
                 continue
-            bsl.append(helpers.bitstore_from_token(name, length, value))
+            bsl.append(common_helpers.bitstore_from_token(name, length, value))
     except StopIteration:
         raise CreationError(f"Not enough parameters present to pack according to the "
                             f"format. {len(tokens)} values are needed.")

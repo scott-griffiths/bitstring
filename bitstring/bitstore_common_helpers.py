@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import struct
 import math
-from typing import Union
+from typing import Union, Dict, Callable, Optional
+import functools
 import bitstring
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt,
@@ -10,6 +11,45 @@ from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_s
 
 helpers = bitstring.bitstore_helpers
 BitStore = bitstring.bitstore.BitStore
+
+
+CACHE_SIZE = 256
+
+@functools.lru_cache(CACHE_SIZE)
+def str_to_bitstore(s: str) -> BitStore:
+    _, tokens = bitstring.utils.tokenparser(s)
+    bs = BitStore()
+    for token in tokens:
+        bs += bitstore_from_token(*token)
+    bs.immutable = True
+    return bs
+
+
+literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {
+    '0x': helpers.hex2bitstore,
+    '0X': helpers.hex2bitstore,
+    '0b': helpers.bin2bitstore,
+    '0B': helpers.bin2bitstore,
+    '0o': helpers.oct2bitstore,
+    '0O': helpers.oct2bitstore,
+}
+
+
+def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[str]) -> BitStore:
+    if name in literal_bit_funcs:
+        return literal_bit_funcs[name](value)
+    try:
+        d = bitstring.dtypes.Dtype(name, token_length)
+    except ValueError as e:
+        raise bitstring.CreationError(f"Can't parse token: {e}")
+    if value is None and name != 'pad':
+        raise ValueError(f"Token {name} requires a value.")
+    bs = d.build(value)._bitstore
+    if token_length is not None and len(bs) != d.bitlength:
+        raise bitstring.CreationError(f"Token with length {token_length} packed with value of length {len(bs)} "
+                                      f"({name}:{token_length}={value}).")
+    return bs
+
 
 
 def ue2bitstore(i: Union[str, int]) -> BitStore:

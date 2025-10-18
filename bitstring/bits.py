@@ -490,7 +490,7 @@ class Bits:
     def _setauto_no_length_or_offset(self, s: BitsType, /) -> None:
         """Set bitstring from a bitstring, file, bool, array, iterable or string."""
         if isinstance(s, str):
-            self._bitstore = helpers.str_to_bitstore(s)
+            self._bitstore = common_helpers.str_to_bitstore(s)
         elif isinstance(s, Bits):
             self._bitstore = s._bitstore.copy()
         elif isinstance(s, (bytes, bytearray, memoryview)):
@@ -1775,7 +1775,7 @@ class Bits:
     def fromstring(cls: TBits, s: str, /) -> TBits:
         """Create a new bitstring from a formatted string."""
         x = super().__new__(cls)
-        x._bitstore = helpers.str_to_bitstore(s)
+        x._bitstore = common_helpers.str_to_bitstore(s)
         return x
 
     len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")
