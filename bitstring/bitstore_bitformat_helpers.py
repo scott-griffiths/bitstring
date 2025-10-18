@@ -64,45 +64,6 @@ def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> BitSt
     return BitStore.from_mutablebits(mb)
 
 
-def ue2bitstore(i: Union[str, int]) -> BitStore:
-    i = int(i)
-    if i < 0:
-        raise bitstring.CreationError("Cannot use negative initialiser for unsigned exponential-Golomb.")
-    if i == 0:
-        return BitStore.from_binary_string('1')
-    tmp = i + 1
-    leadingzeros = -1
-    while tmp > 0:
-        tmp >>= 1
-        leadingzeros += 1
-    remainingpart = i + 1 - (1 << leadingzeros)
-    return BitStore.from_binary_string('0' * leadingzeros + '1') + int2bitstore(remainingpart, leadingzeros, False)
-
-
-def se2bitstore(i: Union[str, int]) -> BitStore:
-    i = int(i)
-    if i > 0:
-        u = (i * 2) - 1
-    else:
-        u = -2 * i
-    return ue2bitstore(u)
-
-
-def uie2bitstore(i: Union[str, int]) -> BitStore:
-    i = int(i)
-    if i < 0:
-        raise bitstring.CreationError("Cannot use negative initialiser for unsigned interleaved exponential-Golomb.")
-    return BitStore.from_binary_string('0b1' if i == 0 else '0b0' + '0'.join(bin(i + 1)[3:]) + '1')
-
-
-def sie2bitstore(i: Union[str, int]) -> BitStore:
-    i = int(i)
-    if i == 0:
-        return BitStore.from_binary_string('0b1')
-    else:
-        return uie2bitstore(abs(i)) + (BitStore.from_binary_string('0b1') if i < 0 else BitStore.from_binary_string('0b0'))
-
-
 def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> BitStore:
     f = float(f)
     fmt = '>f' if big_endian else '<f'

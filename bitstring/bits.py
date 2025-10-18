@@ -20,6 +20,7 @@ from bitstring.bitstring_options import Colour
 
 BitStore = bitstring.bitstore.BitStore
 helpers = bitstring.bitstore_helpers
+common_helpers = bitstring.bitstore_common_helpers
 
 
 # Things that can be converted to Bits when a Bits type is needed
@@ -814,7 +815,7 @@ class Bits:
         """
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = helpers.ue2bitstore(i)
+        self._bitstore = common_helpers.ue2bitstore(i)
 
     def _readue(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned exponential-Golomb code.
@@ -871,7 +872,7 @@ class Bits:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = helpers.se2bitstore(i)
+        self._bitstore = common_helpers.se2bitstore(i)
 
     def _readse(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as a signed exponential-Golomb code.
@@ -894,7 +895,7 @@ class Bits:
         """
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = helpers.uie2bitstore(i)
+        self._bitstore = common_helpers.uie2bitstore(i)
 
     def _readuie(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned interleaved exponential-Golomb code.
@@ -921,7 +922,7 @@ class Bits:
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = helpers.sie2bitstore(i)
+        self._bitstore = common_helpers.sie2bitstore(i)
 
     def _readsie(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as a signed interleaved exponential-Golomb code.

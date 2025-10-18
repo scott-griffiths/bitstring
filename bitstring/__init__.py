@@ -78,6 +78,7 @@ if _USE_RUST_CORE:
 else:
     bitstore = importlib.import_module('bitstring.bitstore_bitarray')
     bitstore_helpers = importlib.import_module('bitstring.bitstore_bitarray_helpers')
+bitstore_common_helpers = importlib.import_module('bitstring.bitstore_common_helpers')
 
 from .bits import Bits
 from .bitstring_options import Options
