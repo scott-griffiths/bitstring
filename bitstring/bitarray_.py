@@ -113,12 +113,16 @@ class BitArray(Bits):
 
         """
         if self._bitstore.immutable:
-            self._bitstore = self._bitstore._copy()
+            self._bitstore = self._bitstore._mutable_copy()
             self._bitstore.immutable = False
 
     def copy(self: TBits) -> TBits:
         """Return a copy of the bitstring."""
         return self.__copy__()
+
+    def _invert_all(self) -> None:
+        """Invert every bit."""
+        self._bitstore.invert()
 
     def __setattr__(self, attribute, value) -> None:
         try:
@@ -148,7 +152,7 @@ class BitArray(Bits):
     def __copy__(self) -> BitArray:
         """Return a new copy of the BitArray."""
         s_copy = BitArray()
-        s_copy._bitstore = self._bitstore._copy()
+        s_copy._bitstore = self._bitstore._mutable_copy()
         assert s_copy._bitstore.immutable is False
         return s_copy
 

@@ -323,8 +323,10 @@ class Bits:
         """
         if len(self) == 0:
             raise bitstring.Error("Cannot invert empty bitstring.")
-        s = self._copy()
-        s._invert_all()
+        bs = self._bitstore._mutable_copy()
+        bs.invert()
+        s = self.__class__.__new__(self.__class__)
+        s._bitstore = bs.as_immutable()
         return s
 
     def __lshift__(self: TBits, n: int, /) -> TBits:
@@ -996,7 +998,7 @@ class Bits:
         """Create and return a new copy of the Bits (always in memory)."""
         # Note that __copy__ may choose to return self if it's immutable. This method always makes a copy.
         s_copy = self.__class__()
-        s_copy._bitstore = self._bitstore._copy()
+        s_copy._bitstore = self._bitstore._mutable_copy()
         return s_copy
 
     def _slice(self: TBits, start: int, end: int) -> TBits:
@@ -1038,7 +1040,9 @@ class Bits:
     def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
         if bs._bitstore.immutable:
-            self._bitstore = bs._bitstore._copy() + self._bitstore
+            is_immutable = self._bitstore.immutable
+            self._bitstore = bs._bitstore._mutable_copy() + self._bitstore
+            self._bitstore.immutable = is_immutable
         else:
             self._bitstore = bs._bitstore + self._bitstore
 
@@ -1097,10 +1101,6 @@ class Bits:
         """Flip bit at pos 1<->0."""
         assert 0 <= pos < len(self)
         self._bitstore.invert(pos)
-
-    def _invert_all(self) -> None:
-        """Invert every bit."""
-        self._bitstore.invert()
 
     def _ilshift(self: TBits, n: int, /) -> TBits:
         """Shift bits by n to the left in place. Return self."""

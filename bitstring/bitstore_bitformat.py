@@ -17,21 +17,30 @@ hex_dtype = DtypeSingle('hex')
 class BitStore:
     """A light wrapper around bitformat.MutableBits that does the LSB0 stuff"""
 
-    __slots__ = ('_bits', 'modified_length', 'immutable')
+    __slots__ = ('_bits', 'modified_length')
 
-    def __init__(self, initializer: Union[MutableBits, Bits, None] = None, immutable: bool = False) -> None:
+    def __init__(self, initializer: Union[MutableBits, Bits, None] = None) -> None:
         if initializer is not None:
             self._bits = initializer
         else:
             self._bits = MutableBits()
         self.modified_length = None
-        self.immutable = immutable
+
+    @property
+    def immutable(self) -> bool:
+        return isinstance(self._bits, Bits)
+
+    @immutable.setter
+    def immutable(self, value: bool) -> None:
+        if value and not self.immutable:
+            self._bits = self._bits.to_bits()
+        elif not value and self.immutable:
+            self._bits = self._bits.to_mutable_bits()
 
     @classmethod
     def from_int(cls, i: int):
         x = super().__new__(cls)
         x._bits = MutableBits.from_zeros(i)
-        x.immutable = False
         x.modified_length = None
         return x
 
@@ -39,7 +48,6 @@ class BitStore:
     def _from_mutablebits(cls, mb: MutableBits):
         x = super().__new__(cls)
         x._bits = mb
-        x.immutable = False
         x.modified_length = None
         return x
 
@@ -47,7 +55,6 @@ class BitStore:
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> BitStore:
         x = super().__new__(cls)
         x._bits = MutableBits.from_bytes(b)
-        x.immutable = False
         x.modified_length = None
         return x
 
@@ -55,8 +62,7 @@ class BitStore:
     def frombuffer(cls, buffer, /, length: Optional[int] = None) -> BitStore:
         x = super().__new__(cls)
         # TODO: bitformat needs a Bits.from_buffer method.
-        x._bits = MutableBits.from_bytes(bytes(buffer))
-        x.immutable = True
+        x._bits = Bits.from_bytes(bytes(buffer))
         x.modified_length = length
         # Here 'modified' means it shouldn't be changed further, so setting, deleting etc. are disallowed.
         if x.modified_length is not None:
@@ -71,7 +77,6 @@ class BitStore:
     def from_binary_string(cls, s: str) -> BitStore:
         x = super().__new__(cls)
         x._bits = MutableBits.from_dtype(bin_dtype, s)
-        x.immutable = False
         x.modified_length = None
         return x
 
@@ -110,7 +115,7 @@ class BitStore:
         return self
 
     def __add__(self, other: BitStore, /) -> BitStore:
-        bs = self._copy()
+        bs = self._mutable_copy()
         bs += other
         return bs
 
@@ -153,7 +158,11 @@ class BitStore:
             byte_offset = start % 8
             if byte_offset != 0:
                 start += (8 - byte_offset)
-        i = self._bits[start:end].to_bits().find_all(bs._bits, byte_aligned=bytealigned)
+        # TODO:
+        if self.immutable:
+            i = self._bits[start:end].find_all(bs._bits, byte_aligned=bytealigned)
+        else:
+            i = self._bits[start:end].to_bits().find_all(bs._bits, byte_aligned=bytealigned)
         for p in i:
             yield p + start
 
@@ -163,7 +172,11 @@ class BitStore:
             byte_offset = start % 8
             if byte_offset != 0:
                 start += (8 - byte_offset)
-        i = self._bits[start:end].to_bits().rfind_all(bs._bits, byte_aligned=bytealigned)
+        # TODO:
+        if self.immutable:
+            i = self._bits[start:end].rfind_all(bs._bits, byte_aligned=bytealigned)
+        else:
+            i = self._bits[start:end].to_bits().rfind_all(bs._bits, byte_aligned=bytealigned)
         for p in i:
             yield p + start
 
@@ -180,12 +193,19 @@ class BitStore:
         for i in range(len(self)):
             yield self.getindex(i)
 
-    def _copy(self) -> BitStore:
+    def _mutable_copy(self) -> BitStore:
         """Always creates a copy, even if instance is immutable."""
+        if self.immutable:
+            return BitStore._from_mutablebits(self._bits.to_mutable_bits())
         return BitStore._from_mutablebits(self._bits.__copy__())
 
+    def as_immutable(self) -> BitStore:
+        if self.immutable:
+            return self
+        return BitStore(self._bits.as_bits())
+
     def copy(self) -> BitStore:
-        return self if self.immutable else self._copy()
+        return self if self.immutable else self._mutable_copy()
 
     def __getitem__(self, item: Union[int, slice], /) -> Union[int, BitStore]:
         # Use getindex or getslice instead

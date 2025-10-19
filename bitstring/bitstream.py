@@ -107,6 +107,11 @@ class ConstBitStream(Bits):
         self._pos = pos
         self._bitstore.immutable = True
 
+    def __new__(cls, *args, **kwargs):
+        x = super().__new__(cls, *args, **kwargs)
+        x._pos = 0
+        return x
+
     def _setbytepos(self, bytepos: int) -> None:
         """Move to absolute byte-aligned position in stream."""
         self._setbitpos(bytepos * 8)
@@ -601,8 +606,15 @@ class BitStream(ConstBitStream, bitstring.BitArray):
         """
         ConstBitStream.__init__(self, auto, length, offset, pos, **kwargs)
         if self._bitstore.immutable:
-            self._bitstore = self._bitstore._copy()
+            self._bitstore = self._bitstore._mutable_copy()
             self._bitstore.immutable = False
+
+    @classmethod
+    def fromstring(cls: TBits, s: str, /) -> TBits:
+        x = super().fromstring(s)
+        x._pos = 0
+        x._bitstore.immutable = False
+        return x
 
     def __copy__(self) -> BitStream:
         """Return a new copy of the BitStream."""

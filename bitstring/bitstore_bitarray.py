@@ -96,7 +96,7 @@ class BitStore:
         return self
 
     def __add__(self, other: BitStore, /) -> BitStore:
-        bs = self._copy()
+        bs = self._mutable_copy()
         bs += other
         return bs
 
@@ -191,12 +191,15 @@ class BitStore:
         for i in range(len(self)):
             yield self.getindex(i)
 
-    def _copy(self) -> BitStore:
+    def _mutable_copy(self) -> BitStore:
         """Always creates a copy, even if instance is immutable."""
-        return BitStore(self._bitarray)
+        return BitStore(self._bitarray, immutable=False)
+
+    def as_immutable(self) -> BitStore:
+        return BitStore(self._bitarray, immutable=True)
 
     def copy(self) -> BitStore:
-        return self if self.immutable else self._copy()
+        return self if self.immutable else self._mutable_copy()
 
     def __getitem__(self, item: Union[int, slice], /) -> Union[int, BitStore]:
         # Use getindex or getslice instead
