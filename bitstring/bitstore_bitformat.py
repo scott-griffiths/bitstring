@@ -38,9 +38,12 @@ class BitStore:
             self._bits = self._bits.to_mutable_bits()
 
     @classmethod
-    def from_int(cls, i: int):
+    def from_int(cls, i: int, immutable: bool):
         x = super().__new__(cls)
-        x._bits = MutableBits.from_zeros(i)
+        if immutable:
+            x._bits = Bits.from_zeros(i)
+        else:
+            x._bits = MutableBits.from_zeros(i)
         x.modified_length = None
         return x
 
@@ -76,7 +79,7 @@ class BitStore:
     @classmethod
     def from_binary_string(cls, s: str) -> BitStore:
         x = super().__new__(cls)
-        x._bits = MutableBits.from_dtype(bin_dtype, s)
+        x._bits = Bits.from_dtype(bin_dtype, s)
         x.modified_length = None
         return x
 
