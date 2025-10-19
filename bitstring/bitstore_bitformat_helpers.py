@@ -20,36 +20,36 @@ def bin2bitstore(binstring: str) -> BitStore:
     binstring = tidy_input_string(binstring)
     binstring = binstring.replace('0b', '')
     mb = MutableBits.from_dtype(bin_dtype, binstring)
-    return BitStore.from_mutablebits(mb)
+    return BitStore._from_mutablebits(mb)
 
 
 def hex2bitstore(hexstring: str) -> BitStore:
     hexstring = tidy_input_string(hexstring)
     hexstring = hexstring.replace('0x', '')
     mb = MutableBits.from_dtype(hex_dtype, hexstring)
-    return BitStore.from_mutablebits(mb)
+    return BitStore._from_mutablebits(mb)
 
 
 def oct2bitstore(octstring: str) -> BitStore:
     octstring = tidy_input_string(octstring)
     octstring = octstring.replace('0o', '')
     mb = MutableBits.from_dtype(oct_dtype, octstring)
-    return BitStore.from_mutablebits(mb)
+    return BitStore._from_mutablebits(mb)
 
 
 def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     dtype = DtypeSingle.from_params(DtypeKind.INT if signed else DtypeKind.UINT, length)
     mb = MutableBits.from_dtype(dtype, i)
-    return BitStore.from_mutablebits(mb)
+    return BitStore._from_mutablebits(mb)
 
 
 def intle2bitstore(i: int, length: int, signed: bool) -> BitStore:
     dtype = DtypeSingle.from_params(DtypeKind.INT if signed else DtypeKind.UINT, length, Endianness.LITTLE)
     mb = MutableBits.from_dtype(dtype, i)
-    return BitStore.from_mutablebits(mb)
+    return BitStore._from_mutablebits(mb)
 
 
 def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> BitStore:
     dtype = DtypeSingle.from_params(DtypeKind.FLOAT, length, Endianness.BIG if big_endian else Endianness.LITTLE)
     mb = MutableBits.from_dtype(dtype, f)
-    return BitStore.from_mutablebits(mb)
+    return BitStore._from_mutablebits(mb)
