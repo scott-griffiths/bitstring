@@ -14,7 +14,7 @@ oct_dtype = DtypeSingle('oct')
 hex_dtype = DtypeSingle('hex')
 
 
-class BitStore:
+class _BitStore:
     """A light wrapper around bitformat.MutableBits/Bits that does the LSB0 stuff"""
 
     __slots__ = ('_bits',)
@@ -52,13 +52,13 @@ class BitStore:
         return x
 
     @classmethod
-    def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> BitStore:
+    def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> _BitStore:
         x = super().__new__(cls)
         x._bits = MutableBits.from_bytes(b)
         return x
 
     @classmethod
-    def frombuffer(cls, buffer, /, length: Optional[int] = None) -> BitStore:
+    def frombuffer(cls, buffer, /, length: Optional[int] = None) -> _BitStore:
         x = super().__new__(cls)
         # TODO: bitformat needs a Bits.from_buffer method.
         x._bits = Bits.from_bytes(bytes(buffer))
@@ -71,7 +71,7 @@ class BitStore:
         return x.getslice(0, length) if length is not None else x
 
     @classmethod
-    def from_binary_string(cls, s: str) -> BitStore:
+    def from_binary_string(cls, s: str) -> _BitStore:
         x = super().__new__(cls)
         x._bits = Bits.from_dtype(bin_dtype, s)
         return x
@@ -113,11 +113,11 @@ class BitStore:
     def irshift(self, n: int, /) -> None:
         self._bits >>= n
 
-    def __iadd__(self, other: BitStore, /) -> BitStore:
+    def __iadd__(self, other: _BitStore, /) -> _BitStore:
         self._bits += other._bits
         return self
 
-    def __add__(self, other: BitStore, /) -> BitStore:
+    def __add__(self, other: _BitStore, /) -> _BitStore:
         bs = self._mutable_copy()
         bs += other
         return bs
@@ -125,43 +125,43 @@ class BitStore:
     def __eq__(self, other: Any, /) -> bool:
         return self._bits == other._bits
 
-    def __and__(self, other: BitStore, /) -> BitStore:
-        return BitStore._from_mutablebits(self._bits & other._bits)
+    def __and__(self, other: _BitStore, /) -> _BitStore:
+        return _BitStore._from_mutablebits(self._bits & other._bits)
 
-    def __or__(self, other: BitStore, /) -> BitStore:
-        return BitStore._from_mutablebits(self._bits | other._bits)
+    def __or__(self, other: _BitStore, /) -> _BitStore:
+        return _BitStore._from_mutablebits(self._bits | other._bits)
 
-    def __xor__(self, other: BitStore, /) -> BitStore:
-        return BitStore._from_mutablebits(self._bits ^ other._bits)
+    def __xor__(self, other: _BitStore, /) -> _BitStore:
+        return _BitStore._from_mutablebits(self._bits ^ other._bits)
 
-    def __iand__(self, other: BitStore, /) -> BitStore:
+    def __iand__(self, other: _BitStore, /) -> _BitStore:
         self._bits &= other._bits
         return self
 
-    def __ior__(self, other: BitStore, /) -> BitStore:
+    def __ior__(self, other: _BitStore, /) -> _BitStore:
         self._bits |= other._bits
         return self
 
-    def __ixor__(self, other: BitStore, /) -> BitStore:
+    def __ixor__(self, other: _BitStore, /) -> _BitStore:
         self._bits ^= other._bits
         return self
 
-    def find(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> int:
+    def find(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False) -> int:
         assert start >= 0
         x = self._bits.find(bs._bits, start, end, byte_aligned=bytealigned)
         return -1 if x is None else x
 
-    def rfind(self, bs: BitStore, start: int, end: int, bytealigned: bool = False):
+    def rfind(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False):
         assert start >= 0
         x = self._bits.rfind(bs._bits, start, end, byte_aligned=bytealigned)
         return -1 if x is None else x
 
-    def findall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+    def findall_msb0(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         x = self._bits if self.immutable else self._bits.to_bits()
         for p in x.find_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
 
-    def rfindall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+    def rfindall_msb0(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         x = self._bits if self.immutable else self._bits.to_bits()
         for p in x.rfind_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
@@ -179,40 +179,40 @@ class BitStore:
         for i in range(len(self)):
             yield self.getindex(i)
 
-    def _mutable_copy(self) -> BitStore:
+    def _mutable_copy(self) -> _BitStore:
         """Always creates a copy, even if instance is immutable."""
         if self.immutable:
-            return BitStore._from_mutablebits(self._bits.to_mutable_bits())
-        return BitStore._from_mutablebits(self._bits.__copy__())
+            return _BitStore._from_mutablebits(self._bits.to_mutable_bits())
+        return _BitStore._from_mutablebits(self._bits.__copy__())
 
-    def as_immutable(self) -> BitStore:
+    def as_immutable(self) -> _BitStore:
         if self.immutable:
             return self
-        return BitStore(self._bits.as_bits())
+        return _BitStore(self._bits.as_bits())
 
-    def copy(self) -> BitStore:
+    def copy(self) -> _BitStore:
         return self if self.immutable else self._mutable_copy()
 
-    def __getitem__(self, item: Union[int, slice], /) -> Union[int, BitStore]:
+    def __getitem__(self, item: Union[int, slice], /) -> Union[int, _BitStore]:
         # Use getindex or getslice instead
         raise NotImplementedError
 
     def getindex_msb0(self, index: int, /) -> bool:
         return self._bits.__getitem__(index)
 
-    def getslice_withstep_msb0(self, key: slice, /) -> BitStore:
-        return BitStore(self._bits.__getitem__(key))
+    def getslice_withstep_msb0(self, key: slice, /) -> _BitStore:
+        return _BitStore(self._bits.__getitem__(key))
 
-    def getslice_withstep_lsb0(self, key: slice, /) -> BitStore:
+    def getslice_withstep_lsb0(self, key: slice, /) -> _BitStore:
         key = offset_slice_indices_lsb0(key, len(self))
-        return BitStore(self._bits.__getitem__(key))
+        return _BitStore(self._bits.__getitem__(key))
 
-    def getslice_msb0(self, start: Optional[int], stop: Optional[int], /) -> BitStore:
-        return BitStore(self._bits[start:stop])
+    def getslice_msb0(self, start: Optional[int], stop: Optional[int], /) -> _BitStore:
+        return _BitStore(self._bits[start:stop])
 
-    def getslice_lsb0(self, start: Optional[int], stop: Optional[int], /) -> BitStore:
+    def getslice_lsb0(self, start: Optional[int], stop: Optional[int], /) -> _BitStore:
         s = offset_slice_indices_lsb0(slice(start, stop, None), len(self))
-        return BitStore(self._bits[s.start:s.stop])
+        return _BitStore(self._bits[s.start:s.stop])
 
     def getindex_lsb0(self, index: int, /) -> bool:
         return self._bits.__getitem__(-index - 1)
@@ -222,10 +222,10 @@ class BitStore:
         ...
 
     @overload
-    def setitem_lsb0(self, key: slice, value: BitStore, /) -> None:
+    def setitem_lsb0(self, key: slice, value: _BitStore, /) -> None:
         ...
 
-    def setitem_lsb0(self, key: Union[int, slice], value: Union[int, BitStore], /) -> None:
+    def setitem_lsb0(self, key: Union[int, slice], value: Union[int, _BitStore], /) -> None:
         if isinstance(key, slice):
             new_slice = offset_slice_indices_lsb0(key, len(self))
             self._bits.__setitem__(new_slice, value._bits)
@@ -261,7 +261,7 @@ class BitStore:
         return len(self._bits)
 
     def setitem_msb0(self, key, value, /):
-        if isinstance(value, BitStore):
+        if isinstance(value, _BitStore):
             self._bits.__setitem__(key, value._bits)
         else:
             if isinstance(key, slice):
@@ -270,3 +270,7 @@ class BitStore:
 
     def delitem_msb0(self, key, /):
         self._bits.__delitem__(key)
+
+
+ConstBitStore = _BitStore
+MutableBitStore = _BitStore

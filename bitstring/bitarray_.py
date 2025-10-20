@@ -11,7 +11,7 @@ from bitstring.bits import Bits, BitsType, TBits
 
 import bitstring.dtypes
 
-BitStore = bitstring.bitstore.BitStore
+MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
 class BitArray(Bits):
@@ -124,9 +124,9 @@ class BitArray(Bits):
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
-                x._bitstore = BitStore.from_int(length, False)
+                x._bitstore = MutableBitStore.from_int(length, False)
             else:
-                x._bitstore = BitStore()
+                x._bitstore = MutableBitStore()
             return x
         x._initialise(auto, length, offset, immutable=False, **kwargs)
         return x

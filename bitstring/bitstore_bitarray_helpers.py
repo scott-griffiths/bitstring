@@ -11,42 +11,43 @@ from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_s
                             e5m2mxfp_saturate_fmt, e4m3mxfp_overflow_fmt, e5m2mxfp_overflow_fmt)
 from bitstring.helpers import tidy_input_string
 
-BitStore = bitstring.bitstore.BitStore
+ConstBitStore = bitstring.bitstore.ConstBitStore
+MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
-def bin2bitstore(binstring: str) -> BitStore:
+def bin2bitstore(binstring: str) -> ConstBitStore:
     binstring = tidy_input_string(binstring)
     binstring = binstring.replace('0b', '')
     try:
-        return BitStore.from_binary_string(binstring)
+        return ConstBitStore.from_binary_string(binstring)
     except ValueError:
         raise bitstring.CreationError(f"Invalid character in bin initialiser {binstring}.")
 
 
-def hex2bitstore(hexstring: str) -> BitStore:
+def hex2bitstore(hexstring: str) -> ConstBitStore:
     hexstring = tidy_input_string(hexstring)
     hexstring = hexstring.replace('0x', '')
     try:
         ba = bitarray.util.hex2ba(hexstring)
     except ValueError:
         raise bitstring.CreationError("Invalid symbol in hex initialiser.")
-    return BitStore(ba)
+    return ConstBitStore(ba)
 
 
-def oct2bitstore(octstring: str) -> BitStore:
+def oct2bitstore(octstring: str) -> ConstBitStore:
     octstring = tidy_input_string(octstring)
     octstring = octstring.replace('0o', '')
     try:
         ba = bitarray.util.base2ba(8, octstring)
     except ValueError:
         raise bitstring.CreationError("Invalid symbol in oct initialiser.")
-    return BitStore(ba)
+    return ConstBitStore(ba)
 
 
-def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
+def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
     i = int(i)
     try:
-        x = BitStore(bitarray.util.int2ba(i, length=length, endian='big', signed=signed))
+        x = ConstBitStore(bitarray.util.int2ba(i, length=length, endian='big', signed=signed))
     except OverflowError as e:
         if signed:
             if i >= (1 << (length - 1)) or i < -(1 << (length - 1)):
@@ -62,12 +63,12 @@ def int2bitstore(i: int, length: int, signed: bool) -> BitStore:
     return x
 
 
-def intle2bitstore(i: int, length: int, signed: bool) -> BitStore:
+def intle2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
     x = int2bitstore(i, length, signed).tobytes()
-    return BitStore.frombytes(x[::-1])
+    return ConstBitStore.frombytes(x[::-1])
 
 
-def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> BitStore:
+def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> ConstBitStore:
     f = float(f)
     fmt = {16: '>e', 32: '>f', 64: '>d'}[length] if big_endian else {16: '<e', 32: '<f', 64: '<d'}[length]
     try:
@@ -75,5 +76,5 @@ def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> BitSt
     except OverflowError:
         # If float64 doesn't fit it automatically goes to 'inf'. This reproduces that behaviour for other types.
         b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
-    return BitStore.frombytes(b)
+    return ConstBitStore.frombytes(b)
 

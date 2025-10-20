@@ -10,22 +10,23 @@ from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_s
                             e5m2mxfp_saturate_fmt, e4m3mxfp_overflow_fmt, e5m2mxfp_overflow_fmt)
 
 helpers = bitstring.bitstore_helpers
-BitStore = bitstring.bitstore.BitStore
+ConstBitStore = bitstring.bitstore.ConstBitStore
+MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
 CACHE_SIZE = 256
 
 @functools.lru_cache(CACHE_SIZE)
-def str_to_bitstore(s: str) -> BitStore:
+def str_to_bitstore(s: str) -> ConstBitStore:
     _, tokens = bitstring.utils.tokenparser(s)
-    bs = BitStore()
+    bs = ConstBitStore()
     for token in tokens:
         bs += bitstore_from_token(*token)
     bs.immutable = True
     return bs
 
 
-literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {
+literal_bit_funcs: Dict[str, Callable[..., ConstBitStore]] = {
     '0x': helpers.hex2bitstore,
     '0X': helpers.hex2bitstore,
     '0b': helpers.bin2bitstore,
@@ -35,7 +36,7 @@ literal_bit_funcs: Dict[str, Callable[..., BitStore]] = {
 }
 
 
-def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[str]) -> BitStore:
+def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[str]) -> ConstBitStore:
     if name in literal_bit_funcs:
         return literal_bit_funcs[name](value)
     try:
@@ -52,22 +53,22 @@ def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[
 
 
 
-def ue2bitstore(i: Union[str, int]) -> BitStore:
+def ue2bitstore(i: Union[str, int]) -> ConstBitStore:
     i = int(i)
     if i < 0:
         raise bitstring.CreationError("Cannot use negative initialiser for unsigned exponential-Golomb.")
     if i == 0:
-        return BitStore.from_binary_string('1')
+        return ConstBitStore.from_binary_string('1')
     tmp = i + 1
     leadingzeros = -1
     while tmp > 0:
         tmp >>= 1
         leadingzeros += 1
     remainingpart = i + 1 - (1 << leadingzeros)
-    return BitStore.from_binary_string('0' * leadingzeros + '1') + helpers.int2bitstore(remainingpart, leadingzeros, False)
+    return ConstBitStore.from_binary_string('0' * leadingzeros + '1') + helpers.int2bitstore(remainingpart, leadingzeros, False)
 
 
-def se2bitstore(i: Union[str, int]) -> BitStore:
+def se2bitstore(i: Union[str, int]) -> ConstBitStore:
     i = int(i)
     if i > 0:
         u = (i * 2) - 1
@@ -76,22 +77,22 @@ def se2bitstore(i: Union[str, int]) -> BitStore:
     return ue2bitstore(u)
 
 
-def uie2bitstore(i: Union[str, int]) -> BitStore:
+def uie2bitstore(i: Union[str, int]) -> ConstBitStore:
     i = int(i)
     if i < 0:
         raise bitstring.CreationError("Cannot use negative initialiser for unsigned interleaved exponential-Golomb.")
-    return BitStore.from_binary_string('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
+    return ConstBitStore.from_binary_string('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
 
 
-def sie2bitstore(i: Union[str, int]) -> BitStore:
+def sie2bitstore(i: Union[str, int]) -> ConstBitStore:
     i = int(i)
     if i == 0:
-        return BitStore.from_binary_string('1')
+        return ConstBitStore.from_binary_string('1')
     else:
-        return uie2bitstore(abs(i)) + (BitStore.from_binary_string('1') if i < 0 else BitStore.from_binary_string('0'))
+        return uie2bitstore(abs(i)) + (ConstBitStore.from_binary_string('1') if i < 0 else ConstBitStore.from_binary_string('0'))
 
 
-def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> BitStore:
+def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> ConstBitStore:
     f = float(f)
     fmt = '>f' if big_endian else '<f'
     try:
@@ -99,22 +100,22 @@ def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> BitStore:
     except OverflowError:
         # For consistency, we overflow to 'inf'.
         b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
-    return BitStore.frombytes(b[0:2]) if big_endian else BitStore.frombytes(b[2:4])
+    return ConstBitStore.frombytes(b[0:2]) if big_endian else ConstBitStore.frombytes(b[2:4])
 
 
-def p4binary2bitstore(f: Union[str, float]) -> BitStore:
+def p4binary2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     u = p4binary_fmt.float_to_int8(f)
     return helpers.int2bitstore(u, 8, False)
 
 
-def p3binary2bitstore(f: Union[str, float]) -> BitStore:
+def p3binary2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     u = p3binary_fmt.float_to_int8(f)
     return helpers.int2bitstore(u, 8, False)
 
 
-def e4m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
+def e4m3mxfp2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     if bitstring.options.mxfp_overflow == 'saturate':
         u = e4m3mxfp_saturate_fmt.float_to_int(f)
@@ -123,7 +124,7 @@ def e4m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
     return helpers.int2bitstore(u, 8, False)
 
 
-def e5m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
+def e5m2mxfp2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     if bitstring.options.mxfp_overflow == 'saturate':
         u = e5m2mxfp_saturate_fmt.float_to_int(f)
@@ -132,7 +133,7 @@ def e5m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
     return helpers.int2bitstore(u, 8, False)
 
 
-def e3m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
+def e3m2mxfp2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
         raise ValueError("Cannot convert float('nan') to e3m2mxfp format as it has no representation for it.")
@@ -140,7 +141,7 @@ def e3m2mxfp2bitstore(f: Union[str, float]) -> BitStore:
     return helpers.int2bitstore(u, 6, False)
 
 
-def e2m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
+def e2m3mxfp2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
         raise ValueError("Cannot convert float('nan') to e2m3mxfp format as it has no representation for it.")
@@ -148,7 +149,7 @@ def e2m3mxfp2bitstore(f: Union[str, float]) -> BitStore:
     return helpers.int2bitstore(u, 6, False)
 
 
-def e2m1mxfp2bitstore(f: Union[str, float]) -> BitStore:
+def e2m1mxfp2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
         raise ValueError("Cannot convert float('nan') to e2m1mxfp format as it has no representation for it.")
@@ -159,10 +160,10 @@ def e2m1mxfp2bitstore(f: Union[str, float]) -> BitStore:
 e8m0mxfp_allowed_values = [float(2 ** x) for x in range(-127, 128)]
 
 
-def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
+def e8m0mxfp2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
-        return BitStore.from_binary_string('11111111')
+        return ConstBitStore.from_binary_string('11111111')
     try:
         i = e8m0mxfp_allowed_values.index(f)
     except ValueError:
@@ -170,15 +171,15 @@ def e8m0mxfp2bitstore(f: Union[str, float]) -> BitStore:
     return helpers.int2bitstore(i, 8, False)
 
 
-def mxint2bitstore(f: Union[str, float]) -> BitStore:
+def mxint2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
         raise ValueError("Cannot convert float('nan') to mxint format as it has no representation for it.")
     f *= 2 ** 6  # Remove the implicit scaling factor
     if f > 127:  # 1 + 63/64
-        return BitStore.from_binary_string('01111111')
+        return ConstBitStore.from_binary_string('01111111')
     if f <= -128:  # -2
-        return BitStore.from_binary_string('10000000')
+        return ConstBitStore.from_binary_string('10000000')
     # Want to round to nearest, so move by 0.5 away from zero and round down by converting to int
     if f >= 0.0:
         f += 0.5

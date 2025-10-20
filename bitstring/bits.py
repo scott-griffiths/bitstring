@@ -18,7 +18,8 @@ from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt
 from bitstring.bitstring_options import Colour
 
-BitStore = bitstring.bitstore.BitStore
+ConstBitStore = bitstring.bitstore.ConstBitStore
+MutableBitStore = bitstring.bitstore.MutableBitStore
 helpers = bitstring.bitstore_helpers
 common_helpers = bitstring.bitstore_common_helpers
 
@@ -119,9 +120,9 @@ class Bits:
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
-                x._bitstore = BitStore.from_int(length, immutable=True)
+                x._bitstore = ConstBitStore.from_int(length, immutable=True)
             else:
-                x._bitstore = BitStore()
+                x._bitstore = MutableBitStore()
             return x
         x._initialise(auto, length, offset, immutable=True, **kwargs)
         return x
@@ -140,7 +141,10 @@ class Bits:
                 # Initialise with s zero bits.
                 if auto < 0:
                     raise bitstring.CreationError(f"Can't create bitstring of negative length {auto}.")
-                self._bitstore = BitStore.from_int(int(auto), immutable)
+                if immutable:
+                    self._bitstore = ConstBitStore.from_int(int(auto), immutable)
+                else:
+                    self._bitstore = MutableBitStore.from_int(int(auto), immutable)
                 return
             self._setauto(auto, length, offset)
             return
@@ -496,15 +500,15 @@ class Bits:
         elif isinstance(s, Bits):
             self._bitstore = s._bitstore.copy()
         elif isinstance(s, (bytes, bytearray, memoryview)):
-            self._bitstore = BitStore.frombytes(bytearray(s))
+            self._bitstore = ConstBitStore.frombytes(bytearray(s))
         elif isinstance(s, io.BytesIO):
-            self._bitstore = BitStore.frombytes(s.getvalue())
+            self._bitstore = ConstBitStore.frombytes(s.getvalue())
         elif isinstance(s, io.BufferedReader):
             self._setfile(s.name)
         elif isinstance(s, bitarray.bitarray):
-            self._bitstore = BitStore(s)
+            self._bitstore = ConstBitStore(s)
         elif isinstance(s, array.array):
-            self._bitstore = BitStore.frombytes(s.tobytes())
+            self._bitstore = ConstBitStore.frombytes(s.tobytes())
         elif isinstance(s, abc.Iterable):
             # Evaluate each item as True or False and set bits to 1 or 0.
             self._setbin(''.join(str(int(bool(x))) for x in s))
@@ -520,7 +524,8 @@ class Bits:
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
         if offset is None and length is None:
-            return self._setauto_no_length_or_offset(s)
+            self._setauto_no_length_or_offset(s)
+            return
         if offset is None:
             offset = 0
 
@@ -531,7 +536,7 @@ class Bits:
             bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
             if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
                 raise bitstring.CreationError("BytesIO object is not long enough for specified length and offset.")
-            self._bitstore = BitStore.frombytes(s.getvalue()[byteoffset: byteoffset + bytelength]).getslice(
+            self._bitstore = ConstBitStore.frombytes(s.getvalue()[byteoffset: byteoffset + bytelength]).getslice(
                 offset, offset + length)
             return
 
@@ -552,10 +557,10 @@ class Bits:
             m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
             if offset == 0:
                 self._filename = source.name
-                self._bitstore = BitStore.frombuffer(m, length=length)
+                self._bitstore = ConstBitStore.frombuffer(m, length=length)
             else:
                 # If offset is given then always read into memory.
-                temp = BitStore.frombuffer(m)
+                temp = ConstBitStore.frombuffer(m)
                 if length is None:
                     if offset > len(temp):
                         raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({len(temp)} bits).")
@@ -571,12 +576,12 @@ class Bits:
         if offset > len(ba):
             raise bitstring.CreationError(f"Offset of {offset} too large for bitarray of length {len(ba)}.")
         if length is None:
-            self._bitstore = BitStore(ba[offset:])
+            self._bitstore = ConstBitStore(ba[offset:])
         else:
             if offset + length > len(ba):
                 raise bitstring.CreationError(
                     f"Offset of {offset} and length of {length} too large for bitarray of length {len(ba)}.")
-            self._bitstore = BitStore(ba[offset: offset + length])
+            self._bitstore = ConstBitStore(ba[offset: offset + length])
 
     def _setbits(self, bs: BitsType, length: None = None) -> None:
         bs = Bits._create_from_bitstype(bs)
@@ -611,7 +616,7 @@ class Bits:
 
     def _setbytes(self, data: Union[bytearray, bytes, List], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
-        self._bitstore = BitStore.frombytes(bytes(data))
+        self._bitstore = ConstBitStore.frombytes(bytes(data))
 
     def _setbytes_with_truncation(self, data: Union[bytearray, bytes], length: Optional[int] = None, offset: Optional[int] = None) -> None:
         """Set the data from a bytes or bytearray object, with optional offset and length truncations."""
@@ -626,7 +631,7 @@ class Bits:
         else:
             if length + offset > len(data) * 8:
                 raise bitstring.CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
-        self._bitstore = BitStore.frombytes(data).getslice_msb0(offset, offset + length)
+        self._bitstore = ConstBitStore.frombytes(data).getslice_msb0(offset, offset + length)
 
     def _getbytes(self) -> bytes:
         """Return the data as an ordinary bytes object."""
@@ -713,7 +718,7 @@ class Bits:
         """Interpret as a little-endian unsigned int."""
         if len(self) % 8:
             raise bitstring.InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
-        bs = BitStore.frombytes(self._bitstore.tobytes()[::-1])
+        bs = ConstBitStore.frombytes(self._bitstore.tobytes()[::-1])
         return bs.slice_to_uint()
 
     def _setintle(self, intle: int, length: Optional[int] = None) -> None:
@@ -727,7 +732,7 @@ class Bits:
         """Interpret as a little-endian signed int."""
         if len(self) % 8:
             raise bitstring.InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
-        bs = BitStore.frombytes(self._bitstore.tobytes()[::-1])
+        bs = ConstBitStore.frombytes(self._bitstore.tobytes()[::-1])
         return bs.slice_to_int()
 
     def _getp4binary(self) -> float:
@@ -947,9 +952,9 @@ class Bits:
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
         if value in (1, 'True', '1'):
-            self._bitstore = BitStore.from_binary_string('1')
+            self._bitstore = ConstBitStore.from_binary_string('1')
         elif value in (0, 'False', '0'):
-            self._bitstore = BitStore.from_binary_string('0')
+            self._bitstore = ConstBitStore.from_binary_string('0')
         else:
             raise bitstring.CreationError(f"Cannot initialise boolean with {value}.")
 
@@ -960,7 +965,7 @@ class Bits:
         return None
 
     def _setpad(self, value: None, length: int) -> None:
-        self._bitstore = BitStore.from_int(length, immutable=True)
+        self._bitstore = ConstBitStore.from_int(length, immutable=True)
 
     def _setbin(self, binstring: str, length: None = None) -> None:
         """Reset the bitstring to the value given in binstring."""
@@ -1065,7 +1070,7 @@ class Bits:
     def _reversebytes(self, start: int, end: int) -> None:
         """Reverse bytes in-place."""
         assert (end - start) % 8 == 0
-        self._bitstore[start:end] = BitStore.frombytes(self._bitstore.getslice(start, end).tobytes()[::-1])
+        self._bitstore[start:end] = ConstBitStore.frombytes(self._bitstore.getslice(start, end).tobytes()[::-1])
 
     def _invert(self, pos: int, /) -> None:
         """Flip bit at pos 1<->0."""
@@ -1420,7 +1425,7 @@ class Bits:
         sequence -- A sequence of bitstrings.
 
         """
-        bs = BitStore()
+        bs = MutableBitStore()
         if len(self) == 0:
             # Optimised version that doesn't need to add self between every item
             for item in sequence:

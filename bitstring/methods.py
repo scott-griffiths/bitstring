@@ -6,7 +6,7 @@ from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
 from typing import Union, List
 
-BitStore = bitstring.bitstore.BitStore
+MutableBitStore = bitstring.bitstore.MutableBitStore
 helpers = bitstring.bitstore_helpers
 common_helpers = bitstring.bitstore_common_helpers
 

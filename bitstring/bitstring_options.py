@@ -3,7 +3,8 @@ from __future__ import annotations
 import bitstring
 import os
 
-BitStore = bitstring.bitstore.BitStore
+ConstBitStore = bitstring.bitstore.ConstBitStore
+MutableBitStore = bitstring.bitstore.MutableBitStore
 
 class Options:
     """Internal class to create singleton module options instance."""
@@ -20,7 +21,7 @@ class Options:
         self.no_color = True if no_color else False
 
     def using_rust_core(self):
-        x = BitStore()
+        x = ConstBitStore()
         return x.using_rust_core()
 
     @property
@@ -55,17 +56,21 @@ class Options:
             Bits: {'_find': Bits._find_lsb0, '_rfind': Bits._rfind_lsb0, '_findall': Bits._findall_lsb0},
             BitArray: {'_ror': BitArray._rol_msb0, '_rol': BitArray._ror_msb0, '_append': BitArray._append_lsb0,
                        '_prepend': BitArray._append_msb0},
-            BitStore: {'__setitem__': BitStore.setitem_lsb0, '__delitem__': BitStore.delitem_lsb0,
-                       'getindex': BitStore.getindex_lsb0, 'getslice': BitStore.getslice_lsb0,
-                       'getslice_withstep': BitStore.getslice_withstep_lsb0, 'invert': BitStore.invert_lsb0}
+            ConstBitStore: {'getindex': ConstBitStore.getindex_lsb0, 'getslice': ConstBitStore.getslice_lsb0,
+                       'getslice_withstep': ConstBitStore.getslice_withstep_lsb0},
+            MutableBitStore: {'__setitem__': MutableBitStore.setitem_lsb0, '__delitem__': MutableBitStore.delitem_lsb0,
+                       'getindex': MutableBitStore.getindex_lsb0, 'getslice': MutableBitStore.getslice_lsb0,
+                       'getslice_withstep': MutableBitStore.getslice_withstep_lsb0, 'invert': MutableBitStore.invert_lsb0}
         }
         msb0_methods = {
             Bits: {'_find': Bits._find_msb0, '_rfind': Bits._rfind_msb0, '_findall': Bits._findall_msb0},
             BitArray: {'_ror': BitArray._ror_msb0, '_rol': BitArray._rol_msb0, '_append': BitArray._append_msb0,
                        '_prepend': BitArray._append_lsb0},
-            BitStore: {'__setitem__': BitStore.setitem_msb0, '__delitem__': BitStore.delitem_msb0,
-                       'getindex': BitStore.getindex_msb0, 'getslice': BitStore.getslice_msb0,
-                       'getslice_withstep': BitStore.getslice_withstep_msb0, 'invert': BitStore.invert_msb0}
+            ConstBitStore: {'getindex': ConstBitStore.getindex_msb0, 'getslice': ConstBitStore.getslice_msb0,
+                       'getslice_withstep': ConstBitStore.getslice_withstep_msb0},
+            MutableBitStore: {'__setitem__': MutableBitStore.setitem_msb0, '__delitem__': MutableBitStore.delitem_msb0,
+                       'getindex': MutableBitStore.getindex_msb0, 'getslice': MutableBitStore.getslice_msb0,
+                       'getslice_withstep': MutableBitStore.getslice_withstep_msb0, 'invert': MutableBitStore.invert_msb0}
         }
         methods = lsb0_methods if self._lsb0 else msb0_methods
         for cls, method_dict in methods.items():
