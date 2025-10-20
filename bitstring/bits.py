@@ -487,7 +487,7 @@ class Bits:
 
     def _clear(self) -> None:
         """Reset the bitstring to an empty state."""
-        self._bitstore = BitStore()
+        self._bitstore.clear()
 
     def _setauto_no_length_or_offset(self, s: BitsType, /) -> None:
         """Set bitstring from a bitstring, file, bool, array, iterable or string."""
@@ -1039,36 +1039,7 @@ class Bits:
 
     def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
-        if bs._bitstore.immutable:
-            is_immutable = self._bitstore.immutable
-            self._bitstore = bs._bitstore._mutable_copy() + self._bitstore
-            self._bitstore.immutable = is_immutable
-        else:
-            self._bitstore = bs._bitstore + self._bitstore
-
-    def _truncateleft(self: TBits, bits: int, /) -> TBits:
-        """Truncate bits from the start of the bitstring. Return the truncated bits."""
-        assert 0 <= bits <= len(self)
-        if bits == 0:
-            return self.__class__()
-        truncated_bits = self._absolute_slice(0, bits)
-        if bits == len(self):
-            self._clear()
-            return truncated_bits
-        self._bitstore = self._bitstore.getslice_msb0(bits, None)
-        return truncated_bits
-
-    def _truncateright(self: TBits, bits: int, /) -> TBits:
-        """Truncate bits from the end of the bitstring. Return the truncated bits."""
-        assert 0 <= bits <= len(self)
-        if bits == 0:
-            return self.__class__()
-        truncated_bits = self._absolute_slice(len(self) - bits, len(self))
-        if bits == len(self):
-            self._clear()
-            return truncated_bits
-        self._bitstore = self._bitstore.getslice_msb0(None, -bits)
-        return truncated_bits
+        self._bitstore = bs._bitstore + self._bitstore
 
     def _insert(self, bs: Bits, pos: int, /) -> None:
         """Insert bs at pos."""
@@ -1090,7 +1061,6 @@ class Bits:
         assert 0 <= pos <= len(self)
         assert pos + bits <= len(self), f"pos={pos}, bits={bits}, len={len(self)}"
         del self._bitstore[pos: pos + bits]
-        return
 
     def _reversebytes(self, start: int, end: int) -> None:
         """Reverse bytes in-place."""
@@ -1104,30 +1074,17 @@ class Bits:
 
     def _ilshift(self: TBits, n: int, /) -> TBits:
         """Shift bits by n to the left in place. Return self."""
-        assert 0 < n <= len(self)
-        self._addright(Bits(n))
-        self._truncateleft(n)
+        self._bitstore.ilshift(n)
         return self
 
     def _irshift(self: TBits, n: int, /) -> TBits:
         """Shift bits by n to the right in place. Return self."""
-        assert 0 < n <= len(self)
-        self._addleft(Bits(n))
-        self._truncateright(n)
+        self._bitstore.irshift(n)
         return self
 
     def _imul(self: TBits, n: int, /) -> TBits:
         """Concatenate n copies of self in place. Return self."""
-        assert n >= 0
-        if n == 0:
-            self._clear()
-        else:
-            m = 1
-            old_len = len(self)
-            while m * 2 < n:
-                self._addright(self)
-                m *= 2
-            self._addright(self[0:(n - m) * old_len])
+        self._bitstore.imul(n)
         return self
 
     def _getbits(self: TBits):

@@ -93,6 +93,16 @@ class BitStore:
     def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
         return bitarray.util.ba2base(8, self.getslice(start, end)._bitarray)
 
+    def imul(self, n: int, /) -> BitStore:
+        self._bitarray *= n
+        return self
+
+    def ilshift(self, n: int, /) -> None:
+        self._bitarray <<= n
+
+    def irshift(self, n: int, /) -> None:
+        self._bitarray >>= n
+
     def __iadd__(self, other: BitStore, /) -> BitStore:
         self._bitarray += other._bitarray
         return self

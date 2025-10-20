@@ -104,6 +104,15 @@ class BitStore:
     def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
         return self._bits.unpack(oct_dtype, start=start, end=end)
 
+    def imul(self, n: int, /) -> None:
+        self._bits *= n
+
+    def ilshift(self, n: int, /) -> None:
+        self._bits <<= n
+
+    def irshift(self, n: int, /) -> None:
+        self._bits >>= n
+
     def __iadd__(self, other: BitStore, /) -> BitStore:
         self._bits += other._bits
         return self

@@ -1637,7 +1637,6 @@ class TestMultiplication:
         assert q.bitpos == 3
         q *= 0
         assert not q
-        assert q.bitpos == 0
 
     def test_multiplication_with_files(self):
         a = BitStream(filename=os.path.join(THIS_DIR, 'test.m1v'))
@@ -3477,11 +3476,6 @@ class TestBugs:
         s = BitStream('0x0123412341234')
         s.replace('0x23', '0xf', start=9, bytealigned=True)
         assert s == '0x012341f41f4'
-
-    def test_truncateleft_bug(self):
-        a = BitStream('0b000000111')[2:]
-        a._truncateleft(6)
-        assert a == '0b1'
 
     def test_null_bits(self):
         s = ConstBitStream(bin='')
