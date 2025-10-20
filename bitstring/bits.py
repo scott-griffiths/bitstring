@@ -1463,22 +1463,24 @@ class Bits:
         sequence -- A sequence of bitstrings.
 
         """
-        s = self.__class__()
+        bs = BitStore()
         if len(self) == 0:
             # Optimised version that doesn't need to add self between every item
             for item in sequence:
-                s._addright(Bits._create_from_bitstype(item))
-            return s
+                bs += Bits._create_from_bitstype(item)._bitstore
         else:
             sequence_iter = iter(sequence)
             try:
-                s._addright(Bits._create_from_bitstype(next(sequence_iter)))
+                bs += Bits._create_from_bitstype(next(sequence_iter))._bitstore
             except StopIteration:
-                return s
-            for item in sequence_iter:
-                s._addright(self)
-                s._addright(Bits._create_from_bitstype(item))
-            return s
+                pass
+            else:
+                for item in sequence_iter:
+                    bs += self._bitstore
+                    bs += Bits._create_from_bitstype(item)._bitstore
+        s = self.__class__()
+        s._bitstore = bs
+        return s
 
     def tobytes(self) -> bytes:
         """Return the bitstring as bytes, padding with zero bits if needed.
@@ -1490,11 +1492,7 @@ class Bits:
 
     def tobitarray(self) -> bitarray.bitarray:
         """Convert the bitstring to a bitarray object."""
-        if self._bitstore.modified_length is not None:
-            # Removes the offset and truncates to length
-            return self._bitstore.getslice(0, len(self)).tobitarray()
-        else:
-            return self._bitstore.tobitarray()
+        return self._bitstore.tobitarray()
 
     def tofile(self, f: BinaryIO) -> None:
         """Write the bitstring to a file object, padding with zero bits if needed.

@@ -69,6 +69,8 @@ class BitStore:
         return False
 
     def tobitarray(self) -> bitarray.bitarray:
+        if self.modified_length is not None:
+            return self.getslice(0, len(self))._bitarray
         return self._bitarray
 
     def tobytes(self) -> bytes:

@@ -15,16 +15,15 @@ hex_dtype = DtypeSingle('hex')
 
 
 class BitStore:
-    """A light wrapper around bitformat.MutableBits that does the LSB0 stuff"""
+    """A light wrapper around bitformat.MutableBits/Bits that does the LSB0 stuff"""
 
-    __slots__ = ('_bits', 'modified_length')
+    __slots__ = ('_bits',)
 
     def __init__(self, initializer: Union[MutableBits, Bits, None] = None) -> None:
         if initializer is not None:
             self._bits = initializer
         else:
             self._bits = MutableBits()
-        self.modified_length = None
 
     @property
     def immutable(self) -> bool:
@@ -44,21 +43,18 @@ class BitStore:
             x._bits = Bits.from_zeros(i)
         else:
             x._bits = MutableBits.from_zeros(i)
-        x.modified_length = None
         return x
 
     @classmethod
     def _from_mutablebits(cls, mb: MutableBits):
         x = super().__new__(cls)
         x._bits = mb
-        x.modified_length = None
         return x
 
     @classmethod
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> BitStore:
         x = super().__new__(cls)
         x._bits = MutableBits.from_bytes(b)
-        x.modified_length = None
         return x
 
     @classmethod
@@ -66,21 +62,18 @@ class BitStore:
         x = super().__new__(cls)
         # TODO: bitformat needs a Bits.from_buffer method.
         x._bits = Bits.from_bytes(bytes(buffer))
-        x.modified_length = length
-        # Here 'modified' means it shouldn't be changed further, so setting, deleting etc. are disallowed.
-        if x.modified_length is not None:
-            if x.modified_length < 0:
+        if length is not None:
+            if length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
-            if x.modified_length > len(x._bits):
+            if length > len(x._bits):
                 raise CreationError(
-                    f"Can't create bitstring with a length of {x.modified_length} from {len(x._bits)} bits of data.")
-        return x
+                    f"Can't create bitstring with a length of {length} from {len(x._bits)} bits of data.")
+        return x.getslice(0, length) if length is not None else x
 
     @classmethod
     def from_binary_string(cls, s: str) -> BitStore:
         x = super().__new__(cls)
         x._bits = Bits.from_dtype(bin_dtype, s)
-        x.modified_length = None
         return x
 
     def set(self, value, pos) -> None:
@@ -94,24 +87,22 @@ class BitStore:
         raise TypeError("tobitarray() is not available when using the Rust core option.")
 
     def tobytes(self) -> bytes:
-        if self.modified_length is not None:
-            return self._bits[:self.modified_length].to_bytes()
         return self._bits.to_bytes()
 
     def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return u_dtype.unpack(self.getslice(start, end)._bits)
+        return self._bits.unpack(u_dtype, start=start, end=end)
 
     def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return i_dtype.unpack(self.getslice(start, end)._bits)
+        return self._bits.unpack(i_dtype, start=start, end=end)
 
     def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return hex_dtype.unpack(self.getslice(start, end)._bits)
+        return self._bits.unpack(hex_dtype, start=start, end=end)
 
     def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return bin_dtype.unpack(self.getslice(start, end)._bits)
+        return self._bits.unpack(bin_dtype, start=start, end=end)
 
     def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return oct_dtype.unpack(self.getslice(start, end)._bits)
+        return self._bits.unpack(oct_dtype, start=start, end=end)
 
     def __iadd__(self, other: BitStore, /) -> BitStore:
         self._bits += other._bits
@@ -157,31 +148,14 @@ class BitStore:
         return -1 if x is None else x
 
     def findall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        if bytealigned:
-            byte_offset = start % 8
-            if byte_offset != 0:
-                start += (8 - byte_offset)
-        # TODO:
-        if self.immutable:
-            i = self._bits[start:end].find_all(bs._bits, byte_aligned=bytealigned)
-        else:
-            i = self._bits[start:end].to_bits().find_all(bs._bits, byte_aligned=bytealigned)
-        for p in i:
-            yield p + start
+        x = self._bits if self.immutable else self._bits.to_bits()
+        for p in x.find_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
+            yield p
 
     def rfindall_msb0(self, bs: BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        assert start >= 0
-        if bytealigned:
-            byte_offset = start % 8
-            if byte_offset != 0:
-                start += (8 - byte_offset)
-        # TODO:
-        if self.immutable:
-            i = self._bits[start:end].rfind_all(bs._bits, byte_aligned=bytealigned)
-        else:
-            i = self._bits[start:end].to_bits().rfind_all(bs._bits, byte_aligned=bytealigned)
-        for p in i:
-            yield p + start
+        x = self._bits if self.immutable else self._bits.to_bits()
+        for p in x.rfind_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
+            yield p
 
     def count(self, value, /) -> int:
         return self._bits.count(value)
@@ -218,8 +192,6 @@ class BitStore:
         return self._bits.__getitem__(index)
 
     def getslice_withstep_msb0(self, key: slice, /) -> BitStore:
-        if self.modified_length is not None:
-            key = slice(*key.indices(self.modified_length))
         return BitStore(self._bits.__getitem__(key))
 
     def getslice_withstep_lsb0(self, key: slice, /) -> BitStore:
@@ -227,10 +199,6 @@ class BitStore:
         return BitStore(self._bits.__getitem__(key))
 
     def getslice_msb0(self, start: Optional[int], stop: Optional[int], /) -> BitStore:
-        if self.modified_length is not None:
-            key = slice(*slice(start, stop, None).indices(self.modified_length))
-            start = key.start
-            stop = key.stop
         return BitStore(self._bits[start:stop])
 
     def getslice_lsb0(self, start: Optional[int], stop: Optional[int], /) -> BitStore:
@@ -281,7 +249,7 @@ class BitStore:
         return self._bits.all()
 
     def __len__(self) -> int:
-        return self.modified_length if self.modified_length is not None else len(self._bits)
+        return len(self._bits)
 
     def setitem_msb0(self, key, value, /):
         if isinstance(value, BitStore):
