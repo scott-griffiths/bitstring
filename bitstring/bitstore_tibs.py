@@ -1,17 +1,11 @@
 from __future__ import annotations
 
-from bitformat import MutableBits, Bits, DtypeSingle
+from tibs import Tibs, Mutibs
 
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
 from bitstring.helpers import offset_slice_indices_lsb0
 
-
-u_dtype = DtypeSingle('u')
-i_dtype = DtypeSingle('i')
-bin_dtype = DtypeSingle('bin')
-oct_dtype = DtypeSingle('oct')
-hex_dtype = DtypeSingle('hex')
 
 
 class ConstBitStore:
@@ -19,34 +13,36 @@ class ConstBitStore:
 
     __slots__ = ('_bits',)
 
-    def __init__(self, initializer: Union[MutableBits, Bits, None] = None) -> None:
+    def __init__(self, initializer: Union[Mutibs, Tibs, None] = None) -> None:
         if initializer is not None:
             self._bits = initializer
         else:
-            self._bits = MutableBits()
+            self._bits = Mutibs()
 
     @property
     def immutable(self) -> bool:
-        return isinstance(self._bits, Bits)
+        return isinstance(self._bits, Tibs)
 
     @immutable.setter
     def immutable(self, value: bool) -> None:
         if value and not self.immutable:
-            self._bits = self._bits.to_bits()
+            self._bits = self._bits.to_tibs()
         elif not value and self.immutable:
-            self._bits = self._bits.to_mutable_bits()
+            self._bits = self._bits.to_mutibs()
+
+
 
     @classmethod
-    def from_int(cls, i: int, immutable: bool):
+    def from_zeros(cls, i: int, immutable: bool):
         x = super().__new__(cls)
         if immutable:
-            x._bits = Bits.from_zeros(i)
+            x._bits = Tibs.from_zeros(i)
         else:
-            x._bits = MutableBits.from_zeros(i)
+            x._bits = Mutibs.from_zeros(i)
         return x
 
     @classmethod
-    def _from_mutablebits(cls, mb: MutableBits):
+    def _from_mutablebits(cls, mb: Mutibs):
         x = super().__new__(cls)
         x._bits = mb
         return x
@@ -54,14 +50,14 @@ class ConstBitStore:
     @classmethod
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> ConstBitStore:
         x = super().__new__(cls)
-        x._bits = MutableBits.from_bytes(b)
+        x._bits = Mutibs.from_bytes(b)
         return x
 
     @classmethod
     def frombuffer(cls, buffer, /, length: Optional[int] = None) -> ConstBitStore:
         x = super().__new__(cls)
-        # TODO: bitformat needs a Bits.from_buffer method.
-        x._bits = Bits.from_bytes(bytes(buffer))
+        # TODO: tibs needs a Tibs.from_buffer method.
+        x._bits = Tibs.from_bytes(bytes(buffer))
         if length is not None:
             if length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
@@ -73,7 +69,7 @@ class ConstBitStore:
     @classmethod
     def from_binary_string(cls, s: str) -> ConstBitStore:
         x = super().__new__(cls)
-        x._bits = Bits.from_dtype(bin_dtype, s)
+        x._bits = Tibs.from_bin(s)
         return x
 
     def set(self, value, pos) -> None:
@@ -87,22 +83,27 @@ class ConstBitStore:
         raise TypeError("tobitarray() is not available when using the Rust core option.")
 
     def tobytes(self) -> bytes:
+        excess_bits = len(self._bits) % 8
+        if excess_bits != 0:
+            # Pad with zeros to make full bytes
+            padded_bits = self._bits + Mutibs.from_zeros(8 - excess_bits)
+            return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
     def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits.unpack(u_dtype, start=start, end=end)
+        return self._bits[start:end].to_u()
 
     def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits.unpack(i_dtype, start=start, end=end)
+        return self._bits[start:end].to_i()
 
     def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits.unpack(hex_dtype, start=start, end=end)
+        return self._bits[start:end].to_hex()
 
     def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits.unpack(bin_dtype, start=start, end=end)
+        return self._bits[start:end].to_bin()
 
     def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits.unpack(oct_dtype, start=start, end=end)
+        return self._bits[start:end].to_oct()
 
     def imul(self, n: int, /) -> None:
         self._bits *= n
@@ -157,12 +158,12 @@ class ConstBitStore:
         return -1 if x is None else x
 
     def findall_msb0(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        x = self._bits if self.immutable else self._bits.to_bits()
+        x = self._bits if self.immutable else self._bits.to_tibs()
         for p in x.find_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
 
     def rfindall_msb0(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        x = self._bits if self.immutable else self._bits.to_bits()
+        x = self._bits if self.immutable else self._bits.to_tibs()
         for p in x.rfind_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
 
@@ -182,13 +183,13 @@ class ConstBitStore:
     def _mutable_copy(self) -> ConstBitStore:
         """Always creates a copy, even if instance is immutable."""
         if self.immutable:
-            return ConstBitStore._from_mutablebits(self._bits.to_mutable_bits())
+            return ConstBitStore._from_mutablebits(self._bits.to_mutibs())
         return ConstBitStore._from_mutablebits(self._bits.__copy__())
 
     def as_immutable(self) -> ConstBitStore:
         if self.immutable:
             return self
-        return ConstBitStore(self._bits.as_bits())
+        return ConstBitStore(self._bits.as_tibs())
 
     def copy(self) -> ConstBitStore:
         return self if self.immutable else self._mutable_copy()
@@ -277,34 +278,34 @@ class MutableBitStore:
 
     __slots__ = ('_bits',)
 
-    def __init__(self, initializer: Union[MutableBits, Bits, None] = None) -> None:
+    def __init__(self, initializer: Union[Mutibs, Tibs, None] = None) -> None:
         if initializer is not None:
             self._bits = initializer
         else:
-            self._bits = MutableBits()
+            self._bits = Mutibs()
 
     @property
     def immutable(self) -> bool:
-        return isinstance(self._bits, Bits)
+        return isinstance(self._bits, Tibs)
 
     @immutable.setter
     def immutable(self, value: bool) -> None:
         if value and not self.immutable:
-            self._bits = self._bits.to_bits()
+            self._bits = self._bits.to_tibs()
         elif not value and self.immutable:
-            self._bits = self._bits.to_mutable_bits()
+            self._bits = self._bits.to_mutibs()
 
     @classmethod
-    def from_int(cls, i: int, immutable: bool):
+    def from_zeros(cls, i: int, immutable: bool):
         x = super().__new__(cls)
         if immutable:
-            x._bits = Bits.from_zeros(i)
+            x._bits = Tibs.from_zeros(i)
         else:
-            x._bits = MutableBits.from_zeros(i)
+            x._bits = Mutibs.from_zeros(i)
         return x
 
     @classmethod
-    def _from_mutablebits(cls, mb: MutableBits):
+    def _from_mutablebits(cls, mb: Mutibs):
         x = super().__new__(cls)
         x._bits = mb
         return x
@@ -312,14 +313,14 @@ class MutableBitStore:
     @classmethod
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> MutableBitStore:
         x = super().__new__(cls)
-        x._bits = MutableBits.from_bytes(b)
+        x._bits = Mutibs.from_bytes(b)
         return x
 
     @classmethod
     def frombuffer(cls, buffer, /, length: Optional[int] = None) -> MutableBitStore:
         x = super().__new__(cls)
         # TODO: bitformat needs a Bits.from_buffer method.
-        x._bits = Bits.from_bytes(bytes(buffer))
+        x._bits = Tibs.from_bytes(bytes(buffer))
         if length is not None:
             if length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
@@ -331,7 +332,7 @@ class MutableBitStore:
     @classmethod
     def from_binary_string(cls, s: str) -> MutableBitStore:
         x = super().__new__(cls)
-        x._bits = Bits.from_dtype(bin_dtype, s)
+        x._bits = Tibs.from_bin(s)
         return x
 
     def set(self, value, pos) -> None:
@@ -345,22 +346,27 @@ class MutableBitStore:
         raise TypeError("tobitarray() is not available when using the Rust core option.")
 
     def tobytes(self) -> bytes:
+        excess_bits = len(self._bits) % 8
+        if excess_bits != 0:
+            # Pad with zeros to make full bytes
+            padded_bits = self._bits + Mutibs.from_zeros(8 - excess_bits)
+            return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
     def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits.unpack(u_dtype, start=start, end=end)
+        return self._bits[start:end].to_u()
 
     def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits.unpack(i_dtype, start=start, end=end)
+        return self._bits[start:end].to_i()
 
     def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits.unpack(hex_dtype, start=start, end=end)
+        return self._bits[start:end].to_hex()
 
     def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits.unpack(bin_dtype, start=start, end=end)
+        return self._bits[start:end].to_bin()
 
     def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits.unpack(oct_dtype, start=start, end=end)
+        return self._bits[start:end].to_oct()
 
     def imul(self, n: int, /) -> None:
         self._bits *= n
@@ -415,12 +421,12 @@ class MutableBitStore:
         return -1 if x is None else x
 
     def findall_msb0(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        x = self._bits if self.immutable else self._bits.to_bits()
+        x = self._bits if self.immutable else self._bits.to_tibs()
         for p in x.find_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
 
     def rfindall_msb0(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        x = self._bits if self.immutable else self._bits.to_bits()
+        x = self._bits if self.immutable else self._bits.to_tibs()
         for p in x.rfind_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
 
@@ -440,13 +446,13 @@ class MutableBitStore:
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
         if self.immutable:
-            return MutableBitStore._from_mutablebits(self._bits.to_mutable_bits())
+            return MutableBitStore._from_mutablebits(self._bits.to_mutibs())
         return MutableBitStore._from_mutablebits(self._bits.__copy__())
 
     def as_immutable(self) -> MutableBitStore:
         if self.immutable:
             return self
-        return MutableBitStore(self._bits.as_bits())
+        return MutableBitStore(self._bits.as_tibs())
 
     def copy(self) -> MutableBitStore:
         return self if self.immutable else self._mutable_copy()

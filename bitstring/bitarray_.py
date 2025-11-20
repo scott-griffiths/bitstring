@@ -124,7 +124,7 @@ class BitArray(Bits):
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
-                x._bitstore = MutableBitStore.from_int(length, False)
+                x._bitstore = MutableBitStore.from_zeros(length, False)
             else:
                 x._bitstore = MutableBitStore()
             return x
@@ -447,7 +447,7 @@ class BitArray(Bits):
         """
         if pos is None:
             # Set all bits to either 1 or 0
-            self._setint(-1 if value else 0)
+            self._bitstore.__setitem__(slice(None), bool(value))
             return
         if not isinstance(pos, abc.Iterable):
             pos = (pos,)

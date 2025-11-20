@@ -120,7 +120,7 @@ class Bits:
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
-                x._bitstore = ConstBitStore.from_int(length, immutable=True)
+                x._bitstore = ConstBitStore.from_zeros(length, immutable=True)
             else:
                 x._bitstore = MutableBitStore()
             return x
@@ -142,9 +142,9 @@ class Bits:
                 if auto < 0:
                     raise bitstring.CreationError(f"Can't create bitstring of negative length {auto}.")
                 if immutable:
-                    self._bitstore = ConstBitStore.from_int(int(auto), immutable)
+                    self._bitstore = ConstBitStore.from_zeros(int(auto), immutable)
                 else:
-                    self._bitstore = MutableBitStore.from_int(int(auto), immutable)
+                    self._bitstore = MutableBitStore.from_zeros(int(auto), immutable)
                 return
             self._setauto(auto, length, offset)
             return
@@ -965,7 +965,7 @@ class Bits:
         return None
 
     def _setpad(self, value: None, length: int) -> None:
-        self._bitstore = ConstBitStore.from_int(length, immutable=True)
+        self._bitstore = ConstBitStore.from_zeros(length, immutable=True)
 
     def _setbin(self, binstring: str, length: None = None) -> None:
         """Reset the bitstring to the value given in binstring."""

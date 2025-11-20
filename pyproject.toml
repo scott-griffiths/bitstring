@@ -30,7 +30,7 @@ classifiers = [
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
   "bitarray >= 3.0.0, < 4.0",
-  "bitformat >= 0.9.0, < 0.10; python_version >= '3.11'",
+  "tibs>=0.1.2",
 ]
 
 [project.urls]
