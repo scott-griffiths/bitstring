@@ -78,20 +78,20 @@ class _BitStore:
             return self._bitarray[:self.modified_length].tobytes()
         return self._bitarray.tobytes()
 
-    def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return bitarray.util.ba2int(self.getslice(start, end)._bitarray, signed=False)
+    def to_uint(self) -> int:
+        return bitarray.util.ba2int(self._bitarray, signed=False)
 
-    def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return bitarray.util.ba2int(self.getslice(start, end)._bitarray, signed=True)
+    def to_int(self) -> int:
+        return bitarray.util.ba2int(self._bitarray, signed=True)
 
-    def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return bitarray.util.ba2hex(self.getslice(start, end)._bitarray)
+    def to_hex(self) -> str:
+        return bitarray.util.ba2hex(self._bitarray)
 
-    def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self.getslice(start, end)._bitarray.to01()
+    def to_bin(self) -> str:
+        return self._bitarray.to01()
 
-    def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return bitarray.util.ba2base(8, self.getslice(start, end)._bitarray)
+    def to_oct(self) -> str:
+        return bitarray.util.ba2base(8, self._bitarray)
 
     def imul(self, n: int, /) -> _BitStore:
         self._bitarray *= n

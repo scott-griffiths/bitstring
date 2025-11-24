@@ -90,20 +90,20 @@ class ConstBitStore:
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
-    def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits[start:end].to_u()
+    def to_uint(self) -> int:
+        return self._bits.to_u()
 
-    def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits[start:end].to_i()
+    def to_int(self) -> int:
+        return self._bits.to_i()
 
-    def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_hex()
+    def to_hex(self) -> str:
+        return self._bits.to_hex()
 
-    def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_bin()
+    def to_bin(self) -> str:
+        return self._bits.to_bin()
 
-    def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_oct()
+    def to_oct(self) -> str:
+        return self._bits.to_oct()
 
     def imul(self, n: int, /) -> None:
         self._bits *= n
@@ -353,20 +353,20 @@ class MutableBitStore:
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
-    def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits[start:end].to_u()
+    def to_uint(self) -> int:
+        return self._bits.to_u()
 
-    def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits[start:end].to_i()
+    def to_int(self) -> int:
+        return self._bits.to_i()
 
-    def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_hex()
+    def to_hex(self) -> str:
+        return self._bits.to_hex()
 
-    def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_bin()
+    def to_bin(self) -> str:
+        return self._bits.to_bin()
 
-    def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_oct()
+    def to_oct(self) -> str:
+        return self._bits.to_oct()
 
     def imul(self, n: int, /) -> None:
         self._bits *= n

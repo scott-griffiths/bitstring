@@ -64,9 +64,9 @@ class TestBasicLSB0Functionality:
     def test_setting_int(self):
         a = MutableBitStore.from_zeros(5, immutable=False)
         a[0] = 1
-        assert a.slice_to_bin() == '00001'
+        assert a.to_bin() == '00001'
         a[-1] = 1
-        assert a.slice_to_bin() == '10001'
+        assert a.to_bin() == '10001'
         with pytest.raises(IndexError):
             a[5] = 1
         with pytest.raises(IndexError):
