@@ -79,18 +79,28 @@ class _BitStore:
         return self._bitarray.tobytes()
 
     def to_uint(self) -> int:
+        if self.modified_length is not None:
+            return bitarray.util.ba2int(self._bitarray[:self.modified_length], signed=False)
         return bitarray.util.ba2int(self._bitarray, signed=False)
 
     def to_int(self) -> int:
+        if self.modified_length is not None:
+            return bitarray.util.ba2int(self._bitarray[:self.modified_length], signed=True)
         return bitarray.util.ba2int(self._bitarray, signed=True)
 
     def to_hex(self) -> str:
+        if self.modified_length is not None:
+            return bitarray.util.ba2hex(self._bitarray[:self.modified_length])
         return bitarray.util.ba2hex(self._bitarray)
 
     def to_bin(self) -> str:
+        if self.modified_length is not None:
+            return self._bitarray[:self.modified_length].to01()
         return self._bitarray.to01()
 
     def to_oct(self) -> str:
+        if self.modified_length is not None:
+            return bitarray.util.ba2base(8, self._bitarray[:self.modified_length])
         return bitarray.util.ba2base(8, self._bitarray)
 
     def imul(self, n: int, /) -> _BitStore:

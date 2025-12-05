@@ -122,7 +122,7 @@ class Bits:
             if length is not None:
                 x._bitstore = ConstBitStore.from_zeros(length, immutable=True)
             else:
-                x._bitstore = MutableBitStore()
+                x._bitstore = ConstBitStore()
             return x
         x._initialise(auto, length, offset, immutable=True, **kwargs)
         return x
