@@ -9,7 +9,7 @@ from bitstring.helpers import offset_slice_indices_lsb0
 
 
 class ConstBitStore:
-    """A light wrapper around bitformat.Bits that does the LSB0 stuff"""
+    """A light wrapper around tibs.Tibs that does the LSB0 stuff"""
 
     __slots__ = ('_bits',)
 
@@ -29,7 +29,6 @@ class ConstBitStore:
             self._bits = self._bits.to_tibs()
         elif not value and self.immutable:
             self._bits = self._bits.to_mutibs()
-
 
 
     @classmethod
@@ -119,9 +118,8 @@ class ConstBitStore:
         return self
 
     def __add__(self, other: ConstBitStore, /) -> ConstBitStore:
-        bs = self._mutable_copy()
-        bs += other
-        return bs
+        newbits = self._bits + other._bits
+        return ConstBitStore._from_mutablebits(newbits)
 
     def __eq__(self, other: Any, /) -> bool:
         return self._bits == other._bits
@@ -177,13 +175,14 @@ class ConstBitStore:
         self._bits.reverse()
 
     def __iter__(self) -> Iterable[bool]:
-        for i in range(len(self)):
+        length = len(self)
+        for i in range(length):
             yield self.getindex(i)
 
-    def _mutable_copy(self) -> ConstBitStore:
+    def _mutable_copy(self) -> ConstBitStore | MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
         if self.immutable:
-            return ConstBitStore._from_mutablebits(self._bits.to_mutibs())
+            return MutableBitStore._from_mutablebits(self._bits.to_mutibs())
         return ConstBitStore._from_mutablebits(self._bits.__copy__())
 
     def as_immutable(self) -> ConstBitStore:
@@ -274,7 +273,7 @@ class ConstBitStore:
 
 
 class MutableBitStore:
-    """A light wrapper around bitformat.MutableBits that does the LSB0 stuff"""
+    """A light wrapper around tibs.Mutibs that does the LSB0 stuff"""
 
     __slots__ = ('_bits',)
 

@@ -727,6 +727,10 @@ class TestFromFile:
         s = ConstBitStream(filename=test_filename, length=32)
         assert s.length == 32
         assert s.hex == '000001b3'
+        assert s.bytes == b'\x00\x00\x01\xb3'
+        assert s.uint == 0x1b3
+        assert s.int == 0x1b3
+        assert s.bin == '00000000000000000000000110110011'
         s = ConstBitStream(filename=test_filename, length=0)
         assert not s
         small_test_filename = os.path.join(THIS_DIR, 'smalltestfile')

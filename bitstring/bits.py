@@ -112,7 +112,7 @@ class Bits:
                   initialising using 'bytes' or 'filename'.
 
         """
-        self._bitstore.immutable = True
+        pass
 
     def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
@@ -142,11 +142,13 @@ class Bits:
                 if auto < 0:
                     raise bitstring.CreationError(f"Can't create bitstring of negative length {auto}.")
                 if immutable:
-                    self._bitstore = ConstBitStore.from_zeros(int(auto), immutable)
+                    self._bitstore = ConstBitStore.from_zeros(int(auto), True)
                 else:
-                    self._bitstore = MutableBitStore.from_zeros(int(auto), immutable)
+                    self._bitstore = MutableBitStore.from_zeros(int(auto), False)
                 return
             self._setauto(auto, length, offset)
+            if not immutable:
+                self._bitstore = self._bitstore._mutable_copy()
             return
         k, v = kwargs.popitem()
         if k == 'bytes':
@@ -1044,7 +1046,9 @@ class Bits:
 
     def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
-        self._bitstore = bs._bitstore + self._bitstore
+        # TODO: The first part is a hack to make sure the end bitstore is of the right type.
+        # This should use a bitstore level prepend method.
+        self._bitstore = self[0:0]._bitstore + bs._bitstore + self._bitstore
 
     def _insert(self, bs: Bits, pos: int, /) -> None:
         """Insert bs at pos."""

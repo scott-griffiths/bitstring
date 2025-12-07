@@ -114,13 +114,11 @@ class BitArray(Bits):
                   initialising using 'bytes' or 'filename'.
 
         """
-        if self._bitstore.immutable:
-            self._bitstore = self._bitstore._mutable_copy()
-            self._bitstore.immutable = False
+        pass
 
     def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
-                offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
-        x = super().__new__(cls)
+                offset: Optional[int] = None, **kwargs) -> TBits:
+        x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
