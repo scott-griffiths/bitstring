@@ -100,16 +100,16 @@ class ConstBitStream(Bits):
         pos -- Initial bit position, defaults to 0.
 
         """
-        if pos < 0:
-            pos += len(self._bitstore)
-        if pos < 0 or pos > len(self._bitstore):
-            raise bitstring.CreationError(f"Cannot set pos to {pos} when length is {len(self._bitstore)}.")
-        self._pos = pos
-        self._bitstore.immutable = True
+        pass
 
-    def __new__(cls, *args, **kwargs):
-        x = super().__new__(cls, *args, **kwargs)
-        x._pos = 0
+    def __new__(cls, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
+                offset: Optional[int] = None, pos: int = 0, **kwargs) -> TConstBitStream:
+        x = super().__new__(cls, auto, length, offset, **kwargs)
+        if pos < 0:
+            pos += len(x._bitstore)
+        if pos < 0 or pos > len(x._bitstore):
+            raise bitstring.CreationError(f"Cannot set pos to {pos} when length is {len(x._bitstore)}.")
+        x._pos = pos
         return x
 
     def _setbytepos(self, bytepos: int) -> None:

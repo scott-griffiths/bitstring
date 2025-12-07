@@ -112,7 +112,7 @@ class Bits:
                   initialising using 'bytes' or 'filename'.
 
         """
-        self._bitstore.immutable = True
+        pass
 
     def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
                 offset: Optional[int] = None, pos: Optional[int] = None, **kwargs) -> TBits:
@@ -122,7 +122,7 @@ class Bits:
             if length is not None:
                 x._bitstore = ConstBitStore.from_zeros(length, immutable=True)
             else:
-                x._bitstore = MutableBitStore()
+                x._bitstore = ConstBitStore()
             return x
         x._initialise(auto, length, offset, immutable=True, **kwargs)
         return x
@@ -142,11 +142,13 @@ class Bits:
                 if auto < 0:
                     raise bitstring.CreationError(f"Can't create bitstring of negative length {auto}.")
                 if immutable:
-                    self._bitstore = ConstBitStore.from_zeros(int(auto), immutable)
+                    self._bitstore = ConstBitStore.from_zeros(int(auto), True)
                 else:
-                    self._bitstore = MutableBitStore.from_zeros(int(auto), immutable)
+                    self._bitstore = MutableBitStore.from_zeros(int(auto), False)
                 return
             self._setauto(auto, length, offset)
+            if not immutable:
+                self._bitstore = self._bitstore._mutable_copy()
             return
         k, v = kwargs.popitem()
         if k == 'bytes':
@@ -662,7 +664,7 @@ class Bits:
         """Return data as an unsigned int."""
         if len(self) == 0:
             raise bitstring.InterpretError("Cannot interpret a zero length bitstring as an integer.")
-        return self._bitstore.slice_to_uint()
+        return self._bitstore.to_uint()
 
     def _setint(self, int_: int, length: Optional[int] = None) -> None:
         """Reset the bitstring to have given signed int interpretation."""
@@ -677,7 +679,7 @@ class Bits:
         """Return data as a two's complement signed int."""
         if len(self) == 0:
             raise bitstring.InterpretError("Cannot interpret bitstring without a length as an integer.")
-        return self._bitstore.slice_to_int()
+        return self._bitstore.to_int()
 
     def _setuintbe(self, uintbe: int, length: Optional[int] = None) -> None:
         """Set the bitstring to a big-endian unsigned int interpretation."""
@@ -719,7 +721,7 @@ class Bits:
         if len(self) % 8:
             raise bitstring.InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
         bs = ConstBitStore.frombytes(self._bitstore.tobytes()[::-1])
-        return bs.slice_to_uint()
+        return bs.to_uint()
 
     def _setintle(self, intle: int, length: Optional[int] = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
@@ -733,7 +735,7 @@ class Bits:
         if len(self) % 8:
             raise bitstring.InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
         bs = ConstBitStore.frombytes(self._bitstore.tobytes()[::-1])
-        return bs.slice_to_int()
+        return bs.to_int()
 
     def _getp4binary(self) -> float:
         u = self._getuint()
@@ -973,7 +975,7 @@ class Bits:
 
     def _getbin(self) -> str:
         """Return interpretation as a binary string."""
-        return self._bitstore.slice_to_bin()
+        return self._bitstore.to_bin()
 
     def _setoct(self, octstring: str, length: None = None) -> None:
         """Reset the bitstring to have the value given in octstring."""
@@ -981,7 +983,7 @@ class Bits:
 
     def _getoct(self) -> str:
         """Return interpretation as an octal string."""
-        return self._bitstore.slice_to_oct()
+        return self._bitstore.to_oct()
 
     def _sethex(self, hexstring: str, length: None = None) -> None:
         """Reset the bitstring to have the value given in hexstring."""
@@ -993,7 +995,7 @@ class Bits:
         Raises an InterpretError if the bitstring's length is not a multiple of 4.
 
         """
-        return self._bitstore.slice_to_hex()
+        return self._bitstore.to_hex()
 
     def _getlength(self) -> int:
         """Return the length of the bitstring in bits."""
@@ -1044,7 +1046,9 @@ class Bits:
 
     def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
-        self._bitstore = bs._bitstore + self._bitstore
+        # TODO: The first part is a hack to make sure the end bitstore is of the right type.
+        # This should use a bitstore level prepend method.
+        self._bitstore = self[0:0]._bitstore + bs._bitstore + self._bitstore
 
     def _insert(self, bs: Bits, pos: int, /) -> None:
         """Insert bs at pos."""

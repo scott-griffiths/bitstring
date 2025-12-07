@@ -9,7 +9,7 @@ from bitstring.helpers import offset_slice_indices_lsb0
 
 
 class ConstBitStore:
-    """A light wrapper around bitformat.Bits that does the LSB0 stuff"""
+    """A light wrapper around tibs.Tibs that does the LSB0 stuff"""
 
     __slots__ = ('_bits',)
 
@@ -29,7 +29,6 @@ class ConstBitStore:
             self._bits = self._bits.to_tibs()
         elif not value and self.immutable:
             self._bits = self._bits.to_mutibs()
-
 
 
     @classmethod
@@ -90,20 +89,20 @@ class ConstBitStore:
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
-    def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits[start:end].to_u()
+    def to_uint(self) -> int:
+        return self._bits.to_u()
 
-    def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits[start:end].to_i()
+    def to_int(self) -> int:
+        return self._bits.to_i()
 
-    def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_hex()
+    def to_hex(self) -> str:
+        return self._bits.to_hex()
 
-    def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_bin()
+    def to_bin(self) -> str:
+        return self._bits.to_bin()
 
-    def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_oct()
+    def to_oct(self) -> str:
+        return self._bits.to_oct()
 
     def imul(self, n: int, /) -> None:
         self._bits *= n
@@ -119,9 +118,8 @@ class ConstBitStore:
         return self
 
     def __add__(self, other: ConstBitStore, /) -> ConstBitStore:
-        bs = self._mutable_copy()
-        bs += other
-        return bs
+        newbits = self._bits + other._bits
+        return ConstBitStore._from_mutablebits(newbits)
 
     def __eq__(self, other: Any, /) -> bool:
         return self._bits == other._bits
@@ -177,13 +175,14 @@ class ConstBitStore:
         self._bits.reverse()
 
     def __iter__(self) -> Iterable[bool]:
-        for i in range(len(self)):
+        length = len(self)
+        for i in range(length):
             yield self.getindex(i)
 
-    def _mutable_copy(self) -> ConstBitStore:
+    def _mutable_copy(self) -> ConstBitStore | MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
         if self.immutable:
-            return ConstBitStore._from_mutablebits(self._bits.to_mutibs())
+            return MutableBitStore._from_mutablebits(self._bits.to_mutibs())
         return ConstBitStore._from_mutablebits(self._bits.__copy__())
 
     def as_immutable(self) -> ConstBitStore:
@@ -274,7 +273,7 @@ class ConstBitStore:
 
 
 class MutableBitStore:
-    """A light wrapper around bitformat.MutableBits that does the LSB0 stuff"""
+    """A light wrapper around tibs.Mutibs that does the LSB0 stuff"""
 
     __slots__ = ('_bits',)
 
@@ -353,20 +352,20 @@ class MutableBitStore:
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
-    def slice_to_uint(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits[start:end].to_u()
+    def to_uint(self) -> int:
+        return self._bits.to_u()
 
-    def slice_to_int(self, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        return self._bits[start:end].to_i()
+    def to_int(self) -> int:
+        return self._bits.to_i()
 
-    def slice_to_hex(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_hex()
+    def to_hex(self) -> str:
+        return self._bits.to_hex()
 
-    def slice_to_bin(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_bin()
+    def to_bin(self) -> str:
+        return self._bits.to_bin()
 
-    def slice_to_oct(self, start: Optional[int] = None, end: Optional[int] = None) -> str:
-        return self._bits[start:end].to_oct()
+    def to_oct(self) -> str:
+        return self._bits.to_oct()
 
     def imul(self, n: int, /) -> None:
         self._bits *= n
