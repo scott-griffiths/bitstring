@@ -78,7 +78,7 @@ jobs:
           - name: 🐧
             runs-on: ubuntu-latest
           - name: 🍎
-            runs-on: macos-13
+            runs-on: macos-15
           - name: 🪟
             runs-on: windows-latest
         python:
@@ -157,7 +157,7 @@ jobs:
           - name: 🐧
             runs-on: ubuntu-latest
           - name: 🍎
-            runs-on: macos-13
+            runs-on: macos-15
           - name: 🪟
             runs-on: windows-latest
         python:
