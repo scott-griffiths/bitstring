@@ -331,7 +331,7 @@ class MutableBitStore:
     @classmethod
     def frombuffer(cls, buffer, /, length: Optional[int] = None) -> MutableBitStore:
         x = super().__new__(cls)
-        # TODO: bitformat needs a Bits.from_buffer method.
+        # TODO: tibs needs a Bits.from_buffer method.
         x._bits = Tibs.from_bytes(bytes(buffer))
         if length is not None:
             if length < 0:

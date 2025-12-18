@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Union
-# from bitformat import MutableBits, Endianness, DtypeSingle, DtypeKind
 from tibs import Tibs, Mutibs
 import bitstring
 
