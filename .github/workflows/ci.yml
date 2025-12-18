@@ -161,6 +161,15 @@ jobs:
           - name: 🪟
             runs-on: windows-latest
         python:
+          - name: CPython 3.8
+            major_dot_minor: '3.8'
+            action: '3.8'
+          - name: CPython 3.9
+            major_dot_minor: '3.9'
+            action: '3.9'
+          - name: CPython 3.10
+            major_dot_minor: '3.10'
+            action: '3.10'
           - name: CPython 3.11
             major_dot_minor: '3.11'
             action: '3.11'

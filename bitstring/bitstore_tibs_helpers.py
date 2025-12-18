@@ -35,10 +35,13 @@ def oct2bitstore(octstring: str) -> ConstBitStore:
 def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
     i = int(i)
     if length <= 128:
-        if signed:
-            mb = Mutibs.from_i(i, length=length)
-        else:
-            mb = Mutibs.from_u(i, length=length)
+        try:
+            if signed:
+                mb = Mutibs.from_i(i, length=length)
+            else:
+                mb = Mutibs.from_u(i, length=length)
+        except OverflowError as e:
+            raise ValueError(e)
     else:
         b = i.to_bytes((length + 7) // 8, byteorder="big", signed=signed)
         offset = 8 - (length % 8)
@@ -51,10 +54,13 @@ def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
 def intle2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
     i = int(i)
     if length <= 128:
-        if signed:
-            mb = Mutibs.from_i(i, length=length)
-        else:
-            mb = Mutibs.from_u(i, length=length)
+        try:
+            if signed:
+                mb = Mutibs.from_i(i, length=length)
+            else:
+                mb = Mutibs.from_u(i, length=length)
+        except OverflowError as e:
+            raise ValueError(e)
     else:
         b = i.to_bytes((length + 7) // 8, byteorder="big", signed=signed)
         offset = 8 - (length % 8)

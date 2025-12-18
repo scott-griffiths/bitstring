@@ -81,19 +81,32 @@ class ConstBitStore:
     def tobitarray(self):
         raise TypeError("tobitarray() is not available when using the Rust core option.")
 
-    def tobytes(self) -> bytes:
+    def tobytes(self, pad_at_end: bool = True) -> bytes:
         excess_bits = len(self._bits) % 8
         if excess_bits != 0:
             # Pad with zeros to make full bytes
-            padded_bits = self._bits + Mutibs.from_zeros(8 - excess_bits)
+            if pad_at_end:
+                padded_bits = self._bits + Mutibs.from_zeros(8 - excess_bits)
+            else:
+                padded_bits = Mutibs.from_zeros(8 - excess_bits) + self._bits
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
     def to_uint(self) -> int:
-        return self._bits.to_u()
+        if len(self) > 128:
+            return int.from_bytes(self.tobytes(pad_at_end=False), signed=False)
+        try:
+            return self._bits.to_u()
+        except OverflowError as e:
+            raise ValueError(e)
 
     def to_int(self) -> int:
-        return self._bits.to_i()
+        if len(self) > 128:
+            return int.from_bytes(self.tobytes(pad_at_end=False), signed=True)
+        try:
+            return self._bits.to_i()
+        except OverflowError as e:
+            raise ValueError(e)
 
     def to_hex(self) -> str:
         return self._bits.to_hex()
@@ -344,19 +357,32 @@ class MutableBitStore:
     def tobitarray(self):
         raise TypeError("tobitarray() is not available when using the Rust core option.")
 
-    def tobytes(self) -> bytes:
+    def tobytes(self, pad_at_end: bool = True) -> bytes:
         excess_bits = len(self._bits) % 8
         if excess_bits != 0:
             # Pad with zeros to make full bytes
-            padded_bits = self._bits + Mutibs.from_zeros(8 - excess_bits)
+            if pad_at_end:
+                padded_bits = self._bits + Mutibs.from_zeros(8 - excess_bits)
+            else:
+                padded_bits = Mutibs.from_zeros(8 - excess_bits) + self._bits
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
     def to_uint(self) -> int:
-        return self._bits.to_u()
+        if len(self) > 128:
+            return int.from_bytes(self.tobytes(pad_at_end=False), signed=False)
+        try:
+            return self._bits.to_u()
+        except OverflowError as e:
+            raise ValueError(e)
 
     def to_int(self) -> int:
-        return self._bits.to_i()
+        if len(self) > 128:
+            return int.from_bytes(self.tobytes(pad_at_end=False), signed=True)
+        try:
+            return self._bits.to_i()
+        except OverflowError as e:
+            raise ValueError(e)
 
     def to_hex(self) -> str:
         return self._bits.to_hex()
