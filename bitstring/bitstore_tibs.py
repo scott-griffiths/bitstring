@@ -94,7 +94,7 @@ class ConstBitStore:
 
     def to_uint(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.tobytes(pad_at_end=False), signed=False)
+            return int.from_bytes(self.tobytes(pad_at_end=False), byteorder="big", signed=False)
         try:
             return self._bits.to_u()
         except OverflowError as e:
@@ -102,7 +102,7 @@ class ConstBitStore:
 
     def to_int(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.tobytes(pad_at_end=False), signed=True)
+            return int.from_bytes(self.tobytes(pad_at_end=False), byteorder="big", signed=True)
         try:
             return self._bits.to_i()
         except OverflowError as e:
@@ -370,7 +370,7 @@ class MutableBitStore:
 
     def to_uint(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.tobytes(pad_at_end=False), signed=False)
+            return int.from_bytes(self.tobytes(pad_at_end=False), byteorder="big", signed=False)
         try:
             return self._bits.to_u()
         except OverflowError as e:
@@ -378,7 +378,7 @@ class MutableBitStore:
 
     def to_int(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.tobytes(pad_at_end=False), signed=True)
+            return int.from_bytes(self.tobytes(pad_at_end=False), byteorder="big", signed=True)
         try:
             return self._bits.to_i()
         except OverflowError as e:
