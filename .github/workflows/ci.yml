@@ -103,7 +103,28 @@ jobs:
           - name: CPython 3.14
             major_dot_minor: '3.14'
             action: '3.14'
-
+        exclude:
+          - os:
+              name: "🍎"
+              runs-on: macos-15
+            python:
+              name: "CPython 3.8"
+              major_dot_minor: '3.8'
+              action: '3.8'
+          - os:
+              name: "🍎"
+              runs-on: macos-15
+            python:
+              name: "CPython 3.9"
+              major_dot_minor: '3.9'
+              action: '3.9'
+          - os:
+              name: "🍎"
+              runs-on: macos-15
+            python:
+              name: "CPython 3.10"
+              major_dot_minor: '3.10'
+              action: '3.10'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -182,7 +203,28 @@ jobs:
           - name: CPython 3.14
             major_dot_minor: '3.14'
             action: '3.14'
-
+        exclude:
+          - os:
+              name: "🍎"
+              runs-on: macos-15
+            python:
+              name: "CPython 3.8"
+              major_dot_minor: '3.8'
+              action: '3.8'
+          - os:
+              name: "🍎"
+              runs-on: macos-15
+            python:
+              name: "CPython 3.9"
+              major_dot_minor: '3.9'
+              action: '3.9'
+          - os:
+              name: "🍎"
+              runs-on: macos-15
+            python:
+              name: "CPython 3.10"
+              major_dot_minor: '3.10'
+              action: '3.10'
     steps:
       - uses: actions/checkout@v4
         with:
