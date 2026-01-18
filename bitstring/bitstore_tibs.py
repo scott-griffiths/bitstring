@@ -19,10 +19,6 @@ class ConstBitStore:
         else:
             self._bits = Mutibs()
 
-    @property
-    def immutable(self) -> bool:
-        return isinstance(self._bits, Tibs)
-
     @classmethod
     def join(cls, bitstores: Iterable[ConstBitStore], /) -> ConstBitStore:
         x = super().__new__(cls)
@@ -142,12 +138,12 @@ class ConstBitStore:
         return -1 if x is None else x
 
     def findall_msb0(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        x = self._bits if self.immutable else self._bits.to_tibs()
+        x = self._bits
         for p in x.find_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
 
     def rfindall_msb0(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        x = self._bits if self.immutable else self._bits.to_tibs()
+        x = self._bits
         for p in x.rfind_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
 
@@ -161,17 +157,19 @@ class ConstBitStore:
 
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
-        if self.immutable:
+        if isinstance(self._bits, Tibs):
             return MutableBitStore._from_mutibs(self._bits.to_mutibs())
+        # TODO assert False
         return MutableBitStore._from_mutibs(self._bits.__copy__())
 
     def as_immutable(self) -> ConstBitStore:
-        if self.immutable:
+        if isinstance(self._bits, Tibs):
             return self
+        # TODO assert False
         return ConstBitStore(self._bits.as_tibs())
 
     def copy(self) -> ConstBitStore:
-        return self if self.immutable else self._mutable_copy()
+        return self if isinstance(self._bits, Tibs) else self._mutable_copy()
 
     def __getitem__(self, item: Union[int, slice], /) -> Union[int, ConstBitStore]:
         # Use getindex or getslice instead
