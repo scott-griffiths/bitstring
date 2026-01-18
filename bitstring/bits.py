@@ -328,10 +328,8 @@ class Bits:
         """
         if len(self) == 0:
             raise bitstring.Error("Cannot invert empty bitstring.")
-        bs = self._bitstore._mutable_copy()
-        bs.invert()
         s = self.__class__.__new__(self.__class__)
-        s._bitstore = bs.as_immutable()
+        s._bitstore = ~self._bitstore
         return s
 
     def __lshift__(self: TBits, n: int, /) -> TBits:

@@ -264,7 +264,8 @@ class TestShift:
             s >> -1
 
     def test_shift_right_in_place(self):
-        s = BitStream.fromstring('0xffff')[4:12]
+        s = BitStream.fromstring('0xffff')
+        s = s[4:12]
         s >>= 1
         assert s == '0b01111111'
         s = BitStream('0b11011')
@@ -1586,10 +1587,12 @@ class TestAdding:
 
     def test_invert_special_method(self):
         s = BitStream('0b00011001')
-        assert (~s).bin == '11100110'
+        t = ~s
+        assert t.bin == '11100110'
         assert (~BitStream('0b0')).bin == '1'
         assert (~BitStream('0b1')).bin == '0'
-        assert ~~s == s
+        u = ~t
+        assert u == s
 
     def test_invert_bit_position(self):
         s = ConstBitStream('0xefef')

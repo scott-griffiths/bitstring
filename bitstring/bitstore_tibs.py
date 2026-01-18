@@ -153,6 +153,9 @@ class ConstBitStore:
         self._bits ^= other._bits
         return self
 
+    def __invert__(self) -> ConstBitStore:
+        return ConstBitStore._from_tibs(~self._bits)
+
     def find(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int:
         assert start >= 0
         x = self._bits.find(bs._bits, start, end, byte_aligned=bytealigned)
@@ -246,18 +249,6 @@ class ConstBitStore:
             self._bits.__delitem__(new_slice)
         else:
             self._bits.__delitem__(-key - 1)
-
-    def invert_msb0(self, index: Optional[int] = None, /) -> None:
-        if index is not None:
-            self._bits.invert(index)
-        else:
-            self._bits.invert()
-
-    def invert_lsb0(self, index: Optional[int] = None, /) -> None:
-        if index is not None:
-            self._bits.invert(-index - 1)
-        else:
-            self._bits.invert()
 
     def any_set(self) -> bool:
         return self._bits.any()
@@ -421,6 +412,9 @@ class MutableBitStore:
         self._bits ^= other._bits
         return self
 
+    def __invert__(self) -> MutableBitStore:
+        return MutableBitStore._from_mutibs(~self._bits)
+
     def find(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int:
         assert start >= 0
         x = self._bits.find(bs._bits, start, end, byte_aligned=bytealigned)
@@ -459,17 +453,13 @@ class MutableBitStore:
 
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
-        if self.immutable:
-            return MutableBitStore._from_mutibs(self._bits.to_mutibs())
         return MutableBitStore._from_mutibs(self._bits.__copy__())
 
     def as_immutable(self) -> MutableBitStore:
-        if self.immutable:
-            return self
         return MutableBitStore(self._bits.as_tibs())
 
     def copy(self) -> MutableBitStore:
-        return self if self.immutable else self._mutable_copy()
+        return self._mutable_copy()
 
     def __getitem__(self, item: Union[int, slice], /) -> Union[int, MutableBitStore]:
         # Use getindex or getslice instead

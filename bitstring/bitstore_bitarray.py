@@ -146,6 +146,9 @@ class _BitStore:
         self._bitarray ^= other._bitarray
         return self
 
+    def __invert__(self) -> _BitStore:
+        return _BitStore(~self._bitarray)
+
     def find(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False) -> int:
         if not bytealigned:
             return self._bitarray.find(bs._bitarray, start, end)
