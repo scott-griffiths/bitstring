@@ -10,6 +10,7 @@ from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
 
 import bitstring.dtypes
+common_helpers = bitstring.bitstore_common_helpers
 
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
@@ -129,6 +130,13 @@ class BitArray(Bits):
         x._initialise(auto, length, offset, immutable=False, **kwargs)
         return x
 
+    @classmethod
+    def fromstring(cls: TBits, s: str, /) -> TBits:
+        """Create a new bitstring from a formatted string."""
+        x = super().__new__(cls)
+        b = common_helpers.str_to_bitstore(s)
+        x._bitstore = b._mutable_copy()
+        return x
 
     def copy(self: TBits) -> TBits:
         """Return a copy of the bitstring."""

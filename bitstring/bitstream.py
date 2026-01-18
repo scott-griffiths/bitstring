@@ -614,7 +614,8 @@ class BitStream(ConstBitStream, bitstring.BitArray):
     @classmethod
     def fromstring(cls: TBits, s: str, /) -> TBits:
         x = super().__new__(cls)
-        x._bitstore = common_helpers.str_to_bitstore(s)
+        b = common_helpers.str_to_bitstore(s)
+        x._bitstore = b._mutable_copy()
         x._pos = 0
         return x
 

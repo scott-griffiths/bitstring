@@ -7,7 +7,7 @@ import bitstring
 import copy
 import os
 import collections
-from bitstring import Bits, BitStream, ConstBitStream, pack, Dtype
+from bitstring import Bits, BitStream, ConstBitStream, pack, Dtype, BitArray
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -264,6 +264,11 @@ class TestShift:
             s >> -1
 
     def test_shift_right_in_place(self):
+        s = BitArray.fromstring('0xffff')
+        s = s[4:12]
+        s >>= 1
+        assert s == '0b01111111'
+
         s = BitStream.fromstring('0xffff')
         s = s[4:12]
         s >>= 1

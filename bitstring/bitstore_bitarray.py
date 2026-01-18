@@ -64,6 +64,16 @@ class _BitStore:
                     f"Can't create bitstring with a length of {x.modified_length} from {len(x._bitarray)} bits of data.")
         return x
 
+    @classmethod
+    def join(cls, bitstores: Iterable[_BitStore], /) -> _BitStore:
+        x = super().__new__(cls)
+        x._bitarray = bitarray.bitarray()
+        for b in bitstores:
+            x._bitarray += b._bitarray
+        x.immutable = False
+        x.modified_length = None
+        return x
+
     @staticmethod
     def using_rust_core() -> bool:
         return False

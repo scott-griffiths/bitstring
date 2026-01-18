@@ -24,15 +24,15 @@ class ConstBitStore:
         return isinstance(self._bits, Tibs)
 
     @classmethod
-    def from_zeros(cls, i: int):
+    def join(cls, bitstores: Iterable[ConstBitStore], /) -> ConstBitStore:
         x = super().__new__(cls)
-        x._bits = Tibs.from_zeros(i)
+        x._bits = Tibs.from_joined(b._bits for b in bitstores)
         return x
 
     @classmethod
-    def _from_mutibs(cls, mb: Mutibs):
+    def from_zeros(cls, i: int):
         x = super().__new__(cls)
-        x._bits = mb.as_tibs()
+        x._bits = Tibs.from_zeros(i)
         return x
 
     @classmethod
@@ -112,19 +112,6 @@ class ConstBitStore:
     def to_oct(self) -> str:
         return self._bits.to_oct()
 
-    def imul(self, n: int, /) -> None:
-        self._bits *= n
-
-    def ilshift(self, n: int, /) -> None:
-        self._bits <<= n
-
-    def irshift(self, n: int, /) -> None:
-        self._bits >>= n
-
-    def __iadd__(self, other: ConstBitStore, /) -> ConstBitStore:
-        self._bits += other._bits
-        return self
-
     def __add__(self, other: ConstBitStore, /) -> ConstBitStore:
         newbits = self._bits + other._bits
         return ConstBitStore._from_tibs(newbits)
@@ -140,18 +127,6 @@ class ConstBitStore:
 
     def __xor__(self, other: ConstBitStore, /) -> ConstBitStore:
         return ConstBitStore._from_tibs(self._bits ^ other._bits)
-
-    def __iand__(self, other: ConstBitStore, /) -> ConstBitStore:
-        self._bits &= other._bits
-        return self
-
-    def __ior__(self, other: ConstBitStore, /) -> ConstBitStore:
-        self._bits |= other._bits
-        return self
-
-    def __ixor__(self, other: ConstBitStore, /) -> ConstBitStore:
-        self._bits ^= other._bits
-        return self
 
     def __invert__(self) -> ConstBitStore:
         return ConstBitStore._from_tibs(~self._bits)
@@ -178,12 +153,6 @@ class ConstBitStore:
 
     def count(self, value, /) -> int:
         return self._bits.count(value)
-
-    def clear(self) -> None:
-        self._bits.clear()
-
-    def reverse(self) -> None:
-        self._bits.reverse()
 
     def __iter__(self) -> Iterable[bool]:
         length = len(self)
@@ -228,28 +197,6 @@ class ConstBitStore:
     def getindex_lsb0(self, index: int, /) -> bool:
         return self._bits.__getitem__(-index - 1)
 
-    @overload
-    def setitem_lsb0(self, key: int, value: int, /) -> None:
-        ...
-
-    @overload
-    def setitem_lsb0(self, key: slice, value: ConstBitStore, /) -> None:
-        ...
-
-    def setitem_lsb0(self, key: Union[int, slice], value: Union[int, ConstBitStore], /) -> None:
-        if isinstance(key, slice):
-            new_slice = offset_slice_indices_lsb0(key, len(self))
-            self._bits.__setitem__(new_slice, value._bits)
-        else:
-            self._bits.__setitem__(-key - 1, bool(value))
-
-    def delitem_lsb0(self, key: Union[int, slice], /) -> None:
-        if isinstance(key, slice):
-            new_slice = offset_slice_indices_lsb0(key, len(self))
-            self._bits.__delitem__(new_slice)
-        else:
-            self._bits.__delitem__(-key - 1)
-
     def any_set(self) -> bool:
         return self._bits.any()
 
@@ -258,17 +205,6 @@ class ConstBitStore:
 
     def __len__(self) -> int:
         return len(self._bits)
-
-    def setitem_msb0(self, key, value, /):
-        if isinstance(value, ConstBitStore):
-            self._bits.__setitem__(key, value._bits)
-        else:
-            if isinstance(key, slice):
-                key = range(*key.indices(len(self)))
-            self._bits.set(value, key)
-
-    def delitem_msb0(self, key, /):
-        self._bits.__delitem__(key)
 
 
 class MutableBitStore:
@@ -454,9 +390,6 @@ class MutableBitStore:
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
         return MutableBitStore._from_mutibs(self._bits.__copy__())
-
-    def as_immutable(self) -> MutableBitStore:
-        return MutableBitStore(self._bits.as_tibs())
 
     def copy(self) -> MutableBitStore:
         return self._mutable_copy()

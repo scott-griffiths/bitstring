@@ -19,10 +19,9 @@ CACHE_SIZE = 256
 @functools.lru_cache(CACHE_SIZE)
 def str_to_bitstore(s: str) -> ConstBitStore:
     _, tokens = bitstring.utils.tokenparser(s)
-    bs = ConstBitStore()
-    for token in tokens:
-        bs += bitstore_from_token(*token)
-    return bs
+    constbitstores = [bitstore_from_token(*token) for token in tokens]
+    return ConstBitStore.join(constbitstores)
+
 
 
 literal_bit_funcs: Dict[str, Callable[..., ConstBitStore]] = {
