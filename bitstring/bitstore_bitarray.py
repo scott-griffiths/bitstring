@@ -33,7 +33,7 @@ class _BitStore:
 
 
     @classmethod
-    def from_binary_string(cls, s: str) -> _BitStore:
+    def from_bin(cls, s: str) -> _BitStore:
         x = super().__new__(cls)
         x._bitarray = bitarray.bitarray(s)
         x.immutable = False
@@ -41,7 +41,7 @@ class _BitStore:
         return x
 
     @classmethod
-    def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> _BitStore:
+    def from_bytes(cls, b: Union[bytes, bytearray, memoryview], /) -> _BitStore:
         x = super().__new__(cls)
         x._bitarray = bitarray.bitarray()
         x._bitarray.frombytes(b)
@@ -83,17 +83,17 @@ class _BitStore:
             return self.getslice(0, len(self))._bitarray
         return self._bitarray
 
-    def tobytes(self) -> bytes:
+    def to_bytes(self) -> bytes:
         if self.modified_length is not None:
             return self._bitarray[:self.modified_length].tobytes()
         return self._bitarray.tobytes()
 
-    def to_uint(self) -> int:
+    def to_u(self) -> int:
         if self.modified_length is not None:
             return bitarray.util.ba2int(self._bitarray[:self.modified_length], signed=False)
         return bitarray.util.ba2int(self._bitarray, signed=False)
 
-    def to_int(self) -> int:
+    def to_i(self) -> int:
         if self.modified_length is not None:
             return bitarray.util.ba2int(self._bitarray[:self.modified_length], signed=True)
         return bitarray.util.ba2int(self._bitarray, signed=True)
@@ -113,14 +113,14 @@ class _BitStore:
             return bitarray.util.ba2base(8, self._bitarray[:self.modified_length])
         return bitarray.util.ba2base(8, self._bitarray)
 
-    def imul(self, n: int, /) -> _BitStore:
+    def __imul__(self, n: int, /) -> _BitStore:
         self._bitarray *= n
         return self
 
-    def ilshift(self, n: int, /) -> None:
+    def __ilshift__(self, n: int, /) -> None:
         self._bitarray <<= n
 
-    def irshift(self, n: int, /) -> None:
+    def __irshift__(self, n: int, /) -> None:
         self._bitarray >>= n
 
     def __iadd__(self, other: _BitStore, /) -> _BitStore:
@@ -178,7 +178,7 @@ class _BitStore:
     def findall_msb0(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         if bytealigned is True and len(bs) % 8 == 0:
             # Special case, looking for whole bytes on whole byte boundaries
-            bytes_ = bs.tobytes()
+            bytes_ = bs.to_bytes()
             # Round up start byte to next byte, and round end byte down.
             # We're only looking for whole bytes, so can ignore bits at either end.
             start_byte = (start + 7) // 8
@@ -303,10 +303,10 @@ class _BitStore:
     def extend_left(self, other: _BitStore, /) -> None:
         self._bitarray = other._bitarray + self._bitarray
 
-    def any_set(self) -> bool:
+    def any(self) -> bool:
         return self._bitarray.any()
 
-    def all_set(self) -> bool:
+    def all(self) -> bool:
         return self._bitarray.all()
 
     def __len__(self) -> int:

@@ -19,7 +19,7 @@ def bin2bitstore(binstring: str) -> ConstBitStore:
     binstring = tidy_input_string(binstring)
     binstring = binstring.replace('0b', '')
     try:
-        return ConstBitStore.from_binary_string(binstring)
+        return ConstBitStore.from_bin(binstring)
     except ValueError:
         raise bitstring.CreationError(f"Invalid character in bin initialiser {binstring}.")
 
@@ -64,8 +64,8 @@ def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
 
 
 def intle2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
-    x = int2bitstore(i, length, signed).tobytes()
-    return ConstBitStore.frombytes(x[::-1])
+    x = int2bitstore(i, length, signed).to_bytes()
+    return ConstBitStore.from_bytes(x[::-1])
 
 
 def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> ConstBitStore:
@@ -76,5 +76,5 @@ def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> Const
     except OverflowError:
         # If float64 doesn't fit it automatically goes to 'inf'. This reproduces that behaviour for other types.
         b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
-    return ConstBitStore.frombytes(b)
+    return ConstBitStore.from_bytes(b)
 

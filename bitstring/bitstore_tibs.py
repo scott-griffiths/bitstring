@@ -32,13 +32,13 @@ class ConstBitStore:
         return x
 
     @classmethod
-    def _from_tibs(cls, tb: Tibs):
+    def from_tibs(cls, tb: Tibs):
         x = super().__new__(cls)
         x._bits = tb
         return x
 
     @classmethod
-    def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> ConstBitStore:
+    def from_bytes(cls, b: Union[bytes, bytearray, memoryview], /) -> ConstBitStore:
         x = super().__new__(cls)
         x._bits = Tibs.from_bytes(b)
         return x
@@ -57,7 +57,7 @@ class ConstBitStore:
         return x.getslice(0, length) if length is not None else x
 
     @classmethod
-    def from_binary_string(cls, s: str) -> ConstBitStore:
+    def from_bin(cls, s: str) -> ConstBitStore:
         x = super().__new__(cls)
         x._bits = Tibs.from_bin(s)
         return x
@@ -72,7 +72,7 @@ class ConstBitStore:
     def tobitarray(self):
         raise TypeError("tobitarray() is not available when using the Rust core option.")
 
-    def tobytes(self, pad_at_end: bool = True) -> bytes:
+    def to_bytes(self, pad_at_end: bool = True) -> bytes:
         excess_bits = len(self._bits) % 8
         if excess_bits != 0:
             # Pad with zeros to make full bytes
@@ -83,17 +83,17 @@ class ConstBitStore:
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
-    def to_uint(self) -> int:
+    def to_u(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.tobytes(pad_at_end=False), byteorder="big", signed=False)
+            return int.from_bytes(self.to_bytes(pad_at_end=False), byteorder="big", signed=False)
         try:
             return self._bits.to_u()
         except OverflowError as e:
             raise ValueError(e)
 
-    def to_int(self) -> int:
+    def to_i(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.tobytes(pad_at_end=False), byteorder="big", signed=True)
+            return int.from_bytes(self.to_bytes(pad_at_end=False), byteorder="big", signed=True)
         try:
             return self._bits.to_i()
         except OverflowError as e:
@@ -110,22 +110,22 @@ class ConstBitStore:
 
     def __add__(self, other: ConstBitStore, /) -> ConstBitStore:
         newbits = self._bits + other._bits
-        return ConstBitStore._from_tibs(newbits)
+        return ConstBitStore.from_tibs(newbits)
 
     def __eq__(self, other: Any, /) -> bool:
         return self._bits == other._bits
 
     def __and__(self, other: ConstBitStore, /) -> ConstBitStore:
-        return ConstBitStore._from_tibs(self._bits & other._bits)
+        return ConstBitStore.from_tibs(self._bits & other._bits)
 
     def __or__(self, other: ConstBitStore, /) -> ConstBitStore:
-        return ConstBitStore._from_tibs(self._bits | other._bits)
+        return ConstBitStore.from_tibs(self._bits | other._bits)
 
     def __xor__(self, other: ConstBitStore, /) -> ConstBitStore:
-        return ConstBitStore._from_tibs(self._bits ^ other._bits)
+        return ConstBitStore.from_tibs(self._bits ^ other._bits)
 
     def __invert__(self) -> ConstBitStore:
-        return ConstBitStore._from_tibs(~self._bits)
+        return ConstBitStore.from_tibs(~self._bits)
 
     def find(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int:
         assert start >= 0
@@ -157,7 +157,7 @@ class ConstBitStore:
 
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
-        return MutableBitStore._from_mutibs(self._bits.to_mutibs())
+        return MutableBitStore.from_mutibs(self._bits.to_mutibs())
 
     def copy(self) -> ConstBitStore:
         return self if isinstance(self._bits, Tibs) else self._mutable_copy()
@@ -186,10 +186,10 @@ class ConstBitStore:
     def getindex_lsb0(self, index: int, /) -> bool:
         return self._bits.__getitem__(-index - 1)
 
-    def any_set(self) -> bool:
+    def any(self) -> bool:
         return self._bits.any()
 
-    def all_set(self) -> bool:
+    def all(self) -> bool:
         return self._bits.all()
 
     def __len__(self) -> int:
@@ -214,14 +214,14 @@ class MutableBitStore:
         return x
 
     @classmethod
-    def _from_mutibs(cls, mb: Mutibs):
+    def from_mutibs(cls, mb: Mutibs):
         assert isinstance(mb, Mutibs)
         x = super().__new__(cls)
         x._bits = mb
         return x
 
     @classmethod
-    def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> MutableBitStore:
+    def from_bytes(cls, b: Union[bytes, bytearray, memoryview], /) -> MutableBitStore:
         x = super().__new__(cls)
         x._bits = Mutibs.from_bytes(b)
         return x
@@ -240,7 +240,7 @@ class MutableBitStore:
         return x.getslice(0, length) if length is not None else x
 
     @classmethod
-    def from_binary_string(cls, s: str) -> MutableBitStore:
+    def from_bin(cls, s: str) -> MutableBitStore:
         x = super().__new__(cls)
         x._bits = Mutibs.from_bin(s)
         return x
@@ -255,7 +255,7 @@ class MutableBitStore:
     def tobitarray(self):
         raise TypeError("tobitarray() is not available when using the Rust core option.")
 
-    def tobytes(self, pad_at_end: bool = True) -> bytes:
+    def to_bytes(self, pad_at_end: bool = True) -> bytes:
         excess_bits = len(self._bits) % 8
         if excess_bits != 0:
             # Pad with zeros to make full bytes
@@ -266,17 +266,17 @@ class MutableBitStore:
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
-    def to_uint(self) -> int:
+    def to_u(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.tobytes(pad_at_end=False), byteorder="big", signed=False)
+            return int.from_bytes(self.to_bytes(pad_at_end=False), byteorder="big", signed=False)
         try:
             return self._bits.to_u()
         except OverflowError as e:
             raise ValueError(e)
 
-    def to_int(self) -> int:
+    def to_i(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.tobytes(pad_at_end=False), byteorder="big", signed=True)
+            return int.from_bytes(self.to_bytes(pad_at_end=False), byteorder="big", signed=True)
         try:
             return self._bits.to_i()
         except OverflowError as e:
@@ -291,13 +291,13 @@ class MutableBitStore:
     def to_oct(self) -> str:
         return self._bits.to_oct()
 
-    def imul(self, n: int, /) -> None:
+    def __imul__(self, n: int, /) -> None:
         self._bits *= n
 
-    def ilshift(self, n: int, /) -> None:
+    def __ilshift__(self, n: int, /) -> None:
         self._bits <<= n
 
-    def irshift(self, n: int, /) -> None:
+    def __irshift__(self, n: int, /) -> None:
         self._bits >>= n
 
     def __iadd__(self, other: MutableBitStore, /) -> MutableBitStore:
@@ -313,13 +313,13 @@ class MutableBitStore:
         return self._bits == other._bits
 
     def __and__(self, other: MutableBitStore, /) -> MutableBitStore:
-        return MutableBitStore._from_mutibs(self._bits & other._bits)
+        return MutableBitStore.from_mutibs(self._bits & other._bits)
 
     def __or__(self, other: MutableBitStore, /) -> MutableBitStore:
-        return MutableBitStore._from_mutibs(self._bits | other._bits)
+        return MutableBitStore.from_mutibs(self._bits | other._bits)
 
     def __xor__(self, other: MutableBitStore, /) -> MutableBitStore:
-        return MutableBitStore._from_mutibs(self._bits ^ other._bits)
+        return MutableBitStore.from_mutibs(self._bits ^ other._bits)
 
     def __iand__(self, other: MutableBitStore, /) -> MutableBitStore:
         self._bits &= other._bits
@@ -334,7 +334,7 @@ class MutableBitStore:
         return self
 
     def __invert__(self) -> MutableBitStore:
-        return MutableBitStore._from_mutibs(~self._bits)
+        return MutableBitStore.from_mutibs(~self._bits)
 
     def find(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int:
         assert start >= 0
@@ -374,7 +374,7 @@ class MutableBitStore:
 
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
-        return MutableBitStore._from_mutibs(self._bits.__copy__())
+        return MutableBitStore.from_mutibs(self._bits.__copy__())
 
     def copy(self) -> MutableBitStore:
         return self._mutable_copy()
@@ -437,10 +437,10 @@ class MutableBitStore:
         else:
             self._bits.invert()
 
-    def any_set(self) -> bool:
+    def any(self) -> bool:
         return self._bits.any()
 
-    def all_set(self) -> bool:
+    def all(self) -> bool:
         return self._bits.all()
 
     def __len__(self) -> int:

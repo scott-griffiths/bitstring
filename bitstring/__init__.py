@@ -74,7 +74,8 @@ if _USE_RUST_CORE:
         bitstore = importlib.import_module('bitstring.bitstore_tibs')
         bitstore_helpers = importlib.import_module('bitstring.bitstore_tibs_helpers')
     except Exception as e:
-        raise ImportError("BITSTRING_USE_RUST_CORE is set, but the tibs library is unavailable.") from e
+        raise e
+        # raise ImportError("BITSTRING_USE_RUST_CORE is set, but the tibs library is unavailable.") from e
 else:
     bitstore = importlib.import_module('bitstring.bitstore_bitarray')
     bitstore_helpers = importlib.import_module('bitstring.bitstore_bitarray_helpers')

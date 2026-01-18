@@ -56,14 +56,14 @@ def ue2bitstore(i: Union[str, int]) -> ConstBitStore:
     if i < 0:
         raise bitstring.CreationError("Cannot use negative initialiser for unsigned exponential-Golomb.")
     if i == 0:
-        return ConstBitStore.from_binary_string('1')
+        return ConstBitStore.from_bin('1')
     tmp = i + 1
     leadingzeros = -1
     while tmp > 0:
         tmp >>= 1
         leadingzeros += 1
     remainingpart = i + 1 - (1 << leadingzeros)
-    return ConstBitStore.from_binary_string('0' * leadingzeros + '1') + helpers.int2bitstore(remainingpart, leadingzeros, False)
+    return ConstBitStore.from_bin('0' * leadingzeros + '1') + helpers.int2bitstore(remainingpart, leadingzeros, False)
 
 
 def se2bitstore(i: Union[str, int]) -> ConstBitStore:
@@ -79,15 +79,15 @@ def uie2bitstore(i: Union[str, int]) -> ConstBitStore:
     i = int(i)
     if i < 0:
         raise bitstring.CreationError("Cannot use negative initialiser for unsigned interleaved exponential-Golomb.")
-    return ConstBitStore.from_binary_string('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
+    return ConstBitStore.from_bin('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
 
 
 def sie2bitstore(i: Union[str, int]) -> ConstBitStore:
     i = int(i)
     if i == 0:
-        return ConstBitStore.from_binary_string('1')
+        return ConstBitStore.from_bin('1')
     else:
-        return uie2bitstore(abs(i)) + (ConstBitStore.from_binary_string('1') if i < 0 else ConstBitStore.from_binary_string('0'))
+        return uie2bitstore(abs(i)) + (ConstBitStore.from_bin('1') if i < 0 else ConstBitStore.from_bin('0'))
 
 
 def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> ConstBitStore:
@@ -98,7 +98,7 @@ def bfloat2bitstore(f: Union[str, float], big_endian: bool) -> ConstBitStore:
     except OverflowError:
         # For consistency, we overflow to 'inf'.
         b = struct.pack(fmt, float('inf') if f > 0 else float('-inf'))
-    return ConstBitStore.frombytes(b[0:2]) if big_endian else ConstBitStore.frombytes(b[2:4])
+    return ConstBitStore.from_bytes(b[0:2]) if big_endian else ConstBitStore.from_bytes(b[2:4])
 
 
 def p4binary2bitstore(f: Union[str, float]) -> ConstBitStore:
@@ -161,7 +161,7 @@ e8m0mxfp_allowed_values = [float(2 ** x) for x in range(-127, 128)]
 def e8m0mxfp2bitstore(f: Union[str, float]) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
-        return ConstBitStore.from_binary_string('11111111')
+        return ConstBitStore.from_bin('11111111')
     try:
         i = e8m0mxfp_allowed_values.index(f)
     except ValueError:
@@ -175,9 +175,9 @@ def mxint2bitstore(f: Union[str, float]) -> ConstBitStore:
         raise ValueError("Cannot convert float('nan') to mxint format as it has no representation for it.")
     f *= 2 ** 6  # Remove the implicit scaling factor
     if f > 127:  # 1 + 63/64
-        return ConstBitStore.from_binary_string('01111111')
+        return ConstBitStore.from_bin('01111111')
     if f <= -128:  # -2
-        return ConstBitStore.from_binary_string('10000000')
+        return ConstBitStore.from_bin('10000000')
     # Want to round to nearest, so move by 0.5 away from zero and round down by converting to int
     if f >= 0.0:
         f += 0.5
