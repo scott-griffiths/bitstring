@@ -23,21 +23,10 @@ class ConstBitStore:
     def immutable(self) -> bool:
         return isinstance(self._bits, Tibs)
 
-    @immutable.setter
-    def immutable(self, value: bool) -> None:
-        if value and not self.immutable:
-            self._bits = self._bits.to_tibs()
-        elif not value and self.immutable:
-            self._bits = self._bits.to_mutibs()
-
-
     @classmethod
-    def from_zeros(cls, i: int, immutable: bool):
+    def from_zeros(cls, i: int):
         x = super().__new__(cls)
-        if immutable:
-            x._bits = Tibs.from_zeros(i)
-        else:
-            x._bits = Mutibs.from_zeros(i)
+        x._bits = Tibs.from_zeros(i)
         return x
 
     @classmethod
@@ -306,20 +295,10 @@ class MutableBitStore:
     def immutable(self) -> bool:
         return isinstance(self._bits, Tibs)
 
-    @immutable.setter
-    def immutable(self, value: bool) -> None:
-        if value and not self.immutable:
-            self._bits = self._bits.to_tibs()
-        elif not value and self.immutable:
-            self._bits = self._bits.to_mutibs()
-
     @classmethod
-    def from_zeros(cls, i: int, immutable: bool):
+    def from_zeros(cls, i: int):
         x = super().__new__(cls)
-        if immutable:
-            x._bits = Tibs.from_zeros(i)
-        else:
-            x._bits = Mutibs.from_zeros(i)
+        x._bits = Mutibs.from_zeros(i)
         return x
 
     @classmethod

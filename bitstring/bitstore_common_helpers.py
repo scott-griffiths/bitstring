@@ -22,7 +22,6 @@ def str_to_bitstore(s: str) -> ConstBitStore:
     bs = ConstBitStore()
     for token in tokens:
         bs += bitstore_from_token(*token)
-    bs.immutable = True
     return bs
 
 

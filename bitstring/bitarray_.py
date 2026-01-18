@@ -122,7 +122,7 @@ class BitArray(Bits):
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             if length is not None:
-                x._bitstore = MutableBitStore.from_zeros(length, False)
+                x._bitstore = MutableBitStore.from_zeros(length)
             else:
                 x._bitstore = MutableBitStore()
             return x

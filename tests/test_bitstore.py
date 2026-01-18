@@ -62,7 +62,7 @@ class TestBasicLSB0Functionality:
         assert a.getslice(16, 24).tobytes() == b'6'
 
     def test_setting_int(self):
-        a = MutableBitStore.from_zeros(5, immutable=False)
+        a = MutableBitStore.from_zeros(5)
         a[0] = 1
         assert a.to_bin() == '00001'
         a[-1] = 1

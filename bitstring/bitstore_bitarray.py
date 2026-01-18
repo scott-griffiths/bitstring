@@ -24,10 +24,10 @@ class _BitStore:
         self.modified_length = None
 
     @classmethod
-    def from_zeros(cls, i: int, immutable: bool) -> _BitStore:
+    def from_zeros(cls, i: int) -> _BitStore:
         x = super().__new__(cls)
         x._bitarray = bitarray.bitarray(i)
-        x.immutable = immutable
+        x.immutable = False
         x.modified_length = None
         return x
 
