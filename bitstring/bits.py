@@ -147,30 +147,29 @@ class Bits:
                     self._bitstore = MutableBitStore.from_zeros(int(auto), False)
                 return
             self._setauto(auto, length, offset)
-            if not immutable:
-                self._bitstore = self._bitstore._mutable_copy()
-            return
-        k, v = kwargs.popitem()
-        if k == 'bytes':
-            # Special case for bytes as we want to allow offsets and lengths to work only on creation.
-            self._setbytes_with_truncation(v, length, offset)
-            return
-        if k == 'filename':
-            self._setfile(v, length, offset)
-            return
-        if k == 'bitarray':
-            self._setbitarray(v, length, offset)
-            return
-        if k == 'auto':
-            raise bitstring.CreationError(
-                f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
-                f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
-        if offset is not None:
-            raise bitstring.CreationError(f"offset cannot be used when initialising with '{k}'.")
-        try:
-            Dtype(k, length).set_fn(self, v)
-        except ValueError as e:
-            raise bitstring.CreationError(e)
+        else:
+            k, v = kwargs.popitem()
+            if k == 'bytes':
+                # Special case for bytes as we want to allow offsets and lengths to work only on creation.
+                self._setbytes_with_truncation(v, length, offset)
+            elif k == 'filename':
+                self._setfile(v, length, offset)
+            elif k == 'bitarray':
+                self._setbitarray(v, length, offset)
+            elif k == 'auto':
+                raise bitstring.CreationError(
+                    f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
+                    f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
+            else:
+                if offset is not None:
+                    raise bitstring.CreationError(f"offset cannot be used when initialising with '{k}'.")
+                try:
+                    Dtype(k, length).set_fn(self, v)
+                except ValueError as e:
+                    raise bitstring.CreationError(e)
+        if not immutable:
+            # TODO: This copy is not a good idea.
+            self._bitstore = self._bitstore._mutable_copy()
 
     def __getattr__(self, attribute: str) -> Any:
         # Support for arbitrary attributes like u16 or f64.
@@ -1046,9 +1045,7 @@ class Bits:
 
     def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
-        # TODO: The first part is a hack to make sure the end bitstore is of the right type.
-        # This should use a bitstore level prepend method.
-        self._bitstore = self[0:0]._bitstore + bs._bitstore + self._bitstore
+        self._bitstore.extend_left(bs._bitstore)
 
     def _insert(self, bs: Bits, pos: int, /) -> None:
         """Insert bs at pos."""

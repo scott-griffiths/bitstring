@@ -41,9 +41,15 @@ class ConstBitStore:
         return x
 
     @classmethod
-    def _from_mutablebits(cls, mb: Mutibs):
+    def _from_mutibs(cls, mb: Mutibs):
         x = super().__new__(cls)
-        x._bits = mb
+        x._bits = mb.as_tibs()
+        return x
+
+    @classmethod
+    def _from_tibs(cls, tb: Tibs):
+        x = super().__new__(cls)
+        x._bits = tb
         return x
 
     @classmethod
@@ -132,19 +138,19 @@ class ConstBitStore:
 
     def __add__(self, other: ConstBitStore, /) -> ConstBitStore:
         newbits = self._bits + other._bits
-        return ConstBitStore._from_mutablebits(newbits)
+        return ConstBitStore._from_tibs(newbits)
 
     def __eq__(self, other: Any, /) -> bool:
         return self._bits == other._bits
 
     def __and__(self, other: ConstBitStore, /) -> ConstBitStore:
-        return ConstBitStore._from_mutablebits(self._bits & other._bits)
+        return ConstBitStore._from_tibs(self._bits & other._bits)
 
     def __or__(self, other: ConstBitStore, /) -> ConstBitStore:
-        return ConstBitStore._from_mutablebits(self._bits | other._bits)
+        return ConstBitStore._from_tibs(self._bits | other._bits)
 
     def __xor__(self, other: ConstBitStore, /) -> ConstBitStore:
-        return ConstBitStore._from_mutablebits(self._bits ^ other._bits)
+        return ConstBitStore._from_tibs(self._bits ^ other._bits)
 
     def __iand__(self, other: ConstBitStore, /) -> ConstBitStore:
         self._bits &= other._bits
@@ -192,11 +198,11 @@ class ConstBitStore:
         for i in range(length):
             yield self.getindex(i)
 
-    def _mutable_copy(self) -> ConstBitStore | MutableBitStore:
+    def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
         if self.immutable:
-            return MutableBitStore._from_mutablebits(self._bits.to_mutibs())
-        return ConstBitStore._from_mutablebits(self._bits.__copy__())
+            return MutableBitStore._from_mutibs(self._bits.to_mutibs())
+        return MutableBitStore._from_mutibs(self._bits.__copy__())
 
     def as_immutable(self) -> ConstBitStore:
         if self.immutable:
@@ -317,7 +323,8 @@ class MutableBitStore:
         return x
 
     @classmethod
-    def _from_mutablebits(cls, mb: Mutibs):
+    def _from_mutibs(cls, mb: Mutibs):
+        assert isinstance(mb, Mutibs)
         x = super().__new__(cls)
         x._bits = mb
         return x
@@ -415,13 +422,13 @@ class MutableBitStore:
         return self._bits == other._bits
 
     def __and__(self, other: MutableBitStore, /) -> MutableBitStore:
-        return MutableBitStore._from_mutablebits(self._bits & other._bits)
+        return MutableBitStore._from_mutibs(self._bits & other._bits)
 
     def __or__(self, other: MutableBitStore, /) -> MutableBitStore:
-        return MutableBitStore._from_mutablebits(self._bits | other._bits)
+        return MutableBitStore._from_mutibs(self._bits | other._bits)
 
     def __xor__(self, other: MutableBitStore, /) -> MutableBitStore:
-        return MutableBitStore._from_mutablebits(self._bits ^ other._bits)
+        return MutableBitStore._from_mutibs(self._bits ^ other._bits)
 
     def __iand__(self, other: MutableBitStore, /) -> MutableBitStore:
         self._bits &= other._bits
@@ -468,11 +475,14 @@ class MutableBitStore:
         for i in range(len(self)):
             yield self.getindex(i)
 
+    def extend_left(self, other: MutableBitStore, /) -> None:
+        self._bits.extend_left(other._bits)
+
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
         if self.immutable:
-            return MutableBitStore._from_mutablebits(self._bits.to_mutibs())
-        return MutableBitStore._from_mutablebits(self._bits.__copy__())
+            return MutableBitStore._from_mutibs(self._bits.to_mutibs())
+        return MutableBitStore._from_mutibs(self._bits.__copy__())
 
     def as_immutable(self) -> MutableBitStore:
         if self.immutable:

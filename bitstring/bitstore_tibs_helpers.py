@@ -14,21 +14,21 @@ def bin2bitstore(binstring: str) -> ConstBitStore:
     binstring = tidy_input_string(binstring)
     binstring = binstring.replace('0b', '')
     mb = Mutibs.from_bin(binstring)
-    return ConstBitStore._from_mutablebits(mb)
+    return ConstBitStore._from_mutibs(mb)
 
 
 def hex2bitstore(hexstring: str) -> ConstBitStore:
     hexstring = tidy_input_string(hexstring)
     hexstring = hexstring.replace('0x', '')
     mb = Mutibs.from_hex(hexstring)
-    return ConstBitStore._from_mutablebits(mb)
+    return ConstBitStore._from_mutibs(mb)
 
 
 def oct2bitstore(octstring: str) -> ConstBitStore:
     octstring = tidy_input_string(octstring)
     octstring = octstring.replace('0o', '')
     mb = Mutibs.from_oct(octstring)
-    return ConstBitStore._from_mutablebits(mb)
+    return ConstBitStore._from_mutibs(mb)
 
 
 def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
@@ -36,9 +36,9 @@ def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
     if length <= 128:
         try:
             if signed:
-                mb = Mutibs.from_i(i, length=length)
+                mb = Tibs.from_i(i, length=length)
             else:
-                mb = Mutibs.from_u(i, length=length)
+                mb = Tibs.from_u(i, length=length)
         except OverflowError as e:
             raise ValueError(e)
     else:
@@ -47,7 +47,7 @@ def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
         mb = Tibs.from_bytes(b)
         if offset != 8:
             mb = mb[offset:]
-    return ConstBitStore._from_mutablebits(mb)
+    return ConstBitStore._from_tibs(mb)
 
 
 def intle2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
@@ -67,7 +67,7 @@ def intle2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
         if offset != 8:
             mb = mb[offset:]
     mb.byte_swap()
-    return ConstBitStore._from_mutablebits(mb)
+    return ConstBitStore._from_mutibs(mb)
 
 
 def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> ConstBitStore:
@@ -75,4 +75,4 @@ def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> Const
     mb = Mutibs.from_f(f, length)
     if not big_endian:
         mb.byte_swap()
-    return ConstBitStore._from_mutablebits(mb)
+    return ConstBitStore._from_mutibs(mb)

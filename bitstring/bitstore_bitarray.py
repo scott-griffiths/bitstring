@@ -287,6 +287,9 @@ class _BitStore:
         else:
             self._bitarray.invert()
 
+    def extend_left(self, other: _BitStore, /) -> None:
+        self._bitarray = other._bitarray + self._bitarray
+
     def any_set(self) -> bool:
         return self._bitarray.any()
 

@@ -30,7 +30,7 @@ classifiers = [
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
   "bitarray >= 3.0.0, < 4.0",
-  "tibs >= 0.3.0, < 0.4",
+  "tibs >= 0.4.0, < 0.5",
 ]
 
 [project.urls]
