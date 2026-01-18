@@ -13,11 +13,11 @@ class ConstBitStore:
 
     __slots__ = ('_bits',)
 
-    def __init__(self, initializer: Union[Mutibs, Tibs, None] = None) -> None:
+    def __init__(self, initializer: Union[Tibs, None] = None) -> None:
         if initializer is not None:
             self._bits = initializer
         else:
-            self._bits = Mutibs()
+            self._bits = Tibs()
 
     @classmethod
     def join(cls, bitstores: Iterable[ConstBitStore], /) -> ConstBitStore:
@@ -40,7 +40,7 @@ class ConstBitStore:
     @classmethod
     def frombytes(cls, b: Union[bytes, bytearray, memoryview], /) -> ConstBitStore:
         x = super().__new__(cls)
-        x._bits = Mutibs.from_bytes(b)
+        x._bits = Tibs.from_bytes(b)
         return x
 
     @classmethod
@@ -77,9 +77,9 @@ class ConstBitStore:
         if excess_bits != 0:
             # Pad with zeros to make full bytes
             if pad_at_end:
-                padded_bits = self._bits + Mutibs.from_zeros(8 - excess_bits)
+                padded_bits = self._bits + Tibs.from_zeros(8 - excess_bits)
             else:
-                padded_bits = Mutibs.from_zeros(8 - excess_bits) + self._bits
+                padded_bits = Tibs.from_zeros(8 - excess_bits) + self._bits
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
@@ -157,16 +157,7 @@ class ConstBitStore:
 
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
-        if isinstance(self._bits, Tibs):
-            return MutableBitStore._from_mutibs(self._bits.to_mutibs())
-        # TODO assert False
-        return MutableBitStore._from_mutibs(self._bits.__copy__())
-
-    def as_immutable(self) -> ConstBitStore:
-        if isinstance(self._bits, Tibs):
-            return self
-        # TODO assert False
-        return ConstBitStore(self._bits.as_tibs())
+        return MutableBitStore._from_mutibs(self._bits.to_mutibs())
 
     def copy(self) -> ConstBitStore:
         return self if isinstance(self._bits, Tibs) else self._mutable_copy()
@@ -216,10 +207,6 @@ class MutableBitStore:
         else:
             self._bits = Mutibs()
 
-    @property
-    def immutable(self) -> bool:
-        return isinstance(self._bits, Tibs)
-
     @classmethod
     def from_zeros(cls, i: int):
         x = super().__new__(cls)
@@ -243,7 +230,7 @@ class MutableBitStore:
     def frombuffer(cls, buffer, /, length: Optional[int] = None) -> MutableBitStore:
         x = super().__new__(cls)
         # TODO: tibs needs a Bits.from_buffer method.
-        x._bits = Tibs.from_bytes(bytes(buffer))
+        x._bits = Mutibs.from_bytes(bytes(buffer))
         if length is not None:
             if length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
@@ -255,7 +242,7 @@ class MutableBitStore:
     @classmethod
     def from_binary_string(cls, s: str) -> MutableBitStore:
         x = super().__new__(cls)
-        x._bits = Tibs.from_bin(s)
+        x._bits = Mutibs.from_bin(s)
         return x
 
     def set(self, value, pos) -> None:
@@ -360,12 +347,12 @@ class MutableBitStore:
         return -1 if x is None else x
 
     def findall_msb0(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        x = self._bits if self.immutable else self._bits.to_tibs()
+        x = self._bits.to_tibs()
         for p in x.find_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
 
     def rfindall_msb0(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        x = self._bits if self.immutable else self._bits.to_tibs()
+        x = self._bits.to_tibs()
         for p in x.rfind_all(bs._bits, start=start, end=end, byte_aligned=bytealigned):
             yield p
 

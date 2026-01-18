@@ -175,7 +175,6 @@ class BitArray(Bits):
         """Return a new copy of the BitArray."""
         s_copy = BitArray()
         s_copy._bitstore = self._bitstore._mutable_copy()
-        assert s_copy._bitstore.immutable is False
         return s_copy
 
     def _setitem_int(self, key: int, value: Union[BitsType, int]) -> None:

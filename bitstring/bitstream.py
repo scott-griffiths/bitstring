@@ -607,9 +607,6 @@ class BitStream(ConstBitStream, bitstring.BitArray):
 
         """
         ConstBitStream.__init__(self, auto, length, offset, pos, **kwargs)
-        if self._bitstore.immutable:
-            self._bitstore = self._bitstore._mutable_copy()
-            self._bitstore.immutable = False
 
     @classmethod
     def fromstring(cls: TBits, s: str, /) -> TBits:
