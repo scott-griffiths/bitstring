@@ -1086,11 +1086,6 @@ class Bits:
         self._bitstore.__irshift__(n)
         return self
 
-    def _imul(self: TBits, n: int, /) -> TBits:
-        """Concatenate n copies of self in place. Return self."""
-        self._bitstore.__imul__(n)
-        return self
-
     def _getbits(self: TBits):
         return self._copy()
 

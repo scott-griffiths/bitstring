@@ -138,6 +138,11 @@ class BitArray(Bits):
         x._bitstore = b._mutable_copy()
         return x
 
+    def _imul(self: TBits, n: int, /) -> TBits:
+        """Concatenate n copies of self in place. Return self."""
+        self._bitstore.__imul__(n)
+        return self
+
     def copy(self: TBits) -> TBits:
         """Return a copy of the bitstring."""
         return self.__copy__()
