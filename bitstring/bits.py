@@ -373,11 +373,16 @@ class Bits:
         """
         if n < 0:
             raise ValueError("Cannot multiply by a negative integer.")
-        if not n:
+        if n == 0:
             return self.__class__()
         s = self._copy()
         s._imul(n)
         return s
+
+    def _imul(self: TBits, n: int, /) -> TBits:
+        """Concatenate n copies of self in place. Return self."""
+        self._bitstore.__imul__(n)
+        return self
 
     def __rmul__(self: TBits, n: int, /) -> TBits:
         """Return bitstring consisting of n concatenations of self.

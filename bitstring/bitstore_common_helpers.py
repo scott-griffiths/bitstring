@@ -23,7 +23,6 @@ def str_to_bitstore(s: str) -> ConstBitStore:
     return ConstBitStore.join(constbitstores)
 
 
-
 literal_bit_funcs: Dict[str, Callable[..., ConstBitStore]] = {
     '0x': helpers.hex2bitstore,
     '0X': helpers.hex2bitstore,
