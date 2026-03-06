@@ -20,6 +20,7 @@ class Options:
         no_color = os.getenv('NO_COLOR')
         self.no_color = True if no_color else False
 
+    @property
     def using_rust_core(self):
         x = ConstBitStore()
         return x.using_rust_core()

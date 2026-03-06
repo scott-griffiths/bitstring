@@ -16,8 +16,8 @@ set the `BITSTRING_USE_RUST_CORE` environment variable.
 BITSTRING_USE_RUST_CORE=1 python your_script.py
 ```
 
-You can check which backend is being used using `bitstring.options.using_rust_core()` which
-should return `False` unless you've enabled it as detailed above.
+You can check which backend is being used using `bitstring.options.using_rust_core` which
+should be `False` unless you've enabled it as detailed above.
 
 The plan is to remove the C backend in a future release once the Rust backend is at least as
 performant, which will allow lots of code simplifications and further performance improvements.

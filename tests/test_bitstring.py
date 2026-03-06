@@ -200,7 +200,7 @@ class TestNoFixedLengthPackingBug:
         assert b == 14.0
 
 def test_rust_core():
-    using_rust = bitstring.options.using_rust_core()
+    using_rust = bitstring.options.using_rust_core
     x = bitstring.BitStream('0x1')
     if hasattr(x._bitstore, "_bitarray"):
         assert using_rust is False
