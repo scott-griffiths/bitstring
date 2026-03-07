@@ -459,23 +459,22 @@ class TestSliceAssignment:
         a[-100:-16] = '0x0'
         assert a == '0x0bcde'
 
-    # TODO: Reinstate test - fails for Rust core
-    # def test_inserting_using_set_item(self):
-    #     a = BitStream()
-    #     a[0:0] = '0xdeadbeef'
-    #     assert a == '0xdeadbeef'
-    #     assert a.bytepos == 0
-    #     a[16:16] = '0xfeed'
-    #     assert a == '0xdeadfeedbeef'
-    #     assert a.bytepos == 0
-    #     a[0:0] = '0xa'
-    #     assert a == '0xadeadfeedbeef'
-    #     assert a.bitpos == 0
-    #     a.bytepos = 6
-    #     a[0:8] = '0xff'
-    #     assert a.bytepos == 6
-    #     a[8:0] = '0x000'
-    #     assert a.startswith('0xff000ead')
+    def test_inserting_using_set_item(self):
+        a = BitStream()
+        a[0:0] = '0xdeadbeef'
+        assert a == '0xdeadbeef'
+        assert a.bytepos == 0
+        a[16:16] = '0xfeed'
+        assert a == '0xdeadfeedbeef'
+        assert a.bytepos == 0
+        a[0:0] = '0xa'
+        assert a == '0xadeadfeedbeef'
+        assert a.bitpos == 0
+        a.bytepos = 6
+        a[0:8] = '0xff'
+        assert a.bytepos == 6
+        a[8:0] = '0x000'
+        assert a.startswith('0xff000ead')
 
     def test_slice_assignment_bit_pos(self):
         a = BitStream('int:64=-1')
