@@ -77,9 +77,9 @@ class ConstBitStore:
         if excess_bits != 0:
             # Pad with zeros to make full bytes
             if pad_at_end:
-                padded_bits = self._bits + Tibs.from_zeros(8 - excess_bits)
+                padded_bits = self._bits.to_mutibs().extend(Mutibs.from_zeros(8 - excess_bits))
             else:
-                padded_bits = Tibs.from_zeros(8 - excess_bits) + self._bits
+                padded_bits = self._bits.to_mutibs().extend_left(Mutibs.from_zeros(8 - excess_bits))
             return padded_bits.to_bytes()
         return self._bits.to_bytes()
 
@@ -127,15 +127,13 @@ class ConstBitStore:
     def __invert__(self) -> ConstBitStore:
         return ConstBitStore.from_tibs(~self._bits)
 
-    def find(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int:
+    def find(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         assert start >= 0
-        x = self._bits.find(bs._bits, start, end, byte_aligned=bytealigned)
-        return -1 if x is None else x
+        return self._bits.find(bs._bits, start, end, byte_aligned=bytealigned)
 
-    def rfind(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False):
+    def rfind(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         assert start >= 0
-        x = self._bits.rfind(bs._bits, start, end, byte_aligned=bytealigned)
-        return -1 if x is None else x
+        return self._bits.rfind(bs._bits, start, end, byte_aligned=bytealigned)
 
     def findall_msb0(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         x = self._bits
@@ -338,13 +336,11 @@ class MutableBitStore:
 
     def find(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int:
         assert start >= 0
-        x = self._bits.find(bs._bits, start, end, byte_aligned=bytealigned)
-        return -1 if x is None else x
+        return self._bits.find(bs._bits, start, end, byte_aligned=bytealigned)
 
     def rfind(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False):
         assert start >= 0
-        x = self._bits.rfind(bs._bits, start, end, byte_aligned=bytealigned)
-        return -1 if x is None else x
+        return self._bits.rfind(bs._bits, start, end, byte_aligned=bytealigned)
 
     def findall_msb0(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         x = self._bits.to_tibs()

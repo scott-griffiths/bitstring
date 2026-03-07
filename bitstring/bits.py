@@ -1225,7 +1225,7 @@ class Bits:
     def _find_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         """Find first occurrence of a binary string."""
         p = self._bitstore.find(bs._bitstore, start, end, bytealigned)
-        return () if p == -1 else (p,)
+        return () if p is None else (p,)
 
     def findall(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
                 bytealigned: Optional[bool] = None) -> Iterable[int]:
@@ -1324,7 +1324,7 @@ class Bits:
     def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         """Find final occurrence of a binary string."""
         p = self._bitstore.rfind(bs._bitstore, start, end, bytealigned)
-        return () if p == -1 else (p,)
+        return () if p is None else (p,)
 
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.

@@ -159,21 +159,23 @@ class _BitStore:
     def __invert__(self) -> _BitStore:
         return _BitStore(~self._bitarray)
 
-    def find(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False) -> int:
+    def find(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         if not bytealigned:
-            return self._bitarray.find(bs._bitarray, start, end)
+            x = self._bitarray.find(bs._bitarray, start, end)
+            return None if x == -1 else x
         try:
             return next(self.findall_msb0(bs, start, end, bytealigned))
         except StopIteration:
-            return -1
+            return None
 
-    def rfind(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False):
+    def rfind(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         if not bytealigned:
-            return self._bitarray.find(bs._bitarray, start, end, right=True)
+            x = self._bitarray.find(bs._bitarray, start, end, right=True)
+            return None if x == -1 else x
         try:
             return next(self.rfindall_msb0(bs, start, end, bytealigned))
         except StopIteration:
-            return -1
+            return None
 
     def findall_msb0(self, bs: _BitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         if bytealigned is True and len(bs) % 8 == 0:

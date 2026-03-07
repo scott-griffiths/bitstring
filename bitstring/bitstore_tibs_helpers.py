@@ -60,13 +60,13 @@ def intle2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
                 mb = Mutibs.from_u(i, length=length)
         except OverflowError as e:
             raise ValueError(e)
+        mb.byte_swap()
     else:
-        b = i.to_bytes((length + 7) // 8, byteorder="big", signed=signed)
+        b = i.to_bytes((length + 7) // 8, byteorder="little", signed=signed)
         offset = 8 - (length % 8)
         mb = Mutibs.from_bytes(b)
         if offset != 8:
             mb = mb[offset:]
-    mb.byte_swap()
     return ConstBitStore.from_tibs(mb.as_tibs())
 
 
