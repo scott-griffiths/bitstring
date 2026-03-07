@@ -1,7 +1,7 @@
 
 # Release Notes
 
-### Unreleased: version 4.4.0
+### March 2026: version 4.4.0
 
 This version adds a new optional Rust-based backend. This is turned off by default so
 shouldn't affect users. The new backend uses the `tibs` library, which is
