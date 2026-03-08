@@ -233,11 +233,12 @@ using_rust_core
 
 .. data:: bitstring.using_rust_core : bool
 
-By default the ``bitarray`` library is used to optimise the core operations in bitstring.
+By default the C-based bitarray library is used to optimise the core operations in bitstring.
 This being replaced with the `tibs <https://github.com/scott-griffiths/tibs/>`_ library, which is written in Rust and by the
 author of bitstring.
-For now both options are available, and ``bitarray`` remains the default.
-The flag is read-only - to try the new library set the ``BITSTRING_USE_RUST_CORE`` environment variable before running your
+For now both options are available, and bitarray remains the default.
+
+The ``using_rust_core`` flag is read-only - to try the new library set the ``BITSTRING_USE_RUST_CORE`` environment variable before running your
 program, tests or Python interpreter. ::
 
     % BITSTRING_USE_RUST_CORE=1 python

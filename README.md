@@ -4,9 +4,6 @@
 
 **bitstring** is a Python library to help make the creation and analysis of all types of bit-level binary data as simple and efficient as possible. It has been actively maintained since 2006.
 
-The library has has now been downloaded over 100 million times! &nbsp; &nbsp; ✨ [![Pepy Total Downloads](https://img.shields.io/pepy/dt/bitstring?label=Downloads:&labelColor=orange&color=orange)](https://www.pepy.tech/projects/bitstring) ✨
-
-
 
 [![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)](https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/readthedocs/bitstring?logo=readthedocs&logoColor=white)](https://bitstring.readthedocs.io/en/latest/)
@@ -20,6 +17,14 @@ The library has has now been downloaded over 100 million times! &nbsp; &nbsp; �
 
 > [!NOTE]
 > To see what been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
+
+# News
+
+I'm rewriting the core of bitstring in Rust, and have released that cut-down and streamlined interface as the [tibs](https://github.com/scott-griffiths/tibs) package. It's now in beta, and feedback is welcome. Just `pip install tibs` to try it out.
+
+[![tibs](https://raw.githubusercontent.com/scott-griffiths/tibs/main/doc/tibs.png)](https://github.com/scott-griffiths/tibs)
+
+A sleek Python library for your binary data
 
 
 # Overview
