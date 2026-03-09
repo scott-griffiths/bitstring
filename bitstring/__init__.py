@@ -63,19 +63,14 @@ import sys
 import os
 import importlib
 
-# Experimental ability to use tibs for core operations instead of bitarray.
-# Tibs's core is written in Rust and is still in beta. Use the environment variable
-# BITSTRING_USE_RUST_CORE=1 before importing the module to turn it on. The Rust core
-# is not recommended for general use yet.
+# New ability to use tibs for core operations instead of bitarray.
+# Tibs is written in Rust and is still in beta. Use the environment variable
+# BITSTRING_USE_RUST_CORE=1 before importing the module to turn it on.
 _env_core = os.getenv('BITSTRING_USE_RUST_CORE', '').strip().lower()
 _USE_RUST_CORE = _env_core in ('1', 'true', 'yes', 'on')
 if _USE_RUST_CORE:
-    try:
-        bitstore = importlib.import_module('bitstring.bitstore_tibs')
-        bitstore_helpers = importlib.import_module('bitstring.bitstore_tibs_helpers')
-    except Exception as e:
-        raise e
-        # raise ImportError("BITSTRING_USE_RUST_CORE is set, but the tibs library is unavailable.") from e
+    bitstore = importlib.import_module('bitstring.bitstore_tibs')
+    bitstore_helpers = importlib.import_module('bitstring.bitstore_tibs_helpers')
 else:
     bitstore = importlib.import_module('bitstring.bitstore_bitarray')
     bitstore_helpers = importlib.import_module('bitstring.bitstore_bitarray_helpers')

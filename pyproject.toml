@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bitstring"
-version = "4.4.0rc1"
+version = "4.4.0"
 license = { text = "MIT" }
 authors = [
   { name="Scott Griffiths", email="dr.scottgriffiths@gmail.com" },
