@@ -3,7 +3,7 @@
 Optimisation Techniques
 =======================
 
-The :mod:`bitstring` module aims to be as fast as reasonably possible, and since version 4.1 has used the ``bitarray`` C extension to power its core.
+The :mod:`bitstring` module aims to be as fast as reasonably possible, and since version 5.0 has used the ``tibs`` Rust module to power its core.
 
 There are however some pointers you should follow to make your code efficient, so if you need things to run faster then this is the section for you.
 

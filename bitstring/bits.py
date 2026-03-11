@@ -10,7 +10,6 @@ import io
 from collections import abc
 import functools
 from typing import Tuple, Union, List, Iterable, Any, Optional, BinaryIO, TextIO, overload, Iterator, Type, TypeVar
-import bitarray
 import bitstring
 from bitstring import utils
 from bitstring.dtypes import Dtype, dtype_register
@@ -25,7 +24,7 @@ common_helpers = bitstring.bitstore_common_helpers
 
 
 # Things that can be converted to Bits when a Bits type is needed
-BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview, bitarray.bitarray]
+BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview]
 
 TBits = TypeVar("TBits", bound='Bits')
 
@@ -153,8 +152,6 @@ class Bits:
                 self._setbytes_with_truncation(v, length, offset)
             elif k == 'filename':
                 self._setfile(v, length, offset)
-            elif k == 'bitarray':
-                self._setbitarray(v, length, offset)
             elif k == 'auto':
                 raise bitstring.CreationError(
                     f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
@@ -508,8 +505,6 @@ class Bits:
             self._bitstore = ConstBitStore.from_bytes(s.getvalue())
         elif isinstance(s, io.BufferedReader):
             self._setfile(s.name)
-        elif isinstance(s, bitarray.bitarray):
-            self._bitstore = ConstBitStore(s)
         elif isinstance(s, array.array):
             self._bitstore = ConstBitStore.from_bytes(s.tobytes())
         elif isinstance(s, abc.Iterable):
@@ -548,7 +543,7 @@ class Bits:
             return
 
         if isinstance(s, (str, Bits, bytes, bytearray, memoryview, io.BytesIO, io.BufferedReader,
-                          bitarray.bitarray, array.array, abc.Iterable)):
+                          array.array, abc.Iterable)):
             raise bitstring.CreationError(f"Cannot initialise bitstring from type '{type(s)}' when using explicit lengths or offsets.")
         raise TypeError(f"Cannot initialise bitstring from type '{type(s)}'.")
 
@@ -572,19 +567,6 @@ class Bits:
                     self._bitstore = temp.getslice(offset, offset + length)
                     if len(self) != length:
                         raise bitstring.CreationError(f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {len(temp)} bits.")
-
-    def _setbitarray(self, ba: bitarray.bitarray, length: Optional[int], offset: Optional[int]) -> None:
-        if offset is None:
-            offset = 0
-        if offset > len(ba):
-            raise bitstring.CreationError(f"Offset of {offset} too large for bitarray of length {len(ba)}.")
-        if length is None:
-            self._bitstore = ConstBitStore(ba[offset:])
-        else:
-            if offset + length > len(ba):
-                raise bitstring.CreationError(
-                    f"Offset of {offset} and length of {length} too large for bitarray of length {len(ba)}.")
-            self._bitstore = ConstBitStore(ba[offset: offset + length])
 
     def _setbits(self, bs: BitsType, length: None = None) -> None:
         bs = Bits._create_from_bitstype(bs)

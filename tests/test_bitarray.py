@@ -6,7 +6,6 @@ Unit tests for the bitarray module.
 import pytest
 import sys
 import os
-import bitarray
 import bitstring
 from bitstring import BitArray, Bits
 

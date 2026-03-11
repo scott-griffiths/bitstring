@@ -87,7 +87,6 @@ The first parameter when creating a bitstring is a positional only parameter, re
 * A file object, opened in binary mode, from which the bitstring will be formed.
 * A ``bytearray`` or ``bytes`` object.
 * An ``array`` object from the built-in ``array`` module. This is used after being converted to it's constituent byte data via its ``tobytes`` method.
-* A ``bitarray`` or ``frozenbitarray`` object from the 3rd party ``bitarray`` package.
 
 If it is a string then that string will be parsed into tokens to construct the binary data:
 
@@ -141,7 +140,7 @@ Integers won't be promoted, but instead will raise a ``TypeError``::
 ``BitsType``
 ^^^^^^^^^^^^
 
-.. class:: BitsType(Bits | str | Iterable[Any] | bool | BinaryIO | bytearray | bytes | memoryview | bitarray.bitarray)
+.. class:: BitsType(Bits | str | Iterable[Any] | bool | BinaryIO | bytearray | bytes | memoryview)
 
     The ``BitsType`` type is used in the documentation in a number of places where an object of any type that can be promoted to a bitstring is acceptable.
 

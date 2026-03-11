@@ -7,9 +7,9 @@ See https://arxiv.org/abs/2206.02915
 import struct
 import zlib
 import array
-import bitarray
 from bitstring.luts import binary8_luts_compressed
 import math
+import tibs
 
 
 class Binary8Format:
@@ -66,17 +66,17 @@ class Binary8Format:
         """Create a LUT to convert an int in range 0-255 representing a float8 into a Python float"""
         i2f = []
         for i in range(256):
-            b = bitarray.util.int2ba(i, length=8, endian='big', signed=False)
+            b = tibs.Tibs.from_u(i, 8)
             sign = b[0]
-            exponent = bitarray.util.ba2int(b[1:1 + self.exp_bits])
+            exponent = b[1:1 + self.exp_bits].to_u()
             significand = b[1 + self.exp_bits:]
             if exponent == 0:
-                significand = bitarray.bitarray('0') + significand
+                significand = [0] + significand
                 exponent = -self.bias + 1
             else:
-                significand = bitarray.bitarray('1') + significand
+                significand = [1] + significand
                 exponent -= self.bias
-            f = float(bitarray.util.ba2int(significand)) / (2.0 ** (7 - self.exp_bits))
+            f = float(significand.to_u()) / (2.0 ** (7 - self.exp_bits))
             f *= 2 ** exponent
             i2f.append(f if not sign else -f)
         # One special case for minus zero

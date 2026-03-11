@@ -2,7 +2,6 @@
 import pytest
 import io
 import sys
-import bitarray
 import bitstring
 import array
 import os
@@ -202,15 +201,6 @@ class TestCreation:
     def test_creation_keyword_error(self):
         with pytest.raises(bitstring.CreationError):
             Bits(squirrel=5)
-
-    def test_creation_from_bitarray_errors(self):
-        ba = bitarray.bitarray('0101')
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(bitarray=ba, length=5)
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(bitarray=ba, offset=5)
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(ba, length=-1)
 
     def test_creation_from_memoryview(self):
         x = bytes(bytearray(range(20)))
