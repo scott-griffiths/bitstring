@@ -20,7 +20,6 @@ from bitstring.bitstring_options import Colour
 ConstBitStore = bitstring.bitstore.ConstBitStore
 MutableBitStore = bitstring.bitstore.MutableBitStore
 helpers = bitstring.bitstore_helpers
-common_helpers = bitstring.bitstore_common_helpers
 
 
 # Things that can be converted to Bits when a Bits type is needed
@@ -496,7 +495,7 @@ class Bits:
     def _setauto_no_length_or_offset(self, s: BitsType, /) -> None:
         """Set bitstring from a bitstring, file, bool, array, iterable or string."""
         if isinstance(s, str):
-            self._bitstore = common_helpers.str_to_bitstore(s)
+            self._bitstore = helpers.str_to_bitstore(s)
         elif isinstance(s, Bits):
             self._bitstore = s._bitstore.copy()
         elif isinstance(s, (bytes, bytearray, memoryview)):
@@ -573,31 +572,31 @@ class Bits:
         self._bitstore = bs._bitstore
 
     def _setp3binary(self, f: float) -> None:
-        self._bitstore = common_helpers.p3binary2bitstore(f)
+        self._bitstore = helpers.p3binary2bitstore(f)
 
     def _setp4binary(self, f: float) -> None:
-        self._bitstore = common_helpers.p4binary2bitstore(f)
+        self._bitstore = helpers.p4binary2bitstore(f)
 
     def _sete4m3mxfp(self, f: float) -> None:
-        self._bitstore = common_helpers.e4m3mxfp2bitstore(f)
+        self._bitstore = helpers.e4m3mxfp2bitstore(f)
 
     def _sete5m2mxfp(self, f: float) -> None:
-        self._bitstore = common_helpers.e5m2mxfp2bitstore(f)
+        self._bitstore = helpers.e5m2mxfp2bitstore(f)
 
     def _sete3m2mxfp(self, f: float) -> None:
-        self._bitstore = common_helpers.e3m2mxfp2bitstore(f)
+        self._bitstore = helpers.e3m2mxfp2bitstore(f)
 
     def _sete2m3mxfp(self, f: float) -> None:
-        self._bitstore = common_helpers.e2m3mxfp2bitstore(f)
+        self._bitstore = helpers.e2m3mxfp2bitstore(f)
 
     def _sete2m1mxfp(self, f: float) -> None:
-        self._bitstore = common_helpers.e2m1mxfp2bitstore(f)
+        self._bitstore = helpers.e2m1mxfp2bitstore(f)
 
     def _sete8m0mxfp(self, f: float) -> None:
-        self._bitstore = common_helpers.e8m0mxfp2bitstore(f)
+        self._bitstore = helpers.e8m0mxfp2bitstore(f)
 
     def _setmxint(self, f: float) -> None:
-        self._bitstore = common_helpers.mxint2bitstore(f)
+        self._bitstore = helpers.mxint2bitstore(f)
 
     def _setbytes(self, data: Union[bytearray, bytes, List], length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
@@ -788,7 +787,7 @@ class Bits:
     def _setbfloatbe(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
             raise bitstring.CreationError(f"bfloats must be length 16, received a length of {length} bits.")
-        self._bitstore = common_helpers.bfloat2bitstore(f, True)
+        self._bitstore = helpers.bfloat2bitstore(f, True)
 
     def _getbfloatle(self) -> float:
         zero_padded = Bits(16) + self
@@ -797,7 +796,7 @@ class Bits:
     def _setbfloatle(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
             raise bitstring.CreationError(f"bfloats must be length 16, received a length of {length} bits.")
-        self._bitstore = common_helpers.bfloat2bitstore(f, False)
+        self._bitstore = helpers.bfloat2bitstore(f, False)
 
     def _setue(self, i: int) -> None:
         """Initialise bitstring with unsigned exponential-Golomb code for integer i.
@@ -807,7 +806,7 @@ class Bits:
         """
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = common_helpers.ue2bitstore(i)
+        self._bitstore = helpers.ue2bitstore(i)
 
     def _readue(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned exponential-Golomb code.
@@ -864,7 +863,7 @@ class Bits:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = common_helpers.se2bitstore(i)
+        self._bitstore = helpers.se2bitstore(i)
 
     def _readse(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as a signed exponential-Golomb code.
@@ -887,7 +886,7 @@ class Bits:
         """
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = common_helpers.uie2bitstore(i)
+        self._bitstore = helpers.uie2bitstore(i)
 
     def _readuie(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as unsigned interleaved exponential-Golomb code.
@@ -914,7 +913,7 @@ class Bits:
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
         if bitstring.options.lsb0:
             raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
-        self._bitstore = common_helpers.sie2bitstore(i)
+        self._bitstore = helpers.sie2bitstore(i)
 
     def _readsie(self, pos: int) -> Tuple[int, int]:
         """Return interpretation of next bits as a signed interleaved exponential-Golomb code.
@@ -1711,7 +1710,7 @@ class Bits:
     def fromstring(cls: TBits, s: str, /) -> TBits:
         """Create a new bitstring from a formatted string."""
         x = super().__new__(cls)
-        x._bitstore = common_helpers.str_to_bitstore(s)
+        x._bitstore = helpers.str_to_bitstore(s)
         return x
 
     len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")

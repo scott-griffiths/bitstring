@@ -62,7 +62,6 @@ __author__ = "Scott Griffiths"
 import sys
 import bitstring.bitstore_tibs as bitstore
 import bitstring.bitstore_tibs_helpers as bitstore_helpers
-import bitstring.bitstore_common_helpers
 
 from .bits import Bits
 from .bitstring_options import Options

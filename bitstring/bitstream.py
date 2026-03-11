@@ -7,7 +7,8 @@ from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
 import copy
 import numbers
 
-common_helpers = bitstring.bitstore_common_helpers
+helpers = bitstring.bitstore_helpers
+
 
 TConstBitStream = TypeVar("TConstBitStream", bound='ConstBitStream')
 
@@ -472,7 +473,7 @@ class ConstBitStream(Bits):
     @classmethod
     def fromstring(cls: TBits, s: str, /) -> TBits:
         x = super().__new__(cls)
-        x._bitstore = common_helpers.str_to_bitstore(s)
+        x._bitstore = helpers.str_to_bitstore(s)
         x._pos = 0
         return x
 
@@ -609,7 +610,7 @@ class BitStream(ConstBitStream, bitstring.BitArray):
     @classmethod
     def fromstring(cls: TBits, s: str, /) -> TBits:
         x = super().__new__(cls)
-        b = common_helpers.str_to_bitstore(s)
+        b = helpers.str_to_bitstore(s)
         x._bitstore = b._mutable_copy()
         x._pos = 0
         return x
