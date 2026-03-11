@@ -7,7 +7,6 @@ from typing import Union, Iterable, Optional, overload, Iterator, Any
 from bitstring.helpers import offset_slice_indices_lsb0
 
 
-
 class ConstBitStore:
     """A light wrapper around tibs.Tibs that does the LSB0 stuff"""
 

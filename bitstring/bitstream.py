@@ -6,8 +6,7 @@ from bitstring.dtypes import Dtype
 from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
 import copy
 import numbers
-
-helpers = bitstring.bitstore_helpers
+import bitstring.bitstore_helpers as helpers
 
 
 TConstBitStream = TypeVar("TConstBitStream", bound='ConstBitStream')

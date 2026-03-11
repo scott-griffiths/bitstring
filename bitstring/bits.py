@@ -17,9 +17,11 @@ from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt
 from bitstring.bitstring_options import Colour
 
+import bitstring.bitstore_helpers as helpers
+
 ConstBitStore = bitstring.bitstore.ConstBitStore
 MutableBitStore = bitstring.bitstore.MutableBitStore
-helpers = bitstring.bitstore_helpers
+
 
 
 # Things that can be converted to Bits when a Bits type is needed

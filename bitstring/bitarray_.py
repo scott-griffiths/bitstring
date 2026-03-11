@@ -10,7 +10,7 @@ from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
 
 import bitstring.dtypes
-helpers = bitstring.bitstore_helpers
+import bitstring.bitstore_helpers as helpers
 
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
