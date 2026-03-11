@@ -54,7 +54,6 @@ class Bits:
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
@@ -1450,10 +1449,6 @@ class Bits:
 
         """
         return self._bitstore.to_bytes()
-
-    def tobitarray(self) -> bitarray.bitarray:
-        """Convert the bitstring to a bitarray object."""
-        return self._bitstore.tobitarray()
 
     def tofile(self, f: BinaryIO) -> None:
         """Write the bitstring to a file object, padding with zero bits if needed.

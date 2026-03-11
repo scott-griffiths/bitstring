@@ -228,30 +228,6 @@ See https://no-color.org for more information.
 
 The terminal colours can also be turned off by setting ``bitstring.options.no_color`` to ``True``.
 
-using_rust_core
-^^^^^^^^^^^^^^^
-
-.. data:: bitstring.using_rust_core : bool
-
-By default the C-based bitarray library is used to optimise the core operations in bitstring.
-This being replaced with the `tibs <https://github.com/scott-griffiths/tibs/>`_ library, which is written in Rust and by the
-author of bitstring.
-For now both options are available, and bitarray remains the default.
-
-The ``using_rust_core`` flag is read-only - to try the new library set the ``BITSTRING_USE_RUST_CORE`` environment variable before running your
-program, tests or Python interpreter. ::
-
-    % BITSTRING_USE_RUST_CORE=1 python
-    Python 3.13.5 (main, Jul 23 2025, 00:30:58) [Clang 20.1.4 ] on darwin
-    Type "help", "copyright", "credits" or "license" for more information.
-    >>> import bitstring
-    >>> bitstring.options.using_rust_core
-    True
-
-This should work identically in terms of features, except that the ``tobitarray()`` method will be unavailable.
-
-The plan is to make the Rust core the only option from version 5 of bitstring.
-
 ----
 
 Command Line Usage

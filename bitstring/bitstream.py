@@ -33,7 +33,6 @@ class ConstBitStream(Bits):
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
@@ -545,7 +544,6 @@ class BitStream(ConstBitStream, bitstring.BitArray):
     set() -- Set bit(s) to 1 or 0.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.

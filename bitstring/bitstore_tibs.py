@@ -65,13 +65,6 @@ class ConstBitStore:
     def set(self, value, pos) -> None:
         self._bits.set(value, pos)
 
-    @staticmethod
-    def using_rust_core() -> bool:
-        return True
-
-    def tobitarray(self):
-        raise TypeError("tobitarray() is not available when using the Rust core option.")
-
     def to_bytes(self, pad_at_end: bool = True) -> bytes:
         excess_bits = len(self._bits) % 8
         if excess_bits != 0:
@@ -245,13 +238,6 @@ class MutableBitStore:
 
     def set(self, value, pos) -> None:
         self._bits.set(value, pos)
-
-    @staticmethod
-    def using_rust_core() -> bool:
-        return True
-
-    def tobitarray(self):
-        raise TypeError("tobitarray() is not available when using the Rust core option.")
 
     def to_bytes(self, pad_at_end: bool = True) -> bytes:
         excess_bits = len(self._bits) % 8
