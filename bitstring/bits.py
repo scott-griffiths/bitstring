@@ -378,7 +378,7 @@ class Bits:
 
     def _imul(self: TBits, n: int, /) -> TBits:
         """Concatenate n copies of self in place. Return self."""
-        self._bitstore.__imul__(n)
+        self._bitstore.tibs *= n
         return self
 
     def __rmul__(self: TBits, n: int, /) -> TBits:
@@ -1026,7 +1026,7 @@ class Bits:
 
     def _addright(self, bs: Bits, /) -> None:
         """Add a bitstring to the RHS of the current bitstring."""
-        self._bitstore += bs._bitstore
+        self._bitstore.tibs += bs._bitstore.tibs
 
     def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
