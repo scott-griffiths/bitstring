@@ -1512,9 +1512,7 @@ class Bits:
         7
 
         """
-        # count the number of 1s (from which it's easy to work out the 0s).
-        count = self._bitstore.count(1)
-        return count if value else len(self) - count
+        return self._bitstore.tibs.count(bool(value))
 
     @staticmethod
     def _format_bits(bits: Bits, bits_per_group: int, sep: str, dtype: Dtype,

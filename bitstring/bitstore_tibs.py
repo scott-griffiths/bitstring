@@ -61,23 +61,20 @@ class ConstBitStore:
         x.tibs = Tibs.from_bin(s)
         return x
 
-    def set(self, value, pos) -> None:
-        self.tibs.set(value, pos)
-
-    def to_bytes(self, pad_at_end: bool = True) -> bytes:
-        excess_bits = len(self.tibs) % 8
-        if excess_bits != 0:
-            # Pad with zeros to make full bytes
-            if pad_at_end:
-                padded_bits = self.tibs.to_mutibs().extend(Mutibs.from_zeros(8 - excess_bits))
-            else:
-                padded_bits = self.tibs.to_mutibs().extend_left(Mutibs.from_zeros(8 - excess_bits))
-            return padded_bits.to_bytes()
-        return self.tibs.to_bytes()
+    def to_bytes(self) -> bytes:
+        padding = 8 - len(self.tibs) % 8
+        if padding == 8:
+            return self.tibs.to_bytes()
+        return (self.tibs + [0] * padding).to_bytes()
 
     def to_u(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.to_bytes(pad_at_end=False), byteorder="big", signed=False)
+            padding = 8 - len(self.tibs) % 8
+            if padding == 8:
+                b = self.tibs.to_bytes()
+            else:
+                b = ([0] * padding + self.tibs).to_bytes()
+            return int.from_bytes(b, byteorder="big", signed=False)
         try:
             return self.tibs.to_u()
         except OverflowError as e:
@@ -85,7 +82,13 @@ class ConstBitStore:
 
     def to_i(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.to_bytes(pad_at_end=False), byteorder="big", signed=True)
+            padding = 8 - len(self.tibs) % 8
+            if padding == 8:
+                b = self.tibs.to_bytes()
+            else:
+                pad_bit = self.tibs[0]  # Keep sign when padding
+                b = ([pad_bit] * padding + self.tibs).to_bytes()
+            return int.from_bytes(b, byteorder="big", signed=True)
         try:
             return self.tibs.to_i()
         except OverflowError as e:
@@ -136,9 +139,6 @@ class ConstBitStore:
         x = self.tibs
         for p in x.rfind_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned):
             yield p
-
-    def count(self, value, /) -> int:
-        return self.tibs.count(value)
 
     def __iter__(self) -> Iterable[bool]:
         length = len(self)
@@ -217,26 +217,10 @@ class MutableBitStore:
         return x
 
     @classmethod
-    def frombuffer(cls, buffer, /, length: Optional[int] = None) -> MutableBitStore:
-        x = super().__new__(cls)
-        # TODO: tibs needs a Mutits.from_buffer method.
-        x.tibs = Mutibs.from_bytes(bytes(buffer))
-        if length is not None:
-            if length < 0:
-                raise CreationError("Can't create bitstring with a negative length.")
-            if length > len(x.tibs):
-                raise CreationError(
-                    f"Can't create bitstring with a length of {length} from {len(x.tibs)} bits of data.")
-        return x.getslice(0, length) if length is not None else x
-
-    @classmethod
     def from_bin(cls, s: str) -> MutableBitStore:
         x = super().__new__(cls)
         x.tibs = Mutibs.from_bin(s)
         return x
-
-    def set(self, value, pos) -> None:
-        self.tibs.set(value, pos)
 
     def to_bytes(self, pad_at_end: bool = True) -> bytes:
         excess_bits = len(self.tibs) % 8
@@ -297,18 +281,6 @@ class MutableBitStore:
     def __xor__(self, other: MutableBitStore, /) -> MutableBitStore:
         return MutableBitStore.from_mutibs(self.tibs ^ other.tibs)
 
-    def __iand__(self, other: MutableBitStore, /) -> MutableBitStore:
-        self.tibs &= other.tibs
-        return self
-
-    def __ior__(self, other: MutableBitStore, /) -> MutableBitStore:
-        self.tibs |= other.tibs
-        return self
-
-    def __ixor__(self, other: MutableBitStore, /) -> MutableBitStore:
-        self.tibs ^= other.tibs
-        return self
-
     def __invert__(self) -> MutableBitStore:
         return MutableBitStore.from_mutibs(~self.tibs)
 
@@ -329,9 +301,6 @@ class MutableBitStore:
         x = self.tibs.to_tibs()
         for p in x.rfind_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned):
             yield p
-
-    def count(self, value, /) -> int:
-        return self.tibs.count(value)
 
     def clear(self) -> None:
         self.tibs.clear()
