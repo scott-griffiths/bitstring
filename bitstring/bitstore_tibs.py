@@ -12,11 +12,8 @@ class ConstBitStore:
 
     __slots__ = ('tibs',)
 
-    def __init__(self, initializer: Union[Tibs, None] = None) -> None:
-        if initializer is not None:
-            self.tibs = initializer
-        else:
-            self.tibs = Tibs()
+    def __init__(self, initializer: Tibs) -> None:
+        self.tibs = initializer
 
     @classmethod
     def join(cls, bitstores: Iterable[ConstBitStore], /) -> ConstBitStore:
@@ -28,12 +25,6 @@ class ConstBitStore:
     def from_zeros(cls, i: int):
         x = super().__new__(cls)
         x.tibs = Tibs.from_zeros(i)
-        return x
-
-    @classmethod
-    def from_tibs(cls, tb: Tibs):
-        x = super().__new__(cls)
-        x.tibs = tb
         return x
 
     @classmethod
@@ -105,22 +96,22 @@ class ConstBitStore:
 
     def __add__(self, other: ConstBitStore, /) -> ConstBitStore:
         newbits = self.tibs + other.tibs
-        return ConstBitStore.from_tibs(newbits)
+        return ConstBitStore(newbits)
 
     def __eq__(self, other: Any, /) -> bool:
         return self.tibs == other.tibs
 
     def __and__(self, other: ConstBitStore, /) -> ConstBitStore:
-        return ConstBitStore.from_tibs(self.tibs & other.tibs)
+        return ConstBitStore(self.tibs & other.tibs)
 
     def __or__(self, other: ConstBitStore, /) -> ConstBitStore:
-        return ConstBitStore.from_tibs(self.tibs | other.tibs)
+        return ConstBitStore(self.tibs | other.tibs)
 
     def __xor__(self, other: ConstBitStore, /) -> ConstBitStore:
-        return ConstBitStore.from_tibs(self.tibs ^ other.tibs)
+        return ConstBitStore(self.tibs ^ other.tibs)
 
     def __invert__(self) -> ConstBitStore:
-        return ConstBitStore.from_tibs(~self.tibs)
+        return ConstBitStore(~self.tibs)
 
     def find(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         assert start >= 0
@@ -147,7 +138,7 @@ class ConstBitStore:
 
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
-        return MutableBitStore.from_mutibs(self.tibs.to_mutibs())
+        return MutableBitStore(self.tibs.to_mutibs())
 
     def copy(self) -> ConstBitStore:
         return self if isinstance(self.tibs, Tibs) else self._mutable_copy()
@@ -191,23 +182,13 @@ class MutableBitStore:
 
     __slots__ = ('tibs',)
 
-    def __init__(self, initializer: Union[Mutibs, None] = None) -> None:
-        if initializer is not None:
-            self.tibs = initializer
-        else:
-            self.tibs = Mutibs()
+    def __init__(self, initializer: Mutibs) -> None:
+        self.tibs = initializer
 
     @classmethod
     def from_zeros(cls, i: int):
         x = super().__new__(cls)
         x.tibs = Mutibs.from_zeros(i)
-        return x
-
-    @classmethod
-    def from_mutibs(cls, mb: Mutibs):
-        assert isinstance(mb, Mutibs)
-        x = super().__new__(cls)
-        x.tibs = mb
         return x
 
     @classmethod
@@ -273,16 +254,16 @@ class MutableBitStore:
         return self.tibs == other.tibs
 
     def __and__(self, other: MutableBitStore, /) -> MutableBitStore:
-        return MutableBitStore.from_mutibs(self.tibs & other.tibs)
+        return MutableBitStore(self.tibs & other.tibs)
 
     def __or__(self, other: MutableBitStore, /) -> MutableBitStore:
-        return MutableBitStore.from_mutibs(self.tibs | other.tibs)
+        return MutableBitStore(self.tibs | other.tibs)
 
     def __xor__(self, other: MutableBitStore, /) -> MutableBitStore:
-        return MutableBitStore.from_mutibs(self.tibs ^ other.tibs)
+        return MutableBitStore(self.tibs ^ other.tibs)
 
     def __invert__(self) -> MutableBitStore:
-        return MutableBitStore.from_mutibs(~self.tibs)
+        return MutableBitStore(~self.tibs)
 
     def find(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int:
         assert start >= 0
@@ -317,7 +298,7 @@ class MutableBitStore:
 
     def _mutable_copy(self) -> MutableBitStore:
         """Always creates a copy, even if instance is immutable."""
-        return MutableBitStore.from_mutibs(self.tibs.__copy__())
+        return MutableBitStore(self.tibs.__copy__())
 
     def copy(self) -> MutableBitStore:
         return self._mutable_copy()

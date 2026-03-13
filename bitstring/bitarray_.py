@@ -121,10 +121,7 @@ class BitArray(Bits):
         x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
-            if length is not None:
-                x._bitstore = MutableBitStore.from_zeros(length)
-            else:
-                x._bitstore = MutableBitStore()
+            x._bitstore = MutableBitStore.from_zeros(length if length is not None else 0)
             return x
         x._initialise(auto, length, offset, immutable=False, **kwargs)
         return x

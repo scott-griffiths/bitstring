@@ -118,10 +118,7 @@ class Bits:
         x = super().__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
-            if length is not None:
-                x._bitstore = ConstBitStore.from_zeros(length)
-            else:
-                x._bitstore = ConstBitStore()
+            x._bitstore = ConstBitStore.from_zeros(length if length is not None else 0)
             return x
         x._initialise(auto, length, offset, immutable=True, **kwargs)
         return x
@@ -1406,7 +1403,7 @@ class Bits:
         sequence -- A sequence of bitstrings.
 
         """
-        bs = MutableBitStore()
+        bs = MutableBitStore.from_zeros(0)
         if len(self) == 0:
             # Optimised version that doesn't need to add self between every item
             for item in sequence:
