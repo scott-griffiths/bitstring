@@ -185,6 +185,12 @@ class MutableBitStore:
         self.tibs = initializer
 
     @classmethod
+    def join(cls, bitstores: Iterable[MutableBitStore], /) -> MutableBitStore:
+        x = super().__new__(cls)
+        x.tibs = Mutibs.from_joined(b.tibs for b in bitstores)
+        return x
+
+    @classmethod
     def from_zeros(cls, i: int):
         x = super().__new__(cls)
         x.tibs = Mutibs.from_zeros(i)
@@ -215,7 +221,12 @@ class MutableBitStore:
 
     def to_u(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.to_bytes(pad_at_end=False), byteorder="big", signed=False)
+            padding = 8 - len(self.tibs) % 8
+            if padding == 8:
+                b = self.tibs.to_bytes()
+            else:
+                b = ([0] * padding + self.tibs).to_bytes()
+            return int.from_bytes(b, byteorder="big", signed=False)
         try:
             return self.tibs.to_u()
         except OverflowError as e:
@@ -223,7 +234,13 @@ class MutableBitStore:
 
     def to_i(self) -> int:
         if len(self) > 128:
-            return int.from_bytes(self.to_bytes(pad_at_end=False), byteorder="big", signed=True)
+            padding = 8 - len(self.tibs) % 8
+            if padding == 8:
+                b = self.tibs.to_bytes()
+            else:
+                pad_bit = self.tibs[0]  # Keep sign when padding
+                b = ([pad_bit] * padding + self.tibs).to_bytes()
+            return int.from_bytes(b, byteorder="big", signed=True)
         try:
             return self.tibs.to_i()
         except OverflowError as e:
