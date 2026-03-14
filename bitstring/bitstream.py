@@ -6,8 +6,8 @@ from bitstring.dtypes import Dtype
 from typing import Union, List, Any, Optional, overload, TypeVar, Tuple
 import copy
 import numbers
+import bitstring.bitstore_helpers as helpers
 
-common_helpers = bitstring.bitstore_common_helpers
 
 TConstBitStream = TypeVar("TConstBitStream", bound='ConstBitStream')
 
@@ -33,7 +33,6 @@ class ConstBitStream(Bits):
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
@@ -473,7 +472,7 @@ class ConstBitStream(Bits):
     @classmethod
     def fromstring(cls: TBits, s: str, /) -> TBits:
         x = super().__new__(cls)
-        x._bitstore = common_helpers.str_to_bitstore(s)
+        x._bitstore = helpers.str_to_bitstore(s)
         x._pos = 0
         return x
 
@@ -545,7 +544,6 @@ class BitStream(ConstBitStream, bitstring.BitArray):
     set() -- Set bit(s) to 1 or 0.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
@@ -611,7 +609,7 @@ class BitStream(ConstBitStream, bitstring.BitArray):
     @classmethod
     def fromstring(cls: TBits, s: str, /) -> TBits:
         x = super().__new__(cls)
-        b = common_helpers.str_to_bitstore(s)
+        b = helpers.str_to_bitstore(s)
         x._bitstore = b._mutable_copy()
         x._pos = 0
         return x

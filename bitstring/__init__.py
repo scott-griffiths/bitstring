@@ -55,26 +55,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "4.4.0"
+__version__ = "5.0.0"
 
 __author__ = "Scott Griffiths"
 
 import sys
-import os
-import importlib
-
-# New ability to use tibs for core operations instead of bitarray.
-# Tibs is written in Rust and is still in beta. Use the environment variable
-# BITSTRING_USE_RUST_CORE=1 before importing the module to turn it on.
-_env_core = os.getenv('BITSTRING_USE_RUST_CORE', '').strip().lower()
-_USE_RUST_CORE = _env_core in ('1', 'true', 'yes', 'on')
-if _USE_RUST_CORE:
-    bitstore = importlib.import_module('bitstring.bitstore_tibs')
-    bitstore_helpers = importlib.import_module('bitstring.bitstore_tibs_helpers')
-else:
-    bitstore = importlib.import_module('bitstring.bitstore_bitarray')
-    bitstore_helpers = importlib.import_module('bitstring.bitstore_bitarray_helpers')
-bitstore_common_helpers = importlib.import_module('bitstring.bitstore_common_helpers')
+import bitstring.bitstore_tibs as bitstore
+# import bitstring.bitstore_helpers as bitstore_helpers
 
 from .bits import Bits
 from .bitstring_options import Options

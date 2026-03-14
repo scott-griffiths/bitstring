@@ -10,7 +10,7 @@ from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
 
 import bitstring.dtypes
-common_helpers = bitstring.bitstore_common_helpers
+import bitstring.bitstore_helpers as helpers
 
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
@@ -52,7 +52,6 @@ class BitArray(Bits):
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
     tobytes() -- Return bitstring as bytes, padding if needed.
     tofile() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
@@ -122,10 +121,7 @@ class BitArray(Bits):
         x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
-            if length is not None:
-                x._bitstore = MutableBitStore.from_zeros(length)
-            else:
-                x._bitstore = MutableBitStore()
+            x._bitstore = MutableBitStore.from_zeros(length if length is not None else 0)
             return x
         x._initialise(auto, length, offset, immutable=False, **kwargs)
         return x
@@ -134,7 +130,7 @@ class BitArray(Bits):
     def fromstring(cls: TBits, s: str, /) -> TBits:
         """Create a new bitstring from a formatted string."""
         x = super().__new__(cls)
-        b = common_helpers.str_to_bitstore(s)
+        b = helpers.str_to_bitstore(s)
         x._bitstore = b._mutable_copy()
         return x
 
@@ -280,17 +276,17 @@ class BitArray(Bits):
 
     def __ior__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        self._bitstore |= bs._bitstore
+        self._bitstore.tibs |= bs._bitstore.tibs
         return self
 
     def __iand__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        self._bitstore &= bs._bitstore
+        self._bitstore.tibs &= bs._bitstore.tibs
         return self
 
     def __ixor__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        self._bitstore ^= bs._bitstore
+        self._bitstore.tibs ^= bs._bitstore.tibs
         return self
 
     def _replace(self, old: Bits, new: Bits, start: int, end: int, count: int, bytealigned: Optional[bool]) -> int:

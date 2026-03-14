@@ -21,11 +21,6 @@ class Options:
         self.no_color = True if no_color else False
 
     @property
-    def using_rust_core(self):
-        x = ConstBitStore()
-        return x.using_rust_core()
-
-    @property
     def mxfp_overflow(self) -> str:
         return self._mxfp_overflow
 

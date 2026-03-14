@@ -250,16 +250,6 @@ Methods
         >>> s.startswith('0b111011')
         True
 
-.. method:: Bits.tobitarray() -> bitarray.bitarray
-
-    Returns the bitstring as a ``bitarray`` object.
-
-    Converts the bitstring to an equivalent ``bitarray`` object from the ``bitarray`` package.
-    This shouldn't be confused with the ``BitArray`` type provided in the ``bitstring`` package - the ``bitarray`` package is a separate third-party way of representing binary objects.
-
-    Note that ``BitStream`` and ``ConstBitStream`` types that have a bit position do support this method but the bit position information will be lost.
-
-
 
 .. method:: Bits.tobytes() -> bytes
 

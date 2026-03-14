@@ -6,7 +6,6 @@ Unit tests for the bitarray module.
 import pytest
 import sys
 import os
-import bitarray
 import bitstring
 from bitstring import BitArray, Bits
 
@@ -910,72 +909,6 @@ class TestBFloats:
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-
-class TestBitarray:
-
-    def teardown_method(self) -> None:
-        bitstring.lsb0 = False
-
-    def test_to_bitarray(self):
-        a = BitArray('0xff, 0b0')
-        if a._bitstore.using_rust_core():
-            with pytest.raises(TypeError):
-                _ = a.tobitarray()
-        else:
-            b = a.tobitarray()
-            assert type(b) == bitarray.bitarray
-            assert b == bitarray.bitarray('111111110')
-
-    def test_to_bitarray_lsb0(self):
-        bitstring.lsb0 = True
-        a = bitstring.Bits('0xff, 0b0')
-        if a._bitstore.using_rust_core():
-            with pytest.raises(TypeError):
-                _ = a.tobitarray()
-        else:
-            b = a.tobitarray()
-            assert type(b) == bitarray.bitarray
-            assert b == bitarray.bitarray('111111110')
-
-    def test_from_file(self):
-        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
-        if a._bitstore.using_rust_core():
-            with pytest.raises(TypeError):
-                _ = a.tobitarray()
-        else:
-            b = a.tobitarray()
-            assert a.bin == b.to01()
-
-    def test_with_offset(self):
-        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
-        b = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), offset=11)
-        assert len(a) == len(b) + 11
-        if a._bitstore.using_rust_core():
-            with pytest.raises(TypeError):
-                _ = a.tobitarray()
-        else:
-            assert a[11:].tobitarray() == b.tobitarray()
-
-    def test_with_length(self):
-        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
-        b = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), length=11)
-        assert len(b) == 11
-        if a._bitstore.using_rust_core():
-            with pytest.raises(TypeError):
-                _ = a.tobitarray()
-        else:
-            assert a[:11].tobitarray() == b.tobitarray()
-
-    def test_with_offset_and_length(self):
-        a = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'))
-        b = bitstring.ConstBitStream(filename=os.path.join(THIS_DIR, 'smalltestfile'), offset=17, length=7)
-        assert len(b) == 7
-        if a._bitstore.using_rust_core():
-            with pytest.raises(TypeError):
-                _ = a.tobitarray()
-        else:
-            assert a[17:24].tobitarray() == b.tobitarray()
-
 
 try:
     import numpy as np
