@@ -95,8 +95,7 @@ class ConstBitStore:
         return self.tibs.to_oct()
 
     def __add__(self, other: ConstBitStore, /) -> ConstBitStore:
-        newbits = self.tibs + other.tibs
-        return ConstBitStore(newbits)
+        return ConstBitStore(self.tibs + other.tibs)
 
     def __eq__(self, other: Any, /) -> bool:
         return self.tibs == other.tibs
@@ -141,7 +140,7 @@ class ConstBitStore:
         return MutableBitStore(self.tibs.to_mutibs())
 
     def copy(self) -> ConstBitStore:
-        return self if isinstance(self.tibs, Tibs) else self._mutable_copy()
+        return self
 
     def __getitem__(self, item: Union[int, slice], /) -> Union[int, ConstBitStore]:
         # Use getindex or getslice instead
@@ -246,9 +245,7 @@ class MutableBitStore:
         self.tibs >>= n
 
     def __add__(self, other: MutableBitStore, /) -> MutableBitStore:
-        bs = self._mutable_copy()
-        bs.tibs += other.tibs
-        return bs
+        return MutableBitStore(self.tibs + other.tibs)
 
     def __eq__(self, other: Any, /) -> bool:
         return self.tibs == other.tibs
