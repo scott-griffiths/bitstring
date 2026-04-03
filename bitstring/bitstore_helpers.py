@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tibs import Mutibs
+from tibs import Mutibs, Endianness
 
 import struct
 import math
@@ -62,12 +62,11 @@ def intle2bitstore(i: int, length: int, signed: bool) -> MutableBitStore:
     if length <= 128:
         try:
             if signed:
-                mb = Mutibs.from_i(i, length=length)
+                mb = Mutibs.from_i(i, length, Endianness.Little)
             else:
-                mb = Mutibs.from_u(i, length=length)
+                mb = Mutibs.from_u(i, length, Endianness.Little)
         except OverflowError as e:
             raise ValueError(e)
-        mb.byte_swap()
     else:
         b = i.to_bytes((length + 7) // 8, byteorder="little", signed=signed)
         offset = 8 - (length % 8)
@@ -79,9 +78,7 @@ def intle2bitstore(i: int, length: int, signed: bool) -> MutableBitStore:
 
 def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> MutableBitStore:
     f = float(f)
-    mb = Mutibs.from_f(f, length)
-    if not big_endian:
-        mb.byte_swap()
+    mb = Mutibs.from_f(f, length, Endianness.Big if big_endian else Endianness.Little)
     return MutableBitStore(mb)
 
 

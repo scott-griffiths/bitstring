@@ -390,7 +390,10 @@ class MutableBitStore:
         else:
             if isinstance(key, slice):
                 key = range(*key.indices(len(self)))
-            self.tibs.set(value, key)
+            if value:
+                self.tibs.set(key)
+            else:
+                self.tibs.unset(key)
 
     def delitem_msb0(self, key, /):
         self.tibs.__delitem__(key)
