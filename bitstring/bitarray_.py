@@ -347,7 +347,6 @@ class BitArray(Bits):
         new = self._create_from_bitstype(new)
         if len(old) == 0:
             raise ValueError("Empty bitstring cannot be replaced.")
-        start, end = self._validate_slice(start, end)
 
         if new is self:
             # Prevent self assignment woes

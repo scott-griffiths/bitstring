@@ -280,11 +280,9 @@ class MutableBitStore:
         return MutableBitStore(~self.tibs)
 
     def find(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int:
-        assert start >= 0
         return self.tibs.find(bs.tibs, start, end, byte_aligned=bytealigned)
 
     def rfind(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False):
-        assert start >= 0
         return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned)
 
     def findall_msb0(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:

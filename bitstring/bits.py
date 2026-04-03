@@ -1182,19 +1182,16 @@ class Bits:
         bs = Bits._create_from_bitstype(bs)
         if len(bs) == 0:
             raise ValueError("Cannot find an empty bitstring.")
-        start, end = self._validate_slice(start, end)
         ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
         p = self._find(bs, start, end, ba)
         return p
 
     def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A forward find in lsb0 is very like a reverse find in msb0.
-        assert start <= end
         assert bitstring.options.lsb0
 
         new_slice = bitstring.helpers.offset_slice_indices_lsb0(slice(start, end, None), len(self))
-        msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
-        p = self._rfind_msb0(bs, msb0_start, msb0_end, bytealigned)
+        p = self._rfind_msb0(bs, new_slice.start, new_slice.stop, bytealigned)
 
         if p:
             return (len(self) - p[0] - len(bs),)
@@ -1227,7 +1224,6 @@ class Bits:
         if count is not None and count < 0:
             raise ValueError("In findall, count must be >= 0.")
         bs = Bits._create_from_bitstype(bs)
-        start, end = self._validate_slice(start, end)
         ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
         return self._findall(bs, start, end, count, ba)
 
@@ -1243,11 +1239,10 @@ class Bits:
 
     def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Iterable[int]:
-        assert start <= end
         assert bitstring.options.lsb0
 
         new_slice = bitstring.helpers.offset_slice_indices_lsb0(slice(start, end, None), len(self))
-        msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
+        msb0_start, msb0_end = new_slice.start, new_slice.stop
 
         # Search chunks starting near the end and then moving back.
         c = 0
@@ -1293,10 +1288,7 @@ class Bits:
 
         """
         bs = Bits._create_from_bitstype(bs)
-        start, end = self._validate_slice(start, end)
         ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
-        if len(bs) == 0:
-            raise ValueError("Cannot find an empty bitstring.")
         p = self._rfind(bs, start, end, ba)
         return p
 
@@ -1307,10 +1299,9 @@ class Bits:
 
     def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         # A reverse find in lsb0 is very like a forward find in msb0.
-        assert start <= end
         assert bitstring.options.lsb0
         new_slice = bitstring.helpers.offset_slice_indices_lsb0(slice(start, end, None), len(self))
-        msb0_start, msb0_end = self._validate_slice(new_slice.start, new_slice.stop)
+        msb0_start, msb0_end = new_slice.start, new_slice.stop
 
         p = self._find_msb0(bs, msb0_start, msb0_end, bytealigned)
         if p:
