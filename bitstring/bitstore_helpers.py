@@ -17,6 +17,22 @@ MutableBitStore = bitstring.bitstore.MutableBitStore
 from bitstring.helpers import tidy_input_string
 
 
+def _int_to_mutibs(i: int, length: int, signed: bool, little_endian: bool) -> Mutibs:
+    try:
+        if signed:
+            return Mutibs.from_i(i, length, Endianness.Little if little_endian else Endianness.Unspecified)
+        return Mutibs.from_u(i, length, Endianness.Little if little_endian else Endianness.Unspecified)
+    except (OverflowError, ValueError) as e:
+        # Keep tibs validation for normal sizes and unsupported values.
+        if length <= 128:
+            raise ValueError(e)
+    byteorder = "little" if little_endian else "big"
+    b = i.to_bytes((length + 7) // 8, byteorder=byteorder, signed=signed)
+    offset = (-length) % 8
+    mb = Mutibs.from_bytes(b)
+    return mb if offset == 0 else mb[offset:]
+
+
 def bin2bitstore(binstring: str) -> MutableBitStore:
     binstring = tidy_input_string(binstring)
     binstring = binstring.replace('0b', '')
@@ -40,39 +56,13 @@ def oct2bitstore(octstring: str) -> MutableBitStore:
 
 def int2bitstore(i: int, length: int, signed: bool) -> MutableBitStore:
     i = int(i)
-    if length <= 128:
-        try:
-            if signed:
-                mb = Mutibs.from_i(i, length=length)
-            else:
-                mb = Mutibs.from_u(i, length=length)
-        except OverflowError as e:
-            raise ValueError(e)
-    else:
-        b = i.to_bytes((length + 7) // 8, byteorder="big", signed=signed)
-        offset = 8 - (length % 8)
-        mb = Mutibs.from_bytes(b)
-        if offset != 8:
-            mb = mb[offset:]
+    mb = _int_to_mutibs(i, length, signed, little_endian=False)
     return MutableBitStore(mb)
 
 
 def intle2bitstore(i: int, length: int, signed: bool) -> MutableBitStore:
     i = int(i)
-    if length <= 128:
-        try:
-            if signed:
-                mb = Mutibs.from_i(i, length, Endianness.Little)
-            else:
-                mb = Mutibs.from_u(i, length, Endianness.Little)
-        except OverflowError as e:
-            raise ValueError(e)
-    else:
-        b = i.to_bytes((length + 7) // 8, byteorder="little", signed=signed)
-        offset = 8 - (length % 8)
-        mb = Mutibs.from_bytes(b)
-        if offset != 8:
-            mb = mb[offset:]
+    mb = _int_to_mutibs(i, length, signed, little_endian=True)
     return MutableBitStore(mb)
 
 
