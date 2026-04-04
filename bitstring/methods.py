@@ -54,7 +54,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     except ValueError as e:
         raise CreationError(*e.args)
     value_iter = iter(values)
-    bsl: List[BitStore] = []
+    bsl: List[MutableBitStore] = []
     try:
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.
@@ -70,12 +70,6 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
             if value is None and name != 'pad':
                 # Take the next value from the ones provided
                 value = next(value_iter)
-            if name == 'bits':
-                value = bitstring.bits.Bits(value)
-                if length is not None and length != len(value):
-                    raise CreationError(f"Token with length {length} packed with value of length {len(value)}.")
-                bsl.append(value._bitstore)
-                continue
             bsl.append(helpers.bitstore_from_token(name, length, value))
     except StopIteration:
         raise CreationError(f"Not enough parameters present to pack according to the "
