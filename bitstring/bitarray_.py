@@ -276,17 +276,17 @@ class BitArray(Bits):
 
     def __ior__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        self._bitstore.tibs |= bs._bitstore.tibs
+        self._bitstore |= bs._bitstore
         return self
 
     def __iand__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        self._bitstore.tibs &= bs._bitstore.tibs
+        self._bitstore &= bs._bitstore
         return self
 
     def __ixor__(self: TBits, bs: BitsType) -> TBits:
         bs = self._create_from_bitstype(bs)
-        self._bitstore.tibs ^= bs._bitstore.tibs
+        self._bitstore ^= bs._bitstore
         return self
 
     def _replace(self, old: Bits, new: Bits, start: int, end: int, count: int, bytealigned: Optional[bool]) -> int:

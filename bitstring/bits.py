@@ -498,7 +498,7 @@ class Bits:
         elif isinstance(s, Bits):
             self._bitstore = s._bitstore.copy()
         elif isinstance(s, (bytes, bytearray, memoryview)):
-            self._bitstore = ConstBitStore.from_bytes(bytearray(s))
+            self._bitstore = ConstBitStore.from_bytes(s)
         elif isinstance(s, io.BytesIO):
             self._bitstore = ConstBitStore.from_bytes(s.getvalue())
         elif isinstance(s, io.BufferedReader):
@@ -506,8 +506,7 @@ class Bits:
         elif isinstance(s, array.array):
             self._bitstore = ConstBitStore.from_bytes(s.tobytes())
         elif isinstance(s, abc.Iterable):
-            # Evaluate each item as True or False and set bits to 1 or 0.
-            self._setbin(''.join(str(int(bool(x))) for x in s))
+            self._bitstore = ConstBitStore.from_bools(s)
         elif isinstance(s, numbers.Integral):
             raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
                             f" Use '{self.__class__.__name__}({s})' instead of just '{s}' as this makes it "
@@ -605,7 +604,6 @@ class Bits:
         """Set the data from a bytes or bytearray object, with optional offset and length truncations."""
         if offset is None and length is None:
             return self._setbytes(data)
-        data = bytearray(data)
         if offset is None:
             offset = 0
         if length is None:
@@ -614,7 +612,7 @@ class Bits:
         else:
             if length + offset > len(data) * 8:
                 raise bitstring.CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
-        self._bitstore = MutableBitStore.from_bytes(data).getslice_msb0(offset, offset + length)
+        self._bitstore = ConstBitStore.from_bytes(data).getslice_msb0(offset, offset + length)
 
     def _getbytes(self) -> bytes:
         """Return the data as an ordinary bytes object."""
@@ -1023,7 +1021,7 @@ class Bits:
 
     def _addright(self, bs: Bits, /) -> None:
         """Add a bitstring to the RHS of the current bitstring."""
-        self._bitstore.tibs += bs._bitstore.tibs
+        self._bitstore += bs._bitstore
 
     def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
@@ -1500,7 +1498,7 @@ class Bits:
         7
 
         """
-        return self._bitstore.tibs.count(bool(value))
+        return self._bitstore.count(bool(value))
 
     @staticmethod
     def _format_bits(bits: Bits, bits_per_group: int, sep: str, dtype: Dtype,
