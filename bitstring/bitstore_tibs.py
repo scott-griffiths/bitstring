@@ -39,7 +39,7 @@ class ConstBitStore:
     @classmethod
     def join(cls, bitstores: Iterable[ConstBitStore], /) -> ConstBitStore:
         x = super().__new__(cls)
-        x.tibs = Tibs.from_joined(b.tibs for b in bitstores)
+        x.tibs = Tibs.from_joined((b.tibs for b in bitstores))
         return x
 
     @classmethod
@@ -61,9 +61,8 @@ class ConstBitStore:
         return x
 
     @classmethod
-    def frombuffer(cls, buffer, /, length: Optional[int] = None) -> ConstBitStore:
+    def frombuffer(cls, buffer, /, length: Optional[int] = None) -> ConstBitStore:  #TODO: Shouldn't need a default here.
         x = super().__new__(cls)
-        # from_bytes accepts memoryview, so avoid an eager bytes copy.
         x.tibs = Tibs.from_bytes(memoryview(buffer))
         if length is not None:
             if length < 0:
@@ -200,7 +199,7 @@ class MutableBitStore:
     @classmethod
     def join(cls, bitstores: Iterable[MutableBitStore], /) -> MutableBitStore:
         x = super().__new__(cls)
-        x.tibs = Mutibs.from_joined(b.tibs for b in bitstores)
+        x.tibs = Mutibs.from_joined((b.tibs for b in bitstores))
         return x
 
     @classmethod
