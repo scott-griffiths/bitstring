@@ -3,7 +3,7 @@ from __future__ import annotations
 from tibs import Tibs, Mutibs
 
 from bitstring.exceptions import CreationError
-from typing import Union, Iterable, Optional, overload, Iterator, Any
+from typing import Union, Iterable, Optional, Iterator, Any
 
 
 def _fallback_to_u(tibs: Tibs | Mutibs) -> int:
@@ -129,10 +129,10 @@ class ConstBitStore:
         return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned)
 
     def findall(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        return self.tibs.find_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
+        return self.tibs.find_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
     def rfindall(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        return self.tibs.rfind_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
+        return self.tibs.rfind_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
     def __iter__(self) -> Iterable[bool]:
         return self.tibs.__iter__()
@@ -293,10 +293,10 @@ class MutableBitStore:
         return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned)
 
     def findall(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        return self.tibs.to_tibs().find_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
+        return self.tibs.to_tibs().find_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
     def rfindall(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        return self.tibs.to_tibs().rfind_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
+        return self.tibs.to_tibs().rfind_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
     def clear(self) -> None:
         self.tibs.clear()

@@ -1287,6 +1287,7 @@ class Bits:
         Raises ValueError if the delimiter is empty.
 
         """
+        # TODO: Delegate to Tibs.chunks_iter
         delimiter = Bits._create_from_bitstype(delimiter)
         if len(delimiter) == 0:
             raise ValueError("split delimiter cannot be empty.")
