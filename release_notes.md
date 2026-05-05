@@ -6,6 +6,7 @@
 Breaking changes:
 
 * Removed LSB0 mode.
+* Removed deprecated method of setting module options.
 
 ### March 2026: version 4.4.0
 

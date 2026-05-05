@@ -70,7 +70,6 @@ from .methods import pack
 from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 from .dtypes import DtypeDefinition, dtype_register, Dtype
-import types
 from typing import List, Tuple, Literal
 from .mxfp import decompress_luts as mxfp_decompress_luts
 from .fp8 import decompress_luts as binary8_decompress_luts
@@ -82,26 +81,26 @@ binary8_decompress_luts()
 # The Options class returns a singleton.
 options = Options()
 
-# These get defined properly by the module magic below. This just stops mypy complaining about them.
-bytealigned = None
+# # These get defined properly by the module magic below. This just stops mypy complaining about them.
+# bytealigned = None
 
-# TODO: REMOVE FOR VERSION 5
-
-# An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
-# This is now deprecated. Use the options object directly instead.
-class _MyModuleType(types.ModuleType):
-    @property
-    def bytealigned(self) -> bool:
-        """Determines whether a number of methods default to working only on byte boundaries."""
-        return options.bytealigned
-
-    @bytealigned.setter
-    def bytealigned(self, value: bool) -> None:
-        """Determines whether a number of methods default to working only on byte boundaries."""
-        options.bytealigned = value
-
-
-sys.modules[__name__].__class__ = _MyModuleType
+# # TODO: REMOVE FOR VERSION 5
+#
+# # An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
+# # This is now deprecated. Use the options object directly instead.
+# class _MyModuleType(types.ModuleType):
+#     @property
+#     def bytealigned(self) -> bool:
+#         """Determines whether a number of methods default to working only on byte boundaries."""
+#         return options.bytealigned
+#
+#     @bytealigned.setter
+#     def bytealigned(self, value: bool) -> None:
+#         """Determines whether a number of methods default to working only on byte boundaries."""
+#         options.bytealigned = value
+#
+#
+# sys.modules[__name__].__class__ = _MyModuleType
 
 
 # These methods convert a bit length to the number of characters needed to print it for different interpretations.

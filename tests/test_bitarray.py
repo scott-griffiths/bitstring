@@ -144,12 +144,6 @@ class TestBugs:
 
 class TestByteAligned:
 
-    def test_changing_it(self):
-        bitstring.bytealigned = True
-        assert bitstring.bytealigned
-        bitstring.bytealigned = False
-        assert not bitstring.bytealigned
-
     def test_not_byte_aligned(self):
         a = BitArray('0xff00ff')
         s = a.split('0xff')
@@ -168,7 +162,8 @@ class TestByteAligned:
         assert a == '0x000'
 
     def test_byte_aligned(self):
-        bitstring.bytealigned = True
+        # TODO: This really should be done with a context.
+        bitstring.options.bytealigned = True
         a = BitArray('0x00 ff 0f f')
         li = list(a.findall('0xff'))
         assert li == [8]
@@ -180,7 +175,7 @@ class TestByteAligned:
         assert s == ['0x00', '0xff0ff']
         a.replace('0xff', '')
         assert a == '0x000ff'
-        bitstring.bytealigned = False
+        bitstring.options.bytealigned = False
 
 
 class TestSliceAssignment:
