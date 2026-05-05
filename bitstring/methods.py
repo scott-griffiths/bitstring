@@ -80,8 +80,6 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
     except StopIteration:
         # Good, we've used up all the *values.
         s = BitStream()
-        if bitstring.options.lsb0:
-            bsl.reverse()
         for b in bsl:
             s._bitstore += b
         return s

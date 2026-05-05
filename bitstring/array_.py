@@ -439,7 +439,7 @@ class Array:
         length = len(self.data) // token_length
         len_str = colour.green + str(length) + colour.off
         stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes> [\n")
-        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
+        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, token_length)
         stream.write("]")
         if trailing_bit_length != 0:
             stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))

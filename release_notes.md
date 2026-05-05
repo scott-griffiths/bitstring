@@ -1,6 +1,12 @@
 
 # Release Notes
 
+### Upcoming: version 5.0
+
+Breaking changes:
+
+* Removed LSB0 mode.
+
 ### March 2026: version 4.4.0
 
 This version adds a new optional Rust-based backend. This is turned off by default so

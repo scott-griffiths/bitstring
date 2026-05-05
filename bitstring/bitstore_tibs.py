@@ -4,7 +4,6 @@ from tibs import Tibs, Mutibs
 
 from bitstring.exceptions import CreationError
 from typing import Union, Iterable, Optional, overload, Iterator, Any
-from bitstring.helpers import offset_slice_indices_lsb0
 
 
 def _fallback_to_u(tibs: Tibs | Mutibs) -> int:
@@ -29,7 +28,7 @@ def _fallback_to_i(tibs: Tibs | Mutibs) -> int:
 
 
 class ConstBitStore:
-    """A light wrapper around tibs.Tibs that does the LSB0 stuff"""
+    """A light wrapper around tibs.Tibs"""
 
     __slots__ = ('tibs',)
 
@@ -129,10 +128,10 @@ class ConstBitStore:
     def rfind(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned)
 
-    def findall_msb0(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+    def findall(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         return self.tibs.find_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
-    def rfindall_msb0(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+    def rfindall(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         return self.tibs.rfind_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
     def __iter__(self) -> Iterable[bool]:
@@ -149,25 +148,14 @@ class ConstBitStore:
         # Use getindex or getslice instead
         raise NotImplementedError
 
-    def getindex_msb0(self, index: int, /) -> bool:
+    def getindex(self, index: int, /) -> bool:
         return self.tibs[index]
 
-    def getslice_withstep_msb0(self, key: slice, /) -> ConstBitStore:
+    def getslice_withstep(self, key: slice, /) -> ConstBitStore:
         return ConstBitStore(self.tibs[key])
 
-    def getslice_withstep_lsb0(self, key: slice, /) -> ConstBitStore:
-        key = offset_slice_indices_lsb0(key, len(self))
-        return ConstBitStore(self.tibs[key])
-
-    def getslice_msb0(self, start: Optional[int], stop: Optional[int], /) -> ConstBitStore:
+    def getslice(self, start: Optional[int], stop: Optional[int], /) -> ConstBitStore:
         return ConstBitStore(self.tibs[start:stop])
-
-    def getslice_lsb0(self, start: Optional[int], stop: Optional[int], /) -> ConstBitStore:
-        s = offset_slice_indices_lsb0(slice(start, stop, None), len(self))
-        return ConstBitStore(self.tibs[s.start:s.stop])
-
-    def getindex_lsb0(self, index: int, /) -> bool:
-        return self.tibs[-index - 1]
 
     def any(self) -> bool:
         return self.tibs.any()
@@ -189,7 +177,7 @@ class ConstBitStore:
 
 
 class MutableBitStore:
-    """A light wrapper around tibs.Mutibs that does the LSB0 stuff"""
+    """A light wrapper around tibs.Mutibs"""
 
     __slots__ = ('tibs',)
 
@@ -304,10 +292,10 @@ class MutableBitStore:
     def rfind(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False):
         return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned)
 
-    def findall_msb0(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+    def findall(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         return self.tibs.to_tibs().find_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
-    def rfindall_msb0(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+    def rfindall(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         return self.tibs.to_tibs().rfind_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
     def clear(self) -> None:
@@ -334,57 +322,18 @@ class MutableBitStore:
         # Use getindex or getslice instead
         raise NotImplementedError
 
-    def getindex_msb0(self, index: int, /) -> bool:
+    def getindex(self, index: int, /) -> bool:
         return self.tibs[index]
 
-    def getslice_withstep_msb0(self, key: slice, /) -> MutableBitStore:
+    def getslice_withstep(self, key: slice, /) -> MutableBitStore:
         return MutableBitStore(self.tibs[key])
 
-    def getslice_withstep_lsb0(self, key: slice, /) -> MutableBitStore:
-        key = offset_slice_indices_lsb0(key, len(self))
-        return MutableBitStore(self.tibs[key])
-
-    def getslice_msb0(self, start: Optional[int], stop: Optional[int], /) -> MutableBitStore:
+    def getslice(self, start: Optional[int], stop: Optional[int], /) -> MutableBitStore:
         return MutableBitStore(self.tibs[start:stop])
 
-    def getslice_lsb0(self, start: Optional[int], stop: Optional[int], /) -> MutableBitStore:
-        s = offset_slice_indices_lsb0(slice(start, stop, None), len(self))
-        return MutableBitStore(self.tibs[s.start:s.stop])
-
-    def getindex_lsb0(self, index: int, /) -> bool:
-        return self.tibs[-index - 1]
-
-    @overload
-    def setitem_lsb0(self, key: int, value: int, /) -> None:
-        ...
-
-    @overload
-    def setitem_lsb0(self, key: slice, value: MutableBitStore, /) -> None:
-        ...
-
-    def setitem_lsb0(self, key: Union[int, slice], value: Union[int, MutableBitStore], /) -> None:
-        if isinstance(key, slice):
-            new_slice = offset_slice_indices_lsb0(key, len(self))
-            self.tibs.__setitem__(new_slice, value.tibs)
-        else:
-            self.tibs.__setitem__(-key - 1, bool(value))
-
-    def delitem_lsb0(self, key: Union[int, slice], /) -> None:
-        if isinstance(key, slice):
-            new_slice = offset_slice_indices_lsb0(key, len(self))
-            self.tibs.__delitem__(new_slice)
-        else:
-            self.tibs.__delitem__(-key - 1)
-
-    def invert_msb0(self, index: Optional[int] = None, /) -> None:
+    def invert(self, index: Optional[int] = None, /) -> None:
         if index is not None:
             self.tibs.invert(index)
-        else:
-            self.tibs.invert()
-
-    def invert_lsb0(self, index: Optional[int] = None, /) -> None:
-        if index is not None:
-            self.tibs.invert(-index - 1)
         else:
             self.tibs.invert()
 
@@ -417,7 +366,7 @@ class MutableBitStore:
     def __len__(self) -> int:
         return len(self.tibs)
 
-    def setitem_msb0(self, key, value, /):
+    def __setitem__(self, key, value, /):
         if isinstance(value, (MutableBitStore, ConstBitStore)):
             self.tibs.__setitem__(key, value.tibs)
         else:
@@ -428,5 +377,5 @@ class MutableBitStore:
             else:
                 self.tibs.unset(key)
 
-    def delitem_msb0(self, key, /):
+    def __delitem__(self, key, /):
         self.tibs.__delitem__(key)

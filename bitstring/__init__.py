@@ -83,8 +83,9 @@ binary8_decompress_luts()
 options = Options()
 
 # These get defined properly by the module magic below. This just stops mypy complaining about them.
-bytealigned = lsb0 = None
+bytealigned = None
 
+# TODO: REMOVE FOR VERSION 5
 
 # An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
 # This is now deprecated. Use the options object directly instead.
@@ -98,16 +99,6 @@ class _MyModuleType(types.ModuleType):
     def bytealigned(self, value: bool) -> None:
         """Determines whether a number of methods default to working only on byte boundaries."""
         options.bytealigned = value
-
-    @property
-    def lsb0(self) -> bool:
-        """If True, the least significant bit (the final bit) is indexed as bit zero."""
-        return options.lsb0
-
-    @lsb0.setter
-    def lsb0(self, value: bool) -> None:
-        """If True, the least significant bit (the final bit) is indexed as bit zero."""
-        options.lsb0 = value
 
 
 sys.modules[__name__].__class__ = _MyModuleType
@@ -335,4 +326,4 @@ if BitStream.__doc__ is not None:
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
-           'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype', 'options']
+           'ByteAlignError', 'CreationError', 'bytealigned', 'Dtype', 'options']

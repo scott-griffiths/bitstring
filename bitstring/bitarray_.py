@@ -312,9 +312,6 @@ class BitArray(Bits):
         # Final replacement
         replacement_list.append(new._bitstore)
         replacement_list.append(self._bitstore.getslice(starting_points[-1] + len(old), None))
-        if bitstring.options.lsb0:
-            # Addition of bitarray is always on the right, so assemble from other end
-            replacement_list.reverse()
         self._bitstore.clear()
         for r in replacement_list:
             self._bitstore += r
@@ -407,10 +404,10 @@ class BitArray(Bits):
         """
         self._prepend(bs)
 
-    def _append_msb0(self, bs: BitsType) -> None:
+    def _append(self, bs: BitsType) -> None:
         self._addright(self._create_from_bitstype(bs))
 
-    def _append_lsb0(self, bs: BitsType) -> None:
+    def _prepend(self, bs: BitsType) -> None:
         bs = self._create_from_bitstype(bs)
         self._addleft(bs)
 
@@ -497,8 +494,8 @@ class BitArray(Bits):
             raise ValueError("Cannot rotate by negative amount.")
         self._ror(bits, start, end)
 
-    def _ror_msb0(self, bits: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
-        start, end = self._validate_slice(start, end)  # the _slice deals with msb0/lsb0
+    def _ror(self, bits: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
+        start, end = self._validate_slice(start, end)
         bits %= (end - start)
         if not bits:
             return
@@ -522,7 +519,7 @@ class BitArray(Bits):
             raise ValueError("Cannot rotate by negative amount.")
         self._rol(bits, start, end)
 
-    def _rol_msb0(self, bits: int, start: Optional[int] = None, end: Optional[int] = None):
+    def _rol(self, bits: int, start: Optional[int] = None, end: Optional[int] = None):
         start, end = self._validate_slice(start, end)
         bits %= (end - start)
         if bits == 0:

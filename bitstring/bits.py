@@ -612,7 +612,7 @@ class Bits:
         else:
             if length + offset > len(data) * 8:
                 raise bitstring.CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
-        self._bitstore = ConstBitStore.from_bytes(data).getslice_msb0(offset, offset + length)
+        self._bitstore = ConstBitStore.from_bytes(data).getslice(offset, offset + length)
 
     def _getbytes(self) -> bytes:
         """Return the data as an ordinary bytes object."""
@@ -801,8 +801,6 @@ class Bits:
         Raises CreationError if i < 0.
 
         """
-        if bitstring.options.lsb0:
-            raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = helpers.ue2bitstore(i)
 
     def _readue(self, pos: int) -> Tuple[int, int]:
@@ -812,8 +810,6 @@ class Bits:
         reading the code.
 
         """
-        if bitstring.options.lsb0:
-            raise bitstring.ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         oldpos = pos
         try:
             while not self[pos]:
@@ -858,8 +854,6 @@ class Bits:
 
     def _setse(self, i: int) -> None:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
-        if bitstring.options.lsb0:
-            raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = helpers.se2bitstore(i)
 
     def _readse(self, pos: int) -> Tuple[int, int]:
@@ -881,8 +875,6 @@ class Bits:
         Raises CreationError if i < 0.
 
         """
-        if bitstring.options.lsb0:
-            raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = helpers.uie2bitstore(i)
 
     def _readuie(self, pos: int) -> Tuple[int, int]:
@@ -892,8 +884,6 @@ class Bits:
         reading the code.
 
         """
-        if bitstring.options.lsb0:
-            raise bitstring.ReadError("Exp-Golomb codes cannot be read in lsb0 mode.")
         try:
             codenum: int = 1
             while not self[pos]:
@@ -908,8 +898,6 @@ class Bits:
 
     def _setsie(self, i: int, ) -> None:
         """Initialise bitstring with signed interleaved exponential-Golomb code for integer i."""
-        if bitstring.options.lsb0:
-            raise bitstring.CreationError("Exp-Golomb codes cannot be used in lsb0 mode.")
         self._bitstore = helpers.sie2bitstore(i)
 
     def _readsie(self, pos: int) -> Tuple[int, int]:
@@ -994,13 +982,12 @@ class Bits:
         return bs
 
     def _absolute_slice(self: TBits, start: int, end: int) -> TBits:
-        """Used internally to get a slice, without error checking.
-        Uses MSB0 bit numbering even if LSB0 is set."""
+        """Used internally to get a slice, without error checking."""
         if end == start:
             return self.__class__()
         assert start < end, f"start={start}, end={end}"
         bs = self.__class__()
-        bs._bitstore = self._bitstore.getslice_msb0(start, end)
+        bs._bitstore = self._bitstore.getslice(start, end)
         return bs
 
     def _readtoken(self, name: str, pos: int, length: Optional[int]) -> Tuple[Union[float, int, str, None, Bits], int]:
@@ -1184,19 +1171,7 @@ class Bits:
         p = self._find(bs, start, end, ba)
         return p
 
-    def _find_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        # A forward find in lsb0 is very like a reverse find in msb0.
-        assert bitstring.options.lsb0
-
-        new_slice = bitstring.helpers.offset_slice_indices_lsb0(slice(start, end, None), len(self))
-        p = self._rfind_msb0(bs, new_slice.start, new_slice.stop, bytealigned)
-
-        if p:
-            return (len(self) - p[0] - len(bs),)
-        else:
-            return ()
-
-    def _find_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _find(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         """Find first occurrence of a binary string."""
         p = self._bitstore.find(bs._bitstore, start, end, bytealigned)
         return () if p is None else (p,)
@@ -1225,46 +1200,16 @@ class Bits:
         ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
         return self._findall(bs, start, end, count, ba)
 
-    def _findall_msb0(self, bs: Bits, start: int, end: int, count: Optional[int],
+    def _findall(self, bs: Bits, start: int, end: int, count: Optional[int],
                       bytealigned: bool) -> Iterable[int]:
         c = 0
-        for i in self._bitstore.findall_msb0(bs._bitstore, start, end, bytealigned):
+        for i in self._bitstore.findall(bs._bitstore, start, end, bytealigned):
             if count is not None and c >= count:
                 return
             c += 1
             yield i
         return
 
-    def _findall_lsb0(self, bs: Bits, start: int, end: int, count: Optional[int],
-                      bytealigned: bool) -> Iterable[int]:
-        assert bitstring.options.lsb0
-
-        new_slice = bitstring.helpers.offset_slice_indices_lsb0(slice(start, end, None), len(self))
-        msb0_start, msb0_end = new_slice.start, new_slice.stop
-
-        # Search chunks starting near the end and then moving back.
-        c = 0
-        increment = max(8192, len(bs) * 80)
-        buffersize = min(increment + len(bs), msb0_end - msb0_start)
-        pos = max(msb0_start, msb0_end - buffersize)
-        while True:
-            found = list(self._findall_msb0(bs, start=pos, end=pos + buffersize, count=None, bytealigned=False))
-            if not found:
-                if pos == msb0_start:
-                    return
-                pos = max(msb0_start, pos - increment)
-                continue
-            while found:
-                if count is not None and c >= count:
-                    return
-                c += 1
-                lsb0_pos = len(self) - found.pop() - len(bs)
-                if not bytealigned or lsb0_pos % 8 == 0:
-                    yield lsb0_pos
-
-            pos = max(msb0_start, pos - increment)
-            if pos == msb0_start:
-                return
 
     def rfind(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
               bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
@@ -1290,22 +1235,10 @@ class Bits:
         p = self._rfind(bs, start, end, ba)
         return p
 
-    def _rfind_msb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _rfind(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
         """Find final occurrence of a binary string."""
         p = self._bitstore.rfind(bs._bitstore, start, end, bytealigned)
         return () if p is None else (p,)
-
-    def _rfind_lsb0(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
-        # A reverse find in lsb0 is very like a forward find in msb0.
-        assert bitstring.options.lsb0
-        new_slice = bitstring.helpers.offset_slice_indices_lsb0(slice(start, end, None), len(self))
-        msb0_start, msb0_end = new_slice.start, new_slice.stop
-
-        p = self._find_msb0(bs, msb0_start, msb0_end, bytealigned)
-        if p:
-            return (len(self) - p[0] - len(bs),)
-        else:
-            return ()
 
     def cut(self, bits: int, start: Optional[int] = None, end: Optional[int] = None,
             count: Optional[int] = None) -> Iterator[Bits]:
@@ -1363,7 +1296,7 @@ class Bits:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
             return
-        f = functools.partial(self._find_msb0, bs=delimiter, bytealigned=bytealigned_)
+        f = functools.partial(self._find, bs=delimiter, bytealigned=bytealigned_)
         found = f(start=start, end=end)
         if not found:
             # Initial bits are the whole bitstring being searched
@@ -1511,8 +1444,8 @@ class Bits:
         if bits_per_group == 0:
             x = str(get_fn(bits))
         else:
-            # Left-align for fixed width types when msb0, otherwise right-align.
-            align = '<' if dtype.name in ['bin', 'oct', 'hex', 'bits', 'bytes'] and not bitstring.options.lsb0 else '>'
+            # Left-align for fixed width types
+            align = '<' if dtype.name in ['bin', 'oct', 'hex', 'bits', 'bytes'] else '>'
             chars_per_group = 0
             if dtype_register[dtype.name].bitlength2chars_fn is not None:
                 chars_per_group = dtype_register[dtype.name].bitlength2chars_fn(bits_per_group)
@@ -1522,10 +1455,7 @@ class Bits:
         padding_spaces = 0 if width is None else max(width - len(x), 0)
         x = colour_start + x + colour_end
         # Pad final line with spaces to align it
-        if bitstring.options.lsb0:
-            x = ' ' * padding_spaces + x
-        else:
-            x += ' ' * padding_spaces
+        x += ' ' * padding_spaces
         return x, chars_used
 
     @staticmethod
@@ -1543,7 +1473,7 @@ class Bits:
         return 24 // dtype_register[fmt].bitlength2chars_fn(24)
 
     def _pp(self, dtype1: Dtype, dtype2: Optional[Dtype], bits_per_group: int, width: int, sep: str, format_sep: str,
-            show_offset: bool, stream: TextIO, lsb0: bool, offset_factor: int) -> None:
+            show_offset: bool, stream: TextIO, offset_factor: int) -> None:
         """Internal pretty print method."""
         colour = Colour(not bitstring.options.no_color)
         name1 = dtype1.name
@@ -1553,7 +1483,7 @@ class Bits:
         if dtype2 is not None and dtype2.variable_length:
             raise ValueError(f"Can't use Dtype '{dtype2}' in pp() as it has a variable length.")
         offset_width = 0
-        offset_sep = ' :' if lsb0 else ': '
+        offset_sep = ': '
         if show_offset:
             # This could be 1 too large in some circumstances. Slightly recurrent logic needed to fix it...
             offset_width = len(str(len(self))) + len(offset_sep)
@@ -1587,10 +1517,7 @@ class Bits:
             if show_offset:
                 offset = bitpos // offset_factor
                 bitpos += len(bits)
-                if bitstring.options.lsb0:
-                    offset_str = colour.green + offset_sep + f'{offset: <{offset_width - len(offset_sep)}}' + colour.off
-                else:
-                    offset_str = colour.green + f'{offset: >{offset_width - len(offset_sep)}}' + offset_sep + colour.off
+                offset_str = colour.green + f'{offset: >{offset_width - len(offset_sep)}}' + offset_sep + colour.off
 
             fb1, chars_used = Bits._format_bits(bits, bits_per_group, sep, dtype1, colour.purple, colour.off, first_fb_width)
             if first_fb_width is None:
@@ -1603,10 +1530,7 @@ class Bits:
                     second_fb_width = chars_used
                 fb2 = format_sep + fb2
 
-            if bitstring.options.lsb0 is True:
-                line_fmt = fb1 + fb2 + offset_str + '\n'
-            else:
-                line_fmt = offset_str + fb1 + fb2 + '\n'
+            line_fmt = offset_str + fb1 + fb2 + '\n'
             stream.write(line_fmt)
         return
 
@@ -1678,7 +1602,7 @@ class Bits:
         len_str = colour.green + str(len(self)) + colour.off
         output_stream.write(f"<{self.__class__.__name__}, fmt='{tidy_fmt}', length={len_str} bits> [\n")
         data._pp(dtype1, dtype2, bits_per_group, width, sep, format_sep, show_offset,
-                 output_stream, bitstring.options.lsb0, 1)
+                 output_stream, 1)
         output_stream.write("]")
         if trailing_bit_length != 0:
             output_stream.write(" + trailing_bits = " + str(self[-trailing_bit_length:]))

@@ -22,7 +22,7 @@ class TestModuleData:
     def test_all(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',
                     'Bits', 'pack', 'Error', 'ReadError', 'Array',
-                    'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype', 'options']
+                    'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'Dtype', 'options']
         assert set(bitstring.__all__) == set(exported)
 
     def test_pyproject_version(self):
@@ -83,15 +83,6 @@ class TestInterning:
         b = bitstring.ConstBitStream('0b11000')
         assert a._bitstore is b._bitstore
         assert not a is b
-
-
-class TestLSB0:
-    def test_getting_and_setting(self):
-        assert bitstring.lsb0 == False
-        bitstring.lsb0 = True
-        assert bitstring.lsb0 == True
-        bitstring.lsb0 = False
-        assert bitstring.lsb0 == False
 
 
 class TestMain:

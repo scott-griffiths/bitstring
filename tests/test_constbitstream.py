@@ -160,39 +160,6 @@ class TestReadingBitsAsDefault:
         assert [x.uint for x in v] == [3, 0, 999]
 
 
-class TestLsb0Reading:
-
-    @classmethod
-    def setup_class(cls):
-        bitstring.lsb0 = True
-
-    @classmethod
-    def teardown_class(cls):
-        bitstring.lsb0 = False
-
-    def test_reading_hex(self):
-        s = CBS('0xabcdef')
-        assert s.read('hex:4') == 'f'
-        assert s.read(4) == '0xe'
-        assert s.pos == 8
-
-    def test_reading_oct(self):
-        s = CBS('0o123456')
-        assert s.read('o6') == '56'
-        assert s.pos == 6
-
-    def test_reading_bin(self):
-        s = CBS('0b00011')
-        assert s.read('bin:3') == '011'
-        assert s.pos == 3
-
-    def test_reading_bytes(self):
-        s = CBS(bytes=b'54321')
-        assert s.pos == 0
-        s.pos = 8
-        assert s.read('bytes:2') == b'32'
-
-
 class TestBytesIOCreation:
 
     def test_simple_creation(self):

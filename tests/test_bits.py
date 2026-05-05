@@ -9,7 +9,6 @@ import re
 from bitstring import InterpretError, Bits, BitArray
 from hypothesis import given, settings
 import hypothesis.strategies as st
-from bitstring.helpers import offset_slice_indices_lsb0
 
 sys.path.insert(0, "..")
 
@@ -20,33 +19,6 @@ def remove_unprintable(s: str) -> str:
     colour_escape = re.compile(r"(?:\x1B[@-_])[0-?]*[ -/]*[@-~]")
     return colour_escape.sub("", s)
 
-
-@settings(max_examples=500)
-@given(
-    length=st.integers(0, 9),
-    start=st.integers(-20, 20),
-    stop=st.integers(-20, 20),
-    step=st.integers(0, 7),
-)
-def test_lsb0_slicing(length, start, stop, step):
-    if start == -20:
-        start = None
-    if stop == -20:
-        stop = None
-    if step == 0:
-        step = None
-    values_fwd = list(range(0, length))
-    values_bwd = list(range(0, length))
-    values_bwd.reverse()
-
-    # Convert the start, stop, step to a range over the length
-    start1, stop1, step1 = slice(start, stop, step).indices(length)
-    values1 = values_fwd[start1:stop1:step1]
-
-    lsb0key = offset_slice_indices_lsb0(slice(start, stop, step), length)
-    values2 = values_bwd[lsb0key.start : lsb0key.stop : lsb0key.step]
-    values2.reverse()
-    assert values1 == values2
 
 
 class TestCreation:
@@ -488,121 +460,6 @@ class TestByteStoreImmutablity:
         assert c.bin == "010111"
 
 
-class TestLsb0Indexing:
-    @classmethod
-    def setup_class(cls):
-        bitstring.lsb0 = True
-
-    @classmethod
-    def teardown_class(cls):
-        bitstring.lsb0 = False
-
-    def test_get_single_bit(self):
-        a = Bits("0b000001111")
-        assert a[0] is True
-        assert a[3] is True
-        assert a[4] is False
-        assert a[8] is False
-        with pytest.raises(IndexError):
-            _ = a[9]
-        assert a[-1] is False
-        assert a[-5] is False
-        assert a[-6] is True
-        assert a[-9] is True
-        with pytest.raises(IndexError):
-            _ = a[-10]
-
-    def test_simple_slicing(self):
-        a = Bits("0xabcdef")
-        assert a[0:4] == "0xf"
-        assert a[4:8] == "0xe"
-        assert a[:] == "0xabcdef"
-        assert a[4:] == "0xabcde"
-        assert a[-4:] == "0xa"
-        assert a[-8:-4] == "0xb"
-        assert a[:-8] == "0xcdef"
-
-    def test_extended_slicing(self):
-        a = Bits("0b0100000100100100")
-        assert a[2::3] == "0b10111"
-
-    def test_all(self):
-        a = Bits("0b000111")
-        assert a.all(1, [0, 1, 2])
-        assert a.all(0, [3, 4, 5])
-
-    def test_any(self):
-        a = Bits("0b00000110")
-        assert a.any(1, [0, 1])
-        assert a.any(0, [5, 6])
-
-    def test_startswith(self):
-        a = Bits("0b0000000111")
-        assert a.startswith("0b111")
-        assert not a.startswith("0b0")
-        assert a.startswith("0b011", start=1)
-        assert not a.startswith("0b0111", end=3)
-        assert a.startswith("0b0111", end=4)
-
-    def test_ends_with(self):
-        a = Bits("0x1234abcd")
-        assert a.endswith("0x123")
-        assert not a.endswith("0xabcd")
-
-    def test_lsb0_slicing_error(self):
-        a = Bits("0b01")
-        b = a[::-1]
-        assert b == "0b10"
-        t = Bits("0xf0a")[::-1]
-        assert t == "0x50f"
-        s = Bits("0xf0a")[::-1][::-1]
-        assert s == "0xf0a"
-
-
-class TestLsb0Interpretations:
-    @classmethod
-    def setup_class(cls):
-        bitstring.lsb0 = True
-
-    @classmethod
-    def teardown_class(cls):
-        bitstring.lsb0 = False
-
-    def test_uint(self):
-        a = Bits("0x01")
-        assert a == "0b00000001"
-        assert a.uint == 1
-        assert a[0] is True
-
-    def test_float(self):
-        a = Bits(float=0.25, length=32)
-        try:
-            bitstring.lsb0 = False
-            b = Bits(float=0.25, length=32)
-        finally:
-            bitstring.lsb0 = True
-        assert a.float == 0.25
-        assert b.float == 0.25
-        assert a.bin == b.bin
-
-    def test_golomb(self):
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(ue=2)
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(se=2)
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(uie=2)
-        with pytest.raises(bitstring.CreationError):
-            _ = Bits(sie=2)
-
-    def test_bytes(self):
-        a = Bits.fromstring("0xabcdef")
-        b = a.bytes
-        assert b == b"\xab\xcd\xef"
-        b = a.bytes3
-        assert b == b"\xab\xcd\xef"
-
-
 class TestUnderscoresInLiterals:
     def test_hex_creation(self):
         a = Bits(hex="ab_cd__ef")
@@ -897,28 +754,6 @@ class TestPrettyPrintingErrors:
             a.pp("hex")
         with pytest.raises(InterpretError):
             a.pp("bin, bytes")
-
-
-class TestPrettyPrinting_LSB0:
-    def setup_method(self) -> None:
-        bitstring.lsb0 = True
-
-    def teardown_method(self) -> None:
-        bitstring.lsb0 = False
-
-    def test_bin(self):
-        a = Bits(bin="1111 0000 0000 1111 1010")
-        s = io.StringIO()
-        a.pp("bin", stream=s, width=5)
-        assert (
-            remove_unprintable(s.getvalue())
-            == """<Bits, fmt='bin', length=20 bits> [
-11111010 :0 
-00000000 :8 
-    1111 :16
-]
-"""
-        )
 
 
 class TestPrettyPrinting_NewFormats:
