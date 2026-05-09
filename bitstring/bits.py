@@ -1264,6 +1264,21 @@ class Bits:
             raise ValueError("Cannot cut - count must be >= 0.")
         if bits <= 0:
             raise ValueError("Cannot cut - bits must be >= 0.")
+        if isinstance(self._bitstore, ConstBitStore):
+            source_tibs = self._bitstore.tibs if (start_ == 0 and end_ == len(self)) else self._bitstore.tibs[start_:end_]
+            cls = self.__class__
+            is_stream = isinstance(self, bitstring.ConstBitStream)
+            emitted = 0
+            for chunk_tibs in source_tibs.chunks_iter(bits):
+                if count is not None and emitted >= count:
+                    return
+                chunk = object.__new__(cls)
+                chunk._bitstore = ConstBitStore(chunk_tibs)
+                if is_stream:
+                    chunk._pos = 0
+                emitted += 1
+                yield chunk
+            return
         c = 0
         while count is None or c < count:
             c += 1
