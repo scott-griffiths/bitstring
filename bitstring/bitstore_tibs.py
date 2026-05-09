@@ -246,11 +246,13 @@ class MutableBitStore:
     def to_oct(self) -> str:
         return self.tibs.to_oct()
 
-    def __ilshift__(self, n: int, /) -> None:
+    def __ilshift__(self, n: int, /) -> MutableBitStore:
         self.tibs <<= n
+        return self
 
-    def __irshift__(self, n: int, /) -> None:
+    def __irshift__(self, n: int, /) -> MutableBitStore:
         self.tibs >>= n
+        return self
 
     def __add__(self, other: MutableBitStore, /) -> MutableBitStore:
         return MutableBitStore(self.tibs + other.tibs)
@@ -304,6 +306,7 @@ class MutableBitStore:
     def reverse(self) -> None:
         self.tibs.reverse()
 
+    # TODO: Should we remove iter from this mutable type?
     def __iter__(self) -> Iterable[bool]:
         for i in range(len(self)):
             yield self.getindex(i)
