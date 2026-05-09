@@ -81,27 +81,6 @@ binary8_decompress_luts()
 # The Options class returns a singleton.
 options = Options()
 
-# # These get defined properly by the module magic below. This just stops mypy complaining about them.
-# bytealigned = None
-
-# # TODO: REMOVE FOR VERSION 5
-#
-# # An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
-# # This is now deprecated. Use the options object directly instead.
-# class _MyModuleType(types.ModuleType):
-#     @property
-#     def bytealigned(self) -> bool:
-#         """Determines whether a number of methods default to working only on byte boundaries."""
-#         return options.bytealigned
-#
-#     @bytealigned.setter
-#     def bytealigned(self, value: bool) -> None:
-#         """Determines whether a number of methods default to working only on byte boundaries."""
-#         options.bytealigned = value
-#
-#
-# sys.modules[__name__].__class__ = _MyModuleType
-
 
 # These methods convert a bit length to the number of characters needed to print it for different interpretations.
 def hex_bits2chars(bitlength: int):
@@ -325,4 +304,4 @@ if BitStream.__doc__ is not None:
 
 __all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
-           'ByteAlignError', 'CreationError', 'bytealigned', 'Dtype', 'options']
+           'ByteAlignError', 'CreationError', 'Dtype', 'options']
