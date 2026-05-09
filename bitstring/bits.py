@@ -207,11 +207,8 @@ class Bits:
 
         """
         bs = self.__class__._create_from_bitstype(bs)
-        s = self._copy() if len(bs) <= len(self) else bs._copy()
-        if len(bs) <= len(self):
-            s._addright(bs)
-        else:
-            s._addleft(self)
+        s = super().__new__(self.__class__)
+        s._bitstore = self._bitstore + bs._bitstore
         return s
 
     def __radd__(self: TBits, bs: BitsType) -> TBits:
@@ -973,7 +970,10 @@ class Bits:
         """Create and return a new copy of the Bits (always in memory)."""
         # Note that __copy__ may choose to return self if it's immutable. This method always makes a copy.
         s_copy = self.__class__()
-        s_copy._bitstore = self._bitstore._mutable_copy()
+        if isinstance(self._bitstore, ConstBitStore):
+            s_copy._bitstore = ConstBitStore(self._bitstore.tibs)
+        else:
+            s_copy._bitstore = self._bitstore._mutable_copy()
         return s_copy
 
     def _slice(self: TBits, start: int, end: int) -> TBits:
@@ -1009,11 +1009,17 @@ class Bits:
 
     def _addright(self, bs: Bits, /) -> None:
         """Add a bitstring to the RHS of the current bitstring."""
-        self._bitstore += bs._bitstore
+        if isinstance(self._bitstore, ConstBitStore):
+            self._bitstore = self._bitstore + bs._bitstore
+        else:
+            self._bitstore += bs._bitstore
 
     def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
-        self._bitstore.extend_left(bs._bitstore)
+        if isinstance(self._bitstore, ConstBitStore):
+            self._bitstore = bs._bitstore + self._bitstore
+        else:
+            self._bitstore.extend_left(bs._bitstore)
 
     def _insert(self, bs: Bits, pos: int, /) -> None:
         """Insert bs at pos."""
@@ -1327,23 +1333,28 @@ class Bits:
         sequence -- A sequence of bitstrings.
 
         """
-        bs = MutableBitStore.from_zeros(0)
-        if len(self) == 0:
-            # Optimised version that doesn't need to add self between every item
-            for item in sequence:
-                bs += Bits._create_from_bitstype(item)._bitstore
-        else:
+        def _stores() -> Iterable[ConstBitStore | MutableBitStore]:
+            if len(self) == 0:
+                # Optimised version that doesn't need to add self between every item
+                for item in sequence:
+                    yield Bits._create_from_bitstype(item)._bitstore
+                return
+
             sequence_iter = iter(sequence)
             try:
-                bs += Bits._create_from_bitstype(next(sequence_iter))._bitstore
+                first = Bits._create_from_bitstype(next(sequence_iter))._bitstore
             except StopIteration:
-                pass
-            else:
-                for item in sequence_iter:
-                    bs += self._bitstore
-                    bs += Bits._create_from_bitstype(item)._bitstore
+                return
+            yield first
+            for item in sequence_iter:
+                yield self._bitstore
+                yield Bits._create_from_bitstype(item)._bitstore
+
         s = self.__class__()
-        s._bitstore = bs
+        if isinstance(self._bitstore, ConstBitStore):
+            s._bitstore = ConstBitStore.join(_stores())
+        else:
+            s._bitstore = MutableBitStore.join(_stores())
         return s
 
     def tobytes(self) -> bytes:

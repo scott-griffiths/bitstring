@@ -155,7 +155,7 @@ class BitArray(Bits):
             if len(x) != dtype.bitlength:
                 raise CreationError(f"Can't initialise with value of length {len(x)} bits, "
                                     f"as attribute has length of {dtype.bitlength} bits.")
-            self._bitstore = x._bitstore
+            self._bitstore = x._bitstore._mutable_copy()
             return
 
     def __iadd__(self, bs: BitsType) -> BitArray:
