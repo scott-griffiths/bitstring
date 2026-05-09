@@ -12,12 +12,15 @@ class Options:
     _instance = None
 
     def __init__(self):
+        if hasattr(self, "_initialised"):
+            return
         self._bytealigned = False
         self.mxfp_overflow = 'saturate'
 
         self.no_color = False
         no_color = os.getenv('NO_COLOR')
         self.no_color = True if no_color else False
+        self._initialised = True
 
     @property
     def mxfp_overflow(self) -> str:
