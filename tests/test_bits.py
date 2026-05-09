@@ -7,7 +7,7 @@ import array
 import os
 import re
 from bitstring import InterpretError, Bits, BitArray
-from hypothesis import given, settings
+from hypothesis import given
 import hypothesis.strategies as st
 
 sys.path.insert(0, "..")

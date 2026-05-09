@@ -371,11 +371,19 @@ class Array:
         trailing_bit_length = len(self.data) % self._dtype.bitlength
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.bitlength} bits).")
+        if n is not None and n < 0:
+            raise ValueError("n must be >= 0.")
 
-        new_data = Bits(f)
-        max_items = len(new_data) // self._dtype.length
+        item_bits = self._dtype.bitlength
+        if n is None:
+            b = f.read()
+        else:
+            bytes_needed = (n * item_bits + 7) // 8
+            b = f.read(bytes_needed)
+        new_data = Bits(b)
+        max_items = len(new_data) // item_bits
         items_to_append = max_items if n is None else min(n, max_items)
-        self.data += new_data[0: items_to_append * self._dtype.bitlength]
+        self.data += new_data[0: items_to_append * item_bits]
         if n is not None and items_to_append < n:
             raise EOFError(f"Only {items_to_append} were appended, not the {n} items requested.")
 
