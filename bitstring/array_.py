@@ -311,7 +311,8 @@ class Array:
         """Insert a new element into the Array at position i.
 
         """
-        i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
+        # Match list.insert semantics: clamp both high and low indices.
+        i = max(min(i, len(self)), -len(self))
         self.data.insert(self._create_element(x), i * self._dtype.length)
 
     def pop(self, i: int = -1) -> ElementType:
