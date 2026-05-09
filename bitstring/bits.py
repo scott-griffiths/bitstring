@@ -548,20 +548,20 @@ class Bits:
             if offset is None:
                 offset = 0
             m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
+            file_bits = len(m) * 8
             if offset == 0:
                 self._filename = source.name
                 self._bitstore = ConstBitStore.frombuffer(m, length=length)
             else:
-                # If offset is given then always read into memory.
-                temp = ConstBitStore.frombuffer(m)
                 if length is None:
-                    if offset > len(temp):
-                        raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({len(temp)} bits).")
-                    self._bitstore = temp.getslice(offset, None)
+                    if offset > file_bits:
+                        raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({file_bits} bits).")
+                    self._bitstore = ConstBitStore.frombuffer(m, offset=offset)
                 else:
-                    self._bitstore = temp.getslice(offset, offset + length)
-                    if len(self) != length:
-                        raise bitstring.CreationError(f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {len(temp)} bits.")
+                    if offset + length > file_bits:
+                        raise bitstring.CreationError(
+                            f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
+                    self._bitstore = ConstBitStore.frombuffer(m, offset=offset, length=length)
 
     def _setbits(self, bs: BitsType, length: None = None) -> None:
         bs = Bits._create_from_bitstype(bs)
@@ -1623,4 +1623,3 @@ class Bits:
         return x
 
     len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")
-

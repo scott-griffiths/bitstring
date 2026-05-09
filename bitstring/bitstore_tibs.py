@@ -61,16 +61,23 @@ class ConstBitStore:
         return x
 
     @classmethod
-    def frombuffer(cls, buffer, /, length: Optional[int] = None) -> ConstBitStore:  #TODO: Shouldn't need a default here.
+    def frombuffer(cls, buffer, /, length: Optional[int] = None, offset: Optional[int] = None) -> ConstBitStore:  #TODO: Shouldn't need a default here.
         mv = memoryview(buffer)
+        if offset is None:
+            offset = 0
+        if offset < 0:
+            raise CreationError("Can't create bitstring with a negative offset.")
+        if offset > mv.nbytes * 8:
+            raise CreationError(
+                f"Can't create bitstring with an offset of {offset} from {mv.nbytes * 8} bits of data.")
         if length is not None:
             if length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
-            if length > mv.nbytes * 8:
+            if offset + length > mv.nbytes * 8:
                 raise CreationError(
-                    f"Can't create bitstring with a length of {length} from {mv.nbytes * 8} bits of data.")
-            return cls.from_bytes(mv, length=length)
-        return cls.from_bytes(mv)
+                    f"Can't create bitstring with a length of {length} from {mv.nbytes * 8 - offset} bits of data.")
+            return cls.from_bytes(mv, offset=offset, length=length)
+        return cls.from_bytes(mv, offset=offset)
 
     @classmethod
     def from_bin(cls, s: str) -> ConstBitStore:
