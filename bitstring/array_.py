@@ -575,6 +575,13 @@ class Array:
         new_array.data = new_data
         return new_array
 
+    def _apply_op_between_arrays_inplace(self, op, other: Array) -> Array:
+        """Apply op between Arrays and update self in place."""
+        result = self._apply_op_between_arrays(op, other)
+        self._dtype = result._dtype
+        self.data = result.data
+        return self
+
     @classmethod
     def _promotetype(cls, type1: Dtype, type2: Dtype) -> Dtype:
         """When combining types which one wins?
@@ -618,12 +625,12 @@ class Array:
 
     def __iadd__(self, other: Union[int, float, Array]) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.add, other)
+            return self._apply_op_between_arrays_inplace(operator.add, other)
         return self._apply_op_to_all_elements_inplace(operator.add, other)
 
     def __isub__(self, other: Union[int, float, Array]) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.sub, other)
+            return self._apply_op_between_arrays_inplace(operator.sub, other)
         return self._apply_op_to_all_elements_inplace(operator.sub, other)
 
     def __sub__(self, other: Union[int, float, Array]) -> Array:
@@ -638,7 +645,7 @@ class Array:
 
     def __imul__(self, other: Union[int, float, Array]) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.mul, other)
+            return self._apply_op_between_arrays_inplace(operator.mul, other)
         return self._apply_op_to_all_elements_inplace(operator.mul, other)
 
     def __floordiv__(self, other: Union[int, float, Array]) -> Array:
@@ -648,7 +655,7 @@ class Array:
 
     def __ifloordiv__(self, other: Union[int, float, Array]) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.floordiv, other)
+            return self._apply_op_between_arrays_inplace(operator.floordiv, other)
         return self._apply_op_to_all_elements_inplace(operator.floordiv, other)
 
     def __truediv__(self, other: Union[int, float, Array]) -> Array:
@@ -658,7 +665,7 @@ class Array:
 
     def __itruediv__(self, other: Union[int, float, Array]) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.truediv, other)
+            return self._apply_op_between_arrays_inplace(operator.truediv, other)
         return self._apply_op_to_all_elements_inplace(operator.truediv, other)
 
     def __rshift__(self, other: Union[int, Array]) -> Array:
@@ -673,12 +680,12 @@ class Array:
 
     def __irshift__(self, other: Union[int, Array]) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.rshift, other)
+            return self._apply_op_between_arrays_inplace(operator.rshift, other)
         return self._apply_op_to_all_elements_inplace(operator.rshift, other)
 
     def __ilshift__(self, other: Union[int, Array]) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.lshift, other)
+            return self._apply_op_between_arrays_inplace(operator.lshift, other)
         return self._apply_op_to_all_elements_inplace(operator.lshift, other)
 
     def __mod__(self, other: Union[int, Array]) -> Array:
@@ -688,7 +695,7 @@ class Array:
 
     def __imod__(self, other: Union[int, Array]) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.mod, other)
+            return self._apply_op_between_arrays_inplace(operator.mod, other)
         return self._apply_op_to_all_elements_inplace(operator.mod, other)
 
     # Bitwise operators
