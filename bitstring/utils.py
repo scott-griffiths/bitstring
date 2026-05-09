@@ -156,6 +156,8 @@ def preprocess_tokens(fmt: str) -> List[str]:
         factor = 1
         if m := MULTIPLICATIVE_RE.match(meta_token):
             factor = int(m.group('factor'))
+            if factor < 0:
+                raise ValueError(f"Negative multiplicative factors are not allowed: '{meta_token}'.")
             meta_token = m.group('token')
 
         # Parse struct-like format into sub-tokens or treat as single token
