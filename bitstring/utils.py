@@ -235,7 +235,10 @@ def expand_brackets(s: str) -> str:
             if m:
                 factor = int(m.group('factor'))
                 matchstart = m.start('factor')
-                s = s[0:matchstart] + (factor - 1) * (s[start + 1:p] + ',') + s[start + 1:p] + s[p + 1:]
+                if factor == 0:
+                    s = s[0:matchstart] + s[p + 1:]
+                else:
+                    s = s[0:matchstart] + (factor - 1) * (s[start + 1:p] + ',') + s[start + 1:p] + s[p + 1:]
             else:
                 raise ValueError(f"Failed to parse '{s}'.")
     return s

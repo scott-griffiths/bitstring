@@ -241,7 +241,9 @@ class AllowedLengths:
         if not self.values:
             return True
         if self.values[-1] is Ellipsis:
-            return (other - self.values[0]) % (self.values[1] - self.values[0]) == 0
+            start = self.values[0]
+            step = self.values[1] - self.values[0]
+            return other >= start and (other - start) % step == 0
         return other in self.values
 
     def only_one_value(self) -> bool:
