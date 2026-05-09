@@ -141,7 +141,7 @@ class Dtype:
         return dtype_register.get_dtype(*utils.parse_name_length_token(token), scale=scale)
 
     def __hash__(self) -> int:
-        return hash((self._name, self._length))
+        return hash((self._name, self._length, self._scale))
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
@@ -217,7 +217,7 @@ class Dtype:
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Dtype):
-            return self._name == other._name and self._length == other._length
+            return self._name == other._name and self._length == other._length and self._scale == other._scale
         return False
 
 
