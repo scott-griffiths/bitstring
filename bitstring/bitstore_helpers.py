@@ -29,8 +29,7 @@ def _int_to_mutibs(i: int, length: int, signed: bool, little_endian: bool) -> Mu
     byteorder = "little" if little_endian else "big"
     b = i.to_bytes((length + 7) // 8, byteorder=byteorder, signed=signed)
     offset = (-length) % 8
-    mb = Mutibs.from_bytes(b)
-    return mb if offset == 0 else mb[offset:]
+    return Mutibs.from_bytes(b, offset=offset, length=length)
 
 
 def bin2bitstore(binstring: str) -> MutableBitStore:

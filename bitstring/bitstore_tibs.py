@@ -48,9 +48,10 @@ class ConstBitStore:
         return x
 
     @classmethod
-    def from_bytes(cls, b: Union[bytes, bytearray, memoryview], /) -> ConstBitStore:
+    def from_bytes(cls, b: Union[bytes, bytearray, memoryview], /, offset: Optional[int] = None,
+                   length: Optional[int] = None) -> ConstBitStore:
         x = super().__new__(cls)
-        x.tibs = Tibs.from_bytes(b)
+        x.tibs = Tibs.from_bytes(b, offset=offset, length=length)
         return x
 
     @classmethod
@@ -61,15 +62,15 @@ class ConstBitStore:
 
     @classmethod
     def frombuffer(cls, buffer, /, length: Optional[int] = None) -> ConstBitStore:  #TODO: Shouldn't need a default here.
-        x = super().__new__(cls)
-        x.tibs = Tibs.from_bytes(memoryview(buffer))
+        mv = memoryview(buffer)
         if length is not None:
             if length < 0:
                 raise CreationError("Can't create bitstring with a negative length.")
-            if length > len(x.tibs):
+            if length > mv.nbytes * 8:
                 raise CreationError(
-                    f"Can't create bitstring with a length of {length} from {len(x.tibs)} bits of data.")
-        return x.getslice(0, length) if length is not None else x
+                    f"Can't create bitstring with a length of {length} from {mv.nbytes * 8} bits of data.")
+            return cls.from_bytes(mv, length=length)
+        return cls.from_bytes(mv)
 
     @classmethod
     def from_bin(cls, s: str) -> ConstBitStore:
@@ -199,9 +200,10 @@ class MutableBitStore:
         return x
 
     @classmethod
-    def from_bytes(cls, b: Union[bytes, bytearray, memoryview], /) -> MutableBitStore:
+    def from_bytes(cls, b: Union[bytes, bytearray, memoryview], /, offset: Optional[int] = None,
+                   length: Optional[int] = None) -> MutableBitStore:
         x = super().__new__(cls)
-        x.tibs = Mutibs.from_bytes(b)
+        x.tibs = Mutibs.from_bytes(b, offset=offset, length=length)
         return x
 
     @classmethod

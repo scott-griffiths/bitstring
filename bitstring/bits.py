@@ -525,14 +525,12 @@ class Bits:
             offset = 0
 
         if isinstance(s, io.BytesIO):
+            total_bits = s.seek(0, 2) * 8
             if length is None:
-                length = s.seek(0, 2) * 8 - offset
-            byteoffset, offset = divmod(offset, 8)
-            bytelength = (length + byteoffset * 8 + offset + 7) // 8 - byteoffset
-            if length + byteoffset * 8 + offset > s.seek(0, 2) * 8:
+                length = total_bits - offset
+            if length + offset > total_bits:
                 raise bitstring.CreationError("BytesIO object is not long enough for specified length and offset.")
-            self._bitstore = ConstBitStore.from_bytes(s.getvalue()[byteoffset: byteoffset + bytelength]).getslice(
-                offset, offset + length)
+            self._bitstore = ConstBitStore.from_bytes(s.getvalue(), offset=offset, length=length)
             return
 
         if isinstance(s, io.BufferedReader):
@@ -612,7 +610,7 @@ class Bits:
         else:
             if length + offset > len(data) * 8:
                 raise bitstring.CreationError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
-        self._bitstore = ConstBitStore.from_bytes(data).getslice(offset, offset + length)
+        self._bitstore = ConstBitStore.from_bytes(data, offset=offset, length=length)
 
     def _getbytes(self) -> bytes:
         """Return the data as an ordinary bytes object."""
@@ -1625,5 +1623,4 @@ class Bits:
         return x
 
     len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")
-
 
