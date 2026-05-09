@@ -108,6 +108,8 @@ class ConstBitStore:
         return ConstBitStore(self.tibs + other.tibs)
 
     def __eq__(self, other: Any, /) -> bool:
+        if not isinstance(other, ConstBitStore):
+            return NotImplemented
         return self.tibs == other.tibs
 
     def __and__(self, other: ConstBitStore, /) -> ConstBitStore:
@@ -262,6 +264,8 @@ class MutableBitStore:
         return self
 
     def __eq__(self, other: Any, /) -> bool:
+        if not isinstance(other, (MutableBitStore, ConstBitStore)):
+            return NotImplemented
         return self.tibs == other.tibs
 
     def __and__(self, other: MutableBitStore, /) -> MutableBitStore:
