@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tibs import Tibs, Mutibs, Endianness
+from tibs import Tibs, Endianness
 
 import struct
 import math
@@ -18,11 +18,11 @@ ConstBitStore = bitstring.bitstore.ConstBitStore
 from bitstring.helpers import tidy_input_string
 
 
-def _int_to_mutibs(i: int, length: int, signed: bool, little_endian: bool) -> Mutibs:
+def _int_to_tibs(i: int, length: int, signed: bool, little_endian: bool) -> Tibs:
     try:
         if signed:
-            return Mutibs.from_i(i, length, Endianness.Little if little_endian else Endianness.Unspecified)
-        return Mutibs.from_u(i, length, Endianness.Little if little_endian else Endianness.Unspecified)
+            return Tibs.from_i(i, length, Endianness.Little if little_endian else Endianness.Unspecified)
+        return Tibs.from_u(i, length, Endianness.Little if little_endian else Endianness.Unspecified)
     except (OverflowError, ValueError) as e:
         # Keep tibs validation for normal sizes and unsupported values.
         if length <= 128:
@@ -30,7 +30,7 @@ def _int_to_mutibs(i: int, length: int, signed: bool, little_endian: bool) -> Mu
     byteorder = "little" if little_endian else "big"
     b = i.to_bytes((length + 7) // 8, byteorder=byteorder, signed=signed)
     offset = (-length) % 8
-    return Mutibs.from_bytes(b, offset=offset, length=length)
+    return Tibs.from_bytes(b, offset=offset, length=length)
 
 
 def bin2bitstore(binstring: str) -> ConstBitStore:
@@ -53,14 +53,14 @@ def oct2bitstore(octstring: str) -> ConstBitStore:
 
 def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
     i = int(i)
-    mb = _int_to_mutibs(i, length, signed, little_endian=False)
-    return ConstBitStore(mb.to_tibs())
+    t = _int_to_tibs(i, length, signed, little_endian=False)
+    return ConstBitStore(t)
 
 
 def intle2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
     i = int(i)
-    mb = _int_to_mutibs(i, length, signed, little_endian=True)
-    return ConstBitStore(mb.to_tibs())
+    t = _int_to_tibs(i, length, signed, little_endian=True)
+    return ConstBitStore(t)
 
 
 def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> ConstBitStore:
@@ -97,6 +97,11 @@ def _oct_literal_to_const_bitstore(octstring: str) -> ConstBitStore:
 
 @functools.lru_cache(CACHE_SIZE)
 def str_to_bitstore(s: str) -> ConstBitStore:
+    # Fast path for literal-only strings (e.g. "0xff, 0b101, 0o7").
+    try:
+        return ConstBitStore(Tibs.from_string(s))
+    except ValueError:
+        pass
     _, tokens = bitstring.utils.tokenparser(s)
     constbitstores = [bitstore_from_token(*token) for token in tokens]
     return ConstBitStore.join(constbitstores)
