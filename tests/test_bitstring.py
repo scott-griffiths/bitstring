@@ -22,7 +22,7 @@ class TestModuleData:
     def test_all(self):
         exported = ['ConstBitStream', 'BitStream', 'BitArray',
                     'Bits', 'pack', 'Error', 'ReadError', 'Array',
-                    'InterpretError', 'ByteAlignError', 'CreationError', 'bytealigned', 'Dtype', 'options']
+                    'InterpretError', 'ByteAlignError', 'CreationError', 'Dtype', 'options']
         assert set(bitstring.__all__) == set(exported)
 
     def test_pyproject_version(self):

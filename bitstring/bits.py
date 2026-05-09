@@ -161,7 +161,10 @@ class Bits:
                     Dtype(k, length).set_fn(self, v)
                 except ValueError as e:
                     raise bitstring.CreationError(e)
-        if not immutable:
+        if immutable:
+            if isinstance(self._bitstore, MutableBitStore):
+                self._bitstore = ConstBitStore(self._bitstore.tibs.to_tibs())
+        else:
             # TODO: This copy is not a good idea.
             self._bitstore = self._bitstore._mutable_copy()
 

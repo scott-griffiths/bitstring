@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tibs import Mutibs, Endianness
+from tibs import Tibs, Mutibs, Endianness
 
 import struct
 import math
@@ -13,6 +13,7 @@ from bitstring.mxfp import (e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_s
 
 
 MutableBitStore = bitstring.bitstore.MutableBitStore
+ConstBitStore = bitstring.bitstore.ConstBitStore
 
 from bitstring.helpers import tidy_input_string
 
@@ -73,24 +74,48 @@ def float2bitstore(f: Union[str, float], length: int, big_endian: bool) -> Mutab
 
 CACHE_SIZE = 256
 
+def _to_const_bitstore(bs: MutableBitStore | ConstBitStore) -> ConstBitStore:
+    if isinstance(bs, ConstBitStore):
+        return bs
+    return ConstBitStore(bs.tibs.to_tibs())
+
+
+def _bin_literal_to_const_bitstore(binstring: str) -> ConstBitStore:
+    binstring = tidy_input_string(binstring)
+    binstring = binstring.replace('0b', '')
+    return ConstBitStore.from_bin(binstring)
+
+
+def _hex_literal_to_const_bitstore(hexstring: str) -> ConstBitStore:
+    hexstring = tidy_input_string(hexstring)
+    hexstring = hexstring.replace('0x', '')
+    return ConstBitStore(Tibs.from_hex(hexstring))
+
+
+def _oct_literal_to_const_bitstore(octstring: str) -> ConstBitStore:
+    octstring = tidy_input_string(octstring)
+    octstring = octstring.replace('0o', '')
+    return ConstBitStore(Tibs.from_oct(octstring))
+
+
 @functools.lru_cache(CACHE_SIZE)
-def str_to_bitstore(s: str) -> MutableBitStore:
+def str_to_bitstore(s: str) -> ConstBitStore:
     _, tokens = bitstring.utils.tokenparser(s)
     constbitstores = [bitstore_from_token(*token) for token in tokens]
-    return MutableBitStore.join(constbitstores)
+    return ConstBitStore.join(constbitstores)
 
 
-literal_bit_funcs: Dict[str, Callable[..., MutableBitStore]] = {
-    '0x': hex2bitstore,
-    '0X': hex2bitstore,
-    '0b': bin2bitstore,
-    '0B': bin2bitstore,
-    '0o': oct2bitstore,
-    '0O': oct2bitstore,
+literal_bit_funcs: Dict[str, Callable[..., ConstBitStore]] = {
+    '0x': _hex_literal_to_const_bitstore,
+    '0X': _hex_literal_to_const_bitstore,
+    '0b': _bin_literal_to_const_bitstore,
+    '0B': _bin_literal_to_const_bitstore,
+    '0o': _oct_literal_to_const_bitstore,
+    '0O': _oct_literal_to_const_bitstore,
 }
 
 
-def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[str]) -> MutableBitStore:
+def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[str]) -> ConstBitStore:
     if name in literal_bit_funcs:
         return literal_bit_funcs[name](value)
     try:
@@ -100,6 +125,7 @@ def bitstore_from_token(name: str, token_length: Optional[int], value: Optional[
     if value is None and name != 'pad':
         raise ValueError(f"Token {name} requires a value.")
     bs = d.build(value)._bitstore
+    bs = _to_const_bitstore(bs)
     if token_length is not None and len(bs) != d.bitlength:
         raise bitstring.CreationError(f"Token with length {token_length} packed with value of length {len(bs)} "
                                       f"({name}:{token_length}={value}).")
