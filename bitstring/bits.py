@@ -618,6 +618,9 @@ class Bits:
             raise bitstring.InterpretError("Cannot interpret as bytes unambiguously - not multiple of 8 bits.")
         return self._bitstore.to_bytes()
 
+    def _readbytes(self, pos: int, length: int) -> bytes:
+        return self._bitstore.read_bytes(pos, length)
+
     _unprintable = list(range(0x00, 0x20))  # ASCII control characters
     _unprintable.extend(range(0x7f, 0xff))  # DEL char + non-ASCII
 
@@ -643,6 +646,9 @@ class Bits:
             raise bitstring.InterpretError("Cannot interpret a zero length bitstring as an integer.")
         return self._bitstore.to_u()
 
+    def _readuint(self, pos: int, length: int) -> int:
+        return self._bitstore.read_u(pos, length)
+
     def _setint(self, int_: int, length: Optional[int] = None) -> None:
         """Reset the bitstring to have given signed int interpretation."""
         # If no length given, and we've previously been given a length, use it.
@@ -658,6 +664,9 @@ class Bits:
             raise bitstring.InterpretError("Cannot interpret bitstring without a length as an integer.")
         return self._bitstore.to_i()
 
+    def _readint(self, pos: int, length: int) -> int:
+        return self._bitstore.read_i(pos, length)
+
     def _setuintbe(self, uintbe: int, length: Optional[int] = None) -> None:
         """Set the bitstring to a big-endian unsigned int interpretation."""
         if length is None and hasattr(self, 'len') and len(self) != 0:
@@ -671,6 +680,9 @@ class Bits:
         if len(self) % 8:
             raise bitstring.InterpretError(f"Big-endian integers must be whole-byte. Length = {len(self)} bits.")
         return self._getuint()
+
+    def _readuintbe(self, pos: int, length: int) -> int:
+        return self._readuint(pos, length)
 
     def _setintbe(self, intbe: int, length: Optional[int] = None) -> None:
         """Set bitstring to a big-endian signed int interpretation."""
@@ -686,6 +698,9 @@ class Bits:
             raise bitstring.InterpretError(f"Big-endian integers must be whole-byte. Length = {len(self)} bits.")
         return self._getint()
 
+    def _readintbe(self, pos: int, length: int) -> int:
+        return self._readint(pos, length)
+
     def _setuintle(self, uintle: int, length: Optional[int] = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
             length = len(self)
@@ -698,6 +713,10 @@ class Bits:
         if len(self) % 8:
             raise bitstring.InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
         bs = ConstBitStore.from_bytes(self._bitstore.to_bytes()[::-1])
+        return bs.to_u()
+
+    def _readuintle(self, pos: int, length: int) -> int:
+        bs = ConstBitStore.from_bytes(self._bitstore.read_bytes(pos, length)[::-1])
         return bs.to_u()
 
     def _setintle(self, intle: int, length: Optional[int] = None) -> None:
@@ -714,32 +733,64 @@ class Bits:
         bs = ConstBitStore.from_bytes(self._bitstore.to_bytes()[::-1])
         return bs.to_i()
 
+    def _readintle(self, pos: int, length: int) -> int:
+        bs = ConstBitStore.from_bytes(self._bitstore.read_bytes(pos, length)[::-1])
+        return bs.to_i()
+
     def _getp4binary(self) -> float:
         u = self._getuint()
+        return p4binary_fmt.lut_binary8_to_float[u]
+
+    def _readp4binary(self, pos: int, length: int) -> float:
+        u = self._readuint(pos, length)
         return p4binary_fmt.lut_binary8_to_float[u]
 
     def _getp3binary(self) -> float:
         u = self._getuint()
         return p3binary_fmt.lut_binary8_to_float[u]
 
+    def _readp3binary(self, pos: int, length: int) -> float:
+        u = self._readuint(pos, length)
+        return p3binary_fmt.lut_binary8_to_float[u]
+
     def _gete4m3mxfp(self) -> float:
         u = self._getuint()
+        return e4m3mxfp_saturate_fmt.lut_int_to_float[u]
+
+    def _reade4m3mxfp(self, pos: int, length: int) -> float:
+        u = self._readuint(pos, length)
         return e4m3mxfp_saturate_fmt.lut_int_to_float[u]
 
     def _gete5m2mxfp(self) -> float:
         u = self._getuint()
         return e5m2mxfp_saturate_fmt.lut_int_to_float[u]
 
+    def _reade5m2mxfp(self, pos: int, length: int) -> float:
+        u = self._readuint(pos, length)
+        return e5m2mxfp_saturate_fmt.lut_int_to_float[u]
+
     def _gete3m2mxfp(self) -> float:
         u = self._getuint()
+        return e3m2mxfp_fmt.lut_int_to_float[u]
+
+    def _reade3m2mxfp(self, pos: int, length: int) -> float:
+        u = self._readuint(pos, length)
         return e3m2mxfp_fmt.lut_int_to_float[u]
 
     def _gete2m3mxfp(self) -> float:
         u = self._getuint()
         return e2m3mxfp_fmt.lut_int_to_float[u]
 
+    def _reade2m3mxfp(self, pos: int, length: int) -> float:
+        u = self._readuint(pos, length)
+        return e2m3mxfp_fmt.lut_int_to_float[u]
+
     def _gete2m1mxfp(self) -> float:
         u = self._getuint()
+        return e2m1mxfp_fmt.lut_int_to_float[u]
+
+    def _reade2m1mxfp(self, pos: int, length: int) -> float:
+        u = self._readuint(pos, length)
         return e2m1mxfp_fmt.lut_int_to_float[u]
 
     def _gete8m0mxfp(self) -> float:
@@ -748,8 +799,18 @@ class Bits:
             return float('nan')
         return 2.0 ** u
 
+    def _reade8m0mxfp(self, pos: int, length: int) -> float:
+        u = self._readuint(pos, length) - 127
+        if u == 128:
+            return float('nan')
+        return 2.0 ** u
+
     def _getmxint(self) -> float:
         u = self._getint()
+        return float(u) * 2 ** -6
+
+    def _readmxint(self, pos: int, length: int) -> float:
+        u = self._readint(pos, length)
         return float(u) * 2 ** -6
 
     def _setfloat(self, f: float, length: Optional[int], big_endian: bool) -> None:
@@ -767,6 +828,10 @@ class Bits:
         fmt = {16: '>e', 32: '>f', 64: '>d'}[len(self)]
         return struct.unpack(fmt, self._bitstore.to_bytes())[0]
 
+    def _readfloatbe(self, pos: int, length: int) -> float:
+        fmt = {16: '>e', 32: '>f', 64: '>d'}[length]
+        return struct.unpack(fmt, self._bitstore.read_bytes(pos, length))[0]
+
     def _setfloatle(self, f: float, length: Optional[int] = None) -> None:
         self._setfloat(f, length, False)
 
@@ -775,9 +840,17 @@ class Bits:
         fmt = {16: '<e', 32: '<f', 64: '<d'}[len(self)]
         return struct.unpack(fmt, self._bitstore.to_bytes())[0]
 
+    def _readfloatle(self, pos: int, length: int) -> float:
+        fmt = {16: '<e', 32: '<f', 64: '<d'}[length]
+        return struct.unpack(fmt, self._bitstore.read_bytes(pos, length))[0]
+
     def _getbfloatbe(self) -> float:
         zero_padded = self + Bits(16)
         return zero_padded._getfloatbe()
+
+    def _readbfloatbe(self, pos: int, length: int) -> float:
+        b = self._bitstore.read_bytes(pos, length) + b'\x00\x00'
+        return struct.unpack('>f', b)[0]
 
     def _setbfloatbe(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
@@ -787,6 +860,10 @@ class Bits:
     def _getbfloatle(self) -> float:
         zero_padded = Bits(16) + self
         return zero_padded._getfloatle()
+
+    def _readbfloatle(self, pos: int, length: int) -> float:
+        b = b'\x00\x00' + self._bitstore.read_bytes(pos, length)
+        return struct.unpack('<f', b)[0]
 
     def _setbfloatle(self, f: Union[float, str], length: Optional[int] = None) -> None:
         if length is not None and length != 16:
@@ -928,7 +1005,13 @@ class Bits:
     def _getbool(self) -> bool:
         return self[0]
 
+    def _readbool(self, pos: int, length: int) -> bool:
+        return bool(self._bitstore.getindex(pos))
+
     def _getpad(self) -> None:
+        return None
+
+    def _readpad(self, pos: int, length: int) -> None:
         return None
 
     def _setpad(self, value: None, length: int) -> None:
@@ -942,6 +1025,9 @@ class Bits:
         """Return interpretation as a binary string."""
         return self._bitstore.to_bin()
 
+    def _readbin(self, pos: int, length: int) -> str:
+        return self._bitstore.read_bin(pos, length)
+
     def _setoct(self, octstring: str, length: None = None) -> None:
         """Reset the bitstring to have the value given in octstring."""
         self._bitstore = helpers.oct2bitstore(octstring)
@@ -949,6 +1035,9 @@ class Bits:
     def _getoct(self) -> str:
         """Return interpretation as an octal string."""
         return self._bitstore.to_oct()
+
+    def _readoct(self, pos: int, length: int) -> str:
+        return self._bitstore.read_oct(pos, length)
 
     def _sethex(self, hexstring: str, length: None = None) -> None:
         """Reset the bitstring to have the value given in hexstring."""
@@ -961,6 +1050,9 @@ class Bits:
 
         """
         return self._bitstore.to_hex()
+
+    def _readhex(self, pos: int, length: int) -> str:
+        return self._bitstore.read_hex(pos, length)
 
     def _getlength(self) -> int:
         """Return the length of the bitstring in bits."""

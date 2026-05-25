@@ -255,7 +255,8 @@ class DtypeDefinition:
     Not (yet) part of the public interface."""
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn=None,
-                 variable_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1, description: str = ''):
+                 variable_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1,
+                 description: str = '', read_fn=None):
 
         # Consistency checks
         if int(multiplier) != multiplier or multiplier <= 0:
@@ -292,14 +293,28 @@ class DtypeDefinition:
 
         # Create a reading function from the get_fn.
         if not self.variable_length:
-            if self.allowed_lengths.only_one_value():
-                def read_fn(bs, start):
-                    return self.get_fn(bs[start:start + self.allowed_lengths.values[0]])
+            if read_fn is not None:
+                direct_read_fn = read_fn
+                if self.allowed_lengths.only_one_value():
+                    def read_fn(bs, start):
+                        length = self.allowed_lengths.values[0]
+                        if len(bs) < start + length:
+                            raise bitstring.ReadError(f"Needed a length of at least {length} bits, but only {len(bs) - start} bits were available.")
+                        return direct_read_fn(bs, start, length)
+                else:
+                    def read_fn(bs, start, length):
+                        if len(bs) < start + length:
+                            raise bitstring.ReadError(f"Needed a length of at least {length} bits, but only {len(bs) - start} bits were available.")
+                        return direct_read_fn(bs, start, length)
             else:
-                def read_fn(bs, start, length):
-                    if len(bs) < start + length:
-                        raise bitstring.ReadError(f"Needed a length of at least {length} bits, but only {len(bs) - start} bits were available.")
-                    return self.get_fn(bs[start:start + length])
+                if self.allowed_lengths.only_one_value():
+                    def read_fn(bs, start):
+                        return self.get_fn(bs[start:start + self.allowed_lengths.values[0]])
+                else:
+                    def read_fn(bs, start, length):
+                        if len(bs) < start + length:
+                            raise bitstring.ReadError(f"Needed a length of at least {length} bits, but only {len(bs) - start} bits were available.")
+                        return self.get_fn(bs[start:start + length])
             self.read_fn = read_fn
         else:
             # We only find out the length when we read/get.
