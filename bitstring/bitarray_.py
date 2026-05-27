@@ -289,6 +289,7 @@ class BitArray(Bits):
         self._bitstore ^= bs._bitstore
         return self
 
+    # TODO: This should be using tibs.replace, but it needs it to return the number of replacements.
     def _replace(self, old: Bits, new: Bits, start: int, end: int, count: int, bytealigned: Optional[bool]) -> int:
         if bytealigned is None:
             bytealigned = bitstring.options.bytealigned
