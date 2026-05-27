@@ -68,7 +68,7 @@ class Binary8Format:
         for i in range(256):
             b = tibs.Tibs.from_u(i, 8)
             sign = b[0]
-            exponent = b[1:1 + self.exp_bits].to_u()
+            exponent = b.to_u(1, 1 + self.exp_bits)
             significand = b[1 + self.exp_bits:]
             if exponent == 0:
                 significand = [0] + significand

@@ -129,7 +129,7 @@ class MXFPFormat:
         for i in range(1 << length):
             b = tibs.Tibs.from_u(i, length)
             sign = b[0]
-            exponent = b[1:1 + self.exp_bits].to_u()
+            exponent = b.to_u(1, 1 + self.exp_bits)
             significand = b[1 + self.exp_bits:]
             if exponent == 0:
                 significand = [0] + significand

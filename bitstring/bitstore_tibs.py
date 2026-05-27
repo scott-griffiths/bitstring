@@ -92,7 +92,7 @@ class ConstBitStore:
         return (self.tibs + [0] * padding).to_bytes()
 
     def read_bytes(self, start: int, length: int) -> bytes:
-        return self.tibs[start:start + length].to_bytes()
+        return self.tibs.to_bytes(start, start + length)
 
     def to_u(self) -> int:
         try:
@@ -101,11 +101,10 @@ class ConstBitStore:
             return _fallback_to_u(self.tibs)
 
     def read_u(self, start: int, length: int) -> int:
-        tibs = self.tibs[start:start + length]
         try:
-            return tibs.to_u()
+            return self.tibs.to_u(start, start + length)
         except ValueError:
-            return _fallback_to_u(tibs)
+            return _fallback_to_u(self.tibs[start:start + length])
 
     def to_i(self) -> int:
         try:
@@ -114,29 +113,28 @@ class ConstBitStore:
             return _fallback_to_i(self.tibs)
 
     def read_i(self, start: int, length: int) -> int:
-        tibs = self.tibs[start:start + length]
         try:
-            return tibs.to_i()
+            return self.tibs.to_i(start, start + length)
         except ValueError:
-            return _fallback_to_i(tibs)
+            return _fallback_to_i(self.tibs[start:start + length])
 
     def to_hex(self) -> str:
         return self.tibs.to_hex()
 
     def read_hex(self, start: int, length: int) -> str:
-        return self.tibs[start:start + length].to_hex()
+        return self.tibs.to_hex(start, start + length)
 
     def to_bin(self) -> str:
         return self.tibs.to_bin()
 
     def read_bin(self, start: int, length: int) -> str:
-        return self.tibs[start:start + length].to_bin()
+        return self.tibs.to_bin(start, start + length)
 
     def to_oct(self) -> str:
         return self.tibs.to_oct()
 
     def read_oct(self, start: int, length: int) -> str:
-        return self.tibs[start:start + length].to_oct()
+        return self.tibs.to_oct(start, start + length)
 
     def __add__(self, other: ConstBitStore, /) -> ConstBitStore:
         return ConstBitStore(self.tibs + other.tibs)
@@ -263,7 +261,7 @@ class MutableBitStore:
         return self.tibs.to_bytes()
 
     def read_bytes(self, start: int, length: int) -> bytes:
-        return self.tibs[start:start + length].to_bytes()
+        return self.tibs.to_bytes(start, start + length)
 
     def to_u(self) -> int:
         try:
@@ -272,11 +270,10 @@ class MutableBitStore:
             return _fallback_to_u(self.tibs)
 
     def read_u(self, start: int, length: int) -> int:
-        tibs = self.tibs[start:start + length]
         try:
-            return tibs.to_u()
+            return self.tibs.to_u(start, start + length)
         except ValueError:
-            return _fallback_to_u(tibs)
+            return _fallback_to_u(self.tibs[start:start + length])
 
     def to_i(self) -> int:
         try:
@@ -285,29 +282,28 @@ class MutableBitStore:
             return _fallback_to_i(self.tibs)
 
     def read_i(self, start: int, length: int) -> int:
-        tibs = self.tibs[start:start + length]
         try:
-            return tibs.to_i()
+            return self.tibs.to_i(start, start + length)
         except ValueError:
-            return _fallback_to_i(tibs)
+            return _fallback_to_i(self.tibs[start:start + length])
 
     def to_hex(self) -> str:
         return self.tibs.to_hex()
 
     def read_hex(self, start: int, length: int) -> str:
-        return self.tibs[start:start + length].to_hex()
+        return self.tibs.to_hex(start, start + length)
 
     def to_bin(self) -> str:
         return self.tibs.to_bin()
 
     def read_bin(self, start: int, length: int) -> str:
-        return self.tibs[start:start + length].to_bin()
+        return self.tibs.to_bin(start, start + length)
 
     def to_oct(self) -> str:
         return self.tibs.to_oct()
 
     def read_oct(self, start: int, length: int) -> str:
-        return self.tibs[start:start + length].to_oct()
+        return self.tibs.to_oct(start, start + length)
 
     def __ilshift__(self, n: int, /) -> MutableBitStore:
         self.tibs <<= n
