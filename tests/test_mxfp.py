@@ -311,7 +311,7 @@ def test_rounding_consistent_to_gfloat():
                    [gfloat.formats.format_info_ocp_e5m2, Dtype('e5m2mxfp')]]:
         for i in range(1 << 16):
             f = BitArray(uint=i, length=16).float
-            mine = dt.parse(dt.build(f))
+            mine = dt.unpack(dt.pack(f))
             theirs = gfloat.round_float(fi, f, sat=True)
             if math.isnan(mine):
                 assert math.isnan(theirs)
@@ -325,7 +325,7 @@ def test_rounding_consistent_to_gfloat_with_overflow():
                    [gfloat.formats.format_info_ocp_e5m2, Dtype('e5m2mxfp')]]:
         for i in range(1 << 16):
             f = BitArray(uint=i, length=16).float
-            mine = dt.parse(dt.build(f))
+            mine = dt.unpack(dt.pack(f))
             theirs = gfloat.round_float(fi, f, sat=False)
             if math.isnan(mine):
                 assert math.isnan(theirs)
@@ -458,9 +458,9 @@ def test_roundtrips(fmt):
     # Note that e5m2mxfp in saturate mode will not pass this test, as inf -> inf -> max_value.
     for i in range(1 << fmt.bitlength):
         b = BitArray(u=i, length=fmt.bitlength)
-        v = fmt.parse(b)
-        b2 = fmt.build(v)
-        if math.isnan(fmt.parse(b)):
-            assert math.isnan(fmt.parse(b2))
+        v = fmt.unpack(b)
+        b2 = fmt.pack(v)
+        if math.isnan(fmt.unpack(b)):
+            assert math.isnan(fmt.unpack(b2))
         else:
             assert b == b2

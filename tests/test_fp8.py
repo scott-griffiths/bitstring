@@ -284,13 +284,13 @@ class TestConversionToFP8:
 
 def test_compare_mxint8_with_gfloat():
     for i in range(1 << 8):
-        f = Dtype('mxint8').parse(BitArray(uint=i, length=8))
+        f = Dtype('mxint8').unpack(BitArray(uint=i, length=8))
         g = gfloat.decode_float(format_info_ocp_int8, i).fval
         assert f == g
 
 def test_compare_e8m0_with_gfloat():
     for i in range(1 << 8):
-        f = Dtype('e8m0mxfp').parse(BitArray(uint=i, length=8))
+        f = Dtype('e8m0mxfp').unpack(BitArray(uint=i, length=8))
         g = gfloat.decode_float(format_info_ocp_e8m0, i).fval
         if math.isnan(g):
             assert math.isnan(f)
@@ -326,7 +326,7 @@ def test_rounding_consistent_to_gfloat():
                    [format_info_p3109(3), Dtype('p3binary')]]:
         for i in range(0, 1 << 16):
             f = BitArray(uint=i, length=16).float
-            mine = dt.parse(dt.build(f))
+            mine = dt.unpack(dt.pack(f))
             theirs = gfloat.round_float(fi, f)
             if math.isnan(mine):
                 assert math.isnan(theirs)

@@ -347,7 +347,7 @@ Properties
 Dtype
 -----
 
-A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to create, parse and present different bit interpretations.
+A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to pack, unpack and present different bit interpretations.
 
 ``Dtype(token: str, /, length: int | None, scale: int | float | None = None)``
 
@@ -365,8 +365,8 @@ The `scale` parameter can be used to specify a multiplicative scaling factor for
 Methods
 ^^^^^^^
 
-* :meth:`~Dtype.build` -- Create a bitstring from a value.
-* :meth:`~Dtype.parse` -- Parse a bitstring to find its value.
+* :meth:`~Dtype.pack` -- Pack a value into a bitstring.
+* :meth:`~Dtype.unpack` -- Unpack a bitstring to find its value.
 
 
 Properties
@@ -381,7 +381,7 @@ All properties are read-only.
 * :attr:`~Dtype.length` -- The length of the data type in units of `bits_per_item`.
 * :attr:`~Dtype.name` -- A string giving the name of the data type.
 * :attr:`~Dtype.read_fn` -- A function to read the value of the data type.
-* :attr:`~Dtype.return_type` -- The type of the value returned by the `parse` method.
+* :attr:`~Dtype.return_type` -- The type of the value returned by the `unpack` method.
 * :attr:`~Dtype.scale` -- The multiplicative scale applied when interpreting the data.
 * :attr:`~Dtype.set_fn` -- A function to set the value of the data type.
 * :attr:`~Dtype.variable_length` -- If True then the length of the data type varies, and shouldn't be specified.

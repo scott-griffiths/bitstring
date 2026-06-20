@@ -126,7 +126,7 @@ def bitstore_from_token(name: str, token_length: int | None, value: str | None) 
         raise bitstring.CreationError(f"Can't parse token: {e}")
     if value is None and name != 'pad':
         raise ValueError(f"Token {name} requires a value.")
-    bs = d.build(value)._bitstore
+    bs = d.pack(value)._bitstore
     bs = _to_const_bitstore(bs)
     if token_length is not None and len(bs) != d.bitlength:
         raise bitstring.CreationError(f"Token with length {token_length} packed with value of length {len(bs)} "

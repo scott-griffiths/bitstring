@@ -139,7 +139,7 @@ class BitArray(Bits):
     def from_dtype(cls: type[TBits], dtype: str | bitstring.Dtype, value: Any, /) -> TBits:
         """Create a new bitstring by packing value according to dtype."""
         x = super().__new__(cls)
-        x._bitstore = bitstring.dtypes.Dtype(dtype).build(value)._bitstore._mutable_copy()
+        x._bitstore = bitstring.dtypes.Dtype(dtype).pack(value)._bitstore._mutable_copy()
         return x
 
     @classmethod

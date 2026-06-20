@@ -1749,7 +1749,7 @@ class Bits:
     def from_dtype(cls: type[TBits], dtype: str | Dtype, value: Any, /) -> TBits:
         """Create a new bitstring by packing value according to dtype."""
         x = super().__new__(cls)
-        x._bitstore = Dtype(dtype).build(value)._bitstore
+        x._bitstore = Dtype(dtype).pack(value)._bitstore
         return x
 
     @classmethod

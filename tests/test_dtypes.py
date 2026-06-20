@@ -32,21 +32,25 @@ class TestBasicFunctionality:
         assert d.length == 12
         assert d.name == 'uint'
 
-    def test_build_errors(self):
+    def test_pack_errors(self):
         dtype = Dtype('uint8')
         value = 'not_an_integer'
         with pytest.raises(ValueError):
-            dtype.build(value)
+            dtype.pack(value)
 
-    def test_build(self):
+    def test_pack(self):
         dtype = Dtype('se')
-        x = dtype.build(10001)
+        x = dtype.pack(10001)
         assert x.se == 10001
 
-    def test_parse(self):
+    def test_unpack(self):
         dtype = Dtype('uint:12')
-        x = dtype.parse('0x3ff')
+        x = dtype.unpack('0x3ff')
         assert x == 1023
+
+    def test_old_pack_unpack_names_removed(self):
+        assert not hasattr(Dtype, 'build')
+        assert not hasattr(Dtype, 'parse')
 
     def test_immutability(self):
         d = Dtype('e3m2mxfp')
@@ -59,7 +63,7 @@ class TestBasicFunctionality:
 
     def test_variable_lengths(self):
         d = Dtype('ue')
-        a = bs.Reader(bs.Bits().join([d.build(v) for v in [1, 100, 3, 17, 4]]))
+        a = bs.Reader(bs.Bits().join([d.pack(v) for v in [1, 100, 3, 17, 4]]))
         assert a.read(d) == 1
         assert a.read(d) == 100
         assert a.read(d) == 3
@@ -73,26 +77,26 @@ class TestBasicFunctionality:
         assert a.read(ds) == -51
         assert a.read(ds) == -12
 
-    def test_building_bits(self):
+    def test_packing_bits(self):
         d = Dtype('bits3')
-        a = d.build('0b101')
+        a = d.pack('0b101')
         assert a == '0b101'
         with pytest.raises(ValueError):
-            d.build('0b1010')
+            d.pack('0b1010')
 
-    def test_building_bin(self):
+    def test_packing_bin(self):
         d = Dtype('bin9')
-        a = d.build('0b000111000')
+        a = d.pack('0b000111000')
         assert a == '0b000111000'
         with pytest.raises(ValueError):
-            d.build('0b0001110000')
+            d.pack('0b0001110000')
 
-    def test_building_ints(self):
+    def test_packing_ints(self):
         d = Dtype('i3')
-        a = d.build(-3)
+        a = d.pack(-3)
         assert a == '0b101'
         with pytest.raises(ValueError):
-            d.build(4)
+            d.pack(4)
 
 
 class TestChangingTheRegister:

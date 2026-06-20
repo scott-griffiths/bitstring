@@ -98,7 +98,7 @@ class Dtype:
 
     @property
     def return_type(self) -> Any:
-        """The type of the value returned by the parse method, such as int, float or str."""
+        """The type of the value returned by the unpack method, such as int, float or str."""
         return self._return_type
 
     @property
@@ -172,8 +172,8 @@ class Dtype:
         x._set_scale(scale)
         return x
 
-    def build(self, value: Any, /) -> bitstring.Bits:
-        """Create a bitstring from a value.
+    def pack(self, value: Any, /) -> bitstring.Bits:
+        """Pack a value into a bitstring.
 
         The value parameter should be of a type appropriate to the dtype.
         """
@@ -183,12 +183,12 @@ class Dtype:
             raise ValueError(f"Dtype has a length of {self.bitlength} bits, but value '{value}' has {len(b)} bits.")
         return b
 
-    def parse(self, b: BitsType, /) -> Any:
-        """Parse a bitstring to find its value.
+    def unpack(self, b: BitsType, /) -> Any:
+        """Unpack a bitstring to find its value.
 
         The b parameter should be a bitstring of the appropriate length, or an object that can be converted to a bitstring."""
         b = bitstring.Bits._create_from_bitstype(b)
-        return self._get_fn(bitstring.Bits(b))
+        return self._get_fn(b)
 
     def __str__(self) -> str:
         if self._scale is not None:

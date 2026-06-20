@@ -3,7 +3,7 @@
 Dtypes
 ======
 
-A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to create, parse and present different bit interpretations.
+A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to pack, unpack and present different bit interpretations.
 The properties described above are all examples of dtypes.
 
 .. class:: Dtype(token: str | Dtype, /, length: int | None = None, scale: int | float | None = None)
@@ -28,22 +28,22 @@ If you need to use the `scale` parameter then there is no way to specify this in
 Methods
 -------
 
-.. method:: Dtype.build(value: Any, /) -> Bits
+.. method:: Dtype.pack(value: Any, /) -> Bits
 
-Create a bitstring from a value.
+Pack a value into a bitstring.
 The *value* parameter should be of a type appropriate to the dtype.
 
     >>> d = Dtype('u10')
-    >>> d.build(85)  # Equivalent to: Bits(u10=85)
+    >>> d.pack(85)  # Equivalent to: Bits(u10=85)
     Bits('0b0001010101')
 
 
-.. method:: Dtype.parse(b: BitsType, /) -> Any
+.. method:: Dtype.unpack(b: BitsType, /) -> Any
 
-Parse a bitstring to find its value. The *b* parameter should be a bitstring of the appropriate length, or an object that can be converted to a bitstring.
+Unpack a bitstring to find its value. The *b* parameter should be a bitstring of the appropriate length, or an object that can be converted to a bitstring.
 
     >>> d = Dtype('u10')
-    >>> d.parse('0b0001010101')  # Equivalent to: Bits('0b0001010101').u10
+    >>> d.unpack('0b0001010101')  # Equivalent to: Bits('0b0001010101').u10
     85
 
 ----
@@ -93,7 +93,7 @@ A function to read the value of the data type.
 .. attribute:: Dtype.return_type
     :type: type
 
-The type of the value returned by the `parse` method, such as ``int``, ``float`` or ``str``.
+The type of the value returned by the `unpack` method, such as ``int``, ``float`` or ``str``.
 
 .. attribute:: Dtype.scale
     :type: int | float | None
