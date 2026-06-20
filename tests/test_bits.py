@@ -22,6 +22,55 @@ def remove_unprintable(s: str) -> str:
 
 
 class TestCreation:
+    def test_explicit_factory_methods(self, tmp_path):
+        assert Bits.from_string("0xf, uint4=1") == "0xf1"
+        assert Bits.from_dtype("uint8", 12) == "0x0c"
+        assert Bits.from_bytes(b"\xf0", offset=1, length=3) == "0b111"
+        assert Bits.from_bools([True, 0, "x"]) == "0b101"
+        assert Bits.from_zeros(5) == "0b00000"
+        assert Bits.from_ones(5) == "0b11111"
+        assert Bits.from_joined(["0xa", "0xb"]) == "0xab"
+        assert Bits.from_joined([]) == Bits()
+
+        filename = tmp_path / "factory.bin"
+        filename.write_bytes(b"\x12\x34")
+        assert Bits.from_file(filename) == "0x1234"
+        with filename.open("rb") as f:
+            assert Bits.from_file(f, offset=4, length=8) == "0x23"
+
+    def test_to_bitarray(self):
+        bits = Bits("0b101")
+        bitarray = bits.to_bitarray()
+        assert type(bitarray) is BitArray
+        assert bitarray == bits
+        bitarray.append("0b1")
+        assert bits == "0b101"
+        assert bitarray == "0b1011"
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_positional_integer_constructor_removed(self, cls):
+        with pytest.raises(TypeError, match="from_zeros"):
+            cls(5)
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_ambiguous_constructor_sources_removed(self, cls, tmp_path):
+        with pytest.raises(TypeError, match="from_bools"):
+            cls([1, 0, 1])
+        with pytest.raises(TypeError, match="from_bytes"):
+            cls(io.BytesIO(b"\xff"))
+        with pytest.raises(TypeError, match="from_bytes"):
+            cls(array.array("B", [0xff]))
+
+        filename = tmp_path / "source.bin"
+        filename.write_bytes(b"\xff")
+        with filename.open("rb") as f:
+            with pytest.raises(TypeError, match="from_file"):
+                cls(f)
+
+    def test_fromstring_removed(self):
+        assert not hasattr(Bits, "fromstring")
+        assert not hasattr(BitArray, "fromstring")
+
     def test_creation_from_bytes(self):
         s = Bits(bytes=b"\xa0\xff")
         assert (s.len, s.hex) == (16, "a0ff")
@@ -273,7 +322,7 @@ class TestInterleavedExpGolomb:
 
     def test_errors(self):
         for f in ["sie=100, 0b1001", "0b00", "uie=100, 0b1001"]:
-            s = Bits.fromstring(f)
+            s = Bits.from_string(f)
             with pytest.raises(bitstring.InterpretError):
                 _ = s.sie
             with pytest.raises(bitstring.InterpretError):
@@ -299,7 +348,7 @@ class TestFileBased:
         x = self.b[4:20]
         assert x == "0x5678"
         assert (x & self.c).hex == self.c.hex
-        assert self.c ^ self.b[4:20] == Bits(16)
+        assert self.c ^ self.b[4:20] == Bits.from_zeros(16)
         assert self.a[23:36] | self.c[3:] == self.c[3:]
         y = x & self.b[4:20]
         assert y == self.c
@@ -318,8 +367,8 @@ class TestFileBased:
 
 class TestComparisons:
     def test_unorderable(self):
-        a = Bits(5)
-        b = Bits(5)
+        a = Bits.from_zeros(5)
+        b = Bits.from_zeros(5)
         with pytest.raises(TypeError):
             _ = a < b
         with pytest.raises(TypeError):
@@ -347,15 +396,15 @@ class TestSubclassing:
 
 class TestLongBoolConversion:
     def test_long_bool(self):
-        a = Bits(1000)
+        a = Bits.from_zeros(1000)
         b = bool(a)
         assert b is True
 
 
 class TestPadToken:
     def test_creation(self):
-        a = Bits.fromstring("pad:10")
-        assert a == Bits(10)
+        a = Bits.from_string("pad:10")
+        assert a == Bits.from_zeros(10)
         b = Bits("pad:0")
         assert b == Bits()
         c = Bits("0b11, pad:1, 0b111")
@@ -365,7 +414,7 @@ class TestPadToken:
         s = bitstring.pack("0b11, pad:3, 0b1")
         assert s.bin == "110001"
         d = bitstring.pack("pad:c", c=12)
-        assert d == Bits(12)
+        assert d == Bits.from_zeros(12)
         e = bitstring.pack("0xf, uint12, pad:1, bin, pad4, 0b10", 0, "111")
         assert e.bin == "11110000000000000111000010"
 
@@ -394,12 +443,12 @@ class TestModifiedByAddingBug:
         assert b == "0b11"
 
     def test_adding2(self):
-        a = Bits(100)
-        b = Bits(101)
+        a = Bits.from_zeros(100)
+        b = Bits.from_zeros(101)
         c = a + b
-        assert a == Bits(100)
-        assert b == Bits(101)
-        assert c == Bits(201)
+        assert a == Bits.from_zeros(100)
+        assert b == Bits.from_zeros(101)
+        assert c == Bits.from_zeros(201)
 
 
 class TestWrongTypeBug:
@@ -416,12 +465,12 @@ class TestInitFromArray:
     @given(st.sampled_from(["B", "H", "I", "L", "Q", "f", "d"]))
     def test_empty_array(self, t):
         a = array.array(t)
-        b = Bits(a)
+        b = Bits.from_bytes(a.tobytes())
         assert b.length == 0
 
     def test_single_byte(self):
         a = array.array("B", b"\xff")
-        b = Bits(a)
+        b = Bits.from_bytes(a.tobytes())
         assert b.length == 8
         assert b.hex == "ff"
 
@@ -429,13 +478,13 @@ class TestInitFromArray:
         a = array.array("h")
         a.append(10)
         a.append(-1)
-        b = Bits(a)
+        b = Bits.from_bytes(a.tobytes())
         assert b.length == 32
         assert b.bytes == a.tobytes()
 
     def test_double(self):
         a = array.array("d", [0.0, 1.0, 2.5])
-        b = Bits(a)
+        b = Bits.from_bytes(a.tobytes())
         assert b.length == 192
         c, d, e = b.unpack("3*floatne:64")
         assert (c, d, e) == (0.0, 1.0, 2.5)
@@ -443,15 +492,15 @@ class TestInitFromArray:
 
 class TestIteration:
     def test_iterate_empty_bits(self):
-        assert list(Bits([])) == []
-        assert list(Bits([1, 0])[1:1]) == []
+        assert list(Bits.from_bools([])) == []
+        assert list(Bits.from_bools([1, 0])[1:1]) == []
 
     def test_iterate_non_empty_bits(self):
-        assert list(Bits([1, 0])) == [True, False]
-        assert list(Bits([1, 0, 0, 1])[1:3]) == [False, False]
+        assert list(Bits.from_bools([1, 0])) == [True, False]
+        assert list(Bits.from_bools([1, 0, 0, 1])[1:3]) == [False, False]
 
     def test_iterate_long_bits(self):
-        assert list(Bits([1, 0]) * 1024) == [True, False] * 1024
+        assert list(Bits.from_bools([1, 0]) * 1024) == [True, False] * 1024
 
 
 class TestContainsBug:
@@ -493,7 +542,7 @@ class TestUnderscoresInLiterals:
     def test_binary_creation(self):
         a = Bits(bin="0000_0001_0010")
         assert a.bin == "000000010010"
-        b = Bits.fromstring("0b0011_1100_1111_0000")
+        b = Bits.from_string("0b0011_1100_1111_0000")
         assert b.bin == "0011110011110000"
         v = 0b1010_0000
         c = Bits(uint=0b1010_0000, length=8)
@@ -540,7 +589,7 @@ class TestPrettyPrinting:
         )
 
     def test_small_width(self):
-        a = Bits(20)
+        a = Bits.from_zeros(20)
         s = io.StringIO()
         a.pp(fmt="b", stream=s, width=5)
         assert (
@@ -566,7 +615,7 @@ class TestPrettyPrinting:
         )
 
     def test_multi_line(self):
-        a = Bits(100)
+        a = Bits.from_zeros(100)
         s = io.StringIO()
         a.pp("bin", sep="", stream=s, width=80)
         assert (
@@ -645,14 +694,14 @@ class TestPrettyPrinting:
         )
 
     def test_group_size_errors(self):
-        a = Bits(120)
+        a = Bits.from_zeros(120)
         with pytest.raises(ValueError):
             a.pp("hex:3")
         with pytest.raises(ValueError):
             a.pp("hex:4, oct")
 
     def test_zero_group_size(self):
-        a = Bits(600)
+        a = Bits.from_zeros(600)
         s = io.StringIO()
         a.pp("b0", stream=s, show_offset=False)
         expected_output = """<Bits, fmt='bin0', length=600 bits> [
@@ -665,7 +714,7 @@ class TestPrettyPrinting:
 """
         assert remove_unprintable(s.getvalue()) == expected_output
 
-        a = Bits(400)
+        a = Bits.from_zeros(400)
         s = io.StringIO()
         a.pp(stream=s, fmt="hex:0", show_offset=False, width=80)
         expected_output = """<Bits, fmt='hex0', length=400 bits> [
@@ -770,7 +819,7 @@ class TestPrettyPrintingErrors:
             a.pp("bin, bin, bin")
 
     def test_interpret_problems(self):
-        a = Bits(7)
+        a = Bits.from_zeros(7)
         with pytest.raises(InterpretError):
             a.pp("oct")
         with pytest.raises(InterpretError):

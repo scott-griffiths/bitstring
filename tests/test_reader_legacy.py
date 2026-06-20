@@ -39,7 +39,7 @@ def test_interleaved_exp_golomb_reading():
 
 
 def test_interleaved_exp_golomb_reading_errors_restore_position():
-    s = Reader(Bits(10))
+    s = Reader(Bits.from_zeros(10))
     with pytest.raises(bitstring.ReadError):
         s.read('uie')
     assert s.pos == 0
@@ -92,7 +92,7 @@ def test_pad_token_read():
 
 
 def test_pad_token_readlist():
-    s = Reader(Bits.fromstring('0b10001111001'))
+    s = Reader(Bits.from_string('0b10001111001'))
     t = s.readlist('pad:1, uint:3, pad:4, uint:3')
     assert t == [0, 1]
     s.pos = 0
@@ -108,7 +108,7 @@ def test_pad_token_readlist():
 
 
 def test_unpacking_bytes():
-    s = Bits(80)
+    s = Bits.from_zeros(80)
     t = s.unpack('bytes:1')
     assert t[0] == b'\x00'
     a, b, c = s.unpack('bytes:1, bytes, bytes2')
@@ -141,20 +141,20 @@ def test_readlist_bits_as_default():
 
 def test_bytesio_creation():
     f = io.BytesIO(b"\x12\xff\x77helloworld")
-    s = Bits(f)
+    s = Bits.from_bytes(f.getvalue())
     assert s[0:8] == '0x12'
     assert len(s) == 13 * 8
-    s = Bits(f, offset=8, length=12)
+    s = Bits.from_bytes(f.getvalue(), offset=8, length=12)
     assert s == '0xff7'
 
 
 def test_bytesio_creation_exceptions():
     f = io.BytesIO(b"123456789")
-    _ = Bits(f, length=9 * 8)
+    _ = Bits.from_bytes(f.getvalue(), length=9 * 8)
     with pytest.raises(bitstring.CreationError):
-        _ = Bits(f, length=9 * 8 + 1)
+        _ = Bits.from_bytes(f.getvalue(), length=9 * 8 + 1)
     with pytest.raises(bitstring.CreationError):
-        _ = Bits(f, length=9 * 8, offset=1)
+        _ = Bits.from_bytes(f.getvalue(), length=9 * 8, offset=1)
 
 
 def test_reader_default_pos():

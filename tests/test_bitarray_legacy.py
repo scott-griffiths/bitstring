@@ -121,7 +121,7 @@ def test_reader_find_corner_cases():
 
 
 def test_reader_find_byte_aligned():
-    s = Reader(BitArray.fromstring('0x010203040102ff'))
+    s = Reader(BitArray.from_string('0x010203040102ff'))
     assert s.find('0x05', bytealigned=True) is None
     assert s.find('0x02', bytealigned=True) == 8
     assert s.read(16).hex == '0203'
@@ -179,7 +179,7 @@ def test_reader_find_and_rfind_errors():
 
 
 def test_shift_left_and_right():
-    s = BitArray.fromstring('0b1010')
+    s = BitArray.from_string('0b1010')
     t = s << 1
     assert s.bin == '1010'
     assert t.bin == '0100'
@@ -213,7 +213,7 @@ def test_shift_errors():
 
 
 def test_shift_in_place():
-    s = BitArray.fromstring('0xffff')[4:12]
+    s = BitArray.from_string('0xffff')[4:12]
     s >>= 1
     assert s == '0b01111111'
     s = BitArray('0b11011')
@@ -294,7 +294,7 @@ def test_replace_does_not_adjust_reader_position():
 def test_replace_errors():
     a = BitArray('0o123415')
     with pytest.raises(ValueError):
-        a.replace('', Bits(0o7), bytealigned=True)
+        a.replace('', Bits.from_zeros(0o7), bytealigned=True)
     with pytest.raises(ValueError):
         a.replace('0b1', '0b1', start=-100, bytealigned=True)
     with pytest.raises(ValueError):
@@ -630,7 +630,7 @@ def test_insert_and_overwrite():
     s = BitArray('0x0011')
     s.insert(BitArray('0x22'), 8)
     assert s.hex == '002211'
-    s = BitArray(0)
+    s = BitArray.from_zeros(0)
     s.insert(BitArray(bin='101'), 0)
     assert s.bin == '101'
 
@@ -848,9 +848,9 @@ def test_init_slice_with_int_and_reverse():
 
 
 def test_initialise_from_iterables_and_cut():
-    a = BitArray([])
+    a = BitArray.from_bools([])
     assert not a
-    a = BitArray([True, False, [], [0], 'hello'])
+    a = BitArray.from_bools([True, False, [], [0], 'hello'])
     assert a == '0b10011'
     a += []
     assert a == '0b10011'
@@ -859,9 +859,9 @@ def test_initialise_from_iterables_and_cut():
     assert [1, 0, False, True] == BitArray('0b1001')
     assert [True] + BitArray('0b1') == '0b11'
 
-    a = BitArray(())
+    a = BitArray.from_bools(())
     assert not a
-    a = BitArray((0, 1, '0', '1'))
+    a = BitArray.from_bools((0, 1, '0', '1'))
     assert '0b0111' == a
     a.replace((True, True), [])
     assert a == (False, True)
@@ -1352,7 +1352,7 @@ def test_copy_and_reader_copy_semantics_for_restored_stream_coverage():
 
 def test_iterable_detection_used_by_initialisation():
     assert isinstance(range(10), collections.abc.Iterable)
-    s = Bits(range(12))
+    s = Bits.from_bools(range(12))
     assert s == '0x7ff'
 
 
@@ -1420,7 +1420,7 @@ def test_bitwise_errors_and_inplace():
     with pytest.raises(ValueError):
         _ = a ^ '0b0000'
 
-    a = BitArray(4)
+    a = BitArray.from_zeros(4)
     with pytest.raises(ValueError):
         a |= '0b111'
     with pytest.raises(ValueError):
@@ -1585,18 +1585,18 @@ def test_join_more_cases():
     a = BitArray('0b1').join(['0b0' for _ in range(10)])
     assert a == '0b0101010101010101010'
     assert not BitArray('0xff').join([])
-    a = BitArray('0xff').join([Bits(5), '0xab', '0xabc'])
+    a = BitArray('0xff').join([Bits.from_zeros(5), '0xab', '0xabc'])
     assert a == '0b00000, 0xffabffabc'
 
 
 def test_file_object_creation_and_copy():
     filename = os.path.join(THIS_DIR, 'test.m1v')
     with open(filename, 'rb') as f:
-        s = Bits(f, offset=32, length=12)
+        s = Bits.from_file(f, offset=32, length=12)
         assert s.uint == 352
         t = Bits('0xf') + f
         assert t.startswith('0xf000001b3160')
-        s2 = Bits(f)
+        s2 = Bits.from_file(f)
         t2 = BitArray('0xc')
         t2.prepend(s2)
         assert t2.startswith('0x000001b3')
@@ -1606,11 +1606,11 @@ def test_file_object_creation_and_copy():
             assert u == s2
 
     with open(os.path.join(THIS_DIR, 'smalltestfile'), 'rb') as f:
-        s = BitArray(f)
+        s = BitArray.from_file(f)
         t = BitArray(s)
         s.prepend('0b1')
         assert s[1:] == t
-        s = BitArray(f)
+        s = BitArray.from_file(f)
         t = copy.copy(s)
         t.append('0b1')
         assert s == t[:-1]
@@ -1902,7 +1902,7 @@ def test_format_and_cacheing_cases():
     assert f'{a}' == '0xabc'
     a += '0b0'
     assert f'{a}' == '0b1010101111000'
-    b = BitArray(10)
+    b = BitArray.from_zeros(10)
     assert f'{b}' == '0b0000000000'
     c = BitArray(filename=os.path.join(THIS_DIR, 'test.m1v'))
     assert f'{c}'[0:10] == '0x000001b3'
@@ -1977,7 +1977,7 @@ def test_rotation_file_and_errors():
 
 
 def test_efficient_overwrite_and_large_counts():
-    a = BitArray(1000000)
+    a = BitArray.from_zeros(1000000)
     a.overwrite([1], 123456)
     assert a[123456] is True
     a.overwrite('0xff', 1)
@@ -2058,9 +2058,9 @@ def test_replace_range_cases():
     a.replace('0x11', '0xfff', end=8, bytealigned=True)
     assert a.hex == 'fff23ef3234'
 
-    a = BitArray.fromstring('0xab')
-    b = BitArray.fromstring('0xcd')
-    c = BitArray.fromstring('0xabef')
+    a = BitArray.from_string('0xab')
+    b = BitArray.from_string('0xcd')
+    c = BitArray.from_string('0xabef')
     c.replace(a, b)
     assert c == '0xcdef'
     assert a == '0xab'
@@ -2079,8 +2079,8 @@ def test_pack_uint_and_default_uint_errors():
 
 
 def test_packing_long_keyword_and_variable_lengths():
-    s = pack('bits=b', b=BitArray(128000))
-    assert s == BitArray(128000)
+    s = pack('bits=b', b=BitArray.from_zeros(128000))
+    assert s == BitArray.from_zeros(128000)
     with pytest.raises(bitstring.CreationError):
         _ = pack('bin:1')
     with pytest.raises(bitstring.CreationError):
@@ -2368,8 +2368,8 @@ def test_invert_special_method_cases():
 
 
 def test_large_equals_and_mutation():
-    s1 = BitArray(1000000)
-    s2 = BitArray(1000000)
+    s1 = BitArray.from_zeros(1000000)
+    s2 = BitArray.from_zeros(1000000)
     s1.set(True, [-1, 55, 53214, 534211, 999999])
     s2.set(True, [-1, 55, 53214, 534211, 999999])
     assert s1 == s2
@@ -2725,18 +2725,15 @@ def test_native_struct_pack_codes_more(fmt, values, expected_fmt):
     assert pack(fmt, *values) == BitArray(expected_fmt)
 
 
-@pytest.mark.parametrize(
-    "source",
-    [
-        bytearray(b'uint:5=2'),
-        memoryview(b'uint:5=2'),
-        range(12),
-        (0, 1, '0', '1'),
-        [True, False, [], [0], 'hello'],
-    ],
-)
-def test_iterable_and_buffer_creation_more(source):
+@pytest.mark.parametrize("source", [bytearray(b'uint:5=2'), memoryview(b'uint:5=2')])
+def test_buffer_creation_more(source):
     bits = Bits(source)
+    assert len(bits) >= 0
+
+
+@pytest.mark.parametrize("source", [range(12), (0, 1, '0', '1'), [True, False, [], [0], 'hello']])
+def test_bool_iterable_factory_more(source):
+    bits = Bits.from_bools(source)
     assert len(bits) >= 0
 
 
@@ -2857,7 +2854,7 @@ def test_reverse_rotate_slice_errors_more(method, args, kwargs):
 
 @pytest.mark.parametrize("pos", [10, -11, [1, 2, 10]])
 def test_invert_index_errors_more(pos):
-    a = BitArray(10)
+    a = BitArray.from_zeros(10)
     with pytest.raises(IndexError):
         a.invert(pos)
 

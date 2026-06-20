@@ -53,7 +53,7 @@ Bits
 
 ``Bits(auto, /, length: Optional[int], offset: Optional[int], **kwargs)``
 
-The first parameter (usually referred to as `auto`) can be many different types, including parsable strings, a file handle, a bytes or bytearray object, an integer or an iterable.
+The first parameter (usually referred to as `auto`) is most often a parsable string, a bytes-like object, or another bitstring. For zero-filled, bool-iterable, joined or file-based construction prefer the explicit factory methods below.
 
 A single initialiser from `kwargs` can be used instead of ``auto``, including  ``bin``, ``hex``, ``oct``, ``bool``, ``uint``, ``int``, ``float``, ``bytes`` and ``filename``.
 
@@ -75,12 +75,20 @@ Methods
 * :meth:`~Bits.endswith` -- Return whether the bitstring ends with a sub-bitstring.
 * :meth:`~Bits.find` -- Find a sub-bitstring in the current bitstring.
 * :meth:`~Bits.findall` -- Find all occurrences of a sub-bitstring in the current bitstring.
-* :meth:`~Bits.fromstring` -- Create a bitstring from a formatted string.
+* :meth:`~Bits.from_bools` -- Create a bitstring from an iterable of bool-like values.
+* :meth:`~Bits.from_bytes` -- Create a bitstring from bytes-like data.
+* :meth:`~Bits.from_dtype` -- Create a bitstring by packing a value according to a dtype.
+* :meth:`~Bits.from_file` -- Create a bitstring from a file path or binary file object.
+* :meth:`~Bits.from_joined` -- Create a bitstring by concatenating a sequence.
+* :meth:`~Bits.from_ones` -- Create a bitstring of one bits.
+* :meth:`~Bits.from_string` -- Create a bitstring from a formatted string.
+* :meth:`~Bits.from_zeros` -- Create a bitstring of zero bits.
 * :meth:`~Bits.join` -- Join bitstrings together using current bitstring.
 * :meth:`~Bits.pp` -- Pretty print the bitstring.
 * :meth:`~Bits.rfind` -- Seek backwards to find a sub-bitstring.
 * :meth:`~Bits.split` -- Create generator of chunks split by a delimiter.
 * :meth:`~Bits.startswith` -- Return whether the bitstring starts with a sub-bitstring.
+* :meth:`~Bits.to_bitarray` -- Return a mutable copy.
 * :meth:`~Bits.tobytes` -- Return bitstring as bytes, padding if needed.
 * :meth:`~Bits.tofile` -- Write bitstring to file, padding if needed.
 * :meth:`~Bits.unpack` -- Interpret bits using format string.
@@ -157,6 +165,7 @@ All of the methods listed above for the ``Bits`` class are available, plus:
 * :meth:`~BitArray.rol` -- Rotate bits to the left.
 * :meth:`~BitArray.ror` -- Rotate bits to the right.
 * :meth:`~BitArray.set` -- Set bit(s) to 1 or 0.
+* :meth:`~BitArray.to_bits` -- Return an immutable copy.
 
 Additional special methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

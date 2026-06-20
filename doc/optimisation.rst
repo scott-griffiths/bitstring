@@ -51,13 +51,13 @@ Use dedicated functions for bit setting and checking
 
 If you need to set or check individual bits then there are special functions for this. For example one way to set bits would be::
 
- s = BitArray(1000)
+ s = BitArray.from_zeros(1000)
  for p in [14, 34, 501]:
      s[p] = '0b1'
      
 This creates a 1000 bit bitstring and sets three of the bits to '1'. Unfortunately the crucial line spends most of its time creating a new bitstring from the '0b1' string. You could make it slightly quicker by using ``s[p] = True``, but it is much faster (and I mean at least an order of magnitude) to use the :meth:`~BitArray.set` method::
 
- s = BitArray(1000)
+ s = BitArray.from_zeros(1000)
  s.set(True, [14, 34, 501])
  
 As well as :meth:`~BitArray.set` and :meth:`~BitArray.invert` there are also checking methods :meth:`~Bits.all` and :meth:`~Bits.any`. So rather than using ::

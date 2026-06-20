@@ -169,7 +169,7 @@ def bfloat_bits2chars(_: Literal[16]):
 
 def bits_bits2chars(bitlength: int):
     # For bits type we can see how long it needs to be printed by trying any value
-    temp = Bits(bitlength)
+    temp = Bits.from_zeros(bitlength)
     return len(str(temp))
 
 

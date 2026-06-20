@@ -82,7 +82,7 @@ class Array:
             raise CreationError(e)
 
         if isinstance(initializer, numbers.Integral):
-            self.data = BitArray(initializer * self._dtype.bitlength)
+            self.data = BitArray.from_zeros(initializer * self._dtype.bitlength)
         elif isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
             self.data += initializer
         elif isinstance(initializer, io.BufferedReader):

@@ -60,7 +60,7 @@ $ pip install bitstring
 ```pycon
 >>> from bitstring import Bits, BitArray, Reader, pack
 >>> a = BitArray(bin='00101')
->>> b = Bits(a_file_object)
+>>> b = Bits.from_file(a_file_object)
 >>> c = BitArray('0xff, 0b101, 0o65, uint6=22')
 >>> d = pack('intle16, hex=a, 0b1', 100, a='0x34f')
 >>> e = pack('<16h', *range(16))

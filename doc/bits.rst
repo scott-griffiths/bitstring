@@ -5,7 +5,7 @@ Bits
 
 The ``Bits`` class is the simplest type in the bitstring module, and represents an immutable sequence of bits. This is the best class to use if you will not need to modify the data after creation.
 
-.. class:: Bits(auto: BitsType | int | None, /, length: int | None = None, offset: int | None = None, **kwargs)
+.. class:: Bits(auto: BitsType | None, /, length: int | None = None, offset: int | None = None, **kwargs)
 
     Creates a new bitstring.
     You must specify either no initialiser, just an 'auto' value as the first parameter, or a keyword argument such as ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``float``, ``bool`` or ``filename`` (for example) to indicate the data type.
@@ -30,12 +30,12 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
            >>> s1 == s2 == s3 == s4 == s5 == s6
            True
 
-    See also :ref:`auto_init`, which allows many different types to be used to initialise a bitstring. ::
+    See also :ref:`auto_init`, which describes the string-based auto initialiser. ::
 
         >>> s = Bits('uint12=32, 0b110')
         >>> t = Bits('0o755, ue=12, int:3=-1')
 
-    In the methods below we use ``BitsType`` to indicate that any of the types that can auto initialise can be used.
+    In the methods below we use ``BitsType`` to indicate that values can be promoted to bitstrings where needed.
 
 ----
 
@@ -85,7 +85,7 @@ Methods
 
     *value* can be ``True`` or ``False`` or anything that can be cast to a bool, so you could equally use ``1`` or ``0``.
 
-        >>> s = BitArray(1000000)
+        >>> s = BitArray.from_zeros(1000000)
         >>> s.set(1, [4, 44, 444444])
         >>> s.count(1)
         3
@@ -148,16 +148,51 @@ Methods
         [8, 40, 72, 104, 136]
 
 
-.. classmethod:: Bits.fromstring(s: str, /) -> Bits
+.. classmethod:: Bits.from_string(s: str, /) -> Bits
 
     Creates a new bitstring from the formatted string *s*.
     It is equivalent to creating a new bitstring using *s* as the first parameters, but can be clearer to write and will be slightly faster.
 
 
         >>> b1 = Bits('int16=91')
-        >>> b2 = Bits.fromstring('int16=91')
+        >>> b2 = Bits.from_string('int16=91')
         >>> b1 == b2
         True
+
+.. classmethod:: Bits.from_dtype(dtype: str | Dtype, value: Any, /) -> Bits
+
+    Creates a new bitstring by packing *value* according to *dtype*. ::
+
+        >>> Bits.from_dtype('u10', 85)
+        Bits('0b0001010101')
+
+.. classmethod:: Bits.from_bytes(data: bytes | bytearray | memoryview, /, *, length: int | None = None, offset: int = 0) -> Bits
+
+    Creates a new bitstring from a bytes-like object, with optional bit *offset* and *length*.
+
+.. classmethod:: Bits.from_bools(iterable: Iterable[Any], /) -> Bits
+
+    Creates a new bitstring from an iterable, using ``bool(item)`` for each bit.
+
+.. classmethod:: Bits.from_zeros(length: int, /) -> Bits
+
+    Creates a new bitstring containing *length* zero bits.
+
+.. classmethod:: Bits.from_ones(length: int, /) -> Bits
+
+    Creates a new bitstring containing *length* one bits.
+
+.. classmethod:: Bits.from_joined(sequence: Iterable[BitsType], /) -> Bits
+
+    Creates a new bitstring by concatenating the bitstrings in *sequence*.
+
+.. classmethod:: Bits.from_file(source: str | Path | BinaryIO, /, *, length: int | None = None, offset: int = 0) -> Bits
+
+    Creates a new bitstring from a file path or binary file object.
+
+.. method:: Bits.to_bitarray() -> BitArray
+
+    Returns a mutable copy of the bitstring.
 
 
 .. method:: Bits.join(sequence: Iterable) -> Bits

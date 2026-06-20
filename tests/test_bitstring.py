@@ -38,19 +38,19 @@ class TestModuleData:
 
 class TestCopy:
     def test_const_bit_array_copy(self):
-        cba = bitstring.Bits(100)
+        cba = bitstring.Bits.from_zeros(100)
         cba_copy = copy.copy(cba)
         assert cba is cba_copy
 
     def test_bit_array_copy(self):
-        ba = bitstring.BitArray(100)
+        ba = bitstring.BitArray.from_zeros(100)
         ba_copy = copy.copy(ba)
         assert not ba is ba_copy
         assert not ba._bitstore is ba_copy._bitstore
         assert ba == ba_copy
 
     def test_reader_copy(self):
-        bits = bitstring.Bits(100)
+        bits = bitstring.Bits.from_zeros(100)
         r = bitstring.Reader(bits, 50)
         r_copy = copy.copy(r)
         assert r_copy.pos == 50

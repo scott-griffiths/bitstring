@@ -3,17 +3,23 @@
 BitArray
 ========
 
-.. class:: BitArray(auto: BitsType | int | None, /, length: int | None = None, offset: int | None = None, **kwargs)
+.. class:: BitArray(auto: BitsType | None, /, length: int | None = None, offset: int | None = None, **kwargs)
 
     The :class:`Bits` class is the base class for :class:`BitArray` and so (with the exception of :meth:`~Bits.__hash__`) all of its methods are also available for :class:`BitArray` objects.
     The initialiser is the same as for :class:`Bits`.
 
     A :class:`BitArray` is a mutable :class:`Bits`, and so the one thing all of the methods listed here have in common is that  they can modify the contents of the bitstring.
 
+    The factory methods :meth:`~Bits.from_string`, :meth:`~Bits.from_dtype`, :meth:`~Bits.from_bytes`, :meth:`~Bits.from_bools`, :meth:`~Bits.from_zeros`, :meth:`~Bits.from_ones`, :meth:`~Bits.from_joined` and :meth:`~Bits.from_file` are also available and return mutable ``BitArray`` objects when called on ``BitArray``.
+
 ----
 
 Methods
 -------
+
+.. method:: BitArray.to_bits() -> Bits
+
+    Returns an immutable copy of the bitstring.
 
 .. method:: BitArray.append(bs: BitsType) -> None
 

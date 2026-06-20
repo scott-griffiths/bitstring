@@ -24,6 +24,12 @@ Breaking changes:
 * `find()` and `rfind()` now return `int | None` instead of `(pos,)` or `()`.
   Use `result is not None` when testing whether a search succeeded, as bit
   position zero is a valid match.
+* Positional integer construction has been removed. Use `Bits.from_zeros(100)`
+  or `BitArray.from_zeros(100)` instead of `Bits(100)` or `BitArray(100)`.
+* The `fromstring()` class method has been renamed to `from_string()`.
+* Direct construction from arbitrary boolean iterables, file objects,
+  `io.BytesIO`, and `array.array` objects has been removed. Use
+  `from_bools()`, `from_file()` or `from_bytes()` instead.
 * Optional range/search arguments such as `start`, `end`, `count` and
   `bytealigned` are now keyword-only for search, split, cut, replace and
   reverse/rotate-style methods.
@@ -41,8 +47,13 @@ Other changes and fixes:
 * Added the `Reader` class, which wraps a `Bits` or `BitArray` object and stores
   an independent bit position for `read`, `readlist`, `peek`, `peeklist`, `readto`,
   `find`, `rfind` and `bytealign`.
-* Improved construction from `bytes`, `memoryview`, `BytesIO` and files with offsets
-  and lengths by using tibs offset/length support directly.
+* Added explicit construction helpers: `from_string()`, `from_dtype()`,
+  `from_bytes()`, `from_bools()`, `from_zeros()`, `from_ones()`,
+  `from_joined()` and `from_file()`.
+* Added `Bits.to_bitarray()` and `BitArray.to_bits()` conversion methods.
+* Improved `from_bytes()`, `from_file()` and keyword construction from bytes,
+  memoryviews and files with offsets and lengths by using tibs offset/length
+  support directly.
 * File-backed bitstrings with a non-zero offset no longer have to read the whole file
   into memory.
 * Added a faster `cut()` path for immutable bitstrings.

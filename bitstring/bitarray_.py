@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import copy
 import numbers
+import pathlib
 import re
 from collections import abc
-from typing import Any
+from typing import Any, BinaryIO
 from collections.abc import Iterable
 from bitstring import utils
 from bitstring.exceptions import CreationError, Error
@@ -47,7 +48,7 @@ class BitArray(Bits):
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
-    fromstring() -- Create a bitstring from a formatted string.
+    from_string() -- Create a bitstring from a formatted string.
     join() -- Join bitstrings together using current bitstring.
     pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
@@ -75,11 +76,10 @@ class BitArray(Bits):
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
 
-    def __init__(self, auto: BitsType | int | None = None, /, length: int | None = None,
+    def __init__(self, auto: BitsType | None = None, /, length: int | None = None,
                  offset: int | None = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
-        A string of comma separated tokens, an integer, a file object,
-        a bytearray, a boolean iterable or another bitstring.
+        A string of comma separated tokens, a bytes-like object or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
         bin -- binary string representation, e.g. '0b001010'.
@@ -117,7 +117,7 @@ class BitArray(Bits):
         """
         pass
 
-    def __new__(cls: Type[TBits], auto: BitsType | int | None = None, /, length: int | None = None,
+    def __new__(cls: type[TBits], auto: BitsType | None = None, /, length: int | None = None,
                 offset: int | None = None, **kwargs) -> TBits:
         x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:
@@ -128,11 +128,85 @@ class BitArray(Bits):
         return x
 
     @classmethod
-    def fromstring(cls: TBits, s: str, /) -> TBits:
+    def from_string(cls: type[TBits], s: str, /) -> TBits:
         """Create a new bitstring from a formatted string."""
         x = super().__new__(cls)
         b = helpers.str_to_bitstore(s)
         x._bitstore = b._mutable_copy()
+        return x
+
+    @classmethod
+    def from_dtype(cls: type[TBits], dtype: str | bitstring.Dtype, value: Any, /) -> TBits:
+        """Create a new bitstring by packing value according to dtype."""
+        x = super().__new__(cls)
+        x._bitstore = bitstring.dtypes.Dtype(dtype).build(value)._bitstore._mutable_copy()
+        return x
+
+    @classmethod
+    def from_bytes(cls: type[TBits], data: bytes | bytearray | memoryview, /, *,
+                   length: int | None = None, offset: int = 0) -> TBits:
+        """Create a new bitstring from a bytes-like object."""
+        bits = Bits.from_bytes(data, length=length, offset=offset)
+        x = super().__new__(cls)
+        x._bitstore = bits._bitstore._mutable_copy()
+        return x
+
+    @classmethod
+    def from_bools(cls: type[TBits], iterable: Iterable[Any], /) -> TBits:
+        """Create a new bitstring from an iterable of bool-like values."""
+        x = super().__new__(cls)
+        x._bitstore = MutableBitStore.from_bools(iterable)
+        return x
+
+    @classmethod
+    def from_zeros(cls: type[TBits], length: int, /) -> TBits:
+        """Create a new bitstring containing length zero bits."""
+        length = int(length)
+        if length < 0:
+            raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
+        x = super().__new__(cls)
+        x._bitstore = MutableBitStore.from_zeros(length)
+        return x
+
+    @classmethod
+    def from_ones(cls: type[TBits], length: int, /) -> TBits:
+        """Create a new bitstring containing length one bits."""
+        x = cls.from_zeros(length)
+        x._bitstore.invert()
+        return x
+
+    @classmethod
+    def from_joined(cls: type[TBits], sequence: Iterable[BitsType], /) -> TBits:
+        """Create a new bitstring by concatenating a sequence of bitstrings."""
+        sequence_iter = iter(sequence)
+        x = super().__new__(cls)
+        try:
+            first = Bits._create_from_bitstype(next(sequence_iter))._bitstore
+        except StopIteration:
+            x._bitstore = MutableBitStore.from_zeros(0)
+            return x
+
+        def stores() -> Iterable[MutableBitStore | bitstring.bitstore.ConstBitStore]:
+            yield first
+            for item in sequence_iter:
+                yield Bits._create_from_bitstype(item)._bitstore
+
+        x._bitstore = MutableBitStore.join(stores())
+        return x
+
+    @classmethod
+    def from_file(cls: type[TBits], source: str | pathlib.Path | BinaryIO, /, *,
+                  length: int | None = None, offset: int = 0) -> TBits:
+        """Create a new bitstring from a file path or binary file object."""
+        bits = Bits.from_file(source, length=length, offset=offset)
+        x = super().__new__(cls)
+        x._bitstore = bits._bitstore._mutable_copy()
+        return x
+
+    def to_bits(self) -> Bits:
+        """Return an immutable copy of the bitstring."""
+        x = Bits()
+        x._bitstore = bitstring.bitstore.ConstBitStore(self._bitstore.tibs.to_tibs())
         return x
 
     def copy(self: TBits) -> TBits:

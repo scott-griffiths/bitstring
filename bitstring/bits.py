@@ -26,7 +26,7 @@ MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
 # Things that can be converted to Bits when a Bits type is needed
-BitsType = Union['Bits', str, Iterable[Any], bool, BinaryIO, bytearray, bytes, memoryview]
+BitsType = Union['Bits', str, Iterable[Any], BinaryIO, bytearray, bytes, memoryview]
 
 TBits = TypeVar("TBits", bound='Bits')
 
@@ -49,7 +49,7 @@ class Bits:
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
-    fromstring() -- Create a bitstring from a formatted string.
+    from_string() -- Create a bitstring from a formatted string.
     join() -- Join bitstrings together using current bitstring.
     pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
@@ -72,11 +72,10 @@ class Bits:
     """
     __slots__ = ('_bitstore', '_filename')
 
-    def __init__(self, auto: BitsType | int | None = None, /, length: int | None = None,
+    def __init__(self, auto: BitsType | None = None, /, length: int | None = None,
                  offset: int | None = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
-        A string of comma separated tokens, an integer, a file object,
-        a bytearray, a boolean iterable, an array or another bitstring.
+        A string of comma separated tokens, a bytes-like object or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
         bin -- binary string representation, e.g. '0b001010'.
@@ -114,7 +113,7 @@ class Bits:
         """
         pass
 
-    def __new__(cls: type[TBits], auto: BitsType | int | None = None, /, length: int | None = None,
+    def __new__(cls: type[TBits], auto: BitsType | None = None, /, length: int | None = None,
                 offset: int | None = None, **kwargs) -> TBits:
         x = super().__new__(cls)
         if auto is None and not kwargs:
@@ -135,14 +134,31 @@ class Bits:
     def _initialise(self, auto: Any, /, length: int | None, offset: int | None, immutable: bool, **kwargs) -> None:
         if auto is not None:
             if isinstance(auto, numbers.Integral):
-                # Initialise with s zero bits.
-                if auto < 0:
-                    raise bitstring.CreationError(f"Can't create bitstring of negative length {auto}.")
-                if immutable:
-                    self._bitstore = ConstBitStore.from_zeros(int(auto))
-                else:
-                    self._bitstore = MutableBitStore.from_zeros(int(auto))
-                return
+                raise TypeError(
+                    f"It's no longer possible to initialise a bitstring from an integer. "
+                    f"Use '{self.__class__.__name__}.from_zeros({int(auto)})' instead of "
+                    f"'{self.__class__.__name__}({int(auto)})'."
+                )
+            if isinstance(auto, io.BytesIO):
+                raise TypeError(
+                    f"It's no longer possible to initialise a bitstring directly from a BytesIO object. "
+                    f"Use '{self.__class__.__name__}.from_bytes(bytes_io.getvalue())' instead."
+                )
+            if isinstance(auto, io.BufferedReader):
+                raise TypeError(
+                    f"It's no longer possible to initialise a bitstring directly from a file object. "
+                    f"Use '{self.__class__.__name__}.from_file(file)' instead."
+                )
+            if isinstance(auto, array.array):
+                raise TypeError(
+                    f"It's no longer possible to initialise a bitstring directly from an array object. "
+                    f"Use '{self.__class__.__name__}.from_bytes(array_obj.tobytes())' instead."
+                )
+            if isinstance(auto, abc.Iterable) and not isinstance(auto, (str, Bits, bytes, bytearray, memoryview)):
+                raise TypeError(
+                    f"It's no longer possible to initialise a bitstring directly from an arbitrary iterable. "
+                    f"Use '{self.__class__.__name__}.from_bools(iterable)' instead."
+                )
             self._setauto(auto, length, offset)
         else:
             k, v = kwargs.popitem()
@@ -489,7 +505,7 @@ class Bits:
         self._bitstore.clear()
 
     def _setauto_no_length_or_offset(self, s: BitsType, /) -> None:
-        """Set bitstring from a bitstring, file, bool, array, iterable or string."""
+        """Set bitstring from a bitstring, file, array, iterable or string."""
         if isinstance(s, str):
             self._bitstore = helpers.str_to_bitstore(s)
         elif isinstance(s, Bits):
@@ -505,14 +521,16 @@ class Bits:
         elif isinstance(s, abc.Iterable):
             self._bitstore = ConstBitStore.from_bools(s)
         elif isinstance(s, numbers.Integral):
-            raise TypeError(f"It's no longer possible to auto initialise a bitstring from an integer."
-                            f" Use '{self.__class__.__name__}({s})' instead of just '{s}' as this makes it "
-                            f"clearer that a bitstring of {int(s)} zero bits will be created.")
+            raise TypeError(
+                f"It's no longer possible to initialise a bitstring from an integer. "
+                f"Use '{self.__class__.__name__}.from_zeros({int(s)})' instead of "
+                f"'{self.__class__.__name__}({int(s)})'."
+            )
         else:
             raise TypeError(f"Cannot initialise bitstring from type '{type(s)}'.")
 
     def _setauto(self, s: BitsType, length: int | None, offset: int | None, /) -> None:
-        """Set bitstring from a bitstring, file, bool, array, iterable or string."""
+        """Set bitstring from a bitstring, file, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
         if offset is None and length is None:
@@ -838,7 +856,7 @@ class Bits:
         return struct.unpack(fmt, self._bitstore.read_bytes(pos, length))[0]
 
     def _getbfloatbe(self) -> float:
-        zero_padded = self + Bits(16)
+        zero_padded = self + Bits.from_zeros(16)
         return zero_padded._getfloatbe()
 
     def _readbfloatbe(self, pos: int, length: int) -> float:
@@ -851,7 +869,7 @@ class Bits:
         self._bitstore = helpers.bfloat2bitstore(f, True)
 
     def _getbfloatle(self) -> float:
-        zero_padded = Bits(16) + self
+        zero_padded = Bits.from_zeros(16) + self
         return zero_padded._getfloatle()
 
     def _readbfloatle(self, pos: int, length: int) -> float:
@@ -1721,10 +1739,88 @@ class Bits:
         return self
 
     @classmethod
-    def fromstring(cls: TBits, s: str, /) -> TBits:
+    def from_string(cls: type[TBits], s: str, /) -> TBits:
         """Create a new bitstring from a formatted string."""
         x = super().__new__(cls)
         x._bitstore = helpers.str_to_bitstore(s)
+        return x
+
+    @classmethod
+    def from_dtype(cls: type[TBits], dtype: str | Dtype, value: Any, /) -> TBits:
+        """Create a new bitstring by packing value according to dtype."""
+        x = super().__new__(cls)
+        x._bitstore = Dtype(dtype).build(value)._bitstore
+        return x
+
+    @classmethod
+    def from_bytes(cls: type[TBits], data: bytes | bytearray | memoryview, /, *,
+                   length: int | None = None, offset: int = 0) -> TBits:
+        """Create a new bitstring from a bytes-like object."""
+        x = super().__new__(cls)
+        x._setbytes_with_truncation(data, length, offset)
+        return x
+
+    @classmethod
+    def from_bools(cls: type[TBits], iterable: Iterable[Any], /) -> TBits:
+        """Create a new bitstring from an iterable of bool-like values."""
+        x = super().__new__(cls)
+        x._bitstore = ConstBitStore.from_bools(iterable)
+        return x
+
+    @classmethod
+    def from_zeros(cls: type[TBits], length: int, /) -> TBits:
+        """Create a new bitstring containing length zero bits."""
+        length = int(length)
+        if length < 0:
+            raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
+        x = super().__new__(cls)
+        x._bitstore = ConstBitStore.from_zeros(length)
+        return x
+
+    @classmethod
+    def from_ones(cls: type[TBits], length: int, /) -> TBits:
+        """Create a new bitstring containing length one bits."""
+        length = int(length)
+        if length < 0:
+            raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
+        x = super().__new__(cls)
+        x._bitstore = ~ConstBitStore.from_zeros(length)
+        return x
+
+    @classmethod
+    def from_joined(cls: type[TBits], sequence: Iterable[BitsType], /) -> TBits:
+        """Create a new bitstring by concatenating a sequence of bitstrings."""
+        sequence_iter = iter(sequence)
+        x = super().__new__(cls)
+        try:
+            first = Bits._create_from_bitstype(next(sequence_iter))._bitstore
+        except StopIteration:
+            x._bitstore = ConstBitStore.from_zeros(0)
+            return x
+
+        def stores() -> Iterable[ConstBitStore | MutableBitStore]:
+            yield first
+            for item in sequence_iter:
+                yield Bits._create_from_bitstype(item)._bitstore
+
+        x._bitstore = ConstBitStore.join(stores())
+        return x
+
+    @classmethod
+    def from_file(cls: type[TBits], source: str | pathlib.Path | BinaryIO, /, *,
+                  length: int | None = None, offset: int = 0) -> TBits:
+        """Create a new bitstring from a file path or binary file object."""
+        x = super().__new__(cls)
+        filename = source if isinstance(source, (str, pathlib.Path)) else source.name
+        x._setfile(filename, length, offset)
+        return x
+
+    def to_bitarray(self) -> bitstring.BitArray:
+        """Return a mutable copy of the bitstring."""
+        from bitstring.bitarray_ import BitArray
+
+        x = BitArray()
+        x._bitstore = self._bitstore._mutable_copy()
         return x
 
     len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")

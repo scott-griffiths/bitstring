@@ -80,13 +80,15 @@ See the entry on :func:`pack` for more information.
 The auto initialiser
 --------------------
 
-The first parameter when creating a bitstring is a positional only parameter, referred to as 'auto', that can be a variety of types:
+The first parameter when creating a bitstring is a positional only parameter, referred to as 'auto'.
+It is most commonly a formatted string, a bytes-like object, or another bitstring.
+For other common construction modes use explicit factory methods:
 
-* An iterable, whose elements will be evaluated as booleans (imagine calling ``bool()`` on each item) and the bits set to ``1`` for ``True`` items and ``0`` for ``False`` items.
-* A positive integer, used to create a bitstring of that many zero bits.
-* A file object, opened in binary mode, from which the bitstring will be formed.
-* A ``bytearray`` or ``bytes`` object.
-* An ``array`` object from the built-in ``array`` module. This is used after being converted to it's constituent byte data via its ``tobytes`` method.
+* :meth:`Bits.from_bools` for an iterable whose elements are evaluated as booleans.
+* :meth:`Bits.from_zeros` or :meth:`Bits.from_ones` for repeated zero or one bits.
+* :meth:`Bits.from_file` for a file path or binary file object.
+* :meth:`Bits.from_bytes` for bytes-like data with optional bit offset and length.
+* :meth:`Bits.from_joined` for concatenating many bitstrings.
 
 If it is a string then that string will be parsed into tokens to construct the binary data:
 
@@ -128,19 +130,19 @@ Methods that need another bitstring as a parameter will also 'auto' promote, for
 
 which illustrates a variety of methods promoting strings, iterables and a bytes object to bitstrings.
 
-Anything that can be used as the first parameter of the ``Bits`` constructor can be automatically promoted to a bitstring where one is expected, with the exception of integers.
-Integers won't be promoted, but instead will raise a ``TypeError``::
+Promotion is intentionally broader than the public constructor, but integers are still not promoted.
+They raise a ``TypeError`` because an integer is more likely to be a mistaken value than a deliberate request for that many zero bits::
 
-    >>> a = BitArray(100)  # Create bitstring with 100 zeroed bits.
+    >>> a = BitArray.from_zeros(100)  # Create bitstring with 100 zeroed bits.
     >>> a += 0xff          # TypeError - 0xff is the same as the integer 255.
     >>> a += '0xff'        # Probably what was meant - append eight '1' bits.
-    >>> a += Bits(255)     # If you really want to do it then code it explicitly.
+    >>> a += Bits.from_zeros(255)     # If you really want to do it then code it explicitly.
 
 
 ``BitsType``
 ^^^^^^^^^^^^
 
-.. class:: BitsType(Bits | str | Iterable[Any] | bool | BinaryIO | bytearray | bytes | memoryview)
+.. class:: BitsType(Bits | str | Iterable[Any] | BinaryIO | bytearray | bytes | memoryview)
 
     The ``BitsType`` type is used in the documentation in a number of places where an object of any type that can be promoted to a bitstring is acceptable.
 
@@ -293,7 +295,7 @@ Using the length and offset parameters to specify the length in bits and an offs
 
 The ``length`` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the bitstring. The ``offset`` parameter is also optional and is used to truncate bits at the start of the data.
 
-You can also use a ``bytearray`` or a ``bytes`` object, either explicitly with a ``bytes=some_bytearray`` keyword or via the 'auto' initialiser::
+You can also use a ``bytearray`` or a ``bytes`` object, either explicitly with a ``bytes=some_bytearray`` keyword, via :meth:`Bits.from_bytes`, or via the 'auto' initialiser::
 
     c = BitArray(a_bytearray_object)
     d = BitArray(b'\x23g$5')
@@ -310,14 +312,14 @@ This will open the file in binary read-only mode. The file will only be read as 
 
 Note that we created a :class:`Bits` here rather than a :class:`BitArray`, as they have quite different behaviour in this case. The immutable :class:`Bits` will never read the file into memory (except as needed by other operations), whereas if we had created a :class:`BitArray` then the whole of the file would immediately have been read into memory. This is because in creating a :class:`BitArray` you are implicitly saying that you want to modify it, and so it needs to be in memory.
 
-It's also possible to use the 'auto' initialiser for file objects. It's as simple as::
+It's also possible to use :meth:`Bits.from_file` with a file object. It's as simple as::
 
     f = open('my200GBfile', 'rb')
-    p = Bits(f)
+    p = Bits.from_file(f)
 
 .. note::
 
-    For the immutable types ``Bits`` and ``ConstBitstream`` the file is memory mapped (mmap) in a read-only mode for efficiency.
+    For immutable ``Bits`` the file is memory mapped (mmap) in a read-only mode for efficiency.
 
     This behaves slightly differently depending on the platform; in particular Windows will lock the file against any further writing whereas Unix-like systems will not.
     This means that you won't be able to write to the file from Windows OS while the ``Bits`` object exists.
