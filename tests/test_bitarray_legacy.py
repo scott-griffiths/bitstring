@@ -90,17 +90,17 @@ def test_reader_find_variants():
     assert s.bitpos == 4
     assert s.read(5).bin == '11011'
     s.bitpos = 0
-    assert s.find('0b11001', False) is None
+    assert s.find('0b11001', bytealigned=False) is None
 
     s = Reader(BitArray(bin='0'))
-    assert s.find(s.bits, False) == 0
+    assert s.find(s.bits, bytealigned=False) == 0
     assert s.pos == 0
-    assert s.find('0b00', False) is None
+    assert s.find('0b00', bytealigned=False) is None
     with pytest.raises(ValueError):
         s.find(BitArray())
 
     s = Reader(BitArray(hex='0x112233')[4:])
-    assert s.find('0x23', False) == 8
+    assert s.find('0x23', bytealigned=False) == 8
     assert s.pos == 8
 
 
@@ -841,10 +841,10 @@ def test_init_slice_with_int_and_reverse():
     a = BitArray('0x0012ff')
     a.reverse()
     assert a == '0xff4800'
-    a.reverse(8, 16)
+    a.reverse(start=8, end=16)
     assert a == '0xff1200'
     with pytest.raises(ValueError):
-        a.reverse(-1, 4)
+        a.reverse(start=-1, end=4)
 
 
 def test_initialise_from_iterables_and_cut():
@@ -868,8 +868,8 @@ def test_initialise_from_iterables_and_cut():
 
     a = BitArray('0x00112233445')
     assert list(a.cut(8)) == ['0x00', '0x11', '0x22', '0x33', '0x44', '0x5']
-    assert list(a.cut(4, 8, 16)) == ['0x1', '0x1']
-    assert list(a.cut(4, 0, 44, 4)) == ['0x0', '0x0', '0x1', '0x1']
+    assert list(a.cut(4, start=8, end=16)) == ['0x1', '0x1']
+    assert list(a.cut(4, start=0, end=44, count=4)) == ['0x0', '0x0', '0x1', '0x1']
 
 
 def test_reader_intelligent_reads():
@@ -1275,10 +1275,10 @@ def test_function_negative_indices():
     with pytest.raises(ValueError):
         s.insert('0b0', -1000)
 
-    s.reverse(-2)
+    s.reverse(start=-2)
     assert s == '0b01110'
     t = BitArray('0x778899abcdef')
-    t.reverse(-12, -4)
+    t.reverse(start=-12, end=-4)
     assert t == '0x778899abc7bf'
     t.byteswap(0, -40, -16)
     assert t == '0x77ab9988c7bf'
@@ -1435,12 +1435,12 @@ def test_split_start_end_and_count_variants():
     assert subs == ['0', '010100111', '010100', '0101', '010']
 
     a = BitArray('0b000000')
-    bsl = a.split('0b1', False)
+    bsl = a.split('0b1', bytealigned=False)
     assert next(bsl) == a
     with pytest.raises(StopIteration):
         next(bsl)
     b = BitArray()
-    bsl = b.split('0b001', False)
+    bsl = b.split('0b001', bytealigned=False)
     assert not next(bsl)
     with pytest.raises(StopIteration):
         _ = next(bsl)
@@ -1456,7 +1456,7 @@ def test_split_start_end_and_count_variants():
 
     s = BitArray('0b1100011001110110')
     for i in range(10):
-        assert list(s.split('0b11', False, count=i)) == list(s.split('0b11', False))[:i]
+        assert list(s.split('0b11', bytealigned=False, count=i)) == list(s.split('0b11', bytealigned=False))[:i]
     with pytest.raises(ValueError):
         _ = next(s.split('0b11', count=-1))
 
@@ -1479,7 +1479,7 @@ def test_split_start_end_boundaries():
     a = BitArray('0b000010001001011')
     bsl = list(a.split('0b1', bytealigned=False, end=14))
     assert [x.bin for x in bsl] == ['0000', '1000', '100', '10', '1']
-    assert list(a[4:12].split('0b0', False)) == list(a.split('0b0', start=4, end=12))
+    assert list(a[4:12].split('0b0', bytealigned=False)) == list(a.split('0b0', start=4, end=12))
 
 
 def test_find_start_end_boundaries():
@@ -1768,9 +1768,9 @@ def test_startswith_cases(value, prefix, args, expected):
     if not args:
         assert a.startswith(prefix) is expected
     elif len(args) == 1:
-        assert a.startswith(prefix, args[0]) is expected
+        assert a.startswith(prefix, start=args[0]) is expected
     else:
-        assert a.startswith(prefix, args[0], args[1]) is expected
+        assert a.startswith(prefix, start=args[0], end=args[1]) is expected
 
 
 @pytest.mark.parametrize(
@@ -1791,9 +1791,9 @@ def test_endswith_cases(value, suffix, args, expected):
     if not args:
         assert a.endswith(suffix) is expected
     elif len(args) == 1:
-        assert a.endswith(suffix, args[0]) is expected
+        assert a.endswith(suffix, start=args[0]) is expected
     else:
-        assert a.endswith(suffix, args[0], args[1]) is expected
+        assert a.endswith(suffix, start=args[0], end=args[1]) is expected
 
 
 def test_read_unpack_peek_with_keyword_lengths():
@@ -2021,7 +2021,7 @@ def test_rfind_endbit_cases():
     a = Reader(BitArray('0x000fff'))
     b = a.rfind('0b011', start=0, end=14, bytealigned=False)
     assert b is not None
-    assert a.rfind('0b011', 0, 13, False) is None
+    assert a.rfind('0b011', start=0, end=13, bytealigned=False) is None
 
 
 def test_remaining_shift_in_place_errors_and_whole_length():
@@ -2385,9 +2385,9 @@ def test_cut_problem_and_more_cut_errors():
 
     a = BitArray('0b1')
     with pytest.raises(ValueError):
-        _ = next(a.cut(1, 1, 2))
+        _ = next(a.cut(1, start=1, end=2))
     with pytest.raises(ValueError):
-        _ = next(a.cut(1, -2, 1))
+        _ = next(a.cut(1, start=-2, end=1))
     with pytest.raises(ValueError):
         _ = next(a.cut(0))
     with pytest.raises(ValueError):
@@ -2605,7 +2605,7 @@ def test_function_negative_indices_more_cases():
 
 def test_rotate_start_and_end_more_cases():
     a = BitArray('0b110100001')
-    a.rol(1, 3, 6)
+    a.rol(1, start=3, end=6)
     assert a == '0b110001001'
     a.ror(1, start=-4)
     assert a == '0b110001100'
@@ -2841,18 +2841,18 @@ def test_single_bit_assignment_value_errors_more(value):
 
 
 @pytest.mark.parametrize(
-    ("method", "args"),
+    ("method", "args", "kwargs"),
     [
-        ('reverse', (-1, 4)),
-        ('reverse', (10, 9)),
-        ('reverse', (1, 10000)),
-        ('rol', (5, -4, -6)),
+        ('reverse', (), {'start': -1, 'end': 4}),
+        ('reverse', (), {'start': 10, 'end': 9}),
+        ('reverse', (), {'start': 1, 'end': 10000}),
+        ('rol', (5,), {'start': -4, 'end': -6}),
     ],
 )
-def test_reverse_rotate_slice_errors_more(method, args):
+def test_reverse_rotate_slice_errors_more(method, args, kwargs):
     a = BitArray('0x123')
     with pytest.raises(ValueError):
-        getattr(a, method)(*args)
+        getattr(a, method)(*args, **kwargs)
 
 
 @pytest.mark.parametrize("pos", [10, -11, [1, 2, 10]])

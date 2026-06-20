@@ -217,6 +217,26 @@ class TestInitialisation:
         tp = list(t.findall("0b1"))
         assert tp == [0]
 
+    @pytest.mark.parametrize(
+        "call",
+        [
+            lambda s: s.find("0b1", 0),
+            lambda s: s.rfind("0b1", 0),
+            lambda s: s.findall("0b1", 0),
+            lambda s: s.cut(1, 0),
+            lambda s: s.split("0b1", 0),
+            lambda s: s.startswith("0b1", 0),
+            lambda s: s.endswith("0b1", 0),
+            lambda s: s.replace("0b1", "0b0", 0),
+            lambda s: s.reverse(0, 2),
+            lambda s: s.rol(1, 0, 2),
+            lambda s: s.ror(1, 0, 2),
+        ],
+    )
+    def test_optional_range_arguments_are_keyword_only(self, call):
+        with pytest.raises(TypeError):
+            call(BitArray("0b1010"))
+
 
 class TestCut:
     def test_cut(self):

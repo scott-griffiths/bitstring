@@ -161,7 +161,7 @@ class Reader:
         finally:
             self._pos = old_pos
 
-    def readto(self, bs: BitsType, /, bytealigned: Optional[bool] = None) -> Bits:
+    def readto(self, bs: BitsType, /, *, bytealigned: Optional[bool] = None) -> Bits:
         """Read up to and including the next occurrence of bs."""
         if isinstance(bs, numbers.Integral):
             raise ValueError("Integers cannot be searched for")
@@ -169,7 +169,7 @@ class Reader:
         try:
             self._ensure_valid_pos()
             bs = Bits._create_from_bitstype(bs)
-            p = self.find(bs, self._pos, bytealigned=bytealigned)
+            p = self.find(bs, start=self._pos, bytealigned=bytealigned)
             if p is None:
                 raise bitstring.ReadError("Substring not found")
             self._pos = p + len(bs)
@@ -187,18 +187,18 @@ class Reader:
         self._pos += skipped
         return skipped
 
-    def find(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
+    def find(self, bs: BitsType, /, *, start: Optional[int] = None, end: Optional[int] = None,
              bytealigned: Optional[bool] = None) -> Optional[int]:
         """Find a bitstring and set pos to the match position if found."""
-        p = self._bits.find(bs, start, end, bytealigned)
+        p = self._bits.find(bs, start=start, end=end, bytealigned=bytealigned)
         if p is not None:
             self._pos = p
         return p
 
-    def rfind(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
+    def rfind(self, bs: BitsType, /, *, start: Optional[int] = None, end: Optional[int] = None,
               bytealigned: Optional[bool] = None) -> Optional[int]:
         """Find a bitstring from the end and set pos to the match position if found."""
-        p = self._bits.rfind(bs, start, end, bytealigned)
+        p = self._bits.rfind(bs, start=start, end=end, bytealigned=bytealigned)
         if p is not None:
             self._pos = p
         return p

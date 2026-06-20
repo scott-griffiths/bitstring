@@ -133,6 +133,19 @@ def test_find_and_rfind_update_pos_only_on_success():
     assert r.pos == 9
 
 
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda r: r.find("0b1", 0),
+        lambda r: r.rfind("0b1", 0),
+        lambda r: r.readto("0b1", False),
+    ],
+)
+def test_reader_optional_search_arguments_are_keyword_only(call):
+    with pytest.raises(TypeError):
+        call(Reader(Bits("0b1010")))
+
+
 def test_mutable_bits_are_exposed_directly():
     bits = BitArray("0x00ff")
     r = Reader(bits)

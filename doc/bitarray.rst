@@ -110,7 +110,7 @@ Methods
         >>> s
         BitArray('0b11110')
 
-.. method:: BitArray.replace(old: BitsType, new: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> int
+.. method:: BitArray.replace(old: BitsType, new: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> int
 
     Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 
@@ -126,7 +126,7 @@ Methods
         >>> print(s.bin)
         0011001111
 
-.. method:: BitArray.reverse(start: int | None = None, end: int | None = None) -> None
+.. method:: BitArray.reverse(*, start: int | None = None, end: int | None = None) -> None
 
     Reverses bits in the :class:`BitArray` in-place.
 
@@ -136,11 +136,11 @@ Methods
         >>> a.reverse()
         >>> a.bin
         '101100000'
-        >>> a.reverse(0, 4)
+        >>> a.reverse(start=0, end=4)
         >>> a.bin
         '110100000'
 
-.. method:: BitArray.rol(bits: int, start: int | None = None, end: int | None = None) -> None
+.. method:: BitArray.rol(bits: int, *, start: int | None = None, end: int | None = None) -> None
 
     Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the left.
 
@@ -153,7 +153,7 @@ Methods
         >>> s.bin
         '00000101'
 
-.. method:: BitArray.ror(bits: int, start: int | None = None, end: int | None = None) -> None
+.. method:: BitArray.ror(bits: int, *, start: int | None = None, end: int | None = None) -> None
 
     Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the right.
 

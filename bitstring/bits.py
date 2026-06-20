@@ -1233,7 +1233,7 @@ class Bits:
                 vals.append(val)
         return vals, pos
 
-    def find(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
+    def find(self, bs: BitsType, /, *, start: Optional[int] = None, end: Optional[int] = None,
              bytealigned: Optional[bool] = None) -> Optional[int]:
         """Find first occurrence of substring bs.
 
@@ -1264,7 +1264,7 @@ class Bits:
         """Find first occurrence of a binary string."""
         return self._bitstore.find(bs._bitstore, start, end, bytealigned)
 
-    def findall(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
+    def findall(self, bs: BitsType, *, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
                 bytealigned: Optional[bool] = None) -> Iterable[int]:
         """Find all occurrences of bs. Return generator of bit positions.
 
@@ -1299,7 +1299,7 @@ class Bits:
         return
 
 
-    def rfind(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
+    def rfind(self, bs: BitsType, /, *, start: Optional[int] = None, end: Optional[int] = None,
               bytealigned: Optional[bool] = None) -> Optional[int]:
         """Find final occurrence of substring bs.
 
@@ -1325,7 +1325,7 @@ class Bits:
         """Find final occurrence of a binary string."""
         return self._bitstore.rfind(bs._bitstore, start, end, bytealigned)
 
-    def cut(self, bits: int, start: Optional[int] = None, end: Optional[int] = None,
+    def cut(self, bits: int, *, start: Optional[int] = None, end: Optional[int] = None,
             count: Optional[int] = None) -> Iterator[Bits]:
         """Return bitstring generator by cutting into bits sized chunks.
 
@@ -1366,7 +1366,7 @@ class Bits:
             start_ += bits
         return
 
-    def split(self, delimiter: BitsType, start: Optional[int] = None, end: Optional[int] = None,
+    def split(self, delimiter: BitsType, *, start: Optional[int] = None, end: Optional[int] = None,
               count: Optional[int] = None, bytealigned: Optional[bool] = None) -> Iterable[Bits]:
         """Return bitstring generator by splitting using a delimiter.
 
@@ -1466,7 +1466,7 @@ class Bits:
         for chunk in self.cut(chunk_size):
             f.write(chunk.tobytes())
 
-    def startswith(self, prefix: BitsType, start: Optional[int] = None, end: Optional[int] = None) -> bool:
+    def startswith(self, prefix: BitsType, *, start: Optional[int] = None, end: Optional[int] = None) -> bool:
         """Return whether the current bitstring starts with prefix.
 
         prefix -- The bitstring to search for.
@@ -1478,7 +1478,7 @@ class Bits:
         start, end = self._validate_slice(start, end)
         return self._slice(start, start + len(prefix)) == prefix if end >= start + len(prefix) else False
 
-    def endswith(self, suffix: BitsType, start: Optional[int] = None, end: Optional[int] = None) -> bool:
+    def endswith(self, suffix: BitsType, *, start: Optional[int] = None, end: Optional[int] = None) -> bool:
         """Return whether the current bitstring ends with suffix.
 
         suffix -- The bitstring to search for.

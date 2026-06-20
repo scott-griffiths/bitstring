@@ -25,6 +25,9 @@ Breaking changes:
 * `find()` and `rfind()` now return `int | None` instead of `(pos,)` or `()`.
   Use `result is not None` when testing whether a search succeeded, as bit
   position zero is a valid match.
+* Optional range/search arguments such as `start`, `end`, `count` and
+  `bytealigned` are now keyword-only for search, split, cut, replace and
+  reverse/rotate-style methods.
 * Removed the deprecated module-level way of setting options. Use
   `bitstring.options.bytealigned` rather than `bitstring.bytealigned`.
 * Removed `bitstring.lsb0`, `bitstring.bytealigned` and `bitstring.options.using_rust_core`
