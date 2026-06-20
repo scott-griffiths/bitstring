@@ -54,6 +54,8 @@ The :ref:`quick_reference` provides a summary of the classes and their methods.
 
 The :ref:`reference` section has a complete list of all the classes, methods, properties and functions of the bitstring module, together with short examples for many items.
 
+If you are moving code from bitstring 4.x to 5.x, see :ref:`upgrading_to_version_5`.
+
     * :class:`Bits` - an immutable container of bits.
     * :class:`BitArray` - adds mutating methods to ``Bits``.
     * :class:`Reader` - wraps ``Bits`` or ``BitArray`` with a bit position and read methods.

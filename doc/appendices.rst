@@ -12,3 +12,4 @@ This section contains supplementary information about the library, including det
    exotic_floats
    exp-golomb
    optimisation
+   upgrading_to_version_5
