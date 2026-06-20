@@ -43,14 +43,14 @@ class Array:
     byteswap() -- Change byte endianness of all items.
     count() -- Count the number of occurences of a value.
     extend() -- Append new items to the end of the Array from an iterable.
-    fromfile() -- Append items read from a file object.
+    from_file() -- Append items read from a file object.
     insert() -- Insert an item at a given position.
     pop() -- Remove and return an item.
     pp() -- Pretty print the Array.
     reverse() -- Reverse the order of all items.
-    tobytes() -- Return Array data as bytes object, padding with zero bits at the end if needed.
-    tofile() -- Write Array data to a file, padding with zero bits at the end if needed.
-    tolist() -- Return Array items as a list.
+    to_bytes() -- Return Array data as bytes object, padding with zero bits at the end if needed.
+    to_file() -- Write Array data to a file, padding with zero bits at the end if needed.
+    to_list() -- Return Array items as a list.
 
     Special methods:
 
@@ -86,7 +86,7 @@ class Array:
         elif isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
             self.data += initializer
         elif isinstance(initializer, io.BufferedReader):
-            self.fromfile(initializer)
+            self.from_file(initializer)
         elif initializer is not None:
             self.extend(initializer)
 
@@ -113,7 +113,7 @@ class Array:
                 # 'bfloat16': Bits('0x7f7f').bfloat16,  # 3.38953139e38,
             }
         if f'{name}{length}' in Array._largest_values.keys():
-            float_values = Array('float64', initializer).tolist()
+            float_values = Array('float64', initializer).to_list()
             if not float_values:
                 raise ValueError("Can't calculate an 'auto' scale with an empty Array initializer.")
             max_float_value = max(abs(x) for x in float_values)
@@ -263,7 +263,7 @@ class Array:
             del self.data[start: start + self._dtype.length]
 
     def __repr__(self) -> str:
-        list_str = f"{self.tolist()}"
+        list_str = f"{self.to_list()}"
         trailing_bit_length = len(self.data) % self._dtype.length
         final_str = "" if trailing_bit_length == 0 else ", trailing_bits=" + repr(
             self.data[-trailing_bit_length:])
@@ -271,12 +271,16 @@ class Array:
 
     def astype(self, dtype: str | Dtype) -> Array:
         """Return Array with elements of new dtype, initialised from current Array."""
-        new_array = self.__class__(dtype, self.tolist())
+        new_array = self.__class__(dtype, self.to_list())
         return new_array
 
-    def tolist(self) -> list[ElementType]:
+    def to_list(self) -> list[ElementType]:
         return [self._dtype.read_fn(self.data, start=start)
                 for start in range(0, len(self.data) - self._dtype.length + 1, self._dtype.length)]
+
+    def tolist(self) -> list[ElementType]:
+        """Compatibility alias for :meth:`to_list`."""
+        return self.to_list()
 
     def append(self, x: ElementType) -> None:
         if len(self.data) % self._dtype.length != 0:
@@ -352,23 +356,31 @@ class Array:
         else:
             return sum(i == value for i in self)
 
-    def tobytes(self) -> bytes:
+    def to_bytes(self) -> bytes:
         """Return the Array data as a bytes object, padding with zero bits if needed.
 
         Up to seven zero bits will be added at the end to byte align.
 
         """
-        return self.data.tobytes()
+        return self.data.to_bytes()
 
-    def tofile(self, f: BinaryIO) -> None:
+    def tobytes(self) -> bytes:
+        """Compatibility alias for :meth:`to_bytes`."""
+        return self.to_bytes()
+
+    def to_file(self, f: BinaryIO) -> None:
         """Write the Array data to a file object, padding with zero bits if needed.
 
         Up to seven zero bits will be added at the end to byte align.
 
         """
-        self.data.tofile(f)
+        self.data.to_file(f)
 
-    def fromfile(self, f: BinaryIO, n: int | None = None) -> None:
+    def tofile(self, f: BinaryIO) -> None:
+        """Compatibility alias for :meth:`to_file`."""
+        self.to_file(f)
+
+    def from_file(self, f: BinaryIO, n: int | None = None) -> None:
         trailing_bit_length = len(self.data) % self._dtype.bitlength
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.bitlength} bits).")
@@ -387,6 +399,10 @@ class Array:
         self.data += new_data[0: items_to_append * item_bits]
         if n is not None and items_to_append < n:
             raise EOFError(f"Only {items_to_append} were appended, not the {n} items requested.")
+
+    def fromfile(self, f: BinaryIO, n: int | None = None) -> None:
+        """Compatibility alias for :meth:`from_file`."""
+        self.from_file(f, n)
 
     def reverse(self) -> None:
         trailing_bit_length = len(self.data) % self._dtype.length
@@ -474,7 +490,7 @@ class Array:
                 return False
             if len(self) != len(other):
                 return False
-            if self.tolist() != other.tolist():
+            if self.to_list() != other.tolist():
                 return False
             return True
         return False

@@ -55,8 +55,8 @@ class Bits:
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    tobytes() -- Return bitstring as bytes, padding if needed.
-    tofile() -- Write bitstring to file, padding if needed.
+    to_bytes() -- Return bitstring as bytes, padding if needed.
+    to_file() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
 
     Special methods:
@@ -263,7 +263,7 @@ class Bits:
         return self._getlength()
 
     def __bytes__(self) -> bytes:
-        return self.tobytes()
+        return self.to_bytes()
 
     def __str__(self) -> str:
         """Return approximate string representation of bitstring for printing.
@@ -490,11 +490,11 @@ class Bits:
         # bit position inside the bitstring as that does not feature in the __eq__ operation.
         if len(self) <= 2000:
             # Use the whole bitstring.
-            return hash((self.tobytes(), len(self)))
+            return hash((self.to_bytes(), len(self)))
         else:
             # We can't in general hash the whole bitstring (it could take hours!)
             # So instead take some bits from the start and end.
-            return hash(((self[:800] + self[-800:]).tobytes(), len(self)))
+            return hash(((self[:800] + self[-800:]).to_bytes(), len(self)))
 
     def __bool__(self) -> bool:
         """Return False if bitstring is empty, otherwise return True."""
@@ -1466,7 +1466,7 @@ class Bits:
             s._bitstore = MutableBitStore.join(_stores())
         return s
 
-    def tobytes(self) -> bytes:
+    def to_bytes(self) -> bytes:
         """Return the bitstring as bytes, padding with zero bits if needed.
 
         Up to seven zero bits will be added at the end to byte align.
@@ -1474,7 +1474,11 @@ class Bits:
         """
         return self._bitstore.to_bytes()
 
-    def tofile(self, f: BinaryIO) -> None:
+    def tobytes(self) -> bytes:
+        """Compatibility alias for :meth:`to_bytes`."""
+        return self.to_bytes()
+
+    def to_file(self, f: BinaryIO) -> None:
         """Write the bitstring to a file object, padding with zero bits if needed.
 
         Up to seven zero bits will be added at the end to byte align.
@@ -1483,7 +1487,11 @@ class Bits:
         # If the bitstring is file based then we don't want to read it all in to memory first.
         chunk_size = 8 * 100 * 1024 * 1024  # 100 MiB
         for chunk in self.cut(chunk_size):
-            f.write(chunk.tobytes())
+            f.write(chunk.to_bytes())
+
+    def tofile(self, f: BinaryIO) -> None:
+        """Compatibility alias for :meth:`to_file`."""
+        self.to_file(f)
 
     def startswith(self, prefix: BitsType, *, start: int | None = None, end: int | None = None) -> bool:
         """Return whether the current bitstring starts with prefix.

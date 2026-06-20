@@ -78,49 +78,60 @@ def test_read_failure_restores_pos():
     assert r.pos == 4
 
 
-def test_readlist_and_peeklist():
+def test_read_list_and_peek_list():
     r = Reader(Bits("0b10001111001"))
-    assert r.readlist("pad:1, uint:3, pad:4, uint:3") == [0, 1]
+    assert r.read_list("pad:1, uint:3, pad:4, uint:3") == [0, 1]
     assert r.pos == 11
 
     r.pos = 0
-    assert r.readlist(["5", "3", 3]) == [Bits("0b10001"), Bits("0b111"), Bits("0b001")]
+    assert r.read_list(["5", "3", 3]) == [Bits("0b10001"), Bits("0b111"), Bits("0b001")]
     assert r.pos == 11
 
     r = Reader(Bits("0x0102"))
-    assert r.peeklist("bits8, hex:b", b=4) == [Bits("0x01"), "0"]
+    assert r.peek_list("bits8, hex:b", b=4) == [Bits("0x01"), "0"]
     assert r.pos == 0
 
 
-def test_readto():
+def test_read_to():
     r = Reader(Bits("0xaabb"))
-    assert r.readto("0xaa", bytealigned=True) == "0xaa"
+    assert r.read_to("0xaa", bytealigned=True) == "0xaa"
     assert r.bytepos == 1
 
     r = Reader(Bits("0xaabb00aa00bb"))
-    assert r.readto("0x00", bytealigned=True) == "0xaabb00"
+    assert r.read_to("0x00", bytealigned=True) == "0xaabb00"
     assert r.bytepos == 3
-    assert r.readto("0xaa", bytealigned=True) == "0xaa"
+    assert r.read_to("0xaa", bytealigned=True) == "0xaa"
 
     old_pos = r.pos
     with pytest.raises(bitstring.ReadError):
-        r.readto("0xcc", bytealigned=True)
+        r.read_to("0xcc", bytealigned=True)
     assert r.pos == old_pos
 
     with pytest.raises(ValueError):
-        r.readto(4)
+        r.read_to(4)
 
 
-def test_bytealign():
+def test_byte_align():
     r = Reader(Bits("0xabcdef"), pos=3)
-    assert r.bytealign() == 5
+    assert r.byte_align() == 5
     assert r.pos == 8
-    assert r.bytealign() == 0
+    assert r.byte_align() == 0
 
     r = Reader(Bits("0b1"), pos=1)
     with pytest.raises(ValueError):
-        r.bytealign()
+        r.byte_align()
     assert r.pos == 1
+
+
+def test_old_reader_method_names_still_work():
+    r = Reader(Bits("0b10001111001"))
+    assert r.readlist("pad:1, uint:3, pad:4, uint:3") == [0, 1]
+    r.pos = 0
+    assert r.peeklist("bits5") == [Bits("0b10001")]
+
+    r = Reader(Bits("0xaabb"), pos=3)
+    assert r.bytealign() == 5
+    assert r.readto("0xbb", bytealigned=True) == "0xbb"
 
 
 def test_find_and_rfind_update_pos_only_on_success():

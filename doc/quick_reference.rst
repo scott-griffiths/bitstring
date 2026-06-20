@@ -89,8 +89,8 @@ Methods
 * :meth:`~Bits.split` -- Create generator of chunks split by a delimiter.
 * :meth:`~Bits.startswith` -- Return whether the bitstring starts with a sub-bitstring.
 * :meth:`~Bits.to_bitarray` -- Return a mutable copy.
-* :meth:`~Bits.tobytes` -- Return bitstring as bytes, padding if needed.
-* :meth:`~Bits.tofile` -- Write bitstring to file, padding if needed.
+* :meth:`~Bits.to_bytes` -- Return bitstring as bytes, padding if needed.
+* :meth:`~Bits.to_file` -- Write bitstring to file, padding if needed.
 * :meth:`~Bits.unpack` -- Interpret bits using format string.
 
 
@@ -200,13 +200,13 @@ Reader
 Methods
 ^^^^^^^
 
-* :meth:`~Reader.bytealign` -- Align to next byte boundary.
+* :meth:`~Reader.byte_align` -- Align to next byte boundary.
 * :meth:`~Reader.find` -- Find a sub-bitstring and move ``pos`` if found.
 * :meth:`~Reader.peek` -- Peek at and interpret next bits as a single item.
-* :meth:`~Reader.peeklist` -- Peek at and interpret next bits as a list of items.
+* :meth:`~Reader.peek_list` -- Peek at and interpret next bits as a list of items.
 * :meth:`~Reader.read` -- Read and interpret next bits as a single item.
-* :meth:`~Reader.readlist` -- Read and interpret next bits as a list of items.
-* :meth:`~Reader.readto` -- Read up to and including next occurrence of a bitstring.
+* :meth:`~Reader.read_list` -- Read and interpret next bits as a list of items.
+* :meth:`~Reader.read_to` -- Read up to and including next occurrence of a bitstring.
 * :meth:`~Reader.rfind` -- Search backwards and move ``pos`` if found.
 
 Properties
@@ -254,14 +254,14 @@ Methods
 * :meth:`~Array.count` -- Count the number of occurrences of a value.
 * :meth:`~Array.equals` -- Compare with another Array for exact equality.
 * :meth:`~Array.extend` -- Append multiple items to the end of the Array from an iterable.
-* :meth:`~Array.fromfile` -- Append items read from a file object.
+* :meth:`~Array.from_file` -- Append items read from a file object.
 * :meth:`~Array.insert` -- Insert an item at a given position.
 * :meth:`~Array.pop` -- Return and remove an item.
 * :meth:`~Array.pp` -- Pretty print the Array.
 * :meth:`~Array.reverse` -- Reverse the order of all items.
-* :meth:`~Array.tobytes` -- Return Array data as bytes object, padding with zero bits at the end if needed.
-* :meth:`~Array.tofile` -- Write Array data to a file, padding with zero bits at the end if needed.
-* :meth:`~Array.tolist` -- Return Array items as a list.
+* :meth:`~Array.to_bytes` -- Return Array data as bytes object, padding with zero bits at the end if needed.
+* :meth:`~Array.to_file` -- Write Array data to a file, padding with zero bits at the end if needed.
+* :meth:`~Array.to_list` -- Return Array items as a list.
 
 Special methods
 ^^^^^^^^^^^^^^^

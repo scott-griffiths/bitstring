@@ -16,9 +16,9 @@ Reader
 Reading and peeking
 -------------------
 
-The :meth:`read` and :meth:`readlist` methods interpret bits starting at
+The :meth:`read` and :meth:`read_list` methods interpret bits starting at
 :attr:`pos` and advance the position. The matching :meth:`peek` and
-:meth:`peeklist` methods return the same values without changing the position.
+:meth:`peek_list` methods return the same values without changing the position.
 
 For example::
 
@@ -28,7 +28,7 @@ For example::
     >>> r.pos = 0
     >>> r.read('uint12')
     352
-    >>> r.readlist('uint12, bin3')
+    >>> r.read_list('uint12, bin3')
     [288, '111']
 
 If a read fails then :attr:`pos` is restored to its value before the read.
@@ -48,7 +48,7 @@ Methods
     If *fmt* is an integer then that many bits are returned as a bitstring. If it
     is a string or :class:`Dtype` then the corresponding dtype is read.
 
-.. method:: Reader.readlist(fmt: str | list[str | int | Dtype], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
+.. method:: Reader.read_list(fmt: str | list[str | int | Dtype], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
 
     Reads one or more format tokens and returns a list of values.
 
@@ -56,15 +56,15 @@ Methods
 
     Like :meth:`read`, but leaves :attr:`pos` unchanged.
 
-.. method:: Reader.peeklist(fmt: str | list[str | int | Dtype], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
+.. method:: Reader.peek_list(fmt: str | list[str | int | Dtype], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
 
-    Like :meth:`readlist`, but leaves :attr:`pos` unchanged.
+    Like :meth:`read_list`, but leaves :attr:`pos` unchanged.
 
-.. method:: Reader.readto(bs: BitsType, *, bytealigned: bool | None = None) -> Bits
+.. method:: Reader.read_to(bs: BitsType, *, bytealigned: bool | None = None) -> Bits
 
     Reads up to and including the next occurrence of *bs*.
 
-.. method:: Reader.bytealign() -> int
+.. method:: Reader.byte_align() -> int
 
     Aligns :attr:`pos` to the next byte boundary and returns the number of bits
     skipped.

@@ -121,7 +121,7 @@ class Reader:
             self._pos = old_pos
             raise
 
-    def readlist(self, fmt: str | list[int | str | Dtype], **kwargs) \
+    def read_list(self, fmt: str | list[int | str | Dtype], **kwargs) \
             -> list[int | float | str | Bits | bool | bytes | None]:
         """Read and interpret one or more format tokens from the current bit position."""
         old_pos = self._pos
@@ -135,6 +135,11 @@ class Reader:
         except Exception:
             self._pos = old_pos
             raise
+
+    def readlist(self, fmt: str | list[int | str | Dtype], **kwargs) \
+            -> list[int | float | str | Bits | bool | bytes | None]:
+        """Compatibility alias for :meth:`read_list`."""
+        return self.read_list(fmt, **kwargs)
 
     @overload
     def peek(self, fmt: int) -> Bits:
@@ -152,16 +157,21 @@ class Reader:
         finally:
             self._pos = old_pos
 
-    def peeklist(self, fmt: str | list[int | str | Dtype], **kwargs) \
+    def peek_list(self, fmt: str | list[int | str | Dtype], **kwargs) \
             -> list[int | float | str | Bits | bool | bytes | None]:
         """Read one or more format tokens without changing the position."""
         old_pos = self._pos
         try:
-            return self.readlist(fmt, **kwargs)
+            return self.read_list(fmt, **kwargs)
         finally:
             self._pos = old_pos
 
-    def readto(self, bs: BitsType, /, *, bytealigned: bool | None = None) -> Bits:
+    def peeklist(self, fmt: str | list[int | str | Dtype], **kwargs) \
+            -> list[int | float | str | Bits | bool | bytes | None]:
+        """Compatibility alias for :meth:`peek_list`."""
+        return self.peek_list(fmt, **kwargs)
+
+    def read_to(self, bs: BitsType, /, *, bytealigned: bool | None = None) -> Bits:
         """Read up to and including the next occurrence of bs."""
         if isinstance(bs, numbers.Integral):
             raise ValueError("Integers cannot be searched for")
@@ -178,7 +188,11 @@ class Reader:
             self._pos = old_pos
             raise
 
-    def bytealign(self) -> int:
+    def readto(self, bs: BitsType, /, *, bytealigned: bool | None = None) -> Bits:
+        """Compatibility alias for :meth:`read_to`."""
+        return self.read_to(bs, bytealigned=bytealigned)
+
+    def byte_align(self) -> int:
         """Align to the next byte boundary and return the number of skipped bits."""
         self._ensure_valid_pos()
         skipped = (8 - (self._pos % 8)) % 8
@@ -186,6 +200,10 @@ class Reader:
             raise ValueError("Cannot seek past the end of the data.")
         self._pos += skipped
         return skipped
+
+    def bytealign(self) -> int:
+        """Compatibility alias for :meth:`byte_align`."""
+        return self.byte_align()
 
     def find(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
              bytealigned: bool | None = None) -> int | None:

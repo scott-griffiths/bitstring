@@ -85,7 +85,7 @@ BitArray('0x866906690669, 0b000')
 >>> b.pos = 0
 >>> b.read('uint12')
 352
->>> b.readlist('uint12, bin3')
+>>> b.read_list('uint12, bin3')
 [288, '111']
 ```
 

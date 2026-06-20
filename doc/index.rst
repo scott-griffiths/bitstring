@@ -121,7 +121,7 @@ You can also easily change the data's interpretation, convert to another format,
     >>> b = a.astype('uint5')
     >>> b.data
     BitArray('0x0048658907')
-    >>> a.tolist() == b.tolist()
+    >>> a.to_list() == b.to_list()
     True
 
 You can also take and set slices as you'd expect, and apply operations to each element in the ``Array``. ::

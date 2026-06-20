@@ -54,8 +54,8 @@ class BitArray(Bits):
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    tobytes() -- Return bitstring as bytes, padding if needed.
-    tofile() -- Write bitstring to file, padding if needed.
+    to_bytes() -- Return bitstring as bytes, padding if needed.
+    to_file() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
 
     Special methods:

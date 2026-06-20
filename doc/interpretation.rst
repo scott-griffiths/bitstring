@@ -106,9 +106,9 @@ bytes
 
 A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the :py:attr:`~Bits.bytes` interpretation, which returns a ``bytes`` object.
 
-If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`~Bits.tobytes` as this will be pad with between one and seven zero bits up to a byte boundary if necessary. ::
+If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`~Bits.to_bytes` as this will be pad with between one and seven zero bits up to a byte boundary if necessary. ::
 
-    >>> open('somefile', 'wb').write(a.tobytes())
+    >>> open('somefile', 'wb').write(a.to_bytes())
     >>> open('anotherfile', 'wb').write(('0x0'+a).bytes)
     >>> a1 = BitArray(filename='somefile')
     >>> a1.hex
@@ -117,7 +117,7 @@ If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError
     >>> a2.hex
     '0123'
 
-Note that the :meth:`~Bits.tobytes` method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the :attr:`~Bits.bytes` property.
+Note that the :meth:`~Bits.to_bytes` method automatically padded with four zero bits at the end, whereas for the other example we explicitly padded at the start to byte align before using the :attr:`~Bits.bytes` property.
 
 
 Floating point types

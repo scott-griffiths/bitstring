@@ -399,11 +399,24 @@ class TestArrayMethods:
         filename = tmp_path / 'temp_bitstring_unit_testing_file'
         a = Array('uint5', [0, 1, 2, 3, 4, 5])
         with open(filename, 'wb') as f:
-            a.tofile(f)
+            a.to_file(f)
         with open(filename, 'rb') as f:
             b = Array('u5')
-            b.fromfile(f, 1)
-        assert b.tolist() == [0]
+            b.from_file(f, 1)
+        assert b.to_list() == [0]
+
+    def test_old_conversion_method_names_still_work(self, tmp_path):
+        a = Array('uint8', [1, 2])
+        assert a.to_list() == a.tolist() == [1, 2]
+        assert a.to_bytes() == a.tobytes() == b'\x01\x02'
+
+        filename = tmp_path / 'array_alias.bin'
+        with open(filename, 'wb') as f:
+            a.tofile(f)
+        b = Array('uint8')
+        with open(filename, 'rb') as f:
+            b.fromfile(f)
+        assert b.to_list() == [1, 2]
 
     def test_getting(self):
         a = Array('int17')

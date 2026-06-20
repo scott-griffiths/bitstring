@@ -286,7 +286,7 @@ Methods
         True
 
 
-.. method:: Bits.tobytes() -> bytes
+.. method:: Bits.to_bytes() -> bytes
 
     Returns the bitstring as a ``bytes`` object.
 
@@ -297,7 +297,7 @@ Methods
 
         >>> s = Bits(bytes=b'hello')
         >>> s += '0b01'
-        >>> s.tobytes()
+        >>> s.to_bytes()
         b'hello@'
 
     This is equivalent to casting to a bytes object directly: ::
@@ -306,7 +306,7 @@ Methods
         b'hello@'
 
 
-.. method:: Bits.tofile(f: BinaryIO) -> None
+.. method:: Bits.to_file(f: BinaryIO) -> None
 
     Writes the bitstring to the file object *f*, which should have been opened in binary write mode.
 
@@ -314,7 +314,7 @@ Methods
     The file object remains open so the user must call `.close()` on it once they are finished.::
 
         >>> f = open('newfile', 'wb')
-        >>> Bits('0x1234').tofile(f)
+        >>> Bits('0x1234').to_file(f)
 
 
 .. method:: Bits.unpack(fmt: str | list[str | int], **kwargs) -> list[float | int | str | None | Bits]
@@ -372,7 +372,7 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
 
     When used as a getter the bitstring must be a whole number of byte long or a :exc:`InterpretError` will be raised.
 
-    An alternative is to use the :meth:`tobytes` method, which will pad with between zero and seven ``0`` bits to make it byte aligned if needed. ::
+    An alternative is to use the :meth:`to_bytes` method, which will pad with between zero and seven ``0`` bits to make it byte aligned if needed. ::
 
         >>> s = Bits('0x12345678')
         >>> s.bytes

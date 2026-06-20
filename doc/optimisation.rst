@@ -24,7 +24,7 @@ This works fine, but is not very quick. The problem is that the call to :meth:`~
  
 This is much faster, although probably not as fast as the combined call::
 
-    width, height, flags = s.readlist('uint12, uint12, bin4')
+    width, height, flags = s.read_list('uint12, uint12, bin4')
  
 Choose the simplest class you can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

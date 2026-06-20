@@ -28,7 +28,7 @@ The ``bitstring.Array`` type is meant as a more flexible version of the standard
     x = array.array('f', [1.0, 2.0, 3.14])
     y = bitstring.Array('=f', [1.0, 2.0, 3.14])
 
-    assert x.tobytes() == y.tobytes()
+    assert x.to_bytes() == y.to_bytes()
 
 This example packs three 32-bit floats into objects using both libraries.
 The only difference is the explicit native endianness for the format string of the bitstring version.
@@ -206,9 +206,9 @@ Methods
         >>> a.equals(b)
         False
 
-    To compare only the values contained in the Array, extract them using :meth:`~Array.tolist` first::
+    To compare only the values contained in the Array, extract them using :meth:`~Array.to_list` first::
 
-        >>> a.tolist() == b.tolist()
+        >>> a.to_list() == b.to_list()
         True
 
     Note that the ``==`` operator will perform an element-wise equality check and return a new ``Array`` of dtype ``'bool'`` (or raise an exception).
@@ -229,7 +229,7 @@ Methods
         >>> a
         Array('int5', [-5, 0, 10, 3, 2, 1, -1, 0, 2])
 
-.. method:: Array.fromfile(f: BinaryIO, n: int | None = None) -> None
+.. method:: Array.from_file(f: BinaryIO, n: int | None = None) -> None
 
     Append items read from a file object.
 
@@ -319,22 +319,22 @@ Methods
         >>> a
         Array('>L', [300, 200, 100])
 
-.. method:: Array.tobytes() -> bytes
+.. method:: Array.to_bytes() -> bytes
 
     Return Array data as bytes object, padding with zero bits at the end if needed. ::
 
         >>> a = Array('i4', [3, -6, 2, -3, 2, -7])
-        >>> a.tobytes()
+        >>> a.to_bytes()
         b':-)'
 
-.. method:: Array.tofile(f: BinaryIO) -> None
+.. method:: Array.to_file(f: BinaryIO) -> None
 
     Writes the Array data to the file object *f*, which should have been opened in binary write mode.
 
     The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
     The file object remains open so the user must call `.close()` on it once they are finished.::
 
-.. method:: Array.tolist() -> List[float | int | str | bytes]
+.. method:: Array.to_list() -> List[float | int | str | bytes]
 
     Return Array items as a list.
 

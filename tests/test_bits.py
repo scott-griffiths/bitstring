@@ -47,6 +47,22 @@ class TestCreation:
         assert bits == "0b101"
         assert bitarray == "0b1011"
 
+    def test_to_bytes_and_to_file_aliases(self, tmp_path):
+        bits = Bits("0b101")
+        assert bits.to_bytes() == b"\xa0"
+        assert bits.tobytes() == b"\xa0"
+        assert bytes(bits) == b"\xa0"
+
+        filename = tmp_path / "bits.bin"
+        with filename.open("wb") as f:
+            bits.to_file(f)
+        assert filename.read_bytes() == b"\xa0"
+
+        filename = tmp_path / "bits_alias.bin"
+        with filename.open("wb") as f:
+            bits.tofile(f)
+        assert filename.read_bytes() == b"\xa0"
+
     @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_positional_integer_constructor_removed(self, cls):
         with pytest.raises(TypeError, match="from_zeros"):
