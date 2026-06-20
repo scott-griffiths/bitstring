@@ -27,6 +27,18 @@ def _fallback_to_i(tibs: Tibs | Mutibs) -> int:
     return int.from_bytes(tibs.to_bytes(), byteorder="big", signed=True)
 
 
+def _to_u(tibs: Tibs | Mutibs) -> int:
+    if len(tibs) <= 128:
+        return tibs.to_u()
+    return _fallback_to_u(tibs)
+
+
+def _to_i(tibs: Tibs | Mutibs) -> int:
+    if len(tibs) <= 128:
+        return tibs.to_i()
+    return _fallback_to_i(tibs)
+
+
 class ConstBitStore:
     """A light wrapper around tibs.Tibs"""
 
@@ -98,28 +110,20 @@ class ConstBitStore:
         return ConstBitStore(self.tibs.byte_swapped(start=start, end=end))
 
     def to_u(self) -> int:
-        try:
-            return self.tibs.to_u()
-        except ValueError:
-            return _fallback_to_u(self.tibs)
+        return _to_u(self.tibs)
 
     def read_u(self, start: int, length: int) -> int:
-        try:
+        if length <= 128:
             return self.tibs.to_u(start, start + length)
-        except ValueError:
-            return _fallback_to_u(self.tibs[start:start + length])
+        return _fallback_to_u(self.tibs[start:start + length])
 
     def to_i(self) -> int:
-        try:
-            return self.tibs.to_i()
-        except ValueError:
-            return _fallback_to_i(self.tibs)
+        return _to_i(self.tibs)
 
     def read_i(self, start: int, length: int) -> int:
-        try:
+        if length <= 128:
             return self.tibs.to_i(start, start + length)
-        except ValueError:
-            return _fallback_to_i(self.tibs[start:start + length])
+        return _fallback_to_i(self.tibs[start:start + length])
 
     def to_hex(self) -> str:
         return self.tibs.to_hex()
@@ -158,6 +162,12 @@ class ConstBitStore:
 
     def __invert__(self) -> ConstBitStore:
         return ConstBitStore(~self.tibs)
+
+    def __lshift__(self, n: int, /) -> ConstBitStore:
+        return ConstBitStore(self.tibs << n)
+
+    def __rshift__(self, n: int, /) -> ConstBitStore:
+        return ConstBitStore(self.tibs >> n)
 
     def find(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         return self.tibs.find(bs.tibs, start, end, byte_aligned=bytealigned)
@@ -270,28 +280,20 @@ class MutableBitStore:
         return MutableBitStore(self.tibs.byte_swapped(start=start, end=end))
 
     def to_u(self) -> int:
-        try:
-            return self.tibs.to_u()
-        except ValueError:
-            return _fallback_to_u(self.tibs)
+        return _to_u(self.tibs)
 
     def read_u(self, start: int, length: int) -> int:
-        try:
+        if length <= 128:
             return self.tibs.to_u(start, start + length)
-        except ValueError:
-            return _fallback_to_u(self.tibs[start:start + length])
+        return _fallback_to_u(self.tibs[start:start + length])
 
     def to_i(self) -> int:
-        try:
-            return self.tibs.to_i()
-        except ValueError:
-            return _fallback_to_i(self.tibs)
+        return _to_i(self.tibs)
 
     def read_i(self, start: int, length: int) -> int:
-        try:
+        if length <= 128:
             return self.tibs.to_i(start, start + length)
-        except ValueError:
-            return _fallback_to_i(self.tibs[start:start + length])
+        return _fallback_to_i(self.tibs[start:start + length])
 
     def to_hex(self) -> str:
         return self.tibs.to_hex()
@@ -355,6 +357,12 @@ class MutableBitStore:
     def __invert__(self) -> MutableBitStore:
         return MutableBitStore(~self.tibs)
 
+    def __lshift__(self, n: int, /) -> MutableBitStore:
+        return MutableBitStore(self.tibs << n)
+
+    def __rshift__(self, n: int, /) -> MutableBitStore:
+        return MutableBitStore(self.tibs >> n)
+
     def find(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int:
         return self.tibs.find(bs.tibs, start, end, byte_aligned=bytealigned)
 
@@ -409,6 +417,12 @@ class MutableBitStore:
             self.tibs.invert(index)
         else:
             self.tibs.invert()
+
+    def set(self, value: Any, pos: Any, /) -> None:
+        if value:
+            self.tibs.set(pos)
+        else:
+            self.tibs.unset(pos)
 
     def any(self) -> bool:
         return self.tibs.any()

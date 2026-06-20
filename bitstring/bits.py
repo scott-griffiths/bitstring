@@ -336,9 +336,8 @@ class Bits:
             raise ValueError("Cannot shift by a negative amount.")
         if len(self) == 0:
             raise ValueError("Cannot shift an empty bitstring.")
-        n = min(n, len(self))
-        s = self._absolute_slice(n, len(self))
-        s._addright(Bits(n))
+        s = object.__new__(self.__class__)
+        s._bitstore = self._bitstore << n
         return s
 
     def __rshift__(self: TBits, n: int, /) -> TBits:
@@ -351,11 +350,8 @@ class Bits:
             raise ValueError("Cannot shift by a negative amount.")
         if len(self) == 0:
             raise ValueError("Cannot shift an empty bitstring.")
-        if not n:
-            return self._copy()
-        s = self.__class__(length=min(n, len(self)))
-        n = min(n, len(self))
-        s._addright(self._absolute_slice(0, len(self) - n))
+        s = object.__new__(self.__class__)
+        s._bitstore = self._bitstore >> n
         return s
 
     def __mul__(self: TBits, n: int, /) -> TBits:

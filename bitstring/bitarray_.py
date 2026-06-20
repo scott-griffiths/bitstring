@@ -390,6 +390,14 @@ class BitArray(Bits):
         bs = self._create_from_bitstype(bs)
         self._addleft(bs)
 
+    @staticmethod
+    def _normalise_positions(pos: Union[int, Iterable[int]]) -> Union[int, Iterable[int]]:
+        if not isinstance(pos, abc.Iterable):
+            return pos
+        if isinstance(pos, (list, tuple, range)):
+            return pos
+        return tuple(pos)
+
     def reverse(self, start: Optional[int] = None, end: Optional[int] = None) -> None:
         """Reverse bits in-place.
 
@@ -425,14 +433,7 @@ class BitArray(Bits):
             # Set all bits to either 1 or 0
             self._bitstore.__setitem__(slice(None), bool(value))
             return
-        if not isinstance(pos, abc.Iterable):
-            pos = (pos,)
-        v = 1 if value else 0
-        if isinstance(pos, range):
-            self._bitstore.__setitem__(slice(pos.start, pos.stop, pos.step), v)
-            return
-        for p in pos:
-            self._bitstore[p] = v
+        self._bitstore.set(value, BitArray._normalise_positions(pos))
 
     def invert(self, pos: Optional[Union[Iterable[int], int]] = None) -> None:
         """Invert one or many bits from 0 to 1 or vice versa.
@@ -446,16 +447,7 @@ class BitArray(Bits):
         if pos is None:
             self._invert_all()
             return
-        if not isinstance(pos, abc.Iterable):
-            pos = (pos,)
-        length = len(self)
-
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError(f"Bit position {p} out of range.")
-            self._invert(p)
+        self._bitstore.invert(BitArray._normalise_positions(pos))
 
     def ror(self, bits: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
         """Rotate bits to the right in-place.
