@@ -94,6 +94,9 @@ class ConstBitStore:
     def read_bytes(self, start: int, length: int) -> bytes:
         return self.tibs.to_bytes(start, start + length)
 
+    def byte_swapped(self, start: Optional[int] = None, end: Optional[int] = None) -> ConstBitStore:
+        return ConstBitStore(self.tibs.byte_swapped(start=start, end=end))
+
     def to_u(self) -> int:
         try:
             return self.tibs.to_u()
@@ -263,6 +266,9 @@ class MutableBitStore:
     def read_bytes(self, start: int, length: int) -> bytes:
         return self.tibs.to_bytes(start, start + length)
 
+    def byte_swapped(self, start: Optional[int] = None, end: Optional[int] = None) -> MutableBitStore:
+        return MutableBitStore(self.tibs.byte_swapped(start=start, end=end))
+
     def to_u(self) -> int:
         try:
             return self.tibs.to_u()
@@ -367,6 +373,9 @@ class MutableBitStore:
     def reverse(self) -> None:
         self.tibs.reverse()
 
+    def byte_swap(self, start: Optional[int], end: Optional[int]) -> None:
+        self.tibs.byte_swap(start=start, end=end)
+
     # TODO: Should we remove iter from this mutable type?
     def __iter__(self) -> Iterable[bool]:
         for i in range(len(self)):
@@ -418,8 +427,9 @@ class MutableBitStore:
 
     def replace(self, old: MutableBitStore | ConstBitStore, new: MutableBitStore | ConstBitStore,
                 start: Optional[int] = None, end: Optional[int] = None,
-                count: Optional[int] = None, bytealigned: bool = False) -> None:
-        self.tibs.replace(old.tibs, new.tibs, start=start, end=end, count=count, byte_aligned=bytealigned)
+                count: Optional[int] = None, bytealigned: bool = False) -> int:
+        return self.tibs.replace(old.tibs, new.tibs, start=start, end=end, count=count,
+                                 byte_aligned=bytealigned)
 
     def rotate_left(self, n: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
         self.tibs.rotate_left(n, start=start, end=end)

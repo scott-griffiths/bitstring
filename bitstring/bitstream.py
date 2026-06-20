@@ -718,7 +718,7 @@ class BitStream(ConstBitStream, bitstring.BitArray):
             # Prevent self assignment woes
             new = copy.copy(self)
         length_before = len(self)
-        replacement_count = self._replace(old, new, start, end, 0 if count is None else count, bytealigned)
+        replacement_count = self._replace(old, new, start, end, count, bytealigned)
         if len(self) != length_before:
             self._pos = 0
         return replacement_count

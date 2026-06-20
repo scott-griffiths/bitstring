@@ -4,7 +4,7 @@ import copy
 import numbers
 import re
 from collections import abc
-from typing import Union, List, Iterable, Any, Optional
+from typing import Union, Iterable, Any, Optional
 from bitstring import utils
 from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
@@ -289,34 +289,12 @@ class BitArray(Bits):
         self._bitstore ^= bs._bitstore
         return self
 
-    # TODO: This should be using tibs.replace, but it needs it to return the number of replacements.
-    def _replace(self, old: Bits, new: Bits, start: int, end: int, count: int, bytealigned: Optional[bool]) -> int:
+    def _replace(self, old: Bits, new: Bits, start: Optional[int], end: Optional[int],
+                 count: Optional[int], bytealigned: Optional[bool]) -> int:
         if bytealigned is None:
             bytealigned = bitstring.options.bytealigned
-        # First find all the places where we want to do the replacements
-        starting_points: List[int] = []
-        for x in self.findall(old, start, end, bytealigned=bytealigned):
-            if not starting_points:
-                starting_points.append(x)
-            elif x >= starting_points[-1] + len(old):
-                # Can only replace here if it hasn't already been replaced!
-                starting_points.append(x)
-            if count != 0 and len(starting_points) == count:
-                break
-        if not starting_points:
-            return 0
-        replacement_list = [self._bitstore.getslice(0, starting_points[0])]
-        for i in range(len(starting_points) - 1):
-            replacement_list.append(new._bitstore)
-            replacement_list.append(
-                self._bitstore.getslice(starting_points[i] + len(old), starting_points[i + 1]))
-        # Final replacement
-        replacement_list.append(new._bitstore)
-        replacement_list.append(self._bitstore.getslice(starting_points[-1] + len(old), None))
-        self._bitstore.clear()
-        for r in replacement_list:
-            self._bitstore += r
-        return len(starting_points)
+        return self._bitstore.replace(old._bitstore, new._bitstore, start=start, end=end,
+                                      count=count, bytealigned=bytealigned)
 
     def replace(self, old: BitsType, new: BitsType, start: Optional[int] = None, end: Optional[int] = None,
                 count: Optional[int] = None, bytealigned: Optional[bool] = None) -> int:
@@ -349,7 +327,7 @@ class BitArray(Bits):
         if new is self:
             # Prevent self assignment woes
             new = copy.copy(self)
-        return self._replace(old, new, start, end, 0 if count is None else count, bytealigned)
+        return self._replace(old, new, start, end, count, bytealigned)
 
     def insert(self, bs: BitsType, pos: int) -> None:
         """Insert bs at bit position pos.
@@ -500,9 +478,7 @@ class BitArray(Bits):
         bits %= (end - start)
         if not bits:
             return
-        rhs = self._slice(end - bits, end)
-        self._delete(bits, end - bits)
-        self._insert(rhs, start)
+        self._bitstore.rotate_right(bits, start=start, end=end)
 
     def rol(self, bits: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
         """Rotate bits to the left in-place.
@@ -525,9 +501,7 @@ class BitArray(Bits):
         bits %= (end - start)
         if bits == 0:
             return
-        lhs = self._slice(start, start + bits)
-        self._delete(bits, start)
-        self._insert(lhs, end - bits)
+        self._bitstore.rotate_left(bits, start=start, end=end)
 
     def byteswap(self, fmt: Optional[Union[int, Iterable[int], str]] = None, start: Optional[int] = None,
                  end: Optional[int] = None, repeat: bool = True) -> int:

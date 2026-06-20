@@ -3,10 +3,53 @@
 
 ### Upcoming: version 5.0
 
+This version completes the move to the `tibs` Rust library as the core bit storage
+and manipulation layer. The optional Rust backend introduced in 4.4 is now the only
+backend, which removes a lot of compatibility code and should allow more optimisation
+work from here.
+
 Breaking changes:
 
-* Removed LSB0 mode.
-* Removed deprecated method of setting module options.
+* Removed the `bitarray` dependency. The `tibs` dependency is now required.
+* Removed the optional backend selection mechanism. The `BITSTRING_USE_RUST_CORE`
+  environment variable and `bitstring.options.using_rust_core` flag no longer exist.
+* Removed `bitarray` compatibility from the public API. Bitstrings can no longer be
+  initialised directly from `bitarray` objects, the `bitarray=` keyword initialiser
+  has been removed, and the `tobitarray()` method has been removed.
+* Removed LSB0 mode. This removes `bitstring.options.lsb0` and all LSB0-specific
+  indexing, slicing, reading, packing, unpacking and pretty-printing behaviour.
+* Removed the deprecated module-level way of setting options. Use
+  `bitstring.options.bytealigned` rather than `bitstring.bytealigned`.
+* Removed `bitstring.lsb0`, `bitstring.bytealigned` and `bitstring.options.using_rust_core`
+  from the module's exported names.
+
+Other changes and fixes:
+
+* Added faster direct read paths for many dtypes, avoiding temporary bitstring
+  allocation when reading from `BitStream` and `ConstBitStream`.
+* Improved construction from `bytes`, `memoryview`, `BytesIO` and files with offsets
+  and lengths by using tibs offset/length support directly.
+* File-backed bitstrings with a non-zero offset no longer have to read the whole file
+  into memory.
+* Added a faster `cut()` path for immutable bitstrings.
+* Improved string-token creation with a fast path for literal-only strings such as
+  `0xff, 0b101, 0o7`.
+* Fixed signed and unsigned integer interpretation for very large bitstrings that are
+  wider than tibs' native integer conversion range.
+* Fixed `Array.fromfile()` to honour the file object's current position, to reject
+  negative item counts, and to report short reads correctly.
+* Fixed `Array.insert()` clamping for very negative indices to match `list.insert`.
+* Fixed in-place `Array` arithmetic and bitwise operations with another `Array` so
+  they update and return the original object.
+* Fixed scaled `Dtype` equality and hashing so dtypes with different scale factors
+  compare as distinct.
+* Fixed parsing of repeated token groups so `0*(...)` is allowed and negative repeat
+  factors are rejected.
+* Fixed repeated construction of `Options()` so it no longer resets existing option
+  values.
+* Fixed bitstore equality comparisons against unrelated object types.
+* Added more regression tests around the tibs-backed bitstore, `Array` operations,
+  dtype scaling, token parsing and option handling.
 
 ### March 2026: version 4.4.0
 

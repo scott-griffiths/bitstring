@@ -712,12 +712,10 @@ class Bits:
         """Interpret as a little-endian unsigned int."""
         if len(self) % 8:
             raise bitstring.InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
-        bs = ConstBitStore.from_bytes(self._bitstore.to_bytes()[::-1])
-        return bs.to_u()
+        return self._bitstore.byte_swapped().to_u()
 
     def _readuintle(self, pos: int, length: int) -> int:
-        bs = ConstBitStore.from_bytes(self._bitstore.read_bytes(pos, length)[::-1])
-        return bs.to_u()
+        return self._bitstore.getslice(pos, pos + length).byte_swapped().to_u()
 
     def _setintle(self, intle: int, length: Optional[int] = None) -> None:
         if length is None and hasattr(self, 'len') and len(self) != 0:
@@ -730,12 +728,10 @@ class Bits:
         """Interpret as a little-endian signed int."""
         if len(self) % 8:
             raise bitstring.InterpretError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
-        bs = ConstBitStore.from_bytes(self._bitstore.to_bytes()[::-1])
-        return bs.to_i()
+        return self._bitstore.byte_swapped().to_i()
 
     def _readintle(self, pos: int, length: int) -> int:
-        bs = ConstBitStore.from_bytes(self._bitstore.read_bytes(pos, length)[::-1])
-        return bs.to_i()
+        return self._bitstore.getslice(pos, pos + length).byte_swapped().to_i()
 
     def _getp4binary(self) -> float:
         u = self._getuint()
@@ -1137,7 +1133,7 @@ class Bits:
     def _reversebytes(self, start: int, end: int) -> None:
         """Reverse bytes in-place."""
         assert (end - start) % 8 == 0
-        self._bitstore[start:end] = ConstBitStore.from_bytes(self._bitstore.getslice(start, end).to_bytes()[::-1])
+        self._bitstore.byte_swap(start, end)
 
     def _invert(self, pos: int, /) -> None:
         """Flip bit at pos 1<->0."""
