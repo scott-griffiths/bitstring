@@ -20,7 +20,7 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 class TestModuleData:
 
     def test_all(self):
-        exported = ['ConstBitStream', 'BitStream', 'BitArray',
+        exported = ['Reader', 'BitArray',
                     'Bits', 'pack', 'Error', 'ReadError', 'Array',
                     'InterpretError', 'ByteAlignError', 'CreationError', 'Dtype', 'options']
         assert set(bitstring.__all__) == set(exported)
@@ -53,21 +53,12 @@ class TestCopy:
         assert not ba._bitstore is ba_copy._bitstore
         assert ba == ba_copy
 
-    def test_const_bit_stream_copy(self):
-        cbs = bitstring.ConstBitStream(100)
-        cbs.pos = 50
-        cbs_copy = copy.copy(cbs)
-        assert cbs_copy.pos == 0
-        assert cbs._bitstore is cbs_copy._bitstore
-        assert cbs == cbs_copy
-
-    def test_bit_stream_copy(self):
-        bs = bitstring.BitStream(100)
-        bs.pos = 50
-        bs_copy = copy.copy(bs)
-        assert bs_copy.pos == 0
-        assert not bs._bitstore is bs_copy._bitstore
-        assert bs == bs_copy
+    def test_reader_copy(self):
+        bits = bitstring.Bits(100)
+        r = bitstring.Reader(bits, 50)
+        r_copy = copy.copy(r)
+        assert r_copy.pos == 50
+        assert r_copy.bits is bits
 
 
 class TestInterning:
@@ -78,9 +69,9 @@ class TestInterning:
         c = bitstring.Bits('0b1111')
         assert not a is c
 
-    def test_cbs(self):
-        a = bitstring.ConstBitStream('0b11000')
-        b = bitstring.ConstBitStream('0b11000')
+    def test_bits_cache(self):
+        a = bitstring.Bits('0b11000')
+        b = bitstring.Bits('0b11000')
         assert a._bitstore is b._bitstore
         assert not a is b
 
@@ -147,13 +138,9 @@ class TestABCs:
         assert not isinstance(bitarray, abc.MutableSequence)
         assert not isinstance(bitarray, abc.Sequence)
 
-        constbitstream = bitstring.ConstBitStream()
-        assert not isinstance(constbitstream, abc.Sequence)
-        assert not isinstance(constbitstream, abc.MutableSequence)
-
-        bitstream = bitstring.BitArray()
-        assert not isinstance(bitstream, abc.MutableSequence)
-        assert not isinstance(bitstream, abc.Sequence)
+        bitarray = bitstring.BitArray()
+        assert not isinstance(bitarray, abc.MutableSequence)
+        assert not isinstance(bitarray, abc.Sequence)
 
 
 class TestNoFixedLengthPackingBug:
@@ -171,21 +158,25 @@ class TestNoFixedLengthPackingBug:
         assert a.hex == 'abcd'
 
     def test_reading_bytes_with_no_length(self):
-        a = bitstring.BitStream(b'hello')
+        a = bitstring.Reader(bitstring.Bits(b'hello'))
         b = a.read('bytes')
         assert b == b'hello'
 
     def test_reading_bin_with_no_length(self):
-        a = bitstring.BitStream('0b1101')
+        a = bitstring.Reader(bitstring.Bits('0b1101'))
         b = a.read('bin')
         assert b == '1101'
 
     def test_reading_uint_with_no_length(self):
-        a = bitstring.BitStream('0b1101')
+        a = bitstring.Reader(bitstring.Bits('0b1101'))
         b = a.read('uint')
         assert b == 13
 
     def test_reading_float_with_no_length(self):
-        a = bitstring.BitStream(float=14, length=16)
+        a = bitstring.Reader(bitstring.Bits(float=14, length=16))
         b = a.read('float')
         assert b == 14.0
+
+    def test_pack_returns_bitarray(self):
+        a = bitstring.pack('uint8=1')
+        assert isinstance(a, bitstring.BitArray)

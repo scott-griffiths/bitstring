@@ -8,39 +8,29 @@ Quick Reference
 
 This section gives a summary of the bitstring module's classes, functions and attributes.
 
-There are four main classes that are bit containers, so that each element is a single bit.
-They differ based on whether they can be modified after creation and on whether they have the concept of a current bit position.
+There are two main classes that are bit containers, so that each element is a single bit.
+They differ based on whether they can be modified after creation. Sequential reading is provided by wrapping either class in a :class:`Reader`.
 
 .. |nbsp| unicode:: 0xa0
    :trim:
 
 .. list-table::
-   :widths: 20 15 15 50
+   :widths: 20 15 50
    :header-rows: 1
 
    * - Class
      - Mutable?
-     - Streaming methods?
      -
    * - :ref:`bits_quick_reference`
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
      - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
      - An efficient, immutable container of bits.
    * - :ref:`bitarray_quick_reference`
      - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
      - Like ``Bits`` but it can be changed after creation.
-   * - :ref:`constbitstream_quick_reference`
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
-     - Immutable like ``Bits`` but with a bit position and reading methods.
-   * - :ref:`bitstream_quick_reference`
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
-     - Mutable like ``BitArray`` but with a bit position and reading methods.
 
 
-The final class is a flexible container whose elements are fixed-length bitstrings.
+The :class:`Reader` class wraps either bit container with a current bit position for reading.
+The :class:`Array` class is a flexible container whose elements are fixed-length bitstrings.
 
 .. list-table::
    :widths: 20 15 15 50
@@ -188,55 +178,34 @@ The special methods available for the ``Bits`` class are all available, plus som
 
 ----
 
-.. _constbitstream_quick_reference:
+.. _reader_quick_reference:
 
 
-ConstBitStream
---------------
+Reader
+------
 
-``Bits`` ⟶ ``ConstBitStream``
+:class:`Reader` wraps a :class:`Bits` or :class:`BitArray` with a current bit position.
 
-:class:`ConstBitStream` adds a bit position and methods to read and navigate in an immutable bitstream.
-If you wish to use streaming methods on a large file without changing it then this is often the best class to use.
+``Reader(bits: Bits | BitArray, pos: int = 0)``
 
-The constructor is the same as for ``Bits`` / ``BitArray`` but with an optional current bit position.
+Methods
+^^^^^^^
 
-``ConstBitStream(auto, length: Optional[int], offset: Optional[int], pos: int = 0, **kwargs)``
+* :meth:`~Reader.bytealign` -- Align to next byte boundary.
+* :meth:`~Reader.find` -- Find a sub-bitstring and move ``pos`` if found.
+* :meth:`~Reader.peek` -- Peek at and interpret next bits as a single item.
+* :meth:`~Reader.peeklist` -- Peek at and interpret next bits as a list of items.
+* :meth:`~Reader.read` -- Read and interpret next bits as a single item.
+* :meth:`~Reader.readlist` -- Read and interpret next bits as a list of items.
+* :meth:`~Reader.readto` -- Read up to and including next occurrence of a bitstring.
+* :meth:`~Reader.rfind` -- Search backwards and move ``pos`` if found.
 
-All of the methods, special methods and properties listed above for the ``Bits`` class are available, plus:
+Properties
+^^^^^^^^^^
 
-Additional methods
-^^^^^^^^^^^^^^^^^^
-
-* :meth:`~ConstBitStream.bytealign` -- Align to next byte boundary.
-* :meth:`~ConstBitStream.peek` -- Peek at and interpret next bits as a single item.
-* :meth:`~ConstBitStream.peeklist` -- Peek at and interpret next bits as a list of items.
-* :meth:`~ConstBitStream.read` -- Read and interpret next bits as a single item.
-* :meth:`~ConstBitStream.readlist` -- Read and interpret next bits as a list of items.
-* :meth:`~ConstBitStream.readto` -- Read up to and including next occurrence of a bitstring.
-
-Additional properties
-^^^^^^^^^^^^^^^^^^^^^
-
-* :attr:`~ConstBitStream.bytepos` -- The current byte position in the bitstring.
-* :attr:`~ConstBitStream.pos` -- The current bit position in the bitstring.
-
-----
-
-.. _bitstream_quick_reference:
-
-
-BitStream
----------
-
-``Bits`` ⟶ ``BitArray / ConstBitStream`` ⟶ ``BitStream``
-
-
-:class:`BitStream` contains all of the 'stream' elements of ``ConstBitStream`` and adds all of the mutating methods of ``BitArray``.
-The constructor is the same as for ``ConstBitStream``.
-It has all the methods, special methods and properties of the ``Bits``, ``BitArray`` and ``ConstBitArray`` classes.
-
-It is the most general of the four classes, but it is usually best to choose the simplest class for your use case.
+* :attr:`~Reader.bits` -- The wrapped ``Bits`` or ``BitArray`` object.
+* :attr:`~Reader.bytepos` -- The current byte position.
+* :attr:`~Reader.pos` -- The current bit position.
 
 ----
 
@@ -517,7 +486,7 @@ Module level
 
 Functions
 ^^^^^^^^^
-* :func:`~bitstring.pack` -- Create a new ``BitStream`` according to a format string and values.
+* :func:`~bitstring.pack` -- Create a new ``BitArray`` according to a format string and values.
 
 Exceptions
 ^^^^^^^^^^

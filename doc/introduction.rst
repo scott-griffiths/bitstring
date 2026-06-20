@@ -10,28 +10,28 @@ Introduction
 The bitstring classes
 ---------------------
 
-Five classes are provided by the bitstring module, four are simple containers of bits:
+Four classes are provided by the bitstring module. Two are simple containers of bits:
 
 * :class:`Bits`: This is the most basic class. It is immutable and so its contents can't be changed after creation.
 * :class:`BitArray`: This adds mutating methods to its base class.
-* :class:`ConstBitStream`: This adds methods and properties to allow the bits to be treated as a stream of bits, with a bit position and reading/parsing methods.
-* :class:`BitStream`: This is the most versatile class, having both the bitstream methods and the mutating methods.
 
 :class:`Bits` and :class:`BitArray` are intended to loosely mirror the ``bytes`` and ``bytearray`` types in Python.
-The term 'bitstring' is used in this documentation to refer generically to any of these four classes.
+The term 'bitstring' is used in this documentation to refer generically to either of these classes.
 
-The fifth class is :class:`Array` which is a container of fixed-length bitstrings.
+The :class:`Reader` class wraps either a :class:`Bits` or :class:`BitArray` object with a bit position for sequential reading.
+The :class:`Array` class is a container of fixed-length bitstrings.
 The rest of this introduction mostly concerns the more basic types - for more details on :class:`Array` you can go directly to the reference documentation, but understanding how bit format strings are specified will be helpful.
 
 
 To summarise when to use each class:
 
-* If you need to change the contents of the bitstring then you must use :class:`BitArray` or :class:`BitStream`. Truncating, replacing, inserting, appending etc. are not available for the const classes.
-* If you need to use a bitstring as the key in a dictionary or as a member of a ``set`` then you must use :class:`Bits` or a :class:`ConstBitStream`. As :class:`BitArray` and :class:`BitStream` objects are mutable they do not support hashing and so cannot be used in these ways.
-* If you are creating directly from a file then a :class:`BitArray` or :class:`BitStream` will read the whole file into memory whereas a :class:`Bits` or :class:`ConstBitStream` will not, so using the const classes allows extremely large files to be examined.
+* If you need to change the contents of the bitstring then use :class:`BitArray`. Truncating, replacing, inserting, appending etc. are not available for :class:`Bits`.
+* If you need to use a bitstring as the key in a dictionary or as a member of a ``set`` then use :class:`Bits`. :class:`BitArray` objects are mutable and so cannot be used in these ways.
+* If you are creating directly from a file then :class:`BitArray` will read the whole file into memory whereas :class:`Bits` will not, so using :class:`Bits` allows extremely large files to be examined.
+* If you need sequential reads then create a :class:`Reader` around either kind of bitstring.
 * If you don't need the extra functionality of a particular class then the simpler ones might be faster and more memory efficient. The fastest and most memory efficient class is :class:`Bits`.
 
-The :class:`Bits` class is the base class of the other three class. This means that ``isinstance(s, Bits)`` will be true if ``s`` is an instance of any of the four classes.
+The :class:`Bits` class is the base class of :class:`BitArray`. This means that ``isinstance(s, Bits)`` will be true for both bit container classes.
 
 ----
 
@@ -53,7 +53,7 @@ Some of the keyword arguments that can be used are:
 * ``intne``, ``uintne``: Signed or unsigned byte-wise native-endian binary integers.
 * ``float`` / ``floatbe``, ``floatle``, ``floatne``: Big, little and native endian floating point numbers.
 * ``bool`` : A boolean (i.e. True or False).
-* ``filename`` : Directly from a file, without reading into memory if using :class:`Bits` or :class:`ConstBitStream`.
+* ``filename`` : Directly from a file, without reading into memory if using :class:`Bits`.
 
 There are also various other flavours of 16-bit, 8-bit and smaller floating point types (see :ref:`Exotic floats`) and exponential-Golomb integer types (see :ref:`exp-golomb`).
 
@@ -64,7 +64,7 @@ For example::
 
    a = Bits(hex='deadbeef')
    b = BitArray(f32=100.25)  # or = BitArray(float=100.25, length=32)
-   c = ConstBitStream(filename='a_big_file')
+   c = Bits(filename='a_big_file')
    d = Bits(u12=105)
    e = BitArray(bool=True)
 
@@ -320,6 +320,6 @@ It's also possible to use the 'auto' initialiser for file objects. It's as simpl
     For the immutable types ``Bits`` and ``ConstBitstream`` the file is memory mapped (mmap) in a read-only mode for efficiency.
 
     This behaves slightly differently depending on the platform; in particular Windows will lock the file against any further writing whereas Unix-like systems will not.
-    This means that you won't be able to write to the file from Windows OS while the ``Bits`` or ``ConstBitStream`` object exists.
+    This means that you won't be able to write to the file from Windows OS while the ``Bits`` object exists.
 
-    The work-arounds for this are to either (i) Delete the object before opening the file for writing, (ii) Use either ``BitArray`` or ``BitStream`` which will read the whole file into memory or (iii) Stop using Windows (or run in WSL).
+    The work-arounds for this are to either (i) Delete the object before opening the file for writing, (ii) Use ``BitArray`` which will read the whole file into memory or (iii) Stop using Windows (or run in WSL).

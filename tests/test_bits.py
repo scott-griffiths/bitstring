@@ -385,8 +385,8 @@ class TestWrongTypeBug:
         with pytest.raises(AttributeError):
             a.append("0b1")
         assert type(a) == Bits
-        b = bitstring.ConstBitStream(bitstring.BitStream())
-        assert type(b) == bitstring.ConstBitStream
+        b = Bits(BitArray())
+        assert type(b) == Bits
 
 
 class TestInitFromArray:

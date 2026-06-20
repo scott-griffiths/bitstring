@@ -7,14 +7,13 @@ Classes:
 
 Bits -- An immutable container for binary data.
 BitArray -- A mutable container for binary data.
-ConstBitStream -- An immutable container with streaming methods.
-BitStream -- A mutable container with streaming methods.
+Reader -- Wraps a Bits or BitArray with a bit position for sequential reading.
 Array -- An efficient list-like container where each item has a fixed-length binary format.
 Dtype -- Encapsulate the data types used in the other classes.
 
 Functions:
 
-pack -- Create a BitStream from a format string.
+pack -- Create a BitArray from a format string.
 
 Data:
 
@@ -65,7 +64,7 @@ import bitstring.bitstore_tibs as bitstore
 from .bits import Bits
 from .bitstring_options import Options
 from .bitarray_ import BitArray
-from .bitstream import ConstBitStream, BitStream
+from .reader import Reader
 from .methods import pack
 from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
@@ -321,12 +320,6 @@ if Bits.__doc__ is not None:
     Bits.__doc__ = Bits.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
 if BitArray.__doc__ is not None:
     BitArray.__doc__ = BitArray.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
-if ConstBitStream.__doc__ is not None:
-    ConstBitStream.__doc__ = ConstBitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
-if BitStream.__doc__ is not None:
-    BitStream.__doc__ = BitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
-
-
-__all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
+__all__ = ['Reader', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
            'ByteAlignError', 'CreationError', 'Dtype', 'options']

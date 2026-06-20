@@ -16,7 +16,7 @@ When parsing a bitstring one way to write code is in the following style::
     height = s.read(12).uint
     flags = s.read(4).bin
  
-This works fine, but is not very quick. The problem is that the call to :meth:`~ConstBitStream.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
+This works fine, but is not very quick. The problem is that the call to :meth:`~Reader.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
 
     width = s.read('uint12')
     height = s.read('uint12')
@@ -29,11 +29,9 @@ This is much faster, although probably not as fast as the combined call::
 Choose the simplest class you can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you don't need to modify your bitstring after creation then prefer the immutable :class:`Bits` over the mutable :class:`BitArray`. This is typically the case when parsing, or when creating directly from files.
+If you don't need to modify your bitstring after creation then prefer the immutable :class:`Bits` over the mutable :class:`BitArray`. This is typically the case when parsing, or when creating directly from files. Wrap it in a :class:`Reader` if you need sequential reads.
 
 The speed difference between the classes is noticeable, and there are also memory usage optimisations that are made if objects are known to be immutable.
-
-You should also prefer :class:`ConstBitStream` to :class:`BitStream` if you won't need to modify any bits.
 
 One anti-pattern to watch out for is using ``+=`` on a :class:`Bits` object. For example, don't do this::
 

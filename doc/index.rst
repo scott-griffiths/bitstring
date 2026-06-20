@@ -56,7 +56,7 @@ The :ref:`reference` section has a complete list of all the classes, methods, pr
 
     * :class:`Bits` - an immutable container of bits.
     * :class:`BitArray` - adds mutating methods to ``Bits``.
-    * :class:`BitStream` - adds a bit position and read methods.
+    * :class:`Reader` - wraps ``Bits`` or ``BitArray`` with a bit position and read methods.
     * :class:`Array` - an array of bitstrings of the same type.
 
 
@@ -94,13 +94,13 @@ It also demonstrates how it can be flexibly modified and sliced using standard n
     0.0010000000474974513
 
 
-The module also supplies the :class:`BitStream` class, which adds a bit position so that objects can also be read from, searched in, and navigated in, similar to a file or stream.
+The module also supplies the :class:`Reader` class, which wraps a bitstring with a bit position so that it can be read from, searched in, and navigated in, similar to a file or stream.
 
 Bitstrings are designed to be as lightweight as possible and can be considered to be just a list of binary digits. They are however stored efficiently - although there are a variety of ways of creating and viewing the binary data, the bitstring itself just stores the byte data, and all views are calculated as needed, and are not stored as part of the object.
 
 The different views or interpretations on the data are accessed through properties such as :attr:`~Bits.hex`, :attr:`~Bits.bin` and :attr:`~Bits.int`, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.
 
-There are also companion classes called :class:`Bits` and :class:`ConstBitStream` which are immutable versions of :class:`BitArray` and :class:`BitStream` respectively.
+:class:`Bits` is immutable and :class:`BitArray` is mutable. A :class:`Reader` can wrap either class, so the reading position is kept separate from the bit data itself.
 See the reference documentation for full details.
 
 Arrays of bitstrings
@@ -153,5 +153,3 @@ Credits
 Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files. Maintained and expanded ever since as it became unexpectedly popular. Thanks to all those who have contributed ideas, code and bug reports over the years.
 
 These docs are styled using the `Piccolo theme <https://github.com/piccolo-orm/piccolo_theme>`_.
-
-

@@ -395,8 +395,8 @@ class TestArrayMethods:
         a.byteswap()
         assert a.tolist() == [0.25, 104, -6]
 
-    def test_to_file(self):
-        filename = os.path.join(THIS_DIR, 'temp_bitstring_unit_testing_file')
+    def test_to_file(self, tmp_path):
+        filename = tmp_path / 'temp_bitstring_unit_testing_file'
         a = Array('uint5', [0, 1, 2, 3, 4, 5])
         with open(filename, 'wb') as f:
             a.tofile(f)

@@ -18,6 +18,10 @@ Breaking changes:
   has been removed, and the `tobitarray()` method has been removed.
 * Removed LSB0 mode. This removes `bitstring.options.lsb0` and all LSB0-specific
   indexing, slicing, reading, packing, unpacking and pretty-printing behaviour.
+* Removed the `ConstBitStream` and `BitStream` classes. Use `Reader(Bits(...))`
+  for immutable sequential reading, or `Reader(BitArray(...))` when the wrapped
+  bitstring also needs to be mutated.
+* `pack()` now returns a `BitArray` instead of a `BitStream`.
 * Removed the deprecated module-level way of setting options. Use
   `bitstring.options.bytealigned` rather than `bitstring.bytealigned`.
 * Removed `bitstring.lsb0`, `bitstring.bytealigned` and `bitstring.options.using_rust_core`
@@ -26,7 +30,10 @@ Breaking changes:
 Other changes and fixes:
 
 * Added faster direct read paths for many dtypes, avoiding temporary bitstring
-  allocation when reading from `BitStream` and `ConstBitStream`.
+  allocation when reading through `Reader`.
+* Added the `Reader` class, which wraps a `Bits` or `BitArray` object and stores
+  an independent bit position for `read`, `readlist`, `peek`, `peeklist`, `readto`,
+  `find`, `rfind` and `bytealign`.
 * Improved construction from `bytes`, `memoryview`, `BytesIO` and files with offsets
   and lengths by using tibs offset/length support directly.
 * File-backed bitstrings with a non-zero offset no longer have to read the whole file

@@ -58,7 +58,7 @@ $ pip install bitstring
 
 ### Creation
 ```pycon
->>> from bitstring import Bits, BitArray, BitStream, pack
+>>> from bitstring import Bits, BitArray, Reader, pack
 >>> a = BitArray(bin='00101')
 >>> b = Bits(a_file_object)
 >>> c = BitArray('0xff, 0b101, 0o65, uint6=22')
@@ -79,7 +79,7 @@ BitArray('0x866906690669, 0b000')
 
 ### Reading data sequentially
 ```pycon
->>> b = BitStream('0x160120f')
+>>> b = Reader(Bits('0x160120f'))
 >>> b.read(12).hex
 '160'
 >>> b.pos = 0

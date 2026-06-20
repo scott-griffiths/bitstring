@@ -7,12 +7,12 @@ pack
 ^^^^
 .. function:: pack(format[, *values, **kwargs])
 
-   Packs the values and keyword arguments according to the *format* string and returns a new :class:`BitStream`.
+   Packs the values and keyword arguments according to the *format* string and returns a new :class:`BitArray`.
    
    :param format: string with comma separated tokens
-   :param values: extra values used to construct the :class:`BitStream`
+   :param values: extra values used to construct the :class:`BitArray`
    :param kwargs: a dictionary of token replacements
-   :rtype: BitStream
+   :rtype: BitArray
 
 The format string consists of comma separated tokens, see :ref:`format_tokens` and :ref:`compact_format` for details.
 
@@ -48,7 +48,7 @@ As an example of using just the ``*values`` arguments we can say::
 
 which is equivalent to initialising as::
 
-    s = BitStream('0x0000001b3, uint12=352, uint12=288')
+    s = BitArray('0x0000001b3, uint12=352, uint12=288')
 
 The advantage of the pack function is if you want to write more general code for creation. ::
 
@@ -177,4 +177,3 @@ Exceptions
 .. exception:: ReadError(Error, IndexError)
 
     Reading or peeking past the end of a bitstring.
-

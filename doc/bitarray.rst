@@ -63,15 +63,15 @@ Methods
 
     Inserts *bs* at *pos*.
 
-    When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~ConstBitStream.pos` will be immediately after the inserted bitstring. ::
+    ::
 
-        >>> s = BitStream('0xccee')
+        >>> s = BitArray('0xccee')
         >>> s.insert('0xd', 8)
         >>> s
-        BitStream('0xccdee')
-        >>> s.insert('0x00')
+        BitArray('0xccdee')
+        >>> s.insert('0x00', 12)
         >>> s
-        BitStream('0xccd00ee')
+        BitArray('0xccd00ee')
 
 .. method:: BitArray.invert(pos: int | Iterable[int] | None = None) -> None
 
@@ -94,14 +94,12 @@ Methods
 
     Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
 
-    When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~ConstBitStream.pos` will be immediately after the overwritten bitstring. ::
+    ::
 
         >>> s = BitArray(length=10)
         >>> s.overwrite('0b111', 3)
         >>> s
         BitArray('0b0001110000')
-        >>> s.pos
-        6
 
 .. method:: BitArray.prepend(bs: BitsType) -> None
 
@@ -297,4 +295,3 @@ Special Methods
         >>> s[-12:] = '0xf'
         >>> print(s)
         0x80808f
-

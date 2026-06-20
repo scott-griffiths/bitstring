@@ -3,7 +3,7 @@
 Bits
 ====
 
-The ``Bits`` class is the simplest type in the bitstring module, and represents an immutable sequence of bits. This is the best class to use if you will not need to modify the data after creation and don't need streaming methods.
+The ``Bits`` class is the simplest type in the bitstring module, and represents an immutable sequence of bits. This is the best class to use if you will not need to modify the data after creation.
 
 .. class:: Bits(auto: BitsType | int | None, /, length: int | None = None, offset: int | None = None, **kwargs)
 
@@ -11,7 +11,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
     You must specify either no initialiser, just an 'auto' value as the first parameter, or a keyword argument such as ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``float``, ``bool`` or ``filename`` (for example) to indicate the data type.
     If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
-    The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`, :class:`BitStream` and :class:`ConstBitStream`.
+    The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`.
 
     ``offset`` is available when using the ``bytes`` or ``filename`` initialisers.
     It gives a number of bits to ignore at the start of the bitstring.
@@ -124,7 +124,7 @@ Methods
 
 .. method:: Bits.find(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> Tuple[int] | Tuple[()]
 
-    Searches for *bs* in the current bitstring and sets :attr:`~ConstBitStream.pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
+    Searches for *bs* in the current bitstring and returns the start position in a tuple if found, otherwise it returns an empty tuple.
 
     The reason for returning the bit position in a tuple is so that it evaluates as True even if the bit position is zero. This allows constructs such as ``if s.find('0xb3'):`` to work as expected.
 
@@ -214,7 +214,7 @@ Methods
 
 .. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> Tuple[int] | Tuple[()]
 
-    Searches backwards for *bs* in the current bitstring and sets :attr:`~ConstBitStream.pos` to the start of *bs* and returns it in a tuple if found, otherwise it returns an empty tuple.
+    Searches backwards for *bs* in the current bitstring and returns the start position in a tuple if found, otherwise it returns an empty tuple.
 
     The reason for returning the bit position in a tuple is so that it evaluates as True even if the bit position is zero. This allows constructs such as ``if s.rfind('0xb3'):`` to work as expected.
 
@@ -306,7 +306,7 @@ Properties
 ----------
 
 The many ways to interpret bitstrings can be accessed via properties.
-These properties will be read-only for a ``Bits`` object, but are also writable for derived mutable types such as ``BitArray`` and ``BitStream``.
+These properties will be read-only for a ``Bits`` object, but are also writable for derived mutable types such as ``BitArray``.
 
 Properties can also have a length in bits appended to them to such as ``u8`` or ``f64`` (for the ``bytes`` property the length is interpreted in bytes instead of bits).
 These properties with lengths will cause an :exc:`InterpretError` to be raised if the bitstring is not of the specified length.
@@ -561,7 +561,7 @@ Special Methods
 
     Returns an integer hash of the :class:`Bits`.
 
-    This method is not available for the :class:`BitArray` or :class:`BitStream` classes, as only immutable objects should be hashed. You typically won't need to call it directly, instead it is used for dictionary keys and in sets.
+    This method is not available for the :class:`BitArray` class, as only immutable objects should be hashed. You typically won't need to call it directly, instead it is used for dictionary keys and in sets.
 
 .. method:: Bits.__invert__()
 
@@ -571,7 +571,7 @@ Special Methods
 
     If the bitstring is empty then an :exc:`Error` will be raised. ::
 
-        >>> s = ConstBitStream(‘0b1110010’)
+        >>> s = Bits('0b1110010')
         >>> print(~s)
         0b0001101
         >>> print(~s & s)
@@ -679,4 +679,3 @@ Special Methods
 
         >>> print(Bits('0x33') ^ '0x0f')
         0x3c
-

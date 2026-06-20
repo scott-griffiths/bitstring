@@ -50,7 +50,7 @@ def test_repeated_reading(benchmark):
     def repeating_reading():
         random.seed(1414)
         i = int.to_bytes(random.getrandbits(100000*8), 100000, 'big')
-        s = bitstring.ConstBitStream(bytes=i)
+        s = bitstring.Reader(bitstring.Bits(bytes=i))
         for _ in range(800000 // 40):
             _ = s.readlist('uint:4, float:32, bool, bool, bool, bool')
     benchmark(repeating_reading)

@@ -18,9 +18,7 @@ This section gives more information and usually examples.
    dtypes
    bits
    bitarray
-   constbitstream
-   bitstream
+   reader
    array
    functions
-
 

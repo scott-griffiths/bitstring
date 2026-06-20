@@ -21,7 +21,7 @@ class TestBasicFunctionality:
 
     def test_reading(self):
         b = Dtype('u8')
-        a = bs.BitStream('0xff00ff')
+        a = bs.Reader(bs.Bits('0xff00ff'))
         x = a.read(b)
         assert x == 255
         x = a.read(b)
@@ -60,7 +60,7 @@ class TestBasicFunctionality:
 
     def test_variable_lengths(self):
         d = Dtype('ue')
-        a = bs.BitStream().join([d.build(v) for v in [1, 100, 3, 17, 4]])
+        a = bs.Reader(bs.Bits().join([d.build(v) for v in [1, 100, 3, 17, 4]]))
         assert a.read(d) == 1
         assert a.read(d) == 100
         assert a.read(d) == 3
@@ -108,20 +108,23 @@ class TestChangingTheRegister:
 
     def test_removing_type(self):
         r = bs.dtype_register
+        bfloat = r['bfloat']
         del r['bfloat']
         with pytest.raises(KeyError):
             i = r['bfloat']
         with pytest.raises(KeyError):
             del r['penguin']
+        r.add_dtype(bfloat)
 
 
 class TestCreatingNewDtypes:
 
     def test_new_alias(self):
         bs.dtype_register.add_dtype_alias('bin', 'cat')
-        a = bs.BitStream('0b110110')
+        a = bs.BitArray('0b110110')
+        r = bs.Reader(a)
         assert a.cat == '110110'
-        assert a.read('cat4') == '1101'
+        assert r.read('cat4') == '1101'
         a.cat = '11110000'
         assert a.unpack('cat') == ['11110000']
 
@@ -140,9 +143,10 @@ class TestCreatingNewDtypes:
             return bs.count(1)
         md = DtypeDefinition('counter', None, get_fn)
         bs.dtype_register.add_dtype(md)
-        a = bs.BitStream('0x010f')
+        a = bs.BitArray('0x010f')
+        r = bs.Reader(a)
         assert a.counter == 5
-        assert a.readlist('2*counter8') == [1, 4]
+        assert r.readlist('2*counter8') == [1, 4]
         assert a.unpack('counter7, counter') == [0, 5]
         with pytest.raises(AttributeError):
             a.counter = 4

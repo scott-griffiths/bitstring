@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import bitstring
-from bitstring.bitstream import BitStream
+from bitstring.bitarray_ import BitArray
 from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
 from typing import Union, List
@@ -9,11 +9,11 @@ import bitstring.bitstore_helpers as helpers
 
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
-def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
-    """Pack the values according to the format string and return a new BitStream.
+def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitArray:
+    """Pack the values according to the format string and return a new BitArray.
 
     fmt -- A single string or a list of strings with comma separated tokens
-           describing how to create the BitStream.
+           describing how to create the BitArray.
     values -- Zero or more values to pack according to the format.
     kwargs -- A dictionary or keyword-value pairs - the keywords used in the
               format string will be replaced with their given value.
@@ -63,7 +63,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
             length = kwargs.get(length, length)
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
-                bsl.append(BitStream(kwargs[name])._bitstore)
+                bsl.append(BitArray(kwargs[name])._bitstore)
                 continue
             if length is not None:
                 length = int(length)
@@ -79,7 +79,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitStream:
         next(value_iter)
     except StopIteration:
         # Good, we've used up all the *values.
-        s = BitStream()
+        s = BitArray()
         for b in bsl:
             s._bitstore += b
         return s

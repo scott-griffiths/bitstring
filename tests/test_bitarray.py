@@ -480,11 +480,12 @@ class TestNewProperties:
         assert b == ['ff', 352, 288]
 
     def test_reading(self):
-        a = bitstring.BitStream.fromstring('0x01ff')
-        b = a.read('u8')
+        a = BitArray.fromstring('0x01ff')
+        r = bitstring.Reader(a)
+        b = r.read('u8')
         assert b == 1
-        assert a.pos == 8
-        assert a.read('i') == -1
+        assert r.pos == 8
+        assert r.read('i') == -1
 
     def test_longer_more_general_names(self):
         a = BitArray()
