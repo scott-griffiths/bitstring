@@ -10,20 +10,17 @@ work from here.
 
 Breaking changes:
 
-* Removed the `bitarray` dependency. The `tibs` dependency is now required.
-* Removed the optional backend selection mechanism. The `BITSTRING_USE_RUST_CORE`
-  environment variable and `bitstring.options.using_rust_core` flag no longer exist.
+* Removed the `ConstBitStream` and `BitStream` classes. Use `Reader(Bits(...))`
+  for immutable sequential reading, or `Reader(BitArray(...))` when the wrapped
+  bitstring also needs to be mutated.
 * Dropped support for Python 3.8 and 3.9. The minimum supported version is now
   Python 3.10.
-* Removed `bitarray` compatibility from the public API. Bitstrings can no longer be
+* Removed `bitarray` library compatibility from the public API. Bitstrings can no longer be
   initialised directly from `bitarray` objects, the `bitarray=` keyword initialiser
   has been removed, and the `tobitarray()` method has been removed.
 * Removed LSB0 mode. This removes `bitstring.options.lsb0` and all LSB0-specific
   indexing, slicing, reading, packing, unpacking and pretty-printing behaviour.
-* Removed the `ConstBitStream` and `BitStream` classes. Use `Reader(Bits(...))`
-  for immutable sequential reading, or `Reader(BitArray(...))` when the wrapped
-  bitstring also needs to be mutated.
-* `pack()` now returns a `BitArray` instead of a `BitStream`.
+* `pack()` now returns a `Bits` object instead of a `BitStream`.
 * `find()` and `rfind()` now return `int | None` instead of `(pos,)` or `()`.
   Use `result is not None` when testing whether a search succeeded, as bit
   position zero is a valid match.
@@ -33,11 +30,12 @@ Breaking changes:
 * Removed the `python -m bitstring` command-line interface.
 * Removed the deprecated module-level way of setting options. Use
   `bitstring.options.bytealigned` rather than `bitstring.bytealigned`.
-* Removed `bitstring.lsb0`, `bitstring.bytealigned` and `bitstring.options.using_rust_core`
-  from the module's exported names.
 
 Other changes and fixes:
 
+* Removed the `bitarray` dependency. The `tibs` dependency is now required.
+* Removed the optional backend selection mechanism. The `BITSTRING_USE_RUST_CORE`
+  environment variable and `bitstring.options.using_rust_core` flag no longer exist.
 * Added faster direct read paths for many dtypes, avoiding temporary bitstring
   allocation when reading through `Reader`.
 * Added the `Reader` class, which wraps a `Bits` or `BitArray` object and stores

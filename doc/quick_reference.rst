@@ -486,7 +486,7 @@ Module level
 
 Functions
 ^^^^^^^^^
-* :func:`~bitstring.pack` -- Create a new ``BitArray`` according to a format string and values.
+* :func:`~bitstring.pack` -- Create a new ``Bits`` object according to a format string and values.
 
 Exceptions
 ^^^^^^^^^^

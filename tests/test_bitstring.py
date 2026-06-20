@@ -123,6 +123,6 @@ class TestNoFixedLengthPackingBug:
         b = a.read('float')
         assert b == 14.0
 
-    def test_pack_returns_bitarray(self):
+    def test_pack_returns_bits(self):
         a = bitstring.pack('uint8=1')
-        assert isinstance(a, bitstring.BitArray)
+        assert type(a) is bitstring.Bits

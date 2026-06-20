@@ -337,7 +337,7 @@ def test_pack_legacy_cases():
     s = bitstring.pack('uint:6, bin, hex, int:6, se, ue, oct', 10, '0b110', 'ff', -1, -6, 6, '54')
     t = BitArray('uint:6=10, 0b110, 0xff, int:6=-1, se=-6, ue=6, oct=54')
     assert s == t
-    assert isinstance(s, BitArray)
+    assert type(s) is Bits
     with pytest.raises(ValueError):
         pack('tomato', '0')
     with pytest.raises(ValueError):
@@ -1142,7 +1142,7 @@ def test_float_initialisation_packing_and_reading():
         assert BitArray(float=f, length=32).float / f == pytest.approx(1.0)
         assert BitArray(float=f, length=16).float == pytest.approx(f, abs=0.01)
 
-    a = pack('>d', 0.01)
+    a = BitArray(pack('>d', 0.01))
     assert a.float == 0.01
     assert a.floatbe == 0.01
     a.byteswap()
@@ -1707,7 +1707,7 @@ def test_struct_token_multiplicative_factors_and_errors():
 
 
 def test_byteswap_int_pack_code_iterable_and_errors():
-    s = pack('5*uintle:16', *range(10, 15))
+    s = BitArray(pack('5*uintle:16', *range(10, 15)))
     assert list(range(10, 15)) == s.unpack('5*uintle:16')
     swaps = s.byteswap(2)
     assert list(range(10, 15)) == s.unpack('5*uintbe:16')

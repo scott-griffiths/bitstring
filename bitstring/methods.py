@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 import bitstring
-from bitstring.bitarray_ import BitArray
+from bitstring.bits import Bits
 from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
 import bitstring.bitstore_helpers as helpers
 
-MutableBitStore = bitstring.bitstore.MutableBitStore
+ConstBitStore = bitstring.bitstore.ConstBitStore
 
-def pack(fmt: str | list[str], *values, **kwargs) -> BitArray:
-    """Pack the values according to the format string and return a new BitArray.
+def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
+    """Pack the values according to the format string and return a new Bits object.
 
     fmt -- A single string or a list of strings with comma separated tokens
-           describing how to create the BitArray.
+           describing how to create the Bits.
     values -- Zero or more values to pack according to the format.
     kwargs -- A dictionary or keyword-value pairs - the keywords used in the
               format string will be replaced with their given value.
@@ -53,7 +53,7 @@ def pack(fmt: str | list[str], *values, **kwargs) -> BitArray:
     except ValueError as e:
         raise CreationError(*e.args)
     value_iter = iter(values)
-    bsl: list[MutableBitStore] = []
+    bsl: list[ConstBitStore] = []
     try:
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.
@@ -62,7 +62,7 @@ def pack(fmt: str | list[str], *values, **kwargs) -> BitArray:
             length = kwargs.get(length, length)
             # Also if we just have a dictionary name then we want to use it
             if name in kwargs and length is None and value is None:
-                bsl.append(BitArray(kwargs[name])._bitstore)
+                bsl.append(Bits(kwargs[name])._bitstore)
                 continue
             if length is not None:
                 length = int(length)
@@ -78,9 +78,9 @@ def pack(fmt: str | list[str], *values, **kwargs) -> BitArray:
         next(value_iter)
     except StopIteration:
         # Good, we've used up all the *values.
-        s = BitArray()
-        for b in bsl:
-            s._bitstore += b
+        s = Bits()
+        if bsl:
+            s._bitstore = ConstBitStore.join(bsl)
         return s
 
     raise CreationError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")

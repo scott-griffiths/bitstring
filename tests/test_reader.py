@@ -167,7 +167,7 @@ def test_mutable_bits_are_exposed_directly():
 
 def test_reader_with_pack_result():
     bits = pack("uint8, uint8", 1, 2)
-    assert isinstance(bits, BitArray)
+    assert type(bits) is Bits
     r = Reader(bits)
     assert r.read("uint8") == 1
     assert r.read("uint8") == 2

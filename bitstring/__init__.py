@@ -13,7 +13,7 @@ Dtype -- Encapsulate the data types used in the other classes.
 
 Functions:
 
-pack -- Create a BitArray from a format string.
+pack -- Create a Bits object from a format string.
 
 Data:
 
