@@ -13,6 +13,8 @@ Breaking changes:
 * Removed the `bitarray` dependency. The `tibs` dependency is now required.
 * Removed the optional backend selection mechanism. The `BITSTRING_USE_RUST_CORE`
   environment variable and `bitstring.options.using_rust_core` flag no longer exist.
+* Dropped support for Python 3.8 and 3.9. The minimum supported version is now
+  Python 3.10.
 * Removed `bitarray` compatibility from the public API. Bitstrings can no longer be
   initialised directly from `bitarray` objects, the `bitarray=` keyword initialiser
   has been removed, and the `tobitarray()` method has been removed.
