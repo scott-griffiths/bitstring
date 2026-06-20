@@ -10,21 +10,21 @@ There are however some pointers you should follow to make your code efficient, s
 Use combined read and interpretation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When parsing a bitstring one way to write code is in the following style::
+When parsing with a :class:`Reader`, one way to write code is in the following style::
 
-    width = s.read(12).uint
-    height = s.read(12).uint
-    flags = s.read(4).bin
+    width = r.read(12).uint
+    height = r.read(12).uint
+    flags = r.read(4).bin
  
 This works fine, but is not very quick. The problem is that the call to :meth:`~Reader.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
 
-    width = s.read('uint12')
-    height = s.read('uint12')
-    flags = s.read('bin4')
+    width = r.read('uint12')
+    height = r.read('uint12')
+    flags = r.read('bin4')
  
 This is much faster, although probably not as fast as the combined call::
 
-    width, height, flags = s.read_list('uint12, uint12, bin4')
+    width, height, flags = r.read_list('uint12, uint12, bin4')
  
 Choose the simplest class you can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

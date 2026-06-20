@@ -106,14 +106,14 @@ bytes
 
 A common need is to retrieve the raw bytes from a bitstring for further processing or for writing to a file. For this use the :py:attr:`~Bits.bytes` interpretation, which returns a ``bytes`` object.
 
-If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`~Bits.to_bytes` as this will be pad with between one and seven zero bits up to a byte boundary if necessary. ::
+If the length of the bitstring isn't a multiple of eight then a :exc:`ValueError` will be raised. This is because there isn't an unequivocal representation as ``bytes``. You may prefer to use the method :meth:`~Bits.to_bytes` as this will pad with between one and seven zero bits up to a byte boundary if necessary. ::
 
     >>> open('somefile', 'wb').write(a.to_bytes())
     >>> open('anotherfile', 'wb').write(('0x0'+a).bytes)
-    >>> a1 = BitArray(filename='somefile')
+    >>> a1 = BitArray.from_file('somefile')
     >>> a1.hex
     '1230'
-    >>> a2 = BitArray(filename='anotherfile')
+    >>> a2 = BitArray.from_file('anotherfile')
     >>> a2.hex
     '0123'
 
@@ -147,4 +147,3 @@ Some variable length integer types are supported.
 The lengths of these types depends upon the data being read and they are mainly used in video codecs.
 
 See :ref:`exp-golomb` for more information.
-

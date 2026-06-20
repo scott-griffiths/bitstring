@@ -242,9 +242,10 @@ Special Methods
 
         >>> s = BitArray(ue=423)
         >>> s += BitArray(ue=12)
-        >>> s.read('ue')
+        >>> r = Reader(s)
+        >>> r.read('ue')
         423
-        >>> s.read('ue')
+        >>> r.read('ue')
         12
 
 .. method:: BitArray.__iand__(bs)

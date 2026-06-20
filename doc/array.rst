@@ -10,7 +10,7 @@ Array
     This can be any format which has a fixed length.
     See :ref:`format_tokens` and :ref:`compact_format` for details on allowed dtype strings, noting that only formats with well defined bit lengths are allowed.
 
-    The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
+    The `initializer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
     It can also be an integer, in which case the ``Array`` will be zero-initialised with that many items. ::
 
         >>> bitstring.Array('i4', 8)
@@ -231,7 +231,9 @@ Methods
 
 .. method:: Array.from_file(f: BinaryIO, n: int | None = None) -> None
 
-    Append items read from a file object.
+    Append items read from the file object's current position.
+
+    If *n* is specified then at most that many items will be appended, and an :exc:`EOFError` will be raised if there is not enough data.
 
 .. method:: Array.insert(i: int, x: float | int | str | bytes) -> None
 
@@ -249,7 +251,7 @@ Methods
 
     If a position isn't specified the final item is returned and removed. ::
 
-        >>> Array('bytes3', [b'ABC', b'DEF', b'ZZZ'])
+        >>> a = Array('bytes3', [b'ABC', b'DEF', b'ZZZ'])
         >>> a.pop(0)
         b'ABC'
         >>> a.pop()
@@ -332,7 +334,7 @@ Methods
     Writes the Array data to the file object *f*, which should have been opened in binary write mode.
 
     The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
-    The file object remains open so the user must call `.close()` on it once they are finished.::
+    The file object remains open so the user must call ``.close()`` on it once they are finished.
 
 .. method:: Array.to_list() -> List[float | int | str | bytes]
 
@@ -553,5 +555,3 @@ Properties
     This will typically be an empty ``BitArray``, but if the ``dtype`` or the ``data`` of an ``Array`` object has been altered after its creation then there may be left-over bits at the end of the data.
 
     Note that any methods that append items to the ``Array`` will fail with a ``ValueError`` if there are any trailing bits.
-
-

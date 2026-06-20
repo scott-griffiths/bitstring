@@ -41,7 +41,7 @@ Constructing bitstrings
 When initialising a bitstring you need to specify at most one initialiser.
 This can either be the first parameter in the constructor ('auto' initialisation, described below), or using a keyword argument for a data type.
 
-``Bits(auto, /, length: Optional[int], offset: Optional[int], **kwargs)``
+``Bits(auto, /, length: int | None = None, offset: int | None = None, **kwargs)``
 
 Some of the keyword arguments that can be used are:
 
@@ -53,7 +53,6 @@ Some of the keyword arguments that can be used are:
 * ``intne``, ``uintne``: Signed or unsigned byte-wise native-endian binary integers.
 * ``float`` / ``floatbe``, ``floatle``, ``floatne``: Big, little and native endian floating point numbers.
 * ``bool`` : A boolean (i.e. True or False).
-* ``filename`` : Directly from a file, without reading into memory if using :class:`Bits`.
 
 There are also various other flavours of 16-bit, 8-bit and smaller floating point types (see :ref:`Exotic floats`) and exponential-Golomb integer types (see :ref:`exp-golomb`).
 
@@ -64,7 +63,7 @@ For example::
 
    a = Bits(hex='deadbeef')
    b = BitArray(f32=100.25)  # or = BitArray(float=100.25, length=32)
-   c = Bits(filename='a_big_file')
+   c = Bits.from_file('a_big_file')
    d = Bits(u12=105)
    e = BitArray(bool=True)
 
@@ -288,14 +287,14 @@ You may wonder why you would bother doing this in this case as the syntax is sli
 From raw byte data
 ^^^^^^^^^^^^^^^^^^
 
-Using the length and offset parameters to specify the length in bits and an offset at the start to be ignored is particularly useful when initialising from raw data or from a file. ::
+Using the length and offset parameters to specify the length in bits and an offset at the start to be ignored is particularly useful when creating bitstrings from raw data. ::
 
-    a = BitArray(bytes=b'\x00\x01\x02\xff', length=28, offset=1)
-    b = BitArray(bytes=open("somefile", 'rb').read())
+    a = BitArray.from_bytes(b'\x00\x01\x02\xff', length=28, offset=1)
+    b = BitArray.from_bytes(bytearray([0, 1, 2, 255]))
 
 The ``length`` parameter is optional; it defaults to the length of the data in bits (and so will be a multiple of 8). You can use it to truncate some bits from the end of the bitstring. The ``offset`` parameter is also optional and is used to truncate bits at the start of the data.
 
-You can also use a ``bytearray`` or a ``bytes`` object, either explicitly with a ``bytes=some_bytearray`` keyword, via :meth:`Bits.from_bytes`, or via the 'auto' initialiser::
+You can also use a ``bytearray`` or a ``bytes`` object, either via :meth:`Bits.from_bytes` or via the 'auto' initialiser::
 
     c = BitArray(a_bytearray_object)
     d = BitArray(b'\x23g$5')
@@ -304,9 +303,9 @@ You can also use a ``bytearray`` or a ``bytes`` object, either explicitly with a
 From a file
 ^^^^^^^^^^^
 
-Using the ``filename`` initialiser allows a file to be analysed without the need to read it all into memory. The way to create a file-based bitstring is::
+Using :meth:`Bits.from_file` with a path allows a file to be analysed without the need to read it all into memory. The way to create a file-based bitstring is::
 
-    p = Bits(filename="my200GBfile")
+    p = Bits.from_file("my200GBfile")
 
 This will open the file in binary read-only mode. The file will only be read as and when other operations require it, and the contents of the file will not be changed by any operations. If only a portion of the file is needed then the ``offset`` and ``length`` parameters (specified in bits) can be used.
 
@@ -314,8 +313,8 @@ Note that we created a :class:`Bits` here rather than a :class:`BitArray`, as th
 
 It's also possible to use :meth:`Bits.from_file` with a file object. It's as simple as::
 
-    f = open('my200GBfile', 'rb')
-    p = Bits.from_file(f)
+    with open('my200GBfile', 'rb') as f:
+        p = Bits.from_file(f)
 
 .. note::
 

@@ -51,11 +51,11 @@ Bits
 :class:`Bits` is the most basic class and is just a container of bits. It is immutable, so once created its value cannot change.
 
 
-``Bits(auto, /, length: Optional[int], offset: Optional[int], **kwargs)``
+``Bits(auto, /, length: int | None = None, offset: int | None = None, **kwargs)``
 
 The first parameter (usually referred to as `auto`) is most often a parsable string, a bytes-like object, or another bitstring. For zero-filled, bool-iterable, joined or file-based construction prefer the explicit factory methods below.
 
-A single initialiser from `kwargs` can be used instead of ``auto``, including  ``bin``, ``hex``, ``oct``, ``bool``, ``uint``, ``int``, ``float``, ``bytes`` and ``filename``.
+A single initialiser from `kwargs` can be used instead of ``auto``, including  ``bin``, ``hex``, ``oct``, ``bool``, ``uint``, ``int``, ``float`` and ``bytes``.
 
 Examples::
 
@@ -213,6 +213,7 @@ Properties
 ^^^^^^^^^^
 
 * :attr:`~Reader.bits` -- The wrapped ``Bits`` or ``BitArray`` object.
+* :attr:`~Reader.bitpos` -- Alias for :attr:`~Reader.pos`.
 * :attr:`~Reader.bytepos` -- The current byte position.
 * :attr:`~Reader.pos` -- The current bit position.
 
@@ -229,9 +230,9 @@ It is similar to the ``array`` type in the `array <https://docs.python.org/3/lib
 
 ``Array(dtype: str | Dtype, initializer, trailing_bits)``
 
-The `dtype` can any single fixed-length token as described in :ref:`format_tokens` and :ref:`compact_format`.
+The `dtype` can be any single fixed-length token as described in :ref:`format_tokens` and :ref:`compact_format`.
 
-The `inititalizer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
+The `initializer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
 It can also be an integer, in which case the ``Array`` will be zero-initialised with that many items.
 
 The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the data type `dtype`.
@@ -307,17 +308,17 @@ Mutating versions of many of the methods are also available.
 
 * :meth:`[] <Array.__setitem__>` -- Set an element or slice.
 * :meth:`del <Array.__delitem__>` -- Delete an element or slice.
-* :meth:`+= <Array.__add__>` -- Add value to each element in-place.
-* :meth:`-= <Array.__sub__>` -- Subtract value from each element in-place.
-* :meth:`*= <Array.__mul__>` -- Multiply each element by a value in-place.
-* :meth:`/= <Array.__truediv__>` -- Divide each element by a value in-place.
-* :meth:`//= <Array.__floordiv__>` -- Floor divide each element by a value in-place.
-* :meth:`%= <Array.__mod__>` -- Take modulus of each element with a value in-place.
-* :meth:`\<\<= <Array.__lshift__>` -- Shift bits of each element to the left in-place.
-* :meth:`>>= <Array.__rshift__>` -- Shift bits of each element to the right in-place.
-* :meth:`&= <Array.__and__>` -- In-place bit-wise AND of each element.
-* :meth:`|= <Array.__or__>` -- In-place bit-wise OR of each element.
-* :meth:`^= <Array.__xor__>` -- In-place bit-wise XOR of each element.
+* :meth:`+= <Array.__iadd__>` -- Add value to each element in-place.
+* :meth:`-= <Array.__isub__>` -- Subtract value from each element in-place.
+* :meth:`*= <Array.__imul__>` -- Multiply each element by a value in-place.
+* :meth:`/= <Array.__itruediv__>` -- Divide each element by a value in-place.
+* :meth:`//= <Array.__ifloordiv__>` -- Floor divide each element by a value in-place.
+* :meth:`%= <Array.__imod__>` -- Take modulus of each element with a value in-place.
+* :meth:`\<\<= <Array.__ilshift__>` -- Shift bits of each element to the left in-place.
+* :meth:`>>= <Array.__irshift__>` -- Shift bits of each element to the right in-place.
+* :meth:`&= <Array.__iand__>` -- In-place bit-wise AND of each element.
+* :meth:`|= <Array.__ior__>` -- In-place bit-wise OR of each element.
+* :meth:`^= <Array.__ixor__>` -- In-place bit-wise XOR of each element.
 
 Example::
 
@@ -338,7 +339,7 @@ Properties
 * :attr:`~Array.data` -- The complete binary data in a ``BitArray`` object. Can be freely modified.
 * :attr:`~Array.dtype` -- The data type or typecode. Can be freely modified.
 * :attr:`~Array.itemsize` -- The length *in bits* of a single item. Read only.
-* :attr:`~Array.trailing_bits` -- If the data length is not a multiple of the `dtype` length, this ``BitArray`` gives the leftovers at the end of the data.
+* :attr:`~Array.trailing_bits` -- If the data length is not a multiple of :attr:`~Array.itemsize`, this ``BitArray`` gives the leftovers at the end of the data.
 
 ----
 
@@ -349,7 +350,7 @@ Dtype
 
 A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to pack, unpack and present different bit interpretations.
 
-``Dtype(token: str, /, length: int | None, scale: int | float | None = None)``
+``Dtype(token: str, /, length: int | None = None, scale: int | float | None = None)``
 
 Creates a :class:`Dtype` object. Dtypes are immutable and cannot be changed after creation.
 

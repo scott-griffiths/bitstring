@@ -48,7 +48,7 @@ As an example of using just the ``*values`` arguments we can say::
 
 which is equivalent to initialising as::
 
-    s = Bits('0x0000001b3, uint12=352, uint12=288')
+    s = Bits('0x000001b3, uint12=352, uint12=288')
 
 The advantage of the pack function is if you want to write more general code for creation. ::
 

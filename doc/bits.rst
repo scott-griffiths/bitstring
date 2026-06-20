@@ -76,7 +76,7 @@ Methods
 
     Returns a copy of the bitstring.
 
-    ``s.copy()`` is equivalent to the shallow copy ``s[:]`` and creates a new copy of the bitstring in memory.
+    As ``Bits`` is immutable this can return ``self``. For a mutable copy use :meth:`to_bitarray`.
 
 
 .. method:: Bits.count(value: bool) -> int
@@ -151,7 +151,7 @@ Methods
 .. classmethod:: Bits.from_string(s: str, /) -> Bits
 
     Creates a new bitstring from the formatted string *s*.
-    It is equivalent to creating a new bitstring using *s* as the first parameters, but can be clearer to write and will be slightly faster.
+    It is equivalent to creating a new bitstring using *s* as the first parameter, but can be clearer to write and will be slightly faster.
 
 
         >>> b1 = Bits('int16=91')
@@ -311,15 +311,15 @@ Methods
     Writes the bitstring to the file object *f*, which should have been opened in binary write mode.
 
     The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
-    The file object remains open so the user must call `.close()` on it once they are finished.::
+    The file object remains open so the user must call ``.close()`` on it once they are finished.::
 
         >>> f = open('newfile', 'wb')
         >>> Bits('0x1234').to_file(f)
 
 
-.. method:: Bits.unpack(fmt: str | list[str | int], **kwargs) -> list[float | int | str | None | Bits]
+.. method:: Bits.unpack(fmt: str | list[str | int], **kwargs) -> list[float | int | str | Bits | bool | bytes | None]
 
-    Interprets the whole bitstring according to the *fmt* string or iterable and returns a list of bitstring objects.
+    Interprets the whole bitstring according to the *fmt* string or iterable and returns a list of values.
 
     A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string.
 
