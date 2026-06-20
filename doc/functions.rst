@@ -132,29 +132,6 @@ See https://no-color.org for more information.
 
 The terminal colours can also be turned off by setting ``bitstring.options.no_color`` to ``True``.
 
-----
-
-Command Line Usage
-------------------
-
-The bitstring module can be called from the command line to perform simple operations. For example::
-
-    $ python -m bitstring int16=-400
-    0xfe70
-
-    $ python -m bitstring float32=0.2 bin
-    00111110010011001100110011001101
-
-    $ python -m bitstring 0xff "3*0b01,0b11" uint
-    65367
-
-    $ python -m bitstring hex=01, uint12=352.hex
-    01160
-
-Command-line parameters are concatenated and a bitstring created from them. If the final parameter is either an interpretation string or ends with a ``.`` followed by an interpretation string then that interpretation of the bitstring will be used when printing it. If no interpretation is given then the bitstring is just printed.
-
-----
-
 Exceptions
 ----------
 

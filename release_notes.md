@@ -30,6 +30,7 @@ Breaking changes:
 * Optional range/search arguments such as `start`, `end`, `count` and
   `bytealigned` are now keyword-only for search, split, cut, replace and
   reverse/rotate-style methods.
+* Removed the `python -m bitstring` command-line interface.
 * Removed the deprecated module-level way of setting options. Use
   `bitstring.options.bytealigned` rather than `bitstring.bytealigned`.
 * Removed `bitstring.lsb0`, `bitstring.bytealigned` and `bitstring.options.using_rust_core`

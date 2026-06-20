@@ -2,15 +2,11 @@
 """
 Module-level unit tests.
 """
-import io
-from unittest import mock
-from contextlib import redirect_stdout
 import bitstring
 import copy
 from collections import abc
 import sys
 import os
-from bitstring import __main__
 
 
 sys.path.insert(0, '..')
@@ -74,56 +70,6 @@ class TestInterning:
         b = bitstring.Bits('0b11000')
         assert a._bitstore is b._bitstore
         assert not a is b
-
-
-class TestMain:
-    def test_running_module_directly_help(self):
-        with redirect_stdout(io.StringIO()) as f:
-            with mock.patch('sys.argv', ['bitstring.py', '-h']):
-                __main__.main()
-        s = f.getvalue()
-        assert s.find("command-line parameters") >= 0
-
-        with redirect_stdout(io.StringIO()) as f:
-            with mock.patch('sys.argv', ['renamed.py']):
-                __main__.main()
-        s = f.getvalue()
-        assert s.find("command-line parameters") >= 0
-
-    def test_running_module_with_single_parameter(self):
-        with redirect_stdout(io.StringIO()) as f:
-            with mock.patch('sys.argv', ['', 'uint:12=352']):
-                __main__.main()
-        s = f.getvalue()
-        assert s == '0x160\n'
-
-    def test_running_module_with_single_parameter_and_interpretation(self):
-        with redirect_stdout(io.StringIO()) as f:
-            with mock.patch('sys.argv', ['ignored', 'u12=352', 'i']):
-                __main__.main()
-        s = f.getvalue()
-        assert s == '352\n'
-
-    def test_running_module_with_multiple_parameters(self):
-        with redirect_stdout(io.StringIO()) as f:
-            with mock.patch('sys.argv', ['b.py', 'uint12=352', '0b101', '0o321', 'f32=51', 'bool=1']):
-                __main__.main()
-        s = f.getvalue()
-        assert s == '0x160ad1424c0000, 0b1\n'
-
-    def test_running_module_with_multiple_parameters_and_interpretation(self):
-        with redirect_stdout(io.StringIO()) as f:
-            with mock.patch('sys.argv', ['b.py', 'ue=1000', '0xff.bin']):
-                __main__.main()
-        s = f.getvalue()
-        assert s == '000000000111110100111111111\n'
-
-    def test_short_interpretations(self):
-        with redirect_stdout(io.StringIO()) as f:
-            with mock.patch('sys.argv', ['b.py', 'bin=001.b']):
-                __main__.main()
-        s = f.getvalue()
-        assert s == '001\n'
 
 
 class TestABCs:
