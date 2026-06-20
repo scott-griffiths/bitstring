@@ -463,7 +463,7 @@ class Bits:
 
         """
         found = Bits.find(self, bs, bytealigned=False)
-        return bool(found)
+        return found is not None
 
     def __hash__(self) -> int:
         """Return an integer hash of the object."""
@@ -1234,12 +1234,10 @@ class Bits:
         return vals, pos
 
     def find(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
-             bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
+             bytealigned: Optional[bool] = None) -> Optional[int]:
         """Find first occurrence of substring bs.
 
-        Returns a single item tuple with the bit position if found, or an
-        empty tuple if not found. The bit position (pos property) will
-        also be set to the start of the substring if it is found.
+        Returns the bit position if found, or None if not found.
 
         bs -- The bitstring to find.
         start -- The bit position to start the search. Defaults to 0.
@@ -1252,7 +1250,7 @@ class Bits:
         if end < start.
 
         >>> BitArray('0xc3e').find('0b1111')
-        (6,)
+        6
 
         """
         bs = Bits._create_from_bitstype(bs)
@@ -1262,10 +1260,9 @@ class Bits:
         p = self._find(bs, start, end, ba)
         return p
 
-    def _find(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _find(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Optional[int]:
         """Find first occurrence of a binary string."""
-        p = self._bitstore.find(bs._bitstore, start, end, bytealigned)
-        return () if p is None else (p,)
+        return self._bitstore.find(bs._bitstore, start, end, bytealigned)
 
     def findall(self, bs: BitsType, start: Optional[int] = None, end: Optional[int] = None, count: Optional[int] = None,
                 bytealigned: Optional[bool] = None) -> Iterable[int]:
@@ -1303,12 +1300,10 @@ class Bits:
 
 
     def rfind(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
-              bytealigned: Optional[bool] = None) -> Union[Tuple[int], Tuple[()]]:
+              bytealigned: Optional[bool] = None) -> Optional[int]:
         """Find final occurrence of substring bs.
 
-        Returns a single item tuple with the bit position if found, or an
-        empty tuple if not found. The bit position (pos property) will
-        also be set to the start of the substring if it is found.
+        Returns the bit position if found, or None if not found.
 
         bs -- The bitstring to find.
         start -- The bit position to end the reverse search. Defaults to 0.
@@ -1326,10 +1321,9 @@ class Bits:
         p = self._rfind(bs, start, end, ba)
         return p
 
-    def _rfind(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Union[Tuple[int], Tuple[()]]:
+    def _rfind(self, bs: Bits, start: int, end: int, bytealigned: bool) -> Optional[int]:
         """Find final occurrence of a binary string."""
-        p = self._bitstore.rfind(bs._bitstore, start, end, bytealigned)
-        return () if p is None else (p,)
+        return self._bitstore.rfind(bs._bitstore, start, end, bytealigned)
 
     def cut(self, bits: int, start: Optional[int] = None, end: Optional[int] = None,
             count: Optional[int] = None) -> Iterator[Bits]:
@@ -1402,24 +1396,24 @@ class Bits:
             return
         f = functools.partial(self._find, bs=delimiter, bytealigned=bytealigned_)
         found = f(start=start, end=end)
-        if not found:
+        if found is None:
             # Initial bits are the whole bitstring being searched
             yield self._slice(start, end)
             return
         # yield the bytes before the first occurrence of the delimiter, even if empty
-        yield self._slice(start, found[0])
-        startpos = pos = found[0]
+        yield self._slice(start, found)
+        startpos = pos = found
         c = 1
         while count is None or c < count:
             pos += len(delimiter)
             found = f(start=pos, end=end)
-            if not found:
+            if found is None:
                 # No more occurrences, so return the rest of the bitstring
                 yield self._slice(startpos, end)
                 return
             c += 1
-            yield self._slice(startpos, found[0])
-            startpos = pos = found[0]
+            yield self._slice(startpos, found)
+            startpos = pos = found
         # Have generated count bitstrings, so time to quit.
         return
 

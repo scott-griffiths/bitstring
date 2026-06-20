@@ -170,9 +170,9 @@ class Reader:
             self._ensure_valid_pos()
             bs = Bits._create_from_bitstype(bs)
             p = self.find(bs, self._pos, bytealigned=bytealigned)
-            if not p:
+            if p is None:
                 raise bitstring.ReadError("Substring not found")
-            self._pos += len(bs)
+            self._pos = p + len(bs)
             return self._bits._slice(old_pos, self._pos)
         except Exception:
             self._pos = old_pos
@@ -188,19 +188,19 @@ class Reader:
         return skipped
 
     def find(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
-             bytealigned: Optional[bool] = None):
+             bytealigned: Optional[bool] = None) -> Optional[int]:
         """Find a bitstring and set pos to the match position if found."""
         p = self._bits.find(bs, start, end, bytealigned)
-        if p:
-            self._pos = p[0]
+        if p is not None:
+            self._pos = p
         return p
 
     def rfind(self, bs: BitsType, /, start: Optional[int] = None, end: Optional[int] = None,
-              bytealigned: Optional[bool] = None):
+              bytealigned: Optional[bool] = None) -> Optional[int]:
         """Find a bitstring from the end and set pos to the match position if found."""
         p = self._bits.rfind(bs, start, end, bytealigned)
-        if p:
-            self._pos = p[0]
+        if p is not None:
+            self._pos = p
         return p
 
     def __len__(self) -> int:

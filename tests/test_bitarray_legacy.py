@@ -86,78 +86,78 @@ def test_reader_reads_exp_golomb_codes():
 
 def test_reader_find_variants():
     s = Reader(Bits(bin='0b0000110110000'))
-    assert s.find(BitArray(bin='11011'))
+    assert s.find(BitArray(bin='11011')) == 4
     assert s.bitpos == 4
     assert s.read(5).bin == '11011'
     s.bitpos = 0
-    assert not s.find('0b11001', False)
+    assert s.find('0b11001', False) is None
 
     s = Reader(BitArray(bin='0'))
-    assert s.find(s.bits, False)
+    assert s.find(s.bits, False) == 0
     assert s.pos == 0
-    assert not s.find('0b00', False)
+    assert s.find('0b00', False) is None
     with pytest.raises(ValueError):
         s.find(BitArray())
 
     s = Reader(BitArray(hex='0x112233')[4:])
-    assert s.find('0x23', False)
+    assert s.find('0x23', False) == 8
     assert s.pos == 8
 
 
 def test_reader_find_corner_cases():
     s = Reader(BitArray(bin='000111000111'))
-    assert s.find('0b000')
+    assert s.find('0b000') == 0
     assert s.pos == 0
-    assert s.find('0b000')
+    assert s.find('0b000') == 0
     assert s.pos == 0
-    assert s.find('0b0111000111')
+    assert s.find('0b0111000111') == 2
     assert s.pos == 2
-    assert s.find('0b000', start=2)
+    assert s.find('0b000', start=2) == 6
     assert s.pos == 6
-    assert s.find('0b111', start=6)
+    assert s.find('0b111', start=6) == 9
     assert s.pos == 9
     s.pos += 2
-    assert s.find('0b1', start=s.pos)
+    assert s.find('0b1', start=s.pos) == 11
 
 
 def test_reader_find_byte_aligned():
     s = Reader(BitArray.fromstring('0x010203040102ff'))
-    assert s.find('0x05', bytealigned=True) == ()
-    assert s.find('0x02', bytealigned=True) == (8,)
+    assert s.find('0x05', bytealigned=True) is None
+    assert s.find('0x02', bytealigned=True) == 8
     assert s.read(16).hex == '0203'
-    assert s.find('0x02', start=s.bitpos, bytealigned=True) == (40,)
+    assert s.find('0x02', start=s.bitpos, bytealigned=True) == 40
     s.read(1)
-    assert not s.find('0x02', start=s.bitpos, bytealigned=True)
+    assert s.find('0x02', start=s.bitpos, bytealigned=True) is None
 
     s = Reader(BitArray(hex='0x12345678'))
-    assert s.find(BitArray(hex='0x56'), bytealigned=True)
+    assert s.find(BitArray(hex='0x56'), bytealigned=True) == 16
     assert s.bytepos == 2
     s.pos = 0
-    assert not s.find(BitArray(hex='0x45'), bytealigned=True)
+    assert s.find(BitArray(hex='0x45'), bytealigned=True) is None
 
 
 def test_reader_rfind_variants():
     a = Reader(BitArray('0b001001001'))
     b = a.rfind('0b001')
-    assert b == (6,)
+    assert b == 6
     assert a.pos == 6
     big = BitArray(length=100000) + '0x12' + BitArray(length=10000)
     r = Reader(big)
     found = r.rfind('0x12', bytealigned=True)
-    assert found == (100000,)
+    assert found == 100000
     assert r.pos == 100000
 
     a = Reader(BitArray('0x8888'))
     b = a.rfind('0b1', bytealigned=True)
-    assert b == (8,)
+    assert b == 8
     assert a.pos == 8
 
     a = Reader(BitArray('0x0000ffffff'))
     b = a.rfind('0x0000', start=1, bytealigned=True)
-    assert b == ()
+    assert b is None
     assert a.pos == 0
     b = a.rfind('0x00', start=1, bytealigned=True)
-    assert b == (8,)
+    assert b == 8
     assert a.pos == 8
 
 
@@ -512,13 +512,13 @@ def test_file_creation_with_length_and_offset():
 
 def test_find_in_file_with_reader():
     r = Reader(BitArray(filename=os.path.join(THIS_DIR, 'test.m1v')))
-    assert r.find('0x160120')
+    assert r.find('0x160120') == 32
     assert r.bytepos == 4
     s3 = r.read(24)
     assert s3.hex == '160120'
     r.bytepos = 0
     assert r.pos == 0
-    assert r.find('0x0001b2')
+    assert r.find('0x0001b2') == 104
     assert r.bytepos == 13
 
 
@@ -1286,8 +1286,8 @@ def test_function_negative_indices():
     assert t == '0x77ab998666bf'
 
     r = Reader(t)
-    assert not r.find('0x998', bytealigned=True, start=-31)
-    assert r.find('0x998', bytealigned=True, start=-32)
+    assert r.find('0x998', bytealigned=True, start=-31) is None
+    assert r.find('0x998', bytealigned=True, start=-32) == 16
     assert r.pos == 16
 
 
@@ -1485,21 +1485,21 @@ def test_split_start_end_boundaries():
 def test_find_start_end_boundaries():
     a = Reader(BitArray('0b0010000100'))
     found = a.find('0b1', start=4)
-    assert (found, a.bitpos) == ((7,), 7)
+    assert (found, a.bitpos) == (7, 7)
     found = a.find('0b1', start=2)
-    assert (found, a.bitpos) == ((2,), 2)
+    assert (found, a.bitpos) == (2, 2)
     found = a.find('0b1', bytealigned=False, start=8)
-    assert (found, a.bitpos) == ((), 2)
+    assert (found, a.bitpos) == (None, 2)
 
     a = Reader(BitArray('0b0010010000'))
     found = a.find('0b1', bytealigned=False, end=2)
-    assert (found, a.bitpos) == ((), 0)
+    assert (found, a.bitpos) == (None, 0)
     found = a.find('0b1', end=3)
-    assert (found, a.bitpos) == ((2,), 2)
+    assert (found, a.bitpos) == (2, 2)
     found = a.find('0b1', bytealigned=False, start=3, end=5)
-    assert (found, a.bitpos) == ((), 2)
+    assert (found, a.bitpos) == (None, 2)
     found = a.find('0b1', start=3, end=6)
-    assert (found[0], a.bitpos) == (5, 5)
+    assert (found, a.bitpos) == (5, 5)
 
     b = Reader(BitArray('0x0011223344'))
     with pytest.raises(ValueError):
@@ -1997,9 +1997,9 @@ def test_efficient_overwrite_and_large_counts():
 
 def test_find_remaining_corner_cases():
     s = Reader(BitArray('0xff'))
-    assert s.find(s.bits)
-    assert not s.find(BitArray(hex='0x12'))
-    assert not s.find(BitArray(hex='0xffff'))
+    assert s.find(s.bits) == 0
+    assert s.find(BitArray(hex='0x12')) is None
+    assert s.find(BitArray(hex='0xffff')) is None
 
     s = Reader(BitArray(hex='0x1122334455'), pos=2)
     s.find('0x66', bytealigned=True)
@@ -2009,19 +2009,19 @@ def test_find_remaining_corner_cases():
     assert s.pos == 38
 
     s = Reader(BitArray('0x1234'))
-    assert s.find('0x1234')
-    assert s.find('0x1234')
+    assert s.find('0x1234') == 0
+    assert s.find('0x1234') == 0
     s.bits.append('0b111')
     s.pos = 3
-    assert not s.find('0b1', start=17, bytealigned=True)
+    assert s.find('0b1', start=17, bytealigned=True) is None
     assert s.pos == 3
 
 
 def test_rfind_endbit_cases():
     a = Reader(BitArray('0x000fff'))
     b = a.rfind('0b011', start=0, end=14, bytealigned=False)
-    assert bool(b) is True
-    assert a.rfind('0b011', 0, 13, False) == ()
+    assert b is not None
+    assert a.rfind('0b011', 0, 13, False) is None
 
 
 def test_remaining_shift_in_place_errors_and_whole_length():
@@ -2286,10 +2286,10 @@ def test_auto_creation_error_more(source):
 
 def test_more_auto_methods_and_split_with_self():
     s = BitArray('0b000000010100011000')
-    assert Reader(s).find('0b101')
+    assert Reader(s).find('0b101') == 7
     s = BitArray('0x00004700')
     r = Reader(s)
-    assert r.find('0b01000111', bytealigned=True)
+    assert r.find('0b01000111', bytealigned=True) == 16
     assert r.bytepos == 2
 
     s = BitArray('0x000143563200015533000123')
@@ -2580,8 +2580,8 @@ def test_function_negative_indices_more_cases():
     assert list(s.findall('0x1', bytealigned=True, end=-4)) == [0, 16, 24]
 
     r = Reader(s)
-    assert not r.rfind('0x1f', end=-1)
-    assert not r.rfind('0x12', start=-31)
+    assert r.rfind('0x1f', end=-1) is None
+    assert r.rfind('0x12', start=-31) is None
 
     s = BitArray('0x12345')
     assert list(s.cut(4, start=-12, end=-4)) == ['0x3', '0x4']

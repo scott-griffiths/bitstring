@@ -102,14 +102,14 @@ A number of methods take a bytealigned parameter to indicate that they should on
 
     >>> a = BitArray('0x00 ff 0f ff')
     >>> a.find('0x0f')
-    (4,)    # found first not on a byte boundary
+    4       # found first not on a byte boundary
     >>> a.find('0x0f', bytealigned=True)
-    (16,)   # forced looking only on byte boundaries
+    16      # forced looking only on byte boundaries
     >>> bitstring.options.bytealigned = True  # Change default behaviour
     >>> a.find('0x0f')
-    (16,)
+    16
     >>> a.find('0x0f', bytealigned=False)
-    (4,)
+    4
 
 If you’re only working with bytes then this can help avoid some errors and save some typing.
 

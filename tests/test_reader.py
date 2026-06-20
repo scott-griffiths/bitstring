@@ -93,6 +93,10 @@ def test_readlist_and_peeklist():
 
 
 def test_readto():
+    r = Reader(Bits("0xaabb"))
+    assert r.readto("0xaa", bytealigned=True) == "0xaa"
+    assert r.bytepos == 1
+
     r = Reader(Bits("0xaabb00aa00bb"))
     assert r.readto("0x00", bytealigned=True) == "0xaabb00"
     assert r.bytepos == 3
@@ -121,11 +125,11 @@ def test_bytealign():
 
 def test_find_and_rfind_update_pos_only_on_success():
     r = Reader(Bits("0b000111000111"), pos=5)
-    assert r.find("0b111") == (3,)
+    assert r.find("0b111") == 3
     assert r.pos == 3
-    assert not r.find("0b101")
+    assert r.find("0b101") is None
     assert r.pos == 3
-    assert r.rfind("0b111") == (9,)
+    assert r.rfind("0b111") == 9
     assert r.pos == 9
 
 

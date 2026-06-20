@@ -93,7 +93,7 @@ BitArray('0x866906690669, 0b000')
 ```pycon
 >>> c = BitArray('0b00010010010010001111')   # c.hex == '0x1248f'
 >>> c.find('0x48')
-(8,)
+8
 >>> c.replace('0b001', '0xabc')
 >>> c.insert('0b0000', pos=3)
 >>> del c[12:16]

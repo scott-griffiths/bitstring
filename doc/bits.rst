@@ -122,17 +122,17 @@ Methods
         False
 
 
-.. method:: Bits.find(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> Tuple[int] | Tuple[()]
+.. method:: Bits.find(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
 
-    Searches for *bs* in the current bitstring and returns the start position in a tuple if found, otherwise it returns an empty tuple.
+    Searches for *bs* in the current bitstring and returns the start position if found, otherwise it returns ``None``.
 
-    The reason for returning the bit position in a tuple is so that it evaluates as True even if the bit position is zero. This allows constructs such as ``if s.find('0xb3'):`` to work as expected.
+    As bit position zero is a valid result, use ``s.find(...) is not None`` when testing whether a match was found.
 
     If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). *start* and *end* give the search range and default to the whole bitstring. ::
 
         >>> s = Bits('0x0023122')
         >>> s.find('0b000100', bytealigned=True)
-        (16,)
+        16
 
 
 .. method:: Bits.findall(bs: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> Iterable[int]
@@ -212,11 +212,11 @@ Methods
     By default the output will have colours added in the terminal. This can be disabled - see :data:`bitstring.options.no_color` for more information.
 
 
-.. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> Tuple[int] | Tuple[()]
+.. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
 
-    Searches backwards for *bs* in the current bitstring and returns the start position in a tuple if found, otherwise it returns an empty tuple.
+    Searches backwards for *bs* in the current bitstring and returns the start position if found, otherwise it returns ``None``.
 
-    The reason for returning the bit position in a tuple is so that it evaluates as True even if the bit position is zero. This allows constructs such as ``if s.rfind('0xb3'):`` to work as expected.
+    As bit position zero is a valid result, use ``s.rfind(...) is not None`` when testing whether a match was found.
 
     If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions. *start* and *end* give the search range and default to ``0`` and :attr:`len` respectively.
 
@@ -224,9 +224,9 @@ Methods
 
         >>> s = Bits('0o031544')
         >>> s.rfind('0b100')
-        (15,)
+        15
         >>> s.rfind('0b100', end=17)
-        (12,)
+        12
 
 .. method:: Bits.split(delimiter: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> Iterable[Bits]
 

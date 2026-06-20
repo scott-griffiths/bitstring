@@ -22,6 +22,9 @@ Breaking changes:
   for immutable sequential reading, or `Reader(BitArray(...))` when the wrapped
   bitstring also needs to be mutated.
 * `pack()` now returns a `BitArray` instead of a `BitStream`.
+* `find()` and `rfind()` now return `int | None` instead of `(pos,)` or `()`.
+  Use `result is not None` when testing whether a search succeeded, as bit
+  position zero is a valid match.
 * Removed the deprecated module-level way of setting options. Use
   `bitstring.options.bytealigned` rather than `bitstring.bytealigned`.
 * Removed `bitstring.lsb0`, `bitstring.bytealigned` and `bitstring.options.using_rust_core`

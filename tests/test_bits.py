@@ -196,15 +196,18 @@ class TestInitialisation:
 
     def test_find(self):
         a = Bits("0xabcd")
+        assert a.find("0xab") == 0
+        assert "0xab" in a
         r = a.find("0xbc")
-        assert r[0] == 4
+        assert r == 4
         r = a.find("0x23462346246", bytealigned=True)
-        assert not r
+        assert r is None
 
     def test_rfind(self):
         a = Bits("0b11101010010010")
         b = a.rfind("0b010")
-        assert b[0] == 11
+        assert b == 11
+        assert a.rfind("0b111") == 0
 
     def test_find_all(self):
         a = Bits("0b0010011")

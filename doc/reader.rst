@@ -69,15 +69,15 @@ Methods
     Aligns :attr:`pos` to the next byte boundary and returns the number of bits
     skipped.
 
-.. method:: Reader.find(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> tuple[int] | tuple[()]
+.. method:: Reader.find(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
 
     Searches the wrapped bitstring and sets :attr:`pos` to the match position if
-    *bs* is found.
+    *bs* is found. Returns the match position, or ``None`` if not found.
 
-.. method:: Reader.rfind(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> tuple[int] | tuple[()]
+.. method:: Reader.rfind(bs: BitsType, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
 
     Searches backwards and sets :attr:`pos` to the match position if *bs* is
-    found.
+    found. Returns the match position, or ``None`` if not found.
 
 Properties
 ----------

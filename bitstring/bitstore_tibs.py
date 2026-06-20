@@ -363,10 +363,10 @@ class MutableBitStore:
     def __rshift__(self, n: int, /) -> MutableBitStore:
         return MutableBitStore(self.tibs >> n)
 
-    def find(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int:
+    def find(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         return self.tibs.find(bs.tibs, start, end, byte_aligned=bytealigned)
 
-    def rfind(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False):
+    def rfind(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned)
 
     def findall(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
