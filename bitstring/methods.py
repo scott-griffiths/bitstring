@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import bitstring
 from bitstring.bits import Bits
 from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
 import bitstring.bitstore_helpers as helpers
+
+ConstBitStore = bitstring.bitstore.ConstBitStore
 
 def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
     """Pack the values according to the format string and return a new Bits object.
@@ -75,6 +78,8 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
         next(value_iter)
     except StopIteration:
         # Good, we've used up all the *values.
-        return Bits.from_joined(bsl)
+        s = object.__new__(Bits)
+        s._bitstore = ConstBitStore.join(bsl)
+        return s
 
     raise CreationError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")

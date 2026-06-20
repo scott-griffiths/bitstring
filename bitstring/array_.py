@@ -16,11 +16,13 @@ import array
 import operator
 import io
 import sys
+import bitstring
 
 # The possible types stored in each element of the Array
 ElementType = float | str | int | bytes | bool | Bits
 
 options = Options()
+MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
 class Array:
@@ -405,16 +407,17 @@ class Array:
         if n is not None and n < 0:
             raise ValueError("n must be >= 0.")
 
-        item_bits = self._dtype.bitlength
+        item_bits = self.itemsize
         if n is None:
             b = f.read()
         else:
             bytes_needed = (n * item_bits + 7) // 8
             b = f.read(bytes_needed)
-        new_data = Bits(b)
-        max_items = len(new_data) // item_bits
+        max_items = len(b) * 8 // item_bits
         items_to_append = max_items if n is None else min(n, max_items)
-        self.data += new_data[0: items_to_append * item_bits]
+        bits_to_append = items_to_append * item_bits
+        if bits_to_append:
+            self.data._bitstore += MutableBitStore.from_bytes(b, length=bits_to_append)
         if n is not None and items_to_append < n:
             raise EOFError(f"Only {items_to_append} were appended, not the {n} items requested.")
 

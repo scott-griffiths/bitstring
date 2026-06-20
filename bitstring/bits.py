@@ -1309,13 +1309,15 @@ class Bits:
 
     def _findall(self, bs: Bits, start: int, end: int, count: int | None,
                       bytealigned: bool) -> Iterable[int]:
-        c = 0
-        for i in self._bitstore.findall(bs._bitstore, start, end, bytealigned):
-            if count is not None and c >= count:
+        positions = self._bitstore.findall(bs._bitstore, start, end, bytealigned)
+        if count is None:
+            yield from positions
+            return
+        for _ in range(count):
+            try:
+                yield next(positions)
+            except StopIteration:
                 return
-            c += 1
-            yield i
-        return
 
 
     def rfind(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
@@ -1361,16 +1363,11 @@ class Bits:
             raise ValueError("Cannot cut - count must be >= 0.")
         if bits <= 0:
             raise ValueError("Cannot cut - bits must be >= 0.")
-        if isinstance(self._bitstore, ConstBitStore):
-            source_tibs = self._bitstore.tibs if (start_ == 0 and end_ == len(self)) else self._bitstore.tibs[start_:end_]
+        if isinstance(self._bitstore, ConstBitStore) and start_ == 0 and end_ == len(self):
             cls = self.__class__
-            emitted = 0
-            for chunk_tibs in source_tibs.chunks_iter(bits):
-                if count is not None and emitted >= count:
-                    return
+            for chunk_tibs in self._bitstore.tibs.chunks_iter(bits, count):
                 chunk = object.__new__(cls)
                 chunk._bitstore = ConstBitStore(chunk_tibs)
-                emitted += 1
                 yield chunk
             return
         c = 0
@@ -1792,7 +1789,7 @@ class Bits:
         if length < 0:
             raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
         x = super().__new__(cls)
-        x._bitstore = ~ConstBitStore.from_zeros(length)
+        x._bitstore = ConstBitStore.from_ones(length)
         return x
 
     @classmethod

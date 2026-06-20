@@ -61,6 +61,12 @@ class ConstBitStore:
         return x
 
     @classmethod
+    def from_ones(cls, i: int):
+        x = super().__new__(cls)
+        x.tibs = Tibs.from_ones(i)
+        return x
+
+    @classmethod
     def from_bytes(cls, b: bytes | bytearray | memoryview, /, offset: int | None = None,
                    length: int | None = None) -> ConstBitStore:
         x = super().__new__(cls)
@@ -245,11 +251,36 @@ class MutableBitStore:
         return x
 
     @classmethod
+    def from_ones(cls, i: int):
+        x = super().__new__(cls)
+        x.tibs = Mutibs.from_ones(i)
+        return x
+
+    @classmethod
     def from_bytes(cls, b: bytes | bytearray | memoryview, /, offset: int | None = None,
                    length: int | None = None) -> MutableBitStore:
         x = super().__new__(cls)
         x.tibs = Mutibs.from_bytes(b, offset=offset, length=length)
         return x
+
+    @classmethod
+    def frombuffer(cls, buffer, /, length: int | None = None, offset: int | None = None) -> MutableBitStore:
+        mv = memoryview(buffer)
+        if offset is None:
+            offset = 0
+        if offset < 0:
+            raise CreationError("Can't create bitstring with a negative offset.")
+        if offset > mv.nbytes * 8:
+            raise CreationError(
+                f"Can't create bitstring with an offset of {offset} from {mv.nbytes * 8} bits of data.")
+        if length is not None:
+            if length < 0:
+                raise CreationError("Can't create bitstring with a negative length.")
+            if offset + length > mv.nbytes * 8:
+                raise CreationError(
+                    f"Can't create bitstring with a length of {length} bits from {mv.nbytes * 8 - offset} bits of data.")
+            return cls.from_bytes(mv, offset=offset, length=length)
+        return cls.from_bytes(mv, offset=offset)
 
     @classmethod
     def from_bools(cls, iterable: Iterable[Any], /) -> MutableBitStore:

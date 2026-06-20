@@ -177,7 +177,7 @@ class Dtype:
 
         The value parameter should be of a type appropriate to the dtype.
         """
-        b = bitstring.Bits()
+        b = object.__new__(bitstring.Bits)
         self._set_fn(b, value)
         if self.bitlength is not None and len(b) != self.bitlength:
             raise ValueError(f"Dtype has a length of {self.bitlength} bits, but value '{value}' has {len(b)} bits.")

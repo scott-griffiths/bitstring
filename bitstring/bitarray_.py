@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import mmap
 import numbers
 import pathlib
 import re
@@ -146,9 +147,8 @@ class BitArray(Bits):
     def from_bytes(cls: type[TBits], data: bytes | bytearray | memoryview, /, *,
                    length: int | None = None, offset: int = 0) -> TBits:
         """Create a new bitstring from a bytes-like object."""
-        bits = Bits.from_bytes(data, length=length, offset=offset)
         x = super().__new__(cls)
-        x._bitstore = bits._bitstore._mutable_copy()
+        x._bitstore = MutableBitStore.from_bytes(data, offset=offset, length=length)
         return x
 
     @classmethod
@@ -171,8 +171,11 @@ class BitArray(Bits):
     @classmethod
     def from_ones(cls: type[TBits], length: int, /) -> TBits:
         """Create a new bitstring containing length one bits."""
-        x = cls.from_zeros(length)
-        x._bitstore.invert()
+        length = int(length)
+        if length < 0:
+            raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
+        x = super().__new__(cls)
+        x._bitstore = MutableBitStore.from_ones(length)
         return x
 
     @classmethod
@@ -198,9 +201,23 @@ class BitArray(Bits):
     def from_file(cls: type[TBits], source: str | pathlib.Path | BinaryIO, /, *,
                   length: int | None = None, offset: int = 0) -> TBits:
         """Create a new bitstring from a file path or binary file object."""
-        bits = Bits.from_file(source, length=length, offset=offset)
         x = super().__new__(cls)
-        x._bitstore = bits._bitstore._mutable_copy()
+        filename = source if isinstance(source, (str, pathlib.Path)) else source.name
+        with open(pathlib.Path(filename), 'rb') as source_file:
+            m = mmap.mmap(source_file.fileno(), 0, access=mmap.ACCESS_READ)
+            file_bits = len(m) * 8
+            if offset == 0:
+                x._bitstore = MutableBitStore.frombuffer(m, length=length)
+            else:
+                if length is None:
+                    if offset > file_bits:
+                        raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({file_bits} bits).")
+                    x._bitstore = MutableBitStore.frombuffer(m, offset=offset)
+                else:
+                    if offset + length > file_bits:
+                        raise bitstring.CreationError(
+                            f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
+                    x._bitstore = MutableBitStore.frombuffer(m, offset=offset, length=length)
         return x
 
     def to_bits(self) -> Bits:
