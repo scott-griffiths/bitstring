@@ -4,7 +4,8 @@ import copy
 import numbers
 import re
 from collections import abc
-from typing import Union, Iterable, Any, Optional
+from typing import Any
+from collections.abc import Iterable
 from bitstring import utils
 from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
@@ -74,8 +75,8 @@ class BitArray(Bits):
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
 
-    def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
-                 offset: Optional[int] = None, **kwargs) -> None:
+    def __init__(self, auto: BitsType | int | None = None, /, length: int | None = None,
+                 offset: int | None = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, an integer, a file object,
         a bytearray, a boolean iterable or another bitstring.
@@ -116,8 +117,8 @@ class BitArray(Bits):
         """
         pass
 
-    def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
-                offset: Optional[int] = None, **kwargs) -> TBits:
+    def __new__(cls: Type[TBits], auto: BitsType | int | None = None, /, length: int | None = None,
+                offset: int | None = None, **kwargs) -> TBits:
         x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
@@ -173,7 +174,7 @@ class BitArray(Bits):
         s_copy._bitstore = self._bitstore._mutable_copy()
         return s_copy
 
-    def _setitem_int(self, key: int, value: Union[BitsType, int]) -> None:
+    def _setitem_int(self, key: int, value: BitsType | int) -> None:
         if isinstance(value, numbers.Integral):
             if value == 0:
                 self._bitstore[key] = 0
@@ -215,13 +216,13 @@ class BitArray(Bits):
                 raise TypeError(f"Bitstring, integer or string expected. Got {type(value)}.")
         self._bitstore.__setitem__(key, value._bitstore)
 
-    def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
+    def __setitem__(self, key: slice | int, value: BitsType) -> None:
         if isinstance(key, numbers.Integral):
             self._setitem_int(int(key), value)
         else:
             self._setitem_slice(key, value)
 
-    def __delitem__(self, key: Union[slice, int]) -> None:
+    def __delitem__(self, key: slice | int) -> None:
         """Delete item or range.
 
         >>> a = BitArray('0x001122')
@@ -289,15 +290,15 @@ class BitArray(Bits):
         self._bitstore ^= bs._bitstore
         return self
 
-    def _replace(self, old: Bits, new: Bits, start: Optional[int], end: Optional[int],
-                 count: Optional[int], bytealigned: Optional[bool]) -> int:
+    def _replace(self, old: Bits, new: Bits, start: int | None, end: int | None,
+                 count: int | None, bytealigned: bool | None) -> int:
         if bytealigned is None:
             bytealigned = bitstring.options.bytealigned
         return self._bitstore.replace(old._bitstore, new._bitstore, start=start, end=end,
                                       count=count, bytealigned=bytealigned)
 
-    def replace(self, old: BitsType, new: BitsType, *, start: Optional[int] = None, end: Optional[int] = None,
-                count: Optional[int] = None, bytealigned: Optional[bool] = None) -> int:
+    def replace(self, old: BitsType, new: BitsType, *, start: int | None = None, end: int | None = None,
+                count: int | None = None, bytealigned: bool | None = None) -> int:
         """Replace all occurrences of old with new in place.
 
         Returns number of replacements made.
@@ -391,14 +392,14 @@ class BitArray(Bits):
         self._addleft(bs)
 
     @staticmethod
-    def _normalise_positions(pos: Union[int, Iterable[int]]) -> Union[int, Iterable[int]]:
+    def _normalise_positions(pos: int | Iterable[int]) -> int | Iterable[int]:
         if not isinstance(pos, abc.Iterable):
             return pos
         if isinstance(pos, (list, tuple, range)):
             return pos
         return tuple(pos)
 
-    def reverse(self, *, start: Optional[int] = None, end: Optional[int] = None) -> None:
+    def reverse(self, *, start: int | None = None, end: int | None = None) -> None:
         """Reverse bits in-place.
 
         start -- Position of first bit to reverse. Defaults to 0.
@@ -418,7 +419,7 @@ class BitArray(Bits):
         s._bitstore.reverse()
         self[start:end] = s
 
-    def set(self, value: Any, pos: Optional[Union[int, Iterable[int]]] = None) -> None:
+    def set(self, value: Any, pos: int | Iterable[int] | None = None) -> None:
         """Set one or many bits to 1 or 0.
 
         value -- If bool(value) is True bits are set to 1, otherwise they are set to 0.
@@ -435,7 +436,7 @@ class BitArray(Bits):
             return
         self._bitstore.set(value, BitArray._normalise_positions(pos))
 
-    def invert(self, pos: Optional[Union[Iterable[int], int]] = None) -> None:
+    def invert(self, pos: Iterable[int] | int | None = None) -> None:
         """Invert one or many bits from 0 to 1 or vice versa.
 
         pos -- Either a single bit position or an iterable of bit positions.
@@ -449,7 +450,7 @@ class BitArray(Bits):
             return
         self._bitstore.invert(BitArray._normalise_positions(pos))
 
-    def ror(self, bits: int, *, start: Optional[int] = None, end: Optional[int] = None) -> None:
+    def ror(self, bits: int, *, start: int | None = None, end: int | None = None) -> None:
         """Rotate bits to the right in-place.
 
         bits -- The number of bits to rotate by.
@@ -465,14 +466,14 @@ class BitArray(Bits):
             raise ValueError("Cannot rotate by negative amount.")
         self._ror(bits, start, end)
 
-    def _ror(self, bits: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
+    def _ror(self, bits: int, start: int | None = None, end: int | None = None) -> None:
         start, end = self._validate_slice(start, end)
         bits %= (end - start)
         if not bits:
             return
         self._bitstore.rotate_right(bits, start=start, end=end)
 
-    def rol(self, bits: int, *, start: Optional[int] = None, end: Optional[int] = None) -> None:
+    def rol(self, bits: int, *, start: int | None = None, end: int | None = None) -> None:
         """Rotate bits to the left in-place.
 
         bits -- The number of bits to rotate by.
@@ -488,15 +489,15 @@ class BitArray(Bits):
             raise ValueError("Cannot rotate by negative amount.")
         self._rol(bits, start, end)
 
-    def _rol(self, bits: int, start: Optional[int] = None, end: Optional[int] = None):
+    def _rol(self, bits: int, start: int | None = None, end: int | None = None):
         start, end = self._validate_slice(start, end)
         bits %= (end - start)
         if bits == 0:
             return
         self._bitstore.rotate_left(bits, start=start, end=end)
 
-    def byteswap(self, fmt: Optional[Union[int, Iterable[int], str]] = None, start: Optional[int] = None,
-                 end: Optional[int] = None, repeat: bool = True) -> int:
+    def byteswap(self, fmt: int | Iterable[int] | str | None = None, start: int | None = None,
+                 end: int | None = None, repeat: bool = True) -> int:
         """Change the endianness in-place. Return number of repeats of fmt done.
 
         fmt -- A compact structure string, an integer number of bytes or

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import Any, List, Optional, Union, overload
+from typing import Any, overload
 
 import bitstring
 from bitstring.bits import Bits, BitsType
@@ -84,7 +84,7 @@ class Reader:
     def read(self, fmt: str) -> Any:
         ...
 
-    def read(self, fmt: Union[int, str, Dtype]) -> Union[int, float, str, Bits, bool, bytes, None]:
+    def read(self, fmt: int | str | Dtype) -> int | float | str | Bits | bool | bytes | None:
         """Read from the current bit position and interpret according to fmt."""
         old_pos = self._pos
         try:
@@ -121,8 +121,8 @@ class Reader:
             self._pos = old_pos
             raise
 
-    def readlist(self, fmt: Union[str, List[Union[int, str, Dtype]]], **kwargs) \
-            -> List[Union[int, float, str, Bits, bool, bytes, None]]:
+    def readlist(self, fmt: str | list[int | str | Dtype], **kwargs) \
+            -> list[int | float | str | Bits | bool | bytes | None]:
         """Read and interpret one or more format tokens from the current bit position."""
         old_pos = self._pos
         try:
@@ -144,7 +144,7 @@ class Reader:
     def peek(self, fmt: str) -> Any:
         ...
 
-    def peek(self, fmt: Union[int, str, Dtype]) -> Union[int, float, str, Bits, bool, bytes, None]:
+    def peek(self, fmt: int | str | Dtype) -> int | float | str | Bits | bool | bytes | None:
         """Read from the current bit position without changing the position."""
         old_pos = self._pos
         try:
@@ -152,8 +152,8 @@ class Reader:
         finally:
             self._pos = old_pos
 
-    def peeklist(self, fmt: Union[str, List[Union[int, str, Dtype]]], **kwargs) \
-            -> List[Union[int, float, str, Bits, bool, bytes, None]]:
+    def peeklist(self, fmt: str | list[int | str | Dtype], **kwargs) \
+            -> list[int | float | str | Bits | bool | bytes | None]:
         """Read one or more format tokens without changing the position."""
         old_pos = self._pos
         try:
@@ -161,7 +161,7 @@ class Reader:
         finally:
             self._pos = old_pos
 
-    def readto(self, bs: BitsType, /, *, bytealigned: Optional[bool] = None) -> Bits:
+    def readto(self, bs: BitsType, /, *, bytealigned: bool | None = None) -> Bits:
         """Read up to and including the next occurrence of bs."""
         if isinstance(bs, numbers.Integral):
             raise ValueError("Integers cannot be searched for")
@@ -187,16 +187,16 @@ class Reader:
         self._pos += skipped
         return skipped
 
-    def find(self, bs: BitsType, /, *, start: Optional[int] = None, end: Optional[int] = None,
-             bytealigned: Optional[bool] = None) -> Optional[int]:
+    def find(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
+             bytealigned: bool | None = None) -> int | None:
         """Find a bitstring and set pos to the match position if found."""
         p = self._bits.find(bs, start=start, end=end, bytealigned=bytealigned)
         if p is not None:
             self._pos = p
         return p
 
-    def rfind(self, bs: BitsType, /, *, start: Optional[int] = None, end: Optional[int] = None,
-              bytealigned: Optional[bool] = None) -> Optional[int]:
+    def rfind(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
+              bytealigned: bool | None = None) -> int | None:
         """Find a bitstring from the end and set pos to the match position if found."""
         p = self._bits.rfind(bs, start=start, end=end, bytealigned=bytealigned)
         if p is not None:

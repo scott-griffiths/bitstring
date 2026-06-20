@@ -4,12 +4,11 @@ import bitstring
 from bitstring.bitarray_ import BitArray
 from bitstring.utils import tokenparser
 from bitstring.exceptions import CreationError
-from typing import Union, List
 import bitstring.bitstore_helpers as helpers
 
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
-def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitArray:
+def pack(fmt: str | list[str], *values, **kwargs) -> BitArray:
     """Pack the values according to the format string and return a new BitArray.
 
     fmt -- A single string or a list of strings with comma separated tokens
@@ -54,7 +53,7 @@ def pack(fmt: Union[str, List[str]], *values, **kwargs) -> BitArray:
     except ValueError as e:
         raise CreationError(*e.args)
     value_iter = iter(values)
-    bsl: List[MutableBitStore] = []
+    bsl: list[MutableBitStore] = []
     try:
         for name, length, value in tokens:
             # If the value is in the kwd dictionary then it takes precedence.

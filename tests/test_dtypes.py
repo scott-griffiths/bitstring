@@ -1,8 +1,7 @@
-
 import pytest
 import sys
 import bitstring as bs
-from bitstring import Dtype, DtypeDefinition, Bits
+from bitstring import Dtype, DtypeDefinition
 
 sys.path.insert(0, '..')
 

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import functools
-from typing import Optional, Dict, Any, Union, Tuple, Callable
+from typing import Any
+from collections.abc import Callable
 import inspect
 import bitstring
 from bitstring import utils
@@ -9,19 +10,19 @@ from bitstring import utils
 CACHE_SIZE = 256
 
 
-def scaled_get_fn(get_fn, s: Union[int, float]):
+def scaled_get_fn(get_fn, s: int | float):
     def wrapper(*args, scale=s, **kwargs):
         return get_fn(*args, **kwargs) * scale
     return wrapper
 
 
-def scaled_set_fn(set_fn, s: Union[int, float]):
+def scaled_set_fn(set_fn, s: int | float):
     def wrapper(bs, value, *args, scale=s, **kwargs):
         return set_fn(bs, value / scale, *args, **kwargs)
     return wrapper
 
 
-def scaled_read_fn(read_fn, s: Union[int, float]):
+def scaled_read_fn(read_fn, s: int | float):
     def wrapper(*args, scale=s, **kwargs):
         val = read_fn(*args, **kwargs)
         if isinstance(val, tuple):
@@ -50,12 +51,12 @@ class Dtype:
     _is_signed: bool
     _set_fn_needs_length: bool
     _variable_length: bool
-    _bitlength: Optional[int]
+    _bitlength: int | None
     _bits_per_item: int
-    _length: Optional[int]
-    _scale: Union[None, float, int]
+    _length: int | None
+    _scale: None | float | int
 
-    def __new__(cls, token: Union[str, Dtype], /, length: Optional[int] = None, scale: Union[None, float, int] = None) -> Dtype:
+    def __new__(cls, token: str | Dtype, /, length: int | None = None, scale: None | float | int = None) -> Dtype:
         if isinstance(token, cls):
             return token
         if length is None:
@@ -66,7 +67,7 @@ class Dtype:
             return x
 
     @property
-    def scale(self) -> Union[int, float, None]:
+    def scale(self) -> int | float | None:
         """The multiplicative scale applied when interpreting the data."""
         return self._scale
 
@@ -81,7 +82,7 @@ class Dtype:
         return self._length
 
     @property
-    def bitlength(self) -> Optional[int]:
+    def bitlength(self) -> int | None:
         """The number of bits needed to represent a single instance of the data type. Set to None for variable length dtypes."""
         return self._bitlength
 
@@ -106,7 +107,7 @@ class Dtype:
         return self._is_signed
 
     @property
-    def set_fn(self) -> Optional[Callable]:
+    def set_fn(self) -> Callable | None:
         """A function to set the value of the data type."""
         return self._set_fn
 
@@ -120,7 +121,7 @@ class Dtype:
         """A function to read the value of the data type."""
         return self._read_fn
 
-    def _set_scale(self, value: Union[None, float, int]) -> None:
+    def _set_scale(self, value: None | float | int) -> None:
         self._scale = value
         if self._scale is None:
             return
@@ -136,7 +137,7 @@ class Dtype:
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
-    def _new_from_token(cls, token: str, scale: Union[None, float, int] = None) -> Dtype:
+    def _new_from_token(cls, token: str, scale: None | float | int = None) -> Dtype:
         token = ''.join(token.split())
         return dtype_register.get_dtype(*utils.parse_name_length_token(token), scale=scale)
 
@@ -145,7 +146,7 @@ class Dtype:
 
     @classmethod
     @functools.lru_cache(CACHE_SIZE)
-    def _create(cls, definition: DtypeDefinition, length: Optional[int], scale: Union[None, float, int]) -> Dtype:
+    def _create(cls, definition: DtypeDefinition, length: int | None, scale: None | float | int) -> Dtype:
         x = super().__new__(cls)
         x._name = definition.name
         x._bitlength = x._length = length
@@ -222,7 +223,7 @@ class Dtype:
 
 
 class AllowedLengths:
-    def __init__(self, value: Tuple[int, ...] = tuple()) -> None:
+    def __init__(self, value: tuple[int, ...] = tuple()) -> None:
         if len(value) >= 3 and value[-1] is Ellipsis:
             step = value[1] - value[0]
             for i in range(1, len(value) - 1):
@@ -255,7 +256,7 @@ class DtypeDefinition:
     Not (yet) part of the public interface."""
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn=None,
-                 variable_length: bool = False, allowed_lengths: Tuple[int, ...] = tuple(), multiplier: int = 1,
+                 variable_length: bool = False, allowed_lengths: tuple[int, ...] = tuple(), multiplier: int = 1,
                  description: str = '', read_fn=None):
 
         # Consistency checks
@@ -334,7 +335,7 @@ class DtypeDefinition:
             self.read_fn = read_fn
         self.bitlength2chars_fn = bitlength2chars_fn
 
-    def get_dtype(self, length: Optional[int] = None, scale: Union[None, float, int] = None) -> Dtype:
+    def get_dtype(self, length: int | None = None, scale: None | float | int = None) -> Dtype:
         if self.allowed_lengths:
             if length is None:
                 if self.allowed_lengths.only_one_value():
@@ -362,13 +363,13 @@ class DtypeDefinition:
 class Register:
     """A singleton class that holds all the DtypeDefinitions. Not (yet) part of the public interface."""
 
-    _instance: Optional[Register] = None
-    names: Dict[str, DtypeDefinition] = {}
+    _instance: Register | None = None
+    names: dict[str, DtypeDefinition] = {}
 
     def __new__(cls) -> Register:
         # Singleton. Only one Register instance can ever exist.
         if cls._instance is None:
-            cls._instance = super(Register, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     @classmethod
@@ -389,7 +390,7 @@ class Register:
             setattr(bitstring.bitarray_.BitArray, alias, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod
-    def get_dtype(cls, name: str, length: Optional[int], scale: Union[None, float, int] = None) -> Dtype:
+    def get_dtype(cls, name: str, length: int | None, scale: None | float | int = None) -> Dtype:
         try:
             definition = cls.names[name]
         except KeyError:

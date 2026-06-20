@@ -171,7 +171,7 @@ def test_setting_scaled_array():
     assert sa[:] == [0.0, 1.0, 2.0]
 
 def test_multiple_scaled_arrays():
-    d = bytes(b'hello_everyone!')
+    d = b'hello_everyone!'
     s1 = Array(Dtype('e2m1mxfp', scale=1), d)
     s2 = Array(Dtype('e2m1mxfp', scale=2**10), d)
     s3 = Array(Dtype('e2m1mxfp', scale=2**-10), d)

@@ -3,7 +3,8 @@ from __future__ import annotations
 from tibs import Tibs, Mutibs
 
 from bitstring.exceptions import CreationError
-from typing import Union, Iterable, Optional, Iterator, Any
+from typing import Any
+from collections.abc import Iterable, Iterator
 
 
 def _fallback_to_u(tibs: Tibs | Mutibs) -> int:
@@ -50,7 +51,7 @@ class ConstBitStore:
     @classmethod
     def join(cls, bitstores: Iterable[ConstBitStore], /) -> ConstBitStore:
         x = super().__new__(cls)
-        x.tibs = Tibs.from_joined((b.tibs for b in bitstores))
+        x.tibs = Tibs.from_joined(b.tibs for b in bitstores)
         return x
 
     @classmethod
@@ -60,8 +61,8 @@ class ConstBitStore:
         return x
 
     @classmethod
-    def from_bytes(cls, b: Union[bytes, bytearray, memoryview], /, offset: Optional[int] = None,
-                   length: Optional[int] = None) -> ConstBitStore:
+    def from_bytes(cls, b: bytes | bytearray | memoryview, /, offset: int | None = None,
+                   length: int | None = None) -> ConstBitStore:
         x = super().__new__(cls)
         x.tibs = Tibs.from_bytes(b, offset=offset, length=length)
         return x
@@ -73,7 +74,7 @@ class ConstBitStore:
         return x
 
     @classmethod
-    def frombuffer(cls, buffer, /, length: Optional[int] = None, offset: Optional[int] = None) -> ConstBitStore:  #TODO: Shouldn't need a default here.
+    def frombuffer(cls, buffer, /, length: int | None = None, offset: int | None = None) -> ConstBitStore:  #TODO: Shouldn't need a default here.
         mv = memoryview(buffer)
         if offset is None:
             offset = 0
@@ -106,7 +107,7 @@ class ConstBitStore:
     def read_bytes(self, start: int, length: int) -> bytes:
         return self.tibs.to_bytes(start, start + length)
 
-    def byte_swapped(self, start: Optional[int] = None, end: Optional[int] = None) -> ConstBitStore:
+    def byte_swapped(self, start: int | None = None, end: int | None = None) -> ConstBitStore:
         return ConstBitStore(self.tibs.byte_swapped(start=start, end=end))
 
     def to_u(self) -> int:
@@ -191,7 +192,7 @@ class ConstBitStore:
     def copy(self) -> ConstBitStore:
         return self
 
-    def __getitem__(self, item: Union[int, slice], /) -> Union[int, ConstBitStore]:
+    def __getitem__(self, item: int | slice, /) -> int | ConstBitStore:
         # Use getindex or getslice instead
         raise NotImplementedError
 
@@ -201,7 +202,7 @@ class ConstBitStore:
     def getslice_withstep(self, key: slice, /) -> ConstBitStore:
         return ConstBitStore(self.tibs[key])
 
-    def getslice(self, start: Optional[int], stop: Optional[int], /) -> ConstBitStore:
+    def getslice(self, start: int | None, stop: int | None, /) -> ConstBitStore:
         return ConstBitStore(self.tibs[start:stop])
 
     def any(self) -> bool:
@@ -234,7 +235,7 @@ class MutableBitStore:
     @classmethod
     def join(cls, bitstores: Iterable[MutableBitStore], /) -> MutableBitStore:
         x = super().__new__(cls)
-        x.tibs = Mutibs.from_joined((b.tibs for b in bitstores))
+        x.tibs = Mutibs.from_joined(b.tibs for b in bitstores)
         return x
 
     @classmethod
@@ -244,8 +245,8 @@ class MutableBitStore:
         return x
 
     @classmethod
-    def from_bytes(cls, b: Union[bytes, bytearray, memoryview], /, offset: Optional[int] = None,
-                   length: Optional[int] = None) -> MutableBitStore:
+    def from_bytes(cls, b: bytes | bytearray | memoryview, /, offset: int | None = None,
+                   length: int | None = None) -> MutableBitStore:
         x = super().__new__(cls)
         x.tibs = Mutibs.from_bytes(b, offset=offset, length=length)
         return x
@@ -276,7 +277,7 @@ class MutableBitStore:
     def read_bytes(self, start: int, length: int) -> bytes:
         return self.tibs.to_bytes(start, start + length)
 
-    def byte_swapped(self, start: Optional[int] = None, end: Optional[int] = None) -> MutableBitStore:
+    def byte_swapped(self, start: int | None = None, end: int | None = None) -> MutableBitStore:
         return MutableBitStore(self.tibs.byte_swapped(start=start, end=end))
 
     def to_u(self) -> int:
@@ -381,7 +382,7 @@ class MutableBitStore:
     def reverse(self) -> None:
         self.tibs.reverse()
 
-    def byte_swap(self, start: Optional[int], end: Optional[int]) -> None:
+    def byte_swap(self, start: int | None, end: int | None) -> None:
         self.tibs.byte_swap(start=start, end=end)
 
     # TODO: Should we remove iter from this mutable type?
@@ -399,7 +400,7 @@ class MutableBitStore:
     def copy(self) -> MutableBitStore:
         return self._mutable_copy()
 
-    def __getitem__(self, item: Union[int, slice], /) -> Union[int, MutableBitStore]:
+    def __getitem__(self, item: int | slice, /) -> int | MutableBitStore:
         # Use getindex or getslice instead
         raise NotImplementedError
 
@@ -409,10 +410,10 @@ class MutableBitStore:
     def getslice_withstep(self, key: slice, /) -> MutableBitStore:
         return MutableBitStore(self.tibs[key])
 
-    def getslice(self, start: Optional[int], stop: Optional[int], /) -> MutableBitStore:
+    def getslice(self, start: int | None, stop: int | None, /) -> MutableBitStore:
         return MutableBitStore(self.tibs[start:stop])
 
-    def invert(self, index: Optional[int] = None, /) -> None:
+    def invert(self, index: int | None = None, /) -> None:
         if index is not None:
             self.tibs.invert(index)
         else:
@@ -440,15 +441,15 @@ class MutableBitStore:
         return self.tibs.count(value)
 
     def replace(self, old: MutableBitStore | ConstBitStore, new: MutableBitStore | ConstBitStore,
-                start: Optional[int] = None, end: Optional[int] = None,
-                count: Optional[int] = None, bytealigned: bool = False) -> int:
+                start: int | None = None, end: int | None = None,
+                count: int | None = None, bytealigned: bool = False) -> int:
         return self.tibs.replace(old.tibs, new.tibs, start=start, end=end, count=count,
                                  byte_aligned=bytealigned)
 
-    def rotate_left(self, n: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
+    def rotate_left(self, n: int, start: int | None = None, end: int | None = None) -> None:
         self.tibs.rotate_left(n, start=start, end=end)
 
-    def rotate_right(self, n: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
+    def rotate_right(self, n: int, start: int | None = None, end: int | None = None) -> None:
         self.tibs.rotate_right(n, start=start, end=end)
 
     def __len__(self) -> int:

@@ -59,7 +59,7 @@ __version__ = "5.0.0"
 __author__ = "Scott Griffiths"
 
 import sys
-import bitstring.bitstore_tibs as bitstore
+import bitstring.bitstore_tibs as bitstore  # noqa: F401 - used as bitstring.bitstore by submodules.
 
 from .bits import Bits
 from .bitstring_options import Options
@@ -69,7 +69,7 @@ from .methods import pack
 from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 from .dtypes import DtypeDefinition, dtype_register, Dtype
-from typing import List, Tuple, Literal
+from typing import Literal
 from .mxfp import decompress_luts as mxfp_decompress_luts
 from .fp8 import decompress_luts as binary8_decompress_luts
 
@@ -109,7 +109,7 @@ def uint_bits2chars(bitlength: int):
 
 def int_bits2chars(bitlength: int):
     # How many characters is largest negative int of this length? (To include minus sign).
-    return len(str((-1 << (bitlength - 1))))
+    return len(str(-1 << (bitlength - 1)))
 
 
 def float_bits2chars(bitlength: Literal[16, 32, 64]):
@@ -275,7 +275,7 @@ dtype_definitions = [
 ]
 
 
-aliases: List[Tuple[str, str]] = [
+aliases: list[tuple[str, str]] = [
     # Floats default to big endian
     ('float', 'floatbe'),
     ('bfloat', 'bfloatbe'),

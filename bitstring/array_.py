@@ -4,7 +4,8 @@ import math
 import numbers
 from collections.abc import Sized
 from bitstring.exceptions import CreationError
-from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
+from typing import Any, BinaryIO, overload, TextIO
+from collections.abc import Iterable
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, dtype_register
@@ -17,7 +18,7 @@ import io
 import sys
 
 # The possible types stored in each element of the Array
-ElementType = Union[float, str, int, bytes, bool, Bits]
+ElementType = float | str | int | bytes | bool | Bits
 
 options = Options()
 
@@ -67,8 +68,8 @@ class Array:
 
     """
 
-    def __init__(self, dtype: Union[str, Dtype], initializer: Optional[Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview, BinaryIO]] = None,
-                 trailing_bits: Optional[BitsType] = None) -> None:
+    def __init__(self, dtype: str | Dtype, initializer: int | Array | array.array | Iterable | Bits | bytes | bytearray | memoryview | BinaryIO | None = None,
+                 trailing_bits: BitsType | None = None) -> None:
         self.data = BitArray()
         if isinstance(dtype, Dtype) and dtype.scale == 'auto':
             if isinstance(initializer, (int, Bits, bytes, bytearray, memoryview, BinaryIO)):
@@ -95,7 +96,7 @@ class Array:
     _largest_values = None
 
     @staticmethod
-    def _calculate_auto_scale(initializer, name: str, length: Optional[int]) -> float:
+    def _calculate_auto_scale(initializer, name: str, length: int | None) -> float:
         # Now need to find the largest power of 2 representable with this format.
         if Array._largest_values is None:
             Array._largest_values = {
@@ -147,10 +148,10 @@ class Array:
         return self._dtype
 
     @dtype.setter
-    def dtype(self, new_dtype: Union[str, Dtype]) -> None:
+    def dtype(self, new_dtype: str | Dtype) -> None:
         self._set_dtype(new_dtype)
 
-    def _set_dtype(self, new_dtype: Union[str, Dtype]) -> None:
+    def _set_dtype(self, new_dtype: str | Dtype) -> None:
         if isinstance(new_dtype, Dtype):
             self._dtype = new_dtype
         else:
@@ -186,7 +187,7 @@ class Array:
     def __getitem__(self, key: int) -> ElementType:
         ...
 
-    def __getitem__(self, key: Union[slice, int]) -> Union[Array, ElementType]:
+    def __getitem__(self, key: slice | int) -> Array | ElementType:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if step != 1:
@@ -215,7 +216,7 @@ class Array:
     def __setitem__(self, key: int, value: ElementType) -> None:
         ...
 
-    def __setitem__(self, key: Union[slice, int], value: Union[Iterable[ElementType], ElementType]) -> None:
+    def __setitem__(self, key: slice | int, value: Iterable[ElementType] | ElementType) -> None:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if not isinstance(value, Iterable):
@@ -243,7 +244,7 @@ class Array:
             self.data.overwrite(self._create_element(value), start)
             return
 
-    def __delitem__(self, key: Union[slice, int]) -> None:
+    def __delitem__(self, key: slice | int) -> None:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if step == 1:
@@ -268,12 +269,12 @@ class Array:
             self.data[-trailing_bit_length:])
         return f"Array('{self._dtype}', {list_str}{final_str})"
 
-    def astype(self, dtype: Union[str, Dtype]) -> Array:
+    def astype(self, dtype: str | Dtype) -> Array:
         """Return Array with elements of new dtype, initialised from current Array."""
         new_array = self.__class__(dtype, self.tolist())
         return new_array
 
-    def tolist(self) -> List[ElementType]:
+    def tolist(self) -> list[ElementType]:
         return [self._dtype.read_fn(self.data, start=start)
                 for start in range(0, len(self.data) - self._dtype.length + 1, self._dtype.length)]
 
@@ -282,7 +283,7 @@ class Array:
             raise ValueError("Cannot append to Array as its length is not a multiple of the format length.")
         self.data += self._create_element(x)
 
-    def extend(self, iterable: Union[Array, array.array, Iterable[Any]]) -> None:
+    def extend(self, iterable: Array | array.array | Iterable[Any]) -> None:
         if len(self.data) % self._dtype.length != 0:
             raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.length} bits).")
         if isinstance(iterable, Array):
@@ -367,7 +368,7 @@ class Array:
         """
         self.data.tofile(f)
 
-    def fromfile(self, f: BinaryIO, n: Optional[int] = None) -> None:
+    def fromfile(self, f: BinaryIO, n: int | None = None) -> None:
         trailing_bit_length = len(self.data) % self._dtype.bitlength
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.bitlength} bits).")
@@ -398,7 +399,7 @@ class Array:
                                                                start_swap_bit: start_swap_bit + self._dtype.length]
             self.data[start_swap_bit: start_swap_bit + self._dtype.length] = temp
 
-    def pp(self, fmt: Optional[str] = None, width: int = 120,
+    def pp(self, fmt: str | None = None, width: int = 120,
            show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty-print the Array contents.
 
@@ -489,7 +490,7 @@ class Array:
         a_copy.data = copy.copy(self.data)
         return a_copy
 
-    def _apply_op_to_all_elements(self, op, value: Union[int, float, None], is_comparison: bool = False) -> Array:
+    def _apply_op_to_all_elements(self, op, value: int | float | None, is_comparison: bool = False) -> Array:
         """Apply op with value to each element of the Array and return a new Array"""
         new_array = self.__class__('bool' if is_comparison else self._dtype)
         new_data = BitArray()
@@ -516,7 +517,7 @@ class Array:
         new_array.data = new_data
         return new_array
 
-    def _apply_op_to_all_elements_inplace(self, op, value: Union[int, float]) -> Array:
+    def _apply_op_to_all_elements_inplace(self, op, value: int | float) -> Array:
         """Apply op with value to each element of the Array in place."""
         # This isn't really being done in-place, but it's simpler and faster for now?
         new_data = BitArray()
@@ -626,83 +627,83 @@ class Array:
 
     # Operators between Arrays or an Array and scalar value
 
-    def __add__(self, other: Union[int, float, Array]) -> Array:
+    def __add__(self, other: int | float | Array) -> Array:
         """Add int or float to all elements."""
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.add, other)
         return self._apply_op_to_all_elements(operator.add, other)
 
-    def __iadd__(self, other: Union[int, float, Array]) -> Array:
+    def __iadd__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays_inplace(operator.add, other)
         return self._apply_op_to_all_elements_inplace(operator.add, other)
 
-    def __isub__(self, other: Union[int, float, Array]) -> Array:
+    def __isub__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays_inplace(operator.sub, other)
         return self._apply_op_to_all_elements_inplace(operator.sub, other)
 
-    def __sub__(self, other: Union[int, float, Array]) -> Array:
+    def __sub__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.sub, other)
         return self._apply_op_to_all_elements(operator.sub, other)
 
-    def __mul__(self, other: Union[int, float, Array]) -> Array:
+    def __mul__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.mul, other)
         return self._apply_op_to_all_elements(operator.mul, other)
 
-    def __imul__(self, other: Union[int, float, Array]) -> Array:
+    def __imul__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays_inplace(operator.mul, other)
         return self._apply_op_to_all_elements_inplace(operator.mul, other)
 
-    def __floordiv__(self, other: Union[int, float, Array]) -> Array:
+    def __floordiv__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.floordiv, other)
         return self._apply_op_to_all_elements(operator.floordiv, other)
 
-    def __ifloordiv__(self, other: Union[int, float, Array]) -> Array:
+    def __ifloordiv__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays_inplace(operator.floordiv, other)
         return self._apply_op_to_all_elements_inplace(operator.floordiv, other)
 
-    def __truediv__(self, other: Union[int, float, Array]) -> Array:
+    def __truediv__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.truediv, other)
         return self._apply_op_to_all_elements(operator.truediv, other)
 
-    def __itruediv__(self, other: Union[int, float, Array]) -> Array:
+    def __itruediv__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays_inplace(operator.truediv, other)
         return self._apply_op_to_all_elements_inplace(operator.truediv, other)
 
-    def __rshift__(self, other: Union[int, Array]) -> Array:
+    def __rshift__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.rshift, other)
         return self._apply_op_to_all_elements(operator.rshift, other)
 
-    def __lshift__(self, other: Union[int, Array]) -> Array:
+    def __lshift__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.lshift, other)
         return self._apply_op_to_all_elements(operator.lshift, other)
 
-    def __irshift__(self, other: Union[int, Array]) -> Array:
+    def __irshift__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays_inplace(operator.rshift, other)
         return self._apply_op_to_all_elements_inplace(operator.rshift, other)
 
-    def __ilshift__(self, other: Union[int, Array]) -> Array:
+    def __ilshift__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays_inplace(operator.lshift, other)
         return self._apply_op_to_all_elements_inplace(operator.lshift, other)
 
-    def __mod__(self, other: Union[int, Array]) -> Array:
+    def __mod__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.mod, other)
         return self._apply_op_to_all_elements(operator.mod, other)
 
-    def __imod__(self, other: Union[int, Array]) -> Array:
+    def __imod__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays_inplace(operator.mod, other)
         return self._apply_op_to_all_elements_inplace(operator.mod, other)
@@ -729,13 +730,13 @@ class Array:
 
     # Reverse operators between a scalar value and an Array
 
-    def __rmul__(self, other: Union[int, float]) -> Array:
+    def __rmul__(self, other: int | float) -> Array:
         return self._apply_op_to_all_elements(operator.mul, other)
 
-    def __radd__(self, other: Union[int, float]) -> Array:
+    def __radd__(self, other: int | float) -> Array:
         return self._apply_op_to_all_elements(operator.add, other)
 
-    def __rsub__(self, other: Union[int, float]) -> Array:
+    def __rsub__(self, other: int | float) -> Array:
         # i - A == (-A) + i
         neg = self._apply_op_to_all_elements(operator.neg, None)
         return neg._apply_op_to_all_elements(operator.add, other)
@@ -753,22 +754,22 @@ class Array:
 
     # Comparison operators
 
-    def __lt__(self, other: Union[int, float, Array]) -> Array:
+    def __lt__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.lt, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.lt, other, is_comparison=True)
 
-    def __gt__(self, other: Union[int, float, Array]) -> Array:
+    def __gt__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.gt, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.gt, other, is_comparison=True)
 
-    def __ge__(self, other: Union[int, float, Array]) -> Array:
+    def __ge__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.ge, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.ge, other, is_comparison=True)
 
-    def __le__(self, other: Union[int, float, Array]) -> Array:
+    def __le__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.le, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.le, other, is_comparison=True)
