@@ -35,6 +35,18 @@ class TestModuleData:
         except FileNotFoundError:
             pass  # Doesn't run on CI.
 
+    def test_module_version_matches_pyproject_exactly(self):
+        filename = os.path.join(THIS_DIR, '../pyproject.toml')
+        try:
+            with open(filename) as pyprojectfile:
+                for line in pyprojectfile:
+                    if line.startswith("version"):
+                        pyproject_version = line.split("=", 1)[1].strip().strip('"')
+                        assert bitstring.__version__ == pyproject_version
+                        return
+        except FileNotFoundError:
+            pass  # Doesn't run on CI.
+
 
 class TestCopy:
     def test_const_bit_array_copy(self):

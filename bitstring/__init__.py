@@ -54,7 +54,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "5.0.0"
+__version__ = "5.0.0_beta1"
 
 __author__ = "Scott Griffiths"
 

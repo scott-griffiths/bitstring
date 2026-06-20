@@ -188,6 +188,13 @@ class TestArrayMethods:
         a.dtype = 'p3binary'
         assert a.count(float('nan')) == 2
 
+    def test_count_non_numeric_values(self):
+        a = Array('hex4', ['f', '0', 'f'])
+        assert a.count('f') == 2
+
+        b = Array('bits4', [Bits('0xf'), Bits('0x0'), Bits('0xf')])
+        assert b.count(Bits('0xf')) == 2
+
     def test_from_bytes(self):
         a = Array('i16')
         assert len(a) == 0
@@ -926,9 +933,20 @@ class TestMisc:
     def test_bytes(self):
         a = Array('bytes8', 5)
         assert a.data == b'\x00'*40
+        assert len(a) == 5
+        assert a.itemsize == 64
 
         b = Array('bytes1', 5)
         assert b.data == b'\x00'*5
+        assert len(b) == 5
+        assert b.itemsize == 8
+
+    def test_bytes_elements_from_iterable(self):
+        a = Array('bytes3', [b'ABC', b'DEF', b'ZZZ'])
+        assert len(a) == 3
+        assert a.itemsize == 24
+        assert a.to_list() == [b'ABC', b'DEF', b'ZZZ']
+        assert a[1] == b'DEF'
 
     def test_bytes_trailing_bits(self):
         b = Bits('0x000000, 0b111')
