@@ -7,14 +7,13 @@ Classes:
 
 Bits -- An immutable container for binary data.
 BitArray -- A mutable container for binary data.
-ConstBitStream -- An immutable container with streaming methods.
-BitStream -- A mutable container with streaming methods.
+Reader -- Wraps a Bits or BitArray with a bit position for sequential reading.
 Array -- An efficient list-like container where each item has a fixed-length binary format.
 Dtype -- Encapsulate the data types used in the other classes.
 
 Functions:
 
-pack -- Create a BitStream from a format string.
+pack -- Create a Bits object from a format string.
 
 Data:
 
@@ -55,37 +54,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = "4.4.0"
+__version__ = "5.0.0_beta1"
 
 __author__ = "Scott Griffiths"
 
 import sys
-import os
-import importlib
-
-# New ability to use tibs for core operations instead of bitarray.
-# Tibs is written in Rust and is still in beta. Use the environment variable
-# BITSTRING_USE_RUST_CORE=1 before importing the module to turn it on.
-_env_core = os.getenv('BITSTRING_USE_RUST_CORE', '').strip().lower()
-_USE_RUST_CORE = _env_core in ('1', 'true', 'yes', 'on')
-if _USE_RUST_CORE:
-    bitstore = importlib.import_module('bitstring.bitstore_tibs')
-    bitstore_helpers = importlib.import_module('bitstring.bitstore_tibs_helpers')
-else:
-    bitstore = importlib.import_module('bitstring.bitstore_bitarray')
-    bitstore_helpers = importlib.import_module('bitstring.bitstore_bitarray_helpers')
-bitstore_common_helpers = importlib.import_module('bitstring.bitstore_common_helpers')
+import bitstring.bitstore_tibs as bitstore  # noqa: F401 - used as bitstring.bitstore by submodules.
 
 from .bits import Bits
 from .bitstring_options import Options
 from .bitarray_ import BitArray
-from .bitstream import ConstBitStream, BitStream
+from .reader import Reader
 from .methods import pack
 from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 from .dtypes import DtypeDefinition, dtype_register, Dtype
-import types
-from typing import List, Tuple, Literal
+from typing import Literal
 from .mxfp import decompress_luts as mxfp_decompress_luts
 from .fp8 import decompress_luts as binary8_decompress_luts
 
@@ -95,36 +79,6 @@ binary8_decompress_luts()
 
 # The Options class returns a singleton.
 options = Options()
-
-# These get defined properly by the module magic below. This just stops mypy complaining about them.
-bytealigned = lsb0 = None
-
-
-# An opaque way of adding module level properties. Taken from https://peps.python.org/pep-0549/
-# This is now deprecated. Use the options object directly instead.
-class _MyModuleType(types.ModuleType):
-    @property
-    def bytealigned(self) -> bool:
-        """Determines whether a number of methods default to working only on byte boundaries."""
-        return options.bytealigned
-
-    @bytealigned.setter
-    def bytealigned(self, value: bool) -> None:
-        """Determines whether a number of methods default to working only on byte boundaries."""
-        options.bytealigned = value
-
-    @property
-    def lsb0(self) -> bool:
-        """If True, the least significant bit (the final bit) is indexed as bit zero."""
-        return options.lsb0
-
-    @lsb0.setter
-    def lsb0(self, value: bool) -> None:
-        """If True, the least significant bit (the final bit) is indexed as bit zero."""
-        options.lsb0 = value
-
-
-sys.modules[__name__].__class__ = _MyModuleType
 
 
 # These methods convert a bit length to the number of characters needed to print it for different interpretations.
@@ -155,7 +109,7 @@ def uint_bits2chars(bitlength: int):
 
 def int_bits2chars(bitlength: int):
     # How many characters is largest negative int of this length? (To include minus sign).
-    return len(str((-1 << (bitlength - 1))))
+    return len(str(-1 << (bitlength - 1)))
 
 
 def float_bits2chars(bitlength: Literal[16, 32, 64]):
@@ -215,7 +169,7 @@ def bfloat_bits2chars(_: Literal[16]):
 
 def bits_bits2chars(bitlength: int):
     # For bits type we can see how long it needs to be printed by trying any value
-    temp = Bits(bitlength)
+    temp = Bits.from_zeros(bitlength)
     return len(str(temp))
 
 
@@ -223,43 +177,78 @@ def bool_bits2chars(_: Literal[1]):
     # Bools are printed as 1 or 0, not True or False, so are one character each
     return 1
 
+byteorder: str = sys.byteorder
+
+native_setuint = Bits._setuintle if byteorder == 'little' else Bits._setuintbe
+native_getuint = Bits._getuintle if byteorder == 'little' else Bits._getuintbe
+native_readuint = Bits._readuintle if byteorder == 'little' else Bits._readuintbe
+native_setint = Bits._setintle if byteorder == 'little' else Bits._setintbe
+native_getint = Bits._getintle if byteorder == 'little' else Bits._getintbe
+native_readint = Bits._readintle if byteorder == 'little' else Bits._readintbe
+native_setfloat = Bits._setfloatle if byteorder == 'little' else Bits._setfloatbe
+native_getfloat = Bits._getfloatle if byteorder == 'little' else Bits._getfloatbe
+native_readfloat = Bits._readfloatle if byteorder == 'little' else Bits._readfloatbe
 
 dtype_definitions = [
     # Integer types
-    DtypeDefinition('uint', Bits._setuint, Bits._getuint, int, False, uint_bits2chars,
+    DtypeDefinition('u', Bits._setuint, Bits._getuint, int, False, uint_bits2chars,
+                    read_fn=Bits._readuint,
                     description="a two's complement unsigned int"),
-    DtypeDefinition('uintle', Bits._setuintle, Bits._getuintle, int, False, uint_bits2chars,
+    DtypeDefinition('ule', Bits._setuintle, Bits._getuintle, int, False, uint_bits2chars,
+                    read_fn=Bits._readuintle,
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement little-endian unsigned int"),
-    DtypeDefinition('uintbe', Bits._setuintbe, Bits._getuintbe, int, False, uint_bits2chars,
+    DtypeDefinition('ube', Bits._setuintbe, Bits._getuintbe, int, False, uint_bits2chars,
+                    read_fn=Bits._readuintbe,
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement big-endian unsigned int"),
-    DtypeDefinition('int', Bits._setint, Bits._getint, int, True, int_bits2chars,
+    DtypeDefinition('une', native_setuint, native_getuint, int, False, uint_bits2chars,
+                    read_fn=native_readuint,
+                    allowed_lengths=(8, 16, 24, ...), description="a two's complement native-endian unsigned int"),
+    DtypeDefinition('i', Bits._setint, Bits._getint, int, True, int_bits2chars,
+                    read_fn=Bits._readint,
                     description="a two's complement signed int"),
-    DtypeDefinition('intle', Bits._setintle, Bits._getintle, int, True, int_bits2chars,
+    DtypeDefinition('ile', Bits._setintle, Bits._getintle, int, True, int_bits2chars,
+                    read_fn=Bits._readintle,
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement little-endian signed int"),
-    DtypeDefinition('intbe', Bits._setintbe, Bits._getintbe, int, True, int_bits2chars,
+    DtypeDefinition('ibe', Bits._setintbe, Bits._getintbe, int, True, int_bits2chars,
+                    read_fn=Bits._readintbe,
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement big-endian signed int"),
+    DtypeDefinition('ine', native_setint, native_getint, int, True, int_bits2chars,
+                    read_fn=native_readint,
+                    allowed_lengths=(8, 16, 24, ...), description="a two's complement native-endian signed int"),
     # String types
     DtypeDefinition('hex', Bits._sethex, Bits._gethex, str, False, hex_bits2chars,
+                    read_fn=Bits._readhex,
                     allowed_lengths=(0, 4, 8, ...), description="a hexadecimal string"),
     DtypeDefinition('bin', Bits._setbin, Bits._getbin, str, False, bin_bits2chars,
+                    read_fn=Bits._readbin,
                     description="a binary string"),
     DtypeDefinition('oct', Bits._setoct, Bits._getoct, str, False, oct_bits2chars,
+                    read_fn=Bits._readoct,
                     allowed_lengths=(0, 3, 6, ...), description="an octal string"),
     # Float types
-    DtypeDefinition('float', Bits._setfloatbe, Bits._getfloatbe, float, True, float_bits2chars,
+    DtypeDefinition('f', Bits._setfloatbe, Bits._getfloatbe, float, True, float_bits2chars,
+                    read_fn=Bits._readfloatbe,
                     allowed_lengths=(16, 32, 64), description="a big-endian floating point number"),
-    DtypeDefinition('floatle', Bits._setfloatle, Bits._getfloatle, float, True, float_bits2chars,
+    DtypeDefinition('fle', Bits._setfloatle, Bits._getfloatle, float, True, float_bits2chars,
+                    read_fn=Bits._readfloatle,
                     allowed_lengths=(16, 32, 64), description="a little-endian floating point number"),
+    DtypeDefinition('fne', native_setfloat, native_getfloat, float, True, float_bits2chars,
+                    read_fn=native_readfloat,
+                    allowed_lengths=(16, 32, 64), description="a native-endian floating point number"),
     DtypeDefinition('bfloat', Bits._setbfloatbe, Bits._getbfloatbe, float, True, bfloat_bits2chars,
+                    read_fn=Bits._readbfloatbe,
                     allowed_lengths=(16,), description="a 16 bit big-endian bfloat floating point number"),
     DtypeDefinition('bfloatle', Bits._setbfloatle, Bits._getbfloatle, float, True, bfloat_bits2chars,
+                    read_fn=Bits._readbfloatle,
                     allowed_lengths=(16,), description="a 16 bit little-endian bfloat floating point number"),
     # Other known length types
     DtypeDefinition('bits', Bits._setbits, Bits._getbits, Bits, False, bits_bits2chars,
                     description="a bitstring object"),
     DtypeDefinition('bool', Bits._setbool, Bits._getbool, bool, False, bool_bits2chars,
+                    read_fn=Bits._readbool,
                     allowed_lengths=(1,), description="a bool (True or False)"),
     DtypeDefinition('bytes', Bits._setbytes, Bits._getbytes, bytes, False, bytes_bits2chars,
+                    read_fn=Bits._readbytes,
                     multiplier=8, description="a bytes object"),
     # Unknown length types
     DtypeDefinition('se', Bits._setse, Bits._getse, int, True, None,
@@ -272,58 +261,75 @@ dtype_definitions = [
                     variable_length=True, description="an unsigned interleaved exponential-Golomb code"),
     # Special case pad type
     DtypeDefinition('pad', Bits._setpad, Bits._getpad, None, False, None,
+                    read_fn=Bits._readpad,
                     description="a skipped section of padding"),
 
     # MXFP and IEEE 8-bit float types
     DtypeDefinition('p3binary', Bits._setp3binary, Bits._getp3binary, float, True, p3binary_bits2chars,
+                    read_fn=Bits._readp3binary,
                     allowed_lengths=(8,), description="an 8 bit float with binary8p3 format"),
     DtypeDefinition('p4binary', Bits._setp4binary, Bits._getp4binary, float, True, p4binary_bits2chars,
+                    read_fn=Bits._readp4binary,
                     allowed_lengths=(8,), description="an 8 bit float with binary8p4 format"),
-    DtypeDefinition('e4m3mxfp', Bits._sete4m3mxfp, Bits._gete4m3mxfp, float, True, e4m3mxfp_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with MXFP E4M3 format"),
-    DtypeDefinition('e5m2mxfp', Bits._sete5m2mxfp, Bits._gete5m2mxfp, float, True, e5m2mxfp_bits2chars,
-                    allowed_lengths=(8,), description="an 8 bit float with MXFP E5M2 format"),
+    DtypeDefinition('e4m3mxfp_saturate', Bits._sete4m3mxfp_saturate, Bits._gete4m3mxfp, float, True, e4m3mxfp_bits2chars,
+                    read_fn=Bits._reade4m3mxfp,
+                    allowed_lengths=(8,), description="an 8 bit float with MXFP E4M3 format, saturating out-of-range values"),
+    DtypeDefinition('e4m3mxfp_overflow', Bits._sete4m3mxfp_overflow, Bits._gete4m3mxfp, float, True, e4m3mxfp_bits2chars,
+                    read_fn=Bits._reade4m3mxfp,
+                    allowed_lengths=(8,), description="an 8 bit float with MXFP E4M3 format, overflowing out-of-range values"),
+    DtypeDefinition('e5m2mxfp_saturate', Bits._sete5m2mxfp_saturate, Bits._gete5m2mxfp, float, True, e5m2mxfp_bits2chars,
+                    read_fn=Bits._reade5m2mxfp,
+                    allowed_lengths=(8,), description="an 8 bit float with MXFP E5M2 format, saturating out-of-range values"),
+    DtypeDefinition('e5m2mxfp_overflow', Bits._sete5m2mxfp_overflow, Bits._gete5m2mxfp, float, True, e5m2mxfp_bits2chars,
+                    read_fn=Bits._reade5m2mxfp,
+                    allowed_lengths=(8,), description="an 8 bit float with MXFP E5M2 format, overflowing out-of-range values"),
     DtypeDefinition('e3m2mxfp', Bits._sete3m2mxfp, Bits._gete3m2mxfp, float, True, e3m2mxfp_bits2chars,
+                    read_fn=Bits._reade3m2mxfp,
                     allowed_lengths=(6,), description="a 6 bit float with MXFP E3M2 format"),
     DtypeDefinition('e2m3mxfp', Bits._sete2m3mxfp, Bits._gete2m3mxfp, float, True, e2m3mxfp_bits2chars,
+                    read_fn=Bits._reade2m3mxfp,
                     allowed_lengths=(6,), description="a 6 bit float with MXFP E2M3 format"),
     DtypeDefinition('e2m1mxfp', Bits._sete2m1mxfp, Bits._gete2m1mxfp, float, True, e2m1mxfp_bits2chars,
+                    read_fn=Bits._reade2m1mxfp,
                     allowed_lengths=(4,), description="a 4 bit float with MXFP E2M1 format"),
     DtypeDefinition('e8m0mxfp', Bits._sete8m0mxfp, Bits._gete8m0mxfp, float, False, e8m0mxfp_bits2chars,
+                    read_fn=Bits._reade8m0mxfp,
                     allowed_lengths=(8,), description="an 8 bit float with MXFP E8M0 format"),
     DtypeDefinition('mxint', Bits._setmxint, Bits._getmxint, float, True, mxint_bits2chars,
+                    read_fn=Bits._readmxint,
                     allowed_lengths=(8,), description="an 8 bit float with MXFP INT8 format"),
 ]
 
 
-aliases: List[Tuple[str, str]] = [
+aliases: list[tuple[str, str]] = [
     # Floats default to big endian
-    ('float', 'floatbe'),
+    ('f', 'float'),
+    ('f', 'floatbe'),
+    ('f', 'fbe'),
     ('bfloat', 'bfloatbe'),
 
-    # Some single letter aliases for popular types
-    ('int', 'i'),
-    ('uint', 'u'),
-    ('hex', 'h'),
-    ('oct', 'o'),
-    ('bin', 'b'),
-    ('float', 'f'),
+    # Longer compatibility aliases for the short core type names
+    ('i', 'int'),
+    ('u', 'uint'),
+
+    # Longer compatibility aliases for endian-specific type names
+    ('ube', 'uintbe'),
+    ('ule', 'uintle'),
+    ('une', 'uintne'),
+    ('ibe', 'intbe'),
+    ('ile', 'intle'),
+    ('ine', 'intne'),
+    ('fle', 'floatle'),
+    ('fne', 'floatne'),
 ]
 
 # Create native-endian aliases depending on the byteorder of the system
-byteorder: str = sys.byteorder
 if byteorder == 'little':
     aliases.extend([
-        ('uintle', 'uintne'),
-        ('intle', 'intne'),
-        ('floatle', 'floatne'),
         ('bfloatle', 'bfloatne'),
     ])
 else:
     aliases.extend([
-        ('uintbe', 'uintne'),
-        ('intbe', 'intne'),
-        ('floatbe', 'floatne'),
         ('bfloatbe', 'bfloatne'),
     ])
 
@@ -341,12 +347,6 @@ if Bits.__doc__ is not None:
     Bits.__doc__ = Bits.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
 if BitArray.__doc__ is not None:
     BitArray.__doc__ = BitArray.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
-if ConstBitStream.__doc__ is not None:
-    ConstBitStream.__doc__ = ConstBitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
-if BitStream.__doc__ is not None:
-    BitStream.__doc__ = BitStream.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
-
-
-__all__ = ['ConstBitStream', 'BitStream', 'BitArray', 'Array',
+__all__ = ['Reader', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
-           'ByteAlignError', 'CreationError', 'bytealigned', 'lsb0', 'Dtype', 'options']
+           'ByteAlignError', 'CreationError', 'Dtype', 'options']

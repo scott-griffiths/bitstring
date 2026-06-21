@@ -1,13 +1,12 @@
 import array
 import math
 import struct
-import bitarray
+import tibs
 from bitstring.luts import mxfp_luts_compressed
 import zlib
-from typing import Optional
 
 
-def round_to_nearest_ties_to_even(lut_int_to_float, lower: int, f: float) -> Optional[int]:
+def round_to_nearest_ties_to_even(lut_int_to_float, lower: int, f: float) -> int | None:
     upper = lower + 1
     # Special case for LUTs without a negative zero.
     lower_float = 0.0 if lower == 128 else lut_int_to_float[lower]
@@ -127,17 +126,17 @@ class MXFPFormat:
         i2f = []
         length = 1 + self.exp_bits + self.mantissa_bits
         for i in range(1 << length):
-            b = bitarray.util.int2ba(i, length=length, endian='big', signed=False)
+            b = tibs.Tibs.from_u(i, length)
             sign = b[0]
-            exponent = bitarray.util.ba2int(b[1:1 + self.exp_bits])
+            exponent = b.to_u(1, 1 + self.exp_bits)
             significand = b[1 + self.exp_bits:]
             if exponent == 0:
-                significand = bitarray.bitarray('0') + significand
+                significand = [0] + significand
                 exponent = -self.bias + 1
             else:
-                significand = bitarray.bitarray('1') + significand
+                significand = [1] + significand
                 exponent -= self.bias
-            f = float(bitarray.util.ba2int(significand)) / (2.0 ** self.mantissa_bits)
+            f = float(significand.to_u()) / (2.0 ** self.mantissa_bits)
             f *= 2 ** exponent
             if length == 8:
                 # Some special cases

@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import copy
+import mmap
 import numbers
+import pathlib
 import re
 from collections import abc
-from typing import Union, List, Iterable, Any, Optional
+from typing import Any, BinaryIO
+from collections.abc import Iterable
 from bitstring import utils
 from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
 
 import bitstring.dtypes
-common_helpers = bitstring.bitstore_common_helpers
+import bitstring.bitstore_helpers as helpers
 
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
@@ -46,15 +49,14 @@ class BitArray(Bits):
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
-    fromstring() -- Create a bitstring from a formatted string.
+    from_string() -- Create a bitstring from a formatted string.
     join() -- Join bitstrings together using current bitstring.
     pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    tobitarray() -- Return bitstring as a bitarray from the bitarray package.
-    tobytes() -- Return bitstring as bytes, padding if needed.
-    tofile() -- Write bitstring to file, padding if needed.
+    to_bytes() -- Return bitstring as bytes, padding if needed.
+    to_file() -- Write bitstring to file, padding if needed.
     unpack() -- Interpret bits using format string.
 
     Special methods:
@@ -75,36 +77,35 @@ class BitArray(Bits):
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
 
-    def __init__(self, auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
-                 offset: Optional[int] = None, **kwargs) -> None:
+    def __init__(self, auto: BitsType | None = None, /, length: int | None = None,
+                 offset: int | None = None, **kwargs) -> None:
         """Either specify an 'auto' initialiser:
-        A string of comma separated tokens, an integer, a file object,
-        a bytearray, a boolean iterable or another bitstring.
+        A string of comma separated tokens, a bytes-like object or another bitstring.
 
         Or initialise via **kwargs with one (and only one) of:
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
         bytes -- raw data as a bytes object, for example read from a binary file.
-        int -- a signed integer.
-        uint -- an unsigned integer.
-        float / floatbe -- a big-endian floating point number.
+        i -- a signed integer. int is a compatibility alias.
+        u -- an unsigned integer. uint is a compatibility alias.
+        f / float / fbe -- a big-endian floating point number.
         bool -- a boolean (True or False).
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
         sie -- a signed interleaved exponential-Golomb code.
         uie -- an unsigned interleaved exponential-Golomb code.
-        floatle -- a little-endian floating point number.
-        floatne -- a native-endian floating point number.
+        fle -- a little-endian floating point number.
+        fne -- a native-endian floating point number.
         bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
         bfloatle -- a little-endian bfloat format 16-bit floating point number.
         bfloatne -- a native-endian bfloat format 16-bit floating point number.
-        intbe -- a signed big-endian whole byte integer.
-        intle -- a signed little-endian whole byte integer.
-        intne -- a signed native-endian whole byte integer.
-        uintbe -- an unsigned big-endian whole byte integer.
-        uintle -- an unsigned little-endian whole byte integer.
-        uintne -- an unsigned native-endian whole byte integer.
+        ibe -- a signed big-endian whole byte integer.
+        ile -- a signed little-endian whole byte integer.
+        ine -- a signed native-endian whole byte integer.
+        ube -- an unsigned big-endian whole byte integer.
+        ule -- an unsigned little-endian whole byte integer.
+        une -- an unsigned native-endian whole byte integer.
         filename -- the path of a file which will be opened in binary read-only mode.
 
         Other keyword arguments:
@@ -117,25 +118,112 @@ class BitArray(Bits):
         """
         pass
 
-    def __new__(cls: Type[TBits], auto: Optional[Union[BitsType, int]] = None, /, length: Optional[int] = None,
-                offset: Optional[int] = None, **kwargs) -> TBits:
+    def __new__(cls: type[TBits], auto: BitsType | None = None, /, length: int | None = None,
+                offset: int | None = None, **kwargs) -> TBits:
         x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
-            if length is not None:
-                x._bitstore = MutableBitStore.from_zeros(length)
-            else:
-                x._bitstore = MutableBitStore()
+            x._bitstore = MutableBitStore.from_zeros(length if length is not None else 0)
             return x
         x._initialise(auto, length, offset, immutable=False, **kwargs)
         return x
 
     @classmethod
-    def fromstring(cls: TBits, s: str, /) -> TBits:
+    def from_string(cls: type[TBits], s: str, /) -> TBits:
         """Create a new bitstring from a formatted string."""
         x = super().__new__(cls)
-        b = common_helpers.str_to_bitstore(s)
+        b = helpers.str_to_bitstore(s)
         x._bitstore = b._mutable_copy()
+        return x
+
+    @classmethod
+    def from_dtype(cls: type[TBits], dtype: str | bitstring.Dtype, value: Any, /) -> TBits:
+        """Create a new bitstring by packing value according to dtype."""
+        x = super().__new__(cls)
+        x._bitstore = bitstring.dtypes.Dtype(dtype).pack(value)._bitstore._mutable_copy()
+        return x
+
+    @classmethod
+    def from_bytes(cls: type[TBits], data: bytes | bytearray | memoryview, /, *,
+                   length: int | None = None, offset: int = 0) -> TBits:
+        """Create a new bitstring from a bytes-like object."""
+        x = super().__new__(cls)
+        x._bitstore = MutableBitStore.from_bytes(data, offset=offset, length=length)
+        return x
+
+    @classmethod
+    def from_bools(cls: type[TBits], iterable: Iterable[Any], /) -> TBits:
+        """Create a new bitstring from an iterable of bool-like values."""
+        x = super().__new__(cls)
+        x._bitstore = MutableBitStore.from_bools(iterable)
+        return x
+
+    @classmethod
+    def from_zeros(cls: type[TBits], length: int, /) -> TBits:
+        """Create a new bitstring containing length zero bits."""
+        length = int(length)
+        if length < 0:
+            raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
+        x = super().__new__(cls)
+        x._bitstore = MutableBitStore.from_zeros(length)
+        return x
+
+    @classmethod
+    def from_ones(cls: type[TBits], length: int, /) -> TBits:
+        """Create a new bitstring containing length one bits."""
+        length = int(length)
+        if length < 0:
+            raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
+        x = super().__new__(cls)
+        x._bitstore = MutableBitStore.from_ones(length)
+        return x
+
+    @classmethod
+    def from_joined(cls: type[TBits], sequence: Iterable[BitsType], /) -> TBits:
+        """Create a new bitstring by concatenating a sequence of bitstrings."""
+        sequence_iter = iter(sequence)
+        x = super().__new__(cls)
+        try:
+            first = Bits._create_from_bitstype(next(sequence_iter))._bitstore
+        except StopIteration:
+            x._bitstore = MutableBitStore.from_zeros(0)
+            return x
+
+        def stores() -> Iterable[MutableBitStore | bitstring.bitstore.ConstBitStore]:
+            yield first
+            for item in sequence_iter:
+                yield Bits._create_from_bitstype(item)._bitstore
+
+        x._bitstore = MutableBitStore.join(stores())
+        return x
+
+    @classmethod
+    def from_file(cls: type[TBits], source: str | pathlib.Path | BinaryIO, /, *,
+                  length: int | None = None, offset: int = 0) -> TBits:
+        """Create a new bitstring from a file path or binary file object."""
+        x = super().__new__(cls)
+        filename = source if isinstance(source, (str, pathlib.Path)) else source.name
+        with open(pathlib.Path(filename), 'rb') as source_file:
+            m = mmap.mmap(source_file.fileno(), 0, access=mmap.ACCESS_READ)
+            file_bits = len(m) * 8
+            if offset == 0:
+                x._bitstore = MutableBitStore.frombuffer(m, length=length)
+            else:
+                if length is None:
+                    if offset > file_bits:
+                        raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({file_bits} bits).")
+                    x._bitstore = MutableBitStore.frombuffer(m, offset=offset)
+                else:
+                    if offset + length > file_bits:
+                        raise bitstring.CreationError(
+                            f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
+                    x._bitstore = MutableBitStore.frombuffer(m, offset=offset, length=length)
+        return x
+
+    def to_bits(self) -> Bits:
+        """Return an immutable copy of the bitstring."""
+        x = Bits()
+        x._bitstore = bitstring.bitstore.ConstBitStore(self._bitstore.tibs.to_tibs())
         return x
 
     def copy(self: TBits) -> TBits:
@@ -159,7 +247,7 @@ class BitArray(Bits):
             if len(x) != dtype.bitlength:
                 raise CreationError(f"Can't initialise with value of length {len(x)} bits, "
                                     f"as attribute has length of {dtype.bitlength} bits.")
-            self._bitstore = x._bitstore
+            self._bitstore = x._bitstore._mutable_copy()
             return
 
     def __iadd__(self, bs: BitsType) -> BitArray:
@@ -177,7 +265,7 @@ class BitArray(Bits):
         s_copy._bitstore = self._bitstore._mutable_copy()
         return s_copy
 
-    def _setitem_int(self, key: int, value: Union[BitsType, int]) -> None:
+    def _setitem_int(self, key: int, value: BitsType | int) -> None:
         if isinstance(value, numbers.Integral):
             if value == 0:
                 self._bitstore[key] = 0
@@ -209,9 +297,9 @@ class BitArray(Bits):
             length = len(s)
             # Now create an int of the correct length
             if value >= 0:
-                value = self.__class__(uint=value, length=length)
+                value = self.__class__(u=value, length=length)
             else:
-                value = self.__class__(int=value, length=length)
+                value = self.__class__(i=value, length=length)
         else:
             try:
                 value = self._create_from_bitstype(value)
@@ -219,13 +307,13 @@ class BitArray(Bits):
                 raise TypeError(f"Bitstring, integer or string expected. Got {type(value)}.")
         self._bitstore.__setitem__(key, value._bitstore)
 
-    def __setitem__(self, key: Union[slice, int], value: BitsType) -> None:
+    def __setitem__(self, key: slice | int, value: BitsType) -> None:
         if isinstance(key, numbers.Integral):
             self._setitem_int(int(key), value)
         else:
             self._setitem_slice(key, value)
 
-    def __delitem__(self, key: Union[slice, int]) -> None:
+    def __delitem__(self, key: slice | int) -> None:
         """Delete item or range.
 
         >>> a = BitArray('0x001122')
@@ -293,39 +381,15 @@ class BitArray(Bits):
         self._bitstore ^= bs._bitstore
         return self
 
-    def _replace(self, old: Bits, new: Bits, start: int, end: int, count: int, bytealigned: Optional[bool]) -> int:
+    def _replace(self, old: Bits, new: Bits, start: int | None, end: int | None,
+                 count: int | None, bytealigned: bool | None) -> int:
         if bytealigned is None:
             bytealigned = bitstring.options.bytealigned
-        # First find all the places where we want to do the replacements
-        starting_points: List[int] = []
-        for x in self.findall(old, start, end, bytealigned=bytealigned):
-            if not starting_points:
-                starting_points.append(x)
-            elif x >= starting_points[-1] + len(old):
-                # Can only replace here if it hasn't already been replaced!
-                starting_points.append(x)
-            if count != 0 and len(starting_points) == count:
-                break
-        if not starting_points:
-            return 0
-        replacement_list = [self._bitstore.getslice(0, starting_points[0])]
-        for i in range(len(starting_points) - 1):
-            replacement_list.append(new._bitstore)
-            replacement_list.append(
-                self._bitstore.getslice(starting_points[i] + len(old), starting_points[i + 1]))
-        # Final replacement
-        replacement_list.append(new._bitstore)
-        replacement_list.append(self._bitstore.getslice(starting_points[-1] + len(old), None))
-        if bitstring.options.lsb0:
-            # Addition of bitarray is always on the right, so assemble from other end
-            replacement_list.reverse()
-        self._bitstore.clear()
-        for r in replacement_list:
-            self._bitstore += r
-        return len(starting_points)
+        return self._bitstore.replace(old._bitstore, new._bitstore, start=start, end=end,
+                                      count=count, bytealigned=bytealigned)
 
-    def replace(self, old: BitsType, new: BitsType, start: Optional[int] = None, end: Optional[int] = None,
-                count: Optional[int] = None, bytealigned: Optional[bool] = None) -> int:
+    def replace(self, old: BitsType, new: BitsType, *, start: int | None = None, end: int | None = None,
+                count: int | None = None, bytealigned: bool | None = None) -> int:
         """Replace all occurrences of old with new in place.
 
         Returns number of replacements made.
@@ -351,12 +415,11 @@ class BitArray(Bits):
         new = self._create_from_bitstype(new)
         if len(old) == 0:
             raise ValueError("Empty bitstring cannot be replaced.")
-        start, end = self._validate_slice(start, end)
 
         if new is self:
             # Prevent self assignment woes
             new = copy.copy(self)
-        return self._replace(old, new, start, end, 0 if count is None else count, bytealigned)
+        return self._replace(old, new, start, end, count, bytealigned)
 
     def insert(self, bs: BitsType, pos: int) -> None:
         """Insert bs at bit position pos.
@@ -412,14 +475,22 @@ class BitArray(Bits):
         """
         self._prepend(bs)
 
-    def _append_msb0(self, bs: BitsType) -> None:
+    def _append(self, bs: BitsType) -> None:
         self._addright(self._create_from_bitstype(bs))
 
-    def _append_lsb0(self, bs: BitsType) -> None:
+    def _prepend(self, bs: BitsType) -> None:
         bs = self._create_from_bitstype(bs)
         self._addleft(bs)
 
-    def reverse(self, start: Optional[int] = None, end: Optional[int] = None) -> None:
+    @staticmethod
+    def _normalise_positions(pos: int | Iterable[int]) -> int | Iterable[int]:
+        if not isinstance(pos, abc.Iterable):
+            return pos
+        if isinstance(pos, (list, tuple, range)):
+            return pos
+        return tuple(pos)
+
+    def reverse(self, *, start: int | None = None, end: int | None = None) -> None:
         """Reverse bits in-place.
 
         start -- Position of first bit to reverse. Defaults to 0.
@@ -439,7 +510,7 @@ class BitArray(Bits):
         s._bitstore.reverse()
         self[start:end] = s
 
-    def set(self, value: Any, pos: Optional[Union[int, Iterable[int]]] = None) -> None:
+    def set(self, value: Any, pos: int | Iterable[int] | None = None) -> None:
         """Set one or many bits to 1 or 0.
 
         value -- If bool(value) is True bits are set to 1, otherwise they are set to 0.
@@ -454,16 +525,9 @@ class BitArray(Bits):
             # Set all bits to either 1 or 0
             self._bitstore.__setitem__(slice(None), bool(value))
             return
-        if not isinstance(pos, abc.Iterable):
-            pos = (pos,)
-        v = 1 if value else 0
-        if isinstance(pos, range):
-            self._bitstore.__setitem__(slice(pos.start, pos.stop, pos.step), v)
-            return
-        for p in pos:
-            self._bitstore[p] = v
+        self._bitstore.set(value, BitArray._normalise_positions(pos))
 
-    def invert(self, pos: Optional[Union[Iterable[int], int]] = None) -> None:
+    def invert(self, pos: Iterable[int] | int | None = None) -> None:
         """Invert one or many bits from 0 to 1 or vice versa.
 
         pos -- Either a single bit position or an iterable of bit positions.
@@ -475,18 +539,9 @@ class BitArray(Bits):
         if pos is None:
             self._invert_all()
             return
-        if not isinstance(pos, abc.Iterable):
-            pos = (pos,)
-        length = len(self)
+        self._bitstore.invert(BitArray._normalise_positions(pos))
 
-        for p in pos:
-            if p < 0:
-                p += length
-            if not 0 <= p < length:
-                raise IndexError(f"Bit position {p} out of range.")
-            self._invert(p)
-
-    def ror(self, bits: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
+    def ror(self, bits: int, *, start: int | None = None, end: int | None = None) -> None:
         """Rotate bits to the right in-place.
 
         bits -- The number of bits to rotate by.
@@ -502,16 +557,14 @@ class BitArray(Bits):
             raise ValueError("Cannot rotate by negative amount.")
         self._ror(bits, start, end)
 
-    def _ror_msb0(self, bits: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
-        start, end = self._validate_slice(start, end)  # the _slice deals with msb0/lsb0
+    def _ror(self, bits: int, start: int | None = None, end: int | None = None) -> None:
+        start, end = self._validate_slice(start, end)
         bits %= (end - start)
         if not bits:
             return
-        rhs = self._slice(end - bits, end)
-        self._delete(bits, end - bits)
-        self._insert(rhs, start)
+        self._bitstore.rotate_right(bits, start=start, end=end)
 
-    def rol(self, bits: int, start: Optional[int] = None, end: Optional[int] = None) -> None:
+    def rol(self, bits: int, *, start: int | None = None, end: int | None = None) -> None:
         """Rotate bits to the left in-place.
 
         bits -- The number of bits to rotate by.
@@ -527,17 +580,15 @@ class BitArray(Bits):
             raise ValueError("Cannot rotate by negative amount.")
         self._rol(bits, start, end)
 
-    def _rol_msb0(self, bits: int, start: Optional[int] = None, end: Optional[int] = None):
+    def _rol(self, bits: int, start: int | None = None, end: int | None = None):
         start, end = self._validate_slice(start, end)
         bits %= (end - start)
         if bits == 0:
             return
-        lhs = self._slice(start, start + bits)
-        self._delete(bits, start)
-        self._insert(lhs, end - bits)
+        self._bitstore.rotate_left(bits, start=start, end=end)
 
-    def byteswap(self, fmt: Optional[Union[int, Iterable[int], str]] = None, start: Optional[int] = None,
-                 end: Optional[int] = None, repeat: bool = True) -> int:
+    def byteswap(self, fmt: int | Iterable[int] | str | None = None, start: int | None = None,
+                 end: int | None = None, repeat: bool = True) -> int:
         """Change the endianness in-place. Return number of repeats of fmt done.
 
         fmt -- A compact structure string, an integer number of bytes or

@@ -5,7 +5,7 @@ import sys
 import array
 import math
 import bitstring
-from bitstring import Bits, BitArray, BitStream, Dtype
+from bitstring import Bits, BitArray, Dtype, Reader
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt, e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt
 from gfloat.formats import (format_info_ocp_e4m3, format_info_ocp_e5m2, format_info_p3109, format_info_ocp_e3m2,
@@ -44,7 +44,7 @@ class TestFp8:
         assert a.p3binary == 0.0
 
     def test_reading(self):
-        a = BitStream('0x00fff')
+        a = Reader(Bits('0x00fff'))
         x = a.read('p3binary')
         assert x == 0.0
         assert a.pos == 8
@@ -55,7 +55,7 @@ class TestFp8:
     def test_read_list(self):
         v = [-6, -2, 0.125, 7, 10]
         a = bitstring.pack('5*p4binary', *v)
-        vp = a.readlist('5*p4binary')
+        vp = Reader(a).readlist('5*p4binary')
         assert v == vp
 
     def test_interpretations(self):
@@ -73,7 +73,7 @@ def createLUT_for_int8_to_float(exp_bits, bias) -> array.array[float]:
     """Create a LUT to convert an int in range 0-255 representing a float8 into a Python float"""
     i2f = []
     for i in range(256):
-        b = BitArray(uint=i, length=8)
+        b = BitArray(u=i, length=8)
         sign = b[0]
         exponent = b[1:1 + exp_bits].u
         significand = b[1 + exp_bits:]
@@ -284,13 +284,13 @@ class TestConversionToFP8:
 
 def test_compare_mxint8_with_gfloat():
     for i in range(1 << 8):
-        f = Dtype('mxint8').parse(BitArray(uint=i, length=8))
+        f = Dtype('mxint8').unpack(BitArray(u=i, length=8))
         g = gfloat.decode_float(format_info_ocp_int8, i).fval
         assert f == g
 
 def test_compare_e8m0_with_gfloat():
     for i in range(1 << 8):
-        f = Dtype('e8m0mxfp').parse(BitArray(uint=i, length=8))
+        f = Dtype('e8m0mxfp').unpack(BitArray(u=i, length=8))
         g = gfloat.decode_float(format_info_ocp_e8m0, i).fval
         if math.isnan(g):
             assert math.isnan(f)
@@ -325,11 +325,10 @@ def test_rounding_consistent_to_gfloat():
     for fi, dt in [[format_info_p3109(4), Dtype('p4binary')],
                    [format_info_p3109(3), Dtype('p3binary')]]:
         for i in range(0, 1 << 16):
-            f = BitArray(uint=i, length=16).float
-            mine = dt.parse(dt.build(f))
+            f = BitArray(u=i, length=16).float
+            mine = dt.unpack(dt.pack(f))
             theirs = gfloat.round_float(fi, f)
             if math.isnan(mine):
                 assert math.isnan(theirs)
             else:
                 assert mine == theirs
-

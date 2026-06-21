@@ -37,7 +37,7 @@ ue
 
 The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function or unpack with a ``ue`` format string.  ::
 
-    >>> s = BitStream(ue=12)
+    >>> s = BitArray(ue=12)
     >>> s.bin
     '0001101'
     >>> s.append('ue=3')
@@ -49,11 +49,12 @@ se
 
 The :attr:`~Bits.se` property does much the same as ``ue`` and the provisos there all apply. The obvious difference is that it interprets the bitstring as a signed exponential-Golomb rather than unsigned. ::
 
-    >>> s = BitStream('0x164b')
-    >>> s.se
+    >>> bits = Bits('0x164b')
+    >>> bits.se
     InterpretError: Bitstring is not a single exponential-Golomb code.
-    >>> while s.pos < len(s):
-    ...     print(s.read('se'))
+    >>> r = Reader(bits)
+    >>> while r.pos < len(r):
+    ...     print(r.read('se'))
     -5
     2
     0

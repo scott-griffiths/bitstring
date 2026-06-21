@@ -1,6 +1,102 @@
 
 # Release Notes
 
+### Upcoming: version 5.0
+
+This version completes the move to the `tibs` Rust library as the core bit storage
+and manipulation layer. The optional Rust backend introduced in 4.4 is now the only
+backend, which removes a lot of compatibility code and should allow more optimisation
+work from here.
+
+Breaking changes:
+
+* Removed the `ConstBitStream` and `BitStream` classes. Use `Reader(Bits(...))`
+  for immutable sequential reading, or `Reader(BitArray(...))` when the wrapped
+  bitstring also needs to be mutated.
+* Dropped support for Python 3.8 and 3.9. The minimum supported version is now
+  Python 3.10.
+* Removed `bitarray` library compatibility from the public API. Bitstrings can no longer be
+  initialised directly from `bitarray` objects, the `bitarray=` keyword initialiser
+  has been removed, and the `tobitarray()` method has been removed.
+* Removed LSB0 mode. This removes `bitstring.options.lsb0` and all LSB0-specific
+  indexing, slicing, reading, packing, unpacking and pretty-printing behaviour.
+* `pack()` now returns a `Bits` object instead of a `BitStream`.
+* `find()` and `rfind()` now return `int | None` instead of `(pos,)` or `()`.
+  Use `result is not None` when testing whether a search succeeded, as bit
+  position zero is a valid match.
+* Removed the single-letter `b`, `o` and `h` aliases for `bin`, `oct` and
+  `hex`. The numeric names `u`, `i` and `f` remain and are now canonical.
+* Made `u`, `i` and `f` the canonical dtype names for bit-wise big-endian
+  unsigned integers, signed integers and floats. The longer `uint`, `int` and
+  `float` names remain as compatibility aliases for dtype tokens and keyword
+  initialisers, but dtype stringification, `Array` representations and
+  pretty-print headers now use the short forms.
+* Made `ube`, `ule`, `une`, `ibe`, `ile`, `ine`, `fle` and `fne` the canonical
+  endian-specific dtype and keyword-initialiser names. The longer names such as
+  `uintle`, `intbe` and `floatne` remain as compatibility aliases.
+* Positional integer construction has been removed. Use `Bits.from_zeros(100)`
+  or `BitArray.from_zeros(100)` instead of `Bits(100)` or `BitArray(100)`.
+* Direct construction from arbitrary boolean iterables, file objects,
+  `io.BytesIO`, and `array.array` objects has been removed. Use
+  `from_bools()`, `from_file()` or `from_bytes()` instead.
+* `Dtype.build()` and `Dtype.parse()` have been renamed to `Dtype.pack()` and
+  `Dtype.unpack()`.
+* Optional range/search arguments such as `start`, `end`, `count` and
+  `bytealigned` are now keyword-only for search, split, cut, replace and
+  reverse/rotate-style methods.
+* Removed the `bitstring.options.mxfp_overflow` global setting and the
+  unsuffixed `e4m3mxfp` and `e5m2mxfp` dtypes. Use explicit
+  `e4m3mxfp_saturate`, `e4m3mxfp_overflow`, `e5m2mxfp_saturate` or
+  `e5m2mxfp_overflow` dtypes instead.
+* Removed the `python -m bitstring` command-line interface.
+* Removed the deprecated module-level way of setting options. Use
+  `bitstring.options.bytealigned` rather than `bitstring.bytealigned`.
+
+Other changes and fixes:
+
+* Removed the `bitarray` dependency. The `tibs` dependency is now required.
+* Removed the optional backend selection mechanism. The `BITSTRING_USE_RUST_CORE`
+  environment variable and `bitstring.options.using_rust_core` flag no longer exist.
+* Added faster direct read paths for many dtypes, avoiding temporary bitstring
+  allocation when reading through `Reader`.
+* Added the `Reader` class, which wraps a `Bits` or `BitArray` object and stores
+  an independent bit position for `read`, `read_list`, `peek`, `peek_list`,
+  `read_to`, `find`, `rfind` and `byte_align`.
+* Added explicit construction helpers: `from_string()`, `from_dtype()`,
+  `from_bytes()`, `from_bools()`, `from_zeros()`, `from_ones()`,
+  `from_joined()` and `from_file()`.
+* Added explicit saturate and overflow dtype variants for the OCP MXFP E4M3
+  and E5M2 formats.
+* Several method names now have underscored preferred spellings:
+  `to_bytes()`, `to_file()`, `to_list()`, `from_string()`, `from_file()`,
+  `read_list()`, `peek_list()`, `read_to()` and `byte_align()`. The old
+  spellings without underscores remain as compatibility aliases.
+* Added `Bits.to_bitarray()` and `BitArray.to_bits()` conversion methods.
+* Improved `from_bytes()`, `from_file()` and keyword construction from bytes,
+  memoryviews and files with offsets and lengths by using tibs offset/length
+  support directly.
+* File-backed bitstrings with a non-zero offset no longer have to read the whole file
+  into memory.
+* Added a faster `cut()` path for immutable bitstrings.
+* Improved string-token creation with a fast path for literal-only strings such as
+  `0xff, 0b101, 0o7`.
+* Fixed signed and unsigned integer interpretation for very large bitstrings that are
+  wider than tibs' native integer conversion range.
+* Fixed `Array.from_file()` to honour the file object's current position, to reject
+  negative item counts, and to report short reads correctly.
+* Fixed `Array.insert()` clamping for very negative indices to match `list.insert`.
+* Fixed in-place `Array` arithmetic and bitwise operations with another `Array` so
+  they update and return the original object.
+* Fixed scaled `Dtype` equality and hashing so dtypes with different scale factors
+  compare as distinct.
+* Fixed parsing of repeated token groups so `0*(...)` is allowed and negative repeat
+  factors are rejected.
+* Fixed repeated construction of `Options()` so it no longer resets existing option
+  values.
+* Fixed bitstore equality comparisons against unrelated object types.
+* Added more regression tests around the tibs-backed bitstore, `Array` operations,
+  dtype scaling, token parsing and option handling.
+
 ### March 2026: version 4.4.0
 
 This version adds a new optional Rust-based backend. This is turned off by default so

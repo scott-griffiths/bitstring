@@ -95,7 +95,7 @@ class TestCreation:
         b = Array('bin:3', ['111', '000', '111'])
         assert len(b) == 3
         assert b.data == '0b111000111'
-        b.dtype = 'h4'
+        b.dtype = 'hex4'
         assert len(b) == 2
         with pytest.raises(ValueError):
             b.append('f')
@@ -136,7 +136,7 @@ class TestCreation:
 
     def test_creation_from_array_array(self):
         a = array.array('H', [10, 20, 30, 40])
-        b = Array('uintne16', a)
+        b = Array('une16', a)
         assert a.tolist() == b.tolist()
         assert a.tobytes() == b.tobytes()
         with pytest.raises(ValueError):
@@ -152,9 +152,9 @@ class TestCreation:
         a = Array('>H', [10, 20])
         assert a.data.unpack('2*uint16') == a.tolist()
         a = Array('<h', [-10, 20])
-        assert a.data.unpack('2*intle16') == a.tolist()
+        assert a.data.unpack('2*ile16') == a.tolist()
         a = Array('<e', [0.25, -1000])
-        assert a.data.unpack('2*floatle16') == a.tolist()
+        assert a.data.unpack('2*fle16') == a.tolist()
 
     def test_format_changes(self):
         a = Array('uint8', [5, 4, 3])
@@ -169,7 +169,7 @@ class TestCreation:
         with pytest.raises(ValueError):
             b.dtype = 'float'
         with pytest.raises(ValueError):
-            b.dtype = 'uintle12'
+            b.dtype = 'ule12'
             _ = b[0]
         with pytest.raises(ValueError):
             b.dtype = 'float17'
@@ -188,6 +188,13 @@ class TestArrayMethods:
         a.dtype = 'p3binary'
         assert a.count(float('nan')) == 2
 
+    def test_count_non_numeric_values(self):
+        a = Array('hex4', ['f', '0', 'f'])
+        assert a.count('f') == 2
+
+        b = Array('bits4', [Bits('0xf'), Bits('0x0'), Bits('0xf')])
+        assert b.count(Bits('0xf')) == 2
+
     def test_from_bytes(self):
         a = Array('i16')
         assert len(a) == 0
@@ -203,7 +210,7 @@ class TestArrayMethods:
 
     def test_equals(self):
         a = Array('hex:40')
-        b = Array('h40')
+        b = Array('hex40')
         assert a.equals(b)
         c = Array('bin:40')
         assert not a.equals(c)
@@ -244,7 +251,7 @@ class TestArrayMethods:
         a[0] = 1
         assert a[0] is True
 
-        b = Array('h12')
+        b = Array('hex12')
         with pytest.raises(ValueError):
             b.append('12')
         b.append('123')
@@ -271,8 +278,8 @@ class TestArrayMethods:
         assert a[50:60:2].tolist() == list(range(1, 6))
 
     def test_equivalence(self):
-        a = Array('floatne32', [54.2, -998, 411.9])
-        b = Array('floatne32')
+        a = Array('fne32', [54.2, -998, 411.9])
+        b = Array('fne32')
         b.extend(a.tolist())
         assert a.data == b.data
 
@@ -280,9 +287,9 @@ class TestArrayMethods:
         assert a.equals(b)
         a.dtype = 'bool'
         assert not a.equals(b)
-        a.dtype = 'floatne16'
+        a.dtype = 'fne16'
         assert not a.equals(b)
-        a.dtype = 'floatne32'
+        a.dtype = 'fne32'
         a.data += '0x0'
         assert not a.equals(b)
         a.data += '0x0000000'
@@ -391,19 +398,32 @@ class TestArrayMethods:
             b.byteswap()
         a.extend([0.25, 104, -6])
         a.byteswap()
-        assert a.data.unpack('3*floatle16') == [0.25, 104, -6]
+        assert a.data.unpack('3*fle16') == [0.25, 104, -6]
         a.byteswap()
         assert a.tolist() == [0.25, 104, -6]
 
-    def test_to_file(self):
-        filename = os.path.join(THIS_DIR, 'temp_bitstring_unit_testing_file')
+    def test_to_file(self, tmp_path):
+        filename = tmp_path / 'temp_bitstring_unit_testing_file'
         a = Array('uint5', [0, 1, 2, 3, 4, 5])
         with open(filename, 'wb') as f:
-            a.tofile(f)
+            a.to_file(f)
         with open(filename, 'rb') as f:
             b = Array('u5')
-            b.fromfile(f, 1)
-        assert b.tolist() == [0]
+            b.from_file(f, 1)
+        assert b.to_list() == [0]
+
+    def test_old_conversion_method_names_still_work(self, tmp_path):
+        a = Array('uint8', [1, 2])
+        assert a.to_list() == a.tolist() == [1, 2]
+        assert a.to_bytes() == a.tobytes() == b'\x01\x02'
+
+        filename = tmp_path / 'array_alias.bin'
+        with open(filename, 'wb') as f:
+            a.tofile(f)
+        b = Array('uint8')
+        with open(filename, 'rb') as f:
+            b.fromfile(f)
+        assert b.to_list() == [1, 2]
 
     def test_getting(self):
         a = Array('int17')
@@ -531,7 +551,7 @@ class TestArrayMethods:
         a = Array('uint32', [12, 100, 99])
         s = io.StringIO()
         a.pp(stream=s)
-        assert remove_unprintable(s.getvalue()) == """<Array dtype='uint32', length=3, itemsize=32 bits, total data size=12 bytes> [
+        assert remove_unprintable(s.getvalue()) == """<Array dtype='u32', length=3, itemsize=32 bits, total data size=12 bytes> [
  0:         12        100         99
 ]\n"""
 
@@ -565,8 +585,8 @@ class TestArrayMethods:
     def test_pp_two_formats_no_length(self):
         a = Array('float16', bytearray(range(50, 56)))
         s = io.StringIO()
-        a.pp(stream=s, fmt='u, b')
-        assert remove_unprintable(s.getvalue()) == """<Array fmt='uint, bin', length=3, itemsize=16 bits, total data size=6 bytes> [
+        a.pp(stream=s, fmt='u, bin')
+        assert remove_unprintable(s.getvalue()) == """<Array fmt='u, bin', length=3, itemsize=16 bits, total data size=6 bytes> [
  0: 12851 13365 13879 : 0011001000110011 0011010000110101 0011011000110111
 ]\n"""
 
@@ -731,7 +751,7 @@ class TestArrayOperations:
         a = Array('i92', [-1, 1, 0, 100, -100])
         b = -a
         assert b.tolist() == [1, -1, 0, -100, 100]
-        assert str(b.dtype) == 'int92'
+        assert str(b.dtype) == 'i92'
 
     def test_abs(self):
         a = Array('float16', [-2.0, 0, -0, 100, -5.5])
@@ -748,7 +768,7 @@ class TestCreationFromBits:
         assert a[0] == Bits('0xff')
         with pytest.raises(TypeError):
             a += 8
-        a.append(Bits(8))
+        a.append(Bits.from_zeros(8))
         assert a[:].equals(Array('bits:8', ['0b1111 1111', Bits('0x00')]))
         a.extend(['0b10101011'])
         assert a[-1].hex == 'ab'
@@ -913,9 +933,20 @@ class TestMisc:
     def test_bytes(self):
         a = Array('bytes8', 5)
         assert a.data == b'\x00'*40
+        assert len(a) == 5
+        assert a.itemsize == 64
 
         b = Array('bytes1', 5)
         assert b.data == b'\x00'*5
+        assert len(b) == 5
+        assert b.itemsize == 8
+
+    def test_bytes_elements_from_iterable(self):
+        a = Array('bytes3', [b'ABC', b'DEF', b'ZZZ'])
+        assert len(a) == 3
+        assert a.itemsize == 24
+        assert a.to_list() == [b'ABC', b'DEF', b'ZZZ']
+        assert a[1] == b'DEF'
 
     def test_bytes_trailing_bits(self):
         b = Bits('0x000000, 0b111')

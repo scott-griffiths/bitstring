@@ -3,17 +3,23 @@
 BitArray
 ========
 
-.. class:: BitArray(auto: BitsType | int | None, /, length: int | None = None, offset: int | None = None, **kwargs)
+.. class:: BitArray(auto: BitsType | None, /, length: int | None = None, offset: int | None = None, **kwargs)
 
     The :class:`Bits` class is the base class for :class:`BitArray` and so (with the exception of :meth:`~Bits.__hash__`) all of its methods are also available for :class:`BitArray` objects.
     The initialiser is the same as for :class:`Bits`.
 
     A :class:`BitArray` is a mutable :class:`Bits`, and so the one thing all of the methods listed here have in common is that  they can modify the contents of the bitstring.
 
+    The factory methods :meth:`~Bits.from_string`, :meth:`~Bits.from_dtype`, :meth:`~Bits.from_bytes`, :meth:`~Bits.from_bools`, :meth:`~Bits.from_zeros`, :meth:`~Bits.from_ones`, :meth:`~Bits.from_joined` and :meth:`~Bits.from_file` are also available and return mutable ``BitArray`` objects when called on ``BitArray``.
+
 ----
 
 Methods
 -------
+
+.. method:: BitArray.to_bits() -> Bits
+
+    Returns an immutable copy of the bitstring.
 
 .. method:: BitArray.append(bs: BitsType) -> None
 
@@ -48,9 +54,9 @@ Methods
 
    It can also be used to swap the endianness of the whole :class:`BitArray`. ::
 
-       >>> s = BitArray('uintle32=1234')
+       >>> s = BitArray('ule32=1234')
        >>> s.byteswap()
-       >>> print(s.uintbe)
+       >>> print(s.ube)
        1234
 
 .. method:: BitArray.clear() -> None
@@ -63,15 +69,15 @@ Methods
 
     Inserts *bs* at *pos*.
 
-    When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~ConstBitStream.pos` will be immediately after the inserted bitstring. ::
+    ::
 
-        >>> s = BitStream('0xccee')
+        >>> s = BitArray('0xccee')
         >>> s.insert('0xd', 8)
         >>> s
-        BitStream('0xccdee')
-        >>> s.insert('0x00')
+        BitArray('0xccdee')
+        >>> s.insert('0x00', 12)
         >>> s
-        BitStream('0xccd00ee')
+        BitArray('0xccd00ee')
 
 .. method:: BitArray.invert(pos: int | Iterable[int] | None = None) -> None
 
@@ -94,14 +100,12 @@ Methods
 
     Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
 
-    When used with the :class:`BitStream` class the *pos* is optional, and if not present the current bit position will be used. After insertion the property :attr:`~ConstBitStream.pos` will be immediately after the overwritten bitstring. ::
+    ::
 
         >>> s = BitArray(length=10)
         >>> s.overwrite('0b111', 3)
         >>> s
         BitArray('0b0001110000')
-        >>> s.pos
-        6
 
 .. method:: BitArray.prepend(bs: BitsType) -> None
 
@@ -112,7 +116,7 @@ Methods
         >>> s
         BitArray('0b11110')
 
-.. method:: BitArray.replace(old: BitsType, new: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> int
+.. method:: BitArray.replace(old: BitsType, new: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> int
 
     Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 
@@ -128,7 +132,7 @@ Methods
         >>> print(s.bin)
         0011001111
 
-.. method:: BitArray.reverse(start: int | None = None, end: int | None = None) -> None
+.. method:: BitArray.reverse(*, start: int | None = None, end: int | None = None) -> None
 
     Reverses bits in the :class:`BitArray` in-place.
 
@@ -138,11 +142,11 @@ Methods
         >>> a.reverse()
         >>> a.bin
         '101100000'
-        >>> a.reverse(0, 4)
+        >>> a.reverse(start=0, end=4)
         >>> a.bin
         '110100000'
 
-.. method:: BitArray.rol(bits: int, start: int | None = None, end: int | None = None) -> None
+.. method:: BitArray.rol(bits: int, *, start: int | None = None, end: int | None = None) -> None
 
     Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the left.
 
@@ -155,7 +159,7 @@ Methods
         >>> s.bin
         '00000101'
 
-.. method:: BitArray.ror(bits: int, start: int | None = None, end: int | None = None) -> None
+.. method:: BitArray.ror(bits: int, *, start: int | None = None, end: int | None = None) -> None
 
     Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the right.
 
@@ -188,29 +192,30 @@ Methods
 Properties
 ----------
 
-Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter.
-Properties can also have a length in bits appended to them to make properties such as ``u8`` or ``floatle64`` (with the exception of the ``bytes`` property which uses a unit of bytes instead of bits, so ``bytes4`` is 32 bits long). These properties with lengths can be used to quickly create a new bitstring. ::
+Note that the ``i``, ``u`` and ``f`` properties are the preferred names for bit-wise big-endian integer and floating point interpretations.
+The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases.
+Properties can also have a length in bits appended to them to make properties such as ``u8``, ``hex16`` or ``fle64`` (with the exception of the ``bytes`` property which uses a unit of bytes instead of bits, so ``bytes4`` is 32 bits long). These properties with lengths can be used to quickly create a new bitstring. ::
 
     >>> a = BitArray()
     >>> a.f32 = 17.6
-    >>> a.h
+    >>> a.hex
     '418ccccd'
     >>> a.i7 = -1
-    >>> a.b
+    >>> a.bin
     '1111111'
 
 
 The binary interpretation properties of the :class:`Bits` class all become writable in the :class:`BitArray` class.
 
-For integer types, the properties can have a bit length appended to it such as ``u32`` or ``int5`` to specify the new length of the bitstring.
+For integer types, the properties can have a bit length appended to it such as ``u32`` or ``i5`` to specify the new length of the bitstring.
 Using a length too small to contain the value given will raise a :exc:`CreationError`.
 
 When used  as a setter without a new length the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
 
     >>> s = BitArray('0xf3')
-    >>> s.int
+    >>> s.i
     -13
-    >>> s.int = 1232
+    >>> s.i = 1232
     ValueError: int 1232 is too large for a BitArray of length 8.
 
 
@@ -238,9 +243,10 @@ Special Methods
 
         >>> s = BitArray(ue=423)
         >>> s += BitArray(ue=12)
-        >>> s.read('ue')
+        >>> r = Reader(s)
+        >>> r.read('ue')
         423
-        >>> s.read('ue')
+        >>> r.read('ue')
         12
 
 .. method:: BitArray.__iand__(bs)
@@ -297,4 +303,3 @@ Special Methods
         >>> s[-12:] = '0xf'
         >>> print(s)
         0x80808f
-

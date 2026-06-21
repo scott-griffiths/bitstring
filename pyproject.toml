@@ -4,21 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bitstring"
-version = "4.4.0"
+version = "5.0.0_beta1"
 license = { text = "MIT" }
 authors = [
   { name="Scott Griffiths", email="dr.scottgriffiths@gmail.com" },
 ]
 description = "Simple construction, analysis and modification of binary data."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -29,8 +27,7 @@ classifiers = [
 ]
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
-  "bitarray >= 3.0.0, < 4.0",
-  "tibs >= 0.5.6, < 0.6",
+  "tibs >= 0.10.0, < 0.11",
 ]
 
 [project.urls]

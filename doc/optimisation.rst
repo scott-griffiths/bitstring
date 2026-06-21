@@ -3,37 +3,35 @@
 Optimisation Techniques
 =======================
 
-The :mod:`bitstring` module aims to be as fast as reasonably possible, and since version 4.1 has used the ``bitarray`` C extension to power its core.
+The :mod:`bitstring` module aims to be as fast as reasonably possible, and since version 5.0 has used the ``tibs`` Rust module to power its core.
 
 There are however some pointers you should follow to make your code efficient, so if you need things to run faster then this is the section for you.
 
 Use combined read and interpretation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When parsing a bitstring one way to write code is in the following style::
+When parsing with a :class:`Reader`, one way to write code is in the following style::
 
-    width = s.read(12).uint
-    height = s.read(12).uint
-    flags = s.read(4).bin
+    width = r.read(12).u
+    height = r.read(12).u
+    flags = r.read(4).bin
  
-This works fine, but is not very quick. The problem is that the call to :meth:`~ConstBitStream.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
+This works fine, but is not very quick. The problem is that the call to :meth:`~Reader.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
 
-    width = s.read('uint12')
-    height = s.read('uint12')
-    flags = s.read('bin4')
+    width = r.read('u12')
+    height = r.read('u12')
+    flags = r.read('bin4')
  
 This is much faster, although probably not as fast as the combined call::
 
-    width, height, flags = s.readlist('uint12, uint12, bin4')
+    width, height, flags = r.read_list('u12, u12, bin4')
  
 Choose the simplest class you can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you don't need to modify your bitstring after creation then prefer the immutable :class:`Bits` over the mutable :class:`BitArray`. This is typically the case when parsing, or when creating directly from files.
+If you don't need to modify your bitstring after creation then prefer the immutable :class:`Bits` over the mutable :class:`BitArray`. This is typically the case when parsing, or when creating directly from files. Wrap it in a :class:`Reader` if you need sequential reads.
 
 The speed difference between the classes is noticeable, and there are also memory usage optimisations that are made if objects are known to be immutable.
-
-You should also prefer :class:`ConstBitStream` to :class:`BitStream` if you won't need to modify any bits.
 
 One anti-pattern to watch out for is using ``+=`` on a :class:`Bits` object. For example, don't do this::
 
@@ -53,13 +51,13 @@ Use dedicated functions for bit setting and checking
 
 If you need to set or check individual bits then there are special functions for this. For example one way to set bits would be::
 
- s = BitArray(1000)
+ s = BitArray.from_zeros(1000)
  for p in [14, 34, 501]:
      s[p] = '0b1'
      
 This creates a 1000 bit bitstring and sets three of the bits to '1'. Unfortunately the crucial line spends most of its time creating a new bitstring from the '0b1' string. You could make it slightly quicker by using ``s[p] = True``, but it is much faster (and I mean at least an order of magnitude) to use the :meth:`~BitArray.set` method::
 
- s = BitArray(1000)
+ s = BitArray.from_zeros(1000)
  s.set(True, [14, 34, 501])
  
 As well as :meth:`~BitArray.set` and :meth:`~BitArray.invert` there are also checking methods :meth:`~Bits.all` and :meth:`~Bits.any`. So rather than using ::
