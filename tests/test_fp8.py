@@ -73,7 +73,7 @@ def createLUT_for_int8_to_float(exp_bits, bias) -> array.array[float]:
     """Create a LUT to convert an int in range 0-255 representing a float8 into a Python float"""
     i2f = []
     for i in range(256):
-        b = BitArray(uint=i, length=8)
+        b = BitArray(u=i, length=8)
         sign = b[0]
         exponent = b[1:1 + exp_bits].u
         significand = b[1 + exp_bits:]
@@ -284,13 +284,13 @@ class TestConversionToFP8:
 
 def test_compare_mxint8_with_gfloat():
     for i in range(1 << 8):
-        f = Dtype('mxint8').unpack(BitArray(uint=i, length=8))
+        f = Dtype('mxint8').unpack(BitArray(u=i, length=8))
         g = gfloat.decode_float(format_info_ocp_int8, i).fval
         assert f == g
 
 def test_compare_e8m0_with_gfloat():
     for i in range(1 << 8):
-        f = Dtype('e8m0mxfp').unpack(BitArray(uint=i, length=8))
+        f = Dtype('e8m0mxfp').unpack(BitArray(u=i, length=8))
         g = gfloat.decode_float(format_info_ocp_e8m0, i).fval
         if math.isnan(g):
             assert math.isnan(f)
@@ -325,7 +325,7 @@ def test_rounding_consistent_to_gfloat():
     for fi, dt in [[format_info_p3109(4), Dtype('p4binary')],
                    [format_info_p3109(3), Dtype('p3binary')]]:
         for i in range(0, 1 << 16):
-            f = BitArray(uint=i, length=16).float
+            f = BitArray(u=i, length=16).float
             mine = dt.unpack(dt.pack(f))
             theirs = gfloat.round_float(fi, f)
             if math.isnan(mine):

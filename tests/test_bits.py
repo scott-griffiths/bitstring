@@ -23,8 +23,8 @@ def remove_unprintable(s: str) -> str:
 
 class TestCreation:
     def test_explicit_factory_methods(self, tmp_path):
-        assert Bits.from_string("0xf, uint4=1") == "0xf1"
-        assert Bits.from_dtype("uint8", 12) == "0x0c"
+        assert Bits.from_string("0xf, u4=1") == "0xf1"
+        assert Bits.from_dtype("u8", 12) == "0x0c"
         assert Bits.from_bytes(b"\xf0", offset=1, length=3) == "0b111"
         assert Bits.from_bools([True, 0, "x"]) == "0b101"
         assert Bits.from_zeros(5) == "0b00000"
@@ -147,43 +147,51 @@ class TestCreation:
         with pytest.raises(bitstring.CreationError):
             _ = Bits("oct=8")
 
-    def test_creation_from_uint_with_offset(self):
+    def test_creation_from_u_with_offset(self):
         with pytest.raises(bitstring.CreationError):
-            Bits(uint=12, length=8, offset=1)
+            Bits(u=12, length=8, offset=1)
 
-    def test_creation_from_uint_errors(self):
-        with pytest.raises(bitstring.CreationError):
-            Bits(uint=-1, length=10)
-        with pytest.raises(bitstring.CreationError):
-            Bits(uint=12)
-        with pytest.raises(bitstring.CreationError):
-            Bits(uint=4, length=2)
-        with pytest.raises(bitstring.CreationError):
-            Bits(uint=0, length=0)
-        with pytest.raises(bitstring.CreationError):
-            Bits(uint=12, length=-12)
+    def test_long_numeric_keyword_initialisers_are_compatibility_aliases(self):
+        assert Bits(uint=4, length=10) == Bits(u=4, length=10)
+        assert Bits(int=-2, length=10) == Bits(i=-2, length=10)
+        assert Bits(float=1.5, length=16) == Bits(f=1.5, length=16)
+        assert BitArray(uint=4, length=10) == BitArray(u=4, length=10)
+        assert BitArray(int=-2, length=10) == BitArray(i=-2, length=10)
+        assert BitArray(float=1.5, length=16) == BitArray(f=1.5, length=16)
 
-    def test_creation_from_int(self):
-        s = Bits(int=0, length=4)
+    def test_creation_from_u_errors(self):
+        with pytest.raises(bitstring.CreationError):
+            Bits(u=-1, length=10)
+        with pytest.raises(bitstring.CreationError):
+            Bits(u=12)
+        with pytest.raises(bitstring.CreationError):
+            Bits(u=4, length=2)
+        with pytest.raises(bitstring.CreationError):
+            Bits(u=0, length=0)
+        with pytest.raises(bitstring.CreationError):
+            Bits(u=12, length=-12)
+
+    def test_creation_from_i(self):
+        s = Bits(i=0, length=4)
         assert s.bin == "0000"
-        s = Bits(int=1, length=2)
+        s = Bits(i=1, length=2)
         assert s.bin == "01"
-        s = Bits(int=-1, length=11)
+        s = Bits(i=-1, length=11)
         assert s.bin == "11111111111"
-        s = Bits(int=12, length=7)
+        s = Bits(i=12, length=7)
         assert s.int == 12
-        s = Bits(int=-243, length=108)
+        s = Bits(i=-243, length=108)
         assert (s.int, s.length) == (-243, 108)
         for length in range(6, 10):
             for value in range(-17, 17):
-                s = Bits(int=value, length=length)
+                s = Bits(i=value, length=length)
                 assert (s.int, s.length) == (value, length)
-        _ = Bits(int=10, length=8)
+        _ = Bits(i=10, length=8)
 
-    @pytest.mark.parametrize("int_, length", [[-1, 0], [12, None], [4, 3], [-5, 3]])
-    def test_creation_from_int_errors(self, int_, length):
+    @pytest.mark.parametrize("value, length", [[-1, 0], [12, None], [4, 3], [-5, 3]])
+    def test_creation_from_i_errors(self, value, length):
         with pytest.raises(bitstring.CreationError):
-            _ = Bits(int=int_, length=length)
+            _ = Bits(i=value, length=length)
 
     def test_creation_from_se(self):
         for i in range(-100, 10):
@@ -444,8 +452,8 @@ class TestPadToken:
         assert x == []
 
     def test_unpack_bug(self):
-        t = Bits("0o755, ue=12, int3=-1")
-        a, b = t.unpack("pad:9, ue, int3")
+        t = Bits("0o755, ue=12, i3=-1")
+        a, b = t.unpack("pad:9, ue, i3")
         assert (a, b) == (12, -1)
 
 
@@ -561,7 +569,7 @@ class TestUnderscoresInLiterals:
         b = Bits.from_string("0b0011_1100_1111_0000")
         assert b.bin == "0011110011110000"
         v = 0b1010_0000
-        c = Bits(uint=0b1010_0000, length=8)
+        c = Bits(u=0b1010_0000, length=8)
         assert c.uint == v
 
     def test_octal_creation(self):
@@ -665,7 +673,7 @@ class TestPrettyPrinting:
         )
 
     def test_multi_line_multi_format(self):
-        a = Bits(int=-1, length=112)
+        a = Bits(i=-1, length=112)
         s = io.StringIO()
         a.pp(stream=s, fmt="bin:8, hex:8", width=42)
         assert (
@@ -741,7 +749,7 @@ class TestPrettyPrinting:
         assert remove_unprintable(s.getvalue()) == expected_output
 
         s = io.StringIO()
-        a = Bits(uint=10, length=48)
+        a = Bits(u=10, length=48)
         a.pp(stream=s, width=20, fmt="hex:0, oct:0", show_offset=False)
         expected_output = """<Bits, fmt='hex0, oct0', length=48 bits> [
 000000 : 00000000
@@ -845,10 +853,10 @@ class TestPrettyPrintingErrors:
 
 
 class TestPrettyPrinting_NewFormats:
-    def test_float(self):
-        a = Bits("float32=10.5")
+    def test_f_formats(self):
+        a = Bits("f32=10.5")
         s = io.StringIO()
-        a.pp("float32", stream=s)
+        a.pp("f32", stream=s)
         assert (
             remove_unprintable(s.getvalue())
             == """<Bits, fmt='f32', length=32 bits> [
@@ -857,7 +865,7 @@ class TestPrettyPrinting_NewFormats:
 """
         )
         s = io.StringIO()
-        a.pp("float16", stream=s)
+        a.pp("f16", stream=s)
         assert (
             remove_unprintable(s.getvalue())
             == """<Bits, fmt='f16', length=32 bits> [
@@ -866,10 +874,10 @@ class TestPrettyPrinting_NewFormats:
 """
         )
 
-    def test_uint(self):
-        a = Bits().join([Bits(uint=x, length=12) for x in range(40, 105)])
+    def test_u(self):
+        a = Bits().join([Bits(u=x, length=12) for x in range(40, 105)])
         s = io.StringIO()
-        a.pp("uint, hex12", stream=s)
+        a.pp("u, hex12", stream=s)
         assert (
             remove_unprintable(s.getvalue())
             == """<Bits, fmt='u, hex12', length=780 bits> [
@@ -883,10 +891,10 @@ class TestPrettyPrinting_NewFormats:
 """
         )
 
-    def test_float(self):
-        a = BitArray(float=76.25, length=64) + "0b11111"
+    def test_i_and_f(self):
+        a = BitArray(f=76.25, length=64) + "0b11111"
         s = io.StringIO()
-        a.pp("i64, float", stream=s)
+        a.pp("i64, f", stream=s)
         assert (
             remove_unprintable(s.getvalue())
             == """<BitArray, fmt='i64, f', length=69 bits> [
@@ -934,9 +942,9 @@ class TestNonNativeEndianIntegers:
 
 
 def test_large_ints():
-    s = Bits(int=-1, length=123)
+    s = Bits(i=-1, length=123)
     assert s.int == -1
-    s = Bits(int=-1, length=201)
+    s = Bits(i=-1, length=201)
     assert s.int == -1
-    s = Bits(uint=12, length=201)
+    s = Bits(u=12, length=201)
     assert s.uint == 12

@@ -15,7 +15,7 @@ sys.path.insert(0, '..')
 class TestAll:
     def test_explicit_factory_methods_return_bitarray(self, tmp_path):
         assert type(BitArray.from_string("0xf")) is BitArray
-        assert type(BitArray.from_dtype("uint8", 12)) is BitArray
+        assert type(BitArray.from_dtype("u8", 12)) is BitArray
         assert type(BitArray.from_bytes(b"\xf0", offset=1, length=3)) is BitArray
         assert type(BitArray.from_bools([True, 0, "x"])) is BitArray
         assert type(BitArray.from_zeros(5)) is BitArray
@@ -41,10 +41,10 @@ class TestAll:
         assert bits == "0b101"
         assert bitarray == "0b1011"
 
-    def test_creation_from_uint(self):
-        s = BitArray(uint=15, length=6)
+    def test_creation_from_u(self):
+        s = BitArray(u=15, length=6)
         assert s.bin == '001111'
-        s = BitArray(uint=0, length=1)
+        s = BitArray(u=0, length=1)
         assert s.bin == '0'
         s.u = 1
         assert s.uint == 1
@@ -616,9 +616,9 @@ class TestBFloats:
 
     def test_overflows(self):
         s = BitArray()
-        inf16 = BitArray(float=float('inf'), length=16)
-        inf32 = BitArray(float=float('inf'), length=32)
-        inf64 = BitArray(float=float('inf'), length=64)
+        inf16 = BitArray(f=float('inf'), length=16)
+        inf32 = BitArray(f=float('inf'), length=32)
+        inf64 = BitArray(f=float('inf'), length=64)
         infbfloat = BitArray(bfloat=float('inf'))
         
         s.f64 = 1e400
@@ -630,9 +630,9 @@ class TestBFloats:
         s.bfloat = 1e60
         assert s == infbfloat
 
-        ninf16 = BitArray(float=float('-inf'), length=16)
-        ninf32 = BitArray(float=float('-inf'), length=32)
-        ninf64 = BitArray(float=float('-inf'), length=64)
+        ninf16 = BitArray(f=float('-inf'), length=16)
+        ninf32 = BitArray(f=float('-inf'), length=32)
+        ninf64 = BitArray(f=float('-inf'), length=64)
         ninfbfloat = BitArray(bfloat=float('-inf'))
 
         s.f64 = -1e400

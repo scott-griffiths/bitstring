@@ -87,9 +87,9 @@ class BitArray(Bits):
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
         bytes -- raw data as a bytes object, for example read from a binary file.
-        int -- a signed integer.
-        uint -- an unsigned integer.
-        float / floatbe -- a big-endian floating point number.
+        i -- a signed integer. int is a compatibility alias.
+        u -- an unsigned integer. uint is a compatibility alias.
+        f / float / floatbe -- a big-endian floating point number.
         bool -- a boolean (True or False).
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
@@ -297,9 +297,9 @@ class BitArray(Bits):
             length = len(s)
             # Now create an int of the correct length
             if value >= 0:
-                value = self.__class__(uint=value, length=length)
+                value = self.__class__(u=value, length=length)
             else:
-                value = self.__class__(int=value, length=length)
+                value = self.__class__(i=value, length=length)
         else:
             try:
                 value = self._create_from_bitstype(value)

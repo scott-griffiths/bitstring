@@ -28,8 +28,9 @@ Breaking changes:
   `hex`. The numeric names `u`, `i` and `f` remain and are now canonical.
 * Made `u`, `i` and `f` the canonical dtype names for bit-wise big-endian
   unsigned integers, signed integers and floats. The longer `uint`, `int` and
-  `float` names remain as compatibility aliases, but dtype stringification,
-  `Array` representations and pretty-print headers now use the short forms.
+  `float` names remain as compatibility aliases for dtype tokens and keyword
+  initialisers, but dtype stringification, `Array` representations and
+  pretty-print headers now use the short forms.
 * Positional integer construction has been removed. Use `Bits.from_zeros(100)`
   or `BitArray.from_zeros(100)` instead of `Bits(100)` or `BitArray(100)`.
 * The `fromstring()` class method has been renamed to `from_string()`.

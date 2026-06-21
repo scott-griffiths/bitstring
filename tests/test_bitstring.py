@@ -125,16 +125,16 @@ class TestNoFixedLengthPackingBug:
         b = a.read('bin')
         assert b == '1101'
 
-    def test_reading_uint_with_no_length(self):
+    def test_reading_u_with_no_length(self):
         a = bitstring.Reader(bitstring.Bits('0b1101'))
-        b = a.read('uint')
+        b = a.read('u')
         assert b == 13
 
-    def test_reading_float_with_no_length(self):
-        a = bitstring.Reader(bitstring.Bits(float=14, length=16))
-        b = a.read('float')
+    def test_reading_f_with_no_length(self):
+        a = bitstring.Reader(bitstring.Bits(f=14, length=16))
+        b = a.read('f')
         assert b == 14.0
 
     def test_pack_returns_bits(self):
-        a = bitstring.pack('uint8=1')
+        a = bitstring.pack('u8=1')
         assert type(a) is bitstring.Bits

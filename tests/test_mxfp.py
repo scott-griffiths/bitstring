@@ -310,7 +310,7 @@ def test_rounding_consistent_to_gfloat():
     for fi, dt in [[gfloat.formats.format_info_ocp_e4m3, Dtype('e4m3mxfp')],
                    [gfloat.formats.format_info_ocp_e5m2, Dtype('e5m2mxfp')]]:
         for i in range(1 << 16):
-            f = BitArray(uint=i, length=16).float
+            f = BitArray(u=i, length=16).float
             mine = dt.unpack(dt.pack(f))
             theirs = gfloat.round_float(fi, f, sat=True)
             if math.isnan(mine):
@@ -324,7 +324,7 @@ def test_rounding_consistent_to_gfloat_with_overflow():
     for fi, dt in [[gfloat.formats.format_info_ocp_e4m3, Dtype('e4m3mxfp')],
                    [gfloat.formats.format_info_ocp_e5m2, Dtype('e5m2mxfp')]]:
         for i in range(1 << 16):
-            f = BitArray(uint=i, length=16).float
+            f = BitArray(u=i, length=16).float
             mine = dt.unpack(dt.pack(f))
             theirs = gfloat.round_float(fi, f, sat=False)
             if math.isnan(mine):

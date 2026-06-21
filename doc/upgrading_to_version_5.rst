@@ -152,7 +152,8 @@ The ``b``, ``o`` and ``h`` aliases have been removed. Use ``bin``, ``oct`` and
 Prefer u, i and f
 =================
 
-The bit-wise big-endian numeric dtype names are now ``u``, ``i`` and ``f``.
+The bit-wise big-endian numeric dtype and keyword-initialiser names are now
+``u``, ``i`` and ``f``.
 The longer ``uint``, ``int`` and ``float`` names still work as compatibility
 aliases, but :class:`Dtype` stringification, :class:`Array` representations and
 pretty-print headers use the shorter names.
@@ -160,11 +161,13 @@ pretty-print headers use the shorter names.
 ::
 
     # bitstring 4
+    bits = Bits(uint=3, length=8)
     dtype = Dtype("uint12")
     a = Array("float16", [1.5, 2.5])
     value = r.read("int8")
 
     # bitstring 5
+    bits = Bits(u=3, length=8)
     dtype = Dtype("u12")
     a = Array("f16", [1.5, 2.5])
     value = r.read("i8")
