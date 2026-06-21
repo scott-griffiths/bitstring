@@ -24,7 +24,7 @@ def test_from_file():
 
 def test_from_file_with_offset_and_length():
     s = Reader(Bits(filename=os.path.join(THIS_DIR, 'test.m1v'), offset=24, length=8))
-    assert s.bits.h == 'b3'
+    assert s.bits.hex == 'b3'
     reconstructed = ''
     for bit in s.bits:
         reconstructed += '1' if bit is True else '0'

@@ -375,7 +375,7 @@ class TestFileBased:
         x = self.a[20:24] + self.c[-4:] + self.c[8:12]
         assert x == "0x587"
         x = self.b + x
-        assert x.h == "456789abcdef587"
+        assert x.hex == "456789abcdef587"
         x = BitArray(x)
         del x[12:24]
         assert x == "0x456abcdef587"
@@ -536,7 +536,7 @@ class TestByteStoreImmutablity:
         c = BitArray(b)
         c[1] = 0
         assert c.bin == "101000"
-        assert a.b3 == "111"
+        assert a.bin3 == "111"
         assert b.bin == "111000"
 
     def test_immutability_bug_prepend(self):
@@ -607,7 +607,7 @@ class TestPrettyPrinting:
     def test_small_width(self):
         a = Bits.from_zeros(20)
         s = io.StringIO()
-        a.pp(fmt="b", stream=s, width=5)
+        a.pp(fmt="bin", stream=s, width=5)
         assert (
             remove_unprintable(s.getvalue())
             == """<Bits, fmt='bin', length=20 bits> [
@@ -719,7 +719,7 @@ class TestPrettyPrinting:
     def test_zero_group_size(self):
         a = Bits.from_zeros(600)
         s = io.StringIO()
-        a.pp("b0", stream=s, show_offset=False)
+        a.pp("bin0", stream=s, show_offset=False)
         expected_output = """<Bits, fmt='bin0', length=600 bits> [
 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -753,7 +753,7 @@ class TestPrettyPrinting:
     def test_oct(self):
         a = Bits("0o01234567" * 20)
         s = io.StringIO()
-        a.pp(stream=s, fmt="o", show_offset=False, width=20)
+        a.pp(stream=s, fmt="oct", show_offset=False, width=20)
         expected_output = """<Bits, fmt='oct', length=480 bits> [
 0123 4567 0123 4567
 0123 4567 0123 4567
@@ -770,7 +770,7 @@ class TestPrettyPrinting:
         assert remove_unprintable(s.getvalue()) == expected_output
 
         t = io.StringIO()
-        a.pp("h, oct:0", width=1, show_offset=False, stream=t)
+        a.pp("hex, oct:0", width=1, show_offset=False, stream=t)
         expected_output = """<Bits, fmt='hex, oct0', length=480 bits> [
 053977 : 01234567
 053977 : 01234567
@@ -869,7 +869,7 @@ class TestPrettyPrinting_NewFormats:
     def test_uint(self):
         a = Bits().join([Bits(uint=x, length=12) for x in range(40, 105)])
         s = io.StringIO()
-        a.pp("uint, h12", stream=s)
+        a.pp("uint, hex12", stream=s)
         assert (
             remove_unprintable(s.getvalue())
             == """<Bits, fmt='uint, hex12', length=780 bits> [

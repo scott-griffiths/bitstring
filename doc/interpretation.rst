@@ -21,9 +21,8 @@ If you're in an interactive session then the pretty-print method :meth:`~Bits.pp
 Properties
 ----------
 
-Many of the more commonly used interpretations have single letter equivalents.
-The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can be shortened to ``h``, ``b``, ``o``, ``i``, ``u`` and ``f`` respectively.
-Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32`` or ``floatle32``.
+The ``int``, ``uint`` and ``float`` properties can be shortened to ``i``, ``u`` and ``f`` respectively.
+Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32``, ``bin12`` or ``floatle32``.
 
 When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
 
@@ -44,7 +43,7 @@ The most fundamental interpretation is perhaps as a binary string (a ‘bitstrin
 
     >>> a.bin
     '000100100011'
-    >>> b.b
+    >>> b.bin
     '111'
 
 Note that the initial zeros are significant; for bitstrings the zeros are just as important as the ones!
@@ -55,7 +54,7 @@ If the bitstring does not have a length that is a multiple of four bits then an 
 
     >>> a.hex
     '123'
-    >>> b.h
+    >>> b.hex
     ValueError: Cannot convert to hex unambiguously - not multiple of 4 bits.
 
 For an octal interpretation use the :attr:`~Bits.oct` property.
@@ -64,7 +63,7 @@ If the bitstring does not have a length that is a multiple of three then an :exc
 
     >>> a.oct
     '0443'
-    >>> b.o
+    >>> b.oct
     '7'
     >>> (b + '0b0').oct
     ValueError: Cannot convert to octal unambiguously - not multiple of 3 bits.

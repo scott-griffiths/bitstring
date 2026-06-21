@@ -283,9 +283,6 @@ aliases: list[tuple[str, str]] = [
     # Some single letter aliases for popular types
     ('int', 'i'),
     ('uint', 'u'),
-    ('hex', 'h'),
-    ('oct', 'o'),
-    ('bin', 'b'),
     ('float', 'f'),
 ]
 

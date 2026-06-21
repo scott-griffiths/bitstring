@@ -24,6 +24,8 @@ Breaking changes:
 * `find()` and `rfind()` now return `int | None` instead of `(pos,)` or `()`.
   Use `result is not None` when testing whether a search succeeded, as bit
   position zero is a valid match.
+* Removed the single-letter `b`, `o` and `h` aliases for `bin`, `oct` and
+  `hex`. The numeric aliases `u`, `i` and `f` remain.
 * Positional integer construction has been removed. Use `Bits.from_zeros(100)`
   or `BitArray.from_zeros(100)` instead of `Bits(100)` or `BitArray(100)`.
 * The `fromstring()` class method has been renamed to `from_string()`.

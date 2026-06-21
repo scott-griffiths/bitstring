@@ -133,6 +133,22 @@ If you used stream searching to move the current position, use
     if r.find("0xff", start=r.pos) is not None:
         print(r.pos)
 
+Use full names for bin, oct and hex
+===================================
+
+The ``b``, ``o`` and ``h`` aliases have been removed. Use ``bin``, ``oct`` and
+``hex`` instead. The shorter numeric aliases ``u``, ``i`` and ``f`` remain.
+
+::
+
+    # bitstring 4
+    data = s.h
+    bits = s.unpack("b12, u8")
+
+    # bitstring 5
+    data = s.hex
+    bits = s.unpack("bin12, u8")
+
 Use explicit construction helpers
 =================================
 
@@ -312,8 +328,9 @@ For a large codebase, the least surprising order is:
 3. Update :func:`pack` call sites that relied on the old ``BitStream`` return
    value.
 4. Change ``find`` and ``rfind`` checks to use ``is not None``.
-5. Replace removed constructor forms with explicit factory methods.
-6. Add keywords to optional range and search arguments.
-7. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
-8. Optionally update compatibility aliases such as ``tobytes`` and
+5. Replace ``b``, ``o`` and ``h`` aliases with ``bin``, ``oct`` and ``hex``.
+6. Replace removed constructor forms with explicit factory methods.
+7. Add keywords to optional range and search arguments.
+8. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
+9. Optionally update compatibility aliases such as ``tobytes`` and
    ``readlist`` to their preferred underscored names.

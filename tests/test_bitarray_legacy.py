@@ -1563,9 +1563,9 @@ def test_overwrite_more_cases():
     with pytest.raises(ValueError):
         s.overwrite(BitArray(bin='1'), 6)
     s.overwrite('bin=0', 5)
-    assert s.b == '111110'
+    assert s.bin == '111110'
     s.overwrite(BitArray(hex='0x00'), 1)
-    assert s.b == '100000000'
+    assert s.bin == '100000000'
 
 
 def test_join_more_cases():

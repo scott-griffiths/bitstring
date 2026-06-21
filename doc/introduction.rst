@@ -56,7 +56,7 @@ Some of the keyword arguments that can be used are:
 
 There are also various other flavours of 16-bit, 8-bit and smaller floating point types (see :ref:`Exotic floats`) and exponential-Golomb integer types (see :ref:`exp-golomb`).
 
-The ``hex``, ``oct``, ``bin``, ``float``, ``int`` and ``uint`` can all be shortened to just their initial letters.
+The ``float``, ``int`` and ``uint`` types can be shortened to ``f``, ``i`` and ``u`` respectively.
 The data type name can be combined with its length if appropriate, or the length can be specified separately.
 
 For example::

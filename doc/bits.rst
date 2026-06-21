@@ -349,14 +349,13 @@ These properties with lengths will cause an :exc:`InterpretError` to be raised i
 This list isn't exhaustive - see for example :ref:`Exotic floats` for information on bfloats and many 8-bit and smaller floating point formats.
 Also see :ref:`exp-golomb` for some interesting variable length integer formats.
 
-Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` properties can all be shortened to their initial letter.
+Note that the ``int``, ``uint`` and ``float`` properties can be shortened to ``i``, ``u`` and ``f`` respectively.
 
 
 .. attribute:: Bits.bin
     :type: str
 
     Property for the representation of the bitstring as a binary string.
-    Can be shortened to just ``b``.
 
 .. attribute:: Bits.bool
     :type: bool
@@ -382,7 +381,6 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
     :type: str
 
     Property representing the hexadecimal value of the bitstring.
-    Can be shortened to just ``h``.
 
     If the bitstring is not a multiple of four bits long then getting its hex value will raise an :exc:`InterpretError`. ::
 
@@ -455,7 +453,6 @@ Note that the ``bin``, ``oct``, ``hex``, ``int``, ``uint`` and ``float`` propert
     :type: str
 
     Property for the octal representation of the bitstring.
-    Can be shortened to just ``o``.
 
     If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`InterpretError`. ::
 

@@ -116,19 +116,19 @@ Properties
 These read-only properties of the ``Bits`` object are interpretations of the binary data and are calculated as required.
 Many require the bitstring to be specific lengths.
 
-* :attr:`~Bits.bin` / ``b`` -- The bitstring as a binary string.
+* :attr:`~Bits.bin` -- The bitstring as a binary string.
 * :attr:`~Bits.bool` -- For single bit bitstrings, interpret as True or False.
 * :attr:`~Bits.bytes` -- The bitstring as a bytes object.
 * :attr:`~Bits.float` / ``floatbe`` / ``f`` -- Interpret as a big-endian floating point number.
 * :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
 * :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
-* :attr:`~Bits.hex` / ``h`` -- The bitstring as a hexadecimal string.
+* :attr:`~Bits.hex` -- The bitstring as a hexadecimal string.
 * :attr:`~Bits.int` / ``i`` -- Interpret as a two's complement signed integer.
 * :attr:`~Bits.intbe` -- Interpret as a big-endian signed integer.
 * :attr:`~Bits.intle` -- Interpret as a little-endian signed integer.
 * :attr:`~Bits.intne` -- Interpret as a native-endian signed integer.
 * :attr:`~Bits.len` -- Length of the bitstring in bits.
-* :attr:`~Bits.oct` / ``o`` -- The bitstring as an octal string.
+* :attr:`~Bits.oct` -- The bitstring as an octal string.
 * :attr:`~Bits.uint` / ``u`` -- Interpret as a two's complement unsigned integer.
 * :attr:`~Bits.uintbe` -- Interpret as a big-endian unsigned integer.
 * :attr:`~Bits.uintle` -- Interpret as a little-endian unsigned integer.
@@ -424,7 +424,7 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
 
 The ``':'`` before the length is optional, and is mostly omitted in the documentation, except where it improves readability.
 
-The ``hex``, ``bin``, ``oct``, ``int``, ``uint`` and ``float`` properties can all be shortened to just their initial letter.
+The ``int``, ``uint`` and ``float`` types can be shortened to ``i``, ``u`` and ``f`` respectively.
 
 See also :ref:`Exotic floats` and :ref:`exp-golomb` for other types that can be used in format token strings.
 

@@ -95,7 +95,7 @@ class TestCreation:
         b = Array('bin:3', ['111', '000', '111'])
         assert len(b) == 3
         assert b.data == '0b111000111'
-        b.dtype = 'h4'
+        b.dtype = 'hex4'
         assert len(b) == 2
         with pytest.raises(ValueError):
             b.append('f')
@@ -210,7 +210,7 @@ class TestArrayMethods:
 
     def test_equals(self):
         a = Array('hex:40')
-        b = Array('h40')
+        b = Array('hex40')
         assert a.equals(b)
         c = Array('bin:40')
         assert not a.equals(c)
@@ -251,7 +251,7 @@ class TestArrayMethods:
         a[0] = 1
         assert a[0] is True
 
-        b = Array('h12')
+        b = Array('hex12')
         with pytest.raises(ValueError):
             b.append('12')
         b.append('123')
@@ -585,7 +585,7 @@ class TestArrayMethods:
     def test_pp_two_formats_no_length(self):
         a = Array('float16', bytearray(range(50, 56)))
         s = io.StringIO()
-        a.pp(stream=s, fmt='u, b')
+        a.pp(stream=s, fmt='u, bin')
         assert remove_unprintable(s.getvalue()) == """<Array fmt='uint, bin', length=3, itemsize=16 bits, total data size=6 bytes> [
  0: 12851 13365 13879 : 0011001000110011 0011010000110101 0011011000110111
 ]\n"""

@@ -1711,7 +1711,7 @@ class Bits:
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
 
         >>> s.pp('hex16')
-        >>> s.pp('b, h', sep='_', show_offset=False)
+        >>> s.pp('bin, hex', sep='_', show_offset=False)
 
         """
         colour = Colour(not bitstring.options.no_color)

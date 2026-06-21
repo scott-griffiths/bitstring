@@ -235,7 +235,7 @@ class TestSliceAssignment:
         a[0] = '0b000'
         assert a.bin5 == '00010'
         a[0:3] = '0b111'
-        assert a.b5 == '11110'
+        assert a.bin5 == '11110'
         a[-2:] = '0b011'
         assert a.bin == '111011'
         a[:] = '0x12345'
@@ -310,7 +310,7 @@ class TestSliceAssignment:
         a[7:3:-1] = [1, 1, 1, 0]
         assert a.bin == '1010011110'
         a[7:1:-2] = [0, 0, 1]
-        assert a.b == '1011001010'
+        assert a.bin == '1011001010'
         a[::-5] = [1, 1]
         assert a.bin == '1011101011'
         a[::-1] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
@@ -396,20 +396,29 @@ class TestNewProperties:
 
     def test_aliases(self):
         a = BitArray('0x1234567890ab')
-        assert a.oct == a.o
-        assert a.hex == a.h
-        assert a.bin == a.b
         assert a[:32].float == a[:32].f
         assert a.int == a.i
         assert a.uint == a.u
 
+    def test_removed_string_aliases(self):
+        a = BitArray('0x123')
+        for alias in ['b', 'o', 'h', 'b12', 'o12', 'h12']:
+            with pytest.raises(AttributeError):
+                getattr(a, alias)
+            with pytest.raises(bitstring.CreationError):
+                setattr(a, alias, '0')
+            with pytest.raises(ValueError):
+                bitstring.Dtype(alias)
+            with pytest.raises(ValueError):
+                a.unpack(alias)
+
     def test_aliases_with_lengths(self):
         a = BitArray('0x123')
-        h = a.h12
+        h = a.hex12
         assert h == '123'
-        b = a.b12
+        b = a.bin12
         assert b == '000100100011'
-        o = a.o12
+        o = a.oct12
         assert o == '0443'
         u = a.u12
         assert u == a.u
@@ -427,12 +436,12 @@ class TestNewProperties:
         assert a.u88 == 1244322
         a.i3 = -3
         assert a.i3 == -3
-        a.h16 = '0x1234'
-        assert a.h16 == '1234'
-        a.o9 = '0o765'
-        assert a.o9 == '765'
-        a.b7 = '0b0001110'
-        assert a.b7 == '0001110'
+        a.hex16 = '0x1234'
+        assert a.hex16 == '1234'
+        a.oct9 = '0o765'
+        assert a.oct9 == '765'
+        a.bin7 = '0b0001110'
+        assert a.bin7 == '0001110'
 
     def test_assignments_without_length(self):
         a = BitArray.from_zeros(64)
@@ -445,21 +454,21 @@ class TestNewProperties:
         a.i = -999
         assert a.int == -999
         assert a.len == 64
-        a.h = 'feedbeef'
+        a.hex = 'feedbeef'
         assert a.hex == 'feedbeef'
-        a.o = '1234567'
+        a.oct = '1234567'
         assert a.oct == '1234567'
-        a.b = '001'
+        a.bin = '001'
         assert a.bin == '001'
 
     def test_getter_length_errors(self):
         a = BitArray('0x123')
         with pytest.raises(bitstring.InterpretError):
-            _ = a.h16
+            _ = a.hex16
         with pytest.raises(bitstring.InterpretError):
-            _ = a.b3317777766
+            _ = a.bin3317777766
         with pytest.raises(AttributeError):
-            _ = a.o2
+            _ = a.oct2
         with pytest.raises(bitstring.InterpretError):
             _ = a.f
         with pytest.raises(bitstring.InterpretError):
@@ -488,10 +497,10 @@ class TestNewProperties:
             a.hex4 = '0xab'
         assert len(a) == 64
         with pytest.raises(bitstring.CreationError):
-            a.o3 = '0xab'
+            a.oct3 = '0xab'
         with pytest.raises(bitstring.CreationError):
-            a.b4 = '0xab'
-        a.h0 = ''
+            a.bin4 = '0xab'
+        a.hex0 = ''
         assert a.len == 0
         a.i8 = 127
         a.i8 = -128
@@ -504,7 +513,7 @@ class TestNewProperties:
 
     def test_unpack(self):
         a = BitArray('0xff160120')
-        b = a.unpack('h8,2*u12')
+        b = a.unpack('hex8,2*u12')
         assert b == ['ff', 352, 288]
 
     def test_reading(self):
