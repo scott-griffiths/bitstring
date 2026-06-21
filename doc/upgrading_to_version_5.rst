@@ -172,6 +172,50 @@ pretty-print headers use the shorter names.
     a = Array("f16", [1.5, 2.5])
     value = r.read("i8")
 
+Prefer short endian names
+=========================
+
+The endian-specific numeric dtype and keyword-initialiser names now use the
+same short base names:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Preferred version 5 spelling
+     - Compatibility alias
+   * - ``ube``
+     - ``uintbe``
+   * - ``ule``
+     - ``uintle``
+   * - ``une``
+     - ``uintne``
+   * - ``ibe``
+     - ``intbe``
+   * - ``ile``
+     - ``intle``
+   * - ``ine``
+     - ``intne``
+   * - ``fle``
+     - ``floatle``
+   * - ``fne``
+     - ``floatne``
+
+The plain ``f`` dtype is already big-endian, so both ``fbe`` and ``floatbe``
+are compatibility aliases for ``f``.
+
+:class:`Dtype` stringification, :class:`Array` representations and
+pretty-print headers use the preferred names::
+
+    # bitstring 4 style, still accepted in bitstring 5
+    bits = Bits(uintle=1, length=16)
+    dtype = Dtype("intbe16")
+    value = r.read("floatne32")
+
+    # preferred in bitstring 5
+    bits = Bits(ule=1, length=16)
+    dtype = Dtype("ibe16")
+    value = r.read("fne32")
+
 Use explicit construction helpers
 =================================
 
@@ -353,8 +397,10 @@ For a large codebase, the least surprising order is:
 4. Change ``find`` and ``rfind`` checks to use ``is not None``.
 5. Replace ``b``, ``o`` and ``h`` aliases with ``bin``, ``oct`` and ``hex``.
 6. Prefer ``u``, ``i`` and ``f`` over ``uint``, ``int`` and ``float``.
-7. Replace removed constructor forms with explicit factory methods.
-8. Add keywords to optional range and search arguments.
-9. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
-10. Optionally update compatibility aliases such as ``tobytes`` and
+7. Prefer short endian names such as ``ule`` and ``ibe`` over ``uintle`` and
+   ``intbe``.
+8. Replace removed constructor forms with explicit factory methods.
+9. Add keywords to optional range and search arguments.
+10. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
+11. Optionally update compatibility aliases such as ``tobytes`` and
     ``readlist`` to their preferred underscored names.

@@ -397,22 +397,24 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 
     Property for the signed two’s complement integer representation of the bitstring.
     ``int`` is a compatibility alias for ``i``.
+    The longer endian-specific names ``intbe``, ``intle`` and ``intne`` are
+    also compatibility aliases for ``ibe``, ``ile`` and ``ine``.
 
-.. attribute:: Bits.intbe
+.. attribute:: Bits.ibe
     :type: int
 
     Property for the byte-wise big-endian signed two's complement integer representation of the bitstring.
 
     Only valid for whole-byte bitstrings, in which case it is equal to ``s.i``, otherwise an :exc:`InterpretError` is raised.
 
-.. attribute:: Bits.intle
+.. attribute:: Bits.ile
     :type: int
 
     Property for the byte-wise little-endian signed two's complement integer representation of the bitstring.
 
     Only valid for whole-byte bitstring, in which case it is equal to ``s[::-8].i``, i.e. the integer representation of the byte-reversed bitstring.
 
-.. attribute:: Bits.intne
+.. attribute:: Bits.ine
     :type: int
 
     Property for the byte-wise native-endian signed two's complement integer representation of the bitstring.
@@ -424,24 +426,26 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 .. attribute:: Bits.float
     :type: float
     :noindex:
-.. attribute:: Bits.floatbe
+.. attribute:: Bits.fbe
     :type: float
 
     Property for the floating point representation of the bitstring.
-    ``float`` and ``floatbe`` are compatibility aliases for ``f``.
+    ``float``, ``floatbe`` and ``fbe`` are compatibility aliases for ``f``.
+    The longer endian-specific names ``floatle`` and ``floatne`` are also
+    compatibility aliases for ``fle`` and ``fne``.
 
     The bitstring must be 16, 32 or 64 bits long to support the floating point interpretations, otherwise an :exc:`InterpretError` will be raised.
 
     If the underlying floating point methods on your machine are not IEEE 754 compliant then using the float interpretations is undefined (this is unlikely unless you're on some very unusual hardware).
 
-    The :attr:`f` property is bit-wise big-endian, which as all floats must be whole-byte is exactly equivalent to the byte-wise big-endian :attr:`floatbe`.
+    The :attr:`f` property is bit-wise big-endian, which as all floats must be whole-byte is exactly equivalent to the byte-wise big-endian :attr:`fbe`.
 
-.. attribute:: Bits.floatle
+.. attribute:: Bits.fle
     :type: float
 
     Property for the byte-wise little-endian floating point representation of the bitstring.
 
-.. attribute:: Bits.floatne
+.. attribute:: Bits.fne
     :type: float
 
     Property for the byte-wise native-endian floating point representation of the bitstring.
@@ -479,18 +483,20 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 
     Property for the unsigned base-2 integer representation of the bitstring.
     ``uint`` is a compatibility alias for ``u``.
+    The longer endian-specific names ``uintbe``, ``uintle`` and ``uintne`` are
+    also compatibility aliases for ``ube``, ``ule`` and ``une``.
 
-.. attribute:: Bits.uintbe
+.. attribute:: Bits.ube
     :type: int
 
     Property for the byte-wise big-endian unsigned base-2 integer representation of the bitstring.
 
-.. attribute:: Bits.uintle
+.. attribute:: Bits.ule
     :type: int
 
     Property for the byte-wise little-endian unsigned base-2 integer representation of the bitstring.
 
-.. attribute:: Bits.uintne
+.. attribute:: Bits.une
     :type: int
 
     Property for the byte-wise native-endian unsigned base-2 integer representation of the bitstring.

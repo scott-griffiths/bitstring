@@ -33,26 +33,26 @@ STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLiIqQefd]')
 # These replicate the struct.pack codes
 # Big-endian
 REPLACEMENTS_BE: dict[str, str] = {'b': 'i8', 'B': 'u8',
-                                   'h': 'intbe16', 'H': 'uintbe16',
-                                   'l': 'intbe32', 'L': 'uintbe32',
-                                   'i': 'intbe32', 'I': 'uintbe32',
-                                   'q': 'intbe64', 'Q': 'uintbe64',
+                                   'h': 'ibe16', 'H': 'ube16',
+                                   'l': 'ibe32', 'L': 'ube32',
+                                   'i': 'ibe32', 'I': 'ube32',
+                                   'q': 'ibe64', 'Q': 'ube64',
                                    'e': 'f16', 'f': 'f32', 'd': 'f64'}
 # Little-endian
 REPLACEMENTS_LE: dict[str, str] = {'b': 'i8', 'B': 'u8',
-                                   'h': 'intle16', 'H': 'uintle16',
-                                   'l': 'intle32', 'L': 'uintle32',
-                                   'i': 'intle32', 'I': 'uintle32',
-                                   'q': 'intle64', 'Q': 'uintle64',
-                                   'e': 'floatle16', 'f': 'floatle32', 'd': 'floatle64'}
+                                   'h': 'ile16', 'H': 'ule16',
+                                   'l': 'ile32', 'L': 'ule32',
+                                   'i': 'ile32', 'I': 'ule32',
+                                   'q': 'ile64', 'Q': 'ule64',
+                                   'e': 'fle16', 'f': 'fle32', 'd': 'fle64'}
 
 # Native-endian
 REPLACEMENTS_NE: dict[str, str] = {'b': 'i8', 'B': 'u8',
-                                   'h': 'intne16', 'H': 'uintne16',
-                                   'l': 'intne32', 'L': 'uintne32',
-                                   'i': 'intne32', 'I': 'uintne32',
-                                   'q': 'intne64', 'Q': 'uintne64',
-                                   'e': 'floatne16', 'f': 'floatne32', 'd': 'floatne64'}
+                                   'h': 'ine16', 'H': 'une16',
+                                   'l': 'ine32', 'L': 'une32',
+                                   'i': 'ine32', 'I': 'une32',
+                                   'q': 'ine64', 'Q': 'une64',
+                                   'e': 'fne16', 'f': 'fne32', 'd': 'fne64'}
 
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE: dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4, 'i': 4, 'I': 4,

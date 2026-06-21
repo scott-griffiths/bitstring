@@ -31,6 +31,9 @@ Breaking changes:
   `float` names remain as compatibility aliases for dtype tokens and keyword
   initialisers, but dtype stringification, `Array` representations and
   pretty-print headers now use the short forms.
+* Made `ube`, `ule`, `une`, `ibe`, `ile`, `ine`, `fle` and `fne` the canonical
+  endian-specific dtype and keyword-initialiser names. The longer names such as
+  `uintle`, `intbe` and `floatne` remain as compatibility aliases.
 * Positional integer construction has been removed. Use `Bits.from_zeros(100)`
   or `BitArray.from_zeros(100)` instead of `Bits(100)` or `BitArray(100)`.
 * The `fromstring()` class method has been renamed to `from_string()`.

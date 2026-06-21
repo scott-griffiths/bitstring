@@ -20,14 +20,14 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
     Token examples: 'i:12'      : 12 bits as a signed integer
                     'u:8'       : 8 bits as an unsigned integer
                     'f:64'      : 8 bytes as a big-endian float
-                    'intbe:16'  : 2 bytes as a big-endian signed integer
-                    'uintbe:16' : 2 bytes as a big-endian unsigned integer
-                    'intle:32'  : 4 bytes as a little-endian signed integer
-                    'uintle:32' : 4 bytes as a little-endian unsigned integer
-                    'floatle:64': 8 bytes as a little-endian float
-                    'intne:24'  : 3 bytes as a native-endian signed integer
-                    'uintne:24' : 3 bytes as a native-endian unsigned integer
-                    'floatne:32': 4 bytes as a native-endian float
+                    'ibe:16'   : 2 bytes as a big-endian signed integer
+                    'ube:16'   : 2 bytes as a big-endian unsigned integer
+                    'ile:32'   : 4 bytes as a little-endian signed integer
+                    'ule:32'   : 4 bytes as a little-endian unsigned integer
+                    'fle:64'   : 8 bytes as a little-endian float
+                    'ine:24'   : 3 bytes as a native-endian signed integer
+                    'une:24'   : 3 bytes as a native-endian unsigned integer
+                    'fne:32'   : 4 bytes as a native-endian float
                     'hex:80'    : 80 bits as a hex string
                     'oct:9'     : 9 bits as an octal string
                     'bin:1'     : single bit binary string

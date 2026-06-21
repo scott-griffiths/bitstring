@@ -46,12 +46,12 @@ def test_dtype_scaled_instances_compare_distinct() -> None:
     assert len({a, b}) == 2
 
 
-def test_dtype_uintbe_zero_length_rejected() -> None:
+def test_dtype_ube_zero_length_rejected() -> None:
     from bitstring.dtypes import Dtype
     import pytest
 
     with pytest.raises(ValueError):
-        _ = Dtype("uintbe0")
+        _ = Dtype("ube0")
 
 
 def test_array_fromfile_reads_from_current_file_position(tmp_path) -> None:
@@ -97,12 +97,12 @@ def test_array_fromfile_negative_n_rejected(tmp_path) -> None:
             a.fromfile(f, -1)
 
 
-def test_dtype_uintbe_negative_length_rejected() -> None:
+def test_dtype_ube_negative_length_rejected() -> None:
     from bitstring.dtypes import Dtype
     import pytest
 
     with pytest.raises(ValueError):
-        _ = Dtype("uintbe", -8)
+        _ = Dtype("ube", -8)
 
 
 def test_pack_negative_repeat_factor_rejected() -> None:

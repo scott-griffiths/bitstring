@@ -62,7 +62,7 @@ $ pip install bitstring
 >>> a = BitArray(bin='00101')
 >>> b = Bits.from_file(a_file_object)
 >>> c = BitArray('0xff, 0b101, 0o65, u6=22')
->>> d = pack('intle16, hex=a, 0b1', 100, a='0x34f')
+>>> d = pack('ile16, hex=a, 0b1', 100, a='0x34f')
 >>> e = pack('<16h', *range(16))
 ```
 

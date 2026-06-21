@@ -965,41 +965,41 @@ def test_to_bytes_to_file_and_token_parser(tmp_path):
 
 def test_endian_synonyms_and_struct_tokens():
     s = BitArray('0x12318276ef')
-    assert s.int == s.intbe
-    assert s.uint == s.uintbe
-    assert BitArray(intbe=-100, length=16) == 'int:16=-100'
-    assert BitArray(uintbe=13, length=24) == 'int:24=13'
-    r = Reader(BitArray('intbe:8=2'))
-    assert r.read('intbe8') == 2
+    assert s.int == s.ibe
+    assert s.uint == s.ube
+    assert BitArray(ibe=-100, length=16) == 'int:16=-100'
+    assert BitArray(ube=13, length=24) == 'int:24=13'
+    r = Reader(BitArray('ibe:8=2'))
+    assert r.read('ibe8') == 2
     r.pos = 0
-    assert r.read('uintbe8') == 2
+    assert r.read('ube8') == 2
 
     s = BitArray(uint=100, length=16)
-    assert s.uintle == 25600
-    s = BitArray(uintle=100, length=16)
+    assert s.ule == 25600
+    s = BitArray(ule=100, length=16)
     assert s.uint == 25600
-    assert s.uintle == 100
-    s.uintle += 5
-    assert s.uintle == 105
-    s = pack('uintle:24', 1001)
-    assert s.uintle == 1001
-    assert Reader(s).read('uintle24') == 1001
+    assert s.ule == 100
+    s.ule += 5
+    assert s.ule == 105
+    s = pack('ule:24', 1001)
+    assert s.ule == 1001
+    assert Reader(s).read('ule24') == 1001
 
-    assert pack('<b', 23) == BitArray('intle:8=23')
-    assert pack('<B', 23) == BitArray('uintle:8=23')
-    assert pack('>h', 23) == BitArray('intbe:16=23')
-    assert pack('>I', 23) == BitArray('uintbe:32=23')
+    assert pack('<b', 23) == BitArray('ile:8=23')
+    assert pack('<B', 23) == BitArray('ule:8=23')
+    assert pack('>h', 23) == BitArray('ibe:16=23')
+    assert pack('>I', 23) == BitArray('ube:32=23')
     with pytest.raises(bitstring.CreationError):
         _ = pack('<B', -1)
 
 
 def test_struct_tokens_and_native_endianness():
     if sys.byteorder == 'little':
-        assert pack('=b', 23) == BitArray('intle:8=23')
-        assert pack('@Q', 23) == BitArray('uintle:64=23')
+        assert pack('=b', 23) == BitArray('ile:8=23')
+        assert pack('@Q', 23) == BitArray('ule:64=23')
     else:
-        assert pack('@b', 23) == BitArray('intbe:8=23')
-        assert pack('@Q', 23) == BitArray('uintbe:64=23')
+        assert pack('@b', 23) == BitArray('ibe:8=23')
+        assert pack('@Q', 23) == BitArray('ube:64=23')
 
     s = pack('=2i', 40, 40)
     if sys.byteorder == 'little':
@@ -1137,21 +1137,21 @@ def test_float_initialisation_packing_and_reading():
     for f in (0.000001, -1.0, 1.0, 0.2, -3.14159265):
         assert BitArray(float=f, length=64).float == f
         assert BitArray('float:64=%s' % str(f)).float == f
-        assert BitArray('floatbe:64=%s' % str(f)).floatbe == f
-        assert BitArray('floatle:64=%s' % str(f)).floatle == f
+        assert BitArray('fbe:64=%s' % str(f)).fbe == f
+        assert BitArray('fle:64=%s' % str(f)).fle == f
         assert BitArray(float=f, length=32).float / f == pytest.approx(1.0)
         assert BitArray(float=f, length=16).float == pytest.approx(f, abs=0.01)
 
     a = BitArray(pack('>d', 0.01))
     assert a.float == 0.01
-    assert a.floatbe == 0.01
+    assert a.fbe == 0.01
     a.byteswap()
-    assert a.floatle == 0.01
+    assert a.fle == 0.01
     d = pack('>5d', 10.0, 5.0, 2.5, 1.25, 0.1)
     assert d.unpack('>5d') == [10.0, 5.0, 2.5, 1.25, 0.1]
 
-    a = Reader(BitArray('floatle:64=12, floatbe:64=-0.01, floatne:64=3e33'))
-    assert a.readlist('floatle:64, floatbe:64, floatne:64') == [12.0, -0.01, 3e33]
+    a = Reader(BitArray('fle:64=12, fbe:64=-0.01, fne:64=3e33'))
+    assert a.readlist('fle:64, fbe:64, fne:64') == [12.0, -0.01, 3e33]
 
 
 def test_float_errors_and_rotations():
@@ -1192,8 +1192,8 @@ def test_bytes_token_and_dedicated_reader_types():
     a = Reader(BitArray('0b11, uint:43=98798798172, 0b11111'), pos=2)
     assert a.read(Dtype('int43')) == 98798798172
     assert a.pos == 45
-    a = Reader(BitArray('0b111, uintle:40=123516, 0b111'), pos=3)
-    assert a.read('uintle:40') == 123516
+    a = Reader(BitArray('0b111, ule:40=123516, 0b111'), pos=3)
+    assert a.read('ule:40') == 123516
     a = Reader(BitArray('0b111, bfloat:16=-5.25, 0xffffffff'), pos=3)
     assert a.read('bfloatbe') == -5.25
 
@@ -1618,74 +1618,74 @@ def test_file_object_creation_and_copy():
 
 def test_big_little_endian_error_cases():
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray(uintbe=100, length=15)
+        _ = BitArray(ube=100, length=15)
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray(intbe=100, length=15)
+        _ = BitArray(ibe=100, length=15)
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray('uintbe:17=100')
+        _ = BitArray('ube:17=100')
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray('intbe:7=2')
+        _ = BitArray('ibe:7=2')
 
     s = Reader(BitArray('0b1'))
     with pytest.raises(bitstring.InterpretError):
-        _ = s.bits.intbe
+        _ = s.bits.ibe
     with pytest.raises(bitstring.InterpretError):
-        _ = s.bits.uintbe
+        _ = s.bits.ube
     with pytest.raises(ValueError):
-        _ = s.read('uintbe')
+        _ = s.read('ube')
     with pytest.raises(ValueError):
-        _ = s.read('intbe')
+        _ = s.read('ibe')
 
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray('uintle:15=10')
+        _ = BitArray('ule:15=10')
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray('intle:31=-999')
+        _ = BitArray('ile:31=-999')
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray(uintle=100, length=15)
+        _ = BitArray(ule=100, length=15)
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray(intle=100, length=15)
+        _ = BitArray(ile=100, length=15)
 
 
 def test_little_endian_int_cases():
     s = BitArray(int=100, length=16)
-    assert s.intle == 25600
-    s = BitArray(intle=100, length=16)
+    assert s.ile == 25600
+    s = BitArray(ile=100, length=16)
     assert s.int == 25600
-    assert s.intle == 100
-    s.intle = 105
-    assert s.intle == 105
-    s = BitArray('intle:32=999')
-    assert s.intle == 999
+    assert s.ile == 100
+    s.ile = 105
+    assert s.ile == 105
+    s = BitArray('ile:32=999')
+    assert s.ile == 999
     s.byteswap()
     assert s.int == 999
-    s = pack('intle:24', 1001)
-    assert s.intle == 1001
-    assert Reader(s).read('intle24') == 1001
+    s = pack('ile:24', 1001)
+    assert s.ile == 1001
+    assert Reader(s).read('ile24') == 1001
 
 
 @pytest.mark.parametrize(
     ("fmt", "value", "expected"),
     [
-        ('<b', 23, 'intle:8=23'),
-        ('<B', 23, 'uintle:8=23'),
-        ('<h', 23, 'intle:16=23'),
-        ('<H', 23, 'uintle:16=23'),
-        ('<l', 23, 'intle:32=23'),
-        ('<L', 23, 'uintle:32=23'),
-        ('<i', 23, 'intle:32=23'),
-        ('<I', 23, 'uintle:32=23'),
-        ('<q', 23, 'intle:64=23'),
-        ('<Q', 23, 'uintle:64=23'),
-        ('>b', 23, 'intbe:8=23'),
-        ('>B', 23, 'uintbe:8=23'),
-        ('>h', 23, 'intbe:16=23'),
-        ('>H', 23, 'uintbe:16=23'),
-        ('>l', 23, 'intbe:32=23'),
-        ('>L', 23, 'uintbe:32=23'),
-        ('>i', 23, 'intbe:32=23'),
-        ('>I', 23, 'uintbe:32=23'),
-        ('>q', 23, 'intbe:64=23'),
-        ('>Q', 23, 'uintbe:64=23'),
+        ('<b', 23, 'ile:8=23'),
+        ('<B', 23, 'ule:8=23'),
+        ('<h', 23, 'ile:16=23'),
+        ('<H', 23, 'ule:16=23'),
+        ('<l', 23, 'ile:32=23'),
+        ('<L', 23, 'ule:32=23'),
+        ('<i', 23, 'ile:32=23'),
+        ('<I', 23, 'ule:32=23'),
+        ('<q', 23, 'ile:64=23'),
+        ('<Q', 23, 'ule:64=23'),
+        ('>b', 23, 'ibe:8=23'),
+        ('>B', 23, 'ube:8=23'),
+        ('>h', 23, 'ibe:16=23'),
+        ('>H', 23, 'ube:16=23'),
+        ('>l', 23, 'ibe:32=23'),
+        ('>L', 23, 'ube:32=23'),
+        ('>i', 23, 'ibe:32=23'),
+        ('>I', 23, 'ube:32=23'),
+        ('>q', 23, 'ibe:64=23'),
+        ('>Q', 23, 'ube:64=23'),
     ],
 )
 def test_struct_token_matrix(fmt, value, expected):
@@ -1697,7 +1697,7 @@ def test_struct_token_multiplicative_factors_and_errors():
     assert s.unpack('<2h') == [1, 2]
     s = pack('<100q', *range(100))
     assert s.len == 100 * 64
-    assert s[44 * 64:45 * 64].uintle == 44
+    assert s[44 * 64:45 * 64].ule == 44
     s = pack('@L0B2h', 5, 5, 5)
     assert s.unpack('@Lhh') == [5, 5, 5]
 
@@ -1707,10 +1707,10 @@ def test_struct_token_multiplicative_factors_and_errors():
 
 
 def test_byteswap_int_pack_code_iterable_and_errors():
-    s = BitArray(pack('5*uintle:16', *range(10, 15)))
-    assert list(range(10, 15)) == s.unpack('5*uintle:16')
+    s = BitArray(pack('5*ule:16', *range(10, 15)))
+    assert list(range(10, 15)) == s.unpack('5*ule:16')
     swaps = s.byteswap(2)
-    assert list(range(10, 15)) == s.unpack('5*uintbe:16')
+    assert list(range(10, 15)) == s.unpack('5*ube:16')
     assert swaps == 5
 
     s = BitArray('0xf234567f')
@@ -2396,10 +2396,10 @@ def test_cut_problem_and_more_cut_errors():
 
 def test_token_parser_struct_codes():
     tp = bitstring.utils.tokenparser
-    assert tp('>H') == (False, [('uintbe', 16, None)])
-    assert tp('<H') == (False, [('uintle', 16, None)])
-    assert tp('=H') == (False, [('uintne', 16, None)])
-    assert tp('@H') == (False, [('uintne', 16, None)])
+    assert tp('>H') == (False, [('ube', 16, None)])
+    assert tp('<H') == (False, [('ule', 16, None)])
+    assert tp('=H') == (False, [('une', 16, None)])
+    assert tp('@H') == (False, [('une', 16, None)])
     assert tp('>b') == (False, [('i', 8, None)])
     assert tp('<b') == (False, [('i', 8, None)])
 
@@ -2440,37 +2440,37 @@ def test_any_all_false_and_empty_whole_cases():
 
 
 def test_float_reading_more_cases():
-    a = Reader(BitArray('floatle:16=12, floatbe:32=-0.01, floatne:32=3e33'))
-    x, y, z = a.readlist('floatle:16, floatbe:32, floatne:32')
+    a = Reader(BitArray('fle:16=12, fbe:32=-0.01, fne:32=3e33'))
+    x, y, z = a.readlist('fle:16, fbe:32, fne:32')
     assert x / 12.0 == pytest.approx(1.0)
     assert y / -0.01 == pytest.approx(1.0)
     assert z / 3e33 == pytest.approx(1.0)
 
-    a = Reader(BitArray('0b11, floatle:64=12, 0xfffff'), pos=2)
-    assert a.read(Dtype('floatle64')) == 12.0
-    b = BitArray(floatle=20, length=32)
-    b.floatle = 10.0
+    a = Reader(BitArray('0b11, fle:64=12, 0xfffff'), pos=2)
+    assert a.read(Dtype('fle64')) == 12.0
+    b = BitArray(fle=20, length=32)
+    b.fle = 10.0
     b = [0] + b
-    assert b[1:].floatle == 10.0
+    assert b[1:].fle == 10.0
 
     s = Reader(BitArray('0b1, float:32 = 10.0'))
     x, y = s.readlist('1, float:32')
     assert y == 10.0
     bits = s.bits
-    bits[1:] = 'floatle:32=20.0'
-    x, y = bits.unpack('1, floatle:32')
+    bits[1:] = 'fle:32=20.0'
+    x, y = bits.unpack('1, fle:32')
     assert y == 20.0
 
 
 def test_float_error_more_cases():
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray(floatle=0.3, length=0)
+        _ = BitArray(fle=0.3, length=0)
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray(floatle=0.3, length=1)
+        _ = BitArray(fle=0.3, length=1)
     with pytest.raises(bitstring.CreationError):
         _ = BitArray(float=2)
     with pytest.raises(bitstring.InterpretError):
-        _ = Reader(BitArray('0x3')).read('floatle:2')
+        _ = Reader(BitArray('0x3')).read('fle:2')
     with pytest.raises(ValueError):
         Reader(BitArray('0x123123')).read('10, 5')
 
@@ -2484,20 +2484,20 @@ def test_bytes_token_more_thoroughly_restored():
 
 
 def test_dedicated_read_functions_more_cases():
-    a = Reader(BitArray('0b11, uintbe:48=98798798172, 0b11111'), pos=2)
-    assert a.read(Dtype('uintbe48')) == 98798798172
+    a = Reader(BitArray('0b11, ube:48=98798798172, 0b11111'), pos=2)
+    assert a.read(Dtype('ube48')) == 98798798172
     assert a.pos == 50
 
-    b = BitArray('0xff, uintle:800=999, 0xffff')
-    assert b[8:800].uintle == 999
+    b = BitArray('0xff, ule:800=999, 0xffff')
+    assert b[8:800].ule == 999
 
-    a = Reader(BitArray('0b111, intle:48=999999999, 0b111111111111'), pos=3)
-    assert a.read('intle48') == 999999999
-    b = Reader(BitArray('0xff, intle:200=918019283740918263512351235, 0xfffffff'), pos=8)
-    assert b.read(Dtype('intle', length=200)) == 918019283740918263512351235
+    a = Reader(BitArray('0b111, ile:48=999999999, 0b111111111111'), pos=3)
+    assert a.read('ile48') == 999999999
+    b = Reader(BitArray('0xff, ile:200=918019283740918263512351235, 0xfffffff'), pos=8)
+    assert b.read(Dtype('ile', length=200)) == 918019283740918263512351235
 
-    a = Reader(BitArray('0b111, floatle:64=9.9998, 0b111'), pos=3)
-    assert a.read('floatle64') == 9.9998
+    a = Reader(BitArray('0b111, fle:64=9.9998, 0b111'), pos=3)
+    assert a.read('fle64') == 9.9998
 
 
 def test_reading_problem_and_creation_exception_bug():
@@ -2710,15 +2710,15 @@ def test_add_empty_bits_issue_more():
 @pytest.mark.parametrize(
     ("fmt", "values", "expected_fmt"),
     [
-        ('=B', (23,), 'uintne:8=23'),
-        ('=h', (23,), 'intne:16=23'),
-        ('=H', (23,), 'uintne:16=23'),
-        ('@l', (23,), 'intne:32=23'),
-        ('@L', (23,), 'uintne:32=23'),
-        ('@i', (23,), 'intne:32=23'),
-        ('@I', (23,), 'uintne:32=23'),
-        ('@q', (23,), 'intne:64=23'),
-        ('@Q', (23,), 'uintne:64=23'),
+        ('=B', (23,), 'une:8=23'),
+        ('=h', (23,), 'ine:16=23'),
+        ('=H', (23,), 'une:16=23'),
+        ('@l', (23,), 'ine:32=23'),
+        ('@L', (23,), 'une:32=23'),
+        ('@i', (23,), 'ine:32=23'),
+        ('@I', (23,), 'une:32=23'),
+        ('@q', (23,), 'ine:64=23'),
+        ('@Q', (23,), 'une:64=23'),
     ],
 )
 def test_native_struct_pack_codes_more(fmt, values, expected_fmt):
@@ -2759,12 +2759,12 @@ def test_invalid_reader_tokens_more(token):
 @pytest.mark.parametrize(
     "kwargs",
     [
-        {'uintbe': 100, 'length': 15},
-        {'intbe': 100, 'length': 15},
-        {'uintle': 100, 'length': 15},
-        {'intle': 100, 'length': 15},
-        {'floatle': 0.3, 'length': 0},
-        {'floatle': 0.3, 'length': 1},
+        {'ube': 100, 'length': 15},
+        {'ibe': 100, 'length': 15},
+        {'ule': 100, 'length': 15},
+        {'ile': 100, 'length': 15},
+        {'fle': 0.3, 'length': 0},
+        {'fle': 0.3, 'length': 1},
         {'float': 2},
     ],
 )
@@ -2776,10 +2776,10 @@ def test_creation_error_kwargs_more(kwargs):
 @pytest.mark.parametrize(
     "source",
     [
-        'uintbe:17=100',
-        'intbe:7=2',
-        'uintle:15=10',
-        'intle:31=-999',
+        'ube:17=100',
+        'ibe:7=2',
+        'ule:15=10',
+        'ile:31=-999',
         'bool=true',
         'True',
         'hello',
@@ -2884,13 +2884,13 @@ def test_all_any_index_errors_more(method_name, indices):
 @pytest.mark.parametrize(
     ("read_fmt", "exception"),
     [
-        ('uintbe', ValueError),
-        ('intbe', ValueError),
-        ('uintle', ValueError),
-        ('intle', ValueError),
+        ('ube', ValueError),
+        ('ibe', ValueError),
+        ('ule', ValueError),
+        ('ile', ValueError),
         ('bool:0', ValueError),
         ('bool:2', ValueError),
-        ('floatle:2', bitstring.InterpretError),
+        ('fle:2', bitstring.InterpretError),
     ],
 )
 def test_reader_format_error_cases_more(read_fmt, exception):

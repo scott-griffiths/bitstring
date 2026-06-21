@@ -136,7 +136,7 @@ class TestCreation:
 
     def test_creation_from_array_array(self):
         a = array.array('H', [10, 20, 30, 40])
-        b = Array('uintne16', a)
+        b = Array('une16', a)
         assert a.tolist() == b.tolist()
         assert a.tobytes() == b.tobytes()
         with pytest.raises(ValueError):
@@ -152,9 +152,9 @@ class TestCreation:
         a = Array('>H', [10, 20])
         assert a.data.unpack('2*uint16') == a.tolist()
         a = Array('<h', [-10, 20])
-        assert a.data.unpack('2*intle16') == a.tolist()
+        assert a.data.unpack('2*ile16') == a.tolist()
         a = Array('<e', [0.25, -1000])
-        assert a.data.unpack('2*floatle16') == a.tolist()
+        assert a.data.unpack('2*fle16') == a.tolist()
 
     def test_format_changes(self):
         a = Array('uint8', [5, 4, 3])
@@ -169,7 +169,7 @@ class TestCreation:
         with pytest.raises(ValueError):
             b.dtype = 'float'
         with pytest.raises(ValueError):
-            b.dtype = 'uintle12'
+            b.dtype = 'ule12'
             _ = b[0]
         with pytest.raises(ValueError):
             b.dtype = 'float17'
@@ -278,8 +278,8 @@ class TestArrayMethods:
         assert a[50:60:2].tolist() == list(range(1, 6))
 
     def test_equivalence(self):
-        a = Array('floatne32', [54.2, -998, 411.9])
-        b = Array('floatne32')
+        a = Array('fne32', [54.2, -998, 411.9])
+        b = Array('fne32')
         b.extend(a.tolist())
         assert a.data == b.data
 
@@ -287,9 +287,9 @@ class TestArrayMethods:
         assert a.equals(b)
         a.dtype = 'bool'
         assert not a.equals(b)
-        a.dtype = 'floatne16'
+        a.dtype = 'fne16'
         assert not a.equals(b)
-        a.dtype = 'floatne32'
+        a.dtype = 'fne32'
         a.data += '0x0'
         assert not a.equals(b)
         a.data += '0x0000000'
@@ -398,7 +398,7 @@ class TestArrayMethods:
             b.byteswap()
         a.extend([0.25, 104, -6])
         a.byteswap()
-        assert a.data.unpack('3*floatle16') == [0.25, 104, -6]
+        assert a.data.unpack('3*fle16') == [0.25, 104, -6]
         a.byteswap()
         assert a.tolist() == [0.25, 104, -6]
 

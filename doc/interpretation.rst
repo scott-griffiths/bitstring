@@ -23,7 +23,7 @@ Properties
 
 The ``i``, ``u`` and ``f`` properties are the preferred names for bit-wise big-endian integer and floating point interpretations.
 The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases.
-Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32``, ``bin12`` or ``floatle32``.
+Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32``, ``bin12`` or ``fle32``.
 
 When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
 
@@ -79,16 +79,16 @@ To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned int
     >>> b.u
     7
 
-For byte-wise big-endian, little-endian and native-endian interpretations use :attr:`~Bits.uintbe`, :attr:`~Bits.uintle` and :attr:`~Bits.uintne` respectively. These will raise a :exc:`ValueError` if the bitstring is not a whole number of bytes long. ::
+For byte-wise big-endian, little-endian and native-endian interpretations use :attr:`~Bits.ube`, :attr:`~Bits.ule` and :attr:`~Bits.une` respectively. These will raise a :exc:`ValueError` if the bitstring is not a whole number of bytes long. ::
 
     >>> s = BitArray('0x000001')
     >>> s.u     # bit-wise big-endian
     1
-    >>> s.uintbe   # byte-wise big-endian
+    >>> s.ube   # byte-wise big-endian
     1
-    >>> s.uintle   # byte-wise little-endian
+    >>> s.ule   # byte-wise little-endian
     65536
-    >>> s.uintne   # byte-wise native-endian (will be 1 on a big-endian platform!)
+    >>> s.une   # byte-wise native-endian (will be 1 on a big-endian platform!)
     65536
 
 
@@ -99,7 +99,7 @@ For a two's complement interpretation as a base-2 signed integer use the :attr:`
     >>> b.i
     -1
 
-For byte-wise big, little and native endian signed integer interpretations use :attr:`~Bits.intbe`, :attr:`~Bits.intle` and :attr:`~Bits.intne` respectively. These work in the same manner as their unsigned counterparts described above.
+For byte-wise big, little and native endian signed integer interpretations use :attr:`~Bits.ibe`, :attr:`~Bits.ile` and :attr:`~Bits.ine` respectively. These work in the same manner as their unsigned counterparts described above.
 
 bytes
 -----
@@ -125,8 +125,8 @@ Floating point types
 
 For a floating point interpretation use the :attr:`~Bits.f` property. This uses the IEEE 754 floating point representation and will only work if the bitstring is 16, 32 or 64 bits long.
 
-Different endiannesses are provided via :attr:`~Bits.floatle` and :attr:`~Bits.floatne`.
-Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian :attr:`~Bits.f` and the byte-wise big-endian :attr:`~Bits.floatbe`.
+Different endiannesses are provided via :attr:`~Bits.fle` and :attr:`~Bits.fne`.
+Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian :attr:`~Bits.f` and the byte-wise big-endian :attr:`~Bits.fbe`.
 
 Note also that standard floating point numbers in Python are stored in 64 bits, so use this size if you wish to avoid rounding errors.
 

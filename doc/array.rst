@@ -124,9 +124,9 @@ In the bitstring dtypes the default is big-endian, but you can specify little or
 ============  =============================
 Type code     bitstring dtype
 ============  =============================
-``'>H'``      ``'u16'`` / ``'uintbe16'``
-``'=H'``      ``'uintne16'``
-``'<H'``      ``'uintle16'``
+``'>H'``      ``'u16'`` / ``'ube16'``
+``'=H'``      ``'une16'``
+``'<H'``      ``'ule16'``
 ============  =============================
 
 
@@ -177,9 +177,9 @@ Methods
         >>> a.byteswap()
         >>> a
         Array('u32', [1677721600, 16777216, 3875733504])
-        >>> a.dtype = 'uintle32'
+        >>> a.dtype = 'ule32'
         >>> a
-        Array('uintle32', [100, 1, 999])
+        Array('ule32', [100, 1, 999])
 
 .. method:: Array.count(value: float | int | str | bytes) -> int
 

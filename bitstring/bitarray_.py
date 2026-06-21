@@ -89,23 +89,23 @@ class BitArray(Bits):
         bytes -- raw data as a bytes object, for example read from a binary file.
         i -- a signed integer. int is a compatibility alias.
         u -- an unsigned integer. uint is a compatibility alias.
-        f / float / floatbe -- a big-endian floating point number.
+        f / float / fbe -- a big-endian floating point number.
         bool -- a boolean (True or False).
         se -- a signed exponential-Golomb code.
         ue -- an unsigned exponential-Golomb code.
         sie -- a signed interleaved exponential-Golomb code.
         uie -- an unsigned interleaved exponential-Golomb code.
-        floatle -- a little-endian floating point number.
-        floatne -- a native-endian floating point number.
+        fle -- a little-endian floating point number.
+        fne -- a native-endian floating point number.
         bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
         bfloatle -- a little-endian bfloat format 16-bit floating point number.
         bfloatne -- a native-endian bfloat format 16-bit floating point number.
-        intbe -- a signed big-endian whole byte integer.
-        intle -- a signed little-endian whole byte integer.
-        intne -- a signed native-endian whole byte integer.
-        uintbe -- an unsigned big-endian whole byte integer.
-        uintle -- an unsigned little-endian whole byte integer.
-        uintne -- an unsigned native-endian whole byte integer.
+        ibe -- a signed big-endian whole byte integer.
+        ile -- a signed little-endian whole byte integer.
+        ine -- a signed native-endian whole byte integer.
+        ube -- an unsigned big-endian whole byte integer.
+        ule -- an unsigned little-endian whole byte integer.
+        une -- an unsigned native-endian whole byte integer.
         filename -- the path of a file which will be opened in binary read-only mode.
 
         Other keyword arguments:

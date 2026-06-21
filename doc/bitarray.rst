@@ -54,9 +54,9 @@ Methods
 
    It can also be used to swap the endianness of the whole :class:`BitArray`. ::
 
-       >>> s = BitArray('uintle32=1234')
+       >>> s = BitArray('ule32=1234')
        >>> s.byteswap()
-       >>> print(s.uintbe)
+       >>> print(s.ube)
        1234
 
 .. method:: BitArray.clear() -> None
@@ -194,7 +194,7 @@ Properties
 
 Note that the ``i``, ``u`` and ``f`` properties are the preferred names for bit-wise big-endian integer and floating point interpretations.
 The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases.
-Properties can also have a length in bits appended to them to make properties such as ``u8``, ``hex16`` or ``floatle64`` (with the exception of the ``bytes`` property which uses a unit of bytes instead of bits, so ``bytes4`` is 32 bits long). These properties with lengths can be used to quickly create a new bitstring. ::
+Properties can also have a length in bits appended to them to make properties such as ``u8``, ``hex16`` or ``fle64`` (with the exception of the ``bytes`` property which uses a unit of bytes instead of bits, so ``bytes4`` is 32 bits long). These properties with lengths can be used to quickly create a new bitstring. ::
 
     >>> a = BitArray()
     >>> a.f32 = 17.6

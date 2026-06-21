@@ -43,6 +43,38 @@ class TestBasicFunctionality:
         assert repr(Dtype('int', 12)) == "Dtype('i', 12)"
         assert repr(Dtype('float', 16)) == "Dtype('f', 16)"
 
+    def test_short_endian_numeric_names_are_canonical(self):
+        assert Dtype('uintbe16') == Dtype('ube16')
+        assert Dtype('uintle16') == Dtype('ule16')
+        assert Dtype('uintne16') == Dtype('une16')
+        assert Dtype('intbe16') == Dtype('ibe16')
+        assert Dtype('intle16') == Dtype('ile16')
+        assert Dtype('intne16') == Dtype('ine16')
+        assert Dtype('floatbe16') == Dtype('fbe16') == Dtype('f16')
+        assert Dtype('floatle16') == Dtype('fle16')
+        assert Dtype('floatne16') == Dtype('fne16')
+        assert str(Dtype('uintbe16')) == 'ube16'
+        assert str(Dtype('uintle16')) == 'ule16'
+        assert str(Dtype('uintne16')) == 'une16'
+        assert str(Dtype('intbe16')) == 'ibe16'
+        assert str(Dtype('intle16')) == 'ile16'
+        assert str(Dtype('intne16')) == 'ine16'
+        assert str(Dtype('floatbe16')) == 'f16'
+        assert str(Dtype('fbe16')) == 'f16'
+        assert str(Dtype('floatle16')) == 'fle16'
+        assert str(Dtype('floatne16')) == 'fne16'
+
+    def test_short_endian_keyword_names_are_canonical(self):
+        assert bs.Bits(ube=1, length=16) == bs.Bits(uintbe=1, length=16)
+        assert bs.Bits(ule=1, length=16) == bs.Bits(uintle=1, length=16)
+        assert bs.Bits(une=1, length=16) == bs.Bits(uintne=1, length=16)
+        assert bs.Bits(ibe=-1, length=16) == bs.Bits(intbe=-1, length=16)
+        assert bs.Bits(ile=-1, length=16) == bs.Bits(intle=-1, length=16)
+        assert bs.Bits(ine=-1, length=16) == bs.Bits(intne=-1, length=16)
+        assert bs.Bits(fbe=1.5, length=32) == bs.Bits(floatbe=1.5, length=32)
+        assert bs.Bits(fle=1.5, length=32) == bs.Bits(floatle=1.5, length=32)
+        assert bs.Bits(fne=1.5, length=32) == bs.Bits(floatne=1.5, length=32)
+
     def test_pack_errors(self):
         dtype = Dtype('uint8')
         value = 'not_an_integer'

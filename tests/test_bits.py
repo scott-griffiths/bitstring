@@ -510,7 +510,7 @@ class TestInitFromArray:
         a = array.array("d", [0.0, 1.0, 2.5])
         b = Bits.from_bytes(a.tobytes())
         assert b.length == 192
-        c, d, e = b.unpack("3*floatne:64")
+        c, d, e = b.unpack("3*fne:64")
         assert (c, d, e) == (0.0, 1.0, 2.5)
 
 
@@ -912,14 +912,14 @@ class TestCopy:
 
 
 class TestNativeEndianIntegers:
-    def test_uintne(self):
-        s = Bits(uintne=454, length=160)
-        t = Bits("uintne160=454")
+    def test_une(self):
+        s = Bits(une=454, length=160)
+        t = Bits("une160=454")
         assert s == t
 
-    def test_intne(self):
-        s = Bits(intne=-1000, length=64)
-        t = Bits("intne:64=-1000")
+    def test_ine(self):
+        s = Bits(ine=-1000, length=64)
+        t = Bits("ine:64=-1000")
         assert s == t
 
 
@@ -930,14 +930,14 @@ class TestNonNativeEndianIntegers:
     def teardown_method(self) -> None:
         self.setup_method()
 
-    def test_uintne(self):
-        s = Bits(uintne=454, length=160)
-        t = Bits("uintne160=454")
+    def test_une(self):
+        s = Bits(une=454, length=160)
+        t = Bits("une160=454")
         assert s == t
 
-    def test_intne(self):
-        s = Bits(intne=-1000, length=64)
-        t = Bits("intne:64=-1000")
+    def test_ine(self):
+        s = Bits(ine=-1000, length=64)
+        t = Bits("ine:64=-1000")
         assert s == t
 
 

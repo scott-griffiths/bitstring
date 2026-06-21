@@ -119,20 +119,20 @@ Many require the bitstring to be specific lengths.
 * :attr:`~Bits.bin` -- The bitstring as a binary string.
 * :attr:`~Bits.bool` -- For single bit bitstrings, interpret as True or False.
 * :attr:`~Bits.bytes` -- The bitstring as a bytes object.
-* :attr:`~Bits.f` / ``float`` / ``floatbe`` -- Interpret as a big-endian floating point number.
-* :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
-* :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
+* :attr:`~Bits.f` / ``float`` / ``fbe`` -- Interpret as a big-endian floating point number.
+* :attr:`~Bits.fle` -- Interpret as a little-endian floating point number.
+* :attr:`~Bits.fne` -- Interpret as a native-endian floating point number.
 * :attr:`~Bits.hex` -- The bitstring as a hexadecimal string.
 * :attr:`~Bits.i` / ``int`` -- Interpret as a two's complement signed integer.
-* :attr:`~Bits.intbe` -- Interpret as a big-endian signed integer.
-* :attr:`~Bits.intle` -- Interpret as a little-endian signed integer.
-* :attr:`~Bits.intne` -- Interpret as a native-endian signed integer.
+* :attr:`~Bits.ibe` -- Interpret as a big-endian signed integer.
+* :attr:`~Bits.ile` -- Interpret as a little-endian signed integer.
+* :attr:`~Bits.ine` -- Interpret as a native-endian signed integer.
 * :attr:`~Bits.len` -- Length of the bitstring in bits.
 * :attr:`~Bits.oct` -- The bitstring as an octal string.
 * :attr:`~Bits.u` / ``uint`` -- Interpret as a two's complement unsigned integer.
-* :attr:`~Bits.uintbe` -- Interpret as a big-endian unsigned integer.
-* :attr:`~Bits.uintle` -- Interpret as a little-endian unsigned integer.
-* :attr:`~Bits.uintne` -- Interpret as a native-endian unsigned integer.
+* :attr:`~Bits.ube` -- Interpret as a big-endian unsigned integer.
+* :attr:`~Bits.ule` -- Interpret as a little-endian unsigned integer.
+* :attr:`~Bits.une` -- Interpret as a native-endian unsigned integer.
 
 There are also various other flavours of 16-bit, 8-bit and smaller floating point types (see :ref:`Exotic floats`) and exponential-Golomb integer types (see :ref:`exp-golomb`) that are not listed here for brevity.
 
@@ -407,27 +407,27 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
      - ``n`` bits as a signed integer.
    * - ``'u:n'``
      - ``n`` bits as an unsigned integer.
-   * - ``'intbe:n'``
+   * - ``'ibe:n'``
      - ``n`` bits as a byte-wise big-endian signed integer.
-   * - ``'uintbe:n'``
+   * - ``'ube:n'``
      - ``n`` bits as a byte-wise big-endian unsigned integer.
-   * - ``'intle:n'``
+   * - ``'ile:n'``
      - ``n`` bits as a byte-wise little-endian signed integer.
-   * - ``'uintle:n'``
+   * - ``'ule:n'``
      - ``n`` bits as a byte-wise little-endian unsigned integer.
-   * - ``'intne:n'``
+   * - ``'ine:n'``
      - ``n`` bits as a byte-wise native-endian signed integer.
-   * - ``'uintne:n'``
+   * - ``'une:n'``
      - ``n`` bits as a byte-wise native-endian unsigned integer.
    * - ``'f:n'``
      - ``n`` bits as a big-endian floating point number.
    * - ``'float:n'``
      - Alias for ``'f:n'``.
-   * - ``'floatbe:n'``
+   * - ``'fbe:n'``
      - Alias for ``'f:n'``.
-   * - ``'floatle:n'``
+   * - ``'fle:n'``
      - ``n`` bits as a little-endian floating point number.
-   * - ``'floatne:n'``
+   * - ``'fne:n'``
      - ``n`` bits as a native-endian floating point number.
    * - ``'hex:n'``
      - ``n`` bits as a hexadecimal string.
@@ -447,6 +447,8 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
 The ``':'`` before the length is optional, and is mostly omitted in the documentation, except where it improves readability.
 
 The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases for ``i``, ``u`` and ``f``.
+Longer endian-specific names such as ``intle``, ``uintbe`` and ``floatne`` also remain as compatibility aliases for ``ile``, ``ube`` and ``fne``.
+The ``fbe`` and ``floatbe`` names are aliases for ``f``.
 
 See also :ref:`Exotic floats` and :ref:`exp-golomb` for other types that can be used in format token strings.
 
@@ -504,9 +506,9 @@ This is followed by at least one of these format characters:
 The exact type is determined by combining the endianness character with the format character, but rather than give an exhaustive list a single example should explain:
 
 ========  ======================================   ===========
-``'>h'``  Big-endian 16 bit signed integer         ``intbe16``
-``'<h'``  Little-endian 16 bit signed integer      ``intle16``
-``'=h'``  Native-endian 16 bit signed integer      ``intne16``
+``'>h'``  Big-endian 16 bit signed integer         ``ibe16``
+``'<h'``  Little-endian 16 bit signed integer      ``ile16``
+``'=h'``  Native-endian 16 bit signed integer      ``ine16``
 ========  ======================================   ===========
 
 As you can see all three are signed integers in 16 bits, the only difference is the endianness. The native-endian ``'=h'`` will equal the big-endian ``'>h'`` on big-endian systems, and equal the little-endian ``'<h'`` on little-endian systems. For the single byte codes ``'b'`` and ``'B'`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
