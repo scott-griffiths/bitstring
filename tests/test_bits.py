@@ -83,9 +83,11 @@ class TestCreation:
             with pytest.raises(TypeError, match="from_file"):
                 cls(f)
 
-    def test_fromstring_removed(self):
-        assert not hasattr(Bits, "fromstring")
-        assert not hasattr(BitArray, "fromstring")
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_fromstring_compatibility_alias(self, cls):
+        s = cls.fromstring("u4=15, 0b01")
+        assert type(s) is cls
+        assert s == cls.from_string("u4=15, 0b01")
 
     def test_creation_from_bytes(self):
         s = Bits(bytes=b"\xa0\xff")

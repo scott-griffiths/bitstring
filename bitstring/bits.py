@@ -1751,6 +1751,11 @@ class Bits:
         return x
 
     @classmethod
+    def fromstring(cls: type[TBits], s: str, /) -> TBits:
+        """Compatibility alias for from_string()."""
+        return cls.from_string(s)
+
+    @classmethod
     def from_dtype(cls: type[TBits], dtype: str | Dtype, value: Any, /) -> TBits:
         """Create a new bitstring by packing value according to dtype."""
         x = super().__new__(cls)

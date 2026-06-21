@@ -152,6 +152,7 @@ Methods
 
     Creates a new bitstring from the formatted string *s*.
     It is equivalent to creating a new bitstring using *s* as the first parameter, but can be clearer to write and will be slightly faster.
+    The old ``fromstring`` spelling remains available as a compatibility alias.
 
 
         >>> b1 = Bits('i16=91')

@@ -234,8 +234,9 @@ For zero-filled bitstrings, replace integer construction with
     a = Bits.from_zeros(100)
     b = BitArray.from_zeros(100)
 
-Replace ``fromstring`` with :meth:`Bits.from_string` or
-:meth:`BitArray.from_string`::
+Prefer :meth:`Bits.from_string` or :meth:`BitArray.from_string` over the old
+``fromstring`` spelling. The old spelling still works as a compatibility
+alias.::
 
     # bitstring 4
     s = Bits.fromstring("uint16=1000")

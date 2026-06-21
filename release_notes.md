@@ -36,7 +36,6 @@ Breaking changes:
   `uintle`, `intbe` and `floatne` remain as compatibility aliases.
 * Positional integer construction has been removed. Use `Bits.from_zeros(100)`
   or `BitArray.from_zeros(100)` instead of `Bits(100)` or `BitArray(100)`.
-* The `fromstring()` class method has been renamed to `from_string()`.
 * Direct construction from arbitrary boolean iterables, file objects,
   `io.BytesIO`, and `array.array` objects has been removed. Use
   `from_bools()`, `from_file()` or `from_bytes()` instead.
@@ -63,9 +62,9 @@ Other changes and fixes:
   `from_bytes()`, `from_bools()`, `from_zeros()`, `from_ones()`,
   `from_joined()` and `from_file()`.
 * Several method names now have underscored preferred spellings:
-  `to_bytes()`, `to_file()`, `to_list()`, `from_file()`, `read_list()`,
-  `peek_list()`, `read_to()` and `byte_align()`. The old spellings without
-  underscores remain as compatibility aliases.
+  `to_bytes()`, `to_file()`, `to_list()`, `from_string()`, `from_file()`,
+  `read_list()`, `peek_list()`, `read_to()` and `byte_align()`. The old
+  spellings without underscores remain as compatibility aliases.
 * Added `Bits.to_bitarray()` and `BitArray.to_bits()` conversion methods.
 * Improved `from_bytes()`, `from_file()` and keyword construction from bytes,
   memoryviews and files with offsets and lengths by using tibs offset/length
