@@ -44,6 +44,10 @@ Breaking changes:
 * Optional range/search arguments such as `start`, `end`, `count` and
   `bytealigned` are now keyword-only for search, split, cut, replace and
   reverse/rotate-style methods.
+* Removed the `bitstring.options.mxfp_overflow` global setting and the
+  unsuffixed `e4m3mxfp` and `e5m2mxfp` dtypes. Use explicit
+  `e4m3mxfp_saturate`, `e4m3mxfp_overflow`, `e5m2mxfp_saturate` or
+  `e5m2mxfp_overflow` dtypes instead.
 * Removed the `python -m bitstring` command-line interface.
 * Removed the deprecated module-level way of setting options. Use
   `bitstring.options.bytealigned` rather than `bitstring.bytealigned`.
@@ -61,6 +65,8 @@ Other changes and fixes:
 * Added explicit construction helpers: `from_string()`, `from_dtype()`,
   `from_bytes()`, `from_bools()`, `from_zeros()`, `from_ones()`,
   `from_joined()` and `from_file()`.
+* Added explicit saturate and overflow dtype variants for the OCP MXFP E4M3
+  and E5M2 formats.
 * Several method names now have underscored preferred spellings:
   `to_bytes()`, `to_file()`, `to_list()`, `from_string()`, `from_file()`,
   `read_list()`, `peek_list()`, `read_to()` and `byte_align()`. The old

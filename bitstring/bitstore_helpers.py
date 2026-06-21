@@ -197,21 +197,27 @@ def p3binary2bitstore(f: str | float) -> ConstBitStore:
     return int2bitstore(u, 8, False)
 
 
-def e4m3mxfp2bitstore(f: str | float) -> ConstBitStore:
+def e4m3mxfp_saturate2bitstore(f: str | float) -> ConstBitStore:
     f = float(f)
-    if bitstring.options.mxfp_overflow == 'saturate':
-        u = e4m3mxfp_saturate_fmt.float_to_int(f)
-    else:
-        u = e4m3mxfp_overflow_fmt.float_to_int(f)
+    u = e4m3mxfp_saturate_fmt.float_to_int(f)
     return int2bitstore(u, 8, False)
 
 
-def e5m2mxfp2bitstore(f: str | float) -> ConstBitStore:
+def e4m3mxfp_overflow2bitstore(f: str | float) -> ConstBitStore:
     f = float(f)
-    if bitstring.options.mxfp_overflow == 'saturate':
-        u = e5m2mxfp_saturate_fmt.float_to_int(f)
-    else:
-        u = e5m2mxfp_overflow_fmt.float_to_int(f)
+    u = e4m3mxfp_overflow_fmt.float_to_int(f)
+    return int2bitstore(u, 8, False)
+
+
+def e5m2mxfp_saturate2bitstore(f: str | float) -> ConstBitStore:
+    f = float(f)
+    u = e5m2mxfp_saturate_fmt.float_to_int(f)
+    return int2bitstore(u, 8, False)
+
+
+def e5m2mxfp_overflow2bitstore(f: str | float) -> ConstBitStore:
+    f = float(f)
+    u = e5m2mxfp_overflow_fmt.float_to_int(f)
     return int2bitstore(u, 8, False)
 
 

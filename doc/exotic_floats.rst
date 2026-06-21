@@ -63,7 +63,7 @@ IEEE 8-bit Floating Point Types
     In bitstring prior to version 4.2 the `p4binary8` and `p3binary8` formats were called `e4m3float` and `e5m2float` respectively.
     The two formats are almost identical, the difference being the addition of `inf` values that replace the largest positive and negative values that were previously available.
 
-    Neither should be confused with the `e4m3mxfp` and `e5m2mxfp` formats from the Open Compute Project described below.
+    Neither should be confused with the E4M3 and E5M2 MXFP formats from the Open Compute Project described below.
 
 
 The 'binary8' formats are part of an ongoing IEEE standardisation process.
@@ -178,12 +178,12 @@ There is also a format to use for the scaling factor, an int-like format which i
    * - E5M2
      - 1 + 5 + 2
      - 10\ :sup:`-6` → 57344
-     - ``'e5m2mxfp'``
+     - ``'e5m2mxfp_saturate'`` / ``'e5m2mxfp_overflow'``
 
    * - E4M3
      - 1 + 4 + 3
      - 2×10\ :sup:`-3` → 448
-     - ``'e4m3mxfp'``
+     - ``'e4m3mxfp_saturate'`` / ``'e4m3mxfp_overflow'``
 
    * - E3M2
      - 1 + 3 + 2
@@ -260,12 +260,10 @@ Values that are out of range after rounding are dealt with as follows:
 
 - ``p3binary8`` - Out of range values are set to ``+inf`` or ``-inf``.
 - ``p4binary8`` - Out of range values are set to ``+inf`` or ``-inf``.
-- ``e5m2mxfp`` - Out of range values are dealt with according to the ``bitstring.options.mxfp_overflow`` setting:
-    - ``'saturate'`` (the default): values are set to the largest positive or negative finite value, as appropriate. Infinities will also be set to the largest finite value, despite the fact that the format has infinities.
-    - ``'overflow'``: Out of range values are set to ``+inf`` or ``-inf``.
-- ``e4m3mxfp`` - Out of range values are dealt with according to the ``bitstring.options.mxfp_overflow`` setting:
-    - ``'saturate'`` (the default): values are set to the largest positive or negative value, as appropriate.
-    - ``'overflow'``: Out of range values are set to ``nan``.
+- ``e5m2mxfp_saturate`` - Out of range values are set to the largest positive or negative finite value, as appropriate. Infinities will also be set to the largest finite value, despite the fact that the format has infinities.
+- ``e5m2mxfp_overflow`` - Out of range values are set to ``+inf`` or ``-inf``.
+- ``e4m3mxfp_saturate`` - Out of range values are set to the largest positive or negative value, as appropriate.
+- ``e4m3mxfp_overflow`` - Out of range values are set to ``nan``.
 - ``e3m2mxfp`` - Out of range values are saturated to the largest positive or negative value.
 - ``e2m3mxfp`` - Out of range values are saturated to the largest positive or negative value.
 - ``e2m1mxfp`` - Out of range values are saturated to the largest positive or negative value.

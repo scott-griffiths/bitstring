@@ -588,11 +588,17 @@ class Bits:
     def _setp4binary(self, f: float) -> None:
         self._bitstore = helpers.p4binary2bitstore(f)
 
-    def _sete4m3mxfp(self, f: float) -> None:
-        self._bitstore = helpers.e4m3mxfp2bitstore(f)
+    def _sete4m3mxfp_saturate(self, f: float) -> None:
+        self._bitstore = helpers.e4m3mxfp_saturate2bitstore(f)
 
-    def _sete5m2mxfp(self, f: float) -> None:
-        self._bitstore = helpers.e5m2mxfp2bitstore(f)
+    def _sete4m3mxfp_overflow(self, f: float) -> None:
+        self._bitstore = helpers.e4m3mxfp_overflow2bitstore(f)
+
+    def _sete5m2mxfp_saturate(self, f: float) -> None:
+        self._bitstore = helpers.e5m2mxfp_saturate2bitstore(f)
+
+    def _sete5m2mxfp_overflow(self, f: float) -> None:
+        self._bitstore = helpers.e5m2mxfp_overflow2bitstore(f)
 
     def _sete3m2mxfp(self, f: float) -> None:
         self._bitstore = helpers.e3m2mxfp2bitstore(f)

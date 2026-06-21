@@ -106,8 +106,10 @@ class Array:
                 'e2m1mxfp4': Bits('0b0111').e2m1mxfp4,  # 6.0
                 'e2m3mxfp6': Bits('0b011111').e2m3mxfp6,  # 7.5
                 'e3m2mxfp6': Bits('0b011111').e3m2mxfp6,  # 28.0
-                'e4m3mxfp8': Bits('0b01111110').e4m3mxfp8,  # 448.0
-                'e5m2mxfp8': Bits('0b01111011').e5m2mxfp8,  # 57344.0
+                'e4m3mxfp_saturate8': Bits('0b01111110').e4m3mxfp_saturate8,  # 448.0
+                'e4m3mxfp_overflow8': Bits('0b01111110').e4m3mxfp_overflow8,  # 448.0
+                'e5m2mxfp_saturate8': Bits('0b01111011').e5m2mxfp_saturate8,  # 57344.0
+                'e5m2mxfp_overflow8': Bits('0b01111011').e5m2mxfp_overflow8,  # 57344.0
                 'p4binary8': Bits('0b01111110').p4binary8,  # 224.0
                 'p3binary8': Bits('0b01111110').p3binary8,  # 49152.0
                 'f16': Bits('0x7bff').f16,  # 65504.0

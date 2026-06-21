@@ -116,16 +116,16 @@ def test_options_constructor_does_not_reset_singleton_state() -> None:
     from bitstring.bitstring_options import Options
 
     old_bytealigned = bitstring.options.bytealigned
-    old_overflow = bitstring.options.mxfp_overflow
     try:
         bitstring.options.bytealigned = True
-        bitstring.options.mxfp_overflow = "overflow"
         Options()
         assert bitstring.options.bytealigned is True
-        assert bitstring.options.mxfp_overflow == "overflow"
     finally:
         bitstring.options.bytealigned = old_bytealigned
-        bitstring.options.mxfp_overflow = old_overflow
+
+
+def test_mxfp_overflow_option_removed() -> None:
+    assert not hasattr(bitstring.options, "mxfp_overflow")
 
 
 def test_array_insert_very_negative_index_clamps_to_start() -> None:

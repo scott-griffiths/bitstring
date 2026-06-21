@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import bitstring
 import os
 
-ConstBitStore = bitstring.bitstore.ConstBitStore
-MutableBitStore = bitstring.bitstore.MutableBitStore
 
 class Options:
     """Internal class to create singleton module options instance."""
@@ -15,23 +12,11 @@ class Options:
         if hasattr(self, "_initialised"):
             return
         self._bytealigned = False
-        self.mxfp_overflow = 'saturate'
 
         self.no_color = False
         no_color = os.getenv('NO_COLOR')
         self.no_color = True if no_color else False
         self._initialised = True
-
-    @property
-    def mxfp_overflow(self) -> str:
-        return self._mxfp_overflow
-
-    @mxfp_overflow.setter
-    def mxfp_overflow(self, value: str) -> None:
-        allowed_values = ('saturate', 'overflow')
-        if value not in allowed_values:
-            raise ValueError(f"mxfp_overflow must be one of {allowed_values}, not {value}.")
-        self._mxfp_overflow = value
 
     def __repr__(self) -> str:
         attributes = {attr: getattr(self, attr) for attr in dir(self) if not attr.startswith('_') and not callable(getattr(self, attr))}

@@ -113,14 +113,6 @@ A number of methods take a bytealigned parameter to indicate that they should on
 
 If you’re only working with bytes then this can help avoid some errors and save some typing.
 
-mxfp_overflow
-^^^^^^^^^^^^^
-.. data:: bitstring.options.mxfp_overflow : str
-
-This option can be used to change the out-of-range behaviour of some 8-bit floating point types.
-The default value is ``'saturate'`` but it can also be set to ``'overflow'``.
-See :ref:`Exotic floats` for details.
-
 no_color
 ^^^^^^^^
 

@@ -338,6 +338,32 @@ single bit position ``i`` in a bitstring ``s``, the equivalent MSB0 position is
 ``len(s) - 1 - i``. Slice translations depend on the direction and bounds of
 the original slice, so they should be reviewed case by case.
 
+Use explicit MXFP overflow dtypes
+=================================
+
+The ``bitstring.options.mxfp_overflow`` setting has been removed. The overflow
+policy for OCP MXFP E4M3 and E5M2 packing is now part of the dtype name, and
+the old unsuffixed ``e4m3mxfp`` and ``e5m2mxfp`` names have been removed.
+
+Use ``e4m3mxfp_saturate`` or ``e5m2mxfp_saturate`` for saturating behaviour.
+Use ``e4m3mxfp_overflow`` or ``e5m2mxfp_overflow`` for the old overflow mode::
+
+    # bitstring 4
+    bitstring.options.mxfp_overflow = "overflow"
+    bits = Bits(e4m3mxfp=1e10)
+
+    # bitstring 5
+    bits = Bits(e4m3mxfp_overflow=1e10)
+
+Code that used the default saturating behaviour also needs to choose it
+explicitly::
+
+    # bitstring 4
+    bits = Bits(e5m2mxfp=1e10)
+
+    # bitstring 5
+    bits = Bits(e5m2mxfp_saturate=1e10)
+
 Use options for module settings
 ===============================
 
@@ -403,5 +429,7 @@ For a large codebase, the least surprising order is:
 8. Replace removed constructor forms with explicit factory methods.
 9. Add keywords to optional range and search arguments.
 10. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
-11. Optionally update compatibility aliases such as ``tobytes`` and
+11. Replace any ``options.mxfp_overflow`` changes with explicit MXFP dtype
+    names.
+12. Optionally update compatibility aliases such as ``tobytes`` and
     ``readlist`` to their preferred underscored names.
