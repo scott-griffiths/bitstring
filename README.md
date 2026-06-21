@@ -16,18 +16,53 @@
 ----
 
 > [!NOTE]
-> To see what been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
+> To see what's been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
 
-# News
+# Version 5.0
 
-I'm rewriting the core of bitstring in Rust, and have released that cut-down and streamlined interface as the [tibs](https://github.com/scott-griffiths/tibs) package. It's now in beta, and feedback is welcome. Just `pip install tibs` to try it out.
+Version 5.0 of bitstring is now released. This is a major update with breaking changes.
+
+Reasons to upgrade include:
+
+* Significantly better performance using the new [tibs](https://github.com/scott-griffiths/tibs) Rust core.
+* A simpler model for sequential reading: `Bits` and `BitArray` store data, while `Reader` stores the current bit position.
+* A clearer, more explicit API for construction, conversion and dtype names.
+* Removal of old compatibility layers, including the `bitarray` dependency, LSB0 mode and the old stream classes.
+* A smaller internal codebase that should be easier to maintain and optimise further.
+
+## Upgrading from version 4
+
+If you have arrived here because an upgrade to bitstring 5 broke your code, the most practical fix may be to pin the latest version 4 release for now:
+
+```bash
+pip install "bitstring<5"
+```
+
+Version 5 is worth moving to if you need the improved performance, want the cleaner current API, or want to keep up to
+date with future bitstring development. The changes are quite broad, so if your existing code is stable and performance
+is not a problem, there is no need to migrate immediately.
+
+For details on the source changes you may need, see the [Upgrading to version 5](https://bitstring.readthedocs.io/en/stable/upgrading_to_version_5.html) guide.
+
+## What's this 'tibs' thing that everyone is talking about?
+
+bitstring 5 is built on [tibs](https://github.com/scott-griffiths/tibs), a simpler and more focussed Python library for
+binary data, written in Rust for speed. It's by the same author as bitstring so they can complement each other's needs.
+If you want a leaner interface and do not need all of bitstring's higher-level format handling and historical API, tibs may be a better fit for new code.
+
+Tibs is still in beta but I would like it to get a wider range of users before hitting 1.0. Try it with:
+
+```bash
+pip install tibs
+```
 
 [![tibs](https://raw.githubusercontent.com/scott-griffiths/tibs/main/doc/tibs.png)](https://github.com/scott-griffiths/tibs)
 
 A sleek Python library for your binary data
 
+----
 
-# Overview
+# Bitstring Overview
 
 * Efficiently store and manipulate binary data in idiomatic Python.
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
