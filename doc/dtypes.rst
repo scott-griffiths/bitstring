@@ -10,7 +10,7 @@ The properties described above are all examples of dtypes.
 
 Dtypes are immutable and cannot be changed after creation.
 
-The first parameter is a format token string that can optionally include a length. For example ``'ue'``, ``'int'`` or ``'float16'``.
+The first parameter is a format token string that can optionally include a length. For example ``'ue'``, ``'i'`` or ``'f16'``.
 
 If the first parameter doesn't include a length and one is appropriate, the `length` parameter can be used to specify the length of the dtype.
 

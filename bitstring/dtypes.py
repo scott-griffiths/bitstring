@@ -37,8 +37,8 @@ class Dtype:
 
     Dtype instances are immutable. They are often created implicitly elsewhere via a token string.
 
-    >>> u12 = Dtype('uint', 12)  # length separate from token string.
-    >>> float16 = Dtype('float16')  # length part of token string.
+    >>> u12 = Dtype('u', 12)  # length separate from token string.
+    >>> float16 = Dtype('f16')  # length part of token string.
     >>> mxfp = Dtype('e3m2mxfp', scale=2 ** 6)  # dtype with scaling factor
 
     """
@@ -209,7 +209,7 @@ class Dtype:
             except ValueError:
                 scale_str = f', scale={self._scale}'
             else:
-                power_of_two = e8m0.uint - 127
+                power_of_two = e8m0.u - 127
                 if power_of_two in [0, 1]:
                     scale_str = f', scale={self._scale}'
                 else:

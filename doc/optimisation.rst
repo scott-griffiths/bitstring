@@ -12,19 +12,19 @@ Use combined read and interpretation
 
 When parsing with a :class:`Reader`, one way to write code is in the following style::
 
-    width = r.read(12).uint
-    height = r.read(12).uint
+    width = r.read(12).u
+    height = r.read(12).u
     flags = r.read(4).bin
  
 This works fine, but is not very quick. The problem is that the call to :meth:`~Reader.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
 
-    width = r.read('uint12')
-    height = r.read('uint12')
+    width = r.read('u12')
+    height = r.read('u12')
     flags = r.read('bin4')
  
 This is much faster, although probably not as fast as the combined call::
 
-    width, height, flags = r.read_list('uint12, uint12, bin4')
+    width, height, flags = r.read_list('u12, u12, bin4')
  
 Choose the simplest class you can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

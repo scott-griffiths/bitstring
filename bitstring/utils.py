@@ -32,14 +32,14 @@ STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLiIqQefd]')
 
 # These replicate the struct.pack codes
 # Big-endian
-REPLACEMENTS_BE: dict[str, str] = {'b': 'int8', 'B': 'uint8',
+REPLACEMENTS_BE: dict[str, str] = {'b': 'i8', 'B': 'u8',
                                    'h': 'intbe16', 'H': 'uintbe16',
                                    'l': 'intbe32', 'L': 'uintbe32',
                                    'i': 'intbe32', 'I': 'uintbe32',
                                    'q': 'intbe64', 'Q': 'uintbe64',
-                                   'e': 'floatbe16', 'f': 'floatbe32', 'd': 'floatbe64'}
+                                   'e': 'f16', 'f': 'f32', 'd': 'f64'}
 # Little-endian
-REPLACEMENTS_LE: dict[str, str] = {'b': 'int8', 'B': 'uint8',
+REPLACEMENTS_LE: dict[str, str] = {'b': 'i8', 'B': 'u8',
                                    'h': 'intle16', 'H': 'uintle16',
                                    'l': 'intle32', 'L': 'uintle32',
                                    'i': 'intle32', 'I': 'uintle32',
@@ -47,7 +47,7 @@ REPLACEMENTS_LE: dict[str, str] = {'b': 'int8', 'B': 'uint8',
                                    'e': 'floatle16', 'f': 'floatle32', 'd': 'floatle64'}
 
 # Native-endian
-REPLACEMENTS_NE: dict[str, str] = {'b': 'int8', 'B': 'uint8',
+REPLACEMENTS_NE: dict[str, str] = {'b': 'i8', 'B': 'u8',
                                    'h': 'intne16', 'H': 'uintne16',
                                    'l': 'intne32', 'L': 'uintne32',
                                    'i': 'intne32', 'I': 'uintne32',
@@ -174,7 +174,7 @@ def tokenparser(fmt: str, keys: tuple[str, ...] = ()) -> \
     """Divide the format string into tokens and parse them.
 
     Return stretchy token and list of [initialiser, length, value]
-    initialiser is one of: hex, oct, bin, uint, int, se, ue, 0x, 0o, 0b etc.
+    initialiser is one of: hex, oct, bin, u, i, se, ue, 0x, 0o, 0b etc.
     length is None if not known, as is value.
 
     If the token is in the keyword dictionary (keys) then it counts as a

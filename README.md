@@ -61,7 +61,7 @@ $ pip install bitstring
 >>> from bitstring import Bits, BitArray, Reader, pack
 >>> a = BitArray(bin='00101')
 >>> b = Bits.from_file(a_file_object)
->>> c = BitArray('0xff, 0b101, 0o65, uint6=22')
+>>> c = BitArray('0xff, 0b101, 0o65, u6=22')
 >>> d = pack('intle16, hex=a, 0b1', 100, a='0x34f')
 >>> e = pack('<16h', *range(16))
 ```
@@ -69,7 +69,7 @@ $ pip install bitstring
 ### Different interpretations, slicing and concatenation
 ```pycon
 >>> a = BitArray('0x3348')
->>> a.hex, a.bin, a.uint, a.float, a.bytes
+>>> a.hex, a.bin, a.u, a.f, a.bytes
 ('3348', '0011001101001000', 13128, 0.2275390625, b'3H')
 >>> a[10:3:-1].bin
 '0101100'
@@ -83,9 +83,9 @@ BitArray('0x866906690669, 0b000')
 >>> b.read(12).hex
 '160'
 >>> b.pos = 0
->>> b.read('uint12')
+>>> b.read('u12')
 352
->>> b.read_list('uint12, bin3')
+>>> b.read_list('u12, bin3')
 [288, '111']
 ```
 
@@ -102,12 +102,12 @@ BitArray('0x866906690669, 0b000')
 ### Arrays of fixed-length formats
 ```pycon
 >>> from bitstring import Array
->>> a = Array('uint7', [9, 100, 3, 1])
+>>> a = Array('u7', [9, 100, 3, 1])
 >>> a.data
 BitArray('0x1390181')
 >>> a[::2] *= 5
 >>> a
-Array('uint7', [45, 100, 15, 1])
+Array('u7', [45, 100, 15, 1])
 ```
 
 

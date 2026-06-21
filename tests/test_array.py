@@ -551,7 +551,7 @@ class TestArrayMethods:
         a = Array('uint32', [12, 100, 99])
         s = io.StringIO()
         a.pp(stream=s)
-        assert remove_unprintable(s.getvalue()) == """<Array dtype='uint32', length=3, itemsize=32 bits, total data size=12 bytes> [
+        assert remove_unprintable(s.getvalue()) == """<Array dtype='u32', length=3, itemsize=32 bits, total data size=12 bytes> [
  0:         12        100         99
 ]\n"""
 
@@ -586,7 +586,7 @@ class TestArrayMethods:
         a = Array('float16', bytearray(range(50, 56)))
         s = io.StringIO()
         a.pp(stream=s, fmt='u, bin')
-        assert remove_unprintable(s.getvalue()) == """<Array fmt='uint, bin', length=3, itemsize=16 bits, total data size=6 bytes> [
+        assert remove_unprintable(s.getvalue()) == """<Array fmt='u, bin', length=3, itemsize=16 bits, total data size=6 bytes> [
  0: 12851 13365 13879 : 0011001000110011 0011010000110101 0011011000110111
 ]\n"""
 
@@ -751,7 +751,7 @@ class TestArrayOperations:
         a = Array('i92', [-1, 1, 0, 100, -100])
         b = -a
         assert b.tolist() == [1, -1, 0, -100, 100]
-        assert str(b.dtype) == 'int92'
+        assert str(b.dtype) == 'i92'
 
     def test_abs(self):
         a = Array('float16', [-2.0, 0, -0, 100, -5.5])

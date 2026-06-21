@@ -180,7 +180,7 @@ def bool_bits2chars(_: Literal[1]):
 
 dtype_definitions = [
     # Integer types
-    DtypeDefinition('uint', Bits._setuint, Bits._getuint, int, False, uint_bits2chars,
+    DtypeDefinition('u', Bits._setuint, Bits._getuint, int, False, uint_bits2chars,
                     read_fn=Bits._readuint,
                     description="a two's complement unsigned int"),
     DtypeDefinition('uintle', Bits._setuintle, Bits._getuintle, int, False, uint_bits2chars,
@@ -189,7 +189,7 @@ dtype_definitions = [
     DtypeDefinition('uintbe', Bits._setuintbe, Bits._getuintbe, int, False, uint_bits2chars,
                     read_fn=Bits._readuintbe,
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement big-endian unsigned int"),
-    DtypeDefinition('int', Bits._setint, Bits._getint, int, True, int_bits2chars,
+    DtypeDefinition('i', Bits._setint, Bits._getint, int, True, int_bits2chars,
                     read_fn=Bits._readint,
                     description="a two's complement signed int"),
     DtypeDefinition('intle', Bits._setintle, Bits._getintle, int, True, int_bits2chars,
@@ -209,7 +209,7 @@ dtype_definitions = [
                     read_fn=Bits._readoct,
                     allowed_lengths=(0, 3, 6, ...), description="an octal string"),
     # Float types
-    DtypeDefinition('float', Bits._setfloatbe, Bits._getfloatbe, float, True, float_bits2chars,
+    DtypeDefinition('f', Bits._setfloatbe, Bits._getfloatbe, float, True, float_bits2chars,
                     read_fn=Bits._readfloatbe,
                     allowed_lengths=(16, 32, 64), description="a big-endian floating point number"),
     DtypeDefinition('floatle', Bits._setfloatle, Bits._getfloatle, float, True, float_bits2chars,
@@ -277,13 +277,13 @@ dtype_definitions = [
 
 aliases: list[tuple[str, str]] = [
     # Floats default to big endian
-    ('float', 'floatbe'),
+    ('f', 'float'),
+    ('f', 'floatbe'),
     ('bfloat', 'bfloatbe'),
 
-    # Some single letter aliases for popular types
-    ('int', 'i'),
-    ('uint', 'u'),
-    ('float', 'f'),
+    # Longer compatibility aliases for the short core type names
+    ('i', 'int'),
+    ('u', 'uint'),
 ]
 
 # Create native-endian aliases depending on the byteorder of the system

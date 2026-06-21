@@ -26,9 +26,9 @@ For example::
     >>> r.read(12).hex
     '160'
     >>> r.pos = 0
-    >>> r.read('uint12')
+    >>> r.read('u12')
     352
-    >>> r.read_list('uint12, bin3')
+    >>> r.read_list('u12, bin3')
     [288, '111']
 
 If a read fails then :attr:`pos` is restored to its value before the read.

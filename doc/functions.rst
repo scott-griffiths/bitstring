@@ -16,17 +16,17 @@ pack
 
 The format string consists of comma separated tokens, see :ref:`format_tokens` and :ref:`compact_format` for details.
 
-The tokens can be 'literals', like ``0xef``, ``0b110``, ``uint8=55``, etc. which just represent a set sequence of bits.
+The tokens can be 'literals', like ``0xef``, ``0b110``, ``u8=55``, etc. which just represent a set sequence of bits.
 
 They can also have the value missing, in which case the values contained in ``*values`` will be used. ::
 
  >>> a = pack('bin3, hex4', '001', 'f')
- >>> b = pack('uint10', 33)
+ >>> b = pack('u10', 33)
 
 A dictionary or keyword arguments can also be provided. These will replace items in the format string. ::
 
- >>> c = pack('int:a=b', a=10, b=20)
- >>> d = pack('int8=a, bin=b, int4=a', a=7, b='0b110')
+ >>> c = pack('i:a=b', a=10, b=20)
+ >>> d = pack('i8=a, bin=b, i4=a', a=7, b='0b110')
  
 Plain names can also be used as follows::
 
@@ -44,16 +44,16 @@ A :exc:`ValueError` will be raised if the ``*values`` are not all used up by the
 
 As an example of using just the ``*values`` arguments we can say::
 
-    s = bitstring.pack('hex32, uint12, uint12', '0x000001b3', 352, 288)
+    s = bitstring.pack('hex32, u12, u12', '0x000001b3', 352, 288)
 
 which is equivalent to initialising as::
 
-    s = Bits('0x000001b3, uint12=352, uint12=288')
+    s = Bits('0x000001b3, u12=352, u12=288')
 
 The advantage of the pack function is if you want to write more general code for creation. ::
 
     def foo(a, b, c, d):
-        return bitstring.pack('uint8, 0b110, int6, bin, bits', a, b, c, d)
+        return bitstring.pack('u8, 0b110, i6, bin, bits', a, b, c, d)
 
     s1 = foo(12, 5, '0b00000', '')
     s2 = foo(101, 3, '0b11011', s1)
@@ -66,7 +66,7 @@ You can also include keyword, value pairs (or an equivalent dictionary) as the f
 The values are then packed according to the positions of the keywords in the format string.
 This is most easily explained with some examples. Firstly the format string needs to contain parameter names::
 
-    format = 'hex32=start_code, uint12=width, uint12=height'
+    format = 'hex32=start_code, u12=width, u12=height'
 
 Then we can make a dictionary with these parameters as keys and pass it to pack::
 
@@ -78,9 +78,9 @@ Another method is to pass the same information as keywords at the end of pack's 
     s = bitstring.pack(format, width=352, height=288, start_code='0x000001b3')
 
 
-You can include constant bitstring tokens such as '0x101', '0xff', 'uint7=81' etc. and also use a keyword for the length specifier in the token, for example::
+You can include constant bitstring tokens such as '0x101', '0xff', 'u7=81' etc. and also use a keyword for the length specifier in the token, for example::
 
-    s = bitstring.pack('0xabc, int:n=-1', n=100)
+    s = bitstring.pack('0xabc, i:n=-1', n=100)
 
 Finally it is also possible just to use a keyword as a token::
 

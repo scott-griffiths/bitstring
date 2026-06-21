@@ -14,7 +14,7 @@ Array
     It can also be an integer, in which case the ``Array`` will be zero-initialised with that many items. ::
 
         >>> bitstring.Array('i4', 8)
-        Array('int4', [0, 0, 0, 0, 0, 0, 0, 0])
+        Array('i4', [0, 0, 0, 0, 0, 0, 0, 0])
 
     The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the data type `dtype`.
 
@@ -34,7 +34,7 @@ This example packs three 32-bit floats into objects using both libraries.
 The only difference is the explicit native endianness for the format string of the bitstring version.
 The bitstring Array's advantage lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
 
-For example ``'uint4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte dtypes can be properly specified.
+For example ``'u4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte dtypes can be properly specified.
 
 Each element in the ``Array`` must then be something that makes sense for the ``dtype``.
 Some examples will help illustrate::
@@ -42,17 +42,17 @@ Some examples will help illustrate::
     from bitstring import Array
 
     # Each unsigned int is stored in 4 bits
-    a = Array('uint4', [0, 5, 5, 3, 2])
+    a = Array('u4', [0, 5, 5, 3, 2])
 
     # Convert and store floats in 8 bits each
     b = Array('p3binary', [-56.0, 0.123, 99.6])
 
     # Each element is a  7 bit signed integer
-    c = Array('int7', [-3, 0, 120])
+    c = Array('i7', [-3, 0, 120])
 
 You can then access and modify the ``Array`` with the usual notation::
 
-    a[1:4]  # Array('uint4', [5, 5, 3])
+    a[1:4]  # Array('u4', [5, 5, 3])
     b[0]    # -56.0
     c[-1]   # 120
 
@@ -62,27 +62,27 @@ You can then access and modify the ``Array`` with the usual notation::
 Conversion between ``Array`` types can be done using the :meth:`astype` method.
 If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
 
-    >>> x = Array('float64', [89.3, 1e34, -0.00000001, 34])
-    >>> y = x.astype('float16')
+    >>> x = Array('f64', [89.3, 1e34, -0.00000001, 34])
+    >>> y = x.astype('f16')
     >>> y
-    Array('float16', [89.3125, inf, -0.0, 34.0])
+    Array('f16', [89.3125, inf, -0.0, 34.0])
     >>> y = y.astype('p4binary')
     >>> y
     Array('p4binary', [88.0, 240.0, 0.0, 32.0])
-    >>> y.astype('uint8')
-    Array('uint8', [88, 240, 0, 32])
-    >>> y.astype('uint7')
+    >>> y.astype('u8')
+    Array('u8', [88, 240, 0, 32])
+    >>> y.astype('u7')
     bitstring.CreationError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
 
 You can also reinterpret the data by changing the :attr:`dtype` property directly.
 This will not copy any data but will cause the current data to be shown differently. ::
 
-    >>> x = Array('int16', [-5, 100, -4])
+    >>> x = Array('i16', [-5, 100, -4])
     >>> x
-    Array('int16', [-5, 100, -4])
-    >>> x.dtype = 'int8'
+    Array('i16', [-5, 100, -4])
+    >>> x.dtype = 'i8'
     >>> x
-    Array('int8', [-1, -5, 0, 100, -1, -4])
+    Array('i8', [-1, -5, 0, 100, -1, -4])
 
 
 The data for the array is stored internally as a :class:`BitArray` object.
@@ -95,7 +95,7 @@ Typically :attr:`trailing_bits` will be an empty :class:`BitArray` but if you ch
 Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`trailing_bits` is not empty, as it not clear how these should behave in this case.
 You can however still use :meth:`~Array.insert` which will always leave the :attr:`trailing_bits` unchanged.
 
-The :attr:`dtype` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'int12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
+The :attr:`dtype` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'i12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
 Note that the typecodes must include an endianness character to give the byte ordering.
 This is more like the ``struct`` module typecodes, and is different to the ``array.array`` typecodes which are always native-endian.
@@ -105,17 +105,17 @@ The correspondence between the big-endian type codes and bitstring dtype strings
 =========   ===================
 Type code   bitstring dtype
 =========   ===================
-``'>b'``     ``'int8'``
-``'>B'``     ``'uint8'``
-``'>h'``     ``'int16'``
-``'>H'``     ``'uint16'``
-``'>l'``     ``'int32'``
-``'>L'``     ``'uint32'``
-``'>q'``     ``'int64'``
-``'>Q'``     ``'uint64'``
-``'>e'``     ``'float16'``
-``'>f'``     ``'float32'``
-``'>d'``     ``'float64'``
+``'>b'``     ``'i8'``
+``'>B'``     ``'u8'``
+``'>h'``     ``'i16'``
+``'>H'``     ``'u16'``
+``'>l'``     ``'i32'``
+``'>L'``     ``'u32'``
+``'>q'``     ``'i64'``
+``'>Q'``     ``'u64'``
+``'>e'``     ``'f16'``
+``'>f'``     ``'f32'``
+``'>d'``     ``'f64'``
 =========   ===================
 
 The endianness character can be ``'>'`` for big-endian, ``'<'`` for little-endian or ``'='`` for native-endian (``'@'`` can also be used for native-endian).
@@ -124,7 +124,7 @@ In the bitstring dtypes the default is big-endian, but you can specify little or
 ============  =============================
 Type code     bitstring dtype
 ============  =============================
-``'>H'``      ``'uint16'`` / ``'uintbe16'``
+``'>H'``      ``'u16'`` / ``'uintbe16'``
 ``'=H'``      ``'uintne16'``
 ``'<H'``      ``'uintle16'``
 ============  =============================
@@ -157,10 +157,10 @@ Methods
 
     Cast the ``Array`` to the new `dtype` and return the result. ::
 
-        >>> a = Array('float64', [-990, 34, 1, 0.25])
+        >>> a = Array('f64', [-990, 34, 1, 0.25])
         >>> a.data
         BitArray('0xc08ef0000000000040410000000000003ff00000000000003fd0000000000000')
-        >>> b = a.astype('float16')
+        >>> b = a.astype('f16')
         >>> b.data
         BitArray('0xe3bc50403c003400')
         >>> a == b
@@ -173,10 +173,10 @@ Methods
 
     Raises a ``ValueError`` if the format is not an integer number of bytes long. ::
 
-        >>> a = Array('uint32', [100, 1, 999])
+        >>> a = Array('u32', [100, 1, 999])
         >>> a.byteswap()
         >>> a
-        Array('uint32', [1677721600, 16777216, 3875733504])
+        Array('u32', [1677721600, 16777216, 3875733504])
         >>> a.dtype = 'uintle32'
         >>> a
         Array('uintle32', [100, 1, 999])
@@ -223,11 +223,11 @@ Methods
 
     The `iterable` can be another ``Array`` or an ``array.array``, but only if the dtype is the same. ::
 
-        >>> a = Array('int5', [-5, 0, 10])
+        >>> a = Array('i5', [-5, 0, 10])
         >>> a.extend([3, 2, 1])
         >>> a.extend(a[0:3] // 5)
         >>> a
-        Array('int5', [-5, 0, 10, 3, 2, 1, -1, 0, 2])
+        Array('i5', [-5, 0, 10, 3, 2, 1, -1, 0, 2])
 
 .. method:: Array.from_file(f: BinaryIO, n: int | None = None) -> None
 
@@ -268,7 +268,7 @@ Methods
 
     If a `fmt` doesn't have an explicit length, the Array's :attr:`itemsize` will be used.
 
-    A pair of comma-separated format strings can also be used - if both formats specify a length they must be the same. For example ``'float, hex16'`` or ``'u4, b4'``.
+    A pair of comma-separated format strings can also be used - if both formats specify a length they must be the same. For example ``'f, hex16'`` or ``'u4, bin4'``.
 
     The output will try to stay within `width` characters per line, but will always output at least one element value.
 
@@ -367,13 +367,39 @@ For other operators, one of the two input ``Array`` dtypes is used as the output
 
 Some examples should help illustrate:
 
-=========== ================   ============ ================  ===    ==================
-**Rule 0**  ``'uint8'``             ``<=``    ``'float64'``    →        ``'bool'``
-**Rule 1**  ``'int32'``             ``+``      ``'float16'``   →        ``'float16'``
-**Rule 2**  ``'uint20'``            ``//``    ``'int10'``      →        ``'int10'``
-**Rule 3**  ``'int8'``              ``*``     ``'int16'``      →        ``'int16'``
-**Rule 4**  ``'float16'``           ``-=``    ``'bfloat'``     →         ``'float16'``
-=========== ================   ============ ================  ===    ==================
+.. list-table::
+   :widths: 14 16 10 16 8 16
+
+   * - **Rule 0**
+     - ``'u8'``
+     - ``<=``
+     - ``'f64'``
+     - →
+     - ``'bool'``
+   * - **Rule 1**
+     - ``'i32'``
+     - ``+``
+     - ``'f16'``
+     - →
+     - ``'f16'``
+   * - **Rule 2**
+     - ``'u20'``
+     - ``//``
+     - ``'i10'``
+     - →
+     - ``'i10'``
+   * - **Rule 3**
+     - ``'i8'``
+     - ``*``
+     - ``'i16'``
+     - →
+     - ``'i16'``
+   * - **Rule 4**
+     - ``'f16'``
+     - ``-=``
+     - ``'bfloat'``
+     - →
+     - ``'f16'``
 
 Comparison operators
 """"""""""""""""""""
@@ -484,10 +510,10 @@ Python language operators
 
     Return the number of elements in the Array. ::
 
-        >>> a = Array('uint20', [1, 2, 3])
+        >>> a = Array('u20', [1, 2, 3])
         >>> len(a)
         3
-        >>> a.dtype = 'uint1'
+        >>> a.dtype = 'u1'
         >>> len(a)
         60
 

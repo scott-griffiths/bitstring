@@ -17,9 +17,9 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
     kwargs -- A dictionary or keyword-value pairs - the keywords used in the
               format string will be replaced with their given value.
 
-    Token examples: 'int:12'    : 12 bits as a signed integer
-                    'uint:8'    : 8 bits as an unsigned integer
-                    'float:64'  : 8 bytes as a big-endian float
+    Token examples: 'i:12'      : 12 bits as a signed integer
+                    'u:8'       : 8 bits as an unsigned integer
+                    'f:64'      : 8 bytes as a big-endian float
                     'intbe:16'  : 2 bytes as a big-endian signed integer
                     'uintbe:16' : 2 bytes as a big-endian unsigned integer
                     'intle:32'  : 4 bytes as a little-endian signed integer
@@ -38,9 +38,9 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
                     'bool'      : 1 bit as a bool
                     'pad:3'     : 3 zero bits as padding
 
-    >>> s = pack('uint:12, bits', 100, '0xffe')
+    >>> s = pack('u:12, bits', 100, '0xffe')
     >>> t = pack(['bits', 'bin:3'], s, '111')
-    >>> u = pack('uint:8=a, uint:8=b, uint:55=a', a=6, b=44)
+    >>> u = pack('u:8=a, u:8=b, u:55=a', a=6, b=44)
 
     """
     tokens = []

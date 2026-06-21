@@ -28,17 +28,17 @@ The more bits in the mantissa, the greater the precision (~significant figures) 
      - 1 + 11 + 52
      - IEEE 754
      - 10\ :sup:`-308` → 10\ :sup:`308`
-     - ``'float64'`` / ``'d'``
+     - ``'f64'`` / ``'d'``
    * - Single precision
      - 1 + 8 + 23
      - IEEE 754
      - 10\ :sup:`-38` → 10\ :sup:`38`
-     - ``'float32'`` / ``'f'``
+     - ``'f32'`` / ``'f'``
    * - Half precision
      - 1 + 5 + 10
      - IEEE 754
      - 6×10\ :sup:`-8` → 65504
-     - ``'float16'`` / ``'e'``
+     - ``'f16'`` / ``'e'``
    * - bfloat
      - 1 + 8 + 7
      - ``-``
@@ -99,7 +99,7 @@ It's remarkable that any useful calculations can be performed, but both inferenc
 
 You can easily examine every possible value that these formats can represent using a line like this::
 
-    >>> [Bits(uint=x, length=8).p3binary8 for x in range(256)]
+    >>> [Bits(u=x, length=8).p3binary8 for x in range(256)]
 
 or using the :class:`Array` type it's even more concise - we can create an Array and pretty print all the values with this line::
 

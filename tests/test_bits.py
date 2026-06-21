@@ -851,7 +851,7 @@ class TestPrettyPrinting_NewFormats:
         a.pp("float32", stream=s)
         assert (
             remove_unprintable(s.getvalue())
-            == """<Bits, fmt='float32', length=32 bits> [
+            == """<Bits, fmt='f32', length=32 bits> [
  0:                    10.5
 ]
 """
@@ -860,7 +860,7 @@ class TestPrettyPrinting_NewFormats:
         a.pp("float16", stream=s)
         assert (
             remove_unprintable(s.getvalue())
-            == """<Bits, fmt='float16', length=32 bits> [
+            == """<Bits, fmt='f16', length=32 bits> [
  0:                2.578125                     0.0
 ]
 """
@@ -872,7 +872,7 @@ class TestPrettyPrinting_NewFormats:
         a.pp("uint, hex12", stream=s)
         assert (
             remove_unprintable(s.getvalue())
-            == """<Bits, fmt='uint, hex12', length=780 bits> [
+            == """<Bits, fmt='u, hex12', length=780 bits> [
   0:   40   41   42   43   44   45   46   47   48   49   50   51 : 028 029 02a 02b 02c 02d 02e 02f 030 031 032 033
 144:   52   53   54   55   56   57   58   59   60   61   62   63 : 034 035 036 037 038 039 03a 03b 03c 03d 03e 03f
 288:   64   65   66   67   68   69   70   71   72   73   74   75 : 040 041 042 043 044 045 046 047 048 049 04a 04b
@@ -889,7 +889,7 @@ class TestPrettyPrinting_NewFormats:
         a.pp("i64, float", stream=s)
         assert (
             remove_unprintable(s.getvalue())
-            == """<BitArray, fmt='int64, float', length=69 bits> [
+            == """<BitArray, fmt='i64, f', length=69 bits> [
  0:  4635066033680416768 :                    76.25
 ] + trailing_bits = 0b11111
 """

@@ -192,7 +192,8 @@ Methods
 Properties
 ----------
 
-Note that the ``int``, ``uint`` and ``float`` properties can be shortened to ``i``, ``u`` and ``f`` respectively.
+Note that the ``i``, ``u`` and ``f`` properties are the preferred names for bit-wise big-endian integer and floating point interpretations.
+The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases.
 Properties can also have a length in bits appended to them to make properties such as ``u8``, ``hex16`` or ``floatle64`` (with the exception of the ``bytes`` property which uses a unit of bytes instead of bits, so ``bytes4`` is 32 bits long). These properties with lengths can be used to quickly create a new bitstring. ::
 
     >>> a = BitArray()
@@ -206,15 +207,15 @@ Properties can also have a length in bits appended to them to make properties su
 
 The binary interpretation properties of the :class:`Bits` class all become writable in the :class:`BitArray` class.
 
-For integer types, the properties can have a bit length appended to it such as ``u32`` or ``int5`` to specify the new length of the bitstring.
+For integer types, the properties can have a bit length appended to it such as ``u32`` or ``i5`` to specify the new length of the bitstring.
 Using a length too small to contain the value given will raise a :exc:`CreationError`.
 
 When used  as a setter without a new length the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
 
     >>> s = BitArray('0xf3')
-    >>> s.int
+    >>> s.i
     -13
-    >>> s.int = 1232
+    >>> s.i = 1232
     ValueError: int 1232 is too large for a BitArray of length 8.
 
 

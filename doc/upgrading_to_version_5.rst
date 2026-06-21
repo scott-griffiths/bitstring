@@ -38,7 +38,7 @@ For immutable data, wrap a :class:`Bits` object in a :class:`Reader`::
 
     # bitstring 5
     r = Reader(Bits("0x160120f"))
-    value = r.read("uint12")
+    value = r.read("u12")
 
 For mutable data, wrap a :class:`BitArray`. The wrapped object is available as
 :attr:`Reader.bits`, and it is the original object rather than a copy::
@@ -50,7 +50,7 @@ For mutable data, wrap a :class:`BitArray`. The wrapped object is available as
 
     # bitstring 5
     r = Reader(BitArray("0x001122"))
-    first = r.read("uint8")
+    first = r.read("u8")
     r.bits.append("0xff")
 
 The reader position is independent of the wrapped bitstring. Mutating
@@ -88,9 +88,9 @@ For reading, wrap the result in :class:`Reader`::
     first = s.read("uint8")
 
     # bitstring 5
-    bits = pack("uint8, uint8", 1, 2)
+    bits = pack("u8, u8", 1, 2)
     r = Reader(bits)
-    first = r.read("uint8")
+    first = r.read("u8")
 
 For mutation, convert the result to :class:`BitArray`::
 
@@ -99,7 +99,7 @@ For mutation, convert the result to :class:`BitArray`::
     s.append("0xff")
 
     # bitstring 5
-    s = pack("uint8", 1).to_bitarray()
+    s = pack("u8", 1).to_bitarray()
     s.append("0xff")
 
 Update find() and rfind() checks
@@ -137,7 +137,7 @@ Use full names for bin, oct and hex
 ===================================
 
 The ``b``, ``o`` and ``h`` aliases have been removed. Use ``bin``, ``oct`` and
-``hex`` instead. The shorter numeric aliases ``u``, ``i`` and ``f`` remain.
+``hex`` instead. The short numeric names ``u``, ``i`` and ``f`` remain.
 
 ::
 
@@ -148,6 +148,26 @@ The ``b``, ``o`` and ``h`` aliases have been removed. Use ``bin``, ``oct`` and
     # bitstring 5
     data = s.hex
     bits = s.unpack("bin12, u8")
+
+Prefer u, i and f
+=================
+
+The bit-wise big-endian numeric dtype names are now ``u``, ``i`` and ``f``.
+The longer ``uint``, ``int`` and ``float`` names still work as compatibility
+aliases, but :class:`Dtype` stringification, :class:`Array` representations and
+pretty-print headers use the shorter names.
+
+::
+
+    # bitstring 4
+    dtype = Dtype("uint12")
+    a = Array("float16", [1.5, 2.5])
+    value = r.read("int8")
+
+    # bitstring 5
+    dtype = Dtype("u12")
+    a = Array("f16", [1.5, 2.5])
+    value = r.read("i8")
 
 Use explicit construction helpers
 =================================
@@ -175,7 +195,7 @@ Replace ``fromstring`` with :meth:`Bits.from_string` or
     t = BitArray.fromstring("0xff")
 
     # bitstring 5
-    s = Bits.from_string("uint16=1000")
+    s = Bits.from_string("u16=1000")
     t = BitArray.from_string("0xff")
 
 Use the other factory methods for construction from values that are no longer
@@ -255,7 +275,7 @@ Rename Dtype build/parse
     value = d.parse(bits)
 
     # bitstring 5
-    d = Dtype("uint8")
+    d = Dtype("u8")
     bits = d.pack(42)
     value = d.unpack(bits)
 
@@ -329,8 +349,9 @@ For a large codebase, the least surprising order is:
    value.
 4. Change ``find`` and ``rfind`` checks to use ``is not None``.
 5. Replace ``b``, ``o`` and ``h`` aliases with ``bin``, ``oct`` and ``hex``.
-6. Replace removed constructor forms with explicit factory methods.
-7. Add keywords to optional range and search arguments.
-8. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
-9. Optionally update compatibility aliases such as ``tobytes`` and
-   ``readlist`` to their preferred underscored names.
+6. Prefer ``u``, ``i`` and ``f`` over ``uint``, ``int`` and ``float``.
+7. Replace removed constructor forms with explicit factory methods.
+8. Add keywords to optional range and search arguments.
+9. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
+10. Optionally update compatibility aliases such as ``tobytes`` and
+    ``readlist`` to their preferred underscored names.

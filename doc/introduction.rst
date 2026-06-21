@@ -47,22 +47,22 @@ Some of the keyword arguments that can be used are:
 
 * ``bytes`` : A ``bytes`` object, for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
-* ``int``, ``uint``: Signed or unsigned bit-wise big-endian binary integers.
+* ``i``, ``u``: Signed or unsigned bit-wise big-endian binary integers. ``int`` and ``uint`` are compatibility aliases.
 * ``intle``, ``uintle``: Signed or unsigned byte-wise little-endian binary integers.
 * ``intbe``, ``uintbe``: Signed or unsigned byte-wise big-endian binary integers.
 * ``intne``, ``uintne``: Signed or unsigned byte-wise native-endian binary integers.
-* ``float`` / ``floatbe``, ``floatle``, ``floatne``: Big, little and native endian floating point numbers.
+* ``f`` / ``floatbe``, ``floatle``, ``floatne``: Big, little and native endian floating point numbers. ``float`` is a compatibility alias.
 * ``bool`` : A boolean (i.e. True or False).
 
 There are also various other flavours of 16-bit, 8-bit and smaller floating point types (see :ref:`Exotic floats`) and exponential-Golomb integer types (see :ref:`exp-golomb`).
 
-The ``float``, ``int`` and ``uint`` types can be shortened to ``f``, ``i`` and ``u`` respectively.
+The ``f``, ``i`` and ``u`` names are preferred for bit-wise big-endian floats and integers.
 The data type name can be combined with its length if appropriate, or the length can be specified separately.
 
 For example::
 
    a = Bits(hex='deadbeef')
-   b = BitArray(f32=100.25)  # or = BitArray(float=100.25, length=32)
+   b = BitArray(f32=100.25)  # or = BitArray(f=100.25, length=32)
    c = Bits.from_file('a_big_file')
    d = Bits(u12=105)
    e = BitArray(bool=True)
@@ -94,12 +94,12 @@ If it is a string then that string will be parsed into tokens to construct the b
 * Starting with ``'0x'`` or ``'hex='`` implies hexadecimal. e.g. ``'0x013ff'``, ``'hex=013ff'``
 * Starting with ``'0o'`` or ``'oct='`` implies octal. e.g. ``'0o755'``, ``'oct=755'``
 * Starting with ``'0b'`` or ``'bin='`` implies binary. e.g. ``'0b0011010'``, ``'bin=0011010'``
-* Starting with ``'int'`` or ``'uint'`` followed by a length in bits and ``'='`` gives base-2 integers. e.g. ``'uint8=255'``, ``'int4=-7'``
+* Starting with ``'i'`` or ``'u'`` followed by a length in bits and ``'='`` gives base-2 integers. e.g. ``'u8=255'``, ``'i4=-7'``
 * To get big, little and native-endian whole-byte integers append ``'be'``, ``'le'`` or ``'ne'`` respectively to the ``'uint'`` or ``'int'`` identifier. e.g. ``'uintle32=1'``, ``'intne16=-23'``
-* For floating point numbers use ``'float'`` followed by the length in bits and ``'='`` and the number. The default is big-endian, but you can also append ``'be'``, ``'le'`` or ``'ne'`` as with integers. e.g. ``'float64=0.2'``, ``'floatle32=-0.3e12'``
+* For floating point numbers use ``'f'`` followed by the length in bits and ``'='`` and the number. The default is big-endian, but you can also append ``'be'``, ``'le'`` or ``'ne'`` as with integers. e.g. ``'f64=0.2'``, ``'floatle32=-0.3e12'``
 * Starting with ``'ue='``, ``'uie='``, ``'se='`` or ``'sie='`` implies an exponential-Golomb coded integer. e.g. ``'ue=12'``, ``'sie=-4'``
 
-Multiples tokens can be joined by separating them with commas, so for example ``'uint4=4, 0b1, se=-1'`` represents the concatenation of three elements.
+Multiples tokens can be joined by separating them with commas, so for example ``'u4=4, 0b1, se=-1'`` represents the concatenation of three elements.
 
 Parentheses and multiplicative factors can also be used, for example ``'2*(0b10, 0xf)'`` is equivalent to ``'0b10, 0xf, 0b10, 0xf'``.
 The multiplying factor must come before the thing it is being used to repeat.
@@ -199,30 +199,30 @@ As with ``hex`` and ``bin``, the 'auto' initialiser will work if the octal strin
 From an integer
 ^^^^^^^^^^^^^^^
 
-    >>> e = BitArray(uint=45, length=12)
-    >>> f = BitArray(int=-1, length=7)
+    >>> e = BitArray(u=45, length=12)
+    >>> f = BitArray(i=-1, length=7)
     >>> e.bin
     '000000101101'
     >>> f.bin
     '1111111'
 
-For initialisation with signed and unsigned binary integers (``int`` and ``uint`` respectively) the ``length`` parameter is mandatory, and must be large enough to contain the integer.
-So for example if ``length`` is 8 then ``uint`` can be in the range 0 to 255, while ``int`` can range from -128 to 127.
+For initialisation with signed and unsigned binary integers (``i`` and ``u`` respectively) the ``length`` parameter is mandatory, and must be large enough to contain the integer.
+So for example if ``length`` is 8 then ``u`` can be in the range 0 to 255, while ``i`` can range from -128 to 127.
 Two's complement is used to represent negative numbers.
 
-The 'auto' initialiser can be used by giving the length in bits immediately after the ``int`` or ``uint`` token, followed by an equals sign then the value::
+The 'auto' initialiser can be used by giving the length in bits immediately after the ``i`` or ``u`` token, followed by an equals sign then the value::
 
-    >>> e = BitArray('uint12=45')
-    >>> f = BitArray('int7=-1')
+    >>> e = BitArray('u12=45')
+    >>> f = BitArray('i7=-1')
 
-The ``uint`` and ``int`` names can be shortened to just ``u`` and ``i`` respectively. For mutable bitstrings you can change value by assigning to a property with a length::
+For mutable bitstrings you can change value by assigning to a property with a length::
 
     >>> e = BitArray()
     >>> e.u12 = 45
     >>> f = BitArray()
     >>> f.i7 = -1
 
-The plain ``int`` and ``uint`` initialisers are bit-wise big-endian. That is to say that the most significant bit comes first and the least significant bit comes last, so the unsigned number one will have a ``1`` as its final bit with all other bits set to ``0``. These can be any number of bits long. For whole-byte bitstring objects there are more options available with different endiannesses.
+The plain ``i`` and ``u`` initialisers are bit-wise big-endian. That is to say that the most significant bit comes first and the least significant bit comes last, so the unsigned number one will have a ``1`` as its final bit with all other bits set to ``0``. These can be any number of bits long. For whole-byte bitstring objects there are more options available with different endiannesses.
 
 Big and little-endian integers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -233,7 +233,7 @@ Big and little-endian integers
 
 There are unsigned and signed versions of three additional 'endian' types. The unsigned versions are used above to create three bitstrings.
 
-The first of these, ``big_endian``, is equivalent to just using the plain bit-wise big-endian ``uint`` initialiser, except that all ``intbe`` or ``uintbe`` interpretations must be of whole-byte bitstrings, otherwise a :exc:`ValueError` is raised.
+The first of these, ``big_endian``, is equivalent to just using the plain bit-wise big-endian ``u`` initialiser, except that all ``intbe`` or ``uintbe`` interpretations must be of whole-byte bitstrings, otherwise a :exc:`ValueError` is raised.
 
 The second, ``little_endian``, is interpreted as least significant byte first, i.e. it is a byte reversal of ``big_endian``. So we have::
 
@@ -247,14 +247,14 @@ Finally we have ``native_endian``, which will equal either ``big_endian`` or ``l
 From a floating point number
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    >>> f1 = BitArray(float=10.3, length=32)
-    >>> f2 = BitArray('float64=5.4e31')
+    >>> f1 = BitArray(f=10.3, length=32)
+    >>> f2 = BitArray('f64=5.4e31')
 
 Floating point numbers can be used for initialisation provided that the bitstring is 16, 32 or 64 bits long. Standard Python floating point numbers are 64 bits long, so if you use 32 bits then some accuracy could be lost. The 16 bit version has very limited range and is used mainly in specialised areas such as machine learning.
 
 The exact bits used to represent the floating point number will conform to the IEEE 754 standard, even if the machine being used does not use that standard internally.
 
-Similar to the situation with integers there are big and little endian versions. The plain ``float`` is big endian and so ``floatbe`` is just an alias.
+Similar to the situation with integers there are big and little endian versions. The plain ``f`` is big endian, with ``float`` and ``floatbe`` available as aliases.
 
 As with other initialisers you can also 'auto' initialise, as demonstrated with the second example below::
 

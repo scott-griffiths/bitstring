@@ -2400,8 +2400,8 @@ def test_token_parser_struct_codes():
     assert tp('<H') == (False, [('uintle', 16, None)])
     assert tp('=H') == (False, [('uintne', 16, None)])
     assert tp('@H') == (False, [('uintne', 16, None)])
-    assert tp('>b') == (False, [('int', 8, None)])
-    assert tp('<b') == (False, [('int', 8, None)])
+    assert tp('>b') == (False, [('i', 8, None)])
+    assert tp('<b') == (False, [('i', 8, None)])
 
 
 def test_file_based_all_any_more():

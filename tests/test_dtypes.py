@@ -28,9 +28,20 @@ class TestBasicFunctionality:
 
     def test_setting_with_length(self):
         d = Dtype('uint', 12)
-        assert str(d) == 'uint12'
+        assert str(d) == 'u12'
         assert d.length == 12
-        assert d.name == 'uint'
+        assert d.name == 'u'
+
+    def test_short_numeric_names_are_canonical(self):
+        assert Dtype('uint12') == Dtype('u12')
+        assert Dtype('int12') == Dtype('i12')
+        assert Dtype('float16') == Dtype('f16')
+        assert str(Dtype('uint12')) == 'u12'
+        assert str(Dtype('int12')) == 'i12'
+        assert str(Dtype('float16')) == 'f16'
+        assert repr(Dtype('uint', 12)) == "Dtype('u', 12)"
+        assert repr(Dtype('int', 12)) == "Dtype('i', 12)"
+        assert repr(Dtype('float', 16)) == "Dtype('f', 16)"
 
     def test_pack_errors(self):
         dtype = Dtype('uint8')

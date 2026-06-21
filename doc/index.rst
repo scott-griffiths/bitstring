@@ -80,19 +80,19 @@ Mixed format bitstrings
 
 If you have binary data (or want to construct it) from multiple types then you could use the :class:`BitArray` class.
 The example below constructs a 28 bit bitstring from a hexadecimal string, then unpacks it into multiple bit interpretations.
-It also demonstrates how it can be flexibly modified and sliced using standard notation, and how properties such as ``bin`` and ``float`` can be used to interpret the data.
+It also demonstrates how it can be flexibly modified and sliced using standard notation, and how properties such as ``bin`` and ``f`` can be used to interpret the data.
 
 ::
 
     >>> s = bitstring.BitArray('0x4f8e220')
-    >>> s.unpack('uint12, hex8, bin')
+    >>> s.unpack('u12, hex8, bin')
     [1272, 'e2', '00100000']
     >>> '0b11000' in s
     True
     >>> s += 'f32=0.001'
     >>> s.bin
     '010011111000111000100010000000111010100000110001001001101111'
-    >>> s[-32:].float
+    >>> s[-32:].f
     0.0010000000474974513
 
 
@@ -100,7 +100,7 @@ The module also supplies the :class:`Reader` class, which wraps a bitstring with
 
 Bitstrings are designed to be as lightweight as possible and can be considered to be just a list of binary digits. They are however stored efficiently - although there are a variety of ways of creating and viewing the binary data, the bitstring itself just stores the byte data, and all views are calculated as needed, and are not stored as part of the object.
 
-The different views or interpretations on the data are accessed through properties such as :attr:`~Bits.hex`, :attr:`~Bits.bin` and :attr:`~Bits.int`, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.
+The different views or interpretations on the data are accessed through properties such as :attr:`~Bits.hex`, :attr:`~Bits.bin` and :attr:`~Bits.i`, and an extensive set of functions is supplied for modifying, navigating and analysing the binary data.
 
 :class:`Bits` is immutable and :class:`BitArray` is mutable. A :class:`Reader` can wrap either class, so the reading position is kept separate from the bit data itself.
 See the reference documentation for full details.
@@ -117,10 +117,10 @@ You can also easily change the data's interpretation, convert to another format,
 
 ::
 
-    >>> a = bitstring.Array('uint16', [0, 1, 4, 6, 11, 2, 8, 7])
+    >>> a = bitstring.Array('u16', [0, 1, 4, 6, 11, 2, 8, 7])
     >>> a.data
     BitArray('0x0000000100040006000b000200080007')
-    >>> b = a.astype('uint5')
+    >>> b = a.astype('u5')
     >>> b.data
     BitArray('0x0048658907')
     >>> a.to_list() == b.to_list()
@@ -130,9 +130,9 @@ You can also take and set slices as you'd expect, and apply operations to each e
 
     >>> a[::2] *= 5
     >>> a
-    Array('uint16', [0, 1, 20, 6, 55, 2, 40, 7])
+    Array('u16', [0, 1, 20, 6, 55, 2, 40, 7])
     >>> a >> 2
-    Array('uint16', [0, 0, 5, 1, 13, 0, 10, 1])
+    Array('u16', [0, 0, 5, 1, 13, 0, 10, 1])
 
 
 Installation and download

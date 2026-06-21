@@ -55,14 +55,14 @@ Bits
 
 The first parameter (usually referred to as `auto`) is most often a parsable string, a bytes-like object, or another bitstring. For zero-filled, bool-iterable, joined or file-based construction prefer the explicit factory methods below.
 
-A single initialiser from `kwargs` can be used instead of ``auto``, including  ``bin``, ``hex``, ``oct``, ``bool``, ``uint``, ``int``, ``float`` and ``bytes``.
+A single initialiser from `kwargs` can be used instead of ``auto``, including ``bin``, ``hex``, ``oct``, ``bool``, ``u``, ``i``, ``f`` and ``bytes``.
 
 Examples::
 
    Bits('0xef')
-   Bits(float=-50.5, length=32)
-   Bits('uint10=99')
-   Bits(uint=99, length=10)
+   Bits(f=-50.5, length=32)
+   Bits('u10=99')
+   Bits(u=99, length=10)
 
 Methods
 ^^^^^^^
@@ -119,17 +119,17 @@ Many require the bitstring to be specific lengths.
 * :attr:`~Bits.bin` -- The bitstring as a binary string.
 * :attr:`~Bits.bool` -- For single bit bitstrings, interpret as True or False.
 * :attr:`~Bits.bytes` -- The bitstring as a bytes object.
-* :attr:`~Bits.float` / ``floatbe`` / ``f`` -- Interpret as a big-endian floating point number.
+* :attr:`~Bits.f` / ``float`` / ``floatbe`` -- Interpret as a big-endian floating point number.
 * :attr:`~Bits.floatle` -- Interpret as a little-endian floating point number.
 * :attr:`~Bits.floatne` -- Interpret as a native-endian floating point number.
 * :attr:`~Bits.hex` -- The bitstring as a hexadecimal string.
-* :attr:`~Bits.int` / ``i`` -- Interpret as a two's complement signed integer.
+* :attr:`~Bits.i` / ``int`` -- Interpret as a two's complement signed integer.
 * :attr:`~Bits.intbe` -- Interpret as a big-endian signed integer.
 * :attr:`~Bits.intle` -- Interpret as a little-endian signed integer.
 * :attr:`~Bits.intne` -- Interpret as a native-endian signed integer.
 * :attr:`~Bits.len` -- Length of the bitstring in bits.
 * :attr:`~Bits.oct` -- The bitstring as an octal string.
-* :attr:`~Bits.uint` / ``u`` -- Interpret as a two's complement unsigned integer.
+* :attr:`~Bits.u` / ``uint`` -- Interpret as a two's complement unsigned integer.
 * :attr:`~Bits.uintbe` -- Interpret as a big-endian unsigned integer.
 * :attr:`~Bits.uintle` -- Interpret as a little-endian unsigned integer.
 * :attr:`~Bits.uintne` -- Interpret as a native-endian unsigned integer.
@@ -242,8 +242,8 @@ Both the dtype and the underlying bit data (stored as a :class:`BitArray`) can b
 Initialization examples::
 
     Array('>H', [1, 10, 20])
-    Array('float16', a_file_object)
-    Array('int4', stored_bytes)
+    Array('f16', a_file_object)
+    Array('i4', stored_bytes)
 
 
 Methods
@@ -322,10 +322,10 @@ Mutating versions of many of the methods are also available.
 
 Example::
 
-    >>> a = Array('float16', [1.5, 2.5, 7, 1000])
-    >>> a[::2] *= 3.0  # Multiply every other float16 value in-place
+    >>> a = Array('f16', [1.5, 2.5, 7, 1000])
+    >>> a[::2] *= 3.0  # Multiply every other f16 value in-place
     >>> a
-    Array('float16', [4.5, 2.5, 21.0, 1000.0])
+    Array('f16', [4.5, 2.5, 21.0, 1000.0])
 
 
 The bit-wise logical operations (``&``, ``|``, ``^``) are performed on each element with a ``Bits`` object, which must have the same length as the ``Array`` elements.
@@ -400,31 +400,53 @@ Format strings are used when constructing bitstrings, as well as reading, packin
 They can also be auto promoted to bitstring when appropriate - see :ref:`auto_init`.
 
 
-=================== ===============================================================================
-``'int:n'``         ``n`` bits as a signed integer.
-``'uint:n'``        ``n`` bits as an unsigned integer.
-``'intbe:n'``	    ``n`` bits as a byte-wise big-endian signed integer.
-``'uintbe:n'``      ``n`` bits as a byte-wise big-endian unsigned integer.
-``'intle:n'``       ``n`` bits as a byte-wise little-endian signed integer.
-``'uintle:n'``      ``n`` bits as a byte-wise little-endian unsigned integer.
-``'intne:n'``       ``n`` bits as a byte-wise native-endian signed integer.
-``'uintne:n'``      ``n`` bits as a byte-wise native-endian unsigned integer.
-``'float:n'``       ``n`` bits as a big-endian floating point number (same as ``floatbe``).
-``'floatbe:n'``     ``n`` bits as a big-endian floating point number (same as ``float``).
-``'floatle:n'``     ``n`` bits as a little-endian floating point number.
-``'floatne:n'``     ``n`` bits as a native-endian floating point number.
-``'hex:n'``         ``n`` bits as a hexadecimal string.
-``'oct:n'``         ``n`` bits as an octal string.
-``'bin:n'``         ``n`` bits as a binary string.
-``'bits:n'``        ``n`` bits as a new bitstring.
-``'bytes:n'``       ``n`` bytes as a ``bytes`` object.
-``'bool[:1]'``      next bit as a boolean (True or False).
-``'pad:n'``         next ``n`` bits will be ignored (padding). Only applicable when reading, not creating.
-=================== ===============================================================================
+.. list-table::
+   :widths: 24 76
+
+   * - ``'i:n'``
+     - ``n`` bits as a signed integer.
+   * - ``'u:n'``
+     - ``n`` bits as an unsigned integer.
+   * - ``'intbe:n'``
+     - ``n`` bits as a byte-wise big-endian signed integer.
+   * - ``'uintbe:n'``
+     - ``n`` bits as a byte-wise big-endian unsigned integer.
+   * - ``'intle:n'``
+     - ``n`` bits as a byte-wise little-endian signed integer.
+   * - ``'uintle:n'``
+     - ``n`` bits as a byte-wise little-endian unsigned integer.
+   * - ``'intne:n'``
+     - ``n`` bits as a byte-wise native-endian signed integer.
+   * - ``'uintne:n'``
+     - ``n`` bits as a byte-wise native-endian unsigned integer.
+   * - ``'f:n'``
+     - ``n`` bits as a big-endian floating point number.
+   * - ``'float:n'``
+     - Alias for ``'f:n'``.
+   * - ``'floatbe:n'``
+     - Alias for ``'f:n'``.
+   * - ``'floatle:n'``
+     - ``n`` bits as a little-endian floating point number.
+   * - ``'floatne:n'``
+     - ``n`` bits as a native-endian floating point number.
+   * - ``'hex:n'``
+     - ``n`` bits as a hexadecimal string.
+   * - ``'oct:n'``
+     - ``n`` bits as an octal string.
+   * - ``'bin:n'``
+     - ``n`` bits as a binary string.
+   * - ``'bits:n'``
+     - ``n`` bits as a new bitstring.
+   * - ``'bytes:n'``
+     - ``n`` bytes as a ``bytes`` object.
+   * - ``'bool[:1]'``
+     - Next bit as a boolean (True or False).
+   * - ``'pad:n'``
+     - Next ``n`` bits will be ignored (padding). Only applicable when reading, not creating.
 
 The ``':'`` before the length is optional, and is mostly omitted in the documentation, except where it improves readability.
 
-The ``int``, ``uint`` and ``float`` types can be shortened to ``i``, ``u`` and ``f`` respectively.
+The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases for ``i``, ``u`` and ``f``.
 
 See also :ref:`Exotic floats` and :ref:`exp-golomb` for other types that can be used in format token strings.
 
@@ -434,7 +456,7 @@ Bitstring literals
 To make a literal quantity (one that directly represents a sequence of bits) you can use any of the format tokens above followed by an ``'='`` and a value to initialise with.
 For example::
 
-    s = BitArray('float32=10.125, int7=-9')
+    s = BitArray('f32=10.125, i7=-9')
     s.append('hex:abc')
 
 You can also create binary, octal and hexadecimal literals by starting a string with ``'0b'``, ``'0o'`` and ``'0x'`` respectively::

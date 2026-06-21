@@ -31,7 +31,7 @@ class Array:
     format.
 
     a = Array('>H', [1, 15, 105])
-    b = Array('int5', [-9, 0, 4])
+    b = Array('i5', [-9, 0, 4])
 
     The Array data is stored compactly as a BitArray object and the Array behaves very like
     a list of items of the given format. Both the Array data and fmt properties can be freely
@@ -110,12 +110,12 @@ class Array:
                 'e5m2mxfp8': Bits('0b01111011').e5m2mxfp8,  # 57344.0
                 'p4binary8': Bits('0b01111110').p4binary8,  # 224.0
                 'p3binary8': Bits('0b01111110').p3binary8,  # 49152.0
-                'float16': Bits('0x7bff').float16,  # 65504.0
+                'f16': Bits('0x7bff').f16,  # 65504.0
                 # The bfloat range is so large the scaling algorithm doesn't work well, so I'm disallowing it.
                 # 'bfloat16': Bits('0x7f7f').bfloat16,  # 3.38953139e38,
             }
         if f'{name}{length}' in Array._largest_values.keys():
-            float_values = Array('float64', initializer).to_list()
+            float_values = Array('f64', initializer).to_list()
             if not float_values:
                 raise ValueError("Can't calculate an 'auto' scale with an empty Array initializer.")
             max_float_value = max(abs(x) for x in float_values)

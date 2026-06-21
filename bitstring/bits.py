@@ -1567,7 +1567,7 @@ class Bits:
         if dtype.name == 'bytes':  # Special case for bytes to print one character each.
             get_fn = Bits._getbytes_printable
         if dtype.name == 'bool':  # Special case for bool to print '1' or '0' instead of `True` or `False`.
-            get_fn = dtype_register.get_dtype('uint', bits_per_group).get_fn
+            get_fn = dtype_register.get_dtype('u', bits_per_group).get_fn
         if bits_per_group == 0:
             x = str(get_fn(bits))
         else:

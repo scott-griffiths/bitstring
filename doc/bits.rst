@@ -8,7 +8,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 .. class:: Bits(auto: BitsType | None, /, length: int | None = None, offset: int | None = None, **kwargs)
 
     Creates a new bitstring.
-    You must specify either no initialiser, just an 'auto' value as the first parameter, or a keyword argument such as ``bytes``, ``bin``, ``hex``, ``oct``, ``uint``, ``int``, ``float``, ``bool`` or ``filename`` (for example) to indicate the data type.
+    You must specify either no initialiser, just an 'auto' value as the first parameter, or a keyword argument such as ``bytes``, ``bin``, ``hex``, ``oct``, ``u``, ``i``, ``f``, ``bool`` or ``filename`` (for example) to indicate the data type.
     If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`.
@@ -24,16 +24,16 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
            >>> s1 = Bits(hex='0x934')
            >>> s2 = Bits(oct='0o4464')
            >>> s3 = Bits(bin='0b001000110100')
-           >>> s4 = Bits(int=-1740, length=12)
-           >>> s5 = Bits(uint=2356, length=12)
+           >>> s4 = Bits(i=-1740, length=12)
+           >>> s5 = Bits(u=2356, length=12)
            >>> s6 = Bits(bytes=b'\x93@', length=12)
            >>> s1 == s2 == s3 == s4 == s5 == s6
            True
 
     See also :ref:`auto_init`, which describes the string-based auto initialiser. ::
 
-        >>> s = Bits('uint12=32, 0b110')
-        >>> t = Bits('0o755, ue=12, int:3=-1')
+        >>> s = Bits('u12=32, 0b110')
+        >>> t = Bits('0o755, ue=12, i:3=-1')
 
     In the methods below we use ``BitsType`` to indicate that values can be promoted to bitstrings where needed.
 
@@ -50,7 +50,7 @@ Methods
 
    *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
 
-       >>> s = Bits('int15=-1')
+       >>> s = Bits('i15=-1')
        >>> s.all(True, [3, 4, 12, 13])
        True
        >>> s.all(1)
@@ -154,8 +154,8 @@ Methods
     It is equivalent to creating a new bitstring using *s* as the first parameter, but can be clearer to write and will be slightly faster.
 
 
-        >>> b1 = Bits('int16=91')
-        >>> b2 = Bits.from_string('int16=91')
+        >>> b1 = Bits('i16=91')
+        >>> b2 = Bits.from_string('i16=91')
         >>> b1 == b2
         True
 
@@ -199,7 +199,7 @@ Methods
 
     Returns the concatenation of the bitstrings in the iterable *sequence* joined with ``self`` as a separator. ::
 
-        >>> s = Bits().join(['0x0001ee', 'uint:24=13', '0b0111'])
+        >>> s = Bits().join(['0x0001ee', 'u:24=13', '0b0111'])
         >>> print(s)
         0x0001ee00000d7
 
@@ -225,8 +225,8 @@ Methods
         ] + trailing_bits = 0x9
 
 
-        >>> s.pp('int20, hex', width=80, show_offset=False, sep=' / ')
-        <Bits, fmt='int20, hex', length=340 bits> [
+        >>> s.pp('i20, hex', width=80, show_offset=False, sep=' / ')
+        <Bits, fmt='i20, hex', length=340 bits> [
         -275635 / -107921 /  185209 /  433099 : bcb4d / e5a6f / 2d379 / 69bcb
          319066 /  455379 /  497307 / -215842 : 4de5a / 6f2d3 / 7969b / cb4de
          370418 / -182378 / -410444 / -137818 : 5a6f2 / d3796 / 9bcb4 / de5a6
@@ -235,7 +235,7 @@ Methods
         ]
 
 
-    The available formats are any fixed-length dtypes, for example ``'bin'``, ``'oct'``, ``'hex'`` and ``'bytes'`` together with types with explicit lengths such as ``'uint5'`` and ``'float16'``.
+    The available formats are any fixed-length dtypes, for example ``'bin'``, ``'oct'``, ``'hex'`` and ``'bytes'`` together with types with explicit lengths such as ``'u5'`` and ``'f16'``.
     A bit length can be specified after the format (with an optional `:`) to give the number of bits represented by each group, otherwise the default is based on the format or formats selected.
 
     For the ``'bytes'`` format, characters from the 'Latin Extended-A' unicode block are used for non-ASCII and unprintable characters.
@@ -325,15 +325,15 @@ Methods
 
     *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the  :ref:`format_tokens` for details. ::
 
-        >>> s = Bits('int4=-1, 0b1110')
-        >>> i, b = s.unpack('int:4, bin')
+        >>> s = Bits('i4=-1, 0b1110')
+        >>> i, b = s.unpack('i:4, bin')
 
     If a token doesn't supply a length (as with ``bin`` above) then it will try to consume the rest of the bitstring. Only one such token is allowed.
 
     The ``unpack`` method is a natural complement of the :func:`pack` function. ::
 
-        s = bitstring.pack('uint10, hex, int13, 0b11', 130, '3d', -23)
-        a, b, c, d = s.unpack('uint10, hex, int13, bin2')
+        s = bitstring.pack('u10, hex, i13, 0b11', 130, '3d', -23)
+        a, b, c, d = s.unpack('u10, hex, i13, bin2')
 
 ----
 
@@ -349,7 +349,8 @@ These properties with lengths will cause an :exc:`InterpretError` to be raised i
 This list isn't exhaustive - see for example :ref:`Exotic floats` for information on bfloats and many 8-bit and smaller floating point formats.
 Also see :ref:`exp-golomb` for some interesting variable length integer formats.
 
-Note that the ``int``, ``uint`` and ``float`` properties can be shortened to ``i``, ``u`` and ``f`` respectively.
+The ``i``, ``u`` and ``f`` properties are the preferred names for bit-wise big-endian integer and floating point interpretations.
+The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases.
 
 
 .. attribute:: Bits.bin
@@ -388,25 +389,28 @@ Note that the ``int``, ``uint`` and ``float`` properties can be shortened to ``i
         >>> s.hex
         'f0'
 
+.. attribute:: Bits.i
+    :type: int
 .. attribute:: Bits.int
     :type: int
+    :noindex:
 
     Property for the signed two’s complement integer representation of the bitstring.
-    Can be shortened to just ``i``.
+    ``int`` is a compatibility alias for ``i``.
 
 .. attribute:: Bits.intbe
     :type: int
 
     Property for the byte-wise big-endian signed two's complement integer representation of the bitstring.
 
-    Only valid for whole-byte bitstrings, in which case it is equal to ``s.int``, otherwise an :exc:`InterpretError` is raised.
+    Only valid for whole-byte bitstrings, in which case it is equal to ``s.i``, otherwise an :exc:`InterpretError` is raised.
 
 .. attribute:: Bits.intle
     :type: int
 
     Property for the byte-wise little-endian signed two's complement integer representation of the bitstring.
 
-    Only valid for whole-byte bitstring, in which case it is equal to ``s[::-8].int``, i.e. the integer representation of the byte-reversed bitstring.
+    Only valid for whole-byte bitstring, in which case it is equal to ``s[::-8].i``, i.e. the integer representation of the byte-reversed bitstring.
 
 .. attribute:: Bits.intne
     :type: int
@@ -415,19 +419,22 @@ Note that the ``int``, ``uint`` and ``float`` properties can be shortened to ``i
 
     Only valid for whole-byte bitstrings, and will equal either the big-endian or the little-endian integer representation depending on the platform being used.
 
+.. attribute:: Bits.f
+    :type: float
 .. attribute:: Bits.float
     :type: float
+    :noindex:
 .. attribute:: Bits.floatbe
     :type: float
 
     Property for the floating point representation of the bitstring.
-    Can be shortened to just ``f``.
+    ``float`` and ``floatbe`` are compatibility aliases for ``f``.
 
     The bitstring must be 16, 32 or 64 bits long to support the floating point interpretations, otherwise an :exc:`InterpretError` will be raised.
 
     If the underlying floating point methods on your machine are not IEEE 754 compliant then using the float interpretations is undefined (this is unlikely unless you're on some very unusual hardware).
 
-    The :attr:`float` property is bit-wise big-endian, which as all floats must be whole-byte is exactly equivalent to the byte-wise big-endian :attr:`floatbe`.
+    The :attr:`f` property is bit-wise big-endian, which as all floats must be whole-byte is exactly equivalent to the byte-wise big-endian :attr:`floatbe`.
 
 .. attribute:: Bits.floatle
     :type: float
@@ -464,11 +471,14 @@ Note that the ``int``, ``uint`` and ``float`` properties can be shortened to ``i
         '01234567'
 
 
+.. attribute:: Bits.u
+    :type: int
 .. attribute:: Bits.uint
     :type: int
+    :noindex:
 
     Property for the unsigned base-2 integer representation of the bitstring.
-    Can be shortened to just ``u``.
+    ``uint`` is a compatibility alias for ``u``.
 
 .. attribute:: Bits.uintbe
     :type: int
@@ -558,12 +568,12 @@ Special Methods
 
         >>> Bits('0o7777') == '0xfff'
         True
-        >>> a = Bits(uint=13, length=8)
-        >>> b = Bits(uint=13, length=10)
+        >>> a = Bits(u=13, length=8)
+        >>> b = Bits(u=13, length=10)
         >>> a == b
         False
 
-    If you have a different criterion you wish to use then code it explicitly, for example ``a.int == b.int`` could be true even if ``a == b`` wasn't (as they could be different lengths).
+    If you have a different criterion you wish to use then code it explicitly, for example ``a.i == b.i`` could be true even if ``a == b`` wasn't (as they could be different lengths).
 
 
 .. method:: Bits.__getitem__(key)
