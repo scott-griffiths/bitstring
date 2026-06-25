@@ -3352,7 +3352,6 @@ class TestAllAndAny:
         with pytest.raises(bitstring.ReadError):
             _ = a.read('bytes:4')
 
-    @pytest.mark.skip("Bug #266")
     def test_pos_reset_bug(self):
         a = BitStream('0x0120310230123', pos=23)
         assert a.pos == 23

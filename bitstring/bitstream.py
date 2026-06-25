@@ -623,6 +623,13 @@ class BitStream(ConstBitStream, bitstring.BitArray):
         s_copy._bitstore = self._bitstore.copy()
         return s_copy
 
+    def __setattr__(self, attribute: str, value) -> None:
+        bitstore_id_before = id(self._bitstore) if hasattr(self, '_bitstore') else None
+        super().__setattr__(attribute, value)
+        # If a dtype property setter replaced the bitstore, reset the bit position.
+        if bitstore_id_before is not None and id(self._bitstore) != bitstore_id_before:
+            self._pos = 0
+
     def __iadd__(self, bs: BitsType, /) -> BitStream:
         """Append to current bitstring. Return self.
 
