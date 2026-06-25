@@ -624,6 +624,7 @@ class BitStream(ConstBitStream, bitstring.BitArray):
         return s_copy
 
     def __setattr__(self, attribute: str, value) -> None:
+        """Set attributes and reset the bit position when content is replaced."""
         bitstore_id_before = id(self._bitstore) if hasattr(self, '_bitstore') else None
         super().__setattr__(attribute, value)
         # If a dtype property setter replaced the bitstore, reset the bit position.
