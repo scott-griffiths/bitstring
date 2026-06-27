@@ -105,10 +105,7 @@ class ConstBitStore:
         return x
 
     def to_bytes(self) -> bytes:
-        padding = 8 - len(self.tibs) % 8
-        if padding == 8:
-            return self.tibs.to_bytes()
-        return (self.tibs + [0] * padding).to_bytes()
+        return self.tibs.to_padded_bytes()
 
     def read_bytes(self, start: int, length: int) -> bytes:
         return self.tibs.to_bytes(start, start + length)
@@ -295,13 +292,11 @@ class MutableBitStore:
         return x
 
     def to_bytes(self, pad_at_end: bool = True) -> bytes:
+        if pad_at_end:
+            return self.tibs.to_padded_bytes()
         excess_bits = len(self.tibs) % 8
         if excess_bits != 0:
-            # Pad with zeros to make full bytes
-            if pad_at_end:
-                padded_bits = self.tibs + Mutibs.from_zeros(8 - excess_bits)
-            else:
-                padded_bits = Mutibs.from_zeros(8 - excess_bits) + self.tibs
+            padded_bits = Mutibs.from_zeros(8 - excess_bits) + self.tibs
             return padded_bits.to_bytes()
         return self.tibs.to_bytes()
 
