@@ -22,7 +22,9 @@
 
 I'm rewriting the core of bitstring in Rust, and have released that cut-down and streamlined interface as the [tibs](https://github.com/scott-griffiths/tibs) package. It's now in beta, and feedback is welcome. Just `pip install tibs` to try it out.
 
-[![tibs](https://raw.githubusercontent.com/scott-griffiths/tibs/main/doc/tibs.png)](https://github.com/scott-griffiths/tibs)
+<a href="https://github.com/scott-griffiths/tibs">
+  <img src="https://raw.githubusercontent.com/scott-griffiths/tibs/main/doc/tibs.png" alt="tibs" width="30%">
+</a>
 
 A sleek Python library for your binary data
 
