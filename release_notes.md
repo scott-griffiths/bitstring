@@ -66,7 +66,8 @@ Other changes and fixes:
   `from_bytes()`, `from_bools()`, `from_zeros()`, `from_ones()`,
   `from_joined()` and `from_file()`.
 * Added `from_tibs()` and `to_tibs()` interop helpers for converting between
-  bitstring types and the lower-level `tibs.Tibs` type.
+  bitstring types and the lower-level `tibs.Tibs` type. `tibs.Tibs` and
+  `tibs.Mutibs` are now counted as bitstring-like inputs.
 * Added explicit saturate and overflow dtype variants for the OCP MXFP E4M3
   and E5M2 formats.
 * Several method names now have underscored preferred spellings:

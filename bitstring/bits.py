@@ -11,7 +11,7 @@ from collections import abc
 import functools
 from typing import Union, Any, BinaryIO, TextIO, overload, TypeVar
 from collections.abc import Iterable, Iterator
-from tibs import Tibs
+from tibs import Mutibs, Tibs
 import bitstring
 from bitstring import utils
 from bitstring.dtypes import Dtype, dtype_register
@@ -27,7 +27,7 @@ MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
 # Things that can be converted to Bits when a Bits type is needed
-BitsType = Union['Bits', str, Iterable[Any], BinaryIO, bytearray, bytes, memoryview]
+BitsType = Union['Bits', str, Tibs, Mutibs, Iterable[Any], BinaryIO, bytearray, bytes, memoryview]
 
 TBits = TypeVar("TBits", bound='Bits')
 
@@ -51,7 +51,7 @@ class Bits:
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     from_string() -- Create a bitstring from a formatted string.
-    from_tibs() -- Create a bitstring from a tibs.Tibs instance.
+    from_tibs() -- Create a bitstring from a tibs.Tibs or tibs.Mutibs instance.
     join() -- Join bitstrings together using current bitstring.
     pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
@@ -157,7 +157,7 @@ class Bits:
                     f"It's no longer possible to initialise a bitstring directly from an array object. "
                     f"Use '{self.__class__.__name__}.from_bytes(array_obj.tobytes())' instead."
                 )
-            if isinstance(auto, abc.Iterable) and not isinstance(auto, (str, Bits, bytes, bytearray, memoryview)):
+            if isinstance(auto, abc.Iterable) and not isinstance(auto, (str, Bits, Tibs, Mutibs, bytes, bytearray, memoryview)):
                 raise TypeError(
                     f"It's no longer possible to initialise a bitstring directly from an arbitrary iterable. "
                     f"Use '{self.__class__.__name__}.from_bools(iterable)' instead."
@@ -513,6 +513,10 @@ class Bits:
             self._bitstore = helpers.str_to_bitstore(s)
         elif isinstance(s, Bits):
             self._bitstore = s._bitstore.copy()
+        elif isinstance(s, Tibs):
+            self._bitstore = ConstBitStore(s)
+        elif isinstance(s, Mutibs):
+            self._bitstore = ConstBitStore(s.to_tibs())
         elif isinstance(s, (bytes, bytearray, memoryview)):
             self._bitstore = ConstBitStore.from_bytes(s)
         elif isinstance(s, io.BytesIO):
@@ -1835,10 +1839,12 @@ class Bits:
         return x
 
     @classmethod
-    def from_tibs(cls: type[TBits], tibs: Tibs, /) -> TBits:
-        """Create a new bitstring from a tibs.Tibs instance."""
-        if not isinstance(tibs, Tibs):
-            raise TypeError(f"Expected tibs.Tibs, got {type(tibs).__name__}.")
+    def from_tibs(cls: type[TBits], tibs: Tibs | Mutibs, /) -> TBits:
+        """Create a new bitstring from a tibs.Tibs or tibs.Mutibs instance."""
+        if isinstance(tibs, Mutibs):
+            tibs = tibs.to_tibs()
+        elif not isinstance(tibs, Tibs):
+            raise TypeError(f"Expected tibs.Tibs or tibs.Mutibs, got {type(tibs).__name__}.")
         x = super().__new__(cls)
         x._bitstore = ConstBitStore(tibs)
         return x

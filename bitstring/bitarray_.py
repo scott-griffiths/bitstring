@@ -8,7 +8,7 @@ import re
 from collections import abc
 from typing import Any, BinaryIO
 from collections.abc import Iterable
-from tibs import Tibs
+from tibs import Mutibs, Tibs
 from bitstring import utils
 from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
@@ -51,7 +51,7 @@ class BitArray(Bits):
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     from_string() -- Create a bitstring from a formatted string.
-    from_tibs() -- Create a bitstring from a tibs.Tibs instance.
+    from_tibs() -- Create a bitstring from a tibs.Tibs or tibs.Mutibs instance.
     join() -- Join bitstrings together using current bitstring.
     pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
@@ -224,10 +224,12 @@ class BitArray(Bits):
         return x
 
     @classmethod
-    def from_tibs(cls: type[TBits], tibs: Tibs, /) -> TBits:
-        """Create a new bitstring from a tibs.Tibs instance."""
-        if not isinstance(tibs, Tibs):
-            raise TypeError(f"Expected tibs.Tibs, got {type(tibs).__name__}.")
+    def from_tibs(cls: type[TBits], tibs: Tibs | Mutibs, /) -> TBits:
+        """Create a new bitstring from a tibs.Tibs or tibs.Mutibs instance."""
+        if isinstance(tibs, Mutibs):
+            tibs = tibs.to_tibs()
+        elif not isinstance(tibs, Tibs):
+            raise TypeError(f"Expected tibs.Tibs or tibs.Mutibs, got {type(tibs).__name__}.")
         x = super().__new__(cls)
         x._bitstore = MutableBitStore(tibs.to_mutibs())
         return x
