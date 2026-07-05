@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tibs import Tibs, Endianness
+from tibs import Tibs, ByteOrder
 
 import struct
 import math
@@ -21,8 +21,8 @@ from bitstring.helpers import tidy_input_string
 def _int_to_tibs(i: int, length: int, signed: bool, little_endian: bool) -> Tibs:
     try:
         if signed:
-            return Tibs.from_i(i, length, Endianness.Little if little_endian else Endianness.Unspecified)
-        return Tibs.from_u(i, length, Endianness.Little if little_endian else Endianness.Unspecified)
+            return Tibs.from_i(i, length, ByteOrder.Little if little_endian else ByteOrder.Unspecified)
+        return Tibs.from_u(i, length, ByteOrder.Little if little_endian else ByteOrder.Unspecified)
     except (OverflowError, ValueError) as e:
         # Keep tibs validation for normal sizes and unsupported values.
         if length <= 128:
@@ -65,7 +65,7 @@ def intle2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
 
 def float2bitstore(f: str | float, length: int, big_endian: bool) -> ConstBitStore:
     f = float(f)
-    t = Tibs.from_f(f, length, Endianness.Big if big_endian else Endianness.Little)
+    t = Tibs.from_f(f, length, ByteOrder.Big if big_endian else ByteOrder.Little)
     return ConstBitStore(t)
 
 
