@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 import re
-from typing import Tuple, List, Optional, Pattern, Dict, Union, Match
+from re import Pattern, Match
 
 
 # A token name followed by optional : then an integer number
@@ -32,34 +32,34 @@ STRUCT_SPLIT_RE: Pattern[str] = re.compile(r'\d*[bBhHlLiIqQefd]')
 
 # These replicate the struct.pack codes
 # Big-endian
-REPLACEMENTS_BE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
-                                   'h': 'intbe16', 'H': 'uintbe16',
-                                   'l': 'intbe32', 'L': 'uintbe32',
-                                   'i': 'intbe32', 'I': 'uintbe32',
-                                   'q': 'intbe64', 'Q': 'uintbe64',
-                                   'e': 'floatbe16', 'f': 'floatbe32', 'd': 'floatbe64'}
+REPLACEMENTS_BE: dict[str, str] = {'b': 'i8', 'B': 'u8',
+                                   'h': 'ibe16', 'H': 'ube16',
+                                   'l': 'ibe32', 'L': 'ube32',
+                                   'i': 'ibe32', 'I': 'ube32',
+                                   'q': 'ibe64', 'Q': 'ube64',
+                                   'e': 'f16', 'f': 'f32', 'd': 'f64'}
 # Little-endian
-REPLACEMENTS_LE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
-                                   'h': 'intle16', 'H': 'uintle16',
-                                   'l': 'intle32', 'L': 'uintle32',
-                                   'i': 'intle32', 'I': 'uintle32',
-                                   'q': 'intle64', 'Q': 'uintle64',
-                                   'e': 'floatle16', 'f': 'floatle32', 'd': 'floatle64'}
+REPLACEMENTS_LE: dict[str, str] = {'b': 'i8', 'B': 'u8',
+                                   'h': 'ile16', 'H': 'ule16',
+                                   'l': 'ile32', 'L': 'ule32',
+                                   'i': 'ile32', 'I': 'ule32',
+                                   'q': 'ile64', 'Q': 'ule64',
+                                   'e': 'fle16', 'f': 'fle32', 'd': 'fle64'}
 
 # Native-endian
-REPLACEMENTS_NE: Dict[str, str] = {'b': 'int8', 'B': 'uint8',
-                                   'h': 'intne16', 'H': 'uintne16',
-                                   'l': 'intne32', 'L': 'uintne32',
-                                   'i': 'intne32', 'I': 'uintne32',
-                                   'q': 'intne64', 'Q': 'uintne64',
-                                   'e': 'floatne16', 'f': 'floatne32', 'd': 'floatne64'}
+REPLACEMENTS_NE: dict[str, str] = {'b': 'i8', 'B': 'u8',
+                                   'h': 'ine16', 'H': 'une16',
+                                   'l': 'ine32', 'L': 'une32',
+                                   'i': 'ine32', 'I': 'une32',
+                                   'q': 'ine64', 'Q': 'une64',
+                                   'e': 'fne16', 'f': 'fne32', 'd': 'fne64'}
 
 # Size in bytes of all the pack codes.
-PACK_CODE_SIZE: Dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4, 'i': 4, 'I': 4,
+PACK_CODE_SIZE: dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4, 'i': 4, 'I': 4,
                                   'q': 8, 'Q': 8, 'e': 2, 'f': 4, 'd': 8}
 
 
-def structparser(m: Match[str]) -> List[str]:
+def structparser(m: Match[str]) -> list[str]:
     """Parse struct-like format string token into sub-token list."""
     endian = m.group('endian')
     # Split the format string into a list of 'q', '4h' etc.
@@ -79,7 +79,7 @@ def structparser(m: Match[str]) -> List[str]:
 
 
 @functools.lru_cache(CACHE_SIZE)
-def parse_name_length_token(fmt: str, **kwargs) -> Tuple[str, Optional[int]]:
+def parse_name_length_token(fmt: str, **kwargs) -> tuple[str, int | None]:
     # Any single token with just a name and length
     if m2 := NAME_INT_RE.match(fmt):
         name = m2.group(1)
@@ -100,7 +100,7 @@ def parse_name_length_token(fmt: str, **kwargs) -> Tuple[str, Optional[int]]:
 
 
 @functools.lru_cache(CACHE_SIZE)
-def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
+def parse_single_struct_token(fmt: str) -> tuple[str, int | None] | None:
     if m := SINGLE_STRUCT_PACK_RE.match(fmt):
         endian = m.group('endian')
         f = m.group('fmt')
@@ -117,7 +117,7 @@ def parse_single_struct_token(fmt: str) -> Optional[Tuple[str, Optional[int]]]:
 
 
 @functools.lru_cache(CACHE_SIZE)
-def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
+def parse_single_token(token: str) -> tuple[str, str, str | None]:
     if (equals_pos := token.find('=')) == -1:
         value = None
     else:
@@ -140,7 +140,7 @@ def parse_single_token(token: str) -> Tuple[str, str, Optional[str]]:
 
 
 @functools.lru_cache(CACHE_SIZE)
-def preprocess_tokens(fmt: str) -> List[str]:
+def preprocess_tokens(fmt: str) -> list[str]:
     # Remove whitespace and expand brackets
     fmt = expand_brackets(''.join(fmt.split()))
 
@@ -156,6 +156,8 @@ def preprocess_tokens(fmt: str) -> List[str]:
         factor = 1
         if m := MULTIPLICATIVE_RE.match(meta_token):
             factor = int(m.group('factor'))
+            if factor < 0:
+                raise ValueError(f"Negative multiplicative factors are not allowed: '{meta_token}'.")
             meta_token = m.group('token')
 
         # Parse struct-like format into sub-tokens or treat as single token
@@ -167,12 +169,12 @@ def preprocess_tokens(fmt: str) -> List[str]:
 
 
 @functools.lru_cache(CACHE_SIZE)
-def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
-        Tuple[bool, List[Tuple[str, Union[int, str, None], Optional[str]]]]:
+def tokenparser(fmt: str, keys: tuple[str, ...] = ()) -> \
+        tuple[bool, list[tuple[str, int | str | None, str | None]]]:
     """Divide the format string into tokens and parse them.
 
     Return stretchy token and list of [initialiser, length, value]
-    initialiser is one of: hex, oct, bin, uint, int, se, ue, 0x, 0o, 0b etc.
+    initialiser is one of: hex, oct, bin, u, i, se, ue, 0x, 0o, 0b etc.
     length is None if not known, as is value.
 
     If the token is in the keyword dictionary (keys) then it counts as a
@@ -183,7 +185,7 @@ def tokenparser(fmt: str, keys: Tuple[str, ...] = ()) -> \
     """
     tokens = preprocess_tokens(fmt)
     stretchy_token = False
-    ret_vals: List[Tuple[str, Union[str, int, None], Optional[str]]] = []
+    ret_vals: list[tuple[str, str | int | None, str | None]] = []
     for token in tokens:
         if keys and token in keys:
             # Don't bother parsing it, it's a keyword argument
@@ -235,7 +237,10 @@ def expand_brackets(s: str) -> str:
             if m:
                 factor = int(m.group('factor'))
                 matchstart = m.start('factor')
-                s = s[0:matchstart] + (factor - 1) * (s[start + 1:p] + ',') + s[start + 1:p] + s[p + 1:]
+                if factor == 0:
+                    s = s[0:matchstart] + s[p + 1:]
+                else:
+                    s = s[0:matchstart] + (factor - 1) * (s[start + 1:p] + ',') + s[start + 1:p] + s[p + 1:]
             else:
                 raise ValueError(f"Failed to parse '{s}'.")
     return s

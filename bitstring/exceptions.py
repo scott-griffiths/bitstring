@@ -1,4 +1,3 @@
-
 class Error(Exception):
     """Base class for errors in the bitstring module."""
 

@@ -16,11 +16,48 @@
 ----
 
 > [!NOTE]
-> To see what been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
+> To see what's been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
 
-# News
+> [!IMPORTANT]
+> The `main` branch now contains the upcoming bitstring 5.0 work. It is visible here for testing and feedback, but it is not the current released version. The released PyPI line is still bitstring 4.x; use `pip install bitstring` or pin `bitstring<5` for the stable API. Source maintenance for 4.x is on the `4.x-maintenance` branch.
 
-I'm rewriting the core of bitstring in Rust, and have released that cut-down and streamlined interface as the [tibs](https://github.com/scott-griffiths/tibs) package. It's now in beta, and feedback is welcome. Just `pip install tibs` to try it out.
+# Version 5.0 preview
+
+Version 5.0 of bitstring is in development. This is a major update with breaking changes.
+
+Reasons to upgrade include:
+
+* Significantly better performance using the new [tibs](https://github.com/scott-griffiths/tibs) Rust core.
+* A simpler model for sequential reading: `Bits` and `BitArray` store data, while `Reader` stores the current bit position.
+* A clearer, more explicit API for construction, conversion and dtype names.
+* Removal of old compatibility layers, including the `bitarray` dependency, LSB0 mode and the old stream classes.
+* A smaller internal codebase that should be easier to maintain and optimise further.
+
+## Upgrading from version 4
+
+If you have arrived here because bitstring 5 development work broke your code, the most practical fix may be to pin the latest version 4 release for now:
+
+```bash
+pip install "bitstring<5"
+```
+
+Version 5 is worth moving to if you need the improved performance, want the cleaner current API, or want to keep up to
+date with future bitstring development. The changes are quite broad, so if your existing code is stable and performance
+is not a problem, there is no need to migrate immediately.
+
+For details on the source changes you may need, see the [Upgrading to version 5](https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html) guide.
+
+## What's this 'tibs' thing that everyone is talking about?
+
+bitstring 5 is built on [tibs](https://github.com/scott-griffiths/tibs), a simpler and more focussed Python library for
+binary data, written in Rust for speed. It's by the same author as bitstring so they can complement each other's needs.
+If you want a leaner interface and do not need all of bitstring's higher-level format handling and historical API, tibs may be a better fit for new code.
+
+Tibs is still in beta but I would like it to get a wider range of users before hitting 1.0. Try it with:
+
+```bash
+pip install tibs
+```
 
 <a href="https://github.com/scott-griffiths/tibs">
   <img src="https://raw.githubusercontent.com/scott-griffiths/tibs/main/doc/tibs.png" alt="tibs" width="30%">
@@ -28,8 +65,9 @@ I'm rewriting the core of bitstring in Rust, and have released that cut-down and
 
 A sleek Python library for your binary data
 
+----
 
-# Overview
+# Bitstring Overview
 
 * Efficiently store and manipulate binary data in idiomatic Python.
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
@@ -45,33 +83,43 @@ A sleek Python library for your binary data
 Extensive documentation for the bitstring library is available.
 Some starting points are given below:
 
-* [Overview](https://bitstring.readthedocs.io/en/stable/index.html)
-* [Quick Reference](https://bitstring.readthedocs.io/en/stable/quick_reference.html)
-* [Full Reference](https://bitstring.readthedocs.io/en/stable/reference.html)
+* [Released 4.x documentation](https://bitstring.readthedocs.io/en/stable/)
+* [Upcoming 5.0 documentation](https://bitstring.readthedocs.io/en/latest/)
+* [Upgrading from 4.x to 5.0](https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html)
 
-There is also an introductory walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
+There is also an introductory walkthrough notebook for the 5.0 branch on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
 
 # Examples
 
+These examples show the upcoming 5.0 API from `main`.
+
 ### Installation
-```
+Released 4.x version:
+
+```bash
 $ pip install bitstring
+```
+
+5.0 preview from `main`:
+
+```bash
+$ pip install "bitstring @ git+https://github.com/scott-griffiths/bitstring.git@main"
 ```
 
 ### Creation
 ```pycon
->>> from bitstring import Bits, BitArray, BitStream, pack
+>>> from bitstring import Bits, BitArray, Reader, pack
 >>> a = BitArray(bin='00101')
->>> b = Bits(a_file_object)
->>> c = BitArray('0xff, 0b101, 0o65, uint6=22')
->>> d = pack('intle16, hex=a, 0b1', 100, a='0x34f')
+>>> b = Bits.from_file(a_file_object)
+>>> c = BitArray('0xff, 0b101, 0o65, u6=22')
+>>> d = pack('ile16, hex=a, 0b1', 100, a='0x34f')
 >>> e = pack('<16h', *range(16))
 ```
 
 ### Different interpretations, slicing and concatenation
 ```pycon
 >>> a = BitArray('0x3348')
->>> a.hex, a.bin, a.uint, a.float, a.bytes
+>>> a.hex, a.bin, a.u, a.f, a.bytes
 ('3348', '0011001101001000', 13128, 0.2275390625, b'3H')
 >>> a[10:3:-1].bin
 '0101100'
@@ -81,13 +129,13 @@ BitArray('0x866906690669, 0b000')
 
 ### Reading data sequentially
 ```pycon
->>> b = BitStream('0x160120f')
+>>> b = Reader(Bits('0x160120f'))
 >>> b.read(12).hex
 '160'
 >>> b.pos = 0
->>> b.read('uint12')
+>>> b.read('u12')
 352
->>> b.readlist('uint12, bin3')
+>>> b.read_list('u12, bin3')
 [288, '111']
 ```
 
@@ -95,7 +143,7 @@ BitArray('0x866906690669, 0b000')
 ```pycon
 >>> c = BitArray('0b00010010010010001111')   # c.hex == '0x1248f'
 >>> c.find('0x48')
-(8,)
+8
 >>> c.replace('0b001', '0xabc')
 >>> c.insert('0b0000', pos=3)
 >>> del c[12:16]
@@ -104,12 +152,12 @@ BitArray('0x866906690669, 0b000')
 ### Arrays of fixed-length formats
 ```pycon
 >>> from bitstring import Array
->>> a = Array('uint7', [9, 100, 3, 1])
+>>> a = Array('u7', [9, 100, 3, 1])
 >>> a.data
 BitArray('0x1390181')
 >>> a[::2] *= 5
 >>> a
-Array('uint7', [45, 100, 15, 1])
+Array('u7', [45, 100, 15, 1])
 ```
 
 

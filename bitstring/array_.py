@@ -4,7 +4,8 @@ import math
 import numbers
 from collections.abc import Sized
 from bitstring.exceptions import CreationError
-from typing import Union, List, Iterable, Any, Optional, BinaryIO, overload, TextIO
+from typing import Any, BinaryIO, overload, TextIO
+from collections.abc import Iterable
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, dtype_register
@@ -15,11 +16,13 @@ import array
 import operator
 import io
 import sys
+import bitstring
 
 # The possible types stored in each element of the Array
-ElementType = Union[float, str, int, bytes, bool, Bits]
+ElementType = float | str | int | bytes | bool | Bits
 
 options = Options()
+MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
 class Array:
@@ -28,7 +31,7 @@ class Array:
     format.
 
     a = Array('>H', [1, 15, 105])
-    b = Array('int5', [-9, 0, 4])
+    b = Array('i5', [-9, 0, 4])
 
     The Array data is stored compactly as a BitArray object and the Array behaves very like
     a list of items of the given format. Both the Array data and fmt properties can be freely
@@ -42,14 +45,14 @@ class Array:
     byteswap() -- Change byte endianness of all items.
     count() -- Count the number of occurences of a value.
     extend() -- Append new items to the end of the Array from an iterable.
-    fromfile() -- Append items read from a file object.
+    from_file() -- Append items read from a file object.
     insert() -- Insert an item at a given position.
     pop() -- Remove and return an item.
     pp() -- Pretty print the Array.
     reverse() -- Reverse the order of all items.
-    tobytes() -- Return Array data as bytes object, padding with zero bits at the end if needed.
-    tofile() -- Write Array data to a file, padding with zero bits at the end if needed.
-    tolist() -- Return Array items as a list.
+    to_bytes() -- Return Array data as bytes object, padding with zero bits at the end if needed.
+    to_file() -- Write Array data to a file, padding with zero bits at the end if needed.
+    to_list() -- Return Array items as a list.
 
     Special methods:
 
@@ -67,8 +70,8 @@ class Array:
 
     """
 
-    def __init__(self, dtype: Union[str, Dtype], initializer: Optional[Union[int, Array, array.array, Iterable, Bits, bytes, bytearray, memoryview, BinaryIO]] = None,
-                 trailing_bits: Optional[BitsType] = None) -> None:
+    def __init__(self, dtype: str | Dtype, initializer: int | Array | array.array | Iterable | Bits | bytes | bytearray | memoryview | BinaryIO | None = None,
+                 trailing_bits: BitsType | None = None) -> None:
         self.data = BitArray()
         if isinstance(dtype, Dtype) and dtype.scale == 'auto':
             if isinstance(initializer, (int, Bits, bytes, bytearray, memoryview, BinaryIO)):
@@ -81,11 +84,11 @@ class Array:
             raise CreationError(e)
 
         if isinstance(initializer, numbers.Integral):
-            self.data = BitArray(initializer * self._dtype.bitlength)
+            self.data = BitArray.from_zeros(initializer * self._dtype.bitlength)
         elif isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
             self.data += initializer
         elif isinstance(initializer, io.BufferedReader):
-            self.fromfile(initializer)
+            self.from_file(initializer)
         elif initializer is not None:
             self.extend(initializer)
 
@@ -95,7 +98,7 @@ class Array:
     _largest_values = None
 
     @staticmethod
-    def _calculate_auto_scale(initializer, name: str, length: Optional[int]) -> float:
+    def _calculate_auto_scale(initializer, name: str, length: int | None) -> float:
         # Now need to find the largest power of 2 representable with this format.
         if Array._largest_values is None:
             Array._largest_values = {
@@ -103,16 +106,18 @@ class Array:
                 'e2m1mxfp4': Bits('0b0111').e2m1mxfp4,  # 6.0
                 'e2m3mxfp6': Bits('0b011111').e2m3mxfp6,  # 7.5
                 'e3m2mxfp6': Bits('0b011111').e3m2mxfp6,  # 28.0
-                'e4m3mxfp8': Bits('0b01111110').e4m3mxfp8,  # 448.0
-                'e5m2mxfp8': Bits('0b01111011').e5m2mxfp8,  # 57344.0
+                'e4m3mxfp_saturate8': Bits('0b01111110').e4m3mxfp_saturate8,  # 448.0
+                'e4m3mxfp_overflow8': Bits('0b01111110').e4m3mxfp_overflow8,  # 448.0
+                'e5m2mxfp_saturate8': Bits('0b01111011').e5m2mxfp_saturate8,  # 57344.0
+                'e5m2mxfp_overflow8': Bits('0b01111011').e5m2mxfp_overflow8,  # 57344.0
                 'p4binary8': Bits('0b01111110').p4binary8,  # 224.0
                 'p3binary8': Bits('0b01111110').p3binary8,  # 49152.0
-                'float16': Bits('0x7bff').float16,  # 65504.0
+                'f16': Bits('0x7bff').f16,  # 65504.0
                 # The bfloat range is so large the scaling algorithm doesn't work well, so I'm disallowing it.
                 # 'bfloat16': Bits('0x7f7f').bfloat16,  # 3.38953139e38,
             }
         if f'{name}{length}' in Array._largest_values.keys():
-            float_values = Array('float64', initializer).tolist()
+            float_values = Array('f64', initializer).to_list()
             if not float_values:
                 raise ValueError("Can't calculate an 'auto' scale with an empty Array initializer.")
             max_float_value = max(abs(x) for x in float_values)
@@ -135,7 +140,10 @@ class Array:
 
     @property
     def itemsize(self) -> int:
-        return self._dtype.length
+        bitlength = self._dtype.bitlength
+        if bitlength is None:
+            raise ValueError("A fixed length format is needed for an Array.")
+        return bitlength
 
     @property
     def trailing_bits(self) -> BitArray:
@@ -147,10 +155,10 @@ class Array:
         return self._dtype
 
     @dtype.setter
-    def dtype(self, new_dtype: Union[str, Dtype]) -> None:
+    def dtype(self, new_dtype: str | Dtype) -> None:
         self._set_dtype(new_dtype)
 
-    def _set_dtype(self, new_dtype: Union[str, Dtype]) -> None:
+    def _set_dtype(self, new_dtype: str | Dtype) -> None:
         if isinstance(new_dtype, Dtype):
             self._dtype = new_dtype
         else:
@@ -170,13 +178,13 @@ class Array:
 
     def _create_element(self, value: ElementType) -> Bits:
         """Create Bits from value according to the token_name and token_length"""
-        b = self._dtype.build(value)
-        if len(b) != self._dtype.length:
+        b = self._dtype.pack(value)
+        if len(b) != self.itemsize:
             raise ValueError(f"The value {value!r} has the wrong length for the format '{self._dtype}'.")
         return b
 
     def __len__(self) -> int:
-        return len(self.data) // self._dtype.length
+        return len(self.data) // self.itemsize
 
     @overload
     def __getitem__(self, key: slice) -> Array:
@@ -186,26 +194,28 @@ class Array:
     def __getitem__(self, key: int) -> ElementType:
         ...
 
-    def __getitem__(self, key: Union[slice, int]) -> Union[Array, ElementType]:
+    def __getitem__(self, key: slice | int) -> Array | ElementType:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if step != 1:
                 d = BitArray()
-                for s in range(start * self._dtype.length, stop * self._dtype.length, step * self._dtype.length):
-                    d.append(self.data[s: s + self._dtype.length])
+                itemsize = self.itemsize
+                for s in range(start * itemsize, stop * itemsize, step * itemsize):
+                    d.append(self.data[s: s + itemsize])
                 a = self.__class__(self._dtype)
                 a.data = d
                 return a
             else:
+                itemsize = self.itemsize
                 a = self.__class__(self._dtype)
-                a.data = self.data[start * self._dtype.length: stop * self._dtype.length]
+                a.data = self.data[start * itemsize: stop * itemsize]
                 return a
         else:
             if key < 0:
                 key += len(self)
             if key < 0 or key >= len(self):
                 raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
-            return self._dtype.read_fn(self.data, start=self._dtype.length * key)
+            return self._dtype.read_fn(self.data, start=self.itemsize * key)
 
     @overload
     def __setitem__(self, key: slice, value: Iterable[ElementType]) -> None:
@@ -215,7 +225,7 @@ class Array:
     def __setitem__(self, key: int, value: ElementType) -> None:
         ...
 
-    def __setitem__(self, key: Union[slice, int], value: Union[Iterable[ElementType], ElementType]) -> None:
+    def __setitem__(self, key: slice | int, value: Iterable[ElementType] | ElementType) -> None:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if not isinstance(value, Iterable):
@@ -224,14 +234,16 @@ class Array:
                 new_data = BitArray()
                 for x in value:
                     new_data += self._create_element(x)
-                self.data[start * self._dtype.length: stop * self._dtype.length] = new_data
+                itemsize = self.itemsize
+                self.data[start * itemsize: stop * itemsize] = new_data
                 return
             items_in_slice = len(range(start, stop, step))
             if not isinstance(value, Sized):
                 value = list(value)
             if len(value) == items_in_slice:
+                itemsize = self.itemsize
                 for s, v in zip(range(start, stop, step), value):
-                    self.data.overwrite(self._create_element(v), s * self._dtype.length)
+                    self.data.overwrite(self._create_element(v), s * itemsize)
             else:
                 raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {items_in_slice}.")
         else:
@@ -239,52 +251,61 @@ class Array:
                 key += len(self)
             if key < 0 or key >= len(self):
                 raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
-            start = self._dtype.length * key
+            start = self.itemsize * key
             self.data.overwrite(self._create_element(value), start)
             return
 
-    def __delitem__(self, key: Union[slice, int]) -> None:
+    def __delitem__(self, key: slice | int) -> None:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if step == 1:
-                self.data.__delitem__(slice(start * self._dtype.length, stop * self._dtype.length))
+                itemsize = self.itemsize
+                self.data.__delitem__(slice(start * itemsize, stop * itemsize))
                 return
             # We need to delete from the end or the earlier positions will change
             r = reversed(range(start, stop, step)) if step > 0 else range(start, stop, step)
+            itemsize = self.itemsize
             for s in r:
-                self.data.__delitem__(slice(s * self._dtype.length, (s + 1) * self._dtype.length))
+                self.data.__delitem__(slice(s * itemsize, (s + 1) * itemsize))
         else:
             if key < 0:
                 key += len(self)
             if key < 0 or key >= len(self):
                 raise IndexError
-            start = self._dtype.length * key
-            del self.data[start: start + self._dtype.length]
+            itemsize = self.itemsize
+            start = itemsize * key
+            del self.data[start: start + itemsize]
 
     def __repr__(self) -> str:
-        list_str = f"{self.tolist()}"
-        trailing_bit_length = len(self.data) % self._dtype.length
+        list_str = f"{self.to_list()}"
+        trailing_bit_length = len(self.data) % self.itemsize
         final_str = "" if trailing_bit_length == 0 else ", trailing_bits=" + repr(
             self.data[-trailing_bit_length:])
         return f"Array('{self._dtype}', {list_str}{final_str})"
 
-    def astype(self, dtype: Union[str, Dtype]) -> Array:
+    def astype(self, dtype: str | Dtype) -> Array:
         """Return Array with elements of new dtype, initialised from current Array."""
-        new_array = self.__class__(dtype, self.tolist())
+        new_array = self.__class__(dtype, self.to_list())
         return new_array
 
-    def tolist(self) -> List[ElementType]:
+    def to_list(self) -> list[ElementType]:
+        itemsize = self.itemsize
         return [self._dtype.read_fn(self.data, start=start)
-                for start in range(0, len(self.data) - self._dtype.length + 1, self._dtype.length)]
+                for start in range(0, len(self.data) - itemsize + 1, itemsize)]
+
+    def tolist(self) -> list[ElementType]:
+        """Compatibility alias for :meth:`to_list`."""
+        return self.to_list()
 
     def append(self, x: ElementType) -> None:
-        if len(self.data) % self._dtype.length != 0:
+        if len(self.data) % self.itemsize != 0:
             raise ValueError("Cannot append to Array as its length is not a multiple of the format length.")
         self.data += self._create_element(x)
 
-    def extend(self, iterable: Union[Array, array.array, Iterable[Any]]) -> None:
-        if len(self.data) % self._dtype.length != 0:
-            raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.length} bits).")
+    def extend(self, iterable: Array | array.array | Iterable[Any]) -> None:
+        itemsize = self.itemsize
+        if len(self.data) % itemsize != 0:
+            raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({itemsize} bits).")
         if isinstance(iterable, Array):
             if self._dtype.name != iterable._dtype.name or self._dtype.length != iterable._dtype.length:
                 raise TypeError(
@@ -297,7 +318,7 @@ class Array:
             if name_value is None:
                 raise ValueError(f"Cannot extend from array with typecode {iterable.typecode}.")
             other_dtype = dtype_register.get_dtype(*name_value, scale=None)
-            if self._dtype.name != other_dtype.name or self._dtype.length != other_dtype.length:
+            if self._dtype.name != other_dtype.name or self.itemsize != other_dtype.bitlength:
                 raise ValueError(
                     f"Cannot extend an Array with format '{self._dtype}' from an array with typecode '{iterable.typecode}'.")
             self.data += iterable.tobytes()
@@ -311,8 +332,9 @@ class Array:
         """Insert a new element into the Array at position i.
 
         """
-        i = min(i, len(self))  # Inserting beyond len of array inserts at the end (copying standard behaviour)
-        self.data.insert(self._create_element(x), i * self._dtype.length)
+        # Match list.insert semantics: clamp both high and low indices.
+        i = max(min(i, len(self)), -len(self))
+        self.data.insert(self._create_element(x), i * self.itemsize)
 
     def pop(self, i: int = -1) -> ElementType:
         """Return and remove an element of the Array.
@@ -332,9 +354,9 @@ class Array:
         If the Array format is not a whole number of bytes a ValueError will be raised.
 
         """
-        if self._dtype.length % 8 != 0:
+        if self.itemsize % 8 != 0:
             raise ValueError(
-                f"byteswap can only be used for whole-byte elements. The '{self._dtype}' format is {self._dtype.length} bits long.")
+                f"byteswap can only be used for whole-byte elements. The '{self._dtype}' format is {self.itemsize} bits long.")
         self.data.byteswap(self.itemsize // 8)
 
     def count(self, value: ElementType) -> int:
@@ -345,51 +367,79 @@ class Array:
         For floating point types using a value of float('nan') will count the number of elements that are NaN.
 
         """
-        if math.isnan(value):
-            return sum(math.isnan(i) for i in self)
+        def is_nan(x: Any) -> bool:
+            try:
+                return math.isnan(x)
+            except TypeError:
+                return False
+
+        if is_nan(value):
+            return sum(is_nan(i) for i in self)
         else:
             return sum(i == value for i in self)
 
-    def tobytes(self) -> bytes:
+    def to_bytes(self) -> bytes:
         """Return the Array data as a bytes object, padding with zero bits if needed.
 
         Up to seven zero bits will be added at the end to byte align.
 
         """
-        return self.data.tobytes()
+        return self.data.to_bytes()
 
-    def tofile(self, f: BinaryIO) -> None:
+    def tobytes(self) -> bytes:
+        """Compatibility alias for :meth:`to_bytes`."""
+        return self.to_bytes()
+
+    def to_file(self, f: BinaryIO) -> None:
         """Write the Array data to a file object, padding with zero bits if needed.
 
         Up to seven zero bits will be added at the end to byte align.
 
         """
-        self.data.tofile(f)
+        self.data.to_file(f)
 
-    def fromfile(self, f: BinaryIO, n: Optional[int] = None) -> None:
+    def tofile(self, f: BinaryIO) -> None:
+        """Compatibility alias for :meth:`to_file`."""
+        self.to_file(f)
+
+    def from_file(self, f: BinaryIO, n: int | None = None) -> None:
         trailing_bit_length = len(self.data) % self._dtype.bitlength
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.bitlength} bits).")
+        if n is not None and n < 0:
+            raise ValueError("n must be >= 0.")
 
-        new_data = Bits(f)
-        max_items = len(new_data) // self._dtype.length
+        item_bits = self.itemsize
+        if n is None:
+            b = f.read()
+        else:
+            bytes_needed = (n * item_bits + 7) // 8
+            b = f.read(bytes_needed)
+        max_items = len(b) * 8 // item_bits
         items_to_append = max_items if n is None else min(n, max_items)
-        self.data += new_data[0: items_to_append * self._dtype.bitlength]
+        bits_to_append = items_to_append * item_bits
+        if bits_to_append:
+            self.data._bitstore += MutableBitStore.from_bytes(b, length=bits_to_append)
         if n is not None and items_to_append < n:
             raise EOFError(f"Only {items_to_append} were appended, not the {n} items requested.")
 
-    def reverse(self) -> None:
-        trailing_bit_length = len(self.data) % self._dtype.length
-        if trailing_bit_length != 0:
-            raise ValueError(f"Cannot reverse the items in the Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.length} bits).")
-        for start_bit in range(0, len(self.data) // 2, self._dtype.length):
-            start_swap_bit = len(self.data) - start_bit - self._dtype.length
-            temp = self.data[start_bit: start_bit + self._dtype.length]
-            self.data[start_bit: start_bit + self._dtype.length] = self.data[
-                                                               start_swap_bit: start_swap_bit + self._dtype.length]
-            self.data[start_swap_bit: start_swap_bit + self._dtype.length] = temp
+    def fromfile(self, f: BinaryIO, n: int | None = None) -> None:
+        """Compatibility alias for :meth:`from_file`."""
+        self.from_file(f, n)
 
-    def pp(self, fmt: Optional[str] = None, width: int = 120,
+    def reverse(self) -> None:
+        itemsize = self.itemsize
+        trailing_bit_length = len(self.data) % itemsize
+        if trailing_bit_length != 0:
+            raise ValueError(f"Cannot reverse the items in the Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({itemsize} bits).")
+        for start_bit in range(0, len(self.data) // 2, itemsize):
+            start_swap_bit = len(self.data) - start_bit - itemsize
+            temp = self.data[start_bit: start_bit + itemsize]
+            self.data[start_bit: start_bit + itemsize] = self.data[
+                                                               start_swap_bit: start_swap_bit + itemsize]
+            self.data[start_swap_bit: start_swap_bit + itemsize] = temp
+
+    def pp(self, fmt: str | None = None, width: int = 120,
            show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
         """Pretty-print the Array contents.
 
@@ -439,7 +489,7 @@ class Array:
         length = len(self.data) // token_length
         len_str = colour.green + str(length) + colour.off
         stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes> [\n")
-        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, False, token_length)
+        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, token_length)
         stream.write("]")
         if trailing_bit_length != 0:
             stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))
@@ -464,23 +514,24 @@ class Array:
                 return False
             if len(self) != len(other):
                 return False
-            if self.tolist() != other.tolist():
+            if self.to_list() != other.tolist():
                 return False
             return True
         return False
 
     def __iter__(self) -> Iterable[ElementType]:
         start = 0
+        itemsize = self.itemsize
         for _ in range(len(self)):
             yield self._dtype.read_fn(self.data, start=start)
-            start += self._dtype.length
+            start += itemsize
 
     def __copy__(self) -> Array:
         a_copy = self.__class__(self._dtype)
         a_copy.data = copy.copy(self.data)
         return a_copy
 
-    def _apply_op_to_all_elements(self, op, value: Union[int, float, None], is_comparison: bool = False) -> Array:
+    def _apply_op_to_all_elements(self, op, value: int | float | None, is_comparison: bool = False) -> Array:
         """Apply op with value to each element of the Array and return a new Array"""
         new_array = self.__class__('bool' if is_comparison else self._dtype)
         new_data = BitArray()
@@ -492,8 +543,9 @@ class Array:
         else:
             def partial_op(a):
                 return op(a)
+        itemsize = self.itemsize
         for i in range(len(self)):
-            v = self._dtype.read_fn(self.data, start=self._dtype.length * i)
+            v = self._dtype.read_fn(self.data, start=itemsize * i)
             try:
                 new_data.append(new_array._create_element(partial_op(v)))
             except (CreationError, ZeroDivisionError, ValueError) as e:
@@ -507,14 +559,15 @@ class Array:
         new_array.data = new_data
         return new_array
 
-    def _apply_op_to_all_elements_inplace(self, op, value: Union[int, float]) -> Array:
+    def _apply_op_to_all_elements_inplace(self, op, value: int | float) -> Array:
         """Apply op with value to each element of the Array in place."""
         # This isn't really being done in-place, but it's simpler and faster for now?
         new_data = BitArray()
         failures = index = 0
         msg = ''
+        itemsize = self.itemsize
         for i in range(len(self)):
-            v = self._dtype.read_fn(self.data, start=self._dtype.length * i)
+            v = self._dtype.read_fn(self.data, start=itemsize * i)
             try:
                 new_data.append(self._create_element(op(v, value)))
             except (CreationError, ZeroDivisionError, ValueError) as e:
@@ -537,10 +590,11 @@ class Array:
     def _apply_bitwise_op_to_all_elements_inplace(self, op, value: BitsType) -> Array:
         """Apply op with value to each element of the Array as an unsigned integer in place."""
         value = BitArray._create_from_bitstype(value)
-        if len(value) != self._dtype.length:
-            raise ValueError(f"Bitwise op needs a bitstring of length {self._dtype.length} to match format {self._dtype}.")
-        for start in range(0, len(self) * self._dtype.length, self._dtype.length):
-            self.data[start: start + self._dtype.length] = op(self.data[start: start + self._dtype.length], value)
+        itemsize = self.itemsize
+        if len(value) != itemsize:
+            raise ValueError(f"Bitwise op needs a bitstring of length {itemsize} to match format {self._dtype}.")
+        for start in range(0, len(self) * itemsize, itemsize):
+            self.data[start: start + itemsize] = op(self.data[start: start + itemsize], value)
         return self
 
     def _apply_op_between_arrays(self, op, other: Array, is_comparison: bool = False) -> Array:
@@ -559,9 +613,11 @@ class Array:
         new_data = BitArray()
         failures = index = 0
         msg = ''
+        itemsize = self.itemsize
+        other_itemsize = other.itemsize
         for i in range(len(self)):
-            a = self._dtype.read_fn(self.data, start=self._dtype.length * i)
-            b = other._dtype.read_fn(other.data, start=other._dtype.length * i)
+            a = self._dtype.read_fn(self.data, start=itemsize * i)
+            b = other._dtype.read_fn(other.data, start=other_itemsize * i)
             try:
                 new_data.append(new_array._create_element(op(a, b)))
             except (CreationError, ValueError, ZeroDivisionError) as e:
@@ -574,6 +630,13 @@ class Array:
                              f'First error at index {index} was: "{msg}"')
         new_array.data = new_data
         return new_array
+
+    def _apply_op_between_arrays_inplace(self, op, other: Array) -> Array:
+        """Apply op between Arrays and update self in place."""
+        result = self._apply_op_between_arrays(op, other)
+        self._dtype = result._dtype
+        self.data = result.data
+        return self
 
     @classmethod
     def _promotetype(cls, type1: Dtype, type2: Dtype) -> Dtype:
@@ -610,85 +673,85 @@ class Array:
 
     # Operators between Arrays or an Array and scalar value
 
-    def __add__(self, other: Union[int, float, Array]) -> Array:
+    def __add__(self, other: int | float | Array) -> Array:
         """Add int or float to all elements."""
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.add, other)
         return self._apply_op_to_all_elements(operator.add, other)
 
-    def __iadd__(self, other: Union[int, float, Array]) -> Array:
+    def __iadd__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.add, other)
+            return self._apply_op_between_arrays_inplace(operator.add, other)
         return self._apply_op_to_all_elements_inplace(operator.add, other)
 
-    def __isub__(self, other: Union[int, float, Array]) -> Array:
+    def __isub__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.sub, other)
+            return self._apply_op_between_arrays_inplace(operator.sub, other)
         return self._apply_op_to_all_elements_inplace(operator.sub, other)
 
-    def __sub__(self, other: Union[int, float, Array]) -> Array:
+    def __sub__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.sub, other)
         return self._apply_op_to_all_elements(operator.sub, other)
 
-    def __mul__(self, other: Union[int, float, Array]) -> Array:
+    def __mul__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.mul, other)
         return self._apply_op_to_all_elements(operator.mul, other)
 
-    def __imul__(self, other: Union[int, float, Array]) -> Array:
+    def __imul__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.mul, other)
+            return self._apply_op_between_arrays_inplace(operator.mul, other)
         return self._apply_op_to_all_elements_inplace(operator.mul, other)
 
-    def __floordiv__(self, other: Union[int, float, Array]) -> Array:
+    def __floordiv__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.floordiv, other)
         return self._apply_op_to_all_elements(operator.floordiv, other)
 
-    def __ifloordiv__(self, other: Union[int, float, Array]) -> Array:
+    def __ifloordiv__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.floordiv, other)
+            return self._apply_op_between_arrays_inplace(operator.floordiv, other)
         return self._apply_op_to_all_elements_inplace(operator.floordiv, other)
 
-    def __truediv__(self, other: Union[int, float, Array]) -> Array:
+    def __truediv__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.truediv, other)
         return self._apply_op_to_all_elements(operator.truediv, other)
 
-    def __itruediv__(self, other: Union[int, float, Array]) -> Array:
+    def __itruediv__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.truediv, other)
+            return self._apply_op_between_arrays_inplace(operator.truediv, other)
         return self._apply_op_to_all_elements_inplace(operator.truediv, other)
 
-    def __rshift__(self, other: Union[int, Array]) -> Array:
+    def __rshift__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.rshift, other)
         return self._apply_op_to_all_elements(operator.rshift, other)
 
-    def __lshift__(self, other: Union[int, Array]) -> Array:
+    def __lshift__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.lshift, other)
         return self._apply_op_to_all_elements(operator.lshift, other)
 
-    def __irshift__(self, other: Union[int, Array]) -> Array:
+    def __irshift__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.rshift, other)
+            return self._apply_op_between_arrays_inplace(operator.rshift, other)
         return self._apply_op_to_all_elements_inplace(operator.rshift, other)
 
-    def __ilshift__(self, other: Union[int, Array]) -> Array:
+    def __ilshift__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.lshift, other)
+            return self._apply_op_between_arrays_inplace(operator.lshift, other)
         return self._apply_op_to_all_elements_inplace(operator.lshift, other)
 
-    def __mod__(self, other: Union[int, Array]) -> Array:
+    def __mod__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.mod, other)
         return self._apply_op_to_all_elements(operator.mod, other)
 
-    def __imod__(self, other: Union[int, Array]) -> Array:
+    def __imod__(self, other: int | Array) -> Array:
         if isinstance(other, Array):
-            return self._apply_op_between_arrays(operator.mod, other)
+            return self._apply_op_between_arrays_inplace(operator.mod, other)
         return self._apply_op_to_all_elements_inplace(operator.mod, other)
 
     # Bitwise operators
@@ -713,13 +776,13 @@ class Array:
 
     # Reverse operators between a scalar value and an Array
 
-    def __rmul__(self, other: Union[int, float]) -> Array:
+    def __rmul__(self, other: int | float) -> Array:
         return self._apply_op_to_all_elements(operator.mul, other)
 
-    def __radd__(self, other: Union[int, float]) -> Array:
+    def __radd__(self, other: int | float) -> Array:
         return self._apply_op_to_all_elements(operator.add, other)
 
-    def __rsub__(self, other: Union[int, float]) -> Array:
+    def __rsub__(self, other: int | float) -> Array:
         # i - A == (-A) + i
         neg = self._apply_op_to_all_elements(operator.neg, None)
         return neg._apply_op_to_all_elements(operator.add, other)
@@ -737,22 +800,22 @@ class Array:
 
     # Comparison operators
 
-    def __lt__(self, other: Union[int, float, Array]) -> Array:
+    def __lt__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.lt, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.lt, other, is_comparison=True)
 
-    def __gt__(self, other: Union[int, float, Array]) -> Array:
+    def __gt__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.gt, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.gt, other, is_comparison=True)
 
-    def __ge__(self, other: Union[int, float, Array]) -> Array:
+    def __ge__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.ge, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.ge, other, is_comparison=True)
 
-    def __le__(self, other: Union[int, float, Array]) -> Array:
+    def __le__(self, other: int | float | Array) -> Array:
         if isinstance(other, Array):
             return self._apply_op_between_arrays(operator.le, other, is_comparison=True)
         return self._apply_op_to_all_elements(operator.le, other, is_comparison=True)

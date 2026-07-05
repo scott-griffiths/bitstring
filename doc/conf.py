@@ -12,7 +12,7 @@ year = datetime.datetime.utcfromtimestamp(
 project = 'bitstring'
 copyright = f'2006 - {year}, Scott Griffiths'
 author = 'Scott Griffiths'
-release = '4.4'
+release = '5.0.0_beta1'
 
 extensions = []
 
@@ -31,7 +31,7 @@ html_css_files = ["custom.css"]
 html_theme = 'piccolo_theme'
 
 html_theme_options = {
-    # "banner_text": "New requirement of Python 3.8 or later - see release notes for full details.",
+    "banner_text": "Unreleased bitstring 5.0 docs. The current stable PyPI line is 4.x; pin bitstring<5 for the released API.",
     "banner_hiding": "permanent",
     "show_theme_credit": False,
     "globaltoc_maxdepth": 2,

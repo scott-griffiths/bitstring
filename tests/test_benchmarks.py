@@ -19,7 +19,7 @@ def test_cutting(benchmark):
 
 def test_count(benchmark):
     def count():
-        s = bitstring.BitArray(100000000)
+        s = bitstring.BitArray.from_zeros(100000000)
         s.set(1, [10, 100, 1000, 10000000])
         return s.count(1)
     c = benchmark(count)
@@ -32,7 +32,7 @@ def test_token_parsing(benchmark):
             s += 'uint:12=244, float:32=0.4'
             s += '0x3e44f, 0b11011, 0o75523'
             s += [0, 1, 2, 0, 0, 1, 2, 0, -1, 0, 'hello']
-            s += bitstring.BitArray(104)
+            s += bitstring.BitArray.from_zeros(104)
     benchmark(token_parsing)
 
 def test_findall(benchmark):
@@ -50,7 +50,7 @@ def test_repeated_reading(benchmark):
     def repeating_reading():
         random.seed(1414)
         i = int.to_bytes(random.getrandbits(100000*8), 100000, 'big')
-        s = bitstring.ConstBitStream(bytes=i)
+        s = bitstring.Reader(bitstring.Bits(bytes=i))
         for _ in range(800000 // 40):
             _ = s.readlist('uint:4, float:32, bool, bool, bool, bool')
     benchmark(repeating_reading)
@@ -58,7 +58,7 @@ def test_repeated_reading(benchmark):
 def test_primes(benchmark):
     def primes():
         limit = 1000000
-        is_prime = bitstring.BitArray(limit)
+        is_prime = bitstring.BitArray.from_zeros(limit)
         is_prime.set(True)
         # Manually set 0 and 1 to be not prime.
         is_prime.set(False, [0, 1])
