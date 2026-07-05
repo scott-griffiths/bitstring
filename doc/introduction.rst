@@ -88,7 +88,7 @@ For other common construction modes use explicit factory methods:
 * :meth:`Bits.from_file` for a file path or binary file object.
 * :meth:`Bits.from_bytes` for bytes-like data with optional bit offset and length.
 * :meth:`Bits.from_joined` for concatenating many bitstrings.
-* :meth:`Bits.from_tibs` for interoperation with the lower-level ``tibs`` library.
+* :meth:`Bits.from_tibs` for interoperation with lower-level ``tibs.Tibs`` or ``tibs.Mutibs`` objects.
 
 If it is a string then that string will be parsed into tokens to construct the binary data:
 
@@ -129,6 +129,7 @@ Methods that need another bitstring as a parameter will also 'auto' promote, for
 
 
 which illustrates a variety of methods promoting strings, iterables and a bytes object to bitstrings.
+``tibs.Tibs`` and ``tibs.Mutibs`` objects are also promoted; mutable ``tibs.Mutibs`` values are copied before bitstring uses them.
 
 Promotion is intentionally broader than the public constructor, but integers are still not promoted.
 They raise a ``TypeError`` because an integer is more likely to be a mistaken value than a deliberate request for that many zero bits::
@@ -142,7 +143,7 @@ They raise a ``TypeError`` because an integer is more likely to be a mistaken va
 ``BitsType``
 ^^^^^^^^^^^^
 
-.. class:: BitsType(Bits | str | Iterable[Any] | BinaryIO | bytearray | bytes | memoryview)
+.. class:: BitsType(Bits | str | tibs.Tibs | tibs.Mutibs | Iterable[Any] | BinaryIO | bytearray | bytes | memoryview)
 
     The ``BitsType`` type is used in the documentation in a number of places where an object of any type that can be promoted to a bitstring is acceptable.
 

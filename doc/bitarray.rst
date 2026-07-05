@@ -11,6 +11,7 @@ BitArray
     A :class:`BitArray` is a mutable :class:`Bits`, and so the one thing all of the methods listed here have in common is that  they can modify the contents of the bitstring.
 
     The factory methods :meth:`~Bits.from_string`, :meth:`~Bits.from_dtype`, :meth:`~Bits.from_bytes`, :meth:`~Bits.from_bools`, :meth:`~Bits.from_zeros`, :meth:`~Bits.from_ones`, :meth:`~Bits.from_joined`, :meth:`~Bits.from_file` and :meth:`~Bits.from_tibs` are also available and return mutable ``BitArray`` objects when called on ``BitArray``.
+    ``BitArray.from_tibs`` accepts both ``tibs.Tibs`` and ``tibs.Mutibs`` objects, and always creates a mutable copy.
 
 ----
 

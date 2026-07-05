@@ -56,9 +56,51 @@ class TestCreation:
         assert bits.to_tibs() is tibs
         assert Bits("0b101").to_tibs() == tibs
 
-    def test_from_tibs_rejects_mutibs(self):
-        with pytest.raises(TypeError, match="tibs.Tibs"):
-            Bits.from_tibs(Mutibs.from_bin("101"))
+        mutibs = Mutibs.from_bin("101")
+        bits = Bits.from_tibs(mutibs)
+        assert type(bits) is Bits
+        assert bits == "0b101"
+        mutibs.append(0)
+        assert bits == "0b101"
+
+    @pytest.mark.parametrize("tibs_type", [Tibs, Mutibs])
+    def test_constructor_accepts_tibs_types(self, tibs_type):
+        tibs = tibs_type.from_bin("101")
+        bits = Bits(tibs)
+        assert type(bits) is Bits
+        assert bits == "0b101"
+        if tibs_type is Tibs:
+            assert bits.to_tibs() is tibs
+
+    @pytest.mark.parametrize("tibs_type", [Tibs, Mutibs])
+    def test_constructor_rejects_tibs_types_with_length_or_offset(self, tibs_type):
+        tibs = tibs_type.from_bin("101")
+        with pytest.raises(bitstring.CreationError, match="explicit lengths or offsets"):
+            Bits(tibs, length=2)
+        with pytest.raises(bitstring.CreationError, match="explicit lengths or offsets"):
+            Bits(tibs, offset=1)
+
+    def test_mutibs_input_is_copied(self):
+        source = Mutibs.from_bin("101")
+        constructed = Bits(source)
+        from_tibs = Bits.from_tibs(source)
+
+        source.append(0)
+
+        assert constructed == "0b101"
+        assert from_tibs == "0b101"
+
+    def test_tibs_types_promote_as_bits_type(self):
+        tibs = Tibs.from_bin("101")
+        mutibs = Mutibs.from_bin("101")
+        bits = Bits("0b00101")
+
+        assert bits.find(tibs) == 2
+        assert bits.endswith(mutibs)
+        assert Bits("0b10100").startswith(tibs)
+        assert Bits.from_joined([Tibs.from_bin("10"), mutibs]) == "0b10101"
+        assert bitstring.pack("bits3", tibs) == "0b101"
+        assert bitstring.pack("bits3", mutibs) == "0b101"
 
     def test_to_bytes_and_to_file_aliases(self, tmp_path):
         bits = Bits("0b101")

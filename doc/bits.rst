@@ -191,12 +191,12 @@ Methods
 
     Creates a new bitstring from a file path or binary file object.
 
-.. classmethod:: Bits.from_tibs(tibs_obj: tibs.Tibs, /) -> Bits
+.. classmethod:: Bits.from_tibs(tibs_obj: tibs.Tibs | tibs.Mutibs, /) -> Bits
 
-    Creates a new bitstring from a ``tibs.Tibs`` instance.
+    Creates a new bitstring from a ``tibs.Tibs`` or ``tibs.Mutibs`` instance.
 
-    This is an interop helper for the lower-level `tibs <https://github.com/scott-griffiths/tibs>`_ library that backs bitstring 5. ``Bits`` may share the immutable ``tibs.Tibs`` data directly.
-    ``tibs.Mutibs`` is not accepted by this method; convert mutable tibs data to ``tibs.Tibs`` first if needed.
+    This is an interop helper for the lower-level `tibs <https://github.com/scott-griffiths/tibs>`_ library that backs bitstring 5. ``Bits`` may share immutable ``tibs.Tibs`` data directly.
+    Mutable ``tibs.Mutibs`` data is accepted, but is copied before being used by bitstring.
 
 .. method:: Bits.to_bitarray() -> BitArray
 

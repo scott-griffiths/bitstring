@@ -55,9 +55,55 @@ class TestAll:
         assert snapshot == tibs
         assert bitarray == "0b1010"
 
-    def test_from_tibs_rejects_mutibs(self):
-        with pytest.raises(TypeError, match="tibs.Tibs"):
-            BitArray.from_tibs(Mutibs.from_bin("101"))
+        mutibs = Mutibs.from_bin("101")
+        bitarray = BitArray.from_tibs(mutibs)
+        assert type(bitarray) is BitArray
+        assert bitarray == "0b101"
+        mutibs.append(0)
+        assert bitarray == "0b101"
+
+    @pytest.mark.parametrize("tibs_type", [Tibs, Mutibs])
+    def test_constructor_accepts_tibs_types(self, tibs_type):
+        tibs = tibs_type.from_bin("101")
+        bitarray = BitArray(tibs)
+        assert type(bitarray) is BitArray
+        assert bitarray == "0b101"
+
+        bitarray.append("0b0")
+        assert bitarray == "0b1010"
+
+    @pytest.mark.parametrize("tibs_type", [Tibs, Mutibs])
+    def test_constructor_rejects_tibs_types_with_length_or_offset(self, tibs_type):
+        tibs = tibs_type.from_bin("101")
+        with pytest.raises(bitstring.CreationError, match="explicit lengths or offsets"):
+            BitArray(tibs, length=2)
+        with pytest.raises(bitstring.CreationError, match="explicit lengths or offsets"):
+            BitArray(tibs, offset=1)
+
+    def test_mutibs_input_is_copied(self):
+        source = Mutibs.from_bin("101")
+        constructed = BitArray(source)
+        from_tibs = BitArray.from_tibs(source)
+
+        source.append(0)
+
+        assert constructed == "0b101"
+        assert from_tibs == "0b101"
+
+        constructed.append("0b1")
+        assert source.to_bin() == "1010"
+
+    def test_tibs_types_promote_as_bits_type(self):
+        bitarray = BitArray("0b10")
+        bitarray.append(Tibs.from_bin("11"))
+        assert bitarray == "0b1011"
+
+        bitarray.append(Mutibs.from_bin("00"))
+        assert bitarray == "0b101100"
+
+        replacements = bitarray.replace(Mutibs.from_bin("0"), Tibs.from_bin("11"), count=1)
+        assert replacements == 1
+        assert bitarray == "0b1111100"
 
     def test_creation_from_u(self):
         s = BitArray(u=15, length=6)

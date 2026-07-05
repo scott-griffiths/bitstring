@@ -59,6 +59,20 @@ Tibs is still in beta but I would like it to get a wider range of users before h
 pip install tibs
 ```
 
+Bitstring accepts tibs objects anywhere a bitstring-like value is expected:
+
+```python
+from bitstring import Bits
+from tibs import Mutibs, Tibs
+
+tibs_obj = Tibs.from_bin("1010")
+bits = Bits(tibs_obj)              # or Bits.from_tibs(tibs_obj)
+same_data = bits.to_tibs()
+
+mutable = Mutibs.from_bin("111")
+bits_copy = Bits.from_tibs(mutable) # Mutibs inputs are copied
+```
+
 [![tibs](https://raw.githubusercontent.com/scott-griffiths/tibs/main/doc/tibs.png)](https://github.com/scott-griffiths/tibs)
 
 A sleek Python library for your binary data
