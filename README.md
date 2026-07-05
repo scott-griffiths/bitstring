@@ -8,7 +8,7 @@
 [![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)](https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/readthedocs/bitstring?logo=readthedocs&logoColor=white)](https://bitstring.readthedocs.io/en/latest/)
 [![Codacy Badge](https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4?logo=codacy)](https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/pypi/bitstring?logo=libraries.io&logoColor=white)](https://libraries.io/pypi/bitstring)
+[![Dependents](https://img.shields.io/librariesio/dependents/pypi/bitstring?logo=libraries.io&logoColor=white)](https://libraries.io/pypi/bitstring)
 &nbsp; &nbsp;
 [![Pepy Total Downloads](https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue)](https://www.pepy.tech/projects/bitstring)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/bitstring?label=%40&labelColor=blue&color=blue)](https://pypistats.org/packages/bitstring)
@@ -35,12 +35,6 @@ Reasons to upgrade include:
 
 ## Upgrading from version 4
 
-If you have arrived here because bitstring 5 development work broke your code, the most practical fix may be to pin the latest version 4 release for now:
-
-```bash
-pip install "bitstring<5"
-```
-
 Version 5 is worth moving to if you need the improved performance, want the cleaner current API, or want to keep up to
 date with future bitstring development. The changes are quite broad, so if your existing code is stable and performance
 is not a problem, there is no need to migrate immediately.
@@ -53,17 +47,14 @@ bitstring 5 is built on [tibs](https://github.com/scott-griffiths/tibs), a simpl
 binary data, written in Rust for speed. It's by the same author as bitstring so they can complement each other's needs.
 If you want a leaner interface and do not need all of bitstring's higher-level format handling and historical API, tibs may be a better fit for new code.
 
-Tibs is still in beta but I would like it to get a wider range of users before hitting 1.0. Try it with:
-
-```bash
-pip install tibs
-```
+Tibs is still in beta but should hit 1.0 before bitstring 5.0 is released.
+Please do try it, as all feedback is welcome.
 
 <a href="https://github.com/scott-griffiths/tibs">
   <img src="https://raw.githubusercontent.com/scott-griffiths/tibs/main/doc/tibs.png" alt="tibs" width="30%">
 </a>
 
-A sleek Python library for your binary data
+A sleek Python library for binary data
 
 ----
 
@@ -93,18 +84,6 @@ There is also an introductory walkthrough notebook for the 5.0 branch on [binder
 
 These examples show the upcoming 5.0 API from `main`.
 
-### Installation
-Released 4.x version:
-
-```bash
-$ pip install bitstring
-```
-
-5.0 preview from `main`:
-
-```bash
-$ pip install "bitstring @ git+https://github.com/scott-griffiths/bitstring.git@main"
-```
 
 ### Creation
 ```pycon
