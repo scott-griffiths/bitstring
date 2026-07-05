@@ -1,85 +1,152 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;600&display=swap");
 
-
-
-:root {
-  --mainNavColor: #348ad1;
-  --sidebarColor: #f8f8ff;
-  --inlineCodeBackgroundColor: rgb(0 0 0 / 0%);
+html {
+    --bitstring-blue: #348ad1;
+    --bitstring-blue-dark: #046ab1;
+    --bitstring-heading-blue: #2980b9;
+    --bitstring-red: #d03434;
+    --bitstring-orange: #d77732;
+    --bitstring-note-blue: #587f9f;
+    --bitstring-sidebar: #f8f8ff;
 }
 
-div#top_nav nav {
-    background-image: linear-gradient(#348ad1, #046ab1);
-    padding: 0.2rem 1rem;
+html:not([data-theme]),
+html[data-theme="light"] {
+    --pst-color-primary: var(--bitstring-heading-blue);
+    --pst-color-secondary: var(--bitstring-blue-dark);
+    --pst-color-link: var(--bitstring-heading-blue);
+    --pst-color-link-hover: var(--bitstring-blue-dark);
+    --pst-color-surface: #f8f8f8;
 }
 
-div#top_nav nav h1 img{
-    height: 3rem;
+html[data-theme="dark"] {
+    --pst-color-primary: var(--bitstring-blue);
+    --pst-color-secondary: var(--bitstring-blue);
+    --pst-color-link: var(--bitstring-blue);
+    --pst-color-link-hover: #79bdf1;
 }
 
-.highlight {
-    background: #f8f8f8;
+html:not([data-theme]) #pst-header.bd-header,
+html[data-theme="light"] #pst-header.bd-header {
+    background-color: var(--bitstring-sidebar) !important;
+    background-image: none !important;
+    border-bottom: 0.2rem solid var(--bitstring-blue);
 }
 
-div.document {
-    margin-bottom: 1rem;
+html[data-theme="dark"] #pst-header.bd-header {
+    background-color: var(--bitstring-blue-dark) !important;
+    background-image: linear-gradient(var(--bitstring-blue), var(--bitstring-blue-dark));
 }
 
-div.document div.documentwrapper {
-    max-width: 55rem;
+html[data-theme="light"] .bd-sidebar-primary {
+    background-color: var(--bitstring-sidebar);
 }
 
-div.document div.highlight {
-    border-radius: 0.0rem;
-    border-left: 3px dotted rgba(128, 128, 128, 40%);
-    background-color: var(--mainBackgroundColor);
+html:not([data-theme]) .bd-header .nav-link,
+html:not([data-theme]) .bd-header .navbar-brand p,
+html[data-theme="light"] .bd-header .nav-link,
+html[data-theme="light"] .bd-header .navbar-brand p {
+    color: var(--bitstring-heading-blue);
 }
 
-h1, h2, h3, h4 {
-    font-family: 'Lato', sans-serif;
+html[data-theme="dark"] .bd-header .navbar-nav .nav-item > .nav-link,
+html[data-theme="dark"] .bd-header .navbar-nav .nav-link.nav-internal,
+html[data-theme="dark"] .bd-header .pst-navbar-icon,
+html[data-theme="dark"] .bd-header .navbar-brand p {
+    color: #ffffff;
 }
 
-h1 {
-    color: #2980b9;
+html[data-theme="dark"] .bd-header .navbar-nav .nav-link:hover,
+html[data-theme="dark"] .bd-header .navbar-nav .nav-link:focus,
+html[data-theme="dark"] .bd-header .navbar-nav .nav-item.current > .nav-link,
+html[data-theme="dark"] .bd-header .navbar-nav .nav-item.active > .nav-link,
+html[data-theme="dark"] .bd-header .navbar-nav .nav-link.nav-internal.active,
+html[data-theme="dark"] .bd-header .pst-navbar-icon:hover,
+html[data-theme="dark"] .bd-header .pst-navbar-icon:focus {
+    color: var(--bitstring-orange);
 }
 
-h3, h4 {
+h1,
+h2,
+h3,
+h4 {
+    font-family: "Lato", sans-serif;
+}
+
+h1,
+h2 {
+    color: var(--bitstring-heading-blue);
+}
+
+h3,
+h4 {
     text-decoration: underline;
 }
 
-div.document div.admonition.attention, div.document div.admonition.caution, div.document div.admonition.warning {
-    border: 2px solid #d77732;
+html[data-theme="dark"] .bd-content img:not(.only-dark, .dark-light) {
+    background-color: rgba(0, 0, 0, 0);
 }
 
-div.document div.admonition.attention p.admonition-title, div.document div.admonition.caution p.admonition-title, div.document div.admonition.warning p.admonition-title {
-    color: #ffffff;
-    background-color: #d77732;
+code.literal {
+    background-color: transparent;
+    border: 0;
 }
 
-div.document div.admonition.attention, div.document div.admonition.caution, div.document div.admonition.note {
-    border: 2px solid #587f9f;
+.bd-content .highlight {
+    border-left: 3px dotted rgba(128, 128, 128, 40%);
+    border-radius: 0;
 }
 
-div.document div.admonition.attention p.admonition-title, div.document div.admonition.caution p.admonition-title, div.document div.admonition.note p.admonition-title {
-    color: #ffffff;
-    background-color: #587f9f;
-}
-
-div.document li p {
+.bd-content li p {
     margin: 0 0 0.3rem 0;
 }
 
-div.document table.docutils td {
+.bd-content table.docutils td,
+.bd-content table.docutils th {
     border: none;
     padding: 0.1rem 1rem;
 }
 
-div.document table.docutils th {
-    border: none;
-    padding: 0.1rem 1rem;
-}
-
-div.document hr {
+.bd-content hr {
+    background-color: var(--bitstring-red);
     height: 0.25rem;
-    background-color: #d03434;
+}
+
+.bd-content .admonition.warning,
+.bd-content .admonition.caution {
+    border-color: var(--bitstring-orange);
+}
+
+.bd-content .admonition.warning > .admonition-title,
+.bd-content .admonition.caution > .admonition-title {
+    background-color: var(--bitstring-orange);
+    color: #ffffff;
+}
+
+.bd-content .admonition.attention,
+.bd-content .admonition.note,
+.bd-content .admonition.important {
+    border-color: var(--bitstring-note-blue);
+}
+
+.bd-content .admonition.attention > .admonition-title,
+.bd-content .admonition.note > .admonition-title,
+.bd-content .admonition.important > .admonition-title {
+    background-color: var(--bitstring-note-blue);
+    color: #ffffff;
+}
+
+nav.bd-links p.bd-links__title,
+nav.bd-links p.caption {
+    display: none;
+}
+
+.navbar-brand img {
+    max-height: 3rem;
+}
+
+.navbar-brand p {
+    font-size: 0.8rem;
+    margin-bottom: -2rem;
+    white-space: nowrap;
 }

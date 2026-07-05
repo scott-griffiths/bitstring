@@ -158,6 +158,6 @@ To see what been added, improved or fixed, and possibly also to see what's comin
 Credits
 ^^^^^^^
 
-Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files. Maintained and expanded ever since as it became unexpectedly popular. Thanks to all those who have contributed ideas, code and bug reports over the years.
-
-These docs are styled using the `Piccolo theme <https://github.com/piccolo-orm/piccolo_theme>`_.
+Created by Scott Griffiths in 2006 to help with ad hoc parsing and creation of compressed video files.
+Maintained and expanded ever since as it became unexpectedly popular.
+Thanks to all those who have contributed ideas, code and bug reports over the years.
