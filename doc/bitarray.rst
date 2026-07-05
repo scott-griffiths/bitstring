@@ -10,7 +10,7 @@ BitArray
 
     A :class:`BitArray` is a mutable :class:`Bits`, and so the one thing all of the methods listed here have in common is that  they can modify the contents of the bitstring.
 
-    The factory methods :meth:`~Bits.from_string`, :meth:`~Bits.from_dtype`, :meth:`~Bits.from_bytes`, :meth:`~Bits.from_bools`, :meth:`~Bits.from_zeros`, :meth:`~Bits.from_ones`, :meth:`~Bits.from_joined` and :meth:`~Bits.from_file` are also available and return mutable ``BitArray`` objects when called on ``BitArray``.
+    The factory methods :meth:`~Bits.from_string`, :meth:`~Bits.from_dtype`, :meth:`~Bits.from_bytes`, :meth:`~Bits.from_bools`, :meth:`~Bits.from_zeros`, :meth:`~Bits.from_ones`, :meth:`~Bits.from_joined`, :meth:`~Bits.from_file` and :meth:`~Bits.from_tibs` are also available and return mutable ``BitArray`` objects when called on ``BitArray``.
 
 ----
 
@@ -20,6 +20,12 @@ Methods
 .. method:: BitArray.to_bits() -> Bits
 
     Returns an immutable copy of the bitstring.
+
+.. method:: BitArray.to_tibs() -> tibs.Tibs
+
+    Returns the data as a ``tibs.Tibs`` instance.
+
+    This is an immutable snapshot of the current :class:`BitArray` data, intended for interoperation with the lower-level ``tibs`` library.
 
 .. method:: BitArray.append(bs: BitsType) -> None
 

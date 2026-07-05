@@ -8,6 +8,7 @@ import sys
 import os
 import bitstring
 from bitstring import BitArray, Bits
+from tibs import Mutibs, Tibs
 
 sys.path.insert(0, '..')
 
@@ -40,6 +41,23 @@ class TestAll:
         bitarray.append("0b1")
         assert bits == "0b101"
         assert bitarray == "0b1011"
+
+    def test_tibs_conversion(self):
+        tibs = Tibs.from_bin("101")
+        bitarray = BitArray.from_tibs(tibs)
+        assert type(bitarray) is BitArray
+        assert bitarray == "0b101"
+        assert type(bitarray.to_tibs()) is Tibs
+        assert bitarray.to_tibs() == tibs
+
+        snapshot = bitarray.to_tibs()
+        bitarray.append("0b0")
+        assert snapshot == tibs
+        assert bitarray == "0b1010"
+
+    def test_from_tibs_rejects_mutibs(self):
+        with pytest.raises(TypeError, match="tibs.Tibs"):
+            BitArray.from_tibs(Mutibs.from_bin("101"))
 
     def test_creation_from_u(self):
         s = BitArray(u=15, length=6)

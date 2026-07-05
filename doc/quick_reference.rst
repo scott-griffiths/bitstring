@@ -82,6 +82,7 @@ Methods
 * :meth:`~Bits.from_joined` -- Create a bitstring by concatenating a sequence.
 * :meth:`~Bits.from_ones` -- Create a bitstring of one bits.
 * :meth:`~Bits.from_string` -- Create a bitstring from a formatted string.
+* :meth:`~Bits.from_tibs` -- Create a bitstring from a ``tibs.Tibs`` instance.
 * :meth:`~Bits.from_zeros` -- Create a bitstring of zero bits.
 * :meth:`~Bits.join` -- Join bitstrings together using current bitstring.
 * :meth:`~Bits.pp` -- Pretty print the bitstring.
@@ -91,6 +92,7 @@ Methods
 * :meth:`~Bits.to_bitarray` -- Return a mutable copy.
 * :meth:`~Bits.to_bytes` -- Return bitstring as bytes, padding if needed.
 * :meth:`~Bits.to_file` -- Write bitstring to file, padding if needed.
+* :meth:`~Bits.to_tibs` -- Return the data as a ``tibs.Tibs`` instance.
 * :meth:`~Bits.unpack` -- Interpret bits using format string.
 
 

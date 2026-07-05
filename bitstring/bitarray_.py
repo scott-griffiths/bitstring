@@ -8,6 +8,7 @@ import re
 from collections import abc
 from typing import Any, BinaryIO
 from collections.abc import Iterable
+from tibs import Tibs
 from bitstring import utils
 from bitstring.exceptions import CreationError, Error
 from bitstring.bits import Bits, BitsType, TBits
@@ -50,6 +51,7 @@ class BitArray(Bits):
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     from_string() -- Create a bitstring from a formatted string.
+    from_tibs() -- Create a bitstring from a tibs.Tibs instance.
     join() -- Join bitstrings together using current bitstring.
     pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
@@ -57,6 +59,7 @@ class BitArray(Bits):
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
     to_bytes() -- Return bitstring as bytes, padding if needed.
     to_file() -- Write bitstring to file, padding if needed.
+    to_tibs() -- Return the data as a tibs.Tibs instance.
     unpack() -- Interpret bits using format string.
 
     Special methods:
@@ -220,11 +223,24 @@ class BitArray(Bits):
                     x._bitstore = MutableBitStore.frombuffer(m, offset=offset, length=length)
         return x
 
+    @classmethod
+    def from_tibs(cls: type[TBits], tibs: Tibs, /) -> TBits:
+        """Create a new bitstring from a tibs.Tibs instance."""
+        if not isinstance(tibs, Tibs):
+            raise TypeError(f"Expected tibs.Tibs, got {type(tibs).__name__}.")
+        x = super().__new__(cls)
+        x._bitstore = MutableBitStore(tibs.to_mutibs())
+        return x
+
     def to_bits(self) -> Bits:
         """Return an immutable copy of the bitstring."""
         x = Bits()
         x._bitstore = bitstring.bitstore.ConstBitStore(self._bitstore.tibs.to_tibs())
         return x
+
+    def to_tibs(self) -> Tibs:
+        """Return the data as a tibs.Tibs instance."""
+        return self._bitstore.tibs.to_tibs()
 
     def copy(self: TBits) -> TBits:
         """Return a copy of the bitstring."""
