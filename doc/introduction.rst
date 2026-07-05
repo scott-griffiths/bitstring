@@ -88,6 +88,7 @@ For other common construction modes use explicit factory methods:
 * :meth:`Bits.from_file` for a file path or binary file object.
 * :meth:`Bits.from_bytes` for bytes-like data with optional bit offset and length.
 * :meth:`Bits.from_joined` for concatenating many bitstrings.
+* :meth:`Bits.from_tibs` for interoperation with the lower-level ``tibs`` library.
 
 If it is a string then that string will be parsed into tokens to construct the binary data:
 

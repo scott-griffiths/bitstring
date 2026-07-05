@@ -11,6 +11,7 @@ from collections import abc
 import functools
 from typing import Union, Any, BinaryIO, TextIO, overload, TypeVar
 from collections.abc import Iterable, Iterator
+from tibs import Tibs
 import bitstring
 from bitstring import utils
 from bitstring.dtypes import Dtype, dtype_register
@@ -50,6 +51,7 @@ class Bits:
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
     from_string() -- Create a bitstring from a formatted string.
+    from_tibs() -- Create a bitstring from a tibs.Tibs instance.
     join() -- Join bitstrings together using current bitstring.
     pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
@@ -57,6 +59,7 @@ class Bits:
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
     to_bytes() -- Return bitstring as bytes, padding if needed.
     to_file() -- Write bitstring to file, padding if needed.
+    to_tibs() -- Return the data as a tibs.Tibs instance.
     unpack() -- Interpret bits using format string.
 
     Special methods:
@@ -1831,6 +1834,15 @@ class Bits:
         x._setfile(filename, length, offset)
         return x
 
+    @classmethod
+    def from_tibs(cls: type[TBits], tibs: Tibs, /) -> TBits:
+        """Create a new bitstring from a tibs.Tibs instance."""
+        if not isinstance(tibs, Tibs):
+            raise TypeError(f"Expected tibs.Tibs, got {type(tibs).__name__}.")
+        x = super().__new__(cls)
+        x._bitstore = ConstBitStore(tibs)
+        return x
+
     def to_bitarray(self) -> bitstring.BitArray:
         """Return a mutable copy of the bitstring."""
         from bitstring.bitarray_ import BitArray
@@ -1838,5 +1850,9 @@ class Bits:
         x = BitArray()
         x._bitstore = self._bitstore._mutable_copy()
         return x
+
+    def to_tibs(self) -> Tibs:
+        """Return the data as a tibs.Tibs instance."""
+        return self._bitstore.tibs
 
     len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")

@@ -7,6 +7,7 @@ import array
 import os
 import re
 from bitstring import InterpretError, Bits, BitArray
+from tibs import Mutibs, Tibs
 from hypothesis import given
 import hypothesis.strategies as st
 
@@ -46,6 +47,18 @@ class TestCreation:
         bitarray.append("0b1")
         assert bits == "0b101"
         assert bitarray == "0b1011"
+
+    def test_tibs_conversion(self):
+        tibs = Tibs.from_bin("101")
+        bits = Bits.from_tibs(tibs)
+        assert type(bits) is Bits
+        assert bits == "0b101"
+        assert bits.to_tibs() is tibs
+        assert Bits("0b101").to_tibs() == tibs
+
+    def test_from_tibs_rejects_mutibs(self):
+        with pytest.raises(TypeError, match="tibs.Tibs"):
+            Bits.from_tibs(Mutibs.from_bin("101"))
 
     def test_to_bytes_and_to_file_aliases(self, tmp_path):
         bits = Bits("0b101")
