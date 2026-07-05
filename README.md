@@ -18,9 +18,12 @@
 > [!NOTE]
 > To see what's been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
 
-# Version 5.0
+> [!IMPORTANT]
+> The `main` branch now contains the upcoming bitstring 5.0 work. It is visible here for testing and feedback, but it is not the current released version. The released PyPI line is still bitstring 4.x; use `pip install bitstring` or pin `bitstring<5` for the stable API. Source maintenance for 4.x is on the `4.x-maintenance` branch.
 
-Version 5.0 of bitstring is now released. This is a major update with breaking changes.
+# Version 5.0 preview
+
+Version 5.0 of bitstring is in development. This is a major update with breaking changes.
 
 Reasons to upgrade include:
 
@@ -32,7 +35,7 @@ Reasons to upgrade include:
 
 ## Upgrading from version 4
 
-If you have arrived here because an upgrade to bitstring 5 broke your code, the most practical fix may be to pin the latest version 4 release for now:
+If you have arrived here because bitstring 5 development work broke your code, the most practical fix may be to pin the latest version 4 release for now:
 
 ```bash
 pip install "bitstring<5"
@@ -42,7 +45,7 @@ Version 5 is worth moving to if you need the improved performance, want the clea
 date with future bitstring development. The changes are quite broad, so if your existing code is stable and performance
 is not a problem, there is no need to migrate immediately.
 
-For details on the source changes you may need, see the [Upgrading to version 5](https://bitstring.readthedocs.io/en/stable/upgrading_to_version_5.html) guide.
+For details on the source changes you may need, see the [Upgrading to version 5](https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html) guide.
 
 ## What's this 'tibs' thing that everyone is talking about?
 
@@ -78,17 +81,27 @@ A sleek Python library for your binary data
 Extensive documentation for the bitstring library is available.
 Some starting points are given below:
 
-* [Overview](https://bitstring.readthedocs.io/en/stable/index.html)
-* [Quick Reference](https://bitstring.readthedocs.io/en/stable/quick_reference.html)
-* [Full Reference](https://bitstring.readthedocs.io/en/stable/reference.html)
+* [Released 4.x documentation](https://bitstring.readthedocs.io/en/stable/)
+* [Upcoming 5.0 documentation](https://bitstring.readthedocs.io/en/latest/)
+* [Upgrading from 4.x to 5.0](https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html)
 
-There is also an introductory walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
+There is also an introductory walkthrough notebook for the 5.0 branch on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
 
 # Examples
 
+These examples show the upcoming 5.0 API from `main`.
+
 ### Installation
-```
+Released 4.x version:
+
+```bash
 $ pip install bitstring
+```
+
+5.0 preview from `main`:
+
+```bash
+$ pip install "bitstring @ git+https://github.com/scott-griffiths/bitstring.git@main"
 ```
 
 ### Creation

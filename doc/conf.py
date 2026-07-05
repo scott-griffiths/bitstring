@@ -31,7 +31,7 @@ html_css_files = ["custom.css"]
 html_theme = 'piccolo_theme'
 
 html_theme_options = {
-    # "banner_text": "New requirement of Python 3.10 or later - see release notes for full details.",
+    "banner_text": "Unreleased bitstring 5.0 docs. The current stable PyPI line is 4.x; pin bitstring<5 for the released API.",
     "banner_hiding": "permanent",
     "show_theme_credit": False,
     "globaltoc_maxdepth": 2,
