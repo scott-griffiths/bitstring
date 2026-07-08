@@ -187,21 +187,20 @@ same short base names:
      - ``uintbe``
    * - ``ule``
      - ``uintle``
-   * - ``une``
-     - ``uintne``
    * - ``ibe``
      - ``intbe``
    * - ``ile``
      - ``intle``
-   * - ``ine``
-     - ``intne``
    * - ``fle``
      - ``floatle``
-   * - ``fne``
-     - ``floatne``
 
 The plain ``f`` dtype is already big-endian, so both ``fbe`` and ``floatbe``
 are compatibility aliases for ``f``.
+Native-endian dtype names and struct-style format prefixes have been removed.
+Use an explicit big- or little-endian spelling such as ``ube``, ``ule``,
+``f`` or ``fle`` instead of ``uintne``, ``une``, ``floatne`` or ``fne``.
+Similarly, use ``'>'`` or ``'<'`` in compact struct-like formats instead of
+``'='`` or ``'@'``.
 
 :class:`Dtype` stringification, :class:`Array` representations and
 pretty-print headers use the preferred names::
@@ -209,12 +208,12 @@ pretty-print headers use the preferred names::
     # bitstring 4 style, still accepted in bitstring 5
     bits = Bits(uintle=1, length=16)
     dtype = Dtype("intbe16")
-    value = r.read("floatne32")
+    value = r.read("floatle32")
 
     # preferred in bitstring 5
     bits = Bits(ule=1, length=16)
     dtype = Dtype("ibe16")
-    value = r.read("fne32")
+    value = r.read("fle32")
 
 Use explicit construction helpers
 =================================

@@ -50,8 +50,7 @@ Some of the keyword arguments that can be used are:
 * ``i``, ``u``: Signed or unsigned bit-wise big-endian binary integers. ``int`` and ``uint`` are compatibility aliases.
 * ``ile``, ``ule``: Signed or unsigned byte-wise little-endian binary integers.
 * ``ibe``, ``ube``: Signed or unsigned byte-wise big-endian binary integers.
-* ``ine``, ``une``: Signed or unsigned byte-wise native-endian binary integers.
-* ``f`` / ``fbe``, ``fle``, ``fne``: Big, little and native endian floating point numbers. ``float`` is a compatibility alias.
+* ``f`` / ``fbe``, ``fle``: Big and little-endian floating point numbers. ``float`` is a compatibility alias.
 * ``bool`` : A boolean (i.e. True or False).
 
 There are also various other flavours of 16-bit, 8-bit and smaller floating point types (see :ref:`Exotic floats`) and exponential-Golomb integer types (see :ref:`exp-golomb`).
@@ -96,8 +95,8 @@ If it is a string then that string will be parsed into tokens to construct the b
 * Starting with ``'0o'`` or ``'oct='`` implies octal. e.g. ``'0o755'``, ``'oct=755'``
 * Starting with ``'0b'`` or ``'bin='`` implies binary. e.g. ``'0b0011010'``, ``'bin=0011010'``
 * Starting with ``'i'`` or ``'u'`` followed by a length in bits and ``'='`` gives base-2 integers. e.g. ``'u8=255'``, ``'i4=-7'``
-* To get big, little and native-endian whole-byte integers append ``'be'``, ``'le'`` or ``'ne'`` respectively to the ``'u'`` or ``'i'`` identifier. e.g. ``'ule32=1'``, ``'ine16=-23'``
-* For floating point numbers use ``'f'`` followed by the length in bits and ``'='`` and the number. The default is big-endian, but you can also append ``'be'``, ``'le'`` or ``'ne'`` as with integers. e.g. ``'f64=0.2'``, ``'fle32=-0.3e12'``
+* To get big or little-endian whole-byte integers append ``'be'`` or ``'le'`` respectively to the ``'u'`` or ``'i'`` identifier. e.g. ``'ule32=1'``, ``'ibe16=-23'``
+* For floating point numbers use ``'f'`` followed by the length in bits and ``'='`` and the number. The default is big-endian, but you can also append ``'le'`` as with integers. e.g. ``'f64=0.2'``, ``'fle32=-0.3e12'``
 * Starting with ``'ue='``, ``'uie='``, ``'se='`` or ``'sie='`` implies an exponential-Golomb coded integer. e.g. ``'ue=12'``, ``'sie=-4'``
 
 Multiples tokens can be joined by separating them with commas, so for example ``'u4=4, 0b1, se=-1'`` represents the concatenation of three elements.
@@ -231,9 +230,8 @@ Big and little-endian integers
 
     >>> big_endian = BitArray(ube=1, length=16)
     >>> little_endian = BitArray(ule=1, length=16)
-    >>> native_endian = BitArray(une=1, length=16)
 
-There are unsigned and signed versions of three additional 'endian' types. The unsigned versions are used above to create three bitstrings.
+There are unsigned and signed versions of two additional 'endian' types. The unsigned versions are used above to create two bitstrings.
 
 The first of these, ``big_endian``, is equivalent to just using the plain bit-wise big-endian ``u`` initialiser, except that all ``ibe`` or ``ube`` interpretations must be of whole-byte bitstrings, otherwise a :exc:`ValueError` is raised.
 
@@ -243,8 +241,6 @@ The second, ``little_endian``, is interpreted as least significant byte first, i
     '0001'
     >>> little_endian.hex
     '0100'
-
-Finally we have ``native_endian``, which will equal either ``big_endian`` or ``little_endian``, depending on whether you are running on a big or little-endian machine (if you really need to check then use ``import sys; sys.byteorder``).
 
 From a floating point number
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -261,7 +257,7 @@ Similar to the situation with integers there are big and little endian versions.
 As with other initialisers you can also 'auto' initialise, as demonstrated with the second example below::
 
     >>> little_endian = BitArray(fle=0.0, length=64)
-    >>> native_endian = BitArray('fne:32=-6.3')
+    >>> another_float = BitArray('f32=-6.3')
 
 See also :ref:`Exotic floats` for information on other floating point representations that are supported (bfloat and different 8-bit and smaller float formats).
 

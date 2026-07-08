@@ -23,15 +23,17 @@ The ``Array`` class is a way to efficiently store data that has a single type wi
 The ``bitstring.Array`` type is meant as a more flexible version of the standard ``array.array``, and can be used the same way. ::
 
     import array
+    import sys
     import bitstring
 
     x = array.array('f', [1.0, 2.0, 3.14])
-    y = bitstring.Array('=f', [1.0, 2.0, 3.14])
+    dtype = 'fle32' if sys.byteorder == 'little' else 'f32'
+    y = bitstring.Array(dtype, [1.0, 2.0, 3.14])
 
     assert x.to_bytes() == y.to_bytes()
 
 This example packs three 32-bit floats into objects using both libraries.
-The only difference is the explicit native endianness for the format string of the bitstring version.
+The bitstring version chooses an explicit byte order to match the current machine.
 The bitstring Array's advantage lies in the way that any fixed-length bitstring format can be used instead of just the dozen or so typecodes supported by the ``array`` module.
 
 For example ``'u4'``, ``'bfloat'`` or ``'hex12'`` can be used, and the endianness of multi-byte dtypes can be properly specified.
@@ -95,7 +97,7 @@ Typically :attr:`Array.trailing_bits` will be an empty :class:`BitArray` but if 
 Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`Array.trailing_bits` is not empty, as it not clear how these should behave in this case.
 You can however still use :meth:`~Array.insert` which will always leave the :attr:`Array.trailing_bits` unchanged.
 
-The :attr:`Array.dtype` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'i12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
+The :attr:`Array.dtype` string can be a type code such as ``'>H'`` or ``'<d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'i12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
 Note that the typecodes must include an endianness character to give the byte ordering.
 This is more like the ``struct`` module typecodes, and is different to the ``array.array`` typecodes which are always native-endian.
@@ -118,14 +120,13 @@ Type code   bitstring dtype
 ``'>d'``     ``'f64'``
 =========   ===================
 
-The endianness character can be ``'>'`` for big-endian, ``'<'`` for little-endian or ``'='`` for native-endian (``'@'`` can also be used for native-endian).
-In the bitstring dtypes the default is big-endian, but you can specify little or native endian using ``'le'`` or ``'ne'`` modifiers, for example:
+The endianness character can be ``'>'`` for big-endian or ``'<'`` for little-endian.
+In the bitstring dtypes the default is big-endian, but you can specify little-endian using an ``'le'`` modifier, for example:
 
 ============  =============================
 Type code     bitstring dtype
 ============  =============================
 ``'>H'``      ``'u16'`` / ``'ube16'``
-``'=H'``      ``'une16'``
 ``'<H'``      ``'ule16'``
 ============  =============================
 
@@ -133,7 +134,7 @@ Type code     bitstring dtype
 Note that:
 
 * The ``array`` module's native endianness means that different packed binary data will be created on different types of machines.
-  Users may find that behaviour unexpected which is why endianness must be explicitly given as in the rest of the bitstring module.
+  Users may find that behaviour unexpected which is why bitstring requires big- or little-endian byte order to be specified explicitly.
 
 * The ``'u'`` type code from the ``array`` module isn't supported as its length is platform dependent.
 

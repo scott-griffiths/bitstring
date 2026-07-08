@@ -993,19 +993,10 @@ def test_endian_synonyms_and_struct_tokens():
         _ = pack('<B', -1)
 
 
-def test_struct_tokens_and_native_endianness():
-    if sys.byteorder == 'little':
-        assert pack('=b', 23) == BitArray('ile:8=23')
-        assert pack('@Q', 23) == BitArray('ule:64=23')
-    else:
-        assert pack('@b', 23) == BitArray('ibe:8=23')
-        assert pack('@Q', 23) == BitArray('ube:64=23')
-
-    s = pack('=2i', 40, 40)
-    if sys.byteorder == 'little':
-        assert s == pack('<2i', 40, 40)
-    else:
-        assert s == pack('>2i', 40, 40)
+def test_struct_tokens_require_explicit_endianness():
+    for fmt in ['=b', '@Q', '=2i']:
+        with pytest.raises(bitstring.CreationError, match='Native-endian struct formats'):
+            _ = pack(fmt, 23, 23)
 
     s = pack('>hhl', 1, 2, 3)
     assert s.unpack('>hhl') == [1, 2, 3]
@@ -1150,8 +1141,8 @@ def test_float_initialisation_packing_and_reading():
     d = pack('>5d', 10.0, 5.0, 2.5, 1.25, 0.1)
     assert d.unpack('>5d') == [10.0, 5.0, 2.5, 1.25, 0.1]
 
-    a = Reader(BitArray('fle:64=12, fbe:64=-0.01, fne:64=3e33'))
-    assert a.readlist('fle:64, fbe:64, fne:64') == [12.0, -0.01, 3e33]
+    a = Reader(BitArray('fle:64=12, fbe:64=-0.01, f:64=3e33'))
+    assert a.readlist('fle:64, fbe:64, f:64') == [12.0, -0.01, 3e33]
 
 
 def test_float_errors_and_rotations():
@@ -1698,10 +1689,8 @@ def test_struct_token_multiplicative_factors_and_errors():
     s = pack('<100q', *range(100))
     assert s.len == 100 * 64
     assert s[44 * 64:45 * 64].ule == 44
-    s = pack('@L0B2h', 5, 5, 5)
-    assert s.unpack('@Lhh') == [5, 5, 5]
 
-    for f in ['>>q', '<>q', 'q>', '2q', 'q', '>-2q', '@a', '>int:8', '>q2']:
+    for f in ['>>q', '<>q', 'q>', '2q', 'q', '>-2q', '@a', '@L0B2h', '=L', '>int:8', '>q2']:
         with pytest.raises(bitstring.CreationError):
             _ = pack(f, 100)
 
@@ -2398,8 +2387,9 @@ def test_token_parser_struct_codes():
     tp = bitstring.utils.tokenparser
     assert tp('>H') == (False, [('ube', 16, None)])
     assert tp('<H') == (False, [('ule', 16, None)])
-    assert tp('=H') == (False, [('une', 16, None)])
-    assert tp('@H') == (False, [('une', 16, None)])
+    for fmt in ['=H', '@H']:
+        with pytest.raises(ValueError, match='Native-endian struct formats'):
+            _ = tp(fmt)
     assert tp('>b') == (False, [('i', 8, None)])
     assert tp('<b') == (False, [('i', 8, None)])
 
@@ -2440,8 +2430,8 @@ def test_any_all_false_and_empty_whole_cases():
 
 
 def test_float_reading_more_cases():
-    a = Reader(BitArray('fle:16=12, fbe:32=-0.01, fne:32=3e33'))
-    x, y, z = a.readlist('fle:16, fbe:32, fne:32')
+    a = Reader(BitArray('fle:16=12, fbe:32=-0.01, f:32=3e33'))
+    x, y, z = a.readlist('fle:16, fbe:32, f:32')
     assert x / 12.0 == pytest.approx(1.0)
     assert y / -0.01 == pytest.approx(1.0)
     assert z / 3e33 == pytest.approx(1.0)
@@ -2707,22 +2697,10 @@ def test_add_empty_bits_issue_more():
     assert xx + bitstring.BitArray('0xff') == '0xff'
 
 
-@pytest.mark.parametrize(
-    ("fmt", "values", "expected_fmt"),
-    [
-        ('=B', (23,), 'une:8=23'),
-        ('=h', (23,), 'ine:16=23'),
-        ('=H', (23,), 'une:16=23'),
-        ('@l', (23,), 'ine:32=23'),
-        ('@L', (23,), 'une:32=23'),
-        ('@i', (23,), 'ine:32=23'),
-        ('@I', (23,), 'une:32=23'),
-        ('@q', (23,), 'ine:64=23'),
-        ('@Q', (23,), 'une:64=23'),
-    ],
-)
-def test_native_struct_pack_codes_more(fmt, values, expected_fmt):
-    assert pack(fmt, *values) == BitArray(expected_fmt)
+@pytest.mark.parametrize("fmt", ['=B', '=h', '=H', '@l', '@L', '@i', '@I', '@q', '@Q'])
+def test_native_struct_pack_codes_removed(fmt):
+    with pytest.raises(bitstring.CreationError, match='Native-endian struct formats'):
+        _ = pack(fmt, 23)
 
 
 @pytest.mark.parametrize("source", [bytearray(b'uint:5=2'), memoryview(b'uint:5=2')])

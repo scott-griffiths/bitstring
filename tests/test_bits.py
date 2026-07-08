@@ -567,7 +567,8 @@ class TestInitFromArray:
         a = array.array("d", [0.0, 1.0, 2.5])
         b = Bits.from_bytes(a.tobytes())
         assert b.length == 192
-        c, d, e = b.unpack("3*fne:64")
+        native_f64 = "fle:64" if sys.byteorder == "little" else "f:64"
+        c, d, e = b.unpack(f"3*{native_f64}")
         assert (c, d, e) == (0.0, 1.0, 2.5)
 
 
@@ -968,34 +969,13 @@ class TestCopy:
         assert s == t
 
 
-class TestNativeEndianIntegers:
-    def test_une(self):
-        s = Bits(une=454, length=160)
-        t = Bits("une160=454")
-        assert s == t
-
-    def test_ine(self):
-        s = Bits(ine=-1000, length=64)
-        t = Bits("ine:64=-1000")
-        assert s == t
-
-
-class TestNonNativeEndianIntegers:
-    def setup_method(self) -> None:
-        bitstring.byteorder = "little" if bitstring.byteorder == "big" else "little"
-
-    def teardown_method(self) -> None:
-        self.setup_method()
-
-    def test_une(self):
-        s = Bits(une=454, length=160)
-        t = Bits("une160=454")
-        assert s == t
-
-    def test_ine(self):
-        s = Bits(ine=-1000, length=64)
-        t = Bits("ine:64=-1000")
-        assert s == t
+def test_native_endian_integer_dtypes_removed():
+    for name in ["une", "ine"]:
+        with pytest.raises(bitstring.CreationError):
+            _ = Bits(**{name: 1}, length=16)
+    for token in ["une16=454", "ine:64=-1000"]:
+        with pytest.raises(bitstring.CreationError):
+            _ = Bits(token)
 
 
 def test_large_ints():

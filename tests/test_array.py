@@ -136,7 +136,8 @@ class TestCreation:
 
     def test_creation_from_array_array(self):
         a = array.array('H', [10, 20, 30, 40])
-        b = Array('une16', a)
+        native_u16 = 'ule16' if sys.byteorder == 'little' else 'ube16'
+        b = Array(native_u16, a)
         assert a.tolist() == b.tolist()
         assert a.tobytes() == b.tobytes()
         with pytest.raises(ValueError):
@@ -278,8 +279,10 @@ class TestArrayMethods:
         assert a[50:60:2].tolist() == list(range(1, 6))
 
     def test_equivalence(self):
-        a = Array('fne32', [54.2, -998, 411.9])
-        b = Array('fne32')
+        native_f32 = 'fle32' if sys.byteorder == 'little' else 'f32'
+        native_f16 = 'fle16' if sys.byteorder == 'little' else 'f16'
+        a = Array(native_f32, [54.2, -998, 411.9])
+        b = Array(native_f32)
         b.extend(a.tolist())
         assert a.data == b.data
 
@@ -287,9 +290,9 @@ class TestArrayMethods:
         assert a.equals(b)
         a.dtype = 'bool'
         assert not a.equals(b)
-        a.dtype = 'fne16'
+        a.dtype = native_f16
         assert not a.equals(b)
-        a.dtype = 'fne32'
+        a.dtype = native_f32
         a.data += '0x0'
         assert not a.equals(b)
         a.data += '0x0000000'
@@ -495,15 +498,20 @@ class TestArrayMethods:
         assert a.equals(b)
 
     def test__add__(self):
-        a = Array('=B', [1, 2, 3])
+        a = Array('u8', [1, 2, 3])
         b = Array('u8', [3, 4])
         c = a[:]
         c.extend(b)
-        assert a.equals(Array('=B', [1, 2, 3]))
-        assert c.equals(Array('=B', [1, 2, 3, 3, 4]))
+        assert a.equals(Array('u8', [1, 2, 3]))
+        assert c.equals(Array('u8', [1, 2, 3, 3, 4]))
         d = a[:]
         d.extend([10, 11, 12])
         assert d.equals(Array('uint:8', [1, 2, 3, 10, 11, 12]))
+
+    def test_native_struct_dtypes_removed(self):
+        for dtype in ['=B', '@H']:
+            with pytest.raises(bitstring.CreationError, match='Native-endian struct formats'):
+                _ = Array(dtype, [1])
 
     def test__contains__(self):
         a = Array('i9', [-1, 88, 3])

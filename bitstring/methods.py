@@ -25,9 +25,6 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
                     'ile:32'   : 4 bytes as a little-endian signed integer
                     'ule:32'   : 4 bytes as a little-endian unsigned integer
                     'fle:64'   : 8 bytes as a little-endian float
-                    'ine:24'   : 3 bytes as a native-endian signed integer
-                    'une:24'   : 3 bytes as a native-endian unsigned integer
-                    'fne:32'   : 4 bytes as a native-endian float
                     'hex:80'    : 80 bits as a hex string
                     'oct:9'     : 9 bits as an octal string
                     'bin:1'     : single bit binary string

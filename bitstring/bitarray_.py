@@ -99,16 +99,12 @@ class BitArray(Bits):
         sie -- a signed interleaved exponential-Golomb code.
         uie -- an unsigned interleaved exponential-Golomb code.
         fle -- a little-endian floating point number.
-        fne -- a native-endian floating point number.
         bfloat / bfloatbe - a big-endian bfloat format 16-bit floating point number.
         bfloatle -- a little-endian bfloat format 16-bit floating point number.
-        bfloatne -- a native-endian bfloat format 16-bit floating point number.
         ibe -- a signed big-endian whole byte integer.
         ile -- a signed little-endian whole byte integer.
-        ine -- a signed native-endian whole byte integer.
         ube -- an unsigned big-endian whole byte integer.
         ule -- an unsigned little-endian whole byte integer.
-        une -- an unsigned native-endian whole byte integer.
         filename -- the path of a file which will be opened in binary read-only mode.
 
         Other keyword arguments:

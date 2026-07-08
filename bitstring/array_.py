@@ -25,6 +25,14 @@ options = Options()
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
+def _array_typecode_to_dtype(typecode: str) -> Dtype | None:
+    endian = '<' if sys.byteorder == 'little' else '>'
+    name_value = utils.parse_single_struct_token(endian + typecode)
+    if name_value is None:
+        return None
+    return dtype_register.get_dtype(*name_value, scale=None)
+
+
 class Array:
     """Return an Array whose elements are initialised according to the fmt string.
     The dtype string can be typecode as used in the struct module or any fixed-length bitstring
@@ -313,11 +321,10 @@ class Array:
             # No need to iterate over the elements, we can just append the data
             self.data.append(iterable.data)
         elif isinstance(iterable, array.array):
-            # array.array types are always native-endian, hence the '='
-            name_value = utils.parse_single_struct_token('=' + iterable.typecode)
-            if name_value is None:
+            # array.array stores bytes in host order; compare against an explicit dtype.
+            other_dtype = _array_typecode_to_dtype(iterable.typecode)
+            if other_dtype is None:
                 raise ValueError(f"Cannot extend from array with typecode {iterable.typecode}.")
-            other_dtype = dtype_register.get_dtype(*name_value, scale=None)
             if self._dtype.name != other_dtype.name or self.itemsize != other_dtype.bitlength:
                 raise ValueError(
                     f"Cannot extend an Array with format '{self._dtype}' from an array with typecode '{iterable.typecode}'.")

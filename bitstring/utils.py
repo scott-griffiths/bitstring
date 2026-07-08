@@ -46,31 +46,24 @@ REPLACEMENTS_LE: dict[str, str] = {'b': 'i8', 'B': 'u8',
                                    'q': 'ile64', 'Q': 'ule64',
                                    'e': 'fle16', 'f': 'fle32', 'd': 'fle64'}
 
-# Native-endian
-REPLACEMENTS_NE: dict[str, str] = {'b': 'i8', 'B': 'u8',
-                                   'h': 'ine16', 'H': 'une16',
-                                   'l': 'ine32', 'L': 'une32',
-                                   'i': 'ine32', 'I': 'une32',
-                                   'q': 'ine64', 'Q': 'une64',
-                                   'e': 'fne16', 'f': 'fne32', 'd': 'fne64'}
-
 # Size in bytes of all the pack codes.
 PACK_CODE_SIZE: dict[str, int] = {'b': 1, 'B': 1, 'h': 2, 'H': 2, 'l': 4, 'L': 4, 'i': 4, 'I': 4,
                                   'q': 8, 'Q': 8, 'e': 2, 'f': 4, 'd': 8}
+
+NATIVE_ENDIAN_STRUCT_ERROR = "Native-endian struct formats '@' and '=' are not supported; use '<' for little-endian or '>' for big-endian."
 
 
 def structparser(m: Match[str]) -> list[str]:
     """Parse struct-like format string token into sub-token list."""
     endian = m.group('endian')
+    if endian in '@=':
+        raise ValueError(NATIVE_ENDIAN_STRUCT_ERROR)
     # Split the format string into a list of 'q', '4h' etc.
     formatlist = re.findall(STRUCT_SPLIT_RE, m.group('fmt'))
     # Now deal with multiplicative factors, 4h -> hhhh etc.
     fmt = ''.join([f[-1] * int(f[:-1]) if len(f) != 1 else
                    f for f in formatlist])
-    if endian in '@=':
-        # Native endianness
-        tokens = [REPLACEMENTS_NE[c] for c in fmt]
-    elif endian == '<':
+    if endian == '<':
         tokens = [REPLACEMENTS_LE[c] for c in fmt]
     else:
         assert endian == '>'
@@ -104,13 +97,13 @@ def parse_single_struct_token(fmt: str) -> tuple[str, int | None] | None:
     if m := SINGLE_STRUCT_PACK_RE.match(fmt):
         endian = m.group('endian')
         f = m.group('fmt')
+        if endian in '=@':
+            raise ValueError(NATIVE_ENDIAN_STRUCT_ERROR)
         if endian == '>':
             fmt = REPLACEMENTS_BE[f]
-        elif endian == '<':
-            fmt = REPLACEMENTS_LE[f]
         else:
-            assert endian in '=@'
-            fmt = REPLACEMENTS_NE[f]
+            assert endian == '<'
+            fmt = REPLACEMENTS_LE[f]
         return parse_name_length_token(fmt)
     else:
         return None

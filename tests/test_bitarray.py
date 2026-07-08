@@ -665,7 +665,7 @@ class TestBFloats:
         c = BitArray()
         with pytest.raises(bitstring.InterpretError):
             _ = c.bfloatle
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(AttributeError):
             _ = c.bfloatne
 
     def test_more_creation(self):
@@ -720,11 +720,10 @@ class TestBFloats:
         assert a.bfloatle == 4.5
         assert b.bfloatle == -2.25
 
-    def test_native_endian_string_initialisers(self):
-        a = BitArray('bfloatne=4.5')
-        b = BitArray('bfloatne:16=-2.25')
-        assert a.bfloatne == 4.5
-        assert b.bfloatne == -2.25
+    def test_native_endian_string_initialisers_removed(self):
+        for token in ['bfloatne=4.5', 'bfloatne:16=-2.25']:
+            with pytest.raises(bitstring.CreationError):
+                _ = BitArray(token)
 
 
 

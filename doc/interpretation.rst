@@ -79,7 +79,7 @@ To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned int
     >>> b.u
     7
 
-For byte-wise big-endian, little-endian and native-endian interpretations use :attr:`~Bits.ube`, :attr:`~Bits.ule` and :attr:`~Bits.une` respectively. These will raise a :exc:`ValueError` if the bitstring is not a whole number of bytes long. ::
+For byte-wise big-endian and little-endian interpretations use :attr:`~Bits.ube` and :attr:`~Bits.ule` respectively. These will raise a :exc:`ValueError` if the bitstring is not a whole number of bytes long. ::
 
     >>> s = BitArray('0x000001')
     >>> s.u     # bit-wise big-endian
@@ -87,8 +87,6 @@ For byte-wise big-endian, little-endian and native-endian interpretations use :a
     >>> s.ube   # byte-wise big-endian
     1
     >>> s.ule   # byte-wise little-endian
-    65536
-    >>> s.une   # byte-wise native-endian (will be 1 on a big-endian platform!)
     65536
 
 
@@ -99,7 +97,7 @@ For a two's complement interpretation as a base-2 signed integer use the :attr:`
     >>> b.i
     -1
 
-For byte-wise big, little and native endian signed integer interpretations use :attr:`~Bits.ibe`, :attr:`~Bits.ile` and :attr:`~Bits.ine` respectively. These work in the same manner as their unsigned counterparts described above.
+For byte-wise big and little-endian signed integer interpretations use :attr:`~Bits.ibe` and :attr:`~Bits.ile` respectively. These work in the same manner as their unsigned counterparts described above.
 
 bytes
 -----
@@ -125,7 +123,7 @@ Floating point types
 
 For a floating point interpretation use the :attr:`~Bits.f` property. This uses the IEEE 754 floating point representation and will only work if the bitstring is 16, 32 or 64 bits long.
 
-Different endiannesses are provided via :attr:`~Bits.fle` and :attr:`~Bits.fne`.
+Little-endian floating point interpretation is provided via :attr:`~Bits.fle`.
 Note that as floating point interpretations are only valid on whole-byte bitstrings there is no difference between the bit-wise big-endian :attr:`~Bits.f` and the byte-wise big-endian :attr:`~Bits.fbe`.
 
 Note also that standard floating point numbers in Python are stored in 64 bits, so use this size if you wish to avoid rounding errors.

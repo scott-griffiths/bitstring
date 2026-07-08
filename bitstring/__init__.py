@@ -58,7 +58,6 @@ __version__ = "5.0.0_beta1"
 
 __author__ = "Scott Griffiths"
 
-import sys
 import bitstring.bitstore_tibs as bitstore  # noqa: F401 - used as bitstring.bitstore by submodules.
 
 from .bits import Bits
@@ -177,18 +176,6 @@ def bool_bits2chars(_: Literal[1]):
     # Bools are printed as 1 or 0, not True or False, so are one character each
     return 1
 
-byteorder: str = sys.byteorder
-
-native_setuint = Bits._setuintle if byteorder == 'little' else Bits._setuintbe
-native_getuint = Bits._getuintle if byteorder == 'little' else Bits._getuintbe
-native_readuint = Bits._readuintle if byteorder == 'little' else Bits._readuintbe
-native_setint = Bits._setintle if byteorder == 'little' else Bits._setintbe
-native_getint = Bits._getintle if byteorder == 'little' else Bits._getintbe
-native_readint = Bits._readintle if byteorder == 'little' else Bits._readintbe
-native_setfloat = Bits._setfloatle if byteorder == 'little' else Bits._setfloatbe
-native_getfloat = Bits._getfloatle if byteorder == 'little' else Bits._getfloatbe
-native_readfloat = Bits._readfloatle if byteorder == 'little' else Bits._readfloatbe
-
 dtype_definitions = [
     # Integer types
     DtypeDefinition('u', Bits._setuint, Bits._getuint, int, False, uint_bits2chars,
@@ -200,9 +187,6 @@ dtype_definitions = [
     DtypeDefinition('ube', Bits._setuintbe, Bits._getuintbe, int, False, uint_bits2chars,
                     read_fn=Bits._readuintbe,
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement big-endian unsigned int"),
-    DtypeDefinition('une', native_setuint, native_getuint, int, False, uint_bits2chars,
-                    read_fn=native_readuint,
-                    allowed_lengths=(8, 16, 24, ...), description="a two's complement native-endian unsigned int"),
     DtypeDefinition('i', Bits._setint, Bits._getint, int, True, int_bits2chars,
                     read_fn=Bits._readint,
                     description="a two's complement signed int"),
@@ -212,9 +196,6 @@ dtype_definitions = [
     DtypeDefinition('ibe', Bits._setintbe, Bits._getintbe, int, True, int_bits2chars,
                     read_fn=Bits._readintbe,
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement big-endian signed int"),
-    DtypeDefinition('ine', native_setint, native_getint, int, True, int_bits2chars,
-                    read_fn=native_readint,
-                    allowed_lengths=(8, 16, 24, ...), description="a two's complement native-endian signed int"),
     # String types
     DtypeDefinition('hex', Bits._sethex, Bits._gethex, str, False, hex_bits2chars,
                     read_fn=Bits._readhex,
@@ -232,9 +213,6 @@ dtype_definitions = [
     DtypeDefinition('fle', Bits._setfloatle, Bits._getfloatle, float, True, float_bits2chars,
                     read_fn=Bits._readfloatle,
                     allowed_lengths=(16, 32, 64), description="a little-endian floating point number"),
-    DtypeDefinition('fne', native_setfloat, native_getfloat, float, True, float_bits2chars,
-                    read_fn=native_readfloat,
-                    allowed_lengths=(16, 32, 64), description="a native-endian floating point number"),
     DtypeDefinition('bfloat', Bits._setbfloatbe, Bits._getbfloatbe, float, True, bfloat_bits2chars,
                     read_fn=Bits._readbfloatbe,
                     allowed_lengths=(16,), description="a 16 bit big-endian bfloat floating point number"),
@@ -315,23 +293,10 @@ aliases: list[tuple[str, str]] = [
     # Longer compatibility aliases for endian-specific type names
     ('ube', 'uintbe'),
     ('ule', 'uintle'),
-    ('une', 'uintne'),
     ('ibe', 'intbe'),
     ('ile', 'intle'),
-    ('ine', 'intne'),
     ('fle', 'floatle'),
-    ('fne', 'floatne'),
 ]
-
-# Create native-endian aliases depending on the byteorder of the system
-if byteorder == 'little':
-    aliases.extend([
-        ('bfloatle', 'bfloatne'),
-    ])
-else:
-    aliases.extend([
-        ('bfloatbe', 'bfloatne'),
-    ])
 
 
 for dt in dtype_definitions:
