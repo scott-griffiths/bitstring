@@ -18,6 +18,18 @@ BitArray
 Methods
 -------
 
+.. classmethod:: BitArray.from_string(s: str, /) -> BitArray
+
+    Creates a new mutable bitstring from a formatted string.
+
+.. classmethod:: BitArray.from_zeros(length: int, /) -> BitArray
+
+    Creates a new mutable bitstring containing *length* zero bits.
+
+.. classmethod:: BitArray.from_file(source: str | Path | BinaryIO, /, *, length: int | None = None, offset: int = 0) -> BitArray
+
+    Creates a new mutable bitstring from a file path or binary file object.
+
 .. method:: BitArray.to_bits() -> Bits
 
     Returns an immutable copy of the bitstring.

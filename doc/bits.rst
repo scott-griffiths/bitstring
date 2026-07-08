@@ -485,9 +485,6 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
         >>> s = Bits('0b111101101')
         >>> s.oct
         '755'
-        >>> s.oct = '01234567'
-        >>> s.oct
-        '01234567'
 
 
 .. attribute:: Bits.u
@@ -515,6 +512,26 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
     :type: int
 
     Property for the byte-wise native-endian unsigned base-2 integer representation of the bitstring.
+
+.. attribute:: Bits.ue
+    :type: int
+
+    Property for the unsigned exponential-Golomb code interpretation of the bitstring.
+
+.. attribute:: Bits.se
+    :type: int
+
+    Property for the signed exponential-Golomb code interpretation of the bitstring.
+
+.. attribute:: Bits.uie
+    :type: int
+
+    Property for the unsigned interleaved exponential-Golomb code interpretation of the bitstring.
+
+.. attribute:: Bits.sie
+    :type: int
+
+    Property for the signed interleaved exponential-Golomb code interpretation of the bitstring.
 
 ----
 

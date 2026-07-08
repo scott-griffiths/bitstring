@@ -35,7 +35,7 @@ The advantage of this method of representing integers over many other methods is
 ue
 ^^
 
-The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits in the stream and interpret them as a code use the read function or unpack with a ``ue`` format string.  ::
+The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits with :class:`Reader` and interpret them as a code use :meth:`Reader.read` or unpack with a ``ue`` format string.  ::
 
     >>> s = BitArray(ue=12)
     >>> s.bin

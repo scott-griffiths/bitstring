@@ -461,7 +461,7 @@ To make a literal quantity (one that directly represents a sequence of bits) you
 For example::
 
     s = BitArray('f32=10.125, i7=-9')
-    s.append('hex:abc')
+    s.append('hex=abc')
 
 You can also create binary, octal and hexadecimal literals by starting a string with ``'0b'``, ``'0o'`` and ``'0x'`` respectively::
 

@@ -65,7 +65,7 @@ A sleek Python library for binary data
 * Powerful binary packing and unpacking functions.
 * Bit-level slicing, joining, searching, replacing and more.
 * Create and manipulate arrays of fixed-length bitstrings.
-* Read from and interpret bitstrings as streams of binary data.
+* Use `Reader` to read from and interpret bitstrings sequentially.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Open source software, released under the MIT licence.
 

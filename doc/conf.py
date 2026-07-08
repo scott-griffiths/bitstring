@@ -24,6 +24,13 @@ root_doc = "index"
 add_function_parentheses = False
 add_module_names = False
 
+nitpick_ignore = [
+    ("py:class", "Path"),
+    ("py:class", "array.array"),
+    ("py:class", "tibs.Tibs"),
+    ("py:class", "tibs.Mutibs"),
+]
+
 html_show_sphinx = False
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]

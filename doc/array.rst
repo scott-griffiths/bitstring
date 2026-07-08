@@ -59,7 +59,7 @@ You can then access and modify the ``Array`` with the usual notation::
     a[0] = 2
     b.extend([0.0, -1.5])
 
-Conversion between ``Array`` types can be done using the :meth:`astype` method.
+Conversion between ``Array`` types can be done using the :meth:`Array.astype` method.
 If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
 
     >>> x = Array('f64', [89.3, 1e34, -0.00000001, 34])
@@ -74,7 +74,7 @@ If elements of the old array don't fit or don't make sense in the new array then
     >>> y.astype('u7')
     bitstring.CreationError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
 
-You can also reinterpret the data by changing the :attr:`dtype` property directly.
+You can also reinterpret the data by changing the :attr:`Array.dtype` property directly.
 This will not copy any data but will cause the current data to be shown differently. ::
 
     >>> x = Array('i16', [-5, 100, -4])
@@ -86,16 +86,16 @@ This will not copy any data but will cause the current data to be shown differen
 
 
 The data for the array is stored internally as a :class:`BitArray` object.
-It can be directly accessed using the :attr:`data` property.
+It can be directly accessed using the :attr:`Array.data` property.
 You can freely manipulate the internal data using all of the methods available for the :class:`BitArray` class.
 
-The :class:`Array` object also has a :attr:`trailing_bits` read-only data member, which consists of the end bits of the :attr:`data` that are left over when the :class:`Array` is interpreted using the :attr:`dtype`.
-Typically :attr:`trailing_bits` will be an empty :class:`BitArray` but if you change the length of the :attr:`data` or change the :attr:`dtype` specification there may be some bits left over.
+The :class:`Array` object also has a :attr:`Array.trailing_bits` read-only data member, which consists of the end bits of the :attr:`Array.data` that are left over when the :class:`Array` is interpreted using the :attr:`Array.dtype`.
+Typically :attr:`Array.trailing_bits` will be an empty :class:`BitArray` but if you change the length of the :attr:`Array.data` or change the :attr:`Array.dtype` specification there may be some bits left over.
 
-Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`trailing_bits` is not empty, as it not clear how these should behave in this case.
-You can however still use :meth:`~Array.insert` which will always leave the :attr:`trailing_bits` unchanged.
+Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`Array.trailing_bits` is not empty, as it not clear how these should behave in this case.
+You can however still use :meth:`~Array.insert` which will always leave the :attr:`Array.trailing_bits` unchanged.
 
-The :attr:`dtype` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'i12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
+The :attr:`Array.dtype` string can be a type code such as ``'>H'`` or ``'=d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'i12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
 Note that the typecodes must include an endianness character to give the byte ordering.
 This is more like the ``struct`` module typecodes, and is different to the ``array.array`` typecodes which are always native-endian.
@@ -478,6 +478,38 @@ Numerical operators
 
     ``abs(a)``
 
+.. method:: Array.__iadd__(self, other: int | float | Array) -> Array
+
+    ``a += x``
+
+.. method:: Array.__isub__(self, other: int | float | Array) -> Array
+
+    ``a -= x``
+
+.. method:: Array.__imul__(self, other: int | float | Array) -> Array
+
+    ``a *= x``
+
+.. method:: Array.__itruediv__(self, other: int | float | Array) -> Array
+
+    ``a /= x``
+
+.. method:: Array.__ifloordiv__(self, other: int | float | Array) -> Array
+
+    ``a //= x``
+
+.. method:: Array.__imod__(self, other: int | Array) -> Array
+
+    ``a %= i``
+
+.. method:: Array.__irshift__(self, other: int | Array) -> Array
+
+    ``a >>= i``
+
+.. method:: Array.__ilshift__(self, other: int | Array) -> Array
+
+    ``a <<= i``
+
 
 Bitwise operators
 """""""""""""""""
@@ -499,6 +531,18 @@ Bitwise operators
     ``a ^ bs``
 
         >>> a ^= bytearray([56, 23])
+
+.. method:: Array.__iand__(self, other: BitsType) -> Array
+
+    ``a &= bs``
+
+.. method:: Array.__ior__(self, other: BitsType) -> Array
+
+    ``a |= bs``
+
+.. method:: Array.__ixor__(self, other: BitsType) -> Array
+
+    ``a ^= bs``
 
 
 Python language operators

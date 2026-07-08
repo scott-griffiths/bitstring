@@ -16,9 +16,9 @@ Reader
 Reading and peeking
 -------------------
 
-The :meth:`read` and :meth:`read_list` methods interpret bits starting at
-:attr:`pos` and advance the position. The matching :meth:`peek` and
-:meth:`peek_list` methods return the same values without changing the position.
+The :meth:`Reader.read` and :meth:`Reader.read_list` methods interpret bits starting at
+:attr:`Reader.pos` and advance the position. The matching :meth:`Reader.peek` and
+:meth:`Reader.peek_list` methods return the same values without changing the position.
 
 For example::
 
@@ -31,10 +31,10 @@ For example::
     >>> r.read_list('u12, bin3')
     [288, '111']
 
-If a read fails then :attr:`pos` is restored to its value before the read.
+If a read fails then :attr:`Reader.pos` is restored to its value before the read.
 
-The position is deliberately lax: assigning to :attr:`pos`, :attr:`bitpos` or
-:attr:`bytepos` stores the integer value without checking it against the wrapped
+The position is deliberately lax: assigning to :attr:`Reader.pos`, :attr:`Reader.bitpos` or
+:attr:`Reader.bytepos` stores the integer value without checking it against the wrapped
 bitstring length. Reading methods will raise an error if the position is not
 usable when they need it.
 
@@ -43,7 +43,7 @@ Methods
 
 .. method:: Reader.read(fmt: str | int | Dtype) -> int | float | str | Bits | bool | bytes | None
 
-    Reads from :attr:`pos` according to *fmt* and advances the position.
+    Reads from :attr:`Reader.pos` according to *fmt* and advances the position.
 
     If *fmt* is an integer then that many bits are returned as a bitstring. If it
     is a string or :class:`Dtype` then the corresponding dtype is read.
@@ -54,11 +54,11 @@ Methods
 
 .. method:: Reader.peek(fmt: str | int | Dtype) -> int | float | str | Bits | bool | bytes | None
 
-    Like :meth:`read`, but leaves :attr:`pos` unchanged.
+    Like :meth:`Reader.read`, but leaves :attr:`Reader.pos` unchanged.
 
 .. method:: Reader.peek_list(fmt: str | list[str | int | Dtype], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
 
-    Like :meth:`read_list`, but leaves :attr:`pos` unchanged.
+    Like :meth:`Reader.read_list`, but leaves :attr:`Reader.pos` unchanged.
 
 .. method:: Reader.read_to(bs: BitsType, *, bytealigned: bool | None = None) -> Bits
 
@@ -66,18 +66,22 @@ Methods
 
 .. method:: Reader.byte_align() -> int
 
-    Aligns :attr:`pos` to the next byte boundary and returns the number of bits
+    Aligns :attr:`Reader.pos` to the next byte boundary and returns the number of bits
     skipped.
 
 .. method:: Reader.find(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
 
-    Searches the wrapped bitstring and sets :attr:`pos` to the match position if
+    Searches the wrapped bitstring and sets :attr:`Reader.pos` to the match position if
     *bs* is found. Returns the match position, or ``None`` if not found.
 
 .. method:: Reader.rfind(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
 
-    Searches backwards and sets :attr:`pos` to the match position if *bs* is
+    Searches backwards and sets :attr:`Reader.pos` to the match position if *bs* is
     found. Returns the match position, or ``None`` if not found.
+
+.. method:: Reader.__len__() -> int
+
+    ``len(r)`` returns the length in bits of the wrapped bitstring.
 
 Properties
 ----------
@@ -97,5 +101,5 @@ Properties
 .. attribute:: Reader.bytepos
     :type: int
 
-    The current byte position. Reading this property requires :attr:`pos` to be
+    The current byte position. Reading this property requires :attr:`Reader.pos` to be
     byte aligned and raises :exc:`ByteAlignError` otherwise.

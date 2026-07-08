@@ -92,11 +92,16 @@ Options
 -------
 The bitstring module has an ``options`` object that allows certain module-wide behaviours to be set.
 
+.. data:: options
+
+    Module-wide options object.
+
 
 bytealigned
 ^^^^^^^^^^^
 
-.. data:: bitstring.options.bytealigned : bool
+.. data:: options.bytealigned
+    :type: bool
 
 A number of methods take a bytealigned parameter to indicate that they should only work on byte boundaries (e.g. :meth:`~Bits.find`, :meth:`~Bits.findall`, :meth:`~Bits.split` and :meth:`~BitArray.replace`). This parameter defaults to ``bitstring.options.bytealigned``, which itself defaults to ``False``, but can be changed to modify the default behaviour of the methods. For example::
 
@@ -116,7 +121,8 @@ If you’re only working with bytes then this can help avoid some errors and sav
 no_color
 ^^^^^^^^
 
-.. data:: bitstring.options.no_color : bool
+.. data:: options.no_color
+    :type: bool
 
 The bitstring module can use ANSI escape codes to colourise the output of the :meth:`Bits.pp` and :meth:`Array.pp` methods.
 If a ``NO_COLOR`` environment variable is found and is not an empty string then this option will be set to ``True``, otherwise it defaults to ``False``.

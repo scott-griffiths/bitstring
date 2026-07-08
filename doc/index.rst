@@ -42,7 +42,7 @@ Overview
 * Create bitstrings from hex, octal, binary, files, formatted strings, bytes, integers and floats of different endiannesses.
 * Powerful binary packing and unpacking functions.
 * Bit level slicing, joining, searching, replacing and more.
-* Read from and interpret bitstrings as streams of binary data.
+* Use :class:`Reader` to read from and interpret bitstrings sequentially.
 * Create efficiently stored arrays of any fixed-length format.
 * Rich API - chances are that whatever you want to do there's a simple and elegant way of doing it.
 * Open source software, released under the MIT licence.
@@ -117,7 +117,7 @@ Arrays of bitstrings
 
 If you are dealing with just one type of data but perhaps it's not one of the dozen or so supported in the ``array`` module in the standard library, then we have you covered with the :class:`Array` class.
 
-A ``bitstring.Array`` works in a similar way to a ``array.array``, except that you can efficiently pack in any fixed-length binary format.
+A ``bitstring.Array`` works in a similar way to an ``array.array``, except that you can efficiently pack in any fixed-length binary format.
 
 Want an array of 5 bit unsigned integers, or of 8 or 16 bit floating point numbers? No problem.
 You can also easily change the data's interpretation, convert to another format, and freely modify the underlying data which is stored as a :class:`BitArray` object.
@@ -146,7 +146,13 @@ Installation and download
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-To install just ``pip install bitstring``.
+To install the current stable 4.x release from PyPI, use::
+
+    pip install bitstring
+
+To try the upcoming 5.0 work from the ``main`` branch before it is released, install directly from GitHub::
+
+    pip install "bitstring @ git+https://github.com/scott-griffiths/bitstring.git@main"
 
 To download the module, as well as for defect reports, enhancement requests and Git repository browsing go to `the project's home on GitHub. <https://github.com/scott-griffiths/bitstring/>`_
 
