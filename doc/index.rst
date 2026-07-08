@@ -9,12 +9,6 @@
 
 It has been maintained since 2006.
 
-.. important::
-
-   These docs describe the upcoming bitstring 5.0 work.
-   The current released PyPI line is still bitstring 4.x. - see the 'stable' version
-   of these docs.
-
 
 .. image:: https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg
    :target: https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml
@@ -33,6 +27,13 @@ It has been maintained since 2006.
 
 
 ------
+
+.. important::
+
+   These docs describe the upcoming bitstring 5.0 work.
+   The current released PyPI line is still bitstring 4.x. - see the 'stable' version
+   of these docs.
+
 
 Overview
 ========
