@@ -17,7 +17,7 @@ from bitstring import utils
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring.fp8 import p4binary_fmt, p3binary_fmt
 from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt
-from bitstring.bitstring_options import Colour
+from bitstring.colour import Colour, should_use_color
 
 import bitstring.bitstore_helpers as helpers
 
@@ -1585,9 +1585,8 @@ class Bits:
         return 24 // dtype_register[fmt].bitlength2chars_fn(24)
 
     def _pp(self, dtype1: Dtype, dtype2: Dtype | None, bits_per_group: int, width: int, sep: str, format_sep: str,
-            show_offset: bool, stream: TextIO, offset_factor: int) -> None:
+            show_offset: bool, stream: TextIO, offset_factor: int, colour: Colour) -> None:
         """Internal pretty print method."""
-        colour = Colour(not bitstring.options.no_color)
         name1 = dtype1.name
         name2 = dtype2.name if dtype2 is not None else None
         if dtype1.variable_length:
@@ -1682,7 +1681,7 @@ class Bits:
         return dtype1, dtype2, bits_per_group, has_length_in_fmt
 
     def pp(self, fmt: str | None = None, width: int = 120, sep: str = ' ',
-           show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
+           show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None:
         """Pretty print the bitstring's value.
 
         fmt -- Printed data format. One or two of 'bin', 'oct', 'hex' or 'bytes'.
@@ -1694,12 +1693,13 @@ class Bits:
         sep -- A separator string to insert between groups. Defaults to a single space.
         show_offset -- If True (the default) shows the bit offset in the first column of each line.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
+        color -- If True use ANSI colours, if False disable them. Defaults to honouring NO_COLOR.
 
         >>> s.pp('hex16')
         >>> s.pp('bin, hex', sep='_', show_offset=False)
 
         """
-        colour = Colour(not bitstring.options.no_color)
+        colour = Colour(should_use_color(color))
         if fmt is None:
             fmt = 'bin, hex' if len(self) % 8 == 0 and len(self) >= 8 else 'bin'
         token_list = utils.preprocess_tokens(fmt)
@@ -1714,7 +1714,7 @@ class Bits:
         len_str = colour.green + str(len(self)) + colour.off
         output_stream.write(f"<{self.__class__.__name__}, fmt='{tidy_fmt}', length={len_str} bits> [\n")
         data._pp(dtype1, dtype2, bits_per_group, width, sep, format_sep, show_offset,
-                 output_stream, 1)
+                 output_stream, 1, colour)
         output_stream.write("]")
         if trailing_bit_length != 0:
             output_stream.write(" + trailing_bits = " + str(self[-trailing_bit_length:]))

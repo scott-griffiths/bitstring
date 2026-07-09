@@ -10,7 +10,7 @@ from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, dtype_register
 from bitstring import utils
-from bitstring.bitstring_options import Options, Colour
+from bitstring.colour import Colour, should_use_color
 import copy
 import array
 import operator
@@ -21,7 +21,6 @@ import bitstring
 # The possible types stored in each element of the Array
 ElementType = float | str | int | bytes | bool | Bits
 
-options = Options()
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
@@ -447,7 +446,7 @@ class Array:
             self.data[start_swap_bit: start_swap_bit + itemsize] = temp
 
     def pp(self, fmt: str | None = None, width: int = 120,
-           show_offset: bool = True, stream: TextIO = sys.stdout) -> None:
+           show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None:
         """Pretty-print the Array contents.
 
         fmt -- Data format string. Defaults to current Array dtype.
@@ -455,9 +454,10 @@ class Array:
                  be printed per line even if it exceeds the max width.
         show_offset -- If True shows the element offset in the first column of each line.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
+        color -- If True use ANSI colours, if False disable them. Defaults to honouring NO_COLOR.
 
         """
-        colour = Colour(not options.no_color)
+        colour = Colour(should_use_color(color))
         sep = ' '
         dtype2 = None
         tidy_fmt = None
@@ -496,7 +496,7 @@ class Array:
         length = len(self.data) // token_length
         len_str = colour.green + str(length) + colour.off
         stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self.data) + 7) // 8} bytes> [\n")
-        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, token_length)
+        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, token_length, colour)
         stream.write("]")
         if trailing_bit_length != 0:
             stream.write(" + trailing_bits = " + str(self.data[-trailing_bit_length:]))

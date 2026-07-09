@@ -688,6 +688,22 @@ class TestPrettyPrinting:
 """
         )
 
+    def test_color_option(self, monkeypatch):
+        a = Bits("0xff")
+
+        monkeypatch.setenv("NO_COLOR", "1")
+        s = io.StringIO()
+        a.pp(stream=s)
+        assert "\x1b[" not in s.getvalue()
+
+        s = io.StringIO()
+        a.pp(stream=s, color=True)
+        assert "\x1b[" in s.getvalue()
+
+        s = io.StringIO()
+        a.pp(stream=s, color=False)
+        assert "\x1b[" not in s.getvalue()
+
     def test_small_width(self):
         a = Bits.from_zeros(20)
         s = io.StringIO()

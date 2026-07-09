@@ -517,10 +517,3 @@ Exceptions
 * :class:`~bitstring.InterpretError` -- Inappropriate interpretation of binary data.
 * :class:`~bitstring.ByteAlignError` -- Whole-byte position or length needed.
 * :class:`~bitstring.CreationError` -- Inappropriate argument during bitstring creation.
-
-Options
-^^^^^^^
-
-The ``bitstring.options`` object contains module level options that can be changed to affect the behaviour of the module.
-
-* :data:`~bitstring.options.no_color` -- If True, don't use ANSI color codes in the pretty print methods. Defaults to False unless the NO_COLOR environment variable is set.

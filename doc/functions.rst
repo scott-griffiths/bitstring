@@ -86,29 +86,6 @@ Finally it is also possible just to use a keyword as a token::
 
     s = bitstring.pack('hello, world', world='0x123', hello='0b110')
 
-----
-
-Options
--------
-The bitstring module has an ``options`` object that allows module-wide behaviours to be set.
-
-.. data:: options
-
-    Module-wide options object.
-
-
-no_color
-^^^^^^^^
-
-.. data:: options.no_color
-    :type: bool
-
-The bitstring module can use ANSI escape codes to colourise the output of the :meth:`Bits.pp` and :meth:`Array.pp` methods.
-If a ``NO_COLOR`` environment variable is found and is not an empty string then this option will be set to ``True``, otherwise it defaults to ``False``.
-See https://no-color.org for more information.
-
-The terminal colours can also be turned off by setting ``bitstring.options.no_color`` to ``True``.
-
 Exceptions
 ----------
 

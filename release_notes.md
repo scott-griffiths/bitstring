@@ -63,8 +63,11 @@ Breaking changes:
 * Removed the `bitstring.options.bytealigned` global setting. Pass
   `bytealigned=True` to each search, split, replace or read operation that
   should be restricted to byte boundaries.
+* Removed the `bitstring.options` object. Pretty-print colouring is controlled
+  by the `NO_COLOR` environment variable by default, or per call with
+  `Bits.pp(color=...)` and `Array.pp(color=...)`.
 * Removed the `python -m bitstring` command-line interface.
-* Removed the deprecated module-level way of setting options.
+* Removed the deprecated module-level option aliases.
 
 Other changes and fixes:
 
@@ -108,11 +111,9 @@ Other changes and fixes:
   compare as distinct.
 * Fixed parsing of repeated token groups so `0*(...)` is allowed and negative repeat
   factors are rejected.
-* Fixed repeated construction of `Options()` so it no longer resets existing option
-  values.
 * Fixed bitstore equality comparisons against unrelated object types.
 * Added more regression tests around the tibs-backed bitstore, `Array` operations,
-  dtype scaling, token parsing and option handling.
+  dtype scaling, token parsing and pretty-print colour handling.
 
 ### March 2026: version 4.4.0
 

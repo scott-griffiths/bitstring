@@ -220,7 +220,7 @@ Methods
         010101010
 
 
-.. method:: Bits.pp(fmt: str | None = None, width: int = 120, sep: str = ' ', show_offset: bool = True, stream: TextIO = sys.stdout) -> None
+.. method:: Bits.pp(fmt: str | None = None, width: int = 120, sep: str = ' ', show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None
 
     Pretty print the bitstring's value according to the *fmt*. Either a single, or two comma separated formats can be specified, together with options for setting the maximum display *width*, the number of bits to display in each group, and the separator to print between groups.
 
@@ -256,7 +256,7 @@ Methods
 
     An output *stream* can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
 
-    By default the output will have colours added in the terminal. This can be disabled - see :data:`bitstring.options.no_color` for more information.
+    By default the output will have colours added in the terminal unless the ``NO_COLOR`` environment variable is set. Pass ``color=False`` to disable colours for a call, or ``color=True`` to force them on.
 
 
 .. method:: Bits.rfind(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool = False) -> int | None

@@ -261,7 +261,7 @@ Methods
         b'DEF'
 
 
-.. method:: Array.pp(fmt: str | None = None, width: int = 120, show_offset: bool = True, stream: TextIO = sys.stdout) -> None
+.. method:: Array.pp(fmt: str | None = None, width: int = 120, show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None
 
     Pretty print the Array.
 
@@ -310,7 +310,7 @@ Methods
          1445 -1188  1493  -417  1542   354 : 5a5 b5c 5d5 e5f 606 162
         ] + trailing_bits = 0x63
 
-    By default the output will have colours added in the terminal. This can be disabled - see :data:`bitstring.options.no_color` for more information.
+    By default the output will have colours added in the terminal unless the ``NO_COLOR`` environment variable is set. Pass ``color=False`` to disable colours for a call, or ``color=True`` to force them on.
 
 
 .. method:: Array.reverse() -> None

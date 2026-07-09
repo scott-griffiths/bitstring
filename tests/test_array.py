@@ -555,6 +555,22 @@ class TestArrayMethods:
  0: c040 3f80 4000
 ] + trailing_bits = 0b110\n"""
 
+    def test_pp_color_option(self, monkeypatch):
+        a = Array('uint8', [1, 2])
+
+        monkeypatch.setenv("NO_COLOR", "1")
+        s = io.StringIO()
+        a.pp(stream=s)
+        assert "\x1b[" not in s.getvalue()
+
+        s = io.StringIO()
+        a.pp(stream=s, color=True)
+        assert "\x1b[" in s.getvalue()
+
+        s = io.StringIO()
+        a.pp(stream=s, color=False)
+        assert "\x1b[" not in s.getvalue()
+
     def test_pp_uint(self):
         a = Array('uint32', [12, 100, 99])
         s = io.StringIO()

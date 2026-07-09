@@ -405,6 +405,20 @@ needs byte-aligned matching::
     # bitstring 5
     pos = bits.find("0xff", bytealigned=True)
 
+Use pp color arguments
+======================
+
+The ``bitstring.options`` object has been removed. Pretty-print colour is
+controlled by the ``NO_COLOR`` environment variable by default, or by passing
+``color`` to the individual :meth:`Bits.pp` or :meth:`Array.pp` call::
+
+    # bitstring 4
+    bitstring.options.no_color = True
+    bits.pp()
+
+    # bitstring 5
+    bits.pp(color=False)
+
 Prefer the new underscored method names
 =======================================
 
@@ -461,6 +475,7 @@ For a large codebase, the least surprising order is:
 10. Add keywords to optional range and search arguments.
 11. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
 12. Replace any ``options.mxfp_overflow`` changes with explicit MXFP dtype
-    names.
+    names, and any ``options.no_color`` changes with per-call ``pp(color=...)``
+    arguments.
 13. Optionally update compatibility aliases such as ``tobytes`` and
     ``readlist`` to their preferred underscored names.

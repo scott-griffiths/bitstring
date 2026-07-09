@@ -15,10 +15,6 @@ Functions:
 
 pack -- Create a Bits object from a format string.
 
-Data:
-
-options -- Module-wide options.
-
 Exceptions:
 
 Error -- Module exception base class.
@@ -61,7 +57,6 @@ __author__ = "Scott Griffiths"
 import bitstring.bitstore_tibs as bitstore  # noqa: F401 - used as bitstring.bitstore by submodules.
 
 from .bits import Bits
-from .bitstring_options import Options
 from .bitarray_ import BitArray
 from .reader import Reader
 from .methods import pack
@@ -75,10 +70,6 @@ from .fp8 import decompress_luts as binary8_decompress_luts
 # Decompress the LUTs for the exotic floating point formats
 mxfp_decompress_luts()
 binary8_decompress_luts()
-
-# The Options class returns a singleton.
-options = Options()
-
 
 # These methods convert a bit length to the number of characters needed to print it for different interpretations.
 def hex_bits2chars(bitlength: int):
@@ -314,4 +305,4 @@ if BitArray.__doc__ is not None:
     BitArray.__doc__ = BitArray.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', property_docstring)
 __all__ = ['Reader', 'BitArray', 'Array',
            'Bits', 'pack', 'Error', 'ReadError', 'InterpretError',
-           'ByteAlignError', 'CreationError', 'Dtype', 'options']
+           'ByteAlignError', 'CreationError', 'Dtype']

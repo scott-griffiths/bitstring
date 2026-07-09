@@ -113,26 +113,8 @@ def test_pack_negative_repeat_factor_rejected() -> None:
         _ = bitstring.pack("-2*uint:8")
 
 
-def test_options_constructor_does_not_reset_singleton_state() -> None:
-    from bitstring.bitstring_options import Options
-
-    old_no_color = bitstring.options.no_color
-    try:
-        bitstring.options.no_color = not old_no_color
-        Options()
-        assert bitstring.options.no_color is not old_no_color
-    finally:
-        bitstring.options.no_color = old_no_color
-
-
-def test_bytealigned_option_removed() -> None:
-    assert not hasattr(bitstring.options, "bytealigned")
-    with pytest.raises(AttributeError):
-        bitstring.options.bytealigned = True
-
-
-def test_mxfp_overflow_option_removed() -> None:
-    assert not hasattr(bitstring.options, "mxfp_overflow")
+def test_options_object_removed() -> None:
+    assert not hasattr(bitstring, "options")
 
 
 def test_array_insert_very_negative_index_clamps_to_start() -> None:
