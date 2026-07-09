@@ -75,8 +75,8 @@ def test_readto_disallows_integers():
 
 def test_reading_lines():
     s = b"This is a test\nof reading lines\nof text\n"
-    b = Reader(Bits(bytes=s))
-    n = Bits(bytes=b'\n')
+    b = Reader(Bits.from_bytes(s))
+    n = Bits.from_bytes(b'\n')
     assert b.readto(n).bytes == b'This is a test\n'
     assert b.readto(n).bytes == b'of reading lines\n'
     assert b.readto(n).bytes == b'of text\n'

@@ -79,7 +79,7 @@ class BitArray(Bits):
     __hash__: None = None
 
     def __init__(self, auto: BitsType | None = None, /, length: int | None = None,
-                 offset: int | None = None, **kwargs) -> None:
+                 **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, a bytes-like object or another bitstring.
 
@@ -87,7 +87,6 @@ class BitArray(Bits):
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
-        bytes -- raw data as a bytes object, for example read from a binary file.
         i -- a signed integer. int is a compatibility alias.
         u -- an unsigned integer. uint is a compatibility alias.
         f / float / fbe -- a big-endian floating point number.
@@ -107,21 +106,18 @@ class BitArray(Bits):
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
                   It must be supplied for all integer and float initialisers.
-        offset -- bit offset to the data. These offset bits are
-                  ignored and this is intended for use when
-                  initialising using 'bytes'.
 
         """
         pass
 
     def __new__(cls: type[TBits], auto: BitsType | None = None, /, length: int | None = None,
-                offset: int | None = None, **kwargs) -> TBits:
+                **kwargs) -> TBits:
         x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             x._bitstore = MutableBitStore.from_zeros(length if length is not None else 0)
             return x
-        x._initialise(auto, length, offset, immutable=False, **kwargs)
+        x._initialise(auto, length, immutable=False, **kwargs)
         return x
 
     @classmethod

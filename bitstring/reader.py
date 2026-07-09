@@ -25,7 +25,7 @@ class Reader:
         if isinstance(value, str):
             help_ = " Perhaps use Bits.from_string() or Bits(...)?"
         elif isinstance(value, (bytes, bytearray, memoryview)):
-            help_ = " Perhaps use Bits(bytes=...)?"
+            help_ = " Perhaps use Bits.from_bytes(...)?"
         raise TypeError(f"Reader should be initialised with a Bits or BitArray object, "
                         f"but received a {type(value).__name__}.{help_}")
 

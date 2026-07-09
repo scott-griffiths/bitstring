@@ -41,11 +41,10 @@ Constructing bitstrings
 When initialising a bitstring you need to specify at most one initialiser.
 This can either be the first parameter in the constructor ('auto' initialisation, described below), or using a keyword argument for a data type.
 
-``Bits(auto, /, length: int | None = None, offset: int | None = None, **kwargs)``
+``Bits(auto, /, length: int | None = None, **kwargs)``
 
 Some of the keyword arguments that can be used are:
 
-* ``bytes`` : A ``bytes`` object, for example read from a binary file.
 * ``hex``, ``oct``, ``bin``: Hexadecimal, octal or binary strings.
 * ``i``, ``u``: Signed or unsigned bit-wise big-endian binary integers. ``int`` and ``uint`` are compatibility aliases.
 * ``ile``, ``ule``: Signed or unsigned byte-wise little-endian binary integers.

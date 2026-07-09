@@ -75,9 +75,9 @@ class TestAll:
     @pytest.mark.parametrize("tibs_type", [Tibs, Mutibs])
     def test_constructor_rejects_tibs_types_with_length_or_offset(self, tibs_type):
         tibs = tibs_type.from_bin("101")
-        with pytest.raises(bitstring.CreationError, match="explicit lengths or offsets"):
+        with pytest.raises(bitstring.CreationError, match="explicit length"):
             BitArray(tibs, length=2)
-        with pytest.raises(bitstring.CreationError, match="explicit lengths or offsets"):
+        with pytest.raises(bitstring.CreationError, match="offset"):
             BitArray(tibs, offset=1)
 
     def test_mutibs_input_is_copied(self):
@@ -224,7 +224,7 @@ class TestBugs:
             a += 'float:32'
 
     def test_prepend_after_creation_from_data_with_offset(self):
-        s1 = BitArray(bytes=b'\x00\x00\x07\xff\xf0\x00', offset=21, length=15)
+        s1 = BitArray.from_bytes(b'\x00\x00\x07\xff\xf0\x00', offset=21, length=15)
         assert not s1.any(0)
         b = s1.tobytes()
         assert b == b'\xff\xfe'
@@ -607,7 +607,7 @@ class TestNewProperties:
             a.bytes5 = b'123'
 
     def test_conversion_to_bytes(self):
-        a = BitArray(bytes=b'1234')
+        a = BitArray.from_bytes(b'1234')
         b = bytes(a)
         assert b == b'1234'
         a += [1]
@@ -761,17 +761,18 @@ class TestNumpy:
         assert a.hex == '000'
 
 
-def test_bytes_from_list():
-    s = Bits(bytes=[1, 2])
+def test_from_bytes_rejects_list():
+    with pytest.raises(TypeError, match="bytes-like"):
+        Bits.from_bytes([1, 2])
+    with pytest.raises(TypeError, match="bytes-like"):
+        BitArray.from_bytes([1, 2])
+
+    s = Bits.from_bytes(bytearray([1, 2]))
     assert s == '0x0102'
-    s = Bits(bytes=bytearray([1, 2]))
+    s = BitArray.from_bytes(bytearray([1, 2]))
     assert s == '0x0102'
-    s = BitArray(bytes=[1, 2])
-    assert s == '0x0102'
-    s = BitArray(bytes=bytearray([1, 2]))
-    assert s == '0x0102'
-    s.bytes = [10, 20]
-    assert s == '0x0a14'
+    with pytest.raises(TypeError, match="bytes-like"):
+        s.bytes = [10, 20]
 
 
 def test_slice_bug():

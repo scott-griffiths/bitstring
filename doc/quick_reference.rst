@@ -51,11 +51,11 @@ Bits
 :class:`Bits` is the most basic class and is just a container of bits. It is immutable, so once created its value cannot change.
 
 
-``Bits(auto, /, length: int | None = None, offset: int | None = None, **kwargs)``
+``Bits(auto, /, length: int | None = None, **kwargs)``
 
 The first parameter (usually referred to as `auto`) is most often a parsable string, a bytes-like object, or another bitstring. For zero-filled, bool-iterable, joined or file-based construction prefer the explicit factory methods below.
 
-A single initialiser from `kwargs` can be used instead of ``auto``, including ``bin``, ``hex``, ``oct``, ``bool``, ``u``, ``i``, ``f`` and ``bytes``.
+A single initialiser from `kwargs` can be used instead of ``auto``, including ``bin``, ``hex``, ``oct``, ``bool``, ``u``, ``i`` and ``f``.
 
 Examples::
 

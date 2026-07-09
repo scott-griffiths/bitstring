@@ -5,28 +5,25 @@ Bits
 
 The ``Bits`` class is the simplest type in the bitstring module, and represents an immutable sequence of bits. This is the best class to use if you will not need to modify the data after creation.
 
-.. class:: Bits(auto: BitsType | None, /, length: int | None = None, offset: int | None = None, **kwargs)
+.. class:: Bits(auto: BitsType | None, /, length: int | None = None, **kwargs)
 
     Creates a new bitstring.
-    You must specify either no initialiser, just an 'auto' value as the first parameter, or a keyword argument such as ``bytes``, ``bin``, ``hex``, ``oct``, ``u``, ``i``, ``f``, ``bool`` or ``filename`` (for example) to indicate the data type.
+    You must specify either no initialiser, just an 'auto' value as the first parameter, or a keyword argument such as ``bin``, ``hex``, ``oct``, ``u``, ``i``, ``f`` or ``bool`` to indicate the data type.
     If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`.
 
-    ``offset`` is available when using the ``bytes`` or ``filename`` initialisers.
-    It gives a number of bits to ignore at the start of the bitstring.
-
     Specifying ``length`` is mandatory when using the various integer initialisers.
     It must be large enough that a bitstring can contain the integer in ``length`` bits.
     It must also be specified for the float initialisers (the only valid values are 16, 32 and 64).
-    It is optional for the ``bytes`` and ``filename`` initialisers and can be used to truncate data from the end of the input value. ::
+    For construction from bytes or files, including construction with offsets or truncation, use :meth:`Bits.from_bytes` or :meth:`Bits.from_file`. ::
 
            >>> s1 = Bits(hex='0x934')
            >>> s2 = Bits(oct='0o4464')
            >>> s3 = Bits(bin='0b001000110100')
            >>> s4 = Bits(i=-1740, length=12)
            >>> s5 = Bits(u=2356, length=12)
-           >>> s6 = Bits(bytes=b'\x93@', length=12)
+           >>> s6 = Bits.from_bytes(b'\x93@', length=12)
            >>> s1 == s2 == s3 == s4 == s5 == s6
            True
 
@@ -310,7 +307,7 @@ Methods
 
     This method can also be used to output your bitstring to a file - just open a file in binary write mode and write the function's output. ::
 
-        >>> s = Bits(bytes=b'hello')
+        >>> s = Bits.from_bytes(b'hello')
         >>> s += '0b01'
         >>> s.to_bytes()
         b'hello@'

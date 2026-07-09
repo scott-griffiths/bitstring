@@ -49,7 +49,7 @@ def test_multiple_string_initialisation_with_reader():
 
 
 def test_reader_reads_bits_and_bytes():
-    s = Reader(BitArray(bytes=b'\x4d\x55'))
+    s = Reader(BitArray.from_bytes(b'\x4d\x55'))
     assert s.read(4).hex == '4'
     assert s.read(8).hex == 'd5'
     assert s.read(1) == [0]
@@ -543,7 +543,7 @@ def test_creation_errors_and_basic_conversions():
     assert BitArray('0b000111').uint == 7
     assert BitArray('0x10').int == 16
     assert BitArray('0b11110').int == -2
-    assert BitArray(bytes=b'\x00\x12\x23\xff').hex == '001223ff'
+    assert BitArray.from_bytes(b'\x00\x12\x23\xff').hex == '001223ff'
     with pytest.raises(bitstring.InterpretError):
         _ = BitArray('0b11111').hex
 
@@ -560,7 +560,7 @@ def test_empty_bits_and_reader_position():
         _ = s.bits.uint
     assert not s.bits
 
-    s = Reader(BitArray(bytes=b'\x00\x00\x00'))
+    s = Reader(BitArray.from_bytes(b'\x00\x00\x00'))
     assert s.bitpos == 0
     s.read(5)
     assert s.pos == 5
@@ -570,7 +570,7 @@ def test_empty_bits_and_reader_position():
 
 
 def test_reader_byte_position_and_lax_seek():
-    s = Reader(BitArray(bytes=b'\x00\x00\x00'))
+    s = Reader(BitArray.from_bytes(b'\x00\x00\x00'))
     assert s.bytepos == 0
     s.read(10)
     with pytest.raises(bitstring.ByteAlignError):
@@ -578,7 +578,7 @@ def test_reader_byte_position_and_lax_seek():
     s.read(6)
     assert s.bytepos == 2
 
-    s = Reader(BitArray(bytes=b'\x00\x00\x00\x00\x00\xab'))
+    s = Reader(BitArray.from_bytes(b'\x00\x00\x00\x00\x00\xab'))
     s.bytepos = 5
     assert s.read(8).hex == 'ab'
     s.pos = -1
@@ -601,7 +601,7 @@ def test_append_and_prepend():
     s1.append(s1)
     assert s1.bin == '111100111100'
 
-    s = BitArray(bytes=b'\x28\x28', offset=1)
+    s = BitArray.from_bytes(b'\x28\x28', offset=1)
     s.append('0b0')
     assert s.hex == '5050'
 
@@ -669,7 +669,7 @@ def test_truncate_and_delete():
     del s[:1]
     assert not s
 
-    s = BitArray(bytes=b'\x12\x34')
+    s = BitArray.from_bytes(b'\x12\x34')
     del s[-4:]
     assert s.hex == '123'
     del s[-9:]
@@ -730,7 +730,7 @@ def test_adding_and_equality():
     s1 = BitArray('0b01010101')
     s2 = BitArray('0b01010101')
     assert s1 == s2
-    assert BitArray(bytes=b'\xff', offset=2, length=3) == BitArray('0b111')
+    assert BitArray.from_bytes(b'\xff', offset=2, length=3) == BitArray('0b111')
 
 
 def test_peek_with_reader():
@@ -741,7 +741,7 @@ def test_peek_with_reader():
     assert s.peek(1) == [1]
     assert s.peek(1) == [1]
 
-    s = Reader(BitArray(bytes=b'\x1f', offset=3))
+    s = Reader(BitArray.from_bytes(b'\x1f', offset=3))
     assert len(s) == 5
     assert s.peek(5).bin == '11111'
     s.pos += 1
@@ -813,7 +813,7 @@ def test_repr_print_iter_and_offsets():
         b.append(Bits(bool=bit))
     assert a == b
 
-    a = BitArray(bytes=b'\xff', offset=2)
+    a = BitArray.from_bytes(b'\xff', offset=2)
     b = BitArray('0b00')
     b += a
     assert b == '0b0011 1111'
@@ -939,7 +939,7 @@ def test_reader_multiple_bit_reads():
 
 
 def test_to_bytes_to_file_and_token_parser(tmp_path):
-    a = BitArray(bytes=b'\xab\x00')
+    a = BitArray.from_bytes(b'\xab\x00')
     b = a.tobytes()
     assert a.bytes == b
     for _ in range(7):
@@ -1236,14 +1236,14 @@ def test_bool_token_and_integer_reads():
 def test_bytes_initialisation_and_legacy_bugs():
     a = Bits(b'uint:5=2')
     b = Bits(b'')
-    c = Bits(bytes=b'uint:5=2')
+    c = Bits.from_bytes(b'uint:5=2')
     assert a.bytes == b'uint:5=2'
     assert not b
     assert c == b'uint:5=2'
 
     a = Bits(bytearray(b'uint:5=2'))
     b = Bits(bytearray(4))
-    c = Bits(bytes=bytearray(b'uint:5=2'))
+    c = Bits.from_bytes(bytearray(b'uint:5=2'))
     assert a.bytes == b'uint:5=2'
     assert b == '0x00000000'
     assert c.bytes == b'uint:5=2'
@@ -1593,7 +1593,7 @@ def test_file_object_creation_and_copy():
         assert t2.startswith('0x000001b3')
         assert t2.endswith('0xc')
         with open(filename, 'rb') as b:
-            u = BitArray(bytes=b.read())
+            u = BitArray.from_bytes(b.read())
             assert u == s2
 
     with open(os.path.join(THIS_DIR, 'smalltestfile'), 'rb') as f:
@@ -1871,17 +1871,17 @@ def test_count_with_offset_and_bytes_problem_cases():
     assert b.count(1) == 16
     assert b.count(0) == 14
 
-    b = BitArray(bytes=b'\x00\xaa', offset=8)
+    b = BitArray.from_bytes(b'\x00\xaa', offset=8)
     assert b.hex == 'aa'
-    b = BitArray(bytes=b'\x00\xaa', offset=4)
+    b = BitArray.from_bytes(b'\x00\xaa', offset=4)
     assert b.hex == '0aa'
-    b = BitArray(bytes=b'\x00\xaa', offset=8, length=8)
+    b = BitArray.from_bytes(b'\x00\xaa', offset=8, length=8)
     b.invert()
     assert b.hex == '55'
-    b = BitArray(bytes=b'\xaa\xbb', offset=8, length=4)
+    b = BitArray.from_bytes(b'\xaa\xbb', offset=8, length=4)
     b.prepend('0xe')
     assert b.hex == 'eb'
-    b = BitArray(bytes=b'\x01\x02\x03\x04', offset=8)
+    b = BitArray.from_bytes(b'\x01\x02\x03\x04', offset=8)
     b.byteswap()
     assert b == '0x040302'
 
@@ -2194,15 +2194,15 @@ def test_slicing_and_negative_slicing_more():
 def test_writing_data_and_offsets():
     strings = [BitArray(bin=x) for x in ['0', '001', '0011010010', '010010', '1011']]
     s = BitArray().join(strings)
-    s2 = BitArray(bytes=s.bytes)
+    s2 = BitArray.from_bytes(s.bytes)
     assert s2.bin == '000100110100100100101011'
     s2.append(BitArray(bin='1'))
-    s3 = BitArray(bytes=s2.tobytes())
+    s3 = BitArray.from_bytes(s2.tobytes())
     assert s3.bin == '00010011010010010010101110000000'
 
-    s1 = BitArray(bytes=b'\x10')
-    s2 = BitArray(bytes=b'\x08\x00', length=8, offset=1)
-    s3 = BitArray(bytes=b'\x04\x00', length=8, offset=2)
+    s1 = BitArray.from_bytes(b'\x10')
+    s2 = BitArray.from_bytes(b'\x08\x00', length=8, offset=1)
+    s3 = BitArray.from_bytes(b'\x04\x00', length=8, offset=2)
     assert s1 == s2 == s3
     assert s1.bytes == s2.bytes == s3.bytes
 
@@ -2324,7 +2324,7 @@ def test_equality_not_equals_and_auto_copy():
     s2 = BitArray('0b01010101')
     assert s1 == s2
     assert BitArray() == BitArray()
-    s5 = BitArray(bytes=b'\xff', offset=2, length=3)
+    s5 = BitArray.from_bytes(b'\xff', offset=2, length=3)
     assert s5 == BitArray('0b111')
     assert s5 != object()
 
@@ -2681,9 +2681,9 @@ def test_bits_property_immutability_more():
 
 
 def test_bytes_problem_more_cases():
-    b = BitArray(bytes=b'\x00\xaa', offset=8, length=4)
+    b = BitArray.from_bytes(b'\x00\xaa', offset=8, length=4)
     assert b.bin == '1010'
-    b = BitArray(bytes=b'\x00\xaa', offset=8, length=8)
+    b = BitArray.from_bytes(b'\x00\xaa', offset=8, length=8)
     b.prepend('0xee')
     assert b.hex == 'eeaa'
 
@@ -2886,7 +2886,7 @@ def test_reader_format_error_cases_more(read_fmt, exception):
     ],
 )
 def test_bytes_offset_creation_cases_more(data, offset, length, expected):
-    kwargs = {'bytes': data, 'offset': offset}
+    kwargs = {'offset': offset}
     if length is not None:
         kwargs['length'] = length
-    assert BitArray(**kwargs) == expected
+    assert BitArray.from_bytes(data, **kwargs) == expected

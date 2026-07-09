@@ -74,7 +74,7 @@ class Bits:
     __slots__ = ('_bitstore', '_filename')
 
     def __init__(self, auto: BitsType | None = None, /, length: int | None = None,
-                 offset: int | None = None, **kwargs) -> None:
+                 **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, a bytes-like object or another bitstring.
 
@@ -82,7 +82,6 @@ class Bits:
         bin -- binary string representation, e.g. '0b001010'.
         hex -- hexadecimal string representation, e.g. '0x2ef'
         oct -- octal string representation, e.g. '0o777'.
-        bytes -- raw data as a bytes object, for example read from a binary file.
         i -- a signed integer. int is a compatibility alias.
         u -- an unsigned integer. uint is a compatibility alias.
         f / float / fbe -- a big-endian floating point number.
@@ -102,21 +101,18 @@ class Bits:
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
                   It must be supplied for all integer and float initialisers.
-        offset -- bit offset to the data. These offset bits are
-                  ignored and this is mainly intended for use when
-                  initialising using 'bytes'.
 
         """
         pass
 
     def __new__(cls: type[TBits], auto: BitsType | None = None, /, length: int | None = None,
-                offset: int | None = None, **kwargs) -> TBits:
+                **kwargs) -> TBits:
         x = super().__new__(cls)
         if auto is None and not kwargs:
             # No initialiser so fill with zero bits up to length
             x._bitstore = ConstBitStore.from_zeros(length if length is not None else 0)
             return x
-        x._initialise(auto, length, offset, immutable=True, **kwargs)
+        x._initialise(auto, length, immutable=True, **kwargs)
         return x
 
     @classmethod
@@ -127,7 +123,7 @@ class Bits:
         b._setauto_no_length_or_offset(auto)
         return b
 
-    def _initialise(self, auto: Any, /, length: int | None, offset: int | None, immutable: bool, **kwargs) -> None:
+    def _initialise(self, auto: Any, /, length: int | None, immutable: bool, **kwargs) -> None:
         if auto is not None:
             if isinstance(auto, numbers.Integral):
                 raise TypeError(
@@ -155,12 +151,16 @@ class Bits:
                     f"It's no longer possible to initialise a bitstring directly from an arbitrary iterable. "
                     f"Use '{self.__class__.__name__}.from_bools(iterable)' instead."
                 )
-            self._setauto(auto, length, offset)
+            self._setauto(auto, length)
         else:
+            if len(kwargs) != 1:
+                raise bitstring.CreationError("Exactly one initialiser keyword is required.")
             k, v = kwargs.popitem()
             if k == 'bytes':
-                # Special case for bytes as we want to allow offsets and lengths to work only on creation.
-                self._setbytes_with_truncation(v, length, offset)
+                raise bitstring.CreationError(
+                    f"The 'bytes' keyword has been removed. "
+                    f"Use '{self.__class__.__name__}.from_bytes(...)' instead."
+                )
             elif k == 'filename':
                 raise bitstring.CreationError(
                     f"The 'filename' keyword has been removed. "
@@ -171,8 +171,6 @@ class Bits:
                     f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
                     f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
             else:
-                if offset is not None:
-                    raise bitstring.CreationError(f"offset cannot be used when initialising with '{k}'.")
                 try:
                     Dtype(k, length).set_fn(self, v)
                 except ValueError as e:
@@ -532,32 +530,17 @@ class Bits:
         else:
             raise TypeError(f"Cannot initialise bitstring from type '{type(s)}'.")
 
-    def _setauto(self, s: BitsType, length: int | None, offset: int | None, /) -> None:
+    def _setauto(self, s: BitsType, length: int | None, /) -> None:
         """Set bitstring from a bitstring, file, array, iterable or string."""
         # As s can be so many different things it's important to do the checks
         # in the correct order, as some types are also other allowed types.
-        if offset is None and length is None:
+        if length is None:
             self._setauto_no_length_or_offset(s)
-            return
-        if offset is None:
-            offset = 0
-
-        if isinstance(s, io.BytesIO):
-            total_bits = s.seek(0, 2) * 8
-            if length is None:
-                length = total_bits - offset
-            if length + offset > total_bits:
-                raise bitstring.CreationError("BytesIO object is not long enough for specified length and offset.")
-            self._bitstore = ConstBitStore.from_bytes(s.getvalue(), offset=offset, length=length)
-            return
-
-        if isinstance(s, io.BufferedReader):
-            self._setfile(s.name, length, offset)
             return
 
         if isinstance(s, (str, Bits, bytes, bytearray, memoryview, io.BytesIO, io.BufferedReader,
                           array.array, abc.Iterable)):
-            raise bitstring.CreationError(f"Cannot initialise bitstring from type '{type(s)}' when using explicit lengths or offsets.")
+            raise bitstring.CreationError(f"Cannot initialise bitstring from type '{type(s)}' when using an explicit length.")
         raise TypeError(f"Cannot initialise bitstring from type '{type(s)}'.")
 
     def _setfile(self, filename: str, length: int | None = None, offset: int | None = None) -> None:
@@ -618,11 +601,11 @@ class Bits:
     def _setmxint(self, f: float) -> None:
         self._bitstore = helpers.mxint2bitstore(f)
 
-    def _setbytes(self, data: bytearray | bytes | list, length:None = None) -> None:
+    def _setbytes(self, data: bytearray | bytes | memoryview, length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
         self._bitstore = ConstBitStore.from_bytes(bytes(data))
 
-    def _setbytes_with_truncation(self, data: bytearray | bytes, length: int | None = None, offset: int | None = None) -> None:
+    def _setbytes_with_truncation(self, data: bytearray | bytes | memoryview, length: int | None = None, offset: int | None = None) -> None:
         """Set the data from a bytes or bytearray object, with optional offset and length truncations."""
         if offset is None and length is None:
             return self._setbytes(data)

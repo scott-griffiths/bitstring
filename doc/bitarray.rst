@@ -3,7 +3,7 @@
 BitArray
 ========
 
-.. class:: BitArray(auto: BitsType | None, /, length: int | None = None, offset: int | None = None, **kwargs)
+.. class:: BitArray(auto: BitsType | None, /, length: int | None = None, **kwargs)
 
     The :class:`Bits` class is the base class for :class:`BitArray` and so (with the exception of :meth:`~Bits.__hash__`) all of its methods are also available for :class:`BitArray` objects.
     The initialiser is the same as for :class:`Bits`.

@@ -85,9 +85,9 @@ class TestCreation:
     @pytest.mark.parametrize("tibs_type", [Tibs, Mutibs])
     def test_constructor_rejects_tibs_types_with_length_or_offset(self, tibs_type):
         tibs = tibs_type.from_bin("101")
-        with pytest.raises(bitstring.CreationError, match="explicit lengths or offsets"):
+        with pytest.raises(bitstring.CreationError, match="explicit length"):
             Bits(tibs, length=2)
-        with pytest.raises(bitstring.CreationError, match="explicit lengths or offsets"):
+        with pytest.raises(bitstring.CreationError, match="offset"):
             Bits(tibs, offset=1)
 
     def test_mutibs_input_is_copied(self):
@@ -141,6 +141,11 @@ class TestCreation:
             cls(filename=filename)
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_bytes_keyword_removed(self, cls):
+        with pytest.raises(bitstring.CreationError, match="from_bytes"):
+            cls(bytes=b"\xff")
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_ambiguous_constructor_sources_removed(self, cls, tmp_path):
         with pytest.raises(TypeError, match="from_bools"):
             cls([1, 0, 1])
@@ -162,23 +167,23 @@ class TestCreation:
         assert s == cls.from_string("u4=15, 0b01")
 
     def test_creation_from_bytes(self):
-        s = Bits(bytes=b"\xa0\xff")
+        s = Bits.from_bytes(b"\xa0\xff")
         assert (len(s), s.hex) == (16, "a0ff")
-        s = Bits(bytes=b"abc", length=0)
+        s = Bits.from_bytes(b"abc", length=0)
         assert s == ""
 
     @given(st.binary())
     def test_creation_from_bytes_roundtrip(self, data):
-        s = Bits(bytes=data)
+        s = Bits.from_bytes(data)
         assert s.bytes == data
 
     def test_creation_from_bytes_errors(self):
         with pytest.raises(bitstring.CreationError):
-            Bits(bytes=b"abc", length=25)
+            Bits.from_bytes(b"abc", length=25)
 
     def test_creation_from_data_with_offset(self):
-        s1 = Bits(bytes=b"\x0b\x1c\x2f", offset=0, length=20)
-        s2 = Bits(bytes=b"\xa0\xb1\xc2", offset=4)
+        s1 = Bits.from_bytes(b"\x0b\x1c\x2f", offset=0, length=20)
+        s2 = Bits.from_bytes(b"\xa0\xb1\xc2", offset=4)
         assert (len(s2), s2.hex) == (20, "0b1c2")
         assert (len(s1), s1.hex) == (20, "0b1c2")
         assert s1 == s2
@@ -221,8 +226,8 @@ class TestCreation:
         with pytest.raises(bitstring.CreationError):
             _ = Bits("oct=8")
 
-    def test_creation_from_u_with_offset(self):
-        with pytest.raises(bitstring.CreationError):
+    def test_offset_constructor_keyword_removed(self):
+        with pytest.raises(bitstring.CreationError, match="offset"):
             Bits(u=12, length=8, offset=1)
 
     def test_long_numeric_keyword_initialisers_are_compatibility_aliases(self):
@@ -275,7 +280,7 @@ class TestCreation:
             _ = Bits(se=10, length=40)
 
     def test_creation_from_se_with_offset(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(bitstring.CreationError, match="offset"):
             Bits(se=-13, offset=1)
 
     def test_creation_from_se_errors(self):
@@ -292,7 +297,7 @@ class TestCreation:
             assert Bits(ue=i).ue == i
 
     def test_creation_from_ue_with_offset(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(bitstring.CreationError, match="offset"):
             Bits(ue=104, offset=2)
 
     def test_creation_from_ue_errors(self):
@@ -779,7 +784,7 @@ class TestPrettyPrinting:
         )
 
         a = bytearray(range(0, 256))
-        b = Bits(bytes=a)
+        b = Bits.from_bytes(a)
         s = io.StringIO()
         b.pp(stream=s, fmt="bytes")
         assert (
@@ -880,7 +885,7 @@ class TestPrettyPrinting:
         assert remove_unprintable(t.getvalue()) == expected_output
 
     def test_bytes(self):
-        a = Bits(bytes=b"helloworld!!" * 5)
+        a = Bits.from_bytes(b"helloworld!!" * 5)
         s = io.StringIO()
         a.pp(stream=s, fmt="bytes", show_offset=False, width=48)
         expected_output = """<Bits, fmt='bytes', length=480 bits> [

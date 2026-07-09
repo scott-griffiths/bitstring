@@ -44,6 +44,11 @@ Breaking changes:
 * Direct construction from arbitrary boolean iterables, file objects,
   `io.BytesIO`, and `array.array` objects has been removed. Use
   `from_bools()`, `from_file()` or `from_bytes()` instead.
+* Removed the `bytes=` keyword constructor and constructor-level `offset=`
+  keyword. Use `Bits.from_bytes(...)` or `BitArray.from_bytes(...)` for byte
+  data, including offset-based construction.
+* `from_bytes()` and the `bytes` property setter no longer coerce lists of
+  integers to byte data. Pass a `bytes`, `bytearray` or `memoryview` object.
 * Removed the `filename=` keyword constructor. Use `Bits.from_file(...)` or
   `BitArray.from_file(...)` instead.
 * `Dtype.build()` and `Dtype.parse()` have been renamed to `Dtype.pack()` and
@@ -82,7 +87,7 @@ Other changes and fixes:
   `read_list()`, `peek_list()`, `read_to()` and `byte_align()`. The old
   spellings without underscores remain as compatibility aliases.
 * Added `Bits.to_bitarray()` and `BitArray.to_bits()` conversion methods.
-* Improved `from_bytes()`, `from_file()` and keyword construction from bytes,
+* Improved `from_bytes()` and `from_file()` construction from bytes,
   memoryviews and files with offsets and lengths by using tibs offset/length
   support directly.
 * File-backed bitstrings with a non-zero offset no longer have to read the whole file

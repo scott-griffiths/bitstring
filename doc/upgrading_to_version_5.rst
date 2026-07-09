@@ -278,6 +278,16 @@ accepted as the first positional argument::
     c = Bits.from_bytes(b"\x01\x02")
     d = Bits.from_bytes(array_obj.tobytes())
 
+The ``bytes=`` keyword constructor and constructor-level ``offset=`` keyword
+have also been removed. Use :meth:`Bits.from_bytes` or
+:meth:`BitArray.from_bytes` instead::
+
+    # bitstring 4
+    s = Bits(bytes=b"\x0b\x1c\x2f", offset=4, length=12)
+
+    # bitstring 5
+    s = Bits.from_bytes(b"\x0b\x1c\x2f", offset=4, length=12)
+
 If you used the external ``bitarray`` package, convert explicitly. For exact
 bit lengths, :meth:`Bits.from_bools` is the most direct replacement. For
 byte-oriented data, use :meth:`Bits.from_bytes` with an explicit length::
@@ -444,8 +454,8 @@ For a large codebase, the least surprising order is:
 7. Prefer ``u``, ``i`` and ``f`` over ``uint``, ``int`` and ``float``.
 8. Prefer short endian names such as ``ule`` and ``ibe`` over ``uintle`` and
    ``intbe``.
-9. Replace ``filename=`` and other removed constructor forms with explicit
-   factory methods.
+9. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
+   explicit factory methods.
 10. Add keywords to optional range and search arguments.
 11. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
 12. Replace any ``options.mxfp_overflow`` changes with explicit MXFP dtype
