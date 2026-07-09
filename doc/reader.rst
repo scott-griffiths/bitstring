@@ -60,7 +60,7 @@ Methods
 
     Like :meth:`Reader.read_list`, but leaves :attr:`Reader.pos` unchanged.
 
-.. method:: Reader.read_to(bs: BitsType, *, bytealigned: bool | None = None) -> Bits
+.. method:: Reader.read_to(bs: BitsType, *, bytealigned: bool = False) -> Bits
 
     Reads up to and including the next occurrence of *bs*.
 
@@ -69,12 +69,12 @@ Methods
     Aligns :attr:`Reader.pos` to the next byte boundary and returns the number of bits
     skipped.
 
-.. method:: Reader.find(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
+.. method:: Reader.find(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool = False) -> int | None
 
     Searches the wrapped bitstring and sets :attr:`Reader.pos` to the match position if
     *bs* is found. Returns the match position, or ``None`` if not found.
 
-.. method:: Reader.rfind(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
+.. method:: Reader.rfind(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool = False) -> int | None
 
     Searches backwards and sets :attr:`Reader.pos` to the match position if *bs* is
     found. Returns the match position, or ``None`` if not found.

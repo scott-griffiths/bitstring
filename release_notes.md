@@ -60,9 +60,11 @@ Breaking changes:
   unsuffixed `e4m3mxfp` and `e5m2mxfp` dtypes. Use explicit
   `e4m3mxfp_saturate`, `e4m3mxfp_overflow`, `e5m2mxfp_saturate` or
   `e5m2mxfp_overflow` dtypes instead.
+* Removed the `bitstring.options.bytealigned` global setting. Pass
+  `bytealigned=True` to each search, split, replace or read operation that
+  should be restricted to byte boundaries.
 * Removed the `python -m bitstring` command-line interface.
-* Removed the deprecated module-level way of setting options. Use
-  `bitstring.options.bytealigned` rather than `bitstring.bytealigned`.
+* Removed the deprecated module-level way of setting options.
 
 Other changes and fixes:
 

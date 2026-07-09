@@ -119,7 +119,7 @@ Methods
         False
 
 
-.. method:: Bits.find(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
+.. method:: Bits.find(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool = False) -> int | None
 
     Searches for *bs* in the current bitstring and returns the start position if found, otherwise it returns ``None``.
 
@@ -132,7 +132,7 @@ Methods
         16
 
 
-.. method:: Bits.findall(bs: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> Iterable[int]
+.. method:: Bits.findall(bs: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool = False) -> Iterable[int]
 
     Searches for all occurrences of *bs* (even overlapping ones) and returns a generator of their bit positions.
 
@@ -259,7 +259,7 @@ Methods
     By default the output will have colours added in the terminal. This can be disabled - see :data:`bitstring.options.no_color` for more information.
 
 
-.. method:: Bits.rfind(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool | None = None) -> int | None
+.. method:: Bits.rfind(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool = False) -> int | None
 
     Searches backwards for *bs* in the current bitstring and returns the start position if found, otherwise it returns ``None``.
 
@@ -275,7 +275,7 @@ Methods
         >>> s.rfind('0b100', end=17)
         12
 
-.. method:: Bits.split(delimiter: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> Iterable[Bits]
+.. method:: Bits.split(delimiter: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool = False) -> Iterable[Bits]
 
     Splits the bitstring into sections that start with *delimiter*. Returns a generator for bitstring objects.
 

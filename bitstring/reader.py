@@ -171,7 +171,7 @@ class Reader:
         """Compatibility alias for :meth:`peek_list`."""
         return self.peek_list(fmt, **kwargs)
 
-    def read_to(self, bs: BitsType, /, *, bytealigned: bool | None = None) -> Bits:
+    def read_to(self, bs: BitsType, /, *, bytealigned: bool = False) -> Bits:
         """Read up to and including the next occurrence of bs."""
         if isinstance(bs, numbers.Integral):
             raise ValueError("Integers cannot be searched for")
@@ -188,7 +188,7 @@ class Reader:
             self._pos = old_pos
             raise
 
-    def readto(self, bs: BitsType, /, *, bytealigned: bool | None = None) -> Bits:
+    def readto(self, bs: BitsType, /, *, bytealigned: bool = False) -> Bits:
         """Compatibility alias for :meth:`read_to`."""
         return self.read_to(bs, bytealigned=bytealigned)
 
@@ -206,7 +206,7 @@ class Reader:
         return self.byte_align()
 
     def find(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
-             bytealigned: bool | None = None) -> int | None:
+             bytealigned: bool = False) -> int | None:
         """Find a bitstring and set pos to the match position if found."""
         p = self._bits.find(bs, start=start, end=end, bytealigned=bytealigned)
         if p is not None:
@@ -214,7 +214,7 @@ class Reader:
         return p
 
     def rfind(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
-              bytealigned: bool | None = None) -> int | None:
+              bytealigned: bool = False) -> int | None:
         """Find a bitstring from the end and set pos to the match position if found."""
         p = self._bits.rfind(bs, start=start, end=end, bytealigned=bytealigned)
         if p is not None:

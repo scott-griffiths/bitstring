@@ -389,14 +389,12 @@ class BitArray(Bits):
         return self
 
     def _replace(self, old: Bits, new: Bits, start: int | None, end: int | None,
-                 count: int | None, bytealigned: bool | None) -> int:
-        if bytealigned is None:
-            bytealigned = bitstring.options.bytealigned
+                 count: int | None, bytealigned: bool) -> int:
         return self._bitstore.replace(old._bitstore, new._bitstore, start=start, end=end,
                                       count=count, bytealigned=bytealigned)
 
     def replace(self, old: BitsType, new: BitsType, *, start: int | None = None, end: int | None = None,
-                count: int | None = None, bytealigned: bool | None = None) -> int:
+                count: int | None = None, bytealigned: bool = False) -> int:
         """Replace all occurrences of old with new in place.
 
         Returns number of replacements made.

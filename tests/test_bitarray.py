@@ -252,20 +252,17 @@ class TestByteAligned:
         assert a == '0x000'
 
     def test_byte_aligned(self):
-        # TODO: This really should be done with a context.
-        bitstring.options.bytealigned = True
         a = BitArray('0x00 ff 0f f')
-        li = list(a.findall('0xff'))
+        li = list(a.findall('0xff', bytealigned=True))
         assert li == [8]
-        p = a.find('0x0f')
+        p = a.find('0x0f', bytealigned=True)
         assert p == 16
-        p = a.rfind('0xff')
+        p = a.rfind('0xff', bytealigned=True)
         assert p == 8
-        s = list(a.split('0xff'))
+        s = list(a.split('0xff', bytealigned=True))
         assert s == ['0x00', '0xff0ff']
-        a.replace('0xff', '')
+        a.replace('0xff', '', bytealigned=True)
         assert a == '0x000ff'
-        bitstring.options.bytealigned = False
 
 
 class TestSliceAssignment:

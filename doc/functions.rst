@@ -90,33 +90,12 @@ Finally it is also possible just to use a keyword as a token::
 
 Options
 -------
-The bitstring module has an ``options`` object that allows certain module-wide behaviours to be set.
+The bitstring module has an ``options`` object that allows module-wide behaviours to be set.
 
 .. data:: options
 
     Module-wide options object.
 
-
-bytealigned
-^^^^^^^^^^^
-
-.. data:: options.bytealigned
-    :type: bool
-
-A number of methods take a bytealigned parameter to indicate that they should only work on byte boundaries (e.g. :meth:`~Bits.find`, :meth:`~Bits.findall`, :meth:`~Bits.split` and :meth:`~BitArray.replace`). This parameter defaults to ``bitstring.options.bytealigned``, which itself defaults to ``False``, but can be changed to modify the default behaviour of the methods. For example::
-
-    >>> a = BitArray('0x00 ff 0f ff')
-    >>> a.find('0x0f')
-    4       # found first not on a byte boundary
-    >>> a.find('0x0f', bytealigned=True)
-    16      # forced looking only on byte boundaries
-    >>> bitstring.options.bytealigned = True  # Change default behaviour
-    >>> a.find('0x0f')
-    16
-    >>> a.find('0x0f', bytealigned=False)
-    4
-
-If you’re only working with bytes then this can help avoid some errors and save some typing.
 
 no_color
 ^^^^^^^^

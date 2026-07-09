@@ -1,5 +1,6 @@
 # LLM generated test cases
 import bitstring
+import pytest
 
 
 ConstBitStore = bitstring.bitstore.ConstBitStore
@@ -115,13 +116,19 @@ def test_pack_negative_repeat_factor_rejected() -> None:
 def test_options_constructor_does_not_reset_singleton_state() -> None:
     from bitstring.bitstring_options import Options
 
-    old_bytealigned = bitstring.options.bytealigned
+    old_no_color = bitstring.options.no_color
     try:
-        bitstring.options.bytealigned = True
+        bitstring.options.no_color = not old_no_color
         Options()
-        assert bitstring.options.bytealigned is True
+        assert bitstring.options.no_color is not old_no_color
     finally:
-        bitstring.options.bytealigned = old_bytealigned
+        bitstring.options.no_color = old_no_color
+
+
+def test_bytealigned_option_removed() -> None:
+    assert not hasattr(bitstring.options, "bytealigned")
+    with pytest.raises(AttributeError):
+        bitstring.options.bytealigned = True
 
 
 def test_mxfp_overflow_option_removed() -> None:

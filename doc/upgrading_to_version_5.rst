@@ -391,17 +391,19 @@ explicitly::
     # bitstring 5
     bits = Bits(e5m2mxfp_saturate=1e10)
 
-Use options for module settings
-===============================
+Use explicit byte alignment
+===========================
 
-The old module-level option variables have been removed. Set options through
-the :data:`bitstring.options` object::
+The ``bitstring.bytealigned`` and ``bitstring.options.bytealigned`` global
+settings have been removed. Pass ``bytealigned=True`` to the operation that
+needs byte-aligned matching::
 
     # bitstring 4
     bitstring.bytealigned = True
+    pos = bits.find("0xff")
 
     # bitstring 5
-    bitstring.options.bytealigned = True
+    pos = bits.find("0xff", bytealigned=True)
 
 Prefer the new underscored method names
 =======================================

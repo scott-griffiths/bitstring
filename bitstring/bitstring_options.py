@@ -6,13 +6,13 @@ import os
 class Options:
     """Internal class to create singleton module options instance."""
 
+    __slots__ = ('no_color', '_initialised')
+
     _instance = None
 
     def __init__(self):
         if hasattr(self, "_initialised"):
             return
-        self._bytealigned = False
-
         self.no_color = False
         no_color = os.getenv('NO_COLOR')
         self.no_color = True if no_color else False
@@ -21,14 +21,6 @@ class Options:
     def __repr__(self) -> str:
         attributes = {attr: getattr(self, attr) for attr in dir(self) if not attr.startswith('_') and not callable(getattr(self, attr))}
         return '\n'.join(f"{attr}: {value!r}" for attr, value in attributes.items())
-
-    @property
-    def bytealigned(self) -> bool:
-        return self._bytealigned
-
-    @bytealigned.setter
-    def bytealigned(self, value: bool) -> None:
-        self._bytealigned = bool(value)
 
     def __new__(cls):
         if cls._instance is None:

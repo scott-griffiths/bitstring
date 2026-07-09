@@ -1242,7 +1242,7 @@ class Bits:
         return vals, pos
 
     def find(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
-             bytealigned: bool | None = None) -> int | None:
+             bytealigned: bool = False) -> int | None:
         """Find first occurrence of substring bs.
 
         Returns the bit position if found, or None if not found.
@@ -1264,8 +1264,7 @@ class Bits:
         bs = Bits._create_from_bitstype(bs)
         if len(bs) == 0:
             raise ValueError("Cannot find an empty bitstring.")
-        ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
-        p = self._find(bs, start, end, ba)
+        p = self._find(bs, start, end, bytealigned)
         return p
 
     def _find(self, bs: Bits, start: int, end: int, bytealigned: bool) -> int | None:
@@ -1273,7 +1272,7 @@ class Bits:
         return self._bitstore.find(bs._bitstore, start, end, bytealigned)
 
     def findall(self, bs: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None,
-                bytealigned: bool | None = None) -> Iterable[int]:
+                bytealigned: bool = False) -> Iterable[int]:
         """Find all occurrences of bs. Return generator of bit positions.
 
         bs -- The bitstring to find.
@@ -1293,8 +1292,7 @@ class Bits:
         if count is not None and count < 0:
             raise ValueError("In findall, count must be >= 0.")
         bs = Bits._create_from_bitstype(bs)
-        ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
-        return self._findall(bs, start, end, count, ba)
+        return self._findall(bs, start, end, count, bytealigned)
 
     def _findall(self, bs: Bits, start: int, end: int, count: int | None,
                       bytealigned: bool) -> Iterable[int]:
@@ -1310,7 +1308,7 @@ class Bits:
 
 
     def rfind(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
-              bytealigned: bool | None = None) -> int | None:
+              bytealigned: bool = False) -> int | None:
         """Find final occurrence of substring bs.
 
         Returns the bit position if found, or None if not found.
@@ -1327,8 +1325,7 @@ class Bits:
 
         """
         bs = Bits._create_from_bitstype(bs)
-        ba = bitstring.options.bytealigned if bytealigned is None else bytealigned
-        p = self._rfind(bs, start, end, ba)
+        p = self._rfind(bs, start, end, bytealigned)
         return p
 
     def _rfind(self, bs: Bits, start: int, end: int, bytealigned: bool) -> int | None:
@@ -1372,7 +1369,7 @@ class Bits:
         return
 
     def split(self, delimiter: BitsType, *, start: int | None = None, end: int | None = None,
-              count: int | None = None, bytealigned: bool | None = None) -> Iterable[Bits]:
+              count: int | None = None, bytealigned: bool = False) -> Iterable[Bits]:
         """Return bitstring generator by splitting using a delimiter.
 
         The first item returned is the initial bitstring before the delimiter,
@@ -1394,12 +1391,11 @@ class Bits:
         if len(delimiter) == 0:
             raise ValueError("split delimiter cannot be empty.")
         start, end = self._validate_slice(start, end)
-        bytealigned_: bool = bitstring.options.bytealigned if bytealigned is None else bytealigned
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
             return
-        f = functools.partial(self._find, bs=delimiter, bytealigned=bytealigned_)
+        f = functools.partial(self._find, bs=delimiter, bytealigned=bytealigned)
         found = f(start=start, end=end)
         if found is None:
             # Initial bits are the whole bitstring being searched

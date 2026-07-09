@@ -135,7 +135,7 @@ Methods
         >>> s
         BitArray('0b11110')
 
-.. method:: BitArray.replace(old: BitsType, new: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool | None = None) -> int
+.. method:: BitArray.replace(old: BitsType, new: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool = False) -> int
 
     Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 
