@@ -437,41 +437,41 @@ def test_unpack_stretchy_tokens():
 
 def test_file_creation_and_mutation_operations():
     filename = os.path.join(THIS_DIR, 'smalltestfile')
-    s = BitArray(filename=filename)
+    s = BitArray.from_file(filename)
     s.append('0xff')
     assert s.hex == '0123456789abcdefff'
 
-    s = Bits(filename=filename)
+    s = Bits.from_file(filename)
     t = BitArray('0xff') + s
     assert t.hex == 'ff0123456789abcdef'
 
-    s = BitArray(filename=filename)
+    s = BitArray.from_file(filename)
     del s[:1]
     assert (BitArray('0b0') + s).hex == '0123456789abcdef'
 
-    s = BitArray(filename=filename)
+    s = BitArray.from_file(filename)
     del s[:7 * 8]
     assert s.hex == 'ef'
 
-    s = BitArray(filename=filename)
+    s = BitArray.from_file(filename)
     s.insert('0xc', 4)
     assert s.hex == '0c123456789abcdef'
 
-    s = BitArray(filename=filename)
+    s = BitArray.from_file(filename)
     s.prepend('0xf')
     assert s.hex == 'f0123456789abcdef'
 
-    s = BitArray(filename=filename)
+    s = BitArray.from_file(filename)
     s.overwrite('0xaaa', 12)
     assert s.hex == '012aaa6789abcdef'
 
-    s = BitArray(filename=filename)
+    s = BitArray.from_file(filename)
     s.reverse()
     assert s.hex == 'f7b3d591e6a2c480'
 
 
 def test_file_properties_and_reader():
-    s = Bits(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+    s = Bits.from_file(os.path.join(THIS_DIR, 'smalltestfile'))
     assert s.hex == '0123456789abcdef'
     assert s.uint == 81985529216486895
     assert s.int == 81985529216486895
@@ -487,31 +487,31 @@ def test_file_properties_and_reader():
 
 def test_file_creation_with_length_and_offset():
     test_filename = os.path.join(THIS_DIR, 'test.m1v')
-    s = Bits(filename=test_filename, length=32)
+    s = Bits.from_file(test_filename, length=32)
     assert len(s) == 32
     assert s.hex == '000001b3'
     assert s.bytes == b'\x00\x00\x01\xb3'
     assert s.uint == 0x1b3
     assert s.int == 0x1b3
     assert s.bin == '00000000000000000000000110110011'
-    assert not Bits(filename=test_filename, length=0)
+    assert not Bits.from_file(test_filename, length=0)
 
     small_test_filename = os.path.join(THIS_DIR, 'smalltestfile')
     with pytest.raises(bitstring.CreationError):
-        _ = BitArray(filename=small_test_filename, length=65)
+        _ = BitArray.from_file(small_test_filename, length=65)
     with pytest.raises(bitstring.CreationError):
-        _ = Bits(filename=small_test_filename, length=64, offset=1)
+        _ = Bits.from_file(small_test_filename, length=64, offset=1)
     with pytest.raises(bitstring.CreationError):
-        _ = Bits(filename=small_test_filename, offset=65)
+        _ = Bits.from_file(small_test_filename, offset=65)
 
-    a = BitArray(filename=test_filename, offset=4)
+    a = BitArray.from_file(test_filename, offset=4)
     assert Reader(a).peek(4 * 8).hex == '00001b31'
-    b = BitArray(filename=test_filename, offset=28)
+    b = BitArray.from_file(test_filename, offset=28)
     assert Reader(b).peek(8).hex == '31'
 
 
 def test_find_in_file_with_reader():
-    r = Reader(BitArray(filename=os.path.join(THIS_DIR, 'test.m1v')))
+    r = Reader(BitArray.from_file(os.path.join(THIS_DIR, 'test.m1v')))
     assert r.find('0x160120') == 32
     assert r.bytepos == 4
     s3 = r.read(24)
@@ -523,7 +523,7 @@ def test_find_in_file_with_reader():
 
 
 def test_file_bit_getting():
-    s = Bits(filename=os.path.join(THIS_DIR, 'smalltestfile'), offset=16, length=8)
+    s = Bits.from_file(os.path.join(THIS_DIR, 'smalltestfile'), offset=16, length=8)
     assert s[1]
     assert s.any(0, [-1, -2, -3])
     assert not s.all(0, [0, 1, 2])
@@ -952,7 +952,7 @@ def test_to_bytes_to_file_and_token_parser(tmp_path):
     a = BitArray('0x0000ff')[:17]
     with open(filename, 'wb') as f:
         a.tofile(f)
-    b = BitArray(filename=filename)
+    b = BitArray.from_file(filename)
     assert b == '0x000080'
 
     tp = bitstring.utils.tokenparser
@@ -1112,9 +1112,9 @@ def test_all_any_and_count():
     assert not a.all(True, [0])
 
     filename = os.path.join(THIS_DIR, 'test.m1v')
-    a = BitArray(filename=filename)
+    a = BitArray.from_file(filename)
     assert a.all(True, [31])
-    a = BitArray(filename=filename)
+    a = BitArray.from_file(filename)
     assert a.any(True, (31, 12))
     assert a.any(False, (0, 1, 2, 3, 4))
 
@@ -1361,7 +1361,7 @@ def test_multiplication_variants():
     zero = BitArray('0b0')
     assert one * 2 + 3 * zero + 2 * one * 2 == '0b110001111'
 
-    a = BitArray(filename=os.path.join(THIS_DIR, 'test.m1v'))
+    a = BitArray.from_file(os.path.join(THIS_DIR, 'test.m1v'))
     length = len(a)
     a *= 3
     assert len(a) == 3 * length
@@ -1893,7 +1893,7 @@ def test_format_and_cacheing_cases():
     assert f'{a}' == '0b1010101111000'
     b = BitArray.from_zeros(10)
     assert f'{b}' == '0b0000000000'
-    c = BitArray(filename=os.path.join(THIS_DIR, 'test.m1v'))
+    c = BitArray.from_file(os.path.join(THIS_DIR, 'test.m1v'))
     assert f'{c}'[0:10] == '0x000001b3'
     assert f'{Bits("0xf").bin}' == '1111'
 
@@ -1950,14 +1950,14 @@ def test_rotation_file_and_errors():
     with pytest.raises(ValueError):
         a.rol(-1)
 
-    a = BitArray(filename=os.path.join(THIS_DIR, 'test.m1v'))
+    a = BitArray.from_file(os.path.join(THIS_DIR, 'test.m1v'))
     m = len(a)
     a.rol(1)
     assert a.startswith('0x000003')
     assert len(a) == m
     assert a.endswith('0x0036e')
 
-    a = BitArray(filename=os.path.join(THIS_DIR, 'test.m1v'))
+    a = BitArray.from_file(os.path.join(THIS_DIR, 'test.m1v'))
     m = len(a)
     a.ror(1)
     assert a.startswith('0x800000')
@@ -2091,12 +2091,12 @@ def test_pack_capital_keywords_and_other_capitals():
 
 def test_file_slices_errors_and_hex_reset():
     filename = os.path.join(THIS_DIR, 'smalltestfile')
-    s = BitArray(filename=filename)
+    s = BitArray.from_file(filename)
     assert s[-16:].hex == 'cdef'
     with pytest.raises(IOError):
-        _ = BitArray(filename='Idonotexist')
+        _ = BitArray.from_file('Idonotexist')
 
-    s = BitArray(filename=os.path.join(THIS_DIR, 'test.m1v'))
+    s = BitArray.from_file(os.path.join(THIS_DIR, 'test.m1v'))
     assert s[0:32].hex == '000001b3'
     assert s[-32:].hex == '000001b7'
     s.hex = '0x11'
@@ -2105,8 +2105,8 @@ def test_file_slices_errors_and_hex_reset():
 
 def test_file_reader_independent_positions():
     filename = os.path.join(THIS_DIR, 'test.m1v')
-    s1 = Reader(BitArray(filename=filename))
-    s2 = Reader(BitArray(filename=filename))
+    s1 = Reader(BitArray.from_file(filename))
+    s2 = Reader(BitArray.from_file(filename))
     assert s1.read(32).hex == '000001b3'
     assert s2.read(32).hex == '000001b3'
     s1.bytepos += 4
@@ -2396,9 +2396,9 @@ def test_token_parser_struct_codes():
 
 def test_file_based_all_any_more():
     filename = os.path.join(THIS_DIR, 'test.m1v')
-    a = BitArray(filename=filename)
+    a = BitArray.from_file(filename)
     assert a.all(False, (0, 1, 2, 3, 4))
-    b = Bits(filename=filename, offset=16)
+    b = Bits.from_file(filename, offset=16)
     assert b.startswith('0x01')
     assert not b.any(True, range(0, 7))
     assert b.any(True, range(0, 8))
@@ -2608,7 +2608,7 @@ def test_rotate_start_and_end_more_cases():
 
 
 def test_byte_swap_from_file_and_remaining_iterable_case():
-    s = BitArray(filename=os.path.join(THIS_DIR, 'smalltestfile'))
+    s = BitArray.from_file(os.path.join(THIS_DIR, 'smalltestfile'))
     swaps = s.byteswap('2bh')
     assert s == '0x0123674589abefcd'
     assert swaps == 2

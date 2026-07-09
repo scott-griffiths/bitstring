@@ -14,7 +14,7 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_from_file():
-    s = Reader(Bits(filename=os.path.join(THIS_DIR, 'test.m1v')))
+    s = Reader(Bits.from_file(os.path.join(THIS_DIR, 'test.m1v')))
     assert s.bits[0:32].hex == '000001b3'
     assert s.read(8 * 4).hex == '000001b3'
     width = s.read(12).uint
@@ -23,7 +23,7 @@ def test_from_file():
 
 
 def test_from_file_with_offset_and_length():
-    s = Reader(Bits(filename=os.path.join(THIS_DIR, 'test.m1v'), offset=24, length=8))
+    s = Reader(Bits.from_file(os.path.join(THIS_DIR, 'test.m1v'), offset=24, length=8))
     assert s.bits.hex == 'b3'
     reconstructed = ''
     for bit in s.bits:
@@ -191,7 +191,7 @@ def test_reader_string_representation():
 
 def test_reader_string_representation_from_file():
     filename = os.path.join(THIS_DIR, 'test.m1v')
-    s = Reader(Bits(filename=filename), pos=2001)
+    s = Reader(Bits.from_file(filename), pos=2001)
     assert repr(s) == "Reader(<Bits of length 1002400 bits>, pos=2001)"
     s.pos = 0
     assert repr(s) == "Reader(<Bits of length 1002400 bits>, pos=0)"
@@ -201,7 +201,7 @@ def test_windows_file_lock_bug(tmp_path):
     path = tmp_path / 'temp_unit_test_file'
     with open(path, mode='w') as f:
         f.write('Hello')
-    _ = Bits(filename=path)
+    _ = Bits.from_file(path)
 
     try:
         with open(path, mode='w') as _:

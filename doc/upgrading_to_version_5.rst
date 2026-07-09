@@ -291,10 +291,13 @@ bitstring :class:`BitArray` instead. If you still need an external
 ``bitarray`` object, create it explicitly using that package's API, for example
 from the bitstring as an iterable of booleans or from :meth:`Bits.to_bytes`.
 
-The ``filename=`` keyword constructor still exists, but new code should prefer
-:meth:`Bits.from_file` or :meth:`BitArray.from_file`::
+The ``filename=`` keyword constructor has been removed. Use
+:meth:`Bits.from_file` or :meth:`BitArray.from_file` instead::
 
-    # preferred in bitstring 5
+    # bitstring 4
+    s = Bits(filename="data.bin", offset=8, length=32)
+
+    # bitstring 5
     s = Bits.from_file("data.bin", offset=8, length=32)
 
 Make optional range arguments keyword-only
@@ -441,7 +444,8 @@ For a large codebase, the least surprising order is:
 7. Prefer ``u``, ``i`` and ``f`` over ``uint``, ``int`` and ``float``.
 8. Prefer short endian names such as ``ule`` and ``ibe`` over ``uintle`` and
    ``intbe``.
-9. Replace removed constructor forms with explicit factory methods.
+9. Replace ``filename=`` and other removed constructor forms with explicit
+   factory methods.
 10. Add keywords to optional range and search arguments.
 11. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
 12. Replace any ``options.mxfp_overflow`` changes with explicit MXFP dtype

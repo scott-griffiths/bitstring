@@ -44,6 +44,8 @@ Breaking changes:
 * Direct construction from arbitrary boolean iterables, file objects,
   `io.BytesIO`, and `array.array` objects has been removed. Use
   `from_bools()`, `from_file()` or `from_bytes()` instead.
+* Removed the `filename=` keyword constructor. Use `Bits.from_file(...)` or
+  `BitArray.from_file(...)` instead.
 * `Dtype.build()` and `Dtype.parse()` have been renamed to `Dtype.pack()` and
   `Dtype.unpack()`.
 * Optional range/search arguments such as `start`, `end`, `count` and

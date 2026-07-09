@@ -103,14 +103,13 @@ class BitArray(Bits):
         ile -- a signed little-endian whole byte integer.
         ube -- an unsigned big-endian whole byte integer.
         ule -- an unsigned little-endian whole byte integer.
-        filename -- the path of a file which will be opened in binary read-only mode.
 
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
                   It must be supplied for all integer and float initialisers.
         offset -- bit offset to the data. These offset bits are
                   ignored and this is intended for use when
-                  initialising using 'bytes' or 'filename'.
+                  initialising using 'bytes'.
 
         """
         pass

@@ -35,7 +35,9 @@ class TestCreation:
 
         filename = tmp_path / "factory.bin"
         filename.write_bytes(b"\x12\x34")
-        assert Bits.from_file(filename) == "0x1234"
+        file_bits = Bits.from_file(filename)
+        assert file_bits == "0x1234"
+        assert eval(repr(file_bits)) == file_bits
         with filename.open("rb") as f:
             assert Bits.from_file(f, offset=4, length=8) == "0x23"
 
@@ -130,6 +132,13 @@ class TestCreation:
     def test_positional_integer_constructor_removed(self, cls):
         with pytest.raises(TypeError, match="from_zeros"):
             cls(5)
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_filename_keyword_removed(self, cls, tmp_path):
+        filename = tmp_path / "source.bin"
+        filename.write_bytes(b"\xff")
+        with pytest.raises(bitstring.CreationError, match="from_file"):
+            cls(filename=filename)
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_ambiguous_constructor_sources_removed(self, cls, tmp_path):
@@ -423,10 +432,10 @@ class TestInterleavedExpGolomb:
 class TestFileBased:
     def setup_method(self):
         filename = os.path.join(THIS_DIR, "smalltestfile")
-        self.a = Bits(filename=filename)
-        self.b = Bits(filename=filename, offset=16)
-        self.c = Bits(filename=filename, offset=20, length=16)
-        self.d = Bits(filename=filename, offset=20, length=4)
+        self.a = Bits.from_file(filename)
+        self.b = Bits.from_file(filename, offset=16)
+        self.c = Bits.from_file(filename, offset=20, length=16)
+        self.d = Bits.from_file(filename, offset=20, length=4)
 
     def test_creation_with_offset(self):
         assert str(self.a) == "0x0123456789abcdef"

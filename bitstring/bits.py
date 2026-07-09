@@ -98,14 +98,13 @@ class Bits:
         ile -- a signed little-endian whole byte integer.
         ube -- an unsigned big-endian whole byte integer.
         ule -- an unsigned little-endian whole byte integer.
-        filename -- the path of a file which will be opened in binary read-only mode.
 
         Other keyword arguments:
         length -- length of the bitstring in bits, if needed and appropriate.
                   It must be supplied for all integer and float initialisers.
         offset -- bit offset to the data. These offset bits are
                   ignored and this is mainly intended for use when
-                  initialising using 'bytes' or 'filename'.
+                  initialising using 'bytes'.
 
         """
         pass
@@ -163,7 +162,10 @@ class Bits:
                 # Special case for bytes as we want to allow offsets and lengths to work only on creation.
                 self._setbytes_with_truncation(v, length, offset)
             elif k == 'filename':
-                self._setfile(v, length, offset)
+                raise bitstring.CreationError(
+                    f"The 'filename' keyword has been removed. "
+                    f"Use '{self.__class__.__name__}.from_file(...)' instead."
+                )
             elif k == 'auto':
                 raise bitstring.CreationError(
                     f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
@@ -291,7 +293,7 @@ class Bits:
     def _repr(self, classname: str, length: int, pos: int):
         pos_string = f', pos={pos}' if pos else ''
         if hasattr(self, '_filename') and self._filename:
-            return f"{classname}(filename={self._filename!r}, length={length}{pos_string})"
+            return f"{classname}.from_file({self._filename!r}, length={length})"
         else:
             s = self.__str__()
             lengthstring = ''
