@@ -133,101 +133,51 @@ If you used stream searching to move the current position, use
     if r.find("0xff", start=r.pos) is not None:
         print(r.pos)
 
-Use len() for bitstring lengths
-===============================
+Update names and aliases
+========================
 
-The ``Bits.len`` / ``Bits.length`` properties and
-``BitArray.len`` / ``BitArray.length`` properties have been removed. Use the
-built-in :func:`len` function instead.::
-
-    # bitstring 4
-    n = s.len
-    m = s.length
-
-    # bitstring 5
-    n = len(s)
-    m = len(s)
-
-Use full names for bin, oct and hex
-===================================
-
-The ``b``, ``o`` and ``h`` aliases have been removed. Use ``bin``, ``oct`` and
-``hex`` instead. The short numeric names ``u``, ``i`` and ``f`` remain.
-
-::
-
-    # bitstring 4
-    data = s.h
-    bits = s.unpack("b12, u8")
-
-    # bitstring 5
-    data = s.hex
-    bits = s.unpack("bin12, u8")
-
-Prefer u, i and f
-=================
-
-The bit-wise big-endian numeric dtype and keyword-initialiser names are now
-``u``, ``i`` and ``f``.
-The longer ``uint``, ``int`` and ``float`` names still work as compatibility
-aliases, but :class:`Dtype` stringification, :class:`Array` representations and
-pretty-print headers use the shorter names.
-
-::
-
-    # bitstring 4
-    bits = Bits(uint=3, length=8)
-    dtype = Dtype("uint12")
-    a = Array("float16", [1.5, 2.5])
-    value = r.read("int8")
-
-    # bitstring 5
-    bits = Bits(u=3, length=8)
-    dtype = Dtype("u12")
-    a = Array("f16", [1.5, 2.5])
-    value = r.read("i8")
-
-Prefer short endian names
-=========================
-
-The endian-specific numeric dtype and keyword-initialiser names now use the
-same short base names:
+Version 5 removes a few legacy aliases and makes the short dtype names the
+canonical spelling.
 
 .. list-table::
    :header-rows: 1
 
-   * - Preferred version 5 spelling
-     - Compatibility alias
-   * - ``ube``
-     - ``uintbe``
-   * - ``ule``
-     - ``uintle``
-   * - ``ibe``
-     - ``intbe``
-   * - ``ile``
-     - ``intle``
-   * - ``fle``
-     - ``floatle``
+   * - Version 4 spelling
+     - Version 5 spelling
+   * - ``s.len`` or ``s.length``
+     - ``len(s)``
+   * - ``s.b``, ``s.o`` or ``s.h``
+     - ``s.bin``, ``s.oct`` or ``s.hex``
+   * - ``b12``, ``o12`` or ``h12`` format tokens
+     - ``bin12``, ``oct12`` or ``hex12``
+   * - ``uint``, ``int`` or ``float``
+     - Prefer ``u``, ``i`` or ``f``. The long names remain compatibility
+       aliases.
+   * - ``uintbe``, ``uintle``, ``intbe``, ``intle`` or ``floatle``
+     - Prefer ``ube``, ``ule``, ``ibe``, ``ile`` or ``fle``.
+   * - Native-endian names such as ``uintne``, ``une``, ``floatne`` or ``fne``
+     - Use explicit big- or little-endian spellings such as ``ube``, ``ule``,
+       ``f`` or ``fle``.
+   * - Struct-style native prefixes ``'='`` or ``'@'``
+     - Use ``'>'`` or ``'<'``.
 
-The plain ``f`` dtype is already big-endian, so both ``fbe`` and ``floatbe``
-are compatibility aliases for ``f``.
-Native-endian dtype names and struct-style format prefixes have been removed.
-Use an explicit big- or little-endian spelling such as ``ube``, ``ule``,
-``f`` or ``fle`` instead of ``uintne``, ``une``, ``floatne`` or ``fne``.
-Similarly, use ``'>'`` or ``'<'`` in compact struct-like formats instead of
-``'='`` or ``'@'``.
+The short numeric names ``u``, ``i`` and ``f`` remain valid. The plain ``f``
+dtype is already big-endian, so both ``fbe`` and ``floatbe`` are compatibility
+aliases for ``f``.
 
 :class:`Dtype` stringification, :class:`Array` representations and
 pretty-print headers use the preferred names::
 
-    # bitstring 4 style, still accepted in bitstring 5
-    bits = Bits(uintle=1, length=16)
-    dtype = Dtype("intbe16")
+    # bitstring 4
+    n = s.length
+    data = s.h
+    bits = s.unpack("b12, uint8")
     value = r.read("floatle32")
 
-    # preferred in bitstring 5
-    bits = Bits(ule=1, length=16)
-    dtype = Dtype("ibe16")
+    # bitstring 5
+    n = len(s)
+    data = s.hex
+    bits = s.unpack("bin12, u8")
     value = r.read("fle32")
 
 Use explicit construction helpers
@@ -354,69 +304,52 @@ Rename Dtype build/parse
     bits = d.pack(42)
     value = d.unpack(bits)
 
-Remove LSB0 mode
-================
+Replace global options and modes
+================================
 
-The old LSB0 mode has been removed. There is no
-``bitstring.options.lsb0`` setting in version 5, and indexing is always MSB0.
+The ``bitstring.options`` object and the old module-level option aliases have
+been removed. Version 5 uses explicit dtype names, per-call arguments and the
+``NO_COLOR`` environment variable instead of mutable process-wide state.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Version 4 setting
+     - Version 5 replacement
+   * - ``bitstring.options.lsb0 = True``
+     - Removed. Indexing is always MSB0.
+   * - ``bitstring.options.mxfp_overflow = "overflow"``
+     - Use an explicit MXFP dtype suffix such as ``e4m3mxfp_overflow``.
+   * - ``bitstring.bytealigned = True`` or ``bitstring.options.bytealigned = True``
+     - Pass ``bytealigned=True`` to the operation that needs byte-aligned
+       matching.
+   * - ``bitstring.options.no_color = True``
+     - Set ``NO_COLOR`` or pass ``color=False`` to :meth:`Bits.pp` or
+       :meth:`Array.pp`.
 
 Code that enabled LSB0 mode needs to translate positions explicitly. For a
 single bit position ``i`` in a bitstring ``s``, the equivalent MSB0 position is
 ``len(s) - 1 - i``. Slice translations depend on the direction and bounds of
 the original slice, so they should be reviewed case by case.
 
-Use explicit MXFP overflow dtypes
-=================================
+For MXFP packing, the overflow policy is now part of the dtype name. Use
+``e4m3mxfp_saturate`` or ``e5m2mxfp_saturate`` for saturating behaviour, and
+``e4m3mxfp_overflow`` or ``e5m2mxfp_overflow`` for overflow behaviour. The old
+unsuffixed ``e4m3mxfp`` and ``e5m2mxfp`` names have been removed.
 
-The ``bitstring.options.mxfp_overflow`` setting has been removed. The overflow
-policy for OCP MXFP E4M3 and E5M2 packing is now part of the dtype name, and
-the old unsuffixed ``e4m3mxfp`` and ``e5m2mxfp`` names have been removed.
-
-Use ``e4m3mxfp_saturate`` or ``e5m2mxfp_saturate`` for saturating behaviour.
-Use ``e4m3mxfp_overflow`` or ``e5m2mxfp_overflow`` for the old overflow mode::
+::
 
     # bitstring 4
     bitstring.options.mxfp_overflow = "overflow"
     bits = Bits(e4m3mxfp=1e10)
-
-    # bitstring 5
-    bits = Bits(e4m3mxfp_overflow=1e10)
-
-Code that used the default saturating behaviour also needs to choose it
-explicitly::
-
-    # bitstring 4
-    bits = Bits(e5m2mxfp=1e10)
-
-    # bitstring 5
-    bits = Bits(e5m2mxfp_saturate=1e10)
-
-Use explicit byte alignment
-===========================
-
-The ``bitstring.bytealigned`` and ``bitstring.options.bytealigned`` global
-settings have been removed. Pass ``bytealigned=True`` to the operation that
-needs byte-aligned matching::
-
-    # bitstring 4
     bitstring.bytealigned = True
     pos = bits.find("0xff")
-
-    # bitstring 5
-    pos = bits.find("0xff", bytealigned=True)
-
-Use pp color arguments
-======================
-
-The ``bitstring.options`` object has been removed. Pretty-print colour is
-controlled by the ``NO_COLOR`` environment variable by default, or by passing
-``color`` to the individual :meth:`Bits.pp` or :meth:`Array.pp` call::
-
-    # bitstring 4
     bitstring.options.no_color = True
     bits.pp()
 
     # bitstring 5
+    bits = Bits(e4m3mxfp_overflow=1e10)
+    pos = bits.find("0xff", bytealigned=True)
     bits.pp(color=False)
 
 Prefer the new underscored method names
@@ -465,17 +398,12 @@ For a large codebase, the least surprising order is:
 3. Update :func:`pack` call sites that relied on the old ``BitStream`` return
    value.
 4. Change ``find`` and ``rfind`` checks to use ``is not None``.
-5. Replace ``.len`` and ``.length`` with ``len(...)``.
-6. Replace ``b``, ``o`` and ``h`` aliases with ``bin``, ``oct`` and ``hex``.
-7. Prefer ``u``, ``i`` and ``f`` over ``uint``, ``int`` and ``float``.
-8. Prefer short endian names such as ``ule`` and ``ibe`` over ``uintle`` and
-   ``intbe``.
-9. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
+5. Replace removed aliases and prefer the current dtype names.
+6. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
    explicit factory methods.
-10. Add keywords to optional range and search arguments.
-11. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
-12. Replace any ``options.mxfp_overflow`` changes with explicit MXFP dtype
-    names, and any ``options.no_color`` changes with per-call ``pp(color=...)``
+7. Add keywords to optional range and search arguments.
+8. Rename ``Dtype.build`` / ``Dtype.parse``.
+9. Replace removed global options and modes with explicit dtypes or per-call
     arguments.
-13. Optionally update compatibility aliases such as ``tobytes`` and
+10. Optionally update compatibility aliases such as ``tobytes`` and
     ``readlist`` to their preferred underscored names.
