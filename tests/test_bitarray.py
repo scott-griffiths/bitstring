@@ -117,7 +117,7 @@ class TestAll:
         assert s.uint == 0
         s.u8 = 255
         assert s.uint == 255
-        assert s.len == 8
+        assert len(s) == 8
         with pytest.raises(bitstring.CreationError):
             s.uint = 256
         with pytest.raises(bitstring.CreationError):
@@ -130,7 +130,7 @@ class TestAll:
         s.append('0o1')
         assert s.bin == '111001'
         s.oct = '12345670'
-        assert s.length == 24
+        assert len(s) == 24
         assert s.bin == '001010011100101110111000'
         s = BitArray('0o123')
         assert s.oct == '123'
@@ -423,7 +423,7 @@ class TestClear:
     def test_clear(self):
         s = BitArray('0xfff')
         s.clear()
-        assert s.len == 0
+        assert len(s) == 0
 
 
 class TestCopy:
@@ -511,13 +511,13 @@ class TestNewProperties:
         a = BitArray.from_zeros(64)
         a.f = 1234.5
         assert a.float == 1234.5
-        assert a.len == 64
+        assert len(a) == 64
         a.u = 99
         assert a.uint == 99
-        assert a.len == 64
+        assert len(a) == 64
         a.i = -999
         assert a.int == -999
-        assert a.len == 64
+        assert len(a) == 64
         a.hex = 'feedbeef'
         assert a.hex == 'feedbeef'
         a.oct = '1234567'
@@ -548,7 +548,7 @@ class TestNewProperties:
     def test_setter_length_errors(self):
         a = BitArray()
         a.u8 = 255
-        assert a.len == 8
+        assert len(a) == 8
         with pytest.raises(ValueError):
             a.u8 = 256
         a.f32 = 10
@@ -565,7 +565,7 @@ class TestNewProperties:
         with pytest.raises(bitstring.CreationError):
             a.bin4 = '0xab'
         a.hex0 = ''
-        assert a.len == 0
+        assert len(a) == 0
         a.i8 = 127
         a.i8 = -128
         with pytest.raises(ValueError):

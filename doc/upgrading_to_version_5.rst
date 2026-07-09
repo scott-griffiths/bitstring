@@ -133,6 +133,21 @@ If you used stream searching to move the current position, use
     if r.find("0xff", start=r.pos) is not None:
         print(r.pos)
 
+Use len() for bitstring lengths
+===============================
+
+The ``Bits.len`` / ``Bits.length`` properties and
+``BitArray.len`` / ``BitArray.length`` properties have been removed. Use the
+built-in :func:`len` function instead.::
+
+    # bitstring 4
+    n = s.len
+    m = s.length
+
+    # bitstring 5
+    n = len(s)
+    m = len(s)
+
 Use full names for bin, oct and hex
 ===================================
 
@@ -421,14 +436,15 @@ For a large codebase, the least surprising order is:
 3. Update :func:`pack` call sites that relied on the old ``BitStream`` return
    value.
 4. Change ``find`` and ``rfind`` checks to use ``is not None``.
-5. Replace ``b``, ``o`` and ``h`` aliases with ``bin``, ``oct`` and ``hex``.
-6. Prefer ``u``, ``i`` and ``f`` over ``uint``, ``int`` and ``float``.
-7. Prefer short endian names such as ``ule`` and ``ibe`` over ``uintle`` and
+5. Replace ``.len`` and ``.length`` with ``len(...)``.
+6. Replace ``b``, ``o`` and ``h`` aliases with ``bin``, ``oct`` and ``hex``.
+7. Prefer ``u``, ``i`` and ``f`` over ``uint``, ``int`` and ``float``.
+8. Prefer short endian names such as ``ule`` and ``ibe`` over ``uintle`` and
    ``intbe``.
-8. Replace removed constructor forms with explicit factory methods.
-9. Add keywords to optional range and search arguments.
-10. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
-11. Replace any ``options.mxfp_overflow`` changes with explicit MXFP dtype
+9. Replace removed constructor forms with explicit factory methods.
+10. Add keywords to optional range and search arguments.
+11. Rename ``Dtype.build`` / ``Dtype.parse`` and remove any LSB0 usage.
+12. Replace any ``options.mxfp_overflow`` changes with explicit MXFP dtype
     names.
-12. Optionally update compatibility aliases such as ``tobytes`` and
+13. Optionally update compatibility aliases such as ``tobytes`` and
     ``readlist`` to their preferred underscored names.

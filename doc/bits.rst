@@ -452,16 +452,6 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 
     Property for the byte-wise little-endian floating point representation of the bitstring.
 
-.. attribute:: Bits.len
-    :type: int
-.. attribute:: Bits.length
-    :type: int
-    :noindex:
-
-    Read-only property that give the length of the bitstring in bits (:attr:`len` and ``length`` are equivalent).
-
-    Using the ``len()`` built-in function is preferred in almost all cases, but these properties are available for backward compatibility. The only occasion where the properties are needed is if a 32-bit build of Python is being used and you have a bitstring whose length doesn't fit in a 32-bit unsigned integer. In that case ``len(s)`` may fail with an :exc:`OverflowError`, whereas ``s.len`` will still work. With 64-bit Python the problem shouldn't occur unless you have more than a couple of exabytes of data!
-
 .. attribute:: Bits.oct
     :type: str
 

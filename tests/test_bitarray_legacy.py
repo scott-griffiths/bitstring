@@ -488,7 +488,7 @@ def test_file_properties_and_reader():
 def test_file_creation_with_length_and_offset():
     test_filename = os.path.join(THIS_DIR, 'test.m1v')
     s = Bits(filename=test_filename, length=32)
-    assert s.length == 32
+    assert len(s) == 32
     assert s.hex == '000001b3'
     assert s.bytes == b'\x00\x00\x01\xb3'
     assert s.uint == 0x1b3
@@ -535,8 +535,8 @@ def test_creation_errors_and_basic_conversions():
         s._setbin('0010020')
     with pytest.raises(bitstring.CreationError):
         s.hex = '0xabcdefg'
-    assert BitArray('').len == 0
-    assert BitArray('0x80').len == 8
+    assert len(BitArray('')) == 0
+    assert len(BitArray('0x80')) == 8
     with pytest.raises(bitstring.CreationError):
         BitArray(hex='0xffff', offset=-1)
     assert BitArray('0x10').uint == 16
@@ -682,7 +682,7 @@ def test_slice_and_join():
     s = BitArray(hex='0x123456')
     assert s[8:16].hex == '34'
     s = s[8:24]
-    assert s.len == 16
+    assert len(s) == 16
     assert s.hex == '3456'
     s = s[0:8]
     assert s.hex == '34'
@@ -1088,7 +1088,7 @@ def test_set_invert_and_logical_inplace():
         b.set(True, -9)
 
     a = BitArray('0b111000')
-    a.invert(range(a.len))
+    a.invert(range(len(a)))
     assert a == '0b000111'
     a.invert([0, 1, -1])
     assert a == '0b110110'
@@ -1288,8 +1288,8 @@ def test_pack_code_dicts_unicode_and_dict_reads():
     for key in bitstring.utils.PACK_CODE_SIZE:
         be = pack(bitstring.utils.REPLACEMENTS_BE[key], 0)
         le = pack(bitstring.utils.REPLACEMENTS_LE[key], 0)
-        assert be.len == bitstring.utils.PACK_CODE_SIZE[key] * 8
-        assert le.len == be.len
+        assert len(be) == bitstring.utils.PACK_CODE_SIZE[key] * 8
+        assert len(le) == len(be)
 
     a = Bits('uint:12=34')
     assert a.uint == 34
@@ -1362,9 +1362,9 @@ def test_multiplication_variants():
     assert one * 2 + 3 * zero + 2 * one * 2 == '0b110001111'
 
     a = BitArray(filename=os.path.join(THIS_DIR, 'test.m1v'))
-    length = a.len
+    length = len(a)
     a *= 3
-    assert a.len == 3 * length
+    assert len(a) == 3 * length
 
     with pytest.raises(ValueError):
         _ = one * -1
@@ -1527,14 +1527,14 @@ def test_set_reset_properties():
 
     s = BitArray(bin="000101101")
     assert s.bin == '000101101'
-    assert s.len == 9
+    assert len(s) == 9
     s.bin = '0'
     assert s.bin == '0'
-    assert s.len == 1
+    assert len(s) == 1
 
     s = BitArray(hex='0x000001b3')
     s.bin = ''
-    assert s.len == 0
+    assert len(s) == 0
     assert s.bin == ''
 
 
@@ -1566,7 +1566,7 @@ def test_join_more_cases():
     assert BitArray().join(bsl).hex == '00112233010c30c3'
 
     bsl = [BitArray(uint=j, length=12) for j in range(10) for _ in range(10)]
-    assert BitArray().join(bsl).length == 1200
+    assert len(BitArray().join(bsl)) == 1200
 
     with pytest.raises(TypeError):
         _ = BitArray().join([1, 2])
@@ -1687,7 +1687,7 @@ def test_struct_token_multiplicative_factors_and_errors():
     s = pack('<2h', 1, 2)
     assert s.unpack('<2h') == [1, 2]
     s = pack('<100q', *range(100))
-    assert s.len == 100 * 64
+    assert len(s) == 100 * 64
     assert s[44 * 64:45 * 64].ule == 44
 
     for f in ['>>q', '<>q', 'q>', '2q', 'q', '>-2q', '@a', '@L0B2h', '=L', '>int:8', '>q2']:
@@ -1951,17 +1951,17 @@ def test_rotation_file_and_errors():
         a.rol(-1)
 
     a = BitArray(filename=os.path.join(THIS_DIR, 'test.m1v'))
-    m = a.len
+    m = len(a)
     a.rol(1)
     assert a.startswith('0x000003')
-    assert a.len == m
+    assert len(a) == m
     assert a.endswith('0x0036e')
 
     a = BitArray(filename=os.path.join(THIS_DIR, 'test.m1v'))
-    m = a.len
+    m = len(a)
     a.ror(1)
     assert a.startswith('0x800000')
-    assert a.len == m
+    assert len(a) == m
     assert a.endswith('0x000db')
 
 
@@ -2130,7 +2130,7 @@ def test_insert_null_bits_and_self():
     assert s.bin == '100'
     s.insert(zero, 0)
     assert s.bin == '0100'
-    s.insert(one, s.len)
+    s.insert(one, len(s))
     assert s.bin == '01001'
     s.insert(s, 2)
     assert s.bin == '0101001001'
@@ -2632,7 +2632,7 @@ def test_bracket_tokens_and_packing_default_int_keyword():
     assert s.unpack('12')[0].uint == 100
     s = pack('int:oh_no_not_the_eyes=33', oh_no_not_the_eyes=17)
     assert s.int == 33
-    assert s.len == 17
+    assert len(s) == 17
 
 
 def test_hash_edge_cases_for_bits():

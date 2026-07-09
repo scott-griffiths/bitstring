@@ -71,8 +71,6 @@ class BitArray(Bits):
 
     [GENERATED_PROPERTY_DESCRIPTIONS]
 
-    len -- Length of the bitstring in bits.
-
     """
 
     __slots__ = ()

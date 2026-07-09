@@ -127,7 +127,6 @@ Many require the bitstring to be specific lengths.
 * :attr:`~Bits.i` / ``int`` -- Interpret as a two's complement signed integer.
 * :attr:`~Bits.ibe` -- Interpret as a big-endian signed integer.
 * :attr:`~Bits.ile` -- Interpret as a little-endian signed integer.
-* :attr:`~Bits.len` -- Length of the bitstring in bits.
 * :attr:`~Bits.oct` -- The bitstring as an octal string.
 * :attr:`~Bits.u` / ``uint`` -- Interpret as a two's complement unsigned integer.
 * :attr:`~Bits.ube` -- Interpret as a big-endian unsigned integer.

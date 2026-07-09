@@ -48,6 +48,14 @@ class TestCreation:
         assert bits == "0b101"
         assert bitarray == "0b1011"
 
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    @pytest.mark.parametrize("attribute", ["len", "length"])
+    def test_length_properties_removed(self, cls, attribute):
+        bits = cls("0b101")
+        assert len(bits) == 3
+        with pytest.raises(AttributeError):
+            getattr(bits, attribute)
+
     def test_tibs_conversion(self):
         tibs = Tibs.from_bin("101")
         bits = Bits.from_tibs(tibs)
@@ -146,7 +154,7 @@ class TestCreation:
 
     def test_creation_from_bytes(self):
         s = Bits(bytes=b"\xa0\xff")
-        assert (s.len, s.hex) == (16, "a0ff")
+        assert (len(s), s.hex) == (16, "a0ff")
         s = Bits(bytes=b"abc", length=0)
         assert s == ""
 
@@ -162,15 +170,15 @@ class TestCreation:
     def test_creation_from_data_with_offset(self):
         s1 = Bits(bytes=b"\x0b\x1c\x2f", offset=0, length=20)
         s2 = Bits(bytes=b"\xa0\xb1\xc2", offset=4)
-        assert (s2.len, s2.hex) == (20, "0b1c2")
-        assert (s1.len, s1.hex) == (20, "0b1c2")
+        assert (len(s2), s2.hex) == (20, "0b1c2")
+        assert (len(s1), s1.hex) == (20, "0b1c2")
         assert s1 == s2
 
     def test_creation_from_hex(self):
         s = Bits(hex="0xA0ff")
-        assert (s.len, s.hex) == (16, "a0ff")
+        assert (len(s), s.hex) == (16, "a0ff")
         s = Bits(hex="0x0x0X")
-        assert (s.length, s.hex) == (0, "")
+        assert (len(s), s.hex) == (0, "")
 
     def test_creation_from_hex_with_whitespace(self):
         s = Bits(hex="  \n0 X a  4e       \r3  \n")
@@ -187,7 +195,7 @@ class TestCreation:
 
     def test_creation_from_bin(self):
         s = Bits(bin="1010000011111111")
-        assert (s.length, s.hex) == (16, "a0ff")
+        assert (len(s), s.hex) == (16, "a0ff")
         s = Bits(bin="00")[:1]
         assert s.bin == "0"
         s = Bits(bin=" 0000 \n 0001\r ")
@@ -238,11 +246,11 @@ class TestCreation:
         s = Bits(i=12, length=7)
         assert s.int == 12
         s = Bits(i=-243, length=108)
-        assert (s.int, s.length) == (-243, 108)
+        assert (s.int, len(s)) == (-243, 108)
         for length in range(6, 10):
             for value in range(-17, 17):
                 s = Bits(i=value, length=length)
-                assert (s.int, s.length) == (value, length)
+                assert (s.int, len(s)) == (value, length)
         _ = Bits(i=10, length=8)
 
     @pytest.mark.parametrize("value, length", [[-1, 0], [12, None], [4, 3], [-5, 3]])
@@ -547,12 +555,12 @@ class TestInitFromArray:
     def test_empty_array(self, t):
         a = array.array(t)
         b = Bits.from_bytes(a.tobytes())
-        assert b.length == 0
+        assert len(b) == 0
 
     def test_single_byte(self):
         a = array.array("B", b"\xff")
         b = Bits.from_bytes(a.tobytes())
-        assert b.length == 8
+        assert len(b) == 8
         assert b.hex == "ff"
 
     def test_signed_short(self):
@@ -560,13 +568,13 @@ class TestInitFromArray:
         a.append(10)
         a.append(-1)
         b = Bits.from_bytes(a.tobytes())
-        assert b.length == 32
+        assert len(b) == 32
         assert b.bytes == a.tobytes()
 
     def test_double(self):
         a = array.array("d", [0.0, 1.0, 2.5])
         b = Bits.from_bytes(a.tobytes())
-        assert b.length == 192
+        assert len(b) == 192
         native_f64 = "fle:64" if sys.byteorder == "little" else "f:64"
         c, d, e = b.unpack(f"3*{native_f64}")
         assert (c, d, e) == (0.0, 1.0, 2.5)

@@ -70,8 +70,6 @@ class Bits:
 
     [GENERATED_PROPERTY_DESCRIPTIONS]
 
-    len -- Length of the bitstring in bits.
-
     """
     __slots__ = ('_bitstore', '_filename')
 
@@ -259,7 +257,7 @@ class Bits:
 
     def __len__(self) -> int:
         """Return the length of the bitstring in bits."""
-        return self._getlength()
+        return len(self._bitstore)
 
     def __bytes__(self) -> bytes:
         return self.to_bytes()
@@ -655,11 +653,19 @@ class Bits:
         string = ''.join(chr(0x100 + x) if x in Bits._unprintable else chr(x) for x in bytes_)
         return string
 
+    def _maybe_use_existing_length(self, length: int | None) -> int | None:
+        """Use the current bit length when resetting an already-initialised bitstring."""
+        if length is not None:
+            return length
+        try:
+            current_length = len(self._bitstore)
+        except AttributeError:
+            return None
+        return current_length or None
+
     def _setuint(self, uint: int, length: int | None = None) -> None:
         """Reset the bitstring to have given unsigned int interpretation."""
-        # If no length given, and we've previously been given a length, use it.
-        if length is None and hasattr(self, 'len') and len(self) != 0:
-            length = len(self)
+        length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a uint initialiser.")
         self._bitstore = helpers.int2bitstore(uint, length, False)
@@ -675,9 +681,7 @@ class Bits:
 
     def _setint(self, int_: int, length: int | None = None) -> None:
         """Reset the bitstring to have given signed int interpretation."""
-        # If no length given, and we've previously been given a length, use it.
-        if length is None and hasattr(self, 'len') and len(self) != 0:
-            length = len(self)
+        length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with an int initialiser.")
         self._bitstore = helpers.int2bitstore(int_, length, True)
@@ -693,8 +697,7 @@ class Bits:
 
     def _setuintbe(self, uintbe: int, length: int | None = None) -> None:
         """Set the bitstring to a big-endian unsigned int interpretation."""
-        if length is None and hasattr(self, 'len') and len(self) != 0:
-            length = len(self)
+        length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a ube initialiser.")
         self._bitstore = helpers.int2bitstore(uintbe, length, False)
@@ -710,8 +713,7 @@ class Bits:
 
     def _setintbe(self, intbe: int, length: int | None = None) -> None:
         """Set bitstring to a big-endian signed int interpretation."""
-        if length is None and hasattr(self, 'len') and len(self) != 0:
-            length = len(self)
+        length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with an ibe initialiser.")
         self._bitstore = helpers.int2bitstore(intbe, length, True)
@@ -726,8 +728,7 @@ class Bits:
         return self._readint(pos, length)
 
     def _setuintle(self, uintle: int, length: int | None = None) -> None:
-        if length is None and hasattr(self, 'len') and len(self) != 0:
-            length = len(self)
+        length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with a ule initialiser.")
         self._bitstore = helpers.intle2bitstore(uintle, length, False)
@@ -742,8 +743,7 @@ class Bits:
         return self._bitstore.getslice(pos, pos + length).byte_swapped().to_u()
 
     def _setintle(self, intle: int, length: int | None = None) -> None:
-        if length is None and hasattr(self, 'len') and len(self) != 0:
-            length = len(self)
+        length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
             raise bitstring.CreationError("A non-zero length must be specified with an ile initialiser.")
         self._bitstore = helpers.intle2bitstore(intle, length, True)
@@ -834,8 +834,7 @@ class Bits:
         return float(u) * 2 ** -6
 
     def _setfloat(self, f: float, length: int | None, big_endian: bool) -> None:
-        if length is None and hasattr(self, 'len') and len(self) != 0:
-            length = len(self)
+        length = self._maybe_use_existing_length(length)
         if length is None or length not in [16, 32, 64]:
             raise bitstring.CreationError("A length of 16, 32, or 64 must be specified with a float initialiser.")
         self._bitstore = helpers.float2bitstore(f, length, big_endian)
@@ -1073,10 +1072,6 @@ class Bits:
 
     def _readhex(self, pos: int, length: int) -> str:
         return self._bitstore.read_hex(pos, length)
-
-    def _getlength(self) -> int:
-        """Return the length of the bitstring in bits."""
-        return len(self._bitstore)
 
     def _copy(self: TBits) -> TBits:
         """Create and return a new copy of the Bits (always in memory)."""
@@ -1856,5 +1851,3 @@ class Bits:
     def to_tibs(self) -> Tibs:
         """Return the data as a tibs.Tibs instance."""
         return self._bitstore.tibs
-
-    len = length = property(_getlength, doc="The length of the bitstring in bits. Read only.")

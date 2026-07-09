@@ -37,6 +37,8 @@ Breaking changes:
 * Removed native-endian dtype names and struct-like native format prefixes.
   Use explicit big- or little-endian spellings instead of `une`, `ine`, `fne`,
   `bfloatne`, `uintne`, `intne`, `floatne`, `@` or `=`.
+* Removed the `Bits.len` / `Bits.length` and `BitArray.len` /
+  `BitArray.length` properties. Use the built-in `len(bits)` instead.
 * Positional integer construction has been removed. Use `Bits.from_zeros(100)`
   or `BitArray.from_zeros(100)` instead of `Bits(100)` or `BitArray(100)`.
 * Direct construction from arbitrary boolean iterables, file objects,
