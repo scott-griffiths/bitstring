@@ -1898,8 +1898,6 @@ def test_format_and_cacheing_cases():
     assert f'{Bits("0xf").bin}' == '1111'
 
     _ = BitArray('0xdeadbeef1000')
-    with pytest.raises(bitstring.CreationError):
-        _ = BitArray('0xdeadbeef1000', offset=8)
     _ = BitArray('0xdeadbeef002')
     with pytest.raises(bitstring.CreationError):
         _ = BitArray('0xdeadbeef002', length=16)

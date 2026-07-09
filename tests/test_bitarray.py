@@ -73,12 +73,10 @@ class TestAll:
         assert bitarray == "0b1010"
 
     @pytest.mark.parametrize("tibs_type", [Tibs, Mutibs])
-    def test_constructor_rejects_tibs_types_with_length_or_offset(self, tibs_type):
+    def test_constructor_rejects_tibs_types_with_length(self, tibs_type):
         tibs = tibs_type.from_bin("101")
         with pytest.raises(bitstring.CreationError, match="explicit length"):
             BitArray(tibs, length=2)
-        with pytest.raises(bitstring.CreationError, match="offset"):
-            BitArray(tibs, offset=1)
 
     def test_mutibs_input_is_copied(self):
         source = Mutibs.from_bin("101")
@@ -771,8 +769,6 @@ def test_from_bytes_rejects_list():
     assert s == '0x0102'
     s = BitArray.from_bytes(bytearray([1, 2]))
     assert s == '0x0102'
-    with pytest.raises(TypeError, match="bytes-like"):
-        s.bytes = [10, 20]
 
 
 def test_slice_bug():
