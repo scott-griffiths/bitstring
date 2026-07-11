@@ -109,10 +109,10 @@ class Reader:
                         f"{dtype.bits_per_item} so cannot be read from the {bitlength} bits that are available.")
                 dtype = Reader._dtype_with_length(dtype, items)
             if dtype.bitlength is not None:
-                value = dtype.read_fn(self._bits, self._pos)
+                value = dtype._read_fn(self._bits, self._pos)
                 self._pos += dtype.bitlength
             else:
-                value, self._pos = dtype.read_fn(self._bits, self._pos)
+                value, self._pos = dtype._read_fn(self._bits, self._pos)
             if self._pos > len(self._bits):
                 raise bitstring.ReadError(
                     f"Reading off end of bitstring with fmt '{fmt}'. Only {len(self._bits) - old_pos} bits available.")

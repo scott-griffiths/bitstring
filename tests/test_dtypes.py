@@ -1,5 +1,6 @@
 import pytest
 import sys
+import io
 import bitstring as bs
 from bitstring import Dtype
 from bitstring.dtypes import DtypeDefinition, dtype_register
@@ -92,6 +93,21 @@ class TestBasicFunctionality:
     def test_old_pack_unpack_names_removed(self):
         assert not hasattr(Dtype, 'build')
         assert not hasattr(Dtype, 'parse')
+
+    def test_dtype_callable_helpers_are_private(self):
+        dtype = Dtype('u8')
+        for attribute in ['get_fn', 'set_fn', 'read_fn']:
+            with pytest.raises(AttributeError):
+                getattr(dtype, attribute)
+        assert dtype.pack(3) == bs.Bits('0x03')
+        assert dtype.unpack('0x03') == 3
+        reader = bs.Reader(bs.Bits.from_string('0x0304'))
+        assert reader.read(dtype) == 3
+        array = bs.Array(dtype, [3, 4])
+        assert array.to_list() == [3, 4]
+        output = io.StringIO()
+        bs.Bits('0x03').pp('u8', stream=output, show_offset=False, color=False)
+        assert '3' in output.getvalue()
 
     def test_immutability(self):
         d = Dtype('e3m2mxfp')

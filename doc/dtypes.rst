@@ -64,11 +64,6 @@ Will be set to ``None`` for variable length dtypes.
 
 The number of bits for each unit of length. Usually 1, but equals 8 for `bytes` type.
 
-.. attribute:: Dtype.get_fn
-    :type: Callable
-
-A function to get the value of the data type.
-
 .. attribute:: Dtype.is_signed
     :type: bool
 
@@ -85,11 +80,6 @@ Will be set to ``None`` for variable length dtypes.
 
 A string giving the name of the data type.
 
-.. attribute:: Dtype.read_fn
-    :type: Callable
-
-A function to read the value of the data type.
-
 .. attribute:: Dtype.return_type
     :type: type
 
@@ -99,11 +89,6 @@ The type of the value returned by the `unpack` method, such as ``int``, ``float`
     :type: int | float | None
 
 The multiplicative scale applied when interpreting the data.
-
-.. attribute:: Dtype.set_fn
-    :type: Callable
-
-A function to set the value of the data type.
 
 .. attribute:: Dtype.variable_length
     :type: bool

@@ -248,8 +248,8 @@ class BitArray(Bits):
         except AttributeError:
             dtype = bitstring.dtypes.Dtype(attribute)
             x = object.__new__(Bits)
-            if (set_fn := dtype.set_fn) is None:
-                raise AttributeError(f"Cannot set attribute '{attribute}' as it does not have a set_fn.")
+            if (set_fn := dtype._set_fn) is None:
+                raise AttributeError(f"Cannot set attribute '{attribute}' as it cannot be set.")
             set_fn(x, value)
             if len(x) != dtype.bitlength:
                 raise CreationError(f"Can't initialise with value of length {len(x)} bits, "

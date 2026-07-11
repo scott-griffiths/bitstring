@@ -375,14 +375,11 @@ All properties are read-only.
 
 * :attr:`~Dtype.bitlength` -- The number of bits needed to represent a single instance of the data type.
 * :attr:`~Dtype.bits_per_item` -- The number of bits for each unit of length. Usually 1, but equals 8 for `bytes` type.
-* :attr:`~Dtype.get_fn` -- A function to get the value of the data type.
 * :attr:`~Dtype.is_signed` -- If True then the data type represents a signed quantity.
 * :attr:`~Dtype.length` -- The length of the data type in units of `bits_per_item`.
 * :attr:`~Dtype.name` -- A string giving the name of the data type.
-* :attr:`~Dtype.read_fn` -- A function to read the value of the data type.
 * :attr:`~Dtype.return_type` -- The type of the value returned by the `unpack` method.
 * :attr:`~Dtype.scale` -- The multiplicative scale applied when interpreting the data.
-* :attr:`~Dtype.set_fn` -- A function to set the value of the data type.
 * :attr:`~Dtype.variable_length` -- If True then the length of the data type varies, and shouldn't be specified.
 
 

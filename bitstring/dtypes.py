@@ -106,21 +106,6 @@ class Dtype:
         """If True then the data type represents a signed quantity."""
         return self._is_signed
 
-    @property
-    def set_fn(self) -> Callable | None:
-        """A function to set the value of the data type."""
-        return self._set_fn
-
-    @property
-    def get_fn(self) -> Callable:
-        """A function to get the value of the data type."""
-        return self._get_fn
-
-    @property
-    def read_fn(self) -> Callable:
-        """A function to read the value of the data type."""
-        return self._read_fn
-
     def _set_scale(self, value: None | float | int) -> None:
         self._scale = value
         if self._scale is None:

@@ -172,7 +172,7 @@ class Bits:
                     f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
             else:
                 try:
-                    Dtype(k, length).set_fn(self, v)
+                    Dtype(k, length)._set_fn(self, v)
                 except ValueError as e:
                     raise bitstring.CreationError(e)
         if immutable:
@@ -190,7 +190,7 @@ class Bits:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'.")
         if d.bitlength is not None and len(self) != d.bitlength:
             raise ValueError(f"bitstring length {len(self)} doesn't match length {d.bitlength} of property '{attribute}'.")
-        return d.get_fn(self)
+        return d._get_fn(self)
 
     def __iter__(self) -> Iterable[bool]:
         return iter(self._bitstore)
@@ -1090,7 +1090,7 @@ class Bits:
             raise bitstring.ReadError("Reading off the end of the data. "
                             f"Tried to read {dtype.bitlength} bits when only {len(self) - pos} available.")
         try:
-            val = dtype.read_fn(self, pos)
+            val = dtype._read_fn(self, pos)
             if isinstance(val, tuple):
                 return val
             else:
@@ -1233,10 +1233,10 @@ class Bits:
                         f" so cannot be created from the {bitlength} bits that are available for this stretchy token.")
                 dtype = Dtype(dtype.name, items)
             if dtype.bitlength is not None:
-                val = dtype.read_fn(self, pos)
+                val = dtype._read_fn(self, pos)
                 pos += dtype.bitlength
             else:
-                val, pos = dtype.read_fn(self, pos)
+                val, pos = dtype._read_fn(self, pos)
             if val is not None:  # Don't append pad tokens
                 vals.append(val)
         return vals, pos
@@ -1548,11 +1548,11 @@ class Bits:
     @staticmethod
     def _format_bits(bits: Bits, bits_per_group: int, sep: str, dtype: Dtype,
                      colour_start: str, colour_end: str, width: int | None=None) -> tuple[str, int]:
-        get_fn = dtype.get_fn
+        get_fn = dtype._get_fn
         if dtype.name == 'bytes':  # Special case for bytes to print one character each.
             get_fn = Bits._getbytes_printable
         if dtype.name == 'bool':  # Special case for bool to print '1' or '0' instead of `True` or `False`.
-            get_fn = dtype_register.get_dtype('u', bits_per_group).get_fn
+            get_fn = dtype_register.get_dtype('u', bits_per_group)._get_fn
         if bits_per_group == 0:
             x = str(get_fn(bits))
         else:

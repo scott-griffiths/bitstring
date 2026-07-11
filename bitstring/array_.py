@@ -222,7 +222,7 @@ class Array:
                 key += len(self)
             if key < 0 or key >= len(self):
                 raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
-            return self._dtype.read_fn(self.data, start=self.itemsize * key)
+            return self._dtype._read_fn(self.data, start=self.itemsize * key)
 
     @overload
     def __setitem__(self, key: slice, value: Iterable[ElementType]) -> None:
@@ -297,7 +297,7 @@ class Array:
 
     def to_list(self) -> list[ElementType]:
         itemsize = self.itemsize
-        return [self._dtype.read_fn(self.data, start=start)
+        return [self._dtype._read_fn(self.data, start=start)
                 for start in range(0, len(self.data) - itemsize + 1, itemsize)]
 
     def tolist(self) -> list[ElementType]:
@@ -530,7 +530,7 @@ class Array:
         start = 0
         itemsize = self.itemsize
         for _ in range(len(self)):
-            yield self._dtype.read_fn(self.data, start=start)
+            yield self._dtype._read_fn(self.data, start=start)
             start += itemsize
 
     def __copy__(self) -> Array:
@@ -552,7 +552,7 @@ class Array:
                 return op(a)
         itemsize = self.itemsize
         for i in range(len(self)):
-            v = self._dtype.read_fn(self.data, start=itemsize * i)
+            v = self._dtype._read_fn(self.data, start=itemsize * i)
             try:
                 new_data.append(new_array._create_element(partial_op(v)))
             except (CreationError, ZeroDivisionError, ValueError) as e:
@@ -574,7 +574,7 @@ class Array:
         msg = ''
         itemsize = self.itemsize
         for i in range(len(self)):
-            v = self._dtype.read_fn(self.data, start=itemsize * i)
+            v = self._dtype._read_fn(self.data, start=itemsize * i)
             try:
                 new_data.append(self._create_element(op(v, value)))
             except (CreationError, ZeroDivisionError, ValueError) as e:
@@ -623,8 +623,8 @@ class Array:
         itemsize = self.itemsize
         other_itemsize = other.itemsize
         for i in range(len(self)):
-            a = self._dtype.read_fn(self.data, start=itemsize * i)
-            b = other._dtype.read_fn(other.data, start=other_itemsize * i)
+            a = self._dtype._read_fn(self.data, start=itemsize * i)
+            b = other._dtype._read_fn(other.data, start=other_itemsize * i)
             try:
                 new_data.append(new_array._create_element(op(a, b)))
             except (CreationError, ValueError, ZeroDivisionError) as e:
