@@ -481,6 +481,12 @@ class BitArray(Bits):
         self._prepend(bs)
 
     def _append(self, bs: BitsType) -> None:
+        if isinstance(bs, Bits):
+            self._addright(bs)
+            return
+        if isinstance(bs, str):
+            self._addright_bitstore(helpers.str_to_bitstore(bs))
+            return
         self._addright(self._create_from_bitstype(bs))
 
     def _prepend(self, bs: BitsType) -> None:

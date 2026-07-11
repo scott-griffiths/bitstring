@@ -1133,12 +1133,16 @@ class Bits:
         except KeyError:
             raise ValueError(f"Can't parse token {name}:{length}")
 
+    def _addright_bitstore(self, bitstore: ConstBitStore | MutableBitStore, /) -> None:
+        if isinstance(self._bitstore, ConstBitStore):
+            self._bitstore = self._bitstore + bitstore
+        else:
+            self_bitstore = self._bitstore
+            self_bitstore += bitstore
+
     def _addright(self, bs: Bits, /) -> None:
         """Add a bitstring to the RHS of the current bitstring."""
-        if isinstance(self._bitstore, ConstBitStore):
-            self._bitstore = self._bitstore + bs._bitstore
-        else:
-            self._bitstore += bs._bitstore
+        self._addright_bitstore(bs._bitstore)
 
     def _addleft(self, bs: Bits, /) -> None:
         """Prepend a bitstring to the current bitstring."""
