@@ -267,6 +267,12 @@ class Bits:
         '0b011'
 
         """
+        if type(key) is int:
+            return bool(self._bitstore.getindex(key))
+        if type(key) is slice:
+            bs = super().__new__(self.__class__)
+            bs._bitstore = self._bitstore.getslice_withstep(key)
+            return bs
         if isinstance(key, numbers.Integral):
             return bool(self._bitstore.getindex(key))
         bs = super().__new__(self.__class__)
@@ -1197,10 +1203,11 @@ class Bits:
 
     def _validate_slice(self, start: int | None, end: int | None) -> tuple[int, int]:
         """Validate start and end and return them as positive bit positions."""
-        start = 0 if start is None else (start + len(self) if start < 0 else start)
-        end = len(self) if end is None else (end + len(self) if end < 0 else end)
-        if not 0 <= start <= end <= len(self):
-            raise ValueError(f"Invalid slice positions for bitstring length {len(self)}: start={start}, end={end}.")
+        length = len(self)
+        start = 0 if start is None else (start + length if start < 0 else start)
+        end = length if end is None else (end + length if end < 0 else end)
+        if not 0 <= start <= end <= length:
+            raise ValueError(f"Invalid slice positions for bitstring length {length}: start={start}, end={end}.")
         return start, end
 
     def unpack(self, fmt: str | list[str | int], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]:
@@ -1523,7 +1530,12 @@ class Bits:
         """
         prefix = self._create_from_bitstype(prefix)
         start, end = self._validate_slice(start, end)
-        return self._slice(start, start + len(prefix)) == prefix if end >= start + len(prefix) else False
+        prefix_len = len(prefix)
+        if end < start + prefix_len:
+            return False
+        if start == 0 and end == len(self):
+            return self._bitstore.startswith(prefix._bitstore)
+        return self._bitstore.getslice(start, start + prefix_len).startswith(prefix._bitstore)
 
     def endswith(self, suffix: BitsType, *, start: int | None = None, end: int | None = None) -> bool:
         """Return whether the current bitstring ends with suffix.
@@ -1535,7 +1547,12 @@ class Bits:
         """
         suffix = self._create_from_bitstype(suffix)
         start, end = self._validate_slice(start, end)
-        return self._slice(end - len(suffix), end) == suffix if start + len(suffix) <= end else False
+        suffix_len = len(suffix)
+        if start + suffix_len > end:
+            return False
+        if start == 0 and end == len(self):
+            return self._bitstore.endswith(suffix._bitstore)
+        return self._bitstore.getslice(end - suffix_len, end).endswith(suffix._bitstore)
 
     def all(self, value: Any, pos: Iterable[int] | None = None) -> bool:
         """Return True if one or many bits are all set to bool(value).
