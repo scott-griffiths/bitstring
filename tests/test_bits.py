@@ -144,9 +144,16 @@ class TestCreation:
             cls(bytes=b"\xff")
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_constructor_accepts_strict_bit_patterns(self, cls):
+        assert cls([1, 0, True, False]) == "0b1010"
+        assert cls((True, False, 1, 0)) == "0b1010"
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_ambiguous_constructor_sources_removed(self, cls, tmp_path):
+        with pytest.raises(TypeError, match="0, 1, True or False"):
+            cls([1, 2, 3])
         with pytest.raises(TypeError, match="from_bools"):
-            cls([1, 0, 1])
+            cls(range(2))
         with pytest.raises(TypeError, match="from_bytes"):
             cls(io.BytesIO(b"\xff"))
         with pytest.raises(TypeError, match="from_bytes"):
@@ -157,6 +164,48 @@ class TestCreation:
         with filename.open("rb") as f:
             with pytest.raises(TypeError, match="from_file"):
                 cls(f)
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_removed_constructor_sources_still_rejected_with_length(self, cls, tmp_path):
+        with pytest.raises(bitstring.CreationError, match="explicit length"):
+            cls([1, 0, 1], length=3)
+        with pytest.raises(TypeError, match="0, 1, True or False"):
+            cls([1, 2, 3], length=3)
+        with pytest.raises(TypeError, match="from_bytes"):
+            cls(io.BytesIO(b"\xff"), length=8)
+        with pytest.raises(TypeError, match="from_bytes"):
+            cls(array.array("B", [0xff]), length=8)
+
+        filename = tmp_path / "source.bin"
+        filename.write_bytes(b"\xff")
+        with filename.open("rb") as f:
+            with pytest.raises(TypeError, match="from_file"):
+                cls(f, length=8)
+
+    def test_removed_constructor_sources_still_promote_as_bits_type(self, tmp_path):
+        assert Bits("0b101").find([1, 0, 1]) == 0
+        assert Bits("0b101").find((1, 0, True)) == 0
+        assert Bits("0xa0").startswith(memoryview(b"\xa0"))
+        with pytest.raises(TypeError, match="from_bools"):
+            Bits("0b101").find(range(2))
+        with pytest.raises(TypeError, match="0, 1, True or False"):
+            Bits("0b101").find([1, 2])
+        with pytest.raises(TypeError, match="from_bytes"):
+            Bits("0xa0").startswith(io.BytesIO(b"\xa0"))
+        with pytest.raises(TypeError, match="from_bytes"):
+            Bits("0xff").endswith(array.array("B", [0xff]))
+
+        filename = tmp_path / "source.bin"
+        filename.write_bytes(b"\xa0")
+        with filename.open("rb") as f:
+            with pytest.raises(TypeError, match="from_file"):
+                Bits("0xa0ff").startswith(f)
+
+        bits = BitArray("0b0")
+        bits.append([1, 0, 1])
+        assert bits == "0b0101"
+        with pytest.raises(TypeError, match="0, 1, True or False"):
+            bits.append((1, 0, "bad"))
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_fromstring_compatibility_alias(self, cls):

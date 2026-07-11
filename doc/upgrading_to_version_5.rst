@@ -210,11 +210,11 @@ alias.::
     s = Bits.from_string("u16=1000")
     t = BitArray.from_string("0xff")
 
-Use the other factory methods for construction from values that are no longer
-accepted as the first positional argument::
+Lists and tuples containing only ``0``, ``1``, ``True`` and ``False`` can still
+be used as the first positional argument. Use the other factory methods for
+construction from values that are no longer accepted::
 
     # bitstring 4
-    a = Bits([1, 0, 1])
     f = open("data.bin", "rb")
     b = Bits(f)
     f.close()
@@ -222,7 +222,6 @@ accepted as the first positional argument::
     d = Bits(array_obj)
 
     # bitstring 5
-    a = Bits.from_bools([1, 0, 1])
     with open("data.bin", "rb") as f:
         b = Bits.from_file(f)
     c = Bits.from_bytes(b"\x01\x02")

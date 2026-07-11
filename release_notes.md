@@ -5,8 +5,7 @@
 
 This version completes the move to the `tibs` Rust library as the core bit storage
 and manipulation layer. The optional Rust backend introduced in 4.4 is now the only
-backend, which removes a lot of compatibility code and should allow more optimisation
-work from here.
+backend, which removes a lot of compatibility code and allows for more optimisations.
 
 Breaking changes:
 
@@ -47,6 +46,9 @@ Breaking changes:
 * Removed the `bytes=` keyword constructor and constructor-level `offset=`
   keyword. Use `Bits.from_bytes(...)` or `BitArray.from_bytes(...)` for byte
   data, including offset-based construction.
+* Tightened automatic bitstring promotion. Arbitrary iterables, file objects, `io.BytesIO`,
+  `array.array`, and truthy lists such as `[1, 2, 3]` now require explicit
+  `from_bools()`, `from_file()` or `from_bytes()` use.
 * `from_bytes()` and the `bytes` property setter no longer coerce lists of
   integers to byte data. Pass a `bytes`, `bytearray` or `memoryview` object.
 * Removed the `filename=` keyword constructor. Use `Bits.from_file(...)` or

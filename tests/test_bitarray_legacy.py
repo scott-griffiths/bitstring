@@ -1585,7 +1585,7 @@ def test_file_object_creation_and_copy():
     with open(filename, 'rb') as f:
         s = Bits.from_file(f, offset=32, length=12)
         assert s.uint == 352
-        t = Bits('0xf') + f
+        t = Bits('0xf') + Bits.from_file(f)
         assert t.startswith('0xf000001b3160')
         s2 = Bits.from_file(f)
         t2 = BitArray('0xc')

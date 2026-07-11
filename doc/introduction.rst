@@ -141,9 +141,10 @@ They raise a ``TypeError`` because an integer is more likely to be a mistaken va
 ``BitsType``
 ^^^^^^^^^^^^
 
-.. class:: BitsType(Bits | str | tibs.Tibs | tibs.Mutibs | Iterable[Any] | BinaryIO | bytearray | bytes | memoryview)
+.. class:: BitsType(Bits | str | tibs.Tibs | tibs.Mutibs | list[bool | int] | tuple[bool | int, ...] | bytearray | bytes | memoryview)
 
-    The ``BitsType`` type is used in the documentation in a number of places where an object of any type that can be promoted to a bitstring is acceptable.
+    The ``BitsType`` type is used in the documentation in a number of places where one of the listed forms can be promoted to a bitstring.
+    Lists and tuples are only promoted automatically when every item is one of ``0``, ``1``, ``True`` or ``False``.
 
     It's just a union of types rather than an actual class (though it's documented here as a class as I could find no alternative).
     It's not user accessible, but is just a shorthand way of saying any of the above types.

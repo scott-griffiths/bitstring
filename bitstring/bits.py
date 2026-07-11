@@ -7,7 +7,6 @@ import mmap
 import struct
 import array
 import io
-from collections import abc
 import functools
 from typing import Union, Any, BinaryIO, TextIO, overload, TypeVar
 from collections.abc import Iterable, Iterator
@@ -26,13 +25,22 @@ MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
 
-# Things that can be converted to Bits when a Bits type is needed
-BitsType = Union['Bits', str, Tibs, Mutibs, Iterable[Any], BinaryIO, bytearray, bytes, memoryview]
+# Lists and tuples are auto-promoted only when every item is one of these bit values.
+_BitPattern = list[bool | int] | tuple[bool | int, ...]
+
+# Things that can be converted to Bits when a Bits type is needed.
+BitsType = Union['Bits', str, Tibs, Mutibs, _BitPattern, bytearray, bytes, memoryview]
 
 TBits = TypeVar("TBits", bound='Bits')
 
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
+
+
+def _is_bit_pattern(value: Any) -> bool:
+    if not isinstance(value, (list, tuple)):
+        return False
+    return all(isinstance(x, bool) or (isinstance(x, numbers.Integral) and int(x) in (0, 1)) for x in value)
 
 
 class Bits:
@@ -76,7 +84,7 @@ class Bits:
     def __init__(self, auto: BitsType | None = None, /, length: int | None = None,
                  **kwargs) -> None:
         """Either specify an 'auto' initialiser:
-        A string of comma separated tokens, a bytes-like object or another bitstring.
+        A string of comma separated tokens, a bytes-like object, another bitstring or a list/tuple bit pattern.
 
         Or initialise via **kwargs with one (and only one) of:
         bin -- binary string representation, e.g. '0b001010'.
@@ -117,10 +125,15 @@ class Bits:
 
     @classmethod
     def _create_from_bitstype(cls: type[TBits], auto: BitsType, /) -> TBits:
+        """Promote an internal BitsType method argument to a bitstring.
+
+        List and tuple values are promoted only when they contain 0, 1, True
+        or False values. Other iterables require explicit factories.
+        """
         if isinstance(auto, cls):
             return auto
         b = super().__new__(cls)
-        b._setauto_no_length_or_offset(auto)
+        b._set_from_bitstype(auto)
         return b
 
     def _initialise(self, auto: Any, /, length: int | None, immutable: bool, **kwargs) -> None:
@@ -146,7 +159,12 @@ class Bits:
                     f"It's no longer possible to initialise a bitstring directly from an array object. "
                     f"Use '{self.__class__.__name__}.from_bytes(array_obj.tobytes())' instead."
                 )
-            if isinstance(auto, abc.Iterable) and not isinstance(auto, (str, Bits, Tibs, Mutibs, bytes, bytearray, memoryview)):
+            if isinstance(auto, (list, tuple)) and not _is_bit_pattern(auto):
+                raise TypeError(
+                    f"Only lists and tuples containing 0, 1, True or False can be used for automatic bit pattern "
+                    f"promotion. Use '{self.__class__.__name__}.from_bools(iterable)' for other iterables."
+                )
+            if isinstance(auto, Iterable) and not isinstance(auto, (str, Bits, Tibs, Mutibs, bytes, bytearray, memoryview, list, tuple)):
                 raise TypeError(
                     f"It's no longer possible to initialise a bitstring directly from an arbitrary iterable. "
                     f"Use '{self.__class__.__name__}.from_bools(iterable)' instead."
@@ -501,8 +519,8 @@ class Bits:
         """Reset the bitstring to an empty state."""
         self._bitstore.clear()
 
-    def _setauto_no_length_or_offset(self, s: BitsType, /) -> None:
-        """Set bitstring from a bitstring, file, array, iterable or string."""
+    def _set_from_bitstype(self, s: BitsType, /) -> None:
+        """Set bitstring from an internal BitsType promotion source."""
         if isinstance(s, str):
             self._bitstore = helpers.str_to_bitstore(s)
         elif isinstance(s, Bits):
@@ -514,13 +532,32 @@ class Bits:
         elif isinstance(s, (bytes, bytearray, memoryview)):
             self._bitstore = ConstBitStore.from_bytes(s)
         elif isinstance(s, io.BytesIO):
-            self._bitstore = ConstBitStore.from_bytes(s.getvalue())
+            raise TypeError(
+                f"Cannot promote a BytesIO object to a bitstring. "
+                f"Use '{self.__class__.__name__}.from_bytes(bytes_io.getvalue())' explicitly."
+            )
         elif isinstance(s, io.BufferedReader):
-            self._setfile(s.name)
+            raise TypeError(
+                f"Cannot promote a file object to a bitstring. "
+                f"Use '{self.__class__.__name__}.from_file(file)' explicitly."
+            )
         elif isinstance(s, array.array):
-            self._bitstore = ConstBitStore.from_bytes(s.tobytes())
-        elif isinstance(s, abc.Iterable):
+            raise TypeError(
+                f"Cannot promote an array object to a bitstring. "
+                f"Use '{self.__class__.__name__}.from_bytes(array_obj.tobytes())' explicitly."
+            )
+        elif _is_bit_pattern(s):
             self._bitstore = ConstBitStore.from_bools(s)
+        elif isinstance(s, (list, tuple)):
+            raise TypeError(
+                f"Only lists and tuples containing 0, 1, True or False can be promoted to a bitstring. "
+                f"Use '{self.__class__.__name__}.from_bools(iterable)' for other iterables."
+            )
+        elif isinstance(s, Iterable):
+            raise TypeError(
+                f"Only lists and tuples containing 0, 1, True or False can be promoted to a bitstring. "
+                f"Use '{self.__class__.__name__}.from_bools(iterable)' explicitly for other iterables."
+            )
         elif isinstance(s, numbers.Integral):
             raise TypeError(
                 f"It's no longer possible to initialise a bitstring from an integer. "
@@ -531,15 +568,12 @@ class Bits:
             raise TypeError(f"Cannot initialise bitstring from type '{type(s)}'.")
 
     def _setauto(self, s: BitsType, length: int | None, /) -> None:
-        """Set bitstring from a bitstring, file, array, iterable or string."""
-        # As s can be so many different things it's important to do the checks
-        # in the correct order, as some types are also other allowed types.
+        """Set a public constructor auto value, after removed forms were rejected."""
         if length is None:
-            self._setauto_no_length_or_offset(s)
+            self._set_from_bitstype(s)
             return
 
-        if isinstance(s, (str, Bits, bytes, bytearray, memoryview, io.BytesIO, io.BufferedReader,
-                          array.array, abc.Iterable)):
+        if isinstance(s, (str, Bits, Tibs, Mutibs, bytes, bytearray, memoryview, list, tuple)):
             raise bitstring.CreationError(f"Cannot initialise bitstring from type '{type(s)}' when using an explicit length.")
         raise TypeError(f"Cannot initialise bitstring from type '{type(s)}'.")
 

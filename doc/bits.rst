@@ -16,6 +16,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
     Specifying ``length`` is mandatory when using the various integer initialisers.
     It must be large enough that a bitstring can contain the integer in ``length`` bits.
     It must also be specified for the float initialisers (the only valid values are 16, 32 and 64).
+    Lists and tuples whose items are only ``0``, ``1``, ``True`` or ``False`` are interpreted as a bit pattern.
     For construction from bytes or files, including construction with offsets or truncation, use :meth:`Bits.from_bytes` or :meth:`Bits.from_file`. ::
 
            >>> s1 = Bits(hex='0x934')
@@ -26,6 +27,8 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
            >>> s6 = Bits.from_bytes(b'\x93@', length=12)
            >>> s1 == s2 == s3 == s4 == s5 == s6
            True
+           >>> Bits([1, 0, True, False])
+           Bits('0b1010')
 
     See also :ref:`auto_init`, which describes the string-based auto initialiser. ::
 
@@ -33,6 +36,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
         >>> t = Bits('0o755, ue=12, i:3=-1')
 
     In the methods below we use ``BitsType`` to indicate that values can be promoted to bitstrings where needed.
+    Use :meth:`Bits.from_bools` explicitly for other iterable objects.
 
 ----
 
