@@ -1,7 +1,8 @@
 import pytest
 import sys
 import bitstring as bs
-from bitstring import Dtype, DtypeDefinition
+from bitstring import Dtype
+from bitstring.dtypes import DtypeDefinition, dtype_register
 
 sys.path.insert(0, '..')
 
@@ -142,7 +143,7 @@ class TestBasicFunctionality:
 class TestChangingTheRegister:
 
     def test_retrieving_meta_dtype(self):
-        r = bs.dtype_register
+        r = dtype_register
         u = r['uint']
         u2 = r['u']
         assert u == u2
@@ -150,7 +151,7 @@ class TestChangingTheRegister:
             i = r['integer']
 
     def test_removing_type(self):
-        r = bs.dtype_register
+        r = dtype_register
         bfloat = r['bfloat']
         del r['bfloat']
         with pytest.raises(KeyError):
@@ -163,7 +164,7 @@ class TestChangingTheRegister:
 class TestCreatingNewDtypes:
 
     def test_new_alias(self):
-        bs.dtype_register.add_dtype_alias('bin', 'cat')
+        dtype_register.add_dtype_alias('bin', 'cat')
         a = bs.BitArray('0b110110')
         r = bs.Reader(a)
         assert a.cat == '110110'
@@ -173,7 +174,7 @@ class TestCreatingNewDtypes:
 
     def test_new_type(self):
         md = DtypeDefinition('uint_r', bs.Bits._setuint, bs.Bits._getuint)
-        bs.dtype_register.add_dtype(md)
+        dtype_register.add_dtype(md)
         a = bs.BitArray('0xf')
         assert a.uint_r == 15
         a.uint_r = 1
@@ -185,7 +186,7 @@ class TestCreatingNewDtypes:
         def get_fn(bs):
             return bs.count(1)
         md = DtypeDefinition('counter', None, get_fn)
-        bs.dtype_register.add_dtype(md)
+        dtype_register.add_dtype(md)
         a = bs.BitArray('0x010f')
         r = bs.Reader(a)
         assert a.counter == 5
