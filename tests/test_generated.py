@@ -37,6 +37,50 @@ def test_mutable_bitstore_eq_non_bitstore_returns_false() -> None:
     assert (bs == 1) is False
 
 
+def test_from_bytes_no_truncation_uses_tibs_fast_path(monkeypatch) -> None:
+    calls = []
+    real_tibs = bitstring.bitstore.Tibs
+    real_mutibs = bitstring.bitstore.Mutibs
+
+    class RecordingTibs:
+        from_zeros = staticmethod(real_tibs.from_zeros)
+
+        @staticmethod
+        def from_bytes(data, /, offset=None, length=None):
+            calls.append(("Tibs", offset, length))
+            return real_tibs.from_bytes(data, offset=offset, length=length)
+
+    class RecordingMutibs:
+        @staticmethod
+        def from_bytes(data, /, offset=None, length=None):
+            calls.append(("Mutibs", offset, length))
+            return real_mutibs.from_bytes(data, offset=offset, length=length)
+
+    monkeypatch.setattr(bitstring.bitstore, "Tibs", RecordingTibs)
+    monkeypatch.setattr(bitstring.bitstore, "Mutibs", RecordingMutibs)
+
+    assert bitstring.Bits.from_bytes(b"\x12\x34") == "0x1234"
+    assert bitstring.Bits.from_bytes(b"\x12\x34", offset=0) == "0x1234"
+    assert bitstring.BitArray.from_bytes(b"\x12\x34") == "0x1234"
+    assert bitstring.BitArray.from_bytes(b"\x12\x34", offset=0) == "0x1234"
+    assert calls == [
+        ("Tibs", None, None),
+        ("Tibs", None, None),
+        ("Mutibs", None, None),
+        ("Mutibs", None, None),
+    ]
+
+    calls.clear()
+    assert bitstring.Bits.from_bytes(b"\x12\x34", offset=4) == "0x234"
+    assert bitstring.BitArray.from_bytes(b"\x12\x34", offset=4) == "0x234"
+    assert calls == [("Tibs", 4, 12), ("Mutibs", 4, None)]
+
+    calls.clear()
+    assert bitstring.Bits.from_bytes(b"\x12\x34", offset=0, length=8) == "0x12"
+    assert bitstring.BitArray.from_bytes(b"\x12\x34", offset=0, length=8) == "0x12"
+    assert calls == [("Tibs", 0, 8), ("Mutibs", 0, 8)]
+
+
 def test_dtype_scaled_instances_compare_distinct() -> None:
     from bitstring.dtypes import Dtype
 

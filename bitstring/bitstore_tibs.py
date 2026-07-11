@@ -40,6 +40,12 @@ def _to_i(tibs: Tibs | Mutibs) -> int:
     return _fallback_to_i(tibs)
 
 
+def _normalise_byte_import_args(offset: int | None, length: int | None) -> tuple[int | None, int | None]:
+    if length is None and isinstance(offset, int) and offset == 0:
+        offset = None
+    return offset, length
+
+
 class ConstBitStore:
     """A light wrapper around tibs.Tibs"""
 
@@ -70,6 +76,7 @@ class ConstBitStore:
     def from_bytes(cls, b: bytes | bytearray | memoryview, /, offset: int | None = None,
                    length: int | None = None) -> ConstBitStore:
         x = super().__new__(cls)
+        offset, length = _normalise_byte_import_args(offset, length)
         x.tibs = Tibs.from_bytes(b, offset=offset, length=length)
         return x
 
@@ -257,6 +264,7 @@ class MutableBitStore:
     def from_bytes(cls, b: bytes | bytearray | memoryview, /, offset: int | None = None,
                    length: int | None = None) -> MutableBitStore:
         x = super().__new__(cls)
+        offset, length = _normalise_byte_import_args(offset, length)
         x.tibs = Mutibs.from_bytes(b, offset=offset, length=length)
         return x
 

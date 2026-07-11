@@ -637,11 +637,11 @@ class Bits:
 
     def _setbytes(self, data: bytearray | bytes | memoryview, length:None = None) -> None:
         """Set the data from a bytes or bytearray object."""
-        self._bitstore = ConstBitStore.from_bytes(bytes(data))
+        self._bitstore = ConstBitStore.from_bytes(data)
 
     def _setbytes_with_truncation(self, data: bytearray | bytes | memoryview, length: int | None = None, offset: int | None = None) -> None:
         """Set the data from a bytes or bytearray object, with optional offset and length truncations."""
-        if offset is None and length is None:
+        if length is None and (offset is None or (isinstance(offset, int) and offset == 0)):
             return self._setbytes(data)
         if offset is None:
             offset = 0
