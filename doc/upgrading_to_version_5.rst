@@ -7,7 +7,10 @@ Upgrading to version 5
 ######################
 
 This guide is for code being moved from bitstring 4.4.x to bitstring 5.x.
-It focuses on changes that may need source updates.
+
+If your project is using bitstring and performance isn't an
+issue then the best course of action may be to ignore version 5 and pin your bitstring
+dependency to <5.
 
 The main change in version 5 is that bitstrings no longer store a stream
 position. The bit data is represented by :class:`Bits` or :class:`BitArray`,
@@ -23,7 +26,8 @@ bitstring and Python versions, update both together, for example::
     dependencies = ["bitstring>=5"]
 
 The ``bitarray`` dependency has also been removed. The core bit storage is now
-provided by the required ``tibs`` dependency.
+provided by the required ``tibs`` dependency. If there are problems downloading, building or
+installing tibs then please file a bug report with either project.
 
 Replace stream classes with Reader
 ==================================
@@ -70,8 +74,8 @@ Operations that used the stream's current position should now pass
     r.bits.insert(inserted, r.pos)
     r.pos += len(inserted)
 
-``Reader.pos`` is deliberately lax. Assigning to :attr:`~Reader.pos`,
-:attr:`~Reader.bitpos` or :attr:`~Reader.bytepos` stores the integer value
+``Reader.pos`` is deliberately lax. Assigning to :attr:`~Reader.pos`
+or :attr:`~Reader.bytepos` stores the integer value
 without checking it against the current length. A later read or search will
 raise an error if the position cannot be used.
 
@@ -133,53 +137,6 @@ If you used stream searching to move the current position, use
     if r.find("0xff", start=r.pos) is not None:
         print(r.pos)
 
-Update names and aliases
-========================
-
-Version 5 removes a few legacy aliases and makes the short dtype names the
-canonical spelling.
-
-.. list-table::
-   :header-rows: 1
-
-   * - Version 4 spelling
-     - Version 5 spelling
-   * - ``s.len`` or ``s.length``
-     - ``len(s)``
-   * - ``s.b``, ``s.o`` or ``s.h``
-     - ``s.bin``, ``s.oct`` or ``s.hex``
-   * - ``b12``, ``o12`` or ``h12`` format tokens
-     - ``bin12``, ``oct12`` or ``hex12``
-   * - ``uint``, ``int`` or ``float``
-     - Prefer ``u``, ``i`` or ``f``. The long names remain compatibility
-       aliases.
-   * - ``uintbe``, ``uintle``, ``intbe``, ``intle`` or ``floatle``
-     - Prefer ``ube``, ``ule``, ``ibe``, ``ile`` or ``fle``.
-   * - Native-endian names such as ``uintne``, ``une``, ``floatne`` or ``fne``
-     - Use explicit big- or little-endian spellings such as ``ube``, ``ule``,
-       ``f`` or ``fle``.
-   * - Struct-style native prefixes ``'='`` or ``'@'``
-     - Use ``'>'`` or ``'<'``.
-
-The short numeric names ``u``, ``i`` and ``f`` remain valid. The plain ``f``
-dtype is already big-endian, so both ``fbe`` and ``floatbe`` are compatibility
-aliases for ``f``.
-
-:class:`Dtype` stringification, :class:`Array` representations and
-pretty-print headers use the preferred names::
-
-    # bitstring 4
-    n = s.length
-    data = s.h
-    bits = s.unpack("b12, uint8")
-    value = r.read("floatle32")
-
-    # bitstring 5
-    n = len(s)
-    data = s.hex
-    bits = s.unpack("bin12, u8")
-    value = r.read("fle32")
-
 Use explicit construction helpers
 =================================
 
@@ -237,6 +194,18 @@ have also been removed. Use :meth:`Bits.from_bytes` or
     # bitstring 5
     s = Bits.from_bytes(b"\x0b\x1c\x2f", offset=4, length=12)
 
+The ``filename=`` keyword constructor has been removed. Use
+:meth:`Bits.from_file` or :meth:`BitArray.from_file` instead::
+
+    # bitstring 4
+    s = Bits(filename="data.bin", offset=8, length=32)
+
+    # bitstring 5
+    s = Bits.from_file("data.bin", offset=8, length=32)
+
+Replace bitarray compatibility
+==============================
+
 If you used the external ``bitarray`` package, convert explicitly. For exact
 bit lengths, :meth:`Bits.from_bools` is the most direct replacement. For
 byte-oriented data, use :meth:`Bits.from_bytes` with an explicit length::
@@ -250,14 +219,65 @@ bitstring :class:`BitArray` instead. If you still need an external
 ``bitarray`` object, create it explicitly using that package's API, for example
 from the bitstring as an iterable of booleans or from :meth:`Bits.to_bytes`.
 
-The ``filename=`` keyword constructor has been removed. Use
-:meth:`Bits.from_file` or :meth:`BitArray.from_file` instead::
+Update names and dtype spellings
+================================
+
+Version 5 removes a few legacy aliases and makes the short dtype names the
+canonical spelling.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Version 4 spelling
+     - Version 5 spelling
+   * - ``s.len`` or ``s.length``
+     - ``len(s)``
+   * - ``s.b``, ``s.o`` or ``s.h``
+     - ``s.bin``, ``s.oct`` or ``s.hex``
+   * - ``b12``, ``o12`` or ``h12`` format tokens
+     - ``bin12``, ``oct12`` or ``hex12``
+   * - ``uint``, ``int`` or ``float``
+     - Prefer ``u``, ``i`` or ``f``. The long names remain compatibility
+       aliases.
+   * - ``uintbe``, ``uintle``, ``intbe``, ``intle`` or ``floatle``
+     - Prefer ``ube``, ``ule``, ``ibe``, ``ile`` or ``fle``.
+   * - Native-endian names such as ``uintne``, ``une``, ``floatne`` or ``fne``
+     - Use explicit big- or little-endian spellings such as ``ube``, ``ule``,
+       ``f`` or ``fle``.
+   * - Struct-style native prefixes ``'='`` or ``'@'``
+     - Use ``'>'`` or ``'<'``.
+
+The short numeric names ``u``, ``i`` and ``f`` remain valid. The plain ``f``
+dtype is already big-endian, so both ``fbe`` and ``floatbe`` are compatibility
+aliases for ``f``.
+
+:class:`Dtype` stringification, :class:`Array` representations and
+pretty-print headers use the preferred names::
 
     # bitstring 4
-    s = Bits(filename="data.bin", offset=8, length=32)
+    n = s.length
+    data = s.h
+    bits = s.unpack("b12, uint8")
+    value = r.read("floatle32")
 
     # bitstring 5
-    s = Bits.from_file("data.bin", offset=8, length=32)
+    n = len(s)
+    data = s.hex
+    bits = s.unpack("bin12, u8")
+    value = r.read("fle32")
+
+``Dtype.build`` and ``Dtype.parse`` have been renamed to
+:meth:`Dtype.pack` and :meth:`Dtype.unpack`::
+
+    # bitstring 4
+    d = Dtype("uint8")
+    bits = d.build(42)
+    value = d.parse(bits)
+
+    # bitstring 5
+    d = Dtype("u8")
+    bits = d.pack(42)
+    value = d.unpack(bits)
 
 Make optional range arguments keyword-only
 ==========================================
@@ -286,22 +306,6 @@ The affected methods are :meth:`Bits.cut`, :meth:`Bits.find`,
 :meth:`Bits.findall`, :meth:`Bits.rfind`, :meth:`Bits.split`,
 :meth:`BitArray.replace`, :meth:`BitArray.reverse`, :meth:`BitArray.rol` and
 :meth:`BitArray.ror`.
-
-Rename Dtype build/parse
-========================
-
-``Dtype.build`` and ``Dtype.parse`` have been renamed to
-:meth:`Dtype.pack` and :meth:`Dtype.unpack`::
-
-    # bitstring 4
-    d = Dtype("uint8")
-    bits = d.build(42)
-    value = d.parse(bits)
-
-    # bitstring 5
-    d = Dtype("u8")
-    bits = d.pack(42)
-    value = d.unpack(bits)
 
 Replace global options and modes
 ================================
@@ -396,13 +400,15 @@ For a large codebase, the least surprising order is:
    stream-style searching.
 3. Update :func:`pack` call sites that relied on the old ``BitStream`` return
    value.
-4. Change ``find`` and ``rfind`` checks to use ``is not None``.
-5. Replace removed aliases and prefer the current dtype names.
-6. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
+4. Change ``find`` and ``rfind`` checks to use ``is not None``, and add
+   keywords to optional range and search arguments.
+5. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
    explicit factory methods.
-7. Add keywords to optional range and search arguments.
-8. Rename ``Dtype.build`` / ``Dtype.parse``.
-9. Replace removed global options and modes with explicit dtypes or per-call
-    arguments.
+6. Replace direct ``bitarray`` compatibility with explicit conversion.
+7. Replace removed aliases, prefer current dtype names, and rename
+   ``Dtype.build`` / ``Dtype.parse``.
+8. Replace removed global options and modes with explicit dtypes or per-call
+   arguments.
+9. Remove any remaining ``python -m bitstring`` usage.
 10. Optionally update compatibility aliases such as ``tobytes`` and
     ``readlist`` to their preferred underscored names.
