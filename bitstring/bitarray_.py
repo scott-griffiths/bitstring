@@ -393,8 +393,8 @@ class BitArray(Bits):
         return self._bitstore.replace(old._bitstore, new._bitstore, start=start, end=end,
                                       count=count, bytealigned=bytealigned)
 
-    def replace(self, old: BitsType, new: BitsType, *, start: int | None = None, end: int | None = None,
-                count: int | None = None, bytealigned: bool = False) -> int:
+    def replace(self, old: BitsType, new: BitsType, start: int | None = None, end: int | None = None,
+                count: int | None = None, *, bytealigned: bool = False) -> int:
         """Replace all occurrences of old with new in place.
 
         Returns number of replacements made.
@@ -501,7 +501,7 @@ class BitArray(Bits):
             return pos
         return tuple(pos)
 
-    def reverse(self, *, start: int | None = None, end: int | None = None) -> None:
+    def reverse(self, start: int | None = None, end: int | None = None) -> None:
         """Reverse bits in-place.
 
         start -- Position of first bit to reverse. Defaults to 0.
@@ -552,7 +552,7 @@ class BitArray(Bits):
             return
         self._bitstore.invert(BitArray._normalise_positions(pos))
 
-    def ror(self, bits: int, *, start: int | None = None, end: int | None = None) -> None:
+    def ror(self, bits: int, start: int | None = None, end: int | None = None) -> None:
         """Rotate bits to the right in-place.
 
         bits -- The number of bits to rotate by.
@@ -575,7 +575,7 @@ class BitArray(Bits):
             return
         self._bitstore.rotate_right(bits, start=start, end=end)
 
-    def rol(self, bits: int, *, start: int | None = None, end: int | None = None) -> None:
+    def rol(self, bits: int, start: int | None = None, end: int | None = None) -> None:
         """Rotate bits to the left in-place.
 
         bits -- The number of bits to rotate by.

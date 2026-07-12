@@ -414,23 +414,38 @@ class TestInitialisation:
         tp = list(t.findall("0b1"))
         assert tp == [0]
 
+    def test_optional_range_arguments_can_be_positional(self):
+        s = BitArray("0b101001")
+        assert s.find("0b1", 1) == 2
+        assert s.find("0b1", 1, 3) == 2
+        assert s.rfind("0b1", 0, 4) == 2
+        assert list(s.findall("0b1", 1, 6, 2)) == [2, 5]
+        assert [chunk.bin for chunk in s.cut(2, 1, 5, 2)] == ["01", "00"]
+        assert [chunk.bin for chunk in s.split("0b0", 1, 5, 2)] == ["", "01"]
+        assert s.startswith("0b10", 0, 2)
+        assert s.endswith("0b00", 1, 5)
+
+        t = BitArray("0b101001")
+        assert t.replace("0b0", "0b11", 1, 5, 2) == 2
+
+        u = BitArray("0b1000")
+        u.reverse(0, 3)
+        assert u.bin == "0010"
+        u.rol(1, 0, 4)
+        assert u.bin == "0100"
+        u.ror(1, 0, 4)
+        assert u.bin == "0010"
+
     @pytest.mark.parametrize(
         "call",
         [
-            lambda s: s.find("0b1", 0),
-            lambda s: s.rfind("0b1", 0),
-            lambda s: s.findall("0b1", 0),
-            lambda s: s.cut(1, 0),
-            lambda s: s.split("0b1", 0),
-            lambda s: s.startswith("0b1", 0),
-            lambda s: s.endswith("0b1", 0),
-            lambda s: s.replace("0b1", "0b0", 0),
-            lambda s: s.reverse(0, 2),
-            lambda s: s.rol(1, 0, 2),
-            lambda s: s.ror(1, 0, 2),
+            lambda s: s.find("0b1", 0, None, False),
+            lambda s: list(s.findall("0b1", 0, None, None, False)),
+            lambda s: list(s.split("0b1", 0, None, None, False)),
+            lambda s: s.replace("0b1", "0b0", 0, None, None, False),
         ],
     )
-    def test_optional_range_arguments_are_keyword_only(self, call):
+    def test_bytealigned_argument_is_keyword_only(self, call):
         with pytest.raises(TypeError):
             call(BitArray("0b1010"))
 

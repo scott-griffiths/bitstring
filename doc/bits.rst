@@ -97,7 +97,7 @@ Methods
     Note that if the bitstring is very sparse, as in the example here, it could be quicker to find and count all the set bits with something like ``len(list(s.findall('0b1')))``. For bitstrings with more entropy the ``count`` method will be much quicker than finding.
 
 
-.. method:: Bits.cut(bits: int, *, start: int | None = None, end: int | None = None, count: int | None = None) -> Iterator[Bits]
+.. method:: Bits.cut(bits: int, start: int | None = None, end: int | None = None, count: int | None = None) -> Iterator[Bits]
 
     Returns a generator for slices of the bitstring of length *bits*.
 
@@ -110,7 +110,7 @@ Methods
         0x43211234
 
 
-.. method:: Bits.endswith(bs: BitsType, *, start: int | None = None, end: int | None = None) -> bool
+.. method:: Bits.endswith(bs: BitsType, start: int | None = None, end: int | None = None) -> bool
 
     Returns ``True`` if the bitstring ends with the sub-string *bs*, otherwise returns ``False``.
 
@@ -123,7 +123,7 @@ Methods
         False
 
 
-.. method:: Bits.find(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool = False) -> int | None
+.. method:: Bits.find(bs: BitsType, start: int | None = None, end: int | None = None, *, bytealigned: bool = False) -> int | None
 
     Searches for *bs* in the current bitstring and returns the start position if found, otherwise it returns ``None``.
 
@@ -136,7 +136,7 @@ Methods
         16
 
 
-.. method:: Bits.findall(bs: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool = False) -> Iterable[int]
+.. method:: Bits.findall(bs: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, *, bytealigned: bool = False) -> Iterable[int]
 
     Searches for all occurrences of *bs* (even overlapping ones) and returns a generator of their bit positions.
 
@@ -263,7 +263,7 @@ Methods
     By default the output will have colours added in the terminal unless the ``NO_COLOR`` environment variable is set. Pass ``color=False`` to disable colours for a call, or ``color=True`` to force them on.
 
 
-.. method:: Bits.rfind(bs: BitsType, *, start: int | None = None, end: int | None = None, bytealigned: bool = False) -> int | None
+.. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, *, bytealigned: bool = False) -> int | None
 
     Searches backwards for *bs* in the current bitstring and returns the start position if found, otherwise it returns ``None``.
 
@@ -279,7 +279,7 @@ Methods
         >>> s.rfind('0b100', end=17)
         12
 
-.. method:: Bits.split(delimiter: BitsType, *, start: int | None = None, end: int | None = None, count: int | None = None, bytealigned: bool = False) -> Iterable[Bits]
+.. method:: Bits.split(delimiter: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, *, bytealigned: bool = False) -> Iterable[Bits]
 
     Splits the bitstring into sections that start with *delimiter*. Returns a generator for bitstring objects.
 
@@ -291,7 +291,7 @@ Methods
         >>> [bs.bin for bs in s.split('0x4')]
         ['', '01000', '01001000', '0100011']
 
-.. method:: Bits.startswith(bs: BitsType, *, start: int | None = None, end: int | None = None) -> bool
+.. method:: Bits.startswith(bs: BitsType, start: int | None = None, end: int | None = None) -> bool
 
     Returns ``True`` if the bitstring starts with the sub-string *bs*, otherwise returns ``False``.
 

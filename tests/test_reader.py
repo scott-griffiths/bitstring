@@ -144,15 +144,23 @@ def test_find_and_rfind_update_pos_only_on_success():
     assert r.pos == 9
 
 
+def test_reader_optional_search_arguments_can_be_positional():
+    r = Reader(Bits("0b1010"))
+    assert r.find("0b1", 1) == 2
+    assert r.pos == 2
+    assert r.rfind("0b1", 0, 2) == 0
+    assert r.pos == 0
+
+
 @pytest.mark.parametrize(
     "call",
     [
-        lambda r: r.find("0b1", 0),
-        lambda r: r.rfind("0b1", 0),
+        lambda r: r.find("0b1", 0, None, False),
+        lambda r: r.rfind("0b1", 0, None, False),
         lambda r: r.readto("0b1", False),
     ],
 )
-def test_reader_optional_search_arguments_are_keyword_only(call):
+def test_reader_bytealigned_argument_is_keyword_only(call):
     with pytest.raises(TypeError):
         call(Reader(Bits("0b1010")))
 

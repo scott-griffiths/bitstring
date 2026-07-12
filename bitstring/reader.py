@@ -205,7 +205,7 @@ class Reader:
         """Compatibility alias for :meth:`byte_align`."""
         return self.byte_align()
 
-    def find(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
+    def find(self, bs: BitsType, /, start: int | None = None, end: int | None = None, *,
              bytealigned: bool = False) -> int | None:
         """Find a bitstring and set pos to the match position if found."""
         p = self._bits.find(bs, start=start, end=end, bytealigned=bytealigned)
@@ -213,7 +213,7 @@ class Reader:
             self._pos = p
         return p
 
-    def rfind(self, bs: BitsType, /, *, start: int | None = None, end: int | None = None,
+    def rfind(self, bs: BitsType, /, start: int | None = None, end: int | None = None, *,
               bytealigned: bool = False) -> int | None:
         """Find a bitstring from the end and set pos to the match position if found."""
         p = self._bits.rfind(bs, start=start, end=end, bytealigned=bytealigned)

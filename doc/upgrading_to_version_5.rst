@@ -279,34 +279,6 @@ pretty-print headers use the preferred names::
     bits = d.pack(42)
     value = d.unpack(bits)
 
-Make optional range arguments keyword-only
-==========================================
-
-Several methods now require optional range and search arguments to be named.
-This makes calls harder to misread and leaves the first positional arguments
-for the data being operated on.
-
-Update calls like this::
-
-    # bitstring 4
-    s.find("0xff", 8, 64)
-    s.findall("0b1", 0, 100, 3)
-    s.split("0x00", 8)
-    a.replace("0b0", "0b1", 4, 20)
-    a.reverse(8, 24)
-
-    # bitstring 5
-    s.find("0xff", start=8, end=64)
-    s.findall("0b1", start=0, end=100, count=3)
-    s.split("0x00", start=8)
-    a.replace("0b0", "0b1", start=4, end=20)
-    a.reverse(start=8, end=24)
-
-The affected methods are :meth:`Bits.cut`, :meth:`Bits.find`,
-:meth:`Bits.findall`, :meth:`Bits.rfind`, :meth:`Bits.split`,
-:meth:`BitArray.replace`, :meth:`BitArray.reverse`, :meth:`BitArray.rol` and
-:meth:`BitArray.ror`.
-
 Replace global options and modes
 ================================
 
@@ -400,8 +372,7 @@ For a large codebase, the least surprising order is:
    stream-style searching.
 3. Update :func:`pack` call sites that relied on the old ``BitStream`` return
    value.
-4. Change ``find`` and ``rfind`` checks to use ``is not None``, and add
-   keywords to optional range and search arguments.
+4. Change ``find`` and ``rfind`` checks to use ``is not None``.
 5. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
    explicit factory methods.
 6. Replace direct ``bitarray`` compatibility with explicit conversion.

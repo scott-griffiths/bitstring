@@ -66,9 +66,6 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Made `ube`, `ule`, `ibe`, `ile` and `fle` the canonical endian-specific dtype
   and keyword-initialiser names. The longer names such as `uintle`, `intbe` and
   `floatle` remain as compatibility aliases.
-* Optional range/search arguments such as `start`, `end`, `count` and
-  `bytealigned` are now keyword-only for search, split, cut, replace and
-  reverse/rotate-style methods.
 * Removed native-endian dtype names and struct-like native format prefixes.
   Use explicit big- or little-endian spellings instead of `une`, `ine`, `fne`,
   `bfloatne`, `uintne`, `intne`, `floatne`, `@` or `=`.
