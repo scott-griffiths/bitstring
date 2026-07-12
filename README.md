@@ -47,8 +47,7 @@ bitstring 5 is built on [tibs](https://github.com/scott-griffiths/tibs), a simpl
 binary data, written in Rust for speed. It's by the same author as bitstring so they can complement each other's needs.
 If you want a leaner interface and do not need all of bitstring's higher-level format handling and historical API, tibs may be a better fit for new code.
 
-Tibs is still in beta but should hit 1.0 before bitstring 5.0 is released.
-Please do try it, as all feedback is welcome.
+Tibs has now reached its 1.0 release. Please do try it, as all feedback is welcome.
 
 <a href="https://github.com/scott-griffiths/tibs">
   <img src="https://raw.githubusercontent.com/scott-griffiths/tibs/main/doc/tibs.png" alt="tibs" width="30%">
