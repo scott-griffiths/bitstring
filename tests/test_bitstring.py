@@ -35,6 +35,15 @@ class TestModuleData:
         except FileNotFoundError:
             pass  # Doesn't run on CI.
 
+    def test_no_internal_names_in_namespace(self):
+        # Only the public API and genuine submodules should be visible on the package.
+        submodules = {'array_', 'bitarray_', 'bits', 'bitstore', 'bitstore_helpers', 'bitstore_tibs',
+                      'colour', 'dtypes', 'exceptions', 'fp8', 'helpers', 'luts', 'methods', 'mxfp',
+                      'reader', 'utils'}
+        public = {n for n in dir(bitstring) if not n.startswith('_')}
+        unexpected = public - set(bitstring.__all__) - submodules
+        assert unexpected == set()
+
     def test_module_version_matches_pyproject_exactly(self):
         filename = os.path.join(THIS_DIR, '../pyproject.toml')
         try:

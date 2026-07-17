@@ -41,6 +41,22 @@ class TestCreation:
         with filename.open("rb") as f:
             assert Bits.from_file(f, offset=4, length=8) == "0x23"
 
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_from_file_honours_file_position(self, cls, tmp_path):
+        filename = tmp_path / "seek.bin"
+        filename.write_bytes(b"\x12\x34\x56")
+        with filename.open("rb") as f:
+            f.seek(1)
+            assert cls.from_file(f) == "0x3456"
+        with filename.open("rb") as f:
+            f.seek(1)
+            assert cls.from_file(f, offset=4, length=8) == "0x45"
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_from_file_rejects_in_memory_streams(self, cls):
+        with pytest.raises(TypeError, match="from_bytes"):
+            cls.from_file(io.BytesIO(b"\x12\x34"))
+
     def test_to_bitarray(self):
         bits = Bits("0b101")
         bitarray = bits.to_bitarray()
@@ -49,6 +65,15 @@ class TestCreation:
         bitarray.append("0b1")
         assert bits == "0b101"
         assert bitarray == "0b1011"
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_length_only_construction_removed(self, cls):
+        with pytest.raises(bitstring.CreationError, match="from_zeros"):
+            cls(length=8)
+        # No initialiser at all is still an empty bitstring.
+        assert len(cls()) == 0
+        # And a length is still fine with a dtype keyword initialiser.
+        assert len(cls(u=0, length=8)) == 8
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
     @pytest.mark.parametrize("attribute", ["len", "length"])
@@ -413,6 +438,13 @@ class TestInitialisation:
         t = BitArray("0b10")
         tp = list(t.findall("0b1"))
         assert tp == [0]
+
+    def test_pp_honours_redirected_stdout(self):
+        import contextlib
+        s = io.StringIO()
+        with contextlib.redirect_stdout(s):
+            Bits("0xabcd").pp(color=False)
+        assert "ab cd" in s.getvalue()
 
     def test_optional_range_arguments_can_be_positional(self):
         s = BitArray("0b101001")

@@ -198,6 +198,8 @@ class Array:
         if isinstance(new_dtype, Dtype):
             self._dtype = new_dtype
         else:
+            if not isinstance(new_dtype, str):
+                raise TypeError(f"An Array dtype must be a str or a Dtype, not a {type(new_dtype).__name__}.")
             try:
                 dtype = Dtype(new_dtype)
             except ValueError:

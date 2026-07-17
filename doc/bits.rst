@@ -136,7 +136,7 @@ Methods
         16
 
 
-.. method:: Bits.findall(bs: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, *, bytealigned: bool = False) -> Iterable[int]
+.. method:: Bits.findall(bs: BitsType, /, start: int | None = None, end: int | None = None, count: int | None = None, *, bytealigned: bool = False) -> Iterable[int]
 
     Searches for all occurrences of *bs* (even overlapping ones) and returns a generator of their bit positions.
 
@@ -153,7 +153,7 @@ Methods
 
     Creates a new bitstring from the formatted string *s*.
     It is equivalent to creating a new bitstring using *s* as the first parameter, but can be clearer to write and will be slightly faster.
-    The old ``fromstring`` spelling remains available as a compatibility alias.
+    The old ``fromstring`` spelling remains available as a deprecated compatibility alias.
 
 
         >>> b1 = Bits('i16=91')
@@ -191,6 +191,9 @@ Methods
 .. classmethod:: Bits.from_file(source: str | Path | BinaryIO, /, *, length: int | None = None, offset: int = 0) -> Bits
 
     Creates a new bitstring from a file path or binary file object.
+
+    If a file object is given the bits are taken from its current file position onwards, and it must be open on a real file.
+    For in-memory streams such as ``io.BytesIO`` use :meth:`~Bits.from_bytes` instead.
 
 .. classmethod:: Bits.from_tibs(tibs_obj: tibs.Tibs | tibs.Mutibs, /) -> Bits
 

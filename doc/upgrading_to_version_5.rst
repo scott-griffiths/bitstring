@@ -71,7 +71,7 @@ Operations that used the stream's current position should now pass
     # bitstring 5
     r = Reader(BitArray("0x001122"), pos=8)
     inserted = Bits("0xff")
-    r.bits.insert(inserted, r.pos)
+    r.bits.insert(r.pos, inserted)
     r.pos += len(inserted)
 
 ``Reader.pos`` is deliberately lax. Assigning to :attr:`~Reader.pos`
@@ -137,6 +137,25 @@ If you used stream searching to move the current position, use
     if r.find("0xff", start=r.pos) is not None:
         print(r.pos)
 
+Swap insert() and overwrite() arguments
+=======================================
+
+:meth:`BitArray.insert` and :meth:`BitArray.overwrite` now take the bit
+position first and the bitstring second, matching ``list.insert``,
+``array.array.insert`` and :meth:`Array.insert`::
+
+    # bitstring 4
+    s.insert("0xff", 8)
+    s.overwrite("0xff", 8)
+
+    # bitstring 5
+    s.insert(8, "0xff")
+    s.overwrite(8, "0xff")
+
+Calls using the old positional order raise a ``TypeError`` explaining the
+change. Calls that already used keywords (``s.insert(bs=..., pos=...)``) work
+unchanged.
+
 Use explicit construction helpers
 =================================
 
@@ -145,15 +164,18 @@ argument have been removed or should be avoided. Use the explicit factory
 methods instead.
 
 For zero-filled bitstrings, replace integer construction with
-:meth:`Bits.from_zeros` or :meth:`BitArray.from_zeros`::
+:meth:`Bits.from_zeros` or :meth:`BitArray.from_zeros`. This applies to the
+``length``-only keyword form as well::
 
     # bitstring 4
     a = Bits(100)
     b = BitArray(100)
+    c = BitArray(length=100)
 
     # bitstring 5
     a = Bits.from_zeros(100)
     b = BitArray.from_zeros(100)
+    c = BitArray.from_zeros(100)
 
 Prefer :meth:`Bits.from_string` or :meth:`BitArray.from_string` over the old
 ``fromstring`` spelling. The old spelling still works as a compatibility
@@ -202,6 +224,51 @@ The ``filename=`` keyword constructor has been removed. Use
 
     # bitstring 5
     s = Bits.from_file("data.bin", offset=8, length=32)
+
+Use explicit Array construction
+===============================
+
+The :class:`Array` constructor now only accepts an iterable of values (such as
+a list, another ``Array`` or an ``array.array``). The integer item count, raw
+binary data and file object initialiser forms have been removed, as they were
+ambiguous with iterables of values - for example ``Array('u8', b'\x01\x02')``
+meant something different to ``Array('u8', [1, 2])`` even though ``bytes`` is
+an iterable of integers. Use the explicit alternatives instead::
+
+    # bitstring 4
+    a = Array("u8", 100)
+    b = Array("u8", b"some_bytes")
+    c = Array("u8", open("data.bin", "rb"))
+
+    # bitstring 5
+    a = Array.from_zeros("u8", 100)
+    b = Array.from_bytes("u8", b"some_bytes")
+    c = Array.from_file("u8", "data.bin")
+
+:meth:`Array.from_file` is now a constructor taking the dtype as its first
+argument, like the other ``from_`` methods. The bitstring 4 instance method of
+the same name (and its ``fromfile()`` alias) that appended items to an existing
+``Array`` has been removed::
+
+    # bitstring 4
+    a = Array("u8")
+    a.fromfile(f, 10)
+
+    # bitstring 5
+    a = Array.from_file("u8", f, 10)
+
+To append file data to an existing ``Array``, extend from a newly read one,
+for example ``a.extend(Array.from_file(a.dtype, f))``.
+
+Check file object usage in from_file()
+======================================
+
+When :meth:`Bits.from_file` or :meth:`BitArray.from_file` is given a file
+object it now reads from the object's current file position, where previously
+the position was ignored and the whole file was used. Passing an in-memory
+stream such as ``io.BytesIO`` now raises a ``TypeError`` - use
+:meth:`Bits.from_bytes` for those instead. :meth:`Array.from_file` also reads
+file objects from their current position.
 
 Replace bitarray compatibility
 ==============================
@@ -331,8 +398,9 @@ Prefer the new underscored method names
 =======================================
 
 Version 5 adds underscored spellings for several older method names. The old
-names remain as compatibility aliases, but new code and documentation should
-use the underscored names.
+names remain as deprecated compatibility aliases and are expected to be removed
+in a future major version, so new code and documentation should use the
+underscored names.
 
 .. list-table::
    :header-rows: 1
@@ -345,8 +413,6 @@ use the underscored names.
      - :meth:`Bits.to_file`
    * - ``tolist()``
      - :meth:`Array.to_list`
-   * - ``fromfile(f)``
-     - :meth:`Array.from_file`
    * - ``readlist(fmt)``
      - :meth:`Reader.read_list`
    * - ``peeklist(fmt)``

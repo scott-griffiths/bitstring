@@ -77,7 +77,7 @@ class Dtype:
         return self._name
 
     @property
-    def length(self) -> int:
+    def length(self) -> int | None:
         """The length of the data type in units of bits_per_item. Set to None for variable length dtypes."""
         return self._length
 

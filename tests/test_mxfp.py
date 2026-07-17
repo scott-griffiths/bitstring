@@ -182,9 +182,9 @@ def test_setting_scaled_array():
 
 def test_multiple_scaled_arrays():
     d = b'hello_everyone!'
-    s1 = Array(Dtype('e2m1mxfp', scale=1), d)
-    s2 = Array(Dtype('e2m1mxfp', scale=2**10), d)
-    s3 = Array(Dtype('e2m1mxfp', scale=2**-10), d)
+    s1 = Array.from_bytes(Dtype('e2m1mxfp', scale=1), d)
+    s2 = Array.from_bytes(Dtype('e2m1mxfp', scale=2**10), d)
+    s3 = Array.from_bytes(Dtype('e2m1mxfp', scale=2**-10), d)
     assert s1.dtype.scale == 1
     assert s2.dtype.scale == 2**10
     assert s3.dtype.scale == 2**-10

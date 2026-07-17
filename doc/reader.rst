@@ -93,10 +93,13 @@ Properties
 
 .. attribute:: Reader.pos
     :type: int
+
+    The current bit position. Stores any integer value.
+
 .. attribute:: Reader.bitpos
     :type: int
 
-    The current bit position. These aliases store any integer value.
+    A deprecated compatibility alias for :attr:`Reader.pos`.
 
 .. attribute:: Reader.bytepos
     :type: int

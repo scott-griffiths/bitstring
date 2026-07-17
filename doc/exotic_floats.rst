@@ -103,7 +103,7 @@ You can easily examine every possible value that these formats can represent usi
 
 or using the :class:`Array` type it's even more concise - we can create an Array and pretty print all the values with this line::
 
-    >>> Array('p4binary8', bytearray(range(256))).pp(width=90)
+    >>> Array.from_bytes('p4binary8', bytearray(range(256))).pp(width=90)
     <Array fmt='p4binary', length=256, itemsize=8 bits, total data size=256 bytes>
     [
        0:           0.0  0.0009765625   0.001953125  0.0029296875    0.00390625  0.0048828125
@@ -232,7 +232,8 @@ To change the scale, replace the dtype in the `Array`::
 
         >>> a.dtype = Dtype('e2m1mxfp', scale=2**6)
 
-When initialising an `Array` from a list of values, you can also use the string ``'auto'`` as the scale, and an appropriate scale will be calculated based on the data. ::
+When initialising an `Array` from a list of values, you can also use the string ``'auto'`` as the scale, and an appropriate scale will be calculated based on the data.
+Note that ``'auto'`` is only valid when creating a new ``Array`` - a ``Dtype`` with an ``'auto'`` scale can't be used anywhere else. ::
 
         >>> a = Array(Dtype('e2m1mxfp', scale='auto'), [0.0, 0.5, 40.5, 106.25, -52.0, -8.0])
         >>> a.pp()

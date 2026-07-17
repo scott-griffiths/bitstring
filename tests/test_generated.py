@@ -107,8 +107,7 @@ def test_array_fromfile_reads_from_current_file_position(tmp_path) -> None:
 
     with p.open("rb") as f:
         f.seek(1)
-        a = Array("uint8")
-        a.fromfile(f, 2)
+        a = Array.from_file("uint8", f, 2)
 
     assert a.tolist() == [2, 3]
 
@@ -137,9 +136,8 @@ def test_array_fromfile_negative_n_rejected(tmp_path) -> None:
     p.write_bytes(bytes([1, 2, 3]))
 
     with p.open("rb") as f:
-        a = Array("uint8")
         with pytest.raises(ValueError):
-            a.fromfile(f, -1)
+            _ = Array.from_file("uint8", f, -1)
 
 
 def test_dtype_ube_negative_length_rejected() -> None:
@@ -255,7 +253,5 @@ def test_array_fromfile_honours_current_position_for_eof(tmp_path) -> None:
 
     with p.open("rb") as f:
         f.seek(2)
-        a = Array("uint8")
         with pytest.raises(EOFError):
-            a.fromfile(f, 2)
-        assert a.tolist() == [3]
+            _ = Array.from_file("uint8", f, 2)

@@ -43,6 +43,26 @@ def _is_bit_pattern(value: Any) -> bool:
     return all(isinstance(x, bool) or (isinstance(x, numbers.Integral) and int(x) in (0, 1)) for x in value)
 
 
+def _open_file_source(source: str | pathlib.Path | BinaryIO) -> tuple[mmap.mmap, int, str | None]:
+    """Map a file path or binary file object for reading.
+
+    Returns the mmap, the bit offset of the file object's current position
+    (zero for paths) and the filename if constructed from a path.
+    """
+    if isinstance(source, (str, pathlib.Path)):
+        with open(pathlib.Path(source), 'rb') as f:
+            return mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ), 0, f.name
+    try:
+        fileno = source.fileno()
+        base_bits = source.tell() * 8
+    except (AttributeError, OSError, ValueError):
+        raise TypeError(
+            f"from_file() needs a file path or a file object that is open on a real file, "
+            f"but received a {type(source).__name__}. For in-memory streams use from_bytes() "
+            f"instead, e.g. 'from_bytes(stream.getvalue())'.")
+    return mmap.mmap(fileno, 0, access=mmap.ACCESS_READ), base_bits, None
+
+
 class Bits:
     """A container holding an immutable sequence of bits.
 
@@ -58,13 +78,21 @@ class Bits:
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
+    from_bools() -- Create a bitstring from an iterable of bool-like values.
+    from_bytes() -- Create a bitstring from a bytes-like object.
+    from_dtype() -- Create a bitstring by packing a value according to a data type.
+    from_file() -- Create a bitstring from a file path or binary file object.
+    from_joined() -- Create a bitstring by concatenating a sequence of bitstrings.
+    from_ones() -- Create a bitstring containing one bits.
     from_string() -- Create a bitstring from a formatted string.
     from_tibs() -- Create a bitstring from a tibs.Tibs or tibs.Mutibs instance.
+    from_zeros() -- Create a bitstring containing zero bits.
     join() -- Join bitstrings together using current bitstring.
     pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
+    to_bitarray() -- Return the bitstring as a mutable BitArray.
     to_bytes() -- Return bitstring as bytes, padding if needed.
     to_file() -- Write bitstring to file, padding if needed.
     to_tibs() -- Return the data as a tibs.Tibs instance.
@@ -117,8 +145,12 @@ class Bits:
                 **kwargs) -> TBits:
         x = super().__new__(cls)
         if auto is None and not kwargs:
-            # No initialiser so fill with zero bits up to length
-            x._bitstore = ConstBitStore.from_zeros(length if length is not None else 0)
+            if length is not None:
+                raise bitstring.CreationError(
+                    f"A length can't be given without an initialiser. "
+                    f"Use '{cls.__name__}.from_zeros({length})' to create a zero-filled bitstring."
+                )
+            x._bitstore = ConstBitStore.from_zeros(0)
             return x
         x._initialise(auto, length, immutable=True, **kwargs)
         return x
@@ -207,7 +239,8 @@ class Bits:
         except ValueError:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'.")
         if d.bitlength is not None and len(self) != d.bitlength:
-            raise ValueError(f"bitstring length {len(self)} doesn't match length {d.bitlength} of property '{attribute}'.")
+            # AttributeError rather than ValueError so that hasattr() works as expected.
+            raise AttributeError(f"bitstring length {len(self)} doesn't match length {d.bitlength} of property '{attribute}'.")
         return d._get_fn(self)
 
     def __iter__(self) -> Iterable[bool]:
@@ -584,26 +617,22 @@ class Bits:
             raise bitstring.CreationError(f"Cannot initialise bitstring from type '{type(s)}' when using an explicit length.")
         raise TypeError(f"Cannot initialise bitstring from type '{type(s)}'.")
 
-    def _setfile(self, filename: str, length: int | None = None, offset: int | None = None) -> None:
-        """Use file as source of bits."""
-        with open(pathlib.Path(filename), 'rb') as source:
-            if offset is None:
-                offset = 0
-            m = mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ)
-            file_bits = len(m) * 8
-            if offset == 0:
-                self._filename = source.name
-                self._bitstore = ConstBitStore.frombuffer(m, length=length)
-            else:
-                if length is None:
-                    if offset > file_bits:
-                        raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({file_bits} bits).")
-                    self._bitstore = ConstBitStore.frombuffer(m, offset=offset)
-                else:
-                    if offset + length > file_bits:
-                        raise bitstring.CreationError(
-                            f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
-                    self._bitstore = ConstBitStore.frombuffer(m, offset=offset, length=length)
+    def _setfile(self, source: str | pathlib.Path | BinaryIO, length: int | None = None, offset: int = 0) -> None:
+        """Use a file path or binary file object as the source of bits.
+
+        For file objects the bits are taken from the current file position onwards.
+        """
+        m, base_bits, filename = _open_file_source(source)
+        offset += base_bits
+        file_bits = len(m) * 8
+        if offset > file_bits:
+            raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({file_bits} bits).")
+        if length is not None and offset + length > file_bits:
+            raise bitstring.CreationError(
+                f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
+        if offset == 0 and filename is not None:
+            self._filename = filename
+        self._bitstore = ConstBitStore.frombuffer(m, offset=offset, length=length)
 
     def _setbits(self, bs: BitsType, length: None = None) -> None:
         bs = Bits._create_from_bitstype(bs)
@@ -1222,7 +1251,7 @@ class Bits:
         Raises ValueError if the format is not understood. If not enough bits
         are available then all bits to the end of the bitstring will be used.
 
-        See the docstring for 'read' for token examples.
+        See the docstring for the module-level 'pack' function for token examples.
 
         """
         return self._readlist(fmt, 0, **kwargs)[0]
@@ -1316,7 +1345,7 @@ class Bits:
         """Find first occurrence of a binary string."""
         return self._bitstore.find(bs._bitstore, start, end, bytealigned)
 
-    def findall(self, bs: BitsType, start: int | None = None, end: int | None = None, count: int | None = None, *,
+    def findall(self, bs: BitsType, /, start: int | None = None, end: int | None = None, count: int | None = None, *,
                 bytealigned: bool = False) -> Iterable[int]:
         """Find all occurrences of bs. Return generator of bit positions.
 
@@ -1393,7 +1422,7 @@ class Bits:
         if count is not None and count < 0:
             raise ValueError("Cannot cut - count must be >= 0.")
         if bits <= 0:
-            raise ValueError("Cannot cut - bits must be >= 0.")
+            raise ValueError("Cannot cut - bits must be > 0.")
         if isinstance(self._bitstore, ConstBitStore) and start_ == 0 and end_ == len(self):
             cls = self.__class__
             for chunk_tibs in self._bitstore.tibs.chunks_iter(bits, count):
@@ -1726,13 +1755,13 @@ class Bits:
         return dtype1, dtype2, bits_per_group, has_length_in_fmt
 
     def pp(self, fmt: str | None = None, width: int = 120, sep: str = ' ',
-           show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None:
+           show_offset: bool = True, stream: TextIO | None = None, color: bool | None = None) -> None:
         """Pretty print the bitstring's value.
 
-        fmt -- Printed data format. One or two of 'bin', 'oct', 'hex' or 'bytes'.
-              The number of bits represented in each printed group defaults to 8 for hex and bin,
-              12 for oct and 32 for bytes. This can be overridden with an explicit length, e.g. 'hex:64'.
-              Use a length of 0 to not split into groups, e.g. `bin:0`.
+        fmt -- Printed data format. One or two fixed-length dtypes, such as 'bin', 'oct', 'hex',
+              'bytes', 'u' or 'f'. The number of bits represented in each printed group defaults
+              to 8 for hex and bin, 12 for oct and 32 for bytes. This can be overridden with an
+              explicit length, e.g. 'hex:64'. Use a length of 0 to not split into groups, e.g. `bin:0`.
         width -- Max width of printed lines. Defaults to 120. A single group will always be printed
                  per line even if it exceeds the max width.
         sep -- A separator string to insert between groups. Defaults to a single space.
@@ -1744,6 +1773,8 @@ class Bits:
         >>> s.pp('bin, hex', sep='_', show_offset=False)
 
         """
+        if stream is None:
+            stream = sys.stdout
         colour = Colour(should_use_color(color))
         if fmt is None:
             fmt = 'bin, hex' if len(self) % 8 == 0 and len(self) >= 8 else 'bin'
@@ -1849,10 +1880,14 @@ class Bits:
     @classmethod
     def from_file(cls: type[TBits], source: str | pathlib.Path | BinaryIO, /, *,
                   length: int | None = None, offset: int = 0) -> TBits:
-        """Create a new bitstring from a file path or binary file object."""
+        """Create a new bitstring from a file path or binary file object.
+
+        If a file object is given the bits are taken from its current file
+        position onwards, and it must be open on a real file. For in-memory
+        streams such as io.BytesIO use from_bytes() instead.
+        """
         x = super().__new__(cls)
-        filename = source if isinstance(source, (str, pathlib.Path)) else source.name
-        x._setfile(filename, length, offset)
+        x._setfile(source, length, offset)
         return x
 
     @classmethod

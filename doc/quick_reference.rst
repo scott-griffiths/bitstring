@@ -230,8 +230,8 @@ It is similar to the ``array`` type in the `array <https://docs.python.org/3/lib
 
 The `dtype` can be any single fixed-length token as described in :ref:`format_tokens` and :ref:`compact_format`.
 
-The `initializer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
-It can also be an integer, in which case the ``Array`` will be zero-initialised with that many items.
+The `initializer` is an iterable of values appropriate to the `dtype`, such as a list, another ``bitstring.Array`` or an ``array.array``.
+To create an ``Array`` from raw binary data use :meth:`Array.from_bytes`, and to create one full of zeroed items use :meth:`Array.from_zeros`.
 
 The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the data type `dtype`.
 
@@ -240,8 +240,8 @@ Both the dtype and the underlying bit data (stored as a :class:`BitArray`) can b
 Initialization examples::
 
     Array('>H', [1, 10, 20])
-    Array('f16', a_file_object)
-    Array('i4', stored_bytes)
+    Array.from_bytes('i4', stored_bytes)
+    Array.from_zeros('u8', 100)
 
 
 Methods
@@ -253,7 +253,9 @@ Methods
 * :meth:`~Array.count` -- Count the number of occurrences of a value.
 * :meth:`~Array.equals` -- Compare with another Array for exact equality.
 * :meth:`~Array.extend` -- Append multiple items to the end of the Array from an iterable.
-* :meth:`~Array.from_file` -- Append items read from a file object.
+* :meth:`~Array.from_bytes` -- Create a new Array with binary data from a bytes-like object.
+* :meth:`~Array.from_file` -- Create a new Array with items read from a file path or binary file object.
+* :meth:`~Array.from_zeros` -- Create a new Array containing zeroed items.
 * :meth:`~Array.insert` -- Insert an item at a given position.
 * :meth:`~Array.pop` -- Return and remove an item.
 * :meth:`~Array.pp` -- Pretty print the Array.

@@ -28,8 +28,23 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   `BitArray.length` properties. Use the built-in `len(bits)` instead.
 * Positional integer construction has been removed. Use `Bits.from_zeros(100)`
   or `BitArray.from_zeros(100)` instead of `Bits(100)` or `BitArray(100)`.
+  The length-only keyword form `BitArray(length=100)` has been removed for the
+  same reason (`length` is still used with dtype keyword initialisers such as
+  `BitArray(u=5, length=8)`).
 * `Dtype.build()` and `Dtype.parse()` have been renamed to `Dtype.pack()` and
   `Dtype.unpack()`.
+* `BitArray.insert()` and `BitArray.overwrite()` now take the bit position
+  first and the bitstring second, matching `list.insert` and `Array.insert`.
+  Use `s.insert(pos, bs)` instead of `s.insert(bs, pos)`. Old-style calls
+  raise a `TypeError` explaining the change.
+* The `Array` constructor now only accepts an iterable of values. Use
+  `Array.from_zeros(dtype, n)` instead of an integer item count,
+  `Array.from_bytes(dtype, data)` instead of raw binary data, and
+  `Array.from_file(dtype, source)` instead of a file object initialiser.
+* `Array.from_file()` is now a constructor classmethod taking the dtype as its
+  first argument, in line with the other `from_` methods. The bitstring 4
+  instance method (and its `fromfile()` alias) that appended items to an
+  existing `Array` has been removed.
 * Removed LSB0 mode. This removes `bitstring.options.lsb0` and all LSB0-specific
   indexing, slicing, reading, packing, unpacking and pretty-printing behaviour.
   A new (and this time correct and useful) version is planned for a future release; in the
@@ -40,7 +55,15 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Removed the `bitarray` dependency and `bitarray` compatibility from the public
   API. Bitstrings can no longer be initialised directly from `bitarray` objects,
   the `bitarray=` keyword initialiser has been removed, and the `tobitarray()`
-  method has been removed.
+  method has been removed. Take care that the similarly-named new
+  `to_bitarray()` method returns a bitstring `BitArray`, not an object from
+  the external `bitarray` package.
+* `from_file()` now honours the current position of a file object, and raises
+  a `TypeError` for in-memory streams such as `io.BytesIO` (use `from_bytes()`
+  for those). Previously the position was ignored and the whole file was read.
+* Reading a dtype property whose length doesn't match, such as `Bits('0xff').u16`,
+  now raises an `AttributeError` rather than a `ValueError`, so that `hasattr()`
+  works as expected.
 * Removed the optional backend selection mechanism. The `tibs` dependency is now
   required, and the `BITSTRING_USE_RUST_CORE` environment variable and
   `bitstring.options.using_rust_core` flag no longer exist.
@@ -60,12 +83,12 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   `hex`. The numeric names `u`, `i` and `f` remain and are now canonical.
 * Made `u`, `i` and `f` the canonical dtype names for bit-wise big-endian
   unsigned integers, signed integers and floats. The longer `uint`, `int` and
-  `float` names remain as compatibility aliases for dtype tokens and keyword
+  `float` names remain as deprecated compatibility aliases for dtype tokens and keyword
   initialisers, but dtype stringification, `Array` representations and
   pretty-print headers now use the short forms.
 * Made `ube`, `ule`, `ibe`, `ile` and `fle` the canonical endian-specific dtype
   and keyword-initialiser names. The longer names such as `uintle`, `intbe` and
-  `floatle` remain as compatibility aliases.
+  `floatle` remain as deprecated compatibility aliases.
 * Removed native-endian dtype names and struct-like native format prefixes.
   Use explicit big- or little-endian spellings instead of `une`, `ine`, `fne`,
   `bfloatne`, `uintne`, `intne`, `floatne`, `@` or `=`.
@@ -92,20 +115,24 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Added `Bits.to_bitarray()` and `BitArray.to_bits()` conversion methods.
 * Several method names now have underscored preferred spellings:
   `to_bytes()`, `to_file()`, `to_list()`, `from_string()`, `from_file()`,
-  `read_list()`, `peek_list()`, `read_to()` and `byte_align()`. The old
-  spellings without underscores remain as compatibility aliases.
+  `read_list()`, `peek_list()`, `read_to()` and `byte_align()`.
+  The old spellings without underscores remain as deprecated compatibility
+  aliases.
+* Added the `Array.from_zeros()`, `Array.from_bytes()` and `Array.from_file()` construction methods.
 
 #### Fixes
 
 * File-backed bitstrings with a non-zero offset no longer have to read the whole
   file into memory.
-* Fixed `Array.from_file()` to honour the file object's current position, to reject
-  negative item counts, and to report short reads correctly.
+* Reading `Array` items from a file now honours the file object's current position,
+  rejects negative item counts, and reports short reads correctly.
 * Fixed `Array.insert()` clamping for very negative indices to match `list.insert`.
 * Fixed scaled `Dtype` equality and hashing so dtypes with different scale factors
   compare as distinct.
 * Fixed parsing of repeated token groups so `0*(...)` is allowed and negative repeat
   factors are rejected.
+* `pp()` now resolves `sys.stdout` at call time instead of import time, so output
+  redirection (such as `contextlib.redirect_stdout` or pytest capture) works.
 
 ### March 2026: version 4.4.0
 

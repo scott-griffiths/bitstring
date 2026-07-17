@@ -110,7 +110,7 @@ class TestAll:
         assert s.bin == '0'
         s.u = 1
         assert s.uint == 1
-        s = BitArray(length=8)
+        s = BitArray.from_zeros(8)
         s.uint = 0
         assert s.uint == 0
         s.u8 = 255
@@ -147,18 +147,18 @@ class TestNoPosAttribute:
 
     def test_insert(self):
         s = BitArray('0b00')
-        s.insert('0xf', 1)
+        s.insert(1, '0xf')
         assert s == '0b011110'
 
     def test_insert_self(self):
         b = BitArray('0b10')
-        b.insert(b, 0)
+        b.insert(0, b)
         assert b == '0b1010'
         c = BitArray('0x00ff')
-        c.insert(c, 8)
+        c.insert(8, c)
         assert c == '0x0000ffff'
         a = BitArray('0b11100')
-        a.insert(a, 3)
+        a.insert(3, a)
         assert a == '0b1111110000'
 
     def test_no_bit_pos_for_insert(self):
@@ -171,9 +171,16 @@ class TestNoPosAttribute:
         with pytest.raises(TypeError):
             s.insert('0x4')
 
+    def test_insert_overwrite_old_argument_order_raises(self):
+        s = BitArray('0x0000')
+        with pytest.raises(TypeError, match="argument order changed"):
+            s.insert('0xf', 4)
+        with pytest.raises(TypeError, match="argument order changed"):
+            s.overwrite('0xf', 4)
+
     def test_overwrite(self):
         s = BitArray('0b01110')
-        s.overwrite('0b000', 1)
+        s.overwrite(1, '0b000')
         assert s == '0b00000'
 
     def test_overwrite_no_pos(self):
@@ -522,20 +529,24 @@ class TestNewProperties:
 
     def test_getter_length_errors(self):
         a = BitArray('0x123')
-        with pytest.raises(bitstring.InterpretError):
+        # A length mismatch for a dtype attribute is an AttributeError, so that hasattr() works.
+        with pytest.raises(AttributeError):
             _ = a.hex16
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(AttributeError):
             _ = a.bin3317777766
         with pytest.raises(AttributeError):
             _ = a.oct2
+        with pytest.raises(AttributeError):
+            _ = a.f32
+        with pytest.raises(AttributeError):
+            _ = a.u13
+        with pytest.raises(AttributeError):
+            _ = a.i1
+        assert not hasattr(a, 'u16')
+        assert hasattr(a, 'u12')
+        # 'f' is a property so a bad length raises an InterpretError rather than an AttributeError.
         with pytest.raises(bitstring.InterpretError):
             _ = a.f
-        with pytest.raises(bitstring.InterpretError):
-            _ = a.f32
-        with pytest.raises(bitstring.InterpretError):
-            _ = a.u13
-        with pytest.raises(bitstring.InterpretError):
-            _ = a.i1
         b = BitArray()
         with pytest.raises(bitstring.InterpretError):
             _ = b.u0

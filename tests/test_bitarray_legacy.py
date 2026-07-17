@@ -141,7 +141,7 @@ def test_reader_rfind_variants():
     b = a.rfind('0b001')
     assert b == 6
     assert a.pos == 6
-    big = BitArray(length=100000) + '0x12' + BitArray(length=10000)
+    big = BitArray.from_zeros(100000) + '0x12' + BitArray.from_zeros(10000)
     r = Reader(big)
     found = r.rfind('0x12', bytealigned=True)
     assert found == 100000
@@ -454,7 +454,7 @@ def test_file_creation_and_mutation_operations():
     assert s.hex == 'ef'
 
     s = BitArray.from_file(filename)
-    s.insert('0xc', 4)
+    s.insert(4, '0xc')
     assert s.hex == '0c123456789abcdef'
 
     s = BitArray.from_file(filename)
@@ -462,7 +462,7 @@ def test_file_creation_and_mutation_operations():
     assert s.hex == 'f0123456789abcdef'
 
     s = BitArray.from_file(filename)
-    s.overwrite('0xaaa', 12)
+    s.overwrite(12, '0xaaa')
     assert s.hex == '012aaa6789abcdef'
 
     s = BitArray.from_file(filename)
@@ -628,30 +628,30 @@ def test_reader_bytealign():
 
 def test_insert_and_overwrite():
     s = BitArray('0x0011')
-    s.insert(BitArray('0x22'), 8)
+    s.insert(8, BitArray('0x22'))
     assert s.hex == '002211'
     s = BitArray.from_zeros(0)
-    s.insert(BitArray(bin='101'), 0)
+    s.insert(0, BitArray(bin='101'))
     assert s.bin == '101'
 
     s1 = BitArray(hex='0x123456')
     s2 = BitArray(hex='0xff')
-    s1.insert(s2, 8)
+    s1.insert(8, s2)
     assert s1.hex == '12ff3456'
-    s1.insert('0xee', 24)
+    s1.insert(24, '0xee')
     assert s1.hex == '12ff34ee56'
     with pytest.raises(ValueError):
-        s1.insert('0b1', -1000)
+        s1.insert(-1000, '0b1')
     with pytest.raises(ValueError):
-        s1.insert('0b1', 1000)
+        s1.insert(1000, '0b1')
 
     s = BitArray(bin='0')
-    s.overwrite(BitArray(bin='1'), 0)
+    s.overwrite(0, BitArray(bin='1'))
     assert s.bin == '1'
     s = BitArray(bin='0b11111')
-    s.overwrite(BitArray(bin='000'), 0)
+    s.overwrite(0, BitArray(bin='000'))
     assert s.bin == '00011'
-    s.overwrite('0b000', 2)
+    s.overwrite(2, '0b000')
     assert s.bin == '00000'
 
 
@@ -765,18 +765,18 @@ def test_auto_initialisation_and_auto_methods():
         _ = BitArray(1.2)
 
     s = BitArray('0xff')
-    s.insert('0x00', 4)
+    s.insert(4, '0x00')
     assert s.hex == 'f00f'
     with pytest.raises(ValueError):
-        s.insert('ff', 0)
+        s.insert(0, 'ff')
 
     s = BitArray('0x0110')
-    s.overwrite('0b1', 0)
+    s.overwrite(0, '0b1')
     assert s.hex == '8110'
-    s.overwrite('', 0)
+    s.overwrite(0, '')
     assert s.hex == '8110'
     with pytest.raises(ValueError):
-        s.overwrite('0bf', 0)
+        s.overwrite(0, '0bf')
 
 
 def test_findall_contains_and_slice_steps():
@@ -821,7 +821,7 @@ def test_repr_print_iter_and_offsets():
 
 
 def test_init_slice_with_int_and_reverse():
-    a = BitArray(length=8)
+    a = BitArray.from_zeros(8)
     a[:] = 100
     assert a.uint == 100
     a[0] = 1
@@ -1074,7 +1074,7 @@ def test_bits_immutability_and_hashability():
 
 
 def test_set_invert_and_logical_inplace():
-    a = BitArray(length=16)
+    a = BitArray.from_zeros(16)
     a.set(True, 0)
     assert a == '0b10000000 00000000'
     a.set(1, 15)
@@ -1261,10 +1261,10 @@ def test_bytes_initialisation_and_legacy_bugs():
 
 def test_function_negative_indices():
     s = BitArray('0b0111')
-    s.insert('0b0', -1)
+    s.insert(-1, '0b0')
     assert s == '0b01101'
     with pytest.raises(ValueError):
-        s.insert('0b0', -1000)
+        s.insert(-1000, '0b0')
 
     s.reverse(start=-2)
     assert s == '0b01110'
@@ -1273,7 +1273,7 @@ def test_function_negative_indices():
     assert t == '0x778899abc7bf'
     t.byteswap(0, -40, -16)
     assert t == '0x77ab9988c7bf'
-    t.overwrite('0x666', -20)
+    t.overwrite(-20, '0x666')
     assert t == '0x77ab998666bf'
 
     r = Reader(t)
@@ -1541,21 +1541,21 @@ def test_set_reset_properties():
 def test_overwrite_more_cases():
     s = BitArray(hex='342563fedec')
     s2 = BitArray(s)
-    s.overwrite(BitArray(bin=''), 23)
+    s.overwrite(23, BitArray(bin=''))
     assert s.bin == s2.bin
 
     s = BitArray('0x123')
-    s.overwrite(s, 0)
+    s.overwrite(0, s)
     assert s == '0x123'
 
     s = BitArray(bin='11111')
     with pytest.raises(ValueError):
-        s.overwrite(BitArray(bin='1'), -10)
+        s.overwrite(-10, BitArray(bin='1'))
     with pytest.raises(ValueError):
-        s.overwrite(BitArray(bin='1'), 6)
-    s.overwrite('bin=0', 5)
+        s.overwrite(6, BitArray(bin='1'))
+    s.overwrite(5, 'bin=0')
     assert s.bin == '111110'
-    s.overwrite(BitArray(hex='0x00'), 1)
+    s.overwrite(1, BitArray(hex='0x00'))
     assert s.bin == '100000000'
 
 
@@ -1965,20 +1965,20 @@ def test_rotation_file_and_errors():
 
 def test_efficient_overwrite_and_large_counts():
     a = BitArray.from_zeros(1000000)
-    a.overwrite([1], 123456)
+    a.overwrite(123456, [1])
     assert a[123456] is True
-    a.overwrite('0xff', 1)
+    a.overwrite(1, '0xff')
     assert a[0:32:1] == '0x7f800000'
 
-    c = BitArray(length=1000)
-    c.overwrite('0xaaaaaaaaaaaa', 81)
+    c = BitArray.from_zeros(1000)
+    c.overwrite(81, '0xaaaaaaaaaaaa')
     assert c[81:81 + 6 * 8] == '0xaaaaaaaaaaaa'
     assert len(list(c.findall('0b1'))) == 24
-    s = BitArray(length=1000)[5:]
-    s.overwrite('0xffffff', 500)
+    s = BitArray.from_zeros(1000)[5:]
+    s.overwrite(500, '0xffffff')
     r = Reader(s, pos=500)
     assert r.read(4 * 8) == '0xffffff00'
-    s.overwrite('0xff', 502)
+    s.overwrite(502, '0xff')
     assert s[502:518] == '0xffff'
 
 
@@ -2118,19 +2118,19 @@ def test_file_reader_independent_positions():
 
 def test_insert_null_bits_and_self():
     s = BitArray(hex='0x123')
-    s.insert(BitArray(), 3)
+    s.insert(3, BitArray())
     assert s.hex == '123'
 
     one = BitArray(bin='1')
     zero = BitArray(bin='0')
     s = BitArray(bin='00')
-    s.insert(one, 0)
+    s.insert(0, one)
     assert s.bin == '100'
-    s.insert(zero, 0)
+    s.insert(0, zero)
     assert s.bin == '0100'
-    s.insert(one, len(s))
+    s.insert(len(s), one)
     assert s.bin == '01001'
-    s.insert(s, 2)
+    s.insert(2, s)
     assert s.bin == '0101001001'
 
 
@@ -2303,7 +2303,7 @@ def test_multiple_auto_mutations_and_reverse():
     assert s == '0xfab'
     s.prepend(s)
     s.append('0x100')
-    s.overwrite('0x5', 4)
+    s.overwrite(4, '0x5')
     assert s == '0xf5bfab100'
 
     s = BitArray('0b0011')

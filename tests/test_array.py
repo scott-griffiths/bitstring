@@ -183,8 +183,10 @@ class TestCreation:
         filename.write_bytes(b'\x01\x02')
         a = Array('u8')
         with open(filename, 'rb') as f:
-            with pytest.raises(TypeError, match="constructor"):
+            with pytest.raises(TypeError, match="source"):
                 a.from_file(f)
+            with pytest.raises(TypeError, match="dtype"):
+                a.from_file(f, 2)
         assert not hasattr(a, 'fromfile')
 
     def test_different_type_codes(self):

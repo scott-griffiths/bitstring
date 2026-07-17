@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import mmap
 import numbers
 import pathlib
 import re
@@ -11,7 +10,7 @@ from collections.abc import Iterable
 from tibs import Mutibs, Tibs
 from bitstring import utils
 from bitstring.exceptions import CreationError, Error
-from bitstring.bits import Bits, BitsType, TBits
+from bitstring.bits import Bits, BitsType, TBits, _open_file_source
 
 import bitstring.dtypes
 import bitstring.bitstore_helpers as helpers
@@ -50,13 +49,21 @@ class BitArray(Bits):
     endswith() -- Return whether the bitstring ends with a sub-string.
     find() -- Find a sub-bitstring in the current bitstring.
     findall() -- Find all occurrences of a sub-bitstring in the current bitstring.
+    from_bools() -- Create a bitstring from an iterable of bool-like values.
+    from_bytes() -- Create a bitstring from a bytes-like object.
+    from_dtype() -- Create a bitstring by packing a value according to a data type.
+    from_file() -- Create a bitstring from a file path or binary file object.
+    from_joined() -- Create a bitstring by concatenating a sequence of bitstrings.
+    from_ones() -- Create a bitstring containing one bits.
     from_string() -- Create a bitstring from a formatted string.
     from_tibs() -- Create a bitstring from a tibs.Tibs or tibs.Mutibs instance.
+    from_zeros() -- Create a bitstring containing zero bits.
     join() -- Join bitstrings together using current bitstring.
     pp() -- Pretty print the bitstring.
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
+    to_bits() -- Return the bitstring as an immutable Bits.
     to_bytes() -- Return bitstring as bytes, padding if needed.
     to_file() -- Write bitstring to file, padding if needed.
     to_tibs() -- Return the data as a tibs.Tibs instance.
@@ -114,8 +121,12 @@ class BitArray(Bits):
                 **kwargs) -> TBits:
         x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:
-            # No initialiser so fill with zero bits up to length
-            x._bitstore = MutableBitStore.from_zeros(length if length is not None else 0)
+            if length is not None:
+                raise bitstring.CreationError(
+                    f"A length can't be given without an initialiser. "
+                    f"Use '{cls.__name__}.from_zeros({length})' to create a zero-filled bitstring."
+                )
+            x._bitstore = MutableBitStore.from_zeros(0)
             return x
         x._initialise(auto, length, immutable=False, **kwargs)
         return x
@@ -192,24 +203,22 @@ class BitArray(Bits):
     @classmethod
     def from_file(cls: type[TBits], source: str | pathlib.Path | BinaryIO, /, *,
                   length: int | None = None, offset: int = 0) -> TBits:
-        """Create a new bitstring from a file path or binary file object."""
+        """Create a new bitstring from a file path or binary file object.
+
+        If a file object is given the bits are taken from its current file
+        position onwards, and it must be open on a real file. For in-memory
+        streams such as io.BytesIO use from_bytes() instead.
+        """
         x = super().__new__(cls)
-        filename = source if isinstance(source, (str, pathlib.Path)) else source.name
-        with open(pathlib.Path(filename), 'rb') as source_file:
-            m = mmap.mmap(source_file.fileno(), 0, access=mmap.ACCESS_READ)
-            file_bits = len(m) * 8
-            if offset == 0:
-                x._bitstore = MutableBitStore.frombuffer(m, length=length)
-            else:
-                if length is None:
-                    if offset > file_bits:
-                        raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({file_bits} bits).")
-                    x._bitstore = MutableBitStore.frombuffer(m, offset=offset)
-                else:
-                    if offset + length > file_bits:
-                        raise bitstring.CreationError(
-                            f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
-                    x._bitstore = MutableBitStore.frombuffer(m, offset=offset, length=length)
+        m, base_bits, _ = _open_file_source(source)
+        offset += base_bits
+        file_bits = len(m) * 8
+        if offset > file_bits:
+            raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({file_bits} bits).")
+        if length is not None and offset + length > file_bits:
+            raise bitstring.CreationError(
+                f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
+        x._bitstore = MutableBitStore.frombuffer(m, offset=offset, length=length)
         return x
 
     @classmethod
@@ -426,15 +435,24 @@ class BitArray(Bits):
             new = copy.copy(self)
         return self._replace(old, new, start, end, count, bytealigned)
 
-    def insert(self, bs: BitsType, pos: int) -> None:
+    @staticmethod
+    def _validate_pos_first(pos: Any, method_name: str) -> int:
+        if not isinstance(pos, numbers.Integral):
+            raise TypeError(
+                f"{method_name}() expects an integer bit position as its first argument, but received a "
+                f"{type(pos).__name__}. Note that the argument order changed to {method_name}(pos, bs) in bitstring 5.")
+        return int(pos)
+
+    def insert(self, pos: int, bs: BitsType) -> None:
         """Insert bs at bit position pos.
 
-        bs -- The bitstring to insert.
         pos -- The bit position to insert at.
+        bs -- The bitstring to insert.
 
         Raises ValueError if pos < 0 or pos > len(self).
 
         """
+        pos = BitArray._validate_pos_first(pos, "insert")
         bs = self._create_from_bitstype(bs)
         if len(bs) == 0:
             return
@@ -446,15 +464,16 @@ class BitArray(Bits):
             raise ValueError("Invalid insert position.")
         self._insert(bs, pos)
 
-    def overwrite(self, bs: BitsType, pos: int) -> None:
+    def overwrite(self, pos: int, bs: BitsType) -> None:
         """Overwrite with bs at bit position pos.
 
-        bs -- The bitstring to overwrite with.
         pos -- The bit position to begin overwriting from.
+        bs -- The bitstring to overwrite with.
 
         Raises ValueError if pos < 0 or pos > len(self).
 
         """
+        pos = BitArray._validate_pos_first(pos, "overwrite")
         bs = self._create_from_bitstype(bs)
         if len(bs) == 0:
             return

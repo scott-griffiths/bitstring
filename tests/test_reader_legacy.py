@@ -225,7 +225,7 @@ def test_mutable_reader_uses_external_bitarray_without_position_coupling():
     bits = BitArray('0x001122')
     r = Reader(bits, pos=8)
     assert r.read('uint8') == 0x11
-    bits.insert('0xff', 8)
+    bits.insert(8, '0xff')
     assert bits == '0x00ff1122'
     assert r.pos == 16
     r.pos = 8
