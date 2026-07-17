@@ -123,7 +123,8 @@ BitArray('0x866906690669, 0b000')
 >>> c.find('0x48')
 8
 >>> c.replace('0b001', '0xabc')
->>> c.insert('0b0000', pos=3)
+5
+>>> c.insert(3, '0b0000')
 >>> del c[12:16]
 ```
 

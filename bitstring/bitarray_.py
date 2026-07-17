@@ -88,7 +88,7 @@ class BitArray(Bits):
     def __init__(self, auto: BitsType | None = None, /, length: int | None = None,
                  **kwargs) -> None:
         """Either specify an 'auto' initialiser:
-        A string of comma separated tokens, a bytes-like object or another bitstring.
+        A string of comma separated tokens, a bytes-like object, another bitstring or a list/tuple bit pattern.
 
         Or initialise via **kwargs with one (and only one) of:
         bin -- binary string representation, e.g. '0b001010'.

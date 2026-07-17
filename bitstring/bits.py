@@ -72,7 +72,7 @@ class Bits:
 
     all() -- Check if all specified bits are set to 1 or 0.
     any() -- Check if any of specified bits are set to 1 or 0.
-    copy() - Return a copy of the bitstring.
+    copy() -- Return a copy of the bitstring.
     count() -- Count the number of bits set to 1 or 0.
     cut() -- Create generator of constant sized chunks.
     endswith() -- Return whether the bitstring ends with a sub-string.
@@ -1551,7 +1551,7 @@ class Bits:
         return self._bitstore.to_bytes()
 
     def tobytes(self) -> bytes:
-        """Compatibility alias for :meth:`to_bytes`."""
+        """Deprecated compatibility alias for :meth:`to_bytes`."""
         return self.to_bytes()
 
     def to_file(self, f: BinaryIO) -> None:
@@ -1566,7 +1566,7 @@ class Bits:
             f.write(chunk.to_bytes())
 
     def tofile(self, f: BinaryIO) -> None:
-        """Compatibility alias for :meth:`to_file`."""
+        """Deprecated compatibility alias for :meth:`to_file`."""
         self.to_file(f)
 
     def startswith(self, prefix: BitsType, start: int | None = None, end: int | None = None) -> bool:
@@ -1839,7 +1839,7 @@ class Bits:
 
     @classmethod
     def fromstring(cls: type[TBits], s: str, /) -> TBits:
-        """Compatibility alias for from_string()."""
+        """Deprecated compatibility alias for :meth:`from_string`."""
         return cls.from_string(s)
 
     @classmethod

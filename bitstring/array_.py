@@ -34,16 +34,16 @@ def _array_typecode_to_dtype(typecode: str) -> Dtype | None:
 
 
 class Array:
-    """Return an Array whose elements are initialised according to the fmt string.
-    The dtype string can be typecode as used in the struct module or any fixed-length bitstring
+    """Return an Array whose elements are initialised according to the dtype string.
+    The dtype string can be a typecode as used in the struct module or any fixed-length bitstring
     format.
 
     a = Array('>H', [1, 15, 105])
     b = Array('i5', [-9, 0, 4])
 
     The Array data is stored compactly as a BitArray object and the Array behaves very like
-    a list of items of the given format. Both the Array data and fmt properties can be freely
-    modified after creation. If the data length is not a multiple of the fmt length then the
+    a list of items of the given format. Both the Array data and dtype properties can be freely
+    modified after creation. If the data length is not a multiple of the dtype length then the
     Array will have 'trailing_bits' which will prevent some methods from appending to the
     Array.
 
@@ -74,7 +74,7 @@ class Array:
     data -- The BitArray binary data of the Array. Can be freely modified.
     dtype -- The format string or typecode. Can be freely modified.
     itemsize -- The length *in bits* of a single item. Read only.
-    trailing_bits -- If the data length is not a multiple of the fmt length, this BitArray
+    trailing_bits -- If the data length is not a multiple of the dtype length, this BitArray
                      gives the leftovers at the end of the data.
 
 
@@ -332,7 +332,7 @@ class Array:
                 for start in range(0, len(self.data) - itemsize + 1, itemsize)]
 
     def tolist(self) -> list[ElementType]:
-        """Compatibility alias for :meth:`to_list`."""
+        """Deprecated compatibility alias for :meth:`to_list`."""
         return self.to_list()
 
     def append(self, x: ElementType) -> None:
@@ -424,7 +424,7 @@ class Array:
         return self.data.to_bytes()
 
     def tobytes(self) -> bytes:
-        """Compatibility alias for :meth:`to_bytes`."""
+        """Deprecated compatibility alias for :meth:`to_bytes`."""
         return self.to_bytes()
 
     def to_file(self, f: BinaryIO) -> None:
@@ -436,7 +436,7 @@ class Array:
         self.data.to_file(f)
 
     def tofile(self, f: BinaryIO) -> None:
-        """Compatibility alias for :meth:`to_file`."""
+        """Deprecated compatibility alias for :meth:`to_file`."""
         self.to_file(f)
 
     @classmethod

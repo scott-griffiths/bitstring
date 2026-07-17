@@ -138,7 +138,7 @@ class Reader:
 
     def readlist(self, fmt: str | list[int | str | Dtype], **kwargs) \
             -> list[int | float | str | Bits | bool | bytes | None]:
-        """Compatibility alias for :meth:`read_list`."""
+        """Deprecated compatibility alias for :meth:`read_list`."""
         return self.read_list(fmt, **kwargs)
 
     @overload
@@ -168,7 +168,7 @@ class Reader:
 
     def peeklist(self, fmt: str | list[int | str | Dtype], **kwargs) \
             -> list[int | float | str | Bits | bool | bytes | None]:
-        """Compatibility alias for :meth:`peek_list`."""
+        """Deprecated compatibility alias for :meth:`peek_list`."""
         return self.peek_list(fmt, **kwargs)
 
     def read_to(self, bs: BitsType, /, *, bytealigned: bool = False) -> Bits:
@@ -189,7 +189,7 @@ class Reader:
             raise
 
     def readto(self, bs: BitsType, /, *, bytealigned: bool = False) -> Bits:
-        """Compatibility alias for :meth:`read_to`."""
+        """Deprecated compatibility alias for :meth:`read_to`."""
         return self.read_to(bs, bytealigned=bytealigned)
 
     def byte_align(self) -> int:
@@ -202,7 +202,7 @@ class Reader:
         return skipped
 
     def bytealign(self) -> int:
-        """Compatibility alias for :meth:`byte_align`."""
+        """Deprecated compatibility alias for :meth:`byte_align`."""
         return self.byte_align()
 
     def find(self, bs: BitsType, /, start: int | None = None, end: int | None = None, *,
