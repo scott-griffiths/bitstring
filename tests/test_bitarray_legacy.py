@@ -170,12 +170,12 @@ def test_reader_find_and_rfind_errors():
     a = Reader(BitArray('0x43234234'))
     with pytest.raises(ValueError):
         a.rfind('', bytealigned=True)
-    with pytest.raises(ValueError):
-        a.rfind('0b1', start=-99, bytealigned=True)
-    with pytest.raises(ValueError):
-        a.rfind('0b1', end=33, bytealigned=True)
-    with pytest.raises(ValueError):
-        a.rfind('0b1', start=10, end=9, bytealigned=True)
+    # Out of range start and end values are clamped like slice indices.
+    assert a.rfind('0b1', start=-99, bytealigned=True) is None
+    assert a.rfind('0b1', end=33, bytealigned=True) is None
+    # An end before the start gives an empty search range.
+    assert a.rfind('0b1', start=10, end=9, bytealigned=True) is None
+    assert a.rfind('0b1', start=-99) == 29
 
 
 def test_shift_left_and_right():
@@ -295,10 +295,10 @@ def test_replace_errors():
     a = BitArray('0o123415')
     with pytest.raises(ValueError):
         a.replace('', Bits.from_zeros(0o7), bytealigned=True)
-    with pytest.raises(ValueError):
-        a.replace('0b1', '0b1', start=-100, bytealigned=True)
-    with pytest.raises(ValueError):
-        a.replace('0b1', '0b1', end=19, bytealigned=True)
+    # Out of range start and end values are clamped like slice indices.
+    assert a.replace('0b1', '0b1', start=-100, bytealigned=True) == 1
+    assert a.replace('0b1', '0b1', end=19, bytealigned=True) == 1
+    assert a == '0o123415'
 
 
 def test_slice_assignment():
@@ -843,8 +843,9 @@ def test_init_slice_with_int_and_reverse():
     assert a == '0xff4800'
     a.reverse(start=8, end=16)
     assert a == '0xff1200'
-    with pytest.raises(ValueError):
-        a.reverse(start=-1, end=4)
+    # An end before the start gives an empty range, so nothing is reversed.
+    a.reverse(start=-1, end=4)
+    assert a == '0xff1200'
 
 
 def test_initialise_from_iterables_and_cut():
@@ -1025,8 +1026,9 @@ def test_byteswap_variants():
     assert a == '0x12302103'
     a.byteswap(start=0, end=18)
     assert a == '0x30122103'
-    with pytest.raises(ValueError):
-        a.byteswap(0, 10, 2)
+    # An end before the start gives an empty range, so no swaps happen.
+    assert a.byteswap(0, 10, 2) == 0
+    assert a == '0x30122103'
 
 
 def test_startswith_endswith_and_hashing():
@@ -1456,12 +1458,11 @@ def test_split_start_end_boundaries():
     a = BitArray('0b0010101001000000001111')
     bsl = a.split('0b001', bytealigned=False, start=1)
     assert [x.bin for x in bsl] == ['010101', '001000000', '001111']
-    with pytest.raises(ValueError):
-        _ = next(a.split('0b001', start=-100))
-    with pytest.raises(ValueError):
-        _ = next(a.split('0b001', start=23))
-    with pytest.raises(ValueError):
-        _ = next(a.split('0b1', start=10, end=9))
+    # Out of range start and end values are clamped like slice indices.
+    assert [x.bin for x in a.split('0b001', start=-100)] == [x.bin for x in a.split('0b001')]
+    assert [x.bin for x in a.split('0b001', start=23)] == ['']
+    # An end before the start gives an empty range to split.
+    assert [x.bin for x in a.split('0b1', start=10, end=9)] == ['']
 
     a = BitArray('0x00ffffee')
     bsl = list(a.split('0b111', start=9, bytealigned=True))
@@ -1493,10 +1494,10 @@ def test_find_start_end_boundaries():
     assert (found, a.bitpos) == (5, 5)
 
     b = Reader(BitArray('0x0011223344'))
-    with pytest.raises(ValueError):
-        _ = b.find('0x22', bytealigned=True, start=-100)
-    with pytest.raises(ValueError):
-        _ = b.find('0x22', end=41, bytealigned=True)
+    # Out of range start and end values are clamped like slice indices.
+    assert b.find('0x22', bytealigned=True, start=-100) == 16
+    b.pos = 0
+    assert b.find('0x22', end=41, bytealigned=True) == 16
 
 
 def test_findall_generator_and_count():
@@ -2371,10 +2372,9 @@ def test_cut_problem_and_more_cut_errors():
     assert s == '0x43211234'
 
     a = BitArray('0b1')
-    with pytest.raises(ValueError):
-        _ = next(a.cut(1, start=1, end=2))
-    with pytest.raises(ValueError):
-        _ = next(a.cut(1, start=-2, end=1))
+    # Out of range start and end values are clamped like slice indices.
+    assert list(a.cut(1, start=1, end=2)) == []
+    assert next(a.cut(1, start=-2, end=1)) == '0b1'
     with pytest.raises(ValueError):
         _ = next(a.cut(0))
     with pytest.raises(ValueError):
@@ -2601,8 +2601,9 @@ def test_rotate_start_and_end_more_cases():
     assert a == '0b001101100'
     a.ror(3, end=4)
     assert a == '0b011001100'
-    with pytest.raises(ValueError):
-        a.rol(5, start=-4, end=-6)
+    # An end before the start gives an empty range, so nothing is rotated.
+    a.rol(5, start=-4, end=-6)
+    assert a == '0b011001100'
 
 
 def test_byte_swap_from_file_and_remaining_iterable_case():
@@ -2786,12 +2787,19 @@ def test_unsigned_struct_negative_errors_more(fmt):
         lambda s: s.byteswap([-1]),
         lambda s: s.byteswap([1, 'e']),
         lambda s: s.byteswap('!h'),
-        lambda s: s.byteswap(2, start=-1000),
     ],
 )
 def test_byteswap_value_errors_more(bad_call):
     with pytest.raises(ValueError):
         bad_call(BitArray('0x0011223344556677'))
+
+
+def test_byteswap_range_clamping():
+    # Out of range start and end values are clamped like slice indices.
+    s = BitArray('0x0011223344556677')
+    t = BitArray('0x0011223344556677')
+    assert s.byteswap(2, start=-1000) == t.byteswap(2, start=0)
+    assert s == t
 
 
 def test_byteswap_type_error_more():
@@ -2818,14 +2826,22 @@ def test_single_bit_assignment_value_errors_more(value):
     [
         ('reverse', (), {'start': -1, 'end': 4}),
         ('reverse', (), {'start': 10, 'end': 9}),
-        ('reverse', (), {'start': 1, 'end': 10000}),
         ('rol', (5,), {'start': -4, 'end': -6}),
     ],
 )
-def test_reverse_rotate_slice_errors_more(method, args, kwargs):
+def test_reverse_rotate_empty_ranges_are_no_ops(method, args, kwargs):
+    # An end before the start gives an empty range, so these do nothing.
     a = BitArray('0x123')
-    with pytest.raises(ValueError):
-        getattr(a, method)(*args, **kwargs)
+    getattr(a, method)(*args, **kwargs)
+    assert a == '0x123'
+
+
+def test_reverse_clamps_out_of_range_end():
+    a = BitArray('0x123')
+    a.reverse(start=1, end=10000)
+    b = BitArray('0x123')
+    b.reverse(start=1)
+    assert a == b
 
 
 @pytest.mark.parametrize("pos", [10, -11, [1, 2, 10]])

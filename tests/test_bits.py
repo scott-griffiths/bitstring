@@ -446,6 +446,28 @@ class TestInitialisation:
             Bits("0xabcd").pp(color=False)
         assert "ab cd" in s.getvalue()
 
+    def test_start_and_end_are_clamped_like_slice_indices(self):
+        # See issue #302. Out of range start/end are clipped rather than raising,
+        # and end < start gives an empty range, matching str and slice behaviour.
+        s = Bits("0b00110")
+        assert s.find("0b1", -100, 100) == 2
+        assert s.rfind("0b1", -100, 100) == 3
+        assert list(s.findall("0b1", -100, 100)) == [2, 3]
+        assert s.startswith("0b0", -100)
+        assert s.endswith("0b10", 0, 100)
+        assert [c.bin for c in s.cut(5, -100, 100)] == ["00110"]
+        assert list(s.cut(1, 3, 2)) == []
+        assert s.find("0b1", 3, 2) is None
+        assert not s.startswith("0b0", 3, 2)
+
+        t = BitArray("0b00110")
+        assert t.replace("0b1", "0b1", -100, 100) == 2
+        t.reverse(4, 1)  # Empty range, so a no-op.
+        t.rol(3, 4, 1)
+        t.ror(3, -100, -200)
+        assert t.byteswap(1, 4, 1) == 0
+        assert t == "0b00110"
+
     def test_optional_range_arguments_can_be_positional(self):
         s = BitArray("0b101001")
         assert s.find("0b1", 1) == 2

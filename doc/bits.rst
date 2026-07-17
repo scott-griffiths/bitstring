@@ -129,7 +129,7 @@ Methods
 
     As bit position zero is a valid result, use ``s.find(...) is not None`` when testing whether a match was found.
 
-    If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). *start* and *end* give the search range and default to the whole bitstring. ::
+    If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions (which is generally much faster than searching for it in every possible bit position). *start* and *end* give the search range and default to the whole bitstring. Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices. ::
 
         >>> s = Bits('0x0023122')
         >>> s.find('0b000100', bytealigned=True)
@@ -140,7 +140,7 @@ Methods
 
     Searches for all occurrences of *bs* (even overlapping ones) and returns a generator of their bit positions.
 
-    If *bytealigned* is ``True`` then *bs* will only be looked for at byte aligned positions. *start* and *end* optionally define a search range and default to the whole bitstring.
+    If *bytealigned* is ``True`` then *bs* will only be looked for at byte aligned positions. *start* and *end* optionally define a search range and default to the whole bitstring. Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices.
 
     The *count* parameter limits the number of items that will be found - the default is to find all occurrences. ::
 
@@ -272,7 +272,7 @@ Methods
 
     As bit position zero is a valid result, use ``s.rfind(...) is not None`` when testing whether a match was found.
 
-    If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions. *start* and *end* give the search range and default to ``0`` and :attr:`len` respectively.
+    If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions. *start* and *end* give the search range and default to ``0`` and :attr:`len` respectively. Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices.
 
     Note that as it's a reverse search it will start at *end* and finish at *start*. ::
 

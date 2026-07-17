@@ -79,6 +79,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   `BitArray.from_file(...)` instead.
 * `from_bytes()` and the `bytes` property setter no longer coerce lists of
   integers to byte data. Pass a `bytes`, `bytearray` or `memoryview` object.
+* Out of range `start` and `end` arguments are now clamped like slice indices
+  instead of raising a `ValueError`, and an `end` before the `start` gives an
+  empty range. This matches how `str` methods and slices behave, and applies to
+  `find()`, `rfind()`, `findall()`, `cut()`, `split()`, `startswith()`,
+  `endswith()`, `replace()`, `reverse()`, `rol()`, `ror()` and `byteswap()`.
 * Removed the single-letter `b`, `o` and `h` aliases for `bin`, `oct` and
   `hex`. The numeric names `u`, `i` and `f` remain and are now canonical.
 * Made `u`, `i` and `f` the canonical dtype names for bit-wise big-endian

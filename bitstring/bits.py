@@ -1232,12 +1232,13 @@ class Bits:
         return self._copy()
 
     def _validate_slice(self, start: int | None, end: int | None) -> tuple[int, int]:
-        """Validate start and end and return them as positive bit positions."""
-        start = 0 if start is None else (start + len(self) if start < 0 else start)
-        end = len(self) if end is None else (end + len(self) if end < 0 else end)
-        if not 0 <= start <= end <= len(self):
-            raise ValueError(f"Invalid slice positions for bitstring length {len(self)}: start={start}, end={end}.")
-        return start, end
+        """Return start and end as absolute bit positions, clamped like standard slice indices.
+
+        Out of range values are clipped rather than raising an error, and if end is
+        before start then an empty range at start is returned.
+        """
+        start, end, _ = slice(start, end).indices(len(self))
+        return start, max(start, end)
 
     def unpack(self, fmt: str | list[str | int], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]:
         """Interpret the whole bitstring using fmt and return list.
@@ -1328,8 +1329,10 @@ class Bits:
         bytealigned -- If True the bitstring will only be
                        found on byte boundaries.
 
-        Raises ValueError if bs is empty, if start < 0, if end > len(self) or
-        if end < start.
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
+
+        Raises ValueError if bs is empty.
 
         >>> BitArray('0xc3e').find('0b1111')
         6
@@ -1338,6 +1341,7 @@ class Bits:
         bs = Bits._create_from_bitstype(bs)
         if len(bs) == 0:
             raise ValueError("Cannot find an empty bitstring.")
+        start, end = self._validate_slice(start, end)
         p = self._find(bs, start, end, bytealigned)
         return p
 
@@ -1357,8 +1361,10 @@ class Bits:
         bytealigned -- If True the bitstring will only be found on
                        byte boundaries.
 
-        Raises ValueError if bs is empty, if start < 0, if end > len(self) or
-        if end < start.
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
+
+        Raises ValueError if bs is empty.
 
         Note that all occurrences of bs are found, even if they overlap.
 
@@ -1366,6 +1372,9 @@ class Bits:
         if count is not None and count < 0:
             raise ValueError("In findall, count must be >= 0.")
         bs = Bits._create_from_bitstype(bs)
+        if len(bs) == 0:
+            raise ValueError("Cannot find an empty bitstring.")
+        start, end = self._validate_slice(start, end)
         return self._findall(bs, start, end, count, bytealigned)
 
     def _findall(self, bs: Bits, start: int, end: int, count: int | None,
@@ -1394,11 +1403,16 @@ class Bits:
         bytealigned -- If True the bitstring will only be found on byte
                        boundaries.
 
-        Raises ValueError if bs is empty, if start < 0, if end > len(self) or
-        if end < start.
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
+
+        Raises ValueError if bs is empty.
 
         """
         bs = Bits._create_from_bitstype(bs)
+        if len(bs) == 0:
+            raise ValueError("Cannot find an empty bitstring.")
+        start, end = self._validate_slice(start, end)
         p = self._rfind(bs, start, end, bytealigned)
         return p
 
@@ -1416,6 +1430,9 @@ class Bits:
                Defaults to len(self).
         count -- If specified then at most count items are generated.
                  Default is to cut as many times as possible.
+
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
 
         """
         start_, end_ = self._validate_slice(start, end)
@@ -1456,6 +1473,9 @@ class Bits:
         count -- If specified then at most count items are generated.
                  Default is to split as many times as possible.
         bytealigned -- If True splits will only occur on byte boundaries.
+
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
 
         Raises ValueError if the delimiter is empty.
 
@@ -1556,6 +1576,9 @@ class Bits:
         start -- The bit position to start from. Defaults to 0.
         end -- The bit position to end at. Defaults to len(self).
 
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
+
         """
         prefix = self._create_from_bitstype(prefix)
         start, end = self._validate_slice(start, end)
@@ -1567,6 +1590,9 @@ class Bits:
         suffix -- The bitstring to search for.
         start -- The bit position to start from. Defaults to 0.
         end -- The bit position to end at. Defaults to len(self).
+
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
 
         """
         suffix = self._create_from_bitstype(suffix)

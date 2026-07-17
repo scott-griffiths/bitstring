@@ -55,7 +55,7 @@ Methods
 
    The *fmt* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact_format`). It defaults to 0, which means reverse as many bytes as possible. The *fmt* gives a pattern of byte sizes to use to swap the endianness of the :class:`BitArray`. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``=``) is not needed, and if present it will be ignored.
 
-   *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitArray`). If *repeat* is ``True`` then the byte swapping pattern given by the *fmt* is repeated in its entirety as many times as possible.
+   *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitArray`). Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices. If *repeat* is ``True`` then the byte swapping pattern given by the *fmt* is repeated in its entirety as many times as possible.
 
        >>> s = BitArray('0x00112233445566')
        >>> s.byteswap(2)
@@ -145,7 +145,7 @@ Methods
 
     Finds occurrences of *old* and replaces them with *new*. Returns the number of replacements made.
 
-    If *bytealigned* is ``True`` then replacements will only be made on byte boundaries. *start* and *end* give the search range and default to the start and end of the bitstring. If *count* is specified then no more than this many replacements will be made. ::
+    If *bytealigned* is ``True`` then replacements will only be made on byte boundaries. *start* and *end* give the search range and default to the start and end of the bitstring. Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices. If *count* is specified then no more than this many replacements will be made. ::
 
         >>> s = BitArray('0b0011001')
         >>> s.replace('0b1', '0xf')
@@ -161,7 +161,7 @@ Methods
 
     Reverses bits in the :class:`BitArray` in-place.
 
-    *start* and *end* give the range of bits to reverse and default to the start and end of the bitstring. ::
+    *start* and *end* give the range of bits to reverse and default to the start and end of the bitstring. Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices. ::
 
         >>> a = BitArray('0b000001101')
         >>> a.reverse()
@@ -175,7 +175,7 @@ Methods
 
     Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the left.
 
-    *start* and *end* define the slice to use and default to the start and end of the bitstring.
+    *start* and *end* define the slice to use and default to the start and end of the bitstring. Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices.
 
     Raises :exc:`ValueError` if ``bits < 0``. ::
 
@@ -188,7 +188,7 @@ Methods
 
     Rotates the contents of the :class:`BitArray` in-place by *bits* bits to the right.
 
-    *start* and *end* define the slice to use and default to the start and end of the bitstring.
+    *start* and *end* define the slice to use and default to the start and end of the bitstring. Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices.
 
     Raises :exc:`ValueError` if ``bits < 0``.
 

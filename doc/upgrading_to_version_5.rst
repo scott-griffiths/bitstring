@@ -137,6 +137,27 @@ If you used stream searching to move the current position, use
     if r.find("0xff", start=r.pos) is not None:
         print(r.pos)
 
+Remove reliance on range checking exceptions
+============================================
+
+Methods taking ``start`` and ``end`` arguments no longer raise a
+``ValueError`` for out of range values. Instead the values are clamped to the
+ends of the bitstring, in the same way as slice indices and the equivalent
+``str`` methods, with an ``end`` before the ``start`` giving an empty range.
+This applies to ``find``, ``rfind``, ``findall``, ``cut``, ``split``,
+``startswith``, ``endswith``, ``replace``, ``reverse``, ``rol``, ``ror`` and
+``byteswap``::
+
+    # bitstring 4
+    s = Bits("0x0123")
+    s.find("0x1", start=0, end=100)  # Raised ValueError
+
+    # bitstring 5
+    s.find("0x1", start=0, end=100)  # end is clamped to len(s), finds 4
+
+Code that relied on catching these exceptions to detect out of range values
+should check the positions against ``len(s)`` explicitly instead.
+
 Swap insert() and overwrite() arguments
 =======================================
 

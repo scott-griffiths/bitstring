@@ -419,8 +419,10 @@ class BitArray(Bits):
         bytealigned -- If True replacements will only be made on byte
                        boundaries.
 
-        Raises ValueError if old is empty or if start or end are
-        out of range.
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
+
+        Raises ValueError if old is empty.
 
         """
         if count == 0:
@@ -429,6 +431,7 @@ class BitArray(Bits):
         new = self._create_from_bitstype(new)
         if len(old) == 0:
             raise ValueError("Empty bitstring cannot be replaced.")
+        start, end = self._validate_slice(start, end)
 
         if new is self:
             # Prevent self assignment woes
@@ -527,9 +530,10 @@ class BitArray(Bits):
         end -- One past the position of the last bit to reverse.
                Defaults to len(self).
 
-        Using on an empty bitstring will have no effect.
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
 
-        Raises ValueError if start < 0, end > len(self) or end < start.
+        Using on an empty bitstring will have no effect.
 
         """
         start, end = self._validate_slice(start, end)
@@ -589,6 +593,8 @@ class BitArray(Bits):
 
     def _ror(self, bits: int, start: int | None = None, end: int | None = None) -> None:
         start, end = self._validate_slice(start, end)
+        if end == start:
+            return
         bits %= (end - start)
         if not bits:
             return
@@ -612,6 +618,8 @@ class BitArray(Bits):
 
     def _rol(self, bits: int, start: int | None = None, end: int | None = None):
         start, end = self._validate_slice(start, end)
+        if end == start:
+            return
         bits %= (end - start)
         if bits == 0:
             return
@@ -628,6 +636,9 @@ class BitArray(Bits):
         end -- End bit position, defaults to len(self).
         repeat -- If True (the default) the byte swapping pattern is repeated
                   as much as possible.
+
+        start and end are clamped to be within the bitstring, in the same
+        way as slice indices.
 
         """
         start_v, end_v = self._validate_slice(start, end)
