@@ -124,6 +124,9 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   The old spellings without underscores remain as deprecated compatibility
   aliases.
 * Added the `Array.from_zeros()`, `Array.from_bytes()` and `Array.from_file()` construction methods.
+* `Array`, `Reader` and `Dtype` objects can now be pickled and deep-copied, along
+  with `Bits` and `BitArray` which continue to support this. Pickling enables use
+  with the `multiprocessing` module.
 
 #### Fixes
 

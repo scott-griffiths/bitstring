@@ -4,6 +4,7 @@ Module-level unit tests.
 """
 import bitstring
 import copy
+import pickle
 from collections import abc
 import sys
 import os
@@ -76,6 +77,56 @@ class TestCopy:
         r_copy = copy.copy(r)
         assert r_copy.pos == 50
         assert r_copy.bits is bits
+
+
+class TestPicklingAndDeepCopying:
+    # Pickling supports multiprocessing and caching, and is also what deepcopy uses.
+
+    def test_bits_roundtrips(self):
+        for s in ['', '0b101', '0xabcde', '0xff, 0b1']:
+            bits = bitstring.Bits(s) if s else bitstring.Bits()
+            assert pickle.loads(pickle.dumps(bits)) == bits
+            assert copy.deepcopy(bits) == bits
+
+    def test_bitarray_roundtrips_and_is_independent(self):
+        ba = bitstring.BitArray('0xff, 0b1')
+        unpickled = pickle.loads(pickle.dumps(ba))
+        assert unpickled == ba
+        duplicate = copy.deepcopy(ba)
+        duplicate.append('0b1')
+        assert ba == '0xff, 0b1'
+        assert duplicate == '0xff, 0b11'
+
+    def test_dtype_roundtrips(self):
+        for d in [bitstring.Dtype('u8'), bitstring.Dtype('ue'), bitstring.Dtype('bool'),
+                  bitstring.Dtype('e3m2mxfp', scale=0.5)]:
+            assert pickle.loads(pickle.dumps(d)) == d
+
+    def test_array_roundtrips(self):
+        a = bitstring.Array('u12', [1, 2, 3])
+        assert pickle.loads(pickle.dumps(a)).equals(a)
+        assert copy.deepcopy(a).equals(a)
+        scaled = bitstring.Array(bitstring.Dtype('e3m2mxfp', scale=0.5), [2.0, 4.0])
+        assert pickle.loads(pickle.dumps(scaled)).equals(scaled)
+
+    def test_reader_roundtrips(self):
+        r = bitstring.Reader(bitstring.Bits('0xabcd'), pos=4)
+        for duplicate in [pickle.loads(pickle.dumps(r)), copy.deepcopy(r)]:
+            assert duplicate.bits == r.bits
+            assert duplicate.pos == 4
+            assert duplicate.read('u4') == 0xb
+
+    def test_file_backed_bits_roundtrip(self, tmp_path):
+        filename = tmp_path / 'pickle.bin'
+        filename.write_bytes(b'\x12\x34')
+        bits = bitstring.Bits.from_file(filename)
+        assert pickle.loads(pickle.dumps(bits)) == bits
+
+    def test_deepcopy_of_container(self):
+        d = {'a': bitstring.Bits('0b101'), 'b': [bitstring.BitArray('0xff')]}
+        d_copy = copy.deepcopy(d)
+        assert d_copy['a'] == d['a']
+        assert d_copy['b'][0] == d['b'][0]
 
 
 class TestInterning:

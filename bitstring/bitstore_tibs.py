@@ -54,6 +54,13 @@ class ConstBitStore:
     def __init__(self, initializer: Tibs) -> None:
         self.tibs = initializer
 
+    def __getstate__(self) -> bytes:
+        # The tibs types can't be pickled directly, so use their own encoded form.
+        return self.tibs.encode()
+
+    def __setstate__(self, state: bytes) -> None:
+        self.tibs = Tibs.decode(state)
+
     @classmethod
     def join(cls, bitstores: Iterable[ConstBitStore], /) -> ConstBitStore:
         x = super().__new__(cls)
@@ -241,6 +248,13 @@ class MutableBitStore:
 
     def __init__(self, initializer: Mutibs) -> None:
         self.tibs = initializer
+
+    def __getstate__(self) -> bytes:
+        # The tibs types can't be pickled directly, so use their own encoded form.
+        return self.tibs.encode()
+
+    def __setstate__(self, state: bytes) -> None:
+        self.tibs = Mutibs.decode(state)
 
     @classmethod
     def join(cls, bitstores: Iterable[MutableBitStore], /) -> MutableBitStore:

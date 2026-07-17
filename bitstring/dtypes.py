@@ -206,6 +206,10 @@ class Dtype:
             return self._name == other._name and self._length == other._length and self._scale == other._scale
         return False
 
+    def __reduce__(self):
+        # Dtypes hold unpicklable function references, but are defined by name, length and scale.
+        return Dtype, (self._name, self._length, self._scale)
+
 
 class AllowedLengths:
     def __init__(self, value: tuple[int, ...] = tuple()) -> None:
