@@ -23,11 +23,15 @@ def remove_unprintable(s: str) -> str:
 class TestCreation:
 
     def test_creation_from_int(self):
-        a = Array('u12', 20)
+        a = Array.from_zeros('u12', 20)
         assert len(a) == 20
         assert a[19] == 0
         with pytest.raises(IndexError):
             _ = a[20]
+        with pytest.raises(TypeError, match="from_zeros"):
+            _ = Array('u12', 20)
+        with pytest.raises(ValueError):
+            _ = Array.from_zeros('u12', -1)
 
     def test_creation_from_int_list(self):
         a = Array('i4', [-3, -2, -1, 0, 7])
@@ -45,7 +49,10 @@ class TestCreation:
 
     def test_creation_from_bits_format(self):
         a = Bits('0x000102030405')
-        b = Array('bits:8', a)
+        with pytest.raises(TypeError, match="from_bytes"):
+            _ = Array('bits:8', a)
+        b = Array('bits:8')
+        b.data += a
         c = Array('bits:8', [Bits('0x00'), Bits('0x01'), Bits('0x02'), Bits('0x03'), Bits('0x04'), Bits('0x05')])
         assert b.equals(c)
 
@@ -79,7 +86,7 @@ class TestCreation:
         assert a.dtype == Dtype('float64')
 
     def test_changing_format_with_trailing_bits(self):
-        a = Array('bool', 803)
+        a = Array.from_zeros('bool', 803)
         assert len(a) == 803
         a.dtype = '>e'
         assert len(a) == 803 // 16
@@ -112,13 +119,15 @@ class TestCreation:
         assert a.itemsize == 32
 
     def test_creation_from_bytes(self):
-        a = Array('u8', b'ABC')
+        with pytest.raises(TypeError, match="from_bytes"):
+            _ = Array('u8', b'ABC')
+        a = Array.from_bytes('u8', b'ABC')
         assert len(a) == 3
         assert a[0] == 65
         assert not a.trailing_bits
 
     def test_creation_from_bytearray(self):
-        a = Array('u7', bytearray(range(70)))
+        a = Array.from_bytes('u7', bytearray(range(70)))
         assert len(a) == 80
         assert not a.trailing_bits
 
@@ -126,12 +135,13 @@ class TestCreation:
         x = b'1234567890'
         m = memoryview(x[2:5])
         assert m == b'345'
-        a = Array('u8', m)
+        a = Array.from_bytes('u8', m)
         assert a.tolist() == [ord('3'), ord('4'), ord('5')]
 
     def test_creation_from_bits(self):
         a = bitstring.pack('20*i19', *range(-10, 10))
-        b = Array('i19', a)
+        b = Array('i19')
+        b.data += a
         assert b.tolist() == list(range(-10, 10))
 
     def test_creation_from_array_array(self):
@@ -146,8 +156,36 @@ class TestCreation:
     def test_creation_from_file(self):
         filename = os.path.join(THIS_DIR, 'test.m1v')
         with open(filename, 'rb') as f:
-            a = Array('uint8', f)
+            with pytest.raises(TypeError, match="from_file"):
+                _ = Array('uint8', f)
+            a = Array.from_file('uint8', f)
             assert a[0:4].tobytes() == b'\x00\x00\x01\xb3'
+        # Also works directly from a file path.
+        b = Array.from_file('uint8', filename)
+        assert b[0:4].tobytes() == b'\x00\x00\x01\xb3'
+
+    def test_from_file_honours_position_and_item_count(self, tmp_path):
+        filename = tmp_path / 'items.bin'
+        filename.write_bytes(bytes(range(10)))
+        with open(filename, 'rb') as f:
+            f.seek(2)
+            a = Array.from_file('u8', f, 3)
+        assert a.to_list() == [2, 3, 4]
+        with open(filename, 'rb') as f:
+            with pytest.raises(ValueError):
+                _ = Array.from_file('u8', f, -1)
+        with open(filename, 'rb') as f:
+            with pytest.raises(EOFError):
+                _ = Array.from_file('u8', f, 11)
+
+    def test_from_file_old_instance_call_raises(self, tmp_path):
+        filename = tmp_path / 'old_style.bin'
+        filename.write_bytes(b'\x01\x02')
+        a = Array('u8')
+        with open(filename, 'rb') as f:
+            with pytest.raises(TypeError, match="constructor"):
+                a.from_file(f)
+        assert not hasattr(a, 'fromfile')
 
     def test_different_type_codes(self):
         a = Array('>H', [10, 20])
@@ -411,8 +449,7 @@ class TestArrayMethods:
         with open(filename, 'wb') as f:
             a.to_file(f)
         with open(filename, 'rb') as f:
-            b = Array('u5')
-            b.from_file(f, 1)
+            b = Array.from_file('u5', f, 1)
         assert b.to_list() == [0]
 
     def test_old_conversion_method_names_still_work(self, tmp_path):
@@ -423,9 +460,8 @@ class TestArrayMethods:
         filename = tmp_path / 'array_alias.bin'
         with open(filename, 'wb') as f:
             a.tofile(f)
-        b = Array('uint8')
         with open(filename, 'rb') as f:
-            b.fromfile(f)
+            b = Array.from_file('uint8', f)
         assert b.to_list() == [1, 2]
 
     def test_getting(self):
@@ -580,7 +616,7 @@ class TestArrayMethods:
 ]\n"""
 
     def test_pp_bits(self):
-        a = Array('bits2', b'89')
+        a = Array.from_bytes('bits2', b'89')
         s = io.StringIO()
         a.pp(stream=s, width=0, show_offset=True)
         assert remove_unprintable(s.getvalue()) == """<Array dtype='bits2', length=8, itemsize=2 bits, total data size=2 bytes> [
@@ -595,7 +631,7 @@ class TestArrayMethods:
 ]\n"""
 
     def test_pp_two_formats(self):
-        a = Array('float16', bytearray(20))
+        a = Array.from_bytes('float16', bytearray(20))
         s = io.StringIO()
         a.pp(stream=s, fmt='p3binary, bin', show_offset=False)
         assert remove_unprintable(s.getvalue()) == """<Array fmt='p3binary, bin', length=20, itemsize=8 bits, total data size=20 bytes> [
@@ -607,7 +643,7 @@ class TestArrayMethods:
 ]\n"""
 
     def test_pp_two_formats_no_length(self):
-        a = Array('float16', bytearray(range(50, 56)))
+        a = Array.from_bytes('float16', bytearray(range(50, 56)))
         s = io.StringIO()
         a.pp(stream=s, fmt='u, bin')
         assert remove_unprintable(s.getvalue()) == """<Array fmt='u, bin', length=3, itemsize=16 bits, total data size=6 bytes> [
@@ -955,12 +991,12 @@ class TestMisc:
             a[-5] = 100.0
 
     def test_bytes(self):
-        a = Array('bytes8', 5)
+        a = Array.from_zeros('bytes8', 5)
         assert a.data == b'\x00'*40
         assert len(a) == 5
         assert a.itemsize == 64
 
-        b = Array('bytes1', 5)
+        b = Array.from_zeros('bytes1', 5)
         assert b.data == b'\x00'*5
         assert len(b) == 5
         assert b.itemsize == 8
@@ -974,7 +1010,8 @@ class TestMisc:
 
     def test_bytes_trailing_bits(self):
         b = Bits('0x000000, 0b111')
-        a = Array('bytes1', b)
+        a = Array('bytes1')
+        a.data += b
         assert a.trailing_bits == '0b111'
 
     def test_operation_with_bool(self):

@@ -4,17 +4,23 @@
 Array
 =====
 
-.. class:: Array(dtype: str | Dtype, initializer: Iterable | int | Array | array.array | Bits | bytes | bytearray | memoryview | BinaryIO | None = None, trailing_bits: BitsType | None = None)
+.. class:: Array(dtype: str | Dtype, initializer: Iterable | Array | array.array | None = None, trailing_bits: BitsType | None = None)
 
     Create a new ``Array`` whose elements are set by the `dtype` (data-type) string or :class:`Dtype`.
     This can be any format which has a fixed length.
     See :ref:`format_tokens` and :ref:`compact_format` for details on allowed dtype strings, noting that only formats with well defined bit lengths are allowed.
 
-    The `initializer` will typically be an iterable such as a list, but can also be many other things including an open binary file, a bytes or bytearray object, another ``bitstring.Array`` or an ``array.array``.
-    It can also be an integer, in which case the ``Array`` will be zero-initialised with that many items. ::
+    The `initializer` is an iterable of values appropriate to the `dtype`, such as a list, another ``bitstring.Array`` or an ``array.array``. ::
 
-        >>> bitstring.Array('i4', 8)
+        >>> bitstring.Array('i4', [-3, 0, 5])
+        Array('i4', [-3, 0, 5])
+
+    To create an ``Array`` from raw binary data use :meth:`Array.from_bytes`, and to create one full of zeroed items use :meth:`Array.from_zeros`. ::
+
+        >>> bitstring.Array.from_zeros('i4', 8)
         Array('i4', [0, 0, 0, 0, 0, 0, 0, 0])
+        >>> bitstring.Array.from_bytes('u8', b'AB')
+        Array('u8', [65, 66])
 
     The `trailing_bits` typically isn't used in construction, and specifies bits left over after interpreting the stored binary data according to the data type `dtype`.
 
@@ -230,11 +236,28 @@ Methods
         >>> a
         Array('i5', [-5, 0, 10, 3, 2, 1, -1, 0, 2])
 
-.. method:: Array.from_file(f: BinaryIO, n: int | None = None) -> None
+.. classmethod:: Array.from_bytes(dtype: str | Dtype, data: bytes | bytearray | memoryview, /) -> Array
 
-    Append items read from the file object's current position.
+    Create a new ``Array`` with its binary data taken from a bytes-like object. ::
 
-    If *n* is specified then at most that many items will be appended, and an :exc:`EOFError` will be raised if there is not enough data.
+        >>> a = Array.from_bytes('u8', b'ABC')
+        >>> a
+        Array('u8', [65, 66, 67])
+
+.. classmethod:: Array.from_file(dtype: str | Dtype, source: str | Path | BinaryIO, /, n: int | None = None) -> Array
+
+    Create a new ``Array`` with items read from a file path or binary file object.
+
+    If a file object is given the items are read from its current file position.
+    If *n* is specified then exactly that many items are read, and an :exc:`EOFError` is raised if there is not enough data. Otherwise as many whole items as possible are read.
+
+.. classmethod:: Array.from_zeros(dtype: str | Dtype, n: int, /) -> Array
+
+    Create a new ``Array`` containing *n* zeroed items. ::
+
+        >>> a = Array.from_zeros('i12', 5)
+        >>> a
+        Array('i12', [0, 0, 0, 0, 0])
 
 .. method:: Array.insert(i: int, x: float | int | str | bytes) -> None
 
@@ -277,7 +300,7 @@ Methods
 
     An output `stream` can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
 
-        >>> a = Array('u20', bytearray(range(100)))
+        >>> a = Array.from_bytes('u20', bytearray(range(100)))
         >>> a.pp(width=70, show_offset=False)
         <Array fmt='u20', length=40, itemsize=20 bits, total data size=100 bytes> [
              16  131844   20576  460809   41136  789774   61697   70163

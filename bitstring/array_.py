@@ -13,6 +13,7 @@ from bitstring import utils
 from bitstring.colour import Colour, should_use_color
 import copy
 import array
+import pathlib
 import operator
 import io
 import sys
@@ -52,7 +53,9 @@ class Array:
     byteswap() -- Change byte endianness of all items.
     count() -- Count the number of occurences of a value.
     extend() -- Append new items to the end of the Array from an iterable.
-    from_file() -- Append items read from a file object.
+    from_bytes() -- Create a new Array with binary data from a bytes-like object.
+    from_file() -- Create a new Array with items read from a file path or binary file object.
+    from_zeros() -- Create a new Array containing zeroed items.
     insert() -- Insert an item at a given position.
     pop() -- Remove and return an item.
     pp() -- Pretty print the Array.
@@ -77,12 +80,25 @@ class Array:
 
     """
 
-    def __init__(self, dtype: str | Dtype, initializer: int | Array | array.array | Iterable | Bits | bytes | bytearray | memoryview | BinaryIO | None = None,
+    def __init__(self, dtype: str | Dtype, initializer: Array | array.array | Iterable | None = None,
                  trailing_bits: BitsType | None = None) -> None:
         self.data = BitArray()
+        if isinstance(initializer, numbers.Integral):
+            raise TypeError(
+                f"It's no longer possible to create an Array from an item count. "
+                f"Use 'Array.from_zeros(dtype, {int(initializer)})' to create an Array of zeroed items."
+            )
+        if isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
+            raise TypeError(
+                "It's no longer possible to initialise an Array directly from binary data, as it is "
+                "ambiguous with an iterable of values. Use 'Array.from_bytes(dtype, data)' instead."
+            )
+        if isinstance(initializer, io.IOBase):
+            raise TypeError(
+                "It's no longer possible to initialise an Array directly from a file object. "
+                "Use 'Array.from_file(dtype, f)' instead."
+            )
         if isinstance(dtype, Dtype) and dtype.scale == 'auto':
-            if isinstance(initializer, (int, Bits, bytes, bytearray, memoryview, BinaryIO)):
-                raise TypeError("An Array with an 'auto' scale factor can only be created from an iterable of values.")
             auto_scale = self._calculate_auto_scale(initializer, dtype.name, dtype.length)
             dtype = Dtype(dtype.name, dtype.length, scale=auto_scale)
         try:
@@ -90,17 +106,30 @@ class Array:
         except ValueError as e:
             raise CreationError(e)
 
-        if isinstance(initializer, numbers.Integral):
-            self.data = BitArray.from_zeros(initializer * self._dtype.bitlength)
-        elif isinstance(initializer, (Bits, bytes, bytearray, memoryview)):
-            self.data += initializer
-        elif isinstance(initializer, io.BufferedReader):
-            self.from_file(initializer)
-        elif initializer is not None:
+        if initializer is not None:
             self.extend(initializer)
 
         if trailing_bits is not None:
             self.data += BitArray._create_from_bitstype(trailing_bits)
+
+    @classmethod
+    def from_zeros(cls, dtype: str | Dtype, n: int, /) -> Array:
+        """Create a new Array containing n zeroed items."""
+        n = int(n)
+        if n < 0:
+            raise ValueError(f"Can't create an Array of negative length {n}.")
+        x = cls(dtype)
+        x.data = BitArray.from_zeros(n * x.itemsize)
+        return x
+
+    @classmethod
+    def from_bytes(cls, dtype: str | Dtype, data: bytes | bytearray | memoryview, /) -> Array:
+        """Create a new Array with its binary data taken from a bytes-like object."""
+        if not isinstance(data, (bytes, bytearray, memoryview)):
+            raise TypeError(f"Array.from_bytes() needs a bytes-like object, but received a {type(data).__name__}.")
+        x = cls(dtype)
+        x.data += data
+        return x
 
     _largest_values = None
 
@@ -250,7 +279,7 @@ class Array:
             if len(value) == items_in_slice:
                 itemsize = self.itemsize
                 for s, v in zip(range(start, stop, step), value):
-                    self.data.overwrite(self._create_element(v), s * itemsize)
+                    self.data.overwrite(s * itemsize, self._create_element(v))
             else:
                 raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {items_in_slice}.")
         else:
@@ -259,7 +288,7 @@ class Array:
             if key < 0 or key >= len(self):
                 raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
             start = self.itemsize * key
-            self.data.overwrite(self._create_element(value), start)
+            self.data.overwrite(start, self._create_element(value))
             return
 
     def __delitem__(self, key: slice | int) -> None:
@@ -340,7 +369,7 @@ class Array:
         """
         # Match list.insert semantics: clamp both high and low indices.
         i = max(min(i, len(self)), -len(self))
-        self.data.insert(self._create_element(x), i * self.itemsize)
+        self.data.insert(i * self.itemsize, self._create_element(x))
 
     def pop(self, i: int = -1) -> ElementType:
         """Return and remove an element of the Array.
@@ -408,30 +437,34 @@ class Array:
         """Compatibility alias for :meth:`to_file`."""
         self.to_file(f)
 
-    def from_file(self, f: BinaryIO, n: int | None = None) -> None:
-        trailing_bit_length = len(self.data) % self._dtype.bitlength
-        if trailing_bit_length != 0:
-            raise ValueError(f"Cannot extend Array as its data length ({len(self.data)} bits) is not a multiple of the format length ({self._dtype.bitlength} bits).")
+    @classmethod
+    def from_file(cls, dtype: str | Dtype, source: str | pathlib.Path | BinaryIO | None = None, /, n: int | None = None) -> Array:
+        """Create a new Array with items read from a file path or binary file object.
+
+        If a file object is given the items are read from its current file position.
+        If n is given then exactly n items are read, and an EOFError is raised if
+        not enough data is available. Otherwise as many whole items as possible are read.
+        """
+        if source is None:
+            raise TypeError("Array.from_file() missing its 'source' argument: a file path or binary file object.")
+        x = cls(dtype)
         if n is not None and n < 0:
             raise ValueError("n must be >= 0.")
-
-        item_bits = self.itemsize
-        if n is None:
-            b = f.read()
+        item_bits = x.itemsize
+        bytes_wanted = None if n is None else (n * item_bits + 7) // 8
+        if isinstance(source, (str, pathlib.Path)):
+            with open(pathlib.Path(source), 'rb') as f:
+                b = f.read() if bytes_wanted is None else f.read(bytes_wanted)
         else:
-            bytes_needed = (n * item_bits + 7) // 8
-            b = f.read(bytes_needed)
+            b = source.read() if bytes_wanted is None else source.read(bytes_wanted)
         max_items = len(b) * 8 // item_bits
-        items_to_append = max_items if n is None else min(n, max_items)
-        bits_to_append = items_to_append * item_bits
-        if bits_to_append:
-            self.data._bitstore += MutableBitStore.from_bytes(b, length=bits_to_append)
-        if n is not None and items_to_append < n:
-            raise EOFError(f"Only {items_to_append} were appended, not the {n} items requested.")
-
-    def fromfile(self, f: BinaryIO, n: int | None = None) -> None:
-        """Compatibility alias for :meth:`from_file`."""
-        self.from_file(f, n)
+        items_to_use = max_items if n is None else min(n, max_items)
+        if n is not None and items_to_use < n:
+            raise EOFError(f"Only {items_to_use} items were available, not the {n} items requested.")
+        bits_to_use = items_to_use * item_bits
+        if bits_to_use:
+            x.data._bitstore += MutableBitStore.from_bytes(b, length=bits_to_use)
+        return x
 
     def reverse(self) -> None:
         itemsize = self.itemsize
@@ -446,7 +479,7 @@ class Array:
             self.data[start_swap_bit: start_swap_bit + itemsize] = temp
 
     def pp(self, fmt: str | None = None, width: int = 120,
-           show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None:
+           show_offset: bool = True, stream: TextIO | None = None, color: bool | None = None) -> None:
         """Pretty-print the Array contents.
 
         fmt -- Data format string. Defaults to current Array dtype.
@@ -457,6 +490,8 @@ class Array:
         color -- If True use ANSI colours, if False disable them. Defaults to honouring NO_COLOR.
 
         """
+        if stream is None:
+            stream = sys.stdout
         colour = Colour(should_use_color(color))
         sep = ' '
         dtype2 = None
