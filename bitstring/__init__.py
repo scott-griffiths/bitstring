@@ -54,7 +54,7 @@ __version__ = "5.0.0b1"
 
 __author__ = "Scott Griffiths"
 
-import bitstring.bitstore_tibs as bitstore  # noqa: F401 - used as bitstring.bitstore by submodules.
+import bitstring.bitstore as bitstore  # noqa: F401 - the core must be initialised before the classes that use it.
 
 from .bits import Bits
 from .bitarray_ import BitArray

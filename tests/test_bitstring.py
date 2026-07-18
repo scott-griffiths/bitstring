@@ -38,7 +38,7 @@ class TestModuleData:
 
     def test_no_internal_names_in_namespace(self):
         # Only the public API and genuine submodules should be visible on the package.
-        submodules = {'array_', 'bitarray_', 'bits', 'bitstore', 'bitstore_helpers', 'bitstore_tibs',
+        submodules = {'array_', 'bitarray_', 'bits', 'bitstore', 'bitstore_helpers',
                       'colour', 'dtypes', 'exceptions', 'fp8', 'helpers', 'luts', 'methods', 'mxfp',
                       'reader', 'utils'}
         public = {n for n in dir(bitstring) if not n.startswith('_')}
@@ -50,7 +50,7 @@ class TestModuleData:
         # classes - everything else should go through the bitstore interface.
         import re
         package_dir = os.path.dirname(bitstring.__file__)
-        allowed = {'bitstore_tibs.py', 'bitstore_helpers.py'}
+        allowed = {'bitstore.py', 'bitstore_helpers.py'}
         for filename in sorted(os.listdir(package_dir)):
             if filename.endswith('.py') and filename not in allowed:
                 with open(os.path.join(package_dir, filename)) as f:

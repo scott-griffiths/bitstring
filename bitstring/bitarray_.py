@@ -219,7 +219,7 @@ class BitArray(Bits):
         if length is not None and offset + length > file_bits:
             raise bitstring.CreationError(
                 f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
-        x._bitstore = MutableBitStore.frombuffer(m, offset=offset, length=length)
+        x._bitstore = MutableBitStore.from_buffer(m, offset, length)
         return x
 
     @classmethod

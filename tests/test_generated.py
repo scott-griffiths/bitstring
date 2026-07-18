@@ -1,5 +1,6 @@
 # LLM generated test cases
 import bitstring
+from tibs import Mutibs
 import pytest
 
 
@@ -8,7 +9,7 @@ MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
 def test_mutable_bitstore_ilshift_keeps_binding_and_returns_self() -> None:
-    bs = MutableBitStore.from_bin("1011")
+    bs = MutableBitStore(Mutibs.from_bin("1011"))
     original_id = id(bs)
 
     bs <<= 1
@@ -18,7 +19,7 @@ def test_mutable_bitstore_ilshift_keeps_binding_and_returns_self() -> None:
 
 
 def test_mutable_bitstore_irshift_keeps_binding_and_returns_self() -> None:
-    bs = MutableBitStore.from_bin("1011")
+    bs = MutableBitStore(Mutibs.from_bin("1011"))
     original_id = id(bs)
 
     bs >>= 1
@@ -33,7 +34,7 @@ def test_const_bitstore_eq_non_bitstore_returns_false() -> None:
 
 
 def test_mutable_bitstore_eq_non_bitstore_returns_false() -> None:
-    bs = MutableBitStore.from_bin("1")
+    bs = MutableBitStore(Mutibs.from_bin("1"))
     assert (bs == 1) is False
 
 

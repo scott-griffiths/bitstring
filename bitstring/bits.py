@@ -630,7 +630,7 @@ class Bits:
                 f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
         if offset == 0 and filename is not None:
             self._filename = filename
-        self._bitstore = ConstBitStore.frombuffer(m, offset=offset, length=length)
+        self._bitstore = ConstBitStore.from_buffer(m, offset, length)
 
     def _setbits(self, bs: BitsType, length: None = None) -> None:
         bs = Bits._create_from_bitstype(bs)

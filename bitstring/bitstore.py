@@ -46,6 +46,25 @@ def _normalise_byte_import_args(offset: int | None, length: int | None) -> tuple
     return offset, length
 
 
+def _validated_buffer(buffer, offset: int | None, length: int | None) -> memoryview:
+    """Validate offset and length in bits against a buffer, returning it as a memoryview."""
+    mv = memoryview(buffer)
+    if offset is None:
+        offset = 0
+    if offset < 0:
+        raise CreationError("Can't create bitstring with a negative offset.")
+    if offset > mv.nbytes * 8:
+        raise CreationError(
+            f"Can't create bitstring with an offset of {offset} from {mv.nbytes * 8} bits of data.")
+    if length is not None:
+        if length < 0:
+            raise CreationError("Can't create bitstring with a negative length.")
+        if offset + length > mv.nbytes * 8:
+            raise CreationError(
+                f"Can't create bitstring with a length of {length} from {mv.nbytes * 8 - offset} bits of data.")
+    return mv
+
+
 class ConstBitStore:
     """A light wrapper around tibs.Tibs"""
 
@@ -68,13 +87,13 @@ class ConstBitStore:
         return x
 
     @classmethod
-    def from_zeros(cls, i: int):
+    def from_zeros(cls, i: int) -> ConstBitStore:
         x = super().__new__(cls)
         x.tibs = Tibs.from_zeros(i)
         return x
 
     @classmethod
-    def from_ones(cls, i: int):
+    def from_ones(cls, i: int) -> ConstBitStore:
         x = super().__new__(cls)
         x.tibs = Tibs.from_ones(i)
         return x
@@ -94,23 +113,9 @@ class ConstBitStore:
         return x
 
     @classmethod
-    def frombuffer(cls, buffer, /, length: int | None = None, offset: int | None = None) -> ConstBitStore:  #TODO: Shouldn't need a default here.
-        mv = memoryview(buffer)
-        if offset is None:
-            offset = 0
-        if offset < 0:
-            raise CreationError("Can't create bitstring with a negative offset.")
-        if offset > mv.nbytes * 8:
-            raise CreationError(
-                f"Can't create bitstring with an offset of {offset} from {mv.nbytes * 8} bits of data.")
-        if length is not None:
-            if length < 0:
-                raise CreationError("Can't create bitstring with a negative length.")
-            if offset + length > mv.nbytes * 8:
-                raise CreationError(
-                    f"Can't create bitstring with a length of {length} from {mv.nbytes * 8 - offset} bits of data.")
-            return cls.from_bytes(mv, offset=offset, length=length)
-        return cls.from_bytes(mv, offset=offset)
+    def from_buffer(cls, buffer, /, offset: int | None, length: int | None) -> ConstBitStore:
+        mv = _validated_buffer(buffer, offset, length)
+        return cls.from_bytes(mv, offset=offset or 0, length=length)
 
     @classmethod
     def from_bin(cls, s: str) -> ConstBitStore:
@@ -164,21 +169,21 @@ class ConstBitStore:
     def read_oct(self, start: int, length: int) -> str:
         return self.tibs.to_oct(start, start + length)
 
-    def __add__(self, other: ConstBitStore, /) -> ConstBitStore:
+    def __add__(self, other: ConstBitStore | MutableBitStore, /) -> ConstBitStore:
         return ConstBitStore(self.tibs + other.tibs)
 
     def __eq__(self, other: Any, /) -> bool:
-        if not isinstance(other, ConstBitStore):
+        if not isinstance(other, (ConstBitStore, MutableBitStore)):
             return NotImplemented
         return self.tibs == other.tibs
 
-    def __and__(self, other: ConstBitStore, /) -> ConstBitStore:
+    def __and__(self, other: ConstBitStore | MutableBitStore, /) -> ConstBitStore:
         return ConstBitStore(self.tibs & other.tibs)
 
-    def __or__(self, other: ConstBitStore, /) -> ConstBitStore:
+    def __or__(self, other: ConstBitStore | MutableBitStore, /) -> ConstBitStore:
         return ConstBitStore(self.tibs | other.tibs)
 
-    def __xor__(self, other: ConstBitStore, /) -> ConstBitStore:
+    def __xor__(self, other: ConstBitStore | MutableBitStore, /) -> ConstBitStore:
         return ConstBitStore(self.tibs ^ other.tibs)
 
     def __invert__(self) -> ConstBitStore:
@@ -190,17 +195,14 @@ class ConstBitStore:
     def __rshift__(self, n: int, /) -> ConstBitStore:
         return ConstBitStore(self.tibs >> n)
 
-    def find(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
+    def find(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         return self.tibs.find(bs.tibs, start, end, byte_aligned=bytealigned)
 
-    def rfind(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
+    def rfind(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned)
 
-    def findall(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+    def findall(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         return self.tibs.find_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
-
-    def rfindall(self, bs: ConstBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        return self.tibs.rfind_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
     def __iter__(self) -> Iterable[bool]:
         return self.tibs.__iter__()
@@ -238,10 +240,6 @@ class ConstBitStore:
         for chunk in self.tibs.chunks_iter(bits, count):
             yield ConstBitStore(chunk)
 
-    def __getitem__(self, item: int | slice, /) -> int | ConstBitStore:
-        # Use getindex or getslice instead
-        raise NotImplementedError
-
     def getindex(self, index: int, /) -> bool:
         return self.tibs[index]
 
@@ -257,10 +255,10 @@ class ConstBitStore:
     def all(self) -> bool:
         return self.tibs.all()
 
-    def startswith(self, prefix: ConstBitStore) -> bool:
+    def startswith(self, prefix: ConstBitStore | MutableBitStore) -> bool:
         return self.tibs.starts_with(prefix.tibs)
 
-    def endswith(self, suffix: ConstBitStore) -> bool:
+    def endswith(self, suffix: ConstBitStore | MutableBitStore) -> bool:
         return self.tibs.ends_with(suffix.tibs)
 
     def count(self, value: Any) -> int:
@@ -292,13 +290,13 @@ class MutableBitStore:
         return x
 
     @classmethod
-    def from_zeros(cls, i: int):
+    def from_zeros(cls, i: int) -> MutableBitStore:
         x = super().__new__(cls)
         x.tibs = Mutibs.from_zeros(i)
         return x
 
     @classmethod
-    def from_ones(cls, i: int):
+    def from_ones(cls, i: int) -> MutableBitStore:
         x = super().__new__(cls)
         x.tibs = Mutibs.from_ones(i)
         return x
@@ -312,23 +310,9 @@ class MutableBitStore:
         return x
 
     @classmethod
-    def frombuffer(cls, buffer, /, length: int | None = None, offset: int | None = None) -> MutableBitStore:
-        mv = memoryview(buffer)
-        if offset is None:
-            offset = 0
-        if offset < 0:
-            raise CreationError("Can't create bitstring with a negative offset.")
-        if offset > mv.nbytes * 8:
-            raise CreationError(
-                f"Can't create bitstring with an offset of {offset} from {mv.nbytes * 8} bits of data.")
-        if length is not None:
-            if length < 0:
-                raise CreationError("Can't create bitstring with a negative length.")
-            if offset + length > mv.nbytes * 8:
-                raise CreationError(
-                    f"Can't create bitstring with a length of {length} bits from {mv.nbytes * 8 - offset} bits of data.")
-            return cls.from_bytes(mv, offset=offset, length=length)
-        return cls.from_bytes(mv, offset=offset)
+    def from_buffer(cls, buffer, /, offset: int | None, length: int | None) -> MutableBitStore:
+        mv = _validated_buffer(buffer, offset, length)
+        return cls.from_bytes(mv, offset=offset or 0, length=length)
 
     @classmethod
     def from_bools(cls, iterable: Iterable[Any], /) -> MutableBitStore:
@@ -336,20 +320,8 @@ class MutableBitStore:
         x.tibs = Mutibs.from_bools(iterable)
         return x
 
-    @classmethod
-    def from_bin(cls, s: str) -> MutableBitStore:
-        x = super().__new__(cls)
-        x.tibs = Mutibs.from_bin(s)
-        return x
-
-    def to_bytes(self, pad_at_end: bool = True) -> bytes:
-        if pad_at_end:
-            return self.tibs.to_padded_bytes()
-        excess_bits = len(self.tibs) % 8
-        if excess_bits != 0:
-            padded_bits = Mutibs.from_zeros(8 - excess_bits) + self.tibs
-            return padded_bits.to_bytes()
-        return self.tibs.to_bytes()
+    def to_bytes(self) -> bytes:
+        return self.tibs.to_padded_bytes()
 
     def to_bools(self) -> list[bool]:
         return self.tibs.to_bools()
@@ -402,7 +374,7 @@ class MutableBitStore:
         self.tibs >>= n
         return self
 
-    def __add__(self, other: MutableBitStore, /) -> MutableBitStore:
+    def __add__(self, other: ConstBitStore | MutableBitStore, /) -> MutableBitStore:
         return MutableBitStore(self.tibs + other.tibs)
 
     def __iadd__(self, other: MutableBitStore | ConstBitStore, /) -> MutableBitStore:
@@ -414,21 +386,21 @@ class MutableBitStore:
             return NotImplemented
         return self.tibs == other.tibs
 
-    def __and__(self, other: MutableBitStore, /) -> MutableBitStore:
+    def __and__(self, other: ConstBitStore | MutableBitStore, /) -> MutableBitStore:
         return MutableBitStore(self.tibs & other.tibs)
 
     def __iand__(self, other: MutableBitStore | ConstBitStore, /) -> MutableBitStore:
         self.tibs &= other.tibs
         return self
 
-    def __or__(self, other: MutableBitStore, /) -> MutableBitStore:
+    def __or__(self, other: ConstBitStore | MutableBitStore, /) -> MutableBitStore:
         return MutableBitStore(self.tibs | other.tibs)
 
     def __ior__(self, other: MutableBitStore | ConstBitStore, /) -> MutableBitStore:
         self.tibs |= other.tibs
         return self
 
-    def __xor__(self, other: MutableBitStore, /) -> MutableBitStore:
+    def __xor__(self, other: ConstBitStore | MutableBitStore, /) -> MutableBitStore:
         return MutableBitStore(self.tibs ^ other.tibs)
 
     def __ixor__(self, other: MutableBitStore | ConstBitStore, /) -> MutableBitStore:
@@ -444,17 +416,16 @@ class MutableBitStore:
     def __rshift__(self, n: int, /) -> MutableBitStore:
         return MutableBitStore(self.tibs >> n)
 
-    def find(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
+    def find(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         return self.tibs.find(bs.tibs, start, end, byte_aligned=bytealigned)
 
-    def rfind(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
+    def rfind(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> int | None:
         return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned)
 
-    def findall(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+    def findall(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
+        # Mutibs has no find_all_iter, so search an immutable snapshot. This copies the
+        # data, but also makes the iteration safe if the bitstring is mutated during it.
         return self.tibs.to_tibs().find_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
-
-    def rfindall(self, bs: MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
-        return self.tibs.to_tibs().rfind_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
     def clear(self) -> None:
         self.tibs.clear()
@@ -465,8 +436,9 @@ class MutableBitStore:
     def byte_swap(self, start: int | None, end: int | None) -> None:
         self.tibs.byte_swap(start=start, end=end)
 
-    # TODO: Should we remove iter from this mutable type?
     def __iter__(self) -> Iterable[bool]:
+        # Mutibs deliberately doesn't support iteration, so index bit-by-bit.
+        # This is lazy and so reflects any mutations made while iterating.
         for i in range(len(self)):
             yield self.getindex(i)
 
@@ -502,10 +474,6 @@ class MutableBitStore:
     def __imul__(self, n: int, /) -> MutableBitStore:
         self.tibs *= n
         return self
-
-    def __getitem__(self, item: int | slice, /) -> int | MutableBitStore:
-        # Use getindex or getslice instead
-        raise NotImplementedError
 
     def getindex(self, index: int, /) -> bool:
         return self.tibs[index]
