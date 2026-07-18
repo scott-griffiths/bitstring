@@ -2851,6 +2851,24 @@ def test_invert_index_errors_more(pos):
         a.invert(pos)
 
 
+@pytest.mark.parametrize("r", [range(1, 0), range(0, 2, -1), range(0, 0)])
+def test_set_and_invert_with_empty_ranges(r):
+    # Empty ranges are no-ops, matching a list of their (zero) contents.
+    # These caused a crash in the Rust core with tibs < 1.1.
+    a = BitArray('0x00')
+    a.set(1, r)
+    assert a == '0x00'
+    a.invert(r)
+    assert a == '0x00'
+
+
+def test_set_with_negative_range_values():
+    # Negative range values index from the end, just like in a list.
+    a = BitArray('0x00')
+    a.set(1, range(-3, -1))
+    assert a.bin == '00000110'
+
+
 @pytest.mark.parametrize("pos", [-9, 8])
 def test_set_index_errors_more(pos):
     a = BitArray('0b01000000')

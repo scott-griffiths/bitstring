@@ -32,6 +32,9 @@ class TestCreation:
         assert Bits.from_ones(5) == "0b11111"
         assert Bits.from_joined(["0xa", "0xb"]) == "0xab"
         assert Bits.from_joined([]) == Bits()
+        # The same empty bitstring repeated used to crash in tibs < 1.1.
+        empty = Bits()
+        assert Bits.from_joined([empty, empty, empty]) == Bits()
 
         filename = tmp_path / "factory.bin"
         filename.write_bytes(b"\x12\x34")
@@ -56,6 +59,13 @@ class TestCreation:
     def test_from_file_rejects_in_memory_streams(self, cls):
         with pytest.raises(TypeError, match="from_bytes"):
             cls.from_file(io.BytesIO(b"\x12\x34"))
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_to_bools(self, cls):
+        assert cls('0b0110').to_bools() == [False, True, True, False]
+        assert cls().to_bools() == []
+        bools = [True, False] * 500
+        assert cls.from_bools(bools).to_bools() == bools
 
     def test_to_bitarray(self):
         bits = Bits("0b101")

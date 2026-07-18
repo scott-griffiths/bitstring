@@ -121,6 +121,9 @@ class ConstBitStore:
     def to_bytes(self) -> bytes:
         return self.tibs.to_padded_bytes()
 
+    def to_bools(self) -> list[bool]:
+        return self.tibs.to_bools()
+
     def read_bytes(self, start: int, length: int) -> bytes:
         return self.tibs.to_bytes(start, start + length)
 
@@ -321,6 +324,9 @@ class MutableBitStore:
             padded_bits = Mutibs.from_zeros(8 - excess_bits) + self.tibs
             return padded_bits.to_bytes()
         return self.tibs.to_bytes()
+
+    def to_bools(self) -> list[bool]:
+        return self.tibs.to_bools()
 
     def read_bytes(self, start: int, length: int) -> bytes:
         return self.tibs.to_bytes(start, start + length)

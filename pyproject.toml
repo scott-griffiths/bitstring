@@ -27,12 +27,21 @@ classifiers = [
 ]
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
-  "tibs >= 1.0.0, < 2.0",
+  "tibs >= 1.1.0, < 2.0",
 ]
 
 [project.urls]
 homepage = "https://github.com/scott-griffiths/bitstring"
 documentation = "https://bitstring.readthedocs.io/"
+
+# Keep in sync with tests/requirements.txt, which the CI uses.
+[dependency-groups]
+dev = [
+  "pytest >= 7.4.2, < 8",
+  "hypothesis >= 6.98.13, < 7",
+  "gfloat >= 0.2.1, < 0.3",
+  "pytest-benchmark >= 4.0.0, < 4.1",
+]
 
 [tool.setuptools]
 packages = ["bitstring"]

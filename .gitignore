@@ -12,3 +12,6 @@ doc/_build
 /html/
 /tests/.hypothesis/
 /uv.lock
+/stats
+/tests/stats
+/tests/stress.py

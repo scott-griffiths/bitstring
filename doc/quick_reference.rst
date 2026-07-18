@@ -90,6 +90,7 @@ Methods
 * :meth:`~Bits.split` -- Create generator of chunks split by a delimiter.
 * :meth:`~Bits.startswith` -- Return whether the bitstring starts with a sub-bitstring.
 * :meth:`~Bits.to_bitarray` -- Return a mutable copy.
+* :meth:`~Bits.to_bools` -- Return bitstring as a list of bools.
 * :meth:`~Bits.to_bytes` -- Return bitstring as bytes, padding if needed.
 * :meth:`~Bits.to_file` -- Write bitstring to file, padding if needed.
 * :meth:`~Bits.to_tibs` -- Return the data as a ``tibs.Tibs`` instance.

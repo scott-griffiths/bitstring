@@ -64,6 +64,7 @@ class BitArray(Bits):
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
     to_bits() -- Return the bitstring as an immutable Bits.
+    to_bools() -- Return the bitstring as a list of bools.
     to_bytes() -- Return bitstring as bytes, padding if needed.
     to_file() -- Write bitstring to file, padding if needed.
     to_tibs() -- Return the data as a tibs.Tibs instance.

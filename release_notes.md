@@ -4,8 +4,8 @@
 ## Upcoming: version 5.0
 
 This version completes the move to using the `tibs` Rust library as the core.
-Benchmarks range between 0.9x and 2.7x the speed of version 4.4 - in general 
-most code should be faster.
+Benchmarks range between 1.1x and 5x the speed of version 4.4, with most code
+around 2x to 3x faster. Searching in particular is much improved.
 
 There are some significant breaking changes, though most are easy to rewrite.
 See https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html for 
@@ -64,9 +64,10 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Reading a dtype property whose length doesn't match, such as `Bits('0xff').u16`,
   now raises an `AttributeError` rather than a `ValueError`, so that `hasattr()`
   works as expected.
-* Removed the optional backend selection mechanism. The `tibs` dependency is now
-  required, and the `BITSTRING_USE_RUST_CORE` environment variable and
-  `bitstring.options.using_rust_core` flag no longer exist.
+* Removed the optional backend selection mechanism. The `tibs` dependency
+  (version 1.1 or later) is now required, and the `BITSTRING_USE_RUST_CORE`
+  environment variable and `bitstring.options.using_rust_core` flag no longer
+  exist.
 * `pack()` now returns a `Bits` object instead of a `BitStream`.
 * Tightened construction and automatic bitstring promotion. File objects,
   `io.BytesIO`, `array.array`, arbitrary iterables, and truthy lists such as
@@ -127,6 +128,8 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * `Array`, `Reader` and `Dtype` objects can now be pickled and deep-copied, along
   with `Bits` and `BitArray` which continue to support this. Pickling enables use
   with the `multiprocessing` module.
+* Added `to_bools()` as the converse of the `from_bools()` constructor. It is
+  much faster than iterating over the bitstring.
 
 #### Fixes
 

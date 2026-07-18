@@ -305,6 +305,16 @@ Methods
         True
 
 
+.. method:: Bits.to_bools() -> list[bool]
+
+    Returns the bitstring as a list of ``bool`` values.
+
+    This is much faster than iterating over the bitstring, and is the converse of the :meth:`~Bits.from_bools` constructor. ::
+
+        >>> Bits('0b0110').to_bools()
+        [False, True, True, False]
+
+
 .. method:: Bits.to_bytes() -> bytes
 
     Returns the bitstring as a ``bytes`` object.

@@ -93,6 +93,7 @@ class Bits:
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
     to_bitarray() -- Return the bitstring as a mutable BitArray.
+    to_bools() -- Return the bitstring as a list of bools.
     to_bytes() -- Return bitstring as bytes, padding if needed.
     to_file() -- Write bitstring to file, padding if needed.
     to_tibs() -- Return the data as a tibs.Tibs instance.
@@ -1541,6 +1542,15 @@ class Bits:
         else:
             s._bitstore = MutableBitStore.join(_stores())
         return s
+
+    def to_bools(self) -> list[bool]:
+        """Return the bitstring as a list of bools.
+
+        This is much faster than iterating over the bitstring, and is the
+        converse of the from_bools() constructor.
+
+        """
+        return self._bitstore.to_bools()
 
     def to_bytes(self) -> bytes:
         """Return the bitstring as bytes, padding with zero bits if needed.

@@ -1,3 +1,4 @@
+# Used by the CI. Keep in sync with the dev dependency group in pyproject.toml.
 pytest >= 7.4.2, < 8
 hypothesis >= 6.98.13, < 7
 gfloat >= 0.2.1, < 0.3
