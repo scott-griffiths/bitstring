@@ -225,23 +225,19 @@ class BitArray(Bits):
     @classmethod
     def from_tibs(cls: type[TBits], tibs: Tibs | Mutibs, /) -> TBits:
         """Create a new bitstring from a tibs.Tibs or tibs.Mutibs instance."""
-        if isinstance(tibs, Mutibs):
-            tibs = tibs.to_tibs()
-        elif not isinstance(tibs, Tibs):
-            raise TypeError(f"Expected tibs.Tibs or tibs.Mutibs, got {type(tibs).__name__}.")
         x = super().__new__(cls)
-        x._bitstore = MutableBitStore(tibs.to_mutibs())
+        x._bitstore = MutableBitStore.from_tibs(tibs)
         return x
 
     def to_bits(self) -> Bits:
         """Return an immutable copy of the bitstring."""
         x = Bits()
-        x._bitstore = bitstring.bitstore.ConstBitStore(self._bitstore.tibs.to_tibs())
+        x._bitstore = self._bitstore.to_const()
         return x
 
     def to_tibs(self) -> Tibs:
         """Return the data as a tibs.Tibs instance."""
-        return self._bitstore.tibs.to_tibs()
+        return self._bitstore.to_tibs()
 
     def copy(self: TBits) -> TBits:
         """Return a copy of the bitstring."""

@@ -227,8 +227,7 @@ class Bits:
                 except ValueError as e:
                     raise bitstring.CreationError(e)
         if immutable:
-            if isinstance(self._bitstore, MutableBitStore):
-                self._bitstore = ConstBitStore(self._bitstore.tibs.to_tibs())
+            self._bitstore = self._bitstore.to_const()
         else:
             # TODO: This copy is not a good idea.
             self._bitstore = self._bitstore._mutable_copy()
@@ -444,7 +443,7 @@ class Bits:
 
     def _imul(self: TBits, n: int, /) -> TBits:
         """Concatenate n copies of self in place. Return self."""
-        self._bitstore.tibs *= n
+        self._bitstore *= n
         return self
 
     def __rmul__(self: TBits, n: int, /) -> TBits:
@@ -566,10 +565,8 @@ class Bits:
             self._bitstore = helpers.str_to_bitstore(s)
         elif isinstance(s, Bits):
             self._bitstore = s._bitstore.copy()
-        elif isinstance(s, Tibs):
-            self._bitstore = ConstBitStore(s)
-        elif isinstance(s, Mutibs):
-            self._bitstore = ConstBitStore(s.to_tibs())
+        elif isinstance(s, (Tibs, Mutibs)):
+            self._bitstore = ConstBitStore.from_tibs(s)
         elif isinstance(s, (bytes, bytearray, memoryview)):
             self._bitstore = ConstBitStore.from_bytes(s)
         elif isinstance(s, io.BytesIO):
@@ -1133,10 +1130,7 @@ class Bits:
         """Create and return a new copy of the Bits (always in memory)."""
         # Note that __copy__ may choose to return self if it's immutable. This method always makes a copy.
         s_copy = self.__class__()
-        if isinstance(self._bitstore, ConstBitStore):
-            s_copy._bitstore = ConstBitStore(self._bitstore.tibs)
-        else:
-            s_copy._bitstore = self._bitstore._mutable_copy()
+        s_copy._bitstore = self._bitstore._fresh_copy()
         return s_copy
 
     def _slice(self: TBits, start: int, end: int) -> TBits:
@@ -1443,9 +1437,9 @@ class Bits:
             raise ValueError("Cannot cut - bits must be > 0.")
         if isinstance(self._bitstore, ConstBitStore) and start_ == 0 and end_ == len(self):
             cls = self.__class__
-            for chunk_tibs in self._bitstore.tibs.chunks_iter(bits, count):
+            for chunk_store in self._bitstore.chunks(bits, count):
                 chunk = object.__new__(cls)
-                chunk._bitstore = ConstBitStore(chunk_tibs)
+                chunk._bitstore = chunk_store
                 yield chunk
             return
         c = 0
@@ -1929,12 +1923,8 @@ class Bits:
     @classmethod
     def from_tibs(cls: type[TBits], tibs: Tibs | Mutibs, /) -> TBits:
         """Create a new bitstring from a tibs.Tibs or tibs.Mutibs instance."""
-        if isinstance(tibs, Mutibs):
-            tibs = tibs.to_tibs()
-        elif not isinstance(tibs, Tibs):
-            raise TypeError(f"Expected tibs.Tibs or tibs.Mutibs, got {type(tibs).__name__}.")
         x = super().__new__(cls)
-        x._bitstore = ConstBitStore(tibs)
+        x._bitstore = ConstBitStore.from_tibs(tibs)
         return x
 
     def to_bitarray(self) -> bitstring.BitArray:
@@ -1947,4 +1937,4 @@ class Bits:
 
     def to_tibs(self) -> Tibs:
         """Return the data as a tibs.Tibs instance."""
-        return self._bitstore.tibs
+        return self._bitstore.to_tibs()

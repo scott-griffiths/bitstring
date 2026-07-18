@@ -45,6 +45,18 @@ class TestModuleData:
         unexpected = public - set(bitstring.__all__) - submodules
         assert unexpected == set()
 
+    def test_tibs_does_not_leak_from_bitstore_layer(self):
+        # Only the bitstore files should touch the .tibs attribute of the bitstore
+        # classes - everything else should go through the bitstore interface.
+        import re
+        package_dir = os.path.dirname(bitstring.__file__)
+        allowed = {'bitstore_tibs.py', 'bitstore_helpers.py'}
+        for filename in sorted(os.listdir(package_dir)):
+            if filename.endswith('.py') and filename not in allowed:
+                with open(os.path.join(package_dir, filename)) as f:
+                    source = f.read()
+                assert re.search(r'\.tibs\b', source) is None, f"'.tibs' accessed in {filename}"
+
     def test_module_version_matches_pyproject_exactly(self):
         filename = os.path.join(THIS_DIR, '../pyproject.toml')
         try:

@@ -212,6 +212,32 @@ class ConstBitStore:
     def copy(self) -> ConstBitStore:
         return self
 
+    def _fresh_copy(self) -> ConstBitStore:
+        """Return a new instance, sharing the immutable data."""
+        return ConstBitStore(self.tibs)
+
+    def to_const(self) -> ConstBitStore:
+        return self
+
+    @classmethod
+    def from_tibs(cls, t: Tibs | Mutibs, /) -> ConstBitStore:
+        if isinstance(t, Mutibs):
+            return cls(t.to_tibs())
+        if not isinstance(t, Tibs):
+            raise TypeError(f"Expected tibs.Tibs or tibs.Mutibs, got {type(t).__name__}.")
+        return cls(t)
+
+    def to_tibs(self) -> Tibs:
+        return self.tibs
+
+    def __imul__(self, n: int, /) -> ConstBitStore:
+        self.tibs *= n
+        return self
+
+    def chunks(self, bits: int, count: int | None = None) -> Iterator[ConstBitStore]:
+        for chunk in self.tibs.chunks_iter(bits, count):
+            yield ConstBitStore(chunk)
+
     def __getitem__(self, item: int | slice, /) -> int | ConstBitStore:
         # Use getindex or getslice instead
         raise NotImplementedError
@@ -453,6 +479,29 @@ class MutableBitStore:
 
     def copy(self) -> MutableBitStore:
         return self._mutable_copy()
+
+    def _fresh_copy(self) -> MutableBitStore:
+        """Return a new instance with a copy of the data."""
+        return self._mutable_copy()
+
+    def to_const(self) -> ConstBitStore:
+        """Return an immutable snapshot of the data."""
+        return ConstBitStore(self.tibs.to_tibs())
+
+    @classmethod
+    def from_tibs(cls, t: Tibs | Mutibs, /) -> MutableBitStore:
+        if isinstance(t, Tibs):
+            return cls(t.to_mutibs())
+        if not isinstance(t, Mutibs):
+            raise TypeError(f"Expected tibs.Tibs or tibs.Mutibs, got {type(t).__name__}.")
+        return cls(t.to_tibs().to_mutibs())
+
+    def to_tibs(self) -> Tibs:
+        return self.tibs.to_tibs()
+
+    def __imul__(self, n: int, /) -> MutableBitStore:
+        self.tibs *= n
+        return self
 
     def __getitem__(self, item: int | slice, /) -> int | MutableBitStore:
         # Use getindex or getslice instead
