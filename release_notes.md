@@ -16,8 +16,8 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 
 #### Bigger breaking changes
 
-* Dropped support for Python 3.8 and 3.9. The minimum supported version is now
-  Python 3.10.
+* Dropped support for Python 3.8, 3.9 and 3.10. The minimum supported version
+  is now Python 3.11.
 * Removed the `ConstBitStream` and `BitStream` classes. Use `Reader(Bits(...))`
   for immutable sequential reading, or `Reader(BitArray(...))` when the wrapped
   bitstring also needs to be mutated.
@@ -64,8 +64,12 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Reading a dtype property whose length doesn't match, such as `Bits('0xff').u16`,
   now raises an `AttributeError` rather than a `ValueError`, so that `hasattr()`
   works as expected.
+* Inverting an empty bitstring with `~` now returns an empty bitstring instead
+  of raising an `Error`,
+  bringing it in line with `&`, `|` and `^`, which already treat empty
+  operands as unremarkable.
 * Removed the optional backend selection mechanism. The `tibs` dependency
-  (version 1.1 or later) is now required, and the `BITSTRING_USE_RUST_CORE`
+  (version 2.0 or later) is now required, and the `BITSTRING_USE_RUST_CORE`
   environment variable and `bitstring.options.using_rust_core` flag no longer
   exist.
 * `pack()` now returns a `Bits` object instead of a `BitStream`.

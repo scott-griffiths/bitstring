@@ -19,10 +19,10 @@ and sequential reading is handled by a separate :class:`Reader`.
 Minimum Python version
 ======================
 
-bitstring 5 requires Python 3.10 or later. If your package metadata pins
+bitstring 5 requires Python 3.11 or later. If your package metadata pins
 bitstring and Python versions, update both together, for example::
 
-    requires-python = ">=3.10"
+    requires-python = ">=3.11"
     dependencies = ["bitstring>=5"]
 
 The ``bitarray`` dependency has also been removed. The core bit storage is now

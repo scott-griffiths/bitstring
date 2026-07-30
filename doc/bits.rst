@@ -635,7 +635,7 @@ Special Methods
 
     Returns the bitstring with every bit inverted, that is all zeros replaced with ones, and all ones replaced with zeros.
 
-    If the bitstring is empty then an :exc:`Error` will be raised. ::
+    If the bitstring is empty then the result is also empty. ::
 
         >>> s = Bits('0b1110010')
         >>> print(~s)

@@ -11,13 +11,12 @@ authors = [
 ]
 description = "Simple construction, analysis and modification of binary data."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -27,7 +26,7 @@ classifiers = [
 ]
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
-  "tibs >= 1.1.0, < 2.0",
+  "tibs >= 2.0.0rc1, < 3.0",  # TEMPORARY: pre-release constraint to allow the local tibs 2.0 build; tighten to >= 2.0.0 once tibs 2.0.0 final is released.
 ]
 
 [project.urls]
@@ -45,3 +44,7 @@ dev = [
 
 [tool.setuptools]
 packages = ["bitstring"]
+
+# TEMPORARY: build tibs from the local sibling checkout until tibs 2.0 is published to PyPI.
+[tool.uv.sources]
+tibs = { path = "../tibs" }

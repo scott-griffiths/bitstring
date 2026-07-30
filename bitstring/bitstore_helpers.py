@@ -24,13 +24,7 @@ def _int_to_tibs(i: int, length: int, signed: bool, little_endian: bool) -> Tibs
             return Tibs.from_i(i, length, ByteOrder.Little if little_endian else ByteOrder.Unspecified)
         return Tibs.from_u(i, length, ByteOrder.Little if little_endian else ByteOrder.Unspecified)
     except (OverflowError, ValueError) as e:
-        # Keep tibs validation for normal sizes and unsupported values.
-        if length <= 128:
-            raise ValueError(e)
-    byteorder = "little" if little_endian else "big"
-    b = i.to_bytes((length + 7) // 8, byteorder=byteorder, signed=signed)
-    offset = (-length) % 8
-    return Tibs.from_bytes(b, offset=offset, length=length)
+        raise ValueError(e)
 
 
 def bin2bitstore(binstring: str) -> ConstBitStore:

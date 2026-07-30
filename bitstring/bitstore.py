@@ -7,39 +7,6 @@ from typing import Any, TypeVar
 from collections.abc import Iterable, Iterator
 
 
-def _fallback_to_u(tibs: Tibs | Mutibs) -> int:
-    if len(tibs) == 0:
-        # Keep tibs' validation behaviour for zero-length conversion.
-        return tibs.to_u()
-    padding = (-len(tibs)) % 8
-    if padding:
-        tibs = [0] * padding + tibs
-    return int.from_bytes(tibs.to_bytes(), byteorder="big", signed=False)
-
-
-def _fallback_to_i(tibs: Tibs | Mutibs) -> int:
-    if len(tibs) == 0:
-        # Keep tibs' validation behaviour for zero-length conversion.
-        return tibs.to_i()
-    padding = (-len(tibs)) % 8
-    if padding:
-        pad_bit = tibs[0]
-        tibs = [pad_bit] * padding + tibs
-    return int.from_bytes(tibs.to_bytes(), byteorder="big", signed=True)
-
-
-def _to_u(tibs: Tibs | Mutibs) -> int:
-    if len(tibs) <= 128:
-        return tibs.to_u()
-    return _fallback_to_u(tibs)
-
-
-def _to_i(tibs: Tibs | Mutibs) -> int:
-    if len(tibs) <= 128:
-        return tibs.to_i()
-    return _fallback_to_i(tibs)
-
-
 def _normalise_byte_import_args(offset: int | None, length: int | None) -> tuple[int | None, int | None]:
     if length is None and isinstance(offset, int) and offset == 0:
         offset = None
@@ -104,20 +71,16 @@ class _BitStoreBase:
         return type(self)(self.tibs.byte_swapped(start=start, end=end))
 
     def to_u(self) -> int:
-        return _to_u(self.tibs)
+        return self.tibs.to_u()
 
     def read_u(self, start: int, length: int) -> int:
-        if length <= 128:
-            return self.tibs.to_u(start, start + length)
-        return _fallback_to_u(self.tibs[start:start + length])
+        return self.tibs.to_u(start, start + length)
 
     def to_i(self) -> int:
-        return _to_i(self.tibs)
+        return self.tibs.to_i()
 
     def read_i(self, start: int, length: int) -> int:
-        if length <= 128:
-            return self.tibs.to_i(start, start + length)
-        return _fallback_to_i(self.tibs[start:start + length])
+        return self.tibs.to_i(start, start + length)
 
     def to_hex(self) -> str:
         return self.tibs.to_hex()

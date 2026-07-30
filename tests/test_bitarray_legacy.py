@@ -2351,8 +2351,7 @@ def test_invert_special_method_cases():
     assert (~BitArray('0b0')).bin == '1'
     assert (~BitArray('0b1')).bin == '0'
     assert ~t == s
-    with pytest.raises(bitstring.Error):
-        _ = ~BitArray()
+    assert ~BitArray() == BitArray()
 
 
 def test_large_equals_and_mutation():

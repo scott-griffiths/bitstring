@@ -389,11 +389,7 @@ class Bits:
     def __invert__(self: TBits) -> TBits:
         """Return bitstring with every bit inverted.
 
-        Raises Error if the bitstring is empty.
-
         """
-        if len(self) == 0:
-            raise bitstring.Error("Cannot invert empty bitstring.")
         s = self.__class__.__new__(self.__class__)
         s._bitstore = ~self._bitstore
         return s
