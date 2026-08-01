@@ -192,6 +192,27 @@ def array_ops_fallback(scale):
     return sum(to_list(a)) + sum(v for v in a)
 
 
+def pack_unpack(scale):
+    """Round-trip values through a multi-token format string."""
+    total = 0
+    for i in range(int(20_000 * scale)):
+        b = bitstring.pack("u8, i8, u16, f32", i % 200, -1, 1000, 0.5)
+        values = b.unpack("u8, i8, u16, f32")
+        total += values[0] + values[2]
+    return total
+
+
+def array_indexing(scale):
+    """Read and write single Array elements, one at a time."""
+    a = bitstring.Array("u8", [i % 200 for i in range(1_000)])
+    total = 0
+    for _ in range(int(20 * scale)):
+        for i in range(0, 1_000, 10):
+            total += a[i]
+            a[i] = (a[i] + 1) % 200
+    return total
+
+
 WORKLOADS = [
     # (name, function, expected checksum at scale 1.0)
     ("cut_and_compare", cut_and_compare, 12000),
@@ -204,6 +225,8 @@ WORKLOADS = [
     ("slicing", slicing, 6_400_000),
     ("array_ops", array_ops, 14_975_250),
     ("array_ops_fallback", array_ops_fallback, 15_000.0),
+    ("pack_unpack", pack_unpack, 21_990_000),
+    ("array_indexing", array_indexing, 199_000),
 ]
 
 

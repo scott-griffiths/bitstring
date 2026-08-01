@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import bitstring
 from bitstring.bits import Bits
 from bitstring.utils import tokenparser
@@ -10,6 +11,37 @@ ConstBitStore = bitstring.bitstore.ConstBitStore
 
 # Sentinel for "the values are used up", avoiding a raised StopIteration per pack().
 _NO_MORE_VALUES = object()
+
+
+@functools.lru_cache(256)
+def _prepared_pack_fmt(fmt: str):
+    """A single core dtype covering a whole format string, and how many values it takes.
+
+    None unless every token is a plain fixed-length dtype that takes one value, which
+    rules out literals, named values, pad and stretchy tokens.
+    """
+    try:
+        _, tokens = tokenparser(fmt, ())
+    except ValueError:
+        return None
+    specs = []
+    for name, length, value in tokens:
+        if value is not None or length is None:
+            return None
+        try:
+            dtype = bitstring.Dtype(name, int(length))
+        except ValueError:
+            return None
+        if dtype._scale is not None or dtype._bitlength is None:
+            return None
+        specs.append((dtype._name, dtype._bitlength))
+    if not specs:
+        return None
+    dtype_tuple = bitstring.bitstore.tibs_dtype_tuple_for(tuple(specs))
+    if dtype_tuple is None:
+        return None
+    return dtype_tuple, len(specs)
+
 
 def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
     """Pack the values according to the format string and return a new Bits object.
@@ -43,6 +75,20 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
     >>> u = pack('u:8=a, u:8=b, u:55=a', a=6, b=44)
 
     """
+    if type(fmt) is str and not kwargs:
+        prepared = _prepared_pack_fmt(fmt)
+        if prepared is not None:
+            dtype_tuple, value_count = prepared
+            if len(values) == value_count:
+                try:
+                    packed = ConstBitStore.from_value(dtype_tuple, values)
+                except Exception:
+                    pass  # Fall through, so the general path reports the error.
+                else:
+                    s = object.__new__(Bits)
+                    s._bitstore = packed
+                    return s
+
     tokens = []
     if isinstance(fmt, str):
         fmt = [fmt]

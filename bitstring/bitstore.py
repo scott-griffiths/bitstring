@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 
-from tibs import Tibs, Mutibs, ByteOrder, DtypeKind, DtypeSingle
+from tibs import Tibs, Mutibs, ByteOrder, DtypeKind, DtypeSingle, DtypeTuple
 
 from bitstring.exceptions import CreationError
 from typing import Any, TypeVar
@@ -59,6 +59,25 @@ def tibs_dtype_for(name: str, bitlength: int | None) -> DtypeSingle | None:
         return DtypeSingle.from_params(kind, bitlength, byte_order)
     except ValueError:
         # A length this kind doesn't allow. The per-element path will handle it.
+        return None
+
+
+@functools.lru_cache(256)
+def tibs_dtype_tuple_for(specs: tuple[tuple[str, int | None], ...]) -> DtypeTuple | None:
+    """Return a tibs dtype covering a whole list of bitstring dtypes, or None.
+
+    None if any of them has no tibs equivalent, which leaves the caller reading or
+    packing one dtype at a time. specs are (bitstring dtype name, bitlength) pairs.
+    """
+    dtypes = []
+    for name, bitlength in specs:
+        dtype = tibs_dtype_for(name, bitlength)
+        if dtype is None:
+            return None
+        dtypes.append(dtype)
+    try:
+        return DtypeTuple.from_params(dtypes)
+    except ValueError:
         return None
 
 
@@ -227,6 +246,14 @@ class _BitStoreBase:
         """As to_values, but yields the values rather than building a list."""
         return dtype.unpack_values_iter(self.tibs, 0, end)
 
+    def to_value(self, dtype: DtypeSingle, start: int, end: int) -> Any:
+        """Unpack a single dtype value from the given bit range."""
+        return dtype.unpack(self.tibs, start, end)
+
+    def to_value_tuple(self, dtype: DtypeTuple, start: int, end: int) -> tuple[Any, ...]:
+        """Unpack a whole list of dtypes from the given bit range in one call."""
+        return dtype.unpack(self.tibs, start, end)
+
     def __len__(self) -> int:
         return len(self.tibs)
 
@@ -281,6 +308,13 @@ class ConstBitStore(_BitStoreBase):
     def from_values(cls, dtype: DtypeSingle, values: Iterable[Any], /) -> ConstBitStore:
         x = super().__new__(cls)
         x.tibs = Tibs.from_values(dtype, values)
+        return x
+
+    @classmethod
+    def from_value(cls, dtype: DtypeSingle | DtypeTuple, value: Any, /) -> ConstBitStore:
+        """Pack a single value - or, for a DtypeTuple, a whole sequence of them."""
+        x = super().__new__(cls)
+        x.tibs = dtype.pack(value)
         return x
 
     def findall(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:

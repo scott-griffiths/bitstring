@@ -84,6 +84,28 @@ class Array:
     def __init__(self, dtype: str | Dtype, initializer: Array | array.array | Iterable | None = None,
                  trailing_bits: BitsType | None = None) -> None:
         self.data = BitArray()
+        if initializer is not None:
+            # These reject initialiser forms that were removed in 5.0, and two of them are
+            # abc instance checks. Constructing an empty Array to fill in later is very
+            # common - every elementwise operator does it - so skip them in that case.
+            self._reject_removed_initializer(initializer)
+        if isinstance(dtype, Dtype) and dtype.scale == 'auto':
+            auto_scale = self._calculate_auto_scale(initializer, dtype.name, dtype.length)
+            dtype = Dtype(dtype.name, dtype.length, scale=auto_scale)
+        try:
+            self._set_dtype(dtype)
+        except ValueError as e:
+            raise CreationError(e)
+
+        if initializer is not None:
+            self.extend(initializer)
+
+        if trailing_bits is not None:
+            self.data += BitArray._create_from_bitstype(trailing_bits)
+
+    @staticmethod
+    def _reject_removed_initializer(initializer: Any, /) -> None:
+        """Raise TypeError for Array initialiser forms that were removed in 5.0."""
         if isinstance(initializer, numbers.Integral):
             raise TypeError(
                 f"It's no longer possible to create an Array from an item count. "
@@ -99,19 +121,6 @@ class Array:
                 "It's no longer possible to initialise an Array directly from a file object. "
                 "Use 'Array.from_file(dtype, f)' instead."
             )
-        if isinstance(dtype, Dtype) and dtype.scale == 'auto':
-            auto_scale = self._calculate_auto_scale(initializer, dtype.name, dtype.length)
-            dtype = Dtype(dtype.name, dtype.length, scale=auto_scale)
-        try:
-            self._set_dtype(dtype)
-        except ValueError as e:
-            raise CreationError(e)
-
-        if initializer is not None:
-            self.extend(initializer)
-
-        if trailing_bits is not None:
-            self.data += BitArray._create_from_bitstype(trailing_bits)
 
     @classmethod
     def from_zeros(cls, dtype: str | Dtype, n: int, /) -> Array:
@@ -263,11 +272,16 @@ class Array:
                 a.data = self.data[start * itemsize: stop * itemsize]
                 return a
         else:
+            itemsize = self._dtype._bitlength  # Always set for an Array; the property costs a call.
+            length = len(self.data) // itemsize
             if key < 0:
-                key += len(self)
-            if key < 0 or key >= len(self):
-                raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
-            return self._dtype._read_fn(self.data, start=self.itemsize * key)
+                key += length
+            if key < 0 or key >= length:
+                raise IndexError(f"Index {key} out of range for Array of length {length}.")
+            start = itemsize * key
+            if self._tibs_dtype is not None:
+                return self.data._bitstore.to_value(self._tibs_dtype, start, start + itemsize)
+            return self._dtype._read_fn(self.data, start=start)
 
     @overload
     def __setitem__(self, key: slice, value: Iterable[ElementType]) -> None:
@@ -299,11 +313,23 @@ class Array:
             else:
                 raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {items_in_slice}.")
         else:
+            itemsize = self._dtype._bitlength  # Always set for an Array; the property costs a call.
+            length = len(self.data) // itemsize
             if key < 0:
-                key += len(self)
-            if key < 0 or key >= len(self):
-                raise IndexError(f"Index {key} out of range for Array of length {len(self)}.")
-            start = self.itemsize * key
+                key += length
+            if key < 0 or key >= length:
+                raise IndexError(f"Index {key} out of range for Array of length {length}.")
+            start = itemsize * key
+            if self._tibs_dtype is not None:
+                # Pack straight into place. A bad value falls through to the general
+                # version below, which raises what it always did.
+                try:
+                    packed = bitstore.ConstBitStore.from_value(self._tibs_dtype, value)
+                except Exception:
+                    pass
+                else:
+                    self.data._bitstore[start: start + itemsize] = packed
+                    return
             self.data.overwrite(start, self._create_element(value))
             return
 
@@ -443,7 +469,8 @@ class Array:
         if is_nan(value):
             return sum(is_nan(i) for i in self)
         else:
-            return sum(i == value for i in self)
+            # Bulk read, then let list.count do the comparing.
+            return self.to_list().count(value)
 
     def to_bytes(self) -> bytes:
         """Return the Array data as a bytes object, padding with zero bits if needed.

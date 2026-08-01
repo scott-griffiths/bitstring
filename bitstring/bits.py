@@ -19,6 +19,7 @@ from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_sa
 from bitstring.colour import Colour, should_use_color
 
 import bitstring.bitstore_helpers as helpers
+import bitstring.bitstore as bitstore
 
 ConstBitStore = bitstring.bitstore.ConstBitStore
 MutableBitStore = bitstring.bitstore.MutableBitStore
@@ -1269,6 +1270,16 @@ class Bits:
 
     def _readlist(self, fmt: str | list[str | int | Dtype], pos: int, **kwargs) \
             -> tuple[list[int | float | str | Bits | bool | bytes | None], int]:
+        if type(fmt) is str and not kwargs:
+            # Much the most common form, and the parsing is worth doing only once.
+            dtypes, dtype_tuple, total_bits = _prepared_fmt(fmt)
+            if dtype_tuple is not None:
+                # Every dtype is plain and fixed-length, so the whole list reads in one
+                # call. A short read falls through and is reported by the general path.
+                end = pos + total_bits
+                if 0 <= pos and end <= len(self):
+                    return list(self._bitstore.to_value_tuple(dtype_tuple, pos, end)), end
+            return self._read_dtype_list(dtypes, pos)
         if isinstance(fmt, str):
             fmt = [fmt]
         # Convert to a flat list of Dtypes
@@ -1961,3 +1972,30 @@ class Bits:
 # checks for the initialiser forms removed in 5.0. Lists and tuples are excluded as
 # they still need validating as bit patterns.
 _ACCEPTED_AUTO_TYPES = (str, Bits, Tibs, Mutibs, bytes, bytearray, memoryview)
+
+
+@functools.lru_cache(256)
+def _prepared_fmt(fmt: str) -> tuple[tuple[Dtype, ...], Any, int]:
+    """Parse a format string into dtypes once, ready for repeated reads.
+
+    Returns the dtypes, a single core dtype covering the whole list (None unless every
+    one of them is plain and fixed-length), and the total bit length that covers.
+    """
+    dtypes = []
+    for token in utils.preprocess_tokens(fmt):
+        try:
+            name, length = utils.parse_name_length_token(token)
+        except ValueError:
+            dtypes.append(Dtype('bits', int(token)))
+        else:
+            dtypes.append(Dtype(name, length))
+    specs = []
+    for dtype in dtypes:
+        # Stretchy, variable length, scaled and pad tokens have no direct equivalent.
+        if dtype._bitlength is None or dtype._scale is not None:
+            specs = None
+            break
+        specs.append((dtype._name, dtype._bitlength))
+    if not specs:
+        return tuple(dtypes), None, 0
+    return tuple(dtypes), bitstore.tibs_dtype_tuple_for(tuple(specs)), sum(b for _, b in specs)
