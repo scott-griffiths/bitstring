@@ -1158,13 +1158,13 @@ class Bits:
     def _copy(self: TBits) -> TBits:
         """Create and return a new copy of the Bits (always in memory)."""
         # Note that __copy__ may choose to return self if it's immutable. This method always makes a copy.
-        s_copy = self.__class__()
+        s_copy = object.__new__(self.__class__)
         s_copy._bitstore = self._bitstore._fresh_copy()
         return s_copy
 
     def _slice(self: TBits, start: int, end: int) -> TBits:
         """Used internally to get a slice, without error checking."""
-        bs = self.__class__()
+        bs = object.__new__(self.__class__)
         bs._bitstore = self._bitstore.getslice(start, end)
         return bs
 
@@ -1173,7 +1173,7 @@ class Bits:
         if end == start:
             return self.__class__()
         assert start < end, f"start={start}, end={end}"
-        bs = self.__class__()
+        bs = object.__new__(self.__class__)
         bs._bitstore = self._bitstore.getslice(start, end)
         return bs
 
@@ -1586,7 +1586,7 @@ class Bits:
                 yield self._bitstore
                 yield Bits._create_from_bitstype(item)._bitstore
 
-        s = self.__class__()
+        s = object.__new__(self.__class__)
         if isinstance(self._bitstore, ConstBitStore):
             s._bitstore = ConstBitStore.join(_stores())
         else:
@@ -1988,7 +1988,7 @@ class Bits:
         """Return a mutable copy of the bitstring."""
         from bitstring.bitarray_ import BitArray
 
-        x = BitArray()
+        x = object.__new__(BitArray)
         x._bitstore = self._bitstore._mutable_copy()
         return x
 

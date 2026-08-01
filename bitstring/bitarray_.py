@@ -231,7 +231,7 @@ class BitArray(Bits):
 
     def to_bits(self) -> Bits:
         """Return an immutable copy of the bitstring."""
-        x = Bits()
+        x = object.__new__(Bits)
         x._bitstore = self._bitstore.to_const()
         return x
 
@@ -274,7 +274,7 @@ class BitArray(Bits):
 
     def __copy__(self) -> BitArray:
         """Return a new copy of the BitArray."""
-        s_copy = BitArray()
+        s_copy = object.__new__(BitArray)
         s_copy._bitstore = self._bitstore._mutable_copy()
         return s_copy
 
