@@ -26,7 +26,7 @@ classifiers = [
 ]
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
-  "tibs >= 2.0.0rc1, < 3.0",  # TEMPORARY: pre-release constraint to allow the local tibs 2.0 build; tighten to >= 2.0.0 once tibs 2.0.0 final is released.
+  "tibs >= 2.0.0rc1, < 3.0",  # TEMPORARY: pre-release constraint; tighten to >= 2.0.0 once tibs 2.0.0 final is released.
 ]
 
 [project.urls]
@@ -44,7 +44,3 @@ dev = [
 
 [tool.setuptools]
 packages = ["bitstring"]
-
-# TEMPORARY: build tibs from the local sibling checkout until tibs 2.0 is published to PyPI.
-[tool.uv.sources]
-tibs = { path = "../tibs" }

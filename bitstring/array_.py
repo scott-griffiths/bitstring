@@ -9,6 +9,7 @@ from collections.abc import Iterable
 from bitstring.bits import Bits, BitsType
 from bitstring.bitarray_ import BitArray
 from bitstring.dtypes import Dtype, dtype_register
+import bitstring.bitstore as bitstore
 from bitstring import utils
 from bitstring.colour import Colour, should_use_color
 import copy
@@ -194,6 +195,18 @@ class Array:
     def dtype(self, new_dtype: str | Dtype) -> None:
         self._set_dtype(new_dtype)
 
+    def _set_tibs_dtype(self) -> None:
+        """Cache the tibs dtype matching self._dtype, for bulk packing and unpacking.
+
+        None whenever there isn't an exact equivalent, which leaves every operation on
+        the per-element path. A scale factor always disqualifies a dtype, as the scaling
+        is applied by bitstring's own get/set functions.
+        """
+        if self._dtype._scale is not None:
+            self._tibs_dtype = None
+        else:
+            self._tibs_dtype = bitstore.tibs_dtype_for(self._dtype._name, self._dtype._bitlength)
+
     def _set_dtype(self, new_dtype: str | Dtype) -> None:
         if isinstance(new_dtype, Dtype):
             self._dtype = new_dtype
@@ -213,6 +226,7 @@ class Array:
             self._dtype = dtype
         if self._dtype.scale == 'auto':
             raise ValueError("A Dtype with an 'auto' scale factor can only be used when creating a new Array.")
+        self._set_tibs_dtype()
 
     def _create_element(self, value: ElementType) -> Bits:
         """Create Bits from value according to the token_name and token_length"""
@@ -328,6 +342,10 @@ class Array:
 
     def to_list(self) -> list[ElementType]:
         itemsize = self.itemsize
+        if self._tibs_dtype is not None:
+            # Bulk unpack, which is far quicker than reading an item at a time. Any
+            # trailing bits are excluded, as tibs won't unpack a partial final item.
+            return self.data._bitstore.to_values(self._tibs_dtype, len(self.data) // itemsize * itemsize)
         return [self._dtype._read_fn(self.data, start=start)
                 for start in range(0, len(self.data) - itemsize + 1, itemsize)]
 
@@ -362,6 +380,18 @@ class Array:
         else:
             if isinstance(iterable, str):
                 raise TypeError("Can't extend an Array with a str.")
+            if self._tibs_dtype is not None and isinstance(iterable, (list, tuple, range)):
+                # Bulk pack, which is far quicker than packing an item at a time. Only
+                # for types that can be iterated twice, as a failure has to fall back to
+                # the loop below - that way a bad value raises exactly the error it
+                # always did, and leaves the same partially extended Array behind.
+                try:
+                    packed = bitstore.MutableBitStore.from_values(self._tibs_dtype, iterable)
+                except Exception:
+                    pass
+                else:
+                    self.data._addright_bitstore(packed)
+                    return
             for item in iterable:
                 self.data += self._create_element(item)
 
@@ -564,8 +594,12 @@ class Array:
         return False
 
     def __iter__(self) -> Iterable[ElementType]:
-        start = 0
         itemsize = self.itemsize
+        if self._tibs_dtype is not None:
+            yield from self.data._bitstore.to_values_iter(
+                self._tibs_dtype, len(self.data) // itemsize * itemsize)
+            return
+        start = 0
         for _ in range(len(self)):
             yield self._dtype._read_fn(self.data, start=start)
             start += itemsize
@@ -574,6 +608,31 @@ class Array:
         a_copy = self.__class__(self._dtype)
         a_copy.data = copy.copy(self.data)
         return a_copy
+
+    def __getstate__(self) -> dict[str, Any]:
+        # The cached tibs dtype can't be pickled, and is derived anyway.
+        state = self.__dict__.copy()
+        del state['_tibs_dtype']
+        return state
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        self.__dict__.update(state)
+        self._set_tibs_dtype()
+
+    def _bulk_pack_into(self, new_array: Array, values: Iterable[Any]) -> bool:
+        """Pack values into an empty new_array in one go, returning False if it can't.
+
+        A False return leaves new_array untouched, so the caller can fall back to
+        packing an element at a time.
+        """
+        if new_array._tibs_dtype is None:
+            return False
+        try:
+            packed = bitstore.MutableBitStore.from_values(new_array._tibs_dtype, values)
+        except Exception:
+            return False
+        new_array.data._addright_bitstore(packed)
+        return True
 
     def _apply_op_to_all_elements(self, op, value: int | float | None, is_comparison: bool = False) -> Array:
         """Apply op with value to each element of the Array and return a new Array"""
@@ -588,6 +647,16 @@ class Array:
             def partial_op(a):
                 return op(a)
         itemsize = self.itemsize
+        if self._tibs_dtype is not None:
+            # Bulk read, apply, bulk write. Anything that goes wrong - a bad operand or
+            # a result that won't pack - falls through to the loop below, which reports
+            # the failure count and message exactly as it always has.
+            try:
+                new_values = [partial_op(v) for v in self.to_list()]
+            except Exception:
+                new_values = None
+            if new_values is not None and self._bulk_pack_into(new_array, new_values):
+                return new_array
         for i in range(len(self)):
             v = self._dtype._read_fn(self.data, start=itemsize * i)
             try:
@@ -659,6 +728,15 @@ class Array:
         msg = ''
         itemsize = self.itemsize
         other_itemsize = other.itemsize
+        if self._tibs_dtype is not None and other._tibs_dtype is not None:
+            # As in _apply_op_to_all_elements: bulk where possible, and fall through to
+            # the per-element loop for exact error reporting when anything fails.
+            try:
+                new_values = list(map(op, self.to_list(), other.to_list()))
+            except Exception:
+                new_values = None
+            if new_values is not None and self._bulk_pack_into(new_array, new_values):
+                return new_array
         for i in range(len(self)):
             a = self._dtype._read_fn(self.data, start=itemsize * i)
             b = other._dtype._read_fn(other.data, start=other_itemsize * i)

@@ -69,6 +69,11 @@ def from_bytes(data):
     return Bits.from_bytes(data) if _HAS_FACTORIES else Bits(bytes=data)
 
 
+def to_list(a):
+    """The Array's items as a list. 5.0 renamed tolist() to to_list()."""
+    return a.to_list() if hasattr(a, "to_list") else a.tolist()
+
+
 def reader(bits):
     """A sequential reader positioned at bit 0."""
     return _READER_CLS(bits)
@@ -169,6 +174,24 @@ def slicing(scale):
     return total
 
 
+def array_ops(scale):
+    """Build an Array of items and read them back, elementwise (stress perf3's cousin)."""
+    values = [i % 200 for i in range(int(50_000 * scale))]
+    a = bitstring.Array("u8", values)
+    total = sum(to_list(a))
+    total += sum(v for v in a)
+    total += sum(to_list(a + 1))
+    total += sum(to_list(a == 100))
+    return total
+
+
+def array_ops_fallback(scale):
+    """As array_ops, but with a dtype that has no bulk equivalent in the core."""
+    values = [0.5, 1.0, 2.0, 4.0] * int(1_000 * scale)
+    a = bitstring.Array("e3m2mxfp", values)
+    return sum(to_list(a)) + sum(v for v in a)
+
+
 WORKLOADS = [
     # (name, function, expected checksum at scale 1.0)
     ("cut_and_compare", cut_and_compare, 12000),
@@ -179,6 +202,8 @@ WORKLOADS = [
     ("prime_sieve", prime_sieve, 8169),
     ("sequential_read", sequential_read, 32_640_000),
     ("slicing", slicing, 6_400_000),
+    ("array_ops", array_ops, 14_975_250),
+    ("array_ops_fallback", array_ops_fallback, 15_000.0),
 ]
 
 

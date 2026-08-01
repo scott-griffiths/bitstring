@@ -1,10 +1,65 @@
 from __future__ import annotations
 
-from tibs import Tibs, Mutibs
+import functools
+
+from tibs import Tibs, Mutibs, ByteOrder, DtypeKind, DtypeSingle
 
 from bitstring.exceptions import CreationError
 from typing import Any, TypeVar
 from collections.abc import Iterable, Iterator
+
+
+# The bitstring dtypes that have an exactly equivalent tibs dtype, letting values be
+# packed and unpacked in bulk instead of one at a time. Every entry here has been
+# checked to round-trip identically to bitstring's own per-element code at each of its
+# valid lengths. Names that are absent - the mxfp and binary8 formats, bfloat, mxint,
+# bits, pad - have no tibs equivalent and keep using the per-element path, as do any
+# dtype with a scale factor. More kinds can simply be added here as tibs grows them.
+_TIBS_EQUIVALENT_DTYPES: dict[str, tuple[DtypeKind, ByteOrder]] = {
+    'u': (DtypeKind.Uint, ByteOrder.Unspecified),
+    'uint': (DtypeKind.Uint, ByteOrder.Unspecified),
+    'ube': (DtypeKind.Uint, ByteOrder.Big),
+    'uintbe': (DtypeKind.Uint, ByteOrder.Big),
+    'ule': (DtypeKind.Uint, ByteOrder.Little),
+    'uintle': (DtypeKind.Uint, ByteOrder.Little),
+    'i': (DtypeKind.Int, ByteOrder.Unspecified),
+    'int': (DtypeKind.Int, ByteOrder.Unspecified),
+    'ibe': (DtypeKind.Int, ByteOrder.Big),
+    'intbe': (DtypeKind.Int, ByteOrder.Big),
+    'ile': (DtypeKind.Int, ByteOrder.Little),
+    'intle': (DtypeKind.Int, ByteOrder.Little),
+    'f': (DtypeKind.Float, ByteOrder.Big),
+    'fbe': (DtypeKind.Float, ByteOrder.Big),
+    'float': (DtypeKind.Float, ByteOrder.Big),
+    'floatbe': (DtypeKind.Float, ByteOrder.Big),
+    'fle': (DtypeKind.Float, ByteOrder.Little),
+    'floatle': (DtypeKind.Float, ByteOrder.Little),
+    'bool': (DtypeKind.Bool, ByteOrder.Unspecified),
+    'bin': (DtypeKind.Bin, ByteOrder.Unspecified),
+    'hex': (DtypeKind.Hex, ByteOrder.Unspecified),
+    'oct': (DtypeKind.Oct, ByteOrder.Unspecified),
+    'bytes': (DtypeKind.Bytes, ByteOrder.Unspecified),
+}
+
+
+@functools.lru_cache(256)
+def tibs_dtype_for(name: str, bitlength: int | None) -> DtypeSingle | None:
+    """Return the tibs dtype equivalent to a bitstring dtype, or None if there isn't one.
+
+    bitlength is in bits, which is what tibs dtypes use for every kind - including
+    'bytes', where bitstring's own length is a byte count.
+    """
+    if bitlength is None:
+        return None
+    try:
+        kind, byte_order = _TIBS_EQUIVALENT_DTYPES[name]
+    except KeyError:
+        return None
+    try:
+        return DtypeSingle.from_params(kind, bitlength, byte_order)
+    except ValueError:
+        # A length this kind doesn't allow. The per-element path will handle it.
+        return None
 
 
 def _normalise_byte_import_args(offset: int | None, length: int | None) -> tuple[int | None, int | None]:
@@ -160,6 +215,18 @@ class _BitStoreBase:
     def count(self, value: Any) -> int:
         return self.tibs.count(value)
 
+    def to_values(self, dtype: DtypeSingle, end: int) -> list[Any]:
+        """Unpack the bits up to end as a list of dtype values.
+
+        end must be a multiple of the dtype's length - tibs won't unpack a partial
+        final item the way bitstring's Array tolerates trailing bits.
+        """
+        return dtype.unpack_values(self.tibs, 0, end)
+
+    def to_values_iter(self, dtype: DtypeSingle, end: int) -> Iterator[Any]:
+        """As to_values, but yields the values rather than building a list."""
+        return dtype.unpack_values_iter(self.tibs, 0, end)
+
     def __len__(self) -> int:
         return len(self.tibs)
 
@@ -208,6 +275,12 @@ class ConstBitStore(_BitStoreBase):
     def from_bin(cls, s: str) -> ConstBitStore:
         x = super().__new__(cls)
         x.tibs = Tibs.from_bin(s)
+        return x
+
+    @classmethod
+    def from_values(cls, dtype: DtypeSingle, values: Iterable[Any], /) -> ConstBitStore:
+        x = super().__new__(cls)
+        x.tibs = Tibs.from_values(dtype, values)
         return x
 
     def findall(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
@@ -284,6 +357,12 @@ class MutableBitStore(_BitStoreBase):
     def from_bools(cls, iterable: Iterable[Any], /) -> MutableBitStore:
         x = super().__new__(cls)
         x.tibs = Mutibs.from_bools(iterable)
+        return x
+
+    @classmethod
+    def from_values(cls, dtype: DtypeSingle, values: Iterable[Any], /) -> MutableBitStore:
+        x = super().__new__(cls)
+        x.tibs = Mutibs.from_values(dtype, values)
         return x
 
     def __ilshift__(self, n: int, /) -> MutableBitStore:
