@@ -153,6 +153,11 @@ class Bits:
                 )
             x._bitstore = ConstBitStore.from_zeros(0)
             return x
+        if type(auto) is str and length is None and not kwargs:
+            # Fast path for the most common initialiser. str_to_bitstore is cached and
+            # returns an immutable store, so there's no more work for _initialise to do.
+            x._bitstore = helpers.str_to_bitstore(auto)
+            return x
         x._initialise(auto, length, immutable=True, **kwargs)
         return x
 
@@ -171,37 +176,11 @@ class Bits:
 
     def _initialise(self, auto: Any, /, length: int | None, immutable: bool, **kwargs) -> None:
         if auto is not None:
-            if isinstance(auto, numbers.Integral):
-                raise TypeError(
-                    f"It's no longer possible to initialise a bitstring from an integer. "
-                    f"Use '{self.__class__.__name__}.from_zeros({int(auto)})' instead of "
-                    f"'{self.__class__.__name__}({int(auto)})'."
-                )
-            if isinstance(auto, io.BytesIO):
-                raise TypeError(
-                    f"It's no longer possible to initialise a bitstring directly from a BytesIO object. "
-                    f"Use '{self.__class__.__name__}.from_bytes(bytes_io.getvalue())' instead."
-                )
-            if isinstance(auto, io.BufferedReader):
-                raise TypeError(
-                    f"It's no longer possible to initialise a bitstring directly from a file object. "
-                    f"Use '{self.__class__.__name__}.from_file(file)' instead."
-                )
-            if isinstance(auto, array.array):
-                raise TypeError(
-                    f"It's no longer possible to initialise a bitstring directly from an array object. "
-                    f"Use '{self.__class__.__name__}.from_bytes(array_obj.tobytes())' instead."
-                )
-            if isinstance(auto, (list, tuple)) and not _is_bit_pattern(auto):
-                raise TypeError(
-                    f"Only lists and tuples containing 0, 1, True or False can be used for automatic bit pattern "
-                    f"promotion. Use '{self.__class__.__name__}.from_bools(iterable)' for other iterables."
-                )
-            if isinstance(auto, Iterable) and not isinstance(auto, (str, Bits, Tibs, Mutibs, bytes, bytearray, memoryview, list, tuple)):
-                raise TypeError(
-                    f"It's no longer possible to initialise a bitstring directly from an arbitrary iterable. "
-                    f"Use '{self.__class__.__name__}.from_bools(iterable)' instead."
-                )
+            # The checks below reject initialiser forms that were removed in 5.0. None of
+            # them can apply to an accepted type, and several are abc instance checks,
+            # which are far from free on this path - so skip them for the common cases.
+            if not isinstance(auto, _ACCEPTED_AUTO_TYPES):
+                self._reject_removed_auto(auto)
             self._setauto(auto, length)
         else:
             if len(kwargs) != 1:
@@ -231,6 +210,43 @@ class Bits:
         else:
             # TODO: This copy is not a good idea.
             self._bitstore = self._bitstore._mutable_copy()
+
+    def _reject_removed_auto(self, auto: Any, /) -> None:
+        """Raise TypeError for initialiser forms that were removed in 5.0.
+
+        Only called for types outside _ACCEPTED_AUTO_TYPES, which the checks here assume.
+        """
+        if isinstance(auto, numbers.Integral):
+            raise TypeError(
+                f"It's no longer possible to initialise a bitstring from an integer. "
+                f"Use '{self.__class__.__name__}.from_zeros({int(auto)})' instead of "
+                f"'{self.__class__.__name__}({int(auto)})'."
+            )
+        if isinstance(auto, io.BytesIO):
+            raise TypeError(
+                f"It's no longer possible to initialise a bitstring directly from a BytesIO object. "
+                f"Use '{self.__class__.__name__}.from_bytes(bytes_io.getvalue())' instead."
+            )
+        if isinstance(auto, io.BufferedReader):
+            raise TypeError(
+                f"It's no longer possible to initialise a bitstring directly from a file object. "
+                f"Use '{self.__class__.__name__}.from_file(file)' instead."
+            )
+        if isinstance(auto, array.array):
+            raise TypeError(
+                f"It's no longer possible to initialise a bitstring directly from an array object. "
+                f"Use '{self.__class__.__name__}.from_bytes(array_obj.tobytes())' instead."
+            )
+        if isinstance(auto, (list, tuple)) and not _is_bit_pattern(auto):
+            raise TypeError(
+                f"Only lists and tuples containing 0, 1, True or False can be used for automatic bit pattern "
+                f"promotion. Use '{self.__class__.__name__}.from_bools(iterable)' for other iterables."
+            )
+        if isinstance(auto, Iterable) and not isinstance(auto, (list, tuple)):
+            raise TypeError(
+                f"It's no longer possible to initialise a bitstring directly from an arbitrary iterable. "
+                f"Use '{self.__class__.__name__}.from_bools(iterable)' instead."
+            )
 
     def __getattr__(self, attribute: str) -> Any:
         # Support for arbitrary attributes like u16 or f64.
@@ -1513,7 +1529,8 @@ class Bits:
             if len(self) == 0:
                 # Optimised version that doesn't need to add self between every item
                 for item in sequence:
-                    yield Bits._create_from_bitstype(item)._bitstore
+                    # Items are usually bitstrings already, so skip the promotion call.
+                    yield item._bitstore if isinstance(item, Bits) else Bits._create_from_bitstype(item)._bitstore
                 return
 
             sequence_iter = iter(sequence)
@@ -1867,7 +1884,8 @@ class Bits:
     @classmethod
     def from_zeros(cls: type[TBits], length: int, /) -> TBits:
         """Create a new bitstring containing length zero bits."""
-        length = int(length)
+        if type(length) is not int:
+            length = int(length)
         if length < 0:
             raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
         x = super().__new__(cls)
@@ -1934,3 +1952,9 @@ class Bits:
     def to_tibs(self) -> Tibs:
         """Return the data as a tibs.Tibs instance."""
         return self._bitstore.to_tibs()
+
+
+# Types accepted directly by the auto initialiser, so that _initialise can skip the
+# checks for the initialiser forms removed in 5.0. Lists and tuples are excluded as
+# they still need validating as bit patterns.
+_ACCEPTED_AUTO_TYPES = (str, Bits, Tibs, Mutibs, bytes, bytearray, memoryview)
