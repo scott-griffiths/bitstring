@@ -4,8 +4,15 @@ import numbers
 from typing import Any, overload
 
 import bitstring
+import bitstring.bitstore as bitstore
 from bitstring.bits import Bits, BitsType
 from bitstring.dtypes import Dtype
+
+# fmt string -> (bitlength, tibs dtype or None, Dtype), for fixed-length dtypes only.
+# Lets read() skip the Dtype call and, when there's a tibs equivalent, the whole
+# read_fn wrapper chain - together several times the cost of the actual read.
+_read_fmt_cache: dict[str, tuple[int, Any, Dtype]] = {}
+_READ_FMT_CACHE_SIZE = 256
 
 
 class Reader:
@@ -90,15 +97,35 @@ class Reader:
             # Fast path for a fixed-length dtype, which is much the most common read.
             # Anything else (variable length, a short read, a bad position) falls
             # through to the general version below, which reports the errors.
-            dtype = Dtype(fmt)
-            bitlength = dtype._bitlength
-            if bitlength is not None:
+            info = _read_fmt_cache.get(fmt)
+            if info is None:
+                dtype = Dtype(fmt)
+                bitlength = dtype._bitlength
+                if bitlength is not None:
+                    tibs_dtype = None if dtype._scale is not None else \
+                        bitstore.tibs_dtype_for(dtype._name, bitlength)
+                    info = (bitlength, tibs_dtype, dtype)
+                    if len(_read_fmt_cache) < _READ_FMT_CACHE_SIZE:
+                        _read_fmt_cache[fmt] = info
+            if info is not None:
+                bitlength, tibs_dtype, dtype = info
                 pos = self._pos
                 end = pos + bitlength
                 if 0 <= pos and end <= len(self._bits):
-                    value = dtype._read_fn(self._bits, pos)
+                    if tibs_dtype is not None:
+                        value = self._bits._bitstore.to_value(tibs_dtype, pos, end)
+                    else:
+                        value = dtype._read_fn(self._bits, pos)
                     self._pos = end
                     return value
+        elif type(fmt) is int and fmt >= 0:
+            # Fast path for reading a plain run of bits.
+            pos = self._pos
+            end = pos + fmt
+            if 0 <= pos and end <= len(self._bits):
+                value = self._bits._slice(pos, end)
+                self._pos = end
+                return value
 
         old_pos = self._pos
         try:

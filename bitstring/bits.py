@@ -34,6 +34,11 @@ BitsType = Union['Bits', str, Tibs, Mutibs, _BitPattern, bytearray, bytes, memor
 
 TBits = TypeVar("TBits", bound='Bits')
 
+# str -> immutable Bits, shared by _create_from_bitstype. Bounded like the dtype
+# token cache: filled once with the strings a program actually uses, never evicted.
+_promoted_str_cache: dict[str, 'Bits'] = {}
+_PROMOTED_STR_CACHE_SIZE = 256
+
 # Maximum number of digits to use in __str__ and __repr__.
 MAX_CHARS: int = 250
 
@@ -171,6 +176,17 @@ class Bits:
         """
         if isinstance(auto, cls):
             return auto
+        if type(auto) is str and cls is Bits:
+            # Sharing one immutable Bits per string skips an allocation on a very
+            # common pattern - comparing or searching against a string literal in
+            # a loop. Only for exactly Bits: a subclass may be mutable.
+            b = _promoted_str_cache.get(auto)
+            if b is None:
+                b = super().__new__(cls)
+                b._set_from_bitstype(auto)
+                if len(_promoted_str_cache) < _PROMOTED_STR_CACHE_SIZE:
+                    _promoted_str_cache[auto] = b
+            return b
         b = super().__new__(cls)
         b._set_from_bitstype(auto)
         return b

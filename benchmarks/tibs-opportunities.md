@@ -24,6 +24,12 @@ originally listed items are now done:
 - `Array[a:b] = values` - bulk pack via `from_values`, like `extend` (~90x on
   256 items).
 - `Array[a:b]` - a lean clone that skips `__init__` (~1.7x).
+- `Reader.read(fmt)` - a per-fmt cache of `(bitlength, tibs dtype)` feeding
+  `to_value` directly, plus a fast path for integer fmts (sequential_read ~2x;
+  the actual `to_u` was only ~4% of the old per-read cost).
+- String promotion - `_create_from_bitstype` shares one immutable `Bits` per
+  string, so comparing/searching against a string literal in a loop no longer
+  allocates each time (cut_and_compare ~1.2x).
 
 ### The `chunks_iter` TODO was misplaced, and overstates the gain
 
