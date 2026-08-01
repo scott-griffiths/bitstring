@@ -1244,6 +1244,9 @@ class Bits:
         Out of range values are clipped rather than raising an error, and if end is
         before start then an empty range at start is returned.
         """
+        if start is None and end is None:
+            # Very common, and building a slice to ask it for its indices isn't cheap.
+            return 0, len(self)
         start, end, _ = slice(start, end).indices(len(self))
         return start, max(start, end)
 

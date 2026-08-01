@@ -86,6 +86,20 @@ class Reader:
 
     def read(self, fmt: int | str | Dtype) -> int | float | str | Bits | bool | bytes | None:
         """Read from the current bit position and interpret according to fmt."""
+        if type(fmt) is str:
+            # Fast path for a fixed-length dtype, which is much the most common read.
+            # Anything else (variable length, a short read, a bad position) falls
+            # through to the general version below, which reports the errors.
+            dtype = Dtype(fmt)
+            bitlength = dtype._bitlength
+            if bitlength is not None:
+                pos = self._pos
+                end = pos + bitlength
+                if 0 <= pos and end <= len(self._bits):
+                    value = dtype._read_fn(self._bits, pos)
+                    self._pos = end
+                    return value
+
         old_pos = self._pos
         try:
             self._ensure_valid_pos()

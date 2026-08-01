@@ -8,6 +8,9 @@ import bitstring.bitstore_helpers as helpers
 
 ConstBitStore = bitstring.bitstore.ConstBitStore
 
+# Sentinel for "the values are used up", avoiding a raised StopIteration per pack().
+_NO_MORE_VALUES = object()
+
 def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
     """Pack the values according to the format string and return a new Bits object.
 
@@ -43,9 +46,10 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
     tokens = []
     if isinstance(fmt, str):
         fmt = [fmt]
+    kwarg_names = tuple(sorted(kwargs.keys())) if kwargs else ()
     try:
         for f_item in fmt:
-            _, tkns = tokenparser(f_item, tuple(sorted(kwargs.keys())))
+            _, tkns = tokenparser(f_item, kwarg_names)
             tokens.extend(tkns)
     except ValueError as e:
         raise CreationError(*e.args)
@@ -53,14 +57,15 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
     bsl: list[ConstBitStore] = []
     try:
         for name, length, value in tokens:
-            # If the value is in the kwd dictionary then it takes precedence.
-            value = kwargs.get(value, value)
-            # If the length is in the kwd dictionary then use that too.
-            length = kwargs.get(length, length)
-            # Also if we just have a dictionary name then we want to use it
-            if name in kwargs and length is None and value is None:
-                bsl.append(Bits(kwargs[name])._bitstore)
-                continue
+            if kwargs:
+                # If the value is in the kwd dictionary then it takes precedence.
+                value = kwargs.get(value, value)
+                # If the length is in the kwd dictionary then use that too.
+                length = kwargs.get(length, length)
+                # Also if we just have a dictionary name then we want to use it
+                if name in kwargs and length is None and value is None:
+                    bsl.append(Bits(kwargs[name])._bitstore)
+                    continue
             if length is not None:
                 length = int(length)
             if value is None and name != 'pad':
@@ -71,12 +76,11 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
         raise CreationError(f"Not enough parameters present to pack according to the "
                             f"format. {len(tokens)} values are needed.")
 
-    try:
-        next(value_iter)
-    except StopIteration:
-        # Good, we've used up all the *values.
-        s = object.__new__(Bits)
-        s._bitstore = ConstBitStore.join(bsl)
-        return s
-
-    raise CreationError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")
+    if next(value_iter, _NO_MORE_VALUES) is not _NO_MORE_VALUES:
+        raise CreationError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")
+    # Good, we've used up all the *values.
+    s = object.__new__(Bits)
+    # A single token is the common case and doesn't need joining. The stores are
+    # immutable, so sharing one with whatever produced it is safe.
+    s._bitstore = bsl[0] if len(bsl) == 1 else ConstBitStore.join(bsl)
+    return s

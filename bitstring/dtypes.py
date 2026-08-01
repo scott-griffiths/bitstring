@@ -9,6 +9,11 @@ from bitstring import utils
 
 CACHE_SIZE = 256
 
+# Unscaled Dtypes made from a token string, which is much the most common case.
+# Bounded like the lru_caches, and cleared whenever the register changes.
+TOKEN_CACHE_SIZE = 256
+_token_cache: dict[str, Dtype] = {}
+
 
 def scaled_get_fn(get_fn, s: int | float):
     def wrapper(*args, scale=s, **kwargs):
@@ -59,6 +64,17 @@ class Dtype:
     def __new__(cls, token: str | Dtype, /, length: int | None = None, scale: None | float | int = None) -> Dtype:
         if isinstance(token, cls):
             return token
+        if scale is None and type(token) is str:
+            # Plain dict lookup for the common case - several times quicker than
+            # reaching the lru_caches below, and this is on every read and pack.
+            key = token if length is None else (token, length)
+            x = _token_cache.get(key)
+            if x is None:
+                x = (cls._new_from_token(token, None) if length is None
+                     else dtype_register.get_dtype(token, length, None))
+                if len(_token_cache) < TOKEN_CACHE_SIZE:
+                    _token_cache[key] = x
+            return x
         if length is None:
             x = cls._new_from_token(token, scale)
             return x
@@ -164,8 +180,9 @@ class Dtype:
         """
         b = object.__new__(bitstring.Bits)
         self._set_fn(b, value)
-        if self.bitlength is not None and len(b) != self.bitlength:
-            raise ValueError(f"Dtype has a length of {self.bitlength} bits, but value '{value}' has {len(b)} bits.")
+        bitlength = self._bitlength  # The property costs a call, and this is a hot path.
+        if bitlength is not None and len(b) != bitlength:
+            raise ValueError(f"Dtype has a length of {bitlength} bits, but value '{value}' has {len(b)} bits.")
         return b
 
     def unpack(self, b: BitsType, /) -> Any:
@@ -364,6 +381,7 @@ class Register:
     @classmethod
     def add_dtype(cls, definition: DtypeDefinition):
         cls.names[definition.name] = definition
+        _token_cache.clear()
         if definition.get_fn is not None:
             setattr(bitstring.bits.Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
         if definition.set_fn is not None:
@@ -372,6 +390,7 @@ class Register:
     @classmethod
     def add_dtype_alias(cls, name: str, alias: str):
         cls.names[alias] = cls.names[name]
+        _token_cache.clear()
         definition = cls.names[alias]
         if definition.get_fn is not None:
             setattr(bitstring.bits.Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
@@ -394,6 +413,7 @@ class Register:
     @classmethod
     def __delitem__(cls, name: str) -> None:
         del cls.names[name]
+        _token_cache.clear()
 
     def __repr__(self) -> str:
         s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'set_fn_needs_length':^23}{'allowed_lengths':^16}{'multiplier':^12}{'return_type':<13}"]

@@ -27,7 +27,7 @@ This file gives project-specific guidance for automated coding assistants and co
 
 - `bitstring/bitstore.py` is the intended sole point of contact with the `tibs` package (`Tibs`, `Mutibs`). It wraps them behind `ConstBitStore` and `MutableBitStore`, which share a `_BitStoreBase`.
 - Several other modules currently import `tibs` directly too: `bits.py` and `bitarray_.py` (for the public `from_tibs`/`to_tibs` interop methods), `bitstore_helpers.py`, and `fp8.py`/`mxfp.py` (for one-off `Tibs.from_u(...)` construction). Treat these as existing debt, not precedent - new code should go through `bitstore.py` rather than adding further direct `tibs` imports elsewhere.
-- `tibs` itself lives in a sibling repository (`../tibs`, per `[tool.uv.sources]` in `pyproject.toml` - a temporary pin, since tibs 2.0 isn't on PyPI yet). If a task seems to need a change inside `tibs`, that belongs in the tibs repo - flag it rather than editing across the boundary.
+- `tibs` itself lives in a sibling repository (`../tibs`) but is consumed as a normal PyPI dependency (`tibs >= 2.0.0rc1, < 3.0`; the pre-release lower bound is temporary until 2.0.0 final ships). If a task seems to need a change inside `tibs`, that belongs in the tibs repo - flag it rather than editing across the boundary.
 
 ## Public API Surface
 
@@ -36,7 +36,7 @@ This file gives project-specific guidance for automated coding assistants and co
 
 ## Development Workflow
 
-- This is a `uv`-managed project (`uv.lock` present). `uv sync` installs the package and the `dev` dependency group (`pytest`, `hypothesis`, `gfloat`, `pytest-benchmark`). Because of the temporary `tool.uv.sources` pin, this pulls `tibs` from the local `../tibs` checkout rather than PyPI, so the sibling repo needs to be present.
+- This is a `uv`-managed project (`uv.lock` present). `uv sync` installs the package and the `dev` dependency group (`pytest`, `hypothesis`, `gfloat`, `pytest-benchmark`). `tibs` is resolved from PyPI; since the pinned version is a pre-release, `uv` needs pre-releases enabled for it (`uv lock --prerelease=allow` / `UV_PRERELEASE=allow`) unless the constraint itself is enough for your uv version.
 - Run the full suite with `pytest tests/ --benchmark-disable` (matches `.github/workflows/ci.yml`). For quick iteration, run a targeted file or test, e.g. `pytest tests/test_bits.py -k some_case`.
 - Keep `tests/requirements.txt` in sync with the `dev` dependency group in `pyproject.toml` - CI installs from the former, local dev from the latter.
 - There's no configured linter or type checker - no ruff, mypy, black, or flake8 config anywhere in the repo, and CI only builds and runs pytest. Match the surrounding code's style by eye; don't invent a `ruff check`/`mypy` step or assume one gates merges.
