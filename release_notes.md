@@ -4,8 +4,32 @@
 ## Upcoming: version 5.0
 
 This version completes the move to using the `tibs` Rust library as the core.
-Benchmarks range between 1.1x and 5x the speed of version 4.4, with most code
-around 2x to 3x faster. Searching in particular is much improved.
+Nothing is slower than in version 4.4, and the geometric mean across the
+benchmark suite is around 4x faster. Bulk work on `Array` objects, packing and
+unpacking multi-token formats, and sequential reading see much the largest gains,
+as those now do in one core call what version 4 did in a Python loop. Searching
+is also much improved.
+
+| benchmark            | 4.4.0    | 5.0      | speedup |
+|----------------------|---------:|---------:|--------:|
+| `array_ops`          | 1.740 s  | 0.020 s  |  85.7x  |
+| `pack_unpack`        | 1.309 s  | 0.063 s  |  20.7x  |
+| `sequential_read`    | 1.295 s  | 0.171 s  |   7.6x  |
+| `array_indexing`     | 0.036 s  | 0.008 s  |   4.6x  |
+| `findall_patterns`   | 0.143 s  | 0.035 s  |   4.1x  |
+| `array_ops_fallback` | 0.051 s  | 0.018 s  |   2.9x  |
+| `cut_and_compare`    | 0.312 s  | 0.119 s  |   2.6x  |
+| `build_from_tokens`  | 0.135 s  | 0.067 s  |   2.0x  |
+| `slicing`            | 0.156 s  | 0.101 s  |   1.6x  |
+| `prime_sieve`        | 0.008 s  | 0.006 s  |   1.3x  |
+| `bitwise_or`         | 0.271 s  | 0.250 s  |   1.1x  |
+| `count_set_bits`     | 0.034 s  | 0.034 s  |   1.0x  |
+
+Run with `benchmarks/benchmark.py` (best of ten, Python 3.12, macOS on x86-64).
+The workloads at the bottom of the table are the ones dominated by per-call
+overhead or by memory allocation rather than by bit manipulation, so they have
+the least to gain. Your own figures will differ; the ordering is the durable
+part.
 
 There are some significant breaking changes, though most are easy to rewrite.
 See https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html for 
