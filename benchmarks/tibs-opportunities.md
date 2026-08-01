@@ -10,22 +10,24 @@ public methods and bitstring calls 37 of them, so there is still unexplored surf
 
 ## Doable in bitstring today
 
-These need no tibs change - the capability is already there and unused.
+These need no tibs change - the capability is already there and unused. All of the
+originally listed items are now done:
 
-| opportunity | now | achievable | note |
-|---|---|---|---|
-| `unpack`/`read_list`/`pack` with several tokens | 7.6 µs (4 tokens) | 0.69 µs | `DtypeTuple.unpack`/`.pack` do the whole token list in one call |
-| `Array[i]` single item | 1.58 µs | 0.11 µs | `Array` already caches `_tibs_dtype`; `DtypeSingle.unpack(tibs, start, end)` |
-| `Array.count(v)` | 26.0 µs | 7.6 µs | currently `sum(i == value for i in self)`; bulk read then `list.count` |
-| `split(delimiter)` | 32.6 µs | 9.9 µs | `find_all` for the positions, then `split_at(positions)` - both single calls |
-| `findall` when the caller wants a list | 67.1 µs | 8.1 µs | `find_all` returns a list; bitstring only uses `find_all_iter` |
+- `unpack`/`read_list`/`pack` with several tokens - via `DtypeTuple`.
+- `Array[i]` and `Array[i] = v` - via the cached `_tibs_dtype`.
+- `Array.count(v)` - bulk read then `list.count`.
+- `split(delimiter)` - `ConstBitStore.split_on` does one `find_all` plus one
+  `split_at` (~5x; the mutable case keeps the find() loop, since the pieces
+  would need copying into `Mutibs` anyway).
+- `findall` - `find_all` collects every position in one call when no `count` is
+  given (~9x on a list-consuming caller; `count=` stays on the lazy iterator).
+- `Array[a:b] = values` - bulk pack via `from_values`, like `extend` (~90x on
+  256 items).
+- `Array[a:b]` - a lean clone that skips `__init__` (~1.7x).
 
-`Array.__setitem__` (6.6 µs) and `Array[a:b]` (5.1 µs) are also well off the floor and
-would follow the same shape, though neither has been prototyped.
+### The `chunks_iter` TODO was misplaced, and overstates the gain
 
-### The `chunks_iter` TODO is misplaced, and overstates the gain
-
-`bits.py` carries `# TODO: Delegate to Tibs.chunks_iter` inside `split()`, which splits on
+`bits.py` carried `# TODO: Delegate to Tibs.chunks_iter` inside `split()`, which splits on
 a *delimiter* - `chunks_iter` produces fixed-size chunks, so it belongs on `cut()` instead.
 On `cut()` it is worth much less than it looks:
 
@@ -35,7 +37,7 @@ On `cut()` it is worth much less than it looks:
 
 So the achievable win is ~1.25x, not ~5x. Roughly 74 µs of the 96 is allocating 256
 `Bits` wrappers, which no tibs change can remove while `cut()` yields `Bits` objects.
-`split()` is the one actually worth rewriting, via `find_all` + `split_at` (see above).
+`split()` was the one actually worth rewriting, via `find_all` + `split_at` (see above).
 
 ## Wants from tibs
 

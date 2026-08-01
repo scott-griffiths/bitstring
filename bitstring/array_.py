@@ -268,7 +268,10 @@ class Array:
                 return a
             else:
                 itemsize = self.itemsize
-                a = self.__class__(self._dtype)
+                # Skip __init__: the dtype fields are just copied and the data is the slice.
+                a = object.__new__(self.__class__)
+                a._dtype = self._dtype
+                a._tibs_dtype = self._tibs_dtype
                 a.data = self.data[start * itemsize: stop * itemsize]
                 return a
         else:
@@ -297,10 +300,21 @@ class Array:
             if not isinstance(value, Iterable):
                 raise TypeError("Can only assign an iterable to a slice.")
             if step == 1:
+                itemsize = self.itemsize
+                if self._tibs_dtype is not None and isinstance(value, (list, tuple, range)):
+                    # Bulk pack, far quicker than an item at a time. Only for types that
+                    # can be iterated twice, as a failure falls back to the loop below
+                    # so that a bad value raises exactly the error it always did.
+                    try:
+                        packed = bitstore.MutableBitStore.from_values(self._tibs_dtype, value)
+                    except Exception:
+                        pass
+                    else:
+                        self.data._bitstore[start * itemsize: stop * itemsize] = packed
+                        return
                 new_data = BitArray()
                 for x in value:
                     new_data += self._create_element(x)
-                itemsize = self.itemsize
                 self.data[start * itemsize: stop * itemsize] = new_data
                 return
             items_in_slice = len(range(start, stop, step))

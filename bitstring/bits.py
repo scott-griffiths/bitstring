@@ -1400,10 +1400,15 @@ class Bits:
 
     def _findall(self, bs: Bits, start: int, end: int, count: int | None,
                       bytealigned: bool) -> Iterable[int]:
-        positions = self._bitstore.findall(bs._bitstore, start, end, bytealigned)
         if count is None:
-            yield from positions
-            return
+            # A single call collecting every position is much faster than pulling
+            # them one at a time through the iterator.
+            return iter(self._bitstore.findall_list(bs._bitstore, start, end, bytealigned))
+        return self._findall_counted(bs, start, end, count, bytealigned)
+
+    def _findall_counted(self, bs: Bits, start: int, end: int, count: int,
+                         bytealigned: bool) -> Iterable[int]:
+        positions = self._bitstore.findall(bs._bitstore, start, end, bytealigned)
         for _ in range(count):
             try:
                 yield next(positions)
@@ -1501,7 +1506,6 @@ class Bits:
         Raises ValueError if the delimiter is empty.
 
         """
-        # TODO: Delegate to Tibs.chunks_iter
         delimiter = Bits._create_from_bitstype(delimiter)
         if len(delimiter) == 0:
             raise ValueError("split delimiter cannot be empty.")
@@ -1509,6 +1513,15 @@ class Bits:
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
         if count == 0:
+            return
+        if isinstance(self._bitstore, ConstBitStore):
+            # One find_all call locates every delimiter and one split_at call makes
+            # every piece, which beats a Python loop of find() calls by a lot.
+            cls = self.__class__
+            for piece in self._bitstore.split_on(delimiter._bitstore, start, end, count, bytealigned):
+                b = object.__new__(cls)
+                b._bitstore = piece
+                yield b
             return
         f = functools.partial(self._find, bs=delimiter, bytealigned=bytealigned)
         found = f(start=start, end=end)

@@ -320,6 +320,9 @@ class ConstBitStore(_BitStoreBase):
     def findall(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> Iterator[int]:
         return self.tibs.find_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
+    def findall_list(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> list[int]:
+        return self.tibs.find_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
+
     def __iter__(self) -> Iterable[bool]:
         return self.tibs.__iter__()
 
@@ -351,6 +354,25 @@ class ConstBitStore(_BitStoreBase):
     def chunks(self, bits: int, count: int | None = None) -> Iterator[ConstBitStore]:
         for chunk in self.tibs.chunks_iter(bits, count):
             yield ConstBitStore(chunk)
+
+    def split_on(self, delimiter: ConstBitStore | MutableBitStore, start: int, end: int,
+                 count: int | None = None, bytealigned: bool = False) -> list[ConstBitStore]:
+        """The pieces of [start, end) split before each delimiter occurrence.
+
+        The first piece is the (possibly empty) bits before the first occurrence; every
+        other piece starts with the delimiter. At most count pieces if count is given.
+        """
+        delimiter_len = len(delimiter.tibs)
+        positions = []
+        next_allowed = start
+        for p in self.tibs.find_all(delimiter.tibs, start=start, end=end, byte_aligned=bytealigned):
+            if p >= next_allowed:  # find_all includes overlapping occurrences; split skips them
+                positions.append(p - start)
+                next_allowed = p + delimiter_len
+        pieces = self.tibs[start:end].split_at(positions)
+        if count is not None:
+            pieces = pieces[:count]
+        return [ConstBitStore(piece) for piece in pieces]
 
 
 class MutableBitStore(_BitStoreBase):
@@ -427,6 +449,11 @@ class MutableBitStore(_BitStoreBase):
         # Mutibs has no find_all_iter, so search an immutable snapshot. This copies the
         # data, but also makes the iteration safe if the bitstring is mutated during it.
         return self.tibs.to_tibs().find_all_iter(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
+
+    def findall_list(self, bs: ConstBitStore | MutableBitStore, start: int, end: int, bytealigned: bool = False) -> list[int]:
+        # Unlike find_all_iter, find_all is available directly on Mutibs - the result
+        # is complete before any mutation can happen, so no snapshot is needed.
+        return self.tibs.find_all(bs.tibs, start=start, end=end, byte_aligned=bytealigned)
 
     def clear(self) -> None:
         self.tibs.clear()
