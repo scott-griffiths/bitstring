@@ -7,7 +7,8 @@ import random
 import bitstring
 from bitstring import Bits, BitArray, Dtype, Reader, Array
 from gfloat.formats import (format_info_ocp_e4m3, format_info_ocp_e5m2, format_info_p3109, format_info_ocp_e3m2,
-                            format_info_ocp_e2m3, format_info_ocp_e2m1, format_info_ocp_int8, format_info_ocp_e8m0)
+                            format_info_ocp_e2m3, format_info_ocp_e2m1, format_info_ocp_int8, format_info_ocp_e8m0,
+                            format_info_bfloat16)
 import gfloat
 
 sys.path.insert(0, '..')
@@ -95,8 +96,8 @@ class TestConversionToFP8:
                 assert dt.pack(f).u == i
 
     def test_compare_8bit_floats_with_gfloat(self):
-        for fi, dt in [(format_info_p3109(4), Dtype('p4binary')),
-                       (format_info_p3109(3), Dtype('p3binary')),
+        for fi, dt in [(format_info_p3109(8, 4), Dtype('p4binary')),
+                       (format_info_p3109(8, 3), Dtype('p3binary')),
                        (format_info_ocp_e4m3, Dtype('e4m3mxfp_saturate')),
                        (format_info_ocp_e5m2, Dtype('e5m2mxfp_saturate')),
                        ]:
@@ -183,9 +184,38 @@ def test_compare_4bit_floats_with_gfloat():
             assert f == g
 
 
+def test_compare_bfloat_with_gfloat():
+    dt = Dtype('bfloat')
+    for i in range(1 << 16):
+        f = dt.unpack(BitArray(u=i, length=16))
+        g = gfloat.decode_float(format_info_bfloat16, i).fval
+        if math.isnan(g):
+            assert math.isnan(f)
+        else:
+            assert f == g
+
+
+def test_bfloat_rounding_consistent_to_gfloat():
+    # bfloat packing rounds to nearest, ties-to-even. Before 5.0 it truncated towards
+    # zero, which disagrees with gfloat on roughly half of all values, so this is the
+    # guard on that change. sat is left False: bfloat has an infinity to overflow to.
+    dt = Dtype('bfloat')
+    rng = random.Random(4321)
+    values = [0.0, -0.0, 1.0, -1.0, 3.4e38, -3.4e38, float('inf'), float('-inf')]
+    values += [rng.uniform(-1e5, 1e5) for _ in range(2000)]
+    values += [rng.uniform(-1.0, 1.0) for _ in range(2000)]
+    for f in values:
+        mine = dt.unpack(dt.pack(f))
+        theirs = gfloat.round_float(format_info_bfloat16, f)
+        if math.isnan(mine):
+            assert math.isnan(theirs)
+        else:
+            assert mine == theirs, f"bfloat packing {f!r}: got {mine}, gfloat says {theirs}"
+
+
 def test_rounding_consistent_to_gfloat():
-    for fi, dt in [[format_info_p3109(4), Dtype('p4binary')],
-                   [format_info_p3109(3), Dtype('p3binary')]]:
+    for fi, dt in [[format_info_p3109(8, 4), Dtype('p4binary')],
+                   [format_info_p3109(8, 3), Dtype('p3binary')]]:
         for i in range(0, 1 << 16):
             f = BitArray(u=i, length=16).float
             mine = dt.unpack(dt.pack(f))
@@ -224,8 +254,8 @@ def test_rounding_consistent_to_gfloat_from_f64():
     # symmetrically to -1.984375 where this format can hold -2.0.
     # sat says what the format does with a value too big for it: the binary8 formats
     # have an infinity to overflow to, the rest clamp to their largest finite value.
-    formats = [(format_info_p3109(4), Dtype('p4binary'), False),
-               (format_info_p3109(3), Dtype('p3binary'), False),
+    formats = [(format_info_p3109(8, 4), Dtype('p4binary'), False),
+               (format_info_p3109(8, 3), Dtype('p3binary'), False),
                (format_info_ocp_e4m3, Dtype('e4m3mxfp_saturate'), True),
                (format_info_ocp_e5m2, Dtype('e5m2mxfp_saturate'), True),
                (format_info_ocp_e3m2, Dtype('e3m2mxfp'), True),

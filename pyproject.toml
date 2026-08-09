@@ -40,7 +40,7 @@ documentation = "https://bitstring.readthedocs.io/"
 dev = [
   "pytest >= 7.4.2, < 8",
   "hypothesis >= 6.98.13, < 7",
-  "gfloat >= 0.2.1, < 0.3",
+  "gfloat >= 0.5.2, < 0.6",
   "pytest-benchmark >= 4.0.0, < 4.1",
 ]
 
