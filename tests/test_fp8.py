@@ -45,17 +45,17 @@ class TestFp8:
 
     def test_reading(self):
         a = Reader(Bits('0x00fff'))
-        x = a.read('p3binary')
+        x = a.read_value('p3binary')
         assert x == 0.0
         assert a.pos == 8
-        x = a.read('p4binary')
+        x = a.read_value('p4binary')
         assert x == -float('inf')
         assert a.pos == 16
 
     def test_read_list(self):
         v = [-6, -2, 0.125, 7, 10]
         a = bitstring.pack('5*p4binary', *v)
-        vp = Reader(a).readlist('5*p4binary')
+        vp = Reader(a).read_list('5*p4binary')
         assert v == vp
 
     def test_interpretations(self):

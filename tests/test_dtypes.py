@@ -23,9 +23,9 @@ class TestBasicFunctionality:
     def test_reading(self):
         b = Dtype('u8')
         a = bs.Reader(bs.Bits('0xff00ff'))
-        x = a.read(b)
+        x = a.read_value(b)
         assert x == 255
-        x = a.read(b)
+        x = a.read_value(b)
         assert x == 0
 
     def test_setting_with_length(self):
@@ -102,7 +102,7 @@ class TestBasicFunctionality:
         assert dtype.pack(3) == bs.Bits('0x03')
         assert dtype.unpack('0x03') == 3
         reader = bs.Reader(bs.Bits.from_string('0x0304'))
-        assert reader.read(dtype) == 3
+        assert reader.read_value(dtype) == 3
         array = bs.Array(dtype, [3, 4])
         assert array.to_list() == [3, 4]
         output = io.StringIO()
@@ -121,18 +121,18 @@ class TestBasicFunctionality:
     def test_variable_lengths(self):
         d = Dtype('ue')
         a = bs.Reader(bs.Bits().join([d.pack(v) for v in [1, 100, 3, 17, 4]]))
-        assert a.read(d) == 1
-        assert a.read(d) == 100
-        assert a.read(d) == 3
-        assert a.read(d) == 17
-        assert a.read(d) == 4
+        assert a.read_value(d) == 1
+        assert a.read_value(d) == 100
+        assert a.read_value(d) == 3
+        assert a.read_value(d) == 17
+        assert a.read_value(d) == 4
         a.pos = 0
         ds = Dtype('ue', scale=-3)
-        assert a.read(ds) == -3
-        assert a.read(ds) == -300
-        assert a.read(ds) == -9
-        assert a.read(ds) == -51
-        assert a.read(ds) == -12
+        assert a.read_value(ds) == -3
+        assert a.read_value(ds) == -300
+        assert a.read_value(ds) == -9
+        assert a.read_value(ds) == -51
+        assert a.read_value(ds) == -12
 
     def test_packing_bits(self):
         d = Dtype('bits3')
@@ -184,7 +184,7 @@ class TestCreatingNewDtypes:
         a = bs.BitArray('0b110110')
         r = bs.Reader(a)
         assert a.cat == '110110'
-        assert r.read('cat4') == '1101'
+        assert r.read_value('cat4') == '1101'
         a.cat = '11110000'
         assert a.unpack('cat') == ['11110000']
 
@@ -206,7 +206,7 @@ class TestCreatingNewDtypes:
         a = bs.BitArray('0x010f')
         r = bs.Reader(a)
         assert a.counter == 5
-        assert r.readlist('2*counter8') == [1, 4]
+        assert r.read_list('2*counter8') == [1, 4]
         assert a.unpack('counter7, counter') == [0, 5]
         with pytest.raises(AttributeError):
             a.counter = 4

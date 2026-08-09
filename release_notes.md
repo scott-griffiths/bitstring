@@ -4,7 +4,7 @@
 ## Upcoming: version 5.0
 
 This version completes the move to using the `tibs` Rust library as the core.
-Nothing is slower than in version 4.4, and the geometric mean across the
+This has sped up many operations considerably - the geometric mean across the
 benchmark suite is around 4x faster. Bulk work on `Array` objects, packing and
 unpacking multi-token formats, and sequential reading see much the largest gains,
 as those now do in one core call what version 4 did in a Python loop. Searching
@@ -27,9 +27,7 @@ is also much improved.
 
 Run with `benchmarks/benchmark.py` (best of ten, Python 3.12, macOS on x86-64).
 The workloads at the bottom of the table are the ones dominated by per-call
-overhead or by memory allocation rather than by bit manipulation, so they have
-the least to gain. Your own figures will differ; the ordering is the durable
-part.
+overhead or by memory allocation rather than by bit manipulation.
 
 There are some significant breaking changes, though most are easy to rewrite.
 See https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html for 

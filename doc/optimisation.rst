@@ -12,15 +12,15 @@ Use combined read and interpretation
 
 When parsing with a :class:`Reader`, one way to write code is in the following style::
 
-    width = r.read(12).u
-    height = r.read(12).u
-    flags = r.read(4).bin
- 
-This works fine, but is not very quick. The problem is that the call to :meth:`~Reader.read` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use a string parameter that does the read and interpretation together::
+    width = r.read_bits(12).u
+    height = r.read_bits(12).u
+    flags = r.read_bits(4).bin
 
-    width = r.read('u12')
-    height = r.read('u12')
-    flags = r.read('bin4')
+This works fine, but is not very quick. The problem is that the call to :meth:`~Reader.read_bits` constructs and returns a new bitstring, which then has to be interpreted. The new bitstring isn't used for anything else and so creating it is wasted effort. Instead it is better to use :meth:`~Reader.read_value`, which does the read and interpretation together::
+
+    width = r.read_value('u12')
+    height = r.read_value('u12')
+    flags = r.read_value('bin4')
  
 This is much faster, although probably not as fast as the combined call::
 

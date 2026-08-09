@@ -589,10 +589,10 @@ class TestNewProperties:
     def test_reading(self):
         a = BitArray.from_string('0x01ff')
         r = bitstring.Reader(a)
-        b = r.read('u8')
+        b = r.read_value('u8')
         assert b == 1
         assert r.pos == 8
-        assert r.read('i') == -1
+        assert r.read_value('i') == -1
 
     def test_longer_more_general_names(self):
         a = BitArray()

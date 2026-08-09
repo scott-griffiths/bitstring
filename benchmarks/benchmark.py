@@ -79,6 +79,11 @@ def reader(bits):
     return _READER_CLS(bits)
 
 
+def read_value(r, fmt):
+    """Read and interpret one dtype, whatever the reader class calls it."""
+    return r.read_value(fmt) if _HAS_FACTORIES else r.read(fmt)
+
+
 # --- Workloads ---------------------------------------------------------------
 #
 # Each takes a scale factor and returns a checksum. Sizes are picked so a single
@@ -159,7 +164,7 @@ def sequential_read(scale):
     for _ in range(int(5 * scale)):
         r = reader(data)
         for _ in range(len(data) // 8):
-            total += r.read("u8")
+            total += read_value(r, "u8")
     return total
 
 

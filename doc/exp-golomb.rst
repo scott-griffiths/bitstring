@@ -35,7 +35,7 @@ The advantage of this method of representing integers over many other methods is
 ue
 ^^
 
-The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits with :class:`Reader` and interpret them as a code use :meth:`Reader.read` or unpack with a ``ue`` format string.  ::
+The :attr:`~Bits.ue` property interprets the bitstring as a single unsigned exponential-Golomb code and returns an integer. If the bitstring is not exactly one code then an :exc:`InterpretError` is raised instead. If you instead wish to read the next bits with :class:`Reader` and interpret them as a code use :meth:`Reader.read_value` or unpack with a ``ue`` format string.  ::
 
     >>> s = BitArray(ue=12)
     >>> s.bin
@@ -54,7 +54,7 @@ The :attr:`~Bits.se` property does much the same as ``ue`` and the provisos ther
     InterpretError: Bitstring is not a single exponential-Golomb code.
     >>> r = Reader(bits)
     >>> while r.pos < len(r):
-    ...     print(r.read('se'))
+    ...     print(r.read_value('se'))
     -5
     2
     0

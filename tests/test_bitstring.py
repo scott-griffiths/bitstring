@@ -126,7 +126,7 @@ class TestPicklingAndDeepCopying:
         for duplicate in [pickle.loads(pickle.dumps(r)), copy.deepcopy(r)]:
             assert duplicate.bits == r.bits
             assert duplicate.pos == 4
-            assert duplicate.read('u4') == 0xb
+            assert duplicate.read_value('u4') == 0xb
 
     def test_file_backed_bits_roundtrip(self, tmp_path):
         filename = tmp_path / 'pickle.bin'
@@ -189,22 +189,22 @@ class TestNoFixedLengthPackingBug:
 
     def test_reading_bytes_with_no_length(self):
         a = bitstring.Reader(bitstring.Bits(b'hello'))
-        b = a.read('bytes')
+        b = a.read_value('bytes')
         assert b == b'hello'
 
     def test_reading_bin_with_no_length(self):
         a = bitstring.Reader(bitstring.Bits('0b1101'))
-        b = a.read('bin')
+        b = a.read_value('bin')
         assert b == '1101'
 
     def test_reading_u_with_no_length(self):
         a = bitstring.Reader(bitstring.Bits('0b1101'))
-        b = a.read('u')
+        b = a.read_value('u')
         assert b == 13
 
     def test_reading_f_with_no_length(self):
         a = bitstring.Reader(bitstring.Bits(f=14, length=16))
-        b = a.read('f')
+        b = a.read_value('f')
         assert b == 14.0
 
     def test_pack_returns_bits(self):

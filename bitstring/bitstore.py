@@ -200,11 +200,15 @@ class _BitStoreBase:
     def __rshift__(self: _Self, n: int, /) -> _Self:
         return type(self)(self.tibs >> n)
 
-    def find(self, bs: _BitStoreBase, start: int, end: int, bytealigned: bool = False) -> int | None:
-        return self.tibs.find(bs.tibs, start, end, byte_aligned=bytealigned)
+    def find(self, bs: _BitStoreBase, start: int, end: int, bytealigned: bool = False,
+             mask: _BitStoreBase | None = None) -> int | None:
+        return self.tibs.find(bs.tibs, start, end, byte_aligned=bytealigned,
+                              mask=None if mask is None else mask.tibs)
 
-    def rfind(self, bs: _BitStoreBase, start: int, end: int, bytealigned: bool = False) -> int | None:
-        return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned)
+    def rfind(self, bs: _BitStoreBase, start: int, end: int, bytealigned: bool = False,
+              mask: _BitStoreBase | None = None) -> int | None:
+        return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned,
+                               mask=None if mask is None else mask.tibs)
 
     def __imul__(self: _Self, n: int, /) -> _Self:
         self.tibs *= n

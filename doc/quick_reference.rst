@@ -199,22 +199,29 @@ Reader
 Methods
 ^^^^^^^
 
-* :meth:`~Reader.byte_align` -- Align to next byte boundary.
-* :meth:`~Reader.find` -- Find a sub-bitstring and move ``pos`` if found.
-* :meth:`~Reader.peek` -- Peek at and interpret next bits as a single item.
-* :meth:`~Reader.peek_list` -- Peek at and interpret next bits as a list of items.
-* :meth:`~Reader.read` -- Read and interpret next bits as a single item.
+* :meth:`~Reader.align` -- Move forward to the next multiple of a bit boundary.
+* :meth:`~Reader.bookmark` -- Context manager that restores ``pos`` afterwards.
+* :meth:`~Reader.from_file` -- Create a reader over the contents of a file.
+* :meth:`~Reader.peek_bits` -- Peek at a number of bits.
+* :meth:`~Reader.peek_value` -- Peek at and interpret next bits as a single item.
+* :meth:`~Reader.read_array` -- Read several items of one dtype as an ``Array``.
+* :meth:`~Reader.read_bits` -- Read a number of bits.
 * :meth:`~Reader.read_list` -- Read and interpret next bits as a list of items.
-* :meth:`~Reader.read_to` -- Read up to and including next occurrence of a bitstring.
-* :meth:`~Reader.rfind` -- Search backwards and move ``pos`` if found.
+* :meth:`~Reader.read_past` -- Read up to and including the next occurrence of a bitstring.
+* :meth:`~Reader.read_to` -- Read up to but not including the next occurrence of a bitstring.
+* :meth:`~Reader.read_value` -- Read and interpret next bits as a single dtype.
+* :meth:`~Reader.seek_back_to` -- Search backwards, moving ``pos`` to the match.
+* :meth:`~Reader.seek_past` -- Search forwards, moving ``pos`` past the match.
+* :meth:`~Reader.seek_to` -- Search forwards, moving ``pos`` to the match.
 
 Properties
 ^^^^^^^^^^
 
+* :attr:`~Reader.at_end` -- Whether the position is at the end of the data.
 * :attr:`~Reader.bits` -- The wrapped ``Bits`` or ``BitArray`` object.
-* :attr:`~Reader.bitpos` -- Alias for :attr:`~Reader.pos`.
-* :attr:`~Reader.bytepos` -- The current byte position.
+* :attr:`~Reader.byte_pos` -- The current byte position.
 * :attr:`~Reader.pos` -- The current bit position.
+* :attr:`~Reader.remaining` -- The number of bits left to read.
 
 ----
 

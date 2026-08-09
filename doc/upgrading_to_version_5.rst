@@ -32,9 +32,9 @@ installing tibs then please file a bug report with either project.
 Replace stream classes with Reader
 ==================================
 
-The ``ConstBitStream`` and ``BitStream`` classes have been removed.
-
-For immutable data, wrap a :class:`Bits` object in a :class:`Reader`::
+The ``ConstBitStream`` and ``BitStream`` classes have been removed. Bit data is
+held by :class:`Bits` or :class:`BitArray`, and a :class:`Reader` supplies the
+stream position::
 
     # bitstring 4
     s = ConstBitStream("0x160120f")
@@ -42,7 +42,74 @@ For immutable data, wrap a :class:`Bits` object in a :class:`Reader`::
 
     # bitstring 5
     r = Reader(Bits("0x160120f"))
-    value = r.read("u12")
+    value = r.read_value("u12")
+
+There is no ``Reader.read``. In version 4, ``read()`` did two unrelated jobs
+depending on the type of its argument; version 5 gives each its own name, so
+that every reading method says what it returns::
+
+    # bitstring 4
+    header = s.read("uint12")      # an interpreted value
+    payload = s.read(n)            # n bits
+
+    # bitstring 5
+    header = r.read_value("u12")
+    payload = r.read_bits(n)
+
+The version 4 names are not kept as working aliases, so every old call site
+raises an error explaining its replacement rather than quietly doing something
+different.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Version 4
+     - Version 5
+   * - ``s.read("u8")``
+     - :meth:`Reader.read_value`
+   * - ``s.read(n)``
+     - :meth:`Reader.read_bits`
+   * - ``s.readlist(fmt)``
+     - :meth:`Reader.read_list`
+   * - ``s.peek("u8")``, ``s.peek(n)``
+     - :meth:`Reader.peek_value`, :meth:`Reader.peek_bits`
+   * - ``s.peeklist(fmt)``
+     - :meth:`Reader.bookmark` around :meth:`Reader.read_list`
+   * - ``s.readto(bs)``
+     - :meth:`Reader.read_past`
+   * - ``s.bytealign()``
+     - :meth:`Reader.align`
+   * - ``s.find(bs, start=s.pos)``
+     - :meth:`Reader.seek_to`
+   * - ``s.rfind(bs)``
+     - :meth:`Reader.seek_back_to`
+   * - ``s.pos``, ``s.bitpos``
+     - :attr:`Reader.pos`
+   * - ``s.bytepos``
+     - :attr:`Reader.byte_pos`
+   * - ``len(s) - s.pos``
+     - :attr:`Reader.remaining`
+
+.. warning::
+
+    Version 4's ``readto()`` read up to **and including** the match, so it
+    becomes :meth:`Reader.read_past`. :meth:`Reader.read_to` is a different
+    method that stops **before** the match. Translating ``readto`` to the
+    similarly spelled ``read_to`` will silently return short data.
+
+Peeking is only provided for single values. Version 4's ``peeklist()`` becomes
+a :meth:`Reader.bookmark` block, which restores the position afterwards and can
+contain any mixture of reads and seeks::
+
+    # bitstring 4
+    kind, size = s.peeklist("uint8, uint16")
+
+    # bitstring 5
+    with r.bookmark():
+        kind, size = r.read_list("u8, u16")
+
+Version 5 also adds :meth:`Reader.read_array` for reading many items of one
+dtype at once.
 
 For mutable data, wrap a :class:`BitArray`. The wrapped object is available as
 :attr:`Reader.bits`, and it is the original object rather than a copy::
@@ -54,7 +121,7 @@ For mutable data, wrap a :class:`BitArray`. The wrapped object is available as
 
     # bitstring 5
     r = Reader(BitArray("0x001122"))
-    first = r.read("u8")
+    first = r.read_value("u8")
     r.bits.append("0xff")
 
 The reader position is independent of the wrapped bitstring. Mutating
@@ -74,10 +141,9 @@ Operations that used the stream's current position should now pass
     r.bits.insert(r.pos, inserted)
     r.pos += len(inserted)
 
-``Reader.pos`` is deliberately lax. Assigning to :attr:`~Reader.pos`
-or :attr:`~Reader.bytepos` stores the integer value
-without checking it against the current length. A later read or search will
-raise an error if the position cannot be used.
+As in version 4, assigning a position outside ``0`` to ``len(r.bits)`` raises a
+``ValueError``. If you are reading from a :class:`BitArray` that you are also
+growing, append the new data first and then set the position.
 
 Update pack() usage
 ===================
@@ -94,7 +160,7 @@ For reading, wrap the result in :class:`Reader`::
     # bitstring 5
     bits = pack("u8, u8", 1, 2)
     r = Reader(bits)
-    first = r.read("u8")
+    first = r.read_value("u8")
 
 For mutation, convert the result to :class:`BitArray`::
 
@@ -106,12 +172,11 @@ For mutation, convert the result to :class:`BitArray`::
     s = pack("u8", 1).to_bitarray()
     s.append("0xff")
 
-Update find() and rfind() checks
-================================
+Replace stream searching with seeks
+===================================
 
-:meth:`Bits.find`, :meth:`Bits.rfind`, :meth:`Reader.find` and
-:meth:`Reader.rfind` now return ``int | None``. In version 4 they returned a
-single-item tuple for success and an empty tuple for failure.
+:meth:`Bits.find` and :meth:`Bits.rfind` now return ``int | None``. In version 4
+they returned a single-item tuple for success and an empty tuple for failure.
 
 This means a match at bit position zero evaluates as ``False`` if tested
 directly. Test explicitly against ``None``::
@@ -126,16 +191,45 @@ directly. Test explicitly against ``None``::
     if pos is not None:
         ...
 
-If you used stream searching to move the current position, use
-:class:`Reader`::
+``Reader`` has no ``find`` or ``rfind``. Searching that moves the position is
+now done by the seek methods, which return ``True`` or ``False`` and leave
+:attr:`Reader.pos` untouched on a miss::
 
     # bitstring 4
     if s.find("0xff", start=s.pos):
         print(s.pos)
 
     # bitstring 5
-    if r.find("0xff", start=r.pos) is not None:
+    if r.seek_to("0xff"):
         print(r.pos)
+
+There are two forward seeks. :meth:`Reader.seek_to` leaves the position at the
+start of the match and :meth:`Reader.seek_past` leaves it just after. Prefer
+``seek_past`` when looping, since ``seek_to`` on its own will find the same
+match every time::
+
+    # bitstring 4
+    while s.find("0x000001", start=s.pos, bytealigned=True):
+        s.pos += 24
+        handle(s.read(n))
+
+    # bitstring 5
+    while r.seek_past("0x000001", byte_aligned=True):
+        handle(r.read_bits(n))
+
+Note two differences from version 4's stream ``find``. It searched from the
+start of the data unless given ``start=s.pos``, and so could move the position
+backwards; the seek methods always search from the current position.
+:meth:`Reader.seek_back_to` is the only one that searches backwards, and it
+considers only matches that end at or before the current position.
+
+The keyword is spelled ``byte_aligned`` on every :class:`Reader` method, rather
+than ``bytealigned`` as on :meth:`Bits.find` and the other whole-bitstring
+methods. The ``Reader`` searches also take a ``mask``, so that only the bits set
+in the mask need to match.
+
+To search without moving the position, use the wrapped object directly:
+``r.bits.find(bs, start=r.pos)``.
 
 Remove reliance on range checking exceptions
 ============================================
@@ -346,13 +440,13 @@ pretty-print headers use the preferred names::
     n = s.length
     data = s.h
     bits = s.unpack("b12, uint8")
-    value = r.read("floatle32")
+    value = s.read("floatle32")
 
     # bitstring 5
     n = len(s)
     data = s.hex
     bits = s.unpack("bin12, u8")
-    value = r.read("fle32")
+    value = r.read_value("fle32")
 
 ``Dtype.build`` and ``Dtype.parse`` have been renamed to
 :meth:`Dtype.pack` and :meth:`Dtype.unpack`::
@@ -434,14 +528,10 @@ underscored names.
      - :meth:`Bits.to_file`
    * - ``tolist()``
      - :meth:`Array.to_list`
-   * - ``readlist(fmt)``
-     - :meth:`Reader.read_list`
-   * - ``peeklist(fmt)``
-     - :meth:`Reader.peek_list`
-   * - ``readto(bs)``
-     - :meth:`Reader.read_to`
-   * - ``bytealign()``
-     - :meth:`Reader.byte_align`
+
+The reading methods are not in this table. :class:`Reader` is a new class in
+version 5 and keeps no compatibility aliases, so its version 4 equivalents are
+listed in `Replace stream classes with Reader`_ instead.
 
 Remove command-line usage
 =========================
@@ -456,10 +546,13 @@ For a large codebase, the least surprising order is:
 
 1. Update imports to remove ``ConstBitStream`` and ``BitStream``.
 2. Introduce :class:`Reader` wherever code uses ``pos``, ``read``, ``peek`` or
-   stream-style searching.
+   stream-style searching, splitting each ``read`` and ``peek`` call according
+   to whether it wanted an interpreted value or raw bits.
 3. Update :func:`pack` call sites that relied on the old ``BitStream`` return
    value.
-4. Change ``find`` and ``rfind`` checks to use ``is not None``.
+4. Change :meth:`Bits.find` and :meth:`Bits.rfind` checks to use ``is not
+   None``, and replace stream searching with :meth:`Reader.seek_to`,
+   :meth:`Reader.seek_past` or :meth:`Reader.seek_back_to`.
 5. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
    explicit factory methods.
 6. Replace direct ``bitarray`` compatibility with explicit conversion.
@@ -468,5 +561,5 @@ For a large codebase, the least surprising order is:
 8. Replace removed global options and modes with explicit dtypes or per-call
    arguments.
 9. Remove any remaining ``python -m bitstring`` usage.
-10. Optionally update compatibility aliases such as ``tobytes`` and
-    ``readlist`` to their preferred underscored names.
+10. Optionally update compatibility aliases such as ``tobytes`` and ``tolist``
+    to their preferred underscored names.

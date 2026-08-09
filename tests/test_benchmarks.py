@@ -52,7 +52,7 @@ def test_repeated_reading(benchmark):
         i = int.to_bytes(random.getrandbits(100000*8), 100000, 'big')
         s = bitstring.Reader(bitstring.Bits.from_bytes(i))
         for _ in range(800000 // 40):
-            _ = s.readlist('uint:4, float:32, bool, bool, bool, bool')
+            _ = s.read_list('uint:4, float:32, bool, bool, bool, bool')
     benchmark(repeating_reading)
 
 def test_primes(benchmark):

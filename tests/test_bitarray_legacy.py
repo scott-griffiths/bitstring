@@ -39,33 +39,33 @@ def test_multiple_string_initialisation_with_reader():
     a = BitArray('0b1 , 0x1')
     assert a == '0b10001'
     r = Reader(BitArray('ue=5, ue=1, se=-2'))
-    assert r.read('ue') == 5
-    assert r.read('ue') == 1
-    assert r.read('se') == -2
+    assert r.read_value('ue') == 5
+    assert r.read_value('ue') == 1
+    assert r.read_value('se') == -2
     r = Reader(BitArray('uint:32 = 12, 0b11') + 'int:100=-100, 0o44')
-    assert r.read(32).uint == 12
-    assert r.read(2).bin == '11'
-    assert r.read(100).int == -100
+    assert r.read_bits(32).uint == 12
+    assert r.read_bits(2).bin == '11'
+    assert r.read_bits(100).int == -100
 
 
 def test_reader_reads_bits_and_bytes():
     s = Reader(BitArray.from_bytes(b'\x4d\x55'))
-    assert s.read(4).hex == '4'
-    assert s.read(8).hex == 'd5'
-    assert s.read(1) == [0]
-    assert s.read(3).bin == '101'
-    assert not s.read(0)
+    assert s.read_bits(4).hex == '4'
+    assert s.read_bits(8).hex == 'd5'
+    assert s.read_bits(1) == [0]
+    assert s.read_bits(3).bin == '101'
+    assert not s.read_bits(0)
 
     s = Reader(BitArray(hex='4d55'))
-    assert s.read(8).hex == '4d'
-    assert s.read(8).hex == '55'
+    assert s.read_bits(8).hex == '4d'
+    assert s.read_bits(8).hex == '55'
 
     s = Reader(BitArray(hex='0x112233448811'))
-    assert s.read(3 * 8).hex == '112233'
+    assert s.read_bits(3 * 8).hex == '112233'
     with pytest.raises(ValueError):
-        s.read(-16)
-    s.bitpos += 1
-    assert s.read(2 * 8).bin == '1000100100010000'
+        s.read_bits(-16)
+    s.pos += 1
+    assert s.read_bits(2 * 8).bin == '1000100100010000'
 
 
 def test_reader_reads_exp_golomb_codes():
@@ -74,108 +74,106 @@ def test_reader_reads_exp_golomb_codes():
     s = Reader(BitArray(bin='1 010 011 00100 00101 00110 00111 0001000 0001001'))
     assert s.pos == 0
     for i in range(9):
-        assert s.read('ue') == i
+        assert s.read_value('ue') == i
     with pytest.raises(bitstring.ReadError):
-        s.read('ue')
+        s.read_value('ue')
 
     s = Reader(BitArray(bin='010 00110 0001010 0001000 00111'))
-    assert s.read('se') == 1
-    assert s.read('se') == 3
-    assert s.readlist(3 * ['se']) == [5, 4, -3]
+    assert s.read_value('se') == 1
+    assert s.read_value('se') == 3
+    assert s.read_list(3 * ['se']) == [5, 4, -3]
 
 
-def test_reader_find_variants():
+def test_reader_seek_to_variants():
     s = Reader(Bits(bin='0b0000110110000'))
-    assert s.find(BitArray(bin='11011')) == 4
-    assert s.bitpos == 4
-    assert s.read(5).bin == '11011'
-    s.bitpos = 0
-    assert s.find('0b11001', bytealigned=False) is None
+    assert s.seek_to(BitArray(bin='11011')) is True
+    assert s.pos == 4
+    assert s.read_bits(5).bin == '11011'
+    s.pos = 0
+    assert s.seek_to('0b11001', byte_aligned=False) is False
 
     s = Reader(BitArray(bin='0'))
-    assert s.find(s.bits, bytealigned=False) == 0
+    assert s.seek_to(s.bits, byte_aligned=False) is True
     assert s.pos == 0
-    assert s.find('0b00', bytealigned=False) is None
+    assert s.seek_to('0b00', byte_aligned=False) is False
     with pytest.raises(ValueError):
-        s.find(BitArray())
+        s.seek_to(BitArray())
 
     s = Reader(BitArray(hex='0x112233')[4:])
-    assert s.find('0x23', bytealigned=False) == 8
+    assert s.seek_to('0x23', byte_aligned=False) is True
     assert s.pos == 8
 
 
-def test_reader_find_corner_cases():
+def test_reader_seek_to_corner_cases():
     s = Reader(BitArray(bin='000111000111'))
-    assert s.find('0b000') == 0
+    assert s.seek_to('0b000') is True
     assert s.pos == 0
-    assert s.find('0b000') == 0
+    # A match under the cursor is found where it is, so this doesn't move either.
+    assert s.seek_to('0b000') is True
     assert s.pos == 0
-    assert s.find('0b0111000111') == 2
+    assert s.seek_to('0b0111000111') is True
     assert s.pos == 2
-    assert s.find('0b000', start=2) == 6
+    assert s.seek_to('0b000') is True
     assert s.pos == 6
-    assert s.find('0b111', start=6) == 9
+    assert s.seek_to('0b111') is True
     assert s.pos == 9
     s.pos += 2
-    assert s.find('0b1', start=s.pos) == 11
+    assert s.seek_to('0b1') is True
+    assert s.pos == 11
 
 
-def test_reader_find_byte_aligned():
+def test_reader_seek_to_byte_aligned():
     s = Reader(BitArray.from_string('0x010203040102ff'))
-    assert s.find('0x05', bytealigned=True) is None
-    assert s.find('0x02', bytealigned=True) == 8
-    assert s.read(16).hex == '0203'
-    assert s.find('0x02', start=s.bitpos, bytealigned=True) == 40
-    s.read(1)
-    assert s.find('0x02', start=s.bitpos, bytealigned=True) is None
+    assert s.seek_to('0x05', byte_aligned=True) is False
+    assert s.pos == 0
+    assert s.seek_to('0x02', byte_aligned=True) is True
+    assert s.pos == 8
+    assert s.read_bits(16).hex == '0203'
+    assert s.seek_to('0x02', byte_aligned=True) is True
+    assert s.pos == 40
+    s.read_bits(1)
+    assert s.seek_to('0x02', byte_aligned=True) is False
 
     s = Reader(BitArray(hex='0x12345678'))
-    assert s.find(BitArray(hex='0x56'), bytealigned=True) == 16
-    assert s.bytepos == 2
+    assert s.seek_to(BitArray(hex='0x56'), byte_aligned=True) is True
+    assert s.byte_pos == 2
     s.pos = 0
-    assert s.find(BitArray(hex='0x45'), bytealigned=True) is None
+    assert s.seek_to(BitArray(hex='0x45'), byte_aligned=True) is False
 
 
-def test_reader_rfind_variants():
-    a = Reader(BitArray('0b001001001'))
-    b = a.rfind('0b001')
-    assert b == 6
+def test_reader_seek_back_to_variants():
+    a = Reader(BitArray('0b001001001'), pos=9)
+    assert a.seek_back_to('0b001') is True
     assert a.pos == 6
     big = BitArray.from_zeros(100000) + '0x12' + BitArray.from_zeros(10000)
-    r = Reader(big)
-    found = r.rfind('0x12', bytealigned=True)
-    assert found == 100000
+    r = Reader(big, pos=len(big))
+    assert r.seek_back_to('0x12', byte_aligned=True) is True
     assert r.pos == 100000
 
-    a = Reader(BitArray('0x8888'))
-    b = a.rfind('0b1', bytealigned=True)
-    assert b == 8
+    a = Reader(BitArray('0x8888'), pos=16)
+    assert a.seek_back_to('0b1', byte_aligned=True) is True
     assert a.pos == 8
 
-    a = Reader(BitArray('0x0000ffffff'))
-    b = a.rfind('0x0000', start=1, bytealigned=True)
-    assert b is None
+    # Only matches ending at or before the position are considered.
+    a = Reader(BitArray('0x0000ffffff'), pos=8)
+    assert a.seek_back_to('0x0000', byte_aligned=True) is False
+    assert a.pos == 8
+    assert a.seek_back_to('0x00', byte_aligned=True) is True
     assert a.pos == 0
-    b = a.rfind('0x00', start=1, bytealigned=True)
-    assert b == 8
-    assert a.pos == 8
 
 
-def test_reader_find_and_rfind_errors():
+def test_reader_seek_errors():
     s = Reader(BitArray(hex='0xffff'))
     with pytest.raises(ValueError):
-        s.find('')
+        s.seek_to('')
     with pytest.raises(ValueError):
-        s.find(BitArray())
+        s.seek_to(BitArray())
     a = Reader(BitArray('0x43234234'))
     with pytest.raises(ValueError):
-        a.rfind('', bytealigned=True)
-    # Out of range start and end values are clamped like slice indices.
-    assert a.rfind('0b1', start=-99, bytealigned=True) is None
-    assert a.rfind('0b1', end=33, bytealigned=True) is None
-    # An end before the start gives an empty search range.
-    assert a.rfind('0b1', start=10, end=9, bytealigned=True) is None
-    assert a.rfind('0b1', start=-99) == 29
+        a.seek_back_to('', byte_aligned=True)
+    # Nothing is before the start, so a backwards seek from there always misses.
+    assert a.seek_back_to('0b1', byte_aligned=True) is False
+    assert a.pos == 0
 
 
 def test_shift_left_and_right():
@@ -478,9 +476,9 @@ def test_file_properties_and_reader():
     assert s.bin == '0000000100100011010001010110011110001001101010111100110111101111'
     assert s[:-1].oct == '002215053170465363367'
     r = Reader(s)
-    assert r.read('se') == -72
+    assert r.read_value('se') == -72
     r.pos = 0
-    assert r.read('ue') == 144
+    assert r.read_value('ue') == 144
     assert s.bytes == b'\x01\x23\x45\x67\x89\xab\xcd\xef'
     assert s.tobytes() == b'\x01\x23\x45\x67\x89\xab\xcd\xef'
 
@@ -505,21 +503,21 @@ def test_file_creation_with_length_and_offset():
         _ = Bits.from_file(small_test_filename, offset=65)
 
     a = BitArray.from_file(test_filename, offset=4)
-    assert Reader(a).peek(4 * 8).hex == '00001b31'
+    assert Reader(a).peek_bits(4 * 8).hex == '00001b31'
     b = BitArray.from_file(test_filename, offset=28)
-    assert Reader(b).peek(8).hex == '31'
+    assert Reader(b).peek_bits(8).hex == '31'
 
 
-def test_find_in_file_with_reader():
+def test_seek_in_file_with_reader():
     r = Reader(BitArray.from_file(os.path.join(THIS_DIR, 'test.m1v')))
-    assert r.find('0x160120') == 32
-    assert r.bytepos == 4
-    s3 = r.read(24)
+    assert r.seek_to('0x160120') is True
+    assert r.byte_pos == 4
+    s3 = r.read_bits(24)
     assert s3.hex == '160120'
-    r.bytepos = 0
+    r.byte_pos = 0
     assert r.pos == 0
-    assert r.find('0x0001b2') == 104
-    assert r.bytepos == 13
+    assert r.seek_to('0x0001b2') is True
+    assert r.byte_pos == 13
 
 
 def test_file_bit_getting():
@@ -551,7 +549,7 @@ def test_creation_errors_and_basic_conversions():
 def test_empty_bits_and_reader_position():
     s = Reader(BitArray())
     with pytest.raises(bitstring.ReadError):
-        s.read(1)
+        s.read_bits(1)
     assert s.bits.bin == ''
     assert s.bits.hex == ''
     with pytest.raises(bitstring.InterpretError):
@@ -561,34 +559,31 @@ def test_empty_bits_and_reader_position():
     assert not s.bits
 
     s = Reader(BitArray.from_bytes(b'\x00\x00\x00'))
-    assert s.bitpos == 0
-    s.read(5)
+    assert s.pos == 0
+    s.read_bits(5)
     assert s.pos == 5
     s.pos = len(s)
     with pytest.raises(bitstring.ReadError):
-        s.read(1)
+        s.read_bits(1)
 
 
-def test_reader_byte_position_and_lax_seek():
+def test_reader_byte_position_and_range_checked_seek():
     s = Reader(BitArray.from_bytes(b'\x00\x00\x00'))
-    assert s.bytepos == 0
-    s.read(10)
-    with pytest.raises(bitstring.ByteAlignError):
-        _ = s.bytepos
-    s.read(6)
-    assert s.bytepos == 2
+    assert s.byte_pos == 0
+    s.read_bits(10)
+    with pytest.raises(ValueError):
+        _ = s.byte_pos
+    s.read_bits(6)
+    assert s.byte_pos == 2
 
     s = Reader(BitArray.from_bytes(b'\x00\x00\x00\x00\x00\xab'))
-    s.bytepos = 5
-    assert s.read(8).hex == 'ab'
-    s.pos = -1
-    assert s.pos == -1
+    s.byte_pos = 5
+    assert s.read_bits(8).hex == 'ab'
     with pytest.raises(ValueError):
-        s.read(1)
-    s.bitpos = 6 * 8 + 1
-    assert s.bitpos == 49
+        s.pos = -1
     with pytest.raises(ValueError):
-        s.read(0)
+        s.pos = 6 * 8 + 1
+    assert s.pos == 48
 
 
 def test_append_and_prepend():
@@ -616,14 +611,14 @@ def test_append_and_prepend():
 
 def test_reader_bytealign():
     s = Reader(BitArray(hex='0001ff23'))
-    s.bytealign()
-    assert s.bytepos == 0
+    s.align()
+    assert s.byte_pos == 0
     s.pos += 11
-    s.bytealign()
-    assert s.bytepos == 2
+    s.align()
+    assert s.byte_pos == 2
     s.pos -= 10
-    s.bytealign()
-    assert s.bytepos == 1
+    s.align()
+    assert s.byte_pos == 1
 
 
 def test_insert_and_overwrite():
@@ -735,25 +730,25 @@ def test_adding_and_equality():
 
 def test_peek_with_reader():
     s = Reader(BitArray(bin='01'))
-    assert s.peek(1) == [0]
-    assert s.peek(1) == [0]
-    assert s.read(1) == [0]
-    assert s.peek(1) == [1]
-    assert s.peek(1) == [1]
+    assert s.peek_bits(1) == [0]
+    assert s.peek_bits(1) == [0]
+    assert s.read_bits(1) == [0]
+    assert s.peek_bits(1) == [1]
+    assert s.peek_bits(1) == [1]
 
     s = Reader(BitArray.from_bytes(b'\x1f', offset=3))
     assert len(s) == 5
-    assert s.peek(5).bin == '11111'
+    assert s.peek_bits(5).bin == '11111'
     s.pos += 1
     with pytest.raises(bitstring.ReadError):
-        _ = s.peek(5)
+        _ = s.peek_bits(5)
 
     s = Reader(BitArray(hex='001122334455'))
-    assert s.peek(8).hex == '00'
-    assert s.read(8).hex == '00'
+    assert s.peek_bits(8).hex == '00'
+    assert s.read_bits(8).hex == '00'
     s.pos += 33
     with pytest.raises(bitstring.ReadError):
-        _ = s.peek(8)
+        _ = s.peek_bits(8)
 
 
 def test_auto_initialisation_and_auto_methods():
@@ -875,63 +870,66 @@ def test_initialise_from_iterables_and_cut():
 
 def test_reader_intelligent_reads():
     a = Reader(BitArray(uint=123, length=23))
-    assert a.read('uint:23') == 123
+    assert a.read_value('uint:23') == 123
     assert a.pos == len(a)
     b = Reader(BitArray(int=-12, length=44))
-    assert b.read('int:44') == -12
+    assert b.read_value('int:44') == -12
     assert b.pos == len(b)
     r = Reader(a.bits + b.bits)
-    assert r.readlist('uint:23, int:44') == [123, -12]
+    assert r.read_list('uint:23, int:44') == [123, -12]
 
     a = Reader(BitArray(ue=822))
-    assert a.read('ue') == 822
+    assert a.read_value('ue') == 822
     b = Reader(BitArray(se=-1001))
-    assert b.read('se') == -1001
+    assert b.read_value('se') == -1001
     r = Reader(b.bits + 2 * a.bits)
-    assert r.readlist('se, ue, ue') == [-1001, 822, 822]
+    assert r.read_list('se, ue, ue') == [-1001, 822, 822]
 
     a = Reader(BitArray('0x123') + '0b11101')
-    assert a.read('hex:12') == '123'
-    assert a.read(' bin : 5 ') == '11101'
+    assert a.read_value('hex:12') == '123'
+    assert a.read_value(' bin : 5 ') == '11101'
 
 
 def test_reader_intelligent_read_errors_and_peek():
     a = Reader(BitArray('0x1234'))
-    assert a.readlist('bin:0, oct:0, hex:0, bits:0')[:3] == ['', '', '']
+    assert a.read_list('bin:0, oct:0, hex:0, bits:0')[:3] == ['', '', '']
     a.pos = 0
     with pytest.raises(ValueError):
-        _ = a.read('int:0')
+        _ = a.read_value('int:0')
     with pytest.raises(ValueError):
-        _ = a.read('uint:0')
+        _ = a.read_value('uint:0')
     assert a.pos == 0
 
     a = Reader(BitArray('0x123456'))
     for t in ['hex:1', 'oct:1', '-5', 'fred', 'bin:-2', 'uint:p', 'uint:-2', 'int:u', 'int:-3', 'ses', 'uee', '-14']:
         with pytest.raises(ValueError):
-            _ = a.read(t)
+            _ = a.read_value(t)
 
     a = Reader(BitArray('0b01, 0x43, 0o4, uint:23=2, se=5, ue=3'))
-    b, c, e = a.peeklist('bin:2, hex:8, oct:3')
+    with a.bookmark():
+        b, c, e = a.read_list('bin:2, hex:8, oct:3')
     assert (b, c, e) == ('01', '43', '4')
     assert a.pos == 0
     a.pos = 13
-    f, g, h = a.peeklist('uint:23, se, ue')
+    with a.bookmark():
+        f, g, h = a.read_list('uint:23, se, ue')
     assert (f, g, h) == (2, 5, 3)
     assert a.pos == 13
 
 
 def test_reader_multiple_bit_reads():
     s = Reader(BitArray('0x123456789abcdef'))
-    a, b = s.readlist([4, 4])
+    a, b = s.read_list([4, 4])
     assert a == '0x1'
     assert b == '0x2'
-    c, d, e = s.readlist([8, 16, 8])
+    c, d, e = s.read_list([8, 16, 8])
     assert c == '0x34'
     assert d == '0x5678'
     assert e == '0x9a'
 
     s = Reader(BitArray('0b1101, 0o721, 0x2234567'))
-    a, b, c, d = s.peeklist([2, 1, 1, 9])
+    with s.bookmark():
+        a, b, c, d = s.read_list([2, 1, 1, 9])
     assert a == '0b11'
     assert bool(b) is True
     assert bool(c) is True
@@ -971,9 +969,9 @@ def test_endian_synonyms_and_struct_tokens():
     assert BitArray(ibe=-100, length=16) == 'int:16=-100'
     assert BitArray(ube=13, length=24) == 'int:24=13'
     r = Reader(BitArray('ibe:8=2'))
-    assert r.read('ibe8') == 2
+    assert r.read_value('ibe8') == 2
     r.pos = 0
-    assert r.read('ube8') == 2
+    assert r.read_value('ube8') == 2
 
     s = BitArray(uint=100, length=16)
     assert s.ule == 25600
@@ -984,7 +982,7 @@ def test_endian_synonyms_and_struct_tokens():
     assert s.ule == 105
     s = pack('ule:24', 1001)
     assert s.ule == 1001
-    assert Reader(s).read('ule24') == 1001
+    assert Reader(s).read_value('ule24') == 1001
 
     assert pack('<b', 23) == BitArray('ile:8=23')
     assert pack('<B', 23) == BitArray('ule:8=23')
@@ -1144,7 +1142,7 @@ def test_float_initialisation_packing_and_reading():
     assert d.unpack('>5d') == [10.0, 5.0, 2.5, 1.25, 0.1]
 
     a = Reader(BitArray('fle:64=12, fbe:64=-0.01, f:64=3e33'))
-    assert a.readlist('fle:64, fbe:64, f:64') == [12.0, -0.01, 3e33]
+    assert a.read_list('fle:64, fbe:64, f:64') == [12.0, -0.01, 3e33]
 
 
 def test_float_errors_and_rotations():
@@ -1173,7 +1171,7 @@ def test_float_errors_and_rotations():
 
 def test_bytes_token_and_dedicated_reader_types():
     a = Reader(BitArray('0x510203'))
-    b = a.read('bytes:1')
+    b = a.read_value('bytes:1')
     assert isinstance(b, bytes)
     assert b == b'\x51'
     x, y, z = a.bits.unpack('uint:4, bytes:2, uint')
@@ -1183,12 +1181,12 @@ def test_bytes_token_and_dedicated_reader_types():
     assert pack('bytes:4', b'abcd').bytes == b'abcd'
 
     a = Reader(BitArray('0b11, uint:43=98798798172, 0b11111'), pos=2)
-    assert a.read(Dtype('int43')) == 98798798172
+    assert a.read_value(Dtype('int43')) == 98798798172
     assert a.pos == 45
     a = Reader(BitArray('0b111, ule:40=123516, 0b111'), pos=3)
-    assert a.read('ule:40') == 123516
+    assert a.read_value('ule:40') == 123516
     a = Reader(BitArray('0b111, bfloat:16=-5.25, 0xffffffff'), pos=3)
-    assert a.read('bfloatbe') == -5.25
+    assert a.read_value('bfloatbe') == -5.25
 
 
 def test_multiplicative_factors_and_brackets():
@@ -1198,7 +1196,7 @@ def test_multiplicative_factors_and_brackets():
     assert BitArray('0*0b1001010') == ''
 
     s = Reader(BitArray('0xc') * 5)
-    assert s.readlist('5*uint:4') == [12, 12, 12, 12, 12]
+    assert s.read_list('5*uint:4') == [12, 12, 12, 12, 12]
     s = Bits('2*0b101, 4*uint:7=3')
     assert s.unpack('2*bin:3, 3*uint:7') == ['101', '101', 3, 3, 3]
 
@@ -1212,11 +1210,11 @@ def test_multiplicative_factors_and_brackets():
 def test_bool_token_and_integer_reads():
     a = Reader(Bits('0b1'))
     assert a.bits.bool is True
-    assert a.read('bool') is True
+    assert a.read_value('bool') is True
     assert a.bits.unpack('bool')[0] is True
     b = Reader(Bits('0b0'))
     assert b.bits.bool is False
-    assert b.peek('bool') is False
+    assert b.peek_value('bool') is False
     assert b.bits.unpack('bool')[0] is False
 
     c = pack('4*bool', False, True, 'False', 'True')
@@ -1225,13 +1223,13 @@ def test_bool_token_and_integer_reads():
         pack('bool', 'hello')
 
     a = Reader(Bits('0xffeedd'))
-    b = a.read(8)
+    b = a.read_bits(8)
     assert b.hex == 'ff'
     assert a.pos == 8
-    b = a.peek(8)
+    b = a.peek_bits(8)
     assert b.hex == 'ee'
     assert a.pos == 8
-    b = a.read(1)
+    b = a.read_bits(1)
     assert b == '0b1'
 
 
@@ -1252,7 +1250,7 @@ def test_bytes_initialisation_and_legacy_bugs():
 
     s = Reader(Bits('0b000000001'))
     with pytest.raises(bitstring.ReadError):
-        _ = s.read('ue')
+        _ = s.read_value('ue')
 
     s = BitArray('0x00112233')
     li = list(s.split('0x22', start=8, bytealigned=True))
@@ -1278,9 +1276,13 @@ def test_function_negative_indices():
     t.overwrite(-20, '0x666')
     assert t == '0x77ab998666bf'
 
+    # Windowed searching stays on the wrapped object, where negative values are
+    # clamped like slice indices.
     r = Reader(t)
-    assert r.find('0x998', bytealigned=True, start=-31) is None
-    assert r.find('0x998', bytealigned=True, start=-32) == 16
+    assert r.bits.find('0x998', bytealigned=True, start=-31) is None
+    assert r.bits.find('0x998', bytealigned=True, start=-32) == 16
+    r.pos = 16
+    assert r.seek_to('0x998', byte_aligned=True) is True
     assert r.pos == 16
 
 
@@ -1305,7 +1307,7 @@ def test_pack_code_dicts_unicode_and_dict_reads():
     assert z == '111'
 
     s = Reader(BitArray('0x0102'))
-    x, y = s.readlist('bits8, hex:b', b=4)
+    x, y = s.read_list('bits8, hex:b', b=4)
     assert (x, y) == ('0x01', '0')
     assert s.pos == 12
 
@@ -1474,30 +1476,24 @@ def test_split_start_end_boundaries():
     assert list(a[4:12].split('0b0', bytealigned=False)) == list(a.split('0b0', start=4, end=12))
 
 
-def test_find_start_end_boundaries():
-    a = Reader(BitArray('0b0010000100'))
-    found = a.find('0b1', start=4)
-    assert (found, a.bitpos) == (7, 7)
-    found = a.find('0b1', start=2)
-    assert (found, a.bitpos) == (2, 2)
-    found = a.find('0b1', bytealigned=False, start=8)
-    assert (found, a.bitpos) == (None, 2)
+def test_seek_start_boundaries():
+    # A seek always searches from the current position to the end.
+    a = Reader(BitArray('0b0010000100'), pos=4)
+    assert a.seek_to('0b1') is True
+    assert a.pos == 7
+    a.pos = 2
+    assert a.seek_to('0b1') is True
+    assert a.pos == 2
+    a.pos = 8
+    assert a.seek_to('0b1', byte_aligned=False) is False
+    assert a.pos == 8
 
-    a = Reader(BitArray('0b0010010000'))
-    found = a.find('0b1', bytealigned=False, end=2)
-    assert (found, a.bitpos) == (None, 0)
-    found = a.find('0b1', end=3)
-    assert (found, a.bitpos) == (2, 2)
-    found = a.find('0b1', bytealigned=False, start=3, end=5)
-    assert (found, a.bitpos) == (None, 2)
-    found = a.find('0b1', start=3, end=6)
-    assert (found, a.bitpos) == (5, 5)
-
+    # An explicit range needs the wrapped object, where out of range values are
+    # clamped like slice indices.
     b = Reader(BitArray('0x0011223344'))
-    # Out of range start and end values are clamped like slice indices.
-    assert b.find('0x22', bytealigned=True, start=-100) == 16
-    b.pos = 0
-    assert b.find('0x22', end=41, bytealigned=True) == 16
+    assert b.bits.find('0x22', bytealigned=True, start=-100) == 16
+    assert b.bits.find('0x22', end=41, bytealigned=True) == 16
+    assert b.pos == 0
 
 
 def test_findall_generator_and_count():
@@ -1624,9 +1620,9 @@ def test_big_little_endian_error_cases():
     with pytest.raises(bitstring.InterpretError):
         _ = s.bits.ube
     with pytest.raises(ValueError):
-        _ = s.read('ube')
+        _ = s.read_value('ube')
     with pytest.raises(ValueError):
-        _ = s.read('ibe')
+        _ = s.read_value('ibe')
 
     with pytest.raises(bitstring.CreationError):
         _ = BitArray('ule:15=10')
@@ -1652,7 +1648,7 @@ def test_little_endian_int_cases():
     assert s.int == 999
     s = pack('ile:24', 1001)
     assert s.ile == 1001
-    assert Reader(s).read('ile24') == 1001
+    assert Reader(s).read_value('ile24') == 1001
 
 
 @pytest.mark.parametrize(
@@ -1804,7 +1800,8 @@ def test_read_unpack_peek_with_keyword_lengths():
         a.unpack('uint:p', p='a_string')
 
     s = Reader(BitArray('0x0102'))
-    x, y = s.peeklist('8, hex:b', b=4)
+    with s.bookmark():
+        x, y = s.read_list('8, hex:b', b=4)
     assert (x, y) == ('0x01', '0')
     assert s.pos == 0
 
@@ -1848,20 +1845,20 @@ def test_bool_assignment_and_errors():
 
     a = Reader(Bits('0xf'))
     with pytest.raises(ValueError):
-        _ = a.read('bool:0')
+        _ = a.read_value('bool:0')
     with pytest.raises(ValueError):
-        _ = a.read('bool:2')
+        _ = a.read_value('bool:2')
 
 
 def test_zero_bit_reads_and_read_int_list():
     a = Reader(Bits('0x123456'))
     with pytest.raises(bitstring.InterpretError):
-        _ = a.read('uint:0')
+        _ = a.read_value('uint:0')
     with pytest.raises(bitstring.InterpretError):
-        _ = a.read('float:0')
+        _ = a.read_value('float:0')
 
     a = Reader(Bits('0xab, 0b110'))
-    b, c = a.readlist([8, 3])
+    b, c = a.read_list([8, 3])
     assert b.hex == 'ab'
     assert c.bin == '110'
 
@@ -1978,38 +1975,40 @@ def test_efficient_overwrite_and_large_counts():
     s = BitArray.from_zeros(1000)[5:]
     s.overwrite(500, '0xffffff')
     r = Reader(s, pos=500)
-    assert r.read(4 * 8) == '0xffffff00'
+    assert r.read_bits(4 * 8) == '0xffffff00'
     s.overwrite(502, '0xff')
     assert s[502:518] == '0xffff'
 
 
-def test_find_remaining_corner_cases():
+def test_seek_remaining_corner_cases():
     s = Reader(BitArray('0xff'))
-    assert s.find(s.bits) == 0
-    assert s.find(BitArray(hex='0x12')) is None
-    assert s.find(BitArray(hex='0xffff')) is None
+    assert s.seek_to(s.bits) is True
+    assert s.seek_to(BitArray(hex='0x12')) is False
+    assert s.seek_to(BitArray(hex='0xffff')) is False
 
     s = Reader(BitArray(hex='0x1122334455'), pos=2)
-    s.find('0x66', bytealigned=True)
+    assert s.seek_to('0x66', byte_aligned=True) is False
     assert s.pos == 2
     s.pos = 38
-    s.find('0x66', bytealigned=True)
+    assert s.seek_to('0x66', byte_aligned=True) is False
     assert s.pos == 38
 
     s = Reader(BitArray('0x1234'))
-    assert s.find('0x1234') == 0
-    assert s.find('0x1234') == 0
+    assert s.seek_to('0x1234') is True
+    assert s.seek_to('0x1234') is True
+    assert s.pos == 0
     s.bits.append('0b111')
-    s.pos = 3
-    assert s.find('0b1', start=17, bytealigned=True) is None
-    assert s.pos == 3
+    s.pos = 17
+    assert s.seek_to('0b1', byte_aligned=True) is False
+    assert s.pos == 17
 
 
-def test_rfind_endbit_cases():
-    a = Reader(BitArray('0x000fff'))
-    b = a.rfind('0b011', start=0, end=14, bytealigned=False)
-    assert b is not None
-    assert a.rfind('0b011', start=0, end=13, bytealigned=False) is None
+def test_seek_back_to_end_bit_cases():
+    # Only matches ending at or before the position are considered.
+    a = Reader(BitArray('0x000fff'), pos=14)
+    assert a.seek_back_to('0b011') is True
+    a.pos = 13
+    assert a.seek_back_to('0b011') is False
 
 
 def test_remaining_shift_in_place_errors_and_whole_length():
@@ -2106,15 +2105,15 @@ def test_file_reader_independent_positions():
     filename = os.path.join(THIS_DIR, 'test.m1v')
     s1 = Reader(BitArray.from_file(filename))
     s2 = Reader(BitArray.from_file(filename))
-    assert s1.read(32).hex == '000001b3'
-    assert s2.read(32).hex == '000001b3'
-    s1.bytepos += 4
-    assert s1.read(8).hex == '02'
-    assert s2.read(5 * 8).hex == '1601208302'
+    assert s1.read_bits(32).hex == '000001b3'
+    assert s2.read_bits(32).hex == '000001b3'
+    s1.byte_pos += 4
+    assert s1.read_bits(8).hex == '02'
+    assert s2.read_bits(5 * 8).hex == '1601208302'
     s1.pos = len(s1)
     with pytest.raises(ValueError):
         s1.pos += 1
-        s1.read(0)
+        s1.read_bits(0)
 
 
 def test_insert_null_bits_and_self():
@@ -2215,8 +2214,8 @@ def test_various_compositions_with_reader():
         bsl.append(BitArray(bin=bin_))
     r = Reader(BitArray().join(bsl))
     for (hex_, bin_) in list(zip(hexes, bins)) * 5:
-        h = r.read(4 * len(hex_))
-        b = r.read(len(bin_))
+        h = r.read_bits(4 * len(hex_))
+        b = r.read_bits(len(bin_))
         assert h.hex == hex_
         assert b.bin == bin_
 
@@ -2231,23 +2230,23 @@ def test_various_compositions_with_reader():
 def test_reader_position_arithmetic():
     s = Reader(BitArray(hex='0xff'), pos=6)
     s.pos += 1
-    assert s.bitpos == 7
-    s.bitpos += 1
-    assert s.pos == 8
+    assert s.pos == 7
     s.pos += 1
+    assert s.pos == 8
     with pytest.raises(ValueError):
-        s.read(0)
+        s.pos += 1
+    assert s.pos == 8
 
     s = Reader(BitArray(hex='0x010203'))
-    s.bytepos += 1
-    assert s.bytepos == 1
-    s.bytepos += 1
-    assert s.bytepos == 2
-    s.bytepos += 1
-    assert s.bytepos == 3
-    s.bytepos += 1
+    s.byte_pos += 1
+    assert s.byte_pos == 1
+    s.byte_pos += 1
+    assert s.byte_pos == 2
+    s.byte_pos += 1
+    assert s.byte_pos == 3
     with pytest.raises(ValueError):
-        s.read(0)
+        s.byte_pos += 1
+    assert s.byte_pos == 3
 
 
 @pytest.mark.parametrize(
@@ -2274,11 +2273,13 @@ def test_auto_creation_error_more(source):
 
 def test_more_auto_methods_and_split_with_self():
     s = BitArray('0b000000010100011000')
-    assert Reader(s).find('0b101') == 7
+    r = Reader(s)
+    assert r.seek_to('0b101') is True
+    assert r.pos == 7
     s = BitArray('0x00004700')
     r = Reader(s)
-    assert r.find('0b01000111', bytealigned=True) == 16
-    assert r.bytepos == 2
+    assert r.seek_to('0b01000111', byte_aligned=True) is True
+    assert r.byte_pos == 2
 
     s = BitArray('0x000143563200015533000123')
     sections = s.split('0x0001')
@@ -2428,20 +2429,20 @@ def test_any_all_false_and_empty_whole_cases():
 
 def test_float_reading_more_cases():
     a = Reader(BitArray('fle:16=12, fbe:32=-0.01, f:32=3e33'))
-    x, y, z = a.readlist('fle:16, fbe:32, f:32')
+    x, y, z = a.read_list('fle:16, fbe:32, f:32')
     assert x / 12.0 == pytest.approx(1.0)
     assert y / -0.01 == pytest.approx(1.0)
     assert z / 3e33 == pytest.approx(1.0)
 
     a = Reader(BitArray('0b11, fle:64=12, 0xfffff'), pos=2)
-    assert a.read(Dtype('fle64')) == 12.0
+    assert a.read_value(Dtype('fle64')) == 12.0
     b = BitArray(fle=20, length=32)
     b.fle = 10.0
     b = [0] + b
     assert b[1:].fle == 10.0
 
     s = Reader(BitArray('0b1, float:32 = 10.0'))
-    x, y = s.readlist('1, float:32')
+    x, y = s.read_list('1, float:32')
     assert y == 10.0
     bits = s.bits
     bits[1:] = 'fle:32=20.0'
@@ -2457,42 +2458,42 @@ def test_float_error_more_cases():
     with pytest.raises(bitstring.CreationError):
         _ = BitArray(float=2)
     with pytest.raises(bitstring.InterpretError):
-        _ = Reader(BitArray('0x3')).read('fle:2')
+        _ = Reader(BitArray('0x3')).read_value('fle:2')
     with pytest.raises(ValueError):
-        Reader(BitArray('0x123123')).read('10, 5')
+        Reader(BitArray('0x123123')).read_value('10, 5')
 
 
 def test_bytes_token_more_thoroughly_restored():
     a = Reader(BitArray('0x0123456789abcdef'), pos=16)
-    assert a.read('bytes:1') == b'\x45'
-    assert a.read('bytes:3') == b'\x67\x89\xab'
+    assert a.read_value('bytes:1') == b'\x45'
+    assert a.read_value('bytes:3') == b'\x67\x89\xab'
     x, y, z = a.bits.unpack('bits:28, bytes, bits:12')
     assert y == b'\x78\x9a\xbc'
 
 
 def test_dedicated_read_functions_more_cases():
     a = Reader(BitArray('0b11, ube:48=98798798172, 0b11111'), pos=2)
-    assert a.read(Dtype('ube48')) == 98798798172
+    assert a.read_value(Dtype('ube48')) == 98798798172
     assert a.pos == 50
 
     b = BitArray('0xff, ule:800=999, 0xffff')
     assert b[8:800].ule == 999
 
     a = Reader(BitArray('0b111, ile:48=999999999, 0b111111111111'), pos=3)
-    assert a.read('ile48') == 999999999
+    assert a.read_value('ile48') == 999999999
     b = Reader(BitArray('0xff, ile:200=918019283740918263512351235, 0xfffffff'), pos=8)
-    assert b.read(Dtype('ile', length=200)) == 918019283740918263512351235
+    assert b.read_value(Dtype('ile', length=200)) == 918019283740918263512351235
 
     a = Reader(BitArray('0b111, fle:64=9.9998, 0b111'), pos=3)
-    assert a.read('fle64') == 9.9998
+    assert a.read_value('fle64') == 9.9998
 
 
 def test_reading_problem_and_creation_exception_bug():
     a = Reader(BitArray('0x000001'))
-    assert a.read('uint:24') == 1
+    assert a.read_value('uint:24') == 1
     a.pos = 0
     with pytest.raises(bitstring.ReadError):
-        _ = a.read('bytes:4')
+        _ = a.read_value('bytes:4')
     with pytest.raises(ValueError):
         _ = BitArray(bin=1)
 
@@ -2567,8 +2568,9 @@ def test_function_negative_indices_more_cases():
     assert list(s.findall('0x1', bytealigned=True, end=-4)) == [0, 16, 24]
 
     r = Reader(s)
-    assert r.rfind('0x1f', end=-1) is None
-    assert r.rfind('0x12', start=-31) is None
+    assert r.bits.rfind('0x1f', end=-1) is None
+    assert r.bits.rfind('0x12', start=-31) is None
+    assert r.pos == 0
 
     s = BitArray('0x12345')
     assert list(s.cut(4, start=-12, end=-4)) == ['0x3', '0x4']
@@ -2657,7 +2659,7 @@ def test_bits_function_return_types_and_copy():
     assert type(a >> 2) is Bits
     assert type(a * 2) is Bits
     assert type(a & ~a) is Bits
-    assert type(Reader(a).read(4)) is Bits
+    assert type(Reader(a).read_bits(4)) is Bits
 
 
 def test_bits_property_immutability_more():
@@ -2729,7 +2731,7 @@ def test_float16_init_strings_more(source):
                                    'uint:-2', 'int:u', 'int:-3', 'ses', 'uee', '-14'])
 def test_invalid_reader_tokens_more(token):
     with pytest.raises(ValueError):
-        _ = Reader(BitArray('0x123456')).read(token)
+        _ = Reader(BitArray('0x123456')).read_value(token)
 
 
 @pytest.mark.parametrize(
@@ -2904,7 +2906,7 @@ def test_all_any_index_errors_more(method_name, indices):
 )
 def test_reader_format_error_cases_more(read_fmt, exception):
     with pytest.raises(exception):
-        _ = Reader(BitArray('0xf')).read(read_fmt)
+        _ = Reader(BitArray('0xf')).read_value(read_fmt)
 
 
 @pytest.mark.parametrize(
