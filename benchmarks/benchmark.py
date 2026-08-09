@@ -191,9 +191,14 @@ def array_ops(scale):
 
 
 def array_ops_fallback(scale):
-    """As array_ops, but with a dtype that has no bulk equivalent in the core."""
+    """As array_ops, but with a dtype that has no bulk equivalent in the core.
+
+    A scale factor is what keeps this off the fast path: the core has no notion of
+    one, so every item has to be converted and then scaled in Python. e3m2mxfp on its
+    own used to qualify too, but the core gained the narrow float formats in 5.0.
+    """
     values = [0.5, 1.0, 2.0, 4.0] * int(1_000 * scale)
-    a = bitstring.Array("e3m2mxfp", values)
+    a = bitstring.Array(bitstring.Dtype("e3m2mxfp", scale=2), values)
     return sum(to_list(a)) + sum(v for v in a)
 
 

@@ -39,7 +39,7 @@ class TestModuleData:
     def test_no_internal_names_in_namespace(self):
         # Only the public API and genuine submodules should be visible on the package.
         submodules = {'array_', 'bitarray_', 'bits', 'bitstore', 'bitstore_helpers',
-                      'colour', 'dtypes', 'exceptions', 'fp8', 'helpers', 'luts', 'methods', 'mxfp',
+                      'colour', 'dtypes', 'exceptions', 'helpers', 'methods',
                       'reader', 'utils'}
         public = {n for n in dir(bitstring) if not n.startswith('_')}
         unexpected = public - set(bitstring.__all__) - submodules

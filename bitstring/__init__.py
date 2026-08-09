@@ -64,12 +64,6 @@ from .array_ import Array
 from .exceptions import Error, ReadError, InterpretError, ByteAlignError, CreationError
 from .dtypes import DtypeDefinition as _DtypeDefinition, dtype_register as _dtype_register, Dtype
 from typing import Literal as _Literal
-from .mxfp import decompress_luts as _mxfp_decompress_luts
-from .fp8 import decompress_luts as _binary8_decompress_luts
-
-# Decompress the LUTs for the exotic floating point formats
-_mxfp_decompress_luts()
-_binary8_decompress_luts()
 
 # These methods convert a bit length to the number of characters needed to print it for different interpretations.
 def _hex_bits2chars(bitlength: int):

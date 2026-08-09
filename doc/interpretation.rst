@@ -133,7 +133,7 @@ Other floating point types
 --------------------------
 
 A range of floating point types that are mostly used in machine learning are also availabe.
-They include ``bfloat16`` which is a truncated ``f32``, together with IEEE 8-bit formats and a range of OCP Microscaling 8-bit, 6-bit and 4-bit formats.
+They include ``bfloat16`` which is a shortened ``f32``, together with IEEE 8-bit formats and a range of OCP Microscaling 8-bit, 6-bit and 4-bit formats.
 
 See :ref:`Exotic floats` for more information.
 

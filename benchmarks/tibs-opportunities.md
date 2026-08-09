@@ -49,21 +49,23 @@ So the achievable win is ~1.25x, not ~5x. Roughly 74 µs of the 96 is allocating
 
 Ordered by value to bitstring.
 
-### 1. The float formats bitstring implements in Python
+### 1. The float formats bitstring implements in Python - done, tibs 2.0rc2
 
-`DtypeKind` covers Uint, Int, Float, Bool, Bytes, Bin, Hex, Oct, Bits. Everything else in
-bitstring's register is implemented here in Python, via lookup tables in `fp8.py` and
-`mxfp.py`: `bfloat`/`bfloatbe`/`bfloatle`, `e2m1mxfp`, `e2m3mxfp`, `e3m2mxfp`,
-`e4m3mxfp_saturate`, `e4m3mxfp_overflow`, `e5m2mxfp_saturate`, `e5m2mxfp_overflow`,
-`e8m0mxfp`, `mxint`, `p3binary`, `p4binary`.
+`DtypeKind` used to cover only Uint, Int, Float, Bool, Bytes, Bin, Hex, Oct, Bits, and
+everything else in bitstring's register was implemented here in Python via lookup tables
+in `fp8.py` and `mxfp.py`: `bfloat`/`bfloatbe`/`bfloatle`, `e2m1mxfp`, `e2m3mxfp`,
+`e3m2mxfp`, `e4m3mxfp_saturate`, `e4m3mxfp_overflow`, `e5m2mxfp_saturate`,
+`e5m2mxfp_overflow`, `e8m0mxfp`, `mxint`, `p3binary`, `p4binary`.
 
-Those are exactly the dtypes that miss `Array`'s bulk path and stay on the per-element
-loop - roughly 2.3 µs per item-pass against 0.1 µs for a bulk-capable dtype, so about
-20x. The `array_ops_fallback` workload in `benchmarks/benchmark.py` tracks this: if tibs
-grows any of these kinds, add the name to `_TIBS_EQUIVALENT_DTYPES` in `bitstore.py` and
-that workload should drop to match `array_ops`.
+tibs 2.0rc2 added all of them (`bf16`, `binary8p3`/`binary8p4` and the `ocp_*` kinds), so
+they're now in `_TIBS_EQUIVALENT_DTYPES` and on `Array`'s bulk path, and the three Python
+modules are gone. Building a 10,000-item `e4m3mxfp_saturate` `Array` went from 26 ms to
+0.2 ms, and reading one back from 7.5 ms to 0.4 ms. Packing also got more accurate: tibs
+rounds once from the Python float where the lookup tables went via a float16 first.
 
-This is the single largest tibs-side win available.
+`array_ops_fallback` in `benchmarks/benchmark.py` used to track this with `e3m2mxfp`; it
+now uses a scaled dtype, since a scale factor is the remaining thing the core has no
+notion of.
 
 ### 2. `Tibs`/`Mutibs` as acceptable base types - investigated, don't do it
 

@@ -131,6 +131,21 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   controlled per call with `bytealigned=True`, and MXFP overflow behaviour is
   selected with explicit dtype names such as `e4m3mxfp_overflow`.
 * Also removed the deprecated module-level option aliases.
+* `bfloat` values are now rounded to nearest, ties-to-even when packed, instead
+  of being truncated towards zero. Truncation was what early TensorFlow and
+  Eigen did, but the ecosystem has since settled on round-to-nearest - it's what
+  Intel's `VCVTNEPS2BF16`, ARM's `BFCVT`, PyTorch and JAX all do, and unlike
+  truncation it isn't biased towards zero. Around half of all values now encode
+  one ulp differently, always to the closer of the two. Values that used to
+  truncate down to the largest finite bfloat, such as `3.4e38`, now round up to
+  `inf`.
+* The 8-bit, 6-bit and 4-bit float formats now round directly from the Python
+  float when packing. Previously the value was rounded to a 16-bit float first
+  and that result was used to index a lookup table, so a value could be rounded
+  twice and end up on the wrong side of a tie. A small fraction of values now
+  pack differently, always to the nearer representable value: for example
+  `Bits(e2m1mxfp=-0.25011)` gave `-0.0` and now gives `-0.5`. This closes
+  issue #342, which asked for an accurate mode.
 
 
 #### New features

@@ -14,8 +14,6 @@ from tibs import Mutibs, Tibs
 import bitstring
 from bitstring import utils
 from bitstring.dtypes import Dtype, dtype_register
-from bitstring.fp8 import p4binary_fmt, p3binary_fmt
-from bitstring.mxfp import e3m2mxfp_fmt, e2m3mxfp_fmt, e2m1mxfp_fmt, e4m3mxfp_saturate_fmt, e5m2mxfp_saturate_fmt
 from bitstring.colour import Colour, should_use_color
 
 import bitstring.bitstore_helpers as helpers
@@ -25,6 +23,16 @@ ConstBitStore = bitstring.bitstore.ConstBitStore
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
+
+# The tibs dtypes behind the narrow float interpretations, resolved once at import from
+# the equivalence table so there's a single source of truth for the mapping.
+_TIBS_P4BINARY = bitstore.tibs_dtype_for('p4binary', 8)
+_TIBS_P3BINARY = bitstore.tibs_dtype_for('p3binary', 8)
+_TIBS_E4M3MXFP = bitstore.tibs_dtype_for('e4m3mxfp_saturate', 8)
+_TIBS_E5M2MXFP = bitstore.tibs_dtype_for('e5m2mxfp_saturate', 8)
+_TIBS_E3M2MXFP = bitstore.tibs_dtype_for('e3m2mxfp', 6)
+_TIBS_E2M3MXFP = bitstore.tibs_dtype_for('e2m3mxfp', 6)
+_TIBS_E2M1MXFP = bitstore.tibs_dtype_for('e2m1mxfp', 4)
 
 # Lists and tuples are auto-promoted only when every item is one of these bit values.
 _BitPattern = list[bool | int] | tuple[bool | int, ...]
@@ -839,61 +847,50 @@ class Bits:
     def _readintle(self, pos: int, length: int) -> int:
         return self._bitstore.getslice(pos, pos + length).byte_swapped().to_i()
 
+    # The saturate and overflow variants of e4m3 and e5m2 share a getter: the two
+    # differ only in how out-of-range values are packed, not in how bits decode.
+
     def _getp4binary(self) -> float:
-        u = self._getuint()
-        return p4binary_fmt.lut_binary8_to_float[u]
+        return self._bitstore.to_value(_TIBS_P4BINARY, 0, 8)
 
     def _readp4binary(self, pos: int, length: int) -> float:
-        u = self._readuint(pos, length)
-        return p4binary_fmt.lut_binary8_to_float[u]
+        return self._bitstore.to_value(_TIBS_P4BINARY, pos, pos + length)
 
     def _getp3binary(self) -> float:
-        u = self._getuint()
-        return p3binary_fmt.lut_binary8_to_float[u]
+        return self._bitstore.to_value(_TIBS_P3BINARY, 0, 8)
 
     def _readp3binary(self, pos: int, length: int) -> float:
-        u = self._readuint(pos, length)
-        return p3binary_fmt.lut_binary8_to_float[u]
+        return self._bitstore.to_value(_TIBS_P3BINARY, pos, pos + length)
 
     def _gete4m3mxfp(self) -> float:
-        u = self._getuint()
-        return e4m3mxfp_saturate_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E4M3MXFP, 0, 8)
 
     def _reade4m3mxfp(self, pos: int, length: int) -> float:
-        u = self._readuint(pos, length)
-        return e4m3mxfp_saturate_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E4M3MXFP, pos, pos + length)
 
     def _gete5m2mxfp(self) -> float:
-        u = self._getuint()
-        return e5m2mxfp_saturate_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E5M2MXFP, 0, 8)
 
     def _reade5m2mxfp(self, pos: int, length: int) -> float:
-        u = self._readuint(pos, length)
-        return e5m2mxfp_saturate_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E5M2MXFP, pos, pos + length)
 
     def _gete3m2mxfp(self) -> float:
-        u = self._getuint()
-        return e3m2mxfp_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E3M2MXFP, 0, 6)
 
     def _reade3m2mxfp(self, pos: int, length: int) -> float:
-        u = self._readuint(pos, length)
-        return e3m2mxfp_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E3M2MXFP, pos, pos + length)
 
     def _gete2m3mxfp(self) -> float:
-        u = self._getuint()
-        return e2m3mxfp_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E2M3MXFP, 0, 6)
 
     def _reade2m3mxfp(self, pos: int, length: int) -> float:
-        u = self._readuint(pos, length)
-        return e2m3mxfp_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E2M3MXFP, pos, pos + length)
 
     def _gete2m1mxfp(self) -> float:
-        u = self._getuint()
-        return e2m1mxfp_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E2M1MXFP, 0, 4)
 
     def _reade2m1mxfp(self, pos: int, length: int) -> float:
-        u = self._readuint(pos, length)
-        return e2m1mxfp_fmt.lut_int_to_float[u]
+        return self._bitstore.to_value(_TIBS_E2M1MXFP, pos, pos + length)
 
     def _gete8m0mxfp(self) -> float:
         u = self._getuint() - 127

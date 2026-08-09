@@ -9,7 +9,8 @@ Python floats are typically 64 bits long, but 32 and 16 bit sizes are also suppo
 These are the well-known IEEE formats.
 Recently, lower precision floating points have become more widely used, largely driven by the requirements of machine learning algorithms and hardware.
 
-As well as the 'half' precision 16 bit standard, a truncated version of the 32 bit standard called 'bfloat16' is used which has the range of a 32-bit float but less precision.
+As well as the 'half' precision 16 bit standard, a shortened version of the 32 bit standard called 'bfloat16' is used which has the range of a 32-bit float but less precision.
+Its encoding is exactly the top half of an ``f32``, so converting back to a Python float is just a matter of padding with zero bytes.
 
 The #bits value in the tables below show how the available bits are split into `sign` + `exponent` + `mantissa`.
 There's always 1 bit to determine the sign of the floating point value.
@@ -51,9 +52,12 @@ An example of creation and interpretation of a bfloat::
 
     >>> a = Bits(bfloat=4.5e23)  # No need to specify length as always 16 bits
     >>> a
-    Bits('0x66be')
+    Bits('0x66bf')
     >>> a.bfloat
-    4.486248158726163e+23  # Converted to Python float
+    4.509859991140511e+23  # Converted to Python float
+
+Packing rounds to nearest, ties-to-even, as it does for every other float format here.
+Values too large for the format's range round up to ``inf``.
 
 
 IEEE 8-bit Floating Point Types
@@ -252,10 +256,8 @@ Conversion
 When converting from a Python float to an any of the 8-or-fewer bit formats, the 'rounds to nearest, ties to even' rule is used.
 This is the same as is used in the IEEE 754 standard.
 
-Note that for efficiency reasons Python floats are converted to 16-bit IEEE floats before being converted to their final destination.
-This can mean that in edge cases the rounding to the 16-bit float will cause the next rounding to go in the other direction.
-The 16-bit float has 11 bits of precision, whereas the final format has at most 4 bits of precision, so this shouldn't be a real-world problem, but it could cause discrepancies when comparing with other methods.
-I plan to add a slower, more accurate mode - see Issue #342.
+The rounding is done once, directly from the Python float.
+Versions before 5.0 converted to a 16-bit IEEE float first and rounded from that, which could round a value twice and send an edge case the wrong way; that no longer happens.
 
 Values that are out of range after rounding are dealt with as follows:
 

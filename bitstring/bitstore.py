@@ -12,9 +12,13 @@ from collections.abc import Iterable, Iterator
 # The bitstring dtypes that have an exactly equivalent tibs dtype, letting values be
 # packed and unpacked in bulk instead of one at a time. Every entry here has been
 # checked to round-trip identically to bitstring's own per-element code at each of its
-# valid lengths. Names that are absent - the mxfp and binary8 formats, bfloat, mxint,
-# bits, pad - have no tibs equivalent and keep using the per-element path, as do any
-# dtype with a scale factor. More kinds can simply be added here as tibs grows them.
+# valid lengths. Names that are absent - se, ue, sie, uie, bits, pad - have no tibs
+# equivalent and keep using the per-element path, as does any dtype with a scale
+# factor. More kinds can simply be added here as tibs grows them.
+#
+# The narrow float kinds all have an intrinsic length and reject an explicit byte
+# order, so they're listed as Unspecified; tibs_dtype_for turns the resulting
+# ValueError into None for any length they don't allow.
 _TIBS_EQUIVALENT_DTYPES: dict[str, tuple[DtypeKind, ByteOrder]] = {
     'u': (DtypeKind.Uint, ByteOrder.Unspecified),
     'uint': (DtypeKind.Uint, ByteOrder.Unspecified),
@@ -39,6 +43,20 @@ _TIBS_EQUIVALENT_DTYPES: dict[str, tuple[DtypeKind, ByteOrder]] = {
     'hex': (DtypeKind.Hex, ByteOrder.Unspecified),
     'oct': (DtypeKind.Oct, ByteOrder.Unspecified),
     'bytes': (DtypeKind.Bytes, ByteOrder.Unspecified),
+    'bfloat': (DtypeKind.BFloat, ByteOrder.Big),
+    'bfloatbe': (DtypeKind.BFloat, ByteOrder.Big),
+    'bfloatle': (DtypeKind.BFloat, ByteOrder.Little),
+    'p3binary': (DtypeKind.Binary8P3, ByteOrder.Unspecified),
+    'p4binary': (DtypeKind.Binary8P4, ByteOrder.Unspecified),
+    'e4m3mxfp_saturate': (DtypeKind.OcpE4M3Saturate, ByteOrder.Unspecified),
+    'e4m3mxfp_overflow': (DtypeKind.OcpE4M3Overflow, ByteOrder.Unspecified),
+    'e5m2mxfp_saturate': (DtypeKind.OcpE5M2Saturate, ByteOrder.Unspecified),
+    'e5m2mxfp_overflow': (DtypeKind.OcpE5M2Overflow, ByteOrder.Unspecified),
+    'e3m2mxfp': (DtypeKind.OcpE3M2, ByteOrder.Unspecified),
+    'e2m3mxfp': (DtypeKind.OcpE2M3, ByteOrder.Unspecified),
+    'e2m1mxfp': (DtypeKind.OcpE2M1, ByteOrder.Unspecified),
+    'e8m0mxfp': (DtypeKind.OcpE8M0, ByteOrder.Unspecified),
+    'mxint': (DtypeKind.OcpInt8, ByteOrder.Unspecified),
 }
 
 
