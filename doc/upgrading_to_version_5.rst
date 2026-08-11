@@ -509,6 +509,43 @@ unsuffixed ``e4m3mxfp`` and ``e5m2mxfp`` names have been removed.
     pos = bits.find("0xff", bytealigned=True)
     bits.pp(color=False)
 
+Apply MX scale factors yourself
+===============================
+
+The :class:`Dtype` scale factor has been removed. The ``scale=`` parameter, the
+``scale='auto'`` option and the ``Dtype.scale`` property have all gone, and
+passing ``scale=`` now raises a ``TypeError``.
+
+An :class:`Array` stores just the elements, so apply the scale in your own code.
+When reading, widen the dtype as you multiply - multiplying a narrow ``Array``
+in place would round every value straight back into the narrow format::
+
+    # bitstring 4
+    a = Array(Dtype('e2m1mxfp', scale=2**10), values)
+    scaled_values = a.tolist()
+
+    # bitstring 5
+    a = Array('e2m1mxfp', [v / 2**10 for v in values])
+    scaled_values = Array('f64', [x * 2**10 for x in a]).to_list()
+
+For ``scale='auto'``, the scale that version 4 calculated was the one lining the
+largest absolute value up with the largest value the format can represent::
+
+    largest = Bits('0b0111').e2m1mxfp  # 6.0, the largest e2m1mxfp value
+    scale = 2 ** (math.floor(math.log2(max(abs(v) for v in values)))
+                  - math.floor(math.log2(largest)))
+
+Version 4 clamped this to the powers of two from 2\ :sup:`-127` to 2\ :sup:`127`
+that the E8M0 format can hold, and used a scale of 1 when every value was zero.
+
+The reason for the removal is that a single multiplier applied to a whole
+``Array`` isn't how the MX formats work: their scales are per-block and stored
+in the data alongside the elements. A replacement is planned - once the ``tibs``
+core supports block-scaled formats, bitstring will expose them as dtypes in
+their own right, with the scale where the specification puts it. Removing the
+old parameter now keeps that future feature from inheriting a name that means
+something different.
+
 Prefer the new underscored method names
 =======================================
 
@@ -559,7 +596,7 @@ For a large codebase, the least surprising order is:
 7. Replace removed aliases, prefer current dtype names, and rename
    ``Dtype.build`` / ``Dtype.parse``.
 8. Replace removed global options and modes with explicit dtypes or per-call
-   arguments.
+   arguments, and move any ``Dtype`` scale factors into your own code.
 9. Remove any remaining ``python -m bitstring`` usage.
 10. Optionally update compatibility aliases such as ``tobytes`` and ``tolist``
     to their preferred underscored names.

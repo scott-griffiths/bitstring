@@ -72,7 +72,8 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
       scale = 2 ** (math.floor(math.log2(max(abs(v) for v in values)))
                     - math.floor(math.log2(largest_value_of_the_format)))
 
-  See the 'Exotic floats' documentation for a worked example.
+  See the 'Exotic floats' documentation for a worked example. A replacement is
+  planned: once `tibs` supports block-scaled formats.
 * `BitArray.insert()` and `BitArray.overwrite()` now take the bit position
   first and the bitstring second, matching `list.insert` and `Array.insert`.
   Use `s.insert(pos, bs)` instead of `s.insert(bs, pos)`. Old-style calls

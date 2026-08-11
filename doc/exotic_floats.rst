@@ -258,7 +258,8 @@ A reasonable scale for a block of data is the one that lines the largest absolut
 .. note::
     Before version 5.0 the scale was part of the `Dtype` (``Dtype('e2m1mxfp', scale=2**10)``), including a ``scale='auto'``
     option that calculated the above for you. Both were removed in 5.0: a whole-`Array` multiplier isn't how the MX formats
-    store their scales, which are per-block and held in the data.
+    store their scales, which are per-block and held in the data. Block-scaled dtypes are planned for a future release,
+    once the ``tibs`` core supports them.
 
 For more details on this and these formats in general see the `OCP Microscaling formats specification. <https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf>`_
 
