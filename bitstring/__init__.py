@@ -122,7 +122,7 @@ def _e5m2mxfp_bits2chars(_: _Literal[8]):
 
 
 def _e3m2mxfp_bits2chars(_: _Literal[6]):
-    # Not sure what the best value is here. It's 7 without considering the scale that could be applied.
+    # Not sure what the best value is here.
     return 7
 
 

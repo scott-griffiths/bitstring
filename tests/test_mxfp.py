@@ -151,57 +151,14 @@ def test_setting_mxint_values():
     assert x == '0b11111111'
 
 
-def test_scaled_array():
-    sa = Array(Dtype('uint8', scale=2),[100, 200, 300, 400, 500])
-    assert sa.dtype.scale == 2
-    assert sa[0] == 100
-    assert sa[:] == [100, 200, 300, 400, 500]
-    sa.dtype = Dtype('uint8', scale=4)
-    assert sa.dtype.scale == 4
-    assert sa[0] == 200
-    sa.dtype = Dtype('uint8', scale=0.25)
-    assert sa.tolist() == [12.5, 25.0, 37.5, 50.0, 62.5]
+def test_scale_no_longer_supported():
+    # The scale factor was removed in 5.0. See release notes for the replacement.
+    with pytest.raises(TypeError):
+        _ = Dtype('e3m2mxfp', scale=2)
+    with pytest.raises(TypeError):
+        _ = Dtype('e3m2mxfp', scale='auto')
+    assert not hasattr(Dtype('e3m2mxfp'), 'scale')
 
-
-def test_setting_scaled_array():
-    sa = Array('e3m2mxfp')
-    sa.append(4.0)
-    assert sa[0] == 4.0
-    assert sa.dtype.scale is None
-    sa.dtype = Dtype('e3m2mxfp', scale = 0.5)
-    assert sa[0] == 2.0
-    sa.append(6.0)
-    assert sa[1] == 6.0
-    assert sa[:] == [2.0, 6.0]
-    sa *= 2
-    assert sa[:] == [4.0, 12.0]
-    sa[:] = [0.0, 0.5, 1.0]
-    assert sa[:] == [0.0, 0.5, 1.0]
-    sa.dtype = Dtype('e3m2mxfp', scale = 1)
-    assert sa[:] == [0.0, 1.0, 2.0]
-
-def test_multiple_scaled_arrays():
-    d = b'hello_everyone!'
-    s1 = Array.from_bytes(Dtype('e2m1mxfp', scale=1), d)
-    s2 = Array.from_bytes(Dtype('e2m1mxfp', scale=2**10), d)
-    s3 = Array.from_bytes(Dtype('e2m1mxfp', scale=2**-10), d)
-    assert s1.dtype.scale == 1
-    assert s2.dtype.scale == 2**10
-    assert s3.dtype.scale == 2**-10
-    assert s1[0] * 2**10 == s2[0]
-    assert s1[0] * 2**-10 == s3[0]
-
-def test_multiple_scaled_arrays2():
-    b = BitArray('0b011111')
-    assert b.e3m2mxfp == 28.0
-    s1 = Array('e3m2mxfp', [28])
-    assert s1[0] == 28.0
-    assert b.e3m2mxfp == 28.0
-    s2 = Array('e3m2mxfp', [28])
-    s2.dtype = Dtype('e3m2mxfp', scale=2**4)
-    assert s1[0] == 28.0
-    assert s2[0] == 28.0 * 2 ** 4
-    assert b.e3m2mxfp == 28.0
 
 def test_setting_from_outside_range():
     b = BitArray(e2m1mxfp=0.0)
@@ -213,66 +170,13 @@ def test_setting_from_outside_range():
     assert b.e2m1mxfp == 6.0
     s = Array('e2m1mxfp', [-1000.0, 6.0, 7.0, 10000.0])
     assert s.tolist() == [-6.0, 6.0, 6.0, 6.0]
-    s = Array(Dtype('e2m1mxfp', scale=2), [-1000.0, 6.0, 7.0, 10000000000.0])
-    x = s.tolist()
-    assert x == [-12.0, 6.0, 8.0, 12.0]
 
 def test_ops():
-    s = Array(Dtype('e8m0mxfp', scale=2**2), [0.5, 1.0, 2.0, 4.0, 8.0])
+    s = Array('e8m0mxfp', [0.5, 1.0, 2.0, 4.0, 8.0])
     t = s * 2
     assert type(t) is Array
     assert t.tolist() == [1.0, 2.0, 4.0, 8.0, 16.0]
-    assert t.dtype.scale == 2 ** 2
-
-def test_auto_scaling():
-    f = [0.0, 100.0, 256.0, -150.0]
-    for dtype in ['e3m2mxfp', 'e2m3mxfp', 'e2m1mxfp', 'mxint8', 'p3binary', 'p4binary']:
-        d = Dtype(dtype, scale='auto')
-        a = Array(d, f)
-        assert a[2] == 256.0
-
-def test_auto_scaling2():
-    some_floats = [-4, 100.0, -9999, 0.5, 42, 666]
-    a = Array(Dtype('float16', scale='auto'), some_floats)
-    assert a[2] == -10000.0
-    a = Array(Dtype('e2m1mxfp', scale='auto'), [1e200])
-    assert a.dtype.scale == 2 ** 127
-    a = Array(Dtype('e2m1mxfp', scale='auto'), [1e-200])
-    assert a.dtype.scale == 2 ** -127
-    a = Array(Dtype('e2m1mxfp', scale='auto'), [0, 0, 0, 0])
-    assert a.dtype.scale == 1
-
-
-def test_auto_scaling_error():
-    a = Array(Dtype('e3m2mxfp', scale='auto'), [0.3])
-    expected_scale = 0.25 / 16.0
-    assert a.dtype.scale == expected_scale
-    b = Array(Dtype('e2m1mxfp', scale='auto'), [-0.9, 0.6, 0.0001])
-    expected_scale = 0.5 / 4.0
-    assert b.dtype.scale == expected_scale
-
-
-def test_scaled_array_errors():
-    with pytest.raises(ValueError):
-        _ = Array(Dtype('bfloat', scale='auto'), [0.0, 100.0, 256.0, -150.0])
-    with pytest.raises(ValueError):
-        _ = Array(Dtype('uint9', scale='auto'), [0.0, 100.0, 256.0, -150.0])
-    with pytest.raises(ValueError):
-        _ = Dtype('e3m2mxfp', scale=0)
-    with pytest.raises(TypeError):
-        _ = Array(Dtype('e3m2mxfp', scale='auto'), b'hello')
-    with pytest.raises(TypeError):
-        _ = Array(Dtype('e3m2mxfp', scale='auto'), 100)
-
-
-def test_changing_to_auto_scaled_array():
-    a = Array('int16', [0, 2003, -43, 104, 6, 1, 99])
-    with pytest.raises(ValueError):
-        a.dtype = Dtype('e3m2mxfp', scale='auto')
-    with pytest.raises(ValueError):
-        _ = Array(Dtype('e3m2mxfp', scale='auto'))
-    with pytest.raises(ValueError):
-        _ = Array(Dtype('e3m2mxfp', scale='auto'), [])
+    assert t.dtype == Dtype('e8m0mxfp')
 
 def test_conversion_to_e8m0():
     x = BitArray(e8m0mxfp=1.0)

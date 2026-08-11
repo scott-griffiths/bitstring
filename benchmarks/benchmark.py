@@ -193,13 +193,14 @@ def array_ops(scale):
 def array_ops_fallback(scale):
     """As array_ops, but with a dtype that has no bulk equivalent in the core.
 
-    A scale factor is what keeps this off the fast path: the core has no notion of
-    one, so every item has to be converted and then scaled in Python. e3m2mxfp on its
-    own used to qualify too, but the core gained the narrow float formats in 5.0.
+    'bits' is what keeps this off the fast path - it's the only fixed-length dtype
+    the core can't pack or unpack in bulk, so every item goes through the per-element
+    Python path. e3m2mxfp used to qualify too, but the core gained the narrow float
+    formats in 5.0.
     """
-    values = [0.5, 1.0, 2.0, 4.0] * int(1_000 * scale)
-    a = bitstring.Array(bitstring.Dtype("e3m2mxfp", scale=2), values)
-    return sum(to_list(a)) + sum(v for v in a)
+    values = [Bits(uint=i % 200, length=8) for i in range(int(20_000 * scale))]
+    a = bitstring.Array("bits8", values)
+    return sum(b.uint for b in to_list(a)) + sum(b.uint for b in a)
 
 
 def pack_unpack(scale):
@@ -234,7 +235,7 @@ WORKLOADS = [
     ("sequential_read", sequential_read, 32_640_000),
     ("slicing", slicing, 6_400_000),
     ("array_ops", array_ops, 14_975_250),
-    ("array_ops_fallback", array_ops_fallback, 15_000.0),
+    ("array_ops_fallback", array_ops_fallback, 3_980_000),
     ("pack_unpack", pack_unpack, 21_990_000),
     ("array_indexing", array_indexing, 199_000),
 ]

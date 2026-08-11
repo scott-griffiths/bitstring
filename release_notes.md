@@ -17,9 +17,9 @@ is also much improved.
 | `sequential_read`    | 1.295 s  | 0.171 s  |   7.6x  |
 | `array_indexing`     | 0.036 s  | 0.008 s  |   4.6x  |
 | `findall_patterns`   | 0.143 s  | 0.035 s  |   4.1x  |
-| `array_ops_fallback` | 0.051 s  | 0.018 s  |   2.9x  |
 | `cut_and_compare`    | 0.312 s  | 0.119 s  |   2.6x  |
 | `build_from_tokens`  | 0.135 s  | 0.067 s  |   2.0x  |
+| `array_ops_fallback` | 0.397 s  | 0.236 s  |   1.7x  |
 | `slicing`            | 0.156 s  | 0.101 s  |   1.6x  |
 | `prime_sieve`        | 0.008 s  | 0.006 s  |   1.3x  |
 | `bitwise_or`         | 0.271 s  | 0.250 s  |   1.1x  |
@@ -55,6 +55,24 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   `BitArray(u=5, length=8)`).
 * `Dtype.build()` and `Dtype.parse()` have been renamed to `Dtype.pack()` and
   `Dtype.unpack()`.
+* Removed the `Dtype` scale factor. The `scale=` parameter, the `scale='auto'`
+  option and the `Dtype.scale` property have all gone, and passing `scale=`
+  now raises a `TypeError`. A scale that applies to a whole `Array` isn't how
+  the MX formats store their scales - those are per-block and live in the data -
+  and keeping it would have collided with proper block-scaled formats when they
+  arrive. Apply the scale yourself instead, widening the dtype as you do so:
+
+      # Was: a = Array(Dtype('e2m1mxfp', scale=2**10), values)
+      a = Array('e2m1mxfp', [v / 2**10 for v in values])
+      # Was: a.to_list()
+      [x * 2**10 for x in a]
+
+  For `scale='auto'`, the equivalent calculation is
+
+      scale = 2 ** (math.floor(math.log2(max(abs(v) for v in values)))
+                    - math.floor(math.log2(largest_value_of_the_format)))
+
+  See the 'Exotic floats' documentation for a worked example.
 * `BitArray.insert()` and `BitArray.overwrite()` now take the bit position
   first and the bitstring second, matching `list.insert` and `Array.insert`.
   Use `s.insert(pos, bs)` instead of `s.insert(bs, pos)`. Old-style calls

@@ -82,14 +82,16 @@ def test_from_bytes_no_truncation_uses_tibs_fast_path(monkeypatch) -> None:
     assert calls == [("Tibs", 0, 8), ("Mutibs", 0, 8)]
 
 
-def test_dtype_scaled_instances_compare_distinct() -> None:
+def test_dtype_instances_compare_by_name_and_length() -> None:
     from bitstring.dtypes import Dtype
 
-    a = Dtype("uint8", scale=2)
-    b = Dtype("uint8", scale=3)
+    a = Dtype("uint8")
+    b = Dtype("uint16")
 
     assert a != b
     assert len({a, b}) == 2
+    assert Dtype("uint8") == a
+    assert len({a, Dtype("uint", 8)}) == 1
 
 
 def test_dtype_ube_zero_length_rejected() -> None:

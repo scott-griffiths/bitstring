@@ -6,7 +6,7 @@ Dtypes
 A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to pack, unpack and present different bit interpretations.
 The properties described above are all examples of dtypes.
 
-.. class:: Dtype(token: str | Dtype, /, length: int | None = None, scale: int | float | None = None)
+.. class:: Dtype(token: str | Dtype, /, length: int | None = None)
 
 Dtypes are immutable and cannot be changed after creation.
 
@@ -14,14 +14,12 @@ The first parameter is a format token string that can optionally include a lengt
 
 If the first parameter doesn't include a length and one is appropriate, the `length` parameter can be used to specify the length of the dtype.
 
-The `scale` parameter can be used to specify a multiplicative scaling factor for the interpretation of the data.
-This is primarily intended for use with floating point formats of 8 bits or less, but can be used on other types.
-
 In most situations the token string can be used instead of `Dtype` object when it is needed, and the `Dtype` will be constructed automatically,
 which is why the `Dtype` object is rarely used directly in this documentation.
 It can however be advantageous to to create `Dtype` objects directly for efficiency reasons, or for using dtypes programmatically.
 
-If you need to use the `scale` parameter then there is no way to specify this in the format token string, so you must directly use a `Dtype` object.
+.. note::
+    The `scale` parameter was removed in version 5.0. See :ref:`Exotic floats` for how to apply a scaling factor to MX format data.
 
 ----
 
@@ -84,11 +82,6 @@ A string giving the name of the data type.
     :type: type
 
 The type of the value returned by the `unpack` method, such as ``int``, ``float`` or ``str``.
-
-.. attribute:: Dtype.scale
-    :type: int | float | None
-
-The multiplicative scale applied when interpreting the data.
 
 .. attribute:: Dtype.variable_length
     :type: bool

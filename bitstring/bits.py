@@ -2017,8 +2017,8 @@ def _prepared_fmt(fmt: str) -> tuple[tuple[Dtype, ...], Any, int]:
             dtypes.append(Dtype(name, length))
     specs = []
     for dtype in dtypes:
-        # Stretchy, variable length, scaled and pad tokens have no direct equivalent.
-        if dtype._bitlength is None or dtype._scale is not None:
+        # Stretchy, variable length and pad tokens have no direct equivalent.
+        if dtype._bitlength is None:
             specs = None
             break
         specs.append((dtype._name, dtype._bitlength))

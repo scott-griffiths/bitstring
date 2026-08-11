@@ -111,15 +111,15 @@ class TestPicklingAndDeepCopying:
 
     def test_dtype_roundtrips(self):
         for d in [bitstring.Dtype('u8'), bitstring.Dtype('ue'), bitstring.Dtype('bool'),
-                  bitstring.Dtype('e3m2mxfp', scale=0.5)]:
+                  bitstring.Dtype('e3m2mxfp')]:
             assert pickle.loads(pickle.dumps(d)) == d
 
     def test_array_roundtrips(self):
         a = bitstring.Array('u12', [1, 2, 3])
         assert pickle.loads(pickle.dumps(a)).equals(a)
         assert copy.deepcopy(a).equals(a)
-        scaled = bitstring.Array(bitstring.Dtype('e3m2mxfp', scale=0.5), [2.0, 4.0])
-        assert pickle.loads(pickle.dumps(scaled)).equals(scaled)
+        mxfp = bitstring.Array(bitstring.Dtype('e3m2mxfp'), [2.0, 4.0])
+        assert pickle.loads(pickle.dumps(mxfp)).equals(mxfp)
 
     def test_reader_roundtrips(self):
         r = bitstring.Reader(bitstring.Bits('0xabcd'), pos=4)

@@ -13,8 +13,8 @@ from collections.abc import Iterable, Iterator
 # packed and unpacked in bulk instead of one at a time. Every entry here has been
 # checked to round-trip identically to bitstring's own per-element code at each of its
 # valid lengths. Names that are absent - se, ue, sie, uie, bits, pad - have no tibs
-# equivalent and keep using the per-element path, as does any dtype with a scale
-# factor. More kinds can simply be added here as tibs grows them.
+# equivalent and keep using the per-element path. More kinds can simply be added here
+# as tibs grows them.
 #
 # The narrow float kinds all have an intrinsic length and reject an explicit byte
 # order, so they're listed as Unspecified; tibs_dtype_for turns the resulting

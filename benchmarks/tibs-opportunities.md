@@ -64,8 +64,9 @@ modules are gone. Building a 10,000-item `e4m3mxfp_saturate` `Array` went from 2
 rounds once from the Python float where the lookup tables went via a float16 first.
 
 `array_ops_fallback` in `benchmarks/benchmark.py` used to track this with `e3m2mxfp`; it
-now uses a scaled dtype, since a scale factor is the remaining thing the core has no
-notion of.
+now uses `bits8`, which is the only fixed-length dtype left with no bulk equivalent in
+the core. (It briefly used a scaled dtype instead, but the `Dtype` scale factor was
+removed in 5.0.)
 
 ### 2. `Tibs`/`Mutibs` as acceptable base types - investigated, don't do it
 

@@ -220,34 +220,46 @@ There is also a format to use for the scaling factor, an int-like format which i
 * The E4M3 format is similar to the `p4binary8` format but with a different exponent bias and it wastes some values. It has no 'inf' values, instead opting to have two 'nan' values and two zero values.
 * The E5M2 format is similar to the `p3binary8` format but wastes even more values. It does have positive and negative 'inf' values, but also six 'nan' values and two zero values.
 
+Applying a scaling factor
+"""""""""""""""""""""""""
+
 The MX formats are designed to work with an external scaling factor.
 This should be in the E8M0 format, which uses a byte to encode the powers of two from 2\ :sup:`-127` to 2\ :sup:`127`, plus a 'nan' value.
-This can be specified in bitstring as part of the `Dtype`, and is very useful inside an ``Array``. ::
 
-        >>> d = b'some_byte_data'
-        >>> a = Array(Dtype('e2m1mxfp', scale=2**10), d)
+An ``Array`` stores just the elements; the scale isn't part of the `Dtype`, so you apply it yourself.
+To read scaled values, multiply as you widen to a dtype that can hold the result -- multiplying the narrow ``Array`` in place would just round each value straight back into the narrow format. ::
+
+        >>> a = Array.from_bytes('e2m1mxfp', b'some_byte_data')
         >>> a.pp()
-        <Array dtype='Dtype('e2m1mxfp', scale=2 ** 10)', length=28, itemsize=4 bits, total data size=14 bytes> [
-          0:  6144.0  1536.0  4096.0 -6144.0  4096.0 -3072.0  4096.0  3072.0  3072.0 -6144.0  4096.0  1024.0  6144.0  -512.0
-         14:  6144.0  2048.0  4096.0  3072.0  3072.0 -6144.0  4096.0  2048.0  4096.0   512.0  6144.0  2048.0  4096.0   512.0
+        <Array dtype='e2m1mxfp', length=28, itemsize=4 bits, total data size=14 bytes> [
+          0:     6.0     1.5     4.0    -6.0     4.0    -3.0     4.0     3.0     3.0    -6.0     4.0     1.0     6.0    -0.5
+         14:     6.0     2.0     4.0     3.0     3.0    -6.0     4.0     2.0     4.0     0.5     6.0     2.0     4.0     0.5
         ]
+        >>> scaled = Array('f64', [x * 2**10 for x in a])
+        >>> scaled[:4]
+        Array('f64', [6144.0, 1536.0, 4096.0, -6144.0])
 
-To change the scale, replace the dtype in the `Array`::
+To write scaled values, divide by the scale before packing::
 
-        >>> a.dtype = Dtype('e2m1mxfp', scale=2**6)
+        >>> values = [0.0, 0.5, 40.5, 106.25, -52.0, -8.0]
+        >>> scale = 2**4
+        >>> b = Array('e2m1mxfp', [v / scale for v in values])
+        >>> [x * scale for x in b]
+        [0.0, 0.0, 48.0, 96.0, -48.0, -8.0]
 
-When initialising an `Array` from a list of values, you can also use the string ``'auto'`` as the scale, and an appropriate scale will be calculated based on the data.
-Note that ``'auto'`` is only valid when creating a new ``Array`` - a ``Dtype`` with an ``'auto'`` scale can't be used anywhere else. ::
+A reasonable scale for a block of data is the one that lines the largest absolute value up with the largest value the format can represent::
 
-        >>> a = Array(Dtype('e2m1mxfp', scale='auto'), [0.0, 0.5, 40.5, 106.25, -52.0, -8.0])
-        >>> a.pp()
-        <Array dtype='Dtype('e2m1mxfp', scale=2 ** 4)', length=6, itemsize=4 bits, total data size=3 bytes> [
-         0:     0.0     0.0    32.0    96.0   -48.0    -8.0
-        ]
+        >>> import math
+        >>> largest = Bits('0b0111').e2m1mxfp  # 6.0, the largest e2m1mxfp value
+        >>> scale = 2 ** (math.floor(math.log2(max(abs(v) for v in values))) - math.floor(math.log2(largest)))
+        >>> scale
+        16
 
-The scale is calculated based on the maximum absolute value of the data and the maximum representable value of the format.
-The auto-scale feature is only available for 8-bit and smaller floating point formats, plus the IEEE 16-bit format.
-If all of the data is zero, then the scale is set to 1.
+.. note::
+    Before version 5.0 the scale was part of the `Dtype` (``Dtype('e2m1mxfp', scale=2**10)``), including a ``scale='auto'``
+    option that calculated the above for you. Both were removed in 5.0: a whole-`Array` multiplier isn't how the MX formats
+    store their scales, which are per-block and held in the data.
+
 For more details on this and these formats in general see the `OCP Microscaling formats specification. <https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf>`_
 
 Conversion

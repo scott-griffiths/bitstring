@@ -31,7 +31,7 @@ def _array_typecode_to_dtype(typecode: str) -> Dtype | None:
     name_value = utils.parse_single_struct_token(endian + typecode)
     if name_value is None:
         return None
-    return dtype_register.get_dtype(*name_value, scale=None)
+    return dtype_register.get_dtype(*name_value)
 
 
 class Array:
@@ -89,9 +89,6 @@ class Array:
             # abc instance checks. Constructing an empty Array to fill in later is very
             # common - every elementwise operator does it - so skip them in that case.
             self._reject_removed_initializer(initializer)
-        if isinstance(dtype, Dtype) and dtype.scale == 'auto':
-            auto_scale = self._calculate_auto_scale(initializer, dtype.name, dtype.length)
-            dtype = Dtype(dtype.name, dtype.length, scale=auto_scale)
         try:
             self._set_dtype(dtype)
         except ValueError as e:
@@ -141,49 +138,6 @@ class Array:
         x.data += data
         return x
 
-    _largest_values = None
-
-    @staticmethod
-    def _calculate_auto_scale(initializer, name: str, length: int | None) -> float:
-        # Now need to find the largest power of 2 representable with this format.
-        if Array._largest_values is None:
-            Array._largest_values = {
-                'mxint8': Bits('0b01111111').mxint8,  # 1.0 + 63.0/64.0,
-                'e2m1mxfp4': Bits('0b0111').e2m1mxfp4,  # 6.0
-                'e2m3mxfp6': Bits('0b011111').e2m3mxfp6,  # 7.5
-                'e3m2mxfp6': Bits('0b011111').e3m2mxfp6,  # 28.0
-                'e4m3mxfp_saturate8': Bits('0b01111110').e4m3mxfp_saturate8,  # 448.0
-                'e4m3mxfp_overflow8': Bits('0b01111110').e4m3mxfp_overflow8,  # 448.0
-                'e5m2mxfp_saturate8': Bits('0b01111011').e5m2mxfp_saturate8,  # 57344.0
-                'e5m2mxfp_overflow8': Bits('0b01111011').e5m2mxfp_overflow8,  # 57344.0
-                'p4binary8': Bits('0b01111110').p4binary8,  # 224.0
-                'p3binary8': Bits('0b01111110').p3binary8,  # 49152.0
-                'f16': Bits('0x7bff').f16,  # 65504.0
-                # The bfloat range is so large the scaling algorithm doesn't work well, so I'm disallowing it.
-                # 'bfloat16': Bits('0x7f7f').bfloat16,  # 3.38953139e38,
-            }
-        if f'{name}{length}' in Array._largest_values.keys():
-            float_values = Array('f64', initializer).to_list()
-            if not float_values:
-                raise ValueError("Can't calculate an 'auto' scale with an empty Array initializer.")
-            max_float_value = max(abs(x) for x in float_values)
-            if max_float_value == 0:
-                # This special case isn't covered in the standard. I'm choosing to return no scale.
-                return 1.0
-            # We need to find the largest power of 2 that is less than the max value
-            log2 = math.floor(math.log2(max_float_value))
-            lp2 = math.floor(math.log2(Array._largest_values[f'{name}{length}']))
-            lg_scale = log2 - lp2
-            # Saturate at values representable in E8M0 format.
-            if lg_scale > 127:
-                lg_scale = 127
-            elif lg_scale < -127:
-                lg_scale = -127
-            return 2 ** lg_scale
-        else:
-            raise ValueError(f"Can't calculate auto scale for format '{name}{length}'. "
-                             f"This feature is only available for these formats: {list(Array._largest_values.keys())}.")
-
     @property
     def itemsize(self) -> int:
         bitlength = self._dtype.bitlength
@@ -208,13 +162,9 @@ class Array:
         """Cache the tibs dtype matching self._dtype, for bulk packing and unpacking.
 
         None whenever there isn't an exact equivalent, which leaves every operation on
-        the per-element path. A scale factor always disqualifies a dtype, as the scaling
-        is applied by bitstring's own get/set functions.
+        the per-element path.
         """
-        if self._dtype._scale is not None:
-            self._tibs_dtype = None
-        else:
-            self._tibs_dtype = bitstore.tibs_dtype_for(self._dtype._name, self._dtype._bitlength)
+        self._tibs_dtype = bitstore.tibs_dtype_for(self._dtype._name, self._dtype._bitlength)
 
     def _set_dtype(self, new_dtype: str | Dtype) -> None:
         if isinstance(new_dtype, Dtype):
@@ -233,8 +183,6 @@ class Array:
             if dtype.length is None:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
-        if self._dtype.scale == 'auto':
-            raise ValueError("A Dtype with an 'auto' scale factor can only be used when creating a new Array.")
         self._set_tibs_dtype()
 
     def _create_element(self, value: ElementType) -> Bits:

@@ -358,16 +358,13 @@ Dtype
 
 A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to pack, unpack and present different bit interpretations.
 
-``Dtype(token: str, /, length: int | None = None, scale: int | float | None = None)``
+``Dtype(token: str, /, length: int | None = None)``
 
 Creates a :class:`Dtype` object. Dtypes are immutable and cannot be changed after creation.
 
 The first parameter is a format token string that can optionally include a length.
 
 If appropriate, the `length` parameter can be used to specify the length of the bitstring.
-
-The `scale` parameter can be used to specify a multiplicative scaling factor for the interpretation of the data.
-
 
 
 
@@ -389,7 +386,6 @@ All properties are read-only.
 * :attr:`~Dtype.length` -- The length of the data type in units of `bits_per_item`.
 * :attr:`~Dtype.name` -- A string giving the name of the data type.
 * :attr:`~Dtype.return_type` -- The type of the value returned by the `unpack` method.
-* :attr:`~Dtype.scale` -- The multiplicative scale applied when interpreting the data.
 * :attr:`~Dtype.variable_length` -- If True then the length of the data type varies, and shouldn't be specified.
 
 

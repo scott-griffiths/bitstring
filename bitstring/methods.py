@@ -32,7 +32,7 @@ def _prepared_pack_fmt(fmt: str):
             dtype = bitstring.Dtype(name, int(length))
         except ValueError:
             return None
-        if dtype._scale is not None or dtype._bitlength is None:
+        if dtype._bitlength is None:
             return None
         specs.append((dtype._name, dtype._bitlength))
     if not specs:

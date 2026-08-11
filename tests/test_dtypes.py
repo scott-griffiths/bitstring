@@ -115,8 +115,6 @@ class TestBasicFunctionality:
             d.length = 8
         with pytest.raises(AttributeError):
             d.name = 'uint8'
-        with pytest.raises(AttributeError):
-            d.scale = 2
 
     def test_variable_lengths(self):
         d = Dtype('ue')
@@ -126,13 +124,6 @@ class TestBasicFunctionality:
         assert a.read_value(d) == 3
         assert a.read_value(d) == 17
         assert a.read_value(d) == 4
-        a.pos = 0
-        ds = Dtype('ue', scale=-3)
-        assert a.read_value(ds) == -3
-        assert a.read_value(ds) == -300
-        assert a.read_value(ds) == -9
-        assert a.read_value(ds) == -51
-        assert a.read_value(ds) == -12
 
     def test_packing_bits(self):
         d = Dtype('bits3')
