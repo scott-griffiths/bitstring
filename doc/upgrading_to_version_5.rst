@@ -225,8 +225,7 @@ considers only matches that end at or before the current position.
 
 The keyword is spelled ``byte_aligned`` on every :class:`Reader` method, rather
 than ``bytealigned`` as on :meth:`Bits.find` and the other whole-bitstring
-methods. The ``Reader`` searches also take a ``mask``, so that only the bits set
-in the mask need to match.
+methods.
 
 To search without moving the position, use the wrapped object directly:
 ``r.bits.find(bs, start=r.pos)``.

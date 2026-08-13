@@ -170,15 +170,14 @@ position always ends up further back than it started and
 ``while r.seek_back_to(...)`` does make progress. Like :meth:`~Reader.seek_to`
 it leaves the position at the start of the match.
 
-All six searching methods take the same two optional arguments: *byte_aligned*
-to match only on byte boundaries, and *mask*, where only the bits set in the
-mask need to match::
+All five searching methods take the same optional *byte_aligned* argument, to
+match only on byte boundaries::
 
     >>> r = Reader(Bits('0x00120034'))
-    >>> r.seek_to('0x0000', mask='0xff00')
+    >>> r.seek_to('0x0034', byte_aligned=True)
     True
     >>> r.byte_pos
-    0
+    2
 
 To search without moving the position, use the wrapped object directly, which
 gives the full :meth:`Bits.find` interface including an explicit range::
@@ -308,7 +307,7 @@ Methods
         >>> r.read_list('u12, u12, bin3')
         [352, 288, '111']
 
-.. method:: Reader.read_past(bs: BitsType, /, byte_aligned: bool = False, mask: BitsType | None = None) -> Bits
+.. method:: Reader.read_past(bs: BitsType, /, byte_aligned: bool = False) -> Bits
 
     Searches forwards for *bs* and reads up to and including it, leaving
     :attr:`Reader.pos` just after the match. A loop of ``read_past`` calls
@@ -322,7 +321,7 @@ Methods
         >>> r.read_past('0x00', byte_aligned=True).hex
         'aabbcc00'
 
-.. method:: Reader.read_to(bs: BitsType, /, byte_aligned: bool = False, mask: BitsType | None = None) -> Bits
+.. method:: Reader.read_to(bs: BitsType, /, byte_aligned: bool = False) -> Bits
 
     Searches forwards for *bs* and reads up to but not including it, leaving
     :attr:`Reader.pos` at the start of the match. The match itself is left to be
@@ -358,7 +357,7 @@ Methods
         >>> r.read_value('ue')
         3
 
-.. method:: Reader.seek_back_to(bs: BitsType, /, byte_aligned: bool = False, mask: BitsType | None = None) -> bool
+.. method:: Reader.seek_back_to(bs: BitsType, /, byte_aligned: bool = False) -> bool
 
     Searches backwards for the previous occurrence of *bs*. Only matches that
     end at or before :attr:`Reader.pos` are considered, so the position always
@@ -375,7 +374,7 @@ Methods
         >>> r.pos
         24
 
-.. method:: Reader.seek_past(bs: BitsType, /, byte_aligned: bool = False, mask: BitsType | None = None) -> bool
+.. method:: Reader.seek_past(bs: BitsType, /, byte_aligned: bool = False) -> bool
 
     Searches forwards from :attr:`Reader.pos` for *bs*. If it is found then the
     position is moved to just after the match and ``True`` is returned,
@@ -390,7 +389,7 @@ Methods
         12
         31
 
-.. method:: Reader.seek_to(bs: BitsType, /, byte_aligned: bool = False, mask: BitsType | None = None) -> bool
+.. method:: Reader.seek_to(bs: BitsType, /, byte_aligned: bool = False) -> bool
 
     Searches forwards from :attr:`Reader.pos` for *bs*. If it is found then the
     position is moved to the start of the match and ``True`` is returned,

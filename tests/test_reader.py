@@ -259,18 +259,6 @@ def test_seeks_search_forwards_from_pos_only():
     assert r.pos == 9
 
 
-def test_searching_with_a_mask():
-    r = Reader(Bits("0x1f2f3a"))
-    assert r.seek_to("0x0f", byte_aligned=True, mask="0x0f") is True
-    assert r.pos == 0
-    assert r.seek_past("0x0f", byte_aligned=True, mask="0x0f") is True
-    assert r.pos == 8
-    assert r.seek_to("0x0f", byte_aligned=True, mask="0x0f") is True
-    assert r.pos == 8
-    r.pos = 16
-    assert r.seek_to("0x0f", byte_aligned=True, mask="0x0f") is False
-
-
 def test_search_arguments_can_be_positional():
     r = Reader(Bits("0x00aa"))
     assert r.seek_to("0xaa", True) is True
