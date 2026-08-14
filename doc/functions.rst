@@ -97,10 +97,6 @@ code needs to catch.
 
     Reading or peeking past the end of a bitstring.
 
-.. exception:: ByteAlignError(ValueError)
-
-    Whole-byte position or length needed.
-
 .. exception:: InterpretError
 
     An alias for ``ValueError``, kept for compatibility. Raised for an inappropriate

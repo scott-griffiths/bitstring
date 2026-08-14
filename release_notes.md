@@ -110,8 +110,13 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   never-raised `ByteAlignError` and a handful of direct raises, so
   `except bitstring.Error` caught much less than its name suggested. Errors are
   now raised as the standard Python type that fits, and `ReadError` subclasses
-  `IndexError` while `ByteAlignError` subclasses `ValueError`. Catch those, or
-  `ValueError` / `TypeError` / `IndexError`, instead.
+  `IndexError`. Catch `ReadError`, or `ValueError` / `TypeError` / `IndexError`,
+  instead.
+* Removed `bitstring.ByteAlignError`. It was exported and documented but never
+  raised anywhere in the library, so `except ByteAlignError` could never fire.
+  The places that might have raised it, such as `Reader.byte_pos` on an unaligned
+  position and `Bits.bytes` on a length that isn't a whole number of bytes, raise
+  `ValueError` as they always have.
 * Inverting an empty bitstring with `~` now returns an empty bitstring instead
   of raising an exception,
   bringing it in line with `&`, `|` and `^`, which already treat empty
