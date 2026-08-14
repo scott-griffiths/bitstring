@@ -515,6 +515,6 @@ Functions
 
 Exceptions
 ^^^^^^^^^^
-* :class:`~bitstring.ReadError` -- Reading or peeking past the end of a bitstring. Subclasses ``IndexError``.
+* :class:`~bitstring.ReadError` -- Reading or peeking past the end of a bitstring. Subclasses ``ValueError``.
 
 Everything else is raised as a standard Python exception, usually ``ValueError`` or ``TypeError``.

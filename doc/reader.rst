@@ -206,6 +206,9 @@ Errors
        given to :meth:`~Reader.read_value` or a bitstring to
        :meth:`~Reader.read_bits`.
 
+:exc:`ReadError` subclasses ``ValueError``, so ``except ValueError`` catches the
+first two rows together if you don't need to distinguish them.
+
 In every case the position is left unchanged, so a failed read can be caught
 and retried differently.
 

@@ -109,9 +109,8 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   place: since version 4.2 the only things under it were `ReadError`, the
   never-raised `ByteAlignError` and a handful of direct raises, so
   `except bitstring.Error` caught much less than its name suggested. Errors are
-  now raised as the standard Python type that fits, and `ReadError` subclasses
-  `IndexError`. Catch `ReadError`, or `ValueError` / `TypeError` / `IndexError`,
-  instead.
+  now raised as the standard Python type that fits. Catch `ReadError`, or
+  `ValueError` / `TypeError` / `IndexError`, instead.
 * Removed `bitstring.ByteAlignError`. It was exported and documented but never
   raised anywhere in the library, so `except ByteAlignError` could never fire.
   The places that might have raised it, such as `Reader.byte_pos` on an unaligned
@@ -123,6 +122,14 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   came from. The names are gone; the exceptions they described are unchanged, and
   `except ValueError` catches exactly what `except CreationError` catches today.
   With these removed, `ReadError` is the only exception bitstring still defines.
+* `ReadError` now subclasses `ValueError` rather than `IndexError`, matching
+  `tibs.ReadError`. A read that runs out of bits takes a count, not a subscript,
+  so `ValueError` is the better fit - it is also what the standard library does
+  for truncated input while decoding, via `UnicodeDecodeError`. Element indexing
+  is unaffected and still raises `IndexError`, for both `Bits` and `Array`. The
+  rule for 5.0 is now simply that everything bitstring raises for bad input or
+  state is a `ValueError` or a `TypeError`. **If you catch `IndexError` around a
+  read loop, it will no longer fire** - catch `ReadError` or `ValueError`.
 * Inverting an empty bitstring with `~` now returns an empty bitstring instead
   of raising an exception,
   bringing it in line with `&`, `|` and `^`, which already treat empty

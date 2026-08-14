@@ -17,7 +17,7 @@ pack -- Create a Bits object from a format string.
 
 Exceptions:
 
-ReadError -- Reading or peeking past the end of a bitstring. Subclasses IndexError.
+ReadError -- Reading or peeking past the end of a bitstring. Subclasses ValueError.
 
 https://github.com/scott-griffiths/bitstring
 """

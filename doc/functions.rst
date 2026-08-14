@@ -93,6 +93,6 @@ There is no longer a module-wide exception base class. Errors are raised as the 
 Python type that fits, so ``ValueError``, ``TypeError`` and ``IndexError`` are what most
 code needs to catch.
 
-.. exception:: ReadError(IndexError)
+.. exception:: ReadError(ValueError)
 
     Reading or peeking past the end of a bitstring.
