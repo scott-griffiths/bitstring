@@ -198,11 +198,10 @@ def test_shift_left_and_right():
 
 
 def test_shift_errors():
+    # Shifting an empty bitstring is a no-op, as with ~, & and *.
     s = BitArray()
-    with pytest.raises(ValueError):
-        s << 1
-    with pytest.raises(ValueError):
-        s >> 1
+    assert s << 1 == BitArray()
+    assert s >> 1 == BitArray()
     s = BitArray('0xf')
     with pytest.raises(ValueError):
         s << -1
@@ -1932,16 +1931,19 @@ def test_operator_identity_semantics_for_bits_and_bitarray():
 
 
 def test_rotation_file_and_errors():
+    # Rotating an empty bitstring is a no-op, as with ~, & and *.
     a = BitArray()
-    with pytest.raises(ValueError):
-        a.ror(0)
+    a.ror(0)
+    a.ror(1)
+    assert a == BitArray()
     a += '0b001'
     with pytest.raises(ValueError):
         a.ror(-1)
 
     a = BitArray()
-    with pytest.raises(ValueError):
-        a.rol(0)
+    a.rol(0)
+    a.rol(1)
+    assert a == BitArray()
     a += '0b001'
     with pytest.raises(ValueError):
         a.rol(-1)
@@ -2016,16 +2018,17 @@ def test_remaining_shift_in_place_errors_and_whole_length():
     s >>= len(s)
     assert s == '0x0000'
 
+    # Shifting an empty bitstring in place is a no-op, as with ~, & and *.
     s = BitArray()
-    with pytest.raises(ValueError):
-        s >>= 1
+    s >>= 1
+    assert s == BitArray()
     s += '0b11'
     with pytest.raises(ValueError):
         s >>= -1
 
     s = BitArray()
-    with pytest.raises(ValueError):
-        s <<= 1
+    s <<= 1
+    assert s == BitArray()
     s += '0b11'
     with pytest.raises(ValueError):
         s <<= -1

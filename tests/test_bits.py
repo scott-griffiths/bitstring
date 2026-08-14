@@ -416,6 +416,61 @@ class TestCreation:
         assert b.unpack("5*u8") == [10, 11, 12, 13, 14]
 
 
+class TestEmptyOperators:
+    # Every operator treats an empty bitstring as unremarkable rather than as an
+    # error, so that code doesn't need to special-case the empty case.
+
+    def test_unary_and_binary_operators(self):
+        empty = Bits()
+        assert ~empty == empty
+        assert empty & empty == empty
+        assert empty | empty == empty
+        assert empty ^ empty == empty
+        assert empty * 3 == empty
+        assert empty + empty == empty
+
+    def test_shifts(self):
+        empty = Bits()
+        assert empty << 1 == empty
+        assert empty >> 1 == empty
+        assert empty << 0 == empty
+        assert empty >> 0 == empty
+
+    def test_in_place_shifts(self):
+        for n in [0, 1, 100]:
+            a = BitArray()
+            a <<= n
+            assert a == BitArray()
+            a = BitArray()
+            a >>= n
+            assert a == BitArray()
+
+    def test_rotates(self):
+        for n in [0, 1, 100]:
+            a = BitArray()
+            a.rol(n)
+            assert a == BitArray()
+            a = BitArray()
+            a.ror(n)
+            assert a == BitArray()
+
+    def test_negative_amounts_are_still_rejected(self):
+        with pytest.raises(ValueError):
+            Bits() << -1
+        with pytest.raises(ValueError):
+            Bits() >> -1
+        with pytest.raises(ValueError):
+            BitArray().rol(-1)
+        with pytest.raises(ValueError):
+            BitArray().ror(-1)
+        with pytest.raises(ValueError):
+            a = BitArray()
+            a <<= -1
+        with pytest.raises(ValueError):
+            a = BitArray()
+            a >>= -1
+
+
 class TestInitialisation:
     def test_empty_init(self):
         a = Bits()

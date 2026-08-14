@@ -451,8 +451,8 @@ class Bits:
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if len(self) == 0:
-            raise ValueError("Cannot shift an empty bitstring.")
+        if not len(self):
+            return self._copy()
         s = object.__new__(self.__class__)
         s._bitstore = self._bitstore << n
         return s
@@ -465,8 +465,8 @@ class Bits:
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if len(self) == 0:
-            raise ValueError("Cannot shift an empty bitstring.")
+        if not len(self):
+            return self._copy()
         s = object.__new__(self.__class__)
         s._bitstore = self._bitstore >> n
         return s

@@ -148,10 +148,14 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   rule for 5.0 is now simply that everything bitstring raises for bad input or
   state is a `ValueError` or a `TypeError`. **If you catch `IndexError` around a
   read loop, it will no longer fire** - catch `ReadError` or `ValueError`.
-* Inverting an empty bitstring with `~` now returns an empty bitstring instead
-  of raising an exception,
-  bringing it in line with `&`, `|` and `^`, which already treat empty
-  operands as unremarkable.
+* Every operator now treats an empty bitstring as unremarkable rather than as an
+  error. Inverting with `~`, shifting with `<<`, `>>`, `<<=` and `>>=`, and
+  rotating with `rol()` and `ror()` all return or leave an empty bitstring
+  instead of raising, which is what `&`, `|`, `^` and `*` already did. Code that
+  builds up a bitstring in a loop no longer has to special-case the first
+  iteration. Negative shift and rotate amounts are still rejected, and for the
+  rotates the message is now the accurate "Cannot rotate by negative amount"
+  rather than a complaint about the bitstring being empty.
 * Removed the optional backend selection mechanism. The `tibs` dependency
   (version 2.0 or later) is now required, and the `BITSTRING_USE_RUST_CORE`
   environment variable and `bitstring.options.using_rust_core` flag no longer

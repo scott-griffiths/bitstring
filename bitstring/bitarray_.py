@@ -353,9 +353,7 @@ class BitArray(Bits):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if not len(self):
-            raise ValueError("Cannot shift an empty bitstring.")
-        if not n:
+        if not n or not len(self):
             return self
         n = min(n, len(self))
         return self._ilshift(n)
@@ -368,9 +366,7 @@ class BitArray(Bits):
         """
         if n < 0:
             raise ValueError("Cannot shift by a negative amount.")
-        if not len(self):
-            raise ValueError("Cannot shift an empty bitstring.")
-        if not n:
+        if not n or not len(self):
             return self
         n = min(n, len(self))
         return self._irshift(n)
@@ -589,8 +585,6 @@ class BitArray(Bits):
         Raises ValueError if bits < 0.
 
         """
-        if not len(self):
-            raise ValueError("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")
         self._ror(bits, start, end)
@@ -614,8 +608,6 @@ class BitArray(Bits):
         Raises ValueError if bits < 0.
 
         """
-        if not len(self):
-            raise ValueError("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")
         self._rol(bits, start, end)
