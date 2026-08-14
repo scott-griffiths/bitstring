@@ -346,13 +346,13 @@ Methods
         >>> Bits('0x1234').to_file(f)
 
 
-.. method:: Bits.unpack(fmt: str | list[str | int], **kwargs) -> list[float | int | str | Bits | bool | bytes | None]
+.. method:: Bits.unpack(fmt: str | Dtype | list[str | int | Dtype], **kwargs) -> list[float | int | str | Bits | bool | bytes | None]
 
-    Interprets the whole bitstring according to the *fmt* string or iterable and returns a list of values.
+    Interprets the whole bitstring according to the *fmt* string, :class:`Dtype` or iterable and returns a list of values.
 
     A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string.
 
-    *fmt* is an iterable or a string with comma separated tokens that describe how to interpret the next bits in the bitstring. See the  :ref:`format_tokens` for details. ::
+    *fmt* is an iterable, a string with comma separated tokens, or a single :class:`Dtype`, describing how to interpret the next bits in the bitstring. See the  :ref:`format_tokens` for details. ::
 
         >>> s = Bits('i4=-1, 0b1110')
         >>> i, b = s.unpack('i:4, bin')

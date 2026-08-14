@@ -659,6 +659,22 @@ class TestPadToken:
         a, b = t.unpack("pad:9, ue, i3")
         assert (a, b) == (12, -1)
 
+    def test_unpack_with_a_bare_dtype(self):
+        # A Dtype is accepted on its own, not only inside a list.
+        s = Bits("0xff")
+        assert s.unpack(bitstring.Dtype("u8")) == [255]
+        assert s.unpack(bitstring.Dtype("u8")) == s.unpack([bitstring.Dtype("u8")])
+        assert s.unpack(bitstring.Dtype("u8")) == s.unpack("u8")
+        # Including variable length and stretchy dtypes.
+        assert Bits("0b00110").unpack(bitstring.Dtype("ue")) == [5]
+        assert s.unpack(bitstring.Dtype("bin")) == ["11111111"]
+
+    def test_read_list_with_a_bare_dtype(self):
+        r = bitstring.Reader(Bits("0xff"))
+        assert r.read_list(bitstring.Dtype("u4")) == [15]
+        assert r.read_list(bitstring.Dtype("u4")) == [15]
+        assert r.pos == 8
+
 
 class TestModifiedByAddingBug:
     def test_adding(self):

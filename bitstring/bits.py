@@ -1272,12 +1272,13 @@ class Bits:
         start, end, _ = slice(start, end).indices(len(self))
         return start, max(start, end)
 
-    def unpack(self, fmt: str | list[str | int], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]:
+    def unpack(self, fmt: str | Dtype | list[str | int | Dtype], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]:
         """Interpret the whole bitstring using fmt and return list.
 
-        fmt -- A single string or a list of strings with comma separated tokens
-               describing how to interpret the bits in the bitstring. Items
-               can also be integers, for reading new bitstring of the given length.
+        fmt -- A single string or Dtype, or a list of strings with comma separated
+               tokens describing how to interpret the bits in the bitstring. Items
+               can also be Dtype objects, or integers for reading a new bitstring
+               of the given length.
         kwargs -- A dictionary or keyword-value pairs - the keywords used in the
                   format string will be replaced with their given value.
 
@@ -1289,7 +1290,7 @@ class Bits:
         """
         return self._readlist(fmt, 0, **kwargs)[0]
 
-    def _readlist(self, fmt: str | list[str | int | Dtype], pos: int, **kwargs) \
+    def _readlist(self, fmt: str | Dtype | list[str | int | Dtype], pos: int, **kwargs) \
             -> tuple[list[int | float | str | Bits | bool | bytes | None], int]:
         if type(fmt) is str and not kwargs:
             # Much the most common form, and the parsing is worth doing only once.
@@ -1301,7 +1302,7 @@ class Bits:
                 if 0 <= pos and end <= len(self):
                     return list(self._bitstore.to_value_tuple(dtype_tuple, pos, end)), end
             return self._read_dtype_list(dtypes, pos)
-        if isinstance(fmt, str):
+        if isinstance(fmt, (str, Dtype)):
             fmt = [fmt]
         # Convert to a flat list of Dtypes
         dtype_list = []

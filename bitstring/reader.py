@@ -313,7 +313,7 @@ class Reader:
         self._pos = end
         return value
 
-    def read_list(self, fmt: str | list[int | str | Dtype], **kwargs) \
+    def read_list(self, fmt: str | Dtype | list[int | str | Dtype], **kwargs) \
             -> list[int | float | str | Bits | bool | bytes | None]:
         """Read one or more dtypes from the current position and return a list of values."""
         old_pos = self._pos

@@ -301,7 +301,7 @@ Methods
         >>> r.read_bits(12).hex
         '160'
 
-.. method:: Reader.read_list(fmt: str | list[str | int | Dtype], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
+.. method:: Reader.read_list(fmt: str | Dtype | list[str | int | Dtype], **kwargs) -> list[int | float | str | Bits | bool | bytes | None]
 
     Reads one or more format tokens and returns a list of values, advancing
     :attr:`Reader.pos` past all of them. ::

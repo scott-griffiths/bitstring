@@ -233,6 +233,10 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* `Bits.unpack()` and `Reader.read_list()` now accept a single `Dtype`, not just
+  a string or a list. `unpack(Dtype('u8'))` previously failed with an internal
+  `TypeError: 'Dtype' object is not iterable`, even though `unpack([Dtype('u8')])`
+  worked and every other place a format is accepted already took a bare `Dtype`.
 * `Array.pp()` gained the `sep` parameter that `Bits.pp()` already had, for the
   string printed between groups. The two signatures are now identical, so the
   same positional call works on either. Note that this shifts the position of
