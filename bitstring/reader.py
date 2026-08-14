@@ -232,7 +232,7 @@ class Reader:
 
     @staticmethod
     def _dtype_with_length(dtype: Dtype, items: int) -> Dtype:
-        return Dtype(dtype.name, items)
+        return Dtype(dtype, items)
 
     def read_value(self, dtype: str | Dtype, /) -> int | float | str | Bits | bool | bytes | None:
         """Read a single dtype from the current position and return its value.

@@ -14,6 +14,14 @@ The first parameter is a format token string that can optionally include a lengt
 
 If the first parameter doesn't include a length and one is appropriate, the `length` parameter can be used to specify the length of the dtype.
 
+An existing :class:`Dtype` can be given as the first parameter instead of a token string. Without a `length` this returns
+the same object, and with one it returns a new :class:`Dtype` of the same type with that length. The length is validated
+as it would be for a token string, so ``Dtype(Dtype('u8'), 16)`` gives ``Dtype('u', 16)`` but ``Dtype(Dtype('bool'), 8)``
+raises a :exc:`ValueError`. ::
+
+    >>> Dtype(Dtype('u8'), 16)
+    Dtype('u', 16)
+
 In most situations the token string can be used instead of `Dtype` object when it is needed, and the `Dtype` will be constructed automatically,
 which is why the `Dtype` object is rarely used directly in this documentation.
 It can however be advantageous to to create `Dtype` objects directly for efficiency reasons, or for using dtypes programmatically.

@@ -40,7 +40,12 @@ class Dtype:
 
     def __new__(cls, token: str | Dtype, /, length: int | None = None) -> Dtype:
         if isinstance(token, cls):
-            return token
+            if length is None:
+                return token
+            # Re-length an existing dtype. Going back through the register means the
+            # new length gets the same validation as any other, rather than the length
+            # being silently dropped.
+            return dtype_register.get_dtype(token.name, length)
         if type(token) is str:
             # Plain dict lookup for the common case - several times quicker than
             # reaching the lru_caches below, and this is on every read and pack.

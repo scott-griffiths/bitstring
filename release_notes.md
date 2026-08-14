@@ -237,6 +237,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* `Dtype(existing_dtype, length)` now honours the length instead of discarding
+  it, so `Dtype(Dtype('u8'), 16)` gives `Dtype('u', 16)` rather than silently
+  returning the original `Dtype('u', 8)`. The new length is validated the same
+  way it would be for a token string, so `Dtype(Dtype('bool'), 8)` raises.
+  Passing a `Dtype` with no length still returns that same object.
 * An explicit `length=` given alongside a `hex`, `bin` or `oct` initialiser is
   now checked rather than ignored. `Bits(hex='ff', length=4)` previously returned
   an 8 bit bitstring, quietly dropping the length; it now raises a `ValueError`.

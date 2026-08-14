@@ -147,6 +147,37 @@ class TestBasicFunctionality:
             d.pack(4)
 
 
+class TestRelengthingADtype:
+    # Dtype(existing_dtype, length) re-lengths rather than dropping the length.
+
+    def test_length_is_honoured(self):
+        assert Dtype(Dtype('u8'), 16) == Dtype('u16')
+        assert Dtype(Dtype('u8'), 16).length == 16
+        assert Dtype(Dtype('u8'), 8) == Dtype('u8')
+
+    def test_no_length_returns_the_same_object(self):
+        d = Dtype('u8')
+        assert Dtype(d) is d
+
+    def test_the_new_length_is_validated(self):
+        # Going back through the register means the same errors as any other length.
+        with pytest.raises(ValueError):
+            Dtype(Dtype('bool'), 8)
+        with pytest.raises(ValueError):
+            Dtype(Dtype('f32'), 12)
+        with pytest.raises(ValueError):
+            Dtype(Dtype('se'), 8)
+
+    def test_length_is_in_the_dtype_own_units(self):
+        # 'bytes' counts bytes, not bits, on both the old and new dtype.
+        d = Dtype(Dtype('bytes2'), 4)
+        assert d.length == 4
+        assert d.bitlength == 32
+
+    def test_a_relengthed_dtype_is_usable(self):
+        assert bs.Bits('0xffff').unpack(Dtype(Dtype('u8'), 16)) == [65535]
+
+
 class TestNonPropertyDtypes:
     # 'pad' is a format string directive rather than an interpretation, and the
     # property form of 'bits' would just be the identity, so neither appears in

@@ -358,7 +358,7 @@ Dtype
 
 A data type (or 'dtype') concept is used in the bitstring module to encapsulate how to pack, unpack and present different bit interpretations.
 
-``Dtype(token: str, /, length: int | None = None)``
+``Dtype(token: str | Dtype, /, length: int | None = None)``
 
 Creates a :class:`Dtype` object. Dtypes are immutable and cannot be changed after creation.
 
