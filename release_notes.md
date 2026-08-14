@@ -237,6 +237,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* `Array` now defines `__slots__`, as `Bits`, `BitArray` and `Reader` already
+  did. Assigning to an attribute that doesn't exist raises an `AttributeError`
+  instead of silently succeeding, so `a.dtyp = 'u4'` is now caught rather than
+  leaving the real `dtype` untouched. Subclasses of `Array` are unaffected and
+  can still take arbitrary attributes.
 * A long `Array` repr is now truncated instead of rendering every element, in
   the same way a long `Bits` repr already was. Arrays of more than 100 elements
   show the first and last 50 with `...` between them, followed by a

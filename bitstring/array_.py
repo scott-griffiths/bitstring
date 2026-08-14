@@ -84,6 +84,8 @@ class Array:
 
     """
 
+    __slots__ = ('_dtype', '_tibs_dtype', 'data')
+
     def __init__(self, dtype: str | Dtype, initializer: Array | array.array | Iterable | None = None,
                  trailing_bits: BitsType | None = None) -> None:
         self.data = BitArray()
@@ -613,13 +615,13 @@ class Array:
         return a_copy
 
     def __getstate__(self) -> dict[str, Any]:
-        # The cached tibs dtype can't be pickled, and is derived anyway.
-        state = self.__dict__.copy()
-        del state['_tibs_dtype']
-        return state
+        # The cached tibs dtype can't be pickled, and is derived anyway. There is no
+        # __dict__ to copy now that the class uses __slots__.
+        return {'_dtype': self._dtype, 'data': self.data}
 
     def __setstate__(self, state: dict[str, Any]) -> None:
-        self.__dict__.update(state)
+        for name, value in state.items():
+            setattr(self, name, value)
         self._set_tibs_dtype()
 
     def _bulk_pack_into(self, new_array: Array, values: Iterable[Any]) -> bool:

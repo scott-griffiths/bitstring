@@ -531,6 +531,46 @@ class TestArrayMethods:
         b = eval(a.__repr__())
         assert a.equals(b)
 
+    def test_slots_reject_unknown_attributes(self):
+        # 'dtype' and 'data' are easy to mistype, and a silent assignment would look
+        # like it had worked while leaving the real attribute untouched.
+        a = Array('u8', [1])
+        for attribute in ['dtyp', 'dat', 'dtypes', 'anything']:
+            with pytest.raises(AttributeError):
+                setattr(a, attribute, 'u4')
+        assert a.dtype == Dtype('u8')
+        assert not hasattr(a, '__dict__')
+
+    def test_slots_allow_the_real_attributes(self):
+        a = Array('u8', [1, 2, 3])
+        a.dtype = 'u4'
+        assert a.to_list() == [0, 1, 0, 2, 0, 3]
+        a.data = BitArray('0xff')
+        assert a.to_list() == [15, 15]
+
+    def test_pickling_without_a_dict(self):
+        import pickle
+        for a in [Array('u12', [1, 2, 3]),
+                  Array(Dtype('e3m2mxfp'), [2.0, 4.0])]:
+            b = pickle.loads(pickle.dumps(a))
+            assert b.equals(a)
+            # The unpicklable tibs dtype cache is rebuilt rather than restored.
+            assert b._tibs_dtype is not None or a._tibs_dtype is None
+        c = Array('u5', [1, 2])
+        c.data += '0b11'
+        d = pickle.loads(pickle.dumps(c))
+        assert d.equals(c)
+        assert d.trailing_bits == '0b11'
+
+    def test_subclassing_is_unaffected(self):
+        # A subclass without its own __slots__ still gets a __dict__.
+        class MyArray(Array):
+            pass
+        a = MyArray('u8', [1, 2, 3])
+        assert a.to_list() == [1, 2, 3]
+        a.extra = 5
+        assert a.extra == 5
+
     def test_repr_is_truncated_when_long(self):
         # Like a long Bits repr, a long Array repr is truncated rather than
         # rendering every element, so it stays usable at a REPL or in a debugger.
