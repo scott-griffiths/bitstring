@@ -1933,14 +1933,14 @@ def test_operator_identity_semantics_for_bits_and_bitarray():
 
 def test_rotation_file_and_errors():
     a = BitArray()
-    with pytest.raises(bitstring.Error):
+    with pytest.raises(ValueError):
         a.ror(0)
     a += '0b001'
     with pytest.raises(ValueError):
         a.ror(-1)
 
     a = BitArray()
-    with pytest.raises(bitstring.Error):
+    with pytest.raises(ValueError):
         a.rol(0)
     a += '0b001'
     with pytest.raises(ValueError):

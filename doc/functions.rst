@@ -89,22 +89,25 @@ Finally it is also possible just to use a keyword as a token::
 Exceptions
 ----------
 
-.. exception:: Error(Exception)
+There is no longer a module-wide exception base class. Errors are raised as the standard
+Python type that fits, so ``ValueError``, ``TypeError`` and ``IndexError`` are what most
+code needs to catch.
 
-    Base class for all module exceptions.
+.. exception:: ReadError(IndexError)
 
-.. exception:: InterpretError(Error, ValueError)
+    Reading or peeking past the end of a bitstring.
 
-    Inappropriate interpretation of binary data. For example using the 'bytes' property on a bitstring that isn't a whole number of bytes long.
-
-.. exception:: ByteAlignError(Error)
+.. exception:: ByteAlignError(ValueError)
 
     Whole-byte position or length needed.
 
-.. exception:: CreationError(Error, ValueError)
+.. exception:: InterpretError
 
-    Inappropriate argument during bitstring creation.
+    An alias for ``ValueError``, kept for compatibility. Raised for an inappropriate
+    interpretation of binary data, for example using the 'bytes' property on a bitstring
+    that isn't a whole number of bytes long.
 
-.. exception:: ReadError(Error, IndexError)
+.. exception:: CreationError
 
-    Reading or peeking past the end of a bitstring.
+    An alias for ``ValueError``, kept for compatibility. Raised for an inappropriate
+    argument during bitstring creation.

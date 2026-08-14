@@ -1320,11 +1320,11 @@ class Bits:
             stretchy = dtype.bitlength is None and not dtype.variable_length
             if stretchy:
                 if has_stretchy_token:
-                    raise bitstring.Error("It's not possible to have more than one 'filler' token.")
+                    raise ValueError("It's not possible to have more than one 'filler' token.")
                 has_stretchy_token = True
             elif has_stretchy_token:
                 if dtype.variable_length:
-                    raise bitstring.Error(f"It's not possible to parse a variable length token '{dtype}' after a 'filler' token.")
+                    raise ValueError(f"It's not possible to parse a variable length token '{dtype}' after a 'filler' token.")
                 bits_after_stretchy_token += dtype.bitlength
 
         # We should have precisely zero or one stretchy token

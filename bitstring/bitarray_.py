@@ -9,7 +9,7 @@ from typing import Any, BinaryIO
 from collections.abc import Iterable
 from tibs import Mutibs, Tibs
 from bitstring import utils
-from bitstring.exceptions import CreationError, Error
+from bitstring.exceptions import CreationError
 from bitstring.bits import Bits, BitsType, TBits, _open_file_source
 
 import bitstring.dtypes
@@ -583,7 +583,7 @@ class BitArray(Bits):
 
         """
         if not len(self):
-            raise Error("Cannot rotate an empty bitstring.")
+            raise ValueError("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")
         self._ror(bits, start, end)
@@ -608,7 +608,7 @@ class BitArray(Bits):
 
         """
         if not len(self):
-            raise Error("Cannot rotate an empty bitstring.")
+            raise ValueError("Cannot rotate an empty bitstring.")
         if bits < 0:
             raise ValueError("Cannot rotate by negative amount.")
         self._rol(bits, start, end)

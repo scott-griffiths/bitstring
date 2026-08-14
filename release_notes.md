@@ -105,8 +105,15 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Reading a dtype property whose length doesn't match, such as `Bits('0xff').u16`,
   now raises an `AttributeError` rather than a `ValueError`, so that `hasattr()`
   works as expected.
+* Removed the `bitstring.Error` exception base class. It had stopped earning its
+  place: since version 4.2 the only things under it were `ReadError`, the
+  never-raised `ByteAlignError` and a handful of direct raises, so
+  `except bitstring.Error` caught much less than its name suggested. Errors are
+  now raised as the standard Python type that fits, and `ReadError` subclasses
+  `IndexError` while `ByteAlignError` subclasses `ValueError`. Catch those, or
+  `ValueError` / `TypeError` / `IndexError`, instead.
 * Inverting an empty bitstring with `~` now returns an empty bitstring instead
-  of raising an `Error`,
+  of raising an exception,
   bringing it in line with `&`, `|` and `^`, which already treat empty
   operands as unremarkable.
 * Removed the optional backend selection mechanism. The `tibs` dependency

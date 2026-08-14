@@ -515,8 +515,9 @@ Functions
 
 Exceptions
 ^^^^^^^^^^
-* :class:`~bitstring.Error` -- Base class for module exceptions.
-* :class:`~bitstring.ReadError` -- Reading or peeking past the end of a bitstring.
-* :class:`~bitstring.InterpretError` -- Inappropriate interpretation of binary data.
-* :class:`~bitstring.ByteAlignError` -- Whole-byte position or length needed.
-* :class:`~bitstring.CreationError` -- Inappropriate argument during bitstring creation.
+* :class:`~bitstring.ReadError` -- Reading or peeking past the end of a bitstring. Subclasses ``IndexError``.
+* :class:`~bitstring.ByteAlignError` -- Whole-byte position or length needed. Subclasses ``ValueError``.
+* :class:`~bitstring.InterpretError` -- Inappropriate interpretation of binary data. An alias for ``ValueError``.
+* :class:`~bitstring.CreationError` -- Inappropriate argument during bitstring creation. An alias for ``ValueError``.
+
+Everything else is raised as a standard Python exception, usually ``ValueError`` or ``TypeError``.
