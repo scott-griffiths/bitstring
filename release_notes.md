@@ -105,6 +105,14 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Reading a dtype property whose length doesn't match, such as `Bits('0xff').u16`,
   now raises an `AttributeError` rather than a `ValueError`, so that `hasattr()`
   works as expected.
+* Setting an attribute that isn't a dtype, such as `BitArray('0xff').nonsense = 5`,
+  now raises an `AttributeError` naming just the attribute, matching what reading
+  it does. Previously the dtype register's lookup failure surfaced directly, as a
+  `ValueError` listing every registered dtype name. This also covers names that
+  can't resolve to a dtype for any other reason, such as a length that doesn't
+  exist (`a.f256 = 10`) or a removed alias (`a.h12 = '0'`). Errors about the
+  *value* being wrong for a real dtype are unchanged and still `ValueError`, so
+  `a.u8 = 256` and `a.hex4 = '0xab'` raise exactly as before.
 * The `pad` and `bits` dtypes are no longer properties on `Bits` and `BitArray`.
   Every registered dtype used to become an attribute automatically, which was
   right for interpretations but not for these two: `pad` is a format string

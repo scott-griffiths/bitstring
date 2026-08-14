@@ -251,7 +251,12 @@ class BitArray(Bits):
             # First try the ordinary attribute setter
             super().__setattr__(attribute, value)
         except AttributeError:
-            dtype = bitstring.dtypes.Dtype(attribute)
+            try:
+                dtype = bitstring.dtypes.Dtype(attribute)
+            except ValueError:
+                # Matching Bits.__getattr__, so that hasattr() and ordinary attribute
+                # errors look the same on both sides.
+                raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'.") from None
             if not dtype._is_property:
                 raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'. "
                                      f"The '{dtype.name}' dtype can only be used in a format string.")

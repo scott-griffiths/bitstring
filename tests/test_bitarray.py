@@ -471,7 +471,8 @@ class TestNewProperties:
         for alias in ['b', 'o', 'h', 'b12', 'o12', 'h12']:
             with pytest.raises(AttributeError):
                 getattr(a, alias)
-            with pytest.raises(ValueError):
+            # The setter reports an unknown name the same way the getter does.
+            with pytest.raises(AttributeError):
                 setattr(a, alias, '0')
             with pytest.raises(ValueError):
                 bitstring.Dtype(alias)
@@ -551,6 +552,26 @@ class TestNewProperties:
         with pytest.raises(ValueError):
             _ = b.u0
 
+    def test_setting_an_unknown_attribute(self):
+        # The setter side reports an unknown name the same way the getter does, rather
+        # than surfacing the dtype register's lookup failure.
+        a = BitArray('0xff')
+        for attribute in ['nonsense', 'uint9x', '_not_a_slot']:
+            with pytest.raises(AttributeError) as e:
+                setattr(a, attribute, 5)
+            assert attribute in str(e.value)
+            # The register's list of every known dtype shouldn't be dumped into it.
+            assert 'Names available' not in str(e.value)
+        assert a == '0xff'
+
+    def test_setting_a_known_dtype_still_works(self):
+        a = BitArray('0xff')
+        a.u8 = 3
+        assert a == '0x03'
+        # A setter with a different length redefines the length, unlike the getter.
+        a.u16 = 3
+        assert a == '0x0003'
+
     def test_setter_length_errors(self):
         a = BitArray()
         a.u8 = 255
@@ -559,7 +580,9 @@ class TestNewProperties:
             a.u8 = 256
         a.f32 = 10
         a.f64 = 10
-        with pytest.raises(ValueError):
+        # There is no 256 bit float, so this is an unknown attribute rather than a
+        # bad value for a known one.
+        with pytest.raises(AttributeError):
             a.f256 = 10
         with pytest.raises(ValueError):
             a.u0 = 2
@@ -578,7 +601,7 @@ class TestNewProperties:
             a.i8 = 128
         with pytest.raises(ValueError):
             a.i8 = -129
-        with pytest.raises(ValueError):
+        with pytest.raises(AttributeError):
             a.froggy16 = '0xabc'
 
     def test_unpack(self):
