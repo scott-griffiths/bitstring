@@ -96,14 +96,3 @@ code needs to catch.
 .. exception:: ReadError(IndexError)
 
     Reading or peeking past the end of a bitstring.
-
-.. exception:: InterpretError
-
-    An alias for ``ValueError``, kept for compatibility. Raised for an inappropriate
-    interpretation of binary data, for example using the 'bytes' property on a bitstring
-    that isn't a whole number of bytes long.
-
-.. exception:: CreationError
-
-    An alias for ``ValueError``, kept for compatibility. Raised for an inappropriate
-    argument during bitstring creation.

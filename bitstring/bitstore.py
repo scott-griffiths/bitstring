@@ -4,7 +4,6 @@ import functools
 
 from tibs import Tibs, Mutibs, ByteOrder, DtypeKind, DtypeSingle, DtypeTuple
 
-from bitstring.exceptions import CreationError
 from typing import Any, TypeVar
 from collections.abc import Iterable, Iterator
 
@@ -111,15 +110,15 @@ def _validated_buffer(buffer, offset: int | None, length: int | None) -> memoryv
     if offset is None:
         offset = 0
     if offset < 0:
-        raise CreationError("Can't create bitstring with a negative offset.")
+        raise ValueError("Can't create bitstring with a negative offset.")
     if offset > mv.nbytes * 8:
-        raise CreationError(
+        raise ValueError(
             f"Can't create bitstring with an offset of {offset} from {mv.nbytes * 8} bits of data.")
     if length is not None:
         if length < 0:
-            raise CreationError("Can't create bitstring with a negative length.")
+            raise ValueError("Can't create bitstring with a negative length.")
         if offset + length > mv.nbytes * 8:
-            raise CreationError(
+            raise ValueError(
                 f"Can't create bitstring with a length of {length} from {mv.nbytes * 8 - offset} bits of data.")
     return mv
 

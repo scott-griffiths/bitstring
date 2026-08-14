@@ -3,7 +3,6 @@ from __future__ import annotations
 import math
 import numbers
 from collections.abc import Sized
-from bitstring.exceptions import CreationError
 from typing import Any, BinaryIO, overload, TextIO
 from collections.abc import Iterable
 from bitstring.bits import Bits, BitsType
@@ -92,7 +91,7 @@ class Array:
         try:
             self._set_dtype(dtype)
         except ValueError as e:
-            raise CreationError(e)
+            raise ValueError(e)
 
         if initializer is not None:
             self.extend(initializer)
@@ -650,7 +649,7 @@ class Array:
             v = self._dtype._read_fn(self.data, start=itemsize * i)
             try:
                 new_data.append(new_array._create_element(partial_op(v)))
-            except (CreationError, ZeroDivisionError, ValueError) as e:
+            except (ValueError, ZeroDivisionError) as e:
                 if failures == 0:
                     msg = str(e)
                     index = i
@@ -672,7 +671,7 @@ class Array:
             v = self._dtype._read_fn(self.data, start=itemsize * i)
             try:
                 new_data.append(self._create_element(op(v, value)))
-            except (CreationError, ZeroDivisionError, ValueError) as e:
+            except (ValueError, ZeroDivisionError) as e:
                 if failures == 0:
                     msg = str(e)
                     index = i
@@ -731,7 +730,7 @@ class Array:
             b = other._dtype._read_fn(other.data, start=other_itemsize * i)
             try:
                 new_data.append(new_array._create_element(op(a, b)))
-            except (CreationError, ValueError, ZeroDivisionError) as e:
+            except (ValueError, ZeroDivisionError) as e:
                 if failures == 0:
                     msg = str(e)
                     index = i

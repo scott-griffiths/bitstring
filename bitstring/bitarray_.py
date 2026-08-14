@@ -9,7 +9,6 @@ from typing import Any, BinaryIO
 from collections.abc import Iterable
 from tibs import Mutibs, Tibs
 from bitstring import utils
-from bitstring.exceptions import CreationError
 from bitstring.bits import Bits, BitsType, TBits, _open_file_source
 
 import bitstring.dtypes
@@ -123,7 +122,7 @@ class BitArray(Bits):
         x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:
             if length is not None:
-                raise bitstring.CreationError(
+                raise ValueError(
                     f"A length can't be given without an initialiser. "
                     f"Use '{cls.__name__}.from_zeros({length})' to create a zero-filled bitstring."
                 )
@@ -167,7 +166,7 @@ class BitArray(Bits):
         """Create a new bitstring containing length zero bits."""
         length = int(length)
         if length < 0:
-            raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
+            raise ValueError(f"Can't create bitstring of negative length {length}.")
         x = super().__new__(cls)
         x._bitstore = MutableBitStore.from_zeros(length)
         return x
@@ -177,7 +176,7 @@ class BitArray(Bits):
         """Create a new bitstring containing length one bits."""
         length = int(length)
         if length < 0:
-            raise bitstring.CreationError(f"Can't create bitstring of negative length {length}.")
+            raise ValueError(f"Can't create bitstring of negative length {length}.")
         x = super().__new__(cls)
         x._bitstore = MutableBitStore.from_ones(length)
         return x
@@ -215,9 +214,9 @@ class BitArray(Bits):
         offset += base_bits
         file_bits = len(m) * 8
         if offset > file_bits:
-            raise bitstring.CreationError(f"The offset of {offset} bits is greater than the file length ({file_bits} bits).")
+            raise ValueError(f"The offset of {offset} bits is greater than the file length ({file_bits} bits).")
         if length is not None and offset + length > file_bits:
-            raise bitstring.CreationError(
+            raise ValueError(
                 f"Can't use a length of {length} bits and an offset of {offset} bits as file length is only {file_bits} bits.")
         x._bitstore = MutableBitStore.from_buffer(m, offset, length)
         return x
@@ -258,7 +257,7 @@ class BitArray(Bits):
                 raise AttributeError(f"Cannot set attribute '{attribute}' as it cannot be set.")
             set_fn(x, value)
             if len(x) != dtype.bitlength:
-                raise CreationError(f"Can't initialise with value of length {len(x)} bits, "
+                raise ValueError(f"Can't initialise with value of length {len(x)} bits, "
                                     f"as attribute has length of {dtype.bitlength} bits.")
             self._bitstore = x._bitstore._mutable_copy()
             return

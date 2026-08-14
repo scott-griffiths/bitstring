@@ -227,9 +227,9 @@ class DtypeDefinition:
             def allowed_length_checked_get_fn(bs):
                 if len(bs) not in self.allowed_lengths:
                     if self.allowed_lengths.only_one_value():
-                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length of {self.allowed_lengths.values[0]}, but received a length of {len(bs)}.")
+                        raise ValueError(f"'{self.name}' dtypes must have a length of {self.allowed_lengths.values[0]}, but received a length of {len(bs)}.")
                     else:
-                        raise bitstring.InterpretError(f"'{self.name}' dtypes must have a length in {self.allowed_lengths}, but received a length of {len(bs)}.")
+                        raise ValueError(f"'{self.name}' dtypes must have a length in {self.allowed_lengths}, but received a length of {len(bs)}.")
                 return get_fn(bs)
             self.get_fn = allowed_length_checked_get_fn  # Interpret everything and check the length
         else:
@@ -272,7 +272,7 @@ class DtypeDefinition:
             def read_fn(bs, start):
                 try:
                     x, length = get_fn(bs[start:])
-                except bitstring.InterpretError:
+                except ValueError:
                     raise bitstring.ReadError
                 return x, start + length
             self.read_fn = read_fn

@@ -62,9 +62,9 @@ class TestFp8:
         assert a.p4binary == 0.0
         assert a.p3binary == 0.0
         a += '0b1'
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(ValueError):
             _ = a.p4binary
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(ValueError):
             _ = a.p3binary
 
 

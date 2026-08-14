@@ -113,13 +113,13 @@ def bitstore_from_token(name: str, token_length: int | None, value: str | None) 
     try:
         d = bitstring.dtypes.Dtype(name, token_length)
     except ValueError as e:
-        raise bitstring.CreationError(f"Can't parse token: {e}")
+        raise ValueError(f"Can't parse token: {e}")
     if value is None and name != 'pad':
         raise ValueError(f"Token {name} requires a value.")
     bs = d.pack(value)._bitstore
     bs = _to_const_bitstore(bs)
     if token_length is not None and len(bs) != d._bitlength:
-        raise bitstring.CreationError(f"Token with length {token_length} packed with value of length {len(bs)} "
+        raise ValueError(f"Token with length {token_length} packed with value of length {len(bs)} "
                                       f"({name}:{token_length}={value}).")
     return bs
 
@@ -128,7 +128,7 @@ def bitstore_from_token(name: str, token_length: int | None, value: str | None) 
 def ue2bitstore(i: str | int) -> ConstBitStore:
     i = int(i)
     if i < 0:
-        raise bitstring.CreationError("Cannot use negative initialiser for unsigned exponential-Golomb.")
+        raise ValueError("Cannot use negative initialiser for unsigned exponential-Golomb.")
     if i == 0:
         return ConstBitStore.from_bin('1')
     tmp = i + 1
@@ -152,7 +152,7 @@ def se2bitstore(i: str | int) -> ConstBitStore:
 def uie2bitstore(i: str | int) -> ConstBitStore:
     i = int(i)
     if i < 0:
-        raise bitstring.CreationError("Cannot use negative initialiser for unsigned interleaved exponential-Golomb.")
+        raise ValueError("Cannot use negative initialiser for unsigned interleaved exponential-Golomb.")
     return ConstBitStore.from_bin('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
 
 

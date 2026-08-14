@@ -80,7 +80,7 @@ If elements of the old array don't fit or don't make sense in the new array then
     >>> y.astype('u8')
     Array('u8', [88, 240, 0, 32])
     >>> y.astype('u7')
-    bitstring.CreationError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
+    ValueError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
 
 You can also reinterpret the data by changing the :attr:`Array.dtype` property directly.
 This will not copy any data but will cause the current data to be shown differently. ::

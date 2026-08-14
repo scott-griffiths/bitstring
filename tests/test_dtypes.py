@@ -71,7 +71,7 @@ class TestBasicFunctionality:
         assert bs.Bits(fbe=1.5, length=32) == bs.Bits(floatbe=1.5, length=32)
         assert bs.Bits(fle=1.5, length=32) == bs.Bits(floatle=1.5, length=32)
         for name in ['une', 'uintne', 'ine', 'intne', 'fne', 'floatne']:
-            with pytest.raises(bs.CreationError):
+            with pytest.raises(ValueError):
                 _ = bs.Bits(**{name: 1}, length=16)
 
     def test_pack_errors(self):

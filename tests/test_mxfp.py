@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 import math
-from bitstring import BitArray, Dtype, Array, CreationError
+from bitstring import BitArray, Dtype, Array
 import pytest
 import gfloat
 from gfloat.formats import format_info_ocp_e4m3, format_info_ocp_e5m2
@@ -58,7 +58,7 @@ def test_unadorned_e4m3_and_e5m2_mxfp_names_removed():
     for name in ['e4m3mxfp', 'e5m2mxfp']:
         with pytest.raises(ValueError):
             _ = Dtype(name)
-        with pytest.raises(CreationError):
+        with pytest.raises(ValueError):
             _ = BitArray(**{name: 0.0})
         assert not hasattr(BitArray('0x00'), name)
 

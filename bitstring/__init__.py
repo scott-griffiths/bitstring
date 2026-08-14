@@ -18,8 +18,6 @@ pack -- Create a Bits object from a format string.
 Exceptions:
 
 ReadError -- Reading or peeking past the end of a bitstring. Subclasses IndexError.
-CreationError -- Error during creation. An alias for ValueError.
-InterpretError -- Inappropriate interpretation of binary data. An alias for ValueError.
 
 https://github.com/scott-griffiths/bitstring
 """
@@ -59,7 +57,7 @@ from .bitarray_ import BitArray
 from .reader import Reader
 from .methods import pack
 from .array_ import Array
-from .exceptions import ReadError, InterpretError, CreationError
+from .exceptions import ReadError
 from .dtypes import DtypeDefinition as _DtypeDefinition, dtype_register as _dtype_register, Dtype
 from typing import Literal as _Literal
 
@@ -297,5 +295,4 @@ if Bits.__doc__ is not None:
 if BitArray.__doc__ is not None:
     BitArray.__doc__ = BitArray.__doc__.replace('[GENERATED_PROPERTY_DESCRIPTIONS]', _property_docstring)
 __all__ = ['Reader', 'BitArray', 'Array',
-           'Bits', 'pack', 'ReadError', 'InterpretError',
-           'CreationError', 'Dtype']
+           'Bits', 'pack', 'ReadError', 'Dtype']

@@ -259,7 +259,7 @@ Methods
 
     For the ``'bytes'`` format, characters from the 'Latin Extended-A' unicode block are used for non-ASCII and unprintable characters.
 
-    If the bitstring cannot be represented in a format due to its length not being a multiple of the number of bits represented by each character then an :exc:`InterpretError` will be raised.
+    If the bitstring cannot be represented in a format due to its length not being a multiple of the number of bits represented by each character then a :exc:`ValueError` will be raised.
 
     An output *stream* can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
 
@@ -373,7 +373,7 @@ The many ways to interpret bitstrings can be accessed via properties.
 These properties will be read-only for a ``Bits`` object, but are also writable for derived mutable types such as ``BitArray``.
 
 Properties can also have a length in bits appended to them to such as ``u8`` or ``f64`` (for the ``bytes`` property the length is interpreted in bytes instead of bits).
-These properties with lengths will cause an :exc:`InterpretError` to be raised if the bitstring is not of the specified length.
+These properties with lengths will cause a :exc:`ValueError` to be raised if the bitstring is not of the specified length.
 
 This list isn't exhaustive - see for example :ref:`Exotic floats` for information on bfloats and many 8-bit and smaller floating point formats.
 Also see :ref:`exp-golomb` for some interesting variable length integer formats.
@@ -392,14 +392,14 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 
     Property for representing the bitstring as a boolean (``True`` or ``False``).
 
-    If the bitstring is not a single bit then the getter will raise an :exc:`InterpretError`.
+    If the bitstring is not a single bit then the getter will raise a :exc:`ValueError`.
 
 .. attribute:: Bits.bytes
     :type: bytes
 
     Property representing the underlying byte data that contains the bitstring.
 
-    When used as a getter the bitstring must be a whole number of byte long or a :exc:`InterpretError` will be raised.
+    When used as a getter the bitstring must be a whole number of byte long or a :exc:`ValueError` will be raised.
 
     An alternative is to use the :meth:`to_bytes` method, which will pad with between zero and seven ``0`` bits to make it byte aligned if needed. ::
 
@@ -412,7 +412,7 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 
     Property representing the hexadecimal value of the bitstring.
 
-    If the bitstring is not a multiple of four bits long then getting its hex value will raise an :exc:`InterpretError`. ::
+    If the bitstring is not a multiple of four bits long then getting its hex value will raise a :exc:`ValueError`. ::
 
         >>> s = Bits(bin='1111 0000')
         >>> s.hex
@@ -434,7 +434,7 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 
     Property for the byte-wise big-endian signed two's complement integer representation of the bitstring.
 
-    Only valid for whole-byte bitstrings, in which case it is equal to ``s.i``, otherwise an :exc:`InterpretError` is raised.
+    Only valid for whole-byte bitstrings, in which case it is equal to ``s.i``, otherwise a :exc:`ValueError` is raised.
 
 .. attribute:: Bits.ile
     :type: int
@@ -455,7 +455,7 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
     ``float``, ``floatbe`` and ``fbe`` are compatibility aliases for ``f``.
     The longer endian-specific name ``floatle`` is also a compatibility alias for ``fle``.
 
-    The bitstring must be 16, 32 or 64 bits long to support the floating point interpretations, otherwise an :exc:`InterpretError` will be raised.
+    The bitstring must be 16, 32 or 64 bits long to support the floating point interpretations, otherwise a :exc:`ValueError` will be raised.
 
     If the underlying floating point methods on your machine are not IEEE 754 compliant then using the float interpretations is undefined (this is unlikely unless you're on some very unusual hardware).
 
@@ -471,7 +471,7 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 
     Property for the octal representation of the bitstring.
 
-    If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`InterpretError`. ::
+    If the bitstring is not a multiple of three bits long then getting its octal value will raise a :exc:`ValueError`. ::
 
         >>> s = Bits('0b111101101')
         >>> s.oct

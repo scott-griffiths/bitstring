@@ -75,7 +75,7 @@ class TestAll:
     @pytest.mark.parametrize("tibs_type", [Tibs, Mutibs])
     def test_constructor_rejects_tibs_types_with_length(self, tibs_type):
         tibs = tibs_type.from_bin("101")
-        with pytest.raises(bitstring.CreationError, match="explicit length"):
+        with pytest.raises(ValueError, match="explicit length"):
             BitArray(tibs, length=2)
 
     def test_mutibs_input_is_copied(self):
@@ -116,9 +116,9 @@ class TestAll:
         s.u8 = 255
         assert s.uint == 255
         assert len(s) == 8
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             s.uint = 256
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             s.uint = -1
 
     def test_creation_from_oct(self):
@@ -471,7 +471,7 @@ class TestNewProperties:
         for alias in ['b', 'o', 'h', 'b12', 'o12', 'h12']:
             with pytest.raises(AttributeError):
                 getattr(a, alias)
-            with pytest.raises(bitstring.CreationError):
+            with pytest.raises(ValueError):
                 setattr(a, alias, '0')
             with pytest.raises(ValueError):
                 bitstring.Dtype(alias)
@@ -544,11 +544,11 @@ class TestNewProperties:
             _ = a.i1
         assert not hasattr(a, 'u16')
         assert hasattr(a, 'u12')
-        # 'f' is a property so a bad length raises an InterpretError rather than an AttributeError.
-        with pytest.raises(bitstring.InterpretError):
+        # 'f' is a property so a bad length raises an ValueError rather than an AttributeError.
+        with pytest.raises(ValueError):
             _ = a.f
         b = BitArray()
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(ValueError):
             _ = b.u0
 
     def test_setter_length_errors(self):
@@ -561,14 +561,14 @@ class TestNewProperties:
         a.f64 = 10
         with pytest.raises(ValueError):
             a.f256 = 10
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             a.u0 = 2
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             a.hex4 = '0xab'
         assert len(a) == 64
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             a.oct3 = '0xab'
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             a.bin4 = '0xab'
         a.hex0 = ''
         assert len(a) == 0
@@ -578,7 +578,7 @@ class TestNewProperties:
             a.i8 = 128
         with pytest.raises(ValueError):
             a.i8 = -129
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             a.froggy16 = '0xabc'
 
     def test_unpack(self):
@@ -607,9 +607,9 @@ class TestNewProperties:
         assert a.bytes5 == b'hello'
         a.bytes3 = b'123'
         assert a.bytes == b'123'
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             a.bytes5 = b'123456789'
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             a.bytes5 = b'123'
 
     def test_conversion_to_bytes(self):
@@ -648,9 +648,9 @@ class TestBFloats:
     def test_creation_errors(self):
         a = BitArray(bfloat=-0.25, length=16)
         assert len(a) == 16
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = BitArray(bfloat=10, length=15)
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = BitArray('bfloat:1=0.5')
 
     def test_little_endian(self):
@@ -666,10 +666,10 @@ class TestBFloats:
         assert b.bfloat == 1000.0
         assert b.bfloatbe == 1000.0
 
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = BitArray(bfloatle=-5, length=15)
         c = BitArray()
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(ValueError):
             _ = c.bfloatle
         with pytest.raises(AttributeError):
             _ = c.bfloatne
@@ -681,7 +681,7 @@ class TestBFloats:
 
     def test_interpret_bug(self):
         a = BitArray.from_zeros(100)
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(ValueError):
             v = a.bfloat
 
     def test_overflows(self):
@@ -728,7 +728,7 @@ class TestBFloats:
 
     def test_native_endian_string_initialisers_removed(self):
         for token in ['bfloatne=4.5', 'bfloatne:16=-2.25']:
-            with pytest.raises(bitstring.CreationError):
+            with pytest.raises(ValueError):
                 _ = BitArray(token)
 
 

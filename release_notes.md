@@ -117,6 +117,12 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   The places that might have raised it, such as `Reader.byte_pos` on an unaligned
   position and `Bits.bytes` on a length that isn't a whole number of bytes, raise
   `ValueError` as they always have.
+* Removed `bitstring.InterpretError` and `bitstring.CreationError`. Since version
+  4.2 both had been plain aliases for `ValueError`, so `except CreationError` was
+  already catching every `ValueError` from anywhere in the call stack, whatever it
+  came from. The names are gone; the exceptions they described are unchanged, and
+  `except ValueError` catches exactly what `except CreationError` catches today.
+  With these removed, `ReadError` is the only exception bitstring still defines.
 * Inverting an empty bitstring with `~` now returns an empty bitstring instead
   of raising an exception,
   bringing it in line with `&`, `|` and `^`, which already treat empty

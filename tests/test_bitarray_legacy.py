@@ -69,7 +69,7 @@ def test_reader_reads_bits_and_bytes():
 
 
 def test_reader_reads_exp_golomb_codes():
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = Bits('').ue
     s = Reader(BitArray(bin='1 010 011 00100 00101 00110 00111 0001000 0001001'))
     assert s.pos == 0
@@ -391,18 +391,18 @@ def test_pack_with_dicts_and_lists():
 
 def test_pack_length_restrictions_and_null_formats():
     _ = pack('bin:3', '0b000')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack('bin:3', '0b0011')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack('bin:3', '0b11')
     _ = pack('hex:4', '0xf')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack('hex:4', '0b111')
     _ = pack('oct:6', '0o77')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack('oct:6', '0o1')
     _ = pack('bits:3', BitArray('0b111'))
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack('bits:3', BitArray('0b11'))
 
     assert not pack('')
@@ -495,11 +495,11 @@ def test_file_creation_with_length_and_offset():
     assert not Bits.from_file(test_filename, length=0)
 
     small_test_filename = os.path.join(THIS_DIR, 'smalltestfile')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray.from_file(small_test_filename, length=65)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = Bits.from_file(small_test_filename, length=64, offset=1)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = Bits.from_file(small_test_filename, offset=65)
 
     a = BitArray.from_file(test_filename, offset=4)
@@ -529,20 +529,20 @@ def test_file_bit_getting():
 
 def test_creation_errors_and_basic_conversions():
     s = BitArray()
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         s._setbin('0010020')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         s.hex = '0xabcdefg'
     assert len(BitArray('')) == 0
     assert len(BitArray('0x80')) == 8
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         BitArray(hex='0xffff', offset=-1)
     assert BitArray('0x10').uint == 16
     assert BitArray('0b000111').uint == 7
     assert BitArray('0x10').int == 16
     assert BitArray('0b11110').int == -2
     assert BitArray.from_bytes(b'\x00\x12\x23\xff').hex == '001223ff'
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = BitArray('0b11111').hex
 
 
@@ -552,9 +552,9 @@ def test_empty_bits_and_reader_position():
         s.read_bits(1)
     assert s.bits.bin == ''
     assert s.bits.hex == ''
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = s.bits.int
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = s.bits.uint
     assert not s.bits
 
@@ -754,7 +754,7 @@ def test_peek_with_reader():
 def test_auto_initialisation_and_auto_methods():
     assert BitArray('0xff').hex == 'ff'
     assert BitArray('0b00011').bin == '00011'
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray('hello')
     with pytest.raises(TypeError):
         _ = BitArray(1.2)
@@ -988,13 +988,13 @@ def test_endian_synonyms_and_struct_tokens():
     assert pack('<B', 23) == BitArray('ule:8=23')
     assert pack('>h', 23) == BitArray('ibe:16=23')
     assert pack('>I', 23) == BitArray('ube:32=23')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack('<B', -1)
 
 
 def test_struct_tokens_require_explicit_endianness():
     for fmt in ['=b', '@Q', '=2i']:
-        with pytest.raises(bitstring.CreationError, match='Native-endian struct formats'):
+        with pytest.raises(ValueError, match='Native-endian struct formats'):
             _ = pack(fmt, 23, 23)
 
     s = pack('>hhl', 1, 2, 3)
@@ -1147,9 +1147,9 @@ def test_float_initialisation_packing_and_reading():
 
 def test_float_errors_and_rotations():
     a = BitArray('0x3')
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = a.float
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         a.float = -0.2
     for le in (8, 10, 12, 18, 30, 128, 200):
         with pytest.raises(ValueError):
@@ -1219,7 +1219,7 @@ def test_bool_token_and_integer_reads():
 
     c = pack('4*bool', False, True, 'False', 'True')
     assert c == '0b0101'
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         pack('bool', 'hello')
 
     a = Reader(Bits('0xffeedd'))
@@ -1519,7 +1519,7 @@ def test_set_reset_properties():
     assert s.hex == '0'
     s.hex = '0x010203045'
     assert s.hex == '010203045'
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         s.hex = '0x002g'
 
     s = BitArray(bin="000101101")
@@ -1605,32 +1605,32 @@ def test_file_object_creation_and_copy():
 
 
 def test_big_little_endian_error_cases():
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(ube=100, length=15)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(ibe=100, length=15)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray('ube:17=100')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray('ibe:7=2')
 
     s = Reader(BitArray('0b1'))
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = s.bits.ibe
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = s.bits.ube
     with pytest.raises(ValueError):
         _ = s.read_value('ube')
     with pytest.raises(ValueError):
         _ = s.read_value('ibe')
 
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray('ule:15=10')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray('ile:31=-999')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(ule=100, length=15)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(ile=100, length=15)
 
 
@@ -1688,7 +1688,7 @@ def test_struct_token_multiplicative_factors_and_errors():
     assert s[44 * 64:45 * 64].ule == 44
 
     for f in ['>>q', '<>q', 'q>', '2q', 'q', '>-2q', '@a', '@L0B2h', '=L', '>int:8', '>q2']:
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = pack(f, 100)
 
 
@@ -1833,14 +1833,14 @@ def test_bool_assignment_and_errors():
     assert a.bool is True
 
     for args in [('bool=true',), ('True',), ('bool', 2)]:
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = pack(*args)
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = BitArray('0b11').bool
     b = BitArray()
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = b.bool
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         b.bool = 'false'
 
     a = Reader(Bits('0xf'))
@@ -1852,9 +1852,9 @@ def test_bool_assignment_and_errors():
 
 def test_zero_bit_reads_and_read_int_list():
     a = Reader(Bits('0x123456'))
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = a.read_value('uint:0')
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = a.read_value('float:0')
 
     a = Reader(Bits('0xab, 0b110'))
@@ -1897,7 +1897,7 @@ def test_format_and_cacheing_cases():
 
     _ = BitArray('0xdeadbeef1000')
     _ = BitArray('0xdeadbeef002')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray('0xdeadbeef002', length=16)
 
 
@@ -2061,16 +2061,16 @@ def test_pack_uint_and_default_uint_errors():
     s = pack('uint:10=150, uint:12=qee', qee=3)
     assert s == 'uint:10=150, uint:12=3'
     assert BitArray('uint:100=5') == 'uint:100=5'
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray('5=-1')
 
 
 def test_packing_long_keyword_and_variable_lengths():
     s = pack('bits=b', b=BitArray.from_zeros(128000))
     assert s == BitArray.from_zeros(128000)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack('bin:1')
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack('', 100)
     assert pack('uint10', uint10='0b1') == '0b1'
     assert pack('0b110', **{'0b110': '0xfff'}) == '0xfff'
@@ -2267,7 +2267,7 @@ def test_auto_creation_more(source, expected):
 
 @pytest.mark.parametrize("source", ['bin:1=01', 'bits:4=0b1', 'oct3=000', 'hex4=0x1234'])
 def test_auto_creation_error_more(source):
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(source)
 
 
@@ -2451,13 +2451,13 @@ def test_float_reading_more_cases():
 
 
 def test_float_error_more_cases():
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(fle=0.3, length=0)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(fle=0.3, length=1)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(float=2)
-    with pytest.raises(bitstring.InterpretError):
+    with pytest.raises(ValueError):
         _ = Reader(BitArray('0x3')).read_value('fle:2')
     with pytest.raises(ValueError):
         Reader(BitArray('0x123123')).read_value('10, 5')
@@ -2699,7 +2699,7 @@ def test_add_empty_bits_issue_more():
 
 @pytest.mark.parametrize("fmt", ['=B', '=h', '=H', '@l', '@L', '@i', '@I', '@q', '@Q'])
 def test_native_struct_pack_codes_removed(fmt):
-    with pytest.raises(bitstring.CreationError, match='Native-endian struct formats'):
+    with pytest.raises(ValueError, match='Native-endian struct formats'):
         _ = pack(fmt, 23)
 
 
@@ -2747,7 +2747,7 @@ def test_invalid_reader_tokens_more(token):
     ],
 )
 def test_creation_error_kwargs_more(kwargs):
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(**kwargs)
 
 
@@ -2764,19 +2764,19 @@ def test_creation_error_kwargs_more(kwargs):
     ],
 )
 def test_creation_error_strings_more(source):
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = BitArray(source)
 
 
 @pytest.mark.parametrize("fmt", ['>>q', '<>q', 'q>', '2q', 'q', '>-2q', '@a', '>int:8', '>q2'])
 def test_struct_token_error_cases_more(fmt):
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack(fmt, 100)
 
 
 @pytest.mark.parametrize("fmt", ['<B', '<H', '<L', '<Q'])
 def test_unsigned_struct_negative_errors_more(fmt):
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = pack(fmt, -1)
 
 
@@ -2901,7 +2901,7 @@ def test_all_any_index_errors_more(method_name, indices):
         ('ile', ValueError),
         ('bool:0', ValueError),
         ('bool:2', ValueError),
-        ('fle:2', bitstring.InterpretError),
+        ('fle:2', ValueError),
     ],
 )
 def test_reader_format_error_cases_more(read_fmt, exception):

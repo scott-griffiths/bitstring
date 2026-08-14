@@ -548,7 +548,7 @@ class TestArrayMethods:
 
     def test_native_struct_dtypes_removed(self):
         for dtype in ['=B', '@H']:
-            with pytest.raises(bitstring.CreationError, match='Native-endian struct formats'):
+            with pytest.raises(ValueError, match='Native-endian struct formats'):
                 _ = Array(dtype, [1])
 
     def test__contains__(self):

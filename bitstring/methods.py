@@ -4,7 +4,6 @@ import functools
 import bitstring
 from bitstring.bits import Bits
 from bitstring.utils import tokenparser
-from bitstring.exceptions import CreationError
 import bitstring.bitstore_helpers as helpers
 
 ConstBitStore = bitstring.bitstore.ConstBitStore
@@ -93,12 +92,9 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
     if isinstance(fmt, str):
         fmt = [fmt]
     kwarg_names = tuple(sorted(kwargs.keys())) if kwargs else ()
-    try:
-        for f_item in fmt:
-            _, tkns = tokenparser(f_item, kwarg_names)
-            tokens.extend(tkns)
-    except ValueError as e:
-        raise CreationError(*e.args)
+    for f_item in fmt:
+        _, tkns = tokenparser(f_item, kwarg_names)
+        tokens.extend(tkns)
     value_iter = iter(values)
     bsl: list[ConstBitStore] = []
     try:
@@ -119,11 +115,11 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
                 value = next(value_iter)
             bsl.append(helpers.bitstore_from_token(name, length, value))
     except StopIteration:
-        raise CreationError(f"Not enough parameters present to pack according to the "
+        raise ValueError(f"Not enough parameters present to pack according to the "
                             f"format. {len(tokens)} values are needed.")
 
     if next(value_iter, _NO_MORE_VALUES) is not _NO_MORE_VALUES:
-        raise CreationError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")
+        raise ValueError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")
     # Good, we've used up all the *values.
     s = object.__new__(Bits)
     # A single token is the common case and doesn't need joining. The stores are

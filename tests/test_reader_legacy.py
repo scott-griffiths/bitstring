@@ -151,9 +151,9 @@ def test_bytesio_creation():
 def test_bytesio_creation_exceptions():
     f = io.BytesIO(b"123456789")
     _ = Bits.from_bytes(f.getvalue(), length=9 * 8)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = Bits.from_bytes(f.getvalue(), length=9 * 8 + 1)
-    with pytest.raises(bitstring.CreationError):
+    with pytest.raises(ValueError):
         _ = Bits.from_bytes(f.getvalue(), length=9 * 8, offset=1)
 
 

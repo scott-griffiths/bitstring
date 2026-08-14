@@ -6,7 +6,7 @@ import bitstring
 import array
 import os
 import re
-from bitstring import InterpretError, Bits, BitArray
+from bitstring import Bits, BitArray
 from tibs import Mutibs, Tibs
 from hypothesis import given
 import hypothesis.strategies as st
@@ -78,7 +78,7 @@ class TestCreation:
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_length_only_construction_removed(self, cls):
-        with pytest.raises(bitstring.CreationError, match="from_zeros"):
+        with pytest.raises(ValueError, match="from_zeros"):
             cls(length=8)
         # No initialiser at all is still an empty bitstring.
         assert len(cls()) == 0
@@ -120,7 +120,7 @@ class TestCreation:
     @pytest.mark.parametrize("tibs_type", [Tibs, Mutibs])
     def test_constructor_rejects_tibs_types_with_length(self, tibs_type):
         tibs = tibs_type.from_bin("101")
-        with pytest.raises(bitstring.CreationError, match="explicit length"):
+        with pytest.raises(ValueError, match="explicit length"):
             Bits(tibs, length=2)
 
     def test_mutibs_input_is_copied(self):
@@ -170,12 +170,12 @@ class TestCreation:
     def test_filename_keyword_removed(self, cls, tmp_path):
         filename = tmp_path / "source.bin"
         filename.write_bytes(b"\xff")
-        with pytest.raises(bitstring.CreationError, match="from_file"):
+        with pytest.raises(ValueError, match="from_file"):
             cls(filename=filename)
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_bytes_keyword_removed(self, cls):
-        with pytest.raises(bitstring.CreationError, match="from_bytes"):
+        with pytest.raises(ValueError, match="from_bytes"):
             cls(bytes=b"\xff")
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
@@ -202,7 +202,7 @@ class TestCreation:
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_removed_constructor_sources_still_rejected_with_length(self, cls, tmp_path):
-        with pytest.raises(bitstring.CreationError, match="explicit length"):
+        with pytest.raises(ValueError, match="explicit length"):
             cls([1, 0, 1], length=3)
         with pytest.raises(TypeError, match="0, 1, True or False"):
             cls([1, 2, 3], length=3)
@@ -260,7 +260,7 @@ class TestCreation:
         assert s.bytes == data
 
     def test_creation_from_bytes_errors(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits.from_bytes(b"abc", length=25)
 
     def test_creation_from_data_with_offset(self):
@@ -282,9 +282,9 @@ class TestCreation:
 
     @pytest.mark.parametrize("bad_val", ["0xx0", "0xX0", "0Xx0", "-2e"])
     def test_creation_from_hex_errors(self, bad_val: str):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(hex=bad_val)
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits("0x2", length=2)
 
     def test_creation_from_bin(self):
@@ -301,13 +301,13 @@ class TestCreation:
 
     def test_creation_from_oct_errors(self):
         s = Bits("0b00011")
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(ValueError):
             _ = s.oct
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = Bits("oct=8")
 
     def test_offset_constructor_keyword_removed(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(u=12, length=8, offset=1)
 
     def test_long_numeric_keyword_initialisers_are_compatibility_aliases(self):
@@ -319,15 +319,15 @@ class TestCreation:
         assert BitArray(float=1.5, length=16) == BitArray(f=1.5, length=16)
 
     def test_creation_from_u_errors(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(u=-1, length=10)
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(u=12)
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(u=4, length=2)
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(u=0, length=0)
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(u=12, length=-12)
 
     def test_creation_from_i(self):
@@ -349,27 +349,27 @@ class TestCreation:
 
     @pytest.mark.parametrize("value, length", [[-1, 0], [12, None], [4, 3], [-5, 3]])
     def test_creation_from_i_errors(self, value, length):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = Bits(i=value, length=length)
 
     def test_creation_from_se(self):
         for i in range(-100, 10):
             s = Bits(se=i)
             assert s.se == i
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = Bits(se=10, length=40)
 
     def test_creation_from_se_with_offset(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(se=-13, offset=1)
 
     def test_creation_from_se_errors(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(se=-5, length=33)
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits("se2=0")
         s = Bits(bin="001000")
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(ValueError):
             _ = s.se
 
     def test_creation_from_ue(self):
@@ -377,16 +377,16 @@ class TestCreation:
             assert Bits(ue=i).ue == i
 
     def test_creation_from_ue_with_offset(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(ue=104, offset=2)
 
     def test_creation_from_ue_errors(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(ue=-1)
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(ue=1, length=12)
         s = Bits(bin="10")
-        with pytest.raises(bitstring.InterpretError):
+        with pytest.raises(ValueError):
             _ = s.ue
 
     def test_creation_from_bool(self):
@@ -402,11 +402,11 @@ class TestCreation:
     def test_creation_from_bool_errors(self):
         with pytest.raises(ValueError):
             _ = Bits("bool=3")
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = Bits(bool=0, length=2)
 
     def test_creation_keyword_error(self):
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             Bits(squirrel=5)
 
     def test_creation_from_memoryview(self):
@@ -550,9 +550,9 @@ class TestInterleavedExpGolomb:
     def test_errors(self):
         for f in ["sie=100, 0b1001", "0b00", "uie=100, 0b1001"]:
             s = Bits.from_string(f)
-            with pytest.raises(bitstring.InterpretError):
+            with pytest.raises(ValueError):
                 _ = s.sie
-            with pytest.raises(bitstring.InterpretError):
+            with pytest.raises(ValueError):
                 _ = s.uie
         with pytest.raises(ValueError):
             Bits(uie=-10)
@@ -1064,11 +1064,11 @@ class TestPrettyPrintingErrors:
 
     def test_interpret_problems(self):
         a = Bits.from_zeros(7)
-        with pytest.raises(InterpretError):
+        with pytest.raises(ValueError):
             a.pp("oct")
-        with pytest.raises(InterpretError):
+        with pytest.raises(ValueError):
             a.pp("hex")
-        with pytest.raises(InterpretError):
+        with pytest.raises(ValueError):
             a.pp("bin, bytes")
 
 
@@ -1133,10 +1133,10 @@ class TestCopy:
 
 def test_native_endian_integer_dtypes_removed():
     for name in ["une", "ine"]:
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = Bits(**{name: 1}, length=16)
     for token in ["une16=454", "ine:64=-1000"]:
-        with pytest.raises(bitstring.CreationError):
+        with pytest.raises(ValueError):
             _ = Bits(token)
 
 

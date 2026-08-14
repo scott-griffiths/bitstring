@@ -25,7 +25,7 @@ The ``i``, ``u`` and ``f`` properties are the preferred names for bit-wise big-e
 The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases.
 Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32``, ``bin12`` or ``fle32``.
 
-When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`InterpretError` is raised. When used as a setter they define the new length of the bitstring. ::
+When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then a :exc:`ValueError` is raised. When used as a setter they define the new length of the bitstring. ::
 
     s = BitArray()  # Empty bitstring
     s.f32 = 101.5   # New length is 32 bits, representing a float
@@ -51,7 +51,7 @@ Note that the initial zeros are significant; for bitstrings the zeros are just a
 
 For whole-byte bitstrings the most natural interpretation is often as hexadecimal, with each byte represented by two hex digits.
 
-If the bitstring does not have a length that is a multiple of four bits then an :exc:`InterpretError` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code. ::
+If the bitstring does not have a length that is a multiple of four bits then a :exc:`ValueError` exception will be raised. This is done in preference to truncating or padding the value, which could hide errors in user code. ::
 
     >>> a.hex
     '123'
@@ -60,7 +60,7 @@ If the bitstring does not have a length that is a multiple of four bits then an 
 
 For an octal interpretation use the :attr:`~Bits.oct` property.
 
-If the bitstring does not have a length that is a multiple of three then an :exc:`InterpretError` exception will be raised. ::
+If the bitstring does not have a length that is a multiple of three then a :exc:`ValueError` exception will be raised. ::
 
     >>> a.oct
     '0443'

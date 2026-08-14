@@ -233,7 +233,7 @@ Properties can also have a length in bits appended to them to make properties su
 The binary interpretation properties of the :class:`Bits` class all become writable in the :class:`BitArray` class.
 
 For integer types, the properties can have a bit length appended to it such as ``u32`` or ``i5`` to specify the new length of the bitstring.
-Using a length too small to contain the value given will raise a :exc:`CreationError`.
+Using a length too small to contain the value given will raise a :exc:`ValueError`.
 
 When used  as a setter without a new length the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
 
@@ -244,7 +244,7 @@ When used  as a setter without a new length the value must fit into the current 
     ValueError: int 1232 is too large for a BitArray of length 8.
 
 
-Other types also have restrictions on their lengths, and using an invalid length will raise a :exc:`CreationError`.
+Other types also have restrictions on their lengths, and using an invalid length will raise a :exc:`ValueError`.
 For example trying to create a 20 bit floating point number or a two bit bool will raise this exception.
 
 ----
