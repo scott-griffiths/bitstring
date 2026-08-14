@@ -233,6 +233,13 @@ class Bits:
                         f"initialiser keyword. Use '{self.__class__.__name__}(...)' with a format "
                         f"string instead.")
                 dtype._set_fn(self, v)
+                if length is not None and dtype.bitlength is not None and len(self) != dtype.bitlength:
+                    # Some setters take a length and use it, and some take one and ignore
+                    # it, which their signatures don't distinguish. Checking the result
+                    # catches the second kind rather than dropping the length silently.
+                    raise ValueError(
+                        f"A length of {length} was supplied for the '{dtype.name}' initialiser, "
+                        f"but the value given is {len(self)} bits long.")
         if immutable:
             self._bitstore = self._bitstore.to_const()
         else:

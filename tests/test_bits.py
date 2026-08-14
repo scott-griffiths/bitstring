@@ -416,6 +416,49 @@ class TestCreation:
         assert b.unpack("5*u8") == [10, 11, 12, 13, 14]
 
 
+class TestInitialiserLength:
+    # An explicit length= is either used or rejected, never silently dropped.
+
+    @pytest.mark.parametrize("kwargs, length", [
+        ({'hex': 'ff'}, 4),
+        ({'bin': '1010'}, 2),
+        ({'oct': '77'}, 3),
+    ])
+    def test_wrong_length_is_rejected(self, kwargs, length):
+        for cls in (Bits, BitArray):
+            with pytest.raises(ValueError):
+                cls(length=length, **kwargs)
+
+    @pytest.mark.parametrize("kwargs, length, expected", [
+        ({'hex': 'ff'}, 8, '0xff'),
+        ({'bin': '1010'}, 4, '0b1010'),
+        ({'oct': '77'}, 6, '0o77'),
+    ])
+    def test_matching_length_is_accepted(self, kwargs, length, expected):
+        assert Bits(length=length, **kwargs) == expected
+        # And is the same as giving no length at all.
+        assert Bits(**kwargs) == expected
+
+    @pytest.mark.parametrize("kwargs, length", [
+        ({'u': 5}, 8),
+        ({'i': -5}, 8),
+        ({'f': 1.5}, 32),
+        ({'ube': 5}, 16),
+        ({'bool': True}, 1),
+    ])
+    def test_length_consuming_initialisers_are_unaffected(self, kwargs, length):
+        assert len(Bits(length=length, **kwargs)) == length
+
+    def test_length_rejected_by_the_dtype_itself(self):
+        # These were already errors and stay that way.
+        with pytest.raises(ValueError):
+            Bits(bool=True, length=8)
+        with pytest.raises(ValueError):
+            Bits(se=5, length=8)
+        with pytest.raises(ValueError):
+            Bits('0xff', length=4)
+
+
 class TestEmptyOperators:
     # Every operator treats an empty bitstring as unremarkable rather than as an
     # error, so that code doesn't need to special-case the empty case.

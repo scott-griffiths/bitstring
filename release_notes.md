@@ -237,6 +237,12 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* An explicit `length=` given alongside a `hex`, `bin` or `oct` initialiser is
+  now checked rather than ignored. `Bits(hex='ff', length=4)` previously returned
+  an 8 bit bitstring, quietly dropping the length; it now raises a `ValueError`.
+  A length that matches the value, such as `Bits(hex='ff', length=8)`, is
+  accepted as before. This was the last initialiser form where `length=` was
+  neither used nor rejected.
 * `Bits.unpack()` and `Reader.read_list()` now accept a single `Dtype`, not just
   a string or a list. `unpack(Dtype('u8'))` previously failed with an internal
   `TypeError: 'Dtype' object is not iterable`, even though `unpack([Dtype('u8')])`
