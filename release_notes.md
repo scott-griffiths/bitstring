@@ -233,6 +233,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* `Array.pp()` gained the `sep` parameter that `Bits.pp()` already had, for the
+  string printed between groups. The two signatures are now identical, so the
+  same positional call works on either. Note that this shifts the position of
+  `show_offset`, `stream` and `color` in `Array.pp()` - if you passed any of
+  them positionally rather than by keyword, they need updating.
 
 #### Fixes
 

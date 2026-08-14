@@ -593,6 +593,25 @@ class TestArrayMethods:
  0: c040 3f80 4000
 ] + trailing_bits = 0b110\n"""
 
+    def test_pp_sep(self):
+        a = Array('bfloat', [-3, 1, 2])
+        s = io.StringIO()
+        a.pp('hex', sep='_', stream=s)
+        assert remove_unprintable(s.getvalue()) == "<Array fmt='hex', length=3, itemsize=16 bits, total data size=6 bytes> [\n" \
+                                        " 0: c040_3f80_4000\n" \
+                                        "]\n"
+        s = io.StringIO()
+        a.pp('hex', sep='', stream=s)
+        assert remove_unprintable(s.getvalue()) == "<Array fmt='hex', length=3, itemsize=16 bits, total data size=6 bytes> [\n" \
+                                        " 0: c0403f804000\n" \
+                                        "]\n"
+
+    def test_pp_signature_matches_bits(self):
+        # The two pp() methods should stay positionally interchangeable.
+        import inspect
+        assert (list(inspect.signature(Array.pp).parameters) ==
+                list(inspect.signature(bitstring.Bits.pp).parameters))
+
     def test_pp_color_option(self, monkeypatch):
         a = Array('uint8', [1, 2])
 

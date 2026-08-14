@@ -284,7 +284,7 @@ Methods
         b'DEF'
 
 
-.. method:: Array.pp(fmt: str | None = None, width: int = 120, show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None
+.. method:: Array.pp(fmt: str | None = None, width: int = 120, sep: str = ' ', show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None
 
     Pretty print the Array.
 
@@ -295,6 +295,8 @@ Methods
     A pair of comma-separated format strings can also be used - if both formats specify a length they must be the same. For example ``'f, hex16'`` or ``'u4, bin4'``.
 
     The output will try to stay within `width` characters per line, but will always output at least one element value.
+
+    The `sep` string is printed between groups, and defaults to a single space.
 
     Setting `show_offset` to ``False`` will hide the element index on each line of the output.
 

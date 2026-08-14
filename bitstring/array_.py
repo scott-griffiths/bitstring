@@ -498,13 +498,14 @@ class Array:
                                                                start_swap_bit: start_swap_bit + itemsize]
             self.data[start_swap_bit: start_swap_bit + itemsize] = temp
 
-    def pp(self, fmt: str | None = None, width: int = 120,
+    def pp(self, fmt: str | None = None, width: int = 120, sep: str = ' ',
            show_offset: bool = True, stream: TextIO | None = None, color: bool | None = None) -> None:
         """Pretty-print the Array contents.
 
         fmt -- Data format string. Defaults to current Array dtype.
         width -- Max width of printed lines in characters. Defaults to 120. A single group will always
                  be printed per line even if it exceeds the max width.
+        sep -- A separator string to insert between groups. Defaults to a single space.
         show_offset -- If True shows the element offset in the first column of each line.
         stream -- A TextIO object with a write() method. Defaults to sys.stdout.
         color -- If True use ANSI colours, if False disable them. Defaults to honouring NO_COLOR.
@@ -513,7 +514,6 @@ class Array:
         if stream is None:
             stream = sys.stdout
         colour = Colour(should_use_color(color))
-        sep = ' '
         dtype2 = None
         tidy_fmt = None
         if fmt is None:
