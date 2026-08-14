@@ -226,7 +226,13 @@ class Bits:
                     f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
                     f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
             else:
-                Dtype(k, length)._set_fn(self, v)
+                dtype = Dtype(k, length)
+                if not dtype._is_property:
+                    raise ValueError(
+                        f"The '{dtype.name}' dtype can only be used in a format string, not as an "
+                        f"initialiser keyword. Use '{self.__class__.__name__}(...)' with a format "
+                        f"string instead.")
+                dtype._set_fn(self, v)
         if immutable:
             self._bitstore = self._bitstore.to_const()
         else:
@@ -276,6 +282,11 @@ class Bits:
             d = Dtype(attribute)
         except ValueError:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'.")
+        if not d._is_property:
+            # 'pad' and 'bits' are usable in format strings but aren't interpretations,
+            # so they don't appear in the attribute namespace.
+            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'. "
+                                 f"The '{d.name}' dtype can only be used in a format string.")
         if d.bitlength is not None and len(self) != d.bitlength:
             # AttributeError rather than ValueError so that hasattr() works as expected.
             raise AttributeError(f"bitstring length {len(self)} doesn't match length {d.bitlength} of property '{attribute}'.")

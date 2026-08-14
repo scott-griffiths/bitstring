@@ -147,6 +147,46 @@ class TestBasicFunctionality:
             d.pack(4)
 
 
+class TestNonPropertyDtypes:
+    # 'pad' is a format string directive rather than an interpretation, and the
+    # property form of 'bits' would just be the identity, so neither appears in
+    # the attribute namespace of Bits or BitArray.
+
+    @pytest.mark.parametrize("attribute", ['pad', 'pad8', 'bits', 'bits8'])
+    def test_not_readable_as_a_property(self, attribute):
+        b = bs.Bits('0xff')
+        assert not hasattr(b, attribute)
+        with pytest.raises(AttributeError):
+            getattr(b, attribute)
+
+    @pytest.mark.parametrize("attribute", ['pad', 'bits'])
+    def test_not_settable_as_a_property(self, attribute):
+        b = bs.BitArray('0xff')
+        with pytest.raises(AttributeError):
+            setattr(b, attribute, '0x00')
+
+    @pytest.mark.parametrize("keyword", ['pad', 'bits'])
+    def test_not_usable_as_an_initialiser_keyword(self, keyword):
+        with pytest.raises(ValueError):
+            bs.Bits(**{keyword: 8})
+
+    def test_still_usable_in_format_strings(self):
+        # The dtypes themselves are unaffected - only the attribute access is gone.
+        assert bs.Bits('0xff').unpack('bits8') == [bs.Bits('0xff')]
+        assert bs.Bits('0xff').unpack('pad4, u4') == [15]
+        assert bs.pack('u8, pad8, u8', 1, 2) == '0x010002'
+        assert bs.Reader(bs.Bits('0xff')).read_value('pad4') is None
+        assert Dtype('pad8').name == 'pad'
+        assert Dtype('bits8').name == 'bits'
+
+    def test_not_listed_in_the_property_docstring(self):
+        for cls in (bs.Bits, bs.BitArray):
+            if cls.__doc__ is not None:
+                assert 'pad --' not in cls.__doc__
+                assert 'bits --' not in cls.__doc__
+                assert 'hex --' in cls.__doc__
+
+
 class TestChangingTheRegister:
 
     def test_retrieving_meta_dtype(self):

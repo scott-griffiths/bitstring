@@ -437,9 +437,14 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
    * - ``'bool[:1]'``
      - Next bit as a boolean (True or False).
    * - ``'pad:n'``
-     - Next ``n`` bits will be ignored (padding). Only applicable when reading, not creating.
+     - Next ``n`` bits are ignored when reading, and set to zero when creating.
 
 The ``':'`` before the length is optional, and is mostly omitted in the documentation, except where it improves readability.
+
+Every token above is also a property on :class:`Bits`, and a settable property on
+:class:`BitArray`, except for ``'pad'`` and ``'bits'``. Padding isn't an interpretation of
+data, and a ``bits`` property would just return the bitstring itself, so both are usable
+only in a format string.
 
 The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases for ``i``, ``u`` and ``f``.
 Longer endian-specific names such as ``intle``, ``uintbe`` and ``floatle`` also remain as compatibility aliases for ``ile``, ``ube`` and ``fle``.

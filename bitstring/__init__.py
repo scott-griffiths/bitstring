@@ -202,7 +202,7 @@ _dtype_definitions = [
                     allowed_lengths=(16,), description="a 16 bit little-endian bfloat floating point number"),
     # Other known length types
     _DtypeDefinition('bits', Bits._setbits, Bits._getbits, Bits, False, _bits_bits2chars,
-                    description="a bitstring object"),
+                    is_property=False, description="a bitstring object"),
     _DtypeDefinition('bool', Bits._setbool, Bits._getbool, bool, False, _bool_bits2chars,
                     read_fn=Bits._readbool,
                     allowed_lengths=(1,), description="a bool (True or False)"),
@@ -220,7 +220,7 @@ _dtype_definitions = [
                     variable_length=True, description="an unsigned interleaved exponential-Golomb code"),
     # Special case pad type
     _DtypeDefinition('pad', Bits._setpad, Bits._getpad, None, False, None,
-                    read_fn=Bits._readpad,
+                    read_fn=Bits._readpad, is_property=False,
                     description="a skipped section of padding"),
 
     # MXFP and IEEE 8-bit float types
@@ -286,7 +286,8 @@ for _alias in _aliases:
     _dtype_register.add_dtype_alias(_alias[0], _alias[1])
 del _dt, _alias
 
-_property_docstrings = [f'{name} -- Interpret as {_dtype_register[name].description}.' for name in _dtype_register.names]
+_property_docstrings = [f'{name} -- Interpret as {_dtype_register[name].description}.'
+                        for name in _dtype_register.names if _dtype_register[name].is_property]
 _property_docstring = '\n    '.join(_property_docstrings)
 
 # We can't be sure the docstrings are present, as it might be compiled without docstrings.

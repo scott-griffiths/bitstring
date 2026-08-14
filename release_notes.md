@@ -105,6 +105,16 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Reading a dtype property whose length doesn't match, such as `Bits('0xff').u16`,
   now raises an `AttributeError` rather than a `ValueError`, so that `hasattr()`
   works as expected.
+* The `pad` and `bits` dtypes are no longer properties on `Bits` and `BitArray`.
+  Every registered dtype used to become an attribute automatically, which was
+  right for interpretations but not for these two: `pad` is a format string
+  directive rather than an interpretation, so `Bits('0xff').pad` was a property
+  that was always `None`, and `Bits('0xff').bits` just returned the bitstring
+  back. Neither could usefully be set, and both failed with internal `TypeError`s
+  when tried. They are now absent from the attribute namespace entirely, so
+  `hasattr()` reports `False` and `pad=`/`bits=` are rejected as initialiser
+  keywords. Both dtypes are unchanged in format strings, where `'pad8'` and
+  `'bits8'` work exactly as before.
 * Removed the `bitstring.Error` exception base class. It had stopped earning its
   place: since version 4.2 the only things under it were `ReadError`, the
   never-raised `ByteAlignError` and a handful of direct raises, so

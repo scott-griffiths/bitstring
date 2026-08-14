@@ -252,6 +252,9 @@ class BitArray(Bits):
             super().__setattr__(attribute, value)
         except AttributeError:
             dtype = bitstring.dtypes.Dtype(attribute)
+            if not dtype._is_property:
+                raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'. "
+                                     f"The '{dtype.name}' dtype can only be used in a format string.")
             x = object.__new__(Bits)
             if (set_fn := dtype._set_fn) is None:
                 raise AttributeError(f"Cannot set attribute '{attribute}' as it cannot be set.")

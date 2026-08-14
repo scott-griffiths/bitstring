@@ -36,6 +36,7 @@ class Dtype:
     _bitlength: int | None
     _bits_per_item: int
     _length: int | None
+    _is_property: bool
 
     def __new__(cls, token: str | Dtype, /, length: int | None = None) -> Dtype:
         if isinstance(token, cls):
@@ -124,6 +125,7 @@ class Dtype:
         x._get_fn = definition.get_fn
         x._return_type = definition.return_type
         x._is_signed = definition.is_signed
+        x._is_property = definition.is_property
         return x
 
     def pack(self, value: Any, /) -> bitstring.Bits:
@@ -200,7 +202,7 @@ class DtypeDefinition:
 
     def __init__(self, name: str, set_fn, get_fn, return_type: Any = Any, is_signed: bool = False, bitlength2chars_fn=None,
                  variable_length: bool = False, allowed_lengths: tuple[int, ...] = tuple(), multiplier: int = 1,
-                 description: str = '', read_fn=None):
+                 description: str = '', read_fn=None, is_property: bool = True):
 
         # Consistency checks
         if int(multiplier) != multiplier or multiplier <= 0:
@@ -216,6 +218,11 @@ class DtypeDefinition:
         self.is_signed = is_signed
         self.variable_length = variable_length
         self.allowed_lengths = AllowedLengths(allowed_lengths)
+        # Most dtypes are also an interpretation of a whole bitstring, and so become a
+        # property on Bits and BitArray. The exceptions are 'pad', which is a format
+        # string directive rather than an interpretation, and 'bits', whose property
+        # form would just be the identity.
+        self.is_property = is_property
 
         self.multiplier = multiplier
 
@@ -319,6 +326,8 @@ class Register:
     def add_dtype(cls, definition: DtypeDefinition):
         cls.names[definition.name] = definition
         _token_cache.clear()
+        if not definition.is_property:
+            return
         if definition.get_fn is not None:
             setattr(bitstring.bits.Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
         if definition.set_fn is not None:
@@ -329,6 +338,8 @@ class Register:
         cls.names[alias] = cls.names[name]
         _token_cache.clear()
         definition = cls.names[alias]
+        if not definition.is_property:
+            return
         if definition.get_fn is not None:
             setattr(bitstring.bits.Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
         if definition.set_fn is not None:
