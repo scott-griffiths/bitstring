@@ -103,13 +103,58 @@ Even ignoring all that, the win was only ever partial: constructing methods retu
 base type, so bitstring would have to reapply its wrapper to every result and would keep
 the Python frame on precisely the operations that allocate.
 
-### 3. A count/limit on `find_all`
+### 3. Block-scaled MX formats
+
+The MX formats are defined with a shared scale: k=32 elements of `e2m1`/`e2m3`/`e3m2`/
+`e4m3`/`e5m2`/`mxint8` plus one E8M0 byte holding the scale for that block, all in the
+data. bitstring has never had this. What it had until 5.0 was a `Dtype` scale factor - a
+single Python float multiplier applied to a whole `Array`, out-of-band, with a
+`scale='auto'` mode that picked one from the data. That was removed in 5.0, both because
+it isn't what the specification describes and because keeping it would have left the name
+`scale` meaning something different from the block scale when the real thing arrived.
+So this is now the replacement, not an addition.
+
+What bitstring needs:
+
+- **Bulk pack and unpack over a whole buffer of blocks**, the `from_values`/`to_values`
+  equivalent. The pack side has to choose each block's scale, which is the part that
+  really wants to be in tibs: bitstring's old `'auto'` was a Python `floor(log2)`
+  heuristic that saturated at `2**±127` and returned 1 for all-zero data, a case the
+  specification doesn't cover.
+- **Single-element access by index.** `Array.__getitem__` addresses elements, not blocks,
+  so either an index-aware `to_value` or enough published layout (bits per block,
+  elements per block) for bitstring to compute the offset and skip the scale bytes.
+- **Read/write access to the block scales on their own**, for callers holding them
+  out-of-band - a separate scale plane is a common tensor layout, and it's the one case
+  the removed whole-`Array` multiplier genuinely served.
+
+Two things this costs on the bitstring side, neither of them blocking. `_TIBS_EQUIVALENT_DTYPES`
+is keyed name → `(DtypeKind, ByteOrder)` and would need a block size in the tuple. More
+substantially, `Array.itemsize`, `__len__` and `trailing_bits` all assume a uniform
+element size, and a block of 4-bit elements is 32×4 + 8 = 136 bits; block awareness there
+is additive but it is real surgery, not just a new row in the map.
+
+What it's worth, measured on a 10,000-item `e2m1mxfp` `Array` doing the scaling in Python
+the way 5.0's documentation now recommends:
+
+| operation | no scale | scaled in Python |
+|-----------|---------:|-----------------:|
+| pack      |  0.19 ms |          0.68 ms |
+| unpack    |  0.25 ms |          1.08 ms |
+| unpack, widening to `f64` | 0.25 ms | 1.58 ms |
+
+So the arithmetic costs 3-6x the bulk conversion it wraps, and that is before the block
+scales themselves are stored, chosen or read - all of which are currently not done at all.
+
+New kinds are additive on the tibs side, so this needs a 2.x minor release, not a 3.0.
+
+### 4. A count/limit on `find_all`
 
 `findall(count=n)` wraps the tibs iterator in a Python generator purely to stop early.
 `chunks_iter` already takes a `count`; `find_all`/`find_all_iter` taking one would remove
 that wrapper.
 
-### 4. Papercut: `bytes` dtype length units
+### 5. Papercut: `bytes` dtype length units
 
 `DtypeSingle` lengths are in bits for every kind, including `Bytes` - `DtypeSingle('bytes16')`
 is two bytes. bitstring's own `bytes` dtype counts bytes (`multiplier=8`). Not a bug, but
