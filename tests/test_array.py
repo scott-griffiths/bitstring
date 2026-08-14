@@ -527,13 +527,38 @@ class TestArrayMethods:
         b = eval(a.__repr__())
         assert a.equals(b)
 
-        a.extend([-4]*100)
-        b = eval(a.__repr__())
-        assert a.equals(b)
-
         a.dtype = 'float32'
         b = eval(a.__repr__())
         assert a.equals(b)
+
+    def test_repr_is_truncated_when_long(self):
+        # Like a long Bits repr, a long Array repr is truncated rather than
+        # rendering every element, so it stays usable at a REPL or in a debugger.
+        a = Array('u8', [7] * 3000)
+        r = repr(a)
+        assert '...' in r
+        assert r.endswith('# length=3000')
+        assert len(r) < 500
+        # The elements shown come from both ends.
+        b = Array('u8', list(range(200)))
+        r = repr(b)
+        assert r.startswith("Array('u8', [0, 1, 2,")
+        assert '197, 198, 199]' in r
+
+    def test_repr_is_not_truncated_when_short(self):
+        a = Array('u8', [7] * 100)
+        r = repr(a)
+        assert '...' not in r
+        assert '# length' not in r
+        assert eval(r).equals(a)
+
+    def test_repr_truncation_keeps_trailing_bits(self):
+        a = Array('u5', [1] * 200)
+        a.data += '0b11'
+        r = repr(a)
+        assert '...' in r
+        assert "trailing_bits=BitArray('0b11')" in r
+        assert r.endswith('# length=200')
 
     def test__add__(self):
         a = Array('u8', [1, 2, 3])

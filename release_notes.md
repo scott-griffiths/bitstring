@@ -237,6 +237,13 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* A long `Array` repr is now truncated instead of rendering every element, in
+  the same way a long `Bits` repr already was. Arrays of more than 100 elements
+  show the first and last 50 with `...` between them, followed by a
+  `# length=<n>` comment giving the real count. A one million element `Array`
+  previously produced a three megabyte string; it now produces about 340
+  characters, and does so around 250 times faster. As with `Bits`, a truncated
+  repr can no longer be passed to `eval()` to recreate the object.
 * `Dtype(existing_dtype, length)` now honours the length instead of discarding
   it, so `Dtype(Dtype('u8'), 16)` gives `Dtype('u', 16)` rather than silently
   returning the original `Dtype('u', 8)`. The new length is validated the same

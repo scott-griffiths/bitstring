@@ -22,6 +22,10 @@ import bitstring
 # The possible types stored in each element of the Array
 ElementType = float | str | int | bytes | bool | Bits
 
+# Longer Arrays have their repr truncated, with this many elements shown in total,
+# half from each end. Bits does the equivalent with MAX_CHARS.
+MAX_ITEMS: int = 100
+
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
@@ -316,11 +320,22 @@ class Array:
             del self.data[start: start + itemsize]
 
     def __repr__(self) -> str:
-        list_str = f"{self.to_list()}"
+        length = len(self)
+        length_str = ''
+        if length > MAX_ITEMS:
+            # Take the ends only, so that a huge Array doesn't build a huge string,
+            # and note the real length the way a truncated Bits repr does.
+            half = MAX_ITEMS // 2
+            head = ', '.join(repr(x) for x in self[:half].to_list())
+            tail = ', '.join(repr(x) for x in self[length - half:].to_list())
+            list_str = f"[{head}, ..., {tail}]"
+            length_str = f'  # length={length}'
+        else:
+            list_str = f"{self.to_list()}"
         trailing_bit_length = len(self.data) % self.itemsize
         final_str = "" if trailing_bit_length == 0 else ", trailing_bits=" + repr(
             self.data[-trailing_bit_length:])
-        return f"Array('{self._dtype}', {list_str}{final_str})"
+        return f"Array('{self._dtype}', {list_str}{final_str}){length_str}"
 
     def astype(self, dtype: str | Dtype) -> Array:
         """Return Array with elements of new dtype, initialised from current Array."""
