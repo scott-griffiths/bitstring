@@ -194,7 +194,7 @@ class Array:
 
     def _set_dtype(self, new_dtype: str | Dtype) -> None:
         if isinstance(new_dtype, Dtype):
-            self._dtype = new_dtype
+            dtype = new_dtype
         else:
             if not isinstance(new_dtype, str):
                 raise TypeError(f"An Array dtype must be a str or a Dtype, not a {type(new_dtype).__name__}.")
@@ -205,9 +205,11 @@ class Array:
                 if str(e) == utils.NATIVE_ENDIAN_STRUCT_ERROR:
                     raise  # Says exactly what's wrong, so don't replace it.
                 raise ValueError(f"Inappropriate Dtype for Array: '{new_dtype}'.") from None
-            if dtype.length is None:
-                raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
-            self._dtype = dtype
+        # Checked for both spellings: a Dtype object has to meet the same requirements
+        # as the string that would have made it.
+        if dtype.length is None:
+            raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
+        self._dtype = dtype
         self._set_tibs_dtype()
 
     def _create_element(self, value: ElementType) -> Bits:

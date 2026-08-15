@@ -408,3 +408,19 @@ def test_overwrite_with_self_at_a_non_zero_position() -> None:
     a = bitstring.BitArray("0xab")
     a.overwrite(4, a)  # AssertionError
     assert a == "0xaab"
+
+
+# Array's dtype validation used to run only on the string spelling. A Dtype object was
+# stored without any check, so a variable length dtype got in and left an Array that
+# raised from len(), to_list() and repr().
+
+def test_array_rejects_a_variable_length_dtype_object() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Array(bitstring.Dtype("ue"))  # Array('ue') does raise
+
+
+def test_array_dtype_setter_rejects_a_variable_length_dtype_object() -> None:
+    a = bitstring.Array("u8", [1, 2])
+    with pytest.raises(ValueError):
+        a.dtype = bitstring.Dtype("ue")  # a.dtype = 'ue' does raise
+    assert a.to_list() == [1, 2]
