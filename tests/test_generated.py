@@ -410,6 +410,39 @@ def test_overwrite_with_self_at_a_non_zero_position() -> None:
     assert a == "0xaab"
 
 
+# A zero-length dtype used to pass Array's "must be fixed length" check, and then every
+# operation divided by the item size. Array rejects variable length dtypes with a
+# ValueError and now rejects these the same way.
+
+@pytest.mark.parametrize("dtype", ["bin0", "hex0", "oct0", "bytes0", "bits0", "pad0"])
+def test_array_rejects_a_zero_length_dtype(dtype: str) -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Array(dtype)
+
+
+def test_read_array_with_a_zero_length_dtype() -> None:
+    r = bitstring.Reader(bitstring.Bits("0xff"))
+    with pytest.raises(ValueError):
+        _ = r.read_array("bin0")
+    assert r.pos == 0
+
+
+def test_array_pp_with_a_zero_length_format(capsys) -> None:
+    # Bits.pp('bin0') works - 0 means 'don't split into groups' - and the same
+    # format used to divide by zero in Array.pp before it got that far.
+    bitstring.Array("u8", [1, 2]).pp("bin0", color=False)
+    assert "0000000100000010" in capsys.readouterr().out
+
+
+def test_array_dtype_setter_rejects_a_zero_length_dtype() -> None:
+    a = bitstring.Array("u8", [1, 2])
+    with pytest.raises(ValueError):
+        a.dtype = "bin0"
+    with pytest.raises(ValueError):
+        a.dtype = bitstring.Dtype("bin0")
+    assert a.to_list() == [1, 2]
+
+
 # Array's dtype validation used to run only on the string spelling. A Dtype object was
 # stored without any check, so a variable length dtype got in and left an Array that
 # raised from len(), to_list() and repr().

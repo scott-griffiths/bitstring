@@ -209,6 +209,10 @@ class Array:
         # as the string that would have made it.
         if dtype.length is None:
             raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
+        if dtype.bitlength == 0:
+            # An item that takes no bits would make the item count meaningless, and every
+            # method that divides the data up by the item size divide by zero.
+            raise ValueError(f"A non-zero length format is needed for an Array, received '{new_dtype}'.")
         self._dtype = dtype
         self._set_tibs_dtype()
 
@@ -597,7 +601,17 @@ class Array:
         if token_length is None:
             token_length = self.itemsize
 
-        trailing_bit_length = len(self._data) % token_length
+        if token_length == 0:
+            # A zero length format means 'don't split into groups', as it does for
+            # Bits.pp. There are then no groups to count or to measure offsets by, so
+            # fall back to the Array's own items and to bit offsets.
+            trailing_bit_length = 0
+            length = len(self)
+            offset_factor = 1
+        else:
+            trailing_bit_length = len(self._data) % token_length
+            length = len(self._data) // token_length
+            offset_factor = token_length
         format_sep = " : "  # String to insert on each line between multiple formats
         if tidy_fmt is None:
             tidy_fmt = colour.purple + str(dtype1) + colour.off
@@ -605,10 +619,9 @@ class Array:
                 tidy_fmt += ', ' + colour.blue + str(dtype2) + colour.off
             tidy_fmt = "fmt='" + tidy_fmt + "'"
         data = self._data if trailing_bit_length == 0 else self._data[0: -trailing_bit_length]
-        length = len(self._data) // token_length
         len_str = colour.green + str(length) + colour.off
         stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self._data) + 7) // 8} bytes> [\n")
-        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, token_length, colour)
+        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, offset_factor, colour)
         stream.write("]")
         if trailing_bit_length != 0:
             stream.write(" + trailing_bits = " + str(self._data[-trailing_bit_length:]))

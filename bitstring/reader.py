@@ -342,6 +342,9 @@ class Reader:
         if itemsize is None:
             raise ValueError(f"read_array() needs a dtype with a fixed length, "
                              f"but '{dtype}' doesn't have one.")
+        if itemsize == 0:
+            raise ValueError(f"read_array() needs a dtype with a non-zero length, "
+                             f"but '{dtype}' has a length of zero.")
         if n is None:
             n = self.remaining // itemsize
         else:

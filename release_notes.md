@@ -374,6 +374,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
   `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
   `False`, as comparing against an unrelated type already did.
+* Zero-length dtypes such as `bin0` and `hex0` are now rejected by `Array` and
+  `Reader.read_array()`, following the same rule as the zero-length `u` and `i` dtypes.
+  They built objects whose every operation divided the data up by an item size of zero.
+  `Array.pp('bin0')` still works, and means 'don't split into groups' as it does for
+  `Bits.pp()`.
 * An `Array` dtype given as a `Dtype` object is now checked the same way as the string
   that would have made it. `Array(Dtype('ue'))` was accepted where `Array('ue')` raised,
   building an `Array` that then failed from `len()`, `to_list()` and `repr()`.

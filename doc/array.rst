@@ -7,7 +7,7 @@ Array
 .. class:: Array(dtype: str | Dtype, initializer: Iterable | Array | array.array | None = None, trailing_bits: BitsType | None = None)
 
     Create a new ``Array`` whose elements are set by the `dtype` (data-type) string or :class:`Dtype`.
-    This can be any format which has a fixed length.
+    This can be any format which has a fixed, non-zero length.
     See :ref:`format_tokens` and :ref:`compact_format` for details on allowed dtype strings, noting that only formats with well defined bit lengths are allowed.
 
     The `initializer` is an iterable of values appropriate to the `dtype`, such as a list, another ``bitstring.Array`` or an ``array.array``. ::

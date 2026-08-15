@@ -282,7 +282,8 @@ Methods
 
     Raises a :exc:`ReadError` if *n* is given and there are not enough bits
     for that many items, in which case the position does not move, and a
-    ``ValueError`` if *n* is negative. ::
+    ``ValueError`` if *n* is negative or if *dtype* doesn't have a fixed,
+    non-zero length. ::
 
         >>> r = Reader(Bits('0x0102030405'))
         >>> r.read_array('u8', 3)
