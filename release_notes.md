@@ -374,6 +374,9 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
   `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
   `False`, as comparing against an unrelated type already did.
+* `pack()` now takes a `Dtype`, or a list containing them, wherever it takes a format
+  string, matching `Bits.unpack()`. `pack(Dtype('u8'), 5)` raised a `TypeError` from
+  trying to iterate the `Dtype`.
 * The `bits` dtype always unpacks to an immutable `Bits` now, which is its `return_type`.
   Reading it out of a `BitArray` gave a `BitArray` back, so `Array('bits8', ...)` had
   mutable elements while `Bits(...).unpack('bits8')` had immutable ones.

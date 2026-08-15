@@ -9,12 +9,13 @@ pack
 
    Packs the values and keyword arguments according to the *fmt* string and returns a new :class:`Bits` object.
 
-   :param fmt: string with comma separated tokens
+   :param fmt: string with comma separated tokens, a :class:`Dtype`, or a list of either
    :param values: extra values used to construct the :class:`Bits`
    :param kwargs: a dictionary of token replacements
    :rtype: Bits
 
 The format string consists of comma separated tokens, see :ref:`format_tokens` and :ref:`compact_format` for details.
+A :class:`Dtype` is accepted wherever its string form is, as it is by :meth:`Bits.unpack`, so ``pack(Dtype('u8'), 5)`` and ``pack('u8', 5)`` are the same.
 
 The tokens can be 'literals', like ``0xef``, ``0b110``, ``u8=55``, etc. which just represent a set sequence of bits.
 

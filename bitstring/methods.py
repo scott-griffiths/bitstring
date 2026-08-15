@@ -42,10 +42,10 @@ def _prepared_pack_fmt(fmt: str):
     return dtype_tuple, len(specs)
 
 
-def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
+def pack(fmt: str | bitstring.Dtype | list[str | bitstring.Dtype], *values, **kwargs) -> Bits:
     """Pack the values according to the format string and return a new Bits object.
 
-    fmt -- A single string or a list of strings with comma separated tokens
+    fmt -- A single string or Dtype, or a list of them, with comma separated tokens
            describing how to create the Bits.
     values -- Zero or more values to pack according to the format.
     kwargs -- A dictionary or keyword-value pairs - the keywords used in the
@@ -89,11 +89,12 @@ def pack(fmt: str | list[str], *values, **kwargs) -> Bits:
                     return s
 
     tokens = []
-    if isinstance(fmt, str):
+    if isinstance(fmt, (str, bitstring.Dtype)):
         fmt = [fmt]
     kwarg_names = tuple(sorted(kwargs.keys())) if kwargs else ()
     for f_item in fmt:
-        _, tkns = tokenparser(f_item, kwarg_names)
+        # A Dtype is accepted wherever its string form is, as it is by unpack().
+        _, tkns = tokenparser(str(f_item) if isinstance(f_item, bitstring.Dtype) else f_item, kwarg_names)
         tokens.extend(tkns)
     value_iter = iter(values)
     bsl: list[ConstBitStore] = []
