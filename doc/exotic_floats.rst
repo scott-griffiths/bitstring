@@ -108,7 +108,7 @@ You can easily examine every possible value that these formats can represent usi
 or using the :class:`Array` type it's even more concise - we can create an Array and pretty print all the values with this line::
 
     >>> Array.from_bytes('p4binary8', bytearray(range(256))).pp(width=90)
-    <Array fmt='p4binary', length=256, itemsize=8 bits, total data size=256 bytes>
+    <Array dtype='p4binary', length=256, itemsize=8 bits, total data size=256 bytes>
     [
        0:           0.0  0.0009765625   0.001953125  0.0029296875    0.00390625  0.0048828125
        6:   0.005859375  0.0068359375     0.0078125  0.0087890625   0.009765625  0.0107421875

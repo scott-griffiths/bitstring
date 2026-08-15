@@ -70,17 +70,21 @@ You can then access and modify the ``Array`` with the usual notation::
 Conversion between ``Array`` types can be done using the :meth:`Array.astype` method.
 If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
 
-    >>> x = Array('f64', [89.3, 1e34, -0.00000001, 34])
+    >>> x = Array('f64', [89.3, 200.0, -0.00000001, 34])
     >>> y = x.astype('f16')
     >>> y
-    Array('f16', [89.3125, inf, -0.0, 34.0])
+    Array('f16', [89.3125, 200.0, -0.0, 34.0])
     >>> y = y.astype('p4binary')
     >>> y
-    Array('p4binary', [88.0, 240.0, 0.0, 32.0])
+    Array('p4binary', [88.0, 192.0, 0.0, 32.0])
     >>> y.astype('u8')
-    Array('u8', [88, 240, 0, 32])
+    Array('u8', [88, 192, 0, 32])
     >>> y.astype('u7')
-    ValueError: 240 is too large an unsigned integer for a bitstring of length 7. The allowed range is [0, 127].
+    ValueError: Value 192 does not fit in 7 bits.
+
+Values that are too large for the new dtype become ``inf`` rather than being clamped, so
+converting a value such as ``1e34`` to ``f16`` gives ``inf``, and converting that on to an
+integer dtype raises an :exc:`OverflowError`.
 
 You can also reinterpret the data by changing the :attr:`Array.dtype` property directly.
 This will not copy any data but will cause the current data to be shown differently. ::
@@ -170,8 +174,11 @@ Methods
         >>> b = a.astype('f16')
         >>> b.data
         BitArray('0xe3bc50403c003400')
-        >>> a == b
-        Array('bool', [True, True, True, True])
+        >>> b.to_list() == a.to_list()
+        True
+
+    Note that comparing two ``Array`` objects with different dtypes is not supported - compare
+    their values with :meth:`~Array.to_list` as above, or cast one to the other's dtype first.
 
 
 .. method:: Array.byteswap() -> None
@@ -304,7 +311,7 @@ Methods
 
         >>> a = Array.from_bytes('u20', bytearray(range(100)))
         >>> a.pp(width=70, show_offset=False)
-        <Array fmt='u20', length=40, itemsize=20 bits, total data size=100 bytes> [
+        <Array dtype='u20', length=40, itemsize=20 bits, total data size=100 bytes> [
              16  131844   20576  460809   41136  789774   61697   70163
           82257  399128  102817  728093  123378    8482  143938  337447
          164498  666412  185058  995377  205619  275766  226179  604731
@@ -345,7 +352,11 @@ Methods
         >>> a = Array('>L', [100, 200, 300])
         >>> a.reverse()
         >>> a
-        Array('>L', [300, 200, 100])
+        Array('ube32', [300, 200, 100])
+
+    Note that the compact struct code ``'>L'`` is normalised to the equivalent dtype name
+    when the ``Array`` is created, so ``'ube32'`` is what gets echoed back here. See
+    :ref:`compact_format`.
 
 .. method:: Array.to_bytes() -> bytes
 

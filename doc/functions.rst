@@ -5,11 +5,11 @@ Functions
 
 pack
 ^^^^
-.. function:: pack(format[, *values, **kwargs])
+.. function:: pack(fmt[, *values, **kwargs])
 
-   Packs the values and keyword arguments according to the *format* string and returns a new :class:`Bits` object.
-   
-   :param format: string with comma separated tokens
+   Packs the values and keyword arguments according to the *fmt* string and returns a new :class:`Bits` object.
+
+   :param fmt: string with comma separated tokens
    :param values: extra values used to construct the :class:`Bits`
    :param kwargs: a dictionary of token replacements
    :rtype: Bits

@@ -277,7 +277,8 @@ class DtypeDefinition:
             def length_checked_get_fn(bs):
                 x, length = get_fn(bs)
                 if length != len(bs):
-                    raise ValueError
+                    raise ValueError(f"Bitstring is not a single '{self.name}' code: it is "
+                                     f"{len(bs)} bits long but the code read uses {length}.")
                 return x
             self.get_fn = length_checked_get_fn
 
@@ -285,7 +286,8 @@ class DtypeDefinition:
                 try:
                     x, length = get_fn(bs[start:])
                 except ValueError:
-                    raise bitstring.ReadError
+                    raise bitstring.ReadError(f"Cannot read a '{self.name}' code at bit position "
+                                              f"{start}: the data there isn't a valid code.")
                 return x, start + length
             self.read_fn = read_fn
         self.bitlength2chars_fn = bitlength2chars_fn

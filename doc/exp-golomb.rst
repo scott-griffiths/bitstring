@@ -51,7 +51,7 @@ The :attr:`~Bits.se` property does much the same as ``ue`` and the provisos ther
 
     >>> bits = Bits('0x164b')
     >>> bits.se
-    ValueError: Bitstring is not a single exponential-Golomb code.
+    ValueError: Bitstring is not a single 'se' code: it is 16 bits long but the code read uses 7.
     >>> r = Reader(bits)
     >>> while r.pos < len(r):
     ...     print(r.read_value('se'))

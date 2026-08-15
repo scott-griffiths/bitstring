@@ -21,14 +21,14 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
            >>> s1 = Bits(hex='0x934')
            >>> s2 = Bits(oct='0o4464')
-           >>> s3 = Bits(bin='0b001000110100')
+           >>> s3 = Bits(bin='0b100100110100')
            >>> s4 = Bits(i=-1740, length=12)
            >>> s5 = Bits(u=2356, length=12)
            >>> s6 = Bits.from_bytes(b'\x93@', length=12)
            >>> s1 == s2 == s3 == s4 == s5 == s6
            True
            >>> Bits([1, 0, True, False])
-           Bits('0b1010')
+           Bits('0xa')
 
     See also :ref:`auto_init`, which describes the string-based auto initialiser. ::
 
@@ -103,16 +103,16 @@ Methods
 
     At most *count* items are returned and the range is given by the slice *[start:end]*, which defaults to the whole bitstring. ::
 
-        >>> s = BitArray('0x1234')
-        >>> for nibble in s.cut(4):
-        ...     s.prepend(nibble)
-        >>> print(s)
-        0x43211234
+        >>> s = Bits('0x1234')
+        >>> [nibble.hex for nibble in s.cut(4)]
+        ['1', '2', '3', '4']
+        >>> [chunk.hex for chunk in s.cut(8, count=1)]
+        ['12']
 
 
-.. method:: Bits.endswith(bs: BitsType, start: int | None = None, end: int | None = None) -> bool
+.. method:: Bits.endswith(suffix: BitsType, start: int | None = None, end: int | None = None) -> bool
 
-    Returns ``True`` if the bitstring ends with the sub-string *bs*, otherwise returns ``False``.
+    Returns ``True`` if the bitstring ends with the sub-string *suffix*, otherwise returns ``False``.
 
     A slice can be given using the *start* and *end* bit positions and defaults to the whole bitstring. ::
 
@@ -195,7 +195,7 @@ Methods
     If a file object is given the bits are taken from its current file position onwards, and it must be open on a real file.
     For in-memory streams such as ``io.BytesIO`` use :meth:`~Bits.from_bytes` instead.
 
-.. classmethod:: Bits.from_tibs(tibs_obj: tibs.Tibs | tibs.Mutibs, /) -> Bits
+.. classmethod:: Bits.from_tibs(tibs: tibs.Tibs | tibs.Mutibs, /) -> Bits
 
     Creates a new bitstring from a ``tibs.Tibs`` or ``tibs.Mutibs`` instance.
 
@@ -233,15 +233,14 @@ Methods
 
         >>> s = Bits('0b10111100101101001')*20
         >>> s.pp(width=80)
-        <Bits, fmt='bin8, hex', length=340 bits> [
-          0: 10111100 10110100 11011110 01011010 01101111 00101101 : bc b4 de 5a 6f 2d
-         48: 00110111 10010110 10011011 11001011 01001101 11100101 : 37 96 9b cb 4d e5
-         96: 10100110 11110010 11010011 01111001 01101001 10111100 : a6 f2 d3 79 69 bc
-        144: 10110100 11011110 01011010 01101111 00101101 00110111 : b4 de 5a 6f 2d 37
-        192: 10010110 10011011 11001011 01001101 11100101 10100110 : 96 9b cb 4d e5 a6
-        240: 11110010 11010011 01111001 01101001 10111100 10110100 : f2 d3 79 69 bc b4
-        288: 11011110 01011010 01101111 00101101 00110111 10010110 : de 5a 6f 2d 37 96
-        ] + trailing_bits = 0x9
+        <Bits, fmt='bin', length=340 bits> [
+          0: 10111100 10110100 11011110 01011010 01101111 00101101 00110111 10010110
+         64: 10011011 11001011 01001101 11100101 10100110 11110010 11010011 01111001
+        128: 01101001 10111100 10110100 11011110 01011010 01101111 00101101 00110111
+        192: 10010110 10011011 11001011 01001101 11100101 10100110 11110010 11010011
+        256: 01111001 01101001 10111100 10110100 11011110 01011010 01101111 00101101
+        320: 00110111 10010110 1001
+        ]
 
 
         >>> s.pp('i20, hex', width=80, show_offset=False, sep=' / ')
@@ -294,9 +293,9 @@ Methods
         >>> [bs.bin for bs in s.split('0x4')]
         ['', '01000', '01001000', '0100011']
 
-.. method:: Bits.startswith(bs: BitsType, start: int | None = None, end: int | None = None) -> bool
+.. method:: Bits.startswith(prefix: BitsType, start: int | None = None, end: int | None = None) -> bool
 
-    Returns ``True`` if the bitstring starts with the sub-string *bs*, otherwise returns ``False``.
+    Returns ``True`` if the bitstring starts with the sub-string *prefix*, otherwise returns ``False``.
 
     A slice can be given using the *start* and *end* bit positions and defaults to the whole bitstring. ::
 
@@ -685,10 +684,6 @@ Special Methods
     Compares two bitstring objects for inequality, returning ``False`` if they have the same binary representation, otherwise returning ``True``.
 
 
-.. method:: Bits.__nonzero__()
-
-    See :meth:`__bool__`.
-
 .. method:: Bits.__or__(bs)
 .. method:: Bits.__ror__(bs)
 
@@ -707,8 +702,8 @@ Special Methods
 
     If the result is too long then it will be truncated with ``...`` and the length of the whole will be given. ::
 
-        >>> Bits(‘0b11100011’)
-        Bits(‘0xe3’)
+        >>> Bits('0b11100011')
+        Bits('0xe3')
 
 .. method:: Bits.__rshift__(n)
 
@@ -716,9 +711,9 @@ Special Methods
 
     Returns the bitstring with its bits shifted *n* places to the right. The *n* left-most bits will become zeros. ::
 
-        >>> s = Bits(‘0xff’)
+        >>> s = Bits('0xff')
         >>> s >> 4
-        Bits(‘0x0f’)
+        Bits('0x0f')
 
 .. method:: Bits.__str__()
 

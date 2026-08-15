@@ -301,7 +301,10 @@ For example::
     >>> b + 1
     Array('i6', [31, -9, 2, 1])
     >>> b + b
-    Array('i6', [60, -20, 2, 0])
+    ValueError: Applying operator 'add' between Arrays caused 1 errors. First error at index 0 was: "Value 60 does not fit in 6 signed bits."
+
+Results still have to fit the ``Array``'s dtype, so the last line fails because ``30 + 30``
+is outside the range of ``'i6'``.
 
 Comparison operators will output an ``Array`` with a ``dtype`` of ``'bool'``.
 
@@ -508,6 +511,8 @@ The exact type is determined by combining the endianness character with the form
 ========  ======================================   ===========
 
 As you can see both are signed integers in 16 bits, the only difference is the endianness. For the single byte codes ``'b'`` and ``'B'`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
+
+A compact code is converted to the equivalent dtype as soon as it is used, and the code itself isn't kept. The dtype name in the right-hand column above is what you'll see from then on - in :attr:`Array.dtype`, in a ``repr()`` and in error messages. So ``Array('>L', [1, 2])`` reprs as ``Array('ube32', [1, 2])``, which is the same thing written the other way.
 
 ------
 

@@ -241,7 +241,7 @@ When used  as a setter without a new length the value must fit into the current 
     >>> s.i
     -13
     >>> s.i = 1232
-    ValueError: int 1232 is too large for a BitArray of length 8.
+    ValueError: Value 1232 does not fit in 8 signed bits.
 
 
 Other types also have restrictions on their lengths, and using an invalid length will raise a :exc:`ValueError`.

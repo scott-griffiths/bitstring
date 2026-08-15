@@ -237,6 +237,10 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* The `ue`, `se`, `uie` and `sie` dtypes now give a message when a bitstring
+  isn't a single code, instead of raising a `ValueError` with no message at all.
+  Reading one of them from data that isn't a valid code likewise gives a
+  `ReadError` naming the dtype and the bit position.
 * `Array` now defines `__slots__`, as `Bits`, `BitArray` and `Reader` already
   did. Assigning to an attribute that doesn't exist raises an `AttributeError`
   instead of silently succeeding, so `a.dtyp = 'u4'` is now caught rather than
