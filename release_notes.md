@@ -243,6 +243,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* `Reader.read_array()` now spells its item count `n` rather than `count`, so
+  `count` means only "stop after this many results" - which is what it means on
+  `findall()`, `split()`, `replace()` and `cut()`. `Array.from_zeros()` and
+  `Array.from_file()` already used `n` for the same job. `Reader` is new in 5.0,
+  so only the betas are affected.
 * The `Reader` search methods now spell their flag `bytealigned`, matching
   `Bits.find()` and the other whole-bitstring methods, and it must be passed by
   keyword on all of them. `Reader.byte_pos` is likewise now `Reader.bytepos`,

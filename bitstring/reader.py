@@ -327,13 +327,13 @@ class Reader:
             self._pos = old_pos
             raise
 
-    def read_array(self, dtype: str | Dtype, /, count: int | None = None) -> bitstring.Array:
-        """Read count items of one dtype and return them as an Array.
+    def read_array(self, dtype: str | Dtype, /, n: int | None = None) -> bitstring.Array:
+        """Read n items of one dtype and return them as an Array.
 
-        If count isn't given then as many whole items as fit in the remaining bits are
+        If n isn't given then as many whole items as fit in the remaining bits are
         read, and any bits left over are not read.
 
-        Raises ReadError if count is given and there aren't enough bits for that many
+        Raises ReadError if n is given and there aren't enough bits for that many
         items, in which case the position doesn't move.
 
         """
@@ -342,13 +342,13 @@ class Reader:
         if itemsize is None:
             raise ValueError(f"read_array() needs a dtype with a fixed length, "
                              f"but '{dtype}' doesn't have one.")
-        if count is None:
-            count = self.remaining // itemsize
+        if n is None:
+            n = self.remaining // itemsize
         else:
-            count = Reader._as_int(count, "count")
-            if count < 0:
-                raise ValueError(f"Cannot read a negative number of items ({count}).")
-        end = self._end_of_read(count * itemsize)
+            n = Reader._as_int(n, "number of items")
+            if n < 0:
+                raise ValueError(f"Cannot read a negative number of items ({n}).")
+        end = self._end_of_read(n * itemsize)
         array = bitstring.Array(d)
         array.data = bitstring.BitArray(self._bits._slice(self._pos, end))
         self._pos = end

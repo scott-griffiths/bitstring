@@ -271,18 +271,18 @@ Methods
         >>> r.pos
         0
 
-.. method:: Reader.read_array(dtype: str | Dtype, /, count: int | None = None) -> Array
+.. method:: Reader.read_array(dtype: str | Dtype, /, n: int | None = None) -> Array
 
-    Reads *count* items of type *dtype* and returns them as an :class:`Array`,
+    Reads *n* items of type *dtype* and returns them as an :class:`Array`,
     advancing :attr:`Reader.pos` past them.
 
-    If *count* is not given then as many whole items as will fit in the
+    If *n* is not given then as many whole items as will fit in the
     remaining bits are read. Any bits left over at the end are not read, and can
     be checked with :attr:`Reader.remaining`.
 
-    Raises a :exc:`ReadError` if *count* is given and there are not enough bits
+    Raises a :exc:`ReadError` if *n* is given and there are not enough bits
     for that many items, in which case the position does not move, and a
-    ``ValueError`` if *count* is negative. ::
+    ``ValueError`` if *n* is negative. ::
 
         >>> r = Reader(Bits('0x0102030405'))
         >>> r.read_array('u8', 3)

@@ -273,6 +273,22 @@ def test_bytealigned_is_keyword_only():
             call()
 
 
+def test_item_counts_are_spelled_n_and_result_limits_count():
+    # 'n' is a number of items, 'count' is a cap on results, 'length'/'bits' are bits.
+    import inspect
+    from bitstring import Array
+    r = Reader(Bits("0xffee"))
+    assert r.read_array("u8", n=2).to_list() == [255, 238]
+    with pytest.raises(TypeError):
+        Reader(Bits("0xffee")).read_array("u8", count=2)
+    # Array uses 'n' for the same job.
+    assert "n" in inspect.signature(Array.from_file).parameters
+    assert "n" in inspect.signature(Array.from_zeros).parameters
+    # 'count' is left meaning a limit on how many results come back.
+    assert list(Bits("0xffff").findall("0xf", count=2)) == [0, 1]  # overlapping
+    assert len(list(Bits("0xffff").cut(4, count=2))) == 2
+
+
 def test_reader_uses_the_bitstring_spellings():
     # Not byte_aligned/byte_pos, which are the tibs spellings.
     r = Reader(Bits("0x00aa"), pos=8)
