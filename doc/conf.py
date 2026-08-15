@@ -12,7 +12,7 @@ year = datetime.datetime.utcfromtimestamp(
 project = "bitstring"
 copyright = f"2006 - {year}, Scott Griffiths"
 author = "Scott Griffiths"
-release = "5.0.0_beta1"
+release = "5.0.0rc1"
 
 extensions = []
 

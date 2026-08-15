@@ -35,6 +35,22 @@ class TestModuleData:
         except FileNotFoundError:
             pass  # Doesn't run on CI.
 
+    def test_docs_version_matches(self):
+        # doc/conf.py is the third place the version is written, and the only one that
+        # nothing checked - it had drifted to a spelling the others never used.
+        filename = os.path.join(THIS_DIR, '../doc/conf.py')
+        try:
+            with open(filename) as conffile:
+                found = False
+                for line in conffile:
+                    if line.startswith("release"):
+                        assert not found
+                        assert bitstring.__version__ in line, line
+                        found = True
+            assert found
+        except FileNotFoundError:
+            pass  # Doesn't run on CI.
+
     def test_compatibility_aliases_do_not_warn(self):
         # They are kept rather than deprecated, so nothing should emit a warning.
         # If a future version does deprecate them, that is a deliberate change and
