@@ -321,3 +321,38 @@ def test_inequality_with_an_unparseable_string_is_true() -> None:
 
 def test_bitarray_equality_with_an_unparseable_string_is_false() -> None:
     assert (bitstring.BitArray("0xff") == "nope") is False
+
+
+# Bits.__getattr__ raises AttributeError for a length mismatch so that hasattr() works,
+# but that only covers names with a length in them, such as 'u16'. The bare names are
+# real properties, and their length check used to come out as a ValueError that
+# hasattr() and getattr() don't catch.
+
+def test_hasattr_is_false_for_a_property_of_the_wrong_length() -> None:
+    assert hasattr(bitstring.Bits("0b1"), "hex") is False
+
+
+def test_hasattr_is_false_for_the_u_property_of_an_empty_bitstring() -> None:
+    assert hasattr(bitstring.Bits(""), "u") is False
+
+
+def test_getattr_default_is_used_for_a_property_of_the_wrong_length() -> None:
+    assert getattr(bitstring.Bits("0b1"), "hex", "default") == "default"
+    # The lengthed spelling of the same thing already behaves like this.
+    assert getattr(bitstring.Bits("0b1"), "u16", "default") == "default"
+
+
+def test_a_wrong_length_interpretation_is_still_a_value_error() -> None:
+    # InterpretationError is both, so code that caught ValueError keeps working.
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits("0b1").hex
+    with pytest.raises(bitstring.InterpretationError):
+        _ = bitstring.Bits("0b1").hex
+
+
+@pytest.mark.parametrize("attribute", ["hex", "f", "bool", "bytes", "bfloat", "u16", "floatle"])
+def test_wrong_length_properties_are_missing_rather_than_broken(attribute: str) -> None:
+    # Three bits is a valid length for u, i and oct, but for none of these.
+    b = bitstring.Bits("0b101")
+    assert hasattr(b, attribute) is False
+    assert getattr(b, attribute, None) is None

@@ -233,6 +233,10 @@ class DtypeDefinition:
         self.set_fn_needs_length = set_fn is not None and 'length' in inspect.signature(set_fn).parameters
         self.set_fn = set_fn
 
+        # The interpretation without any length checking around it, so that the attribute
+        # getters built in _property_getter can do their own check in a single call.
+        self.raw_get_fn = get_fn
+
         if self.allowed_lengths.values:
             def allowed_length_checked_get_fn(bs):
                 if len(bs) not in self.allowed_lengths:
@@ -315,6 +319,56 @@ class DtypeDefinition:
         return s
 
 
+def _interpretation_error(definition: DtypeDefinition, length: int, attribute: str,
+                          classname: str) -> bitstring.InterpretationError:
+    return bitstring.InterpretationError(
+        f"'{classname}' object has no attribute '{attribute}': a length of {length} bits "
+        f"is not one the '{definition.name}' dtype can interpret.")
+
+
+def check_interpretation_length(definition: DtypeDefinition, length: int, attribute: str, classname: str) -> None:
+    """Raise if a bitstring of this length has no interpretation as the given dtype.
+
+    Only for the cold path in Bits.__getattr__; the properties themselves check inline.
+    """
+    if length not in definition.allowed_lengths or length % definition.multiplier:
+        raise _interpretation_error(definition, length, attribute, classname)
+
+
+def _property_getter(definition: DtypeDefinition, name: str) -> Callable:
+    """Build the attribute getter for a dtype, so a length mismatch is an AttributeError too.
+
+    A bitstring of the wrong length simply doesn't have the property, which is the rule
+    Bits.__getattr__ already uses for the names that carry a length, such as 'u16'. A
+    plain ValueError would break hasattr() and getattr() with a default, as neither of
+    those catches it.
+
+    This wraps the unchecked get_fn and does the length check itself, rather than sitting
+    on top of the checked one, so that a property read still costs a single call.
+    """
+    allowed = definition.allowed_lengths
+    multiplier = definition.multiplier
+    if not allowed.values and multiplier == 1:
+        return definition.get_fn  # No length constraint, so nothing to check.
+    get_fn = definition.raw_get_fn
+
+    if multiplier == 1:
+        @functools.wraps(get_fn)
+        def getter(self):
+            length = len(self)
+            if length not in allowed:
+                raise _interpretation_error(definition, length, name, type(self).__name__)
+            return get_fn(self)
+    else:
+        @functools.wraps(get_fn)
+        def getter(self):
+            length = len(self)
+            if length not in allowed or length % multiplier:
+                raise _interpretation_error(definition, length, name, type(self).__name__)
+            return get_fn(self)
+    return getter
+
+
 def _mutable_property_setter(set_fn: Callable) -> Callable:
     """Wrap a Bits setter so that assigning to it leaves a BitArray still mutable.
 
@@ -347,10 +401,11 @@ class Register:
         _token_cache.clear()
         if not definition.is_property:
             return
-        if definition.get_fn is not None:
-            setattr(bitstring.bits.Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
+        get_fn = None if definition.get_fn is None else _property_getter(definition, definition.name)
+        if get_fn is not None:
+            setattr(bitstring.bits.Bits, definition.name, property(fget=get_fn, doc=f"The bitstring as {definition.description}. Read only."))
         if definition.set_fn is not None:
-            setattr(bitstring.bitarray_.BitArray, definition.name, property(fget=definition.get_fn, fset=_mutable_property_setter(definition.set_fn), doc=f"The bitstring as {definition.description}. Read and write."))
+            setattr(bitstring.bitarray_.BitArray, definition.name, property(fget=get_fn, fset=_mutable_property_setter(definition.set_fn), doc=f"The bitstring as {definition.description}. Read and write."))
 
     @classmethod
     def add_dtype_alias(cls, name: str, alias: str):
@@ -359,10 +414,11 @@ class Register:
         definition = cls.names[alias]
         if not definition.is_property:
             return
-        if definition.get_fn is not None:
-            setattr(bitstring.bits.Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
+        get_fn = None if definition.get_fn is None else _property_getter(definition, alias)
+        if get_fn is not None:
+            setattr(bitstring.bits.Bits, alias, property(fget=get_fn, doc=f"An alias for '{name}'. Read only."))
         if definition.set_fn is not None:
-            setattr(bitstring.bitarray_.BitArray, alias, property(fget=definition.get_fn, fset=_mutable_property_setter(definition.set_fn), doc=f"An alias for '{name}'. Read and write."))
+            setattr(bitstring.bitarray_.BitArray, alias, property(fget=get_fn, fset=_mutable_property_setter(definition.set_fn), doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod
     def get_dtype(cls, name: str, length: int | None) -> Dtype:

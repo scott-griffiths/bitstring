@@ -533,5 +533,6 @@ Functions
 Exceptions
 ^^^^^^^^^^
 * :class:`~bitstring.ReadError` -- Reading or peeking past the end of a bitstring. Subclasses ``ValueError``.
+* :class:`~bitstring.InterpretationError` -- A bitstring's length has no interpretation as the dtype asked for. Subclasses ``AttributeError`` and ``ValueError``.
 
 Everything else is raised as a standard Python exception, usually ``ValueError`` or ``TypeError``.

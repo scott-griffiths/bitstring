@@ -374,6 +374,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
   `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
   `False`, as comparing against an unrelated type already did.
+* `hasattr()` and `getattr()` with a default now work for the dtype properties.
+  `hasattr(Bits('0b1'), 'hex')` raised a `ValueError` rather than returning `False`,
+  as only the names carrying a length (such as `u16`) raised an `AttributeError` for a
+  length mismatch. Both now raise the new `InterpretationError`, which subclasses
+  `AttributeError` and `ValueError`, so code catching `ValueError` is unaffected.
 
 ### March 2026: version 4.4.0
 
