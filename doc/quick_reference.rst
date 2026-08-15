@@ -442,7 +442,9 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
    * - ``'pad:n'``
      - Next ``n`` bits are ignored when reading, and set to zero when creating.
 
-The ``':'`` before the length is optional, and is mostly omitted in the documentation, except where it improves readability.
+The ``':'`` before the length is optional when the length is a number, and is mostly omitted in the documentation, except where it improves readability. So ``'u8'`` and ``'u:8'`` are the same token. It was required before version 4.0, so plenty of existing code has it, and it is not deprecated.
+
+The colon is required when the length is a keyword rather than a number, as in ``pack('u:n=5', n=8)``. Without it there is no way to tell where the dtype name ends and the keyword begins - ``'un'`` would be read as a dtype called ``un``.
 
 Every token above is also a property on :class:`Bits`, and a settable property on
 :class:`BitArray`, except for ``'pad'`` and ``'bits'``. Padding isn't an interpretation of

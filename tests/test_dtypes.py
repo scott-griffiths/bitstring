@@ -147,6 +147,44 @@ class TestBasicFunctionality:
             d.pack(4)
 
 
+class TestTheOptionalColon:
+    # The ':' before a length is optional when the length is a number, and required
+    # when it is a keyword. It was mandatory from 1.0 to 4.0, so it stays supported.
+
+    @pytest.mark.parametrize("with_colon, without_colon", [
+        ('u:8', 'u8'),
+        ('i:12', 'i12'),
+        ('hex:4', 'hex4'),
+        ('bytes:2', 'bytes2'),
+        ('pad:8', 'pad8'),
+        ('f:32', 'f32'),
+    ])
+    def test_both_spellings_are_the_same_dtype(self, with_colon, without_colon):
+        assert Dtype(with_colon) == Dtype(without_colon)
+
+    def test_both_spellings_work_in_format_strings(self):
+        assert bs.Bits('u:8=5') == bs.Bits('u8=5')
+        assert bs.Bits('0xff').unpack('u:4, u:4') == bs.Bits('0xff').unpack('u4, u4')
+        assert bs.pack('u:8', 5) == bs.pack('u8', 5)
+        assert bs.Bits('0xff').unpack('2*u:4') == bs.Bits('0xff').unpack('2*u4')
+
+    def test_a_keyword_length_needs_the_colon(self):
+        # Without it there's no way to see where the name ends and the keyword starts.
+        assert bs.pack('u:n=5', n=8) == '0x05'
+        assert bs.Bits('0xff').unpack('u:n', n=8) == [255]
+        with pytest.raises(ValueError):
+            bs.pack('un=5', n=8)
+        with pytest.raises(ValueError):
+            bs.Bits('0xff').unpack('un', n=8)
+
+    def test_the_colon_is_not_deprecated(self):
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            assert Dtype('u:8') == Dtype('u8')
+            assert bs.Bits('u:8=5') == '0x05'
+
+
 class TestRelengthingADtype:
     # Dtype(existing_dtype, length) re-lengths rather than dropping the length.
 

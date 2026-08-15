@@ -82,6 +82,8 @@ You can include constant bitstring tokens such as '0x101', '0xff', 'u7=81' etc. 
 
     s = bitstring.pack('0xabc, i:n=-1', n=100)
 
+Note that the ``':'`` is required here. It is optional before a numeric length, but a keyword length needs it to separate the keyword from the dtype name.
+
 Finally it is also possible just to use a keyword as a token::
 
     s = bitstring.pack('hello, world', world='0x123', hello='0b110')
