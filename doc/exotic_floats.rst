@@ -47,6 +47,8 @@ The more bits in the mantissa, the greater the precision (~significant figures) 
      - ``'bfloat'`` / ``-``
 
 
+All of these formats are big-endian, with ``'fle'`` and ``'bfloatle'`` available as the
+little-endian versions, and ``'fbe'`` and ``'bfloatbe'`` as explicit big-endian spellings.
 
 An example of creation and interpretation of a bfloat::
 
@@ -55,9 +57,6 @@ An example of creation and interpretation of a bfloat::
     Bits('0x66bf')
     >>> a.bfloat
     4.509859991140511e+23  # Converted to Python float
-
-Packing rounds to nearest, ties-to-even, as it does for every other float format here.
-Values too large for the format's range round up to ``inf``.
 
 
 IEEE 8-bit Floating Point Types
@@ -108,8 +107,7 @@ You can easily examine every possible value that these formats can represent usi
 or using the :class:`Array` type it's even more concise - we can create an Array and pretty print all the values with this line::
 
     >>> Array.from_bytes('p4binary8', bytearray(range(256))).pp(width=90)
-    <Array dtype='p4binary', length=256, itemsize=8 bits, total data size=256 bytes>
-    [
+    <Array dtype='p4binary', length=256, itemsize=8 bits, total data size=256 bytes> [
        0:           0.0  0.0009765625   0.001953125  0.0029296875    0.00390625  0.0048828125
        6:   0.005859375  0.0068359375     0.0078125  0.0087890625   0.009765625  0.0107421875
       12:    0.01171875  0.0126953125   0.013671875  0.0146484375      0.015625   0.017578125
@@ -157,9 +155,6 @@ or using the :class:`Array` type it's even more concise - we can create an Array
 
 
 You'll see that there is only 1 zero value and only one 'nan' value, together with positive and negative 'inf' values.
-
-When converting from a Python float (which will typically be stored in 64-bits) unrepresented values are rounded to nearest, with ties-to-even.
-This is the standard method used in IEEE 754.
 
 
 Microscaling Formats
@@ -256,23 +251,20 @@ A reasonable scale for a block of data is the one that lines the largest absolut
         16
 
 .. note::
-    Before version 5.0 the scale was part of the `Dtype` (``Dtype('e2m1mxfp', scale=2**10)``), including a ``scale='auto'``
-    option that calculated the above for you. Both were removed in 5.0: a whole-`Array` multiplier isn't how the MX formats
-    store their scales, which are per-block and held in the data. Block-scaled dtypes are planned for a future release,
-    once the ``tibs`` core supports them.
+    Dtypes that carry the scale themselves are planned for a future release, once the ``tibs`` core supports
+    block-scaled formats. Version 4's ``Dtype`` ``scale=`` parameter was removed in 5.0 - see
+    :ref:`upgrading_to_version_5` if you were using it.
 
 For more details on this and these formats in general see the `OCP Microscaling formats specification. <https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf>`_
 
 Conversion
 ^^^^^^^^^^
 
-When converting from a Python float to an any of the 8-or-fewer bit formats, the 'rounds to nearest, ties to even' rule is used.
-This is the same as is used in the IEEE 754 standard.
-
+When converting from a Python float to any of the formats on this page, the 'rounds to nearest, ties to even' rule is used, as it is in the IEEE 754 standard.
 The rounding is done once, directly from the Python float.
-Versions before 5.0 converted to a 16-bit IEEE float first and rounded from that, which could round a value twice and send an edge case the wrong way; that no longer happens.
 
-Values that are out of range after rounding are dealt with as follows:
+The 16-bit and wider formats (``f16``, ``f32``, ``f64`` and ``bfloat``) send out-of-range values to ``inf``.
+For the 8-bit and narrower formats it varies:
 
 - ``p3binary8`` - Out of range values are set to ``+inf`` or ``-inf``.
 - ``p4binary8`` - Out of range values are set to ``+inf`` or ``-inf``.

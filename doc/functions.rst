@@ -82,7 +82,7 @@ You can include constant bitstring tokens such as '0x101', '0xff', 'u7=81' etc. 
 
     s = bitstring.pack('0xabc, i:n=-1', n=100)
 
-Note that the ``':'`` is required here. It is optional before a numeric length, but a keyword length needs it to separate the keyword from the dtype name.
+Note that the ``':'`` is required here - it is optional before a numeric length, but a keyword length needs it.
 
 Finally it is also possible just to use a keyword as a token::
 
@@ -91,9 +91,9 @@ Finally it is also possible just to use a keyword as a token::
 Exceptions
 ----------
 
-There is no longer a module-wide exception base class. Errors are raised as the standard
-Python type that fits, so ``ValueError``, ``TypeError`` and ``IndexError`` are what most
-code needs to catch.
+There is no module-wide exception base class. Errors are raised as the standard Python type
+that fits, so ``ValueError``, ``TypeError`` and ``IndexError`` are what most code needs to
+catch.
 
 .. exception:: ReadError(ValueError)
 

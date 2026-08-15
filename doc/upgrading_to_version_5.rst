@@ -537,13 +537,10 @@ largest absolute value up with the largest value the format can represent::
 Version 4 clamped this to the powers of two from 2\ :sup:`-127` to 2\ :sup:`127`
 that the E8M0 format can hold, and used a scale of 1 when every value was zero.
 
-The reason for the removal is that a single multiplier applied to a whole
-``Array`` isn't how the MX formats work: their scales are per-block and stored
-in the data alongside the elements. A replacement is planned - once the ``tibs``
-core supports block-scaled formats, bitstring will expose them as dtypes in
-their own right, with the scale where the specification puts it. Removing the
-old parameter now keeps that future feature from inheriting a name that means
-something different.
+A single multiplier over a whole ``Array`` isn't how the MX formats work - their
+scales are per-block and stored in the data alongside the elements - so a
+replacement is planned as block-scaled dtypes once the ``tibs`` core supports
+them.
 
 Prefer the new underscored method names
 =======================================
@@ -565,9 +562,9 @@ deprecated and no ``DeprecationWarning`` is emitted for them.
    * - ``tolist()``
      - :meth:`Array.to_list`
 
-The reading methods are not in this table. :class:`Reader` is a new class in
-version 5 and keeps no compatibility aliases, so its version 4 equivalents are
-listed in `Replace stream classes with Reader`_ instead.
+The reading methods are not in this table - :class:`Reader` keeps no
+compatibility aliases, and its version 4 equivalents are listed in
+`Replace stream classes with Reader`_ instead.
 
 Remove command-line usage
 =========================

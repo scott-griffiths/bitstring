@@ -9,7 +9,7 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 
     Creates a new bitstring.
     You must specify either no initialiser, just an 'auto' value as the first parameter, or a keyword argument such as ``bin``, ``hex``, ``oct``, ``u``, ``i``, ``f`` or ``bool`` to indicate the data type.
-    If no initialiser is given then a zeroed bitstring of ``length`` bits is created.
+    With no initialiser an empty bitstring is created; use :meth:`~Bits.from_zeros` for a zero-filled one.
 
     The initialiser for the :class:`Bits` class is precisely the same as for :class:`BitArray`.
 
@@ -216,8 +216,7 @@ Methods
 
     Returns the data as a ``tibs.Tibs`` instance.
 
-    This is intended for interoperation with the lower-level ``tibs`` library. As ``tibs.Tibs`` is immutable, ``Bits`` can return the underlying object directly.
-    No ``to_mutibs`` method is provided; use tibs' own conversion methods if you need a mutable tibs object.
+    This is intended for interoperation with the lower-level ``tibs`` library. As ``tibs.Tibs`` is immutable, ``Bits`` will return the underlying object directly.
 
 
 .. method:: Bits.join(sequence: Iterable) -> Bits
@@ -233,7 +232,7 @@ Methods
         010101010
 
 
-.. method:: Bits.pp(fmt: str | None = None, width: int = 120, sep: str = ' ', show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None
+.. method:: Bits.pp(fmt: str | None = None, width: int = 120, sep: str = ' ', show_offset: bool = True, stream: TextIO | None = None, color: bool | None = None) -> None
 
     Pretty print the bitstring's value according to the *fmt*. Either a single, or two comma separated formats can be specified, together with options for setting the maximum display *width*, the number of bits to display in each group, and the separator to print between groups.
 
@@ -264,11 +263,11 @@ Methods
 
     For the ``'bytes'`` format, characters from the 'Latin Extended-A' unicode block are used for non-ASCII and unprintable characters.
 
-    If the bitstring cannot be represented in a format due to its length not being a multiple of the number of bits represented by each character then a :exc:`ValueError` will be raised.
+    Bits left over at the end are shown after the closing bracket as ``trailing_bits``. If the format has no explicit length then it must fit the whole bitstring, so for example ``pp('hex')`` on a bitstring that isn't a multiple of four bits long raises a :exc:`ValueError`.
 
     An output *stream* can be specified. This should be an object with a ``write`` method and the default is ``sys.stdout``.
 
-    By default the output will have colours added in the terminal unless the ``NO_COLOR`` environment variable is set. Pass ``color=False`` to disable colours for a call, or ``color=True`` to force them on.
+    Colours are used by default unless the ``NO_COLOR`` environment variable is set. Pass ``color=False`` to disable them for a call, or ``color=True`` to force them on.
 
 
 .. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, *, bytealigned: bool = False) -> int | None
@@ -277,7 +276,7 @@ Methods
 
     As bit position zero is a valid result, use ``s.rfind(...) is not None`` when testing whether a match was found.
 
-    If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions. *start* and *end* give the search range and default to ``0`` and :attr:`len` respectively. Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices.
+    If *bytealigned* is ``True`` then it will look for *bs* only at byte aligned positions. *start* and *end* give the search range and default to ``0`` and ``len(s)`` respectively. Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices.
 
     Note that as it's a reverse search it will start at *end* and finish at *start*. ::
 
@@ -357,7 +356,8 @@ Methods
 
     A dictionary or keyword arguments can also be provided. These will replace length identifiers in the format string.
 
-    *fmt* is an iterable, a string with comma separated tokens, or a single :class:`Dtype`, describing how to interpret the next bits in the bitstring. See the  :ref:`format_tokens` for details. ::
+    *fmt* is an iterable, a string with comma separated tokens, or a single :class:`Dtype`, describing how to interpret the next bits in the bitstring. See the  :ref:`format_tokens` for details.
+    An integer item in an iterable means that many bits, so ``['u4', 12]`` is the same as ``'u4, bits12'``. ::
 
         >>> s = Bits('i4=-1, 0b1110')
         >>> i, b = s.unpack('i:4, bin')
@@ -378,7 +378,7 @@ The many ways to interpret bitstrings can be accessed via properties.
 These properties will be read-only for a ``Bits`` object, but are also writable for derived mutable types such as ``BitArray``.
 
 Properties can also have a length in bits appended to them to such as ``u8`` or ``f64`` (for the ``bytes`` property the length is interpreted in bytes instead of bits).
-These properties with lengths will cause a :exc:`ValueError` to be raised if the bitstring is not of the specified length.
+If the bitstring isn't of that length then an :exc:`AttributeError` is raised, so that ``hasattr`` behaves as expected.
 
 This list isn't exhaustive - see for example :ref:`Exotic floats` for information on bfloats and many 8-bit and smaller floating point formats.
 Also see :ref:`exp-golomb` for some interesting variable length integer formats.
@@ -605,21 +605,14 @@ Special Methods
     If you have a different criterion you wish to use then code it explicitly, for example ``a.i == b.i`` could be true even if ``a == b`` wasn't (as they could be different lengths).
 
     The comparison promotes the other value, so strings, bytes-like objects and bit-pattern
-    lists compare equal to a bitstring with the same bits. :meth:`~Bits.__hash__` does not
-    promote, so a bitstring in a set or dictionary matches only other bitstrings::
+    lists compare equal to a bitstring with the same bits. Hashing does not promote, as many
+    different strings describe the same bits and no single hash could match them all, so use
+    bitstrings themselves as dictionary keys and set members::
 
         >>> Bits('0xff') == '0xff'
         True
-        >>> Bits('0xff') in ['0xff']       # list uses ==
-        True
-        >>> Bits('0xff') in {'0xff'}       # set uses hash first
+        >>> Bits('0xff') in {'0xff'}       # a set hashes before comparing
         False
-
-    This is deliberate. Many different strings describe the same bits - ``'0xff'``,
-    ``'0b11111111'``, ``'u8=255'`` and ``'i8=-1'`` are all equal to the same bitstring - and
-    they have different hashes, so no hash of a bitstring could match them all. Use
-    bitstrings as your keys and set members, and promote before looking up:
-    ``d[Bits('0xff')]`` rather than ``d['0xff']``.
 
 
 .. method:: Bits.__getitem__(key)
@@ -640,7 +633,7 @@ Special Methods
 
         >>> s[0]
         False
-        >>> s[-1]
+        >>> s[-2]
         True
 
 .. method:: Bits.__hash__()
@@ -651,9 +644,7 @@ Special Methods
 
     This method is not available for the :class:`BitArray` class, as only immutable objects should be hashed. You typically won't need to call it directly, instead it is used for dictionary keys and in sets.
 
-    Only bitstrings hash equal to bitstrings. Unlike :meth:`~Bits.__eq__` this does not promote
-    strings or other values, so ``Bits('0xff') in {'0xff'}`` is ``False`` even though
-    ``Bits('0xff') == '0xff'`` is ``True``. See :meth:`~Bits.__eq__` for why.
+    Only bitstrings hash equal to bitstrings - unlike :meth:`~Bits.__eq__` this doesn't promote other values.
 
 .. method:: Bits.__invert__()
 
@@ -671,15 +662,19 @@ Special Methods
         >>> ~~s == s
         True
 
+.. method:: Bits.__iter__()
+
+    ``for bit in s:``
+
+    Iterates over the bitstring, yielding ``True`` or ``False`` for each bit.
+
+    :meth:`~Bits.to_bools` is much faster if you want them all at once.
+
 .. method:: Bits.__len__()
 
     ``len(s)``
 
     Returns the length of the bitstring in bits.
-
-    If you are using a 32-bit Python build (which is quite unlikely these days) it's recommended that you use the :attr:`len` property rather than the :func:`len` function because of the function will raise a :exc:`OverflowError` if the length is greater than ``sys.maxsize``.
-
-
 
 .. method:: Bits.__lshift__(n)
 

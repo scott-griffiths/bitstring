@@ -25,7 +25,7 @@ The ``i``, ``u`` and ``f`` properties are the preferred names for bit-wise big-e
 The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases.
 Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32``, ``bin12`` or ``fle32``.
 
-When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then a :exc:`ValueError` is raised. When used as a setter they define the new length of the bitstring. ::
+When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`AttributeError` is raised. When used as a setter they define the new length of the bitstring. ::
 
     s = BitArray()  # Empty bitstring
     s.f32 = 101.5   # New length is 32 bits, representing a float
@@ -56,7 +56,7 @@ If the bitstring does not have a length that is a multiple of four bits then a :
     >>> a.hex
     '123'
     >>> b.hex
-    ValueError: Cannot convert to hex unambiguously - not multiple of 4 bits.
+    ValueError: 'hex' dtypes must have a length in (0, 4, ...), but received a length of 3.
 
 For an octal interpretation use the :attr:`~Bits.oct` property.
 
@@ -67,7 +67,7 @@ If the bitstring does not have a length that is a multiple of three then a :exc:
     >>> b.oct
     '7'
     >>> (b + '0b0').oct
-    ValueError: Cannot convert to octal unambiguously - not multiple of 3 bits.
+    ValueError: 'oct' dtypes must have a length in (0, 3, ...), but received a length of 4.
 
 Integer types
 -------------
@@ -75,7 +75,7 @@ Integer types
 To interpret the bitstring as a binary (base-2) bit-wise big-endian unsigned integer (i.e. a non-negative integer) use the :attr:`~Bits.u` property.
 
     >>> a.u
-    283
+    291
     >>> b.u
     7
 
@@ -93,7 +93,7 @@ For byte-wise big-endian and little-endian interpretations use :attr:`~Bits.ube`
 For a two's complement interpretation as a base-2 signed integer use the :attr:`~Bits.i` property. If the first bit of the bitstring is zero then the :attr:`~Bits.i` and :attr:`~Bits.u` interpretations will be equal, otherwise the :attr:`~Bits.i` will represent a negative number. ::
 
     >>> a.i
-    283
+    291
     >>> b.i
     -1
 

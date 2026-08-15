@@ -47,7 +47,7 @@ bitstring 5 is built on [tibs](https://github.com/scott-griffiths/tibs), a simpl
 binary data, written in Rust for speed. It's by the same author as bitstring so they can complement each other's needs.
 If you want a leaner interface and do not need all of bitstring's higher-level format handling and historical API, tibs may be a better fit for new code.
 
-Tibs has now reached its 1.0 release. Please do try it, as all feedback is welcome.
+Tibs has now reached its 2.0 release. Please do try it, as all feedback is welcome.
 
 <a href="https://github.com/scott-griffiths/tibs">
   <img src="https://raw.githubusercontent.com/scott-griffiths/tibs/main/doc/tibs.png" alt="tibs" width="30%">
@@ -108,10 +108,10 @@ BitArray('0x866906690669, 0b000')
 ### Reading data sequentially
 ```pycon
 >>> b = Reader(Bits('0x160120f'))
->>> b.read(12).hex
+>>> b.read_bits(12).hex
 '160'
 >>> b.pos = 0
->>> b.read('u12')
+>>> b.read_value('u12')
 352
 >>> b.read_list('u12, bin3')
 [288, '111']

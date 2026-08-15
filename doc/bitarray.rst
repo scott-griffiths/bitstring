@@ -26,6 +26,10 @@ Methods
 
     Creates a new mutable bitstring containing *length* zero bits.
 
+.. classmethod:: BitArray.from_bytes(data: bytes | bytearray | memoryview, /, *, length: int | None = None, offset: int = 0) -> BitArray
+
+    Creates a new mutable bitstring from a bytes-like object, with optional bit *offset* and *length*.
+
 .. classmethod:: BitArray.from_file(source: str | Path | BinaryIO, /, *, length: int | None = None, offset: int = 0) -> BitArray
 
     Creates a new mutable bitstring from a file path or binary file object.
@@ -53,7 +57,7 @@ Methods
 
    Change the endianness of the :class:`BitArray` in-place according to *fmt*. Return the number of swaps done.
 
-   The *fmt* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact_format`). It defaults to 0, which means reverse as many bytes as possible. The *fmt* gives a pattern of byte sizes to use to swap the endianness of the :class:`BitArray`. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``=``) is not needed, and if present it will be ignored.
+   The *fmt* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact_format`). It gives a pattern of byte sizes to use to swap the endianness of the :class:`BitArray`, and defaults to ``None``, which (like ``0``) reverses as many bytes as possible. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``=``) is not needed, and if present it will be ignored.
 
    *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitArray`). Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices. If *repeat* is ``True`` then the byte swapping pattern given by the *fmt* is repeated in its entirety as many times as possible.
 
@@ -75,12 +79,11 @@ Methods
 
        >>> s = BitArray('ule32=1234')
        >>> s.byteswap()
+       1
        >>> print(s.ube)
        1234
 
-   Note that :meth:`Array.byteswap` shares this name but takes no arguments and returns
-   ``None``. An ``Array`` knows its own item size, so it always swaps every item using
-   that as the pattern.
+   Note that :meth:`Array.byteswap` shares this name but takes no arguments, as an ``Array`` already knows its own item size.
 
 .. method:: BitArray.clear() -> None
 
@@ -90,12 +93,7 @@ Methods
 
 .. method:: BitArray.insert(pos: int, bs: BitsType) -> None
 
-    Inserts *bs* at *pos*.
-
-    Note that the argument order changed to ``insert(pos, bs)`` in version 5, to match
-    ``list.insert`` and :meth:`Array.insert`.
-
-    ::
+    Inserts *bs* at *pos*. ::
 
         >>> s = BitArray('0xccee')
         >>> s.insert(8, '0xd')
@@ -124,12 +122,7 @@ Methods
 
 .. method:: BitArray.overwrite(pos: int, bs: BitsType) -> None
 
-    Replaces the contents of the current :class:`BitArray` with *bs* at *pos*.
-
-    Note that the argument order changed to ``overwrite(pos, bs)`` in version 5, to match
-    :meth:`~BitArray.insert`.
-
-    ::
+    Replaces the contents of the current :class:`BitArray` with *bs* at *pos*. ::
 
         >>> s = BitArray.from_zeros(10)
         >>> s.overwrite(3, '0b111')
@@ -248,8 +241,8 @@ When used  as a setter without a new length the value must fit into the current 
     ValueError: Value 1232 does not fit in 8 signed bits.
 
 
-Other types also have restrictions on their lengths, and using an invalid length will raise a :exc:`ValueError`.
-For example trying to create a 20 bit floating point number or a two bit bool will raise this exception.
+Other types have restrictions on their lengths, and there is no property for a length that isn't allowed.
+There is no 20 bit float or two bit bool, so ``s.f20`` and ``s.bool2`` raise an :exc:`AttributeError`.
 
 ----
 

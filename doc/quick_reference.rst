@@ -105,6 +105,7 @@ Also available are operators that will return a new bitstring (or check for equa
 
 * :meth:`== <Bits.__eq__>` / :meth:`\!= <Bits.__ne__>` -- Equality tests.
 * :meth:`[] <Bits.__getitem__>` -- Get an element or slice.
+* :meth:`for <Bits.__iter__>` -- Iterate over the bits as bools.
 * :meth:`+ <Bits.__add__>` -- Concatenate with another bitstring.
 * :meth:`* <Bits.__mul__>` -- Concatenate multiple copies of the current bitstring.
 * :meth:`~ <Bits.__invert__>` -- Invert every bit of the bitstring.
@@ -441,9 +442,9 @@ They can also be auto promoted to bitstring when appropriate - see :ref:`auto_in
    * - ``'pad:n'``
      - Next ``n`` bits are ignored when reading, and set to zero when creating.
 
-The ``':'`` before the length is optional when the length is a number, and is mostly omitted in the documentation, except where it improves readability. So ``'u8'`` and ``'u:8'`` are the same token. It was required before version 4.0, so plenty of existing code has it, and it is not deprecated.
+The ``':'`` before the length is optional when the length is a number, so ``'u8'`` and ``'u:8'`` are the same token. It is mostly omitted in this documentation, except where it improves readability.
 
-The colon is required when the length is a keyword rather than a number, as in ``pack('u:n=5', n=8)``. Without it there is no way to tell where the dtype name ends and the keyword begins - ``'un'`` would be read as a dtype called ``un``.
+The colon is required when the length is a keyword rather than a number, as in ``pack('u:n=5', n=8)``, so that the dtype name can be told from the keyword.
 
 Every token above is also a property on :class:`Bits`, and a settable property on
 :class:`BitArray`, except for ``'pad'`` and ``'bits'``. Padding isn't an interpretation of
@@ -517,7 +518,7 @@ As you can see both are signed integers in 16 bits, the only difference is the e
 
 A single compact code is accepted anywhere a dtype name is, including :class:`Dtype`, :class:`Array`, :func:`pack`, :meth:`~Bits.unpack` and the :class:`Reader` read methods. Several codes can be combined in one string, as in ``'>hhl'``, wherever a format string with several tokens makes sense.
 
-A compact code is converted to the equivalent dtype as soon as it is used, and the code itself isn't kept. The dtype name in the right-hand column above is what you'll see from then on - in :attr:`Array.dtype`, in a ``repr()`` and in error messages. So ``Array('>L', [1, 2])`` reprs as ``Array('ube32', [1, 2])``, which is the same thing written the other way.
+The code is converted to the equivalent dtype as soon as it is used, so it is the dtype name that you'll see afterwards in reprs and error messages: ``Array('>L', [1, 2])`` reprs as ``Array('ube32', [1, 2])``.
 
 ------
 

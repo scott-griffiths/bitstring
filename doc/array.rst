@@ -82,9 +82,7 @@ If elements of the old array don't fit or don't make sense in the new array then
     >>> y.astype('u7')
     ValueError: Value 192 does not fit in 7 bits.
 
-Values that are too large for the new dtype become ``inf`` rather than being clamped, so
-converting a value such as ``1e34`` to ``f16`` gives ``inf``, and converting that on to an
-integer dtype raises an :exc:`OverflowError`.
+Note that float dtypes overflow to ``inf`` rather than clamping, so a value too large for the new dtype won't raise on its own, but will if it is then cast to an integer dtype.
 
 You can also reinterpret the data by changing the :attr:`Array.dtype` property directly.
 This will not copy any data but will cause the current data to be shown differently. ::
@@ -100,9 +98,8 @@ This will not copy any data but will cause the current data to be shown differen
 The data for the array is stored internally as a :class:`BitArray` object.
 It can be directly accessed using the :attr:`Array.data` property.
 You can freely manipulate the internal data using all of the methods available for the :class:`BitArray` class.
-The property returns the ``Array``'s own buffer rather than a copy, so changes made through it change the ``Array``.
-Assigning to it requires a :class:`BitArray` - the ``Array`` needs its data to be mutable, so a :class:`Bits`, a
-``bytes`` object or a format string raises a :exc:`TypeError`. Convert it first with ``BitArray(...)``.
+The property gives you the ``Array``'s own buffer rather than a copy, so changes made through it change the ``Array``.
+It can only be set to a :class:`BitArray`, as the data has to stay mutable.
 
 The :class:`Array` object also has a :attr:`Array.trailing_bits` read-only data member, which consists of the end bits of the :attr:`Array.data` that are left over when the :class:`Array` is interpreted using the :attr:`Array.dtype`.
 Typically :attr:`Array.trailing_bits` will be an empty :class:`BitArray` but if you change the length of the :attr:`Array.data` or change the :attr:`Array.dtype` specification there may be some bits left over.
@@ -180,9 +177,6 @@ Methods
         >>> b.to_list() == a.to_list()
         True
 
-    Note that comparing two ``Array`` objects with different dtypes is not supported - compare
-    their values with :meth:`~Array.to_list` as above, or cast one to the other's dtype first.
-
 
 .. method:: Array.byteswap() -> None
 
@@ -198,13 +192,9 @@ Methods
         >>> a
         Array('ule32', [100, 1, 999])
 
-    This takes no arguments, unlike :meth:`BitArray.byteswap`, which shares its name but
-    not its signature. An ``Array`` already knows how long its items are, so there is
-    nothing to specify: every item is swapped, using the item size as the pattern. A
-    :class:`BitArray` has no item structure, so it has to be told the byte pattern, the
-    range to apply it to and whether to repeat it, and it returns the number of swaps
-    made rather than ``None``. To byteswap part of an ``Array``, or with a different
-    pattern, work on its :attr:`~Array.data` instead.
+    Every item is swapped, using the item size as the pattern. To byteswap only part of an
+    ``Array``, or with a different pattern, use :meth:`BitArray.byteswap` on its
+    :attr:`~Array.data` instead.
 
 .. method:: Array.count(value: float | int | str | bytes) -> int
 
@@ -236,10 +226,10 @@ Methods
         >>> a.to_list() == b.to_list()
         True
 
-    Note that the ``==`` operator will perform an element-wise equality check and return a new ``Array`` of dtype ``'bool'`` (or raise an exception).
+    Note that the ``==`` operator does something different: it performs an element-wise equality check and returns a new ``Array`` of dtype ``'bool'``. Both operands must have the same dtype.
 
-        >>> a == b
-        Array('bool', [True, True, True, True, True])
+        >>> a == Array('u8', [1, 0, 3, 0, 1])
+        Array('bool', [True, False, True, False, True])
 
 
 .. method:: Array.extend(iterable: Iterable | Array) -> None
@@ -287,7 +277,7 @@ Methods
         Array('p3binary', [-10.0, -5.0, -0.5, 0.5, 5.0, 10.0])
 
 
-.. method:: Array.pop(i: int | None = None) -> float | int | str | bytes
+.. method:: Array.pop(i: int = -1) -> float | int | str | bytes
 
     Remove and return the item at position i.
 
@@ -302,7 +292,7 @@ Methods
         b'DEF'
 
 
-.. method:: Array.pp(fmt: str | None = None, width: int = 120, sep: str = ' ', show_offset: bool = True, stream: TextIO = sys.stdout, color: bool | None = None) -> None
+.. method:: Array.pp(fmt: str | None = None, width: int = 120, sep: str = ' ', show_offset: bool = True, stream: TextIO | None = None, color: bool | None = None) -> None
 
     Pretty print the Array.
 
@@ -353,7 +343,7 @@ Methods
          1445 -1188  1493  -417  1542   354 : 5a5 b5c 5d5 e5f 606 162
         ] + trailing_bits = 0x63
 
-    By default the output will have colours added in the terminal unless the ``NO_COLOR`` environment variable is set. Pass ``color=False`` to disable colours for a call, or ``color=True`` to force them on.
+    Colours are used by default unless the ``NO_COLOR`` environment variable is set. Pass ``color=False`` to disable them for a call, or ``color=True`` to force them on.
 
 
 .. method:: Array.reverse() -> None
@@ -364,10 +354,6 @@ Methods
         >>> a.reverse()
         >>> a
         Array('ube32', [300, 200, 100])
-
-    Note that the compact struct code ``'>L'`` is normalised to the equivalent dtype name
-    when the ``Array`` is created, so ``'ube32'`` is what gets echoed back here. See
-    :ref:`compact_format`.
 
 .. method:: Array.to_bytes() -> bytes
 
@@ -562,23 +548,24 @@ Numerical operators
 Bitwise operators
 """""""""""""""""
 
+These are applied to each element in turn, so the other operand must be a bitstring of the
+same length as a single item. ::
+
+    >>> a = Array('u4', [1, 5, 9, 15])
+    >>> a & '0b1110'
+    Array('u4', [0, 4, 8, 14])
+
 .. method:: Array.__and__(self, other: Bits) -> Array
 
     ``a & bs``
-
-        >>> a &= '0b1110'
 
 .. method:: Array.__or__(self, other: Bits) -> Array
 
     ``a | bs``
 
-        >>> a |= '0x7fff'
-
 .. method:: Array.__xor__(self, other: Bits) -> Array
 
     ``a ^ bs``
-
-        >>> a ^= bytearray([56, 23])
 
 .. method:: Array.__iand__(self, other: BitsType) -> Array
 
