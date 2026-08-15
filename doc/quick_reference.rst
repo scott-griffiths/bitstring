@@ -347,7 +347,7 @@ For example this means that the shift operations won't work on floating point fo
 Properties
 ^^^^^^^^^^
 
-* :attr:`~Array.data` -- The complete binary data in a ``BitArray`` object. Can be freely modified.
+* :attr:`~Array.data` -- The complete binary data in a ``BitArray`` object. Can be modified in place, and can be set to another ``BitArray``.
 * :attr:`~Array.dtype` -- The data type or typecode. Can be freely modified.
 * :attr:`~Array.itemsize` -- The length *in bits* of a single item. Read only.
 * :attr:`~Array.trailing_bits` -- If the data length is not a multiple of :attr:`~Array.itemsize`, this ``BitArray`` gives the leftovers at the end of the data.

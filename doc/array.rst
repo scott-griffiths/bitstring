@@ -100,6 +100,9 @@ This will not copy any data but will cause the current data to be shown differen
 The data for the array is stored internally as a :class:`BitArray` object.
 It can be directly accessed using the :attr:`Array.data` property.
 You can freely manipulate the internal data using all of the methods available for the :class:`BitArray` class.
+The property returns the ``Array``'s own buffer rather than a copy, so changes made through it change the ``Array``.
+Assigning to it requires a :class:`BitArray` - the ``Array`` needs its data to be mutable, so a :class:`Bits`, a
+``bytes`` object or a format string raises a :exc:`TypeError`. Convert it first with ``BitArray(...)``.
 
 The :class:`Array` object also has a :attr:`Array.trailing_bits` read-only data member, which consists of the end bits of the :attr:`Array.data` that are left over when the :class:`Array` is interpreted using the :attr:`Array.dtype`.
 Typically :attr:`Array.trailing_bits` will be an empty :class:`BitArray` but if you change the length of the :attr:`Array.data` or change the :attr:`Array.dtype` specification there may be some bits left over.

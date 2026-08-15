@@ -243,6 +243,13 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* `Array.data` is now a property that only accepts a `BitArray`. It was a plain
+  attribute, so `a.data = '0xff'` stored a string and left the `Array` in a state
+  its own methods couldn't work with - `len(a)` became 0. A `Bits`, `bytes` object
+  or format string now raises a `TypeError` telling you to convert with
+  `BitArray(...)`. Reading it is unchanged and still returns the `Array`'s own
+  buffer rather than a copy, so `a.data += '0b1'` and other in-place edits work
+  exactly as before.
 * Removed the `Dtype.bits_per_item` property. It returned 1 for every dtype
   except `bytes`, where it returned 8, and `bitlength` already gives what it was
   used for, since `bitlength == length * bits_per_item`. The units themselves are

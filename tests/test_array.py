@@ -531,6 +531,25 @@ class TestArrayMethods:
         b = eval(a.__repr__())
         assert a.equals(b)
 
+    def test_data_setter_requires_a_bitarray(self):
+        # The Array needs its buffer to be mutable, so anything else is rejected rather
+        # than silently leaving the Array in a state its own methods can't use.
+        a = Array('u8', [1, 2, 3])
+        a.data = BitArray('0xffee')
+        assert a.to_list() == [255, 238]
+        for bad in [Bits('0xff'), '0xff', b'\xff', bytearray(b'\xff'), 5, None]:
+            with pytest.raises(TypeError):
+                a.data = bad
+        # Unchanged by the failed assignments.
+        assert a.to_list() == [255, 238]
+
+    def test_data_is_the_buffer_not_a_copy(self):
+        a = Array('u8', [1, 2])
+        a.data.append('0x03')
+        assert a.to_list() == [1, 2, 3]
+        a.data += '0x04'
+        assert a.to_list() == [1, 2, 3, 4]
+
     def test_slots_reject_unknown_attributes(self):
         # 'dtype' and 'data' are easy to mistype, and a silent assignment would look
         # like it had worked while leaving the real attribute untouched.
@@ -898,7 +917,7 @@ class TestArrayOperations:
 
     def test_rshift(self):
         a = Array(dtype='u8')
-        a.data = Bits('0x00010206')
+        a.data = BitArray('0x00010206')
         b = a >> 1
         assert a.tolist() == [0, 1, 2, 6]
         assert b.tolist() == [0, 0, 1, 3]
