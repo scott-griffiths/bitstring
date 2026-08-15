@@ -241,7 +241,7 @@ class TestBugs:
 
 class TestByteAligned:
 
-    def test_not_byte_aligned(self):
+    def test_not_bytealigned(self):
         a = BitArray('0xff00ff')
         s = a.split('0xff')
         s = list(s)
@@ -258,7 +258,7 @@ class TestByteAligned:
         a.replace('0xff', '')
         assert a == '0x000'
 
-    def test_byte_aligned(self):
+    def test_bytealigned(self):
         a = BitArray('0x00 ff 0f f')
         li = list(a.findall('0xff', bytealigned=True))
         assert li == [8]

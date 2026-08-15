@@ -104,12 +104,12 @@ Moving the position
 
 :attr:`Reader.pos` is an ordinary read/write property, so it can be set
 directly or adjusted with ``+=``. Setting it outside the data raises a
-``ValueError``. :attr:`Reader.byte_pos` is the same position measured in
+``ValueError``. :attr:`Reader.bytepos` is the same position measured in
 bytes, and :attr:`Reader.remaining` and :attr:`Reader.at_end` describe how much
 is left::
 
     >>> r = Reader(Bits('0x160120f'), pos=8)
-    >>> r.byte_pos
+    >>> r.bytepos
     1
     >>> r.remaining
     20
@@ -144,7 +144,7 @@ and nothing moves. That makes ``while r.seek_to(...)`` an infinite loop, and
 ``seek_past`` the one to loop on::
 
     >>> r = Reader(Bits('0x0000010c0000011f'))
-    >>> while r.seek_past('0x000001', byte_aligned=True):
+    >>> while r.seek_past('0x000001', bytealigned=True):
     ...     print(r.read_value('u8'))
     12
     31
@@ -154,9 +154,9 @@ also return the bits passed over, the difference between them being whether the
 match itself is included::
 
     >>> r = Reader(Bits('0xaabbcc00dd'))
-    >>> r.read_to('0x00', byte_aligned=True).hex
+    >>> r.read_to('0x00', bytealigned=True).hex
     'aabbcc'
-    >>> r.read_past('0x00', byte_aligned=True).hex
+    >>> r.read_past('0x00', bytealigned=True).hex
     '00'
 
 The two families differ in how they report a missing match. The seeks return
@@ -170,13 +170,13 @@ position always ends up further back than it started and
 ``while r.seek_back_to(...)`` does make progress. Like :meth:`~Reader.seek_to`
 it leaves the position at the start of the match.
 
-All five searching methods take the same optional *byte_aligned* argument, to
+All five searching methods take the same optional *bytealigned* argument, to
 match only on byte boundaries::
 
     >>> r = Reader(Bits('0x00120034'))
-    >>> r.seek_to('0x0034', byte_aligned=True)
+    >>> r.seek_to('0x0034', bytealigned=True)
     True
-    >>> r.byte_pos
+    >>> r.bytepos
     2
 
 To search without moving the position, use the wrapped object directly, which
@@ -196,7 +196,7 @@ Errors
      - A read needs more bits than are left, or a searching read does not find
        its match.
    * - ``ValueError``
-     - A position is set outside the data, :attr:`Reader.byte_pos` is read
+     - A position is set outside the data, :attr:`Reader.bytepos` is read
        while the position is not byte aligned, :meth:`~Reader.align` cannot
        reach its boundary before the end, or an argument does not make sense,
        such as a negative length, an empty bitstring to search for, or a
@@ -310,7 +310,7 @@ Methods
         >>> r.read_list('u12, u12, bin3')
         [352, 288, '111']
 
-.. method:: Reader.read_past(bs: BitsType, /, byte_aligned: bool = False) -> Bits
+.. method:: Reader.read_past(bs: BitsType, /, bytealigned: bool = False) -> Bits
 
     Searches forwards for *bs* and reads up to and including it, leaving
     :attr:`Reader.pos` just after the match. A loop of ``read_past`` calls
@@ -321,10 +321,10 @@ Methods
     :meth:`Reader.seek_past` instead if a missing match is expected. ::
 
         >>> r = Reader(Bits('0xaabbcc00dd'))
-        >>> r.read_past('0x00', byte_aligned=True).hex
+        >>> r.read_past('0x00', bytealigned=True).hex
         'aabbcc00'
 
-.. method:: Reader.read_to(bs: BitsType, /, byte_aligned: bool = False) -> Bits
+.. method:: Reader.read_to(bs: BitsType, /, bytealigned: bool = False) -> Bits
 
     Searches forwards for *bs* and reads up to but not including it, leaving
     :attr:`Reader.pos` at the start of the match. The match itself is left to be
@@ -334,7 +334,7 @@ Methods
     does not move, and a ``ValueError`` if it is empty. ::
 
         >>> r = Reader(Bits('0xaabbcc00dd'))
-        >>> r.read_to('0x00', byte_aligned=True).hex
+        >>> r.read_to('0x00', bytealigned=True).hex
         'aabbcc'
 
 .. method:: Reader.read_value(dtype: str | Dtype, /) -> int | float | str | Bits | bool | bytes | None
@@ -360,7 +360,7 @@ Methods
         >>> r.read_value('ue')
         3
 
-.. method:: Reader.seek_back_to(bs: BitsType, /, byte_aligned: bool = False) -> bool
+.. method:: Reader.seek_back_to(bs: BitsType, /, bytealigned: bool = False) -> bool
 
     Searches backwards for the previous occurrence of *bs*. Only matches that
     end at or before :attr:`Reader.pos` are considered, so the position always
@@ -377,7 +377,7 @@ Methods
         >>> r.pos
         24
 
-.. method:: Reader.seek_past(bs: BitsType, /, byte_aligned: bool = False) -> bool
+.. method:: Reader.seek_past(bs: BitsType, /, bytealigned: bool = False) -> bool
 
     Searches forwards from :attr:`Reader.pos` for *bs*. If it is found then the
     position is moved to just after the match and ``True`` is returned,
@@ -387,12 +387,12 @@ Methods
     loops, as it always makes progress::
 
         >>> r = Reader(Bits('0x0000010c0000011f'))
-        >>> while r.seek_past('0x000001', byte_aligned=True):
+        >>> while r.seek_past('0x000001', bytealigned=True):
         ...     print(r.read_value('u8'))
         12
         31
 
-.. method:: Reader.seek_to(bs: BitsType, /, byte_aligned: bool = False) -> bool
+.. method:: Reader.seek_to(bs: BitsType, /, bytealigned: bool = False) -> bool
 
     Searches forwards from :attr:`Reader.pos` for *bs*. If it is found then the
     position is moved to the start of the match and ``True`` is returned,
@@ -404,9 +404,9 @@ Methods
     :meth:`Reader.seek_past`. ::
 
         >>> r = Reader(Bits('0xaabbcc00dd'))
-        >>> r.seek_to('0x00', byte_aligned=True)
+        >>> r.seek_to('0x00', bytealigned=True)
         True
-        >>> r.byte_pos
+        >>> r.bytepos
         3
 
 .. method:: Reader.__len__() -> int
@@ -432,7 +432,7 @@ Properties
     copy, so a :class:`BitArray` can still be modified through it. To read
     different data, create a new :class:`Reader`.
 
-.. attribute:: Reader.byte_pos
+.. attribute:: Reader.bytepos
     :type: int
 
     The current position in bytes. Reading this property requires

@@ -40,19 +40,19 @@ def test_position_is_range_checked():
         r.pos = "4"
 
 
-def test_byte_pos():
+def test_bytepos():
     r = Reader(Bits("0xff"), pos=3)
     with pytest.raises(ValueError):
-        _ = r.byte_pos
+        _ = r.bytepos
     r.pos = 8
-    assert r.byte_pos == 1
+    assert r.bytepos == 1
 
     r = Reader(Bits.from_zeros(64))
-    r.byte_pos = 6
+    r.bytepos = 6
     assert r.pos == 48
-    assert r.byte_pos == 6
+    assert r.bytepos == 6
     with pytest.raises(ValueError):
-        r.byte_pos = 9
+        r.bytepos = 9
 
 
 def test_remaining_and_at_end():
@@ -216,19 +216,19 @@ def test_align_past_the_end_raises():
 
 def test_seek_to_and_seek_past():
     r = Reader(Bits("0xaabbcc00dd"))
-    assert r.seek_to("0x00", byte_aligned=True) is True
-    assert r.byte_pos == 3
+    assert r.seek_to("0x00", bytealigned=True) is True
+    assert r.bytepos == 3
     # A match under the cursor is found where it is.
-    assert r.seek_to("0x00", byte_aligned=True) is True
-    assert r.byte_pos == 3
-    assert r.seek_past("0x00", byte_aligned=True) is True
-    assert r.byte_pos == 4
+    assert r.seek_to("0x00", bytealigned=True) is True
+    assert r.bytepos == 3
+    assert r.seek_past("0x00", bytealigned=True) is True
+    assert r.bytepos == 4
 
 
 def test_seek_past_makes_progress_in_a_loop():
     r = Reader(Bits("0x0000010c0000011f"))
     values = []
-    while r.seek_past("0x000001", byte_aligned=True):
+    while r.seek_past("0x000001", bytealigned=True):
         values.append(r.read_value("u8"))
     assert values == [12, 31]
 
@@ -259,10 +259,30 @@ def test_seeks_search_forwards_from_pos_only():
     assert r.pos == 9
 
 
-def test_search_arguments_can_be_positional():
+def test_bytealigned_is_keyword_only():
+    # A bare True at the call site says nothing about what it means.
     r = Reader(Bits("0x00aa"))
-    assert r.seek_to("0xaa", True) is True
+    assert r.seek_to("0xaa", bytealigned=True) is True
     assert r.pos == 8
+    for call in (lambda: r.seek_to("0xaa", True),
+                 lambda: r.seek_past("0xaa", True),
+                 lambda: r.seek_back_to("0xaa", True),
+                 lambda: r.read_to("0xaa", True),
+                 lambda: r.read_past("0xaa", True)):
+        with pytest.raises(TypeError):
+            call()
+
+
+def test_reader_uses_the_bitstring_spellings():
+    # Not byte_aligned/byte_pos, which are the tibs spellings.
+    r = Reader(Bits("0x00aa"), pos=8)
+    assert r.bytepos == 1
+    assert not hasattr(r, "byte_pos")
+    r.bytepos = 0
+    assert r.pos == 0
+    assert r.seek_to("0xaa", bytealigned=True) is True
+    with pytest.raises(TypeError):
+        r.seek_to("0xaa", byte_aligned=True)
 
 
 def test_searching_rejects_empty_and_integer_needles():
@@ -280,25 +300,25 @@ def test_searching_rejects_empty_and_integer_needles():
 
 def test_read_to_and_read_past():
     r = Reader(Bits("0xaabbcc00dd"))
-    assert r.read_to("0x00", byte_aligned=True).hex == "aabbcc"
-    assert r.byte_pos == 3
-    assert r.read_past("0x00", byte_aligned=True).hex == "00"
-    assert r.byte_pos == 4
+    assert r.read_to("0x00", bytealigned=True).hex == "aabbcc"
+    assert r.bytepos == 3
+    assert r.read_past("0x00", bytealigned=True).hex == "00"
+    assert r.bytepos == 4
 
     r = Reader(Bits("0xaabb"))
-    assert r.read_to("0xaa", byte_aligned=True) == Bits()
+    assert r.read_to("0xaa", bytealigned=True) == Bits()
     assert r.pos == 0
-    assert r.read_past("0xaa", byte_aligned=True) == "0xaa"
-    assert r.byte_pos == 1
+    assert r.read_past("0xaa", bytealigned=True) == "0xaa"
+    assert r.bytepos == 1
 
 
 def test_a_missed_read_to_raises_and_does_not_move():
     r = Reader(Bits("0xaabb00aa00bb"), pos=8)
     with pytest.raises(bitstring.ReadError):
-        r.read_to("0xcc", byte_aligned=True)
+        r.read_to("0xcc", bytealigned=True)
     assert r.pos == 8
     with pytest.raises(bitstring.ReadError):
-        r.read_past("0xcc", byte_aligned=True)
+        r.read_past("0xcc", bytealigned=True)
     assert r.pos == 8
 
 
@@ -357,7 +377,7 @@ def test_reader_with_pack_result():
 @pytest.mark.parametrize(
     "name",
     ["read", "readlist", "peek", "peek_list", "peeklist", "readto",
-     "byte_align", "bytealign", "find", "rfind", "bitpos", "bytepos"],
+     "byte_align", "bytealign", "find", "rfind", "bitpos"],
 )
 def test_version_4_names_explain_themselves(name):
     r = Reader(Bits("0x1234"))

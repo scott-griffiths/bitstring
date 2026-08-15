@@ -48,15 +48,15 @@ def test_interleaved_exp_golomb_reading_errors_restore_position():
     assert s.pos == 0
 
 
-def test_read_past_byte_aligned():
+def test_read_past_bytealigned():
     a = Reader(Bits('0xaabb00aa00bb'))
-    b = a.read_past('0x00', byte_aligned=True)
+    b = a.read_past('0x00', bytealigned=True)
     assert b == '0xaabb00'
-    assert a.byte_pos == 3
-    b = a.read_past('0xaa', byte_aligned=True)
+    assert a.bytepos == 3
+    b = a.read_past('0xaa', bytealigned=True)
     assert b == '0xaa'
     with pytest.raises(bitstring.ReadError):
-        Reader(b).read_past('0xcc', byte_aligned=True)
+        Reader(b).read_past('0xcc', bytealigned=True)
 
 
 def test_read_past_not_aligned():

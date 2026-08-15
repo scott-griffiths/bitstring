@@ -129,7 +129,7 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   `ValueError` / `TypeError` / `IndexError`, instead.
 * Removed `bitstring.ByteAlignError`. It was exported and documented but never
   raised anywhere in the library, so `except ByteAlignError` could never fire.
-  The places that might have raised it, such as `Reader.byte_pos` on an unaligned
+  The places that might have raised it, such as `Reader.bytepos` on an unaligned
   position and `Bits.bytes` on a length that isn't a whole number of bytes, raise
   `ValueError` as they always have.
 * Removed `bitstring.InterpretError` and `bitstring.CreationError`. Since version
@@ -243,6 +243,13 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* The `Reader` search methods now spell their flag `bytealigned`, matching
+  `Bits.find()` and the other whole-bitstring methods, and it must be passed by
+  keyword on all of them. `Reader.byte_pos` is likewise now `Reader.bytepos`,
+  matching the version 4 name. Both had picked up the spellings used by the
+  underlying `tibs` library, where they are `byte_aligned` and `mask` - the same
+  reason `mask=` was dropped from `Reader` earlier in this release. `Reader` is
+  new in 5.0, so only the betas are affected.
 * `Array.data` is now a property that only accepts a `BitArray`. It was a plain
   attribute, so `a.data = '0xff'` stored a string and left the `Array` in a state
   its own methods couldn't work with - `len(a)` became 0. A `Bits`, `bytes` object

@@ -219,7 +219,7 @@ Properties
 
 * :attr:`~Reader.at_end` -- Whether the position is at the end of the data.
 * :attr:`~Reader.bits` -- The wrapped ``Bits`` or ``BitArray`` object.
-* :attr:`~Reader.byte_pos` -- The current byte position.
+* :attr:`~Reader.bytepos` -- The current byte position.
 * :attr:`~Reader.pos` -- The current bit position.
 * :attr:`~Reader.remaining` -- The number of bits left to read.
 

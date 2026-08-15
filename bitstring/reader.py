@@ -31,7 +31,6 @@ _removed_names: dict[str, str] = {
     "find": "Use seek_to() or seek_past(), or self.bits.find() to search without moving.",
     "rfind": "Use seek_back_to(), or self.bits.rfind() to search without moving.",
     "bitpos": "Use pos.",
-    "bytepos": "Use byte_pos.",
 }
 
 
@@ -62,7 +61,7 @@ class Reader:
 
     at_end -- Whether the position is at the end of the data.
     bits -- The wrapped Bits or BitArray object.
-    byte_pos -- The current byte position.
+    bytepos -- The current byte position.
     pos -- The current bit position.
     remaining -- The number of bits left to read.
 
@@ -114,15 +113,15 @@ class Reader:
         self._pos = self._checked_pos(value)
 
     @property
-    def byte_pos(self) -> int:
+    def bytepos(self) -> int:
         """The current position in bytes. Requires the bit position to be byte aligned."""
         if self._pos % 8:
             raise ValueError(f"The bit position of {self._pos} is not byte aligned, "
                              f"so there is no byte position for it.")
         return self._pos // 8
 
-    @byte_pos.setter
-    def byte_pos(self, value: int) -> None:
+    @bytepos.setter
+    def bytepos(self, value: int) -> None:
         self._pos = self._checked_pos(Reader._as_int(value, "byte position") * 8)
 
     @property
@@ -373,7 +372,7 @@ class Reader:
 
     # ----- Searching -----
 
-    def _search(self, bs: BitsType, byte_aligned: bool,
+    def _search(self, bs: BitsType, bytealigned: bool,
                 backwards: bool = False) -> tuple[int | None, int]:
         """Search for bs, returning the position it was found at (or None) and its length."""
         if isinstance(bs, int):
@@ -386,9 +385,9 @@ class Reader:
         # end of a BitArray that has since shrunk searches what is there now.
         pos = min(self._pos, len(self._bits))
         if backwards:
-            found = self._bits._bitstore.rfind(needle._bitstore, 0, pos, byte_aligned)
+            found = self._bits._bitstore.rfind(needle._bitstore, 0, pos, bytealigned)
         else:
-            found = self._bits._bitstore.find(needle._bitstore, pos, len(self._bits), byte_aligned)
+            found = self._bits._bitstore.find(needle._bitstore, pos, len(self._bits), bytealigned)
         return found, len(needle)
 
     def _found_or_raise(self, found: int | None) -> int:
@@ -398,7 +397,7 @@ class Reader:
                 f"Use seek_to() or seek_past() if not finding them is expected.")
         return found
 
-    def seek_to(self, bs: BitsType, /, byte_aligned: bool = False) -> bool:
+    def seek_to(self, bs: BitsType, /, *, bytealigned: bool = False) -> bool:
         """Search forwards for bs, moving the position to the start of the match.
 
         Returns True if it was found, otherwise False with the position unchanged. A
@@ -406,26 +405,26 @@ class Reader:
         seek_past() is the one to loop on.
 
         """
-        found, _ = self._search(bs, byte_aligned)
+        found, _ = self._search(bs, bytealigned)
         if found is None:
             return False
         self._pos = found
         return True
 
-    def seek_past(self, bs: BitsType, /, byte_aligned: bool = False) -> bool:
+    def seek_past(self, bs: BitsType, /, *, bytealigned: bool = False) -> bool:
         """Search forwards for bs, moving the position to just after the match.
 
         Returns True if it was found, otherwise False with the position unchanged. This
         is the method to loop on, as it always makes progress.
 
         """
-        found, needle_length = self._search(bs, byte_aligned)
+        found, needle_length = self._search(bs, bytealigned)
         if found is None:
             return False
         self._pos = found + needle_length
         return True
 
-    def seek_back_to(self, bs: BitsType, /, byte_aligned: bool = False) -> bool:
+    def seek_back_to(self, bs: BitsType, /, *, bytealigned: bool = False) -> bool:
         """Search backwards for bs, moving the position to the start of the match.
 
         Only matches that end at or before the current position are considered, so the
@@ -433,13 +432,13 @@ class Reader:
         found, otherwise False with the position unchanged.
 
         """
-        found, _ = self._search(bs, byte_aligned, backwards=True)
+        found, _ = self._search(bs, bytealigned, backwards=True)
         if found is None:
             return False
         self._pos = found
         return True
 
-    def read_to(self, bs: BitsType, /, byte_aligned: bool = False) -> Bits:
+    def read_to(self, bs: BitsType, /, *, bytealigned: bool = False) -> Bits:
         """Read up to but not including the next occurrence of bs.
 
         The position is left at the start of the match, so the match itself is read by
@@ -447,13 +446,13 @@ class Reader:
         position doesn't move.
 
         """
-        found, _ = self._search(bs, byte_aligned)
+        found, _ = self._search(bs, bytealigned)
         found = self._found_or_raise(found)
         value = self._bits._slice(self._pos, found)
         self._pos = found
         return value
 
-    def read_past(self, bs: BitsType, /, byte_aligned: bool = False) -> Bits:
+    def read_past(self, bs: BitsType, /, *, bytealigned: bool = False) -> Bits:
         """Read up to and including the next occurrence of bs.
 
         The position is left just after the match, so a loop of read_past() calls always
@@ -461,7 +460,7 @@ class Reader:
         doesn't move.
 
         """
-        found, needle_length = self._search(bs, byte_aligned)
+        found, needle_length = self._search(bs, bytealigned)
         found = self._found_or_raise(found)
         end = found + needle_length
         value = self._bits._slice(self._pos, end)

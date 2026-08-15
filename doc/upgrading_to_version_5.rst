@@ -86,7 +86,7 @@ different.
    * - ``s.pos``, ``s.bitpos``
      - :attr:`Reader.pos`
    * - ``s.bytepos``
-     - :attr:`Reader.byte_pos`
+     - :attr:`Reader.bytepos`
    * - ``len(s) - s.pos``
      - :attr:`Reader.remaining`
 
@@ -214,7 +214,7 @@ match every time::
         handle(s.read(n))
 
     # bitstring 5
-    while r.seek_past("0x000001", byte_aligned=True):
+    while r.seek_past("0x000001", bytealigned=True):
         handle(r.read_bits(n))
 
 Note two differences from version 4's stream ``find``. It searched from the
@@ -223,9 +223,9 @@ backwards; the seek methods always search from the current position.
 :meth:`Reader.seek_back_to` is the only one that searches backwards, and it
 considers only matches that end at or before the current position.
 
-The keyword is spelled ``byte_aligned`` on every :class:`Reader` method, rather
-than ``bytealigned`` as on :meth:`Bits.find` and the other whole-bitstring
-methods.
+The ``bytealigned`` keyword is spelled the same way here as on :meth:`Bits.find`
+and the other whole-bitstring methods, and must be passed by keyword on all of
+them.
 
 To search without moving the position, use the wrapped object directly:
 ``r.bits.find(bs, start=r.pos)``.
