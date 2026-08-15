@@ -243,6 +243,12 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* Removed the `Dtype.bits_per_item` property. It returned 1 for every dtype
+  except `bytes`, where it returned 8, and `bitlength` already gives what it was
+  used for, since `bitlength == length * bits_per_item`. The units themselves are
+  unchanged: `Dtype('bytes4').length` is still 4 and its `bitlength` is still 32.
+  `bytes` remains the only dtype whose `length` counts something other than bits,
+  and that is now documented rather than exposed as a property.
 * Zero-length `u` and `i` dtypes are now rejected when they are created rather
   than when they are used. `Dtype('u0')` previously constructed an object that
   failed on every operation; it now raises a `ValueError` immediately, as

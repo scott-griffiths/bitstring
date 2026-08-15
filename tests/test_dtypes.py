@@ -147,6 +147,31 @@ class TestBasicFunctionality:
             d.pack(4)
 
 
+class TestLengthUnits:
+    # 'bytes' is the one dtype whose length isn't in bits. bitlength is always in bits.
+
+    def test_bytes_counts_bytes_and_bitlength_counts_bits(self):
+        d = Dtype('bytes4')
+        assert d.length == 4
+        assert d.bitlength == 32
+
+    @pytest.mark.parametrize("name", ['u', 'i', 'hex', 'oct', 'bin', 'bits'])
+    def test_every_other_dtype_counts_bits(self, name):
+        # 12 bits is valid for all of these - hex needs a multiple of 4, oct of 3.
+        d = Dtype(name, 12)
+        assert d.length == d.bitlength == 12
+
+    def test_bits_per_item_is_not_public(self):
+        # It returned 1 for every dtype but 'bytes', and bitlength already covers it.
+        assert not hasattr(Dtype('bytes4'), 'bits_per_item')
+        assert not hasattr(Dtype('u8'), 'bits_per_item')
+
+    def test_unsized_bytes_still_reads_in_whole_bytes(self):
+        assert bs.Reader(bs.Bits(b'abcd')).read_value('bytes') == b'abcd'
+        with pytest.raises(ValueError):
+            bs.Bits('0b101').unpack('bytes')
+
+
 class TestZeroLengthDtypes:
     # A zero length is meaningful for the string-ish dtypes and for pad, and
     # meaningless for the integer ones. It's now rejected at construction rather

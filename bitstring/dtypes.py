@@ -68,18 +68,16 @@ class Dtype:
 
     @property
     def length(self) -> int | None:
-        """The length of the data type in units of bits_per_item. Set to None for variable length dtypes."""
+        """The length of the data type, in bits for every dtype except 'bytes', which counts bytes.
+
+        Set to None for variable length dtypes. Use bitlength for a length that is always in bits.
+        """
         return self._length
 
     @property
     def bitlength(self) -> int | None:
         """The number of bits needed to represent a single instance of the data type. Set to None for variable length dtypes."""
         return self._bitlength
-
-    @property
-    def bits_per_item(self) -> int:
-        """The number of bits for each unit of length. Usually 1, but equals 8 for bytes type."""
-        return self._bits_per_item
 
     @property
     def variable_length(self) -> bool:

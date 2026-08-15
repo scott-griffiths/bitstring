@@ -277,11 +277,11 @@ class Reader:
             if dtype.bitlength is None and not dtype.variable_length:
                 # An unsized dtype such as 'u' or 'hex' takes everything that's left.
                 bitlength = self.remaining
-                items, remainder = divmod(bitlength, dtype.bits_per_item)
+                items, remainder = divmod(bitlength, dtype._bits_per_item)
                 if remainder != 0:
                     raise ValueError(
                         f"The '{dtype.name}' type must have a bit length that is a multiple of "
-                        f"{dtype.bits_per_item} so cannot be read from the {bitlength} bits that are available.")
+                        f"{dtype._bits_per_item} so cannot be read from the {bitlength} bits that are available.")
                 dtype = Reader._dtype_with_length(dtype, items)
             if dtype.bitlength is not None:
                 self._end_of_read(dtype.bitlength)

@@ -65,11 +65,6 @@ All properties are read-only.
 The number of bits needed to represent a single instance of the data type.
 Will be set to ``None`` for variable length dtypes.
 
-.. attribute:: Dtype.bits_per_item
-    :type: int
-
-The number of bits for each unit of length. Usually 1, but equals 8 for `bytes` type.
-
 .. attribute:: Dtype.is_signed
     :type: bool
 
@@ -78,7 +73,9 @@ If True then the data type represents a signed quantity.
 .. attribute:: Dtype.length
     :type: int | None
 
-The length of the data type in units of `bits_per_item`.
+The length of the data type. This is in bits for every dtype except ``bytes``, which counts bytes,
+so ``Dtype('bytes4').length`` is 4 while its :attr:`~Dtype.bitlength` is 32.
+Use :attr:`~Dtype.bitlength` when you need a length that is always in bits.
 Will be set to ``None`` for variable length dtypes.
 
 .. attribute:: Dtype.name
