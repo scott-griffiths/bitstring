@@ -1278,8 +1278,15 @@ class Bits:
         self._bitstore.__irshift__(n)
         return self
 
-    def _getbits(self: TBits):
-        return self._copy()
+    def _getbits(self) -> Bits:
+        """The bits themselves, always as an immutable Bits - the dtype's return_type.
+
+        Reading it out of a BitArray, as an Array of 'bits' does, would otherwise hand
+        back a BitArray, so the element type depended on what was being read from.
+        """
+        b = object.__new__(Bits)
+        b._bitstore = self._bitstore.to_const()
+        return b
 
     def _validate_slice(self, start: int | None, end: int | None) -> tuple[int, int]:
         """Return start and end as absolute bit positions, clamped like standard slice indices.
