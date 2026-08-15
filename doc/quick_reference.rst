@@ -512,6 +512,10 @@ The exact type is determined by combining the endianness character with the form
 
 As you can see both are signed integers in 16 bits, the only difference is the endianness. For the single byte codes ``'b'`` and ``'B'`` the endianness doesn't make any difference, but you still need to specify one so that the format string can be parsed correctly.
 
+``'l'`` and ``'L'`` are synonyms for ``'i'`` and ``'I'``, as they are in the ``struct`` module when standard sizes are used, which is always the case here.
+
+A single compact code is accepted anywhere a dtype name is, including :class:`Dtype`, :class:`Array`, :func:`pack`, :meth:`~Bits.unpack` and the :class:`Reader` read methods. Several codes can be combined in one string, as in ``'>hhl'``, wherever a format string with several tokens makes sense.
+
 A compact code is converted to the equivalent dtype as soon as it is used, and the code itself isn't kept. The dtype name in the right-hand column above is what you'll see from then on - in :attr:`Array.dtype`, in a ``repr()`` and in error messages. So ``Array('>L', [1, 2])`` reprs as ``Array('ube32', [1, 2])``, which is the same thing written the other way.
 
 ------

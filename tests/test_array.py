@@ -616,6 +616,36 @@ class TestArrayMethods:
             with pytest.raises(ValueError, match='Native-endian struct formats'):
                 _ = Array(dtype, [1])
 
+    def test_compact_codes_accepted_wherever_a_dtype_name_is(self):
+        # A single compact code is another spelling of a name and length, so every
+        # entry point that takes one takes the other.
+        equivalent = Dtype('ibe16')
+        assert Dtype('>h') == equivalent
+        assert Array('>h', [-1]).dtype == equivalent
+        assert Array('u8', [1, 2]).astype('>h').dtype == equivalent
+        assert bitstring.pack('>h', -1) == '0xffff'
+        assert Bits('0xffff').unpack('>h') == [-1]
+        assert Bits.from_dtype('>h', -1) == '0xffff'
+        assert Bits('>h=-1') == '0xffff'
+        assert bitstring.Reader(Bits('0xffff')).read_value('>h') == -1
+        assert bitstring.Reader(Bits('0xffff')).read_list('>h') == [-1]
+        assert bitstring.Reader(Bits('0xffff')).read_array('>h', 1).to_list() == [-1]
+        a = Array('u8', [1, 2])
+        a.dtype = '>h'
+        assert a.dtype == equivalent
+
+    @pytest.mark.parametrize("code", ['>hh', '>z', 'h', '>'])
+    def test_compact_codes_that_are_not_a_single_dtype(self, code):
+        # Several codes at once, an unknown code, and a code without an endianness
+        # character are all still rejected by Dtype.
+        with pytest.raises(ValueError):
+            Dtype(code)
+
+    def test_l_and_i_codes_are_synonyms(self):
+        # As in the struct module with standard sizes, which is what '<' and '>' select.
+        assert Dtype('>l') == Dtype('>i') == Dtype('ibe32')
+        assert Dtype('<L') == Dtype('<I') == Dtype('ule32')
+
     def test__contains__(self):
         a = Array('i9', [-1, 88, 3])
         assert 88 in a

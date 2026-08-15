@@ -88,6 +88,10 @@ def parse_name_length_token(fmt: str, **kwargs) -> tuple[str, int | None]:
                 raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
             length = int(length_str)
         else:
+            # A single compact struct code such as '>h' is the other spelling of a
+            # name and length, so it's accepted wherever one is.
+            if (struct_token := parse_single_struct_token(fmt)) is not None:
+                return struct_token
             raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
     return name, length
 
@@ -125,6 +129,10 @@ def parse_single_token(token: str) -> tuple[str, str, str | None]:
         # name then a keyword for a length
         name = m3.group(1)
         length = m3.group(2)
+    elif (struct_token := parse_single_struct_token(token)) is not None:
+        # A single compact struct code such as '>h'.
+        name, struct_length = struct_token
+        length = None if struct_length is None else str(struct_length)
     else:
         # If you don't specify a 'name' then the default is 'bits'
         name = 'bits'

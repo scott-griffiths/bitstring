@@ -243,6 +243,13 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* Compact struct format codes such as `'>h'` are now accepted everywhere a dtype
+  name is. They previously worked in `Array`, `pack()` and `unpack()` but were
+  rejected by `Dtype()`, `Bits.from_dtype()`, `Reader.read_value()`,
+  `Reader.read_array()` and the `Bits('>h=1')` literal form, which was an
+  accident of which code path each one took rather than a deliberate limit. The
+  `'l'` and `'L'` codes remain synonyms for `'i'` and `'I'`, as they are in the
+  `struct` module at standard sizes, and `'@'` and `'='` remain unsupported.
 * The `ue`, `se`, `uie` and `sie` dtypes now give a message when a bitstring
   isn't a single code, instead of raising a `ValueError` with no message at all.
   Reading one of them from data that isn't a valid code likewise gives a

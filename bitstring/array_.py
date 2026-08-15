@@ -178,13 +178,12 @@ class Array:
             if not isinstance(new_dtype, str):
                 raise TypeError(f"An Array dtype must be a str or a Dtype, not a {type(new_dtype).__name__}.")
             try:
+                # Dtype accepts compact struct codes such as '>H' as well as names.
                 dtype = Dtype(new_dtype)
-            except ValueError:
-                name_length = utils.parse_single_struct_token(new_dtype)
-                if name_length is not None:
-                    dtype = Dtype(name_length[0], name_length[1])
-                else:
-                    raise ValueError(f"Inappropriate Dtype for Array: '{new_dtype}'.")
+            except ValueError as e:
+                if str(e) == utils.NATIVE_ENDIAN_STRUCT_ERROR:
+                    raise  # Says exactly what's wrong, so don't replace it.
+                raise ValueError(f"Inappropriate Dtype for Array: '{new_dtype}'.") from None
             if dtype.length is None:
                 raise ValueError(f"A fixed length format is needed for an Array, received '{new_dtype}'.")
             self._dtype = dtype
