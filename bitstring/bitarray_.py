@@ -481,6 +481,8 @@ class BitArray(Bits):
         bs = self._create_from_bitstype(bs)
         if len(bs) == 0:
             return
+        if bs is self:
+            bs = self._copy()
         if pos < 0:
             pos += len(self)
         if pos < 0 or pos > len(self):

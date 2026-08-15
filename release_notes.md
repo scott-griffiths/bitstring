@@ -374,6 +374,9 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
   `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
   `False`, as comparing against an unrelated type already did.
+* `BitArray.overwrite()` now accepts the bitstring itself as the value at any position.
+  `a.overwrite(4, a)` raised a bare `AssertionError`; only position zero worked. It now
+  copies first, as `insert()` already did.
 * `BitArray.byteswap()` now works with any iterable of byte sizes, not just ones that can
   be iterated twice. Given an iterator or generator it swapped nothing at all and
   returned zero, as the sizes were consumed by the validation pass.

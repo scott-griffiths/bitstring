@@ -1247,12 +1247,9 @@ class Bits:
         return
 
     def _overwrite(self, bs: Bits, pos: int, /) -> None:
-        """Overwrite with bs at pos."""
+        """Overwrite with bs at pos. bs must not be self - the caller copies it if it is."""
         assert 0 <= pos <= len(self)
-        if bs is self:
-            # Just overwriting with self, so do nothing.
-            assert pos == 0
-            return
+        assert bs is not self
         self._bitstore[pos: pos + len(bs)] = bs._bitstore
 
     def _delete(self, bits: int, pos: int, /) -> None:

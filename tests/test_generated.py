@@ -399,3 +399,12 @@ def test_byteswap_accepts_an_iterator_of_byte_sizes() -> None:
 
     assert iterator_repeats == list_repeats
     assert from_iterator == from_list
+
+
+# overwrite() used to have no self-aliasing guard, so an internal assertion fired and a
+# bare AssertionError reached the caller. insert() handles the same case by copying.
+
+def test_overwrite_with_self_at_a_non_zero_position() -> None:
+    a = bitstring.BitArray("0xab")
+    a.overwrite(4, a)  # AssertionError
+    assert a == "0xaab"
