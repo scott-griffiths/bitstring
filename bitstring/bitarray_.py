@@ -662,7 +662,9 @@ class BitArray(Bits):
                 else:
                     bytesizes.extend([utils.PACK_CODE_SIZE[f[-1]]] * int(f[:-1]))
         elif isinstance(fmt, abc.Iterable):
-            bytesizes = fmt
+            # Listed first, as the sizes are needed twice - an iterator would be empty
+            # by the second pass, leaving the whole call a silent no-op.
+            bytesizes = list(fmt)
             for bytesize in bytesizes:
                 if not isinstance(bytesize, numbers.Integral) or bytesize < 0:
                     raise ValueError(f"Improper byte length {bytesize}.")

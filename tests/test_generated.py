@@ -384,3 +384,18 @@ def test_dtype_unpack_and_pack_agree_about_length() -> None:
     assert len(packed) == d.bitlength
     with pytest.raises(ValueError):
         _ = d.unpack("0xffff")
+
+
+# byteswap() takes 'an iterable of integers', and iterates it once to validate it and
+# again to total it. An iterator was empty by the second pass, so the call silently did
+# nothing and reported zero repeats.
+
+def test_byteswap_accepts_an_iterator_of_byte_sizes() -> None:
+    from_list = bitstring.BitArray("0x00112233")
+    from_iterator = bitstring.BitArray("0x00112233")
+
+    list_repeats = from_list.byteswap([1, 3])
+    iterator_repeats = from_iterator.byteswap(iter([1, 3]))
+
+    assert iterator_repeats == list_repeats
+    assert from_iterator == from_list

@@ -374,6 +374,9 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
   `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
   `False`, as comparing against an unrelated type already did.
+* `BitArray.byteswap()` now works with any iterable of byte sizes, not just ones that can
+  be iterated twice. Given an iterator or generator it swapped nothing at all and
+  returned zero, as the sizes were consumed by the validation pass.
 * `Dtype.unpack()` now checks the length of what it is given, as `Dtype.pack()` already
   checked what it produced. `Dtype('u8').unpack('0xffff')` returned 65535 and
   `Dtype('f16').unpack()` would decode 32 bits as a float32; both now raise a `ValueError`.
