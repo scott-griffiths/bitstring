@@ -356,3 +356,31 @@ def test_wrong_length_properties_are_missing_rather_than_broken(attribute: str) 
     b = bitstring.Bits("0b101")
     assert hasattr(b, attribute) is False
     assert getattr(b, attribute, None) is None
+
+
+# Dtype.pack checks the result against the dtype's own length. Dtype.unpack used to
+# check only the dtype class's allowed lengths, so a dtype would happily interpret a
+# bitstring of a completely different length.
+
+def test_dtype_unpack_rejects_data_longer_than_the_dtype() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Dtype("u8").unpack("0xffff")
+
+
+def test_dtype_unpack_rejects_data_shorter_than_the_dtype() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Dtype("u8").unpack("0b1")
+
+
+def test_dtype_unpack_of_a_float_uses_the_dtype_length() -> None:
+    # 32 bits get read as a float32 by a Dtype that says it is 16 bits wide.
+    with pytest.raises(ValueError):
+        _ = bitstring.Dtype("f16").unpack(bitstring.Bits.from_zeros(32))
+
+
+def test_dtype_unpack_and_pack_agree_about_length() -> None:
+    d = bitstring.Dtype("hex8")
+    packed = d.pack("ff")
+    assert len(packed) == d.bitlength
+    with pytest.raises(ValueError):
+        _ = d.unpack("0xffff")

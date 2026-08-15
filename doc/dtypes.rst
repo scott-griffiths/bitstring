@@ -46,11 +46,13 @@ The *value* parameter should be of a type appropriate to the dtype.
 
 .. method:: Dtype.unpack(b: BitsType, /) -> Any
 
-Unpack a bitstring to find its value. The *b* parameter should be a bitstring of the appropriate length, or an object that can be converted to a bitstring.
+Unpack a bitstring to find its value. The *b* parameter should be a bitstring of the dtype's own length, or an object that can be converted to a bitstring. A different length raises a ``ValueError``, as it does when packing.
 
     >>> d = Dtype('u10')
     >>> d.unpack('0b0001010101')  # Equivalent to: Bits('0b0001010101').u10
     85
+    >>> d.unpack('0b1')
+    ValueError: Dtype has a length of 10 bits, but value to unpack has 1 bits.
 
 ----
 

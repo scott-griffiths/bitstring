@@ -146,8 +146,11 @@ class Dtype:
     def unpack(self, b: BitsType, /) -> Any:
         """Unpack a bitstring to find its value.
 
-        The b parameter should be a bitstring of the appropriate length, or an object that can be converted to a bitstring."""
+        The b parameter should be a bitstring of the dtype's length, or an object that can be converted to a bitstring."""
         b = bitstring.Bits._create_from_bitstype(b)
+        bitlength = self._bitlength  # The property costs a call, and this is a hot path.
+        if bitlength is not None and len(b) != bitlength:
+            raise ValueError(f"Dtype has a length of {bitlength} bits, but value to unpack has {len(b)} bits.")
         return self._get_fn(b)
 
     def __str__(self) -> str:
