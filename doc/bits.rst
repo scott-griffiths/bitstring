@@ -605,12 +605,15 @@ Special Methods
     If you have a different criterion you wish to use then code it explicitly, for example ``a.i == b.i`` could be true even if ``a == b`` wasn't (as they could be different lengths).
 
     The comparison promotes the other value, so strings, bytes-like objects and bit-pattern
-    lists compare equal to a bitstring with the same bits. Hashing does not promote, as many
-    different strings describe the same bits and no single hash could match them all, so use
-    bitstrings themselves as dictionary keys and set members::
+    lists compare equal to a bitstring with the same bits. Anything that can't be promoted is
+    unequal rather than an error, including a string that isn't a valid format. Hashing does
+    not promote, as many different strings describe the same bits and no single hash could
+    match them all, so use bitstrings themselves as dictionary keys and set members::
 
         >>> Bits('0xff') == '0xff'
         True
+        >>> Bits('0xff') == 'hello'        # not a bitstring format, so not equal
+        False
         >>> Bits('0xff') in {'0xff'}       # a set hashes before comparing
         False
 

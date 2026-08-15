@@ -371,6 +371,9 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Setting a dtype property on a `BitArray` no longer makes it immutable. `a.hex = 'ff'`
   left the object holding an immutable store, so the next `a.set()`, `a.invert()` or
   `a[0] = 1` raised an `AttributeError` or `TypeError` from the internals.
+* `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
+  `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
+  `False`, as comparing against an unrelated type already did.
 
 ### March 2026: version 4.4.0
 

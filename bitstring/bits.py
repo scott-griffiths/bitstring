@@ -426,9 +426,11 @@ class Bits:
         """Return True if two bitstrings have the same binary representation.
 
         The other value is promoted, so strings, bytes-like objects and bit-pattern lists
-        compare equal to a bitstring with the same bits. __hash__ deliberately doesn't
-        promote, so a bitstring in a set or dict matches only other bitstrings - many
-        strings describe the same bits and they don't share a hash.
+        compare equal to a bitstring with the same bits. Anything that can't be promoted
+        is unequal rather than an error, including a string that isn't a valid format.
+        __hash__ deliberately doesn't promote, so a bitstring in a set or dict matches
+        only other bitstrings - many strings describe the same bits and they don't share
+        a hash.
 
         >>> BitArray('0b1110') == '0xe'
         True
@@ -436,7 +438,9 @@ class Bits:
         """
         try:
             return self._bitstore == Bits._create_from_bitstype(bs)._bitstore
-        except TypeError:
+        except (TypeError, ValueError):
+            # A ValueError means the value doesn't describe any bits at all, which makes
+            # it unequal to every bitstring - the same answer as a wrong type gets.
             return False
 
     def __ne__(self, bs: Any, /) -> bool:

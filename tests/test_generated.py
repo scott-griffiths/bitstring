@@ -299,3 +299,25 @@ def test_setting_a_dtype_property_keeps_the_store_mutable() -> None:
     before = type(b._bitstore)
     b.bin = "1010"
     assert type(b._bitstore) is before
+
+
+# __eq__ promotes the other operand so that anything describing the same bits compares
+# equal. A str that isn't a valid token used to raise ValueError out of the promotion
+# rather than simply comparing unequal.
+
+def test_equality_with_an_unparseable_string_is_false() -> None:
+    assert (bitstring.Bits("0xff") == "hello") is False
+
+
+def test_equality_with_a_valueless_token_string_is_false() -> None:
+    # 'u8' parses as a token but has no value, so promotion raises rather than
+    # reporting that the two objects simply aren't equal.
+    assert (bitstring.Bits("0xff") == "u8") is False
+
+
+def test_inequality_with_an_unparseable_string_is_true() -> None:
+    assert (bitstring.Bits("0xff") != "hello") is True
+
+
+def test_bitarray_equality_with_an_unparseable_string_is_false() -> None:
+    assert (bitstring.BitArray("0xff") == "nope") is False
