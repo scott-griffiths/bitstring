@@ -30,7 +30,7 @@ This file gives project-specific guidance for automated coding assistants and co
 
 ## Public API Surface
 
-- 4.x-era compatibility method names (e.g. `tobytes`, `readlist`) are kept alongside their current equivalents rather than removed. They're documented as deprecated for a future major version but don't yet raise `DeprecationWarning` at runtime. Don't remove or rename them as part of unrelated cleanup or "dead code" tidying - only touch them if the task explicitly calls for it.
+- 4.x-era compatibility names (e.g. `tobytes`, `tolist`, and the longer dtype names `uint`, `int`, `float`, `uintbe`) are kept alongside their current equivalents rather than removed. They are deliberately not deprecated: no `DeprecationWarning` is raised and there's no plan to remove them, so don't add warnings to them or delete them as part of unrelated cleanup or "dead code" tidying. Only touch them if the task explicitly calls for it.
 - There's no separate `.pyi` stub to keep in sync (unlike tibs's `tibs.pyi`) - `py.typed` marks the package as inline-typed, so a public API change just needs the signature updated in place.
 
 ## Development Workflow

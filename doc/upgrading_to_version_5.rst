@@ -548,10 +548,10 @@ something different.
 Prefer the new underscored method names
 =======================================
 
-Version 5 adds underscored spellings for several older method names. The old
-names remain as deprecated compatibility aliases and are expected to be removed
-in a future major version, so new code and documentation should use the
-underscored names.
+Version 5 adds underscored spellings for several older method names. New code and
+documentation should use the underscored names, but the old spellings are kept as
+compatibility aliases and there is no need to change working code. They are not
+deprecated and no ``DeprecationWarning`` is emitted for them.
 
 .. list-table::
    :header-rows: 1

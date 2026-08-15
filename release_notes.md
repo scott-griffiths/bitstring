@@ -179,12 +179,12 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   `hex`. The numeric names `u`, `i` and `f` remain and are now canonical.
 * Made `u`, `i` and `f` the canonical dtype names for bit-wise big-endian
   unsigned integers, signed integers and floats. The longer `uint`, `int` and
-  `float` names remain as deprecated compatibility aliases for dtype tokens and keyword
+  `float` names remain as compatibility aliases for dtype tokens and keyword
   initialisers, but dtype stringification, `Array` representations and
   pretty-print headers now use the short forms.
 * Made `ube`, `ule`, `ibe`, `ile` and `fle` the canonical endian-specific dtype
   and keyword-initialiser names. The longer names such as `uintle`, `intbe` and
-  `floatle` remain as deprecated compatibility aliases.
+  `floatle` remain as compatibility aliases.
 * Removed native-endian dtype names and struct-like native format prefixes.
   Use explicit big- or little-endian spellings instead of `une`, `ine`, `fne`,
   `bfloatne`, `uintne`, `intne`, `floatne`, `@` or `=`.
@@ -235,14 +235,20 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Several method names now have underscored preferred spellings:
   `to_bytes()`, `to_file()`, `to_list()`, `from_string()`, `from_file()`,
   `read_list()`, `peek_list()`, `read_to()` and `byte_align()`.
-  The old spellings without underscores remain as deprecated compatibility
-  aliases.
+  The old spellings without underscores remain as compatibility aliases.
 * Added the `Array.from_zeros()`, `Array.from_bytes()` and `Array.from_file()` construction methods.
 * `Array`, `Reader` and `Dtype` objects can now be pickled and deep-copied, along
   with `Bits` and `BitArray` which continue to support this. Pickling enables use
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* Compatibility aliases are kept rather than deprecated. The older spellings
+  `tobytes()`, `tofile()`, `tolist()`, `fromstring()` and the longer dtype names
+  `uint`, `int`, `float`, `uintbe`, `intle`, `floatle` and friends all continue to
+  work, no `DeprecationWarning` is emitted for any of them, and there is no plan
+  to remove them. Earlier notes described some of these as deprecated; they are
+  not. New code should prefer the shorter and underscored spellings, but working
+  code does not need changing.
 * `Reader.read_array()` now spells its item count `n` rather than `count`, so
   `count` means only "stop after this many results" - which is what it means on
   `findall()`, `split()`, `replace()` and `cut()`. `Array.from_zeros()` and

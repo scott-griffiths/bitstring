@@ -35,6 +35,22 @@ class TestModuleData:
         except FileNotFoundError:
             pass  # Doesn't run on CI.
 
+    def test_compatibility_aliases_do_not_warn(self):
+        # They are kept rather than deprecated, so nothing should emit a warning.
+        # If a future version does deprecate them, that is a deliberate change and
+        # this test should change with it.
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            assert bitstring.Bits('0xff').tobytes() == b'\xff'
+            assert bitstring.Bits.fromstring('0xff') == '0xff'
+            assert bitstring.Array('u8', [1]).tolist() == [1]
+            assert bitstring.Array('u8', [1]).tobytes() == b'\x01'
+            assert bitstring.Bits('0xff').uint == 255
+            assert bitstring.Bits('0xff').int == -1
+            assert bitstring.Bits('0xffff').uintbe == 65535
+            assert bitstring.Bits('0xff').unpack('uint8') == [255]
+
     def test_no_internal_names_in_namespace(self):
         # Only the public API and genuine submodules should be visible on the package.
         submodules = {'array_', 'bitarray_', 'bits', 'bitstore', 'bitstore_helpers',
