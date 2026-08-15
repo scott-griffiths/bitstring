@@ -10,6 +10,7 @@ from collections.abc import Iterable
 from tibs import Mutibs, Tibs
 from bitstring import utils
 from bitstring.bits import Bits, BitsType, TBits, _open_file_source
+from bitstring.helpers import validated_count
 
 import bitstring.dtypes
 import bitstring.bitstore_helpers as helpers
@@ -165,7 +166,8 @@ class BitArray(Bits):
     @classmethod
     def from_zeros(cls: type[TBits], length: int, /) -> TBits:
         """Create a new bitstring containing length zero bits."""
-        length = int(length)
+        if type(length) is not int:
+            length = validated_count(length, "length")
         if length < 0:
             raise ValueError(f"Can't create bitstring of negative length {length}.")
         x = super().__new__(cls)
@@ -175,7 +177,8 @@ class BitArray(Bits):
     @classmethod
     def from_ones(cls: type[TBits], length: int, /) -> TBits:
         """Create a new bitstring containing length one bits."""
-        length = int(length)
+        if type(length) is not int:
+            length = validated_count(length, "length")
         if length < 0:
             raise ValueError(f"Can't create bitstring of negative length {length}.")
         x = super().__new__(cls)

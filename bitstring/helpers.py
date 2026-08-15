@@ -1,3 +1,18 @@
+import operator
+from typing import Any
+
+
+def validated_count(value: Any, description: str) -> int:
+    """A count of bits or items as an int, rejecting anything that isn't a whole number.
+
+    int() would truncate a float and parse a string, either of which quietly builds
+    something of a size that wasn't asked for.
+    """
+    try:
+        return operator.index(value)
+    except TypeError:
+        raise TypeError(f"The {description} must be an integer, but received a "
+                        f"{type(value).__name__}.") from None
 
 
 def _indices(s: slice, length: int) -> tuple[int, int | None, int]:

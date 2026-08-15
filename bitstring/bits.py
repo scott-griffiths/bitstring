@@ -15,6 +15,7 @@ import bitstring
 from bitstring import utils
 from bitstring.dtypes import Dtype, dtype_register, check_interpretation_length
 from bitstring.colour import Colour, should_use_color
+from bitstring.helpers import validated_count
 
 import bitstring.bitstore_helpers as helpers
 import bitstring.bitstore as bitstore
@@ -1968,7 +1969,7 @@ class Bits:
     def from_zeros(cls: type[TBits], length: int, /) -> TBits:
         """Create a new bitstring containing length zero bits."""
         if type(length) is not int:
-            length = int(length)
+            length = validated_count(length, "length")
         if length < 0:
             raise ValueError(f"Can't create bitstring of negative length {length}.")
         x = super().__new__(cls)
@@ -1978,7 +1979,8 @@ class Bits:
     @classmethod
     def from_ones(cls: type[TBits], length: int, /) -> TBits:
         """Create a new bitstring containing length one bits."""
-        length = int(length)
+        if type(length) is not int:
+            length = validated_count(length, "length")
         if length < 0:
             raise ValueError(f"Can't create bitstring of negative length {length}.")
         x = super().__new__(cls)

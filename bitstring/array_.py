@@ -11,6 +11,7 @@ from bitstring.dtypes import Dtype, dtype_register
 import bitstring.bitstore as bitstore
 from bitstring import utils
 from bitstring.colour import Colour, should_use_color
+from bitstring.helpers import validated_count
 import copy
 import array
 import pathlib
@@ -128,7 +129,7 @@ class Array:
     @classmethod
     def from_zeros(cls, dtype: str | Dtype, n: int, /) -> Array:
         """Create a new Array containing n zeroed items."""
-        n = int(n)
+        n = validated_count(n, "number of items")
         if n < 0:
             raise ValueError(f"Can't create an Array of negative length {n}.")
         x = cls(dtype)
