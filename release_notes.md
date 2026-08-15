@@ -374,6 +374,8 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
   `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
   `False`, as comparing against an unrelated type already did.
+* `all()` and `any()` now take a single bit position as well as an iterable of them,
+  matching `set()` and `invert()`. `s.all(1, 0)` raised a `TypeError`.
 * Zero-length dtypes such as `bin0` and `hex0` are now rejected by `Array` and
   `Reader.read_array()`, following the same rule as the zero-length `u` and `i` dtypes.
   They built objects whose every operation divided the data up by an item size of zero.

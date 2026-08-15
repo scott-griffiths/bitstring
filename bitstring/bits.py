@@ -1686,35 +1686,41 @@ class Bits:
         start, end = self._validate_slice(start, end)
         return self._slice(end - len(suffix), end) == suffix if start + len(suffix) <= end else False
 
-    def all(self, value: Any, pos: Iterable[int] | None = None) -> bool:
+    def all(self, value: Any, pos: int | Iterable[int] | None = None) -> bool:
         """Return True if one or many bits are all set to bool(value).
 
         value -- If value is True then checks for bits set to 1, otherwise
                  checks for bits set to 0.
-        pos -- An iterable of bit positions. Negative numbers are treated in
-               the same way as slice indices. Defaults to the whole bitstring.
+        pos -- Either a single bit position or an iterable of bit positions.
+               Negative numbers are treated in the same way as slice indices.
+               Defaults to the whole bitstring.
 
         """
         value = 1 if bool(value) else 0
         if pos is None:
             return self._bitstore.all() if value else not self._bitstore.any()
+        if isinstance(pos, numbers.Integral):
+            pos = (pos,)
         for p in pos:
             if self._bitstore.getindex(p) != value:
                 return False
         return True
 
-    def any(self, value: Any, pos: Iterable[int] | None = None) -> bool:
+    def any(self, value: Any, pos: int | Iterable[int] | None = None) -> bool:
         """Return True if any of one or many bits are set to bool(value).
 
         value -- If value is True then checks for bits set to 1, otherwise
                  checks for bits set to 0.
-        pos -- An iterable of bit positions. Negative numbers are treated in
-               the same way as slice indices. Defaults to the whole bitstring.
+        pos -- Either a single bit position or an iterable of bit positions.
+               Negative numbers are treated in the same way as slice indices.
+               Defaults to the whole bitstring.
 
         """
         value = 1 if bool(value) else 0
         if pos is None:
             return self._bitstore.any() if value else not self._bitstore.all()
+        if isinstance(pos, numbers.Integral):
+            pos = (pos,)
         for p in pos:
             if self._bitstore.getindex(p) == value:
                 return True

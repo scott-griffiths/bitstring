@@ -43,32 +43,36 @@ The ``Bits`` class is the simplest type in the bitstring module, and represents 
 Methods
 -------
 
-.. method:: Bits.all(value: bool, pos: Iterable[int] | None = None) -> bool
+.. method:: Bits.all(value: bool, pos: int | Iterable[int] | None = None) -> bool
 
    Returns ``True`` if all of the specified bits are all set to *value*, otherwise returns ``False``.
 
    If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
 
-   *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
+   *pos* should be a single bit position or an iterable of them, as for :meth:`BitArray.set`. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
 
        >>> s = Bits('i15=-1')
        >>> s.all(True, [3, 4, 12, 13])
+       True
+       >>> s.all(True, 3)
        True
        >>> s.all(1)
        True
 
 
-.. method:: Bits.any(value: bool, pos: Iterable[int] | None = None) -> bool
+.. method:: Bits.any(value: bool, pos: int | Iterable[int] | None = None) -> bool
 
    Returns ``True`` if any of the specified bits are set to *value*, otherwise returns ``False``.
 
    If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
 
-   *pos* should be an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
+   *pos* should be a single bit position or an iterable of them, as for :meth:`BitArray.set`. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
 
        >>> s = Bits('0b11011100')
        >>> s.any(False, range(6))
        True
+       >>> s.any(False, 2)
+       False
        >>> s.any(1)
        True
 

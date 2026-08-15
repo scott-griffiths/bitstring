@@ -511,32 +511,35 @@ def test_array_bits_elements_have_the_dtype_return_type() -> None:
     assert type(a.to_list()[0]) is bitstring.Bits
 
 
-# append() and extend() both refuse to work on an Array whose data isn't a whole
-# number of items. insert() doesn't check, and quietly puts an item in front of the
-# trailing bits.
+# append() and extend() refuse to work on an Array whose data isn't a whole number of
+# items, but insert() is documented as still working and leaving the trailing bits
+# alone. Pinning that, as it looks like an inconsistency until you read doc/array.rst.
 
-def test_array_insert_refuses_when_there_are_trailing_bits() -> None:
-    a = bitstring.Array("u8", [1], trailing_bits="0b1")
+def test_array_insert_works_with_trailing_bits() -> None:
+    a = bitstring.Array("u8", [1, 2], trailing_bits="0b1")
+    a.insert(1, 9)
+    assert a.to_list() == [1, 9, 2]
+    assert a.trailing_bits == "0b1"
     with pytest.raises(ValueError):
-        a.insert(1, 2)
-
-
-# The literal prefix is stripped with str.replace, which removes every occurrence
-# rather than just a leading one, so malformed input is silently accepted.
-
-def test_hex_initialiser_rejects_an_embedded_prefix() -> None:
+        a.append(3)
     with pytest.raises(ValueError):
-        _ = bitstring.Bits(hex="0x0x0")  # currently the 4 bits '0x0'
+        a.extend([3])
 
 
-def test_bin_initialiser_rejects_an_embedded_prefix() -> None:
-    with pytest.raises(ValueError):
-        _ = bitstring.Bits(bin="10b1")  # currently the 2 bits '0b11'
+# The literal prefix is treated as noise and removed wherever it appears, not just at
+# the front. That makes the '0x55' * 10 idiom work and is what test_bits.py pins with
+# Bits(hex='0x0x0X') == Bits(); it reads like a bug until you find those, so pin it here
+# too rather than flagging it again.
+
+@pytest.mark.parametrize("literal", ["0x55", "0b101", "0o77"])
+def test_a_repeated_literal_is_one_bitstring(literal: str) -> None:
+    assert bitstring.Bits(literal * 10) == bitstring.Bits(literal) * 10
 
 
-def test_oct_initialiser_rejects_an_embedded_prefix() -> None:
-    with pytest.raises(ValueError):
-        _ = bitstring.Bits(oct="70o7")
+@pytest.mark.parametrize("kwargs, expected", [({"hex": "0x0x0"}, "0x0"), ({"hex": "ff0x"}, "0xff"),
+                                              ({"bin": "10b1"}, "0b11"), ({"oct": "70o7"}, "0o77")])
+def test_a_repeated_prefix_is_dropped_rather_than_rejected(kwargs: dict, expected: str) -> None:
+    assert bitstring.Bits(**kwargs) == bitstring.Bits(expected)
 
 
 # unpack() accepts a Dtype wherever it accepts a format string; pack() only accepts
