@@ -93,6 +93,15 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 
 #### Smaller breaking changes
 
+* `bool()` of a non-empty `Array` now raises a `ValueError` instead of returning
+  `True`. An empty `Array` is still `False`, so `if not a:` still tests for
+  emptiness, but anything else is ambiguous between 'has any elements' and 'are
+  all the elements true'. This matters because the comparison operators return an
+  `Array`, so `if a == b:` and `assert a == b` used to be true whatever the values
+  were - four tests in bitstring's own suite were passing that way. Use `len()`,
+  `equals()`, or the built-in `all()` / `any()`. Note that `Bits` is unaffected:
+  `bool(Bits('0x00'))` is still `True`, as a bitstring only reports whether it
+  holds any bits.
 * Removed the `bitarray` dependency and `bitarray` compatibility from the public
   API. Bitstrings can no longer be initialised directly from `bitarray` objects,
   the `bitarray=` keyword initialiser has been removed, and the `tobitarray()`

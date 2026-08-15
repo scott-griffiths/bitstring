@@ -220,6 +220,19 @@ class Array:
     def __len__(self) -> int:
         return len(self._data) // self.itemsize
 
+    def __bool__(self) -> bool:
+        """Return False if the Array is empty. Any other Array is ambiguous.
+
+        Unlike Bits, an Array can't just report whether it holds any data, as the
+        element-wise comparison operators return an Array and so end up here.
+
+        """
+        if len(self) != 0:
+            raise ValueError("The truth value of a non-empty Array is ambiguous. "
+                             "Use len() to test for emptiness, equals() to compare two Arrays, "
+                             "or the built-in all() or any().")
+        return False
+
     @overload
     def __getitem__(self, key: slice) -> Array:
         ...

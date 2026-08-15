@@ -279,6 +279,7 @@ Special methods
 These non-mutating special methods are available. Where appropriate they return a new ``Array``.
 
 * :meth:`[] <Array.__getitem__>` -- Get an element or slice.
+* :meth:`bool() <Array.__bool__>` -- ``False`` if empty; any other ``Array`` is ambiguous and raises.
 * :meth:`+ <Array.__add__>` -- Add value to each element.
 * :meth:`- <Array.__sub__>` -- Subtract value from each element.
 * :meth:`* <Array.__mul__>` -- Multiply each element by a value.

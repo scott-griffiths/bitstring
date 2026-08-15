@@ -587,6 +587,31 @@ same length as a single item. ::
 Python language operators
 """""""""""""""""""""""""
 
+.. method:: Array.__bool__(self) -> bool
+
+    ``if a:``
+
+    Returns ``False`` for an empty ``Array``. Any other ``Array`` raises a :exc:`ValueError`,
+    as there is no single sensible answer - it could mean 'has any elements' or 'are all the
+    elements true'. ::
+
+        >>> bool(Array('u8'))
+        False
+        >>> bool(Array('u8', [1, 2, 3]))
+        ValueError: The truth value of a non-empty Array is ambiguous. Use len() to test for emptiness, equals() to compare two Arrays, or the built-in all() or any().
+
+    This matters most for the comparison operators, which return an ``Array`` rather than a
+    ``bool``, so ``if a == b:`` and ``assert a == b`` are mistakes that would otherwise pass
+    silently whatever the values were. Use :meth:`~Array.equals` for a single boolean, or the
+    built-in ``all()`` and ``any()`` over the result of a comparison. ::
+
+        >>> a = Array('u8', [1, 2, 3])
+        >>> all(a == Array('u8', [1, 2, 3]))
+        True
+
+    Note that :class:`Bits` differs here - ``bool(Bits('0x00'))`` is ``True``, because a
+    bitstring only has to report whether it holds any bits.
+
 .. method:: Array.__len__(self) -> int
 
     ``len(a)``

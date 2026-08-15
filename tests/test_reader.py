@@ -140,15 +140,15 @@ def test_read_list():
 
 def test_read_array():
     r = Reader(Bits("0x0102030405"))
-    assert r.read_array("u8", 3) == Array("u8", [1, 2, 3])
+    assert r.read_array("u8", 3).equals(Array("u8", [1, 2, 3]))
     assert r.pos == 24
-    assert r.read_array("u8") == Array("u8", [4, 5])
+    assert r.read_array("u8").equals(Array("u8", [4, 5]))
     assert r.at_end
 
 
 def test_read_array_leaves_a_partial_item():
     r = Reader(Bits("0x0102") + Bits("0b101"))
-    assert r.read_array("u8") == Array("u8", [1, 2])
+    assert r.read_array("u8").equals(Array("u8", [1, 2]))
     assert r.remaining == 3
 
 

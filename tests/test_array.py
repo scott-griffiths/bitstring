@@ -282,7 +282,7 @@ class TestArrayMethods:
         c = Array('hex4')
         c.data = BitArray('0xabcdef, 0b11')
         assert a.tolist() == c.tolist()
-        assert a != c
+        assert not a.equals(c)
         a.data.append('0b11')
         assert a.tolist() == c.tolist()
         assert a.equals(c)
@@ -1046,8 +1046,8 @@ class TestComparisonOperators:
         a = Array('i12', [1, 2, -3, 4, -5, 6])
         b = Array('i12', [6, 5, 4, 3, 2, 1])
         assert abs(a).equals(b[::-1])
-        assert (a == b) == [False, False, False, False, False, False]
-        assert (a != b) == [True, True, True, True, True, True]
+        assert (a == b).tolist() == [False, False, False, False, False, False]
+        assert (a != b).tolist() == [True, True, True, True, True, True]
         with pytest.raises(ValueError):
             _ = a == b[:-1]
         with pytest.raises(ValueError):
@@ -1089,6 +1089,45 @@ class TestComparisonOperators:
         assert (a == [1, 0, 3]).tolist() == [True, False, True]
         assert (a == (1, 0, 3)).tolist() == [True, False, True]
         assert (a == array.array('B', [1, 0, 3])).tolist() == [True, False, True]
+
+
+class TestTruthValue:
+
+    def test_empty_array_is_false(self):
+        # Agrees with bool(Bits()), and lets `if not a:` test for emptiness.
+        assert bool(Array('u8')) is False
+        assert bool(Array('u8', [])) is False
+        assert not Array('bool', [])
+
+    def test_non_empty_array_is_ambiguous(self):
+        for a in (Array('u8', [0]), Array('u8', [5]), Array('u8', [1, 2, 3]),
+                  Array('bool', [False]), Array('bool', [True, True])):
+            with pytest.raises(ValueError):
+                bool(a)
+
+    def test_comparison_result_cannot_be_used_as_a_boolean(self):
+        # The reason for the guard: this used to be True whatever the values were.
+        a = Array('i12', [1, 2, -3])
+        b = Array('i12', [3, 2, -1])
+        with pytest.raises(ValueError):
+            if a == b:
+                pass
+        with pytest.raises(ValueError):
+            assert a != b
+
+    def test_ambiguity_message_offers_the_alternatives(self):
+        with pytest.raises(ValueError) as e:
+            bool(Array('u8', [1, 2]))
+        msg = str(e.value)
+        for hint in ('len()', 'equals()', 'all()', 'any()'):
+            assert hint in msg
+
+    def test_the_alternatives_all_work(self):
+        a = Array('u8', [1, 2, 3])
+        assert len(a) == 3
+        assert a.equals(Array('u8', [1, 2, 3]))
+        assert all(a == Array('u8', [1, 2, 3]))
+        assert not any(a == Array('u8', [9, 9, 9]))
 
 
 class TestAsType:
