@@ -616,6 +616,21 @@ class TestArrayMethods:
             with pytest.raises(ValueError, match='Native-endian struct formats'):
                 _ = Array(dtype, [1])
 
+    def test_byteswap_differs_from_bitarray_byteswap(self):
+        # Same name, different method. Array.byteswap() takes no arguments and always
+        # swaps every item; BitArray.byteswap() takes a pattern and returns a count.
+        import inspect
+        assert list(inspect.signature(Array.byteswap).parameters) == ['self']
+        with pytest.raises(TypeError):
+            Array('u32', [1]).byteswap(4)
+        a = Array('u32', [100, 1, 999])
+        assert a.byteswap() is None
+        assert a.to_list() == [1677721600, 16777216, 3875733504]
+        # The documented way to swap only part of an Array is through its data.
+        b = Array('u32', [100, 1, 999])
+        assert b.data.byteswap(4, start=0, end=32) == 1
+        assert b.to_list() == [1677721600, 1, 999]
+
     def test_compact_codes_accepted_wherever_a_dtype_name_is(self):
         # A single compact code is another spelling of a name and length, so every
         # entry point that takes one takes the other.

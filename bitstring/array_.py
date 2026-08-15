@@ -423,6 +423,11 @@ class Array:
 
         If the Array format is not a whole number of bytes a ValueError will be raised.
 
+        Note that this takes no arguments, unlike BitArray.byteswap(), which shares the
+        name but not the signature. An Array knows its own item size, so it always swaps
+        every item using that as the pattern. To swap part of an Array, or with a
+        different pattern, use byteswap() on its data instead.
+
         """
         if self.itemsize % 8 != 0:
             raise ValueError(

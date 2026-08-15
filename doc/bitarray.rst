@@ -78,6 +78,10 @@ Methods
        >>> print(s.ube)
        1234
 
+   Note that :meth:`Array.byteswap` shares this name but takes no arguments and returns
+   ``None``. An ``Array`` knows its own item size, so it always swaps every item using
+   that as the pattern.
+
 .. method:: BitArray.clear() -> None
 
     Removes all bits from the bitstring.

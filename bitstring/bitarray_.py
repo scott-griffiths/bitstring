@@ -626,6 +626,9 @@ class BitArray(Bits):
                  end: int | None = None, repeat: bool = True) -> int:
         """Change the endianness in-place. Return number of repeats of fmt done.
 
+        Note that Array.byteswap() shares this name but takes no arguments and returns
+        None, as an Array always swaps every item using its own item size.
+
         fmt -- A compact structure string, an integer number of bytes or
                an iterable of integers. Defaults to 0, which byte reverses the
                whole bitstring.

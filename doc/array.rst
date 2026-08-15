@@ -195,6 +195,14 @@ Methods
         >>> a
         Array('ule32', [100, 1, 999])
 
+    This takes no arguments, unlike :meth:`BitArray.byteswap`, which shares its name but
+    not its signature. An ``Array`` already knows how long its items are, so there is
+    nothing to specify: every item is swapped, using the item size as the pattern. A
+    :class:`BitArray` has no item structure, so it has to be told the byte pattern, the
+    range to apply it to and whether to repeat it, and it returns the number of swaps
+    made rather than ``None``. To byteswap part of an ``Array``, or with a different
+    pattern, work on its :attr:`~Array.data` instead.
+
 .. method:: Array.count(value: float | int | str | bytes) -> int
 
     Returns the number of elements set to *value*. ::
