@@ -26,9 +26,7 @@ classifiers = [
 ]
 keywords = ["binary", "bitarray", "bitvector", "bitfield"]
 dependencies = [
-  # rc2 is the floor because the narrow float dtype kinds (bf16, binary8p3/p4, the
-  # ocp_* formats) don't exist in rc1.
-  "tibs >= 2.0.0rc2, < 3.0",  # TEMPORARY: pre-release constraint; tighten to >= 2.0.0 once tibs 2.0.0 final is released.
+  "tibs >= 2.0.1, < 3.0",
 ]
 
 [project.urls]

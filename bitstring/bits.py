@@ -244,7 +244,7 @@ class Bits:
         if immutable:
             self._bitstore = self._bitstore.to_const()
         else:
-            # TODO: This copy is not a good idea.
+            # Nearly every setter leaves a ConstBitStore, so this is the conversion.
             self._bitstore = self._bitstore._mutable_copy()
 
     def _reject_removed_auto(self, auto: Any, /) -> None:
@@ -1352,10 +1352,10 @@ class Bits:
                 bits_remaining = len(self) - pos
                 # Set length to the remaining bits
                 bitlength = max(bits_remaining - bits_after_stretchy_token, 0)
-                items, remainder = divmod(bitlength, dtype.bits_per_item)
+                items, remainder = divmod(bitlength, dtype._bits_per_item)
                 if remainder != 0:
                     raise ValueError(
-                        f"The '{dtype.name}' type must have a bit length that is a multiple of {dtype.bits_per_item}"
+                        f"The '{dtype.name}' type must have a bit length that is a multiple of {dtype._bits_per_item}"
                         f" so cannot be created from the {bitlength} bits that are available for this stretchy token.")
                 dtype = Dtype(dtype.name, items)
             if dtype.bitlength is not None:
