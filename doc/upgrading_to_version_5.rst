@@ -169,7 +169,7 @@ For mutation, convert the result to :class:`BitArray`::
     s.append("0xff")
 
     # bitstring 5
-    s = pack("u8", 1).to_bitarray()
+    s = pack("u8", 1).to_mutable()
     s.append("0xff")
 
 Replace stream searching with seeks
@@ -395,10 +395,10 @@ byte-oriented data, use :meth:`Bits.from_bytes` with an explicit length::
     bits = Bits.from_bytes(bitarray_obj.tobytes(), length=len(bitarray_obj))
 
 The old ``tobitarray()`` method returned an object from the external
-``bitarray`` package and has been removed. :meth:`Bits.to_bitarray` returns a
-bitstring :class:`BitArray` instead. If you still need an external
-``bitarray`` object, create it explicitly using that package's API, for example
-from the bitstring as an iterable of booleans or from :meth:`Bits.to_bytes`.
+``bitarray`` package and has been removed. Use :meth:`Bits.to_mutable` to get a
+bitstring :class:`BitArray`. If you still need an external ``bitarray`` object,
+create it explicitly using that package's API, for example from the bitstring as
+an iterable of booleans or from :meth:`Bits.to_bytes`.
 
 Update names and dtype spellings
 ================================

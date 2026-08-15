@@ -351,7 +351,7 @@ class Reader:
                 raise ValueError(f"Cannot read a negative number of items ({count}).")
         end = self._end_of_read(count * itemsize)
         array = bitstring.Array(d)
-        array.data = self._bits._slice(self._pos, end).to_bitarray()
+        array.data = bitstring.BitArray(self._bits._slice(self._pos, end))
         self._pos = end
         return array
 

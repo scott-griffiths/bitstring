@@ -96,9 +96,7 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Removed the `bitarray` dependency and `bitarray` compatibility from the public
   API. Bitstrings can no longer be initialised directly from `bitarray` objects,
   the `bitarray=` keyword initialiser has been removed, and the `tobitarray()`
-  method has been removed. Take care that the similarly-named new
-  `to_bitarray()` method returns a bitstring `BitArray`, not an object from
-  the external `bitarray` package.
+  method has been removed. Use `to_mutable()` for a bitstring `BitArray`.
 * `from_file()` now honours the current position of a file object, and raises
   a `TypeError` for in-memory streams such as `io.BytesIO` (use `from_bytes()`
   for those). Previously the position was ignored and the whole file was read.
@@ -225,7 +223,15 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * Added `from_tibs()` and `to_tibs()` interop helpers for converting between
   bitstring types and the lower-level `tibs.Tibs` type. `tibs.Tibs` and
   `tibs.Mutibs` are now counted as bitstring-like inputs.
-* Added `Bits.to_bitarray()` and `BitArray.to_bits()` conversion methods.
+* Added `to_mutable()` and `to_immutable()` conversion methods, available on both
+  `Bits` and `BitArray`. `to_mutable()` always returns a new `BitArray`, and
+  `to_immutable()` returns a `Bits` - itself when it is already an immutable
+  `Bits`, in the same way `copy()` does. Earlier 5.0 betas had these as
+  `Bits.to_bitarray()` and `BitArray.to_bits()`; those names are gone. The pair
+  was renamed because it only made sense in one direction each - `BitArray`
+  inherits everything `Bits` has, so `BitArray.to_bitarray()` existed whether it
+  was wanted or not - and because `to_bitarray()` read as a converter to the
+  external `bitarray` package, which it never was.
 * Several method names now have underscored preferred spellings:
   `to_bytes()`, `to_file()`, `to_list()`, `from_string()`, `from_file()`,
   `read_list()`, `peek_list()`, `read_to()` and `byte_align()`.

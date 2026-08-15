@@ -67,14 +67,51 @@ class TestCreation:
         bools = [True, False] * 500
         assert cls.from_bools(bools).to_bools() == bools
 
-    def test_to_bitarray(self):
+    def test_to_mutable(self):
         bits = Bits("0b101")
-        bitarray = bits.to_bitarray()
+        bitarray = bits.to_mutable()
         assert type(bitarray) is BitArray
         assert bitarray == bits
         bitarray.append("0b1")
         assert bits == "0b101"
         assert bitarray == "0b1011"
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_to_mutable_and_to_immutable_are_meaningful_on_both(self, cls):
+        # Both directions work on both classes, so neither needs suppressing on the
+        # subclass. to_immutable() mirrors copy(): self when already immutable.
+        obj = cls("0b101")
+        mutable = obj.to_mutable()
+        immutable = obj.to_immutable()
+        assert type(mutable) is BitArray
+        assert type(immutable) is Bits
+        assert mutable == immutable == obj
+        assert (immutable is obj) is (cls is Bits)
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_conversions_do_not_alias(self, cls):
+        source = BitArray("0b101")
+        mutable = source.to_mutable()
+        immutable = source.to_immutable()
+        source.append("0b1")
+        assert mutable == "0b101"
+        assert immutable == "0b101"
+        assert source == "0b1011"
+
+    @pytest.mark.parametrize("name", ["to_bitarray", "to_bits"])
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_old_conversion_names_are_gone(self, cls, name):
+        assert not hasattr(cls("0b101"), name)
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_reader_read_array_does_not_alias_its_source(self, cls):
+        # read_array() builds its own mutable data, whichever type the Reader wraps.
+        source = cls("0xffee")
+        a = bitstring.Reader(source).read_array("u8", 2)
+        assert a.to_list() == [255, 238]
+        a.data.set(0, 0)
+        assert source == "0xffee"
+        assert a.to_list() == [127, 238]
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_length_only_construction_removed(self, cls):

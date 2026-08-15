@@ -77,7 +77,7 @@ Methods
 
     Returns a copy of the bitstring.
 
-    As ``Bits`` is immutable this can return ``self``. For a mutable copy use :meth:`to_bitarray`.
+    As ``Bits`` is immutable this can return ``self``. For a mutable copy use :meth:`to_mutable`.
 
 
 .. method:: Bits.count(value: bool) -> int
@@ -202,9 +202,15 @@ Methods
     This is an interop helper for the lower-level `tibs <https://github.com/scott-griffiths/tibs>`_ library that backs bitstring 5. ``Bits`` may share immutable ``tibs.Tibs`` data directly.
     Mutable ``tibs.Mutibs`` data is accepted, but is copied before being used by bitstring.
 
-.. method:: Bits.to_bitarray() -> BitArray
+.. method:: Bits.to_immutable() -> Bits
 
-    Returns a mutable copy of the bitstring.
+    Returns the bitstring as an immutable :class:`Bits`.
+
+    As ``Bits`` is already immutable this can return ``self``, in the same way :meth:`~Bits.copy` does. Called on a :class:`BitArray` it returns a new :class:`Bits`.
+
+.. method:: Bits.to_mutable() -> BitArray
+
+    Returns a mutable copy of the bitstring as a :class:`BitArray`.
 
 .. method:: Bits.to_tibs() -> tibs.Tibs
 

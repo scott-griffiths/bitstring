@@ -30,9 +30,9 @@ Methods
 
     Creates a new mutable bitstring from a file path or binary file object.
 
-.. method:: BitArray.to_bits() -> Bits
+.. method:: BitArray.to_immutable() -> Bits
 
-    Returns an immutable copy of the bitstring.
+    Returns an immutable copy of the bitstring as a :class:`Bits`.
 
 .. method:: BitArray.to_tibs() -> tibs.Tibs
 

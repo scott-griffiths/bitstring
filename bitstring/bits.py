@@ -106,7 +106,8 @@ class Bits:
     rfind() -- Seek backwards to find a sub-bitstring.
     split() -- Create generator of chunks split by a delimiter.
     startswith() -- Return whether the bitstring starts with a sub-bitstring.
-    to_bitarray() -- Return the bitstring as a mutable BitArray.
+    to_immutable() -- Return the bitstring as an immutable Bits.
+    to_mutable() -- Return the bitstring as a mutable BitArray.
     to_bools() -- Return the bitstring as a list of bools.
     to_bytes() -- Return bitstring as bytes, padding if needed.
     to_file() -- Write bitstring to file, padding if needed.
@@ -1997,13 +1998,21 @@ class Bits:
         x._bitstore = ConstBitStore.from_tibs(tibs)
         return x
 
-    def to_bitarray(self) -> bitstring.BitArray:
-        """Return a mutable copy of the bitstring."""
+    def to_mutable(self) -> bitstring.BitArray:
+        """Return a mutable copy of the bitstring as a BitArray."""
         from bitstring.bitarray_ import BitArray
 
         x = object.__new__(BitArray)
         x._bitstore = self._bitstore._mutable_copy()
         return x
+
+    def to_immutable(self) -> Bits:
+        """Return an immutable version of the bitstring as a Bits.
+
+        As Bits is already immutable this can return self, in the same way copy() does.
+        BitArray overrides it to return a new Bits.
+        """
+        return self
 
     def to_tibs(self) -> Tibs:
         """Return the data as a tibs.Tibs instance."""

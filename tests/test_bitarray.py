@@ -33,9 +33,9 @@ class TestAll:
         bits.append("0b0")
         assert bits == "0b11110"
 
-    def test_to_bits(self):
+    def test_to_immutable(self):
         bitarray = BitArray("0b101")
-        bits = bitarray.to_bits()
+        bits = bitarray.to_immutable()
         assert type(bits) is Bits
         assert bits == bitarray
         bitarray.append("0b1")

@@ -89,7 +89,8 @@ Methods
 * :meth:`~Bits.rfind` -- Seek backwards to find a sub-bitstring.
 * :meth:`~Bits.split` -- Create generator of chunks split by a delimiter.
 * :meth:`~Bits.startswith` -- Return whether the bitstring starts with a sub-bitstring.
-* :meth:`~Bits.to_bitarray` -- Return a mutable copy.
+* :meth:`~Bits.to_immutable` -- Return the bitstring as an immutable ``Bits``.
+* :meth:`~Bits.to_mutable` -- Return the bitstring as a mutable ``BitArray``.
 * :meth:`~Bits.to_bools` -- Return bitstring as a list of bools.
 * :meth:`~Bits.to_bytes` -- Return bitstring as bytes, padding if needed.
 * :meth:`~Bits.to_file` -- Write bitstring to file, padding if needed.
@@ -164,7 +165,6 @@ All of the methods listed above for the ``Bits`` class are available, plus:
 * :meth:`~BitArray.rol` -- Rotate bits to the left.
 * :meth:`~BitArray.ror` -- Rotate bits to the right.
 * :meth:`~BitArray.set` -- Set bit(s) to 1 or 0.
-* :meth:`~BitArray.to_bits` -- Return an immutable copy.
 
 Additional special methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
