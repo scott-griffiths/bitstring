@@ -243,6 +243,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* Zero-length `u` and `i` dtypes are now rejected when they are created rather
+  than when they are used. `Dtype('u0')` previously constructed an object that
+  failed on every operation; it now raises a `ValueError` immediately, as
+  `Dtype('f0')` and `Dtype('bool0')` already did. Zero lengths remain valid for
+  `hex`, `oct`, `bin`, `bits`, `bytes` and `pad`, where they mean an empty value.
 * The `length` parameter of the `Bits` and `BitArray` constructors is now
   keyword-only. `Bits('0xff', 8)` used to parse and then always fail, because a
   length is only meaningful alongside a dtype keyword such as `Bits(u=5,

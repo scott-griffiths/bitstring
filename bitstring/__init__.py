@@ -161,7 +161,7 @@ _dtype_definitions = [
     # Integer types
     _DtypeDefinition('u', Bits._setuint, Bits._getuint, int, False, _uint_bits2chars,
                     read_fn=Bits._readuint,
-                    description="a two's complement unsigned int"),
+                    allowed_lengths=(1, 2, ...), description="a two's complement unsigned int"),
     _DtypeDefinition('ule', Bits._setuintle, Bits._getuintle, int, False, _uint_bits2chars,
                     read_fn=Bits._readuintle,
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement little-endian unsigned int"),
@@ -170,7 +170,7 @@ _dtype_definitions = [
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement big-endian unsigned int"),
     _DtypeDefinition('i', Bits._setint, Bits._getint, int, True, _int_bits2chars,
                     read_fn=Bits._readint,
-                    description="a two's complement signed int"),
+                    allowed_lengths=(1, 2, ...), description="a two's complement signed int"),
     _DtypeDefinition('ile', Bits._setintle, Bits._getintle, int, True, _int_bits2chars,
                     read_fn=Bits._readintle,
                     allowed_lengths=(8, 16, 24, ...), description="a two's complement little-endian signed int"),

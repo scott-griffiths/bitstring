@@ -548,9 +548,12 @@ class TestNewProperties:
         # 'f' is a property so a bad length raises an ValueError rather than an AttributeError.
         with pytest.raises(ValueError):
             _ = a.f
+        # There is no zero-length 'u' dtype, so this is a missing attribute rather
+        # than a bad length for an existing one.
         b = BitArray()
-        with pytest.raises(ValueError):
+        with pytest.raises(AttributeError):
             _ = b.u0
+        assert not hasattr(b, 'u0')
 
     def test_setting_an_unknown_attribute(self):
         # The setter side reports an unknown name the same way the getter does, rather
@@ -584,7 +587,8 @@ class TestNewProperties:
         # bad value for a known one.
         with pytest.raises(AttributeError):
             a.f256 = 10
-        with pytest.raises(ValueError):
+        # No zero-length 'u' dtype exists, so this is an unknown attribute.
+        with pytest.raises(AttributeError):
             a.u0 = 2
         with pytest.raises(ValueError):
             a.hex4 = '0xab'

@@ -147,6 +147,40 @@ class TestBasicFunctionality:
             d.pack(4)
 
 
+class TestZeroLengthDtypes:
+    # A zero length is meaningful for the string-ish dtypes and for pad, and
+    # meaningless for the integer ones. It's now rejected at construction rather
+    # than constructing something that can't be used.
+
+    @pytest.mark.parametrize("name", ['hex', 'oct', 'bin', 'bits', 'bytes', 'pad'])
+    def test_zero_length_is_allowed_where_it_means_something(self, name):
+        d = Dtype(name, 0)
+        assert d.bitlength == 0
+        assert len(bs.Bits().unpack(d)) in (0, 1)
+
+    @pytest.mark.parametrize("name", ['u', 'i', 'uint', 'int'])
+    def test_zero_length_is_rejected_for_integers(self, name):
+        with pytest.raises(ValueError):
+            Dtype(name, 0)
+        with pytest.raises(ValueError):
+            Dtype(f'{name}0')
+
+    @pytest.mark.parametrize("name", ['u', 'i'])
+    def test_non_zero_lengths_still_work(self, name):
+        for length in [1, 8, 64, 1000]:
+            assert Dtype(name, length).bitlength == length
+
+    def test_rejected_everywhere_a_dtype_is_built(self):
+        with pytest.raises(ValueError):
+            bs.Bits('u0=0')
+        with pytest.raises(ValueError):
+            bs.Bits().unpack('u0')
+        with pytest.raises(ValueError):
+            bs.Bits(u=0, length=0)
+        # And as an attribute it's simply absent, per the rule for unknown dtypes.
+        assert not hasattr(bs.BitArray(), 'u0')
+
+
 class TestTheOptionalColon:
     # The ':' before a length is optional when the length is a number, and required
     # when it is a keyword. It was mandatory from 1.0 to 4.0, so it stays supported.
