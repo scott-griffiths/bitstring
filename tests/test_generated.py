@@ -495,11 +495,23 @@ def test_int_dtype_pack_rejects_a_fractional_value() -> None:
         _ = bitstring.Dtype("u8").pack(3.9)
 
 
-def test_array_scalar_arithmetic_does_not_silently_truncate() -> None:
-    # A non-integral result of an integer-typed operation is truncated rather than
-    # being reported the way an out-of-range result is.
+@pytest.mark.parametrize("dtype", ["u8", "i8", "ue", "u:8"])
+def test_a_fractional_value_is_rejected_by_every_integer_route(dtype: str) -> None:
     with pytest.raises(ValueError):
-        _ = (bitstring.Array("u8", [1, 2]) * 2.5).to_list()  # currently [2, 5]
+        _ = bitstring.Dtype(dtype).pack(3.9)
+
+
+def test_integer_array_arithmetic_still_truncates() -> None:
+    # Deliberate, and pinned by test_array.py: `a /= 2` on an integer dtype keeps the
+    # whole part. The operators truncate before packing, so rejecting a fractional
+    # value in the dtype itself doesn't change any of this.
+    assert (bitstring.Array("int9", [-1, 0, 3]) * 2.5).to_list() == [-2, 0, 7]
+    a = bitstring.Array("i21", [-5, -4, 0, 2, 100])
+    a /= 2
+    assert a.to_list() == [-2, -2, 0, 1, 50]
+    assert (bitstring.Array("i16", [5]) / bitstring.Array("i16", [2])).to_list() == [2]
+    # A float dtype keeps the fraction, as it always did.
+    assert (bitstring.Array("f16", [5.0]) / 4).to_list() == [1.25]
 
 
 # The 'bits' dtype declares a return_type of Bits, and unpack()/read_value() give a

@@ -3,6 +3,7 @@ from __future__ import annotations
 from tibs import Tibs, ByteOrder
 
 import math
+import operator
 from collections.abc import Callable
 import functools
 import bitstring
@@ -12,6 +13,21 @@ MutableBitStore = bitstring.bitstore.MutableBitStore
 ConstBitStore = bitstring.bitstore.ConstBitStore
 
 from bitstring.helpers import tidy_input_string
+
+
+def _whole_number(value: str | int) -> int:
+    """An int from a value, or from the string form a format string token gives.
+
+    int() would truncate a float, so `Bits(u=3.9, length=8)` quietly packed 3. tibs
+    rejects a float outright when packing in bulk, so this keeps the two agreeing.
+    """
+    if isinstance(value, str):
+        return int(value)
+    try:
+        return operator.index(value)
+    except TypeError:
+        raise ValueError(f"An integer dtype needs a whole number, but received {value!r}, "
+                         f"which is a {type(value).__name__}.") from None
 
 
 def _int_to_tibs(i: int, length: int, signed: bool, little_endian: bool) -> Tibs:
@@ -42,13 +58,13 @@ def oct2bitstore(octstring: str) -> ConstBitStore:
 
 
 def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
-    i = int(i)
+    i = _whole_number(i)
     t = _int_to_tibs(i, length, signed, little_endian=False)
     return ConstBitStore(t)
 
 
 def intle2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
-    i = int(i)
+    i = _whole_number(i)
     t = _int_to_tibs(i, length, signed, little_endian=True)
     return ConstBitStore(t)
 
@@ -126,7 +142,7 @@ def bitstore_from_token(name: str, token_length: int | None, value: str | None) 
 
 
 def ue2bitstore(i: str | int) -> ConstBitStore:
-    i = int(i)
+    i = _whole_number(i)
     if i < 0:
         raise ValueError("Cannot use negative initialiser for unsigned exponential-Golomb.")
     if i == 0:
@@ -141,7 +157,7 @@ def ue2bitstore(i: str | int) -> ConstBitStore:
 
 
 def se2bitstore(i: str | int) -> ConstBitStore:
-    i = int(i)
+    i = _whole_number(i)
     if i > 0:
         u = (i * 2) - 1
     else:
@@ -150,14 +166,14 @@ def se2bitstore(i: str | int) -> ConstBitStore:
 
 
 def uie2bitstore(i: str | int) -> ConstBitStore:
-    i = int(i)
+    i = _whole_number(i)
     if i < 0:
         raise ValueError("Cannot use negative initialiser for unsigned interleaved exponential-Golomb.")
     return ConstBitStore.from_bin('1' if i == 0 else '0' + '0'.join(bin(i + 1)[3:]) + '1')
 
 
 def sie2bitstore(i: str | int) -> ConstBitStore:
-    i = int(i)
+    i = _whole_number(i)
     if i == 0:
         return ConstBitStore.from_bin('1')
     else:

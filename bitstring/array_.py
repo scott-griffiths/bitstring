@@ -678,6 +678,21 @@ class Array:
             setattr(self, name, value)
         self._set_tibs_dtype()
 
+    @staticmethod
+    def _truncated_values(values: list[Any], dtype: Dtype) -> list[Any] | None:
+        """values with any fractional ones truncated towards zero, or None if that isn't
+        what the dtype wants.
+
+        Arithmetic on an integer Array has always worked this way - `a /= 2` on an
+        integer dtype keeps the whole part - so the operators truncate here rather than
+        handing a float to a dtype that (rightly) refuses to guess what to do with it.
+        Only used once packing the untouched values has failed, so an operation that
+        gives whole numbers anyway doesn't pay for the check.
+        """
+        if dtype.return_type is not int:
+            return None
+        return [int(v) if type(v) is float else v for v in values]
+
     def _bulk_pack_into(self, new_array: Array, values: Iterable[Any]) -> bool:
         """Pack values into an empty new_array in one go, returning False if it can't.
 
@@ -714,6 +729,7 @@ class Array:
             def partial_op(a):
                 return op(a, value)
         itemsize = self.itemsize
+        truncate = new_array._dtype.return_type is int
         if self._tibs_dtype is not None:
             # Bulk read, apply, bulk write. Anything that goes wrong - a bad operand or
             # a result that won't pack - falls through to the loop below, which reports
@@ -722,12 +738,19 @@ class Array:
                 new_values = [partial_op(v) for v in self.to_list()]
             except Exception:
                 new_values = None
-            if new_values is not None and self._bulk_pack_into(new_array, new_values):
-                return new_array
+            if new_values is not None:
+                if self._bulk_pack_into(new_array, new_values):
+                    return new_array
+                truncated = Array._truncated_values(new_values, new_array._dtype)
+                if truncated is not None and self._bulk_pack_into(new_array, truncated):
+                    return new_array
         for i in range(len(self)):
             v = self._dtype._read_fn(self._data, start=itemsize * i)
             try:
-                new_data.append(new_array._create_element(partial_op(v)))
+                result = partial_op(v)
+                if truncate and type(result) is float:
+                    result = int(result)
+                new_data.append(new_array._create_element(result))
             except (ValueError, ZeroDivisionError) as e:
                 if failures == 0:
                     msg = str(e)
@@ -746,10 +769,14 @@ class Array:
         failures = index = 0
         msg = ''
         itemsize = self.itemsize
+        truncate = self._dtype.return_type is int
         for i in range(len(self)):
             v = self._dtype._read_fn(self._data, start=itemsize * i)
             try:
-                new_data.append(self._create_element(op(v, value)))
+                result = op(v, value)
+                if truncate and type(result) is float:
+                    result = int(result)
+                new_data.append(self._create_element(result))
             except (ValueError, ZeroDivisionError) as e:
                 if failures == 0:
                     msg = str(e)
@@ -795,6 +822,7 @@ class Array:
         msg = ''
         itemsize = self.itemsize
         other_itemsize = other.itemsize
+        truncate = new_array._dtype.return_type is int
         if self._tibs_dtype is not None and other._tibs_dtype is not None:
             # As in _apply_op_to_all_elements: bulk where possible, and fall through to
             # the per-element loop for exact error reporting when anything fails.
@@ -802,13 +830,20 @@ class Array:
                 new_values = list(map(op, self.to_list(), other.to_list()))
             except Exception:
                 new_values = None
-            if new_values is not None and self._bulk_pack_into(new_array, new_values):
-                return new_array
+            if new_values is not None:
+                if self._bulk_pack_into(new_array, new_values):
+                    return new_array
+                truncated = Array._truncated_values(new_values, new_array._dtype)
+                if truncated is not None and self._bulk_pack_into(new_array, truncated):
+                    return new_array
         for i in range(len(self)):
             a = self._dtype._read_fn(self._data, start=itemsize * i)
             b = other._dtype._read_fn(other._data, start=other_itemsize * i)
             try:
-                new_data.append(new_array._create_element(op(a, b)))
+                result = op(a, b)
+                if truncate and type(result) is float:
+                    result = int(result)
+                new_data.append(new_array._create_element(result))
             except (ValueError, ZeroDivisionError) as e:
                 if failures == 0:
                     msg = str(e)

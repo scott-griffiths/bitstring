@@ -390,6 +390,9 @@ Many operations can be performed between two ``Array`` objects.
 For these to be valid the dtypes of the ``Array`` objects must be numerical, that is they must represent an integer or floating point value.
 Some operations have tighter restrictions, such as the shift operators ``<<`` and ``>>`` requiring integers only.
 
+When the resulting dtype is an integer one, a fractional result is truncated towards zero, so ``Array('i8', [-3, 3]) / 2`` gives ``Array('i8', [-1, 1])``.
+This is only done by the operators; packing a fractional value into an integer dtype any other way is an error.
+
 The dtype of the resulting ``Array`` is calculated by applying these rules:
 
 **Rule 0**: For comparison operators (``<``, ``>=``, ``==``, ``!=`` etc.) the result is always an ``Array`` of dtype ``'bool'``.

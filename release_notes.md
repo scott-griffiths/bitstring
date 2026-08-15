@@ -374,6 +374,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
 * `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
   `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
   `False`, as comparing against an unrelated type already did.
+* The integer dtypes now reject a value that isn't a whole number instead of truncating
+  it. `Bits(u=3.9, length=8)` and `Dtype('u8').pack(3.9)` quietly packed 3. The `Array`
+  operators still truncate towards zero, which is what makes `a /= 2` work on an integer
+  dtype, and they now do so explicitly - which also lets them use the bulk packing path,
+  making `a / 2` on a 1000 item `Array('i32')` around eighty times quicker.
 * `from_zeros()`, `from_ones()` and `Array.from_zeros()` now raise a `TypeError` for a
   length that isn't a whole number. They pushed it through `int()`, so
   `Bits.from_zeros(3.7)` quietly made three bits and `Bits.from_zeros('8')` made eight.
