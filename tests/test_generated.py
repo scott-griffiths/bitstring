@@ -457,3 +457,105 @@ def test_array_dtype_setter_rejects_a_variable_length_dtype_object() -> None:
     with pytest.raises(ValueError):
         a.dtype = bitstring.Dtype("ue")  # a.dtype = 'ue' does raise
     assert a.to_list() == [1, 2]
+
+
+# ---------------------------------------------------------------------------
+# Still open. The rest of the bug hunt, not yet fixed, so these fail.
+# ---------------------------------------------------------------------------
+# Lengths and integer values are pushed through int(), which truncates a float and
+# parses a string, rather than rejecting either.
+
+def test_from_zeros_rejects_a_fractional_length() -> None:
+    with pytest.raises(TypeError):
+        _ = bitstring.Bits.from_zeros(3.7)  # currently makes 3 bits
+
+
+def test_from_ones_rejects_a_fractional_length() -> None:
+    with pytest.raises(TypeError):
+        _ = bitstring.Bits.from_ones(3.7)
+
+
+def test_from_zeros_rejects_a_string_length() -> None:
+    with pytest.raises(TypeError):
+        _ = bitstring.Bits.from_zeros("8")  # currently makes 8 bits
+
+
+def test_array_from_zeros_rejects_a_fractional_item_count() -> None:
+    with pytest.raises(TypeError):
+        _ = bitstring.Array.from_zeros("u8", 2.7)
+
+
+def test_uint_initialiser_rejects_a_fractional_value() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits(u=3.9, length=8)  # currently packs 3
+
+
+def test_int_dtype_pack_rejects_a_fractional_value() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Dtype("u8").pack(3.9)
+
+
+def test_array_scalar_arithmetic_does_not_silently_truncate() -> None:
+    # A non-integral result of an integer-typed operation is truncated rather than
+    # being reported the way an out-of-range result is.
+    with pytest.raises(ValueError):
+        _ = (bitstring.Array("u8", [1, 2]) * 2.5).to_list()  # currently [2, 5]
+
+
+# The 'bits' dtype declares a return_type of Bits, and unpack()/read_value() give a
+# Bits. Array reads through its own BitArray buffer, so its elements come out mutable.
+
+def test_array_bits_elements_have_the_dtype_return_type() -> None:
+    a = bitstring.Array("bits8", [bitstring.Bits("0xff")])
+    assert type(a[0]) is bitstring.Dtype("bits8").return_type
+    assert type(a.to_list()[0]) is bitstring.Bits
+
+
+# append() and extend() both refuse to work on an Array whose data isn't a whole
+# number of items. insert() doesn't check, and quietly puts an item in front of the
+# trailing bits.
+
+def test_array_insert_refuses_when_there_are_trailing_bits() -> None:
+    a = bitstring.Array("u8", [1], trailing_bits="0b1")
+    with pytest.raises(ValueError):
+        a.insert(1, 2)
+
+
+# The literal prefix is stripped with str.replace, which removes every occurrence
+# rather than just a leading one, so malformed input is silently accepted.
+
+def test_hex_initialiser_rejects_an_embedded_prefix() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits(hex="0x0x0")  # currently the 4 bits '0x0'
+
+
+def test_bin_initialiser_rejects_an_embedded_prefix() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits(bin="10b1")  # currently the 2 bits '0b11'
+
+
+def test_oct_initialiser_rejects_an_embedded_prefix() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits(oct="70o7")
+
+
+# unpack() accepts a Dtype wherever it accepts a format string; pack() only accepts
+# strings, and an unhelpful TypeError comes out of trying to iterate the Dtype.
+
+def test_pack_accepts_a_dtype_like_unpack_does() -> None:
+    assert bitstring.pack(bitstring.Dtype("u8"), 5) == "0x05"
+
+
+def test_pack_accepts_a_list_of_dtypes_like_unpack_does() -> None:
+    assert bitstring.pack([bitstring.Dtype("u8"), bitstring.Dtype("u8")], 1, 2) == "0x0102"
+
+
+# set() and invert() take 'either a single bit position or an iterable of bit
+# positions'. all() and count()'s sibling any() take only the iterable form.
+
+def test_all_accepts_a_single_position_like_set_does() -> None:
+    assert bitstring.Bits("0xff").all(1, 0) is True
+
+
+def test_any_accepts_a_single_position_like_set_does() -> None:
+    assert bitstring.Bits("0xff").any(1, 0) is True
