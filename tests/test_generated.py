@@ -258,3 +258,283 @@ def test_array_fromfile_honours_current_position_for_eof(tmp_path) -> None:
         f.seek(2)
         with pytest.raises(EOFError):
             _ = Array.from_file("uint8", f, 2)
+
+
+# ---------------------------------------------------------------------------
+# Bug hunt. Each test below asserts what the API looks like it should do; they
+# are expected to fail against the current code.
+# ---------------------------------------------------------------------------
+
+
+# Assigning to a dtype property goes through the property fset, which is the plain
+# Bits._setX method. Those all assign a ConstBitStore, so the BitArray silently loses
+# its mutable store and every later mutating method blows up. The BitArray.__setattr__
+# path for lengthed names ('u8') does the _mutable_copy() that this path is missing.
+
+def test_bitarray_is_still_mutable_after_setting_the_hex_property() -> None:
+    b = bitstring.BitArray("0x00")
+    b.hex = "ff"
+
+    b.set(1, 0)  # AttributeError: 'ConstBitStore' object has no attribute 'set'
+    assert b == "0xff"
+
+
+def test_bitarray_is_still_mutable_after_setting_the_u_property() -> None:
+    b = bitstring.BitArray("0x0000")
+    b.u = 5
+
+    b[0] = 1  # TypeError: 'ConstBitStore' object does not support item assignment
+    assert b == "0x8005"
+
+
+def test_bitarray_is_still_mutable_after_setting_a_variable_length_property() -> None:
+    b = bitstring.BitArray("0x00")
+    b.ue = 5
+
+    b.invert(0)  # AttributeError: 'ConstBitStore' object has no attribute 'invert'
+    assert b == "0b10110"
+
+
+def test_setting_a_dtype_property_keeps_the_store_mutable() -> None:
+    # The same fault stated directly: the store type must not change.
+    b = bitstring.BitArray("0x00")
+    before = type(b._bitstore)
+    b.bin = "1010"
+    assert type(b._bitstore) is before
+
+
+# __eq__ promotes the other operand and catches TypeError so that unrelated objects
+# compare unequal, but a str that isn't a valid token raises ValueError out of the
+# promotion instead. Comparing against an arbitrary string should be False, not an error.
+
+def test_equality_with_an_unparseable_string_is_false() -> None:
+    assert (bitstring.Bits("0xff") == "hello") is False
+
+
+def test_equality_with_a_valueless_token_string_is_false() -> None:
+    # 'u8' parses as a token but has no value, so promotion raises rather than
+    # reporting that the two objects simply aren't equal.
+    assert (bitstring.Bits("0xff") == "u8") is False
+
+
+def test_inequality_with_an_unparseable_string_is_true() -> None:
+    assert (bitstring.Bits("0xff") != "hello") is True
+
+
+def test_bitarray_equality_with_an_unparseable_string_is_false() -> None:
+    assert (bitstring.BitArray("0xff") == "nope") is False
+
+
+# Bits.__getattr__ deliberately raises AttributeError for a length mismatch "so that
+# hasattr() works as expected", but that only covers names with a length in them
+# ('u16'). The bare names are real properties, so the length check happens inside the
+# getter and comes out as ValueError, which hasattr() and getattr() don't catch.
+
+def test_hasattr_is_false_for_a_property_of_the_wrong_length() -> None:
+    assert hasattr(bitstring.Bits("0b1"), "hex") is False
+
+
+def test_hasattr_is_false_for_the_u_property_of_an_empty_bitstring() -> None:
+    assert hasattr(bitstring.Bits(""), "u") is False
+
+
+def test_getattr_default_is_used_for_a_property_of_the_wrong_length() -> None:
+    assert getattr(bitstring.Bits("0b1"), "hex", "default") == "default"
+    # The lengthed spelling of the same thing already behaves like this.
+    assert getattr(bitstring.Bits("0b1"), "u16", "default") == "default"
+
+
+# Dtype.pack checks that the packed value is the dtype's own length, but Dtype.unpack
+# checks only the dtype class's allowed lengths, so a dtype happily interprets a
+# bitstring of a completely different length.
+
+def test_dtype_unpack_rejects_data_longer_than_the_dtype() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Dtype("u8").unpack("0xffff")
+
+
+def test_dtype_unpack_rejects_data_shorter_than_the_dtype() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Dtype("u8").unpack("0b1")
+
+
+def test_dtype_unpack_of_a_float_uses_the_dtype_length() -> None:
+    # 32 bits get read as a float32 by a Dtype that says it is 16 bits wide.
+    with pytest.raises(ValueError):
+        _ = bitstring.Dtype("f16").unpack(bitstring.Bits.from_zeros(32))
+
+
+def test_dtype_unpack_and_pack_agree_about_length() -> None:
+    d = bitstring.Dtype("hex8")
+    packed = d.pack("ff")
+    assert len(packed) == d.bitlength
+    with pytest.raises(ValueError):
+        _ = d.unpack("0xffff")
+
+
+# byteswap() takes 'an iterable of integers', but it iterates the iterable once to
+# validate it and again to total it. An iterator is empty by the second pass, so the
+# call silently does nothing and reports zero repeats.
+
+def test_byteswap_accepts_an_iterator_of_byte_sizes() -> None:
+    from_list = bitstring.BitArray("0x00112233")
+    from_iterator = bitstring.BitArray("0x00112233")
+
+    list_repeats = from_list.byteswap([1, 3])
+    iterator_repeats = from_iterator.byteswap(iter([1, 3]))
+
+    assert iterator_repeats == list_repeats
+    assert from_iterator == from_list
+
+
+# overwrite() has no self-aliasing guard, so _overwrite's `assert pos == 0` fires and
+# a bare AssertionError reaches the caller. insert() handles the same case by copying.
+
+def test_overwrite_with_self_at_a_non_zero_position() -> None:
+    a = bitstring.BitArray("0xab")
+    a.overwrite(4, a)  # AssertionError
+    assert a == "0xaab"
+
+
+# A zero-length dtype passes Array's "must be fixed length" check, and then every
+# operation divides by the item size. Array rejects variable length dtypes with a
+# ValueError, and should reject these the same way rather than dividing by zero.
+
+@pytest.mark.parametrize("dtype", ["bin0", "hex0", "oct0", "bytes0", "bits0", "pad0"])
+def test_array_rejects_a_zero_length_dtype(dtype: str) -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Array(dtype)
+
+
+def test_array_with_a_zero_length_dtype_has_a_usable_len() -> None:
+    # Stated the other way round: if it can be built, it has to work.
+    a = bitstring.Array("bin0")
+    assert len(a) == 0  # ZeroDivisionError
+
+
+def test_read_array_with_a_zero_length_dtype() -> None:
+    r = bitstring.Reader(bitstring.Bits("0xff"))
+    with pytest.raises(ValueError):
+        _ = r.read_array("bin0")  # ZeroDivisionError
+
+
+def test_array_pp_with_a_zero_length_format(capsys) -> None:
+    # Bits.pp('bin0') works - 0 means 'don't split into groups' - but the same
+    # format divides by zero in Array.pp before it gets that far.
+    bitstring.Array("u8", [1, 2]).pp("bin0")
+    assert capsys.readouterr().out != ""
+
+
+# Array's dtype validation only runs on the string spelling. A Dtype object is stored
+# without any check, so a variable length dtype gets in and leaves an Array that
+# raises from len(), to_list() and repr().
+
+def test_array_rejects_a_variable_length_dtype_object() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Array(bitstring.Dtype("ue"))  # Array('ue') does raise
+
+
+def test_array_dtype_setter_rejects_a_variable_length_dtype_object() -> None:
+    a = bitstring.Array("u8", [1, 2])
+    with pytest.raises(ValueError):
+        a.dtype = bitstring.Dtype("ue")  # a.dtype = 'ue' does raise
+    assert a.to_list() == [1, 2]
+
+
+# Lengths and integer values are pushed through int(), which truncates a float and
+# parses a string, rather than rejecting either.
+
+def test_from_zeros_rejects_a_fractional_length() -> None:
+    with pytest.raises(TypeError):
+        _ = bitstring.Bits.from_zeros(3.7)  # currently makes 3 bits
+
+
+def test_from_ones_rejects_a_fractional_length() -> None:
+    with pytest.raises(TypeError):
+        _ = bitstring.Bits.from_ones(3.7)
+
+
+def test_from_zeros_rejects_a_string_length() -> None:
+    with pytest.raises(TypeError):
+        _ = bitstring.Bits.from_zeros("8")  # currently makes 8 bits
+
+
+def test_array_from_zeros_rejects_a_fractional_item_count() -> None:
+    with pytest.raises(TypeError):
+        _ = bitstring.Array.from_zeros("u8", 2.7)
+
+
+def test_uint_initialiser_rejects_a_fractional_value() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits(u=3.9, length=8)  # currently packs 3
+
+
+def test_int_dtype_pack_rejects_a_fractional_value() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Dtype("u8").pack(3.9)
+
+
+def test_array_scalar_arithmetic_does_not_silently_truncate() -> None:
+    # A non-integral result of an integer-typed operation is truncated rather than
+    # being reported the way an out-of-range result is.
+    with pytest.raises(ValueError):
+        _ = (bitstring.Array("u8", [1, 2]) * 2.5).to_list()  # currently [2, 5]
+
+
+# The 'bits' dtype declares a return_type of Bits, and unpack()/read_value() give a
+# Bits. Array reads through its own BitArray buffer, so its elements come out mutable.
+
+def test_array_bits_elements_have_the_dtype_return_type() -> None:
+    a = bitstring.Array("bits8", [bitstring.Bits("0xff")])
+    assert type(a[0]) is bitstring.Dtype("bits8").return_type
+    assert type(a.to_list()[0]) is bitstring.Bits
+
+
+# append() and extend() both refuse to work on an Array whose data isn't a whole
+# number of items. insert() doesn't check, and quietly puts an item in front of the
+# trailing bits.
+
+def test_array_insert_refuses_when_there_are_trailing_bits() -> None:
+    a = bitstring.Array("u8", [1], trailing_bits="0b1")
+    with pytest.raises(ValueError):
+        a.insert(1, 2)
+
+
+# The literal prefix is stripped with str.replace, which removes every occurrence
+# rather than just a leading one, so malformed input is silently accepted.
+
+def test_hex_initialiser_rejects_an_embedded_prefix() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits(hex="0x0x0")  # currently the 4 bits '0x0'
+
+
+def test_bin_initialiser_rejects_an_embedded_prefix() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits(bin="10b1")  # currently the 2 bits '0b11'
+
+
+def test_oct_initialiser_rejects_an_embedded_prefix() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits(oct="70o7")
+
+
+# unpack() accepts a Dtype wherever it accepts a format string; pack() only accepts
+# strings, and an unhelpful TypeError comes out of trying to iterate the Dtype.
+
+def test_pack_accepts_a_dtype_like_unpack_does() -> None:
+    assert bitstring.pack(bitstring.Dtype("u8"), 5) == "0x05"
+
+
+def test_pack_accepts_a_list_of_dtypes_like_unpack_does() -> None:
+    assert bitstring.pack([bitstring.Dtype("u8"), bitstring.Dtype("u8")], 1, 2) == "0x0102"
+
+
+# set() and invert() take 'either a single bit position or an iterable of bit
+# positions'. all() and count()'s sibling any() take only the iterable form.
+
+def test_all_accepts_a_single_position_like_set_does() -> None:
+    assert bitstring.Bits("0xff").all(1, 0) is True
+
+
+def test_any_accepts_a_single_position_like_set_does() -> None:
+    assert bitstring.Bits("0xff").any(1, 0) is True
