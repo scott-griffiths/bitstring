@@ -368,6 +368,9 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   `>` and `>=` already did, so `Array('u8', [1]) == Array('i8', [1])` gives
   `Array('bool', [True])` instead of raising a `TypeError`. Use `equals()` if you want a
   single boolean that also requires the dtypes to match.
+* Setting a dtype property on a `BitArray` no longer makes it immutable. `a.hex = 'ff'`
+  left the object holding an immutable store, so the next `a.set()`, `a.invert()` or
+  `a[0] = 1` raised an `AttributeError` or `TypeError` from the internals.
 
 ### March 2026: version 4.4.0
 

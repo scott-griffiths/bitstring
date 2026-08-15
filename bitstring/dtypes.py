@@ -315,6 +315,20 @@ class DtypeDefinition:
         return s
 
 
+def _mutable_property_setter(set_fn: Callable) -> Callable:
+    """Wrap a Bits setter so that assigning to it leaves a BitArray still mutable.
+
+    The setters all replace the store outright, and nearly all of them build an
+    immutable one - which is what _initialise converts after construction. A property
+    assignment doesn't go through _initialise, so it does the same conversion here.
+    """
+    @functools.wraps(set_fn)
+    def setter(self, value, /) -> None:
+        set_fn(self, value)
+        self._bitstore = self._bitstore._mutable_copy()
+    return setter
+
+
 class Register:
     """A singleton class that holds all the DtypeDefinitions. Not (yet) part of the public interface."""
 
@@ -336,7 +350,7 @@ class Register:
         if definition.get_fn is not None:
             setattr(bitstring.bits.Bits, definition.name, property(fget=definition.get_fn, doc=f"The bitstring as {definition.description}. Read only."))
         if definition.set_fn is not None:
-            setattr(bitstring.bitarray_.BitArray, definition.name, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"The bitstring as {definition.description}. Read and write."))
+            setattr(bitstring.bitarray_.BitArray, definition.name, property(fget=definition.get_fn, fset=_mutable_property_setter(definition.set_fn), doc=f"The bitstring as {definition.description}. Read and write."))
 
     @classmethod
     def add_dtype_alias(cls, name: str, alias: str):
@@ -348,7 +362,7 @@ class Register:
         if definition.get_fn is not None:
             setattr(bitstring.bits.Bits, alias, property(fget=definition.get_fn, doc=f"An alias for '{name}'. Read only."))
         if definition.set_fn is not None:
-            setattr(bitstring.bitarray_.BitArray, alias, property(fget=definition.get_fn, fset=definition.set_fn, doc=f"An alias for '{name}'. Read and write."))
+            setattr(bitstring.bitarray_.BitArray, alias, property(fget=definition.get_fn, fset=_mutable_property_setter(definition.set_fn), doc=f"An alias for '{name}'. Read and write."))
 
     @classmethod
     def get_dtype(cls, name: str, length: int | None) -> Dtype:
