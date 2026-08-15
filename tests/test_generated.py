@@ -460,10 +460,11 @@ def test_array_dtype_setter_rejects_a_variable_length_dtype_object() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Still open. The rest of the bug hunt, not yet fixed, so these fail.
+# The rest of the bug hunt. Three of these turned out to be deliberate behaviour
+# rather than faults, and are pinned here so they don't get reported again.
 # ---------------------------------------------------------------------------
-# Lengths and integer values are pushed through int(), which truncates a float and
-# parses a string, rather than rejecting either.
+# Lengths and integer values used to be pushed through int(), which truncates a float
+# and parses a string rather than rejecting either.
 
 def test_from_zeros_rejects_a_fractional_length() -> None:
     with pytest.raises(TypeError):
