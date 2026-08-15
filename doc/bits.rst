@@ -604,6 +604,23 @@ Special Methods
 
     If you have a different criterion you wish to use then code it explicitly, for example ``a.i == b.i`` could be true even if ``a == b`` wasn't (as they could be different lengths).
 
+    The comparison promotes the other value, so strings, bytes-like objects and bit-pattern
+    lists compare equal to a bitstring with the same bits. :meth:`~Bits.__hash__` does not
+    promote, so a bitstring in a set or dictionary matches only other bitstrings::
+
+        >>> Bits('0xff') == '0xff'
+        True
+        >>> Bits('0xff') in ['0xff']       # list uses ==
+        True
+        >>> Bits('0xff') in {'0xff'}       # set uses hash first
+        False
+
+    This is deliberate. Many different strings describe the same bits - ``'0xff'``,
+    ``'0b11111111'``, ``'u8=255'`` and ``'i8=-1'`` are all equal to the same bitstring - and
+    they have different hashes, so no hash of a bitstring could match them all. Use
+    bitstrings as your keys and set members, and promote before looking up:
+    ``d[Bits('0xff')]`` rather than ``d['0xff']``.
+
 
 .. method:: Bits.__getitem__(key)
 
@@ -633,6 +650,10 @@ Special Methods
     Returns an integer hash of the :class:`Bits`.
 
     This method is not available for the :class:`BitArray` class, as only immutable objects should be hashed. You typically won't need to call it directly, instead it is used for dictionary keys and in sets.
+
+    Only bitstrings hash equal to bitstrings. Unlike :meth:`~Bits.__eq__` this does not promote
+    strings or other values, so ``Bits('0xff') in {'0xff'}`` is ``False`` even though
+    ``Bits('0xff') == '0xff'`` is ``True``. See :meth:`~Bits.__eq__` for why.
 
 .. method:: Bits.__invert__()
 

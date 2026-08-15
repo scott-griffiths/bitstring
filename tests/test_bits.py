@@ -509,6 +509,37 @@ class TestInitialiserLength:
             Bits('0xff', length=4)
 
 
+class TestEqualityAndHashing:
+    # Equality promotes, hashing doesn't. Deliberate: many strings describe the same
+    # bits and they don't share a hash, so no hash of a bitstring could match them all.
+
+    @pytest.mark.parametrize("other", ["0xff", b"\xff", bytearray(b"\xff")])
+    def test_equality_promotes(self, other):
+        assert Bits("0xff") == other
+        assert Bits("0xff") in [other]
+
+    def test_bit_pattern_lists_compare_equal(self):
+        assert Bits("0b1010") == [1, 0, 1, 0]
+        assert Bits("0b1") == [True]
+
+    def test_hashing_does_not_promote(self):
+        assert Bits("0xff") not in {"0xff"}
+        with pytest.raises(KeyError):
+            {Bits("0xff"): 1}["0xff"]
+
+    def test_bitstrings_hash_together_normally(self):
+        assert Bits("0xff") in {Bits("0xff")}
+        assert {Bits("0xff"): 1}[Bits("0xff")] == 1
+        assert len({Bits("0xff"), Bits("0b11111111")}) == 1
+
+    def test_why_the_hash_cannot_promote(self):
+        # All of these are equal to the same bitstring, and their hashes all differ.
+        equivalent = ["0xff", "0b11111111", "u8=255", "i8=-1", "hex=ff"]
+        for s in equivalent:
+            assert Bits("0xff") == s
+        assert len({hash(s) for s in equivalent}) == len(equivalent)
+
+
 class TestEmptyOperators:
     # Every operator treats an empty bitstring as unremarkable rather than as an
     # error, so that code doesn't need to special-case the empty case.

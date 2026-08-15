@@ -242,6 +242,13 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* Documented that equality and hashing differ deliberately. `Bits('0xff') ==
+  '0xff'` is `True`, because equality promotes strings, bytes-like objects and
+  bit-pattern lists, but `Bits('0xff') in {'0xff'}` is `False`, because hashing
+  doesn't promote. This is long-standing behaviour and is now stated next to both
+  methods: many strings describe the same bits and they don't share a hash, so no
+  hash of a bitstring could match them all. Use bitstrings as keys and set
+  members.
 * Compatibility aliases are kept rather than deprecated. The older spellings
   `tobytes()`, `tofile()`, `tolist()`, `fromstring()` and the longer dtype names
   `uint`, `int`, `float`, `uintbe`, `intle`, `floatle` and friends all continue to

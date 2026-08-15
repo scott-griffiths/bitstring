@@ -425,6 +425,11 @@ class Bits:
     def __eq__(self, bs: Any, /) -> bool:
         """Return True if two bitstrings have the same binary representation.
 
+        The other value is promoted, so strings, bytes-like objects and bit-pattern lists
+        compare equal to a bitstring with the same bits. __hash__ deliberately doesn't
+        promote, so a bitstring in a set or dict matches only other bitstrings - many
+        strings describe the same bits and they don't share a hash.
+
         >>> BitArray('0b1110') == '0xe'
         True
 
@@ -591,7 +596,11 @@ class Bits:
         return found is not None
 
     def __hash__(self) -> int:
-        """Return an integer hash of the object."""
+        """Return an integer hash of the object.
+
+        Only bitstrings hash equal to bitstrings. Unlike __eq__ this doesn't promote, so
+        Bits('0xff') in {'0xff'} is False. See __eq__.
+        """
         # Only requirement is that equal bitstring should return the same hash.
         # For equal bitstrings the bytes at the start/end will be the same and they will have the same length
         # (need to check the length as there could be zero padding when getting the bytes). We do not check any
