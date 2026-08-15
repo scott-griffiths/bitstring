@@ -86,7 +86,7 @@ class BitArray(Bits):
     # As BitArray objects are mutable, we shouldn't allow them to be hashed.
     __hash__: None = None
 
-    def __init__(self, auto: BitsType | None = None, /, length: int | None = None,
+    def __init__(self, auto: BitsType | None = None, /, *, length: int | None = None,
                  **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, a bytes-like object, another bitstring or a list/tuple bit pattern.
@@ -118,7 +118,7 @@ class BitArray(Bits):
         """
         pass
 
-    def __new__(cls: type[TBits], auto: BitsType | None = None, /, length: int | None = None,
+    def __new__(cls: type[TBits], auto: BitsType | None = None, /, *, length: int | None = None,
                 **kwargs) -> TBits:
         x = super(Bits, cls).__new__(cls)
         if auto is None and not kwargs:

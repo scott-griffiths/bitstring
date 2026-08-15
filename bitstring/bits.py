@@ -125,7 +125,7 @@ class Bits:
     """
     __slots__ = ('_bitstore', '_filename')
 
-    def __init__(self, auto: BitsType | None = None, /, length: int | None = None,
+    def __init__(self, auto: BitsType | None = None, /, *, length: int | None = None,
                  **kwargs) -> None:
         """Either specify an 'auto' initialiser:
         A string of comma separated tokens, a bytes-like object, another bitstring or a list/tuple bit pattern.
@@ -157,7 +157,7 @@ class Bits:
         """
         pass
 
-    def __new__(cls: type[TBits], auto: BitsType | None = None, /, length: int | None = None,
+    def __new__(cls: type[TBits], auto: BitsType | None = None, /, *, length: int | None = None,
                 **kwargs) -> TBits:
         x = super().__new__(cls)
         if auto is None and not kwargs:

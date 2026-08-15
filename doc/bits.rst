@@ -5,7 +5,7 @@ Bits
 
 The ``Bits`` class is the simplest type in the bitstring module, and represents an immutable sequence of bits. This is the best class to use if you will not need to modify the data after creation.
 
-.. class:: Bits(auto: BitsType | None, /, length: int | None = None, **kwargs)
+.. class:: Bits(auto: BitsType | None, /, *, length: int | None = None, **kwargs)
 
     Creates a new bitstring.
     You must specify either no initialiser, just an 'auto' value as the first parameter, or a keyword argument such as ``bin``, ``hex``, ``oct``, ``u``, ``i``, ``f`` or ``bool`` to indicate the data type.

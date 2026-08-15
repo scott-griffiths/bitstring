@@ -41,7 +41,7 @@ Constructing bitstrings
 When initialising a bitstring you need to specify at most one initialiser.
 This can either be the first parameter in the constructor ('auto' initialisation, described below), or using a keyword argument for a data type.
 
-``Bits(auto, /, length: int | None = None, **kwargs)``
+``Bits(auto, /, *, length: int | None = None, **kwargs)``
 
 Some of the keyword arguments that can be used are:
 

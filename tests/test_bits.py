@@ -114,6 +114,19 @@ class TestCreation:
         assert a.to_list() == [127, 238]
 
     @pytest.mark.parametrize("cls", [Bits, BitArray])
+    def test_length_is_keyword_only(self, cls):
+        # A positional length was never valid - it's only meaningful alongside a
+        # dtype keyword - so it's now rejected as a TypeError rather than parsed
+        # and then failing.
+        with pytest.raises(TypeError):
+            cls("0xff", 8)
+        with pytest.raises(TypeError):
+            cls(b"\xff", 8)
+        # The keyword form is unaffected.
+        assert cls(u=5, length=8) == "0x05"
+        assert len(cls(hex="ff", length=8)) == 8
+
+    @pytest.mark.parametrize("cls", [Bits, BitArray])
     def test_length_only_construction_removed(self, cls):
         with pytest.raises(ValueError, match="from_zeros"):
             cls(length=8)

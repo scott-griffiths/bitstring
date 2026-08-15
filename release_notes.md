@@ -243,6 +243,11 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   with the `multiprocessing` module.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
+* The `length` parameter of the `Bits` and `BitArray` constructors is now
+  keyword-only. `Bits('0xff', 8)` used to parse and then always fail, because a
+  length is only meaningful alongside a dtype keyword such as `Bits(u=5,
+  length=8)`. It is now a `TypeError` at the call itself. Every valid call is
+  unaffected, as they all pass `length=` by keyword already.
 * Compact struct format codes such as `'>h'` are now accepted everywhere a dtype
   name is. They previously worked in `Array`, `pack()` and `unpack()` but were
   rejected by `Dtype()`, `Bits.from_dtype()`, `Reader.read_value()`,
