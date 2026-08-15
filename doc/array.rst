@@ -226,8 +226,10 @@ Methods
         >>> a.to_list() == b.to_list()
         True
 
-    Note that the ``==`` operator does something different: it performs an element-wise equality check and returns a new ``Array`` of dtype ``'bool'``. Both operands must have the same dtype.
+    Note that the ``==`` operator does something different: it compares element-wise and returns a new ``Array`` of dtype ``'bool'``. It compares values, so unlike ``equals`` the dtypes don't have to match, but the lengths do.
 
+        >>> a == b
+        Array('bool', [True, True, True, True, True])
         >>> a == Array('u8', [1, 0, 3, 0, 1])
         Array('bool', [True, False, True, False, True])
 
@@ -443,6 +445,8 @@ Comparison operators can operate between two ``Array`` objects, or between an ``
 Note that they always produce an ``Array`` of :attr:`~Array.dtype` ``'bool'``, including the equality and inequality operators.
 
 To test the boolean equality of two Arrays use the :meth:`~Array.equals` method instead.
+
+``==`` and ``!=`` also accept a list, tuple or ``array.array`` of values, and follow the usual Python rules against anything they can't compare, so ``a == None`` is just ``False``.
 
 .. method:: Array.__eq__(self, other: int | float | str | BitsType | Array) -> Array
 

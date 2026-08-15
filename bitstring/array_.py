@@ -664,18 +664,26 @@ class Array:
         new_array._data._addright_bitstore(packed)
         return True
 
-    def _apply_op_to_all_elements(self, op, value: int | float | None, is_comparison: bool = False) -> Array:
-        """Apply op with value to each element of the Array and return a new Array"""
+    def _apply_op_to_all_elements(self, op, value: int | float | None, is_comparison: bool = False,
+                                  reverse: bool = False) -> Array:
+        """Apply op with value to each element of the Array and return a new Array
+
+        If reverse is True the element is the right-hand operand, as needed by the
+        reflected operators.
+        """
         new_array = self.__class__('bool' if is_comparison else self._dtype)
         new_data = BitArray()
         failures = index = 0
         msg = ''
-        if value is not None:
-            def partial_op(a):
-                return op(a, value)
-        else:
+        if value is None:
             def partial_op(a):
                 return op(a)
+        elif reverse:
+            def partial_op(a):
+                return op(value, a)
+        else:
+            def partial_op(a):
+                return op(a, value)
         itemsize = self.itemsize
         if self._tibs_dtype is not None:
             # Bulk read, apply, bulk write. Anything that goes wrong - a bad operand or
@@ -935,9 +943,7 @@ class Array:
         return self._apply_op_to_all_elements(operator.add, other)
 
     def __rsub__(self, other: int | float) -> Array:
-        # i - A == (-A) + i
-        neg = self._apply_op_to_all_elements(operator.neg, None)
-        return neg._apply_op_to_all_elements(operator.add, other)
+        return self._apply_op_to_all_elements(operator.sub, other, reverse=True)
 
     # Reverse operators between a scalar and something that can be a BitArray.
 
@@ -973,9 +979,20 @@ class Array:
         return self._apply_op_to_all_elements(operator.le, other, is_comparison=True)
 
     def _eq_ne(self, op, other: Any) -> Array:
+        if isinstance(other, Array):
+            # Compare values, as the ordering operators do. The dtypes needn't match.
+            return self._apply_op_between_arrays(op, other, is_comparison=True)
         if isinstance(other, (int, float, str, Bits)):
             return self._apply_op_to_all_elements(op, other, is_comparison=True)
-        other = self.__class__(self.dtype, other)
+        if not isinstance(other, (list, tuple, array.array)):
+            # Nothing we can compare element-wise. NotImplemented rather than an exception,
+            # so that `in`, dict lookups and unittest comparisons keep working. Note that a
+            # bare try/except wouldn't do here, as Array(dtype, None) is a valid empty Array.
+            return NotImplemented
+        try:
+            other = self.__class__(self.dtype, other)
+        except (TypeError, ValueError):
+            return NotImplemented
         return self._apply_op_between_arrays(op, other, is_comparison=True)
 
     def __eq__(self, other: Any) -> Array:

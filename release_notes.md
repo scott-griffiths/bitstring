@@ -348,6 +348,17 @@ is to just pin your bitstring dependency to <5.0 and stay using 4.x.
   factors are rejected.
 * `pp()` now resolves `sys.stdout` at call time instead of import time, so output
   redirection (such as `contextlib.redirect_stdout` or pytest capture) works.
+* Fixed `x - some_array` for dtypes that can't hold the negated elements. It was
+  calculated as `(-some_array) + x`, so `5 - Array('u8', [1, 2])` raised on the
+  intermediate `-1` even though every result fits. The subtraction is now done in one
+  step per element, and a genuine out-of-range result reports `sub` rather than `neg`.
+* `Array.__eq__` and `Array.__ne__` no longer raise when given something they can't
+  compare. `some_array == None` was raising a `ValueError`, which also broke `in` tests,
+  dict lookups and `assertEqual`; it now returns `False` as Python expects.
+* `==` and `!=` between `Array` objects now compare values and promote, as `<`, `<=`,
+  `>` and `>=` already did, so `Array('u8', [1]) == Array('i8', [1])` gives
+  `Array('bool', [True])` instead of raising a `TypeError`. Use `equals()` if you want a
+  single boolean that also requires the dtypes to match.
 
 ### March 2026: version 4.4.0
 

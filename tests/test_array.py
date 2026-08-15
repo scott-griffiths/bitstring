@@ -8,6 +8,7 @@ from bitstring import Array, Bits, BitArray
 import copy
 import itertools
 import io
+import operator
 from bitstring.dtypes import Dtype
 import re
 
@@ -1056,6 +1057,40 @@ class TestComparisonOperators:
         with pytest.raises(ValueError):
             _ = a == [1, 2, 3, 4, 5, 6, 7]
 
+    def test_equals_promotes_between_dtypes(self):
+        # == and != compare values, as the ordering operators already do.
+        a = Array('u8', [1, 2, 3])
+        assert (a == Array('i8', [1, 0, 3])).tolist() == [True, False, True]
+        assert (a != Array('i8', [1, 0, 3])).tolist() == [False, True, False]
+        assert (a == Array('f16', [1, 2, 0])).tolist() == [True, True, False]
+
+    def test_equals_accepts_same_operands_as_ordering(self):
+        a = Array('u8', [1, 2, 3])
+        b = Array('i8', [1, 2, 3])
+        for op in (operator.eq, operator.ne, operator.lt, operator.le,
+                   operator.gt, operator.ge):
+            assert op(a, b).dtype == Dtype('bool')
+
+    def test_equals_with_unrelated_object_is_false(self):
+        a = Array('u8', [1, 2, 3])
+        assert (a == None) is False
+        assert (a != None) is True
+        assert (a == object()) is False
+        assert (a == {'a': 1}) is False
+
+    def test_equals_does_not_break_containment(self):
+        # __eq__ must not raise, or `in`, dict lookups and assertEqual all break.
+        a = Array('u8', [1, 2, 3])
+        assert a not in [None, object()]
+        assert a in [None, a]
+
+    def test_equals_still_takes_sequences(self):
+        a = Array('u8', [1, 2, 3])
+        assert (a == [1, 0, 3]).tolist() == [True, False, True]
+        assert (a == (1, 0, 3)).tolist() == [True, False, True]
+        assert (a == array.array('B', [1, 0, 3])).tolist() == [True, False, True]
+
+
 class TestAsType:
 
     def test_switching_int_types(self):
@@ -1087,6 +1122,25 @@ class TestReverseMethods:
         a = Array('i90', [-1, -10, -100])
         b = 100 - a
         assert b.equals(Array('int90', [101, 110, 200]))
+
+    def test_rsub_unsigned(self):
+        # Every result fits in the dtype, so the intermediate negation must not be
+        # what decides whether this works.
+        a = Array('u8', [1, 2, 3])
+        b = 5 - a
+        assert b.equals(Array('u8', [4, 3, 2]))
+
+    def test_rsub_signed_extreme(self):
+        # -128 - -128 == 0, even though -(-128) doesn't fit in an i8.
+        a = Array('i8', [-128, -1])
+        b = -128 - a
+        assert b.equals(Array('i8', [0, -127]))
+
+    def test_rsub_out_of_range_reports_sub(self):
+        a = Array('u8', [1, 2])
+        with pytest.raises(ValueError) as e:
+            _ = 0 - a
+        assert 'sub' in str(e.value)
 
     def test_rmod(self):
         a = Array('i8', [1, 2, 4, 8, 10])
