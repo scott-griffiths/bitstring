@@ -1,7 +1,7 @@
 
 # Release Notes
 
-## Upcoming: version 5.0
+## August 2026: version 5.0.0rc1
 
 This version completes the move to using the `tibs` Rust library as the core.
 The geometric mean across the benchmark suite is around 4x faster. The largest

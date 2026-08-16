@@ -13,7 +13,7 @@ description = "Simple construction, analysis and modification of binary data."
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
