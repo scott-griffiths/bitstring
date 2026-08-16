@@ -44,9 +44,8 @@ stream position::
     r = Reader(Bits("0x160120f"))
     value = r.read_value("u12")
 
-There is no ``Reader.read``. In version 4, ``read()`` did two unrelated jobs
-depending on the type of its argument; version 5 gives each its own name, so
-that every reading method says what it returns::
+There is no ``Reader.read``. Version 4's ``read()`` did two unrelated jobs
+depending on the type of its argument, and each now has its own name::
 
     # bitstring 4
     header = s.read("uint12")      # an interpreted value
@@ -57,8 +56,7 @@ that every reading method says what it returns::
     payload = r.read_bits(n)
 
 The version 4 names are not kept as working aliases, so every old call site
-raises an error explaining its replacement rather than quietly doing something
-different.
+raises an error explaining its replacement.
 
 .. list-table::
    :header-rows: 1
@@ -124,8 +122,8 @@ For mutable data, wrap a :class:`BitArray`. The wrapped object is available as
     first = r.read_value("u8")
     r.bits.append("0xff")
 
-The reader position is independent of the wrapped bitstring. Mutating
-``r.bits`` does not automatically adjust :attr:`Reader.pos`.
+The reader position is independent of the wrapped bitstring, so mutating
+``r.bits`` does not adjust :attr:`Reader.pos`.
 
 Operations that used the stream's current position should now pass
 ``r.pos`` explicitly and then update it if needed::
@@ -148,8 +146,8 @@ growing, append the new data first and then set the position.
 Update pack() usage
 ===================
 
-:func:`pack` now returns :class:`Bits`. In version 4 it returned ``BitStream``,
-so code that immediately read from or mutated the result needs to be updated.
+:func:`pack` now returns :class:`Bits` rather than ``BitStream``, so code that
+immediately read from or mutated the result needs to be updated.
 
 For reading, wrap the result in :class:`Reader`::
 
@@ -175,11 +173,10 @@ For mutation, convert the result to :class:`BitArray`::
 Replace stream searching with seeks
 ===================================
 
-:meth:`Bits.find` and :meth:`Bits.rfind` now return ``int | None``. In version 4
-they returned a single-item tuple for success and an empty tuple for failure.
-
-This means a match at bit position zero evaluates as ``False`` if tested
-directly. Test explicitly against ``None``::
+:meth:`Bits.find` and :meth:`Bits.rfind` now return ``int | None``, instead of a
+single-item tuple for success and an empty tuple for failure. This means a match
+at bit position zero evaluates as ``False`` if tested directly, so test
+explicitly against ``None``::
 
     # bitstring 4
     found = s.find("0xff")
@@ -235,8 +232,8 @@ Remove reliance on range checking exceptions
 
 Methods taking ``start`` and ``end`` arguments no longer raise a
 ``ValueError`` for out of range values. Instead the values are clamped to the
-ends of the bitstring, in the same way as slice indices and the equivalent
-``str`` methods, with an ``end`` before the ``start`` giving an empty range.
+ends of the bitstring, as slice indices and the equivalent ``str`` methods are,
+with an ``end`` before the ``start`` giving an empty range.
 This applies to ``find``, ``rfind``, ``findall``, ``cut``, ``split``,
 ``startswith``, ``endswith``, ``replace``, ``reverse``, ``rol``, ``ror`` and
 ``byteswap``::
@@ -293,7 +290,7 @@ For zero-filled bitstrings, replace integer construction with
 
 Prefer :meth:`Bits.from_string` or :meth:`BitArray.from_string` over the old
 ``fromstring`` spelling. The old spelling still works as a compatibility
-alias.::
+alias::
 
     # bitstring 4
     s = Bits.fromstring("uint16=1000")
@@ -344,10 +341,8 @@ Use explicit Array construction
 
 The :class:`Array` constructor now only accepts an iterable of values (such as
 a list, another ``Array`` or an ``array.array``). The integer item count, raw
-binary data and file object initialiser forms have been removed, as they were
-ambiguous with iterables of values - for example ``Array('u8', b'\x01\x02')``
-meant something different to ``Array('u8', [1, 2])`` even though ``bytes`` is
-an iterable of integers. Use the explicit alternatives instead::
+binary data and file object initialiser forms have been removed. Use the
+explicit alternatives instead::
 
     # bitstring 4
     a = Array("u8", 100)
@@ -394,8 +389,8 @@ byte-oriented data, use :meth:`Bits.from_bytes` with an explicit length::
     bits = Bits.from_bools(bitarray_obj)
     bits = Bits.from_bytes(bitarray_obj.tobytes(), length=len(bitarray_obj))
 
-The old ``tobitarray()`` method returned an object from the external
-``bitarray`` package and has been removed. Use :meth:`Bits.to_mutable` to get a
+The ``tobitarray()`` method, which returned an object from the external
+``bitarray`` package, has been removed. Use :meth:`Bits.to_mutable` to get a
 bitstring :class:`BitArray`. If you still need an external ``bitarray`` object,
 create it explicitly using that package's API, for example from the bitstring as
 an iterable of booleans or from :meth:`Bits.to_bytes`.
@@ -428,9 +423,8 @@ canonical spelling.
    * - Struct-style native prefixes ``'='`` or ``'@'``
      - Use ``'>'`` or ``'<'``.
 
-The short numeric names ``u``, ``i`` and ``f`` remain valid. The plain ``f``
-dtype is already big-endian, so both ``fbe`` and ``floatbe`` are compatibility
-aliases for ``f``.
+The plain ``f`` dtype is already big-endian, so both ``fbe`` and ``floatbe``
+are compatibility aliases for ``f``.
 
 :class:`Dtype` stringification, :class:`Array` representations and
 pretty-print headers use the preferred names::
@@ -465,7 +459,7 @@ Replace global options and modes
 
 The ``bitstring.options`` object and the old module-level option aliases have
 been removed. Version 5 uses explicit dtype names, per-call arguments and the
-``NO_COLOR`` environment variable instead of mutable process-wide state.
+``NO_COLOR`` environment variable instead.
 
 .. list-table::
    :header-rows: 1
@@ -516,7 +510,7 @@ The :class:`Dtype` scale factor has been removed. The ``scale=`` parameter, the
 passing ``scale=`` now raises a ``TypeError``.
 
 An :class:`Array` stores just the elements, so apply the scale in your own code.
-When reading, widen the dtype as you multiply - multiplying a narrow ``Array``
+When reading, widen the dtype as you multiply, as multiplying a narrow ``Array``
 in place would round every value straight back into the narrow format::
 
     # bitstring 4
@@ -527,8 +521,8 @@ in place would round every value straight back into the narrow format::
     a = Array('e2m1mxfp', [v / 2**10 for v in values])
     scaled_values = Array('f64', [x * 2**10 for x in a]).to_list()
 
-For ``scale='auto'``, the scale that version 4 calculated was the one lining the
-largest absolute value up with the largest value the format can represent::
+For ``scale='auto'``, the scale that version 4 calculated lined the largest
+absolute value up with the largest value the format can represent::
 
     largest = Bits('0b0111').e2m1mxfp  # 6.0, the largest e2m1mxfp value
     scale = 2 ** (math.floor(math.log2(max(abs(v) for v in values)))
@@ -537,16 +531,14 @@ largest absolute value up with the largest value the format can represent::
 Version 4 clamped this to the powers of two from 2\ :sup:`-127` to 2\ :sup:`127`
 that the E8M0 format can hold, and used a scale of 1 when every value was zero.
 
-A single multiplier over a whole ``Array`` isn't how the MX formats work - their
-scales are per-block and stored in the data alongside the elements - so a
-replacement is planned as block-scaled dtypes once the ``tibs`` core supports
+A replacement is planned as block-scaled dtypes once the ``tibs`` core supports
 them.
 
 Prefer the new underscored method names
 =======================================
 
 Version 5 adds underscored spellings for several older method names. New code and
-documentation should use the underscored names, but the old spellings are kept as
+documentation use the underscored names, but the old spellings are kept as
 compatibility aliases and there is no need to change working code. They are not
 deprecated and no ``DeprecationWarning`` is emitted for them.
 
@@ -561,10 +553,59 @@ deprecated and no ``DeprecationWarning`` is emitted for them.
      - :meth:`Bits.to_file`
    * - ``tolist()``
      - :meth:`Array.to_list`
+   * - ``fromstring()``
+     - :meth:`Bits.from_string`
 
 The reading methods are not in this table - :class:`Reader` keeps no
 compatibility aliases, and its version 4 equivalents are listed in
 `Replace stream classes with Reader`_ instead.
+
+Update exception handling
+=========================
+
+The exception classes have been reduced to :exc:`ReadError` and the new
+:exc:`InterpretationError`. Everything else raised for bad input or state is a
+plain ``ValueError`` or ``TypeError``.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Version 4 exception
+     - Version 5 replacement
+   * - ``bitstring.Error``
+     - Removed. Catch ``ReadError``, ``ValueError`` or ``TypeError``.
+   * - ``bitstring.InterpretError``, ``bitstring.CreationError``
+     - Removed. Both were aliases for ``ValueError``, so catch that.
+   * - ``bitstring.ByteAlignError``
+     - Removed. It was never raised; the places that might have raised it raise
+       ``ValueError``.
+   * - ``ReadError`` as an ``IndexError``
+     - ``ReadError`` now subclasses ``ValueError``.
+
+The last of these needs care: a read that runs out of bits no longer raises an
+``IndexError``, so a read loop relying on that will not catch anything. Element
+indexing is unaffected and still raises ``IndexError``::
+
+    # bitstring 4
+    try:
+        while True:
+            values.append(s.read("uint8"))
+    except IndexError:
+        pass
+
+    # bitstring 5
+    try:
+        while True:
+            values.append(r.read_value("u8"))
+    except ReadError:
+        pass
+
+Reading a dtype property that the bitstring's length has no interpretation as
+now raises :exc:`InterpretationError`, which subclasses both ``AttributeError``
+and ``ValueError``, so ``hasattr()`` works and code catching ``ValueError`` is
+unaffected::
+
+    hasattr(Bits("0xff"), "u16")  # False in version 5, raised in version 4
 
 Remove command-line usage
 =========================
@@ -593,6 +634,8 @@ For a large codebase, the least surprising order is:
    ``Dtype.build`` / ``Dtype.parse``.
 8. Replace removed global options and modes with explicit dtypes or per-call
    arguments, and move any ``Dtype`` scale factors into your own code.
-9. Remove any remaining ``python -m bitstring`` usage.
-10. Optionally update compatibility aliases such as ``tobytes`` and ``tolist``
+9. Update ``except`` clauses for the removed exception classes and for
+   ``ReadError`` no longer being an ``IndexError``.
+10. Remove any remaining ``python -m bitstring`` usage.
+11. Optionally update compatibility aliases such as ``tobytes`` and ``tolist``
     to their preferred underscored names.
