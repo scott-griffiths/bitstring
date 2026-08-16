@@ -880,6 +880,8 @@ class Bits:
 
     # The saturate and overflow variants of e4m3 and e5m2 share a getter: the two
     # differ only in how out-of-range values are packed, not in how bits decode.
+    # Note that 'overflow' means something different for each format, as E4M3 has
+    # no infinities: E5M2 overflows to ±inf, but E4M3 has nowhere to go but NaN.
 
     def _getp4binary(self) -> float:
         return self._bitstore.to_value(_TIBS_P4BINARY, 0, 8)
