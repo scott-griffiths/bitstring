@@ -46,15 +46,14 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
 * Removed the `len` and `length` properties from `Bits` and `BitArray`. Use the
   built-in `len(bits)` instead.
 * Positional integer construction and the length-only keyword form have been
-  removed. Use `BitArray.from_zeros(100)` instead of
-   `BitArray(100)` or `BitArray(length=100)`.
+  removed. Use `Bits.from_zeros(100)` or `BitArray.from_zeros(100)` instead of
+  `Bits(100)`, `BitArray(100)` or `BitArray(length=100)`.
 * `Dtype.build()` and `Dtype.parse()` have been renamed to `Dtype.pack()` and
   `Dtype.unpack()`.
 * `BitArray.insert()` and `BitArray.overwrite()` now take the bit position
   first and the bitstring second, matching `list.insert` and `Array.insert`.
   Use `s.insert(pos, bs)` instead of `s.insert(bs, pos)`. Old-style calls
   raise a `TypeError` explaining the change.
-
 
 #### Smaller breaking changes
 
@@ -84,11 +83,6 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
 * `from_file()` now honours the current position of a file object, and raises
   a `TypeError` for in-memory streams such as `io.BytesIO` (use `from_bytes()`
   for those). Previously the position was ignored and the whole file was read.
-* Reading a dtype property that the bitstring's length has no interpretation
-  as, such as `Bits('0xff').u16` or `Bits('0b1').hex`, now raises the new
-  `InterpretationError` rather than a `ValueError`. It subclasses both
-  `AttributeError`, so that `hasattr()` and `getattr()` with a default work as
-  expected, and `ValueError`, so that code catching that is unaffected.
 * Setting an attribute that isn't a dtype, such as `BitArray('0xff').nonsense = 5`,
   now raises an `AttributeError` naming just the attribute, rather than a
   `ValueError` listing every registered dtype name. This also covers a length
@@ -106,12 +100,13 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   and `bitstring.InterpretError` and `bitstring.CreationError` (which had been
   plain aliases for `ValueError` since version 4.2). Errors are now raised as the
   standard Python type that fits, so catch `ReadError`, or `ValueError` /
-  `TypeError` / `IndexError`, instead. `ReadError` and `InterpretationError` are
-  the only exceptions bitstring now defines.
+  `TypeError` / `IndexError`, instead. `ReadError` is the only exception
+  bitstring still defines.
 * `ReadError` now subclasses `ValueError` rather than `IndexError`, matching
   `tibs.ReadError`. Element indexing is unaffected and still raises
-  `IndexError`, for both `Bits` and `Array`. The rule for 5.0 is that everything
-  bitstring raises for bad input or state is a `ValueError` or a `TypeError`.
+  `IndexError`, for both `Bits` and `Array`. The rule for 5.0 is that bad input
+  or state is a `ValueError` or a `TypeError`, with an `AttributeError` only for
+  a name that isn't a dtype at all.
   **If you catch `IndexError` around a read loop, it will no longer fire** -
   catch `ReadError` or `ValueError`.
 * Every operator now treats an empty bitstring as unremarkable rather than as an

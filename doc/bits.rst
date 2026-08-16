@@ -382,7 +382,7 @@ The many ways to interpret bitstrings can be accessed via properties.
 These properties will be read-only for a ``Bits`` object, but are also writable for derived mutable types such as ``BitArray``.
 
 Properties can also have a length in bits appended to them to such as ``u8`` or ``f64`` (for the ``bytes`` property the length is interpreted in bytes instead of bits).
-If the bitstring isn't of that length then an :exc:`AttributeError` is raised, so that ``hasattr`` behaves as expected.
+If the bitstring isn't of that length then a ``ValueError`` is raised.
 
 This list isn't exhaustive - see for example :ref:`Exotic floats` for information on bfloats and many 8-bit and smaller floating point formats.
 Also see :ref:`exp-golomb` for some interesting variable length integer formats.

@@ -100,16 +100,3 @@ catch.
 
     Reading or peeking past the end of a bitstring.
 
-.. exception:: InterpretationError(AttributeError, ValueError)
-
-    A bitstring's length has no interpretation as the dtype asked for, such as reading
-    ``hex`` from a bitstring that isn't a multiple of four bits long.
-
-    It is an ``AttributeError`` as well as a ``ValueError``, so that ``hasattr(s, 'hex')``
-    and ``getattr(s, 'hex', default)`` treat the property as simply not being there for
-    that length, while ``except ValueError`` still catches it::
-
-        >>> hasattr(Bits('0b1'), 'hex')
-        False
-        >>> Bits('0b1').hex
-        bitstring.exceptions.InterpretationError: 'Bits' object has no attribute 'hex': a length of 1 bits is not one the 'hex' dtype can interpret.

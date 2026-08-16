@@ -563,9 +563,9 @@ compatibility aliases, and its version 4 equivalents are listed in
 Update exception handling
 =========================
 
-The exception classes have been reduced to :exc:`ReadError` and the new
-:exc:`InterpretationError`. Everything else raised for bad input or state is a
-plain ``ValueError`` or ``TypeError``.
+:exc:`ReadError` is now the only exception class bitstring defines. Bad input or
+state is otherwise a plain ``ValueError`` or ``TypeError``, with an
+``AttributeError`` only for a name that isn't a dtype at all.
 
 .. list-table::
    :header-rows: 1
@@ -599,13 +599,6 @@ indexing is unaffected and still raises ``IndexError``::
             values.append(r.read_value("u8"))
     except ReadError:
         pass
-
-Reading a dtype property that the bitstring's length has no interpretation as
-now raises :exc:`InterpretationError`, which subclasses both ``AttributeError``
-and ``ValueError``, so ``hasattr()`` works and code catching ``ValueError`` is
-unaffected::
-
-    hasattr(Bits("0xff"), "u16")  # False in version 5, raised in version 4
 
 Remove command-line usage
 =========================

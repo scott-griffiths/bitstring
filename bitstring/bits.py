@@ -13,7 +13,7 @@ from collections.abc import Iterable, Iterator
 from tibs import Mutibs, Tibs
 import bitstring
 from bitstring import utils
-from bitstring.dtypes import Dtype, dtype_register, check_interpretation_length
+from bitstring.dtypes import Dtype, dtype_register
 from bitstring.colour import Colour, should_use_color
 from bitstring.helpers import validated_count
 
@@ -286,8 +286,7 @@ class Bits:
             )
 
     def __getattr__(self, attribute: str) -> Any:
-        # Support for arbitrary attributes like u16 or f64. Also reached for the bare
-        # dtype names, which are properties, when their getter says the length is wrong.
+        # Support for arbitrary attributes like u16 or f64.
         try:
             d = Dtype(attribute)
         except ValueError:
@@ -298,10 +297,9 @@ class Bits:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'. "
                                  f"The '{d.name}' dtype can only be used in a format string.")
         if d.bitlength is not None and len(self) != d.bitlength:
-            # An AttributeError as well as a ValueError, so that hasattr() works.
-            raise bitstring.InterpretationError(
+            # The attribute exists; this bitstring's length just can't be read as it.
+            raise ValueError(
                 f"bitstring length {len(self)} doesn't match length {d.bitlength} of property '{attribute}'.")
-        check_interpretation_length(dtype_register[d.name], len(self), attribute, self.__class__.__name__)
         return d._get_fn(self)
 
     def __iter__(self) -> Iterable[bool]:

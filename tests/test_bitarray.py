@@ -529,23 +529,29 @@ class TestNewProperties:
         assert a.bin == '001'
 
     def test_getter_length_errors(self):
-        a = BitArray('0x123')
-        # A length mismatch for a dtype attribute is an AttributeError, so that hasattr() works.
-        with pytest.raises(AttributeError):
+        a = BitArray('0x123')  # 12 bits
+        # These are all real dtypes, so the attribute exists - this bitstring just
+        # isn't the right length to be read as one.
+        with pytest.raises(ValueError):
             _ = a.hex16
-        with pytest.raises(AttributeError):
+        with pytest.raises(ValueError):
             _ = a.bin3317777766
+        with pytest.raises(ValueError):
+            _ = a.f32
+        with pytest.raises(ValueError):
+            _ = a.u13
+        with pytest.raises(ValueError):
+            _ = a.i1
+        # 'oct2' isn't a dtype for a bitstring of any length, as octal lengths are
+        # multiples of three, so it is a missing attribute rather than a bad length.
         with pytest.raises(AttributeError):
             _ = a.oct2
-        with pytest.raises(AttributeError):
-            _ = a.f32
-        with pytest.raises(AttributeError):
-            _ = a.u13
-        with pytest.raises(AttributeError):
-            _ = a.i1
-        assert not hasattr(a, 'u16')
         assert hasattr(a, 'u12')
-        # 'f' is a property so a bad length raises an ValueError rather than an AttributeError.
+        # As the error isn't an AttributeError, hasattr() doesn't hide it. Dtype
+        # attributes depend on the data, so hasattr() isn't a test for them.
+        with pytest.raises(ValueError):
+            hasattr(a, 'u16')
+        # The bare names behave the same way as the ones carrying a length.
         with pytest.raises(ValueError):
             _ = a.f
         # There is no zero-length 'u' dtype, so this is a missing attribute rather
