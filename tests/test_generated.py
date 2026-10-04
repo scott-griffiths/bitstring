@@ -47,15 +47,15 @@ def test_from_bytes_no_truncation_uses_tibs_fast_path(monkeypatch) -> None:
         from_zeros = staticmethod(real_tibs.from_zeros)
 
         @staticmethod
-        def from_bytes(data, /, offset=None, length=None):
-            calls.append(("Tibs", offset, length))
-            return real_tibs.from_bytes(data, offset=offset, length=length)
+        def from_bytes(data, /, bit_offset=None, bit_length=None):
+            calls.append(("Tibs", bit_offset, bit_length))
+            return real_tibs.from_bytes(data, bit_offset=bit_offset, bit_length=bit_length)
 
     class RecordingMutibs:
         @staticmethod
-        def from_bytes(data, /, offset=None, length=None):
-            calls.append(("Mutibs", offset, length))
-            return real_mutibs.from_bytes(data, offset=offset, length=length)
+        def from_bytes(data, /, bit_offset=None, bit_length=None):
+            calls.append(("Mutibs", bit_offset, bit_length))
+            return real_mutibs.from_bytes(data, bit_offset=bit_offset, bit_length=bit_length)
 
     monkeypatch.setattr(bitstring.bitstore, "Tibs", RecordingTibs)
     monkeypatch.setattr(bitstring.bitstore, "Mutibs", RecordingMutibs)

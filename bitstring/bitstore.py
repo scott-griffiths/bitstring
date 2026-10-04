@@ -310,7 +310,7 @@ class ConstBitStore(_BitStoreBase):
                    length: int | None = None) -> ConstBitStore:
         x = super().__new__(cls)
         offset, length = _normalise_byte_import_args(offset, length)
-        x.tibs = Tibs.from_bytes(b, offset=offset, length=length)
+        x.tibs = Tibs.from_bytes(b, bit_offset=offset, bit_length=length)
         return x
 
     @classmethod
@@ -427,7 +427,7 @@ class MutableBitStore(_BitStoreBase):
                    length: int | None = None) -> MutableBitStore:
         x = super().__new__(cls)
         offset, length = _normalise_byte_import_args(offset, length)
-        x.tibs = Mutibs.from_bytes(b, offset=offset, length=length)
+        x.tibs = Mutibs.from_bytes(b, bit_offset=offset, bit_length=length)
         return x
 
     @classmethod
