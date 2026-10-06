@@ -476,8 +476,24 @@ class MutableBitStore(_BitStoreBase):
     def reverse(self) -> None:
         self.tibs.reverse()
 
-    def byte_swap(self, start: int | None, end: int | None) -> None:
-        self.tibs.byte_swap(start=start, end=end)
+    def byte_swap(self, start: int | None, end: int | None, byte_length: int | None = None) -> None:
+        """Reverse the bytes in [start, end), or in each byte_length group of bytes if given.
+
+        With byte_length the range has to be a whole number of groups.
+        """
+        self.tibs.byte_swap(byte_length, start=start, end=end)
+
+    def reverse_chunks(self, chunk_size: int) -> None:
+        """Reverse the order of the chunk_size-bit chunks, leaving each chunk as it is.
+
+        The length must be a multiple of chunk_size.
+        """
+        self.tibs = Mutibs.from_joined(reversed(self.tibs.chunks(chunk_size)))
+
+    def join_chunks(self, chunk_size: int, indices: range) -> MutableBitStore:
+        """A new store of the chunk_size-bit chunks at the given chunk indices, in order."""
+        chunks = self.tibs.chunks(chunk_size)
+        return MutableBitStore(Mutibs.from_joined(chunks[i] for i in indices))
 
     def __iter__(self) -> Iterable[bool]:
         # Mutibs deliberately doesn't support iteration, so index bit-by-bit.

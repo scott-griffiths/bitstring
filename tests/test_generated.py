@@ -707,3 +707,189 @@ def test_cut_rejects_a_bad_length_when_called() -> None:
 def test_split_rejects_an_empty_delimiter_when_called() -> None:
     with pytest.raises(ValueError):
         _ = bitstring.Bits("0xff").split("")
+
+
+# ---------------------------------------------------------------------------
+# The bulk versions of operations that used to work an item or a byte at a time,
+# each checked against a reference that does it the slow way.
+# ---------------------------------------------------------------------------
+
+
+def _random_array(seed: str, dtype: str, n: int, trailing: int = 0) -> bitstring.Array:
+    import random
+    rng = random.Random(seed)
+    a = bitstring.Array(dtype)
+    a.data = bitstring.BitArray.from_bools([rng.random() < 0.5 for _ in range(n * a.itemsize + trailing)])
+    return a
+
+
+def _items(a: bitstring.Array) -> list:
+    """The raw bits of each whole item."""
+    return [a.data[i * a.itemsize: (i + 1) * a.itemsize] for i in range(len(a))]
+
+
+@pytest.mark.parametrize("op, dtype, n, trailing", [
+    ("&", "u8", 7, 0),   # No trailing bits, so done on the Array's own buffer.
+    ("|", "i5", 7, 3),   # Trailing bits, which the in-place form leaves alone.
+    ("^", "u3", 5, 2),
+    ("&", "u8", 0, 0),   # Empty.
+])
+def test_array_bitwise_op_matches_per_item(op: str, dtype: str, n: int, trailing: int) -> None:
+    import copy
+    import operator
+    fn, ifn = {"&": (operator.and_, operator.iand), "|": (operator.or_, operator.ior),
+               "^": (operator.xor, operator.ixor)}[op]
+    a = _random_array(op + dtype, dtype, n, trailing)
+    value = bitstring.Bits("0b" + "10" * a.itemsize)[:a.itemsize]
+    expected = bitstring.Bits.from_joined([fn(item, value) for item in _items(a)])
+    original = a.data.copy()
+    # The out-of-place form starts from a[:], which has never kept trailing bits.
+    assert fn(a, value).data == expected
+    assert a.data == original
+    b = copy.copy(a)
+    data = b.data
+    ifn(b, value)
+    assert b.data == expected + a.trailing_bits
+    if not trailing:
+        assert b.data is data
+
+
+@pytest.mark.parametrize("op, dtype, value", [
+    ("+", "i12", -3), ("-", "u16", 1), ("*", "f32", 2.5), ("//", "i12", 2), ("/", "u16", 2),
+    ("%", "i12", 5),
+    ("//", "u8", 0),  # Every item fails, which has to be the same error either way.
+])
+def test_array_in_place_arithmetic_matches_out_of_place(op: str, dtype: str, value) -> None:
+    import operator
+    fn, ifn = {"+": (operator.add, operator.iadd), "-": (operator.sub, operator.isub),
+               "*": (operator.mul, operator.imul), "//": (operator.floordiv, operator.ifloordiv),
+               "/": (operator.truediv, operator.itruediv), "%": (operator.mod, operator.imod)}[op]
+    a = bitstring.Array(dtype, [1, 5, 17, 100, 200])
+    try:
+        expected = fn(a, value)
+    except ValueError as e:
+        with pytest.raises(ValueError, match=str(e).split(":")[0]):
+            ifn(a[:], value)
+        return
+    b = a[:]
+    assert ifn(b, value) is b
+    assert b.data == expected.data and b.dtype == expected.dtype
+
+
+def test_array_in_place_arithmetic_keeps_a_nan_payload_like_out_of_place() -> None:
+    # A signalling NaN used to lose its payload with += but not with +.
+    a = bitstring.Array("f16")
+    a.data = bitstring.BitArray("0xfd03, 0x3c00")
+    b = a[:]
+    b += 1000
+    assert b.data == (a + 1000).data
+
+
+@pytest.mark.parametrize("dtype, n", [("u8", 9), ("i5", 6), ("u8", 0)])
+def test_array_reverse_matches_reversed_items(dtype: str, n: int) -> None:
+    a = _random_array(dtype, dtype, n)
+    expected = bitstring.Bits.from_joined(reversed(_items(a)))
+    data = a.data
+    a.reverse()
+    assert a.data == expected
+    assert a.data is data
+
+
+def test_array_reverse_keeps_the_exact_bits_of_each_item() -> None:
+    a = bitstring.Array("f16")
+    a.data = bitstring.BitArray("0xfd03, 0x3c00, 0x7e01")  # Including NaNs with payloads.
+    a.reverse()
+    assert a.data == "0x7e01, 0x3c00, 0xfd03"
+
+
+@pytest.mark.parametrize("n, key", [
+    (9, slice(None, None, 2)),
+    (9, slice(None, None, -1)),
+    (9, slice(8, 1, -3)),
+    (9, slice(100, -100, -4)),  # Out of range bounds are clamped.
+    (9, slice(5, 5, 2)),        # Nothing picked.
+    (0, slice(None, None, -1)),
+])
+def test_array_slice_matches_items_picked_one_at_a_time(n: int, key: slice) -> None:
+    a = _random_array(str(key), "i5", n, trailing=3)  # The trailing bits are never picked.
+    picked = a[key]
+    assert picked.data == bitstring.Bits.from_joined(_items(a)[key])
+    assert picked.dtype == a.dtype
+    assert type(picked.data) is bitstring.BitArray
+
+
+def _byteswap_reference(bits: bitstring.Bits, sizes: list, start: int, end: int, repeat: bool) -> tuple:
+    """Swap one group of bytes at a time, as BitArray.byteswap() used to."""
+    b = bitstring.BitArray(bits)
+    total = 8 * sum(sizes)
+    final = end if repeat else start + total
+    repeats = 0
+    for pattern_end in range(start + total, final + 1, total):
+        pos = pattern_end - total
+        for size in sizes:
+            if pos + 8 * size > len(b):
+                raise ValueError("Swapping past the end of the bitstring.")
+            b[pos: pos + 8 * size] = bitstring.Bits.from_bytes(b[pos: pos + 8 * size].to_bytes()[::-1])
+            pos += 8 * size
+        repeats += 1
+    return repeats, b
+
+
+@pytest.mark.parametrize("fmt, sizes, length, start, end, repeat", [
+    (2, [2], 128, None, None, True),            # Equal groups repeated to the end.
+    ([2, 2], [2, 2], 64, None, None, True),     # The same, given as a list.
+    (3, [3], 65, None, None, True),             # The groups don't fill the bitstring.
+    ("<2h", [2, 2], 40, 3, 59, True),           # A format string, from an unaligned start.
+    (8, [8], 128, 8, 40, True),                 # The range is smaller than one group.
+    (None, [5], 40, None, None, True),          # The whole bitstring.
+    (2, [2], 40, None, None, False),            # A single swap that fits.
+    (8, [8], 128, 8, 40, False),                # A single swap past end, but inside the data.
+    ("q", [8], 40, None, None, False),          # A single swap past the end of the data.
+    ([1, 2], [1, 2], 65, None, None, True),     # Mixed sizes, which still go a group at a time.
+    (">hhl", [2, 2, 4], 128, 1, None, True),
+    (2, [2], 0, None, None, True),              # Empty.
+])
+def test_byteswap_matches_swapping_one_group_at_a_time(fmt, sizes, length, start, end, repeat) -> None:
+    bits = bitstring.Bits("0b" + "1101001" * 20)[:length]
+    s, e, _ = slice(start, end).indices(length)
+    try:
+        expected_repeats, expected = _byteswap_reference(bits, sizes, s, max(s, e), repeat)
+    except ValueError:
+        with pytest.raises(ValueError):
+            bitstring.BitArray(bits).byteswap(fmt, start, end, repeat)
+        return
+    b = bitstring.BitArray(bits)
+    assert b.byteswap(fmt, start, end, repeat) == expected_repeats
+    assert b == expected
+
+
+@pytest.mark.parametrize("dtype", ["u24", "f64"])
+def test_array_byteswap_reverses_the_bytes_of_each_item(dtype: str) -> None:
+    a = _random_array(dtype, dtype, 9)
+    expected = bitstring.Bits.from_joined(bitstring.Bits.from_bytes(item.to_bytes()[::-1]) for item in _items(a))
+    a.byteswap()
+    assert a.data == expected
+
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+def test_reading_exp_golomb_codes_in_place(cls) -> None:
+    import random
+    rng = random.Random(0)
+    kinds = [rng.choice(["ue", "se", "uie", "sie"]) for _ in range(30)]
+    values = [rng.randint(0, 500) if k in ("ue", "uie") else rng.randint(-500, 500) for k in kinds]
+    data = bitstring.Bits.from_joined(bitstring.Bits(**{k: v}) for k, v in zip(kinds, values))
+    r = bitstring.Reader(cls(data + "0x00ff"))
+    for k, v in zip(kinds, values):
+        assert r.read_value(k) == v
+    assert r.pos == len(data)
+    assert cls(data).unpack(",".join(kinds)) == values
+
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+def test_a_truncated_exp_golomb_code_is_a_read_error_and_doesnt_move(cls) -> None:
+    for kind in ("ue", "se", "uie", "sie"):
+        r = bitstring.Reader(cls("0b1" + bitstring.Bits(**{kind: 37})[:-1]))
+        assert r.read_value("ue") == 0
+        with pytest.raises(bitstring.ReadError, match=f"'{kind}' code at bit position 1"):
+            r.read_value(kind)
+        assert r.pos == 1

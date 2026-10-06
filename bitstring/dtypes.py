@@ -291,13 +291,25 @@ class DtypeDefinition:
                 return x
             self.get_fn = length_checked_get_fn
 
-            def read_fn(bs, start):
-                try:
-                    x, length = get_fn(bs[start:])
-                except ValueError:
-                    raise bitstring.ReadError(f"Cannot read a '{self.name}' code at bit position "
-                                              f"{start}: the data there isn't a valid code.")
-                return x, start + length
+            if read_fn is not None:
+                # Reads in place from a position, returning the value and the position after
+                # it. Slicing from start instead copies the rest of a BitArray on every read.
+                positional_read_fn = read_fn
+
+                def read_fn(bs, start):
+                    try:
+                        return positional_read_fn(bs, start)
+                    except ValueError:  # Including ReadError, which subclasses it.
+                        raise bitstring.ReadError(f"Cannot read a '{self.name}' code at bit position "
+                                                  f"{start}: the data there isn't a valid code.")
+            else:
+                def read_fn(bs, start):
+                    try:
+                        x, length = get_fn(bs[start:])
+                    except ValueError:
+                        raise bitstring.ReadError(f"Cannot read a '{self.name}' code at bit position "
+                                                  f"{start}: the data there isn't a valid code.")
+                    return x, start + length
             self.read_fn = read_fn
         self.bitlength2chars_fn = bitlength2chars_fn
 

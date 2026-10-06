@@ -211,13 +211,13 @@ _dtype_definitions = [
                     multiplier=8, description="a bytes object"),
     # Unknown length types
     _DtypeDefinition('se', Bits._setse, Bits._getse, int, True, None,
-                    variable_length=True, description="a signed exponential-Golomb code"),
+                    read_fn=Bits._readse, variable_length=True, description="a signed exponential-Golomb code"),
     _DtypeDefinition('ue', Bits._setue, Bits._getue, int, False, None,
-                    variable_length=True, description="an unsigned exponential-Golomb code"),
+                    read_fn=Bits._readue, variable_length=True, description="an unsigned exponential-Golomb code"),
     _DtypeDefinition('sie', Bits._setsie, Bits._getsie, int, True, None,
-                    variable_length=True, description="a signed interleaved exponential-Golomb code"),
+                    read_fn=Bits._readsie, variable_length=True, description="a signed interleaved exponential-Golomb code"),
     _DtypeDefinition('uie', Bits._setuie, Bits._getuie, int, False, None,
-                    variable_length=True, description="an unsigned interleaved exponential-Golomb code"),
+                    read_fn=Bits._readuie, variable_length=True, description="an unsigned interleaved exponential-Golomb code"),
     # Special case pad type
     _DtypeDefinition('pad', Bits._setpad, Bits._getpad, None, False, None,
                     read_fn=Bits._readpad, is_property=False,

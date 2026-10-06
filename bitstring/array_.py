@@ -252,10 +252,10 @@ class Array:
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
             if step != 1:
-                d = BitArray()
-                itemsize = self.itemsize
-                for s in range(start * itemsize, stop * itemsize, step * itemsize):
-                    d.append(self._data[s: s + itemsize])
+                # Picking the items out of a list of chunks and joining them is one core
+                # call each, rather than a slice and an append per item.
+                d = object.__new__(BitArray)
+                d._bitstore = self._data._bitstore.join_chunks(self.itemsize, range(start, stop, step))
                 a = self.__class__(self._dtype)
                 a._data = d
                 return a
@@ -555,12 +555,8 @@ class Array:
         trailing_bit_length = len(self._data) % itemsize
         if trailing_bit_length != 0:
             raise ValueError(f"Cannot reverse the items in the Array as its data length ({len(self._data)} bits) is not a multiple of the format length ({itemsize} bits).")
-        for start_bit in range(0, len(self._data) // 2, itemsize):
-            start_swap_bit = len(self._data) - start_bit - itemsize
-            temp = self._data[start_bit: start_bit + itemsize]
-            self._data[start_bit: start_bit + itemsize] = self._data[
-                                                               start_swap_bit: start_swap_bit + itemsize]
-            self._data[start_swap_bit: start_swap_bit + itemsize] = temp
+        # Done on the raw items, so each one keeps its exact bits.
+        self._data._bitstore.reverse_chunks(itemsize)
 
     def pp(self, fmt: str | None = None, width: int = 120, sep: str = ' ',
            show_offset: bool = True, stream: TextIO | None = None, color: bool | None = None) -> None:
@@ -766,28 +762,9 @@ class Array:
 
     def _apply_op_to_all_elements_inplace(self, op, value: int | float) -> Array:
         """Apply op with value to each element of the Array in place."""
-        # This isn't really being done in-place, but it's simpler and faster for now?
-        new_data = BitArray()
-        failures = index = 0
-        msg = ''
-        itemsize = self.itemsize
-        truncate = self._dtype.return_type is int
-        for i in range(len(self)):
-            v = self._dtype._read_fn(self._data, start=itemsize * i)
-            try:
-                result = op(v, value)
-                if truncate and type(result) is float:
-                    result = int(result)
-                new_data.append(self._create_element(result))
-            except (ValueError, ZeroDivisionError) as e:
-                if failures == 0:
-                    msg = str(e)
-                    index = i
-                failures += 1
-        if failures != 0:
-            raise ValueError(f"Applying operator '{op.__name__}' to Array caused {failures} errors. "
-                             f'First error at index {index} was: "{msg}"')
-        self._data = new_data
+        # Not really in place, as the data is replaced, but this way it gets the bulk path
+        # and reports errors exactly as the out-of-place version does.
+        self._data = self._apply_op_to_all_elements(op, value)._data
         return self
 
     def _apply_bitwise_op_to_all_elements(self, op, value: BitsType) -> Array:
@@ -802,8 +779,17 @@ class Array:
         itemsize = self.itemsize
         if len(value) != itemsize:
             raise ValueError(f"Bitwise op needs a bitstring of length {itemsize} to match format {self._dtype}.")
-        for start in range(0, len(self) * itemsize, itemsize):
-            self._data[start: start + itemsize] = op(self._data[start: start + itemsize], value)
+        # One operation against the value repeated for every item, rather than one per item.
+        # Any trailing bits are left alone.
+        n = len(self)
+        if n == 0:
+            return self
+        end = n * itemsize
+        pattern = value * n
+        if end == len(self._data):
+            op(self._data, pattern)  # The in-place operators mutate the data itself.
+        else:
+            self._data[:end] = op(self._data[:end], pattern)
         return self
 
     def _apply_op_between_arrays(self, op, other: Array, is_comparison: bool = False) -> Array:

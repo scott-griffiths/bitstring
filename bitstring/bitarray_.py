@@ -681,6 +681,15 @@ class BitArray(Bits):
         totalbitsize: int = 8 * sum(bytesizes)
         if not totalbitsize:
             return 0
+        # When every group is the same size, all the repeats are one core call.
+        if all(b == bytesizes[0] for b in bytesizes):
+            repeats = (end_v - start_v) // totalbitsize if repeat else 1
+            swap_end = start_v + repeats * totalbitsize
+            if swap_end <= end_v:
+                if repeats:
+                    self._bitstore.byte_swap(start_v, swap_end, bytesizes[0])
+                return repeats
+            repeats = 0
         if repeat:
             # Try to repeat up to the end of the bitstring.
             finalbit = end_v
