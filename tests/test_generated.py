@@ -570,3 +570,140 @@ def test_all_accepts_a_single_position_like_set_does() -> None:
 
 def test_any_accepts_a_single_position_like_set_does() -> None:
     assert bitstring.Bits("0xff").any(1, 0) is True
+
+
+# ---------------------------------------------------------------------------
+# From a review of the 5.0 code in October 2026.
+# ---------------------------------------------------------------------------
+
+
+# insert() turns a negative index into a bit position against the whole of the data,
+# trailing bits included, so the new item lands part way through an existing one.
+
+def test_array_insert_negative_index_with_trailing_bits() -> None:
+    a = bitstring.Array("u8", [1, 2], trailing_bits="0xf")
+    a.insert(-1, 99)
+    assert a.to_list() == [1, 99, 2]  # currently [1, 6, 50]
+    assert a.trailing_bits == "0xf"
+
+
+# A memoryview is a bytes-like object, and bytes(mv) is its data whatever its format.
+# tibs 2.0.1 read it item by item instead, which is only right for format 'B'. Fixed in
+# tibs 2.0.2, which is now the minimum version.
+
+def _non_byte_memoryviews() -> list:
+    import array
+    return [
+        pytest.param(memoryview(array.array("H", [1, 2])), id="H-small"),  # currently 16 bits, no error
+        pytest.param(memoryview(array.array("H", [1, 258])), id="H"),
+        pytest.param(memoryview(array.array("b", [-1, 1])), id="b"),
+        pytest.param(memoryview(b"ab").cast("c"), id="c"),
+        pytest.param(memoryview(b"abcd").cast("B", (2, 2)), id="2d"),
+        pytest.param(memoryview(array.array("d", [1.0])), id="d"),
+    ]
+
+
+@pytest.mark.parametrize("mv", _non_byte_memoryviews())
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+def test_from_bytes_uses_the_bytes_of_a_non_byte_memoryview(cls, mv) -> None:
+    assert cls.from_bytes(mv).to_bytes() == bytes(mv)
+
+
+@pytest.mark.parametrize("mv", _non_byte_memoryviews())
+def test_a_non_byte_memoryview_promotes_to_its_bytes(mv) -> None:
+    assert bitstring.Bits(mv).to_bytes() == bytes(mv)
+
+
+# Bits.from_bytes() works out the bits available from len(data), which for a memoryview
+# counts items, not bytes. BitArray.from_bytes() leaves that to the store and is right.
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+def test_from_bytes_offset_counts_the_bytes_of_a_memoryview(cls) -> None:
+    import array
+    mv = memoryview(array.array("H", [1, 258]))  # 4 bytes, but len(mv) == 2
+    assert cls.from_bytes(mv, offset=4) == bitstring.Bits(bytes(mv))[4:]  # Bits currently gives 12 bits
+
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+def test_from_bytes_length_counts_the_bytes_of_a_memoryview(cls) -> None:
+    import array
+    mv = memoryview(array.array("H", [1, 258]))
+    assert cls.from_bytes(mv, length=24) == bitstring.Bits(bytes(mv))[:24]  # Bits currently raises
+
+
+# An offset past the end of the data gives 'Negative bit length given: -4.' from Bits,
+# a length the caller never passed. BitArray says what's actually wrong.
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+def test_from_bytes_offset_past_the_end_names_the_offset(cls) -> None:
+    with pytest.raises(ValueError, match="[Oo]ffset"):
+        _ = cls.from_bytes(b"\x0f", offset=12)
+
+
+# A dtype without a list of allowed lengths accepts a negative one, which then reads
+# backwards or breaks len(). from_zeros() and friends already reject these.
+
+@pytest.mark.parametrize("name", ["bin", "bytes", "bits"])
+def test_dtype_negative_length_rejected(name: str) -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Dtype(name, -1)
+
+
+def test_unpack_with_a_negative_length_dtype_is_rejected() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits("0xff").unpack([bitstring.Dtype("bin", -1), "bin"])  # currently ['1111111', '1']
+
+
+def test_array_with_a_negative_length_dtype_is_rejected() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Array.from_bytes(bitstring.Dtype("bytes", -1), b"abcd")
+
+
+# A float length gets stored as a float, and only fails later with "'float' object
+# cannot be interpreted as an integer" from wherever it's first used.
+
+@pytest.mark.parametrize("length", [7.0, 8.5])
+def test_dtype_float_length_rejected(length: float) -> None:
+    with pytest.raises((TypeError, ValueError)):
+        _ = bitstring.Dtype("u", length)  # 7.0 currently gives Dtype('u', 7.0)
+
+
+def test_initialiser_float_length_rejected_with_a_clear_message() -> None:
+    with pytest.raises((TypeError, ValueError), match="length"):
+        _ = bitstring.Bits(u=3, length=6.0)
+
+
+# Assigning an int to a slice works out the slice's length without its step, so a
+# reversed slice looks empty.
+
+def test_assigning_an_int_to_a_negative_step_slice() -> None:
+    a = bitstring.BitArray("0x00")
+    a[5:2:-1] = 1  # currently a ValueError about a zero length
+    b = bitstring.BitArray("0x00")
+    b[5:2:-1] = "0b001"
+    assert a == b
+
+
+# Smaller ones, where the expected behaviour is a judgement call.
+
+# Array.from_file() reads an empty file as an empty Array, but Bits and BitArray fail on
+# mmap's 'cannot mmap an empty file'. 4.x had the same failure.
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+def test_from_file_reads_an_empty_file(cls, tmp_path) -> None:
+    p = tmp_path / "empty.bin"
+    p.write_bytes(b"")
+    assert len(cls.from_file(p)) == 0
+
+
+# cut() and split() are generators, so bad arguments only raise once iteration starts.
+# findall() checks them at the call, as it isn't a generator itself.
+
+def test_cut_rejects_a_bad_length_when_called() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits("0xff").cut(0)
+
+
+def test_split_rejects_an_empty_delimiter_when_called() -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits("0xff").split("")

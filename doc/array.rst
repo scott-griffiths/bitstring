@@ -68,7 +68,8 @@ You can then access and modify the ``Array`` with the usual notation::
     b.extend([0.0, -1.5])
 
 Conversion between ``Array`` types can be done using the :meth:`Array.astype` method.
-If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised. ::
+If elements of the old array don't fit or don't make sense in the new array then the relevant exceptions will be raised.
+Floats aren't converted to an integer dtype, even when they hold a whole number, so convert them explicitly first. ::
 
     >>> x = Array('f64', [89.3, 200.0, -0.00000001, 34])
     >>> y = x.astype('f16')
@@ -78,8 +79,11 @@ If elements of the old array don't fit or don't make sense in the new array then
     >>> y
     Array('p4binary', [88.0, 192.0, 0.0, 32.0])
     >>> y.astype('u8')
+    ValueError: An integer dtype needs a whole number, but received 88.0, which is a float.
+    >>> z = Array('u8', [int(v) for v in y])
+    >>> z
     Array('u8', [88, 192, 0, 32])
-    >>> y.astype('u7')
+    >>> z.astype('u7')
     ValueError: Value 192 does not fit in 7 bits.
 
 Note that float dtypes overflow to ``inf`` rather than clamping, so a value too large for the new dtype won't raise on its own, but will if it is then cast to an integer dtype.

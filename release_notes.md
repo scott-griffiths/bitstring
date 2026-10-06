@@ -117,7 +117,7 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   is now "Cannot rotate by negative amount" rather than a complaint about the
   bitstring being empty.
 * Removed the optional backend selection mechanism. The `tibs` dependency
-  (version 2.0 or later) is now required, and the `BITSTRING_USE_RUST_CORE`
+  (version 2.0.2 or later) is now required, and the `BITSTRING_USE_RUST_CORE`
   environment variable and `bitstring.options.using_rust_core` flag no longer
   exist.
 * `pack()` now returns a `Bits` object instead of a `BitStream`.
@@ -312,11 +312,13 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
 * `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
   `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
   `False`.
-* The integer dtypes now reject a value that isn't a whole number instead of truncating
-  it. `Bits(u=3.9, length=8)` and `Dtype('u8').pack(3.9)` quietly packed 3. The `Array`
-  operators still truncate towards zero, so that `a /= 2` works on an integer dtype, but
-  they now do so explicitly and use the bulk packing path, making `a / 2` on a 1000 item
-  `Array('i32')` around eighty times quicker.
+* The integer dtypes now reject a float instead of truncating it, even one holding a whole
+  number such as `3.0`. `Bits(u=3.9, length=8)` and `Dtype('u8').pack(3.9)` quietly packed
+  3. This includes `Array.astype()` from a float dtype to an integer one, so convert the
+  values with `int()` or `round()` first. The `Array` operators still truncate towards
+  zero, so that `a /= 2` works on an integer dtype, but they now do so explicitly and use
+  the bulk packing path, making `a / 2` on a 1000 item `Array('i32')` around eighty times
+  quicker.
 * `from_zeros()`, `from_ones()` and `Array.from_zeros()` now raise a `TypeError` for a
   length that isn't a whole number. They pushed it through `int()`, so
   `Bits.from_zeros(3.7)` quietly made three bits and `Bits.from_zeros('8')` made eight.
