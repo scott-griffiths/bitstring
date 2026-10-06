@@ -49,7 +49,7 @@ Methods
 
    If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
 
-   *pos* should be a single bit position or an iterable of them, as for :meth:`BitArray.set`. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
+   *pos* should be a single bit position or an iterable of them, as for :meth:`BitArray.set`. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos >= len(s)``. It defaults to the whole bitstring.
 
        >>> s = Bits('i15=-1')
        >>> s.all(True, [3, 4, 12, 13])
@@ -66,12 +66,12 @@ Methods
 
    If *value* is ``True`` then ``1`` bits are checked for, otherwise ``0`` bits are checked for.
 
-   *pos* should be a single bit position or an iterable of them, as for :meth:`BitArray.set`. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. It defaults to the whole bitstring.
+   *pos* should be a single bit position or an iterable of them, as for :meth:`BitArray.set`. Negative numbers are treated in the same way as slice indices and it will raise an :exc:`IndexError` if ``pos < -len(s)`` or ``pos >= len(s)``. It defaults to the whole bitstring.
 
        >>> s = Bits('0b11011100')
        >>> s.any(False, range(6))
        True
-       >>> s.any(False, 2)
+       >>> s.any(False, 0)
        False
        >>> s.any(1)
        True

@@ -455,7 +455,8 @@ class BitArray(Bits):
         pos -- The bit position to insert at.
         bs -- The bitstring to insert.
 
-        Raises ValueError if pos < 0 or pos > len(self).
+        A negative pos counts back from the end, as for slice indices.
+        Raises ValueError if pos < -len(self) or pos > len(self).
 
         """
         pos = BitArray._validate_pos_first(pos, "insert")
@@ -476,7 +477,8 @@ class BitArray(Bits):
         pos -- The bit position to begin overwriting from.
         bs -- The bitstring to overwrite with.
 
-        Raises ValueError if pos < 0 or pos > len(self).
+        A negative pos counts back from the end, as for slice indices.
+        Raises ValueError if pos < -len(self) or pos > len(self).
 
         """
         pos = BitArray._validate_pos_first(pos, "overwrite")

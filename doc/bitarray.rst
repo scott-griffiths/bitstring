@@ -107,7 +107,7 @@ Methods
 
     Inverts one or many bits from ``1`` to ``0`` or vice versa.
 
-    *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. The default is to invert the entire :class:`BitArray`. ::
+    *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -len(s)`` or ``pos >= len(s)``. The default is to invert the entire :class:`BitArray`. ::
 
         >>> s = BitArray('0b111001')
         >>> s.invert(0)
@@ -191,7 +191,7 @@ Methods
 
 .. method:: BitArray.set(value: bool, pos: int | Iterable[int] | None = None) -> None
 
-    Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -len(s)`` or ``pos > len(s)``. The default is to set every bit in the :class:`BitArray`.
+    Sets one or many bits to either ``1`` (if *value* is ``True``) or ``0`` (if *value* isn't ``True``). *pos* can be either a single bit position or an iterable of bit positions. Negative numbers are treated in the same way as slice indices and it will raise :exc:`IndexError` if ``pos < -len(s)`` or ``pos >= len(s)``. The default is to set every bit in the :class:`BitArray`.
 
     Using ``s.set(True, x)`` can be more efficient than other equivalent methods such as ``s[x] = 1``, ``s[x] = "0b1"`` or ``s.overwrite(x, '0b1')``, especially if many bits are being set. In particular using a ``range`` object as an iterable is treated as a special case and is done efficiently. ::
 

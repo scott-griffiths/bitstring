@@ -1311,8 +1311,9 @@ class Bits:
         kwargs -- A dictionary or keyword-value pairs - the keywords used in the
                   format string will be replaced with their given value.
 
-        Raises ValueError if the format is not understood. If not enough bits
-        are available then all bits to the end of the bitstring will be used.
+        Raises ValueError if the format is not understood, and ReadError if
+        there aren't enough bits for it. A token without a length uses all
+        the bits that the other tokens leave over.
 
         See the docstring for the module-level 'pack' function for token examples.
 

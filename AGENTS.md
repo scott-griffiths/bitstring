@@ -35,7 +35,7 @@ This file gives project-specific guidance for automated coding assistants and co
 
 ## Development Workflow
 
-- This is a `uv`-managed project (`uv.lock` present). `uv sync` installs the package and the `dev` dependency group (`pytest`, `hypothesis`, `gfloat`, `pytest-benchmark`). `tibs` is resolved from PyPI.
+- This is a `uv`-managed project. `uv.lock` is gitignored, so isn't committed. `uv sync` installs the package and the `dev` dependency group (`pytest`, `hypothesis`, `gfloat`, `pytest-benchmark`). `tibs` is resolved from PyPI.
 - Run the full suite with `pytest tests/ --benchmark-disable` (matches `.github/workflows/ci.yml`). For quick iteration, run a targeted file or test, e.g. `pytest tests/test_bits.py -k some_case`.
 - Keep `tests/requirements.txt` in sync with the `dev` dependency group in `pyproject.toml` - CI installs from the former, local dev from the latter.
 - There's no configured linter or type checker - no ruff, mypy, black, or flake8 config anywhere in the repo, and CI only builds and runs pytest. Match the surrounding code's style by eye; don't invent a `ruff check`/`mypy` step or assume one gates merges.
@@ -54,7 +54,7 @@ This file gives project-specific guidance for automated coding assistants and co
 
 ## Git And Local State
 
-- The worktree may contain user edits and generated artifacts (there are two local virtualenvs, `venv/` and `.venv/`, plus build/dist output). Do not revert or clean unrelated changes.
+- The worktree may contain user edits and generated artifacts (such as a local `.venv/` virtualenv, plus build/dist output). Do not revert or clean unrelated changes.
 - Untracked files are common here and are usually local scratch. Don't treat them as a problem in status checks or summaries unless the user asks or they're directly relevant to the task.
 - Before broad edits, inspect the current diff for files you plan to touch.
 - Keep changes tightly scoped to the request.
