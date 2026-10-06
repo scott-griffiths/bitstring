@@ -5,28 +5,34 @@
 
 This version completes the move to using the `tibs` Rust library as the core.
 The geometric mean across the benchmark suite is around 4x faster. The largest
-gains are in bulk work on `Array` objects, packing and unpacking multi-token
-formats, and sequential reading, as those now do in one core call what version 4
-did in a Python loop. Searching is also much improved.
+gains are in bulk work on `Array` objects, searching, packing and unpacking
+multi-token formats, and sequential reading, as those now do in one core call
+what version 4 did in a Python loop.
 
 | benchmark            | 4.4.0    | 5.0      | speedup |
 |----------------------|---------:|---------:|--------:|
-| `array_ops`          | 1.740 s  | 0.020 s  |  85.7x  |
-| `pack_unpack`        | 1.309 s  | 0.063 s  |  20.7x  |
-| `sequential_read`    | 1.295 s  | 0.171 s  |   7.6x  |
-| `array_indexing`     | 0.036 s  | 0.008 s  |   4.6x  |
-| `findall_patterns`   | 0.143 s  | 0.035 s  |   4.1x  |
-| `cut_and_compare`    | 0.312 s  | 0.119 s  |   2.6x  |
-| `build_from_tokens`  | 0.135 s  | 0.067 s  |   2.0x  |
-| `array_ops_fallback` | 0.397 s  | 0.236 s  |   1.7x  |
-| `slicing`            | 0.156 s  | 0.101 s  |   1.6x  |
-| `prime_sieve`        | 0.008 s  | 0.006 s  |   1.3x  |
-| `bitwise_or`         | 0.271 s  | 0.250 s  |   1.1x  |
-| `count_set_bits`     | 0.034 s  | 0.034 s  |   1.0x  |
+| `array_ops`          | 1.839 s  | 0.025 s  |  73.8x  |
+| `findall_patterns`   | 0.812 s  | 0.022 s  |  36.2x  |
+| `pack_unpack`        | 0.529 s  | 0.027 s  |  19.8x  |
+| `read_mixed`         | 0.461 s  | 0.047 s  |   9.9x  |
+| `sequential_read`    | 0.317 s  | 0.050 s  |   6.3x  |
+| `array_indexing`     | 0.087 s  | 0.018 s  |   4.7x  |
+| `count_set_bits`     | 0.090 s  | 0.020 s  |   4.5x  |
+| `edit_inplace`       | 0.105 s  | 0.033 s  |   3.2x  |
+| `cut_and_compare`    | 0.170 s  | 0.058 s  |   2.9x  |
+| `bitwise_large`      | 0.067 s  | 0.026 s  |   2.6x  |
+| `build_from_tokens`  | 0.063 s  | 0.034 s  |   1.9x  |
+| `array_ops_fallback` | 0.101 s  | 0.065 s  |   1.6x  |
+| `slicing`            | 0.084 s  | 0.055 s  |   1.5x  |
+| `create_small`       | 0.066 s  | 0.045 s  |   1.5x  |
+| `grow_and_splice`    | 0.051 s  | 0.037 s  |   1.4x  |
+| `bitwise_or`         | 0.066 s  | 0.054 s  |   1.2x  |
+| `prime_sieve`        | 0.029 s  | 0.024 s  |   1.2x  |
+| `interpret_small`    | 0.052 s  | 0.046 s  |   1.1x  |
 
-Run with `benchmarks/benchmark.py` (best of ten, Python 3.12, macOS on x86-64).
-The workloads at the bottom of the table are dominated by per-call overhead or
-memory allocation rather than by bit manipulation.
+Run with `benchmarks/benchmark.py` (best of ten, Python 3.12, macOS on Apple M5).
+The workloads at the bottom of the table are dominated by per-call Python
+overhead on small bitstrings rather than by bit manipulation.
 
 There are some significant breaking changes, though most are easy to rewrite.
 See https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html for

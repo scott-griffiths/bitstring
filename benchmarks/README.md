@@ -34,7 +34,7 @@ otherwise idle machine for both halves.
 ## Options
 
 - `--scale F` - multiply every workload size by `F`. Sizes are tuned so each
-  workload takes roughly 0.03-0.6s per repeat on 5.0; drop to e.g. `0.1` when
+  workload takes roughly 0.02-0.1s per repeat on 5.0; drop to e.g. `0.1` when
   iterating. Checksums are only verified at `--scale 1.0`, and comparing runs
   at different scales is meaningless (the tool warns).
 - `--repeat N` - repeats per workload, default 5. The comparison uses the best
