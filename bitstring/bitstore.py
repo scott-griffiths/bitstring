@@ -147,7 +147,12 @@ class _BitStoreBase:
     @classmethod
     def from_buffer(cls: type[_Self], buffer, /, offset: int | None, length: int | None) -> _Self:
         mv = _validated_buffer(buffer, offset, length)
-        return cls.from_bytes(mv, offset=offset or 0, length=length)
+        offset = offset or 0
+        # Only the bytes covering the wanted bits are passed on, so that for a memory
+        # mapped file just that part gets read, rather than the whole of the file.
+        byte_end = mv.nbytes if length is None else (offset + length + 7) // 8
+        mv = mv.cast('B')[offset // 8: byte_end]
+        return cls.from_bytes(mv, offset=offset % 8, length=length)
 
     def to_bytes(self) -> bytes:
         return self.tibs.to_padded_bytes()
@@ -492,8 +497,10 @@ class MutableBitStore(_BitStoreBase):
 
     def join_chunks(self, chunk_size: int, indices: range) -> MutableBitStore:
         """A new store of the chunk_size-bit chunks at the given chunk indices, in order."""
-        chunks = self.tibs.chunks(chunk_size)
-        return MutableBitStore(Mutibs.from_joined(chunks[i] for i in indices))
+        # Slicing out just the chunks needed, rather than splitting the whole store into
+        # chunks and picking some, is never slower and is far quicker for a sparse stride.
+        t = self.tibs
+        return MutableBitStore(Mutibs.from_joined(t[i * chunk_size: (i + 1) * chunk_size] for i in indices))
 
     def __iter__(self) -> Iterable[bool]:
         # Mutibs deliberately doesn't support iteration, so index bit-by-bit.

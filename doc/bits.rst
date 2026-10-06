@@ -199,6 +199,8 @@ Methods
     If a file object is given the bits are taken from its current file position onwards, and it must be open on a real file.
     For in-memory streams such as ``io.BytesIO`` use :meth:`~Bits.from_bytes` instead.
 
+    The *offset* and *length* are in bits, and select part of the file. Only that part is read into memory.
+
 .. classmethod:: Bits.from_tibs(tibs: tibs.Tibs | tibs.Mutibs, /) -> Bits
 
     Creates a new bitstring from a ``tibs.Tibs`` or ``tibs.Mutibs`` instance.

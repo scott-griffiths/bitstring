@@ -985,3 +985,68 @@ def test_array_bitwise_ops_keep_trailing_bits_like_the_in_place_ops(op: str, iop
     in_place = bitstring.Array("u8", [1, 2], trailing_bits="0b11")
     getattr(in_place, iop)("0x0f")
     assert result.equals(in_place)
+
+
+@pytest.mark.parametrize("make", [lambda x: bitstring.Dtype("bits8").pack(x),
+                                  lambda x: bitstring.Bits.from_dtype("bits8", x),
+                                  lambda x: bitstring.Bits(x)])
+def test_bits_made_from_a_bitarray_doesnt_change_with_it(make) -> None:
+    a = bitstring.BitArray("0x0f")
+    b = make(a)
+    a.invert()
+    assert b == "0x0f"
+    assert type(b._bitstore) is ConstBitStore
+
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+@pytest.mark.parametrize("source_cls", [bitstring.Bits, bitstring.BitArray])
+def test_constructing_from_a_bitstring_copies_at_most_once(monkeypatch, cls, source_cls) -> None:
+    source = source_cls("0x0f")
+    copies = []
+    depth = [0]
+    for store in (ConstBitStore, MutableBitStore):
+        for name in ("_mutable_copy", "to_const", "copy"):
+            original = getattr(store, name)
+
+            def counted(self, original=original, name=name):
+                # Only the outermost call counts, as copy() is built on _mutable_copy().
+                depth[0] += 1
+                try:
+                    result = original(self)
+                finally:
+                    depth[0] -= 1
+                if result is not self and depth[0] == 0:
+                    copies.append(name)
+                return result
+            monkeypatch.setattr(store, name, counted)
+    b = cls(source)
+    assert b == "0x0f" and type(b) is cls
+    assert len(copies) <= 1, copies
+    if cls is bitstring.Bits and source_cls is bitstring.Bits:
+        assert copies == []
+
+
+@pytest.mark.parametrize("key", [slice(None, None, 3), slice(None, None, -1), slice(-2, 1, -4),
+                                 slice(5, 200, 7), slice(200, 5, 7), slice(None, None, 1000)])
+def test_array_extended_slice_matches_a_list(key: slice) -> None:
+    values = list(range(250))
+    a = bitstring.Array("u9", values, trailing_bits="0b101")
+    result = a[key]
+    assert result.to_list() == values[key]
+    assert result.trailing_bits == bitstring.BitArray()
+    assert result.dtype == a.dtype
+
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+@pytest.mark.parametrize("offset, length", [(0, None), (3, None), (13, 29), (16, 8), (0, 0), (77, 3), (80, 0)])
+def test_from_file_with_offset_and_length_matches_from_bytes(tmp_path, cls, offset, length) -> None:
+    data = bytes(range(7, 17))
+    path = tmp_path / "data.bin"
+    path.write_bytes(data)
+    assert cls.from_file(path, offset=offset, length=length) == cls.from_bytes(data, offset=offset, length=length)
+    if offset + (length or 0) <= 8 * (len(data) - 1):
+        # A file object is read from its current position, which shifts everything along.
+        with open(path, "rb") as f:
+            f.seek(1)
+            assert (cls.from_file(f, offset=offset, length=length)
+                    == cls.from_bytes(data[1:], offset=offset, length=length))

@@ -60,6 +60,10 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   first and the bitstring second, matching `list.insert` and `Array.insert`.
   Use `s.insert(pos, bs)` instead of `s.insert(bs, pos)`. Old-style calls
   raise a `TypeError` explaining the change.
+* `Bits.from_file()` now reads the file (or the part given by `offset` and
+  `length`) into memory, as `BitArray.from_file()` always did. Version 4 memory
+  mapped the file for `Bits` and only read it as needed, so very large files
+  should now be read in pieces, for example with `offset` and `length`.
 
 #### Smaller breaking changes
 
@@ -86,6 +90,33 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   API. Bitstrings can no longer be initialised directly from `bitarray` objects,
   the `bitarray=` keyword initialiser has been removed, and the `tobitarray()`
   method has been removed.
+* The search, split and replace methods now take `bytealigned` by keyword only,
+  so `s.find('0xff', 0, 64, True)` becomes `s.find('0xff', 0, 64,
+  bytealigned=True)`. This covers `find()`, `rfind()`, `findall()`, `split()`
+  and `replace()`.
+* `Array.data` can now only be set to a `BitArray`. A `Bits`, `bytes` object or
+  format string raises a `TypeError` telling you to convert with
+  `BitArray(...)`. Reading it still returns the `Array`'s own buffer.
+* `Array` now defines `__slots__`, so assigning to an attribute that doesn't
+  exist, such as `a.dtyp = 'u4'`, raises an `AttributeError` instead of
+  silently succeeding. Subclasses of `Array` can still take arbitrary attributes.
+* `Array.pp()` gained the `sep` parameter that `Bits.pp()` has, after `width`,
+  so the two signatures are now identical. If you passed `show_offset` or
+  `stream` to `Array.pp()` positionally, they need updating.
+* Removed the `Dtype.bits_per_item` property. Use `bitlength`, which is in bits
+  for every dtype. `bytes` remains the only dtype whose `length` isn't in bits.
+* Zero-length `u` and `i` dtypes such as `Dtype('u0')` are now rejected, as
+  `f0` and `bool0` already were. Zero lengths remain valid for `hex`, `oct`,
+  `bin`, `bits`, `bytes` and `pad`, where they mean an empty value.
+* The integer dtypes now reject a float instead of truncating it, even one
+  holding a whole number such as `3.0`. `Bits(u=3.9, length=8)` quietly packed
+  3. This includes `Array.astype()` from a float dtype to an integer one, so
+  convert the values with `int()` or `round()` first. The `Array` arithmetic
+  operators still truncate towards zero, so that `a /= 2` works on an integer
+  dtype.
+* An explicit `length=` given alongside a `hex`, `bin` or `oct` initialiser is
+  now checked rather than ignored, so `Bits(hex='ff', length=4)` raises instead
+  of returning 8 bits.
 * `from_file()` now honours the current position of a file object, and raises
   a `TypeError` for in-memory streams such as `io.BytesIO` (use `from_bytes()`
   for those). Previously the position was ignored and the whole file was read.
@@ -167,7 +198,9 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   variable by default, or per call with `Bits.pp(color=...)` and
   `Array.pp(color=...)`. Byte-aligned searching is now controlled per call with
   `bytealigned=True`, and MXFP overflow behaviour is selected with explicit
-  dtype names such as `e4m3mxfp_overflow`.
+  dtype names. The unsuffixed `e4m3mxfp` and `e5m2mxfp` names have been
+  removed: use `e4m3mxfp_saturate`, `e4m3mxfp_overflow`, `e5m2mxfp_saturate`
+  or `e5m2mxfp_overflow`.
 * Removed the `Dtype` scale factor. The `scale=` parameter, the `scale='auto'`
   option and the `Dtype.scale` property have all gone, and passing `scale=`
   now raises a `TypeError`. Apply the scale yourself instead, widening the
@@ -211,8 +244,7 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
 * Added `to_mutable()` and `to_immutable()` conversion methods, available on both
   `Bits` and `BitArray`. `to_mutable()` always returns a new `BitArray`, and
   `to_immutable()` returns a `Bits` - itself when it is already an immutable
-  `Bits`, in the same way `copy()` does. Earlier 5.0 betas had these as
-  `Bits.to_bitarray()` and `BitArray.to_bits()`; those names are gone.
+  `Bits`, in the same way `copy()` does.
 * Added `to_bools()` as the converse of the `from_bools()` constructor. It is
   much faster than iterating over the bitstring.
 * Added the `Array.from_zeros()`, `Array.from_bytes()` and `Array.from_file()`
@@ -222,9 +254,8 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   The older `tobytes()`, `tofile()`, `tolist()` and `fromstring()`, and the
   longer dtype names `uint`, `int`, `float`, `uintbe`, `intle`, `floatle` and
   friends, all continue to work, no `DeprecationWarning` is emitted for any of
-  them, and there is no plan to remove them. Earlier notes described some of
-  these as deprecated; they are not. New code should prefer the shorter and
-  underscored spellings, but working code does not need changing.
+  them, and there is no plan to remove them. New code should prefer the shorter
+  and underscored spellings, but working code does not need changing.
 * `Array`, `Reader` and `Dtype` objects can now be pickled and deep-copied, along
   with `Bits` and `BitArray` which continue to support this. Pickling enables use
   with the `multiprocessing` module.
@@ -232,29 +263,6 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   '0xff'` is `True`, because equality promotes strings, bytes-like objects and
   bit-pattern lists, but `Bits('0xff') in {'0xff'}` is `False`, because hashing
   doesn't promote. Use bitstrings as keys and set members.
-* `Reader.read_array()` spells its item count `n` rather than `count`, so
-  `count` means only "stop after this many results" as it does on `findall()`,
-  `split()`, `replace()` and `cut()`. The `Reader` search methods spell their
-  flag `bytealigned`, matching `Bits.find()`, and it must be passed by keyword.
-  `Reader.byte_pos` is now `Reader.bytepos`, matching the version 4 name.
-  `Reader` is new in 5.0, so only the betas are affected.
-* `Array.data` is now a property that only accepts a `BitArray`. A `Bits`,
-  `bytes` object or format string raises a `TypeError` telling you to convert
-  with `BitArray(...)`. Reading it is unchanged and still returns the `Array`'s
-  own buffer rather than a copy, so `a.data += '0b1'` and other in-place edits
-  work exactly as before.
-* Removed the `Dtype.bits_per_item` property, as `bitlength` already gives what
-  it was used for. The units themselves are unchanged: `Dtype('bytes4').length`
-  is still 4 and its `bitlength` is still 32. `bytes` remains the only dtype
-  whose `length` counts something other than bits.
-* Zero-length `u` and `i` dtypes are now rejected when they are created rather
-  than when they are used, as `Dtype('f0')` and `Dtype('bool0')` already were.
-  Zero lengths remain valid for `hex`, `oct`, `bin`, `bits`, `bytes` and `pad`,
-  where they mean an empty value.
-* The `length` parameter of the `Bits` and `BitArray` constructors is now
-  keyword-only, so `Bits('0xff', 8)` is a `TypeError` at the call itself rather
-  than a later failure. Every valid call is unaffected, as they all pass
-  `length=` by keyword already.
 * Compact struct format codes such as `'>h'` are now accepted everywhere a dtype
   name is, including `Dtype()`, `Bits.from_dtype()`, `Reader.read_value()`,
   `Reader.read_array()` and the `Bits('>h=1')` literal form, which previously
@@ -264,10 +272,6 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   isn't a single code, instead of raising a `ValueError` with no message at all.
   Reading one of them from data that isn't a valid code likewise gives a
   `ReadError` naming the dtype and the bit position.
-* `Array` now defines `__slots__`, as `Bits`, `BitArray` and `Reader` already
-  did. Assigning to an attribute that doesn't exist raises an `AttributeError`
-  instead of silently succeeding, so `a.dtyp = 'u4'` is now caught. Subclasses
-  of `Array` are unaffected and can still take arbitrary attributes.
 * A long `Array` repr is now truncated instead of rendering every element, in
   the same way a long `Bits` repr already was. Arrays of more than 100 elements
   show the first and last 50 with `...` between them, followed by a
@@ -279,29 +283,18 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   it, so `Dtype(Dtype('u8'), 16)` gives `Dtype('u', 16)`. The new length is
   validated the same way it would be for a token string, so `Dtype(Dtype('bool'),
   8)` raises. Passing a `Dtype` with no length still returns that same object.
-* An explicit `length=` given alongside a `hex`, `bin` or `oct` initialiser is
-  now checked rather than ignored. `Bits(hex='ff', length=4)` previously returned
-  an 8 bit bitstring, quietly dropping the length; it now raises a `ValueError`.
-  A length that matches the value, such as `Bits(hex='ff', length=8)`, is
-  accepted as before.
 * `Bits.unpack()` and `Reader.read_list()` now accept a single `Dtype`, not just
   a string or a list. `unpack(Dtype('u8'))` previously failed with an internal
   `TypeError: 'Dtype' object is not iterable`.
-* `Array.pp()` gained the `sep` parameter that `Bits.pp()` already had, for the
-  string printed between groups. The two signatures are now identical, so the
-  same positional call works on either. Note that this shifts the position of
-  `show_offset`, `stream` and `color` in `Array.pp()` - if you passed any of
-  them positionally rather than by keyword, they need updating.
 
 #### Fixes
 
-* File-backed bitstrings with a non-zero offset no longer have to read the whole
-  file into memory.
 * Reading `Array` items from a file now honours the file object's current position,
   rejects negative item counts, and reports short reads correctly.
-* Fixed `Array.insert()` clamping for very negative indices to match `list.insert`.
-* Fixed scaled `Dtype` equality and hashing so dtypes with different scale factors
-  compare as distinct.
+* `Array.insert()` now treats negative indices as `list.insert` does. A very negative
+  index raised instead of inserting at the start, and with trailing bits present the
+  index was resolved against the whole of the data, so the new item landed part way
+  through an existing one.
 * Fixed parsing of repeated token groups so `0*(...)` is allowed and negative repeat
   factors are rejected.
 * `pp()` now resolves `sys.stdout` at call time instead of import time, so output
@@ -317,19 +310,9 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   `>` and `>=` already did, so `Array('u8', [1]) == Array('i8', [1])` gives
   `Array('bool', [True])` instead of raising a `TypeError`. Use `equals()` if you want a
   single boolean that also requires the dtypes to match.
-* Setting a dtype property on a `BitArray` no longer makes it immutable. `a.hex = 'ff'`
-  left the object holding an immutable store, so the next `a.set()`, `a.invert()` or
-  `a[0] = 1` raised an `AttributeError` or `TypeError` from the internals.
 * `==` and `!=` no longer raise when given a string that isn't a valid bitstring format.
   `Bits('0xff') == 'hello'` raised a `ValueError` out of the promotion; it now returns
   `False`.
-* The integer dtypes now reject a float instead of truncating it, even one holding a whole
-  number such as `3.0`. `Bits(u=3.9, length=8)` and `Dtype('u8').pack(3.9)` quietly packed
-  3. This includes `Array.astype()` from a float dtype to an integer one, so convert the
-  values with `int()` or `round()` first. The `Array` operators still truncate towards
-  zero, so that `a /= 2` works on an integer dtype, but they now do so explicitly and use
-  the bulk packing path, making `a / 2` on a 1000 item `Array('i32')` around eighty times
-  quicker.
 * `from_zeros()`, `from_ones()` and `Array.from_zeros()` now raise a `TypeError` for a
   length that isn't a whole number. They pushed it through `int()`, so
   `Bits.from_zeros(3.7)` quietly made three bits and `Bits.from_zeros('8')` made eight.
@@ -339,6 +322,9 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
 * The `bits` dtype always unpacks to an immutable `Bits` now, which is its `return_type`.
   Reading it out of a `BitArray` gave a `BitArray` back, so `Array('bits8', ...)` had
   mutable elements while `Bits(...).unpack('bits8')` had immutable ones.
+* Packing a `BitArray` with the `bits` dtype, as in `Dtype('bits8').pack(a)` or
+  `Bits.from_dtype('bits8', a)`, now takes a copy. The new `Bits` shared the
+  `BitArray`'s data, so later changes to the `BitArray` showed through it.
 * `all()` and `any()` now take a single bit position as well as an iterable of them,
   matching `set()` and `invert()`. `s.all(1, 0)` raised a `TypeError`.
 * Zero-length dtypes such as `bin0` and `hex0` are now rejected by `Array` and
@@ -357,14 +343,6 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
 * `Dtype.unpack()` now checks the length of what it is given, as `Dtype.pack()` already
   checked what it produced. `Dtype('u8').unpack('0xffff')` returned 65535 and
   `Dtype('f16').unpack()` would decode 32 bits as a float32; both now raise a `ValueError`.
-* `Array.insert()` with a negative index now puts the item in the right place when the
-  `Array` has trailing bits. The index was resolved against the whole of the data, so
-  the new item landed part way through an existing one.
-* A memoryview whose format isn't bytes, such as one over an `array.array('H')`, is now
-  read as its raw bytes, as it was in version 4. It gave the wrong data or an error.
-  `Bits.from_bytes()` also counted its items rather than its bytes when given an
-  `offset` or `length`, and an offset past the end of the data now says so rather than
-  complaining about a negative length.
 * A `Dtype` length must now be a non-negative integer. `Dtype('bin', -1)` was accepted
   and then read backwards, and a float such as `7.0` was stored as a float and failed
   later. A float length is now a `TypeError`, as it is for `from_zeros()`.

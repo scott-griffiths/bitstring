@@ -222,7 +222,15 @@ considers only matches that end at or before the current position.
 
 The ``bytealigned`` keyword is spelled the same way here as on :meth:`Bits.find`
 and the other whole-bitstring methods, and must be passed by keyword on all of
-them.
+them. This is new for :meth:`Bits.find`, :meth:`Bits.rfind`, :meth:`Bits.findall`,
+:meth:`Bits.split` and :meth:`BitArray.replace`, which version 4 let you pass it
+to positionally::
+
+    # bitstring 4
+    pos = s.find("0xff", 0, 64, True)
+
+    # bitstring 5
+    pos = s.find("0xff", 0, 64, bytealigned=True)
 
 To search without moving the position, use the wrapped object directly:
 ``r.bits.find(bs, start=r.pos)``.
@@ -395,6 +403,20 @@ stream such as ``io.BytesIO`` now raises a ``TypeError`` - use
 :meth:`Bits.from_bytes` for those instead. :meth:`Array.from_file` also reads
 file objects from their current position.
 
+:meth:`Bits.from_file` now reads the file into memory, as
+:meth:`BitArray.from_file` always did. Version 4 memory mapped the file for a
+:class:`Bits` and read it only as needed, which allowed files far larger than
+the available memory. Only the part given by *offset* and *length* is read, so
+for very large files read the part you need, or work through the file in
+pieces::
+
+    # bitstring 4
+    s = Bits(filename="huge.bin")
+    header = s[0:64]
+
+    # bitstring 5
+    header = Bits.from_file("huge.bin", length=64)
+
 Replace bitarray compatibility
 ==============================
 
@@ -526,8 +548,9 @@ The :class:`Dtype` scale factor has been removed. The ``scale=`` parameter, the
 passing ``scale=`` now raises a ``TypeError``.
 
 An :class:`Array` stores just the elements, so apply the scale in your own code.
-When reading, widen the dtype as you multiply, as multiplying a narrow ``Array``
-in place would round every value straight back into the narrow format::
+When reading, scale the Python floats rather than the ``Array``, as multiplying
+a narrow ``Array`` in place would round every value straight back into the
+narrow format::
 
     # bitstring 4
     a = Array(Dtype('e2m1mxfp', scale=2**10), values)
@@ -535,7 +558,7 @@ in place would round every value straight back into the narrow format::
 
     # bitstring 5
     a = Array('e2m1mxfp', [v / 2**10 for v in values])
-    scaled_values = Array('f64', [x * 2**10 for x in a]).to_list()
+    scaled_values = [x * 2**10 for x in a]
 
 For ``scale='auto'``, the scale that version 4 calculated lined the largest
 absolute value up with the largest value the format can represent::
@@ -549,6 +572,37 @@ that the E8M0 format can hold, and used a scale of 1 when every value was zero.
 
 A replacement is planned as block-scaled dtypes once the ``tibs`` core supports
 them.
+
+Check values, truth tests and rounding
+======================================
+
+A few changes affect code that ran without complaint in version 4.
+
+The integer dtypes now reject floats instead of truncating them, even a float
+holding a whole number such as ``3.0``. This includes :meth:`Array.astype` from
+a float dtype to an integer one. Convert the values yourself first::
+
+    # bitstring 4
+    s = Bits(u=value, length=8)  # value is a float
+    b = a.astype("u8")  # a has a float dtype
+
+    # bitstring 5
+    s = Bits(u=int(value), length=8)
+    b = Array("u8", [round(x) for x in a])
+
+``bool()`` of a non-empty :class:`Array` now raises a ``ValueError``. The
+comparison operators return an :class:`Array`, so in version 4 ``if a == b:``
+and ``assert a == b`` were true whatever the values. Use ``len(a)`` to test for
+emptiness, :meth:`Array.equals` to compare two Arrays, or the built-in
+``all()`` and ``any()``.
+
+Some floats now pack to different bits, always to the nearer representable
+value. ``bfloat`` rounds to nearest, ties-to-even, rather than truncating, which
+changes about half of all values by one ulp and makes values just beyond the
+largest finite bfloat round to ``inf``. The 8-bit, 6-bit and 4-bit float
+formats round directly from the Python float rather than through a 16-bit
+float, which changes a small fraction of values. Nothing raises, so check any
+stored data or test expectations that depend on the exact bits.
 
 Prefer the new underscored method names
 =======================================
@@ -634,17 +688,21 @@ For a large codebase, the least surprising order is:
 3. Update :func:`pack` call sites that relied on the old ``BitStream`` return
    value.
 4. Change :meth:`Bits.find` and :meth:`Bits.rfind` checks to use ``is not
-   None``, and replace stream searching with :meth:`Reader.seek_to`,
-   :meth:`Reader.seek_past` or :meth:`Reader.seek_back_to`.
+   None``, pass ``bytealigned`` by keyword, and replace stream searching with
+   :meth:`Reader.seek_to`, :meth:`Reader.seek_past` or :meth:`Reader.seek_back_to`.
 5. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
    explicit factory methods, and separate run-together literals with commas.
+   Read only the part of very large files that you need.
 6. Replace direct ``bitarray`` compatibility with explicit conversion.
 7. Replace removed aliases, prefer current dtype names, and rename
    ``Dtype.build`` / ``Dtype.parse``.
 8. Replace removed global options and modes with explicit dtypes or per-call
    arguments, and move any ``Dtype`` scale factors into your own code.
-9. Update ``except`` clauses for the removed exception classes and for
-   ``ReadError`` no longer being an ``IndexError``.
-10. Remove any remaining ``python -m bitstring`` usage.
-11. Optionally update compatibility aliases such as ``tobytes`` and ``tolist``
+9. Convert floats before packing them as integers, replace truth tests of
+   :class:`Array` objects, and check anything that depends on the exact bits of
+   packed ``bfloat`` or narrow float values.
+10. Update ``except`` clauses for the removed exception classes and for
+    ``ReadError`` no longer being an ``IndexError``.
+11. Remove any remaining ``python -m bitstring`` usage.
+12. Optionally update compatibility aliases such as ``tobytes`` and ``tolist``
     to their preferred underscored names.

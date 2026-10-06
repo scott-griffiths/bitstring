@@ -684,6 +684,11 @@ class Bits:
     def _setauto(self, s: BitsType, length: int | None, /) -> None:
         """Set a public constructor auto value, after removed forms were rejected."""
         if length is None:
+            if isinstance(s, Bits):
+                # Shared rather than copied: _initialise always converts the store
+                # afterwards, which makes the one copy needed (or none, Bits to Bits).
+                self._bitstore = s._bitstore
+                return
             self._set_from_bitstype(s)
             return
 
@@ -710,7 +715,9 @@ class Bits:
 
     def _setbits(self, bs: BitsType, length: None = None) -> None:
         bs = Bits._create_from_bitstype(bs)
-        self._bitstore = bs._bitstore
+        # A snapshot, as a BitArray comes back from the promotion as itself, and sharing
+        # its store would let later changes to it show through the packed Bits.
+        self._bitstore = bs._bitstore.to_const()
 
     def _setp3binary(self, f: float) -> None:
         self._bitstore = helpers.p3binary2bitstore(f)
@@ -1642,7 +1649,7 @@ class Bits:
         Up to seven zero bits will be added at the end to byte align.
 
         """
-        # If the bitstring is file based then we don't want to read it all in to memory first.
+        # Written in chunks, so the bytes of a huge bitstring aren't all built at once.
         chunk_size = 8 * 100 * 1024 * 1024  # 100 MiB
         for chunk in self.cut(chunk_size):
             f.write(chunk.to_bytes())
