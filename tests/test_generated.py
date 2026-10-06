@@ -74,7 +74,7 @@ def test_from_bytes_no_truncation_uses_tibs_fast_path(monkeypatch) -> None:
     calls.clear()
     assert bitstring.Bits.from_bytes(b"\x12\x34", offset=4) == "0x234"
     assert bitstring.BitArray.from_bytes(b"\x12\x34", offset=4) == "0x234"
-    assert calls == [("Tibs", 4, 12), ("Mutibs", 4, None)]
+    assert calls == [("Tibs", 4, None), ("Mutibs", 4, None)]
 
     calls.clear()
     assert bitstring.Bits.from_bytes(b"\x12\x34", offset=0, length=8) == "0x12"

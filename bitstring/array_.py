@@ -443,8 +443,10 @@ class Array:
         """Insert a new element into the Array at position i.
 
         """
-        # Match list.insert semantics: clamp both high and low indices.
-        i = max(min(i, len(self)), -len(self))
+        # Match list.insert semantics: clamp both high and low indices. A negative index
+        # is resolved against the item count here, as the data may have trailing bits.
+        length = len(self)
+        i = max(i + length, 0) if i < 0 else min(i, length)
         self._data.insert(i * self.itemsize, self._create_element(x))
 
     def pop(self, i: int = -1) -> ElementType:

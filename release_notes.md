@@ -346,6 +346,23 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
 * `Dtype.unpack()` now checks the length of what it is given, as `Dtype.pack()` already
   checked what it produced. `Dtype('u8').unpack('0xffff')` returned 65535 and
   `Dtype('f16').unpack()` would decode 32 bits as a float32; both now raise a `ValueError`.
+* `Array.insert()` with a negative index now puts the item in the right place when the
+  `Array` has trailing bits. The index was resolved against the whole of the data, so
+  the new item landed part way through an existing one.
+* A memoryview whose format isn't bytes, such as one over an `array.array('H')`, is now
+  read as its raw bytes, as it was in version 4. It gave the wrong data or an error.
+  `Bits.from_bytes()` also counted its items rather than its bytes when given an
+  `offset` or `length`, and an offset past the end of the data now says so rather than
+  complaining about a negative length.
+* A `Dtype` length must now be a non-negative integer. `Dtype('bin', -1)` was accepted
+  and then read backwards, and a float such as `7.0` was stored as a float and failed
+  later. A float length is now a `TypeError`, as it is for `from_zeros()`.
+* Assigning an integer to a slice with a negative step, such as `a[5:2:-1] = 1`, now
+  works. It raised a `ValueError` about a zero length.
+* `Bits.from_file()` and `BitArray.from_file()` now read an empty file as an empty
+  bitstring, as `Array.from_file()` already did. They raised 'cannot mmap an empty file'.
+* `cut()` and `split()` now check their arguments when called, as `findall()` does.
+  `cut(0)` and `split('')` only raised once iteration started.
 
 ### March 2026: version 4.4.0
 

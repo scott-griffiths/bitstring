@@ -6,6 +6,7 @@ from collections.abc import Callable
 import inspect
 import bitstring
 from bitstring import utils
+from bitstring.helpers import validated_count
 
 CACHE_SIZE = 256
 
@@ -39,6 +40,9 @@ class Dtype:
     _is_property: bool
 
     def __new__(cls, token: str | Dtype, /, length: int | None = None) -> Dtype:
+        if length is not None and type(length) is not int:
+            # Before the cache lookup, as a float such as 7.0 would match the key for 7.
+            length = validated_count(length, "length")
         if isinstance(token, cls):
             if length is None:
                 return token
@@ -294,6 +298,8 @@ class DtypeDefinition:
         self.bitlength2chars_fn = bitlength2chars_fn
 
     def get_dtype(self, length: int | None = None) -> Dtype:
+        if length is not None and length < 0:
+            raise ValueError(f"A length of {length} was supplied for the '{self.name}' dtype, but a length can't be negative.")
         if self.allowed_lengths:
             if length is None:
                 if self.allowed_lengths.only_one_value():

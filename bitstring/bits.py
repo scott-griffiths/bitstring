@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numbers
+import os
 import pathlib
 import sys
 import mmap
@@ -66,7 +67,7 @@ def _open_file_source(source: str | pathlib.Path | BinaryIO) -> tuple[mmap.mmap,
     """
     if isinstance(source, (str, pathlib.Path)):
         with open(pathlib.Path(source), 'rb') as f:
-            return mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ), 0, f.name
+            return _mmap_or_empty(f.fileno()), 0, f.name
     try:
         fileno = source.fileno()
         base_bits = source.tell() * 8
@@ -75,7 +76,14 @@ def _open_file_source(source: str | pathlib.Path | BinaryIO) -> tuple[mmap.mmap,
             f"from_file() needs a file path or a file object that is open on a real file, "
             f"but received a {type(source).__name__}. For in-memory streams use from_bytes() "
             f"instead, e.g. 'from_bytes(stream.getvalue())'.")
-    return mmap.mmap(fileno, 0, access=mmap.ACCESS_READ), base_bits, None
+    return _mmap_or_empty(fileno), base_bits, None
+
+
+def _mmap_or_empty(fileno: int) -> mmap.mmap | bytes:
+    # mmap refuses an empty file, but there's nothing to map anyway.
+    if os.fstat(fileno).st_size == 0:
+        return b''
+    return mmap.mmap(fileno, 0, access=mmap.ACCESS_READ)
 
 
 class Bits:
@@ -743,16 +751,8 @@ class Bits:
 
     def _setbytes_with_truncation(self, data: bytearray | bytes | memoryview, length: int | None = None, offset: int | None = None) -> None:
         """Set the data from a bytes or bytearray object, with optional offset and length truncations."""
-        if length is None and (offset is None or (isinstance(offset, int) and offset == 0)):
-            return self._setbytes(data)
-        if offset is None:
-            offset = 0
-        if length is None:
-            # Use to the end of the data
-            length = len(data) * 8 - offset
-        else:
-            if length + offset > len(data) * 8:
-                raise ValueError(f"Not enough data present. Need {length + offset} bits, have {len(data) * 8}.")
+        # The store checks the offset and length against the number of bytes, which for a
+        # memoryview isn't len(data) unless its format is 'B'.
         self._bitstore = ConstBitStore.from_bytes(data, offset=offset, length=length)
 
     def _getbytes(self) -> bytes:
@@ -1517,6 +1517,11 @@ class Bits:
             raise ValueError("Cannot cut - count must be >= 0.")
         if bits <= 0:
             raise ValueError("Cannot cut - bits must be > 0.")
+        # The work is in a separate generator so that bad arguments raise here, at the
+        # call, rather than when iteration starts.
+        return self._cut(bits, start_, end_, count)
+
+    def _cut(self, bits: int, start_: int, end_: int, count: int | None) -> Iterator[Bits]:
         if isinstance(self._bitstore, ConstBitStore) and start_ == 0 and end_ == len(self):
             cls = self.__class__
             for chunk_store in self._bitstore.chunks(bits, count):
@@ -1563,6 +1568,12 @@ class Bits:
         start, end = self._validate_slice(start, end)
         if count is not None and count < 0:
             raise ValueError("Cannot split - count must be >= 0.")
+        # As for cut(), the work is in a separate generator so that bad arguments raise
+        # at the call.
+        return self._split(delimiter, start, end, count, bytealigned)
+
+    def _split(self, delimiter: Bits, start: int, end: int, count: int | None,
+               bytealigned: bool) -> Iterator[Bits]:
         if count == 0:
             return
         if isinstance(self._bitstore, ConstBitStore):

@@ -316,9 +316,8 @@ class BitArray(Bits):
                     return
                 else:
                     raise ValueError("Can't assign an integer except 0 or 1 to a slice with a step value.")
-            # To find the length we first get the slice
-            s = self._bitstore.getslice(key.start, key.stop)
-            length = len(s)
+            # The step matters here, as a reversed slice such as [5:2:-1] isn't empty.
+            length = len(range(*key.indices(len(self))))
             # Now create an int of the correct length
             if value >= 0:
                 value = self.__class__(u=value, length=length)
