@@ -1127,7 +1127,7 @@ class TestPrettyPrinting:
             == r"""<Bits, fmt='bytes', length=2048 bits> [
    0: ĀāĂă ĄąĆć ĈĉĊċ ČčĎď ĐđĒē ĔĕĖė ĘęĚě ĜĝĞğ  !"# $%&' ()*+ ,-./ 0123 4567 89:; <=>? @ABC DEFG HIJK LMNO PQRS TUVW XYZ[
  736: \]^_ `abc defg hijk lmno pqrs tuvw xyz{ |}~ſ ƀƁƂƃ ƄƅƆƇ ƈƉƊƋ ƌƍƎƏ ƐƑƒƓ ƔƕƖƗ Ƙƙƚƛ ƜƝƞƟ ƠơƢƣ ƤƥƦƧ ƨƩƪƫ ƬƭƮƯ ưƱƲƳ ƴƵƶƷ
-1472: Ƹƹƺƻ Ƽƽƾƿ ǀǁǂǃ ǄǅǆǇ ǈǉǊǋ ǌǍǎǏ ǐǑǒǓ ǔǕǖǗ ǘǙǚǛ ǜǝǞǟ ǠǡǢǣ ǤǥǦǧ ǨǩǪǫ ǬǭǮǯ ǰǱǲǳ ǴǵǶǷ ǸǹǺǻ ǼǽǾÿ                         
+1472: Ƹƹƺƻ Ƽƽƾƿ ǀǁǂǃ ǄǅǆǇ ǈǉǊǋ ǌǍǎǏ ǐǑǒǓ ǔǕǖǗ ǘǙǚǛ ǜǝǞǟ ǠǡǢǣ ǤǥǦǧ ǨǩǪǫ ǬǭǮǯ ǰǱǲǳ ǴǵǶǷ ǸǹǺǻ ǼǽǾǿ                         
 ]
 """
         )
@@ -1342,3 +1342,59 @@ def test_large_ints():
     assert s.int == -1
     s = Bits(u=12, length=201)
     assert s.uint == 12
+
+
+@pytest.mark.parametrize("left", ["0xff", b"\xff", [1, 1, 1, 1, 1, 1, 1, 1]])
+def test_reflected_add_to_bitarray_stays_mutable(left):
+    x = left + BitArray("0x00")
+    assert type(x) is BitArray
+    assert x == "0xff00"
+    x[0] = 0
+    x.set(1, -1)
+    x.reverse()
+    x.append("0b1")
+    assert x == "0b1000000011111110, 0b1"
+
+
+@pytest.mark.parametrize("name, bits", [("ue", "0b000"), ("se", ""), ("uie", "0b0"), ("sie", "0b01")])
+def test_incomplete_exp_golomb_code_has_message(name, bits):
+    with pytest.raises(ValueError, match=f"not a single '{name}' code"):
+        _ = getattr(Bits(bits), name)
+
+
+def test_printable_bytes_maps_0xff_like_other_non_ascii():
+    s = io.StringIO()
+    Bits.from_bytes(b"\xfe\xff").pp("bytes", stream=s, color=False)
+    assert chr(0x1FE) + chr(0x1FF) in s.getvalue()
+
+
+def test_unpack_unknown_length_keyword_names_token():
+    with pytest.raises(ValueError, match="u:x") as e:
+        Bits("0xff").unpack("u:x")
+    assert "invalid literal" not in str(e.value)
+
+
+@pytest.mark.parametrize("name", ["u", "i", "uint", "int"])
+def test_missing_integer_length_message_uses_canonical_name(name):
+    canonical = name[0]
+    with pytest.raises(ValueError, match=f"'{canonical}' initialiser"):
+        _ = Bits(**{name: 5})
+
+
+@pytest.mark.parametrize("value", [1.0, 0.0, 0.5])
+def test_bool_rejects_floats(value):
+    with pytest.raises(ValueError):
+        _ = Bits(bool=value)
+    with pytest.raises(ValueError):
+        _ = bitstring.pack("bool", value)
+    with pytest.raises(ValueError):
+        _ = bitstring.Array("bool", [value])
+    a = BitArray("0b0")
+    with pytest.raises(ValueError):
+        a.bool = value
+
+
+@pytest.mark.parametrize("value, expected", [(True, True), (1, True), ("1", True), ("True", True),
+                                             (False, False), (0, False), ("0", False), ("False", False)])
+def test_bool_still_accepts_bools_ints_and_strings(value, expected):
+    assert Bits(bool=value).bool is expected

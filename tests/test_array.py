@@ -1262,3 +1262,9 @@ class TestMisc:
         y = Array('float16', [100, 2.0, 0.0, 4])
         x = x + (y == 0.0)
         assert x.tolist() == [1, 2, 4, 4]
+
+
+def test_delete_out_of_range_index_has_message():
+    a = Array('u8', [1])
+    with pytest.raises(IndexError, match="out of range"):
+        del a[5]

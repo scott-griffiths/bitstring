@@ -16,6 +16,9 @@ The main change in version 5 is that bitstrings no longer store a stream
 position. The bit data is represented by :class:`Bits` or :class:`BitArray`,
 and sequential reading is handled by a separate :class:`Reader`.
 
+This guide covers the changes most code will meet. For the complete list see the
+`release notes <https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md>`_.
+
 Minimum Python version
 ======================
 
@@ -393,6 +396,15 @@ the same name (and its ``fromfile()`` alias) that appended items to an existing
 To append file data to an existing ``Array``, extend from a newly read one,
 for example ``a.extend(Array.from_file(a.dtype, f))``.
 
+:meth:`Array.pp` gained the ``sep`` parameter that :meth:`Bits.pp` has, after
+``width``, so pass ``show_offset`` and ``stream`` by keyword::
+
+    # bitstring 4
+    a.pp('hex', 80, False)
+
+    # bitstring 5
+    a.pp('hex', 80, show_offset=False)
+
 Check file object usage in from_file()
 ======================================
 
@@ -578,9 +590,10 @@ Check values, truth tests and rounding
 
 A few changes affect code that ran without complaint in version 4.
 
-The integer dtypes now reject floats instead of truncating them, even a float
-holding a whole number such as ``3.0``. This includes :meth:`Array.astype` from
-a float dtype to an integer one. Convert the values yourself first::
+The integer and ``bool`` dtypes now reject floats instead of truncating or
+converting them, even a float holding a whole number such as ``3.0`` or ``1.0``.
+This includes :meth:`Array.astype` from a float dtype to an integer one. Convert
+the values yourself first::
 
     # bitstring 4
     s = Bits(u=value, length=8)  # value is a float
@@ -681,28 +694,13 @@ Suggested upgrade order
 
 For a large codebase, the least surprising order is:
 
-1. Update imports to remove ``ConstBitStream`` and ``BitStream``.
-2. Introduce :class:`Reader` wherever code uses ``pos``, ``read``, ``peek`` or
-   stream-style searching, splitting each ``read`` and ``peek`` call according
-   to whether it wanted an interpreted value or raw bits.
-3. Update :func:`pack` call sites that relied on the old ``BitStream`` return
-   value.
-4. Change :meth:`Bits.find` and :meth:`Bits.rfind` checks to use ``is not
-   None``, pass ``bytealigned`` by keyword, and replace stream searching with
-   :meth:`Reader.seek_to`, :meth:`Reader.seek_past` or :meth:`Reader.seek_back_to`.
-5. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
-   explicit factory methods, and separate run-together literals with commas.
-   Read only the part of very large files that you need.
-6. Replace direct ``bitarray`` compatibility with explicit conversion.
-7. Replace removed aliases, prefer current dtype names, and rename
-   ``Dtype.build`` / ``Dtype.parse``.
-8. Replace removed global options and modes with explicit dtypes or per-call
-   arguments, and move any ``Dtype`` scale factors into your own code.
-9. Convert floats before packing them as integers, replace truth tests of
-   :class:`Array` objects, and check anything that depends on the exact bits of
-   packed ``bfloat`` or narrow float values.
-10. Update ``except`` clauses for the removed exception classes and for
-    ``ReadError`` no longer being an ``IndexError``.
-11. Remove any remaining ``python -m bitstring`` usage.
-12. Optionally update compatibility aliases such as ``tobytes`` and ``tolist``
-    to their preferred underscored names.
+1. Replace ``ConstBitStream`` and ``BitStream`` with :class:`Reader`, splitting
+   each ``read`` and ``peek`` by whether it wanted a value or raw bits, and
+   update :func:`pack` call sites that relied on getting a ``BitStream``.
+2. Change :meth:`Bits.find` and :meth:`Bits.rfind` checks to ``is not None``,
+   and pass ``bytealigned`` by keyword.
+3. Replace removed constructor forms, aliases, options and exception classes
+   using the tables above.
+4. Run your tests, looking out for floats packed as integers or bools, truth
+   tests of :class:`Array` objects, ``IndexError`` handlers around reads, and
+   anything that depends on the exact bits of ``bfloat`` or narrow floats.

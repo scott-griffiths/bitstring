@@ -349,8 +349,11 @@ class Bits:
         bs -- An object that can be 'auto' initialised as a bitstring that will be appended to.
 
         """
-        bs = self.__class__._create_from_bitstype(bs)
-        return bs.__add__(self)
+        bs = Bits._create_from_bitstype(bs)
+        s = object.__new__(self.__class__)
+        # The store type follows self, as bs may be immutable even when self isn't.
+        s._bitstore = type(self._bitstore).join((bs._bitstore, self._bitstore))
+        return s
 
     @overload
     def __getitem__(self: TBits, key: slice, /) -> TBits:
@@ -772,7 +775,7 @@ class Bits:
         return self._bitstore.read_bytes(pos, length)
 
     _unprintable = list(range(0x00, 0x20))  # ASCII control characters
-    _unprintable.extend(range(0x7f, 0xff))  # DEL char + non-ASCII
+    _unprintable.extend(range(0x7f, 0x100))  # DEL char + non-ASCII
 
     def _getbytes_printable(self) -> str:
         """Return an approximation of the data as a string of printable characters."""
@@ -795,7 +798,7 @@ class Bits:
         """Reset the bitstring to have given unsigned int interpretation."""
         length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with a uint initialiser.")
+            raise ValueError("A non-zero length must be specified with a 'u' initialiser.")
         self._bitstore = helpers.int2bitstore(uint, length, False)
 
     def _getuint(self) -> int:
@@ -811,7 +814,7 @@ class Bits:
         """Reset the bitstring to have given signed int interpretation."""
         length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with an int initialiser.")
+            raise ValueError("A non-zero length must be specified with an 'i' initialiser.")
         self._bitstore = helpers.int2bitstore(int_, length, True)
 
     def _getint(self) -> int:
@@ -827,7 +830,7 @@ class Bits:
         """Set the bitstring to a big-endian unsigned int interpretation."""
         length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with a ube initialiser.")
+            raise ValueError("A non-zero length must be specified with a 'ube' initialiser.")
         self._bitstore = helpers.int2bitstore(uintbe, length, False)
 
     def _getuintbe(self) -> int:
@@ -843,7 +846,7 @@ class Bits:
         """Set bitstring to a big-endian signed int interpretation."""
         length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with an ibe initialiser.")
+            raise ValueError("A non-zero length must be specified with an 'ibe' initialiser.")
         self._bitstore = helpers.int2bitstore(intbe, length, True)
 
     def _getintbe(self) -> int:
@@ -858,7 +861,7 @@ class Bits:
     def _setuintle(self, uintle: int, length: int | None = None) -> None:
         length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with a ule initialiser.")
+            raise ValueError("A non-zero length must be specified with a 'ule' initialiser.")
         self._bitstore = helpers.intle2bitstore(uintle, length, False)
 
     def _getuintle(self) -> int:
@@ -873,7 +876,7 @@ class Bits:
     def _setintle(self, intle: int, length: int | None = None) -> None:
         length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
-            raise ValueError("A non-zero length must be specified with an ile initialiser.")
+            raise ValueError("A non-zero length must be specified with an 'ile' initialiser.")
         self._bitstore = helpers.intle2bitstore(intle, length, True)
 
     def _getintle(self) -> int:
@@ -1041,29 +1044,34 @@ class Bits:
             pos += 1
         return codenum, pos
 
+    @staticmethod
+    def _incomplete_code_error(name: str, length: int) -> ValueError:
+        return ValueError(f"Bitstring is not a single '{name}' code: its {length} bits end "
+                          f"part way through one.")
+
     def _getue(self) -> tuple[int, int]:
         try:
             return self._readue(0)
         except bitstring.ReadError:
-            raise ValueError
+            raise Bits._incomplete_code_error('ue', len(self)) from None
 
     def _getse(self) -> tuple[int, int]:
         try:
             return self._readse(0)
         except bitstring.ReadError:
-            raise ValueError
+            raise Bits._incomplete_code_error('se', len(self)) from None
 
     def _getuie(self) -> tuple[int, int]:
         try:
             return self._readuie(0)
         except bitstring.ReadError:
-            raise ValueError
+            raise Bits._incomplete_code_error('uie', len(self)) from None
 
     def _getsie(self) -> tuple[int, int]:
         try:
             return self._readsie(0)
         except bitstring.ReadError:
-            raise ValueError
+            raise Bits._incomplete_code_error('sie', len(self)) from None
 
     def _setse(self, i: int) -> None:
         """Initialise bitstring with signed exponential-Golomb code for integer i."""
@@ -1133,6 +1141,10 @@ class Bits:
     def _setbool(self, value: bool | str) -> None:
         # We deliberately don't want to have implicit conversions to bool here.
         # If we did then it would be difficult to deal with the 'False' string.
+        # Floats are rejected even when they compare equal to 1 or 0, as for the
+        # integer dtypes and tibs's bulk packing.
+        if isinstance(value, float):
+            raise ValueError(f"Cannot initialise boolean with the float {value!r}.")
         if value in (1, 'True', '1'):
             self._bitstore = ConstBitStore.from_bin('1')
         elif value in (0, 'False', '0'):
@@ -1329,6 +1341,8 @@ class Bits:
                     try:
                         name, length = utils.parse_name_length_token(t, **kwargs)
                     except ValueError:
+                        if not t.isdecimal():
+                            raise  # The parser's message names the token.
                         dtype_list.append(Dtype('bits', int(t)))
                     else:
                         dtype_list.append(Dtype(name, length))
@@ -2059,6 +2073,8 @@ def _prepared_fmt(fmt: str) -> tuple[tuple[Dtype, ...], Any, int]:
         try:
             name, length = utils.parse_name_length_token(token)
         except ValueError:
+            if not token.isdecimal():
+                raise  # The parser's message names the token.
             dtypes.append(Dtype('bits', int(token)))
         else:
             dtypes.append(Dtype(name, length))

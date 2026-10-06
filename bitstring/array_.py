@@ -355,10 +355,11 @@ class Array:
             for s in r:
                 self._data.__delitem__(slice(s * itemsize, (s + 1) * itemsize))
         else:
+            length = len(self)
             if key < 0:
-                key += len(self)
-            if key < 0 or key >= len(self):
-                raise IndexError
+                key += length
+            if key < 0 or key >= length:
+                raise IndexError(f"Index {key} out of range for Array of length {length}.")
             itemsize = self.itemsize
             start = itemsize * key
             del self._data[start: start + itemsize]
