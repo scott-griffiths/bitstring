@@ -202,8 +202,12 @@ class AllowedLengths:
             return other >= start and (other - start) % step == 0
         return other in self.values
 
+    def __bool__(self) -> bool:
+        # Empty means any length is allowed, which __contains__ also reflects.
+        return bool(self.values)
+
     def only_one_value(self) -> bool:
-        return self.values and len(self.values) == 1
+        return len(self.values) == 1
 
 
 class DtypeDefinition:

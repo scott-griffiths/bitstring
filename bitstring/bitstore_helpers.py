@@ -83,24 +83,6 @@ def _to_const_bitstore(bs: MutableBitStore | ConstBitStore) -> ConstBitStore:
     return ConstBitStore(bs.tibs.to_tibs())
 
 
-def _bin_literal_to_const_bitstore(binstring: str) -> ConstBitStore:
-    binstring = tidy_input_string(binstring)
-    binstring = binstring.replace('0b', '')
-    return ConstBitStore.from_bin(binstring)
-
-
-def _hex_literal_to_const_bitstore(hexstring: str) -> ConstBitStore:
-    hexstring = tidy_input_string(hexstring)
-    hexstring = hexstring.replace('0x', '')
-    return ConstBitStore(Tibs.from_hex(hexstring))
-
-
-def _oct_literal_to_const_bitstore(octstring: str) -> ConstBitStore:
-    octstring = tidy_input_string(octstring)
-    octstring = octstring.replace('0o', '')
-    return ConstBitStore(Tibs.from_oct(octstring))
-
-
 @functools.lru_cache(CACHE_SIZE)
 def str_to_bitstore(s: str) -> ConstBitStore:
     # Fast path for literal-only strings (e.g. "0xff, 0b101, 0o7").
@@ -114,12 +96,12 @@ def str_to_bitstore(s: str) -> ConstBitStore:
 
 
 literal_bit_funcs: dict[str, Callable[..., ConstBitStore]] = {
-    '0x': _hex_literal_to_const_bitstore,
-    '0X': _hex_literal_to_const_bitstore,
-    '0b': _bin_literal_to_const_bitstore,
-    '0B': _bin_literal_to_const_bitstore,
-    '0o': _oct_literal_to_const_bitstore,
-    '0O': _oct_literal_to_const_bitstore,
+    '0x': hex2bitstore,
+    '0X': hex2bitstore,
+    '0b': bin2bitstore,
+    '0B': bin2bitstore,
+    '0o': oct2bitstore,
+    '0O': oct2bitstore,
 }
 
 

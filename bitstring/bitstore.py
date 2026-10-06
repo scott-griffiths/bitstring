@@ -246,12 +246,6 @@ class _BitStoreBase:
     def all(self) -> bool:
         return self.tibs.all()
 
-    def startswith(self, prefix: _BitStoreBase) -> bool:
-        return self.tibs.starts_with(prefix.tibs)
-
-    def endswith(self, suffix: _BitStoreBase) -> bool:
-        return self.tibs.ends_with(suffix.tibs)
-
     def count(self, value: Any) -> int:
         return self.tibs.count(value)
 

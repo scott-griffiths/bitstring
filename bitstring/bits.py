@@ -1198,31 +1198,6 @@ class Bits:
         bs._bitstore = self._bitstore.getslice(start, end)
         return bs
 
-    def _absolute_slice(self: TBits, start: int, end: int) -> TBits:
-        """Used internally to get a slice, without error checking."""
-        if end == start:
-            return self.__class__()
-        assert start < end, f"start={start}, end={end}"
-        bs = object.__new__(self.__class__)
-        bs._bitstore = self._bitstore.getslice(start, end)
-        return bs
-
-    def _readtoken(self, name: str, pos: int, length: int | None) -> tuple[float | int | str | None | Bits, int]:
-        """Reads a token from the bitstring and returns the result."""
-        dtype = dtype_register.get_dtype(name, length)
-        if dtype.bitlength is not None and dtype.bitlength > len(self) - pos:
-            raise bitstring.ReadError("Reading off the end of the data. "
-                            f"Tried to read {dtype.bitlength} bits when only {len(self) - pos} available.")
-        try:
-            val = dtype._read_fn(self, pos)
-            if isinstance(val, tuple):
-                return val
-            else:
-                assert length is not None
-                return val, pos + dtype.bitlength
-        except KeyError:
-            raise ValueError(f"Can't parse token {name}:{length}")
-
     def _addright_bitstore(self, bitstore: ConstBitStore | MutableBitStore, /) -> None:
         if isinstance(self._bitstore, ConstBitStore):
             self._bitstore = self._bitstore + bitstore
