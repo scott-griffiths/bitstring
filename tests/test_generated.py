@@ -893,3 +893,98 @@ def test_a_truncated_exp_golomb_code_is_a_read_error_and_doesnt_move(cls) -> Non
         with pytest.raises(bitstring.ReadError, match=f"'{kind}' code at bit position 1"):
             r.read_value(kind)
         assert r.pos == 1
+
+
+@pytest.mark.parametrize("kwargs", [{"bin": "10b1"}, {"bin": "1_0b1"}, {"hex": "10x1"}, {"hex": "f0xf"},
+                                    {"oct": "10o1"}, {"oct": "70o7"}])
+def test_a_literal_prefix_part_way_through_a_keyword_value_is_rejected(kwargs) -> None:
+    with pytest.raises(ValueError):
+        bitstring.Bits(**kwargs)
+
+
+@pytest.mark.parametrize("s", ["0b10b1", "0x10x1", "0o10o1", "0b1, 0b10b1"])
+def test_a_literal_prefix_part_way_through_a_string_literal_is_rejected(s: str) -> None:
+    with pytest.raises(ValueError):
+        bitstring.Bits(s)
+
+
+def _native_int_dtype(typecode: str, bits: int) -> str:
+    import sys
+    endian = "le" if sys.byteorder == "little" else "be"
+    return f"{'i' if typecode.islower() else 'u'}{endian}{bits}"
+
+
+@pytest.mark.parametrize("typecode", ["l", "L"])
+def test_array_extend_from_array_uses_its_real_item_size(typecode: str) -> None:
+    import array
+    values = [1, 2] if typecode == "L" else [1, -2]
+    other = array.array(typecode, values)
+    a = bitstring.Array(_native_int_dtype(typecode, other.itemsize * 8))
+    a.extend(other)
+    assert a.to_list() == values
+
+
+@pytest.mark.parametrize("typecode", ["l", "L"])
+def test_array_extend_from_array_rejects_a_different_item_size(typecode: str) -> None:
+    import array
+    other = array.array(typecode, [1, 2])
+    wrong_bits = 32 if other.itemsize == 8 else 64
+    a = bitstring.Array(_native_int_dtype(typecode, wrong_bits))
+    with pytest.raises(ValueError):
+        a.extend(other)
+    assert len(a) == 0
+
+
+@pytest.mark.parametrize("fmt", [4, "<hh", [1, 2]])
+def test_byteswap_without_repeat_doesnt_swap_past_end(fmt) -> None:
+    a = bitstring.BitArray("0x0102030405")
+    assert a.byteswap(fmt, end=16, repeat=False) == 0
+    assert a == "0x0102030405"
+
+
+def test_byteswap_without_repeat_swaps_only_a_pattern_that_fits_before_end() -> None:
+    a = bitstring.BitArray("0x0102030405")
+    assert a.byteswap("<hh", end=24, repeat=False) == 0
+    assert a == "0x0102030405"
+    assert a.byteswap("<hh", end=32, repeat=False) == 1
+    assert a == "0x0201040305"
+
+
+@pytest.mark.parametrize("length", [8.7, 8.0, "8"])
+def test_pack_rejects_a_keyword_length_that_isnt_an_integer(length) -> None:
+    with pytest.raises(TypeError):
+        bitstring.pack("u:n", 3, n=length)
+
+
+def test_pack_not_enough_values_message_counts_only_tokens_that_take_values() -> None:
+    with pytest.raises(ValueError, match=r"\b2 values"):
+        bitstring.pack("0xff, u8, pad4, u8", 1)
+
+
+def test_repr_of_every_dtype_definition() -> None:
+    register = bitstring.dtypes.dtype_register
+    for name in register.names:
+        assert register[name].name in repr(register[name])
+
+
+def test_bitarray_subclass_copy_keeps_its_type() -> None:
+    import copy
+
+    class MyBitArray(bitstring.BitArray):
+        pass
+
+    a = MyBitArray("0xf")
+    for b in (a.copy(), copy.copy(a)):
+        assert type(b) is MyBitArray
+        assert b == a and b is not a
+
+
+@pytest.mark.parametrize("op, iop", [("__and__", "__iand__"), ("__or__", "__ior__"), ("__xor__", "__ixor__"),
+                                     ("__rand__", "__iand__"), ("__ror__", "__ior__"), ("__rxor__", "__ixor__")])
+def test_array_bitwise_ops_keep_trailing_bits_like_the_in_place_ops(op: str, iop: str) -> None:
+    a = bitstring.Array("u8", [1, 2], trailing_bits="0b11")
+    result = getattr(a, op)("0x0f")
+    assert result.trailing_bits == "0b11"
+    in_place = bitstring.Array("u8", [1, 2], trailing_bits="0b11")
+    getattr(in_place, iop)("0x0f")
+    assert result.equals(in_place)
