@@ -323,14 +323,14 @@ class TestCreation:
     def test_creation_from_hex(self):
         s = Bits(hex="0xA0ff")
         assert (len(s), s.hex) == (16, "a0ff")
-        s = Bits(hex="0x0x0X")
+        s = Bits(hex="0X")
         assert (len(s), s.hex) == (0, "")
 
     def test_creation_from_hex_with_whitespace(self):
         s = Bits(hex="  \n0 X a  4e       \r3  \n")
         assert s.hex == "a4e3"
 
-    @pytest.mark.parametrize("bad_val", ["0xx0", "0xX0", "0Xx0", "-2e"])
+    @pytest.mark.parametrize("bad_val", ["0xx0", "0xX0", "0Xx0", "-2e", "0x0x0X", "ff0x"])
     def test_creation_from_hex_errors(self, bad_val: str):
         with pytest.raises(ValueError):
             Bits(hex=bad_val)
@@ -695,7 +695,7 @@ class TestInitialisation:
 
 class TestCut:
     def test_cut(self):
-        s = Bits("0b000111" * 10)
+        s = Bits("0b000111") * 10
         for t in s.cut(6):
             assert t.bin == "000111"
 
@@ -1174,7 +1174,7 @@ class TestPrettyPrinting:
         assert remove_unprintable(s.getvalue()) == expected_output
 
     def test_oct(self):
-        a = Bits("0o01234567" * 20)
+        a = Bits("0o01234567") * 20
         s = io.StringIO()
         a.pp(stream=s, fmt="oct", show_offset=False, width=20)
         expected_output = """<Bits, fmt='oct', length=480 bits> [

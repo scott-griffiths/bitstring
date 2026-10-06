@@ -336,6 +336,22 @@ The ``filename=`` keyword constructor has been removed. Use
     # bitstring 5
     s = Bits.from_file("data.bin", offset=8, length=32)
 
+Separate literals with commas
+=============================
+
+A ``0x``, ``0b`` or ``0o`` prefix is now only allowed at the start of a
+literal. Version 4 removed it from anywhere in the string, which let literals be
+run together. A prefix part way through now raises a ``ValueError``, whether in
+a format string or a ``hex=``, ``bin=`` or ``oct=`` value::
+
+    # bitstring 4
+    a = Bits('0x55' * 10)
+    b = Bits('0xff 0xee')
+
+    # bitstring 5
+    a = Bits('0x55') * 10
+    b = Bits('0xff, 0xee')
+
 Use explicit Array construction
 ===============================
 
@@ -621,7 +637,7 @@ For a large codebase, the least surprising order is:
    None``, and replace stream searching with :meth:`Reader.seek_to`,
    :meth:`Reader.seek_past` or :meth:`Reader.seek_back_to`.
 5. Replace ``bytes=``, ``filename=`` and other removed constructor forms with
-   explicit factory methods.
+   explicit factory methods, and separate run-together literals with commas.
 6. Replace direct ``bitarray`` compatibility with explicit conversion.
 7. Replace removed aliases, prefer current dtype names, and rename
    ``Dtype.build`` / ``Dtype.parse``.

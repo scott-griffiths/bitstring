@@ -118,7 +118,7 @@ def test_unpacking_bytes():
 
 
 def test_unpacking_bytes_with_keywords():
-    s = Bits('0x55' * 10)
+    s = Bits('0x55') * 10
     t = s.unpack('pad:a, bytes:b, bytes, pad:a', a=4, b=6)
     assert t == [b'\x55' * 6, b'\x55' * 3]
 

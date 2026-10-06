@@ -166,6 +166,8 @@ From a hexadecimal string
 
 The initial ``0x`` or ``0X`` is optional. Whitespace is also allowed and is ignored. Note that the leading zeros are significant, so the length of ``c`` will be 32.
 
+The prefix can only appear once, at the start, and this is the same for ``bin`` and ``oct``. To join several literals, separate them with commas, as in ``BitArray('0x0001, 0x01b3')``.
+
 If you include the initial ``0x`` then you can use the 'auto' initialiser instead. As it is the first parameter in :class:`__init__<Bits>` this will work equally well::
 
     c = BitArray('0x000001b3')

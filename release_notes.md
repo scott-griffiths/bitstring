@@ -143,6 +143,11 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   empty range. This applies to `find()`, `rfind()`, `findall()`, `cut()`,
   `split()`, `startswith()`, `endswith()`, `replace()`, `reverse()`, `rol()`,
   `ror()` and `byteswap()`.
+* A `0x`, `0b` or `0o` prefix is now only allowed at the start of a literal.
+  Version 4 removed it from anywhere in the string, so `Bits('0x55' * 10)` and
+  `Bits('0xff 0xee')` worked, but so did `Bits(bin='10b1')`, which quietly gave
+  `0b11`. These now raise a `ValueError`. Separate literals with commas, as in
+  `Bits('0xff, 0xee')`, or repeat with `Bits('0x55') * 10`.
 * Removed the single-letter `b`, `o` and `h` aliases for `bin`, `oct` and
   `hex`.
 * Made `u`, `i` and `f` the canonical dtype names for bit-wise big-endian

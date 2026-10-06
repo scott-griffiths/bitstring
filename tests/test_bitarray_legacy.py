@@ -2259,13 +2259,21 @@ def test_reader_position_arithmetic():
         ('oct=0o007', '0o007'),
         ('hex=123abc', '0x123abc'),
         ('bin2=01', '0b01'),
-        ('0xff 0Xee 0xd 0xcc', '0xffeedcc'),
-        ('0b0 0B111 0b001', '0b0111001'),
-        ('  0o123 0O 7 0   o1', '0o12371'),
+        ('0xff, 0Xee, 0xd, 0xcc', '0xffeedcc'),
+        ('0b0, 0B111, 0b001', '0b0111001'),
+        ('  0o123, 0O 7 ,0   o1', '0o12371'),
     ],
 )
 def test_auto_creation_more(source, expected):
     assert BitArray(source) == expected
+
+
+# Literals have to be separated by commas. A prefix part way through one is an error,
+# whitespace or not, rather than being dropped as it was in version 4.
+@pytest.mark.parametrize("source", ['0xff 0Xee 0xd 0xcc', '0b0 0B111 0b001', '  0o123 0O 7 0   o1'])
+def test_auto_creation_with_a_prefix_part_way_through_a_literal(source):
+    with pytest.raises(ValueError, match="prefix can only come at the start"):
+        BitArray(source)
 
 
 @pytest.mark.parametrize("source", ['bin:1=01', 'bits:4=0b1', 'oct3=000', 'hex4=0x1234'])
@@ -2338,7 +2346,8 @@ def test_equality_not_equals_and_auto_copy():
     assert a == '0b00110111'
     assert a == '0x37'
     assert '0b0011 0111' == a
-    assert '0x3 0x7' == a
+    assert '0x3, 0x7' == a
+    assert '0x3 0x7' != a
     assert a != '0b11001000'
 
     s = BitArray('0xabcdef')

@@ -534,19 +534,26 @@ def test_array_insert_works_with_trailing_bits() -> None:
         a.extend([3])
 
 
-# The literal prefix is treated as noise and removed wherever it appears, not just at
-# the front. That makes the '0x55' * 10 idiom work and is what test_bits.py pins with
-# Bits(hex='0x0x0X') == Bits(); it reads like a bug until you find those, so pin it here
-# too rather than flagging it again.
+# A literal prefix is only allowed at the front. Version 4 removed it wherever it
+# appeared, which made the '0x55' * 10 idiom work but also accepted '10b1' as '0b11'.
 
 @pytest.mark.parametrize("literal", ["0x55", "0b101", "0o77"])
-def test_a_repeated_literal_is_one_bitstring(literal: str) -> None:
-    assert bitstring.Bits(literal * 10) == bitstring.Bits(literal) * 10
+def test_a_repeated_literal_string_is_rejected(literal: str) -> None:
+    with pytest.raises(ValueError, match="prefix can only come at the start"):
+        bitstring.Bits(literal * 10)
+    assert bitstring.Bits(", ".join([literal] * 10)) == bitstring.Bits(literal) * 10
 
 
-@pytest.mark.parametrize("kwargs, expected", [({"hex": "0x0x0"}, "0x0"), ({"hex": "ff0x"}, "0xff"),
-                                              ({"bin": "10b1"}, "0b11"), ({"oct": "70o7"}, "0o77")])
-def test_a_repeated_prefix_is_dropped_rather_than_rejected(kwargs: dict, expected: str) -> None:
+@pytest.mark.parametrize("kwargs", [{"hex": "0x0x0"}, {"hex": "ff0x"}, {"hex": "0X0x55"}, {"bin": "10b1"},
+                                    {"bin": "0b1_0b1"}, {"oct": "70o7"}, {"oct": "0o7 0O7"}])
+def test_a_prefix_part_way_through_a_keyword_value_is_rejected(kwargs: dict) -> None:
+    with pytest.raises(ValueError, match="prefix can only come at the start"):
+        bitstring.Bits(**kwargs)
+
+
+@pytest.mark.parametrize("kwargs, expected", [({"hex": "0X ab"}, "0xab"), ({"bin": "0B 1_0"}, "0b10"),
+                                              ({"oct": " 0o7"}, "0o7"), ({"hex": "0x"}, "")])
+def test_a_leading_prefix_in_any_case_is_still_accepted(kwargs: dict, expected: str) -> None:
     assert bitstring.Bits(**kwargs) == bitstring.Bits(expected)
 
 

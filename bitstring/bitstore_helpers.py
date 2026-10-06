@@ -39,22 +39,45 @@ def _int_to_tibs(i: int, length: int, signed: bool, little_endian: bool) -> Tibs
         raise ValueError(e)
 
 
+def _misplaced_prefix_error(s: str, prefix: str, example: str, e: ValueError) -> ValueError:
+    """A clearer error than the core's 'invalid character' when a prefix is part way through.
+
+    Only called once the core has rejected s, so valid strings never pay for the check.
+    """
+    if prefix not in s.removeprefix(prefix):
+        return e
+    return ValueError(
+        f"A '{prefix}' prefix can only come at the start, but '{s}' has one later on. Join "
+        f"separate literals with commas instead, for example '{prefix}{example}, {prefix}{example}', "
+        f"or repeat a bitstring with *, as in Bits('{prefix}{example}') * 10.")
+
+
+# The core accepts one optional leading prefix, and rejects any later one. Version 4
+# removed the prefix from anywhere, which made '0x55' * 10 work but also quietly
+# accepted strings such as '10b1' as '0b11'.
+
 def bin2bitstore(binstring: str) -> ConstBitStore:
     binstring = tidy_input_string(binstring)
-    binstring = binstring.replace('0b', '')
-    return ConstBitStore.from_bin(binstring)
+    try:
+        return ConstBitStore.from_bin(binstring)
+    except ValueError as e:
+        raise _misplaced_prefix_error(binstring, '0b', '0101', e) from None
 
 
 def hex2bitstore(hexstring: str) -> ConstBitStore:
     hexstring = tidy_input_string(hexstring)
-    hexstring = hexstring.replace('0x', '')
-    return ConstBitStore(Tibs.from_hex(hexstring))
+    try:
+        return ConstBitStore(Tibs.from_hex(hexstring))
+    except ValueError as e:
+        raise _misplaced_prefix_error(hexstring, '0x', '55', e) from None
 
 
 def oct2bitstore(octstring: str) -> ConstBitStore:
     octstring = tidy_input_string(octstring)
-    octstring = octstring.replace('0o', '')
-    return ConstBitStore(Tibs.from_oct(octstring))
+    try:
+        return ConstBitStore(Tibs.from_oct(octstring))
+    except ValueError as e:
+        raise _misplaced_prefix_error(octstring, '0o', '17', e) from None
 
 
 def int2bitstore(i: int, length: int, signed: bool) -> ConstBitStore:
