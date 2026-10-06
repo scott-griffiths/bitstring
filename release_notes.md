@@ -369,6 +369,21 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
   bitstring, as `Array.from_file()` already did. They raised 'cannot mmap an empty file'.
 * `cut()` and `split()` now check their arguments when called, as `findall()` does.
   `cut(0)` and `split('')` only raised once iteration started.
+* `Array.extend()` from an `array.array` now uses the array's own item size. The `'l'`
+  and `'L'` typecodes were taken to be 32 bits, but are 64 bits on most 64-bit systems,
+  so `Array('ile32').extend(array.array('l', [1, 2]))` gave `[1, 0, 2, 0]` while
+  `Array('ile64')` was rejected.
+* `BitArray.byteswap()` with `repeat=False` no longer swaps past `end`. A pattern longer
+  than the slice was swapped anyway; now nothing is swapped and `0` is returned, which
+  is also what happens with `repeat=True`.
+* The bitwise operators `&`, `|` and `^` on an `Array` now keep its trailing bits, as
+  `&=`, `|=` and `^=` already did.
+* `pack()` now rejects a length given in its keyword arguments that isn't an integer, as
+  `Dtype` does. `pack('u:n', 3, n=8.7)` quietly packed 8 bits. Its 'not enough' and
+  'too many' parameter errors also now give the number of values the format takes,
+  rather than its number of tokens.
+* `copy()` and `copy.copy()` of a `BitArray` subclass now return the subclass, not a
+  `BitArray`.
 
 ### March 2026: version 4.4.0
 

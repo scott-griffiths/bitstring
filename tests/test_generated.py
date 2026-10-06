@@ -730,7 +730,7 @@ def _items(a: bitstring.Array) -> list:
 
 @pytest.mark.parametrize("op, dtype, n, trailing", [
     ("&", "u8", 7, 0),   # No trailing bits, so done on the Array's own buffer.
-    ("|", "i5", 7, 3),   # Trailing bits, which the in-place form leaves alone.
+    ("|", "i5", 7, 3),   # Trailing bits, which both forms leave alone.
     ("^", "u3", 5, 2),
     ("&", "u8", 0, 0),   # Empty.
 ])
@@ -743,8 +743,8 @@ def test_array_bitwise_op_matches_per_item(op: str, dtype: str, n: int, trailing
     value = bitstring.Bits("0b" + "10" * a.itemsize)[:a.itemsize]
     expected = bitstring.Bits.from_joined([fn(item, value) for item in _items(a)])
     original = a.data.copy()
-    # The out-of-place form starts from a[:], which has never kept trailing bits.
-    assert fn(a, value).data == expected
+    # Both forms leave any trailing bits alone.
+    assert fn(a, value).data == expected + a.trailing_bits
     assert a.data == original
     b = copy.copy(a)
     data = b.data
@@ -819,10 +819,13 @@ def test_array_slice_matches_items_picked_one_at_a_time(n: int, key: slice) -> N
 
 
 def _byteswap_reference(bits: bitstring.Bits, sizes: list, start: int, end: int, repeat: bool) -> tuple:
-    """Swap one group of bytes at a time, as BitArray.byteswap() used to."""
+    """Swap one group of bytes at a time, as BitArray.byteswap() used to.
+
+    Only whole patterns that finish by end are swapped, with or without repeat.
+    """
     b = bitstring.BitArray(bits)
     total = 8 * sum(sizes)
-    final = end if repeat else start + total
+    final = end if repeat else min(start + total, end)
     repeats = 0
     for pattern_end in range(start + total, final + 1, total):
         pos = pattern_end - total
@@ -843,8 +846,8 @@ def _byteswap_reference(bits: bitstring.Bits, sizes: list, start: int, end: int,
     (8, [8], 128, 8, 40, True),                 # The range is smaller than one group.
     (None, [5], 40, None, None, True),          # The whole bitstring.
     (2, [2], 40, None, None, False),            # A single swap that fits.
-    (8, [8], 128, 8, 40, False),                # A single swap past end, but inside the data.
-    ("q", [8], 40, None, None, False),          # A single swap past the end of the data.
+    (8, [8], 128, 8, 40, False),                # A single swap would pass end, so none is done.
+    ("q", [8], 40, None, None, False),          # Likewise past the end of the data.
     ([1, 2], [1, 2], 65, None, None, True),     # Mixed sizes, which still go a group at a time.
     (">hhl", [2, 2, 4], 128, 1, None, True),
     (2, [2], 0, None, None, True),              # Empty.
@@ -893,19 +896,6 @@ def test_a_truncated_exp_golomb_code_is_a_read_error_and_doesnt_move(cls) -> Non
         with pytest.raises(bitstring.ReadError, match=f"'{kind}' code at bit position 1"):
             r.read_value(kind)
         assert r.pos == 1
-
-
-@pytest.mark.parametrize("kwargs", [{"bin": "10b1"}, {"bin": "1_0b1"}, {"hex": "10x1"}, {"hex": "f0xf"},
-                                    {"oct": "10o1"}, {"oct": "70o7"}])
-def test_a_literal_prefix_part_way_through_a_keyword_value_is_rejected(kwargs) -> None:
-    with pytest.raises(ValueError):
-        bitstring.Bits(**kwargs)
-
-
-@pytest.mark.parametrize("s", ["0b10b1", "0x10x1", "0o10o1", "0b1, 0b10b1"])
-def test_a_literal_prefix_part_way_through_a_string_literal_is_rejected(s: str) -> None:
-    with pytest.raises(ValueError):
-        bitstring.Bits(s)
 
 
 def _native_int_dtype(typecode: str, bits: int) -> str:

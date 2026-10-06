@@ -59,7 +59,7 @@ Methods
 
    The *fmt* can be an integer, an iterable of integers or a compact format string similar to those used in :func:`pack` (described in :ref:`compact_format`). It gives a pattern of byte sizes to use to swap the endianness of the :class:`BitArray`, and defaults to ``None``, which (like ``0``) reverses as many bytes as possible. Note that if you use a compact format string then the endianness identifier (``<``, ``>`` or ``=``) is not needed, and if present it will be ignored.
 
-   *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitArray`). Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices. If *repeat* is ``True`` then the byte swapping pattern given by the *fmt* is repeated in its entirety as many times as possible.
+   *start* and *end* optionally give a slice to apply the transformation to (it defaults to the whole :class:`BitArray`). Out of range *start* and *end* values are clamped to the ends of the bitstring, in the same way as slice indices. If *repeat* is ``True`` then the byte swapping pattern given by the *fmt* is repeated in its entirety as many times as possible, otherwise it is used at most once. Only whole patterns that finish by *end* are swapped, so a pattern longer than the slice swaps nothing and returns ``0``.
 
        >>> s = BitArray('0x00112233445566')
        >>> s.byteswap(2)

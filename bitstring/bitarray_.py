@@ -283,9 +283,9 @@ class BitArray(Bits):
         self._append(bs)
         return self
 
-    def __copy__(self) -> BitArray:
+    def __copy__(self: TBits) -> TBits:
         """Return a new copy of the BitArray."""
-        s_copy = object.__new__(BitArray)
+        s_copy = object.__new__(self.__class__)
         s_copy._bitstore = self._bitstore._mutable_copy()
         return s_copy
 
@@ -677,32 +677,26 @@ class BitArray(Bits):
         else:
             raise TypeError("Format must be an integer, string or iterable.")
 
-        repeats = 0
         totalbitsize: int = 8 * sum(bytesizes)
         if not totalbitsize:
             return 0
+        # Only whole patterns that end by end_v are swapped, and just the first one
+        # if not repeating.
+        repeats = (end_v - start_v) // totalbitsize
+        if not repeat:
+            repeats = min(repeats, 1)
+        if not repeats:
+            return 0
         # When every group is the same size, all the repeats are one core call.
         if all(b == bytesizes[0] for b in bytesizes):
-            repeats = (end_v - start_v) // totalbitsize if repeat else 1
-            swap_end = start_v + repeats * totalbitsize
-            if swap_end <= end_v:
-                if repeats:
-                    self._bitstore.byte_swap(start_v, swap_end, bytesizes[0])
-                return repeats
-            repeats = 0
-        if repeat:
-            # Try to repeat up to the end of the bitstring.
-            finalbit = end_v
-        else:
-            # Just try one (set of) byteswap(s).
-            finalbit = start_v + totalbitsize
-        for patternend in range(start_v + totalbitsize, finalbit + 1, totalbitsize):
-            bytestart = patternend - totalbitsize
+            self._bitstore.byte_swap(start_v, start_v + repeats * totalbitsize, bytesizes[0])
+            return repeats
+        bytestart = start_v
+        for _ in range(repeats):
             for bytesize in bytesizes:
                 byteend = bytestart + bytesize * 8
                 self._reversebytes(bytestart, byteend)
-                bytestart += bytesize * 8
-            repeats += 1
+                bytestart = byteend
         return repeats
 
     def clear(self) -> None:

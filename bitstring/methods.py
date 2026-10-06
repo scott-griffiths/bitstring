@@ -4,6 +4,7 @@ import functools
 import bitstring
 from bitstring.bits import Bits
 from bitstring.utils import tokenparser
+from bitstring.helpers import validated_count
 import bitstring.bitstore_helpers as helpers
 
 ConstBitStore = bitstring.bitstore.ConstBitStore
@@ -40,6 +41,21 @@ def _prepared_pack_fmt(fmt: str):
     if dtype_tuple is None:
         return None
     return dtype_tuple, len(specs)
+
+
+def _values_needed_str(tokens: list, kwargs: dict) -> str:
+    """How many positional values the tokens take, for the error messages.
+
+    Literals, named values, pad and names given in kwargs don't take one.
+    """
+    n = 0
+    for name, length, value in tokens:
+        if value is not None or name == 'pad':
+            continue
+        if name in kwargs and kwargs.get(length, length) is None:
+            continue
+        n += 1
+    return "1 value is" if n == 1 else f"{n} values are"
 
 
 def pack(fmt: str | bitstring.Dtype | list[str | bitstring.Dtype], *values, **kwargs) -> Bits:
@@ -109,18 +125,20 @@ def pack(fmt: str | bitstring.Dtype | list[str | bitstring.Dtype], *values, **kw
                 if name in kwargs and length is None and value is None:
                     bsl.append(Bits(kwargs[name])._bitstore)
                     continue
-            if length is not None:
-                length = int(length)
+            if length is not None and type(length) is not int:
+                # Only a length from kwargs can get here, and int() would truncate a float.
+                length = validated_count(length, "length")
             if value is None and name != 'pad':
                 # Take the next value from the ones provided
                 value = next(value_iter)
             bsl.append(helpers.bitstore_from_token(name, length, value))
     except StopIteration:
         raise ValueError(f"Not enough parameters present to pack according to the "
-                            f"format. {len(tokens)} values are needed.")
+                         f"format. {_values_needed_str(tokens, kwargs)} needed.")
 
     if next(value_iter, _NO_MORE_VALUES) is not _NO_MORE_VALUES:
-        raise ValueError(f"Too many parameters present to pack according to the format. Only {len(tokens)} values were expected.")
+        raise ValueError(f"Too many parameters present to pack according to the format. "
+                         f"Only {_values_needed_str(tokens, kwargs)} expected.")
     # Good, we've used up all the *values.
     s = object.__new__(Bits)
     # A single token is the common case and doesn't need joining. The stores are

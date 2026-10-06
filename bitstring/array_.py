@@ -30,12 +30,14 @@ MAX_ITEMS: int = 100
 MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
-def _array_typecode_to_dtype(typecode: str) -> Dtype | None:
+def _array_to_dtype(a: array.array) -> Dtype | None:
     endian = '<' if sys.byteorder == 'little' else '>'
-    name_value = utils.parse_single_struct_token(endian + typecode)
+    name_value = utils.parse_single_struct_token(endian + a.typecode)
     if name_value is None:
         return None
-    return dtype_register.get_dtype(*name_value)
+    # The struct codes have standard sizes, but an array's are platform dependent -
+    # 'l' is 8 bytes on most 64-bit systems - so the length comes from the array itself.
+    return dtype_register.get_dtype(name_value[0], a.itemsize * 8)
 
 
 class Array:
@@ -414,7 +416,7 @@ class Array:
             self._data.append(iterable._data)
         elif isinstance(iterable, array.array):
             # array.array stores bytes in host order; compare against an explicit dtype.
-            other_dtype = _array_typecode_to_dtype(iterable.typecode)
+            other_dtype = _array_to_dtype(iterable)
             if other_dtype is None:
                 raise ValueError(f"Cannot extend from array with typecode {iterable.typecode}.")
             if self._dtype.name != other_dtype.name or self.itemsize != other_dtype.bitlength:
@@ -769,7 +771,8 @@ class Array:
 
     def _apply_bitwise_op_to_all_elements(self, op, value: BitsType) -> Array:
         """Apply op with value to each element of the Array as an unsigned integer and return a new Array"""
-        a_copy = self[:]
+        # Not self[:], which would drop any trailing bits that the in-place version keeps.
+        a_copy = self.__copy__()
         a_copy._apply_bitwise_op_to_all_elements_inplace(op, value)
         return a_copy
 

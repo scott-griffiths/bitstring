@@ -335,7 +335,8 @@ class DtypeDefinition:
         return d
 
     def __repr__(self) -> str:
-        s = f"{self.__class__.__name__}(name='{self.name}', description='{self.description}', return_type={self.return_type.__name__}, "
+        ret = 'None' if self.return_type is None else self.return_type.__name__  # None for 'pad'
+        s = f"{self.__class__.__name__}(name='{self.name}', description='{self.description}', return_type={ret}, "
         s += f"is_signed={self.is_signed}, set_fn_needs_length={self.set_fn_needs_length}, allowed_lengths={self.allowed_lengths!s}, multiplier={self.multiplier})"
         return s
 
@@ -414,7 +415,8 @@ class Register:
             m = self.names[key]
             allowed = '' if not m.allowed_lengths else m.allowed_lengths
             ret = 'None' if m.return_type is None else m.return_type.__name__
-            s.append(f"{key:<12}:{m.name:>12}{m.is_signed:^8}{m.set_fn_needs_length:^16}{allowed!s:^16}{m.multiplier:^12}{ret:<13} # {m.description}")
+            # The bools need !s, as an int format spec would print them as 1 and 0.
+            s.append(f"{key:<12}:{m.name:^12}{m.is_signed!s:^8}{m.set_fn_needs_length!s:^23}{allowed!s:^16}{m.multiplier:^12}{ret:<13} # {m.description}")
         return '\n'.join(s)
 
 
