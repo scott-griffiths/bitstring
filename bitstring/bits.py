@@ -211,6 +211,12 @@ class Bits:
 
     def _initialise(self, auto: Any, /, length: int | None, immutable: bool, **kwargs) -> None:
         if auto is not None:
+            if kwargs:
+                # These used to be silently ignored, which hid a misspelt 'length' too.
+                names = ', '.join(f"'{k}'" for k in kwargs)
+                raise ValueError(
+                    f"Exactly one initialiser is needed, but received a positional initialiser "
+                    f"as well as the keyword{'s' if len(kwargs) > 1 else ''} {names}.")
             # The checks below reject initialiser forms that were removed in 5.0. None of
             # them can apply to an accepted type, and several are abc instance checks,
             # which are far from free on this path - so skip them for the common cases.
@@ -226,30 +232,29 @@ class Bits:
                     f"The 'bytes' keyword has been removed. "
                     f"Use '{self.__class__.__name__}.from_bytes(...)' instead."
                 )
-            elif k == 'filename':
+            if k == 'filename':
                 raise ValueError(
                     f"The 'filename' keyword has been removed. "
                     f"Use '{self.__class__.__name__}.from_file(...)' instead."
                 )
-            elif k == 'auto':
+            if k == 'auto':
                 raise ValueError(
                     f"The 'auto' parameter should not be given explicitly - just use the first positional argument. "
                     f"Instead of '{self.__class__.__name__}(auto=x)' use '{self.__class__.__name__}(x)'.")
-            else:
-                dtype = Dtype(k, length)
-                if not dtype._is_property:
-                    raise ValueError(
-                        f"The '{dtype.name}' dtype can only be used in a format string, not as an "
-                        f"initialiser keyword. Use '{self.__class__.__name__}(...)' with a format "
-                        f"string instead.")
-                dtype._set_fn(self, v)
-                if length is not None and dtype.bitlength is not None and len(self) != dtype.bitlength:
-                    # Some setters take a length and use it, and some take one and ignore
-                    # it, which their signatures don't distinguish. Checking the result
-                    # catches the second kind rather than dropping the length silently.
-                    raise ValueError(
-                        f"A length of {length} was supplied for the '{dtype.name}' initialiser, "
-                        f"but the value given is {len(self)} bits long.")
+            dtype = Dtype(k, length)
+            if not dtype._is_property:
+                raise ValueError(
+                    f"The '{dtype.name}' dtype can only be used in a format string, not as an "
+                    f"initialiser keyword. Use '{self.__class__.__name__}(...)' with a format "
+                    f"string instead.")
+            dtype._set_fn(self, v)
+            if length is not None and dtype.bitlength is not None and len(self) != dtype.bitlength:
+                # Some setters take a length and use it, and some take one and ignore
+                # it, which their signatures don't distinguish. Checking the result
+                # catches the second kind rather than dropping the length silently.
+                raise ValueError(
+                    f"A length of {length} was supplied for the '{dtype.name}' initialiser, "
+                    f"but the value given is {len(self)} bits long.")
         if immutable:
             self._bitstore = self._bitstore.to_const()
         else:

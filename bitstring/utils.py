@@ -4,6 +4,8 @@ import functools
 import re
 from re import Pattern, Match
 
+from bitstring.helpers import validated_count
+
 
 # A token name followed by optional : then an integer number
 NAME_INT_RE: Pattern[str] = re.compile(r'^([a-zA-Z][a-zA-Z0-9_]*?):?(\d*)$')
@@ -71,7 +73,9 @@ def structparser(m: Match[str]) -> list[str]:
     return tokens
 
 
-@functools.lru_cache(CACHE_SIZE)
+# Typed, as otherwise a length of 8.0 in the kwargs would match a cached entry for 8 and
+# never reach the check below.
+@functools.lru_cache(CACHE_SIZE, typed=True)
 def parse_name_length_token(fmt: str, **kwargs) -> tuple[str, int | None]:
     # Any single token with just a name and length
     if m2 := NAME_INT_RE.match(fmt):
@@ -83,10 +87,11 @@ def parse_name_length_token(fmt: str, **kwargs) -> tuple[str, int | None]:
         if m := NAME_KWARG_RE.match(fmt):
             name = m.group(1)
             try:
-                length_str = kwargs[m.group(2)]
+                length_value = kwargs[m.group(2)]
             except KeyError:
                 raise ValueError(f"Can't parse 'name[:]length' token '{fmt}'.")
-            length = int(length_str)
+            # Not int(), which would truncate a float and parse a str. pack() rejects both.
+            length = validated_count(length_value, "length")
         else:
             # A single compact struct code such as '>h' is the other spelling of a
             # name and length, so it's accepted wherever one is.
@@ -212,7 +217,9 @@ def tokenparser(fmt: str, keys: tuple[str, ...] = ()) -> \
     return stretchy_token, ret_vals
 
 
-BRACKET_RE = re.compile(r'(?P<factor>\d+)\*\(')
+# A repeat count and the bracket it applies to, as in '3*('. Anchored to the end so it
+# can be matched against just the text up to a particular bracket.
+BRACKET_RE = re.compile(r'(?P<factor>\d+)\*\($')
 
 
 def expand_brackets(s: str) -> str:
@@ -233,8 +240,10 @@ def expand_brackets(s: str) -> str:
         if start == 0 or s[start - 1] != '*':
             s = s[0:start] + s[start + 1:p] + s[p + 1:]
         else:
-            # Looks for first number*(
-            m = BRACKET_RE.search(s)
+            # The count has to be the one just before this bracket. Searching the whole
+            # string could find a later group's count, which then expanded this group's
+            # text without ever removing its bracket, doubling the string on every pass.
+            m = BRACKET_RE.search(s, 0, start + 1)
             if m:
                 factor = int(m.group('factor'))
                 matchstart = m.start('factor')

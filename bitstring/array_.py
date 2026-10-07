@@ -850,7 +850,10 @@ class Array:
     def _apply_op_between_arrays_inplace(self, op, other: Array) -> Array:
         """Apply op between Arrays and update self in place."""
         result = self._apply_op_between_arrays(op, other)
+        # The result's dtype may have been promoted, and the cached tibs dtype has to
+        # follow it or the new data gets read in the old format.
         self._dtype = result._dtype
+        self._tibs_dtype = result._tibs_dtype
         self._data = result._data
         return self
 

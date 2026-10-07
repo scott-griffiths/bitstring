@@ -1,4 +1,5 @@
 # LLM generated test cases
+import operator
 import bitstring
 from tibs import Mutibs
 import pytest
@@ -1050,3 +1051,87 @@ def test_from_file_with_offset_and_length_matches_from_bytes(tmp_path, cls, offs
             f.seek(1)
             assert (cls.from_file(f, offset=offset, length=length)
                     == cls.from_bytes(data[1:], offset=offset, length=length))
+
+
+# ---------------------------------------------------------------------------
+# From another bug hunt in October 2026.
+# ---------------------------------------------------------------------------
+
+
+# An in-place operator between two Arrays can promote the dtype. The Array took the new
+# dtype but kept the cached tibs dtype of the old one, so it read the new data in the old
+# format: after u8 += i16, two items came back from to_list() as four u8 values.
+
+@pytest.mark.parametrize("op", [operator.iadd, operator.isub, operator.imul, operator.ifloordiv,
+                                operator.imod, operator.ilshift, operator.irshift])
+def test_array_in_place_op_that_promotes_the_dtype_reads_the_new_dtype(op) -> None:
+    a = bitstring.Array("u8", [12, 20])
+    other = bitstring.Array("i16", [2, 3])
+    expected = [op(x, y) for x, y in zip(a.to_list(), other.to_list())]
+    op(a, other)
+    assert a.dtype == bitstring.Dtype("i16")
+    assert a.to_list() == expected
+    assert list(a) == expected
+    assert [a[0], a[1]] == expected
+
+
+def test_array_in_place_division_that_promotes_to_a_float_dtype() -> None:
+    a = bitstring.Array("u8", [3, 4])
+    a /= bitstring.Array("f32", [2.0, 8.0])
+    assert a.dtype == bitstring.Dtype("f32")
+    assert a.to_list() == [1.5, 0.5]
+    assert a[1] == 0.5
+
+
+# A repeat count is the number just before its group's '*('. The whole string used to be
+# searched for one, so when the first group's count wasn't a number but a later group's
+# was, the later count was applied to the first group's text and that bracket was never
+# removed. The string doubled on every pass until memory ran out - if the fault comes
+# back these tests will run away rather than fail cleanly.
+
+@pytest.mark.parametrize("fmt", ["a*(0b1), 2*(0b0)", "*(0b1), 2*(0b0)", "u8=1, x*(0b1), 3*(0x1)"])
+def test_repeat_group_with_a_count_that_isnt_a_number_raises(fmt: str) -> None:
+    with pytest.raises(ValueError):
+        _ = bitstring.Bits(fmt)
+    assert (bitstring.Bits("0x1") == fmt) is False
+
+
+def test_pack_with_a_keyword_as_a_repeat_count_raises() -> None:
+    # Repeat counts can't come from the keywords.
+    with pytest.raises(ValueError):
+        _ = bitstring.pack("n*(u8), 2*(bool)", 1, 2, 3, True, False, n=3)
+
+
+def test_repeat_groups_with_long_or_nested_counts_still_expand() -> None:
+    be = bitstring.utils.expand_brackets
+    assert be("12*(a),3*(b)") == ",".join(["a"] * 12 + ["b"] * 3)
+    assert be("2*(a,3*(b))") == "a,b,b,b,a,b,b,b"
+    assert (bitstring.pack("2*(u8, 2*(bool))", 1, True, False, 2, False, True)
+            == bitstring.pack("u8, bool, bool, u8, bool, bool", 1, True, False, 2, False, True))
+
+
+# A positional initialiser along with initialiser keywords used to be accepted, with the
+# keywords silently ignored, which hid mistakes such as a misspelt 'length'.
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+@pytest.mark.parametrize("auto", ["0xff", b"\xff", [1, 0], bitstring.Bits("0xff")])
+@pytest.mark.parametrize("kwargs", [{"u": 3}, {"lenght": 4}, {"hex": "ee", "i": 2}])
+def test_positional_initialiser_with_initialiser_keywords_raises(cls, auto, kwargs) -> None:
+    with pytest.raises(ValueError, match="positional initialiser"):
+        _ = cls(auto, **kwargs)
+
+
+# unpack() and read_list() took a length from their keywords through int(), which
+# truncates a float and parses a str, while pack() rejected both. The parse is cached, so
+# n=8 is cached first: 8.0 compares equal to it, and mustn't be served from that entry.
+
+@pytest.mark.parametrize("n", [8.9, 8.0, "8"])
+def test_unpack_and_read_list_reject_a_keyword_length_that_isnt_an_integer(n) -> None:
+    b = bitstring.Bits("0xff00")
+    assert b.unpack("u:n", n=8) == [255]
+    with pytest.raises(TypeError):
+        _ = b.unpack("u:n", n=n)
+    r = bitstring.Reader(b)
+    with pytest.raises(TypeError):
+        _ = r.read_list("u:n", n=n)
+    assert r.pos == 0

@@ -1795,7 +1795,8 @@ def test_read_unpack_peek_with_keyword_lengths():
     a = pack('uint:p=33', p=12)
     with pytest.raises(ValueError):
         a.unpack('uint:p')
-    with pytest.raises(ValueError):
+    # A length that isn't an integer is a TypeError, as it is for pack().
+    with pytest.raises(TypeError):
         a.unpack('uint:p', p='a_string')
 
     s = Reader(BitArray('0x0102'))

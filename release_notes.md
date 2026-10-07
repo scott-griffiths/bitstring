@@ -244,6 +244,18 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
 * `pack()` now rejects a non-integer length in its keyword arguments, and its
   'not enough' and 'too many' errors give the number of values needed.
 * `copy()` and `copy.copy()` of a `BitArray` subclass now return the subclass.
+* An in-place operator between two `Array` objects, such as `a += b`, now reads
+  the result correctly when it promotes the dtype. The new data was read in the
+  old format, so `to_list()` gave wrong values and indexing raised.
+* A repeated group whose count isn't a number, such as `'n*(u8)'`, now raises a
+  `ValueError` when a later group has a numeric count. It used to loop forever,
+  using more and more memory.
+* A positional initialiser given with initialiser keywords now raises a
+  `ValueError`. The keywords were silently ignored, so `Bits('0xff', lenght=4)`
+  hid the misspelling.
+* `unpack()` and `Reader.read_list()` now reject a non-integer length in their
+  keyword arguments, as `pack()` does, rather than truncating a float or parsing
+  a string.
 
 ### March 2026: version 4.4.0
 
