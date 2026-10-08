@@ -15,8 +15,6 @@ NAME_KWARG_RE: Pattern[str] = re.compile(r'^([a-zA-Z][a-zA-Z0-9_]*?):?([a-zA-Z0-
 
 CACHE_SIZE = 256
 
-DEFAULT_BITS: Pattern[str] = re.compile(r'^(?P<len>[^=]+)?(=(?P<value>.*))?$', re.IGNORECASE)
-
 MULTIPLICATIVE_RE: Pattern[str] = re.compile(r'^(?P<factor>.*)\*(?P<token>.+)')
 
 # Hex, oct or binary literals
@@ -196,8 +194,6 @@ def tokenparser(fmt: str, keys: tuple[str, ...] = ()) -> \
         if keys and token in keys:
             # Don't bother parsing it, it's a keyword argument
             ret_vals.append((token, None, None))
-            continue
-        if token == '':
             continue
         # Match literal tokens of the form 0x... 0o... and 0b...
         if m := LITERAL_RE.match(token):

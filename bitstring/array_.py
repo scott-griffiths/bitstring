@@ -98,10 +98,7 @@ class Array:
             # abc instance checks. Constructing an empty Array to fill in later is very
             # common - every elementwise operator does it - so skip them in that case.
             self._reject_removed_initializer(initializer)
-        try:
-            self._set_dtype(dtype)
-        except ValueError as e:
-            raise ValueError(e)
+        self._set_dtype(dtype)
 
         if initializer is not None:
             self.extend(initializer)
@@ -349,11 +346,20 @@ class Array:
                 itemsize = self.itemsize
                 self._data.__delitem__(slice(start * itemsize, stop * itemsize))
                 return
-            # We need to delete from the end or the earlier positions will change
-            r = reversed(range(start, stop, step)) if step > 0 else range(start, stop, step)
+            deleted = range(start, stop, step)
+            if step < 0:
+                deleted = deleted[::-1]
+            # Join the runs of items between the deleted ones in one go, rather than
+            # deleting items one at a time and moving everything after each of them.
             itemsize = self.itemsize
-            for s in r:
-                self._data.__delitem__(slice(s * itemsize, (s + 1) * itemsize))
+            store = self._data._bitstore
+            pieces = []
+            kept_start = 0
+            for i in deleted:
+                pieces.append(store.getslice(kept_start * itemsize, i * itemsize))
+                kept_start = i + 1
+            pieces.append(store.getslice(kept_start * itemsize, None))  # Includes any trailing bits.
+            self._data._bitstore = MutableBitStore.join(pieces)
         else:
             length = len(self)
             if key < 0:

@@ -5,7 +5,6 @@ import os
 import pathlib
 import sys
 import mmap
-import struct
 import array
 import io
 import functools
@@ -26,8 +25,14 @@ MutableBitStore = bitstring.bitstore.MutableBitStore
 
 
 
-# The tibs dtypes behind the narrow float interpretations, resolved once at import from
-# the equivalence table so there's a single source of truth for the mapping.
+# The tibs dtypes behind the float interpretations, resolved once at import from the
+# equivalence table so there's a single source of truth for the mapping.
+_TIBS_FLOATBE = {length: bitstore.tibs_dtype_for('f', length) for length in (16, 32, 64)}
+_TIBS_FLOATLE = {length: bitstore.tibs_dtype_for('fle', length) for length in (16, 32, 64)}
+_TIBS_BFLOATBE = bitstore.tibs_dtype_for('bfloat', 16)
+_TIBS_BFLOATLE = bitstore.tibs_dtype_for('bfloatle', 16)
+_TIBS_E8M0MXFP = bitstore.tibs_dtype_for('e8m0mxfp', 8)
+_TIBS_MXINT = bitstore.tibs_dtype_for('mxint', 8)
 _TIBS_P4BINARY = bitstore.tibs_dtype_for('p4binary', 8)
 _TIBS_P3BINARY = bitstore.tibs_dtype_for('p3binary', 8)
 _TIBS_E4M3MXFP = bitstore.tibs_dtype_for('e4m3mxfp_saturate', 8)
@@ -35,6 +40,9 @@ _TIBS_E5M2MXFP = bitstore.tibs_dtype_for('e5m2mxfp_saturate', 8)
 _TIBS_E3M2MXFP = bitstore.tibs_dtype_for('e3m2mxfp', 6)
 _TIBS_E2M3MXFP = bitstore.tibs_dtype_for('e2m3mxfp', 6)
 _TIBS_E2M1MXFP = bitstore.tibs_dtype_for('e2m1mxfp', 4)
+
+# The single 1 bit that ends the leading zeros of an exponential-Golomb code.
+_ONE_BIT = ConstBitStore.from_bin('1')
 
 # Lists and tuples are auto-promoted only when every item is one of these bit values.
 _BitPattern = list[bool | int] | tuple[bool | int, ...]
@@ -623,17 +631,8 @@ class Bits:
         Only bitstrings hash equal to bitstrings. Unlike __eq__ this doesn't promote, so
         Bits('0xff') in {'0xff'} is False. See __eq__.
         """
-        # Only requirement is that equal bitstring should return the same hash.
-        # For equal bitstrings the bytes at the start/end will be the same and they will have the same length
-        # (need to check the length as there could be zero padding when getting the bytes). We do not check any
-        # bit position inside the bitstring as that does not feature in the __eq__ operation.
-        if len(self) <= 2000:
-            # Use the whole bitstring.
-            return hash((self.to_bytes(), len(self)))
-        else:
-            # We can't in general hash the whole bitstring (it could take hours!)
-            # So instead take some bits from the start and end.
-            return hash(((self[:800] + self[-800:]).to_bytes(), len(self)))
+        # The core hashes consistently with its own equality, which is what __eq__ uses.
+        return hash(self._bitstore.to_tibs())
 
     def __bool__(self) -> bool:
         """Return False if bitstring is empty, otherwise return True."""
@@ -779,15 +778,13 @@ class Bits:
     def _readbytes(self, pos: int, length: int) -> bytes:
         return self._bitstore.read_bytes(pos, length)
 
-    _unprintable = list(range(0x00, 0x20))  # ASCII control characters
-    _unprintable.extend(range(0x7f, 0x100))  # DEL char + non-ASCII
+    # Maps each byte, decoded as latin-1, to itself if it's printable ASCII. Control
+    # characters, DEL and non-ASCII use the value from the 'Latin Extended-A' unicode block.
+    _printable_table = {x: 0x100 + x for x in range(0x100) if x < 0x20 or x >= 0x7f}
 
     def _getbytes_printable(self) -> str:
         """Return an approximation of the data as a string of printable characters."""
-        bytes_ = self._getbytes()
-        # For everything that isn't printable ASCII, use value from 'Latin Extended-A' unicode block.
-        string = ''.join(chr(0x100 + x) if x in Bits._unprintable else chr(x) for x in bytes_)
-        return string
+        return self._getbytes().decode('latin-1').translate(Bits._printable_table)
 
     def _maybe_use_existing_length(self, length: int | None) -> int | None:
         """Use the current bit length when resetting an already-initialised bitstring."""
@@ -873,10 +870,10 @@ class Bits:
         """Interpret as a little-endian unsigned int."""
         if len(self) % 8:
             raise ValueError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
-        return self._bitstore.byte_swapped().to_u()
+        return self._bitstore.to_value(bitstore.tibs_dtype_for('ule', len(self)), 0, len(self))
 
     def _readuintle(self, pos: int, length: int) -> int:
-        return self._bitstore.getslice(pos, pos + length).byte_swapped().to_u()
+        return self._bitstore.to_value(bitstore.tibs_dtype_for('ule', length), pos, pos + length)
 
     def _setintle(self, intle: int, length: int | None = None) -> None:
         length = self._maybe_use_existing_length(length)
@@ -888,10 +885,10 @@ class Bits:
         """Interpret as a little-endian signed int."""
         if len(self) % 8:
             raise ValueError(f"Little-endian integers must be whole-byte. Length = {len(self)} bits.")
-        return self._bitstore.byte_swapped().to_i()
+        return self._bitstore.to_value(bitstore.tibs_dtype_for('ile', len(self)), 0, len(self))
 
     def _readintle(self, pos: int, length: int) -> int:
-        return self._bitstore.getslice(pos, pos + length).byte_swapped().to_i()
+        return self._bitstore.to_value(bitstore.tibs_dtype_for('ile', length), pos, pos + length)
 
     # The saturate and overflow variants of e4m3 and e5m2 share a getter: the two
     # differ only in how out-of-range values are packed, not in how bits decode.
@@ -941,24 +938,16 @@ class Bits:
         return self._bitstore.to_value(_TIBS_E2M1MXFP, pos, pos + length)
 
     def _gete8m0mxfp(self) -> float:
-        u = self._getuint() - 127
-        if u == 128:
-            return float('nan')
-        return 2.0 ** u
+        return self._bitstore.to_value(_TIBS_E8M0MXFP, 0, 8)
 
     def _reade8m0mxfp(self, pos: int, length: int) -> float:
-        u = self._readuint(pos, length) - 127
-        if u == 128:
-            return float('nan')
-        return 2.0 ** u
+        return self._bitstore.to_value(_TIBS_E8M0MXFP, pos, pos + length)
 
     def _getmxint(self) -> float:
-        u = self._getint()
-        return float(u) * 2 ** -6
+        return self._bitstore.to_value(_TIBS_MXINT, 0, 8)
 
     def _readmxint(self, pos: int, length: int) -> float:
-        u = self._readint(pos, length)
-        return float(u) * 2 ** -6
+        return self._bitstore.to_value(_TIBS_MXINT, pos, pos + length)
 
     def _setfloat(self, f: float, length: int | None, big_endian: bool) -> None:
         length = self._maybe_use_existing_length(length)
@@ -971,32 +960,28 @@ class Bits:
 
     def _getfloatbe(self) -> float:
         """Interpret the whole bitstring as a big-endian float."""
-        fmt = {16: '>e', 32: '>f', 64: '>d'}[len(self)]
-        return struct.unpack(fmt, self._bitstore.to_bytes())[0]
+        length = len(self)
+        return self._bitstore.to_value(_TIBS_FLOATBE[length], 0, length)
 
     def _readfloatbe(self, pos: int, length: int) -> float:
-        fmt = {16: '>e', 32: '>f', 64: '>d'}[length]
-        return struct.unpack(fmt, self._bitstore.read_bytes(pos, length))[0]
+        return self._bitstore.to_value(_TIBS_FLOATBE[length], pos, pos + length)
 
     def _setfloatle(self, f: float, length: int | None = None) -> None:
         self._setfloat(f, length, False)
 
     def _getfloatle(self) -> float:
         """Interpret the whole bitstring as a little-endian float."""
-        fmt = {16: '<e', 32: '<f', 64: '<d'}[len(self)]
-        return struct.unpack(fmt, self._bitstore.to_bytes())[0]
+        length = len(self)
+        return self._bitstore.to_value(_TIBS_FLOATLE[length], 0, length)
 
     def _readfloatle(self, pos: int, length: int) -> float:
-        fmt = {16: '<e', 32: '<f', 64: '<d'}[length]
-        return struct.unpack(fmt, self._bitstore.read_bytes(pos, length))[0]
+        return self._bitstore.to_value(_TIBS_FLOATLE[length], pos, pos + length)
 
     def _getbfloatbe(self) -> float:
-        zero_padded = self + Bits.from_zeros(16)
-        return zero_padded._getfloatbe()
+        return self._bitstore.to_value(_TIBS_BFLOATBE, 0, 16)
 
     def _readbfloatbe(self, pos: int, length: int) -> float:
-        b = self._bitstore.read_bytes(pos, length) + b'\x00\x00'
-        return struct.unpack('>f', b)[0]
+        return self._bitstore.to_value(_TIBS_BFLOATBE, pos, pos + length)
 
     def _setbfloatbe(self, f: float | str, length: int | None = None) -> None:
         if length is not None and length != 16:
@@ -1004,12 +989,10 @@ class Bits:
         self._bitstore = helpers.bfloat2bitstore(f, True)
 
     def _getbfloatle(self) -> float:
-        zero_padded = Bits.from_zeros(16) + self
-        return zero_padded._getfloatle()
+        return self._bitstore.to_value(_TIBS_BFLOATLE, 0, 16)
 
     def _readbfloatle(self, pos: int, length: int) -> float:
-        b = b'\x00\x00' + self._bitstore.read_bytes(pos, length)
-        return struct.unpack('<f', b)[0]
+        return self._bitstore.to_value(_TIBS_BFLOATLE, pos, pos + length)
 
     def _setbfloatle(self, f: float | str, length: int | None = None) -> None:
         if length is not None and length != 16:
@@ -1031,23 +1014,15 @@ class Bits:
         reading the code.
 
         """
-        oldpos = pos
-        try:
-            while not self[pos]:
-                pos += 1
-        except IndexError:
+        length = len(self)
+        first_one = self._bitstore.find(_ONE_BIT, pos, length) if pos < length else None
+        if first_one is None:
             raise bitstring.ReadError("Read off end of bitstring trying to read code.")
-        leadingzeros = pos - oldpos
-        codenum = (1 << leadingzeros) - 1
-        if leadingzeros > 0:
-            if pos + leadingzeros + 1 > len(self):
-                raise bitstring.ReadError("Read off end of bitstring trying to read code.")
-            codenum += self[pos + 1:pos + 1 + leadingzeros]._getuint()
-            pos += leadingzeros + 1
-        else:
-            assert codenum == 0
-            pos += 1
-        return codenum, pos
+        # The code is n zeros, then n + 1 bits giving the value plus one.
+        bits = 2 * (first_one - pos) + 1
+        if pos + bits > length:
+            raise bitstring.ReadError("Read off end of bitstring trying to read code.")
+        return self._bitstore.read_u(first_one, bits - (first_one - pos)) - 1, pos + bits
 
     @staticmethod
     def _incomplete_code_error(name: str, length: int) -> ValueError:
@@ -1110,13 +1085,12 @@ class Bits:
         reading the code.
 
         """
+        getindex = self._bitstore.getindex
         try:
             codenum: int = 1
-            while not self[pos]:
-                pos += 1
-                codenum <<= 1
-                codenum += self[pos]
-                pos += 1
+            while not getindex(pos):
+                codenum = (codenum << 1) + getindex(pos + 1)
+                pos += 2
             pos += 1
         except IndexError:
             raise bitstring.ReadError("Read off end of bitstring trying to read code.")
@@ -1244,7 +1218,6 @@ class Bits:
         """Insert bs at pos."""
         assert 0 <= pos <= len(self)
         self._bitstore[pos: pos] = bs._bitstore
-        return
 
     def _overwrite(self, bs: Bits, pos: int, /) -> None:
         """Overwrite with bs at pos. bs must not be self - the caller copies it if it is."""
@@ -1524,9 +1497,12 @@ class Bits:
         return self._cut(bits, start_, end_, count)
 
     def _cut(self, bits: int, start_: int, end_: int, count: int | None) -> Iterator[Bits]:
-        if isinstance(self._bitstore, ConstBitStore) and start_ == 0 and end_ == len(self):
+        if isinstance(self._bitstore, ConstBitStore):
             cls = self.__class__
-            for chunk_store in self._bitstore.chunks(bits, count):
+            store = self._bitstore
+            if start_ != 0 or end_ != len(self):
+                store = store.getslice(start_, end_)
+            for chunk_store in store.chunks(bits, count):
                 chunk = object.__new__(cls)
                 chunk._bitstore = chunk_store
                 yield chunk

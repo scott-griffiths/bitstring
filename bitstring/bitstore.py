@@ -532,7 +532,7 @@ class MutableBitStore(_BitStoreBase):
             return cls(t.to_mutibs())
         if not isinstance(t, Mutibs):
             raise TypeError(f"Expected tibs.Tibs or tibs.Mutibs, got {type(t).__name__}.")
-        return cls(t.to_tibs().to_mutibs())
+        return cls(t.__copy__())
 
     def to_tibs(self) -> Tibs:
         return self.tibs.to_tibs()

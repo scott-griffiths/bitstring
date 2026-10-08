@@ -9,7 +9,6 @@ import functools
 import bitstring
 
 
-MutableBitStore = bitstring.bitstore.MutableBitStore
 ConstBitStore = bitstring.bitstore.ConstBitStore
 
 from bitstring.helpers import tidy_input_string
@@ -100,12 +99,6 @@ def float2bitstore(f: str | float, length: int, big_endian: bool) -> ConstBitSto
 
 CACHE_SIZE = 256
 
-def _to_const_bitstore(bs: MutableBitStore | ConstBitStore) -> ConstBitStore:
-    if isinstance(bs, ConstBitStore):
-        return bs
-    return ConstBitStore(bs.tibs.to_tibs())
-
-
 @functools.lru_cache(CACHE_SIZE)
 def str_to_bitstore(s: str) -> ConstBitStore:
     # Fast path for literal-only strings (e.g. "0xff, 0b101, 0o7").
@@ -137,8 +130,7 @@ def bitstore_from_token(name: str, token_length: int | None, value: str | None) 
         raise ValueError(f"Can't parse token: {e}")
     if value is None and name != 'pad':
         raise ValueError(f"Token {name} requires a value.")
-    bs = d.pack(value)._bitstore
-    bs = _to_const_bitstore(bs)
+    bs = d.pack(value)._bitstore.to_const()
     if token_length is not None and len(bs) != d._bitlength:
         raise ValueError(f"Token with length {token_length} packed with value of length {len(bs)} "
                                       f"({name}:{token_length}={value}).")
@@ -150,15 +142,8 @@ def ue2bitstore(i: str | int) -> ConstBitStore:
     i = _whole_number(i)
     if i < 0:
         raise ValueError("Cannot use negative initialiser for unsigned exponential-Golomb.")
-    if i == 0:
-        return ConstBitStore.from_bin('1')
-    tmp = i + 1
-    leadingzeros = -1
-    while tmp > 0:
-        tmp >>= 1
-        leadingzeros += 1
-    remainingpart = i + 1 - (1 << leadingzeros)
-    return ConstBitStore.from_bin('0' * leadingzeros + '1') + int2bitstore(remainingpart, leadingzeros, False)
+    # The code is i + 1 in binary, after as many zeros as it has bits following its leading 1.
+    return ConstBitStore(Tibs.from_u(i + 1, 2 * (i + 1).bit_length() - 1))
 
 
 def se2bitstore(i: str | int) -> ConstBitStore:
@@ -185,65 +170,81 @@ def sie2bitstore(i: str | int) -> ConstBitStore:
         return uie2bitstore(abs(i)) + (ConstBitStore.from_bin('1') if i < 0 else ConstBitStore.from_bin('0'))
 
 
+# The tibs dtypes for the bfloat and narrow float formats, looked up once rather than
+# parsed from a name on every pack.
+_TIBS_BFLOAT = bitstring.bitstore.tibs_dtype_for('bfloat', 16)
+_TIBS_BFLOATLE = bitstring.bitstore.tibs_dtype_for('bfloatle', 16)
+_TIBS_P4BINARY = bitstring.bitstore.tibs_dtype_for('p4binary', 8)
+_TIBS_P3BINARY = bitstring.bitstore.tibs_dtype_for('p3binary', 8)
+_TIBS_E4M3MXFP_SATURATE = bitstring.bitstore.tibs_dtype_for('e4m3mxfp_saturate', 8)
+_TIBS_E4M3MXFP_OVERFLOW = bitstring.bitstore.tibs_dtype_for('e4m3mxfp_overflow', 8)
+_TIBS_E5M2MXFP_SATURATE = bitstring.bitstore.tibs_dtype_for('e5m2mxfp_saturate', 8)
+_TIBS_E5M2MXFP_OVERFLOW = bitstring.bitstore.tibs_dtype_for('e5m2mxfp_overflow', 8)
+_TIBS_E3M2MXFP = bitstring.bitstore.tibs_dtype_for('e3m2mxfp', 6)
+_TIBS_E2M3MXFP = bitstring.bitstore.tibs_dtype_for('e2m3mxfp', 6)
+_TIBS_E2M1MXFP = bitstring.bitstore.tibs_dtype_for('e2m1mxfp', 4)
+_TIBS_E8M0MXFP = bitstring.bitstore.tibs_dtype_for('e8m0mxfp', 8)
+_TIBS_MXINT = bitstring.bitstore.tibs_dtype_for('mxint', 8)
+
 # The bfloat and narrow float formats are all encoded by tibs, which rounds once,
 # directly from the Python float, with round-to-nearest ties-to-even. The formats that
 # can't represent NaN are pre-checked here so that the error names the bitstring dtype
 # rather than tibs' own name for it.
 
 def bfloat2bitstore(f: str | float, big_endian: bool) -> ConstBitStore:
-    return ConstBitStore(Tibs.from_value('bf16_be' if big_endian else 'bf16_le', float(f)))
+    return ConstBitStore.from_value(_TIBS_BFLOAT if big_endian else _TIBS_BFLOATLE, float(f))
 
 
 def p4binary2bitstore(f: str | float) -> ConstBitStore:
-    return ConstBitStore(Tibs.from_value('binary8p4', float(f)))
+    return ConstBitStore.from_value(_TIBS_P4BINARY, float(f))
 
 
 def p3binary2bitstore(f: str | float) -> ConstBitStore:
-    return ConstBitStore(Tibs.from_value('binary8p3', float(f)))
+    return ConstBitStore.from_value(_TIBS_P3BINARY, float(f))
 
 
 def e4m3mxfp_saturate2bitstore(f: str | float) -> ConstBitStore:
-    return ConstBitStore(Tibs.from_value('ocp_e4m3_saturate', float(f)))
+    return ConstBitStore.from_value(_TIBS_E4M3MXFP_SATURATE, float(f))
 
 
 def e4m3mxfp_overflow2bitstore(f: str | float) -> ConstBitStore:
-    return ConstBitStore(Tibs.from_value('ocp_e4m3_overflow', float(f)))
+    return ConstBitStore.from_value(_TIBS_E4M3MXFP_OVERFLOW, float(f))
 
 
 def e5m2mxfp_saturate2bitstore(f: str | float) -> ConstBitStore:
-    return ConstBitStore(Tibs.from_value('ocp_e5m2_saturate', float(f)))
+    return ConstBitStore.from_value(_TIBS_E5M2MXFP_SATURATE, float(f))
 
 
 def e5m2mxfp_overflow2bitstore(f: str | float) -> ConstBitStore:
-    return ConstBitStore(Tibs.from_value('ocp_e5m2_overflow', float(f)))
+    return ConstBitStore.from_value(_TIBS_E5M2MXFP_OVERFLOW, float(f))
 
 
 def e3m2mxfp2bitstore(f: str | float) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
         raise ValueError("Cannot convert float('nan') to e3m2mxfp format as it has no representation for it.")
-    return ConstBitStore(Tibs.from_value('ocp_e3m2', f))
+    return ConstBitStore.from_value(_TIBS_E3M2MXFP, f)
 
 
 def e2m3mxfp2bitstore(f: str | float) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
         raise ValueError("Cannot convert float('nan') to e2m3mxfp format as it has no representation for it.")
-    return ConstBitStore(Tibs.from_value('ocp_e2m3', f))
+    return ConstBitStore.from_value(_TIBS_E2M3MXFP, f)
 
 
 def e2m1mxfp2bitstore(f: str | float) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
         raise ValueError("Cannot convert float('nan') to e2m1mxfp format as it has no representation for it.")
-    return ConstBitStore(Tibs.from_value('ocp_e2m1', f))
+    return ConstBitStore.from_value(_TIBS_E2M1MXFP, f)
 
 
 def e8m0mxfp2bitstore(f: str | float) -> ConstBitStore:
     # No rounding is done for this one - the value has to land exactly on a power of two.
     f = float(f)
     try:
-        return ConstBitStore(Tibs.from_value('ocp_e8m0', f))
+        return ConstBitStore.from_value(_TIBS_E8M0MXFP, f)
     except ValueError:
         raise ValueError(f"{f} is not a valid e8m0mxfp value. It must be exactly 2 ** i, for -127 <= i <= 127 or float('nan') as no rounding will be done.")
 
@@ -252,4 +253,4 @@ def mxint2bitstore(f: str | float) -> ConstBitStore:
     f = float(f)
     if math.isnan(f):
         raise ValueError("Cannot convert float('nan') to mxint format as it has no representation for it.")
-    return ConstBitStore(Tibs.from_value('ocp_int8', f))
+    return ConstBitStore.from_value(_TIBS_MXINT, f)

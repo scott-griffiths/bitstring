@@ -256,6 +256,9 @@ route is to pin your bitstring dependency to <5.0 and stay using 4.x.
 * `unpack()` and `Reader.read_list()` now reject a non-integer length in their
   keyword arguments, as `pack()` does, rather than truncating a float or parsing
   a string.
+* A signalling NaN read as a 16 or 32 bit float, or as a bfloat, now comes back
+  as the same quiet NaN however it's read. Properties such as `.f` kept the
+  signalling bit, while `Array`, `Reader.read_value()` and `unpack()` quietened it.
 
 ### March 2026: version 4.4.0
 
