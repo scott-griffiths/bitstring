@@ -3,7 +3,8 @@ from __future__ import annotations
 import operator
 import pathlib
 from contextlib import contextmanager
-from typing import Any, BinaryIO, Iterator
+from typing import Any, BinaryIO
+from collections.abc import Iterator
 
 import bitstring
 import bitstring.bitstore as bitstore

@@ -4,7 +4,7 @@ import functools
 
 from tibs import Tibs, Mutibs, ByteOrder, DtypeKind, DtypeSingle, DtypeTuple
 
-from typing import Any, TypeVar
+from typing import Any, Self
 from collections.abc import Iterable, Iterator
 
 
@@ -123,9 +123,6 @@ def _validated_buffer(buffer, offset: int | None, length: int | None) -> memoryv
     return mv
 
 
-_Self = TypeVar('_Self', bound='_BitStoreBase')
-
-
 class _BitStoreBase:
     """Shared pass-through behaviour for ConstBitStore and MutableBitStore.
 
@@ -145,7 +142,7 @@ class _BitStoreBase:
         return self.tibs.encode()
 
     @classmethod
-    def from_buffer(cls: type[_Self], buffer, /, offset: int | None, length: int | None) -> _Self:
+    def from_buffer(cls, buffer, /, offset: int | None, length: int | None) -> Self:
         mv = _validated_buffer(buffer, offset, length)
         offset = offset or 0
         # Only the bytes covering the wanted bits are passed on, so that for a memory
@@ -163,7 +160,7 @@ class _BitStoreBase:
     def read_bytes(self, start: int, length: int) -> bytes:
         return self.tibs.to_bytes(start, start + length)
 
-    def byte_swapped(self: _Self, start: int | None = None, end: int | None = None) -> _Self:
+    def byte_swapped(self, start: int | None = None, end: int | None = None) -> Self:
         return type(self)(self.tibs.byte_swapped(start=start, end=end))
 
     def to_u(self) -> int:
@@ -196,7 +193,7 @@ class _BitStoreBase:
     def read_oct(self, start: int, length: int) -> str:
         return self.tibs.to_oct(start, start + length)
 
-    def __add__(self: _Self, other: _BitStoreBase, /) -> _Self:
+    def __add__(self, other: _BitStoreBase, /) -> Self:
         return type(self)(self.tibs + other.tibs)
 
     def __eq__(self, other: Any, /) -> bool:
@@ -204,22 +201,22 @@ class _BitStoreBase:
             return NotImplemented
         return self.tibs == other.tibs
 
-    def __and__(self: _Self, other: _BitStoreBase, /) -> _Self:
+    def __and__(self, other: _BitStoreBase, /) -> Self:
         return type(self)(self.tibs & other.tibs)
 
-    def __or__(self: _Self, other: _BitStoreBase, /) -> _Self:
+    def __or__(self, other: _BitStoreBase, /) -> Self:
         return type(self)(self.tibs | other.tibs)
 
-    def __xor__(self: _Self, other: _BitStoreBase, /) -> _Self:
+    def __xor__(self, other: _BitStoreBase, /) -> Self:
         return type(self)(self.tibs ^ other.tibs)
 
-    def __invert__(self: _Self) -> _Self:
+    def __invert__(self) -> Self:
         return type(self)(~self.tibs)
 
-    def __lshift__(self: _Self, n: int, /) -> _Self:
+    def __lshift__(self, n: int, /) -> Self:
         return type(self)(self.tibs << n)
 
-    def __rshift__(self: _Self, n: int, /) -> _Self:
+    def __rshift__(self, n: int, /) -> Self:
         return type(self)(self.tibs >> n)
 
     def find(self, bs: _BitStoreBase, start: int, end: int, bytealigned: bool = False,
@@ -232,17 +229,17 @@ class _BitStoreBase:
         return self.tibs.rfind(bs.tibs, start, end, byte_aligned=bytealigned,
                                mask=None if mask is None else mask.tibs)
 
-    def __imul__(self: _Self, n: int, /) -> _Self:
+    def __imul__(self, n: int, /) -> Self:
         self.tibs *= n
         return self
 
     def getindex(self, index: int, /) -> bool:
         return self.tibs[index]
 
-    def getslice_withstep(self: _Self, key: slice, /) -> _Self:
+    def getslice_withstep(self, key: slice, /) -> Self:
         return type(self)(self.tibs[key])
 
-    def getslice(self: _Self, start: int | None, stop: int | None, /) -> _Self:
+    def getslice(self, start: int | None, stop: int | None, /) -> Self:
         return type(self)(self.tibs[start:stop])
 
     def any(self) -> bool:
