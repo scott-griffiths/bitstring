@@ -1,24 +1,62 @@
 #!/usr/bin/env python
 r"""
 This package defines classes that simplify bit-wise creation, manipulation and
-interpretation of data.
+interpretation of data. Lengths and positions are in bits throughout, so fields
+need not be byte aligned.
 
 Classes:
 
 Bits -- An immutable container for binary data.
-BitArray -- A mutable container for binary data.
+BitArray -- A mutable container for binary data. Adds in-place methods such as
+            append, insert, overwrite, replace and set to those of Bits.
 Reader -- Wraps a Bits or BitArray with a bit position for sequential reading.
 Array -- An efficient list-like container where each item has a fixed-length binary format.
-Dtype -- Encapsulate the data types used in the other classes.
+Dtype -- A data type such as 'u12', 'f32' or 'hex', used to create and interpret bits.
 
 Functions:
 
-pack -- Create a Bits object from a format string.
+pack -- Create a Bits object from a format string and values.
 
 Exceptions:
 
 ReadError -- Reading or peeking past the end of a bitstring. Subclasses ValueError.
 
+Creation:
+
+Bits('0x4f8e220')                 -- from a string of hex, '0b' binary or '0o' octal.
+Bits('0b101, u12=100, f32=0.25')  -- comma-separated tokens, each a literal or dtype=value.
+Bits(u=100, length=12)            -- from a single keyword value.
+Bits.from_bytes(b), Bits.from_file(path), Bits.from_zeros(n), Bits.from_dtype('i8', -1)
+pack('u12, f32, bool', 100, 0.25, True)
+
+Interpretation:
+
+Properties such as .hex, .bin, .bytes, .u, .i and .f interpret the whole
+bitstring. Endian variants include .ule, .ibe and .fle. Use unpack() to
+interpret it as several fields, or a Reader to read fields one at a time.
+
+Example:
+
+>>> from bitstring import Bits, BitArray, Reader, Array, pack
+>>> s = Bits('0x4f8e220')
+>>> s.unpack('u12, hex8, bin')
+[1272, 'e2', '00100000']
+>>> s[:12].u
+1272
+>>> r = Reader(pack('u12, f32, bool', 100, 0.25, True))
+>>> r.read_value('u12'), r.read_value('f32'), r.read_value('bool')
+(100, 0.25, True)
+>>> b = BitArray('0x0f')
+>>> b.insert(4, '0b11')
+>>> b.bin
+'0000111111'
+>>> Array('u5', [1, 2, 31]).data
+BitArray('0b000010001011111')
+
+The core is the tibs Rust library (https://github.com/scott-griffiths/tibs),
+which can also be used directly for performance-critical bit work.
+
+Documentation: https://bitstring.readthedocs.io/
 https://github.com/scott-griffiths/bitstring
 """
 

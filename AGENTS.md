@@ -18,6 +18,7 @@ This file gives project-specific guidance for automated coding assistants and co
   - `bitstore_helpers.py`, `array_.py`, `dtypes.py`, `reader.py`, `utils.py`, `helpers.py`, `methods.py`: supporting modules for interpretation formats, the `Array` type, sequential `Reader`, and shared utilities.
   - `exceptions.py`: the module's exception types.
 - `tests/`: pytest suite, including Hypothesis-based tests and benchmark tests (`test_benchmarks.py`, via `pytest-benchmark`).
+- `benchmarks/`: `benchmark.py`, a standalone script that times the same workloads on 4.x and 5.0 so they can be compared (the source of the speedup table in `release_notes.md`). See `benchmarks/README.md`.
 - `doc/`: Sphinx source (`.rst`). `doc/html/` and `doc/_build/` are generated output - edit the `.rst` source, not generated HTML.
 - `release_notes.md`: user-facing changelog, linked prominently from the README as the place to see what's changed.
 - Generated or local-only, do not edit unless asked: `build/`, `dist/`, `bitstring.egg-info/`, `.venv/`, `venv/`, `.benchmarks/`, `.hypothesis/`, `.pytest_cache/`, `__pycache__/`, `.idea/`.
@@ -42,13 +43,15 @@ This file gives project-specific guidance for automated coding assistants and co
 
 ## Performance
 
-- Performance still matters in this layer, even though the heavy bit-manipulation core now lives in tibs's Rust implementation. `dtypes.py`, `array_.py`, `reader.py`, and `bitstore_helpers.py` sit on hot paths (dtype lookup/parsing, `Array` element access, sequential reads) and should be checked against the benchmark tests (`tests/test_benchmarks.py`, results under `.benchmarks/`) when a change could plausibly affect them.
+- Performance still matters in this layer, even though the heavy bit-manipulation core now lives in tibs's Rust implementation. `dtypes.py`, `array_.py`, `reader.py`, and `bitstore_helpers.py` sit on hot paths (dtype lookup/parsing, `Array` element access, sequential reads) and should be checked against the benchmark tests (`tests/test_benchmarks.py`, which only writes results under `.benchmarks/` when run with `--benchmark-autosave`; use `benchmarks/benchmark.py` to compare against 4.x) when a change could plausibly affect them.
 - Avoid adding avoidable Python-level overhead - extra allocations, redundant copies, repeated attribute lookups - on these paths.
 
 ## Documentation And Release Notes
 
 - `doc/*.rst` pages are entirely hand-written - none of the 16 files use Sphinx autodoc (`autoclass`/`automethod`/`autofunction`). Changing a docstring or signature in `bitstring/*.py` does not update the docs; the matching `.rst` page needs a manual edit too.
 - Sphinx source lives in `doc/*.rst`; edit that, not generated HTML.
+- The docs build (`doc/requirements.txt`, installed by Read the Docs via `.readthedocs.yaml`) also produces `llms.txt` and `llms-full.txt` for language models, using `sphinx-llms-txt`. These are built straight from the `.rst` sources, which is another reason to keep the reference pages hand-written rather than switching to autodoc.
+- The package docstring in `bitstring/__init__.py` is what `help(bitstring)` shows, so it's a cheat-sheet for the API. `tests/test_docs.py` runs its examples; keep it accurate when the API changes.
 - Update `release_notes.md` alongside any change to public API or behavior - treat it like part of the change, not an afterthought.
 - Match the style of the section you're editing.
 

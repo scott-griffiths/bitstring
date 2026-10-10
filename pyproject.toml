@@ -9,7 +9,7 @@ license = { text = "MIT" }
 authors = [
   { name="Scott Griffiths", email="dr.scottgriffiths@gmail.com" },
 ]
-description = "Simple construction, analysis and modification of binary data."
+description = "Simple construction, analysis and modification of binary data: bit arrays, bitfields and unaligned binary formats."
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
@@ -24,7 +24,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-keywords = ["binary", "bitarray", "bitvector", "bitfield"]
+keywords = [
+    "binary", "bits", "bitstring", "bit array", "bitarray", "bit vector",
+    "bitvector", "bitfield", "bitset", "bit manipulation", "binary parsing",
+    "unaligned", "packet", "struct", "endianness", "file format",
+]
 dependencies = [
   "tibs >= 2.0.2, < 3.0",
 ]
@@ -32,6 +36,9 @@ dependencies = [
 [project.urls]
 homepage = "https://github.com/scott-griffiths/bitstring"
 documentation = "https://bitstring.readthedocs.io/"
+source = "https://github.com/scott-griffiths/bitstring"
+issues = "https://github.com/scott-griffiths/bitstring/issues"
+changelog = "https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md"
 
 # Keep in sync with tests/requirements.txt, which the CI uses.
 [dependency-groups]

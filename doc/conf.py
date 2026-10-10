@@ -14,7 +14,26 @@ copyright = f"2006 - {year}, Scott Griffiths"
 author = "Scott Griffiths"
 release = "5.0.0rc1"
 
-extensions = []
+extensions = [
+    "sphinx_llms_txt",
+]
+
+# Read the Docs sets the canonical URL of the version being built. llms.txt links
+# are made absolute with it, so they work from /en/latest/ and from release builds.
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+
+# llms.txt is an index of the docs for language models, and llms-full.txt is the
+# whole manual in one file. Both are built from the .rst sources. The reference
+# pages are written by hand rather than with autodoc, so they come through whole.
+llms_txt_summary = (
+    "bitstring is a Python library for creating, analysing and modifying binary "
+    "data at the bit level. Bits is an immutable container of bits and BitArray "
+    "a mutable one; Reader reads from either sequentially, Array holds items of "
+    "a fixed-length binary format, and Dtype describes formats such as 'u12' or "
+    "'f32'. Lengths and positions are in bits, so fields need not be byte aligned. "
+    "It is built on tibs (https://github.com/scott-griffiths/tibs), a faster "
+    "Rust-based library that can also be used directly."
+)
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

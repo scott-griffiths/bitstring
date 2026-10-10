@@ -9,6 +9,9 @@
 
 It has been maintained since 2006.
 
+Since version 5.0 its core has been `tibs <https://github.com/scott-griffiths/tibs>`_, a faster Rust-based library for binary data by the same author.
+For performance-critical bit work that doesn't need bitstring's higher-level format handling, tibs can also be used directly.
+
 
 .. image:: https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg
    :target: https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml
