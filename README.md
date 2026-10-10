@@ -6,7 +6,7 @@
 
 
 [![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)](https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/readthedocs/bitstring?logo=readthedocs&logoColor=white)](https://bitstring.readthedocs.io/en/latest/)
+[![Docs](https://img.shields.io/readthedocs/bitstring?logo=readthedocs&logoColor=white)](https://bitstring.readthedocs.io/en/stable/)
 [![Codacy Badge](https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4?logo=codacy)](https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Dependents](https://img.shields.io/librariesio/dependents/pypi/bitstring?logo=libraries.io&logoColor=white)](https://libraries.io/pypi/bitstring)
 &nbsp; &nbsp;
@@ -16,18 +16,15 @@
 ----
 
 > [!NOTE]
-> To see what's been added, improved or fixed, and also to see what's coming in the next version, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
+> To see what's been added, improved or fixed, see the [release notes](https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md).
 
-> [!IMPORTANT]
-> The `main` branch now contains the upcoming bitstring 5.0 work. It is visible here for testing and feedback, but it is not the current released version. The released PyPI line is still bitstring 4.x; use `pip install bitstring` or pin `bitstring<5` for the stable API. Source maintenance for 4.x is on the `4.x-maintenance` branch.
+# Version 5.0
 
-# Version 5.0 preview
-
-Version 5.0 of bitstring is in development. This is a major update with breaking changes.
+Version 5.0 of bitstring is out. This is a major update with breaking changes.
 
 Reasons to upgrade include:
 
-* Significantly better performance using the new [tibs](https://github.com/scott-griffiths/tibs) Rust core.
+* Significantly better performance using the new [tibs](https://github.com/scott-griffiths/tibs) Rust core - around 4x faster across the benchmark suite, and far more for bulk `Array` work, searching and packing.
 * A simpler model for sequential reading: `Bits` and `BitArray` store data, while `Reader` stores the current bit position.
 * A clearer, more explicit API for construction, conversion and dtype names.
 * Removal of old compatibility layers, including the `bitarray` dependency, LSB0 mode and the old stream classes.
@@ -37,9 +34,10 @@ Reasons to upgrade include:
 
 Version 5 is worth moving to if you need the improved performance, want the cleaner current API, or want to keep up to
 date with future bitstring development. The changes are quite broad, so if your existing code is stable and performance
-is not a problem, there is no need to migrate immediately.
+is not a problem, there is no need to migrate immediately - pin your dependency to `bitstring<5` to stay on 4.x.
+The 4.x line is maintained on the `4.x-maintenance` branch.
 
-For details on the source changes you may need, see the [Upgrading to version 5](https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html) guide.
+For details on the source changes you may need, see the [Upgrading to version 5](https://bitstring.readthedocs.io/en/stable/upgrading_to_version_5.html) guide.
 
 ## What's this 'tibs' thing that everyone is talking about?
 
@@ -73,16 +71,14 @@ A sleek Python library for binary data
 Extensive documentation for the bitstring library is available.
 Some starting points are given below:
 
-* [Released 4.x documentation](https://bitstring.readthedocs.io/en/stable/)
-* [Upcoming 5.0 documentation](https://bitstring.readthedocs.io/en/latest/)
-* [Upgrading from 4.x to 5.0](https://bitstring.readthedocs.io/en/latest/upgrading_to_version_5.html)
+* [Overview](https://bitstring.readthedocs.io/en/stable/index.html)
+* [Quick reference](https://bitstring.readthedocs.io/en/stable/quick_reference.html)
+* [Upgrading from 4.x to 5.0](https://bitstring.readthedocs.io/en/stable/upgrading_to_version_5.html)
+* [Version 4.4 documentation](https://bitstring.readthedocs.io/en/4.4.0/)
 
-There is also an introductory walkthrough notebook for the 5.0 branch on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
+There is also an introductory walkthrough notebook on [binder](https://mybinder.org/v2/gh/scott-griffiths/bitstring/main?labpath=doc%2Fwalkthrough.ipynb).
 
 # Examples
-
-These examples show the upcoming 5.0 API from `main`.
-
 
 ### Creation
 ```pycon

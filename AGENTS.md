@@ -5,8 +5,8 @@ This file gives project-specific guidance for automated coding assistants and co
 ## Project Snapshot
 
 - Bitstring is a Python library for creating, analysing and modifying binary data at the bit level.
-- `main` holds the in-development bitstring 5.0, a breaking-change rewrite built on [tibs](https://github.com/scott-griffiths/tibs), a sibling Rust/PyO3 library by the same author, for the core bit storage and manipulation. Expect the 5.0 API to still be settling on this branch.
-- The stable 4.x line - pure Python, depends on `bitarray`, no tibs - lives on `4.x-maintenance` and is what's currently published to PyPI as `bitstring`. This file describes the `main`/5.0 architecture; `4.x-maintenance` predates the tibs core and much of it won't apply there.
+- `main` holds bitstring 5.x, a breaking-change rewrite of 4.x built on [tibs](https://github.com/scott-griffiths/tibs), a sibling Rust/PyO3 library by the same author, for the core bit storage and manipulation. 5.0 is released, so public API changes now need the usual care over compatibility.
+- The stable 4.x line - pure Python, depends on `bitarray`, no tibs - lives on `4.x-maintenance`, which is where any 4.x fixes go. This file describes the `main`/5.0 architecture; `4.x-maintenance` predates the tibs core and much of it won't apply there.
 - Targets Python 3.11+ (`requires-python = ">=3.11"`).
 - MIT licensed.
 

@@ -17,7 +17,7 @@ For performance-critical bit work that doesn't need bitstring's higher-level for
    :target: https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml
 
 .. image:: https://img.shields.io/readthedocs/bitstring
-   :target: https://bitstring.readthedocs.io/en/latest/
+   :target: https://bitstring.readthedocs.io/en/stable/
 
 .. image:: https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4?logo=codacy
    :target: https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
@@ -25,7 +25,7 @@ For performance-critical bit work that doesn't need bitstring's higher-level for
 .. image:: https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue
    :target: https://www.pepy.tech/projects/bitstring
 
-.. image:: https://img.shields.io/pypi/dm/bitstring?label=%40&labelColor=blue&color=blue)
+.. image:: https://img.shields.io/pypi/dm/bitstring?label=%40&labelColor=blue&color=blue
    :target: https://pypistats.org/packages/bitstring
 
 
@@ -33,9 +33,9 @@ For performance-critical bit work that doesn't need bitstring's higher-level for
 
 .. important::
 
-   These docs describe the upcoming bitstring 5.0 work.
-   The current released PyPI line is still bitstring 4.x. - see the 'stable' version
-   of these docs.
+   These docs describe bitstring 5, which has breaking changes from version 4.
+   See :ref:`upgrading_to_version_5` for help moving existing code across, or the
+   `4.4 documentation <https://bitstring.readthedocs.io/en/4.4.0/>`_ if you're staying on version 4.
 
 
 Overview
@@ -149,20 +149,20 @@ Installation and download
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-To install the current stable 4.x release from PyPI, use::
+To install the latest release from PyPI, use::
 
     pip install bitstring
 
-To try the upcoming 5.0 work from the ``main`` branch before it is released, install directly from GitHub::
+To stay on the 4.x line, pin the version::
 
-    pip install "bitstring @ git+https://github.com/scott-griffiths/bitstring.git@main"
+    pip install "bitstring<5"
 
 To download the module, as well as for defect reports, enhancement requests and Git repository browsing go to `the project's home on GitHub. <https://github.com/scott-griffiths/bitstring/>`_
 
 Release Notes
 ^^^^^^^^^^^^^
 
-To see what been added, improved or fixed, and possibly also to see what's coming in the next version, see the `release notes <https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md>`_ on GitHub.
+To see what's been added, improved or fixed, see the `release notes <https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md>`_ on GitHub.
 
 
 Credits
