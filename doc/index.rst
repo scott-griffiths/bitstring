@@ -66,6 +66,8 @@ The :ref:`reference` section has a complete list of all the classes, methods, pr
 
 If you are moving code from bitstring 4.x to 5.x, see :ref:`upgrading_to_version_5`.
 
+The main classes are:
+
     * :class:`Bits` - an immutable container of bits.
     * :class:`BitArray` - adds mutating methods to ``Bits``.
     * :class:`Reader` - wraps ``Bits`` or ``BitArray`` with a bit position and read methods.

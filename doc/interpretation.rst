@@ -25,7 +25,7 @@ The ``i``, ``u`` and ``f`` properties are the preferred names for bit-wise big-e
 The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases.
 Properties can have bit lengths appended to them to make properties such as ``f64``, ``u32``, ``bin12`` or ``fle32``.
 
-When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then an :exc:`AttributeError` is raised. When used as a setter they define the new length of the bitstring. ::
+When used as a getter these just add an extra check on the bitstring's length - if the bitstring is not the stated length then a :exc:`ValueError` is raised. When used as a setter they define the new length of the bitstring. ::
 
     s = BitArray()  # Empty bitstring
     s.f32 = 101.5   # New length is 32 bits, representing a float
@@ -132,7 +132,7 @@ Note also that standard floating point numbers in Python are stored in 64 bits, 
 Other floating point types
 --------------------------
 
-A range of floating point types that are mostly used in machine learning are also availabe.
+A range of floating point types that are mostly used in machine learning are also available.
 They include ``bfloat16`` which is a shortened ``f32``, together with IEEE 8-bit formats and a range of OCP Microscaling 8-bit, 6-bit and 4-bit formats.
 
 See :ref:`Exotic floats` for more information.

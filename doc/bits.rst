@@ -127,7 +127,7 @@ Methods
         False
 
 
-.. method:: Bits.find(bs: BitsType, start: int | None = None, end: int | None = None, *, bytealigned: bool = False) -> int | None
+.. method:: Bits.find(bs: BitsType, /, start: int | None = None, end: int | None = None, *, bytealigned: bool = False) -> int | None
 
     Searches for *bs* in the current bitstring and returns the start position if found, otherwise it returns ``None``.
 
@@ -276,7 +276,7 @@ Methods
     Colours are used by default unless the ``NO_COLOR`` environment variable is set. Pass ``color=False`` to disable them for a call, or ``color=True`` to force them on.
 
 
-.. method:: Bits.rfind(bs: BitsType, start: int | None = None, end: int | None = None, *, bytealigned: bool = False) -> int | None
+.. method:: Bits.rfind(bs: BitsType, /, start: int | None = None, end: int | None = None, *, bytealigned: bool = False) -> int | None
 
     Searches backwards for *bs* in the current bitstring and returns the start position if found, otherwise it returns ``None``.
 
@@ -350,7 +350,7 @@ Methods
     Writes the bitstring to the file object *f*, which should have been opened in binary write mode.
 
     The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
-    The file object remains open so the user must call ``.close()`` on it once they are finished.::
+    The file object remains open so the user must call ``.close()`` on it once they are finished. ::
 
         >>> f = open('newfile', 'wb')
         >>> Bits('0x1234').to_file(f)
@@ -410,7 +410,7 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 
     Property representing the underlying byte data that contains the bitstring.
 
-    When used as a getter the bitstring must be a whole number of byte long or a :exc:`ValueError` will be raised.
+    When used as a getter the bitstring must be a whole number of bytes long or a :exc:`ValueError` will be raised.
 
     An alternative is to use the :meth:`to_bytes` method, which will pad with between zero and seven ``0`` bits to make it byte aligned if needed. ::
 
@@ -452,7 +452,7 @@ The longer ``int``, ``uint`` and ``float`` names remain as compatibility aliases
 
     Property for the byte-wise little-endian signed two's complement integer representation of the bitstring.
 
-    Only valid for whole-byte bitstring, in which case it is equal to ``s[::-8].i``, i.e. the integer representation of the byte-reversed bitstring.
+    Only valid for whole-byte bitstrings, in which case it is equal to ``s[::-8].i``, i.e. the integer representation of the byte-reversed bitstring.
 
 .. attribute:: Bits.f
     :type: float
@@ -720,7 +720,7 @@ Special Methods
 
     ``s1 | s2``
 
-    Returns the bit-wise OR between two bitstring, which must have the same length otherwise a :exc:`ValueError` is raised. ::
+    Returns the bit-wise OR between two bitstrings, which must have the same length otherwise a :exc:`ValueError` is raised. ::
 
         >>> print(Bits('0x33') | '0x0f')
         0x3f

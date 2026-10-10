@@ -23,7 +23,7 @@ for a token string. ::
 
 In most situations the token string can be used instead of `Dtype` object when it is needed, and the `Dtype` will be constructed automatically,
 which is why the `Dtype` object is rarely used directly in this documentation.
-It can however be advantageous to to create `Dtype` objects directly for efficiency reasons, or for using dtypes programmatically.
+It can however be advantageous to create `Dtype` objects directly for efficiency reasons, or for using dtypes programmatically.
 
 A :class:`Dtype` is always a single interpretation of some bits. Where several are needed, as in
 :meth:`~Bits.unpack` or :func:`pack`, they are written as a format string with comma separated tokens

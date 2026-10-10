@@ -261,7 +261,7 @@ Methods
 
     As :meth:`Reader.read_bits`, but leaves :attr:`Reader.pos` unchanged.
 
-.. method:: Reader.peek_value(dtype: str | Dtype, /) -> int | float | str | Bits | bool | bytes | None | tuple
+.. method:: Reader.peek_value(dtype: str | Dtype, /) -> int | float | str | Bits | bool | bytes | None
 
     As :meth:`Reader.read_value`, but leaves :attr:`Reader.pos` unchanged. ::
 

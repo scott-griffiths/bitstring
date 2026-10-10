@@ -55,8 +55,8 @@ An example of creation and interpretation of a bfloat::
     >>> a = Bits(bfloat=4.5e23)  # No need to specify length as always 16 bits
     >>> a
     Bits('0x66bf')
-    >>> a.bfloat
-    4.509859991140511e+23  # Converted to Python float
+    >>> a.bfloat  # Converted to Python float
+    4.509859991140511e+23
 
 
 IEEE 8-bit Floating Point Types
@@ -162,7 +162,7 @@ Microscaling Formats
 
 A range of formats from the Microscaling Formats (MX) Alliance are supported. These are part of the Open Compute Project, and will usually have an external scale factor associated with them.
 
-Eight-bit floats similar to the IEEE `p3binary8` and `p4binary8`  are available, though these seem rather arbitrary and ugly in places in comparison to the IEEE definitions.
+Eight-bit floats similar to the IEEE `p3binary8` and `p4binary8` are available, though these seem rather arbitrary and ugly in places in comparison to the IEEE definitions.
 There is also a format to use for the scaling factor, an int-like format which is really a float, and some sensible six and four bit float formats.
 
 

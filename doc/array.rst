@@ -36,7 +36,7 @@ The ``bitstring.Array`` type is meant as a more flexible version of the standard
     dtype = 'fle32' if sys.byteorder == 'little' else 'f32'
     y = bitstring.Array(dtype, [1.0, 2.0, 3.14])
 
-    assert x.to_bytes() == y.to_bytes()
+    assert x.tobytes() == y.to_bytes()
 
 This example packs three 32-bit floats into objects using both libraries.
 The bitstring version chooses an explicit byte order to match the current machine.
@@ -55,7 +55,7 @@ Some examples will help illustrate::
     # Convert and store floats in 8 bits each
     b = Array('p3binary', [-56.0, 0.123, 99.6])
 
-    # Each element is a  7 bit signed integer
+    # Each element is a 7 bit signed integer
     c = Array('i7', [-3, 0, 120])
 
 You can then access and modify the ``Array`` with the usual notation::
@@ -108,7 +108,7 @@ It can only be set to a :class:`BitArray`, as the data has to stay mutable.
 The :class:`Array` object also has a :attr:`Array.trailing_bits` read-only data member, which consists of the end bits of the :attr:`Array.data` that are left over when the :class:`Array` is interpreted using the :attr:`Array.dtype`.
 Typically :attr:`Array.trailing_bits` will be an empty :class:`BitArray` but if you change the length of the :attr:`Array.data` or change the :attr:`Array.dtype` specification there may be some bits left over.
 
-Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`Array.trailing_bits` is not empty, as it not clear how these should behave in this case.
+Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`Array.trailing_bits` is not empty, as it is not clear how these should behave in this case.
 You can however still use :meth:`~Array.insert` which will always leave the :attr:`Array.trailing_bits` unchanged.
 
 The :attr:`Array.dtype` string can be a type code such as ``'>H'`` or ``'<d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'i12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
@@ -650,7 +650,7 @@ Python language operators
 
     ``del a[i]``
 
-    ``del[start:end:step]``
+    ``del a[start:end:step]``
 
 ----
 
@@ -662,7 +662,7 @@ Properties
 
     The bit data of the ``Array``, as a ``BitArray``. Read and write, and can be freely manipulated with all ``BitArray`` methods.
 
-    Note that some ``Array`` methods such as :meth:`~Array.append` and :meth:`~Array.extend` require the  :attr:`~Array.data` to have a length that is a multiple of the ``Array``'s :attr:`~Array.itemsize`.
+    Note that some ``Array`` methods such as :meth:`~Array.append` and :meth:`~Array.extend` require the :attr:`~Array.data` to have a length that is a multiple of the ``Array``'s :attr:`~Array.itemsize`.
 
 .. attribute:: Array.dtype
     :type: Dtype

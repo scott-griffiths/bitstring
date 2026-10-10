@@ -8,37 +8,13 @@ Quick Reference
 
 This section gives a summary of the bitstring module's classes, functions and attributes.
 
-There are two main classes that are bit containers, so that each element is a single bit.
-They differ based on whether they can be modified after creation. Sequential reading is provided by wrapping either class in a :class:`Reader`.
+The main classes are:
 
-.. |nbsp| unicode:: 0xa0
-   :trim:
-
-.. list-table::
-   :widths: 20 15 50
-   :header-rows: 1
-
-   * - Class
-     - Mutable?
-     -
-   * - :ref:`bits_quick_reference`
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
-     - An efficient, immutable container of bits.
-   * - :ref:`bitarray_quick_reference`
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
-     - Like ``Bits`` but it can be changed after creation.
-
-
-The :class:`Reader` class wraps either bit container with a current bit position for reading.
-The :class:`Array` class is a flexible container whose elements are fixed-length bitstrings.
-
-.. list-table::
-   :widths: 20 15 15 50
-
-   * - :ref:`array_quick_reference`
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✔
-     - |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| |nbsp| ✘
-     - An efficient list-like container where each item has a fixed-length binary format.
+* :ref:`bits_quick_reference` -- An efficient, immutable container of bits.
+* :ref:`bitarray_quick_reference` -- A mutable version of ``Bits`` that can be changed after creation.
+* :ref:`reader_quick_reference` -- Wraps a ``Bits`` or ``BitArray`` with a bit position, for sequential reading and parsing.
+* :ref:`array_quick_reference` -- A mutable, list-like container whose items all share the same fixed-length binary format.
+* :ref:`dtype_quick_reference` -- A data type describing how to pack, unpack and present a bit interpretation.
 
 ----
 
@@ -369,7 +345,7 @@ Creates a :class:`Dtype` object. Dtypes are immutable and cannot be changed afte
 
 The first parameter is a format token string that can optionally include a length.
 
-If appropriate, the `length` parameter can be used to specify the length of the bitstring.
+If appropriate, the `length` parameter can be used to specify the length of the dtype.
 
 
 

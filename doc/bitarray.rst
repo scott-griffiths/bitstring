@@ -8,7 +8,7 @@ BitArray
     The :class:`Bits` class is the base class for :class:`BitArray` and so (with the exception of :meth:`~Bits.__hash__`) all of its methods are also available for :class:`BitArray` objects.
     The initialiser is the same as for :class:`Bits`.
 
-    A :class:`BitArray` is a mutable :class:`Bits`, and so the one thing all of the methods listed here have in common is that  they can modify the contents of the bitstring.
+    A :class:`BitArray` is a mutable :class:`Bits`, and so the one thing all of the methods listed here have in common is that they can modify the contents of the bitstring.
 
     The factory methods :meth:`~Bits.from_string`, :meth:`~Bits.from_dtype`, :meth:`~Bits.from_bytes`, :meth:`~Bits.from_bools`, :meth:`~Bits.from_zeros`, :meth:`~Bits.from_ones`, :meth:`~Bits.from_joined`, :meth:`~Bits.from_file` and :meth:`~Bits.from_tibs` are also available and return mutable ``BitArray`` objects when called on ``BitArray``.
     ``BitArray.from_tibs`` accepts both ``tibs.Tibs`` and ``tibs.Mutibs`` objects, and always creates a mutable copy.
@@ -232,7 +232,7 @@ The binary interpretation properties of the :class:`Bits` class all become writa
 For integer types, the properties can have a bit length appended to it such as ``u32`` or ``i5`` to specify the new length of the bitstring.
 Using a length too small to contain the value given will raise a :exc:`ValueError`.
 
-When used  as a setter without a new length the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
+When used as a setter without a new length the value must fit into the current length of the :class:`BitArray`, else a :exc:`ValueError` will be raised. ::
 
     >>> s = BitArray('0xf3')
     >>> s.i
