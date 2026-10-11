@@ -12,10 +12,6 @@ If your project is using bitstring and performance isn't an
 issue then the best course of action may be to ignore version 5 and pin your bitstring
 dependency to <5.
 
-The main change in version 5 is that bitstrings no longer store a stream
-position. The bit data is represented by :class:`Bits` or :class:`BitArray`,
-and sequential reading is handled by a separate :class:`Reader`.
-
 This guide covers the changes most code will meet. For the complete list see the
 `release notes <https://github.com/scott-griffiths/bitstring/blob/main/release_notes.md>`_.
 
@@ -35,6 +31,9 @@ installing tibs then please file a bug report with either project.
 Replace stream classes with Reader
 ==================================
 
+Possibly the biggest change in version 5 is that bitstrings can no longer store a stream
+position.
+
 The ``ConstBitStream`` and ``BitStream`` classes have been removed. Bit data is
 held by :class:`Bits` or :class:`BitArray`, and a :class:`Reader` supplies the
 stream position::
@@ -47,7 +46,7 @@ stream position::
     r = Reader(Bits("0x160120f"))
     value = r.read_value("u12")
 
-There is no ``Reader.read``. Version 4's ``read()`` did two unrelated jobs
+There is no ``Reader.read``. Version 4's ``read()`` did two different jobs
 depending on the type of its argument, and each now has its own name::
 
     # bitstring 4
@@ -58,8 +57,7 @@ depending on the type of its argument, and each now has its own name::
     header = r.read_value("u12")
     payload = r.read_bits(n)
 
-The version 4 names are not kept as working aliases, so every old call site
-raises an error explaining its replacement.
+Old call sites should raise an error explaining the replacement needed:
 
 .. list-table::
    :header-rows: 1
@@ -517,7 +515,7 @@ been removed. Version 5 uses explicit dtype names, per-call arguments and the
    * - Version 4 setting
      - Version 5 replacement
    * - ``bitstring.options.lsb0 = True``
-     - Removed. Indexing is always MSB0.
+     - Removed. Indexing is always MSB0. For LSB0 try the tibs library.
    * - ``bitstring.options.mxfp_overflow = "overflow"``
      - Use an explicit MXFP dtype suffix such as ``e4m3mxfp_overflow``.
    * - ``bitstring.bytealigned = True`` or ``bitstring.options.bytealigned = True``

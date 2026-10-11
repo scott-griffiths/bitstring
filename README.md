@@ -7,7 +7,6 @@
 
 [![CI badge](https://github.com/scott-griffiths/bitstring/actions/workflows/.github/workflows/ci.yml/badge.svg)](https://github.com/scott-griffiths/bitstring/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/readthedocs/bitstring?logo=readthedocs&logoColor=white)](https://bitstring.readthedocs.io/en/stable/)
-[![Codacy Badge](https://img.shields.io/codacy/grade/8869499b2eed44548fa1a5149dd451f4?logo=codacy)](https://app.codacy.com/gh/scott-griffiths/bitstring/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Dependents](https://img.shields.io/librariesio/dependents/pypi/bitstring?logo=libraries.io&logoColor=white)](https://libraries.io/pypi/bitstring)
 &nbsp; &nbsp;
 [![Pepy Total Downloads](https://img.shields.io/pepy/dt/bitstring?logo=python&logoColor=white&labelColor=blue&color=blue)](https://www.pepy.tech/projects/bitstring)
@@ -20,20 +19,18 @@
 
 # Version 5.0
 
-Version 5.0 of bitstring is out. This is a major update with breaking changes.
-
-Reasons to upgrade include:
+This is a major update with breaking changes.
 
 * Significantly better performance using the new [tibs](https://github.com/scott-griffiths/tibs) Rust core - around 4x faster across the benchmark suite, and far more for bulk `Array` work, searching and packing.
 * A simpler model for sequential reading: `Bits` and `BitArray` store data, while `Reader` stores the current bit position.
 * A clearer, more explicit API for construction, conversion and dtype names.
-* Removal of old compatibility layers, including the `bitarray` dependency, LSB0 mode and the old stream classes.
-* A smaller internal codebase that should be easier to maintain and optimise further.
+* Some things have also been removed, including the `bitarray` dependency, LSB0 mode and the old stream classes.
+
 
 ## Upgrading from version 4
 
-Version 5 is worth moving to if you need the improved performance, want the cleaner current API, or want to keep up to
-date with future bitstring development. The changes are quite broad, so if your existing code is stable and performance
+Version 5 is worth moving to if you need the improved performance, want the cleaner API and other new features.
+The changes are quite broad, so if your existing code is stable and performance
 is not a problem, there is no need to migrate immediately - pin your dependency to `bitstring<5` to stay on 4.x.
 The 4.x line is maintained on the `4.x-maintenance` branch.
 
@@ -41,9 +38,10 @@ For details on the source changes you may need, see the [Upgrading to version 5]
 
 ## What's this 'tibs' thing that everyone is talking about?
 
-bitstring 5 is built on [tibs](https://github.com/scott-griffiths/tibs), a simpler and more focussed Python library for
-binary data, written in Rust for speed. It's by the same author as bitstring so they can complement each other's needs.
-If you want a leaner interface and do not need all of bitstring's higher-level format handling and historical API, tibs may be a better fit for new code.
+bitstring 5 is built on [tibs](https://github.com/scott-griffiths/tibs), a more focussed Python library for
+binary data, written in Rust and highly optimised for speed. It's by the same author as bitstring.
+For new projects, starting with [tibs]([tibs](https://github.com/scott-griffiths/tibs)) could be a better choice in many cases.
+
 
 Tibs has now reached its 2.0 release. Please do try it, as all feedback is welcome.
 
@@ -69,7 +67,7 @@ A sleek Python library for binary data
 # Documentation
 
 Extensive documentation for the bitstring library is available.
-Some starting points are given below:
+Some starting points:
 
 * [Overview](https://bitstring.readthedocs.io/en/stable/index.html)
 * [Quick reference](https://bitstring.readthedocs.io/en/stable/quick_reference.html)
