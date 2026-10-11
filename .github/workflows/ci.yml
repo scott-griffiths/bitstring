@@ -3,9 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - stable
-      - main
-      - 4.1-update
+      - 4.x-maintenance
     tags:
       - v*
   pull_request:
