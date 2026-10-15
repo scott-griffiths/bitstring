@@ -571,7 +571,8 @@ class Array:
            show_offset: bool = True, stream: TextIO | None = None, color: bool | None = None) -> None:
         """Pretty-print the Array contents.
 
-        fmt -- Data format string. Defaults to current Array dtype.
+        fmt -- Data format string. Defaults to current Array dtype. Use '_' to refer to
+               the current dtype within a format, e.g. '_, bin'.
         width -- Max width of printed lines in characters. Defaults to 120. A single group will always
                  be printed per line even if it exceeds the max width.
         sep -- A separator string to insert between groups. Defaults to a single space.
@@ -593,11 +594,9 @@ class Array:
             token_list = utils.preprocess_tokens(fmt)
             if len(token_list) not in [1, 2]:
                 raise ValueError(f"Only one or two tokens can be used in an Array.pp() format - '{fmt}' has {len(token_list)} tokens.")
-            name1, length1 = utils.parse_name_length_token(token_list[0])
-            dtype1 = Dtype(name1, length1)
+            dtype1 = self.dtype if token_list[0] == '_' else Dtype(token_list[0])
             if len(token_list) == 2:
-                name2, length2 = utils.parse_name_length_token(token_list[1])
-                dtype2 = Dtype(name2, length2)
+                dtype2 = self.dtype if token_list[1] == '_' else Dtype(token_list[1])
 
         token_length = dtype1.bitlength
         if dtype2 is not None:

@@ -736,6 +736,37 @@ class TestArrayMethods:
                                         " 0: c0403f804000\n" \
                                         "]\n"
 
+    @pytest.mark.parametrize('fmt', ['_, bin', 'bin, _', '_', '_, _'])
+    def test_pp_current_dtype(self, fmt):
+        a = Array('u8', [1, 255])
+        actual, expected = io.StringIO(), io.StringIO()
+        a.pp(fmt, stream=actual, color=False)
+        a.pp(fmt.replace('_', 'u8'), stream=expected, color=False)
+        assert actual.getvalue() == expected.getvalue()
+        assert a.tolist() == [1, 255]
+
+    def test_pp_current_dtype_after_change(self):
+        a = Array('u8', [255])
+        a.dtype = 'i8'
+        a.data += '0b11'
+        s = io.StringIO()
+        a.pp('_, hex', stream=s, color=False, show_offset=False)
+        assert s.getvalue() == "<Array fmt='i8, hex', length=1, itemsize=8 bits, total data size=2 bytes> [\n" \
+                               "  -1 : ff\n] + trailing_bits = 0b11\n"
+
+    def test_pp_current_dtype_bytes(self):
+        a = Array('bytes2', [b'ab'])
+        s = io.StringIO()
+        a.pp('_, hex', stream=s, color=False, show_offset=False)
+        assert "itemsize=16 bits" in s.getvalue()
+        assert "ab : 6162" in s.getvalue()
+
+    @pytest.mark.parametrize('fmt', ['_, hex16', 'hex16, _'])
+    def test_pp_current_dtype_mismatched_length(self, fmt):
+        a = Array('u8', [1])
+        with pytest.raises(ValueError, match='Two different format lengths'):
+            a.pp(fmt)
+
     def test_pp_signature_matches_bits(self):
         # The two pp() methods should stay positionally interchangeable.
         import inspect

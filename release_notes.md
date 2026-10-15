@@ -1,6 +1,11 @@
 
 # Release Notes
 
+## Unreleased
+
+* `Array.pp()` accepts `_` as shorthand for the current array dtype, including
+  in two-format output such as `a.pp('_, bin')`.
+
 ## October 2026: version 5.0.0 released
 
 A major release which completes the move to using the `tibs` Rust library as the core.
