@@ -1,6 +1,11 @@
 
 # Release Notes
 
+## Unreleased
+
+* Fixed extended slice assignment from an `Array` sharing the same data, including
+  `a[::-1] = a`, so values aren't overwritten before they are read.
+
 ## October 2026: version 5.0.0 released
 
 A major release which completes the move to using the `tibs` Rust library as the core.
