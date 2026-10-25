@@ -646,10 +646,6 @@ Python language operators
 
     ``a[start:end:step] = x``
 
-    When `x` is the same ``Array`` or shares its :attr:`~Array.data`, its values
-    are read before the assignment. For example, ``a[::-1] = a`` reverses the
-    elements without changing any :attr:`~Array.trailing_bits`.
-
 .. method:: Array.__delitem__(self, key: int | slice) -> None
 
     ``del a[i]``

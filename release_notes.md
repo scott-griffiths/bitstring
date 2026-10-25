@@ -3,8 +3,8 @@
 
 ## Unreleased
 
-* Fixed extended slice assignment from an `Array` sharing the same data, including
-  `a[::-1] = a`, so values aren't overwritten before they are read.
+* Fixed extended slice assignment from an `Array` sharing the same data, when using the
+  'bits' dtype, so values aren't overwritten before they are read. (#370, @KennyMcSimpson)
 
 ## October 2026: version 5.0.0 released
 
