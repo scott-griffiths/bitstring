@@ -1,6 +1,11 @@
 
 # Release Notes
 
+## Unreleased
+
+* Fixed `Array.count()` raising `OverflowError` for integers too large to convert
+  to a float, including when counting NaNs in an integer array.
+
 ## October 2026: version 5.0.0 released
 
 A major release which completes the move to using the `tibs` Rust library as the core.
