@@ -319,6 +319,24 @@ class TestArrayMethods:
         a[50:60:2] = x
         assert a[50:60:2].tolist() == list(range(1, 6))
 
+    @pytest.mark.parametrize('dtype, values', [
+        ('bits8', [Bits('0x01'), Bits('0x23'), Bits('0x45'), Bits('0x67')]),
+        ('u8', [1, 0x23, 0x45, 0x67]),
+    ])
+    @pytest.mark.parametrize('shared_data', [False, True])
+    @pytest.mark.parametrize('trailing_bits', ['', '0b101'])
+    def test_extended_slice_assignment_from_shared_array(self, dtype, values, shared_data, trailing_bits):
+        a = Array(dtype, values, trailing_bits=trailing_bits)
+        source = a
+        if shared_data:
+            source = Array(dtype)
+            source.data = a.data
+
+        a[::-1] = source
+
+        assert a.to_list() == values[::-1]
+        assert a.trailing_bits == Bits(trailing_bits)
+
     def test_equivalence(self):
         native_f32 = 'fle32' if sys.byteorder == 'little' else 'f32'
         native_f16 = 'fle16' if sys.byteorder == 'little' else 'f16'
