@@ -499,7 +499,7 @@ class Array:
         def is_nan(x: Any) -> bool:
             try:
                 return math.isnan(x)
-            except TypeError:
+            except (TypeError, OverflowError):
                 return False
 
         if is_nan(value):

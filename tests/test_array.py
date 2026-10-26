@@ -230,6 +230,14 @@ class TestArrayMethods:
         a.dtype = 'p3binary'
         assert a.count(float('nan')) == 2
 
+    def test_count_integers_too_large_for_float(self):
+        big = 2 ** 1500
+        a = Array('i2048', [big, -big, big, 7])
+        assert a.count(big) == 2
+        assert a.count(-big) == 1
+        assert a.count(float('nan')) == 0
+        assert Array('f64', [1.0, float('nan')]).count(big) == 0
+
     def test_count_non_numeric_values(self):
         a = Array('hex4', ['f', '0', 'f'])
         assert a.count('f') == 2
