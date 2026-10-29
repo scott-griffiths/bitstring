@@ -7,6 +7,8 @@
   'bits' dtype, so values aren't overwritten before they are read. (#370, @KennyMcSimpson)
 * Fixed `Array.count()` raising `OverflowError` for integers too large to convert
   to a float. (#371, @umtong)
+* `Array.equals()` with an `array.array` now requires a matching dtype and compares
+  the bits, as it does for another `Array`. (#372, @youdie006)
 
 ## October 2026: version 5.0.0 released
 

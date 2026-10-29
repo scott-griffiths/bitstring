@@ -648,17 +648,11 @@ class Array:
                 return False
             return True
         elif isinstance(other, array.array):
-            # Assume we are comparing with an array type
-            if self.trailing_bits:
+            # The typecode has to match the dtype, as for extend(), and then the bits.
+            other_dtype = _array_to_dtype(other)
+            if other_dtype is None or self._dtype.name != other_dtype.name or self.itemsize != other_dtype.bitlength:
                 return False
-            # array's itemsize is in bytes, not bits.
-            if self.itemsize != other.itemsize * 8:
-                return False
-            if len(self) != len(other):
-                return False
-            if self.to_list() != other.tolist():
-                return False
-            return True
+            return self._data == other.tobytes()
         return False
 
     def __iter__(self) -> Iterable[ElementType]:
