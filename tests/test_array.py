@@ -230,6 +230,14 @@ class TestArrayMethods:
         a.dtype = 'p3binary'
         assert a.count(float('nan')) == 2
 
+    def test_count_integers_too_large_for_float(self):
+        big = 2 ** 1500
+        a = Array('i2048', [big, -big, big, 7])
+        assert a.count(big) == 2
+        assert a.count(-big) == 1
+        assert a.count(float('nan')) == 0
+        assert Array('f64', [1.0, float('nan')]).count(big) == 0
+
     def test_count_non_numeric_values(self):
         a = Array('hex4', ['f', '0', 'f'])
         assert a.count('f') == 2
@@ -318,6 +326,24 @@ class TestArrayMethods:
         x = itertools.chain([1, 2, 3], [4, 5])
         a[50:60:2] = x
         assert a[50:60:2].tolist() == list(range(1, 6))
+
+    @pytest.mark.parametrize('dtype, values', [
+        ('bits8', [Bits('0x01'), Bits('0x23'), Bits('0x45'), Bits('0x67')]),
+        ('u8', [1, 0x23, 0x45, 0x67]),
+    ])
+    @pytest.mark.parametrize('shared_data', [False, True])
+    @pytest.mark.parametrize('trailing_bits', ['', '0b101'])
+    def test_extended_slice_assignment_from_shared_array(self, dtype, values, shared_data, trailing_bits):
+        a = Array(dtype, values, trailing_bits=trailing_bits)
+        source = a
+        if shared_data:
+            source = Array(dtype)
+            source.data = a.data
+
+        a[::-1] = source
+
+        assert a.to_list() == values[::-1]
+        assert a.trailing_bits == Bits(trailing_bits)
 
     def test_equivalence(self):
         native_f32 = 'fle32' if sys.byteorder == 'little' else 'f32'

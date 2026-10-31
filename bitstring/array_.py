@@ -310,7 +310,9 @@ class Array:
                 self._data[start * itemsize: stop * itemsize] = new_data
                 return
             items_in_slice = len(range(start, stop, step))
-            if not isinstance(value, Sized):
+            # Array iteration can read from the buffer being overwritten, so take
+            # a snapshot when the source is self or shares its data with self.
+            if (isinstance(value, Array) and value._data is self._data) or not isinstance(value, Sized):
                 value = list(value)
             if len(value) == items_in_slice:
                 itemsize = self.itemsize
@@ -497,7 +499,7 @@ class Array:
         def is_nan(x: Any) -> bool:
             try:
                 return math.isnan(x)
-            except TypeError:
+            except (TypeError, OverflowError):
                 return False
 
         if is_nan(value):

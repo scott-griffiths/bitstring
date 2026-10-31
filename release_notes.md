@@ -5,6 +5,10 @@
 
 * `Array.pp()` accepts `_` as shorthand for the current array dtype, including
   in two-format output such as `a.pp('_, bin')`.
+* Fixed extended slice assignment from an `Array` sharing the same data, when using the
+  'bits' dtype, so values aren't overwritten before they are read. (#370, @KennyMcSimpson)
+* Fixed `Array.count()` raising `OverflowError` for integers too large to convert
+  to a float. (#371, @umtong)
 
 ## October 2026: version 5.0.0 released
 
