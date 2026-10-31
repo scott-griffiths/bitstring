@@ -304,6 +304,12 @@ Methods
 
     The format string `fmt` defaults to the Array's current :attr:`dtype`, but any other valid Array format string can be used.
 
+    Use ``_`` for the current :attr:`dtype` in either position of the format string. For example,
+    ``a.pp('_, bin')`` prints each element using its current dtype alongside its binary representation.
+    The dtype is resolved each time ``pp()`` is called, so changing ``a.dtype`` also changes
+    the interpretation used by ``_``. A second format with an explicit length must have the
+    same bit length as the current dtype.
+
     If a `fmt` doesn't have an explicit length, the Array's :attr:`itemsize` will be used.
 
     A pair of comma-separated format strings can also be used - if both formats specify a length they must be the same. For example ``'f, hex16'`` or ``'u4, bin4'``.
