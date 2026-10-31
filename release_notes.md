@@ -3,6 +3,9 @@
 
 ## Unreleased
 
+* Fixed `Array.extend()` copying trailing bits from an `Array` source instead of
+  appending only its complete values.
+
 * Fixed extended slice assignment from an `Array` sharing the same data, when using the
   'bits' dtype, so values aren't overwritten before they are read. (#370, @KennyMcSimpson)
 * Fixed `Array.count()` raising `OverflowError` for integers too large to convert
