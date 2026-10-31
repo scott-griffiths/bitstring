@@ -754,6 +754,16 @@ class TestArrayMethods:
                                         " 0: c0403f804000\n" \
                                         "]\n"
 
+    @pytest.mark.parametrize("dtype, fmt, sep", [('u5', 'hex', ' '), ('u5', 'oct', ' '), ('u5', 'bytes', ' '),
+                                                  ('bool', 'hex', ' '), ('bool', 'hex', '')])
+    def test_pp_bad_format_raises_without_output(self, dtype, fmt, sep):
+        # Like Bits.pp, the format should be checked before anything is written.
+        a = Array(dtype, [1, 0, 1])
+        s = io.StringIO()
+        with pytest.raises(ValueError):
+            a.pp(fmt, sep=sep, stream=s)
+        assert s.getvalue() == ''
+
     def test_pp_signature_matches_bits(self):
         # The two pp() methods should stay positionally interchangeable.
         import inspect
@@ -1108,6 +1118,12 @@ class TestComparisonOperators:
         assert (a == (1, 0, 3)).tolist() == [True, False, True]
         assert (a == array.array('B', [1, 0, 3])).tolist() == [True, False, True]
 
+    def test_equals_with_bytes_is_elementwise(self):
+        a = Array('bytes2', [b'ab', b'cd'])
+        assert (a == b'ab').tolist() == [True, False]
+        assert (a != b'ab').tolist() == [False, True]
+        assert (a == bytearray(b'ab')).tolist() == [True, False]
+
 
 class TestTruthValue:
 
@@ -1280,6 +1296,15 @@ class TestMisc:
         y = Array('float16', [100, 2.0, 0.0, 4])
         x = x + (y == 0.0)
         assert x.tolist() == [1, 2, 4, 4]
+
+
+@pytest.mark.parametrize("value", [[9, 300], [9, 'x']])
+def test_failed_extended_slice_assignment_leaves_array_unchanged(value):
+    # As for step-1 slices, a bad value shouldn't leave earlier elements written.
+    a = Array('u8', [1, 2, 3, 4])
+    with pytest.raises((ValueError, TypeError)):
+        a[::2] = value
+    assert a.to_list() == [1, 2, 3, 4]
 
 
 def test_delete_out_of_range_index_has_message():

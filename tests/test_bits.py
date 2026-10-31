@@ -1398,3 +1398,10 @@ def test_bool_rejects_floats(value):
                                              (False, False), (0, False), ("0", False), ("False", False)])
 def test_bool_still_accepts_bools_ints_and_strings(value, expected):
     assert Bits(bool=value).bool is expected
+
+
+@pytest.mark.parametrize("method, value, s", [('all', 1, '0b0'), ('any', 1, '0b1')])
+def test_all_any_check_every_position(method, value, s):
+    # The docs promise an IndexError for any out-of-range pos, even after the result is known.
+    with pytest.raises(IndexError):
+        getattr(Bits(s), method)(value, [0, 5])
