@@ -422,7 +422,10 @@ class Array:
                 raise TypeError(
                     f"Cannot extend an Array with format '{self._dtype}' from an Array of format '{iterable._dtype}'.")
             # No need to iterate over the elements, we can just append the data
-            self._data.append(iterable._data)
+            source_data = iterable._data
+            if len(source_data) % itemsize:
+                source_data = source_data[:len(iterable) * itemsize]
+            self._data.append(source_data)
         elif isinstance(iterable, array.array):
             # array.array stores bytes in host order; compare against an explicit dtype.
             other_dtype = _array_to_dtype(iterable)

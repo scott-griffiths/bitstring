@@ -242,7 +242,11 @@ Methods
 
     Extend the Array by constructing new elements from the values in a list or other iterable.
 
-    The `iterable` can be another ``Array`` or an ``array.array``, but only if the dtype is the same. ::
+    The `iterable` can be another ``Array`` or an ``array.array``, but only if the dtype is the same.
+
+    Only complete elements of a source ``Array`` are appended; its trailing bits are not copied.
+
+    For example::
 
         >>> a = Array('i5', [-5, 0, 10])
         >>> a.extend([3, 2, 1])

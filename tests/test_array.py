@@ -367,6 +367,25 @@ class TestArrayMethods:
         b.append(0.0)
         assert a.equals(b)
 
+    @pytest.mark.parametrize('dtype, values', [
+        ('u8', [1, 2]), ('i5', [-3, 4]),
+        ('bits8', [Bits('0x12'), Bits('0x34')]), ('f16', [1.5, -2.0]),
+    ])
+    @pytest.mark.parametrize('trailing', ['0b1', '0b101'])
+    @pytest.mark.parametrize('empty_source', [False, True])
+    def test_extend_array_consumes_complete_values(self, dtype, values, trailing, empty_source):
+        source = Array(dtype, [] if empty_source else values, trailing_bits=trailing)
+        source_bits = source.data.copy()
+        target = Array(dtype, [values[0]])
+        expected = Array(dtype, [values[0]])
+        expected.extend(list(source))
+        target.extend(source)
+        assert target.equals(expected)
+        assert target.data == expected.data
+        assert len(target.trailing_bits) == 0
+        assert source.data == source_bits
+        target.append(values[0])
+
     def test_extend(self):
         a = Array('uint:3', (1, 2, 3))
         a.extend([4, 5, 6])
