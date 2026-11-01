@@ -154,6 +154,32 @@ class TestCreation:
         with pytest.raises(ValueError):
             _ = Array('float16', a)
 
+    @pytest.mark.parametrize('dtype,n', [('u8', 5), ('u5', 5), ('u16', 3), ('bytes2', 3)])
+    @pytest.mark.parametrize('chunk_size', [1, 2, 3])
+    def test_from_file_collects_short_reads(self, dtype, n, chunk_size):
+        class ChunkedFile(io.BytesIO):
+            def read(self, size=-1):
+                return super().read(min(size, chunk_size) if size >= 0 else size)
+
+        data = bytes(range(16))
+        source = ChunkedFile(data)
+        expected = Array.from_bytes(dtype, data)[:n]
+        result = Array.from_file(dtype, source, n=n)
+        assert result.equals(expected)
+        assert source.tell() == (n * result.itemsize + 7) // 8
+
+    def test_from_file_short_reads_and_true_eof(self):
+        class ChunkedFile(io.BytesIO):
+            def read(self, size=-1):
+                return super().read(min(size, 1) if size >= 0 else size)
+
+        with pytest.raises(EOFError, match='Only 2 items were available, not the 3 items requested'):
+            Array.from_file('u8', ChunkedFile(b'AB'), n=3)
+        source = ChunkedFile(b'AB')
+        assert len(Array.from_file('u8', source, n=0)) == 0
+        assert source.tell() == 0
+        assert Array.from_file('u8', source).to_list() == [65, 66]
+
     def test_creation_from_file(self):
         filename = os.path.join(THIS_DIR, 'test.m1v')
         with open(filename, 'rb') as f:

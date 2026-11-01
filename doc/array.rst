@@ -263,7 +263,7 @@ Methods
     Create a new ``Array`` with items read from a file path or binary file object.
 
     If a file object is given the items are read from its current file position.
-    If *n* is specified then exactly that many items are read, and an :exc:`EOFError` is raised if there is not enough data. Otherwise as many whole items as possible are read.
+    If *n* is specified then exactly that many items are read, and an :exc:`EOFError` is raised if there is not enough data. Otherwise as many whole items as possible are read. Short reads from a binary stream are collected until the requested number of items is available or the stream reaches EOF.
 
 .. classmethod:: Array.from_zeros(dtype: str | Dtype, n: int, /) -> Array
 

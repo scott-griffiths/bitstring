@@ -547,11 +547,27 @@ class Array:
             raise ValueError("n must be >= 0.")
         item_bits = x.itemsize
         bytes_wanted = None if n is None else (n * item_bits + 7) // 8
+        def read_data(f: BinaryIO) -> bytes:
+            if bytes_wanted is None:
+                return f.read()
+            data = f.read(bytes_wanted)
+            if not data or len(data) == bytes_wanted:
+                return data
+            parts = [data]
+            remaining = bytes_wanted - len(data)
+            while remaining:
+                part = f.read(remaining)
+                if not part:
+                    break
+                parts.append(part)
+                remaining -= len(part)
+            return b''.join(parts)
+
         if isinstance(source, (str, pathlib.Path)):
             with open(pathlib.Path(source), 'rb') as f:
-                b = f.read() if bytes_wanted is None else f.read(bytes_wanted)
+                b = read_data(f)
         else:
-            b = source.read() if bytes_wanted is None else source.read(bytes_wanted)
+            b = read_data(source)
         max_items = len(b) * 8 // item_bits
         items_to_use = max_items if n is None else min(n, max_items)
         if n is not None and items_to_use < n:
