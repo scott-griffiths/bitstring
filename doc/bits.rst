@@ -348,6 +348,8 @@ Methods
 .. method:: Bits.to_file(f: BinaryIO) -> None
 
     Writes the bitstring to the file object *f*, which should have been opened in binary write mode.
+    Short writes are completed before continuing. If a write makes no progress,
+    :exc:`BlockingIOError` is raised rather than silently dropping data.
 
     The data written will be padded at the end with between zero and seven ``0`` bits to make it byte aligned.
     The file object remains open so the user must call ``.close()`` on it once they are finished. ::
