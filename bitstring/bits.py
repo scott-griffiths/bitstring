@@ -1645,7 +1645,12 @@ class Bits:
         # Written in chunks, so the bytes of a huge bitstring aren't all built at once.
         chunk_size = 8 * 100 * 1024 * 1024  # 100 MiB
         for chunk in self.cut(chunk_size):
-            f.write(chunk.to_bytes())
+            remaining = memoryview(chunk.to_bytes())
+            while remaining:
+                written = f.write(remaining)
+                if written is None or written <= 0:
+                    raise BlockingIOError("The file write made no progress.")
+                remaining = remaining[written:]
 
     def tofile(self, f: BinaryIO) -> None:
         """Deprecated compatibility alias for :meth:`to_file`."""

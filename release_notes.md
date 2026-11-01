@@ -3,6 +3,9 @@
 
 ## Unreleased
 
+* Fixed `to_file()` silently discarding data after a short write to a binary
+  stream. Writes that make no progress now raise `BlockingIOError`.
+
 * Fixed extended slice assignment from an `Array` sharing the same data, when using the
   'bits' dtype, so values aren't overwritten before they are read. (#370, @KennyMcSimpson)
 * Fixed `Array.count()` raising `OverflowError` for integers too large to convert
