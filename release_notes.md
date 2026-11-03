@@ -26,6 +26,8 @@ This is a bug fix release, with several minor edge cases fixed.
   with trailing bits. Previously `extend()` appended them, leaving the extended `Array` with
   trailing bits in its data, and slice assignment silently left them out. Use a slice such
   as `b[:]` to leave them out explicitly. Creating an `Array` from another still copies them.
+* Fixed `BitArray.byteswap()` rejecting valid iterable byte-size patterns such as
+  NumPy integer arrays.
 
 ## October 2026: version 5.0.0 released
 

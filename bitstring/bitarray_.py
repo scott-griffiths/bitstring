@@ -648,7 +648,7 @@ class BitArray(Bits):
 
         """
         start_v, end_v = self._validate_slice(start, end)
-        if fmt is None or fmt == 0:
+        if fmt is None or (isinstance(fmt, numbers.Number) and fmt == 0):
             # reverse all of the whole bytes.
             bytesizes = [(end_v - start_v) // 8]
         elif isinstance(fmt, numbers.Integral):
