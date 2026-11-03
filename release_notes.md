@@ -28,6 +28,8 @@ This is a bug fix release, with several minor edge cases fixed.
   as `b[:]` to leave them out explicitly. Creating an `Array` from another still copies them.
 * Fixed `BitArray.byteswap()` rejecting valid iterable byte-size patterns such as
   NumPy integer arrays.
+* Fixed `Array.from_file(..., n=...)` reporting premature EOF after a short read
+  from a binary stream that still has more data.  
 
 ## October 2026: version 5.0.0 released
 
