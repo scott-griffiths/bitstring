@@ -367,6 +367,18 @@ class TestArrayMethods:
         b.append(0.0)
         assert a.equals(b)
 
+    def test_equals_array_array_compares_dtype_and_bits(self):
+        native_u16 = 'ule16' if sys.byteorder == 'little' else 'ube16'
+        other_u16 = 'ube16' if sys.byteorder == 'little' else 'ule16'
+        native_f64 = 'fle64' if sys.byteorder == 'little' else 'f64'
+        assert Array(native_u16, [1, 2]).equals(array.array('H', [1, 2]))
+        assert not Array(other_u16, [1, 2]).equals(array.array('H', [1, 2]))
+        assert not Array('u8', [1, 2]).equals(array.array('b', [1, 2]))
+        assert not Array('u16', [1]).equals(array.array('B', [0, 1]))
+        assert not Array('u32', [97]).equals(array.array('w' if sys.version_info >= (3, 13) else 'u', 'a'))
+        assert not Array(native_f64, [-0.0]).equals(array.array('d', [0.0]))
+        assert Array(native_f64, [float('nan')]).equals(array.array('d', [float('nan')]))
+
     def test_extend(self):
         a = Array('uint:3', (1, 2, 3))
         a.extend([4, 5, 6])
